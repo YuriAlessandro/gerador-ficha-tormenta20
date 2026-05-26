@@ -1898,44 +1898,24 @@ const Result: React.FC<ResultProps> = (props) => {
             />
 
             {/* PARTE DO MEIO: Atributos */}
-            {!isMobile && (
-              <Box
-                sx={
-                  isMobile
-                    ? { mt: '-290px', position: 'relative' }
-                    : { mt: '-90px', position: 'relative' }
+            <Card
+              sx={{
+                p: 3,
+                mb: 4,
+                position: 'relative',
+                overflow: 'visible',
+              }}
+            >
+              <BookTitle>Atributos</BookTitle>
+              <AttributeDisplay
+                attributes={atributos}
+                characterName={nome}
+                sheet={currentSheet}
+                attributeHighlights={
+                  markersEnabled ? conditionHighlights.attributes : undefined
                 }
-              >
-                <AttributeDisplay
-                  attributes={atributos}
-                  characterName={nome}
-                  sheet={currentSheet}
-                  attributeHighlights={
-                    markersEnabled ? conditionHighlights.attributes : undefined
-                  }
-                />
-              </Box>
-            )}
-            {isMobile && (
-              <Card
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  position: 'relative',
-                  overflow: 'visible', // Allow the button to show outside the card
-                }}
-              >
-                <BookTitle>Atributos</BookTitle>
-                <AttributeDisplay
-                  attributes={atributos}
-                  characterName={nome}
-                  sheet={currentSheet}
-                  attributeHighlights={
-                    markersEnabled ? conditionHighlights.attributes : undefined
-                  }
-                />
-              </Card>
-            )}
+              />
+            </Card>
 
             {/* Card de Parceiros (apenas durante encontro com partners anexados) */}
             <Box sx={{ mb: 4 }}>

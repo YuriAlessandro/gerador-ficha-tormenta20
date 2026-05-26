@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stack, Box, useTheme } from '@mui/material';
+import { Stack, Box, Tooltip, useTheme } from '@mui/material';
 
 import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
@@ -97,7 +97,15 @@ const AttributeDisplay = ({
   };
 
   return (
-    <Stack spacing={2} direction='row' flexWrap='wrap' justifyContent='center'>
+    <Stack
+      direction='row'
+      flexWrap='wrap'
+      justifyContent='center'
+      sx={{
+        rowGap: { xs: 1, sm: 2 },
+        columnGap: { xs: 1, sm: 2 },
+      }}
+    >
       {Object.entries(attributes).map(([attribute, value]) => {
         const label = attribute;
         const attrConditions = attributeHighlights?.[attribute as Atributo];
@@ -114,27 +122,73 @@ const AttributeDisplay = ({
             )
           : 0;
         const displayedValue = value.value + conditionPenalty;
+        const hasDelta = conditionPenalty !== 0;
+        const deltaColor =
+          conditionPenalty < 0
+            ? theme.palette.error.main
+            : theme.palette.success.main;
         return (
-          <FancyBox key={attribute}>
-            <NumberDisplay
-              onClick={() => handleAttributeClick(label, value.value)}
-              title={`Rolar teste de ${label}`}
-              style={labelStyle}
-            >
-              {addSign(displayedValue)}
-            </NumberDisplay>
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.25,
-                ...labelStyle,
-              }}
-            >
-              <ConditionMarker conditions={attrConditions} fontSize='inherit' />
-              <Title>{label}</Title>
-            </Box>
-          </FancyBox>
+          <Box
+            key={attribute}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.25,
+            }}
+          >
+            <FancyBox>
+              <NumberDisplay
+                onClick={() => handleAttributeClick(label, value.value)}
+                title={`Rolar teste de ${label}`}
+                style={labelStyle}
+              >
+                {addSign(displayedValue)}
+              </NumberDisplay>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.25,
+                  ...labelStyle,
+                }}
+              >
+                <ConditionMarker
+                  conditions={attrConditions}
+                  fontSize='inherit'
+                />
+                <Title>{label}</Title>
+              </Box>
+            </FancyBox>
+            {hasDelta && (
+              <Tooltip
+                title={`Base ${addSign(value.value)} → ${addSign(
+                  displayedValue
+                )}`}
+                arrow
+              >
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.25,
+                    px: 0.75,
+                    py: 0.1,
+                    borderRadius: 1,
+                    backgroundColor: `${deltaColor}22`,
+                    color: deltaColor,
+                    fontFamily: 'Tfont',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    border: `1px solid ${deltaColor}55`,
+                  }}
+                >
+                  {addSign(conditionPenalty)}
+                </Box>
+              </Tooltip>
+            )}
+          </Box>
         );
       })}
     </Stack>
