@@ -64,6 +64,7 @@ import {
   ConditionMarker,
   useConditionHighlights,
 } from '@/premium/components/Conditions';
+import { PartnerSheetPanel } from '@/premium/components/Partners';
 import { ParodySpellPickerDialog } from '@/premium/components/ParodySpellPicker';
 import { getConditionLabelStyle } from '@/premium/functions/conditionHighlights';
 import type { ActiveCondition } from '@/premium/interfaces/ActiveCondition';
@@ -1926,6 +1927,11 @@ const Result: React.FC<ResultProps> = (props) => {
                 />
               </Card>
             )}
+
+            {/* Card de Parceiros (apenas durante encontro com partners anexados) */}
+            <Box sx={{ mb: 4 }}>
+              <PartnerSheetPanel />
+            </Box>
 
             {/* Card de Ataques */}
             <Card
