@@ -74,6 +74,59 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Novo: histórico de rolagens persistente na Mesa Virtual.
+                  </strong>{' '}
+                  Até agora o histórico vivia só na memória do navegador:
+                  qualquer <strong>refresh apagava tudo</strong> e quem entrava
+                  no meio da sessão não enxergava o que tinha rolado antes.
+                  Agora cada rolagem é{' '}
+                  <strong>persistida no banco de dados</strong> e sincronizada
+                  entre todos os jogadores em tempo real — o histórico volta
+                  intacto após F5, late-joiners recebem as últimas{' '}
+                  <strong>200 rolagens</strong> ao entrar, e o botão{' '}
+                  <strong>&quot;Limpar histórico&quot;</strong> do mestre agora
+                  zera o histórico de <strong>todos os clientes</strong>{' '}
+                  simultaneamente (antes cada cliente limpava só a própria
+                  tela).
+                </li>
+                <li>
+                  <strong>
+                    Novo: histórico de rolagens em cards com aplicação direta de
+                    PV.
+                  </strong>{' '}
+                  O painel <strong>&quot;Rolagens recentes&quot;</strong> foi
+                  redesenhado: cada rolagem agora é um <strong>card</strong> com
+                  a <strong>imagem da ficha</strong> em círculo e uma{' '}
+                  <strong>faixa lateral colorida</strong> (mesma cor definida
+                  pelo mestre na ordem de turno). Cada valor final rolado tem{' '}
+                  <strong>botões inline</strong> à esquerda pra aplicar dano (½
+                  / ×2 / valor) e à direita pra aplicar cura (valor / ×2 / ½) —
+                  clica e o PV da ficha é alterado na hora, com o dano
+                  consumindo <strong>PV temporário primeiro</strong>. O painel
+                  inteiro também ganhou um botão pra{' '}
+                  <strong>recolher/expandir</strong> (igual à ordem de turno),
+                  com a preferência salva.
+                </li>
+                <li>
+                  <strong>
+                    Novo: rail lateral também na visão do mestre, com seletor de
+                    alvo.
+                  </strong>{' '}
+                  O mestre agora tem o mesmo painel lateral à direita com{' '}
+                  <strong>histórico de rolagens</strong> e{' '}
+                  <strong>rolagem rápida</strong>. Como o mestre opera em nome
+                  de qualquer um, ao clicar nos botões de aplicar dano ou cura
+                  abre um <strong>popover</strong> pra escolher o alvo entre os{' '}
+                  <strong>participantes do encontro</strong> (jogadores e
+                  ameaças), com um atalho de{' '}
+                  <strong>&quot;Recentes&quot;</strong> no topo pra repetir
+                  alvos comuns (útil em ataques em área). Dano em PJ atualiza a
+                  ficha e o encontro juntos; dano em ameaça mexe direto no
+                  participante. O rail se <strong>recolhe sozinho</strong>{' '}
+                  sempre que o mestre troca de aba pra não competir por atenção.
+                </li>
+                <li>
+                  <strong>
                     Melhoria: PV e PM repensados pra desktop e mobile.
                   </strong>{' '}
                   Antes, pra alterar PV ou PM era preciso passar o mouse por
