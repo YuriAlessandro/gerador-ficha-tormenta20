@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            25/05/2026 (v4.18).
+            26/05/2026 (v4.18).
           </p>
 
           <p>
@@ -72,6 +72,32 @@ const Changelog: React.FC = () => {
               <h3>4.18</h3>
 
               <ul>
+                <li>
+                  <strong>Novo: Parceiros na Mesa Virtual (Apoiador).</strong> O
+                  mestre agora pode anexar <strong>NPCs auxiliares</strong> a
+                  jogadores durante um encontro ativo — guerreiros, curandeiros,
+                  conjuradores e outros, cada um com seu pacote de bônus. A
+                  feature traz uma <strong>biblioteca built-in</strong> com{' '}
+                  <strong>12 arquétipos × 3 tiers</strong> (Iniciante, Veterano,
+                  Mestre): Adepto, Ajudante, Assassino, Atirador, Combatente,
+                  Destruidor, Fortão, Guardião, Magivocador, Médico, Perseguidor
+                  e Vigilante. O mestre também pode criar{' '}
+                  <strong>parceiros customizados</strong> em um editor livre,
+                  combinando bônus passivos, ações ativadas (com PM, limite por
+                  rodada e rolagem de dado) e habilidades narrativas. Ao anexar,
+                  o mestre dá um <strong>nome ao NPC</strong> (ex.: &quot;Sir
+                  Galahad&quot;) para narrativa. Jogadores ganham um{' '}
+                  <strong>painel &quot;Parceiros&quot;</strong> na ficha
+                  listando o que está aplicado automaticamente, as ações
+                  disponíveis para usar no turno (com botão{' '}
+                  <strong>Usar</strong>) e os efeitos informativos. Rolagens de
+                  parceiro aparecem com o overlay fullscreen e são broadcast pra
+                  mesa toda, como uma rolagem normal. O dialog &quot;É O SEU
+                  TURNO!&quot; lembra o jogador de que tem parceiros
+                  disponíveis. <strong>Disponibilidade:</strong> feature
+                  controlada via admin (default desativada) e exclusiva para
+                  mestres apoiadores quando habilitada.
+                </li>
                 <li>
                   <strong>
                     Novo: botão de <em>subir nível</em> direto no topo da ficha.
