@@ -74,6 +74,51 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Melhoria: PV e PM repensados pra desktop e mobile.
+                  </strong>{' '}
+                  Antes, pra alterar PV ou PM era preciso passar o mouse por
+                  cima do círculo — o que <strong>não funciona no touch</strong>
+                  , então usuários de celular ficavam sem como editar valores.
+                  Agora cada círculo tem controles{' '}
+                  <strong>sempre visíveis</strong> logo abaixo: um par de{' '}
+                  <strong>− / +</strong> com incremento ajustável (clica e o
+                  valor cai/sobe pelo passo), um campo onde você{' '}
+                  <strong>digita o valor</strong> e aplica como{' '}
+                  <strong>Dano</strong> (que consome temp primeiro, depois PV)
+                  ou <strong>Curar</strong> (não toca em temp). O círculo também
+                  ficou <strong>clicável</strong> e abre um{' '}
+                  <strong>painel de edição completa</strong> — entra pela
+                  direita no desktop e <strong>por baixo no celular</strong>{' '}
+                  (mantendo a ficha visível atrás). Lá dentro você ajusta atual,
+                  temporário, incremento, define um{' '}
+                  <strong>máximo manual</strong> que sobrescreve o cálculo, e
+                  agora tem botões dedicados de <strong>Cura total</strong> (que
+                  zera o temp também, como descanso) e{' '}
+                  <strong>Limpar temp</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: bloco de atributos com layout estável e indicador
+                    do que mudou.
+                  </strong>{' '}
+                  No desktop os atributos eram empurrados pra cima com um truque
+                  de margem negativa pra criar aquela faixa decorativa
+                  sobreposta ao card do herói — mas o layout ficava{' '}
+                  <strong>frágil</strong> e quebrava sempre que algo mudava
+                  acima. Agora os atributos têm <strong>seção própria</strong>{' '}
+                  no desktop também (com título{' '}
+                  <strong>&quot;Atributos&quot;</strong>, igual ao mobile), sem
+                  truques de margem. Além disso, quando uma{' '}
+                  <strong>condição ativa</strong> afeta um atributo (ex.:
+                  Esmorecido dá −2 em Carisma), aparece um{' '}
+                  <strong>chip colorido embaixo</strong> da caixa mostrando
+                  exatamente a magnitude da mudança — vermelho pra penalidade,
+                  verde pra bônus — e o tooltip explica{' '}
+                  <strong>Base → Modificado</strong>. Dá pra ver em 1 segundo o
+                  que está afetando o personagem.
+                </li>
+                <li>
+                  <strong>
                     Correção: botão &quot;Salvar&quot; travado ao criar efeito
                     customizado com escopo &quot;Qualquer arma&quot;.
                   </strong>{' '}
