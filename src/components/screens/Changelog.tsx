@@ -73,9 +73,24 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
-                  <strong>Novo: Parceiros na Mesa Virtual (Apoiador).</strong> O
-                  mestre agora pode anexar <strong>NPCs auxiliares</strong> a
-                  jogadores durante um encontro ativo — guerreiros, curandeiros,
+                  <strong>
+                    Correção: botão &quot;Salvar&quot; travado ao criar efeito
+                    customizado com escopo &quot;Qualquer arma&quot;.
+                  </strong>{' '}
+                  Ao criar um <strong>efeito customizado</strong> e escolher{' '}
+                  <strong>Dano de arma</strong> ou{' '}
+                  <strong>Ataque (corpo a corpo / distância)</strong>, o escopo
+                  já aparecia como <strong>Qualquer arma</strong>, mas o botão{' '}
+                  <strong>Salvar</strong> só destravava se você trocasse o
+                  escopo para outra opção e voltasse. Agora o estado inicial do
+                  escopo é sincronizado com a UI — o Salvar fica liberado
+                  imediatamente assim que os campos obrigatórios são
+                  preenchidos.
+                </li>
+                <li>
+                  <strong>Novo: Parceiros na Mesa Virtual.</strong> O mestre
+                  agora pode anexar <strong>Parceiros</strong> a jogadores
+                  durante um encontro ativo — guerreiros, curandeiros,
                   conjuradores e outros, cada um com seu pacote de bônus. A
                   feature traz uma <strong>biblioteca built-in</strong> com{' '}
                   <strong>12 arquétipos × 3 tiers</strong> (Iniciante, Veterano,
@@ -85,8 +100,8 @@ const Changelog: React.FC = () => {
                   <strong>parceiros customizados</strong> em um editor livre,
                   combinando bônus passivos, ações ativadas (com PM, limite por
                   rodada e rolagem de dado) e habilidades narrativas. Ao anexar,
-                  o mestre dá um <strong>nome ao NPC</strong> (ex.: &quot;Sir
-                  Galahad&quot;) para narrativa. Jogadores ganham um{' '}
+                  o mestre dá um <strong>nome ao Parceiro</strong> (ex.:
+                  &quot;Sir Galahad&quot;) para narrativa. Jogadores ganham um{' '}
                   <strong>painel &quot;Parceiros&quot;</strong> na ficha
                   listando o que está aplicado automaticamente, as ações
                   disponíveis para usar no turno (com botão{' '}
@@ -94,9 +109,7 @@ const Changelog: React.FC = () => {
                   parceiro aparecem com o overlay fullscreen e são broadcast pra
                   mesa toda, como uma rolagem normal. O dialog &quot;É O SEU
                   TURNO!&quot; lembra o jogador de que tem parceiros
-                  disponíveis. <strong>Disponibilidade:</strong> feature
-                  controlada via admin (default desativada) e exclusiva para
-                  mestres apoiadores quando habilitada.
+                  disponíveis.
                 </li>
                 <li>
                   <strong>
