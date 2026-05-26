@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -11,8 +11,6 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import HotelIcon from '@mui/icons-material/Hotel';
 import EditIcon from '@mui/icons-material/Edit';
 
@@ -21,10 +19,7 @@ interface StatControlProps {
   current: number;
   max: number;
   calculatedMax: number;
-  increment: number;
   temp: number;
-  onUpdateCurrent: (newCurrent: number) => void;
-  onUpdateIncrement: (newIncrement: number) => void;
   onDecrement: (amount: number) => void;
   onHeal: (amount: number) => void;
   onOpenDrawer?: () => void;
@@ -36,10 +31,7 @@ const StatControl: React.FC<StatControlProps> = ({
   current,
   max,
   calculatedMax,
-  increment,
   temp,
-  onUpdateCurrent,
-  onUpdateIncrement,
   onDecrement,
   onHeal,
   onOpenDrawer,
@@ -78,30 +70,7 @@ const StatControl: React.FC<StatControlProps> = ({
 
   const color = getColor();
 
-  // Local state for inputs
-  const [incrementInputValue, setIncrementInputValue] = useState(
-    String(increment)
-  );
   const [amountInputValue, setAmountInputValue] = useState('');
-
-  useEffect(() => {
-    setIncrementInputValue(String(increment));
-  }, [increment]);
-
-  const handleIncrementChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = event.target.value;
-      if (inputValue !== '' && !/^\d*$/.test(inputValue)) {
-        return;
-      }
-      setIncrementInputValue(inputValue);
-      const numValue = parseInt(inputValue, 10);
-      if (!Number.isNaN(numValue) && numValue >= 1) {
-        onUpdateIncrement(numValue);
-      }
-    },
-    [onUpdateIncrement]
-  );
 
   const handleAmountChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,15 +82,6 @@ const StatControl: React.FC<StatControlProps> = ({
     },
     []
   );
-
-  const handleIncrementClick = useCallback(() => {
-    const newValue = Math.min(current + increment, max);
-    onUpdateCurrent(newValue);
-  }, [current, increment, max, onUpdateCurrent]);
-
-  const handleDecrementClick = useCallback(() => {
-    onDecrement(increment);
-  }, [increment, onDecrement]);
 
   const parsedAmount = parseInt(amountInputValue, 10);
   const isAmountValid = !Number.isNaN(parsedAmount) && parsedAmount > 0;
@@ -137,14 +97,6 @@ const StatControl: React.FC<StatControlProps> = ({
     onHeal(parsedAmount);
     setAmountInputValue('');
   }, [isAmountValid, onHeal, parsedAmount]);
-
-  const isDecrementDisabled =
-    disabled ||
-    (type === 'PV'
-      ? current <= pvMinimo && temp <= 0
-      : current <= 0 && temp <= 0);
-
-  const isIncrementDisabled = disabled || current >= max;
 
   const tooltipContent = (
     <Box>
@@ -369,73 +321,8 @@ const StatControl: React.FC<StatControlProps> = ({
         />
       )}
 
-      {/* Quick step controls */}
-      <Stack direction='row' spacing={0.5} alignItems='center' sx={{ mt: 0.5 }}>
-        <IconButton
-          size='small'
-          onClick={handleDecrementClick}
-          disabled={isDecrementDisabled}
-          aria-label={`Reduzir ${type} em ${increment}`}
-          sx={{
-            backgroundColor: color,
-            color: 'white',
-            width: 32,
-            height: 32,
-            '&:hover': { backgroundColor: normalDarkColor },
-            '&:disabled': {
-              backgroundColor: theme.palette.grey[400],
-              color: theme.palette.grey[600],
-            },
-          }}
-        >
-          <RemoveIcon fontSize='small' />
-        </IconButton>
-        <TextField
-          size='small'
-          value={incrementInputValue}
-          onChange={handleIncrementChange}
-          disabled={disabled}
-          inputProps={{
-            inputMode: 'numeric',
-            style: {
-              textAlign: 'center',
-              padding: '4px 2px',
-              fontSize: '12px',
-              fontWeight: 600,
-              width: 32,
-            },
-            'aria-label': 'Incremento',
-          }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              height: 32,
-              '& fieldset': { borderColor: color },
-            },
-          }}
-        />
-        <IconButton
-          size='small'
-          onClick={handleIncrementClick}
-          disabled={isIncrementDisabled}
-          aria-label={`Aumentar ${type} em ${increment}`}
-          sx={{
-            backgroundColor: color,
-            color: 'white',
-            width: 32,
-            height: 32,
-            '&:hover': { backgroundColor: normalDarkColor },
-            '&:disabled': {
-              backgroundColor: theme.palette.grey[400],
-              color: theme.palette.grey[600],
-            },
-          }}
-        >
-          <AddIcon fontSize='small' />
-        </IconButton>
-      </Stack>
-
       {/* Amount input + Dano/Curar */}
-      <Stack direction='row' spacing={0.5} alignItems='center'>
+      <Stack direction='row' spacing={0.5} alignItems='center' sx={{ mt: 0.5 }}>
         <TextField
           size='small'
           value={amountInputValue}

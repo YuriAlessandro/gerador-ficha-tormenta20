@@ -798,28 +798,6 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
-  const handlePVCurrentUpdate = useCallback(
-    (newCurrent: number) => {
-      const updatedSheet = { ...currentSheet, currentPV: newCurrent };
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
-      }
-    },
-    [currentSheet, onSheetUpdate]
-  );
-
-  const handlePVIncrementUpdate = useCallback(
-    (newIncrement: number) => {
-      const updatedSheet = { ...currentSheet, pvIncrement: newIncrement };
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
-      }
-    },
-    [currentSheet, onSheetUpdate]
-  );
-
   const handlePVDecrement = useCallback(
     (amount: number) => {
       const currentTemp = currentSheet.tempPV ?? 0;
@@ -832,28 +810,6 @@ const Result: React.FC<ResultProps> = (props) => {
         tempPV: currentTemp - tempConsumed,
         currentPV: Math.max(pvMinimo, currentPVVal - remaining),
       };
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
-      }
-    },
-    [currentSheet, onSheetUpdate]
-  );
-
-  const handlePMCurrentUpdate = useCallback(
-    (newCurrent: number) => {
-      const updatedSheet = { ...currentSheet, currentPM: newCurrent };
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
-      }
-    },
-    [currentSheet, onSheetUpdate]
-  );
-
-  const handlePMIncrementUpdate = useCallback(
-    (newIncrement: number) => {
-      const updatedSheet = { ...currentSheet, pmIncrement: newIncrement };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -1801,10 +1757,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       current={currentSheet.currentPV ?? pv}
                       max={pv}
                       calculatedMax={pv}
-                      increment={currentSheet.pvIncrement ?? 1}
                       temp={currentSheet.tempPV ?? 0}
-                      onUpdateCurrent={handlePVCurrentUpdate}
-                      onUpdateIncrement={handlePVIncrementUpdate}
                       onDecrement={handlePVDecrement}
                       onHeal={handlePVHeal}
                       onOpenDrawer={() => setStatDrawerOpen(true)}
@@ -1834,10 +1787,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       current={currentSheet.currentPM ?? pm}
                       max={pm}
                       calculatedMax={pm}
-                      increment={currentSheet.pmIncrement ?? 1}
                       temp={currentSheet.tempPM ?? 0}
-                      onUpdateCurrent={handlePMCurrentUpdate}
-                      onUpdateIncrement={handlePMIncrementUpdate}
                       onDecrement={handlePMDecrement}
                       onHeal={handlePMHeal}
                       onOpenDrawer={() => setStatDrawerOpen(true)}

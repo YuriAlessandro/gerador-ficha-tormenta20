@@ -28,25 +28,21 @@ interface StatEditDrawerProps {
 type StatFormState = {
   currentPV: string;
   tempPV: string;
-  pvIncrement: string;
   manualMaxPV: string;
   currentPM: string;
   tempPM: string;
-  pmIncrement: string;
   manualMaxPM: string;
 };
 
 const buildInitialState = (sheet: CharacterSheet): StatFormState => ({
   currentPV: String(sheet.currentPV ?? sheet.pv ?? 0),
   tempPV: String(sheet.tempPV ?? 0),
-  pvIncrement: String(sheet.pvIncrement ?? 1),
   manualMaxPV:
     sheet.manualMaxPV !== undefined && sheet.manualMaxPV > 0
       ? String(sheet.manualMaxPV)
       : '',
   currentPM: String(sheet.currentPM ?? sheet.pm ?? 0),
   tempPM: String(sheet.tempPM ?? 0),
-  pmIncrement: String(sheet.pmIncrement ?? 1),
   manualMaxPM:
     sheet.manualMaxPM !== undefined && sheet.manualMaxPM > 0
       ? String(sheet.manualMaxPM)
@@ -124,12 +120,10 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
   const handleSave = () => {
     const newCurrentPV = parseIntOrFallback(form.currentPV, sheet.pv);
     const newTempPV = Math.max(0, parseIntOrFallback(form.tempPV, 0));
-    const newPvIncrement = Math.max(1, parseIntOrFallback(form.pvIncrement, 1));
     const newManualMaxPV = parsePositiveOrUndefined(form.manualMaxPV);
 
     const newCurrentPM = parseIntOrFallback(form.currentPM, sheet.pm);
     const newTempPM = Math.max(0, parseIntOrFallback(form.tempPM, 0));
-    const newPmIncrement = Math.max(1, parseIntOrFallback(form.pmIncrement, 1));
     const newManualMaxPM = parsePositiveOrUndefined(form.manualMaxPM);
 
     const manualMaxChanged =
@@ -140,11 +134,9 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
       ...sheet,
       currentPV: newCurrentPV,
       tempPV: newTempPV,
-      pvIncrement: newPvIncrement,
       manualMaxPV: newManualMaxPV,
       currentPM: newCurrentPM,
       tempPM: newTempPM,
-      pmIncrement: newPmIncrement,
       manualMaxPM: newManualMaxPM,
     };
 
@@ -173,7 +165,6 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
     fields: {
       currentKey: keyof StatFormState;
       tempKey: keyof StatFormState;
-      incrementKey: keyof StatFormState;
       manualMaxKey: keyof StatFormState;
     },
     hasTemp: boolean,
@@ -207,26 +198,15 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
         />
       </Stack>
 
-      <Stack direction='row' spacing={2}>
-        <TextField
-          fullWidth
-          label='Temporário'
-          value={form[fields.tempKey]}
-          onChange={(e) => updateField(fields.tempKey, e.target.value)}
-          inputProps={{ inputMode: 'numeric' }}
-          size='small'
-          helperText='Consumido primeiro ao tomar dano'
-        />
-        <TextField
-          fullWidth
-          label='Incremento +/−'
-          value={form[fields.incrementKey]}
-          onChange={(e) => updateField(fields.incrementKey, e.target.value)}
-          inputProps={{ inputMode: 'numeric' }}
-          size='small'
-          helperText='Passo dos botões rápidos'
-        />
-      </Stack>
+      <TextField
+        fullWidth
+        label='Temporário'
+        value={form[fields.tempKey]}
+        onChange={(e) => updateField(fields.tempKey, e.target.value)}
+        inputProps={{ inputMode: 'numeric' }}
+        size='small'
+        helperText='Consumido primeiro ao tomar dano'
+      />
 
       <TextField
         fullWidth
@@ -304,7 +284,6 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
             {
               currentKey: 'currentPV',
               tempKey: 'tempPV',
-              incrementKey: 'pvIncrement',
               manualMaxKey: 'manualMaxPV',
             },
             hasTempPV,
@@ -322,7 +301,6 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
             {
               currentKey: 'currentPM',
               tempKey: 'tempPM',
-              incrementKey: 'pmIncrement',
               manualMaxKey: 'manualMaxPM',
             },
             hasTempPM,
