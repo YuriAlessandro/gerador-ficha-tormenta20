@@ -17,6 +17,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { useHighlightFromUrl } from '../../hooks/useHighlightFromUrl';
 import { SupportLevel } from '../../types/subscription.types';
 import SupporterBadge from '../Premium/SupporterBadge';
 
@@ -73,6 +74,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useHighlightFromUrl(loading);
 
   const handleSubmit = async () => {
     if (!newComment.trim()) return;
@@ -232,6 +235,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           {comments.map((comment) => (
             <Paper
               key={comment.id}
+              id={`comment-${comment.id}`}
               elevation={0}
               sx={{
                 p: 2,
@@ -242,6 +246,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 border: `1px solid ${
                   isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
                 }`,
+                scrollMarginTop: 100,
               }}
             >
               <Box

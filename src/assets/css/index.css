@@ -19,6 +19,27 @@ body {
   /* background-color: #; */
 }
 
+/* Pulse used by useHighlightFromUrl when a notification deep-links to a comment */
+@keyframes notification-highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.55);
+    background-color: rgba(255, 152, 0, 0.12);
+  }
+  60% {
+    box-shadow: 0 0 0 6px rgba(255, 152, 0, 0);
+    background-color: rgba(255, 152, 0, 0.12);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+    background-color: transparent;
+  }
+}
+
+.notification-highlight {
+  animation: notification-highlight-pulse 2.4s ease-out;
+  border-radius: 8px;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;

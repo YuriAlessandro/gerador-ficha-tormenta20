@@ -48,6 +48,7 @@ import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
 import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloudWrapper';
 import SheetViewPage from './components/screens/SheetViewPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import NotificationDeepLinkHandler from './components/Notifications/NotificationDeepLinkHandler';
 import InstallPage from './components/screens/InstallPage';
 import { WyrtScreen } from './premium/components/Wyrt';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -296,6 +297,7 @@ function ThemedApp(): JSX.Element {
                           >
                             <PWAInstallPrompt />
                             <PushNotificationPrompt />
+                            <NotificationDeepLinkHandler />
                             <CosmeticsNudgeDialog />
                             <div className='mainApp'>
                               <header className='App-header'>
