@@ -74,6 +74,76 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Melhoria: notificações agora levam direto ao comentário, com
+                    destaque visual.
+                  </strong>{' '}
+                  Clicar numa notificação de comentário no fórum, blog, build ou
+                  bestiário não abre mais só a página — agora a tela{' '}
+                  <strong>rola automaticamente</strong> até o comentário e ele
+                  ganha um <strong>pulse laranja</strong> de destaque por uns
+                  segundos pra você localizar de imediato. Vale tanto pra
+                  notificações abertas dentro do app quanto pelas{' '}
+                  <strong>push notifications do PWA</strong>. (Funciona pra
+                  notificações novas — as antigas continuam levando só pra
+                  página.)
+                </li>
+                <li>
+                  <strong>
+                    Correção: abrir o app pela push notification não marcava o
+                    aviso como lido.
+                  </strong>{' '}
+                  Quem usa o app instalado no celular e abria a notificação pela{' '}
+                  <strong>push</strong> chegava à página, mas o ícone do sino
+                  continuava com o número não-lido até clicar na lista —
+                  experiência ruim. Agora a notificação é{' '}
+                  <strong>marcada como lida automaticamente</strong> ao abrir
+                  pela push, sem necessidade de tocar no sino.
+                </li>
+                <li>
+                  <strong>
+                    Correção: notificações de comentário em <em>build</em>{' '}
+                    abriam a listagem em vez da build.
+                  </strong>{' '}
+                  O link interno enviava o usuário pra{' '}
+                  <code>/builds/&lt;id&gt;</code> (rota inexistente — caía na
+                  listagem geral) em vez da página da build em si. Agora vai
+                  direto pra <code>/build/&lt;id&gt;</code>.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: card de PV/PM mais limpo, sem botões duplicados.
+                  </strong>{' '}
+                  Os controles de <strong>− / +</strong> e o campo de{' '}
+                  <strong>incremento</strong> que apareciam no card de PV/PM
+                  ficavam redundantes com tudo que o painel de edição completa
+                  já oferece. Foram removidos do card; pra ajustar valores finos
+                  basta abrir o painel de edição pelo círculo de PV/PM (mesmo
+                  fluxo de antes).
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: combate inicia com só o combatente da vez
+                    expandido (visão do mestre).
+                  </strong>{' '}
+                  Ao iniciar um encontro, todos os cards de combatente abriam
+                  expandidos, enchendo a tela do mestre de ruído logo de cara.
+                  Agora <strong>apenas o card do combatente atual</strong>{' '}
+                  começa expandido — os demais ficam recolhidos pra você focar
+                  em quem está agindo.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: &quot;Parceiros&quot; agora aparece no menu pra
+                    todos, com CTA de apoio.
+                  </strong>{' '}
+                  O item <strong>Parceiros</strong> ficava escondido pra quem
+                  não era apoiador, então ninguém descobria o recurso. Agora ele
+                  aparece no menu pra todos os usuários: quem não é apoiador vê
+                  um <strong>CTA convidando a apoiar</strong> pra liberar o uso
+                  na mesa virtual.
+                </li>
+                <li>
+                  <strong>
                     Novo: histórico de rolagens persistente na Mesa Virtual.
                   </strong>{' '}
                   Até agora o histórico vivia só na memória do navegador:
