@@ -129,6 +129,7 @@ import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import RdEditDrawer from './EditDrawers/RdEditDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
+import StatEditDrawer from './EditDrawers/StatEditDrawer';
 import NotesDialog from './NotesDialog';
 import StatControl from './StatControl';
 
@@ -207,6 +208,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
   const [sizeDisplacementDrawerOpen, setSizeDisplacementDrawerOpen] =
     useState(false);
+  const [statDrawerOpen, setStatDrawerOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
@@ -504,6 +506,7 @@ const Result: React.FC<ResultProps> = (props) => {
       setRdDrawerOpen(false);
       setProficiencyDrawerOpen(false);
       setSizeDisplacementDrawerOpen(false);
+      setStatDrawerOpen(false);
     }
   }, [onSheetUpdate]);
 
@@ -817,17 +820,6 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
-  const handlePVTempUpdate = useCallback(
-    (newTemp: number) => {
-      const updatedSheet = { ...currentSheet, tempPV: newTemp };
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
-      }
-    },
-    [currentSheet, onSheetUpdate]
-  );
-
   const handlePVDecrement = useCallback(
     (amount: number) => {
       const currentTemp = currentSheet.tempPV ?? 0;
@@ -870,17 +862,6 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
-  const handlePMTempUpdate = useCallback(
-    (newTemp: number) => {
-      const updatedSheet = { ...currentSheet, tempPM: newTemp };
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
-      }
-    },
-    [currentSheet, onSheetUpdate]
-  );
-
   const handlePMDecrement = useCallback(
     (amount: number) => {
       const currentTemp = currentSheet.tempPM ?? 0;
@@ -892,6 +873,32 @@ const Result: React.FC<ResultProps> = (props) => {
         tempPM: currentTemp - tempConsumed,
         currentPM: Math.max(0, currentPMVal - remaining),
       };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePVHeal = useCallback(
+    (amount: number) => {
+      const currentPVVal = currentSheet.currentPV ?? currentSheet.pv;
+      const newCurrent = Math.min(currentSheet.pv, currentPVVal + amount);
+      const updatedSheet = { ...currentSheet, currentPV: newCurrent };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePMHeal = useCallback(
+    (amount: number) => {
+      const currentPMVal = currentSheet.currentPM ?? currentSheet.pm;
+      const newCurrent = Math.min(currentSheet.pm, currentPMVal + amount);
+      const updatedSheet = { ...currentSheet, currentPM: newCurrent };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -1798,8 +1805,9 @@ const Result: React.FC<ResultProps> = (props) => {
                       temp={currentSheet.tempPV ?? 0}
                       onUpdateCurrent={handlePVCurrentUpdate}
                       onUpdateIncrement={handlePVIncrementUpdate}
-                      onUpdateTemp={handlePVTempUpdate}
                       onDecrement={handlePVDecrement}
+                      onHeal={handlePVHeal}
+                      onOpenDrawer={() => setStatDrawerOpen(true)}
                       disabled={!onSheetUpdate}
                     />
                     {currentSheet.manualMaxPV !== undefined &&
@@ -1830,8 +1838,9 @@ const Result: React.FC<ResultProps> = (props) => {
                       temp={currentSheet.tempPM ?? 0}
                       onUpdateCurrent={handlePMCurrentUpdate}
                       onUpdateIncrement={handlePMIncrementUpdate}
-                      onUpdateTemp={handlePMTempUpdate}
                       onDecrement={handlePMDecrement}
+                      onHeal={handlePMHeal}
+                      onOpenDrawer={() => setStatDrawerOpen(true)}
                       disabled={!onSheetUpdate}
                     />
                     {currentSheet.manualMaxPM !== undefined &&
@@ -2889,6 +2898,13 @@ const Result: React.FC<ResultProps> = (props) => {
         <SizeDisplacementEditDrawer
           open={sizeDisplacementDrawerOpen}
           onClose={() => setSizeDisplacementDrawerOpen(false)}
+          sheet={currentSheet}
+          onSave={handleSheetInfoUpdate}
+        />
+
+        <StatEditDrawer
+          open={statDrawerOpen}
+          onClose={() => setStatDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
         />

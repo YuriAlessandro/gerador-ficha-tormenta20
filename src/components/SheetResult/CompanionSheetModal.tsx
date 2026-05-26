@@ -162,15 +162,6 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
     [companion, onCompanionUpdate]
   );
 
-  const handlePVTempUpdate = useCallback(
-    (newTemp: number) => {
-      if (onCompanionUpdate) {
-        onCompanionUpdate({ ...companion, tempPV: newTemp });
-      }
-    },
-    [companion, onCompanionUpdate]
-  );
-
   const handlePVDecrement = useCallback(
     (amount: number) => {
       if (onCompanionUpdate) {
@@ -184,6 +175,17 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           tempPV: currentTemp - tempConsumed,
           currentPV: Math.max(pvMinimo, currentPVVal - remaining),
         });
+      }
+    },
+    [companion, onCompanionUpdate]
+  );
+
+  const handlePVHeal = useCallback(
+    (amount: number) => {
+      if (onCompanionUpdate) {
+        const currentPVVal = companion.currentPV ?? companion.pv;
+        const newCurrent = Math.min(companion.pv, currentPVVal + amount);
+        onCompanionUpdate({ ...companion, currentPV: newCurrent });
       }
     },
     [companion, onCompanionUpdate]
@@ -491,8 +493,8 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             temp={companion.tempPV ?? 0}
             onUpdateCurrent={handlePVCurrentUpdate}
             onUpdateIncrement={handlePVIncrementUpdate}
-            onUpdateTemp={handlePVTempUpdate}
             onDecrement={handlePVDecrement}
+            onHeal={handlePVHeal}
             disabled={!onCompanionUpdate}
           />
         </Stack>
