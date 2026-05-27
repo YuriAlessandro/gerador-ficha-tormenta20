@@ -215,7 +215,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #212.</strong>
+                <strong>Revistas analisadas: DB #156 até #227.</strong>
               </small>
             </p>
             <p>
@@ -346,12 +346,31 @@ const CavernaDoSaber: React.FC = () => {
               📖 Essa raça está disponível no suplemento{' '}
               <Db>Ameaças de Arton</Db> com o nome <strong>Ceratops</strong>.
             </p>
+            <SubTitle id='racas-variantes'>Raças Variantes</SubTitle>
+            <p>
+              A <Db>DB #224</Db> apresenta novas raças que, na prática, são
+              variantes de raças já existentes no sistema:
+            </p>
+            <ul>
+              <li>Anão da Superfície (variante de Anão)</li>
+              <li>Elfo-do-Gelo (variante de Elfo)</li>
+              <li>Elfo-Sombrio (variante de Elfo)</li>
+              <li>Feérico (variante de Humano)</li>
+              <li>Medusa Dracônica (variante de Medusa)</li>
+              <li>Teju (variante de Tabrachi)</li>
+            </ul>
             <Divider />
             {/* Classes */}
             <Title id='classes'>Classes</Title>
             <p>
               Aqui estarão listadas novas classes que foram sugeridas nas
               revistas.
+            </p>
+            <SubTitle id='comandante'>Comandante</SubTitle>
+            <p>
+              Apresentada na <Db>DB #222</Db>, é um personagem que coordena o
+              grupo com gritos de guerra e comandos, focado em apoiar e liderar
+              os aliados.
             </p>
             <SubTitle id='druida'>Druída</SubTitle>
             <p>
@@ -389,6 +408,31 @@ const CavernaDoSaber: React.FC = () => {
               introduzida na <Db>DB #199</Db>. A <Db>DB #201</Db> apresenta
               novos poderes de Samurai.
             </p>
+            <SubTitle id='sentinela'>Sentinela</SubTitle>
+            <p>
+              Apresentada na <Db>DB #222</Db>, é uma classe para conjuradores
+              que também são adeptos a um estilo de jogo com espada, mesclando
+              magia e combate marcial.
+            </p>
+            <SubTitle id='vampiro'>Vampiro</SubTitle>
+            <p>
+              A <Db>DB #220</Db> apresentou a classe <strong>Vampiro</strong>,
+              dedicada a personagens amaldiçoados pela sede de sangue.
+            </p>
+            <SubTitle id='classes-variantes'>Classes Variantes</SubTitle>
+            <p>
+              A <Db>DB #223</Db> apresenta novas classes variantes:
+            </p>
+            <ul>
+              <li>
+                <strong>Capanga</strong> (variante de Ladino): o mais rude dos
+                ladinos, bruto, ágil e direto.
+              </li>
+              <li>
+                <strong>Cruzado</strong> (variante de Clérigo): clérigos que
+                focam ainda mais em combater seus inimigos com força bruta.
+              </li>
+            </ul>
             <Divider />
             {/* Habilidades/Poderes de Classes */}
             <Title id='poderes-de-classe'>Habilidades/Poderes de classes</Title>
@@ -835,6 +879,50 @@ const CavernaDoSaber: React.FC = () => {
               <li>Pancada Estonteante</li>
               <li>Piqueiro</li>
             </ul>
+            <p>
+              Uma leva grande de novos poderes de combate foi adicionada na{' '}
+              <Db>DB #227</Db>:
+            </p>
+            <ul>
+              <li>Ataque com Escudo II</li>
+              <li>Ataque Poderoso II</li>
+              <li>Atirar e Correr</li>
+              <li>Bloqueio com Escudo Perfeito</li>
+              <li>Carga de Cavalaria II</li>
+              <li>Combatente Sanguinário</li>
+              <li>Costas Largas II</li>
+              <li>Defesa Desarmada I</li>
+              <li>Defesa Desarmada II</li>
+              <li>Defesa Desarmada III</li>
+              <li>Economia de Habilidade</li>
+              <li>Escudo Fundação</li>
+              <li>Escudo para Lançamento</li>
+              <li>Especialista em Arcos e Bestas</li>
+              <li>Especialista em Camuflagens</li>
+              <li>Especialista em Coberturas</li>
+              <li>Esquiva II</li>
+              <li>Esquiva III</li>
+              <li>Flechada com Rolamento</li>
+              <li>Flechada de Impacto I</li>
+              <li>Flechada de Impacto II</li>
+              <li>Flechada de Impacto III</li>
+              <li>Flechada de Manobra I</li>
+              <li>Flechada de Manobra II</li>
+              <li>Flechada Precisa Distante I</li>
+              <li>Flechada Precisa Distante II</li>
+              <li>Flechada Precisa Distante III</li>
+              <li>Ginete de Guerra</li>
+              <li>Golpe Aéreo I</li>
+              <li>Golpe Aéreo II</li>
+              <li>Golpe Aéreo III</li>
+              <li>Golpe Poderoso Explosivo I</li>
+              <li>Golpe Poderoso Explosivo II</li>
+              <li>Golpear e Correr</li>
+              <li>Retomar Fôlego</li>
+              <li>Torrente de Flechas I</li>
+              <li>Torrente de Flechas II</li>
+              <li>Torrente de Flechas III</li>
+            </ul>
             <SubTitle id='de-destino'>De Destino</SubTitle>
             <p>
               Os seguintes poderes foram adicionados na <Db>DB #175</Db>:
@@ -996,6 +1084,9 @@ const CavernaDoSaber: React.FC = () => {
                 Caçador de Dragões (apresentado em <Db>DB #201</Db>)
               </li>
               <li>
+                Campeão das Guildas (apresentado em <Db>DB #215</Db>)
+              </li>
+              <li>
                 Cavaleiro da Redenção (apresentado em <Db>DB #194</Db>)
               </li>
               <li>
@@ -1005,7 +1096,13 @@ const CavernaDoSaber: React.FC = () => {
                 Cavaleiro do Corvo (revisitado em <Db>DB #202</Db>)
               </li>
               <li>
+                Centurião (apresentado em <Db>DB #215</Db>)
+              </li>
+              <li>
                 Chapéu-Preto (apresentado em <Db>DB #203</Db>)
+              </li>
+              <li>
+                Explorador Destemido (apresentado em <Db>DB #215</Db>)
               </li>
               <li>
                 Furioso Cinzento (apresentado em <Db>DB #208</Db>)
@@ -1118,6 +1215,21 @@ const CavernaDoSaber: React.FC = () => {
               <li>Fio-de-aço (material especial)</li>
               <li>Veia de Espadas (costume goblin)</li>
               <li>Vela (aprimoramento para Arma Mágica)</li>
+            </ul>
+            <p>
+              Novas espadas mágicas foram apresentadas na <Db>DB #222</Db>:
+            </p>
+            <ul>
+              <li>Alfange dos Milagres</li>
+              <li>Brilhante Feérica</li>
+              <li>Delírio Escarlate</li>
+              <li>Equilíbrio</li>
+              <li>Gládio da Alvorada</li>
+              <li>Lâmina dos Ossos</li>
+              <li>Língua do Trovão</li>
+              <li>Perdição das Brumas</li>
+              <li>Rapieira do Destino</li>
+              <li>Vingança Rubra</li>
             </ul>
             <SubTitle id='armas-de-arsenal'>
               Armas de Arsenal (Lendárias)
@@ -1249,6 +1361,12 @@ const CavernaDoSaber: React.FC = () => {
               <li>Toque Álgido</li>
               <li>Velocidade do Relâmpago</li>
             </ul>
+            <p>
+              As seguintes magias arcanas foram adicionadas na <Db>DB #219</Db>:
+            </p>
+            <ul>
+              <li>Toque Congelante</li>
+            </ul>
             <SubTitle id='divinas'>Divinas</SubTitle>
             <p>
               As seguintes masgias divinas foram adicionadas na <Db>DB #181</Db>
@@ -1256,6 +1374,13 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <ul>
               <li>Jato Corrosivo</li>
+            </ul>
+            <p>
+              As seguintes magias divinas foram adicionadas na <Db>DB #219</Db>:
+            </p>
+            <ul>
+              <li>Aura Restauradora</li>
+              <li>Chuva</li>
             </ul>
             <SubTitle id='Universais'>Universais</SubTitle>
             <p>
@@ -1265,6 +1390,47 @@ const CavernaDoSaber: React.FC = () => {
             <ul>
               <li>Bênção da Dragoa Rainha</li>
               <li>Hálito Peçonhento</li>
+            </ul>
+            <p>
+              As seguintes magias universais foram adicionadas na{' '}
+              <Db>DB #219</Db>:
+            </p>
+            <ul>
+              <li>Armadura Gélida</li>
+              <li>Necrofogo</li>
+              <li>Ventania Mística</li>
+            </ul>
+            <Divider />
+            {/* Condições */}
+            <Title id='condicoes'>Condições</Title>
+            <p>
+              Novas condições foram apresentadas na <Db>DB #219</Db>, expandindo
+              as opções de estados que podem afetar personagens e ameaças em
+              combate:
+            </p>
+            <ul>
+              <li>Abençoado</li>
+              <li>Absorvendo</li>
+              <li>Alentado</li>
+              <li>Arrefecido</li>
+              <li>Audacioso</li>
+              <li>Congelado</li>
+              <li>Decaído</li>
+              <li>Disposto</li>
+              <li>Eletrificado</li>
+              <li>Eletrizado</li>
+              <li>Em Chamas</li>
+              <li>Fedido</li>
+              <li>Fortalecido</li>
+              <li>Intrépido</li>
+              <li>Leve</li>
+              <li>Molhado</li>
+              <li>Poderoso</li>
+              <li>Prevenido</li>
+              <li>Relaxado</li>
+              <li>Restaurando</li>
+              <li>Veloz</li>
+              <li>Vigoroso</li>
             </ul>
             <Divider />
             {/* Ameaças */}
@@ -1306,6 +1472,14 @@ const CavernaDoSaber: React.FC = () => {
             <SubTitle id='capangas'>Capagangas e Lacaios</SubTitle>
             <p>
               A <Db>DB #170</Db> discute como criar capangas
+            </p>
+            <SubTitle id='habilidades-reativas'>
+              Habilidades Reativas para Ameaças
+            </SubTitle>
+            <p>
+              A <Db>DB #216</Db> apresenta novas habilidades para ameaças,
+              focadas em habilidades reativas que fazem suas ameaças reagirem
+              mais ao combate.
             </p>
             <SubTitle id='mercenarios'>Companhia de Mercenários</SubTitle>
             <p>
@@ -1351,6 +1525,18 @@ const CavernaDoSaber: React.FC = () => {
               <li>Vermithor</li>
               <li>Vhagar</li>
               <li>Vermax (jovem)</li>
+            </ul>
+            <SubTitle id='vampiros'>Vampiros</SubTitle>
+            <p>
+              A <Db>DB #220</Db> apresentou um bestiário inteiro dedicado a
+              vampiros, com diferentes níveis de poder:
+            </p>
+            <ul>
+              <li>Vampiro Neófito (ND 5)</li>
+              <li>Vampiro Fidalgo (ND 8)</li>
+              <li>Vampiro Caçador da Neve (ND 10)</li>
+              <li>Condessa Sirissa Tarvela (ND 11)</li>
+              <li>Vampiro Príncipe da Noite (ND 16)</li>
             </ul>
             <SubTitle id='viloes'>Vilões</SubTitle>
             <p>
@@ -1435,6 +1621,74 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               Regras de Aposentadoria para personagens, <Db>DB #161</Db>
             </p>
+            <SubTitle id='sem-mapas'>Jogar sem Mapas</SubTitle>
+            <p>
+              A <Db>DB #213</Db> apresenta regras simplificadas para jogar sem
+              mapas, com formas de simular distâncias e posicionamento em
+              combate de maneira abstrata.
+            </p>
+            <SubTitle id='pontos-heroicos'>Pontos Heroicos (PH)</SubTitle>
+            <p>
+              A <Db>DB #214</Db> apresenta as regras de{' '}
+              <strong>Pontos Heroicos</strong>: como usar, receber e recompensar
+              jogadores utilizando pontos heróicos durante a aventura.
+            </p>
+            <SubTitle id='reputacao'>Reputação</SubTitle>
+            <p>
+              A <Db>DB #226</Db> apresenta as regras de{' '}
+              <strong>Reputação</strong>: um valor que mede a influência,
+              confiança ou temor que os heróis inspiram em um grupo ou
+              personagem específico, podendo fornecer benefícios aos jogadores.
+            </p>
+            <SubTitle id='vinculos'>Vínculos</SubTitle>
+            <p>
+              A <Db>DB #215</Db> traz <strong>Vínculos</strong>: uma alternativa
+              simplificada para representar a força de afinidade entre
+              personagens.
+            </p>
+            <SubTitle id='organizacoes'>Organizações</SubTitle>
+            <p>
+              A <Db>DB #216</Db> apresenta as regras para criar e gerenciar sua
+              própria organização em Arton.
+            </p>
+            <p>
+              A <Db>DB #217</Db> expande o tema com novas organizações prontas
+              para serem usadas em campanhas:
+            </p>
+            <ul>
+              <li>Sanguinário Tropel de Namalkah</li>
+              <li>Ordem Arcana de Wynlla</li>
+              <li>Clássica Guilda de Aventureiros</li>
+              <li>União Familiar e Profissional</li>
+              <li>Tropas do Dragão-Rei</li>
+              <li>Ladrões mais Antigos de Arton</li>
+            </ul>
+            <SubTitle id='destino'>Destino</SubTitle>
+            <p>
+              A <Db>DB #217</Db> apresenta as regras de <strong>Destino</strong>
+              : uma ferramenta para designar um grupo de aventureiros como
+              especial dentro da campanha.
+            </p>
+            <SubTitle id='tabelas-do-mestre'>
+              Tabelas Úteis para o Mestre
+            </SubTitle>
+            <p>
+              A <Db>DB #218</Db> apresenta uma coletânea de tabelas úteis para
+              ajudar o mestre na hora de improvisar e criar conteúdos durante o
+              jogo:
+            </p>
+            <ul>
+              <li>Tabela 1: Encontros de Viagem</li>
+              <li>Tabela 2: Nomes de Taverna</li>
+              <li>Tabela 3: Taverna Fora do Comum</li>
+              <li>Tabela 4: Rumores</li>
+              <li>Tabela 5: Problemas</li>
+              <li>Tabela 6: Conceito de Masmorra</li>
+              <li>Tabela 7: Estado da Masmorra</li>
+              <li>Tabela 8: Câmaras Inesperadas</li>
+              <li>Tabela 9: Tesouros Curiosos</li>
+              <li>Tabela 10: Habitantes Não Hostis (ainda)</li>
+            </ul>
           </StyledPaper>
         </div>
         {!isMobile && <TableOfContents />}
