@@ -74,76 +74,6 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
-                    Melhoria: notificações agora levam direto ao comentário, com
-                    destaque visual.
-                  </strong>{' '}
-                  Clicar numa notificação de comentário no fórum, blog, build ou
-                  bestiário não abre mais só a página — agora a tela{' '}
-                  <strong>rola automaticamente</strong> até o comentário e ele
-                  ganha um <strong>pulse laranja</strong> de destaque por uns
-                  segundos pra você localizar de imediato. Vale tanto pra
-                  notificações abertas dentro do app quanto pelas{' '}
-                  <strong>push notifications do PWA</strong>. (Funciona pra
-                  notificações novas — as antigas continuam levando só pra
-                  página.)
-                </li>
-                <li>
-                  <strong>
-                    Correção: abrir o app pela push notification não marcava o
-                    aviso como lido.
-                  </strong>{' '}
-                  Quem usa o app instalado no celular e abria a notificação pela{' '}
-                  <strong>push</strong> chegava à página, mas o ícone do sino
-                  continuava com o número não-lido até clicar na lista —
-                  experiência ruim. Agora a notificação é{' '}
-                  <strong>marcada como lida automaticamente</strong> ao abrir
-                  pela push, sem necessidade de tocar no sino.
-                </li>
-                <li>
-                  <strong>
-                    Correção: notificações de comentário em <em>build</em>{' '}
-                    abriam a listagem em vez da build.
-                  </strong>{' '}
-                  O link interno enviava o usuário pra{' '}
-                  <code>/builds/&lt;id&gt;</code> (rota inexistente — caía na
-                  listagem geral) em vez da página da build em si. Agora vai
-                  direto pra <code>/build/&lt;id&gt;</code>.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: card de PV/PM mais limpo, sem botões duplicados.
-                  </strong>{' '}
-                  Os controles de <strong>− / +</strong> e o campo de{' '}
-                  <strong>incremento</strong> que apareciam no card de PV/PM
-                  ficavam redundantes com tudo que o painel de edição completa
-                  já oferece. Foram removidos do card; pra ajustar valores finos
-                  basta abrir o painel de edição pelo círculo de PV/PM (mesmo
-                  fluxo de antes).
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: combate inicia com só o combatente da vez
-                    expandido (visão do mestre).
-                  </strong>{' '}
-                  Ao iniciar um encontro, todos os cards de combatente abriam
-                  expandidos, enchendo a tela do mestre de ruído logo de cara.
-                  Agora <strong>apenas o card do combatente atual</strong>{' '}
-                  começa expandido — os demais ficam recolhidos pra você focar
-                  em quem está agindo.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: &quot;Parceiros&quot; agora aparece no menu pra
-                    todos, com CTA de apoio.
-                  </strong>{' '}
-                  O item <strong>Parceiros</strong> ficava escondido pra quem
-                  não era apoiador, então ninguém descobria o recurso. Agora ele
-                  aparece no menu pra todos os usuários: quem não é apoiador vê
-                  um <strong>CTA convidando a apoiar</strong> pra liberar o uso
-                  na mesa virtual.
-                </li>
-                <li>
-                  <strong>
                     Novo: histórico de rolagens persistente na Mesa Virtual.
                   </strong>{' '}
                   Até agora o histórico vivia só na memória do navegador:
@@ -196,66 +126,6 @@ const Changelog: React.FC = () => {
                   sempre que o mestre troca de aba pra não competir por atenção.
                 </li>
                 <li>
-                  <strong>
-                    Melhoria: PV e PM repensados pra desktop e mobile.
-                  </strong>{' '}
-                  Antes, pra alterar PV ou PM era preciso passar o mouse por
-                  cima do círculo — o que <strong>não funciona no touch</strong>
-                  , então usuários de celular ficavam sem como editar valores.
-                  Agora cada círculo tem controles{' '}
-                  <strong>sempre visíveis</strong> logo abaixo: um par de{' '}
-                  <strong>− / +</strong> com incremento ajustável (clica e o
-                  valor cai/sobe pelo passo), um campo onde você{' '}
-                  <strong>digita o valor</strong> e aplica como{' '}
-                  <strong>Dano</strong> (que consome temp primeiro, depois PV)
-                  ou <strong>Curar</strong> (não toca em temp). O círculo também
-                  ficou <strong>clicável</strong> e abre um{' '}
-                  <strong>painel de edição completa</strong> — entra pela
-                  direita no desktop e <strong>por baixo no celular</strong>{' '}
-                  (mantendo a ficha visível atrás). Lá dentro você ajusta atual,
-                  temporário, incremento, define um{' '}
-                  <strong>máximo manual</strong> que sobrescreve o cálculo, e
-                  agora tem botões dedicados de <strong>Cura total</strong> (que
-                  zera o temp também, como descanso) e{' '}
-                  <strong>Limpar temp</strong>.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: bloco de atributos com layout estável e indicador
-                    do que mudou.
-                  </strong>{' '}
-                  No desktop os atributos eram empurrados pra cima com um truque
-                  de margem negativa pra criar aquela faixa decorativa
-                  sobreposta ao card do herói — mas o layout ficava{' '}
-                  <strong>frágil</strong> e quebrava sempre que algo mudava
-                  acima. Agora os atributos têm <strong>seção própria</strong>{' '}
-                  no desktop também (com título{' '}
-                  <strong>&quot;Atributos&quot;</strong>, igual ao mobile), sem
-                  truques de margem. Além disso, quando uma{' '}
-                  <strong>condição ativa</strong> afeta um atributo (ex.:
-                  Esmorecido dá −2 em Carisma), aparece um{' '}
-                  <strong>chip colorido embaixo</strong> da caixa mostrando
-                  exatamente a magnitude da mudança — vermelho pra penalidade,
-                  verde pra bônus — e o tooltip explica{' '}
-                  <strong>Base → Modificado</strong>. Dá pra ver em 1 segundo o
-                  que está afetando o personagem.
-                </li>
-                <li>
-                  <strong>
-                    Correção: botão &quot;Salvar&quot; travado ao criar efeito
-                    customizado com escopo &quot;Qualquer arma&quot;.
-                  </strong>{' '}
-                  Ao criar um <strong>efeito customizado</strong> e escolher{' '}
-                  <strong>Dano de arma</strong> ou{' '}
-                  <strong>Ataque (corpo a corpo / distância)</strong>, o escopo
-                  já aparecia como <strong>Qualquer arma</strong>, mas o botão{' '}
-                  <strong>Salvar</strong> só destravava se você trocasse o
-                  escopo para outra opção e voltasse. Agora o estado inicial do
-                  escopo é sincronizado com a UI — o Salvar fica liberado
-                  imediatamente assim que os campos obrigatórios são
-                  preenchidos.
-                </li>
-                <li>
                   <strong>Novo: Parceiros na Mesa Virtual.</strong> O mestre
                   agora pode anexar <strong>Parceiros</strong> a jogadores
                   durante um encontro ativo — guerreiros, curandeiros,
@@ -294,18 +164,6 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
-                    Correção: app forçava modo retrato mesmo com a tela
-                    desbloqueada.
-                  </strong>{' '}
-                  Mesmo com a rotação do celular liberada, o app instalado abria
-                  sempre em <strong>retrato</strong> — péssimo pra quem está
-                  deitado segurando o telefone deitado. Agora o app respeita o{' '}
-                  <strong>lock de orientação</strong> do próprio aparelho: se
-                  você travou em landscape, fica em landscape; se está livre,
-                  gira normalmente.
-                </li>
-                <li>
-                  <strong>
                     Novo: mestre pode abrir a ficha de qualquer jogador direto
                     da tela da mesa.
                   </strong>{' '}
@@ -316,6 +174,112 @@ const Changelog: React.FC = () => {
                   leitura — sem precisar iniciar a sessão. Funciona tanto para
                   fichas dos jogadores quanto para os personagens do próprio
                   mestre.
+                </li>
+                <li>
+                  <strong>
+                    Novo: botão <em>@</em> embutido nas caixas de comentário
+                    para mencionar a enciclopédia.
+                  </strong>{' '}
+                  Você sempre pôde digitar <strong>@nome</strong> para mencionar
+                  classes, raças, poderes e outros itens da enciclopédia em
+                  comentários do fórum, mas quase ninguém sabia. Agora um botão{' '}
+                  <strong>@</strong> está embutido na própria caixa de
+                  comentário (estilo Slack) — basta clicar para inserir o{' '}
+                  <strong>@</strong> e começar a procurar o que você quer citar.
+                  Um lembrete discreto abaixo da caixa reforça o atalho.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: notificações agora levam direto ao comentário, com
+                    destaque visual.
+                  </strong>{' '}
+                  Clicar numa notificação de comentário no fórum, blog, build ou
+                  bestiário não abre mais só a página — agora a tela{' '}
+                  <strong>rola automaticamente</strong> até o comentário e ele
+                  ganha um <strong>pulse laranja</strong> de destaque por uns
+                  segundos pra você localizar de imediato. Vale tanto pra
+                  notificações abertas dentro do app quanto pelas{' '}
+                  <strong>push notifications do PWA</strong>. (Funciona pra
+                  notificações novas — as antigas continuam levando só pra
+                  página.)
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: PV e PM repensados pra desktop e mobile.
+                  </strong>{' '}
+                  Antes, pra alterar PV ou PM era preciso passar o mouse por
+                  cima do círculo — o que <strong>não funciona no touch</strong>
+                  , então usuários de celular ficavam sem como editar valores.
+                  Agora cada círculo tem controles{' '}
+                  <strong>sempre visíveis</strong> logo abaixo: um par de{' '}
+                  <strong>− / +</strong> com incremento ajustável (clica e o
+                  valor cai/sobe pelo passo), um campo onde você{' '}
+                  <strong>digita o valor</strong> e aplica como{' '}
+                  <strong>Dano</strong> (que consome temp primeiro, depois PV)
+                  ou <strong>Curar</strong> (não toca em temp). O círculo também
+                  ficou <strong>clicável</strong> e abre um{' '}
+                  <strong>painel de edição completa</strong> — entra pela
+                  direita no desktop e <strong>por baixo no celular</strong>{' '}
+                  (mantendo a ficha visível atrás). Lá dentro você ajusta atual,
+                  temporário, incremento, define um{' '}
+                  <strong>máximo manual</strong> que sobrescreve o cálculo, e
+                  agora tem botões dedicados de <strong>Cura total</strong> (que
+                  zera o temp também, como descanso) e{' '}
+                  <strong>Limpar temp</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: card de PV/PM mais limpo, sem botões duplicados.
+                  </strong>{' '}
+                  Os controles de <strong>− / +</strong> e o campo de{' '}
+                  <strong>incremento</strong> que apareciam no card de PV/PM
+                  ficavam redundantes com tudo que o painel de edição completa
+                  já oferece. Foram removidos do card; pra ajustar valores finos
+                  basta abrir o painel de edição pelo círculo de PV/PM (mesmo
+                  fluxo de antes).
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: bloco de atributos com layout estável e indicador
+                    do que mudou.
+                  </strong>{' '}
+                  No desktop os atributos eram empurrados pra cima com um truque
+                  de margem negativa pra criar aquela faixa decorativa
+                  sobreposta ao card do herói — mas o layout ficava{' '}
+                  <strong>frágil</strong> e quebrava sempre que algo mudava
+                  acima. Agora os atributos têm <strong>seção própria</strong>{' '}
+                  no desktop também (com título{' '}
+                  <strong>&quot;Atributos&quot;</strong>, igual ao mobile), sem
+                  truques de margem. Além disso, quando uma{' '}
+                  <strong>condição ativa</strong> afeta um atributo (ex.:
+                  Esmorecido dá −2 em Carisma), aparece um{' '}
+                  <strong>chip colorido embaixo</strong> da caixa mostrando
+                  exatamente a magnitude da mudança — vermelho pra penalidade,
+                  verde pra bônus — e o tooltip explica{' '}
+                  <strong>Base → Modificado</strong>. Dá pra ver em 1 segundo o
+                  que está afetando o personagem.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: combate inicia com só o combatente da vez
+                    expandido (visão do mestre).
+                  </strong>{' '}
+                  Ao iniciar um encontro, todos os cards de combatente abriam
+                  expandidos, enchendo a tela do mestre de ruído logo de cara.
+                  Agora <strong>apenas o card do combatente atual</strong>{' '}
+                  começa expandido — os demais ficam recolhidos pra você focar
+                  em quem está agindo.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: &quot;Parceiros&quot; agora aparece no menu pra
+                    todos, com CTA de apoio.
+                  </strong>{' '}
+                  O item <strong>Parceiros</strong> ficava escondido pra quem
+                  não era apoiador, então ninguém descobria o recurso. Agora ele
+                  aparece no menu pra todos os usuários: quem não é apoiador vê
+                  um <strong>CTA convidando a apoiar</strong> pra liberar o uso
+                  na mesa virtual.
                 </li>
                 <li>
                   <strong>
@@ -339,16 +303,63 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
-                    Novo: botão <em>@</em> embutido nas caixas de comentário
-                    para mencionar a enciclopédia.
+                    Melhoria: home destaca apenas a mesa mais recente.
                   </strong>{' '}
-                  Você sempre pôde digitar <strong>@nome</strong> para mencionar
-                  classes, raças, poderes e outros itens da enciclopédia em
-                  comentários do fórum, mas quase ninguém sabia. Agora um botão{' '}
-                  <strong>@</strong> está embutido na própria caixa de
-                  comentário (estilo Slack) — basta clicar para inserir o{' '}
-                  <strong>@</strong> e começar a procurar o que você quer citar.
-                  Um lembrete discreto abaixo da caixa reforça o atalho.
+                  O bloco <strong>Suas mesas</strong> agora mostra somente{' '}
+                  <strong>1 mesa</strong> (a mais recente da qual você
+                  participa) lado a lado com o botão{' '}
+                  <strong>+ Nova mesa</strong>. Os nomes deixam de aparecer
+                  truncados e a lista completa continua acessível pelo atalho{' '}
+                  <strong>Ver todas</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: abrir o app pela push notification não marcava o
+                    aviso como lido.
+                  </strong>{' '}
+                  Quem usa o app instalado no celular e abria a notificação pela{' '}
+                  <strong>push</strong> chegava à página, mas o ícone do sino
+                  continuava com o número não-lido até clicar na lista —
+                  experiência ruim. Agora a notificação é{' '}
+                  <strong>marcada como lida automaticamente</strong> ao abrir
+                  pela push, sem necessidade de tocar no sino.
+                </li>
+                <li>
+                  <strong>
+                    Correção: notificações de comentário em <em>build</em>{' '}
+                    abriam a listagem em vez da build.
+                  </strong>{' '}
+                  O link interno enviava o usuário pra{' '}
+                  <code>/builds/&lt;id&gt;</code> (rota inexistente — caía na
+                  listagem geral) em vez da página da build em si. Agora vai
+                  direto pra <code>/build/&lt;id&gt;</code>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: botão &quot;Salvar&quot; travado ao criar efeito
+                    customizado com escopo &quot;Qualquer arma&quot;.
+                  </strong>{' '}
+                  Ao criar um <strong>efeito customizado</strong> e escolher{' '}
+                  <strong>Dano de arma</strong> ou{' '}
+                  <strong>Ataque (corpo a corpo / distância)</strong>, o escopo
+                  já aparecia como <strong>Qualquer arma</strong>, mas o botão{' '}
+                  <strong>Salvar</strong> só destravava se você trocasse o
+                  escopo para outra opção e voltasse. Agora o estado inicial do
+                  escopo é sincronizado com a UI — o Salvar fica liberado
+                  imediatamente assim que os campos obrigatórios são
+                  preenchidos.
+                </li>
+                <li>
+                  <strong>
+                    Correção: app forçava modo retrato mesmo com a tela
+                    desbloqueada.
+                  </strong>{' '}
+                  Mesmo com a rotação do celular liberada, o app instalado abria
+                  sempre em <strong>retrato</strong> — péssimo pra quem está
+                  deitado segurando o telefone deitado. Agora o app respeita o{' '}
+                  <strong>lock de orientação</strong> do próprio aparelho: se
+                  você travou em landscape, fica em landscape; se está livre,
+                  gira normalmente.
                 </li>
                 <li>
                   <strong>
@@ -376,17 +387,6 @@ const Changelog: React.FC = () => {
                   passava a listar as mesas depois que você visitava{' '}
                   <strong>Mesas Virtuais</strong> e voltava. Agora a home busca
                   suas mesas automaticamente assim que você abre a página.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: home destaca apenas a mesa mais recente.
-                  </strong>{' '}
-                  O bloco <strong>Suas mesas</strong> agora mostra somente{' '}
-                  <strong>1 mesa</strong> (a mais recente da qual você
-                  participa) lado a lado com o botão{' '}
-                  <strong>+ Nova mesa</strong>. Os nomes deixam de aparecer
-                  truncados e a lista completa continua acessível pelo atalho{' '}
-                  <strong>Ver todas</strong>.
                 </li>
               </ul>
 
