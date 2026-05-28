@@ -39,6 +39,7 @@ import {
 } from './multiclass';
 import { stepUpDamage } from './weaponDamageStep';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
+import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 
@@ -855,9 +856,17 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
 
   // Process each equipment
   allEquipment.forEach((equip) => {
-    // Add direct sheet bonuses
+    // Add direct sheet bonuses. DamageReduction bonuses from equipment
+    // materials are intentionally excluded here: armor-material RD is computed
+    // in Step 14 from the WORN armor/shield only (see getDefenseMaterialRd), so
+    // collecting them here would double-count and also grant RD from armor
+    // sitting unused in the bag.
     if (equip.sheetBonuses) {
-      updatedSheet.sheetBonuses.push(...equip.sheetBonuses);
+      updatedSheet.sheetBonuses.push(
+        ...equip.sheetBonuses.filter(
+          (bonus) => bonus.target.type !== 'DamageReduction'
+        )
+      );
     }
 
     // Process conditional bonuses
@@ -1747,6 +1756,34 @@ export function recalculateSheet(
       const { damageType } = bonus.target;
       computedRd[damageType] = (computedRd[damageType] ?? 0) + bonusValue;
     }
+  });
+
+  // Material especial em armadura/escudo EQUIPADO (ex.: Adamante RD 5 pesada /
+  // 2 leve e escudos). Só o item de fato equipado contribui — armaduras na
+  // mochila não dão RD.
+  let wornArmorItem = updatedSheet.wornArmorId
+    ? equippedArmors.find((armor) => armor.id === updatedSheet.wornArmorId)
+    : undefined;
+  if (
+    !wornArmorItem &&
+    !updatedSheet.wornArmorId &&
+    equippedArmors.length === 1
+  ) {
+    [wornArmorItem] = equippedArmors; // legacy compat (sem wornArmorId)
+  }
+  const equippedShields = updatedSheet.bag.equipments.Escudo || [];
+  const wornShield = equippedShields.find(
+    (shield) =>
+      shield.id === updatedSheet.mainHandItemId ||
+      shield.id === updatedSheet.offHandItemId
+  );
+  [
+    ...(wornArmorItem
+      ? getDefenseMaterialRd(wornArmorItem, isHeavyArmor(wornArmorItem))
+      : []),
+    ...(wornShield ? getDefenseMaterialRd(wornShield, false) : []),
+  ].forEach((dr) => {
+    computedRd[dr.damageType] = (computedRd[dr.damageType] ?? 0) + dr.value;
   });
 
   // Bárbaro: Resistência a Dano (RD Geral escalável com nível de Bárbaro)

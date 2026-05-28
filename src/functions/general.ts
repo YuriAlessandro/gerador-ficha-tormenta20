@@ -23,6 +23,7 @@ import EQUIPAMENTOS, {
   Armas,
   isHeavyArmor,
 } from '../data/systems/tormenta20/equipamentos';
+import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import {
   FAMILIARS,
   FAMILIAR_NAMES,
@@ -4142,6 +4143,24 @@ const applyStatModifiers = (
     [wornArmor] = allArmors; // legacy compat
   }
   const hasHeavyArmor = wornArmor ? isHeavyArmor(wornArmor) : false;
+
+  // Material especial em armadura/escudo EQUIPADO (ex.: Adamante). Só o item de
+  // fato equipado contribui — itens na mochila não dão RD.
+  const equippedShields = sheet.bag.equipments.Escudo || [];
+  const wornShield = equippedShields.find(
+    (shield) =>
+      shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId
+  );
+  [
+    ...(wornArmor ? getDefenseMaterialRd(wornArmor, hasHeavyArmor) : []),
+    ...(wornShield ? getDefenseMaterialRd(wornShield, false) : []),
+  ].forEach((dr) => {
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    sheet.reducaoDeDano[dr.damageType] =
+      (sheet.reducaoDeDano[dr.damageType] ?? 0) + dr.value;
+  });
 
   // Bárbaro: Resistência a Dano (RD Geral escalável)
   if (sheet.classe.name === 'Bárbaro' && sheet.nivel >= 5) {

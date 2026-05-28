@@ -1,4 +1,5 @@
 import { DefenseEquipment } from '../../interfaces/Equipment';
+import { DamageType } from '../../interfaces/CharacterSheet';
 import { EnhancementEffect } from './core';
 
 /**
@@ -72,4 +73,32 @@ export function resolveMaterialEffect(
     return material.defenseEffect(defenseItem);
   }
   return material.defenseEffect;
+}
+
+/**
+ * Resolves the damage reduction granted by a special material applied to an
+ * equipped armor/shield. Returns an empty array when the item has no
+ * `Material especial` modification or the material grants no RD.
+ *
+ * `heavy` drives the light-vs-heavy branch (e.g. Adamante: RD 5 on heavy armor,
+ * RD 2 on light armor and shields). Callers must pass `false` for shields.
+ *
+ * This is the single source of truth for armor-material RD: it is read only for
+ * the WORN armor/shield during the sheet's RD calculation, so armor sitting in
+ * the bag does not grant RD (and RD does not flow through equipment
+ * `sheetBonuses`, which would double-count and ignore the worn state).
+ */
+export function getDefenseMaterialRd(
+  item: DefenseEquipment,
+  heavy: boolean
+): { damageType: DamageType; value: number }[] {
+  const materialMod = item.modifications?.find(
+    (m) => m.mod === 'Material especial' && m.specialMaterial
+  );
+  if (!materialMod?.specialMaterial) return [];
+  const effect = resolveMaterialEffect(materialMod.specialMaterial, 'defense', {
+    ...item,
+    isHeavyArmor: heavy,
+  });
+  return effect?.damageReduction ?? [];
 }

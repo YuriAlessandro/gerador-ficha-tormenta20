@@ -126,7 +126,6 @@ import { calcAmmoSpaces, findAmmoStack } from './BackpackModal/ammo';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
-import RdEditDrawer from './EditDrawers/RdEditDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
@@ -204,7 +203,6 @@ const Result: React.FC<ResultProps> = (props) => {
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
-  const [rdDrawerOpen, setRdDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
   const [sizeDisplacementDrawerOpen, setSizeDisplacementDrawerOpen] =
     useState(false);
@@ -503,7 +501,6 @@ const Result: React.FC<ResultProps> = (props) => {
       setPowersDrawerOpen(false);
       setSpellsDrawerOpen(false);
       setDefenseDrawerOpen(false);
-      setRdDrawerOpen(false);
       setProficiencyDrawerOpen(false);
       setSizeDisplacementDrawerOpen(false);
       setStatDrawerOpen(false);
@@ -2054,13 +2051,15 @@ const Result: React.FC<ResultProps> = (props) => {
                     <Tooltip
                       title={
                         onSheetUpdate
-                          ? 'Clique para editar Redução de Dano'
+                          ? 'Clique para editar Defesa e Redução de Dano'
                           : formatRdLabel(currentSheet.reducaoDeDano)
                       }
                       arrow
                     >
                       <Typography
-                        onClick={() => onSheetUpdate && setRdDrawerOpen(true)}
+                        onClick={() =>
+                          onSheetUpdate && setDefenseDrawerOpen(true)
+                        }
                         sx={{
                           mt: 0.5,
                           fontSize: '11px',
@@ -2809,13 +2808,6 @@ const Result: React.FC<ResultProps> = (props) => {
             setBackpackInitialFilter(['Armadura', 'Escudo']);
             setBackpackOpen(true);
           }}
-        />
-
-        <RdEditDrawer
-          open={rdDrawerOpen}
-          onClose={() => setRdDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handleSheetInfoUpdate}
         />
 
         <ProficiencyEditDrawer
