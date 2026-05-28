@@ -260,6 +260,13 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         dinheiroTC: staged.money.dinheiroTC,
         dinheiroTO: staged.money.dinheiroTO,
         customMaxSpaces: staged.customMaxSpaces,
+        // Drive the recalc off the STAGED equip-state, not the stale sheet
+        // values — otherwise defesa/armor-penalty are computed against the
+        // old worn armor and hand slots (e.g. an unequipped armor would keep
+        // applying its defense bonus).
+        mainHandItemId: staged.mainHandItemId,
+        offHandItemId: staged.offHandItemId,
+        wornArmorId: staged.wornArmorId,
       },
       undefined,
       undefined,
@@ -320,6 +327,10 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       wornArmorId: staged.wornArmorId,
       backpackGroupByCategory: staged.groupByCategory,
       sheetBonuses: recalculated.sheetBonuses ?? sheet.sheetBonuses,
+      // Propagate the recomputed Damage Reduction so equipment-driven RD
+      // (e.g. Adamante armor/shield material) actually persists. Without this,
+      // recalculateSheet's RD result was silently dropped on equipment saves.
+      reducaoDeDano: recalculated.reducaoDeDano,
       steps: [...sheet.steps, editStep],
     });
 
