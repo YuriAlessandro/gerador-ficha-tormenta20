@@ -16,6 +16,7 @@ import {
   migrateLegacyEquipState,
   pruneWielding,
   WieldingSlot,
+  WORN_ARMOR_NONE,
 } from './wielding';
 
 export interface BackpackMoney {
@@ -452,7 +453,10 @@ function reducer(state: StagedState, action: Action): StagedState {
       };
     }
     case 'SET_WORN_ARMOR': {
-      return { ...state, wornArmorId: action.itemId ?? undefined };
+      // `null` = the player took off their armor. Store the explicit
+      // WORN_ARMOR_NONE sentinel rather than `undefined` so the single-armor
+      // legacy fallback doesn't immediately re-apply it (see wielding.ts).
+      return { ...state, wornArmorId: action.itemId ?? WORN_ARMOR_NONE };
     }
     case 'SET_GROUP_BY_CATEGORY': {
       return { ...state, groupByCategory: action.value };
@@ -507,8 +511,14 @@ export function useBackpackState({
       existingIds
     );
     const seededWornArmorId = migrated.wornArmorId;
+    // The WORN_ARMOR_NONE sentinel ("explicitly no armor") is intentionally not
+    // a real item id, but it must survive snapshot rebuilds — otherwise a
+    // reopened modal would prune it to undefined and re-apply the single-armor
+    // legacy fallback, making the armor impossible to take off.
     const wornArmorIsPresent =
-      seededWornArmorId !== undefined && existingIds.has(seededWornArmorId);
+      seededWornArmorId !== undefined &&
+      (seededWornArmorId === WORN_ARMOR_NONE ||
+        existingIds.has(seededWornArmorId));
     return {
       equipments,
       displayOrder,

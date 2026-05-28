@@ -141,7 +141,23 @@ export function applyTwoHandedToggle(
 }
 
 /**
+ * Sentinel `wornArmorId` value meaning "the player explicitly removed all
+ * armor". Needed because `undefined` is overloaded: it ALSO means "never
+ * chosen, fall back to the single armor in the bag". Without this sentinel,
+ * a player owning exactly 1 armor could never take it off — clearing the
+ * selection to `undefined` would immediately re-apply the legacy fallback.
+ *
+ * It is a constant string (never a real item id, which are uuids), so it
+ * flows transparently through every `wornArmorId ? find() : ...` resolver:
+ * being truthy it skips the `!wornArmorId` legacy branch, and matching no
+ * item id it resolves to "no armor worn".
+ */
+export const WORN_ARMOR_NONE = '__none__';
+
+/**
  * Resolves the worn armor for a sheet. Rules:
+ *  - When `wornArmorId` is the WORN_ARMOR_NONE sentinel → undefined
+ *    (the player explicitly took off their armor).
  *  - When `wornArmorId` points to an armor present in the list → that armor.
  *  - When `wornArmorId` is undefined and there is exactly 1 armor → that armor
  *    (legacy compat for sheets created before the worn-armor feature).
@@ -152,6 +168,7 @@ export function getWornArmor<T extends Equipment>(
   armors: T[],
   wornArmorId: string | undefined
 ): T | undefined {
+  if (wornArmorId === WORN_ARMOR_NONE) return undefined;
   if (wornArmorId) {
     const match = armors.find((a) => a.id === wornArmorId);
     if (match) return match;

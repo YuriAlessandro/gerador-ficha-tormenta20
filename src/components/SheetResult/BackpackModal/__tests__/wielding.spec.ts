@@ -9,6 +9,7 @@ import {
   MigratableBagView,
   MigratableSheetView,
   pruneWielding,
+  WORN_ARMOR_NONE,
 } from '../wielding';
 import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 
@@ -373,6 +374,11 @@ describe('getWornArmor', () => {
   test('stale wornArmorId (item removed) → undefined; caller is expected to prune', () => {
     const result = getWornArmor([couro, cota], 'gone');
     expect(result).toBeUndefined();
+  });
+
+  test('WORN_ARMOR_NONE sentinel → undefined even with a single armor (player took it off)', () => {
+    expect(getWornArmor([couro], WORN_ARMOR_NONE)).toBeUndefined();
+    expect(getWornArmor([couro, cota], WORN_ARMOR_NONE)).toBeUndefined();
   });
 });
 
