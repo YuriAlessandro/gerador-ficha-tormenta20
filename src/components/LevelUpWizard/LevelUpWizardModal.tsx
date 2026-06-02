@@ -1115,48 +1115,48 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             companionSkills={currentLevelSelection.companionSkills || []}
             companionTricks={currentLevelSelection.companionTricks || []}
             onNameChange={(name) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionName: name,
-              })
+              }))
             }
             onTypeChange={(type) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionType: type,
                 companionTricks: [],
-              })
+              }))
             }
             onSizeChange={(size) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionSize: size,
                 companionTricks: [],
-              })
+              }))
             }
             onWeaponDamageTypeChange={(damageType) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionWeaponDamageType: damageType,
-              })
+              }))
             }
             onSpiritEnergyTypeChange={(energyType) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionSpiritEnergyType: energyType,
-              })
+              }))
             }
             onSkillsChange={(skills) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionSkills: skills,
-              })
+              }))
             }
             onTricksChange={(tricks) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionTricks: tricks,
-              })
+              }))
             }
           />
         );
