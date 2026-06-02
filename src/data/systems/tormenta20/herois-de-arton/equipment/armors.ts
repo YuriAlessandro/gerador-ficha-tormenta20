@@ -63,6 +63,7 @@ const BRIGANTINA: DefenseEquipment = {
   armorPenalty: 0,
   spaces: 5,
   group: 'Armadura',
+  isHeavyArmor: true,
   preco: 75,
 };
 
@@ -72,6 +73,7 @@ const ARMADURA_DE_CHUMBO: DefenseEquipment = {
   armorPenalty: -5,
   spaces: 5,
   group: 'Armadura',
+  isHeavyArmor: true,
   preco: 750,
 };
 
@@ -81,6 +83,7 @@ const ARMADURA_DE_JUSTA: DefenseEquipment = {
   armorPenalty: -5,
   spaces: 5,
   group: 'Armadura',
+  isHeavyArmor: true,
   preco: 1200,
 };
 
@@ -90,6 +93,7 @@ const ARMADURA_DE_HUSSARDO_ALADO: DefenseEquipment = {
   armorPenalty: -6,
   spaces: 5,
   group: 'Armadura',
+  isHeavyArmor: true,
   preco: 4500,
 };
 
@@ -99,6 +103,7 @@ const ARMADURA_DE_PEDRA: DefenseEquipment = {
   armorPenalty: -5,
   spaces: 5,
   group: 'Armadura',
+  isHeavyArmor: true,
   preco: 5500,
 };
 
