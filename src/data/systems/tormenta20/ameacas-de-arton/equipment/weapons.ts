@@ -9,6 +9,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   // ===== ARMAS SIMPLES =====
   PORRETE: {
     nome: 'Porrete',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x2',
     spaces: 1,
@@ -19,6 +20,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   ZARABATANA: {
     nome: 'Zarabatana',
+    weaponCategory: 'simple',
     dano: '1d3',
     critico: 'x2',
     spaces: 1,
@@ -31,6 +33,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   // ===== ARMAS MARCIAIS =====
   NEKO_TE: {
     nome: 'Neko-te',
+    weaponCategory: 'martial',
     dano: '1d4',
     critico: '19',
     spaces: 1,
@@ -41,6 +44,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   GLADIO: {
     nome: 'Gládio',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: '19/x3',
     spaces: 1,
@@ -51,6 +55,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   TETSUBO: {
     nome: 'Tetsubo',
+    weaponCategory: 'martial',
     dano: '1d10',
     critico: 'x2',
     spaces: 2,
@@ -64,6 +69,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   // ===== ARMAS DE FOGO =====
   TRAQUE: {
     nome: 'Traque',
+    weaponCategory: 'firearm',
     dano: '2d6',
     critico: '19/x3',
     spaces: 1,
@@ -75,6 +81,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   ARCABUZ: {
     nome: 'Arcabuz',
+    weaponCategory: 'firearm',
     dano: '2d10',
     critico: '19/x3',
     spaces: 2,
@@ -87,6 +94,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   BACAMARTE: {
     nome: 'Bacamarte',
+    weaponCategory: 'firearm',
     dano: '4d6',
     critico: '19/x3',
     spaces: 2,
@@ -101,6 +109,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   // ===== ARMAS EXÓTICAS =====
   ACOITE_FINNTROLL: {
     nome: 'Açoite finntroll',
+    weaponCategory: 'exotic',
     dano: '1d8',
     critico: 'x2',
     spaces: 1,
@@ -111,6 +120,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   ESPADA_VESPA: {
     nome: 'Espada vespa',
+    weaponCategory: 'exotic',
     dano: '2d4',
     critico: '18',
     spaces: 1,
@@ -121,6 +131,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   PISTOLA_PUNHAL: {
     nome: 'Pistola-punhal',
+    weaponCategory: 'exotic',
     dano: '1d6',
     critico: '18',
     spaces: 1,
@@ -156,6 +167,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   MORDIDA_DO_DIABO: {
     nome: 'Mordida do diabo',
+    weaponCategory: 'exotic',
     dano: '1d4',
     critico: 'x2',
     spaces: 1,
@@ -166,6 +178,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   PRESA_DE_SERPENTE: {
     nome: 'Presa de serpente',
+    weaponCategory: 'exotic',
     dano: '1d8',
     critico: '17',
     spaces: 1,
@@ -176,6 +189,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   LANCA_DE_FOGO: {
     nome: 'Lança de fogo',
+    weaponCategory: 'exotic',
     dano: '1d10',
     critico: 'x3',
     spaces: 2,
@@ -212,6 +226,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   SHURIKEN: {
     nome: 'Shuriken',
+    weaponCategory: 'exotic',
     dano: '1d4',
     critico: 'x2',
     spaces: 0.5,
@@ -222,6 +237,7 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
   },
   ARPAO: {
     nome: 'Arpão',
+    weaponCategory: 'exotic',
     dano: '1d10',
     critico: 'x3',
     spaces: 1,
