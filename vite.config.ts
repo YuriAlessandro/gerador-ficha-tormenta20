@@ -79,7 +79,9 @@ export default defineConfig({
         theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',
-        orientation: 'any',
+        // No 'orientation' field on purpose: omitting it makes the installed PWA
+        // respect the device's system-level auto-rotate lock. Setting it to 'any'
+        // forces rotation even when the user has auto-rotate disabled.
         scope: '/',
         start_url: '/',
         categories: ['games', 'utilities', 'entertainment'],
