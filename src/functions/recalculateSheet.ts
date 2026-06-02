@@ -38,6 +38,7 @@ import {
   findClassDescription,
 } from './multiclass';
 import { stepUpDamage } from './weaponDamageStep';
+import { isWeaponMelee } from './weaponSkill';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
@@ -524,6 +525,66 @@ const applyDefenseBonuses = (sheet: CharacterSheet): CharacterSheet => {
       updatedSheet.defesa += bonusValue;
     }
   });
+
+  return updatedSheet;
+};
+
+/**
+ * Estilo de Uma Arma: +2 na Defesa e +2 nos testes de ataque com a arma
+ * empunhada, mas SÓ quando há uma arma corpo a corpo em uma das mãos e nada
+ * na outra (regra condicional). Como a condição depende da empunhadura atual
+ * (`mainHandItemId`/`offHandItemId`), os bônus não podem ser `sheetBonuses`
+ * estáticos no dado do poder — são injetados dinamicamente aqui, antes do
+ * cálculo de Defesa (Step 10) e de armas (Step 13). Como `recalculateSheet`
+ * zera `sheetBonuses` no Step 1, a injeção é idempotente: aparece/some
+ * conforme a empunhadura muda.
+ */
+const injectEstiloDeUmaArmaBonuses = (
+  sheet: CharacterSheet
+): CharacterSheet => {
+  const hasPower = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Estilo de Uma Arma'
+  );
+  if (!hasPower) return sheet;
+
+  const { mainHandItemId, offHandItemId } = sheet;
+
+  // Arma de duas mãos ocupa as duas mãos (mesmo id nos dois slots) → não vale.
+  if (mainHandItemId && mainHandItemId === offHandItemId) return sheet;
+
+  // Exatamente uma mão ocupada e a outra vazia.
+  let occupiedId: string | undefined;
+  if (mainHandItemId && !offHandItemId) {
+    occupiedId = mainHandItemId;
+  } else if (offHandItemId && !mainHandItemId) {
+    occupiedId = offHandItemId;
+  }
+  if (!occupiedId) return sheet;
+
+  // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
+  // `Escudo`, então não casam aqui).
+  const weapon = (sheet.bag.equipments.Arma || []).find(
+    (w) => w.id === occupiedId
+  );
+  if (!weapon || !isWeaponMelee(weapon)) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push(
+    {
+      source: { type: 'power', name: 'Estilo de Uma Arma' },
+      target: { type: 'Defense' },
+      modifier: { type: 'Fixed', value: 2 },
+    },
+    {
+      source: { type: 'power', name: 'Estilo de Uma Arma' },
+      target: {
+        type: 'WeaponAttack',
+        weaponName: weapon.nome,
+        meleeOnly: true,
+      },
+      modifier: { type: 'Fixed', value: 2 },
+    }
+  );
 
   return updatedSheet;
 };
@@ -1647,6 +1708,11 @@ export function recalculateSheet(
       }
     }
   });
+
+  // Step 8.5: Inject Estilo de Uma Arma bonuses (condicional à empunhadura).
+  // Precisa rodar APÓS sheetBonuses estarem populados e ANTES dos Steps 9-10
+  // (Defesa) e 13 (armas), que consomem os bônus injetados.
+  updatedSheet = injectEstiloDeUmaArmaBonuses(updatedSheet);
 
   // Step 9: Reset defense to base and recalculate from ground up
   const baseDefense = updatedSheet.customDefenseBase ?? 10;

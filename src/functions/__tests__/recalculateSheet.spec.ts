@@ -100,6 +100,105 @@ describe('recalculateSheet', () => {
     });
   });
 
+  describe('Estilo de Uma Arma', () => {
+    const MELEE_WEAPON_ID = 'estilo-uma-arma-test-weapon';
+
+    const buildSheetWithWeapon = (
+      weaponOverrides: Partial<{
+        alcance: string;
+        arremesso: boolean;
+      }> = {}
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.generalPowers = [combatPowers.ESTILO_DE_UMA_ARMA];
+      sheet.classPowers = [];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag({
+        Arma: [
+          {
+            id: MELEE_WEAPON_ID,
+            nome: 'Espada Longa (teste)',
+            group: 'Arma',
+            dano: '1d8',
+            critico: '19/x2',
+            ...weaponOverrides,
+          },
+        ],
+      });
+      return sheet;
+    };
+
+    const weaponAtkBonus = (sheet: CharacterSheet): number =>
+      sheet.bag.equipments.Arma.find((w) => w.id === MELEE_WEAPON_ID)
+        ?.atkBonus ?? 0;
+
+    it('applies +2 Defesa and +2 attack when wielding a one-handed melee weapon with empty off-hand', () => {
+      // Baseline: same sheet without the power applied.
+      const baseline = buildSheetWithWeapon();
+      baseline.generalPowers = [];
+      baseline.mainHandItemId = MELEE_WEAPON_ID;
+      baseline.offHandItemId = undefined;
+      const baselineResult = recalculateSheet(baseline);
+
+      const sheet = buildSheetWithWeapon();
+      sheet.mainHandItemId = MELEE_WEAPON_ID;
+      sheet.offHandItemId = undefined;
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baselineResult.defesa + 2);
+      expect(weaponAtkBonus(result)).toBe(weaponAtkBonus(baselineResult) + 2);
+    });
+
+    it('does not apply bonuses when the off-hand is occupied', () => {
+      const baseline = buildSheetWithWeapon();
+      baseline.generalPowers = [];
+      baseline.mainHandItemId = MELEE_WEAPON_ID;
+      baseline.offHandItemId = 'some-other-item';
+      const baselineResult = recalculateSheet(baseline);
+
+      const sheet = buildSheetWithWeapon();
+      sheet.mainHandItemId = MELEE_WEAPON_ID;
+      sheet.offHandItemId = 'some-other-item';
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baselineResult.defesa);
+      expect(weaponAtkBonus(result)).toBe(weaponAtkBonus(baselineResult));
+    });
+
+    it('does not apply bonuses for a two-handed weapon (occupies both hands)', () => {
+      const baseline = buildSheetWithWeapon();
+      baseline.generalPowers = [];
+      baseline.mainHandItemId = MELEE_WEAPON_ID;
+      baseline.offHandItemId = MELEE_WEAPON_ID;
+      const baselineResult = recalculateSheet(baseline);
+
+      const sheet = buildSheetWithWeapon();
+      sheet.mainHandItemId = MELEE_WEAPON_ID;
+      sheet.offHandItemId = MELEE_WEAPON_ID;
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baselineResult.defesa);
+      expect(weaponAtkBonus(result)).toBe(weaponAtkBonus(baselineResult));
+    });
+
+    it('does not apply bonuses for a ranged weapon in hand', () => {
+      const baseline = buildSheetWithWeapon({ alcance: 'Médio' });
+      baseline.generalPowers = [];
+      baseline.mainHandItemId = MELEE_WEAPON_ID;
+      baseline.offHandItemId = undefined;
+      const baselineResult = recalculateSheet(baseline);
+
+      const sheet = buildSheetWithWeapon({ alcance: 'Médio' });
+      sheet.mainHandItemId = MELEE_WEAPON_ID;
+      sheet.offHandItemId = undefined;
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baselineResult.defesa);
+      expect(weaponAtkBonus(result)).toBe(weaponAtkBonus(baselineResult));
+    });
+  });
+
   describe('Power Removal', () => {
     it('should remove Esquiva bonuses when power is removed', () => {
       // First, create a sheet with Esquiva applied
