@@ -74,6 +74,21 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Melhoria: aviso de suplementos disponíveis na criação de
+                    ficha.
+                  </strong>{' '}
+                  A tela de <strong>criação de ficha</strong> agora mostra quais{' '}
+                  <strong>suplementos</strong> (Ameaças de Arton, Atlas de
+                  Arton, Deuses de Arton, Heróis de Arton) estão{' '}
+                  <strong>disponíveis e desativados</strong>, com um botão que
+                  leva <strong>direto à configuração</strong> (com rolagem
+                  automática até a opção) para quem está logado, ou ao{' '}
+                  <strong>login</strong> para quem ainda não tem conta. O aviso
+                  pode ser <strong>dispensado</strong> e volta a aparecer caso
+                  surjam novos suplementos.
+                </li>
+                <li>
+                  <strong>
                     Melhoria: rolagem infinita no Bestiário da Comunidade.
                   </strong>{' '}
                   A página do <strong>Bestiário da Comunidade</strong> agora
