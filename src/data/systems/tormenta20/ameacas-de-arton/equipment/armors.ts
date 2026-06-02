@@ -28,6 +28,7 @@ export const AMEACAS_ARTON_ARMORS: Record<string, DefenseEquipment> = {
     armorPenalty: -3,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 350,
   },
   ESCUDO_DE_COURO: {
