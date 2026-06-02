@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            26/05/2026 (v4.18).
+            02/06/2026 (v4.19).
           </p>
 
           <p>
@@ -69,6 +69,79 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.19</h3>
+
+              <ul>
+                <li>
+                  <strong>
+                    Novo: métodos de geração de atributos no assistente de
+                    criação.
+                  </strong>{' '}
+                  Até agora a definição de atributos no assistente era só{' '}
+                  <strong>Livre</strong> (você digitava o modificador de cada
+                  atributo). Agora você escolhe entre{' '}
+                  <strong>três métodos</strong> sugeridos pelo livro:{' '}
+                  <strong>Livre</strong>, <strong>Dados</strong> (role 4d6
+                  descartando o menor seis vezes e <strong>distribua</strong> os
+                  modificadores entre os atributos como quiser — com rerrolagem
+                  automática caso a soma não atinja o mínimo) e{' '}
+                  <strong>Pontos</strong> (compre os atributos gastando 10
+                  pontos, com a tabela de custos do livro e contador de pontos
+                  restantes).
+                </li>
+                <li>
+                  <strong>
+                    Novo: cards de dano e cura no histórico de rolagens também
+                    no celular.
+                  </strong>{' '}
+                  Os botões inline pra aplicar dano (½ / ×2 / valor) e cura
+                  (valor / ×2 / ½) direto da rolagem, que já existiam no
+                  desktop, agora aparecem na visão <strong>mobile</strong> da
+                  Mesa Virtual.
+                </li>
+                <li>
+                  <strong>
+                    Novo: equipe gerencia rascunhos de qualquer pessoa.
+                  </strong>{' '}
+                  No painel administrativo a equipe agora consegue gerenciar os{' '}
+                  <strong>rascunhos de todos os usuários</strong>, e a contagem
+                  de visualizações (<strong>viewCount</strong>) passou a ser
+                  visível apenas para a equipe.
+                </li>
+                <li>
+                  <strong>
+                    Correção: redução de dano de material especial não aplicava
+                    sozinha.
+                  </strong>{' '}
+                  A <strong>RD</strong> concedida por materiais especiais (como
+                  o <strong>Adamante</strong>) agora é aplicada automaticamente,
+                  sem precisar ajustar na mão.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Defesa contava armadura/escudo que não estavam em
+                    uso.
+                  </strong>{' '}
+                  A <strong>Defesa</strong> deixou de somar o bônus de uma
+                  armadura que você <strong>tirou</strong> ou de um escudo que
+                  você <strong>guardou</strong> — agora só conta o que está
+                  efetivamente equipado.
+                </li>
+                <li>
+                  <strong>
+                    Correção: não dava pra tirar a armadura quando ela era a
+                    única na mochila.
+                  </strong>{' '}
+                  Agora é possível <strong>desequipar a armadura</strong> mesmo
+                  quando ela é o único item desse tipo na mochila.
+                </li>
+                <li>
+                  <strong>Melhoria: Caverna do Saber atualizada.</strong> O
+                  banco de dados de conteúdo foi atualizado até a revisão{' '}
+                  <strong>#227</strong>.
+                </li>
+              </ul>
+
               <h3>4.18</h3>
 
               <ul>
