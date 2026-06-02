@@ -30,6 +30,7 @@ import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/r
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
 import { getInitialMoneyWithDetails } from '@/functions/general';
+import { rollAttributePool } from '@/functions/attributeMethods';
 import {
   getClassBaseSkillsWithChoices,
   expandOficioInBasicas,
@@ -784,23 +785,58 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Valores dos Atributos': {
         if (!race) return null;
+        const zeroedAttributes: Record<Atributo, number> = {
+          [Atributo.FORCA]: 0,
+          [Atributo.DESTREZA]: 0,
+          [Atributo.CONSTITUICAO]: 0,
+          [Atributo.INTELIGENCIA]: 0,
+          [Atributo.SABEDORIA]: 0,
+          [Atributo.CARISMA]: 0,
+        };
+        const attributeOrder = Object.values(Atributo);
         return (
           <AttributeBaseValuesStep
             race={race}
-            baseAttributes={
-              selections.baseAttributes || {
-                [Atributo.FORCA]: 0,
-                [Atributo.DESTREZA]: 0,
-                [Atributo.CONSTITUICAO]: 0,
-                [Atributo.INTELIGENCIA]: 0,
-                [Atributo.SABEDORIA]: 0,
-                [Atributo.CARISMA]: 0,
-              }
-            }
+            baseAttributes={selections.baseAttributes || zeroedAttributes}
             raceAttributeChoices={selections.raceAttributes}
+            method={selections.attributeMethod || 'free'}
+            dicePool={selections.attributeDicePool}
+            diceAssignment={selections.attributeDiceAssignment}
             onChange={(attrs) =>
               setSelections({ ...selections, baseAttributes: attrs })
             }
+            onMethodChange={(method) =>
+              setSelections({
+                ...selections,
+                attributeMethod: method,
+                baseAttributes: { ...zeroedAttributes },
+                attributeDicePool: undefined,
+                attributeDiceAssignment: undefined,
+              })
+            }
+            onRoll={() =>
+              setSelections({
+                ...selections,
+                attributeDicePool: rollAttributePool(),
+                attributeDiceAssignment: attributeOrder.map(() => null),
+                baseAttributes: { ...zeroedAttributes },
+              })
+            }
+            onDiceAssignmentChange={(assignment) => {
+              const newBase: Record<Atributo, number> = { ...zeroedAttributes };
+              attributeOrder.forEach((attr, i) => {
+                const poolIndex = assignment[i];
+                newBase[attr] =
+                  poolIndex !== null && poolIndex !== undefined
+                    ? selections.attributeDicePool?.[poolIndex] ?? 0
+                    : 0;
+              });
+              setSelections({
+                ...selections,
+                attributeDiceAssignment: assignment,
+                baseAttributes: newBase,
+              });
+            }}
           />
         );
       }
@@ -1245,7 +1281,14 @@ const CharacterCreationWizardModal: React.FC<
         );
 
       case 'Valores dos Atributos':
-        // Always allow - player can set any values
+        // Método 'dice' exige que todos os 6 valores rolados sejam distribuídos.
+        // 'free' e 'points' liberam o avanço sempre (a UI de pontos impede saldo negativo).
+        if (selections.attributeMethod === 'dice') {
+          const assignment = selections.attributeDiceAssignment;
+          const pool = selections.attributeDicePool;
+          if (!pool || pool.length === 0 || !assignment) return false;
+          return assignment.every((idx) => idx !== null && idx !== undefined);
+        }
         return true;
 
       case 'Variante de Atributos':

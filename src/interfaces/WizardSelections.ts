@@ -79,6 +79,16 @@ export interface WizardSelections {
   // Base attribute values (before racial modifiers)
   baseAttributes?: Record<Atributo, number>;
 
+  // Attribute generation method chosen in the wizard (default 'free' when absent)
+  attributeMethod?: 'free' | 'dice' | 'points';
+
+  // The 6 rolled modifiers (method 'dice'), kept to preserve the roll while distributing
+  attributeDicePool?: number[];
+
+  // Pool index assigned to each attribute (method 'dice'), aligned to Object.values(Atributo).
+  // null = not yet assigned. Source of truth for the dice distribution UI.
+  attributeDiceAssignment?: (number | null)[];
+
   // Race attribute variant selection (for races with multiple attribute options like Kallyanach)
   attributeVariant?: AttributeVariant;
 
