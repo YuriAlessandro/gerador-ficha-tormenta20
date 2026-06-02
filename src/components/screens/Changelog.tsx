@@ -121,23 +121,31 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
-                    Correção: armas de suplementos não apareciam nos filtros de
-                    categoria do gerador de itens.
+                    Novo: itens de suplementos nos geradores de itens superiores
+                    e mágicos.
                   </strong>{' '}
-                  As armas de <strong>Ameaças de Arton</strong> e{' '}
-                  <strong>Heróis de Arton</strong> agora são classificadas por
-                  categoria e aparecem corretamente nos filtros de{' '}
+                  Com um suplemento ativo no seu perfil, as{' '}
+                  <strong>armas, armaduras e escudos</strong> de{' '}
+                  <strong>Ameaças de Arton</strong> e{' '}
+                  <strong>Heróis de Arton</strong> agora podem ser usados como{' '}
+                  <strong>item base</strong> ao gerar itens superiores e
+                  mágicos. As opções aparecem agrupadas por suplemento e
+                  classificadas nos filtros de categoria (
                   <strong>Simples</strong>, <strong>Marciais</strong>,{' '}
-                  <strong>Exóticas</strong> e <strong>De Fogo</strong>.
+                  <strong>Exóticas</strong>, <strong>De Fogo</strong> e{' '}
+                  <strong>Leves</strong>/<strong>Pesadas</strong>).
                 </li>
                 <li>
                   <strong>
-                    Correção: Armadura de quitina não era tratada como armadura
-                    pesada.
+                    Correção: armaduras pesadas de suplementos não eram tratadas
+                    como pesadas.
                   </strong>{' '}
-                  A <strong>Armadura de quitina</strong> (Ameaças de Arton)
-                  passou a ser reconhecida como <strong>armadura pesada</strong>
-                  , aplicando corretamente as regras que dependem disso.
+                  A <strong>Armadura de quitina</strong> (Ameaças de Arton) e as
+                  armaduras pesadas de <strong>Heróis de Arton</strong>{' '}
+                  (Brigantina, Armadura de chumbo, de justa, de hussardo alado e
+                  de pedra) passaram a ser reconhecidas como{' '}
+                  <strong>armadura pesada</strong>, aplicando corretamente as
+                  regras que dependem disso.
                 </li>
                 <li>
                   <strong>
