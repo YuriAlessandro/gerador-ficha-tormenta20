@@ -48,6 +48,13 @@ export function isPowerAvailable(
   power: GeneralPower | ClassPower,
   options?: { ignoreLevelRequirement?: boolean }
 ): boolean {
+  // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
+  // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+  const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
+    a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
+  );
+  if (raceBypass) return true;
+
   if (power.requirements && power.requirements.length > 0) {
     return power.requirements.some((req) =>
       req.every((rule) => {
@@ -63,6 +70,13 @@ export function isPowerAvailable(
               (currPower) => currPower.name === rule.name
             );
             if (foundInPowers) return true;
+
+            // Habilidades raciais que contam como possuir um poder
+            // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+            const grantedByRace = (sheet.raca.abilities ?? []).some((a) =>
+              a.grantsPowerRequirements?.includes(rule.name ?? '')
+            );
+            if (grantedByRace) return true;
 
             // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
             return (sheet.sheetActionHistory ?? []).some((entry) =>

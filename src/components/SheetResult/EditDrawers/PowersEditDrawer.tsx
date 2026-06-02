@@ -1092,6 +1092,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     selectedClassPowers.some((p) => p.name === power.name);
 
   const checkRequirements = (power: GeneralPower): boolean => {
+    // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
+    // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+    const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
+      a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
+    );
+    if (raceBypass) return true;
+
     if (!power.requirements || power.requirements.length === 0) {
       return true; // No requirements means always available
     }
@@ -1115,6 +1122,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               selectedPowers.some((p) => p.name === req.name) ||
               sheet.generalPowers?.some((p) => p.name === req.name) ||
               sheet.classPowers?.some((p) => p.name === req.name) ||
+              // Habilidades raciais que contam como possuir um poder
+              // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+              (sheet.raca.abilities ?? []).some((a) =>
+                a.grantsPowerRequirements?.includes(req.name ?? '')
+              ) ||
               sheet.sheetActionHistory?.some((entry) =>
                 entry.changes.some(
                   (change) =>
@@ -1204,6 +1216,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   };
 
   const checkClassPowerRequirements = (power: ClassPower): boolean => {
+    // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
+    // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+    const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
+      a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
+    );
+    if (raceBypass) return true;
+
     if (!power.requirements || power.requirements.length === 0) {
       return true;
     }
@@ -1224,6 +1243,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               selectedClassPowers.some((p) => p.name === req.name) ||
               sheet.generalPowers?.some((p) => p.name === req.name) ||
               sheet.classPowers?.some((p) => p.name === req.name) ||
+              // Habilidades raciais que contam como possuir um poder
+              // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+              (sheet.raca.abilities ?? []).some((a) =>
+                a.grantsPowerRequirements?.includes(req.name ?? '')
+              ) ||
               sheet.sheetActionHistory?.some((entry) =>
                 entry.changes.some(
                   (change) =>

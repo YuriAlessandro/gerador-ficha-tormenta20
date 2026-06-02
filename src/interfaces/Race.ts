@@ -68,6 +68,10 @@ export type RaceAbility = {
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
+  // Satisfaz um requisito `PODER: <name>` como se o personagem tivesse esses poderes
+  grantsPowerRequirements?: string[];
+  // Ignora TODOS os pré-requisitos de poderes cujo nome inclua qualquer destes termos
+  bypassPrereqForPowersNamed?: string[];
 };
 
 export interface RaceHeritage {
