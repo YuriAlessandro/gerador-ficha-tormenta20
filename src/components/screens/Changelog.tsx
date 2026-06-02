@@ -74,62 +74,6 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
-                    Melhoria: aviso de suplementos disponíveis na criação de
-                    ficha.
-                  </strong>{' '}
-                  A tela de <strong>criação de ficha</strong> agora mostra quais{' '}
-                  <strong>suplementos</strong> (Ameaças de Arton, Atlas de
-                  Arton, Deuses de Arton, Heróis de Arton) estão{' '}
-                  <strong>disponíveis e desativados</strong>, com um botão que
-                  leva <strong>direto à configuração</strong> (com rolagem
-                  automática até a opção) para quem está logado, ou ao{' '}
-                  <strong>login</strong> para quem ainda não tem conta. O aviso
-                  pode ser <strong>dispensado</strong> e volta a aparecer caso
-                  surjam novos suplementos.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: rolagem infinita no Bestiário da Comunidade.
-                  </strong>{' '}
-                  A página do <strong>Bestiário da Comunidade</strong> agora
-                  carrega novas ameaças automaticamente conforme você{' '}
-                  <strong>rola até o fim</strong>, no lugar dos botões de
-                  páginas. As ameaças aparecem por{' '}
-                  <strong>mais recentes primeiro</strong>, priorizando o
-                  conteúdo — os atalhos de <strong>Melhores de hoje/mês</strong>{' '}
-                  continuam disponíveis, mas só são aplicados quando você clica
-                  neles.
-                </li>
-                <li>
-                  <strong>
-                    Correção: habilidades do Centauro não liberavam poderes de
-                    cavalaria na criação.
-                  </strong>{' '}
-                  A habilidade <strong>Ginete Natural</strong> agora conta como
-                  ter o poder <strong>Ginete</strong>, e <strong>Cascos</strong>{' '}
-                  permite escolher poderes de <strong>Carga</strong> ou{' '}
-                  <strong>Investida</strong> sem cumprir os pré-requisitos.
-                  Assim, poderes como <strong>Carga de Cavalaria</strong> passam
-                  a aparecer normalmente durante a{' '}
-                  <strong>criação do personagem</strong> (antes só era possível
-                  adicioná-los manualmente).
-                </li>
-                <li>
-                  <strong>
-                    Correção: Estilo de Uma Arma não aplicava seus bônus.
-                  </strong>{' '}
-                  O poder <strong>Estilo de Uma Arma</strong> agora concede{' '}
-                  <strong>+2 na Defesa</strong> e <strong>+2 no ataque</strong>{' '}
-                  com a arma empunhada quando você está com uma{' '}
-                  <strong>
-                    arma corpo a corpo em uma das mãos e a outra vazia
-                  </strong>
-                  . Os bônus aparecem e somem automaticamente conforme a
-                  empunhadura (não valem para armas de duas mãos, à distância ou
-                  com a outra mão ocupada).
-                </li>
-                <li>
-                  <strong>
                     Novo: métodos de geração de atributos no assistente de
                     criação.
                   </strong>{' '}
@@ -166,17 +110,6 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
-                    Correção: não dava pra escolher o tipo e o tamanho do Melhor
-                    Amigo ao multiclassar Treinador.
-                  </strong>{' '}
-                  Ao pegar <strong>Treinador</strong> como classe ao{' '}
-                  <strong>subir de nível</strong> (multiclasse), os botões de{' '}
-                  <strong>Tipo</strong> e <strong>Tamanho</strong> do parceiro
-                  não respondiam ao clique. Agora a seleção funciona
-                  normalmente.
-                </li>
-                <li>
-                  <strong>
                     Novo: itens de suplementos nos geradores de itens superiores
                     e mágicos.
                   </strong>{' '}
@@ -190,6 +123,78 @@ const Changelog: React.FC = () => {
                   <strong>Simples</strong>, <strong>Marciais</strong>,{' '}
                   <strong>Exóticas</strong>, <strong>De Fogo</strong> e{' '}
                   <strong>Leves</strong>/<strong>Pesadas</strong>).
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: aviso de suplementos disponíveis na criação de
+                    ficha.
+                  </strong>{' '}
+                  A tela de <strong>criação de ficha</strong> agora mostra quais{' '}
+                  <strong>suplementos</strong> (Ameaças de Arton, Atlas de
+                  Arton, Deuses de Arton, Heróis de Arton) estão{' '}
+                  <strong>disponíveis e desativados</strong>, com um botão que
+                  leva <strong>direto à configuração</strong> (com rolagem
+                  automática até a opção) para quem está logado, ou ao{' '}
+                  <strong>login</strong> para quem ainda não tem conta. O aviso
+                  pode ser <strong>dispensado</strong> e volta a aparecer caso
+                  surjam novos suplementos.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: rolagem infinita no Bestiário da Comunidade.
+                  </strong>{' '}
+                  A página do <strong>Bestiário da Comunidade</strong> agora
+                  carrega novas ameaças automaticamente conforme você{' '}
+                  <strong>rola até o fim</strong>, no lugar dos botões de
+                  páginas. As ameaças aparecem por{' '}
+                  <strong>mais recentes primeiro</strong>, priorizando o
+                  conteúdo — os atalhos de <strong>Melhores de hoje/mês</strong>{' '}
+                  continuam disponíveis, mas só são aplicados quando você clica
+                  neles.
+                </li>
+                <li>
+                  <strong>Melhoria: Caverna do Saber atualizada.</strong> O
+                  banco de dados de conteúdo foi atualizado até a revisão{' '}
+                  <strong>#227</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: habilidades do Centauro não liberavam poderes de
+                    cavalaria na criação.
+                  </strong>{' '}
+                  A habilidade <strong>Ginete Natural</strong> agora conta como
+                  ter o poder <strong>Ginete</strong>, e <strong>Cascos</strong>{' '}
+                  permite escolher poderes de <strong>Carga</strong> ou{' '}
+                  <strong>Investida</strong> sem cumprir os pré-requisitos.
+                  Assim, poderes como <strong>Carga de Cavalaria</strong> passam
+                  a aparecer normalmente durante a{' '}
+                  <strong>criação do personagem</strong> (antes só era possível
+                  adicioná-los manualmente).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Estilo de Uma Arma não aplicava seus bônus.
+                  </strong>{' '}
+                  O poder <strong>Estilo de Uma Arma</strong> agora concede{' '}
+                  <strong>+2 na Defesa</strong> e <strong>+2 no ataque</strong>{' '}
+                  com a arma empunhada quando você está com uma{' '}
+                  <strong>
+                    arma corpo a corpo em uma das mãos e a outra vazia
+                  </strong>
+                  . Os bônus aparecem e somem automaticamente conforme a
+                  empunhadura (não valem para armas de duas mãos, à distância ou
+                  com a outra mão ocupada).
+                </li>
+                <li>
+                  <strong>
+                    Correção: não dava pra escolher o tipo e o tamanho do Melhor
+                    Amigo ao multiclassar Treinador.
+                  </strong>{' '}
+                  Ao pegar <strong>Treinador</strong> como classe ao{' '}
+                  <strong>subir de nível</strong> (multiclasse), os botões de{' '}
+                  <strong>Tipo</strong> e <strong>Tamanho</strong> do parceiro
+                  não respondiam ao clique. Agora a seleção funciona
+                  normalmente.
                 </li>
                 <li>
                   <strong>
@@ -229,11 +234,6 @@ const Changelog: React.FC = () => {
                   </strong>{' '}
                   Agora é possível <strong>desequipar a armadura</strong> mesmo
                   quando ela é o único item desse tipo na mochila.
-                </li>
-                <li>
-                  <strong>Melhoria: Caverna do Saber atualizada.</strong> O
-                  banco de dados de conteúdo foi atualizado até a revisão{' '}
-                  <strong>#227</strong>.
                 </li>
               </ul>
 
