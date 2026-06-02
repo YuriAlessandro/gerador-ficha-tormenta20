@@ -74,6 +74,34 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: habilidades do Centauro não liberavam poderes de
+                    cavalaria na criação.
+                  </strong>{' '}
+                  A habilidade <strong>Ginete Natural</strong> agora conta como
+                  ter o poder <strong>Ginete</strong>, e <strong>Cascos</strong>{' '}
+                  permite escolher poderes de <strong>Carga</strong> ou{' '}
+                  <strong>Investida</strong> sem cumprir os pré-requisitos.
+                  Assim, poderes como <strong>Carga de Cavalaria</strong> passam
+                  a aparecer normalmente durante a{' '}
+                  <strong>criação do personagem</strong> (antes só era possível
+                  adicioná-los manualmente).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Estilo de Uma Arma não aplicava seus bônus.
+                  </strong>{' '}
+                  O poder <strong>Estilo de Uma Arma</strong> agora concede{' '}
+                  <strong>+2 na Defesa</strong> e <strong>+2 no ataque</strong>{' '}
+                  com a arma empunhada quando você está com uma{' '}
+                  <strong>
+                    arma corpo a corpo em uma das mãos e a outra vazia
+                  </strong>
+                  . Os bônus aparecem e somem automaticamente conforme a
+                  empunhadura (não valem para armas de duas mãos, à distância ou
+                  com a outra mão ocupada).
+                </li>
+                <li>
+                  <strong>
                     Novo: métodos de geração de atributos no assistente de
                     criação.
                   </strong>{' '}
