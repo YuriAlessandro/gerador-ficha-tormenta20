@@ -110,6 +110,37 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
+                    Correção: não dava pra escolher o tipo e o tamanho do Melhor
+                    Amigo ao multiclassar Treinador.
+                  </strong>{' '}
+                  Ao pegar <strong>Treinador</strong> como classe ao{' '}
+                  <strong>subir de nível</strong> (multiclasse), os botões de{' '}
+                  <strong>Tipo</strong> e <strong>Tamanho</strong> do parceiro
+                  não respondiam ao clique. Agora a seleção funciona
+                  normalmente.
+                </li>
+                <li>
+                  <strong>
+                    Correção: armas de suplementos não apareciam nos filtros de
+                    categoria do gerador de itens.
+                  </strong>{' '}
+                  As armas de <strong>Ameaças de Arton</strong> e{' '}
+                  <strong>Heróis de Arton</strong> agora são classificadas por
+                  categoria e aparecem corretamente nos filtros de{' '}
+                  <strong>Simples</strong>, <strong>Marciais</strong>,{' '}
+                  <strong>Exóticas</strong> e <strong>De Fogo</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Armadura de quitina não era tratada como armadura
+                    pesada.
+                  </strong>{' '}
+                  A <strong>Armadura de quitina</strong> (Ameaças de Arton)
+                  passou a ser reconhecida como <strong>armadura pesada</strong>
+                  , aplicando corretamente as regras que dependem disso.
+                </li>
+                <li>
+                  <strong>
                     Correção: redução de dano de material especial não aplicava
                     sozinha.
                   </strong>{' '}
