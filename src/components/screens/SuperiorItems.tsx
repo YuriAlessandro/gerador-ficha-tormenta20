@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -35,7 +35,6 @@ import {
 } from '@mui/icons-material';
 import { TransitionGroup } from 'react-transition-group';
 
-import EQUIPAMENTOS from '../../data/systems/tormenta20/equipamentos';
 import { SEO, getPageSEO } from '../SEO';
 import {
   armorsModifications,
@@ -61,6 +60,7 @@ import {
   SUPPLEMENT_METADATA,
 } from '../../types/supplement.types';
 import ItemModificationsEditor from '../SheetResult/BackpackModal/ItemModificationsEditor';
+import { getCategorizedCombatItems } from '../../utils/itemGeneratorEquipment';
 
 type ItemType = 'weapon' | 'armor' | 'shield';
 
@@ -69,32 +69,6 @@ interface ItemOption {
   value: string;
   equipment: Equipment;
 }
-
-const allWeapons = [
-  ...EQUIPAMENTOS.armasSimples,
-  ...EQUIPAMENTOS.armasMarciais,
-  ...EQUIPAMENTOS.armasExoticas,
-  ...EQUIPAMENTOS.armasDeFogo,
-];
-
-const allArmors = [
-  ...EQUIPAMENTOS.armadurasLeves,
-  ...EQUIPAMENTOS.armaduraPesada,
-];
-
-const weaponsByType = {
-  all: allWeapons,
-  simple: EQUIPAMENTOS.armasSimples,
-  martial: EQUIPAMENTOS.armasMarciais,
-  exotic: EQUIPAMENTOS.armasExoticas,
-  firearm: EQUIPAMENTOS.armasDeFogo,
-};
-
-const armorsByType = {
-  all: allArmors,
-  light: EQUIPAMENTOS.armadurasLeves,
-  heavy: EQUIPAMENTOS.armaduraPesada,
-};
 
 const weaponSubtypes = [
   { value: 'simple', label: 'Simples' },
@@ -113,6 +87,12 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
   const userSupplements = user?.enabledSupplements || [
     SupplementId.TORMENTA20_CORE,
   ];
+
+  // Base items (core + active supplements) categorized by subtype.
+  const { weaponsByType, armorsByType, shields } = useMemo(
+    () => getCategorizedCombatItems(userSupplements),
+    [userSupplements]
+  );
   const [state, setState] = useState<SuperiorItemsState>({
     generationMode: 'random',
     selectedItemType: null,
@@ -241,11 +221,22 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
     } else if (itemType === 'armor') {
       items = armorsByType[subType as keyof typeof armorsByType] || [];
     } else if (itemType === 'shield') {
-      items = EQUIPAMENTOS.escudos;
+      items = shields;
     }
 
-    const options: ItemOption[] = items
-      .sort((a, b) => a.nome.localeCompare(b.nome))
+    // Sort by origin (core first, then supplements alphabetically) so the
+    // Autocomplete groupBy renders contiguous group headers, then by name.
+    const options: ItemOption[] = [...items]
+      .sort((a, b) => {
+        const oa = a.supplementName || '';
+        const ob = b.supplementName || '';
+        if (oa !== ob) {
+          if (!oa) return -1;
+          if (!ob) return 1;
+          return oa.localeCompare(ob);
+        }
+        return a.nome.localeCompare(b.nome);
+      })
       .map((item) => ({
         label: item.nome,
         value: item.nome,
@@ -573,6 +564,9 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
               <Autocomplete
                 options={availableItems}
                 getOptionLabel={(option) => option.label}
+                groupBy={(option) =>
+                  option.equipment.supplementName || 'Tormenta 20'
+                }
                 value={
                   availableItems.find(
                     (item) => item.value === state.selectedItem
