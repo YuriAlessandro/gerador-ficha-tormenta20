@@ -18,10 +18,8 @@ import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
 import SelectOptions from '../../../interfaces/SelectedOptions';
-import {
-  SupplementId,
-  SUPPLEMENT_METADATA,
-} from '../../../types/supplement.types';
+import { SupplementId } from '../../../types/supplement.types';
+import SupplementsIndicator from './SupplementsIndicator';
 import {
   allDivindadeNames,
   divindadeDisplayNames,
@@ -50,7 +48,8 @@ interface RandomSheetFormProps {
   onSelectedOptionsChange: (options: SelectOptions) => void;
   onGenerate: () => void;
   userSupplements: SupplementId[];
-  enabledSupplements?: SupplementId[];
+  isAuthenticated: boolean;
+  onConfigureSupplements: () => void;
 }
 
 const formatOptionLabel = (option: SelectedOption) => (
@@ -90,7 +89,8 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
   onSelectedOptionsChange,
   onGenerate,
   userSupplements,
-  enabledSupplements,
+  isAuthenticated,
+  onConfigureSupplements,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -330,44 +330,11 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
       </Typography>
 
       {/* System & Supplements Indicator */}
-      {enabledSupplements && enabledSupplements.length > 0 && (
-        <Box
-          sx={{
-            mt: 3,
-            mb: 3,
-            p: 1.5,
-            borderRadius: 1,
-            bgcolor: 'action.hover',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          <Stack spacing={1}>
-            <Typography
-              variant='caption'
-              color='text.secondary'
-              sx={{ fontWeight: 'medium' }}
-            >
-              Sistema e Suplementos Ativos:
-            </Typography>
-            <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
-              {enabledSupplements.map((suppId) => {
-                const supplement = SUPPLEMENT_METADATA[suppId];
-                return supplement ? (
-                  <Chip
-                    key={suppId}
-                    label={supplement.name}
-                    size='small'
-                    color='primary'
-                    variant='outlined'
-                    sx={{ fontSize: '0.75rem' }}
-                  />
-                ) : null;
-              })}
-            </Stack>
-          </Stack>
-        </Box>
-      )}
+      <SupplementsIndicator
+        userSupplements={userSupplements}
+        isAuthenticated={isAuthenticated}
+        onConfigureSupplements={onConfigureSupplements}
+      />
 
       <Grid container spacing={2}>
         {/* Race Selection */}

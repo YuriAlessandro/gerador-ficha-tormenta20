@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useHistory, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
@@ -97,7 +97,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 function getInitialTabFromHash(hash: string): number {
-  if (hash === '#sistema') return 1;
+  if (hash === '#sistema' || hash === '#suplementos') return 1;
   if (hash === '#apoio') return 2;
   return 0;
 }
@@ -144,6 +144,7 @@ const ProfilePage: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(() =>
     getInitialTabFromHash(location.hash)
   );
+  const supplementsSectionRef = useRef<HTMLDivElement>(null);
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
   >(() => currentUser?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
@@ -193,6 +194,20 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     setBestiaryAnonymousState(currentUser?.bestiaryAnonymous !== false);
   }, [currentUser?.bestiaryAnonymous]);
+
+  // Scroll to the supplements section when navigated to with #suplementos hash
+  useEffect(() => {
+    if (location.hash === '#suplementos') {
+      const timeoutId = setTimeout(() => {
+        supplementsSectionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 150);
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [location.hash]);
 
   // Load subscription when support tab is selected (tab index 2)
   useEffect(() => {
@@ -1135,7 +1150,7 @@ const ProfilePage: React.FC = () => {
                       </Box>
                     </Box>
 
-                    <Box>
+                    <Box ref={supplementsSectionRef}>
                       <Typography variant='h6' fontWeight='bold' gutterBottom>
                         Suplementos
                       </Typography>

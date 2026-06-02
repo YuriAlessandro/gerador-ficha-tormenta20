@@ -399,6 +399,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
+  // Navigate to supplement configuration (logged in) or open login (logged out)
+  const handleConfigureSupplements = React.useCallback(() => {
+    if (isAuthenticated && user?.username) {
+      history.push(`/perfil/${user.username}#suplementos`);
+    } else {
+      openLoginModal();
+    }
+  }, [isAuthenticated, user?.username, history, openLoginModal]);
+
   // Sync selectedOptions.supplements when user's enabledSupplements change
   React.useEffect(() => {
     const newSupplements = user?.enabledSupplements || [
@@ -1588,7 +1597,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   onSelectedOptionsChange={setSelectedOptions}
                   onGenerate={onClickGenerate}
                   userSupplements={userSupplements}
-                  enabledSupplements={user?.enabledSupplements}
+                  isAuthenticated={isAuthenticated}
+                  onConfigureSupplements={handleConfigureSupplements}
                 />
               }
               manualFormContent={
@@ -1598,7 +1608,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   onSelectedOptionsChange={setSelectedOptions}
                   onCreateSheet={onClickGenerateEmptySheet}
                   userSupplements={userSupplements}
-                  enabledSupplements={user?.enabledSupplements}
+                  isAuthenticated={isAuthenticated}
+                  onConfigureSupplements={handleConfigureSupplements}
                 />
               }
             />
