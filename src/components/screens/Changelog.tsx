@@ -74,6 +74,19 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Melhoria: rolagem infinita no Bestiário da Comunidade.
+                  </strong>{' '}
+                  A página do <strong>Bestiário da Comunidade</strong> agora
+                  carrega novas ameaças automaticamente conforme você{' '}
+                  <strong>rola até o fim</strong>, no lugar dos botões de
+                  páginas. As ameaças aparecem por{' '}
+                  <strong>mais recentes primeiro</strong>, priorizando o
+                  conteúdo — os atalhos de <strong>Melhores de hoje/mês</strong>{' '}
+                  continuam disponíveis, mas só são aplicados quando você clica
+                  neles.
+                </li>
+                <li>
+                  <strong>
                     Correção: habilidades do Centauro não liberavam poderes de
                     cavalaria na criação.
                   </strong>{' '}
