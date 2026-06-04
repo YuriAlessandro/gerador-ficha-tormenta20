@@ -62,6 +62,7 @@ import { AccentColorId, getAccentColorsArray } from '../../theme/accentColors';
 import ProfileService, {
   FullProfile,
   ResolvedSection,
+  ProfileTheme,
 } from '../../services/profile.service';
 import ProfileSectionRenderer from '../../premium/components/Profile/ProfileSectionRenderer';
 import ProfileEditor from '../../premium/components/Profile/ProfileEditor';
@@ -101,6 +102,19 @@ function TabPanel(props: TabPanelProps) {
       {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
     </div>
   );
+}
+
+const PROFILE_FONT_MAP: Record<string, string> = {
+  default: 'inherit',
+  serif: 'Georgia, serif',
+  mono: 'monospace',
+  cinzel: "'Cinzel', serif",
+  lato: "'Lato', sans-serif",
+  merriweather: "'Merriweather', serif",
+};
+
+function resolveProfileFont(fontFamily?: string): string {
+  return fontFamily ? PROFILE_FONT_MAP[fontFamily] || 'inherit' : 'inherit';
 }
 
 function getInitialTabFromHash(hash: string): number {
@@ -561,7 +575,13 @@ const ProfilePage: React.FC = () => {
       />
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          background: profile.theme?.backgroundImageUrl
+            ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${profile.theme.backgroundImageUrl})`
+            : profile.theme?.backgroundColor ||
+              `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          fontFamily: resolveProfileFont(profile.theme?.fontFamily),
           pt: { xs: 3, md: 4 },
           pb: { xs: 8, md: 10 },
         }}
@@ -571,7 +591,7 @@ const ProfilePage: React.FC = () => {
             direction='column'
             alignItems='center'
             spacing={2}
-            sx={{ color: 'white' }}
+            sx={{ color: profile.theme?.textColor || 'white' }}
           >
             <Avatar
               src={profile.photoURL}
@@ -1862,8 +1882,12 @@ const ProfilePage: React.FC = () => {
           supportLevel={supportLevel}
           currentPhotoURL={profile.photoURL}
           initialSections={profile.sections}
+          initialTheme={profile.theme}
           onSaved={(sections: ResolvedSection[]) =>
             setProfile((prev) => (prev ? { ...prev, sections } : prev))
+          }
+          onThemeSaved={(newTheme: ProfileTheme) =>
+            setProfile((prev) => (prev ? { ...prev, theme: newTheme } : prev))
           }
           onPhotoSaved={(photoURL?: string) =>
             setProfile((prev) => (prev ? { ...prev, photoURL } : prev))
