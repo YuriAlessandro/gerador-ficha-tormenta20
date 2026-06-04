@@ -65,6 +65,7 @@ import ProfileService, {
 } from '../../services/profile.service';
 import ProfileSectionRenderer from '../../premium/components/Profile/ProfileSectionRenderer';
 import ProfileEditor from '../../premium/components/Profile/ProfileEditor';
+import BadgeShowcase from '../../premium/components/Profile/BadgeShowcase';
 import { AppDispatch } from '../../store';
 import {
   updateProfile,
@@ -615,6 +616,10 @@ const ProfilePage: React.FC = () => {
                 <ProfileLevelChip level={profile.level ?? 1} variant='small' />
               </Stack>
             </Box>
+
+            {profile.badges && profile.badges.length > 0 && (
+              <BadgeShowcase badges={profile.badges} />
+            )}
 
             {isOwnProfile && isAuthenticated && currentUser?.email && (
               <Typography
