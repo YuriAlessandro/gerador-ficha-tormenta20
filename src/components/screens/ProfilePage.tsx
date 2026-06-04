@@ -59,7 +59,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
 import { AccentColorId, getAccentColorsArray } from '../../theme/accentColors';
-import ProfileService, { PublicProfile } from '../../services/profile.service';
+import ProfileService, {
+  FullProfile,
+  ResolvedSection,
+} from '../../services/profile.service';
+import ProfileSectionRenderer from '../../premium/components/Profile/ProfileSectionRenderer';
+import ProfileEditor from '../../premium/components/Profile/ProfileEditor';
 import { AppDispatch } from '../../store';
 import {
   updateProfile,
@@ -132,7 +137,8 @@ const ProfilePage: React.FC = () => {
     loading: preferencesLoading,
   } = useUserPreferences();
 
-  const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [profile, setProfile] = useState<FullProfile | null>(null);
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -241,7 +247,7 @@ const ProfilePage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const profileData = await ProfileService.getProfileByUsername(username);
+        const profileData = await ProfileService.getFullProfile(username);
         setProfile(profileData);
       } catch (err) {
         const fetchError = err as { response?: { status?: number } };
@@ -302,7 +308,7 @@ const ProfilePage: React.FC = () => {
         history.push(`/perfil/${updates.username}`);
       } else {
         // Refresh profile data
-        const profileData = await ProfileService.getProfileByUsername(
+        const profileData = await ProfileService.getFullProfile(
           currentUser?.username || ''
         );
         setProfile(profileData);
@@ -624,6 +630,42 @@ const ProfilePage: React.FC = () => {
 
       <Container maxWidth='md' sx={{ mt: -6, pb: 4 }}>
         <Stack spacing={3}>
+          {/* Customizable profile sections (Steam-like) - visible to everyone */}
+          {(profile.sections.length > 0 || isOwnProfile) && (
+            <Card sx={{ p: { xs: 2, md: 3 } }}>
+              <Stack
+                direction='row'
+                justifyContent='space-between'
+                alignItems='center'
+                sx={{ mb: profile.sections.length ? 2 : 0 }}
+              >
+                <Typography variant='h6' fontWeight='bold'>
+                  Perfil
+                </Typography>
+                {isOwnProfile && (
+                  <Button
+                    size='small'
+                    startIcon={<EditIcon />}
+                    onClick={() => setProfileEditorOpen(true)}
+                  >
+                    Personalizar
+                  </Button>
+                )}
+              </Stack>
+              <Stack spacing={3}>
+                {profile.sections.map((section) => (
+                  <ProfileSectionRenderer key={section.id} section={section} />
+                ))}
+              </Stack>
+              {isOwnProfile && profile.sections.length === 0 && (
+                <Typography variant='body2' color='text.secondary'>
+                  Seu perfil ainda não tem seções. Clique em Personalizar para
+                  começar.
+                </Typography>
+              )}
+            </Card>
+          )}
+
           {/* Settings Card - Only for own profile */}
           {isOwnProfile && (
             <Card>
@@ -1807,6 +1849,22 @@ const ProfilePage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {isOwnProfile && (
+        <ProfileEditor
+          open={profileEditorOpen}
+          onClose={() => setProfileEditorOpen(false)}
+          supportLevel={supportLevel}
+          currentPhotoURL={profile.photoURL}
+          initialSections={profile.sections}
+          onSaved={(sections: ResolvedSection[]) =>
+            setProfile((prev) => (prev ? { ...prev, sections } : prev))
+          }
+          onPhotoSaved={(photoURL?: string) =>
+            setProfile((prev) => (prev ? { ...prev, photoURL } : prev))
+          }
+        />
+      )}
     </>
   );
 };

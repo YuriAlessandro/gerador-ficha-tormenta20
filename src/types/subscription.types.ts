@@ -209,6 +209,96 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
 };
 
 /**
+ * Profile customization caps per tier. MUST mirror the backend
+ * (config/profileCustomization.ts) — the server re-validates every write, this
+ * copy only drives enabling/disabling controls in the editor. `-1` = unlimited.
+ */
+export interface ProfileCustomizationCaps {
+  maxMarkdownSections: number;
+  maxPinnedSections: number;
+  maxImageSections: number;
+  canUsePhotoUrl: boolean;
+  canUseSidebar: boolean;
+  canCustomizeColors: boolean;
+  canCustomizeFont: boolean;
+  canCustomizeBackgroundColor: boolean;
+  canCustomizeBackgroundImage: boolean;
+  maxPinnedBadges: number;
+}
+
+const PROFILE_CAPS_FREE: ProfileCustomizationCaps = {
+  maxMarkdownSections: 1,
+  maxPinnedSections: 0,
+  maxImageSections: 0,
+  canUsePhotoUrl: false,
+  canUseSidebar: false,
+  canCustomizeColors: false,
+  canCustomizeFont: false,
+  canCustomizeBackgroundColor: false,
+  canCustomizeBackgroundImage: false,
+  maxPinnedBadges: 1,
+};
+
+const PROFILE_CAPS_NIVEL_1: ProfileCustomizationCaps = {
+  maxMarkdownSections: 3,
+  maxPinnedSections: 3,
+  maxImageSections: 1,
+  canUsePhotoUrl: true,
+  canUseSidebar: false,
+  canCustomizeColors: true,
+  canCustomizeFont: false,
+  canCustomizeBackgroundColor: true,
+  canCustomizeBackgroundImage: false,
+  maxPinnedBadges: 3,
+};
+
+const PROFILE_CAPS_NIVEL_2: ProfileCustomizationCaps = {
+  maxMarkdownSections: 6,
+  maxPinnedSections: 6,
+  maxImageSections: 3,
+  canUsePhotoUrl: true,
+  canUseSidebar: true,
+  canCustomizeColors: true,
+  canCustomizeFont: true,
+  canCustomizeBackgroundColor: true,
+  canCustomizeBackgroundImage: false,
+  maxPinnedBadges: 5,
+};
+
+const PROFILE_CAPS_NIVEL_3: ProfileCustomizationCaps = {
+  maxMarkdownSections: -1,
+  maxPinnedSections: -1,
+  maxImageSections: -1,
+  canUsePhotoUrl: true,
+  canUseSidebar: true,
+  canCustomizeColors: true,
+  canCustomizeFont: true,
+  canCustomizeBackgroundColor: true,
+  canCustomizeBackgroundImage: true,
+  maxPinnedBadges: 5,
+};
+
+export const PROFILE_CUSTOMIZATION: Record<
+  SupportLevel,
+  ProfileCustomizationCaps
+> = {
+  [SupportLevel.FREE]: PROFILE_CAPS_FREE,
+  [SupportLevel.NIVEL_1]: PROFILE_CAPS_NIVEL_1,
+  [SupportLevel.NIVEL_1_ANUAL]: PROFILE_CAPS_NIVEL_1,
+  [SupportLevel.NIVEL_2]: PROFILE_CAPS_NIVEL_2,
+  [SupportLevel.NIVEL_2_ANUAL]: PROFILE_CAPS_NIVEL_2,
+  [SupportLevel.NIVEL_3]: PROFILE_CAPS_NIVEL_3,
+  [SupportLevel.NIVEL_3_ANUAL]: PROFILE_CAPS_NIVEL_3,
+};
+
+/** Helper to get profile customization caps for a support level. */
+export function getProfileCustomizationCaps(
+  level: SupportLevel
+): ProfileCustomizationCaps {
+  return PROFILE_CUSTOMIZATION[level];
+}
+
+/**
  * Alias for backward compatibility
  */
 export const PRICING_PLANS = SUPPORT_LIMITS;
