@@ -46,6 +46,7 @@ import {
   Check as CheckIcon,
 } from '@mui/icons-material';
 import SupporterBadge from '../Premium/SupporterBadge';
+import ProfileLevelChip from '../Premium/ProfileLevelChip';
 import {
   SupportLevel,
   getSupportLevelName,
@@ -605,6 +606,7 @@ const ProfilePage: React.FC = () => {
                     showTooltip={false}
                   />
                 )}
+                <ProfileLevelChip level={profile.level ?? 1} variant='small' />
               </Stack>
             </Box>
 
