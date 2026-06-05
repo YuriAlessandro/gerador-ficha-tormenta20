@@ -67,6 +67,7 @@ import ProfileService, {
 import ProfileSectionRenderer from '../../premium/components/Profile/ProfileSectionRenderer';
 import ProfileEditor from '../../premium/components/Profile/ProfileEditor';
 import BadgeShowcase from '../../premium/components/Profile/BadgeShowcase';
+import RoleBadges from '../../premium/components/Profile/RoleBadges';
 import { resolveProfileFont } from '../../premium/components/Profile/themeStyles';
 import { AppDispatch } from '../../store';
 import {
@@ -597,6 +598,7 @@ const ProfilePage: React.FC = () => {
                   />
                 )}
                 <ProfileLevelChip level={profile.level ?? 1} variant='small' />
+                <RoleBadges roles={profile.roles} />
               </Stack>
             </Box>
 
