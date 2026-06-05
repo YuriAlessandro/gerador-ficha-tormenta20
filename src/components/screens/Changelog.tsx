@@ -220,6 +220,21 @@ const Changelog: React.FC = () => {
                   <strong>Ofício</strong> treinado. Agora cada perícia é
                   preenchida na linha correta.
                 </li>
+                <li>
+                  <strong>
+                    Correção: poder Artesão Criativo e perícia Ofício (Artesão).
+                  </strong>{' '}
+                  Ter <strong>Ofício (Artesão)</strong> não liberava o poder{' '}
+                  <strong>Artesão Criativo</strong>, porque o nome da perícia
+                  não batia com o pedido pelos poderes. A perícia foi renomeada
+                  para <strong>Ofício (Artesão)</strong> (como no livro) e
+                  agora, tendo o poder, ela{' '}
+                  <strong>substitui qualquer outro Ofício</strong> como
+                  pré-requisito de outros poderes. Também foram corrigidos os
+                  pré-requisitos de <strong>Estilista</strong>,{' '}
+                  <strong>Bombardeiro Furtivo</strong> e{' '}
+                  <strong>Preparar Poção</strong>.
+                </li>
               </ul>
 
               <h3>4.19</h3>
