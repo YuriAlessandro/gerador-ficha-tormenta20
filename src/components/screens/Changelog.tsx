@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            02/06/2026 (v4.19).
+            04/06/2026 (v4.20).
           </p>
 
           <p>
@@ -69,6 +69,72 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.20</h3>
+
+              <ul>
+                <li>
+                  <strong>Novo: perfis de usuário customizáveis.</strong> No
+                  estilo do perfil da Steam, agora você monta sua página de
+                  perfil com <strong>seções</strong>: blocos de texto, imagens
+                  (fan-arts) e <strong>fichas, ameaças e builds fixadas</strong>
+                  . É possível organizar tudo em uma ou em duas colunas
+                  (principal e lateral). Acesse seu perfil e clique em{' '}
+                  <strong>Editar perfil</strong> para começar.
+                </li>
+                <li>
+                  <strong>Novo: nível de perfil.</strong> Você acumula pontos
+                  por ações dentro da plataforma — especialmente as que ajudam a
+                  comunidade (publicar builds e ameaças, postar e comentar no
+                  fórum, receber curtidas e avaliações, e apoiar o projeto). Seu
+                  nível aparece num <strong>selo circular</strong> ao lado do
+                  seu nome, que evolui de cor conforme você sobe.
+                </li>
+                <li>
+                  <strong>Novo: badges colecionáveis da comunidade.</strong> Os
+                  maiores contribuidores ganham badges por ranking —{' '}
+                  <strong>Voz da Comunidade</strong> (fórum),{' '}
+                  <strong>Mestre das Builds</strong> e{' '}
+                  <strong>Arquiteto de Ameaças</strong> (bestiário) — em tiers
+                  bronze, prata, ouro e diamante. Elas aparecem no seu perfil.
+                </li>
+                <li>
+                  <strong>Novo: cartão de usuário ao passar o mouse.</strong> Em
+                  qualquer lugar da plataforma (fórum, comentários, builds,
+                  ameaças), passar o mouse sobre o nome de uma pessoa mostra um{' '}
+                  <strong>cartão</strong> com a foto, o nível e as badges dela —
+                  estilizado conforme a personalização do perfil. Clique para ir
+                  ao perfil completo.
+                </li>
+                <li>
+                  <strong>
+                    Novo: personalização de aparência (apoiadores).
+                  </strong>{' '}
+                  Apoiadores podem mudar <strong>cores</strong>,{' '}
+                  <strong>fonte</strong> e o <strong>fundo</strong> do perfil
+                  (cor sólida ou imagem), com{' '}
+                  <strong>pré-visualização ao vivo</strong> enquanto edita.
+                  Também é possível definir a{' '}
+                  <strong>foto de perfil por URL</strong> — preservando a sua
+                  foto do Google como padrão.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: cards de fichas, ameaças e builds fixadas.
+                  </strong>{' '}
+                  Os cards do perfil agora mostram a imagem do personagem e
+                  informações como <strong>nível, PV, PM, classe e raça</strong>
+                  , e levam direto à página pública do conteúdo ao clicar.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: limites de customização por nível de apoio.
+                  </strong>{' '}
+                  Usuários gratuitos desbloqueiam seções de perfil conforme
+                  sobem de nível (a partir do nível 10), e apoiadores têm mais
+                  seções e acesso à personalização de cores, fonte e fundo.
+                </li>
+              </ul>
+
               <h3>4.19</h3>
 
               <ul>
