@@ -20,6 +20,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { useHighlightFromUrl } from '../../hooks/useHighlightFromUrl';
 import { SupportLevel } from '../../types/subscription.types';
 import SupporterBadge from '../Premium/SupporterBadge';
+import { UserLink } from '../../premium/components/UserLink/UserLink';
 
 export interface CommentData {
   id: string;
@@ -293,27 +294,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     <Box
                       sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
                     >
-                      {/* Clickable Author Name */}
-                      <Link
-                        component={RouterLink}
-                        to={`/u/${comment.authorUsername}`}
-                        underline='hover'
-                        color='inherit'
-                        sx={{
-                          fontWeight: 600,
-                          '&:hover': {
-                            color: 'primary.main',
-                          },
-                        }}
-                      >
-                        <Typography
-                          variant='subtitle2'
-                          component='span'
-                          sx={{ fontWeight: 600 }}
-                        >
-                          {comment.authorName}
-                        </Typography>
-                      </Link>
+                      {/* Clickable Author Name (with hover card) */}
+                      <UserLink
+                        username={comment.authorUsername}
+                        displayName={comment.authorName}
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        showBadge={false}
+                      />
 
                       {/* Clickable Username */}
                       <Link
