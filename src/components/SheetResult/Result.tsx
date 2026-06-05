@@ -26,6 +26,7 @@ import {
   AccordionDetails,
   Alert,
   Link,
+  Snackbar,
 } from '@mui/material';
 import styled from '@emotion/styled';
 import {
@@ -220,6 +221,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [effectsModalOpen, setEffectsModalOpen] = useState(false);
   const [levelUpWizardOpen, setLevelUpWizardOpen] = useState(false);
+  const [levelUpError, setLevelUpError] = useState<string | null>(null);
   const prevEncounterPhaseRef = React.useRef<string | null>(null);
 
   const theme = useTheme();
@@ -534,21 +536,32 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleLevelUpConfirm = useCallback(
     (levelUpSelections: LevelUpSelections[]) => {
-      setLevelUpWizardOpen(false);
-      let updatedSheet = currentSheet;
-      levelUpSelections.forEach((sel) => {
-        updatedSheet = applyManualLevelUp(updatedSheet, sel);
-      });
-      updatedSheet = recalculateSheet(updatedSheet);
-      if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
-        const plainBag = updatedSheet.bag as unknown as {
-          equipments: Record<string, unknown>;
-        };
-        updatedSheet.bag = new Bag(plainBag.equipments || {});
-      }
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
+      try {
+        // Aplica todas as seleções numa cópia local; só comita a ficha se tudo
+        // der certo. Assim uma exceção (ex.: poder de classe não encontrado)
+        // não deixa a ficha num estado parcial nem some o nível sem aviso.
+        let updatedSheet = currentSheet;
+        levelUpSelections.forEach((sel) => {
+          updatedSheet = applyManualLevelUp(updatedSheet, sel);
+        });
+        updatedSheet = recalculateSheet(updatedSheet);
+        if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
+          const plainBag = updatedSheet.bag as unknown as {
+            equipments: Record<string, unknown>;
+          };
+          updatedSheet.bag = new Bag(plainBag.equipments || {});
+        }
+        setLevelUpWizardOpen(false);
+        setCurrentSheet(updatedSheet);
+        if (onSheetUpdate) {
+          onSheetUpdate(updatedSheet);
+        }
+      } catch (error) {
+        // Falha ao subir de nível: mantém a ficha original e avisa o usuário,
+        // em vez de fechar o modal silenciosamente sem contabilizar o nível.
+        const message =
+          error instanceof Error ? error.message : 'Erro desconhecido';
+        setLevelUpError(`Não foi possível subir de nível: ${message}`);
       }
     },
     [currentSheet, onSheetUpdate]
@@ -2757,6 +2770,21 @@ const Result: React.FC<ResultProps> = (props) => {
           onConfirm={handleLevelUpConfirm}
           onCancel={() => setLevelUpWizardOpen(false)}
         />
+
+        <Snackbar
+          open={levelUpError !== null}
+          autoHideDuration={8000}
+          onClose={() => setLevelUpError(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            severity='error'
+            onClose={() => setLevelUpError(null)}
+            sx={{ width: '100%' }}
+          >
+            {levelUpError}
+          </Alert>
+        </Snackbar>
 
         <SkillsEditDrawer
           open={skillsDrawerOpen}

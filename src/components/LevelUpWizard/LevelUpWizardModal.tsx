@@ -19,11 +19,7 @@ import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
 import { CompanionTrick } from '@/interfaces/Companion';
-import {
-  getAllowedClassPowers,
-  isPowerAvailable,
-  getWeightedInventorClassPowers,
-} from '@/functions/powers';
+import { getAllowedClassPowers, isPowerAvailable } from '@/functions/powers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
@@ -202,13 +198,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         }
       : sheetForCurrentLevel;
 
-    // Get class powers using the selected class's powers
-    const classPowers =
-      classNameForPowers === 'Inventor'
-        ? getWeightedInventorClassPowers(sheetForFiltering)
-        : getAllowedClassPowers(sheetForFiltering, {
-            classLevel: selectedClassLevel,
-          });
+    // Get class powers using the selected class's powers.
+    // Sempre usar getAllowedClassPowers na lista manual: a ponderação do
+    // Inventor (getWeightedInventorClassPowers) expande a lista com entradas
+    // duplicadas, o que só faz sentido em sorteio aleatório — numa seleção
+    // manual geraria poderes repetidos. Cobre Inventor e suas variantes
+    // (ex.: Alquimista) via sheetForFiltering.classe.powers.
+    const classPowers = getAllowedClassPowers(sheetForFiltering, {
+      classLevel: selectedClassLevel,
+    });
 
     // Use dataRegistry to get powers from all active supplements
     // Only include the 5 general power types (exclude RACA)

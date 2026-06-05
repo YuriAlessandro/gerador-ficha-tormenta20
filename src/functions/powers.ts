@@ -289,7 +289,10 @@ export function getWeightedInventorClassPowers(
 ): ClassPower[] {
   const allowedPowers = getAllowedClassPowers(sheet);
 
-  if (sheet.classe.name !== 'Inventor' || allowedPowers.length === 0) {
+  if (
+    !isClassOrVariantOf(sheet.classe, 'Inventor') ||
+    allowedPowers.length === 0
+  ) {
     return allowedPowers;
   }
 

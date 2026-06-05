@@ -2497,9 +2497,23 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'grantSpecificClassPower') {
         const { powerName: targetPowerName } = sheetAction.action;
 
-        const targetPower = sheet.classe.powers.find(
+        let targetPower = sheet.classe.powers.find(
           (p) => p.name === targetPowerName
         );
+
+        // Fallback: o catálogo `classe.powers` pode estar vazio em fichas
+        // carregadas (stripSheetForStorage zera os poderes e rehydrateSheet só
+        // os restaura se a variante for resolvida). Buscar no catálogo completo
+        // da classe antes de falhar.
+        if (!targetPower) {
+          const fullClass = findClassDescription(
+            sheet.classe.name,
+            sheet.classe.subname
+          );
+          targetPower = fullClass?.powers.find(
+            (p) => p.name === targetPowerName
+          );
+        }
 
         if (!targetPower) {
           throw new Error(
