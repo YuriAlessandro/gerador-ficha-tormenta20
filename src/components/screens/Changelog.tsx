@@ -73,6 +73,16 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Correção: subir de nível com Alquimista.</strong> O
+                  Alquimista (variante do Inventor) agora sobe de nível
+                  normalmente: os poderes concedidos automaticamente nos níveis
+                  2 (Alquimista Iniciado) e 10 (Mestre Alquimista) são aplicados
+                  corretamente, a progressão não cancela mais sem contabilizar o
+                  nível e a lista de poderes de classe não exibe mais opções
+                  duplicadas. Caso algo dê errado ao subir de nível, agora
+                  aparece um aviso em vez de a ficha fechar silenciosamente.
+                </li>
+                <li>
                   <strong>Novo: Escudo do Mestre na mesa virtual.</strong> O
                   mestre agora tem uma aba própria para montar seu escudo: um{' '}
                   <strong>grid configurável</strong> (ajuste linhas e colunas, e
