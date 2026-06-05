@@ -156,13 +156,6 @@ const ProfilePage: React.FC = () => {
   const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editForm, setEditForm] = useState({
-    username: '',
-    fullName: '',
-  });
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState(() =>
     getInitialTabFromHash(location.hash)
   );
@@ -279,66 +272,31 @@ const ProfilePage: React.FC = () => {
     fetchProfile();
   }, [username]);
 
-  const handleEditClick = () => {
-    if (currentUser) {
-      setEditForm({
-        username: currentUser.username || '',
-        fullName: currentUser.fullName || '',
-      });
-      setEditDialogOpen(true);
-      setEditError(null);
-    }
-  };
-
-  const handleEditClose = () => {
-    setEditDialogOpen(false);
-    setEditError(null);
-  };
-
-  const handleEditSave = async () => {
+  // Account info (username/displayName) is now saved from inside ProfileEditor.
+  // Throws a friendly message so the editor can surface it; redirects on a
+  // username change.
+  const handleSaveAccount = async (updates: {
+    username?: string;
+    fullName?: string;
+  }): Promise<void> => {
+    if (Object.keys(updates).length === 0) return;
     try {
-      setEditLoading(true);
-      setEditError(null);
-
-      const updates: { username?: string; fullName?: string } = {};
-
-      // Apenas apoiadores podem alterar o nome de usuário
-      if (editForm.username !== currentUser?.username && isUserSupporter) {
-        updates.username = editForm.username.toLowerCase();
-      }
-
-      if (editForm.fullName !== currentUser?.fullName) {
-        updates.fullName = editForm.fullName;
-      }
-
-      if (Object.keys(updates).length === 0) {
-        handleEditClose();
-        return;
-      }
-
       await dispatch(updateProfile(updates)).unwrap();
 
-      // If username changed, redirect to new profile URL
       if (updates.username) {
         history.push(`/perfil/${updates.username}`);
       } else {
-        // Refresh profile data
         const profileData = await ProfileService.getFullProfile(
           currentUser?.username || ''
         );
         setProfile(profileData);
       }
-
-      handleEditClose();
     } catch (err) {
       const updateError = err as { message?: string };
       if (updateError.message?.includes('Username already in use')) {
-        setEditError('Este nome de usuário já está em uso');
-      } else {
-        setEditError('Erro ao atualizar perfil');
+        throw new Error('Este nome de usuário já está em uso');
       }
-    } finally {
-      setEditLoading(false);
+      throw new Error('Erro ao atualizar perfil');
     }
   };
 
@@ -673,7 +631,7 @@ const ProfilePage: React.FC = () => {
                     startIcon={<EditIcon />}
                     onClick={() => setProfileEditorOpen(true)}
                   >
-                    Personalizar
+                    Editar perfil
                   </Button>
                 )}
               </Stack>
@@ -684,7 +642,7 @@ const ProfilePage: React.FC = () => {
               </Stack>
               {isOwnProfile && profile.sections.length === 0 && (
                 <Typography variant='body2' color='text.secondary'>
-                  Seu perfil ainda não tem seções. Clique em Personalizar para
+                  Seu perfil ainda não tem seções. Clique em Editar perfil para
                   começar.
                 </Typography>
               )}
@@ -746,7 +704,7 @@ const ProfilePage: React.FC = () => {
                     <Button
                       variant='contained'
                       startIcon={<EditIcon />}
-                      onClick={handleEditClick}
+                      onClick={() => setProfileEditorOpen(true)}
                       fullWidth={isMobile}
                     >
                       Editar Perfil
@@ -1773,62 +1731,6 @@ const ProfilePage: React.FC = () => {
         </Stack>
       </Container>
 
-      {/* Edit Profile Dialog */}
-      <Dialog
-        open={editDialogOpen}
-        onClose={handleEditClose}
-        maxWidth='sm'
-        fullWidth
-        fullScreen={isMobile}
-      >
-        <DialogTitle>Editar Perfil</DialogTitle>
-        <DialogContent>
-          {editError && (
-            <Alert severity='error' sx={{ mb: 2 }}>
-              {editError}
-            </Alert>
-          )}
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label='Nome de Usuário'
-              value={editForm.username}
-              onChange={(e) =>
-                setEditForm({ ...editForm, username: e.target.value })
-              }
-              fullWidth
-              helperText={
-                isUserSupporter
-                  ? 'Somente letras minúsculas, números e underscores'
-                  : 'Apenas apoiadores podem alterar o nome de usuário'
-              }
-              disabled={editLoading || !isUserSupporter}
-            />
-            <TextField
-              label='Nome de Exibição'
-              value={editForm.fullName}
-              onChange={(e) =>
-                setEditForm({ ...editForm, fullName: e.target.value })
-              }
-              fullWidth
-              helperText='Nome exibido publicamente no seu perfil'
-              disabled={editLoading}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditClose} disabled={editLoading}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleEditSave}
-            variant='contained'
-            disabled={editLoading}
-          >
-            {editLoading ? <CircularProgress size={24} /> : 'Salvar'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Cancel Subscription Dialog */}
       <Dialog
         open={cancelDialogOpen}
@@ -1883,6 +1785,10 @@ const ProfilePage: React.FC = () => {
           currentPhotoURL={profile.photoURL}
           initialSections={profile.sections}
           initialTheme={profile.theme}
+          initialUsername={currentUser?.username || ''}
+          initialFullName={currentUser?.fullName || ''}
+          canEditUsername={isUserSupporter}
+          onSaveAccount={handleSaveAccount}
           onSaved={(sections: ResolvedSection[]) =>
             setProfile((prev) => (prev ? { ...prev, sections } : prev))
           }
