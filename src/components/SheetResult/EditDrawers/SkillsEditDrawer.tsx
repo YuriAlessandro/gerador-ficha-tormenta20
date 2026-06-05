@@ -51,7 +51,7 @@ interface EditedSkill {
 // Available Oficio options based on the Skills enum
 const AVAILABLE_OFICIOS = [
   'Ofício (Armeiro)',
-  'Ofício (Artesanato)',
+  'Ofício (Artesão)',
   'Ofício (Alquímia)',
   'Ofício (Culinária)',
   'Ofício (Alfaiate)',

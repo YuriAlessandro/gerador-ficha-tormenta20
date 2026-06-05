@@ -3,6 +3,7 @@ import {
   GeneralPowerType,
   RequirementType,
 } from '../../../../interfaces/Poderes';
+import Skill from '../../../../interfaces/Skills';
 
 const magicPowers: Record<string, GeneralPower> = {
   CELEBRAR_RITUAL: {
@@ -81,7 +82,7 @@ const magicPowers: Record<string, GeneralPower> = {
     requirements: [
       [
         { type: RequirementType.HABILIDADE, name: 'Magias' },
-        { type: RequirementType.PERICIA, name: 'Ofício (Alquimia)' },
+        { type: RequirementType.PERICIA, name: Skill.OFICIO_ALQUIMIA },
       ],
     ],
   },

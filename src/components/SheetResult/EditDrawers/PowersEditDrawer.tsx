@@ -1152,7 +1152,25 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             const skill = sheet.completeSkills?.find(
               (s) => s.name === req.name
             );
-            return skill && (skill.training || 0) > 0;
+            if (skill && (skill.training || 0) > 0) return true;
+
+            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro
+            // Ofício específico para fins de pré-requisito.
+            if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
+              const hasArtesaoCriativo =
+                selectedPowers.some((p) => p.name === 'Artesão Criativo') ||
+                sheet.generalPowers?.some(
+                  (p) => p.name === 'Artesão Criativo'
+                ) ||
+                sheet.classPowers?.some((p) => p.name === 'Artesão Criativo');
+              const hasArtesanato = sheet.completeSkills?.some(
+                (s) =>
+                  s.name === Skill.OFICIO_ARTESANATO && (s.training || 0) > 0
+              );
+              if (hasArtesaoCriativo && hasArtesanato) return true;
+            }
+
+            return false;
           }
 
           case RequirementType.PROFICIENCIA: {
@@ -1271,7 +1289,28 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             const skill = sheet.completeSkills?.find(
               (s) => s.name === req.name
             );
-            return skill && (skill.training || 0) > 0;
+            if (skill && (skill.training || 0) > 0) return true;
+
+            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro
+            // Ofício específico para fins de pré-requisito.
+            if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
+              const hasArtesaoCriativo =
+                selectedPowers.some((p) => p.name === 'Artesão Criativo') ||
+                selectedClassPowers.some(
+                  (p) => p.name === 'Artesão Criativo'
+                ) ||
+                sheet.generalPowers?.some(
+                  (p) => p.name === 'Artesão Criativo'
+                ) ||
+                sheet.classPowers?.some((p) => p.name === 'Artesão Criativo');
+              const hasArtesanato = sheet.completeSkills?.some(
+                (s) =>
+                  s.name === Skill.OFICIO_ARTESANATO && (s.training || 0) > 0
+              );
+              if (hasArtesaoCriativo && hasArtesanato) return true;
+            }
+
+            return false;
           }
           case RequirementType.PROFICIENCIA:
             return sheet.classe.proficiencias.includes(req.name as string);

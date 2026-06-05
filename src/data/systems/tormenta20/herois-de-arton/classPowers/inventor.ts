@@ -1,5 +1,6 @@
 import { ClassPower } from '../../../../../interfaces/Class';
 import { RequirementType } from '../../../../../interfaces/Poderes';
+import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 
 const INVENTOR_POWERS: ClassPower[] = [
@@ -14,7 +15,7 @@ const INVENTOR_POWERS: ClassPower[] = [
     name: 'Alterar Programação',
     text: 'Você pode gastar uma ação completa e 3 PM para alterar a programação de um construto não inteligente (Int –4 ou menor) adjacente. Faça um teste de Ofício (artesão) oposto ao teste de Vontade do construto. Se você vencer, ele fica confuso por 1 rodada e vulnerável. Se for um lacaio, em vez disso fica sob seu controle até o fim da aventura (veja Domar Criatura, p. 17). Você só pode controlar um construto dessa forma por vez e cada construto só pode ser alvo deste poder uma vez por cena.',
     requirements: [
-      [{ type: RequirementType.PERICIA, name: 'Ofício (artesão)' }],
+      [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ARTESANATO }],
     ],
   },
   {
@@ -41,7 +42,7 @@ const INVENTOR_POWERS: ClassPower[] = [
     name: 'Artesão Criativo',
     text: 'Você pode usar Ofício (artesão) no lugar de qualquer outro Ofício para qualquer fim (como pré-requisitos, por exemplo).',
     requirements: [
-      [{ type: RequirementType.PERICIA, name: 'Ofício (artesão)' }],
+      [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ARTESANATO }],
     ],
   },
   {
@@ -72,7 +73,7 @@ const INVENTOR_POWERS: ClassPower[] = [
     requirements: [
       [
         { type: RequirementType.ATRIBUTO, name: Atributo.CARISMA, value: 1 },
-        { type: RequirementType.PERICIA, name: 'Ofício (alfaiate)' },
+        { type: RequirementType.PERICIA, name: Skill.OFICIO_ALFAIATE },
       ],
     ],
   },
@@ -107,7 +108,7 @@ const INVENTOR_POWERS: ClassPower[] = [
     name: 'Galvanização',
     text: 'Você pode gastar uma ação padrão para adicionar um material especial a um item adequado (isso não conta no limite de melhorias do item e se acumula com outros materiais especiais). O preço do material é reduzido a 5% do normal e você não precisa fazer o teste de Ofício para aplicá-lo, mas ele só dura até o fim da cena.',
     requirements: [
-      [{ type: RequirementType.PERICIA, name: 'Ofício (artesão)' }],
+      [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ARTESANATO }],
     ],
   },
   {

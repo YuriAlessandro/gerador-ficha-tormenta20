@@ -43,6 +43,18 @@ export function getPowerCountInCurrentTier(
   return count;
 }
 
+/**
+ * Reúne todos os poderes que o personagem possui (gerais, de origem e de classe).
+ * Retorna apenas o que os checadores de requisito consomem (o nome).
+ */
+function getAllCharacterPowers(sheet: CharacterSheet): { name: string }[] {
+  return [
+    ...sheet.generalPowers,
+    ...(sheet.origin?.powers || []),
+    ...(sheet.classPowers || []),
+  ];
+}
+
 export function isPowerAvailable(
   sheet: CharacterSheet,
   power: GeneralPower | ClassPower,
@@ -60,11 +72,7 @@ export function isPowerAvailable(
       req.every((rule) => {
         switch (rule.type) {
           case RequirementType.PODER: {
-            const allPowers = [
-              ...sheet.generalPowers,
-              ...(sheet.origin?.powers || []),
-              ...(sheet.classPowers || []),
-            ];
+            const allPowers = getAllCharacterPowers(sheet);
 
             const foundInPowers = allPowers.some(
               (currPower) => currPower.name === rule.name
@@ -99,8 +107,25 @@ export function isPowerAvailable(
                 (s) => s === Skill.OFICIO || ALL_SPECIFIC_OFICIOS.includes(s)
               );
             }
+
             const pericia = rule.name as Skill;
-            return rule.name && sheet.skills.includes(pericia);
+            if (rule.name && sheet.skills.includes(pericia)) return true;
+
+            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
+            // específico para fins de pré-requisito.
+            if (ALL_SPECIFIC_OFICIOS.includes(pericia)) {
+              const hasArtesaoCriativo = getAllCharacterPowers(sheet).some(
+                (p) => p.name === 'Artesão Criativo'
+              );
+              if (
+                hasArtesaoCriativo &&
+                sheet.skills.includes(Skill.OFICIO_ARTESANATO)
+              ) {
+                return true;
+              }
+            }
+
+            return false;
           }
           case RequirementType.HABILIDADE: {
             const result = sheet.classe.abilities.some(
