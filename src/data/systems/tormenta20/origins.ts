@@ -87,10 +87,19 @@ function makeOriginGeneralPowerGetter(
   const originGeneralPowers = removeOriginPowers(origin);
 
   return (sheet: CharacterSheet, subSteps: SubStep[]) => {
-    const originGeneralPowersbyOrigin =
-      origin.name === 'Amnésico'
-        ? Object.values(CORE_POWERS).flat()
-        : originGeneralPowers;
+    let originGeneralPowersbyOrigin: GeneralPower[];
+    if (origin.name === 'Amnésico') {
+      originGeneralPowersbyOrigin = Object.values(CORE_POWERS).flat();
+    } else if (type === GeneralPowerType.COMBATE) {
+      // Origens com "um poder de combate à sua escolha" sorteiam do pool completo de
+      // poderes de combate (não estão listados em origin.poderes).
+      originGeneralPowersbyOrigin = CORE_POWERS.COMBATE;
+    } else if (type === GeneralPowerType.TORMENTA) {
+      // Assistente de Laboratório: "um poder da Tormenta à sua escolha".
+      originGeneralPowersbyOrigin = CORE_POWERS.TORMENTA;
+    } else {
+      originGeneralPowersbyOrigin = originGeneralPowers;
+    }
     const allowedByRequirement = originGeneralPowersbyOrigin.filter((power) => {
       if (type && power.type !== type) {
         return false;
@@ -262,9 +271,74 @@ function sortAmnesicBenefits(
   };
 }
 
+/**
+ * Origens que concedem "um poder de <tipo> à sua escolha" como UM ÚNICO slot de
+ * benefício (ex.: Gladiador/Soldado = um poder de combate; Assistente de Laboratório
+ * = um poder da Tormenta).
+ *
+ * - Wizard (returnAllOptions): exibe perícias + poderes fixos + TODOS os poderes do
+ *   tipo limitado como opções; a UI (OriginSelectionStep) restringe a seleção a um.
+ *   Os getters não são usados na seleção manual (applyOriginBenefits usa generalPowers).
+ * - Aleatório: sorteia UM poder do tipo limitado para o pool e escolhe 2 benefícios,
+ *   garantindo no máximo um poder do tipo. O slot limitado recebe um getter dedicado
+ *   que sorteia um poder disponível do tipo; os demais poderes fixos são concedidos
+ *   normalmente (getter sem type).
+ */
+function getBenefitsWithLimitedPower(
+  skills: Skill[],
+  origin: Origin,
+  limitedType: GeneralPowerType,
+  limitedPool: GeneralPower[],
+  returnAllOptions?: boolean
+): OriginBenefits {
+  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
+    skills,
+    origin ? origin.pericias : []
+  );
+
+  const actualOriginPowers = origin ? origin.poderes : [];
+
+  if (returnAllOptions) {
+    return {
+      ...getBenefits(
+        [...notRepeatedSkills, ...actualOriginPowers, ...limitedPool],
+        origin,
+        limitedType
+      ),
+      limitedPowerType: limitedType,
+    };
+  }
+
+  // Aleatório: apenas UM poder do tipo limitado entra no pool de sorteio.
+  const oneLimitedPower = getRandomItemFromArray(limitedPool);
+  const picked = pickFromArray<Skill | OriginPower | GeneralPower>(
+    [...notRepeatedSkills, ...actualOriginPowers, oneLimitedPower],
+    2
+  );
+
+  const isLimited = (b: Skill | OriginPower | GeneralPower) =>
+    typeof b !== 'string' && b.type === limitedType;
+  const limitedPicked = picked.filter(isLimited) as GeneralPower[];
+  const otherPicked = picked.filter((b) => !isLimited(b));
+
+  // Poderes fixos (e perícias) concedidos normalmente, sem type.
+  const benefits = getBenefits(otherPicked, origin);
+
+  // No máximo um slot limitado (o pool tinha um único poder do tipo).
+  if (limitedPicked.length > 0) {
+    benefits.powers.general.push(
+      makeOriginGeneralPowerGetter(origin, limitedType)
+    );
+    benefits.powers.generalPowers = [
+      ...(benefits.powers.generalPowers || []),
+      ...limitedPicked,
+    ];
+  }
+
+  return { ...benefits, limitedPowerType: limitedType };
+}
+
 // Assitente de Laboratório recebe um poder da Tormenta
-// If returnAllOptions is true, returns ALL available options for manual selection
-// Otherwise, randomly picks 2 benefits (for random generator)
 function sortLabAssistentBenefits(
   skills: Skill[],
   origin: Origin,
@@ -274,56 +348,28 @@ function sortLabAssistentBenefits(
     (power) => power.requirements.length === 0
   );
 
-  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
+  return getBenefitsWithLimitedPower(
     skills,
-    origin ? origin.pericias : []
+    origin,
+    GeneralPowerType.TORMENTA,
+    allowedTormentaPowers,
+    returnAllOptions
   );
-
-  const actualOriginPowers = origin ? origin.poderes : [];
-
-  const allBenefits = [
-    ...notRepeatedSkills,
-    ...actualOriginPowers,
-    ...allowedTormentaPowers,
-  ];
-
-  // If returnAllOptions, return all available options (for wizard manual selection)
-  // Otherwise, randomly pick 2 benefits (for random generator)
-  const benefits = returnAllOptions
-    ? allBenefits
-    : pickFromArray<Skill | OriginPower | GeneralPower>(allBenefits, 2);
-
-  return getBenefits(benefits, origin, GeneralPowerType.TORMENTA);
 }
 
-// Para origens que recebem um poder de combate aleatório
-// If returnAllOptions is true, returns ALL available options for manual selection
-// Otherwise, randomly picks 2 benefits (for random generator)
+// Para origens que recebem um poder de combate à sua escolha
 function getBenefitsWithRandomCombatPower(
   skills: Skill[],
   origin: Origin,
   returnAllOptions?: boolean
 ): OriginBenefits {
-  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
+  return getBenefitsWithLimitedPower(
     skills,
-    origin ? origin.pericias : []
+    origin,
+    GeneralPowerType.COMBATE,
+    CORE_POWERS.COMBATE,
+    returnAllOptions
   );
-
-  const actualOriginPowers = origin ? origin.poderes : [];
-
-  const allBenefits = [
-    ...notRepeatedSkills,
-    ...actualOriginPowers,
-    ...CORE_POWERS.COMBATE,
-  ];
-
-  // If returnAllOptions, return all available options (for wizard manual selection)
-  // Otherwise, randomly pick 2 benefits (for random generator)
-  const benefits = returnAllOptions
-    ? allBenefits
-    : pickFromArray<Skill | OriginPower | GeneralPower>(allBenefits, 2);
-
-  return getBenefits(benefits, origin, GeneralPowerType.COMBATE);
 }
 
 export const ORIGINS: Record<origins, Origin> = {

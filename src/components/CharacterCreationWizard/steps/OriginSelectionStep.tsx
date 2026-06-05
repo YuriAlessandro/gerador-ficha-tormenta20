@@ -14,7 +14,11 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import Race from '@/interfaces/Race';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { isPowerAvailable } from '@/functions/powers';
-import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
+import {
+  GeneralPower,
+  GeneralPowerType,
+  OriginPower,
+} from '@/interfaces/Poderes';
 import { ClassDescription } from '@/interfaces/Class';
 
 interface OriginSelectionStepProps {
@@ -271,6 +275,20 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
     })
   );
 
+  // Algumas origens concedem apenas UM poder de um tipo "à sua escolha"
+  // (ex.: Gladiador/Soldado = um poder de combate; Assistente de Laboratório = um
+  // poder da Tormenta). Esses poderes são exibidos individualmente, mas representam
+  // um único slot de benefício — o usuário pode escolher no máximo um deles.
+  const limitedType = originBenefits.limitedPowerType;
+  const limitedPowerNames = new Set(
+    powerOptionsWithRequirements
+      .filter((p) => limitedType && p.power.type === limitedType)
+      .map((p) => p.name)
+  );
+  const hasLimitedSelected = selectedBenefits.some((b) =>
+    limitedPowerNames.has(b.name)
+  );
+
   const handleToggle = (benefit: OriginBenefit) => {
     const isSelected = selectedBenefits.some(
       (b) => b.type === benefit.type && b.name === benefit.name
@@ -283,7 +301,15 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           (b) => !(b.type === benefit.type && b.name === benefit.name)
         )
       );
-    } else if (selectedBenefits.length < REQUIRED_SELECTIONS) {
+      return;
+    }
+
+    // Bloqueia escolher um segundo poder do grupo limitado (ex.: dois poderes de combate)
+    if (limitedPowerNames.has(benefit.name) && hasLimitedSelected) {
+      return;
+    }
+
+    if (selectedBenefits.length < REQUIRED_SELECTIONS) {
       // Add benefit if under limit
       onChange([...selectedBenefits, benefit]);
     }
@@ -395,6 +421,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
               pré-requisitos (ex: atributo mínimo).
             </Alert>
           )}
+          {limitedPowerNames.size > 0 && (
+            <Alert severity='info' sx={{ mb: 2 }}>
+              {limitedType === GeneralPowerType.COMBATE
+                ? 'Esta origem permite escolher apenas um poder de combate.'
+                : 'Esta origem permite escolher apenas um poder da Tormenta.'}
+            </Alert>
+          )}
           {powerOptionsWithRequirements.map((powerOpt) => {
             const benefit: OriginBenefit = {
               type: powerOpt.type,
@@ -406,7 +439,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             const isDisabledByLimit =
               !isSelected && selectedBenefits.length >= REQUIRED_SELECTIONS;
             const isDisabledByRequirements = !powerOpt.meetsRequirements;
-            const isDisabled = isDisabledByLimit || isDisabledByRequirements;
+            const isInLimitedGroup = limitedPowerNames.has(powerOpt.name);
+            const isDisabledByLimitedGroup =
+              !isSelected && isInLimitedGroup && hasLimitedSelected;
+            const isDisabled =
+              isDisabledByLimit ||
+              isDisabledByRequirements ||
+              isDisabledByLimitedGroup;
 
             return (
               <FormControlLabel
