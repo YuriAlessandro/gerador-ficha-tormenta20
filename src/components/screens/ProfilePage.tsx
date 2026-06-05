@@ -497,16 +497,6 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  // Steam-like two-column layout: "Principal" sections fill the wide column,
-  // "Lateral" sections go in a narrower side column (when any exist).
-  const mainSections = profile.sections.filter(
-    (s) => s.placement !== 'sidebar'
-  );
-  const sidebarSections = profile.sections.filter(
-    (s) => s.placement === 'sidebar'
-  );
-  const hasSidebar = sidebarSections.length > 0;
-
   return (
     <>
       <SEO
@@ -638,34 +628,29 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 )}
               </Stack>
+              {/* Responsive grid: each section spans the full row or half
+                  (two side by side on desktop; everything stacks on mobile). */}
               <Box
                 sx={{
                   display: 'grid',
-                  gridTemplateColumns: hasSidebar
-                    ? { xs: '1fr', md: '2fr 1fr' }
-                    : '1fr',
+                  gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                   gap: 3,
                   alignItems: 'start',
                 }}
               >
-                <Stack spacing={3}>
-                  {mainSections.map((section) => (
-                    <ProfileSectionRenderer
-                      key={section.id}
-                      section={section}
-                    />
-                  ))}
-                </Stack>
-                {hasSidebar && (
-                  <Stack spacing={3}>
-                    {sidebarSections.map((section) => (
-                      <ProfileSectionRenderer
-                        key={section.id}
-                        section={section}
-                      />
-                    ))}
-                  </Stack>
-                )}
+                {profile.sections.map((section) => (
+                  <Box
+                    key={section.id}
+                    sx={{
+                      gridColumn:
+                        section.width === 'half'
+                          ? { xs: '1 / -1', md: 'span 1' }
+                          : '1 / -1',
+                    }}
+                  >
+                    <ProfileSectionRenderer section={section} />
+                  </Box>
+                ))}
               </Box>
               {isOwnProfile && profile.sections.length === 0 && (
                 <Typography variant='body2' color='text.secondary'>

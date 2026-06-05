@@ -222,7 +222,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
 export interface ProfileCustomizationCaps {
   maxSections: number;
   canUsePhotoUrl: boolean;
-  canUseSidebar: boolean;
+  canUseColumns: boolean;
   canCustomizeColors: boolean;
   canCustomizeFont: boolean;
   canCustomizeBackgroundColor: boolean;
@@ -249,7 +249,7 @@ export function getProfileCustomizationCaps(
       return {
         maxSections: 3,
         canUsePhotoUrl: true,
-        canUseSidebar: false,
+        canUseColumns: false,
         canCustomizeColors: true,
         canCustomizeFont: true,
         canCustomizeBackgroundColor: true,
@@ -261,7 +261,7 @@ export function getProfileCustomizationCaps(
       return {
         maxSections: 5,
         canUsePhotoUrl: true,
-        canUseSidebar: true,
+        canUseColumns: true,
         canCustomizeColors: true,
         canCustomizeFont: true,
         canCustomizeBackgroundColor: true,
@@ -273,7 +273,7 @@ export function getProfileCustomizationCaps(
       return {
         maxSections: -1,
         canUsePhotoUrl: true,
-        canUseSidebar: true,
+        canUseColumns: true,
         canCustomizeColors: true,
         canCustomizeFont: true,
         canCustomizeBackgroundColor: true,
@@ -285,7 +285,7 @@ export function getProfileCustomizationCaps(
       return {
         maxSections: freeMaxSections(profileLevel),
         canUsePhotoUrl: false,
-        canUseSidebar: false,
+        canUseColumns: false,
         canCustomizeColors: false,
         canCustomizeFont: false,
         canCustomizeBackgroundColor: false,
