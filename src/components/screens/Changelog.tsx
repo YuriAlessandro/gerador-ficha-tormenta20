@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            04/06/2026 (v4.20).
+            05/06/2026 (v4.20).
           </p>
 
           <p>
@@ -72,6 +72,34 @@ const Changelog: React.FC = () => {
               <h3>4.20</h3>
 
               <ul>
+                <li>
+                  <strong>Novo: Escudo do Mestre na mesa virtual.</strong> O
+                  mestre agora tem uma aba própria para montar seu escudo: um{' '}
+                  <strong>grid configurável</strong> (ajuste linhas e colunas, e
+                  faça cada painel ocupar mais de um espaço). Clique em qualquer
+                  célula vazia para adicionar um painel.
+                </li>
+                <li>
+                  <strong>Novo: painéis do Escudo do Mestre.</strong> Estão
+                  disponíveis: <strong>bloco de anotações</strong> em Markdown,{' '}
+                  <strong>referência de condições</strong> (lista completa com
+                  busca), <strong>ficha de ameaça</strong> fixada,{' '}
+                  <strong>ficha de jogador</strong>,{' '}
+                  <strong>tracker de combate</strong> e{' '}
+                  <strong>lista de iniciativa</strong> (aparecem durante o
+                  combate), <strong>imagem</strong>,{' '}
+                  <strong>vídeo do YouTube</strong>,{' '}
+                  <strong>dados e tabelas aleatórias</strong>,{' '}
+                  <strong>relógio/cronômetro</strong> e{' '}
+                  <strong>links e contadores</strong>.
+                </li>
+                <li>
+                  <strong>Novo: projetar imagem para os jogadores.</strong> No
+                  painel de imagem do escudo, o mestre pode{' '}
+                  <strong>exibir a imagem em tela cheia</strong> para toda a
+                  mesa em tempo real — ótimo para revelar mapas, retratos de
+                  NPCs ou pistas — e encerrar a exibição quando quiser.
+                </li>
                 <li>
                   <strong>Novo: perfis de usuário customizáveis.</strong> No
                   estilo do perfil da Steam, agora você monta sua página de
