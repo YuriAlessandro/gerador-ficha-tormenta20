@@ -207,6 +207,19 @@ const Changelog: React.FC = () => {
                   bloqueado, mesmo sendo possível adicioná-lo manualmente
                   depois. Agora ele fica disponível durante a criação.
                 </li>
+                <li>
+                  <strong>
+                    Correção: perícias trocadas no PDF da ficha editável.
+                  </strong>{' '}
+                  Ao baixar o <strong>PDF editável</strong>, personagens
+                  treinados em <strong>Sobrevivência</strong> e{' '}
+                  <strong>Vontade</strong> apareciam (treino e bônus) nas linhas
+                  de <strong>Reflexos</strong> e <strong>Religião</strong>. As
+                  perícias a partir de <strong>Percepção</strong> ficavam
+                  deslocadas quando o personagem não tinha nenhum{' '}
+                  <strong>Ofício</strong> treinado. Agora cada perícia é
+                  preenchida na linha correta.
+                </li>
               </ul>
 
               <h3>4.19</h3>
