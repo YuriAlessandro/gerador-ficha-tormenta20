@@ -209,14 +209,18 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
 };
 
 /**
- * Profile customization caps per tier. MUST mirror the backend
+ * Profile customization caps. MUST mirror the backend
  * (config/profileCustomization.ts) — the server re-validates every write, this
  * copy only drives enabling/disabling controls in the editor. `-1` = unlimited.
+ *
+ * Sections (any type) are a single total budget:
+ *  - FREE: earned via gamification level — `floor(level / 10)` (lvl 10 → 1,
+ *    lvl 20 → 2, below 10 → 0).
+ *  - NIVEL_1: 3, NIVEL_2: 5, NIVEL_3: unlimited.
+ * Fonts/colors are supporter-only.
  */
 export interface ProfileCustomizationCaps {
-  maxMarkdownSections: number;
-  maxPinnedSections: number;
-  maxImageSections: number;
+  maxSections: number;
   canUsePhotoUrl: boolean;
   canUseSidebar: boolean;
   canCustomizeColors: boolean;
@@ -226,76 +230,69 @@ export interface ProfileCustomizationCaps {
   maxPinnedBadges: number;
 }
 
-const PROFILE_CAPS_FREE: ProfileCustomizationCaps = {
-  maxMarkdownSections: 1,
-  maxPinnedSections: 0,
-  maxImageSections: 0,
-  canUsePhotoUrl: false,
-  canUseSidebar: false,
-  canCustomizeColors: false,
-  canCustomizeFont: false,
-  canCustomizeBackgroundColor: false,
-  canCustomizeBackgroundImage: false,
-  maxPinnedBadges: 1,
-};
+/** Free-tier section allowance is earned via gamification level. */
+export function freeMaxSections(profileLevel: number): number {
+  return Math.floor(Math.max(0, profileLevel) / 10);
+}
 
-const PROFILE_CAPS_NIVEL_1: ProfileCustomizationCaps = {
-  maxMarkdownSections: 3,
-  maxPinnedSections: 3,
-  maxImageSections: 1,
-  canUsePhotoUrl: true,
-  canUseSidebar: false,
-  canCustomizeColors: true,
-  canCustomizeFont: false,
-  canCustomizeBackgroundColor: true,
-  canCustomizeBackgroundImage: false,
-  maxPinnedBadges: 3,
-};
-
-const PROFILE_CAPS_NIVEL_2: ProfileCustomizationCaps = {
-  maxMarkdownSections: 6,
-  maxPinnedSections: 6,
-  maxImageSections: 3,
-  canUsePhotoUrl: true,
-  canUseSidebar: true,
-  canCustomizeColors: true,
-  canCustomizeFont: true,
-  canCustomizeBackgroundColor: true,
-  canCustomizeBackgroundImage: false,
-  maxPinnedBadges: 5,
-};
-
-const PROFILE_CAPS_NIVEL_3: ProfileCustomizationCaps = {
-  maxMarkdownSections: -1,
-  maxPinnedSections: -1,
-  maxImageSections: -1,
-  canUsePhotoUrl: true,
-  canUseSidebar: true,
-  canCustomizeColors: true,
-  canCustomizeFont: true,
-  canCustomizeBackgroundColor: true,
-  canCustomizeBackgroundImage: true,
-  maxPinnedBadges: 5,
-};
-
-export const PROFILE_CUSTOMIZATION: Record<
-  SupportLevel,
-  ProfileCustomizationCaps
-> = {
-  [SupportLevel.FREE]: PROFILE_CAPS_FREE,
-  [SupportLevel.NIVEL_1]: PROFILE_CAPS_NIVEL_1,
-  [SupportLevel.NIVEL_1_ANUAL]: PROFILE_CAPS_NIVEL_1,
-  [SupportLevel.NIVEL_2]: PROFILE_CAPS_NIVEL_2,
-  [SupportLevel.NIVEL_2_ANUAL]: PROFILE_CAPS_NIVEL_2,
-  [SupportLevel.NIVEL_3]: PROFILE_CAPS_NIVEL_3,
-  [SupportLevel.NIVEL_3_ANUAL]: PROFILE_CAPS_NIVEL_3,
-};
-
-/** Helper to get profile customization caps for a support level. */
+/**
+ * Resolve the caps for a support level. `profileLevel` (gamification level) only
+ * affects the FREE tier's section allowance; supporters use fixed values.
+ */
 export function getProfileCustomizationCaps(
-  level: SupportLevel
+  level: SupportLevel,
+  profileLevel = 0
 ): ProfileCustomizationCaps {
-  return PROFILE_CUSTOMIZATION[level];
+  switch (level) {
+    case SupportLevel.NIVEL_1:
+    case SupportLevel.NIVEL_1_ANUAL:
+      return {
+        maxSections: 3,
+        canUsePhotoUrl: true,
+        canUseSidebar: false,
+        canCustomizeColors: true,
+        canCustomizeFont: true,
+        canCustomizeBackgroundColor: true,
+        canCustomizeBackgroundImage: false,
+        maxPinnedBadges: 3,
+      };
+    case SupportLevel.NIVEL_2:
+    case SupportLevel.NIVEL_2_ANUAL:
+      return {
+        maxSections: 5,
+        canUsePhotoUrl: true,
+        canUseSidebar: true,
+        canCustomizeColors: true,
+        canCustomizeFont: true,
+        canCustomizeBackgroundColor: true,
+        canCustomizeBackgroundImage: false,
+        maxPinnedBadges: 5,
+      };
+    case SupportLevel.NIVEL_3:
+    case SupportLevel.NIVEL_3_ANUAL:
+      return {
+        maxSections: -1,
+        canUsePhotoUrl: true,
+        canUseSidebar: true,
+        canCustomizeColors: true,
+        canCustomizeFont: true,
+        canCustomizeBackgroundColor: true,
+        canCustomizeBackgroundImage: true,
+        maxPinnedBadges: 5,
+      };
+    case SupportLevel.FREE:
+    default:
+      return {
+        maxSections: freeMaxSections(profileLevel),
+        canUsePhotoUrl: false,
+        canUseSidebar: false,
+        canCustomizeColors: false,
+        canCustomizeFont: false,
+        canCustomizeBackgroundColor: false,
+        canCustomizeBackgroundImage: false,
+        maxPinnedBadges: 1,
+      };
+  }
 }
 
 /**
