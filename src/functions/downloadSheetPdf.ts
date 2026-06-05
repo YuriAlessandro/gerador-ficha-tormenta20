@@ -441,16 +441,20 @@ const preparePDF: (
     [];
   if (oficioSkills.length > 2) {
     oficioSkills.splice(2);
-  } else if (oficioSkills.length === 1) {
-    // If there is only one "Ofício", we will add an empty one to make sure there are two.
-    oficioSkills.push({
-      training: 0,
-      others: 0,
-      halfLevel: 0,
-      modAttr: Atributo.INTELIGENCIA,
-      countAsTormentaPower: false,
-      name: Skill.OFICIO,
-    });
+  } else {
+    // The PDF reserves two "Ofício" rows. Pad with empty ones until there are
+    // exactly two, otherwise the alphabetical positional mapping shifts every
+    // skill after the "Ofício" rows (Percepção onward) up to the wrong row.
+    while (oficioSkills.length < 2) {
+      oficioSkills.push({
+        training: 0,
+        others: 0,
+        halfLevel: 0,
+        modAttr: Atributo.INTELIGENCIA,
+        countAsTormentaPower: false,
+        name: Skill.OFICIO,
+      });
+    }
   }
   skills.push(...oficioSkills);
 
@@ -513,11 +517,12 @@ const preparePDF: (
         // Use regex to get the text between the parantheses
         const oficioMatch = skill.name.match(/Ofício\s*(.*)/);
         const oficioText = oficioMatch ? oficioMatch[1] : '';
-        // There are two "Oficio" fields in the PDF, the first is for skill index 22, the second for index 23
-        // So we need to check the index
+        // There are two "Oficio" name fields in the PDF. After sorting, the two
+        // "Ofício" skills land at indices 21 and 22 (right after Nobreza), and the
+        // first name field maps to the first Ofício row, the second to the next.
         if (oficioText) {
           const oficioField =
-            index === 22 ? craftSkillFirstField : craftSkillSecondField;
+            index === 21 ? craftSkillFirstField : craftSkillSecondField;
           oficioField.setText(
             sanitizeForWinAnsi(oficioText.replace('(', '').replace(')', ''))
           );
