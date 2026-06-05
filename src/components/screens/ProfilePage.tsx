@@ -497,6 +497,16 @@ const ProfilePage: React.FC = () => {
     );
   }
 
+  // Steam-like two-column layout: "Principal" sections fill the wide column,
+  // "Lateral" sections go in a narrower side column (when any exist).
+  const mainSections = profile.sections.filter(
+    (s) => s.placement !== 'sidebar'
+  );
+  const sidebarSections = profile.sections.filter(
+    (s) => s.placement === 'sidebar'
+  );
+  const hasSidebar = sidebarSections.length > 0;
+
   return (
     <>
       <SEO
@@ -630,11 +640,35 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 )}
               </Stack>
-              <Stack spacing={3}>
-                {profile.sections.map((section) => (
-                  <ProfileSectionRenderer key={section.id} section={section} />
-                ))}
-              </Stack>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: hasSidebar
+                    ? { xs: '1fr', md: '2fr 1fr' }
+                    : '1fr',
+                  gap: 3,
+                  alignItems: 'start',
+                }}
+              >
+                <Stack spacing={3}>
+                  {mainSections.map((section) => (
+                    <ProfileSectionRenderer
+                      key={section.id}
+                      section={section}
+                    />
+                  ))}
+                </Stack>
+                {hasSidebar && (
+                  <Stack spacing={3}>
+                    {sidebarSections.map((section) => (
+                      <ProfileSectionRenderer
+                        key={section.id}
+                        section={section}
+                      />
+                    ))}
+                  </Stack>
+                )}
+              </Box>
               {isOwnProfile && profile.sections.length === 0 && (
                 <Typography variant='body2' color='text.secondary'>
                   Seu perfil ainda não tem seções. Clique em Editar perfil para
