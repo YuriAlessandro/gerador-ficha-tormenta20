@@ -182,6 +182,19 @@ const Changelog: React.FC = () => {
                   <strong>ativar</strong> o recebimento do resultado das
                   rolagens de todos no botão (sino) da barra superior da mesa.
                 </li>
+                <li>
+                  <strong>
+                    Correção: origens de combate não concedem mais dois poderes
+                    de combate.
+                  </strong>{' '}
+                  Origens como <strong>Gladiador</strong> e{' '}
+                  <strong>Soldado</strong>, que concedem{' '}
+                  <strong>um único poder de combate</strong> à sua escolha,
+                  permitiam selecionar dois poderes de combate na criação de
+                  personagem. Agora a seleção fica limitada a um (o mesmo vale
+                  para o poder da Tormenta do{' '}
+                  <strong>Assistente de Laboratório</strong>).
+                </li>
               </ul>
 
               <h3>4.19</h3>
