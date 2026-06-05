@@ -67,6 +67,7 @@ import ProfileService, {
 import ProfileSectionRenderer from '../../premium/components/Profile/ProfileSectionRenderer';
 import ProfileEditor from '../../premium/components/Profile/ProfileEditor';
 import BadgeShowcase from '../../premium/components/Profile/BadgeShowcase';
+import { resolveProfileFont } from '../../premium/components/Profile/themeStyles';
 import { AppDispatch } from '../../store';
 import {
   updateProfile,
@@ -102,19 +103,6 @@ function TabPanel(props: TabPanelProps) {
       {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
     </div>
   );
-}
-
-const PROFILE_FONT_MAP: Record<string, string> = {
-  default: 'inherit',
-  serif: 'Georgia, serif',
-  mono: 'monospace',
-  cinzel: "'Cinzel', serif",
-  lato: "'Lato', sans-serif",
-  merriweather: "'Merriweather', serif",
-};
-
-function resolveProfileFont(fontFamily?: string): string {
-  return fontFamily ? PROFILE_FONT_MAP[fontFamily] || 'inherit' : 'inherit';
 }
 
 function getInitialTabFromHash(hash: string): number {
@@ -539,7 +527,6 @@ const ProfilePage: React.FC = () => {
               `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          fontFamily: resolveProfileFont(profile.theme?.fontFamily),
           pt: { xs: 3, md: 4 },
           pb: { xs: 8, md: 10 },
         }}
@@ -557,8 +544,10 @@ const ProfilePage: React.FC = () => {
               sx={{
                 width: { xs: 120, md: 160 },
                 height: { xs: 120, md: 160 },
-                border: '4px solid white',
-                boxShadow: 3,
+                border: `4px solid ${profile.theme?.accentColor || 'white'}`,
+                boxShadow: profile.theme?.accentColor
+                  ? `0 0 16px ${profile.theme.accentColor}66`
+                  : 3,
               }}
             >
               <PersonIcon sx={{ fontSize: { xs: 60, md: 80 } }} />
@@ -569,6 +558,9 @@ const ProfilePage: React.FC = () => {
                 variant={isMobile ? 'h5' : 'h4'}
                 fontWeight='bold'
                 gutterBottom
+                sx={{
+                  fontFamily: resolveProfileFont(profile.theme?.fontFamily),
+                }}
               >
                 {profile.fullName || profile.username}
               </Typography>
@@ -580,7 +572,10 @@ const ProfilePage: React.FC = () => {
               >
                 <Typography
                   variant={isMobile ? 'body1' : 'h6'}
-                  sx={{ opacity: 0.9 }}
+                  sx={{
+                    opacity: 0.9,
+                    fontFamily: resolveProfileFont(profile.theme?.fontFamily),
+                  }}
                 >
                   @{profile.username}
                 </Typography>
