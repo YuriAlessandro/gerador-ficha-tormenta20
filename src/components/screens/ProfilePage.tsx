@@ -1778,6 +1778,7 @@ const ProfilePage: React.FC = () => {
           onClose={() => setProfileEditorOpen(false)}
           supportLevel={supportLevel}
           currentPhotoURL={profile.photoURL}
+          customPhotoURL={profile.customPhotoURL}
           initialSections={profile.sections}
           initialTheme={profile.theme}
           initialUsername={currentUser?.username || ''}
@@ -1791,8 +1792,10 @@ const ProfilePage: React.FC = () => {
           onThemeSaved={(newTheme: ProfileTheme) =>
             setProfile((prev) => (prev ? { ...prev, theme: newTheme } : prev))
           }
-          onPhotoSaved={(photoURL?: string) =>
-            setProfile((prev) => (prev ? { ...prev, photoURL } : prev))
+          onPhotoSaved={(photoURL?: string, customPhotoURL?: string) =>
+            setProfile((prev) =>
+              prev ? { ...prev, photoURL, customPhotoURL } : prev
+            )
           }
         />
       )}
