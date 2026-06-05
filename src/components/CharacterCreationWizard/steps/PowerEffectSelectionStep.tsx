@@ -237,10 +237,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         abilities: classe.abilities || [],
         spellPath: classe.spellPath,
       },
-      raca: {
-        name: race.name,
-        chassis: race.chassis,
-      },
+      raca: race,
       generalPowers: [],
       classPowers: [],
       origin: undefined,
