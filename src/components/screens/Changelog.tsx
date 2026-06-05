@@ -161,6 +161,27 @@ const Changelog: React.FC = () => {
                   sobem de nível (a partir do nível 10), e apoiadores têm mais
                   seções e acesso à personalização de cores, fonte e fundo.
                 </li>
+                <li>
+                  <strong>
+                    Correção: privacidade das rolagens só afeta o mestre.
+                  </strong>{' '}
+                  A configuração <strong>Modo padrão das rolagens</strong> da
+                  mesa virtual deixava as rolagens de <strong>todos</strong>{' '}
+                  privadas quando definida como privada. Agora ela afeta apenas
+                  as rolagens do mestre — as{' '}
+                  <strong>rolagens dos jogadores são sempre públicas</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: resultado de rolagem em tela cheia não interrompe
+                    mais todo mundo.
+                  </strong>{' '}
+                  Por padrão, o <strong>resultado em tela cheia</strong> agora
+                  aparece só para quem rolou — as rolagens dos outros continuam
+                  no <strong>histórico</strong>. Quem preferir pode{' '}
+                  <strong>ativar</strong> o recebimento do resultado das
+                  rolagens de todos no botão (sino) da barra superior da mesa.
+                </li>
               </ul>
 
               <h3>4.19</h3>
