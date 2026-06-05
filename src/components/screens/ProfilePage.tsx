@@ -1788,6 +1788,7 @@ const ProfilePage: React.FC = () => {
           initialUsername={currentUser?.username || ''}
           initialFullName={currentUser?.fullName || ''}
           canEditUsername={isUserSupporter}
+          previewLevel={profile.level ?? 1}
           onSaveAccount={handleSaveAccount}
           onSaved={(sections: ResolvedSection[]) =>
             setProfile((prev) => (prev ? { ...prev, sections } : prev))
