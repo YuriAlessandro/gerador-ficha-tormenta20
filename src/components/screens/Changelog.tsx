@@ -195,6 +195,18 @@ const Changelog: React.FC = () => {
                   para o poder da Tormenta do{' '}
                   <strong>Assistente de Laboratório</strong>).
                 </li>
+                <li>
+                  <strong>
+                    Correção: habilidades raciais do Centauro liberam Carga de
+                    Cavalaria na criação.
+                  </strong>{' '}
+                  As habilidades <strong>Cascos</strong> e{' '}
+                  <strong>Ginete Natural</strong> do Centauro, que cumprem os
+                  pré-requisitos de <strong>Carga de Cavalaria</strong>, eram
+                  ignoradas no assistente de criação — o poder aparecia
+                  bloqueado, mesmo sendo possível adicioná-lo manualmente
+                  depois. Agora ele fica disponível durante a criação.
+                </li>
               </ul>
 
               <h3>4.19</h3>
