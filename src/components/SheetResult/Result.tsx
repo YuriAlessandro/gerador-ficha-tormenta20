@@ -1315,6 +1315,9 @@ const Result: React.FC<ResultProps> = (props) => {
     const wieldingTrackingActive =
       currentSheet.mainHandItemId !== undefined ||
       currentSheet.offHandItemId !== undefined;
+    const hasArremessador = (currentSheet.raca?.abilities ?? []).some(
+      (ability) => ability.name === 'Arremessador'
+    );
     return (
       <Weapons
         getKey={getKey}
@@ -1337,6 +1340,7 @@ const Result: React.FC<ResultProps> = (props) => {
         wieldingTrackingActive={wieldingTrackingActive}
         bagEquipments={bagEquipments}
         onConsumeAmmo={onSheetUpdate ? handleConsumeAmmo : undefined}
+        hasArremessador={hasArremessador}
       />
     );
   }, [
@@ -1351,6 +1355,7 @@ const Result: React.FC<ResultProps> = (props) => {
     currentSheet.sheetBonuses,
     currentSheet.mainHandItemId,
     currentSheet.offHandItemId,
+    currentSheet.raca,
     onSheetUpdate,
     handleQuickWieldChange,
     handleConsumeAmmo,

@@ -40,6 +40,11 @@ interface WeaponsProps {
   bagEquipments?: BagEquipments;
   /** Handler invoked to decrement 1 unit of the matching ammo. */
   onConsumeAmmo?: (ammoType: AmmoType) => void;
+  /**
+   * True when the character has the Hynne "Arremessador" racial ability.
+   * Forwarded to each Weapon to grant +1 damage step on ranged/thrown attacks.
+   */
+  hasArremessador?: boolean;
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
@@ -59,6 +64,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     wieldingTrackingActive,
     bagEquipments,
     onConsumeAmmo,
+    hasArremessador,
   } = props;
 
   if (!weapons || weapons.length === 0) {
@@ -100,6 +106,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         wieldingTrackingActive={wieldingTrackingActive}
         availableAmmo={availableAmmo}
         onConsumeAmmo={onConsumeAmmo}
+        hasArremessador={hasArremessador}
       />
     );
   });

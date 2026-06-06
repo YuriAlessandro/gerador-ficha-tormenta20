@@ -98,6 +98,12 @@ interface WeaponProps {
    * weapon has `ammoType`, an ammo prompt is opened before the attack roll.
    */
   onConsumeAmmo?: (ammoType: AmmoType) => void;
+  /**
+   * True when the character has the Hynne "Arremessador" racial ability. Adds
+   * +1 damage step to ranged/thrown attacks (skill Pontaria) made with a sling
+   * (Funda) or a thrown weapon. Melee modes and bows/crossbows are unaffected.
+   */
+  hasArremessador?: boolean;
 }
 
 interface RollContext {
@@ -120,6 +126,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     wieldingTrackingActive = false,
     availableAmmo,
     onConsumeAmmo,
+    hasArremessador = false,
   } = props;
   const { nome, dano, critico, atkBonus, customSkill } = equipment;
   const displayName = equipment.customDisplayName?.trim() || nome;
@@ -146,6 +153,19 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       return typeof value === 'number' ? value : modDano;
     },
     [atributos, modDano]
+  );
+
+  // Hynne "Arremessador": +1 damage step on ranged/thrown attacks (skill
+  // Pontaria) with a sling (Funda) or a thrown weapon. Melee modes (skill Luta)
+  // and non-thrown ranged weapons (bows/crossbows) are excluded.
+  const arremessadorStepBonus = useCallback(
+    (action?: WeaponAction): number =>
+      hasArremessador &&
+      (equipment.arremesso || equipment.nome === 'Funda') &&
+      action?.skill === 'Pontaria'
+        ? 1
+        : 0,
+    [hasArremessador, equipment.arremesso, equipment.nome]
   );
 
   // Resolve the default-display damage attribute for the main weapon row
@@ -181,9 +201,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       const resolvedAttr = resolveDamageAttribute(equipment, action);
       const previewDamageMod = damageModForAttribute(resolvedAttr);
 
+      const previewStepDelta =
+        (action.damageStepDelta ?? 0) + arremessadorStepBonus(action);
       const previewDano =
-        action.damageStepDelta && action.damageStepDelta !== 0
-          ? stepUpDamage(action.dano ?? dano ?? '', action.damageStepDelta)
+        previewStepDelta !== 0
+          ? stepUpDamage(action.dano ?? dano ?? '', previewStepDelta)
           : action.dano ?? dano ?? '';
 
       return {
@@ -204,6 +226,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       damageModForAttribute,
       dano,
       equipment,
+      arremessadorStepBonus,
     ]
   );
 
@@ -281,11 +304,12 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       const resolvedAttr = resolveDamageAttribute(equipment, action);
       const localDamageMod = damageModForAttribute(resolvedAttr);
 
-      // Apply step delta to the chosen dano string (if any).
+      // Apply step delta to the chosen dano string (if any), including the
+      // Hynne "Arremessador" +1 step on ranged/thrown attacks.
+      const stepDelta =
+        (action?.damageStepDelta ?? 0) + arremessadorStepBonus(action);
       const adjustedDano =
-        action?.damageStepDelta && action.damageStepDelta !== 0
-          ? stepUpDamage(selectedDano, action.damageStepDelta)
-          : selectedDano;
+        stepDelta !== 0 ? stepUpDamage(selectedDano, stepDelta) : selectedDano;
 
       const effectiveCritico = action?.critico ?? critico ?? '';
 
@@ -394,6 +418,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       equipment,
       displayName,
       showDiceResult,
+      arremessadorStepBonus,
     ]
   );
 
