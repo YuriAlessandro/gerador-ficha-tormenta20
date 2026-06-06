@@ -73,6 +73,29 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>
+                    Correção: Fúria Aterrorizante liberada para quem tem Fúria.
+                  </strong>{' '}
+                  O poder <strong>Fúria Aterrorizante</strong> não ficava
+                  disponível para personagens <strong>Galokk</strong> (e Ogro){' '}
+                  <strong>bárbaros</strong>, mesmo tendo a habilidade{' '}
+                  <strong>Fúria</strong>, por uma divergência no nome da
+                  habilidade. Agora o pré-requisito é reconhecido corretamente
+                  (e a habilidade aparece grafada como <strong>Fúria</strong> na
+                  ficha).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Estilo de Arma e Escudo aumenta a Defesa ao ser
+                    adicionado manualmente.
+                  </strong>{' '}
+                  Ao adicionar o poder <strong>Estilo de Arma e Escudo</strong>{' '}
+                  manualmente (fora do nível), o <strong>+2 na Defesa</strong>{' '}
+                  do escudo empunhado não era aplicado. Agora o bônus é
+                  calculado automaticamente sempre que há um escudo equipado em
+                  uma das mãos.
+                </li>
+                <li>
                   <strong>Novo: habilidade Arremessador do Hynne.</strong>{' '}
                   Personagens Hynne agora recebem{' '}
                   <strong>+1 passo de dano</strong> automaticamente ao atacar à
