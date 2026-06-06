@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            05/06/2026 (v4.20).
+            06/06/2026 (v4.20).
           </p>
 
           <p>
@@ -73,14 +73,14 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
-                  <strong>Correção: subir de nível com Alquimista.</strong> O
-                  Alquimista (variante do Inventor) agora sobe de nível
-                  normalmente: os poderes concedidos automaticamente nos níveis
-                  2 (Alquimista Iniciado) e 10 (Mestre Alquimista) são aplicados
-                  corretamente, a progressão não cancela mais sem contabilizar o
-                  nível e a lista de poderes de classe não exibe mais opções
-                  duplicadas. Caso algo dê errado ao subir de nível, agora
-                  aparece um aviso em vez de a ficha fechar silenciosamente.
+                  <strong>Novo: habilidade Arremessador do Hynne.</strong>{' '}
+                  Personagens Hynne agora recebem{' '}
+                  <strong>+1 passo de dano</strong> automaticamente ao atacar à
+                  distância com uma <strong>funda</strong> ou ao{' '}
+                  <strong>arremessar</strong> uma arma de arremesso. O bônus
+                  aparece ao escolher o tipo de ataque (no modal de Arremessar)
+                  e no resultado da rolagem — ataques corpo a corpo e armas como
+                  arcos e bestas não são afetados.
                 </li>
                 <li>
                   <strong>Novo: Escudo do Mestre na mesa virtual.</strong> O
@@ -89,27 +89,29 @@ const Changelog: React.FC = () => {
                   faça cada painel ocupar mais de um espaço). Clique em qualquer
                   célula vazia para adicionar um painel.
                 </li>
-                <li>
-                  <strong>Novo: painéis do Escudo do Mestre.</strong> Estão
-                  disponíveis: <strong>bloco de anotações</strong> em Markdown,{' '}
-                  <strong>referência de condições</strong> (lista completa com
-                  busca), <strong>ficha de ameaça</strong> fixada,{' '}
-                  <strong>ficha de jogador</strong>,{' '}
-                  <strong>tracker de combate</strong> e{' '}
-                  <strong>lista de iniciativa</strong> (aparecem durante o
-                  combate), <strong>imagem</strong>,{' '}
-                  <strong>vídeo do YouTube</strong>,{' '}
-                  <strong>dados e tabelas aleatórias</strong>,{' '}
-                  <strong>relógio/cronômetro</strong> e{' '}
-                  <strong>links e contadores</strong>.
-                </li>
-                <li>
-                  <strong>Novo: projetar imagem para os jogadores.</strong> No
-                  painel de imagem do escudo, o mestre pode{' '}
-                  <strong>exibir a imagem em tela cheia</strong> para toda a
-                  mesa em tempo real — ótimo para revelar mapas, retratos de
-                  NPCs ou pistas — e encerrar a exibição quando quiser.
-                </li>
+                <ul>
+                  <li>
+                    <strong>Painéis do Escudo do Mestre.</strong> Estão
+                    disponíveis: <strong>bloco de anotações</strong> em
+                    Markdown, <strong>referência de condições</strong> (lista
+                    completa com busca), <strong>ficha de ameaça</strong>{' '}
+                    fixada, <strong>ficha de jogador</strong>,{' '}
+                    <strong>tracker de combate</strong> e{' '}
+                    <strong>lista de iniciativa</strong> (aparecem durante o
+                    combate), <strong>imagem</strong>,{' '}
+                    <strong>vídeo do YouTube</strong>,{' '}
+                    <strong>dados e tabelas aleatórias</strong>,{' '}
+                    <strong>relógio/cronômetro</strong> e{' '}
+                    <strong>links e contadores</strong>.
+                  </li>
+                  <li>
+                    <strong>Projetar imagem para os jogadores.</strong> No
+                    painel de imagem do escudo, o mestre pode{' '}
+                    <strong>exibir a imagem em tela cheia</strong> para toda a
+                    mesa em tempo real — ótimo para revelar mapas, retratos de
+                    NPCs ou pistas — e encerrar a exibição quando quiser.
+                  </li>
+                </ul>
                 <li>
                   <strong>Novo: perfis de usuário customizáveis.</strong> No
                   estilo do perfil da Steam, agora você monta sua página de
@@ -119,68 +121,42 @@ const Changelog: React.FC = () => {
                   (principal e lateral). Acesse seu perfil e clique em{' '}
                   <strong>Editar perfil</strong> para começar.
                 </li>
-                <li>
-                  <strong>Novo: nível de perfil.</strong> Você acumula pontos
-                  por ações dentro da plataforma — especialmente as que ajudam a
-                  comunidade (publicar builds e ameaças, postar e comentar no
-                  fórum, receber curtidas e avaliações, e apoiar o projeto). Seu
-                  nível aparece num <strong>selo circular</strong> ao lado do
-                  seu nome, que evolui de cor conforme você sobe.
-                </li>
-                <li>
-                  <strong>Novo: badges colecionáveis da comunidade.</strong> Os
-                  maiores contribuidores ganham badges por ranking —{' '}
-                  <strong>Voz da Comunidade</strong> (fórum),{' '}
-                  <strong>Mestre das Builds</strong> e{' '}
-                  <strong>Arquiteto de Ameaças</strong> (bestiário) — em tiers
-                  bronze, prata, ouro e diamante. Elas aparecem no seu perfil.
-                </li>
-                <li>
-                  <strong>Novo: cartão de usuário ao passar o mouse.</strong> Em
-                  qualquer lugar da plataforma (fórum, comentários, builds,
-                  ameaças), passar o mouse sobre o nome de uma pessoa mostra um{' '}
-                  <strong>cartão</strong> com a foto, o nível e as badges dela —
-                  estilizado conforme a personalização do perfil. Clique para ir
-                  ao perfil completo.
-                </li>
-                <li>
-                  <strong>
-                    Novo: personalização de aparência (apoiadores).
-                  </strong>{' '}
-                  Apoiadores podem mudar <strong>cores</strong>,{' '}
-                  <strong>fonte</strong> e o <strong>fundo</strong> do perfil
-                  (cor sólida ou imagem), com{' '}
-                  <strong>pré-visualização ao vivo</strong> enquanto edita.
-                  Também é possível definir a{' '}
-                  <strong>foto de perfil por URL</strong> — preservando a sua
-                  foto do Google como padrão.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: cards de fichas, ameaças e builds fixadas.
-                  </strong>{' '}
-                  Os cards do perfil agora mostram a imagem do personagem e
-                  informações como <strong>nível, PV, PM, classe e raça</strong>
-                  , e levam direto à página pública do conteúdo ao clicar.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: limites de customização por nível de apoio.
-                  </strong>{' '}
-                  Usuários gratuitos desbloqueiam seções de perfil conforme
-                  sobem de nível (a partir do nível 10), e apoiadores têm mais
-                  seções e acesso à personalização de cores, fonte e fundo.
-                </li>
-                <li>
-                  <strong>
-                    Correção: privacidade das rolagens só afeta o mestre.
-                  </strong>{' '}
-                  A configuração <strong>Modo padrão das rolagens</strong> da
-                  mesa virtual deixava as rolagens de <strong>todos</strong>{' '}
-                  privadas quando definida como privada. Agora ela afeta apenas
-                  as rolagens do mestre — as{' '}
-                  <strong>rolagens dos jogadores são sempre públicas</strong>.
-                </li>
+                <ul>
+                  <li>
+                    <strong>Nível de perfil.</strong> Você acumula pontos por
+                    ações dentro da plataforma — especialmente as que ajudam a
+                    comunidade (publicar builds e ameaças, postar e comentar no
+                    fórum, receber curtidas e avaliações, e apoiar o projeto).
+                    Seu nível aparece num <strong>selo circular</strong> ao lado
+                    do seu nome, que evolui de cor conforme você sobe.
+                  </li>
+                  <li>
+                    <strong>Badges colecionáveis da comunidade.</strong> Os
+                    maiores contribuidores ganham badges por ranking —{' '}
+                    <strong>Voz da Comunidade</strong> (fórum),{' '}
+                    <strong>Mestre das Builds</strong> e{' '}
+                    <strong>Arquiteto de Ameaças</strong> (bestiário) — em tiers
+                    bronze, prata, ouro e diamante. Elas aparecem no seu perfil.
+                  </li>
+                  <li>
+                    <strong>Cartão de usuário ao passar o mouse.</strong> Em
+                    qualquer lugar da plataforma (fórum, comentários, builds,
+                    ameaças), passar o mouse sobre o nome de uma pessoa mostra
+                    um <strong>cartão</strong> com a foto, o nível e as badges
+                    dela — estilizado conforme a personalização do perfil.
+                    Clique para ir ao perfil completo.
+                  </li>
+                  <li>
+                    <strong>Personalização de aparência (apoiadores).</strong>{' '}
+                    Apoiadores podem mudar <strong>cores</strong>,{' '}
+                    <strong>fonte</strong> e o <strong>fundo</strong> do perfil
+                    (cor sólida ou imagem), com{' '}
+                    <strong>pré-visualização ao vivo</strong> enquanto edita.
+                    Também é possível definir a{' '}
+                    <strong>foto de perfil por URL</strong> — preservando a sua
+                    foto do Google como padrão.
+                  </li>
+                </ul>
                 <li>
                   <strong>
                     Melhoria: resultado de rolagem em tela cheia não interrompe
@@ -191,6 +167,26 @@ const Changelog: React.FC = () => {
                   no <strong>histórico</strong>. Quem preferir pode{' '}
                   <strong>ativar</strong> o recebimento do resultado das
                   rolagens de todos no botão (sino) da barra superior da mesa.
+                </li>
+                <li>
+                  <strong>Correção: subir de nível com Alquimista.</strong> O
+                  Alquimista (variante do Inventor) agora sobe de nível
+                  normalmente: os poderes concedidos automaticamente nos níveis
+                  2 (Alquimista Iniciado) e 10 (Mestre Alquimista) são aplicados
+                  corretamente, a progressão não cancela mais sem contabilizar o
+                  nível e a lista de poderes de classe não exibe mais opções
+                  duplicadas. Caso algo dê errado ao subir de nível, agora
+                  aparece um aviso em vez de a ficha fechar silenciosamente.
+                </li>
+                <li>
+                  <strong>
+                    Correção: privacidade das rolagens só afeta o mestre.
+                  </strong>{' '}
+                  A configuração <strong>Modo padrão das rolagens</strong> da
+                  mesa virtual deixava as rolagens de <strong>todos</strong>{' '}
+                  privadas quando definida como privada. Agora ela afeta apenas
+                  as rolagens do mestre — as{' '}
+                  <strong>rolagens dos jogadores são sempre públicas</strong>.
                 </li>
                 <li>
                   <strong>
