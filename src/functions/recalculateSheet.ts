@@ -589,6 +589,42 @@ const injectEstiloDeUmaArmaBonuses = (
   return updatedSheet;
 };
 
+/**
+ * Estilo de Arma e Escudo: se um escudo estiver empunhado, o bônus na Defesa
+ * que ele fornece aumenta em +2. Injetamos um `sheetBonus` de Defesa (em vez de
+ * alterar o `defenseBonus` do escudo) porque `calcDefense` lê o valor estático
+ * do equipamento, enquanto os bônus condicionais passam por `applyDefenseBonuses`.
+ * Idempotente: `sheetBonuses` é zerado a cada recálculo, então o +2 aparece/some
+ * conforme a empunhadura muda.
+ */
+const injectEstiloDeArmaEEscudoBonuses = (
+  sheet: CharacterSheet
+): CharacterSheet => {
+  const hasPower = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Estilo de Arma e Escudo'
+  );
+  if (!hasPower) return sheet;
+
+  const { mainHandItemId, offHandItemId } = sheet;
+
+  // Precisa ter um escudo empunhado em uma das mãos.
+  const hasShieldWielded = (sheet.bag.equipments.Escudo || []).some(
+    (shield) =>
+      shield.id !== undefined &&
+      (shield.id === mainHandItemId || shield.id === offHandItemId)
+  );
+  if (!hasShieldWielded) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push({
+    source: { type: 'power', name: 'Estilo de Arma e Escudo' },
+    target: { type: 'Defense' },
+    modifier: { type: 'Fixed', value: 2 },
+  });
+
+  return updatedSheet;
+};
+
 // Copy of calcDisplacement function from general.ts
 const calcDisplacement = (
   bag: Bag,
@@ -1713,6 +1749,7 @@ export function recalculateSheet(
   // Precisa rodar APÓS sheetBonuses estarem populados e ANTES dos Steps 9-10
   // (Defesa) e 13 (armas), que consomem os bônus injetados.
   updatedSheet = injectEstiloDeUmaArmaBonuses(updatedSheet);
+  updatedSheet = injectEstiloDeArmaEEscudoBonuses(updatedSheet);
 
   // Step 9: Reset defense to base and recalculate from ground up
   const baseDefense = updatedSheet.customDefenseBase ?? 10;
