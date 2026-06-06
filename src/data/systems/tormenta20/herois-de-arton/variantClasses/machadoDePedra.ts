@@ -3,7 +3,7 @@ import Skill from '../../../../../interfaces/Skills';
 import BARBARO from '../../classes/barbaro';
 import PROFICIENCIAS from '../../proficiencias';
 
-const furia = BARBARO.abilities.find((a) => a.name === 'Furia')!;
+const furia = BARBARO.abilities.find((a) => a.name === 'Fúria')!;
 const instintoSelvagem = BARBARO.abilities.find(
   (a) => a.name === 'Instinto Selvagem'
 )!;
