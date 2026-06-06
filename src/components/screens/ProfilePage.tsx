@@ -67,6 +67,7 @@ import ProfileService, {
 import ProfileSectionRenderer from '../../premium/components/Profile/ProfileSectionRenderer';
 import ProfileEditor from '../../premium/components/Profile/ProfileEditor';
 import BadgeShowcase from '../../premium/components/Profile/BadgeShowcase';
+import ProfileBlogPosts from '../../premium/components/Profile/ProfileBlogPosts';
 import { resolveProfileFont } from '../../premium/components/Profile/themeStyles';
 import { AppDispatch } from '../../store';
 import {
@@ -658,6 +659,13 @@ const ProfilePage: React.FC = () => {
                   começar.
                 </Typography>
               )}
+            </Card>
+          )}
+
+          {/* Blog posts authored by this user (editors/admins) */}
+          {profile.blogPosts && profile.blogPosts.length > 0 && (
+            <Card sx={{ p: { xs: 2, md: 3 } }}>
+              <ProfileBlogPosts posts={profile.blogPosts} />
             </Card>
           )}
 
