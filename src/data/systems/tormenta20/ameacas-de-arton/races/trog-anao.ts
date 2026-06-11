@@ -28,6 +28,8 @@ const TROG_ANAO: Race = {
     THWOR: 1,
   },
   getDisplacement: () => 6,
+  // "Quase Anão": deslocamento não é reduzido por armadura ou carga.
+  ignoreEncumbrance: true,
   abilities: [
     {
       name: 'Mau Cheiro',

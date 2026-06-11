@@ -28,6 +28,8 @@ const ANAO: Race = {
     TENEBRA: 1,
   },
   getDisplacement: () => 6,
+  // "Devagar e Sempre": deslocamento não é reduzido por armadura ou carga.
+  ignoreEncumbrance: true,
   abilities: [
     {
       name: 'Conhecimento das Rochas',
