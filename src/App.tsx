@@ -95,6 +95,7 @@ import {
   PushNotificationPrompt,
   CosmeticsNudgeDialog,
   getFeatureFlags,
+  MapaDeArtonPage,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
 // import CreatureSheet from './components/screens/CreatureSheet';
@@ -233,6 +234,17 @@ function ThemedApp(): JSX.Element {
   const isGameSession =
     location.pathname.startsWith('/sessao/') || location.pathname === '/wyrt';
 
+  // O subdomínio mapadearton.fichasdenimb.com.br funciona como máscara da
+  // página /mapadearton: na raiz, redirecionamos para ela.
+  const isMapSubdomain =
+    typeof window !== 'undefined' &&
+    window.location.hostname.startsWith('mapadearton.');
+
+  // A página do Mapa de Arton tem chrome próprio (header minimalista), então
+  // escondemos navbar/footer da plataforma, como na sessão de mesa.
+  const isMapPage = location.pathname.startsWith('/mapadearton');
+  const hideChrome = isGameSession || isMapPage;
+
   const theme = React.useMemo(
     () => createTormentaTheme(darkMode ? 'dark' : 'light', accentColor),
     [darkMode, accentColor]
@@ -307,7 +319,7 @@ function ThemedApp(): JSX.Element {
                                   isDarkTheme={darkMode}
                                   onChangeTheme={onChangeTheme}
                                 />
-                                {!isGameSession && (
+                                {!hideChrome && (
                                   <Stack
                                     alignItems='center'
                                     sx={{ width: '100%', position: 'absolute' }}
@@ -321,9 +333,17 @@ function ThemedApp(): JSX.Element {
                               </header>
                               <Box
                                 className='mainArea'
-                                sx={{ mt: isGameSession ? 0 : 15 }}
+                                sx={{ mt: hideChrome ? 0 : 15 }}
                               >
                                 <Switch>
+                                  {isMapSubdomain && (
+                                    <Route exact path='/'>
+                                      <Redirect to='/mapadearton' />
+                                    </Route>
+                                  )}
+                                  <Route path='/mapadearton'>
+                                    <MapaDeArtonPage />
+                                  </Route>
                                   <Route path='/changelog'>
                                     <Changelog />
                                   </Route>
@@ -514,7 +534,7 @@ function ThemedApp(): JSX.Element {
                                 </Switch>
                               </Box>
                             </div>
-                            {!isGameSession && <JamboFooter />}
+                            {!hideChrome && <JamboFooter />}
                           </div>
                         </AuthLoadingWrapper>
                       </DiceRollProvider>

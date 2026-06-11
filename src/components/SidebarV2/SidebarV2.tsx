@@ -407,15 +407,11 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 
             {/* CONSULTA */}
             <StyledSubheader>Consulta</StyledSubheader>
-            <StyledMenuItem
-              onClick={() =>
-                openExternal('https://mapadearton.fichasdenimb.com.br/')
-              }
-            >
+            <StyledMenuItem onClick={() => navigateTo('/mapadearton')}>
               <ListItemIcon>
                 <MapIcon />
               </ListItemIcon>
-              <Typography variant='inherit'>Mapa Interativo</Typography>
+              <Typography variant='inherit'>Mapa de Arton</Typography>
             </StyledMenuItem>
             <StyledMenuItem onClick={() => navigateTo('/database')}>
               <ListItemIcon>
