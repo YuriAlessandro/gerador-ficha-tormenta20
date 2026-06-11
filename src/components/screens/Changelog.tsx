@@ -74,6 +74,29 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Armas de arremesso agora somam Força ao dano.
+                  </strong>{' '}
+                  Ao atacar arremessando uma arma (Adaga, Lança, Azagaia,
+                  Machadinha, Tridente, Martelo Leve, entre outras), o
+                  modificador de <strong>Força</strong> passa a ser somado à
+                  rolagem de dano, conforme a regra. O modo corpo a corpo dessas
+                  armas continua funcionando normalmente.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Automação dos poderes Estilo de Arremesso e Arremesso
+                    Potente.
+                  </strong>{' '}
+                  Com <strong>Estilo de Arremesso</strong>, suas armas de
+                  arremesso recebem <strong>+2 no dano</strong> (apenas no modo
+                  de arremesso, nunca no corpo a corpo). Com{' '}
+                  <strong>Arremesso Potente</strong>, o ataque de arremesso
+                  passa a usar <strong>Força</strong> quando for mais vantajoso
+                  que Destreza. Os bônus aparecem direto na ficha e nas
+                  rolagens.
+                </li>
+                <li>
+                  <strong>
                     Correção: Ameaças importadas não trocam mais de ficha na
                     Mesa Virtual.
                   </strong>{' '}
