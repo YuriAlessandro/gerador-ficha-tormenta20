@@ -75,6 +75,32 @@ export function initializeClassLevels(
 }
 
 /**
+ * Reconcilia classLevels para que tenha exatamente `targetLevel` entradas.
+ * - Se sobram entradas (length > targetLevel): corta as do fim (níveis mais altos).
+ * - Se faltam entradas (length < targetLevel): completa com a classe primária.
+ * - Renumera o campo `level` para 1..targetLevel.
+ *
+ * Usado para garantir o invariante classLevels.length === nivel quando o nível é
+ * alterado fora do level-up normal (ex.: edição direta do campo de nível).
+ */
+export function reconcileClassLevels(
+  classLevels: ClassLevelEntry[],
+  targetLevel: number,
+  primaryClassName: string,
+  primarySubname?: string
+): ClassLevelEntry[] {
+  const out = classLevels.slice(0, targetLevel);
+  for (let i = out.length; i < targetLevel; i += 1) {
+    out.push({
+      level: i + 1,
+      className: primaryClassName,
+      classSubname: primarySubname,
+    });
+  }
+  return out.map((cl, i) => ({ ...cl, level: i + 1 }));
+}
+
+/**
  * Retorna string de display para multiclasse.
  * Ex: "Arcanista 3 / Paladino 1" ou "Guerreiro 5" (mono-classe).
  */

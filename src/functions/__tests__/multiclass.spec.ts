@@ -8,6 +8,7 @@ import {
   getClassLevel,
   getClassLevelsMap,
   initializeClassLevels,
+  reconcileClassLevels,
   getMulticlassDisplayName,
   calculateMulticlassPV,
   calculateMulticlassPM,
@@ -192,6 +193,48 @@ describe('initializeClassLevels', () => {
       expect(entry.className).toBe('Arcanista');
       expect(entry.classSubname).toBe('Mago');
     });
+  });
+});
+
+// ===== reconcileClassLevels =====
+describe('reconcileClassLevels', () => {
+  const D = (level: number) => ({ level, className: 'Druida' });
+  const G = (level: number) => ({ level, className: 'Guerreiro' });
+
+  test('no-op quando length === targetLevel', () => {
+    const input = [D(1), D(2), G(3)];
+    const out = reconcileClassLevels(input, 3, 'Druida');
+    expect(out).toEqual([D(1), D(2), G(3)]);
+  });
+
+  test('corta entradas excedentes (trailing) quando length > targetLevel', () => {
+    // Cenário do bug: Druida 4 mono cujo nível foi reduzido para 3 sem aparar classLevels
+    const input = [D(1), D(2), D(3), D(4)];
+    const out = reconcileClassLevels(input, 3, 'Druida');
+    expect(out).toEqual([D(1), D(2), D(3)]);
+  });
+
+  test('completa com a classe primária quando length < targetLevel', () => {
+    const out = reconcileClassLevels([D(1), D(2)], 4, 'Druida', undefined);
+    expect(out).toEqual([D(1), D(2), D(3), D(4)]);
+  });
+
+  test('renumera o campo level para 1..targetLevel', () => {
+    const input = [
+      { level: 7, className: 'Druida' },
+      { level: 9, className: 'Guerreiro' },
+    ];
+    const out = reconcileClassLevels(input, 2, 'Druida');
+    expect(out.map((cl) => cl.level)).toEqual([1, 2]);
+    expect(out.map((cl) => cl.className)).toEqual(['Druida', 'Guerreiro']);
+  });
+
+  test('preserva subname ao completar com a primária', () => {
+    const out = reconcileClassLevels([], 2, 'Arcanista', 'Mago');
+    expect(out).toEqual([
+      { level: 1, className: 'Arcanista', classSubname: 'Mago' },
+      { level: 2, className: 'Arcanista', classSubname: 'Mago' },
+    ]);
   });
 });
 

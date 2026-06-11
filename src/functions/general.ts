@@ -49,6 +49,7 @@ import SelectedOptions from '../interfaces/SelectedOptions';
 import {
   countTormentaPowers,
   getRandomItemFromArray,
+  getVirtudePaladinescaPMBonus,
   mergeFaithProbabilities,
   pickFaith,
   pickFromAllowed,
@@ -125,6 +126,7 @@ import CharacterSheet, {
 } from '../interfaces/CharacterSheet';
 import {
   initializeClassLevels,
+  reconcileClassLevels,
   getClassLevel,
   findClassDescription,
   buildSpellPathFromSetup,
@@ -3481,9 +3483,18 @@ export function applyManualLevelUp(
 ): CharacterSheet {
   let updatedSheet = cloneDeep(sheet);
 
-  // Initialize classLevels BEFORE incrementing nivel to avoid counting the new level as primary class
+  // Initialize classLevels BEFORE incrementing nivel to avoid counting the new level as primary class.
+  // Se já existe mas está dessincronizado com nivel (ex.: nível foi reduzido manualmente sem
+  // aparar classLevels), reconcilia antes do push para não acumular um nível extra fantasma.
   if (!updatedSheet.classLevels) {
     updatedSheet.classLevels = initializeClassLevels(updatedSheet);
+  } else if (updatedSheet.classLevels.length !== updatedSheet.nivel) {
+    updatedSheet.classLevels = reconcileClassLevels(
+      updatedSheet.classLevels,
+      updatedSheet.nivel,
+      updatedSheet.classe.name,
+      updatedSheet.classe.subname
+    );
   }
 
   updatedSheet.nivel += 1;
@@ -4317,6 +4328,13 @@ const applyStatModifiers = (
       (sheet.reducaoDeDano as Record<string, number>)[dt] =
         ((sheet.reducaoDeDano as Record<string, number>)[dt] ?? 0) + rdValue;
     });
+  }
+
+  // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
+  const virtudePM = getVirtudePaladinescaPMBonus(sheet.classPowers);
+  if (virtudePM > 0) {
+    sheet.pm += virtudePM;
+    pmSubSteps.push({ name: 'Virtudes Paladinescas:', value: `${virtudePM}` });
   }
 
   if (pvSubSteps.length) {

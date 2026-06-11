@@ -90,6 +90,7 @@ import {
   calculateMulticlassPV,
   calculateMulticlassPM,
   findClassDescription,
+  reconcileClassLevels,
 } from '@/functions/multiclass';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
@@ -1303,6 +1304,18 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const heritageChanged =
       editedData.raceName === 'Moreau' &&
       editedData.raceHeritage !== sheet.raceHeritage;
+    // Mantém classLevels em sincronia com o nível editado (multiclasse).
+    // Sem isso, baixar o nível deixaria entradas a mais, que um level-up futuro
+    // transformaria num nível fantasma da classe primária.
+    if (levelChanged && sheet.classLevels) {
+      updates.classLevels = reconcileClassLevels(
+        sheet.classLevels,
+        editedData.nivel,
+        sheet.classe.name,
+        sheet.classe.subname
+      );
+    }
+
     const shouldUseRecalculateSheet =
       attributesChanged ||
       raceChanged ||
