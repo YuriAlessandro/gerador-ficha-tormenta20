@@ -49,10 +49,6 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
   const isAdmin = user?.email === ADMIN_EMAIL;
   const canCreateBlogPost = isAdmin || isEditor;
 
-  const openExternal = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   const requireAuth = (action: () => void) => () => {
     if (isAuthenticated) {
       action();
@@ -153,9 +149,7 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
           key: 'map',
           title: 'Mapa de Arton',
           icon: <MapIcon />,
-          onClick: () =>
-            openExternal('https://mapadearton.fichasdenimb.com.br/'),
-          isExternal: true,
+          onClick: () => onClickButton('/mapadearton'),
         },
         {
           key: 'cave',
