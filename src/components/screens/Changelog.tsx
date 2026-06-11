@@ -74,6 +74,16 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Virtudes Paladinescas agora somam pontos de mana.
+                  </strong>{' '}
+                  Os poderes <strong>Virtude Paladinesca</strong> do{' '}
+                  <strong>Paladino</strong> concedem um bônus progressivo ao
+                  total de <strong>PM</strong> conforme a quantidade que você
+                  possui (+1, +3, +6, +10 e +15 para 1 a 5 Virtudes), como manda
+                  a regra. Antes o total de PM não era ajustado.
+                </li>
+                <li>
+                  <strong>
                     Correção: multiclasse não infla mais o nível da classe
                     original.
                   </strong>{' '}
