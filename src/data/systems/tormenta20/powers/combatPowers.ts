@@ -37,6 +37,13 @@ const combatPowers: Record<string, GeneralPower> = {
         { type: RequirementType.ATRIBUTO, name: 'Força', value: 1 },
       ],
     ],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Arremesso Potente' },
+        target: { type: 'ThrownAttackUseStrength' },
+        modifier: { type: 'Fixed', value: 0 },
+      },
+    ],
   },
   ARREMESSO_MULTIPLO: {
     name: 'Arremesso Múltiplo',
@@ -284,6 +291,13 @@ const combatPowers: Record<string, GeneralPower> = {
       'Você pode sacar armas de arremesso como uma ação livre e recebe +2 nas rolagens de dano com elas. Se também possuir o poder Saque Rápido, também recebe +2 nos testes de ataque com essas armas.',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Pontaria' }]],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Estilo de Arremesso' },
+        target: { type: 'WeaponDamage', thrownOnly: true },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   ESTILO_DE_DISPARO: {
     name: 'Estilo de Disparo',

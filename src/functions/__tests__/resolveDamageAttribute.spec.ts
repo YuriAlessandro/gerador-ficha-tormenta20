@@ -37,14 +37,22 @@ describe('resolveDamageAttribute', () => {
     expect(resolveDamageAttribute(HEROIS_ARTON_WEAPONS.BALESTRA)).toBe('Força');
   });
 
-  test('Adaga corpo-a-corpo soma Força; arremessar não soma', () => {
+  test('Adaga: corpo-a-corpo e arremessar somam Força', () => {
     const adaga = Armas.ADAGA;
     const corpoACorpo = adaga.specialActions?.find(
       (a) => a.id === 'corpo-a-corpo'
     );
     const arremessar = adaga.specialActions?.find((a) => a.id === 'arremessar');
     expect(resolveDamageAttribute(adaga, corpoACorpo)).toBe('Força');
-    expect(resolveDamageAttribute(adaga, arremessar)).toBe('Nenhum');
+    expect(resolveDamageAttribute(adaga, arremessar)).toBe('Força');
+  });
+
+  test('Azagaia arremessada soma Força', () => {
+    const azagaia = Armas.AZAGAIA;
+    const arremessar = azagaia.specialActions?.find(
+      (a) => a.id === 'arremessar'
+    );
+    expect(resolveDamageAttribute(azagaia, arremessar)).toBe('Força');
   });
 
   test('Lança de Fogo: corpo-a-corpo soma Força, tiro não soma', () => {

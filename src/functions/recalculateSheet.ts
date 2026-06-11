@@ -251,11 +251,17 @@ const weaponMatchesBonus = (
     proficiencyRequired?: boolean;
     meleeOnly?: boolean;
     rangedOnly?: boolean;
+    thrownOnly?: boolean;
   },
   _sheet: CharacterSheet
 ): boolean => {
   // Check specific weapon name
   if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
+    return false;
+  }
+
+  // Apenas armas de arremesso (têm `arremesso: true`).
+  if (bonus.thrownOnly && !weapon.arremesso) {
     return false;
   }
 
@@ -398,6 +404,18 @@ const applyWeaponBonuses = (
       let totalCriticalMultiplierBonus = 0;
 
       updatedSheet.sheetBonuses.forEach((bonus) => {
+        // Bônus `thrownOnly` são específicos do modo de arremesso de armas
+        // híbridas e são aplicados por modo de ataque em Weapon.tsx — não
+        // devem ser bakeados na string `dano`/`atkBonus` da arma inteira
+        // (vazaria para o modo corpo a corpo).
+        if (
+          (bonus.target.type === 'WeaponDamage' ||
+            bonus.target.type === 'WeaponAttack') &&
+          bonus.target.thrownOnly
+        ) {
+          return;
+        }
+
         if (
           (bonus.target.type === 'WeaponDamage' ||
             bonus.target.type === 'WeaponAttack' ||

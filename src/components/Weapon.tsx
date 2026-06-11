@@ -168,6 +168,65 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [hasArremessador, equipment.arremesso, equipment.nome]
   );
 
+  // Indica se o modo de ataque é o de arremesso de uma arma de arremesso
+  // (perícia Pontaria numa arma `arremesso`). Bônus específicos de arremesso
+  // (Estilo de Arremesso, Arremesso Potente) só valem nesse modo — nunca no
+  // corpo a corpo das armas híbridas.
+  const isThrownAction = useCallback(
+    (action?: WeaponAction): boolean =>
+      !!equipment.arremesso && action?.skill === 'Pontaria',
+    [equipment.arremesso]
+  );
+
+  // Estilo de Arremesso: +N nas rolagens de dano com armas de arremesso.
+  const thrownDamageBonus = useMemo(
+    () =>
+      (sheetBonuses ?? []).reduce((sum, b) => {
+        if (
+          b.target.type === 'WeaponDamage' &&
+          b.target.thrownOnly &&
+          b.modifier.type === 'Fixed'
+        ) {
+          return sum + (b.modifier as { value: number }).value;
+        }
+        return sum;
+      }, 0),
+    [sheetBonuses]
+  );
+
+  // Bônus condicional de ataque com armas de arremesso, emitido como
+  // WeaponAttack thrownOnly (ex.: Estilo de Arremesso + Saque Rápido).
+  const thrownAttackBonus = useMemo(
+    () =>
+      (sheetBonuses ?? []).reduce((sum, b) => {
+        if (
+          b.target.type === 'WeaponAttack' &&
+          b.target.thrownOnly &&
+          b.modifier.type === 'Fixed'
+        ) {
+          return sum + (b.modifier as { value: number }).value;
+        }
+        return sum;
+      }, 0),
+    [sheetBonuses]
+  );
+
+  // Arremesso Potente: pode usar Força em vez de Destreza no teste de ataque de
+  // arremesso. O poder diz "você pode", então aplicamos só quando é vantajoso
+  // (Força > Destreza).
+  const strengthThrowDelta = useMemo(() => {
+    const enabled = (sheetBonuses ?? []).some(
+      (b) => b.target.type === 'ThrownAttackUseStrength'
+    );
+    if (!enabled) return 0;
+    const forca = atributos['Força']?.value ?? 0;
+    const destreza = atributos.Destreza?.value ?? 0;
+    return Math.max(0, forca - destreza);
+  }, [sheetBonuses, atributos]);
+
+  // Total de ataque extra aplicável no modo de arremesso.
+  const thrownAtkExtra = thrownAttackBonus + strengthThrowDelta;
+
   // Resolve the default-display damage attribute for the main weapon row
   // (without any specific action picked).
   const baseDamageAttribute = resolveDamageAttribute(equipment);
@@ -196,10 +255,15 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         atributos
       );
       const baseFromBonus = atkBonus ? atkBonus + skillMod : skillMod;
-      const previewAtk = baseFromBonus + (action.atkBonusDelta ?? 0);
+      const thrown = isThrownAction(action);
+      const previewAtk =
+        baseFromBonus +
+        (action.atkBonusDelta ?? 0) +
+        (thrown ? thrownAtkExtra : 0);
 
       const resolvedAttr = resolveDamageAttribute(equipment, action);
-      const previewDamageMod = damageModForAttribute(resolvedAttr);
+      const previewDamageMod =
+        damageModForAttribute(resolvedAttr) + (thrown ? thrownDamageBonus : 0);
 
       const previewStepDelta =
         (action.damageStepDelta ?? 0) + arremessadorStepBonus(action);
@@ -227,6 +291,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       dano,
       equipment,
       arremessadorStepBonus,
+      isThrownAction,
+      thrownAtkExtra,
+      thrownDamageBonus,
     ]
   );
 
@@ -241,6 +308,15 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     sheetBonuses.forEach((b) => {
       if (b.source.type !== 'power') return;
       const targetType = b.target.type;
+      // Arremesso Potente: pode usar Força no ataque de arremesso.
+      if (targetType === 'ThrownAttackUseStrength') {
+        if (equipment.arremesso) {
+          effects.push(
+            `${b.source.name}: pode usar Força no ataque (arremesso)`
+          );
+        }
+        return;
+      }
       if (
         targetType !== 'WeaponAttack' &&
         targetType !== 'WeaponDamage' &&
@@ -257,15 +333,22 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         (equipment.weaponTags || []).some((t) =>
           (b.target as { weaponTags?: string[] }).weaponTags?.includes(t)
         );
-      if (!matchesName && !matchesTag) return;
+      // Bônus específicos de arremesso (thrownOnly) valem para armas de
+      // arremesso e só no modo de arremesso.
+      const matchesThrown =
+        'thrownOnly' in b.target &&
+        (b.target as { thrownOnly?: boolean }).thrownOnly === true &&
+        !!equipment.arremesso;
+      if (!matchesName && !matchesTag && !matchesThrown) return;
       const value =
         b.modifier.type === 'Fixed'
           ? (b.modifier as { value: number }).value
           : 0;
+      const suffix = matchesThrown ? ' (arremesso)' : '';
       if (targetType === 'WeaponAttack') {
-        effects.push(`${b.source.name}: +${value} no ataque`);
+        effects.push(`${b.source.name}: +${value} no ataque${suffix}`);
       } else if (targetType === 'WeaponDamage') {
-        effects.push(`${b.source.name}: +${value} no dano`);
+        effects.push(`${b.source.name}: +${value} no dano${suffix}`);
       } else if (targetType === 'WeaponDamageStep') {
         effects.push(
           `${b.source.name}: +${value} passo${value > 1 ? 's' : ''} de dano`
@@ -273,7 +356,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       }
     });
     return effects;
-  }, [sheetBonuses, nome, equipment.weaponTags]);
+  }, [sheetBonuses, nome, equipment.weaponTags, equipment.arremesso]);
 
   const damage = !isMelee || dualMode ? dano : `${dano}${damageModStr}`;
 
@@ -299,10 +382,15 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         atributos
       );
       const baseAtkFromBonus = atkBonus ? atkBonus + modAtk : modAtk;
-      const atk = baseAtkFromBonus + (action?.atkBonusDelta ?? 0);
+      const thrown = isThrownAction(action);
+      const atk =
+        baseAtkFromBonus +
+        (action?.atkBonusDelta ?? 0) +
+        (thrown ? thrownAtkExtra : 0);
 
       const resolvedAttr = resolveDamageAttribute(equipment, action);
-      const localDamageMod = damageModForAttribute(resolvedAttr);
+      const localDamageMod =
+        damageModForAttribute(resolvedAttr) + (thrown ? thrownDamageBonus : 0);
 
       // Apply step delta to the chosen dano string (if any), including the
       // Hynne "Arremessador" +1 step on ranged/thrown attacks.
@@ -419,6 +507,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       displayName,
       showDiceResult,
       arremessadorStepBonus,
+      isThrownAction,
+      thrownAtkExtra,
+      thrownDamageBonus,
     ]
   );
 

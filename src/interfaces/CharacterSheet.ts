@@ -300,6 +300,7 @@ export type StatModifierTarget =
       proficiencyRequired?: boolean; // Whether proficiency is required
       meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
+      thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
     }
   | {
       type: 'WeaponAttack';
@@ -308,6 +309,7 @@ export type StatModifierTarget =
       proficiencyRequired?: boolean;
       meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
+      thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
     }
   | {
       type: 'WeaponThreatMargin';
@@ -347,6 +349,11 @@ export type StatModifierTarget =
     }
   | {
       type: 'AllAttackBonus';
+    }
+  | {
+      // Arremesso Potente: permite usar Força no teste de ataque com armas de
+      // arremesso. Aplicado por modo de ataque em Weapon.tsx (max(For, Des)).
+      type: 'ThrownAttackUseStrength';
     };
 
 export type StatModifier =

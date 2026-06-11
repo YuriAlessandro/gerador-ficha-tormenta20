@@ -119,7 +119,7 @@ const MARTELO_LEVE: Equipment = {
       id: 'arremessar',
       label: 'Arremessar',
       skill: 'Pontaria',
-      damageAttribute: 'Nenhum',
+      damageAttribute: 'Força',
     },
   ],
 };
