@@ -44,6 +44,7 @@ import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
   Check as CheckIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import SupporterBadge from '../Premium/SupporterBadge';
 import ProfileLevelChip from '../Premium/ProfileLevelChip';
@@ -818,75 +819,40 @@ const ProfilePage: React.FC = () => {
                           Escolha a cor principal da interface
                         </Typography>
 
-                        {/* Block for non-supporters */}
-                        {!isUserSupporter ? (
-                          <Box
-                            sx={{
-                              p: 2,
-                              borderRadius: 2,
-                              border: '1px dashed',
-                              borderColor: 'divider',
-                              bgcolor: 'action.hover',
-                              textAlign: 'center',
-                            }}
-                          >
-                            <Stack spacing={2} alignItems='center'>
-                              <Stack
-                                direction='row'
-                                spacing={1}
-                                sx={{ opacity: 0.5 }}
+                        {/*
+                          Seletor unificado de cores. Apoiadores podem escolher
+                          qualquer cor; usuários free só podem escolher os temas
+                          comemorativos (color.free) — os demais ficam bloqueados
+                          com cadeado e levam para a página de apoio.
+                        */}
+                        <Stack
+                          direction='row'
+                          spacing={2}
+                          flexWrap='wrap'
+                          useFlexGap
+                        >
+                          {getAccentColorsArray().map((color) => {
+                            const locked = !isUserSupporter && !color.free;
+                            const isSelected = accentColor === color.id;
+                            return (
+                              <Tooltip
+                                key={color.id}
+                                title={
+                                  locked
+                                    ? `${color.name} — exclusivo para apoiadores`
+                                    : color.name
+                                }
+                                arrow
                               >
-                                {getAccentColorsArray().map((color) => (
-                                  <Box
-                                    key={color.id}
-                                    sx={{
-                                      width: 32,
-                                      height: 32,
-                                      borderRadius: '50%',
-                                      backgroundColor: color.main,
-                                      border:
-                                        accentColor === color.id
-                                          ? '2px solid'
-                                          : '1px solid transparent',
-                                      borderColor:
-                                        accentColor === color.id
-                                          ? 'text.primary'
-                                          : 'transparent',
-                                    }}
-                                  />
-                                ))}
-                              </Stack>
-                              <Typography
-                                variant='body2'
-                                color='text.secondary'
-                              >
-                                Personalize as cores do site tornando-se um
-                                apoiador
-                              </Typography>
-                              <Button
-                                variant='outlined'
-                                size='small'
-                                startIcon={<FavoriteIcon />}
-                                onClick={() => history.push('/apoiar')}
-                              >
-                                Apoiar
-                              </Button>
-                            </Stack>
-                          </Box>
-                        ) : (
-                          <Stack
-                            direction='row'
-                            spacing={2}
-                            flexWrap='wrap'
-                            useFlexGap
-                          >
-                            {getAccentColorsArray().map((color) => (
-                              <Tooltip key={color.id} title={color.name} arrow>
                                 <Box
-                                  onClick={() =>
-                                    !preferencesLoading &&
-                                    setAccentColor(color.id as AccentColorId)
-                                  }
+                                  onClick={() => {
+                                    if (preferencesLoading) return;
+                                    if (locked) {
+                                      history.push('/apoiar');
+                                      return;
+                                    }
+                                    setAccentColor(color.id as AccentColorId);
+                                  }}
                                   sx={{
                                     width: 48,
                                     height: 48,
@@ -895,39 +861,73 @@ const ProfilePage: React.FC = () => {
                                     cursor: preferencesLoading
                                       ? 'not-allowed'
                                       : 'pointer',
-                                    border:
-                                      accentColor === color.id
-                                        ? '3px solid'
-                                        : '2px solid transparent',
-                                    borderColor:
-                                      accentColor === color.id
-                                        ? 'text.primary'
-                                        : 'transparent',
+                                    opacity: locked ? 0.45 : 1,
+                                    filter: locked ? 'grayscale(0.6)' : 'none',
+                                    border: isSelected
+                                      ? '3px solid'
+                                      : '2px solid transparent',
+                                    borderColor: isSelected
+                                      ? 'text.primary'
+                                      : 'transparent',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
                                     boxShadow:
-                                      accentColor === color.id
+                                      isSelected && !locked
                                         ? `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${color.main}`
                                         : 'none',
                                     '&:hover': {
                                       transform: 'scale(1.1)',
-                                      boxShadow: `0 4px 12px ${color.main}50`,
+                                      boxShadow: locked
+                                        ? 'none'
+                                        : `0 4px 12px ${color.main}50`,
                                     },
                                   }}
                                 >
-                                  {accentColor === color.id && (
-                                    <CheckIcon
+                                  {locked ? (
+                                    <LockIcon
                                       sx={{
                                         color: color.contrastText,
-                                        fontSize: 24,
+                                        fontSize: 20,
                                       }}
                                     />
+                                  ) : (
+                                    isSelected && (
+                                      <CheckIcon
+                                        sx={{
+                                          color: color.contrastText,
+                                          fontSize: 24,
+                                        }}
+                                      />
+                                    )
                                   )}
                                 </Box>
                               </Tooltip>
-                            ))}
+                            );
+                          })}
+                        </Stack>
+
+                        {/* CTA de apoio para usuários free (cores bloqueadas) */}
+                        {!isUserSupporter && (
+                          <Stack spacing={1} sx={{ mt: 2 }} alignItems='center'>
+                            <Typography
+                              variant='body2'
+                              color='text.secondary'
+                              textAlign='center'
+                            >
+                              As cores comemorativas da Copa 2026 são liberadas
+                              para todos! Desbloqueie as demais cores
+                              tornando-se um apoiador.
+                            </Typography>
+                            <Button
+                              variant='outlined'
+                              size='small'
+                              startIcon={<FavoriteIcon />}
+                              onClick={() => history.push('/apoiar')}
+                            >
+                              Apoiar
+                            </Button>
                           </Stack>
                         )}
                       </Box>

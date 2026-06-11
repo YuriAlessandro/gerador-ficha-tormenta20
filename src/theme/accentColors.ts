@@ -5,7 +5,14 @@
  * Each color has main, dark, light, and contrastText variants.
  */
 
-export type AccentColorId = 'red' | 'brown' | 'dark-brown' | 'purple' | 'navy';
+export type AccentColorId =
+  | 'red'
+  | 'brown'
+  | 'dark-brown'
+  | 'purple'
+  | 'navy'
+  | 'brazil-green'
+  | 'brazil-yellow';
 
 export interface AccentColorPalette {
   id: AccentColorId;
@@ -14,6 +21,11 @@ export interface AccentColorPalette {
   dark: string;
   light: string;
   contrastText: string;
+  /**
+   * When true, this color is available to all users (não exige apoio).
+   * Used by the commemorative themes. Demais cores são exclusivas de apoiadores.
+   */
+  free?: boolean;
 }
 
 /**
@@ -59,6 +71,30 @@ export const ACCENT_COLORS: Record<AccentColorId, AccentColorPalette> = {
     dark: '#2d2a55',
     light: '#6b67a0',
     contrastText: '#ffffff',
+  },
+  // ──────────────────────────────────────────────────────────────────────
+  // TEMAS COMEMORATIVOS TEMPORÁRIOS — Copa do Mundo 2026 🇧🇷
+  // Disponíveis para TODOS os usuários (free: true). Remover após a Copa
+  // (final em 19/07/2026): apagar estas duas entradas, os valores
+  // correspondentes em AccentColorId e o enum do backend (User.ts).
+  // ──────────────────────────────────────────────────────────────────────
+  'brazil-green': {
+    id: 'brazil-green',
+    name: 'Copa 2026 · Verde 🇧🇷',
+    main: '#009c3b',
+    dark: '#00702a',
+    light: '#2bb866',
+    contrastText: '#ffffff',
+    free: true,
+  },
+  'brazil-yellow': {
+    id: 'brazil-yellow',
+    name: 'Copa 2026 · Amarelo 🇧🇷',
+    main: '#e9b50a',
+    dark: '#b88c00',
+    light: '#ffd84d',
+    contrastText: '#3d2e00',
+    free: true,
   },
 };
 
