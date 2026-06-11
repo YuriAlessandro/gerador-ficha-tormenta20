@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            06/06/2026 (v4.20).
+            11/06/2026 (v4.21).
           </p>
 
           <p>
@@ -69,6 +69,47 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.21</h3>
+
+              <ul>
+                <li>
+                  <strong>
+                    Correção: Familiar Sapo agora soma o atributo-chave aos
+                    pontos de vida.
+                  </strong>{' '}
+                  Ao escolher o familiar <strong>Sapo</strong> (poder{' '}
+                  <strong>Familiar</strong> do Arcanista), o seu{' '}
+                  <strong>atributo-chave</strong> não estava sendo somado ao
+                  total de <strong>PV</strong>. Agora o bônus é aplicado
+                  automaticamente na ficha.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Familiar Rato usa o atributo-chave na Fortitude.
+                  </strong>{' '}
+                  Quem escolhe o familiar <strong>Rato</strong> passa a usar o{' '}
+                  <strong>atributo-chave</strong> nos testes de{' '}
+                  <strong>Fortitude</strong> no lugar de Constituição, quando
+                  for mais vantajoso.
+                </li>
+                <li>
+                  <strong>
+                    Novo: limites semanais de publicação no Bestiário.
+                  </strong>{' '}
+                  A quantidade de criaturas que cada apoiador pode publicar por
+                  semana no <strong>Bestiário</strong> agora varia conforme o
+                  nível de apoio (Nível 1: 15, Nível 2: 50, Nível 3: ilimitado).
+                </li>
+                <li>
+                  <strong>
+                    Correção: rolagem infinita da lista do Bestiário.
+                  </strong>{' '}
+                  A lista do <strong>Bestiário</strong> não carregava mais itens
+                  corretamente ao rolar até o fim. Agora a rolagem infinita
+                  funciona como esperado.
+                </li>
+              </ul>
+
               <h3>4.20</h3>
 
               <ul>
