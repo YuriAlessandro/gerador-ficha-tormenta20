@@ -74,6 +74,17 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Anão não tem mais o deslocamento reduzido por
+                    armadura pesada ou sobrecarga.
+                  </strong>{' '}
+                  Conforme a habilidade <strong>Devagar e Sempre</strong>, o
+                  deslocamento do <strong>Anão</strong> (e do{' '}
+                  <strong>Trog Anão</strong>) permanece em 6m mesmo usando
+                  armadura pesada ou excesso de carga. Antes a penalidade de -3m
+                  era aplicada indevidamente.
+                </li>
+                <li>
+                  <strong>
                     Correção: Virtudes Paladinescas agora somam pontos de mana.
                   </strong>{' '}
                   Os poderes <strong>Virtude Paladinesca</strong> do{' '}
