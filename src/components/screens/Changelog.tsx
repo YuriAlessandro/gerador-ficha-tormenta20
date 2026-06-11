@@ -74,6 +74,19 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: multiclasse não infla mais o nível da classe
+                    original.
+                  </strong>{' '}
+                  Ao subir de nível pegando o primeiro nível de uma nova classe
+                  (multiclasse), em alguns casos a{' '}
+                  <strong>classe original</strong> também ganhava um nível
+                  indevido (ex.: Druida 3 → Druida 4 · Guerreiro 1), inflando{' '}
+                  <strong>PV</strong> e <strong>PM</strong>. Agora a
+                  distribuição de níveis entre as classes é mantida
+                  corretamente.
+                </li>
+                <li>
+                  <strong>
                     Correção: Familiar Sapo agora soma o atributo-chave aos
                     pontos de vida.
                   </strong>{' '}
