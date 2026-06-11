@@ -484,6 +484,81 @@ describe('recalculateSheet', () => {
       );
       expect(furtividadeBonus).toBeUndefined();
     });
+
+    it('should add the key attribute to PV when Sapo is selected', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+      // No spellPath on the mock class → spellKeyAttr resolves via overrideKeyAttribute
+      mockSheet.overrideKeyAttribute = Atributo.FORCA; // value 2 in the mock
+
+      // Gato has no PV effect, so it isolates Sapo's PV bonus
+      const withGato = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['GATO'] },
+      });
+      const withSapo = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['SAPO'] },
+      });
+
+      expect(withSapo.pv).toBe(withGato.pv + 2);
+
+      const pvBonus = withSapo.sheetBonuses.find(
+        (b) =>
+          b.target.type === 'PV' &&
+          b.modifier.type === 'SpecialAttribute' &&
+          b.modifier.attribute === 'spellKeyAttr'
+      );
+      expect(pvBonus).toBeDefined();
+    });
+
+    it('should keep the Sapo PV bonus stable (no duplication) across recalculations', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+      mockSheet.overrideKeyAttribute = Atributo.FORCA;
+
+      const first = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['SAPO'] },
+      });
+
+      let current = first;
+      for (let i = 0; i < 3; i += 1) {
+        current = recalculateSheet(current);
+      }
+
+      expect(current.pv).toBe(first.pv);
+      const pvBonuses = current.sheetBonuses.filter(
+        (b) =>
+          b.target.type === 'PV' &&
+          b.modifier.type === 'SpecialAttribute' &&
+          b.modifier.attribute === 'spellKeyAttr'
+      );
+      expect(pvBonuses).toHaveLength(1);
+    });
+
+    it('should use the key attribute for Fortitude when Rato is selected and it beats CON', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+      mockSheet.overrideKeyAttribute = Atributo.FORCA; // value 2 > CON value 1
+
+      const withRato = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['RATO'] },
+      });
+
+      const fortitude = withRato.completeSkills?.find(
+        (s) => s.name === Skill.FORTITUDE
+      );
+      expect(fortitude?.modAttr).toBe(Atributo.FORCA);
+    });
+
+    it('should NOT swap Fortitude attribute when the key attribute does not beat CON', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+      mockSheet.overrideKeyAttribute = Atributo.INTELIGENCIA; // value 0 <= CON value 1
+
+      const withRato = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['RATO'] },
+      });
+
+      const fortitude = withRato.completeSkills?.find(
+        (s) => s.name === Skill.FORTITUDE
+      );
+      expect(fortitude?.modAttr).toBe(Atributo.CONSTITUICAO);
+    });
   });
 
   describe('Edge Cases', () => {
