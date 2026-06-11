@@ -74,6 +74,15 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Adicionado aprimoramento faltante da magia Dardo
+                    Gélido.
+                  </strong>{' '}
+                  A magia <strong>Dardo Gélido</strong> (Ameaças de Arton) agora
+                  exibe o aprimoramento que aumenta o número de alvos em +1 por
+                  1 PM, conforme o livro.
+                </li>
+                <li>
+                  <strong>
                     Correção: Feiticeiro com Linhagem Abençoada agora aprende 4
                     magias no 1º nível.
                   </strong>{' '}
