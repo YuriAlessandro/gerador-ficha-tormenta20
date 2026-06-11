@@ -51,7 +51,10 @@ import {
   calculateMaxSpaces,
   calculateCurrencySpaces,
 } from './general';
-import { countTormentaPowers } from './randomUtils';
+import {
+  countTormentaPowers,
+  getVirtudePaladinescaPMBonus,
+} from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
 
 /**
@@ -1578,6 +1581,11 @@ export function recalculateSheet(
       if (updatedSheet.manualPMEdit) {
         updatedSheet.pm += updatedSheet.manualPMEdit;
       }
+    }
+
+    // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
+    if (!hasManualMaxPM) {
+      updatedSheet.pm += getVirtudePaladinescaPMBonus(updatedSheet.classPowers);
     }
 
     // Initialize current PM if not set (first time or reset)

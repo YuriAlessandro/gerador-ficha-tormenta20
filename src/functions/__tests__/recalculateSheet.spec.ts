@@ -1,5 +1,6 @@
 import { cloneDeep } from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
+import { getVirtudePaladinescaPMBonus } from '../randomUtils';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
 import { DestinyPowers } from '../../data/systems/tormenta20/powers/destinyPowers';
@@ -1185,6 +1186,77 @@ describe('recalculateSheet', () => {
       const result = recalculateSheet(sheet);
 
       expect(result.defesa).toBe(baseline + 2);
+    });
+  });
+
+  describe('Virtudes Paladinescas (bônus progressivo de PM)', () => {
+    const VIRTUDES = [
+      'Virtude Paladinesca: Caridade',
+      'Virtude Paladinesca: Castidade',
+      'Virtude Paladinesca: Compaixão',
+      'Virtude Paladinesca: Humildade',
+      'Virtude Paladinesca: Temperança',
+      'Virtude Paladinesca: Paciência',
+    ];
+
+    const makeVirtudePowers = (n: number) =>
+      VIRTUDES.slice(0, n).map((name) => ({
+        name,
+        text: '',
+        requirements: [],
+      })) as CharacterSheet['classPowers'];
+
+    it('getVirtudePaladinescaPMBonus retorna a tabela 0/1/3/6/10/15/15', () => {
+      const expected = [0, 1, 3, 6, 10, 15, 15];
+      expected.forEach((bonus, count) => {
+        expect(getVirtudePaladinescaPMBonus(makeVirtudePowers(count))).toBe(
+          bonus
+        );
+      });
+    });
+
+    it('helper ignora poderes que não são Virtudes e dedupe por nome', () => {
+      expect(getVirtudePaladinescaPMBonus([])).toBe(0);
+      expect(getVirtudePaladinescaPMBonus(undefined)).toBe(0);
+      expect(
+        getVirtudePaladinescaPMBonus([
+          { name: 'Aumento de Atributo' },
+          { name: 'Orar' },
+        ])
+      ).toBe(0);
+      // mesma virtude duplicada conta apenas uma vez
+      expect(
+        getVirtudePaladinescaPMBonus([
+          { name: 'Virtude Paladinesca: Compaixão' },
+          { name: 'Virtude Paladinesca: Compaixão' },
+        ])
+      ).toBe(1);
+    });
+
+    it('recalculateSheet soma o bônus progressivo ao total de PM', () => {
+      const baseline = recalculateSheet(cloneDeep(mockSheet)).pm;
+
+      [1, 2, 3, 4, 5].forEach((n) => {
+        const sheet = cloneDeep(mockSheet);
+        sheet.classPowers = makeVirtudePowers(n);
+        const result = recalculateSheet(sheet);
+        const expectedBonus = [0, 1, 3, 6, 10, 15][n];
+        expect(result.pm).toBe(baseline + expectedBonus);
+      });
+    });
+
+    it('uma 6ª Virtude mantém o bônus no teto de +15', () => {
+      const baseline = recalculateSheet(cloneDeep(mockSheet)).pm;
+      const sheet = cloneDeep(mockSheet);
+      sheet.classPowers = makeVirtudePowers(6);
+      expect(recalculateSheet(sheet).pm).toBe(baseline + 15);
+    });
+
+    it('PM máximo manual ignora o bônus de Virtudes', () => {
+      const sheet = cloneDeep(mockSheet);
+      sheet.classPowers = makeVirtudePowers(5);
+      sheet.manualMaxPM = 42;
+      expect(recalculateSheet(sheet).pm).toBe(42);
     });
   });
 });

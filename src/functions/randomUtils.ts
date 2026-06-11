@@ -139,6 +139,23 @@ export function countTormentaPowers(sheet: CharacterSheet) {
   return tormentaPowersQtd;
 }
 
+// Paladino: Virtudes Paladinescas concedem um bônus progressivo ao total de PM
+// de acordo com a quantidade de poderes desse tipo que o personagem possui.
+const VIRTUDE_PALADINESCA_PM: readonly number[] = [0, 1, 3, 6, 10, 15];
+
+export function getVirtudePaladinescaPMBonus(
+  classPowers?: { name: string }[]
+): number {
+  if (!classPowers || classPowers.length === 0) return 0;
+  const distinct = new Set(
+    classPowers
+      .map((p) => p.name)
+      .filter((n) => n.startsWith('Virtude Paladinesca:'))
+  );
+  const count = Math.min(distinct.size, 5);
+  return VIRTUDE_PALADINESCA_PM[count];
+}
+
 export function pickFromAllowed<
   T extends string | { name: string } | { nome: string }
 >(options: T[], pick: number, alreadyPicked: T[] = []) {
