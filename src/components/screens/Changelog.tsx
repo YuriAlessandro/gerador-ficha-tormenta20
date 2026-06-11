@@ -74,16 +74,6 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
-                    Correção: Armas de arremesso agora somam Força ao dano.
-                  </strong>{' '}
-                  Ao atacar arremessando uma arma (Adaga, Lança, Azagaia,
-                  Machadinha, Tridente, Martelo Leve, entre outras), o
-                  modificador de <strong>Força</strong> passa a ser somado à
-                  rolagem de dano, conforme a regra. O modo corpo a corpo dessas
-                  armas continua funcionando normalmente.
-                </li>
-                <li>
-                  <strong>
                     Novo: Automação dos poderes Estilo de Arremesso e Arremesso
                     Potente.
                   </strong>{' '}
@@ -94,6 +84,33 @@ const Changelog: React.FC = () => {
                   passa a usar <strong>Força</strong> quando for mais vantajoso
                   que Destreza. Os bônus aparecem direto na ficha e nas
                   rolagens.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Familiar Rato usa o atributo-chave na Fortitude.
+                  </strong>{' '}
+                  Quem escolhe o familiar <strong>Rato</strong> passa a usar o{' '}
+                  <strong>atributo-chave</strong> nos testes de{' '}
+                  <strong>Fortitude</strong> no lugar de Constituição, quando
+                  for mais vantajoso.
+                </li>
+                <li>
+                  <strong>
+                    Novo: limites semanais de publicação no Bestiário.
+                  </strong>{' '}
+                  A quantidade de criaturas que cada apoiador pode publicar por
+                  semana no <strong>Bestiário</strong> agora varia conforme o
+                  nível de apoio (Nível 1: 15, Nível 2: 50, Nível 3: ilimitado).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Armas de arremesso agora somam Força ao dano.
+                  </strong>{' '}
+                  Ao atacar arremessando uma arma (Adaga, Lança, Azagaia,
+                  Machadinha, Tridente, Martelo Leve, entre outras), o
+                  modificador de <strong>Força</strong> passa a ser somado à
+                  rolagem de dano, conforme a regra. O modo corpo a corpo dessas
+                  armas continua funcionando normalmente.
                 </li>
                 <li>
                   <strong>
@@ -173,23 +190,6 @@ const Changelog: React.FC = () => {
                   <strong>atributo-chave</strong> não estava sendo somado ao
                   total de <strong>PV</strong>. Agora o bônus é aplicado
                   automaticamente na ficha.
-                </li>
-                <li>
-                  <strong>
-                    Novo: Familiar Rato usa o atributo-chave na Fortitude.
-                  </strong>{' '}
-                  Quem escolhe o familiar <strong>Rato</strong> passa a usar o{' '}
-                  <strong>atributo-chave</strong> nos testes de{' '}
-                  <strong>Fortitude</strong> no lugar de Constituição, quando
-                  for mais vantajoso.
-                </li>
-                <li>
-                  <strong>
-                    Novo: limites semanais de publicação no Bestiário.
-                  </strong>{' '}
-                  A quantidade de criaturas que cada apoiador pode publicar por
-                  semana no <strong>Bestiário</strong> agora varia conforme o
-                  nível de apoio (Nível 1: 15, Nível 2: 50, Nível 3: ilimitado).
                 </li>
                 <li>
                   <strong>
