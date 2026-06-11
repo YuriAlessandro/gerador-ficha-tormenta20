@@ -498,7 +498,15 @@ const ARCANISTA: ClassDescription = {
         const deus = getRandomItemFromArray(DEUSES_MAIORES);
         const linhagemAbility = createLinhagemAbencoada(deus);
         if (modifiedClasse.spellPath) {
-          modifiedClasse.spellPath.includeDivineSchools = allSpellSchools;
+          // Clone the spellPath to avoid mutating the shared
+          // arcanistaSpellPaths['Feiticeiro'] reference across generations.
+          // Linhagem Abençoada adds divine spells to the pool and grants one
+          // extra spell, for a total of 4 at level 1.
+          modifiedClasse.spellPath = {
+            ...modifiedClasse.spellPath,
+            includeDivineSchools: allSpellSchools,
+            initialSpells: 4,
+          };
         }
         modifiedClasse.abilities.push(linhagemAbility);
       }

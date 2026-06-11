@@ -497,16 +497,20 @@ const CharacterCreationWizardModal: React.FC<
         Feiticeiro: 3,
       };
 
-      // Linhagem Abençoada: include divine spells from all schools
-      const includeDivineSchools =
+      // Linhagem Abençoada: include divine spells from all schools and grant
+      // one extra spell (the divine spell), for a total of 4 at level 1.
+      const isFeiticeiroAbencoado =
         selections.arcanistaSubtype === 'Feiticeiro' &&
-        selections.feiticeiroLinhagem === 'Linhagem Abençoada'
-          ? allSpellSchools
-          : undefined;
+        selections.feiticeiroLinhagem === 'Linhagem Abençoada';
+      const includeDivineSchools = isFeiticeiroAbencoado
+        ? allSpellSchools
+        : undefined;
 
       result = {
         spellType: 'Arcane',
-        initialSpells: initialSpellsBySubtype[selections.arcanistaSubtype],
+        initialSpells: isFeiticeiroAbencoado
+          ? 4
+          : initialSpellsBySubtype[selections.arcanistaSubtype],
         includeDivineSchools,
       };
     } else if (classe.name === 'Bardo') {

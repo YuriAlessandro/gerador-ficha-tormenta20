@@ -5238,9 +5238,11 @@ export function generateEmptySheet(
           modifiedClasse.abilities.push(linhagemRubra);
         }
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada') {
-        // Linhagem Abençoada: include divine spells from all schools
+        // Linhagem Abençoada: include divine spells from all schools and grant
+        // one extra spell (the divine spell), for a total of 4 at level 1.
         if (modifiedClasse.spellPath) {
           modifiedClasse.spellPath.includeDivineSchools = allSpellSchools;
+          modifiedClasse.spellPath.initialSpells = 4;
         }
 
         const deusEscolhido =
