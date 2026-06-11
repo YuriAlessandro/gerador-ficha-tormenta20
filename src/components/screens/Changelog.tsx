@@ -74,6 +74,17 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Feiticeiro com Linhagem Abençoada agora aprende 4
+                    magias no 1º nível.
+                  </strong>{' '}
+                  Pela <strong>Linhagem Abençoada</strong>, o{' '}
+                  <strong>Feiticeiro</strong> aprende magias divinas de 1º
+                  círculo como magias de feiticeiro e ainda recebe uma magia
+                  divina extra — totalizando <strong>4 magias</strong> no 1º
+                  nível. Antes a ficha só permitia escolher 3.
+                </li>
+                <li>
+                  <strong>
                     Correção: Anão não tem mais o deslocamento reduzido por
                     armadura pesada ou sobrecarga.
                   </strong>{' '}
