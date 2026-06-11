@@ -74,6 +74,20 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Ameaças importadas não trocam mais de ficha na
+                    Mesa Virtual.
+                  </strong>{' '}
+                  Durante o combate, clicar em uma ameaça importada podia abrir
+                  a ficha de outra criatura — problema que aparecia após usar o
+                  botão <strong>Atualizar dados</strong>. A gravação dos dados
+                  das ameaças ficou mais segura, o botão{' '}
+                  <strong>Atualizar dados</strong> agora pede confirmação quando
+                  a ficha de origem tem nome diferente do snapshot, e as
+                  alterações passam a sincronizar entre mestre e jogadores em
+                  tempo real.
+                </li>
+                <li>
+                  <strong>
                     Correção: Adicionado aprimoramento faltante da magia Dardo
                     Gélido.
                   </strong>{' '}
