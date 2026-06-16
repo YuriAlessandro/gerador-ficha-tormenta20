@@ -84,11 +84,7 @@ const footerSections: FooterSection[] = [
       { label: 'Mesas Virtuais', link: '/mesas' },
       { label: 'Explorar Builds', link: '/builds' },
       { label: 'Caverna do Saber', link: '/caverna-do-saber' },
-      {
-        label: 'Mapa de Arton',
-        link: 'https://mapadearton.fichasdenimb.com.br/',
-        isExternal: true,
-      },
+      { label: 'Mapa de Arton', link: '/mapadearton' },
     ],
   },
   {

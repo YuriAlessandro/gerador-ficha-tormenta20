@@ -177,9 +177,8 @@ const buildNavCategories = (isAuthenticated: boolean): NavCategory[] => {
         },
         {
           label: 'Mapa de Arton',
-          link: 'https://mapadearton.fichasdenimb.com.br/',
+          link: '/mapadearton',
           icon: <MapIcon fontSize='small' />,
-          isExternal: true,
         },
       ],
     },

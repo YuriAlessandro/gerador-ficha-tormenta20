@@ -19,10 +19,6 @@ const MainToolsSection: React.FC<MainToolsSectionProps> = ({
 }) => {
   const { openLoginModal } = useAuthContext();
 
-  const handleExternalLink = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   const handleMesaVirtual = () => {
     if (isAuthenticated) {
       onClickButton('/mesas');
@@ -61,10 +57,9 @@ const MainToolsSection: React.FC<MainToolsSectionProps> = ({
       title: 'Mapa de Arton',
       description: 'Explore o mundo de Arton de forma interativa',
       icon: <MapIcon sx={{ fontSize: 'inherit' }} />,
-      onClick: () =>
-        handleExternalLink('https://mapadearton.fichasdenimb.com.br/'),
+      onClick: () => onClickButton('/mapadearton'),
       isPrimary: false,
-      isExternal: true,
+      isExternal: false,
     },
     {
       title: 'Enciclopédia de Tanah-Toh',
