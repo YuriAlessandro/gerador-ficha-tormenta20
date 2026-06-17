@@ -410,6 +410,14 @@ export type StatModifier =
       type: 'CappedAttribute';
       attribute: Atributo;
       capBy: 'level' | 'classLevel';
+    }
+  | {
+      // Valor que muda por faixa de nível: usa o `value` do maior `fromLevel`
+      // que seja <= nível atual (0 se nenhum). Avaliado nativamente (sem fórmula
+      // nem eval). `by` define se escala pelo nível total ou de classe.
+      type: 'LevelBreakpoints';
+      breakpoints: { fromLevel: number; value: number }[];
+      by?: 'level' | 'classLevel';
     };
 
 /** Operador de comparação numérica para condições de bônus. */

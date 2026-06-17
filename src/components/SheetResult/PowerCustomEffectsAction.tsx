@@ -47,7 +47,11 @@ export default function PowerCustomEffectsAction({
   const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     if (customEffects.length === 1) {
       setActiveDefinition(
-        buildVirtualDefinitionFromCustomEffect(powerName, customEffects[0])
+        buildVirtualDefinitionFromCustomEffect(
+          powerName,
+          customEffects[0],
+          sheet.nivel
+        )
       );
       return;
     }
@@ -57,7 +61,7 @@ export default function PowerCustomEffectsAction({
   const handlePickFromMenu = (effect: CustomEffect) => {
     setMenuAnchor(null);
     setActiveDefinition(
-      buildVirtualDefinitionFromCustomEffect(powerName, effect)
+      buildVirtualDefinitionFromCustomEffect(powerName, effect, sheet.nivel)
     );
   };
 

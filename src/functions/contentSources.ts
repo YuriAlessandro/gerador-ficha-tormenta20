@@ -32,6 +32,14 @@ export function computeUsedRuntimeSupplements(sheet: CharacterSheet): string[] {
     if (match) used.add(match.supplementId as unknown as string);
   }
 
+  const className = sheet.classe?.name;
+  if (className) {
+    const match = dataRegistry
+      .getClassesWithSupplementInfo(runtimeIds as SupplementId[])
+      .find((c) => c.name === className);
+    if (match) used.add(match.supplementId as unknown as string);
+  }
+
   return Array.from(used);
 }
 

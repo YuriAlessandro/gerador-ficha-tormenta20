@@ -4277,6 +4277,16 @@ const calculateBonusValue = (
       bonus.capBy === 'classLevel' ? resolveClassLevel() : sheet.nivel;
     return Math.max(0, Math.min(attrValue, cap));
   }
+  if (bonus.type === 'LevelBreakpoints') {
+    const lvl = bonus.by === 'classLevel' ? resolveClassLevel() : sheet.nivel;
+    let best: { fromLevel: number; value: number } | null = null;
+    bonus.breakpoints.forEach((bp) => {
+      if (lvl >= bp.fromLevel && (!best || bp.fromLevel > best.fromLevel)) {
+        best = bp;
+      }
+    });
+    return best ? (best as { fromLevel: number; value: number }).value : 0;
+  }
   if (bonus.type === 'Fixed') {
     return bonus.value;
   }

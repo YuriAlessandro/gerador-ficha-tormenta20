@@ -183,6 +183,8 @@ const calculateBonusValue = (
     attribute?: string;
     formula?: string;
     capBy?: 'level' | 'classLevel';
+    breakpoints?: { fromLevel: number; value: number }[];
+    by?: 'level' | 'classLevel';
   },
   source?: SheetChangeSource
 ): number => {
@@ -237,6 +239,20 @@ const calculateBonusValue = (
         ? resolveClassLevel(sheet, source)
         : sheet.nivel;
     return Math.max(0, Math.min(attrValue, cap));
+  }
+  if (bonus.type === 'LevelBreakpoints') {
+    const lvl =
+      bonus.by === 'classLevel'
+        ? resolveClassLevel(sheet, source)
+        : sheet.nivel;
+    // Maior `fromLevel` que seja <= nível atual (independe da ordem da lista).
+    let best: { fromLevel: number; value: number } | null = null;
+    (bonus.breakpoints || []).forEach((bp) => {
+      if (lvl >= bp.fromLevel && (!best || bp.fromLevel > best.fromLevel)) {
+        best = bp;
+      }
+    });
+    return best ? (best as { fromLevel: number; value: number }).value : 0;
   }
   if (bonus.type === 'Fixed') {
     return bonus.value || 0;

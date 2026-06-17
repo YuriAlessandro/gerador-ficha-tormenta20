@@ -87,6 +87,8 @@ import {
   MyHomebrewsPage,
   HomebrewViewPage,
   RaceHomebrewEditorPage,
+  ClassHomebrewEditorPage,
+  HomebrewEditEntryPage,
   DiceRollProvider,
   BlogList,
   BlogPostPage,
@@ -416,12 +418,20 @@ function ThemedApp(): JSX.Element {
                                         <RaceHomebrewEditorPage />
                                       </ProtectedRoute>
                                     </Route>
+                                    <Route path='/meus-homebrews/criar/classe'>
+                                      <ProtectedRoute
+                                        requireAuth
+                                        redirectTo='/'
+                                      >
+                                        <ClassHomebrewEditorPage />
+                                      </ProtectedRoute>
+                                    </Route>
                                     <Route path='/meus-homebrews/editar/:id'>
                                       <ProtectedRoute
                                         requireAuth
                                         redirectTo='/'
                                       >
-                                        <RaceHomebrewEditorPage />
+                                        <HomebrewEditEntryPage />
                                       </ProtectedRoute>
                                     </Route>
                                     <Route path='/meus-homebrews'>
