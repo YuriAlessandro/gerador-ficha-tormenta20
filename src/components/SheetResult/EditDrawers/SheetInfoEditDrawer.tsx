@@ -44,7 +44,7 @@ import {
   applyManualLevelUp,
 } from '@/functions/general';
 import getNameSuggestions from '@/functions/nameSuggestions';
-import { useAuth } from '@/hooks/useAuth';
+import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { SupplementId } from '@/types/supplement.types';
 import {
   MOREAU_HERITAGES,
@@ -143,13 +143,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   sheet,
   onSave,
 }) => {
-  const { user } = useAuth();
   const sheetIsMulticlass = isMulticlass(sheet);
-  // Memoize to prevent creating new array on every render (which would cause infinite reset loop)
-  const userSupplements = useMemo(
-    () => user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
-    [user?.enabledSupplements]
-  );
+  // useContentSupplements já memoiza o array (evita loop de reset por nova referência)
+  const userSupplements = useContentSupplements();
 
   // Get races and classes based on user's enabled supplements (with supplement info for badges)
   const RACAS_WITH_INFO =

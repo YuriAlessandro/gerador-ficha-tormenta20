@@ -49,6 +49,9 @@ import ClassSelectionStep from './steps/ClassSelectionStep';
 import ClassSetupStep from './steps/ClassSetupStep';
 import CompanionTrickSelectionStep from './steps/CompanionTrickSelectionStep';
 import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCreationStep';
+import RaceLevelUpPickStep, {
+  RaceLevelUpPick,
+} from './steps/RaceLevelUpPickStep';
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -506,6 +509,39 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     });
   };
 
+  // Habilidades de raça que concedem novas escolhas ("picks") ao subir de nível
+  // (config `levelUp` na ação `chooseFromOptions`). Apenas o caso ADITIVO
+  // (`substitutes === 'none'`) é tratado aqui; a substituição por poder de
+  // classe/geral é tratada no fluxo de escolha de poder.
+  const getRaceLevelUpPicks = (): RaceLevelUpPick[] => {
+    const abilities = simulatedSheet.raca?.abilities || [];
+    const result: RaceLevelUpPick[] = [];
+    abilities.forEach((ability) => {
+      (ability.sheetActions || []).forEach((sheetAction) => {
+        const { action } = sheetAction;
+        if (
+          action.type === 'chooseFromOptions' &&
+          action.levelUp &&
+          action.levelUp.substitutes === 'none' &&
+          action.levelUp.pickPerLevelUp > 0 &&
+          action.options.length > 0
+        ) {
+          result.push({
+            optionKey: action.optionKey,
+            abilityName: ability.name,
+            pickPerLevelUp: action.levelUp.pickPerLevelUp,
+            options: action.options.map((o) => ({
+              name: o.name,
+              text: o.text,
+              repeatable: o.repeatable,
+            })),
+          });
+        }
+      });
+    });
+    return result;
+  };
+
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
@@ -539,6 +575,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
     if (needsAbilityEffectSelections()) {
       steps.push('Efeitos de Habilidades');
+    }
+
+    if (getRaceLevelUpPicks().length > 0) {
+      steps.push('Escolhas de Raça');
     }
 
     const spellInfo = getSpellInfo();
@@ -711,6 +751,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         // For now, assume optional (can skip)
         // TODO: Implement validation for required ability selections
         return true;
+      }
+
+      case 'Escolhas de Raça': {
+        const picks = getRaceLevelUpPicks();
+        const chosen = currentLevelSelection.levelUpOptionPicks || {};
+        return picks.every(
+          (pick) =>
+            (chosen[pick.optionKey] || []).length === pick.pickPerLevelUp
+        );
       }
 
       case 'Seleção de Magias': {
@@ -1003,6 +1052,21 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               supplements={supplements}
             />
           </Box>
+        );
+      }
+
+      case 'Escolhas de Raça': {
+        return (
+          <RaceLevelUpPickStep
+            picks={getRaceLevelUpPicks()}
+            value={currentLevelSelection.levelUpOptionPicks || {}}
+            onChange={(levelUpOptionPicks) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                levelUpOptionPicks,
+              })
+            }
+          />
         );
       }
 

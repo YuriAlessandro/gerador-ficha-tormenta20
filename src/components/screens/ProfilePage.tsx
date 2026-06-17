@@ -7,6 +7,7 @@ import {
   Container,
   Card,
   Avatar,
+  Divider,
   Typography,
   Button,
   Stack,
@@ -84,7 +85,7 @@ import {
 import { SystemId } from '../../types/system.types';
 import { DiceColorId, getDiceColorsArray } from '../../types/diceColors';
 import { SEO, createProfileSchema } from '../SEO';
-import { PushNotificationToggle } from '../../premium';
+import { PushNotificationToggle, HomebrewActivationPanel } from '../../premium';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -1307,6 +1308,9 @@ const ProfilePage: React.FC = () => {
                           'Salvar Alterações'
                         )}
                       </Button>
+
+                      <Divider sx={{ my: 3 }} />
+                      <HomebrewActivationPanel />
                     </Box>
                   </Stack>
                 </Box>

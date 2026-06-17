@@ -53,8 +53,7 @@ import {
   validateEnchantmentForItemType,
 } from '../../utils/magicalItemsValidation';
 import { getCategorizedCombatItems } from '../../utils/itemGeneratorEquipment';
-import { useAuth } from '../../hooks/useAuth';
-import { SupplementId } from '../../types/supplement.types';
+import { useContentSupplements } from '../../hooks/useContentSupplements';
 
 type ItemType = 'weapon' | 'armor' | 'shield';
 
@@ -77,10 +76,7 @@ const armorSubtypes = [
 ];
 
 const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
-  const { user } = useAuth();
-  const userSupplements = user?.enabledSupplements || [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  const userSupplements = useContentSupplements();
 
   // Base items (core + active supplements) categorized by subtype.
   const { weaponsByType, armorsByType, shields } = useMemo(

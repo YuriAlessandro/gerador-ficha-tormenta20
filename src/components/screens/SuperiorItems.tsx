@@ -53,7 +53,7 @@ import {
   validateModificationRequirement,
 } from '../../utils/superiorItemsValidation';
 import { getSpecialMaterialData } from '../../data/systems/tormenta20/specialMaterials';
-import { useAuth } from '../../hooks/useAuth';
+import { useContentSupplements } from '../../hooks/useContentSupplements';
 import { TORMENTA20_SYSTEM } from '../../data/systems/tormenta20';
 import {
   SupplementId,
@@ -83,10 +83,7 @@ const armorSubtypes = [
 ];
 
 const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
-  const { user } = useAuth();
-  const userSupplements = user?.enabledSupplements || [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  const userSupplements = useContentSupplements();
 
   // Base items (core + active supplements) categorized by subtype.
   const { weaponsByType, armorsByType, shields } = useMemo(

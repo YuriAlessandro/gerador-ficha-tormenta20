@@ -35,6 +35,11 @@ export interface LevelUpSelections {
   powerEffectSelections?: ManualPowerSelections;
   // Seleções para habilidades automáticas com pick actions (keyed by ability name)
   abilityEffectSelections?: ManualPowerSelections;
+  // Picks adicionais de ações `chooseFromOptions` que concedem novas escolhas ao
+  // subir de nível (config `levelUp` na ação). Indexado por `optionKey` → nomes
+  // das opções escolhidas NESTE nível. São anexados a `sheet.optionChoices` para
+  // que o recálculo final reproduza o conjunto acumulado.
+  levelUpOptionPicks?: Record<string, string[]>;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
   // Truques do parceiro (Treinador). Pode conter múltiplas entradas:

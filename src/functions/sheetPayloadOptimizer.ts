@@ -3,6 +3,7 @@ import { ClassDescription } from '../interfaces/Class';
 import Race from '../interfaces/Race';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
+import { stampUsedSupplements } from './contentSources';
 
 /**
  * Marker field to indicate the sheet has been stripped for storage.
@@ -38,6 +39,11 @@ const STRIPPED_MARKER = '__stripped__';
 export function stripSheetForStorage(
   sheet: CharacterSheet
 ): Record<string, unknown> {
+  // Garante que `usedSupplements` reflita os homebrews realmente usados ANTES
+  // de gravar na nuvem — é o que sustenta o bloqueio de desativação de um
+  // homebrew em uso (checkSupplementUsage consulta `sheetData.usedSupplements`).
+  stampUsedSupplements(sheet);
+
   const stripped: Record<string, unknown> = { ...sheet };
 
   // Drop top-level keys whose value is `undefined`. The spread above preserves

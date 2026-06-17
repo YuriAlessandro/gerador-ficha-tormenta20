@@ -41,8 +41,7 @@ import {
   calculateCurrencySpaces,
   calculateMaxSpaces,
 } from '@/functions/general';
-import { useAuth } from '@/hooks/useAuth';
-import { SupplementId } from '@/types/supplement.types';
+import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import {
   isMulticlass,
@@ -225,11 +224,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const prevEncounterPhaseRef = React.useRef<string | null>(null);
 
   const theme = useTheme();
-  const { user } = useAuth();
-  const userSupplements = useMemo(
-    () => user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
-    [user?.enabledSupplements]
-  );
+  const userSupplements = useContentSupplements();
   const { isSupporter } = useSubscription();
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');

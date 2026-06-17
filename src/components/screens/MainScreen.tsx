@@ -86,6 +86,10 @@ import {
 import { HistoricI } from '../../interfaces/Historic';
 import { MAX_CHARACTERS_LIMIT } from '../../store/slices/sheetStorage/sheetStorage';
 import { useAuth } from '../../hooks/useAuth';
+import { useContentSupplements } from '../../hooks/useContentSupplements';
+import { getMissingRuntimeSupplements } from '../../functions/contentSources';
+import { HomebrewActivationPanel } from '../../premium';
+import SheetUnavailable from './SheetUnavailable';
 import { useSheets } from '../../hooks/useSheets';
 import { useAlert } from '../../hooks/useDialog';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
@@ -288,6 +292,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated, user } = useAuth();
+  // Fontes de conteúdo ativas (suplementos oficiais + suplementos runtime).
+  const contentSupplements = useContentSupplements();
   const {
     openLoginModal,
     registerUnsavedChangesChecker,
@@ -313,7 +319,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     origin: '',
     devocao: { label: 'Não devoto', value: '--' },
     gerarItens: 'nao-gerar',
-    supplements: user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
+    supplements: contentSupplements,
   });
 
   const [simpleSheet, setSimpleSheet] = React.useState(false);
@@ -393,9 +399,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   // Get races and classes based on user's enabled supplements
   // Default to TORMENTA20_CORE for non-authenticated users
-  const userSupplements = user?.enabledSupplements || [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  const userSupplements = contentSupplements;
   const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
@@ -408,16 +412,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
   }, [isAuthenticated, user?.username, history, openLoginModal]);
 
-  // Sync selectedOptions.supplements when user's enabledSupplements change
+  // Sync selectedOptions.supplements when content sources change
   React.useEffect(() => {
-    const newSupplements = user?.enabledSupplements || [
-      SupplementId.TORMENTA20_CORE,
-    ];
     setSelectedOptions((prev) => ({
       ...prev,
-      supplements: newSupplements,
+      supplements: contentSupplements,
     }));
-  }, [user?.enabledSupplements]);
+  }, [contentSupplements]);
 
   // Load cloud sheet on mount if passed via navigation state
   React.useEffect(() => {
@@ -1059,17 +1060,29 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     </div>
   );
 
-  const sheetComponent =
-    randomSheet &&
-    (simpleSheet ? (
-      <SimpleResult sheet={randomSheet} />
-    ) : (
+  // Bloqueia a renderização se a ficha depende de homebrews que não estão
+  // ativos (ex.: foram desativados para liberar slot). Essencial para os
+  // limites de ativação — a ficha não deve carregar com conteúdo ausente.
+  const missingRuntime = randomSheet
+    ? getMissingRuntimeSupplements(randomSheet)
+    : [];
+
+  const renderSheetBody = () => {
+    if (!randomSheet) return null;
+    if (missingRuntime.length > 0) {
+      return <SheetUnavailable count={missingRuntime.length} />;
+    }
+    if (simpleSheet) return <SimpleResult sheet={randomSheet} />;
+    return (
       <Result
         sheet={randomSheet}
         isDarkMode={isDarkMode}
         onSheetUpdate={handleSheetUpdate}
       />
-    ));
+    );
+  };
+
+  const sheetComponent = randomSheet && renderSheetBody();
 
   function encodeFoundryJSON(json: FoundryJSON | undefined) {
     if (json) {
@@ -1613,6 +1626,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 />
               }
             />
+
+            {isAuthenticated && (
+              <Box sx={{ mt: 2, px: { xs: 1, sm: 2 } }}>
+                <HomebrewActivationPanel />
+              </Box>
+            )}
           </Card>
 
           {randomSheet && (

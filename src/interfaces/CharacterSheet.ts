@@ -170,7 +170,36 @@ export type SheetActionStep =
         name: string;
         text: string;
         sheetBonuses?: SheetBonus[];
+        repeatable?: boolean; // Pode ser escolhida mais de uma vez (multi-pick)
+        grantedSpells?: Spell[]; // Magias concedidas ao escolher esta opção (fixas)
+        // Concessão de magias por ESCOLHA do jogador ao escolher esta opção
+        // (jogador seleciona `pick` magias de um pool). Aplicada uma vez na
+        // criação/level-up; as magias persistem em `sheet.spells` (não são
+        // re-sorteadas no recálculo, como qualquer learnSpell).
+        grantedSpellsAction?:
+          | {
+              type: 'learnSpell';
+              availableSpells: Spell[];
+              pick: number;
+              customAttribute?: Atributo;
+            }
+          | {
+              type: 'learnAnySpellFromHighestCircle';
+              pick: number;
+              allowedType: 'Arcane' | 'Divine' | 'Both';
+              schools?: SpellSchool[];
+            };
+        // Equipamento concedido ao escolher esta opção (ex.: arma natural).
+        // Adicionado à mochila (idempotente por nome) quando a opção é escolhida.
+        grantedEquipment?: Partial<BagEquipments>;
       }>;
+      pick?: number; // Quantas seleções o jogador faz (padrão 1). >1 = multi-pick.
+      // Novas escolhas ao subir de nível. `substitutes` indica se cada pick novo
+      // é concedido no lugar do poder de classe/geral daquele nível.
+      levelUp?: {
+        pickPerLevelUp: number;
+        substitutes: 'none' | 'classPower' | 'generalPower';
+      };
       linkedTo?: string; // If set, auto-select the option matching a previous choice stored under this key
     }
   | {
@@ -383,10 +412,54 @@ export type StatModifier =
       capBy: 'level' | 'classLevel';
     };
 
+/** Operador de comparação numérica para condições de bônus. */
+export type BonusConditionOp = 'gte' | 'lte' | 'eq';
+
+/**
+ * Cláusula atômica de uma condição de aplicação de bônus. Cada cláusula inspeciona
+ * um aspecto estável da ficha (equipamento empunhado, armadura, classe, nível,
+ * atributo, poder, perícia, devoção, raça). `negate` inverte a cláusula.
+ */
+export type BonusConditionClause = (
+  | { kind: 'wearingHeavyArmor' }
+  | { kind: 'wearingArmor' }
+  | { kind: 'wieldingShield' }
+  | { kind: 'wieldingTwoHandedWeapon' }
+  | { kind: 'wieldingMeleeWeapon' }
+  | { kind: 'wieldingRangedWeapon' }
+  | { kind: 'dualWielding' }
+  | { kind: 'level'; op: BonusConditionOp; value: number }
+  | {
+      kind: 'attribute';
+      attribute: Atributo;
+      op: BonusConditionOp;
+      value: number;
+    }
+  | { kind: 'isClass'; value: string }
+  | { kind: 'hasPower'; value: string }
+  | { kind: 'hasProficiency'; value: string }
+  | { kind: 'hasSkill'; value: Skill }
+  | { kind: 'devoteOf'; value: string }
+  | { kind: 'isRace'; value: string }
+) & { negate?: boolean };
+
+/**
+ * Condição opcional de aplicação de um `SheetBonus`. Quando presente, o bônus só
+ * é aplicado se a condição for satisfeita. `combinator` define se TODAS (`AND`)
+ * ou QUALQUER (`OR`) das cláusulas precisam ser verdadeiras. Genérico — qualquer
+ * fonte de conteúdo pode usar (ver `src/functions/bonusConditions.ts`).
+ */
+export type BonusCondition = {
+  combinator: 'AND' | 'OR';
+  clauses: BonusConditionClause[];
+};
+
 export type SheetBonus = {
   source: SheetChangeSource;
   target: StatModifierTarget;
   modifier: StatModifier;
+  /** Quando presente, o bônus só é aplicado se a condição for satisfeita. */
+  condition?: BonusCondition;
 };
 
 export type DamageType =
@@ -448,6 +521,23 @@ export default interface CharacterSheet {
   pm: number;
   sheetBonuses: SheetBonus[];
   sheetActionHistory: SheetActionHistoryEntry[];
+  /**
+   * Ids de suplementos registrados em runtime (ex.: `homebrew:<id>`) que esta
+   * ficha utiliza. Carimbado no recálculo: recalcula para os runtime ativos e
+   * preserva entradas de runtime inativos (não verificáveis). Usado para
+   * bloquear desativação/carregamento quando o conteúdo runtime some.
+   */
+  usedSupplements?: string[];
+  /**
+   * Escolhas persistidas de ações `chooseFromOptions`, indexadas por `optionKey`
+   * → nomes das opções escolhidas (com repetição quando a opção é repetível ou
+   * o pick é múltiplo). Diferente do `sheetActionHistory`, este mapa NÃO é
+   * deduplicado, então sobrevive a recálculos sem perder picks múltiplos nem
+   * acumular escolhas de subida de nível. O motor lê este mapa para reproduzir
+   * as escolhas quando nenhuma seleção manual é passada (caminho comum de edição
+   * e do recálculo final pós-level-up).
+   */
+  optionChoices?: Record<string, string[]>;
   defesa: number;
   bag: Bag;
   // Currently wielded items (Equipment.id references). Optional — when both are

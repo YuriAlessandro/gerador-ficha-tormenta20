@@ -345,6 +345,20 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                   </ListItemIcon>
                   <Typography variant='inherit'>Explorar Builds</Typography>
                 </StyledMenuItem>
+                <StyledMenuItem onClick={() => navigateTo('/meus-homebrews')}>
+                  <ListItemIcon>
+                    <AutoFixHighIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>Meus Homebrews</Typography>
+                </StyledMenuItem>
+                <StyledMenuItem onClick={() => navigateTo('/homebrews')}>
+                  <ListItemIcon>
+                    <AutoFixHighIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>
+                    Homebrews da Comunidade
+                  </Typography>
+                </StyledMenuItem>
                 {bestiaryEnabled && (
                   <StyledMenuItem onClick={() => navigateTo('/meu-bestiario')}>
                     <ListItemIcon>

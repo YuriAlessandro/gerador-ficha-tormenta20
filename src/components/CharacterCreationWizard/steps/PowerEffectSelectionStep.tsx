@@ -3,6 +3,9 @@ import {
   Box,
   Typography,
   Alert,
+  Button,
+  Chip,
+  Stack,
   FormControl,
   FormGroup,
   FormControlLabel,
@@ -778,56 +781,342 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
     }
 
-    // Render chooseFromOptions with radio buttons (name + description)
+    // Render chooseFromOptions (radio para 1 escolha; checkbox/stepper para N)
     if (type === 'chooseFromOptions') {
-      const options = availableOptions as Array<{ name: string; text: string }>;
+      const options = availableOptions as Array<{
+        name: string;
+        text: string;
+        repeatable?: boolean;
+        grantedSpellsAction?:
+          | { type: 'learnSpell'; availableSpells: Spell[]; pick: number }
+          | {
+              type: 'learnAnySpellFromHighestCircle';
+              pick: number;
+              allowedType: 'Arcane' | 'Divine' | 'Both';
+              schools?: string[];
+            };
+      }>;
+      const chosen = powerSelections.chosenOption || [];
+      const isMulti = pick > 1 || options.some((o) => o.repeatable);
+
+      // Para opções escolhidas que concedem magias por ESCOLHA do jogador,
+      // renderiza um seletor de magias (uma seção por opção escolhida). As
+      // magias selecionadas ficam em `optionSpells[nomeDaOpção]`.
+      const setOptionSpells = (optionName: string, spells: Spell[]) =>
+        onChange({
+          ...selections,
+          [powerName]: {
+            ...powerSelections,
+            optionSpells: {
+              ...(powerSelections.optionSpells || {}),
+              [optionName]: spells,
+            },
+          },
+        });
+
+      const optionSpellPickers = (() => {
+        const optsWithSpells = options.filter(
+          (o) => o.grantedSpellsAction && chosen.includes(o.name)
+        );
+        if (optsWithSpells.length === 0) return null;
+        return (
+          <Stack spacing={1.5} sx={{ mt: 2 }}>
+            {optsWithSpells.map((o) => {
+              const action = o.grantedSpellsAction;
+              if (!action) return null;
+              const req: PowerSelectionRequirement =
+                action.type === 'learnSpell'
+                  ? {
+                      type: 'learnSpell',
+                      availableOptions: action.availableSpells,
+                      pick: action.pick,
+                      label: '',
+                    }
+                  : {
+                      type: 'learnAnySpellFromHighestCircle',
+                      availableOptions: [],
+                      pick: action.pick,
+                      label: '',
+                      metadata: {
+                        allowedType: action.allowedType,
+                        schools: action.schools,
+                      },
+                    };
+              const pool = getFilteredAvailableOptions(
+                req,
+                sheetForFiltering,
+                supplements
+              ) as Spell[];
+              const selectedSpells =
+                powerSelections.optionSpells?.[o.name] || [];
+              const max = action.pick;
+              const searchKey = `optspell-${powerName}-${o.name}`;
+              const query = searchQueries[searchKey as unknown as number] || '';
+              const displayed = filterOptions(pool, query);
+              const toggle = (spell: Spell, checked: boolean) => {
+                const cur = powerSelections.optionSpells?.[o.name] || [];
+                if (checked) {
+                  if (cur.length >= max) return;
+                  setOptionSpells(o.name, [...cur, spell]);
+                } else {
+                  setOptionSpells(
+                    o.name,
+                    cur.filter((s) => getItemName(s) !== getItemName(spell))
+                  );
+                }
+              };
+              return (
+                <Paper
+                  key={`optspell-${o.name}`}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    bgcolor: 'action.hover',
+                    borderLeft: 3,
+                    borderColor: 'secondary.main',
+                  }}
+                >
+                  <Stack
+                    direction='row'
+                    justifyContent='space-between'
+                    alignItems='center'
+                  >
+                    <Typography variant='subtitle2' color='secondary'>
+                      ✨ {o.name}: escolha {max} magia(s)
+                    </Typography>
+                    <Chip
+                      size='small'
+                      color={
+                        selectedSpells.length >= max ? 'success' : 'default'
+                      }
+                      label={`${selectedSpells.length} / ${max}`}
+                    />
+                  </Stack>
+                  {pool.length > 15 && (
+                    <TextField
+                      fullWidth
+                      size='small'
+                      placeholder='Buscar magia por nome...'
+                      value={query}
+                      onChange={(e) =>
+                        setSearchQueries((prev) => ({
+                          ...prev,
+                          [searchKey]: e.target.value,
+                        }))
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ my: 1 }}
+                    />
+                  )}
+                  {displayed.length === 0 ? (
+                    <Alert severity='info' sx={{ mt: 1 }}>
+                      {query
+                        ? `Nenhuma magia encontrada para "${query}"`
+                        : 'Você já conhece todas as magias disponíveis.'}
+                    </Alert>
+                  ) : (
+                    <Stack sx={{ mt: 1 }}>
+                      {displayed.map((spell) => {
+                        const spellName = getItemName(spell);
+                        const isChecked = selectedSpells.some(
+                          (s) => getItemName(s) === spellName
+                        );
+                        const atLimit = selectedSpells.length >= max;
+                        return (
+                          <FormControlLabel
+                            key={spellName}
+                            control={
+                              <Checkbox
+                                checked={isChecked}
+                                disabled={!isChecked && atLimit}
+                                onChange={(e) =>
+                                  toggle(spell, e.target.checked)
+                                }
+                              />
+                            }
+                            label={
+                              <Typography variant='body2'>
+                                {spellName}
+                              </Typography>
+                            }
+                          />
+                        );
+                      })}
+                    </Stack>
+                  )}
+                </Paper>
+              );
+            })}
+          </Stack>
+        );
+      })();
+
+      // Caso simples: 1 escolha → radio (comportamento original).
+      if (!isMulti) {
+        return (
+          <Box key={requirementIndex} mb={2}>
+            <Typography variant='subtitle1' gutterBottom>
+              {label}
+            </Typography>
+            <FormControl component='fieldset' fullWidth>
+              <RadioGroup
+                value={chosen[0] || ''}
+                onChange={(e) =>
+                  handleSelection(powerName, type, e.target.value, true, pick)
+                }
+              >
+                {options.map((option) => {
+                  const isSelected = chosen[0] === option.name;
+                  return (
+                    <FormControlLabel
+                      key={option.name}
+                      value={option.name}
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography variant='body1' fontWeight='bold'>
+                            {option.name}
+                          </Typography>
+                          <Typography variant='body2' color='text.secondary'>
+                            {option.text}
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{
+                        ml: 0,
+                        py: 1,
+                        px: 1,
+                        borderRadius: 1,
+                        ...(isSelected && {
+                          bgcolor: 'action.selected',
+                          borderLeft: 3,
+                          borderColor: 'primary.main',
+                        }),
+                      }}
+                    />
+                  );
+                })}
+              </RadioGroup>
+            </FormControl>
+            {optionSpellPickers}
+          </Box>
+        );
+      }
+
+      // Multi-pick: o jogador faz `pick` seleções; opções repetíveis usam
+      // stepper, as demais usam checkbox. `chosenOption` guarda os nomes (com
+      // repetição). O total não pode exceder `pick`.
+      const total = chosen.length;
+      const countOf = (name: string) => chosen.filter((n) => n === name).length;
+      const setChosen = (next: string[]) =>
+        onChange({
+          ...selections,
+          [powerName]: { ...powerSelections, chosenOption: next },
+        });
+      const addOne = (name: string) => {
+        if (total < pick) setChosen([...chosen, name]);
+      };
+      const removeOne = (name: string) => {
+        const i = chosen.indexOf(name);
+        if (i >= 0) {
+          const next = [...chosen];
+          next.splice(i, 1);
+          setChosen(next);
+        }
+      };
+
       return (
         <Box key={requirementIndex} mb={2}>
-          <Typography variant='subtitle1' gutterBottom>
-            {label}
-          </Typography>
-          <FormControl component='fieldset' fullWidth>
-            <RadioGroup
-              value={powerSelections.chosenOption?.[0] || ''}
-              onChange={(e) =>
-                handleSelection(powerName, type, e.target.value, true, pick)
-              }
-            >
-              {options.map((option) => {
-                const isSelected =
-                  powerSelections.chosenOption?.[0] === option.name;
-                return (
-                  <FormControlLabel
-                    key={option.name}
-                    value={option.name}
-                    control={<Radio />}
-                    label={
-                      <Box>
-                        <Typography variant='body1' fontWeight='bold'>
-                          {option.name}
-                        </Typography>
-                        <Typography variant='body2' color='text.secondary'>
-                          {option.text}
-                        </Typography>
-                      </Box>
-                    }
-                    sx={{
-                      ml: 0,
-                      py: 1,
-                      px: 1,
-                      borderRadius: 1,
-                      transition: 'background-color 0.2s',
-                      ...(isSelected && {
-                        bgcolor: 'action.selected',
-                        borderLeft: 3,
-                        borderColor: 'primary.main',
-                      }),
-                    }}
-                  />
-                );
-              })}
-            </RadioGroup>
-          </FormControl>
+          <Stack
+            direction='row'
+            justifyContent='space-between'
+            alignItems='center'
+          >
+            <Typography variant='subtitle1' gutterBottom>
+              {label}
+            </Typography>
+            <Chip
+              size='small'
+              color={total >= pick ? 'success' : 'default'}
+              label={`${total} / ${pick}`}
+            />
+          </Stack>
+          <Stack spacing={1}>
+            {options.map((option) => {
+              const count = countOf(option.name);
+              const atLimit = total >= pick;
+              return (
+                <Box
+                  key={option.name}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1,
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: count > 0 ? 'action.selected' : undefined,
+                  }}
+                >
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant='body1' fontWeight='bold'>
+                      {option.name}
+                      {option.repeatable && (
+                        <Chip
+                          size='small'
+                          label='repetível'
+                          sx={{ ml: 1, height: 18, fontSize: 10 }}
+                        />
+                      )}
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      {option.text}
+                    </Typography>
+                  </Box>
+                  {option.repeatable ? (
+                    <Stack direction='row' spacing={0.5} alignItems='center'>
+                      <Button
+                        size='small'
+                        variant='outlined'
+                        disabled={count === 0}
+                        onClick={() => removeOne(option.name)}
+                      >
+                        −
+                      </Button>
+                      <Typography sx={{ minWidth: 20, textAlign: 'center' }}>
+                        {count}
+                      </Typography>
+                      <Button
+                        size='small'
+                        variant='outlined'
+                        disabled={atLimit}
+                        onClick={() => addOne(option.name)}
+                      >
+                        +
+                      </Button>
+                    </Stack>
+                  ) : (
+                    <Checkbox
+                      checked={count > 0}
+                      disabled={count === 0 && atLimit}
+                      onChange={(e) =>
+                        e.target.checked
+                          ? addOne(option.name)
+                          : removeOne(option.name)
+                      }
+                    />
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+          {optionSpellPickers}
         </Box>
       );
     }

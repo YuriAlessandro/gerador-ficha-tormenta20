@@ -35,7 +35,7 @@ import {
   SUPPLEMENT_METADATA,
   SupplementId,
 } from '../../../types/supplement.types';
-import { useAuth } from '../../../hooks/useAuth';
+import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { CATEGORY_ORDER, itemTypeStyles } from './itemTypeStyles';
 import {
   CatalogCategory,
@@ -80,10 +80,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   onToggleAutoDeductMoney,
   defaultCategory,
 }) => {
-  const { user } = useAuth();
-  const userSupplements: SupplementId[] = user?.enabledSupplements ?? [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  const userSupplements: SupplementId[] = useContentSupplements();
   const equipmentCatalog = useMemo(
     () => buildEquipmentCatalog(userSupplements),
     [userSupplements]

@@ -250,11 +250,12 @@ export function getPowerSelectionRequirements(
       }
 
       if (action.type === 'chooseFromOptions' && !action.linkedTo) {
+        const pick = action.pick ?? 1;
         requirements.push({
           type: 'chooseFromOptions',
           availableOptions: action.options,
-          pick: 1,
-          label: `Selecione uma opção`,
+          pick,
+          label: pick > 1 ? `Selecione ${pick} opções` : `Selecione uma opção`,
           metadata: {
             optionKey: action.optionKey,
           },

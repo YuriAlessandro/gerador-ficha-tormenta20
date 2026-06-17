@@ -39,6 +39,8 @@ import {
 } from './multiclass';
 import { stepUpDamage } from './weaponDamageStep';
 import { isWeaponMelee } from './weaponSkill';
+import { isBonusActive } from './bonusConditions';
+import { stampUsedSupplements } from './contentSources';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
@@ -1630,6 +1632,13 @@ export function recalculateSheet(
   updatedSheet = recalculateCompleteSkills(updatedSheet);
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
+  // Antes de aplicar, remove bônus cuja condição (opcional) não é satisfeita.
+  // Como todos os consumidores abaixo (PV/PM/perícias, defesa, deslocamento,
+  // armas, RD) leem o mesmo array, este filtro único gateia todos eles.
+  updatedSheet.sheetBonuses = updatedSheet.sheetBonuses.filter((bonus) =>
+    isBonusActive(updatedSheet, bonus)
+  );
+
   // PM Debug - Initial state (calculate values for debug even if skipped)
   const debugBasePM = updatedSheet.classe.pm || 0;
   const debugAddPMPerLevel =
@@ -2061,6 +2070,9 @@ export function recalculateSheet(
     updatedSheet.spells,
     updatedSheet.bag?.equipments
   );
+
+  // Carimba os suplementos runtime usados (preserva inativos não verificáveis).
+  stampUsedSupplements(updatedSheet);
 
   return updatedSheet;
 }

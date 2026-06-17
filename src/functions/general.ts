@@ -8,6 +8,8 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 import { recalculateSheet } from './recalculateSheet';
+import { isBonusActive } from './bonusConditions';
+import { stampUsedSupplements } from './contentSources';
 import {
   getClassBaseSkills,
   getClassBaseSkillsWithChoices,
@@ -118,6 +120,7 @@ import {
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   ClassLevelEntry,
+  SheetActionStep,
   SheetBonus,
   SheetChangeSource,
   StatModifier,
@@ -1447,6 +1450,95 @@ const buildFamiliarSheetBonuses = (
   return [];
 };
 
+/**
+ * Resolve e aplica a concessão de magias POR ESCOLHA de uma opção de
+ * `chooseFromOptions` (quando a opção escolhida tem `grantedSpellsAction`).
+ * Usa a seleção manual quando presente, senão sorteia do pool. As magias são
+ * adicionadas a `sheet.spells` (idempotente por nome) e registradas no
+ * histórico. Espelha os handlers de `learnSpell`/`learnAnySpellFromHighestCircle`.
+ */
+type OptionGrantedSpellsAction = NonNullable<
+  Extract<
+    SheetActionStep,
+    { type: 'chooseFromOptions' }
+  >['options'][number]['grantedSpellsAction']
+>;
+
+function applyOptionGrantedSpells(
+  sheet: CharacterSheet,
+  action: OptionGrantedSpellsAction,
+  manualSpells: Spell[] | undefined,
+  source: SheetChangeSource,
+  sourceName: string,
+  powerName: string,
+  subSteps: SubStep[]
+): void {
+  let available: Spell[] = [];
+  let customAttribute: Atributo | undefined;
+
+  if (action.type === 'learnSpell') {
+    available = action.availableSpells;
+    customAttribute = action.customAttribute;
+  } else {
+    const highestCircle =
+      sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+    for (let circle = 1; circle <= highestCircle; circle += 1) {
+      if (action.allowedType === 'Arcane') {
+        available.push(...getArcaneSpellsOfCircle(circle));
+      } else if (action.allowedType === 'Divine') {
+        available.push(...getSpellsOfCircle(circle));
+      } else {
+        available.push(...getArcaneSpellsOfCircle(circle));
+        available.push(...getSpellsOfCircle(circle));
+      }
+    }
+    available = available.filter(
+      (spell, index, arr) =>
+        arr.findIndex((s) => s.nome === spell.nome) === index
+    );
+    const allowedSchools = action.schools || [];
+    if (allowedSchools.length > 0) {
+      available = available.filter((s) => allowedSchools.includes(s.school));
+    }
+  }
+
+  let learnedSpells: Spell[];
+  if (manualSpells && manualSpells.length > 0) {
+    learnedSpells = manualSpells;
+    learnedSpells.forEach((spell) => {
+      if (!sheet.spells.some((existing) => existing.nome === spell.nome)) {
+        sheet.spells.push(
+          customAttribute ? { ...spell, customKeyAttr: customAttribute } : spell
+        );
+      }
+    });
+  } else {
+    learnedSpells = addOrCheapenRandomSpells(
+      sheet,
+      subSteps,
+      available,
+      sourceName,
+      customAttribute ||
+        sheet.classe.spellPath?.keyAttribute ||
+        Atributo.INTELIGENCIA,
+      action.pick
+    );
+  }
+
+  if (learnedSpells.length > 0) {
+    sheet.sheetActionHistory.push({
+      source,
+      powerName,
+      changes: [
+        {
+          type: 'SpellsLearned',
+          spellNames: learnedSpells.map((spell) => spell.nome),
+        },
+      ],
+    });
+  }
+}
+
 export const applyPower = (
   _sheet: CharacterSheet,
   powerOrAbility: Pick<
@@ -1703,20 +1795,42 @@ export const applyPower = (
         // (sheetBonuses are cleared during recalculation, so they need to be re-added)
         if (sheetAction.action.type === 'chooseFromOptions') {
           const { optionKey, options } = sheetAction.action;
-          const previousChoice = sheet.sheetActionHistory
-            .flatMap((entry) => entry.changes)
-            .find(
-              (change) =>
-                change.type === 'OptionChosen' && change.optionKey === optionKey
-            );
-          if (previousChoice && previousChoice.type === 'OptionChosen') {
-            const chosenOption = options.find(
-              (o) => o.name === previousChoice.chosenName
-            );
+          // Replay das escolhas durante o recálculo (bônus são zerados e
+          // precisam ser re-aplicados). Prioriza `optionChoices` (todas as
+          // escolhas, incluindo multi-pick e picks acumulados de level-up); cai
+          // para o histórico (escolha única, fichas legadas).
+          let chosenNames: string[] = [];
+          const persisted = sheet.optionChoices?.[optionKey];
+          if (persisted && persisted.length > 0) {
+            chosenNames = persisted;
+          } else {
+            const previousChoice = sheet.sheetActionHistory
+              .flatMap((entry) => entry.changes)
+              .find(
+                (change) =>
+                  change.type === 'OptionChosen' &&
+                  change.optionKey === optionKey
+              );
+            if (previousChoice && previousChoice.type === 'OptionChosen') {
+              chosenNames = [previousChoice.chosenName];
+            }
+          }
+          chosenNames.forEach((name) => {
+            const chosenOption = options.find((o) => o.name === name);
             if (chosenOption?.sheetBonuses) {
               sheet.sheetBonuses.push(...chosenOption.sheetBonuses);
             }
-          }
+            if (chosenOption?.grantedSpells) {
+              chosenOption.grantedSpells.forEach((spell) => {
+                if (!sheet.spells.some((s) => s.nome === spell.nome)) {
+                  sheet.spells.push(spell);
+                }
+              });
+            }
+            if (chosenOption?.grantedEquipment) {
+              sheet.bag.addEquipment(chosenOption.grantedEquipment);
+            }
+          });
         }
         // For trainSkillOrBonus, re-apply the +2 bonus if the skill was already trained
         if (sheetAction.action.type === 'trainSkillOrBonus') {
@@ -2681,19 +2795,35 @@ export const applyPower = (
         }
       } else if (sheetAction.action.type === 'chooseFromOptions') {
         const { optionKey, options, linkedTo } = sheetAction.action;
-        let chosen;
+        const pick = sheetAction.action.pick ?? 1;
 
-        // Use manual selection if provided
+        // Resolve os nomes escolhidos (com repetição quando permitido). Suporta
+        // multi-pick (`pick` > 1) e picks acumulados por subida de nível.
+        //
+        // Prioridade de resolução:
+        //  1. `manualSelections.chosenOption` — escolha fresca (geração/wizard);
+        //  2. `sheet.optionChoices[optionKey]` — replay persistido (sobrevive a
+        //     recálculos e a acúmulo de picks de level-up, sem o problema de
+        //     deduplicação do `sheetActionHistory`);
+        //  3. `linkedTo` — escolha espelhada de outra ação (conteúdo oficial);
+        //  4. sorteio aleatório (apenas geração inicial sem seleção).
+        // Quando a escolha NÃO vem do replay persistido (casos 1/4), gravamos em
+        // `optionChoices[optionKey]` para que recálculos futuros sejam
+        // determinísticos.
+        let chosenNames: string[] = [];
+        let persistChoice = false;
+        const persistedChoices = sheet.optionChoices?.[optionKey];
         if (
           manualSelections?.chosenOption &&
           manualSelections.chosenOption.length > 0
         ) {
-          const chosenName = manualSelections.chosenOption[0];
-          chosen = options.find((o) => o.name === chosenName);
-        }
-
-        if (!chosen && linkedTo) {
-          // Auto-select based on a previous choice
+          chosenNames = manualSelections.chosenOption.slice(0, pick);
+          persistChoice = true;
+        } else if (persistedChoices && persistedChoices.length > 0) {
+          // Replay: usa TODAS as escolhas persistidas (inclui picks de level-up
+          // acumulados); não corta por `pick`.
+          chosenNames = [...persistedChoices];
+        } else if (linkedTo) {
           const previousChoice = sheet.sheetActionHistory
             .flatMap((entry) => entry.changes)
             .find(
@@ -2701,48 +2831,105 @@ export const applyPower = (
                 change.type === 'OptionChosen' && change.optionKey === linkedTo
             );
           if (previousChoice && previousChoice.type === 'OptionChosen') {
-            chosen = options.find((o) => o.name === previousChoice.chosenName);
+            chosenNames = [previousChoice.chosenName];
           }
         }
-
-        if (!chosen) {
-          chosen = getRandomItemFromArray(options);
+        if (chosenNames.length === 0 && options.length > 0) {
+          // Fallback aleatório respeitando `repeatable` e a quantidade `pick`.
+          const pool = [...options];
+          while (chosenNames.length < pick && pool.length > 0) {
+            const opt = getRandomItemFromArray(pool);
+            chosenNames.push(opt.name);
+            if (!opt.repeatable) {
+              const idx = pool.indexOf(opt);
+              if (idx >= 0) pool.splice(idx, 1);
+            }
+          }
+          persistChoice = true;
         }
 
-        // Update the ability text on the sheet to show only the chosen option
-        const abilityIndex = sheet.classe.abilities.findIndex(
-          (a) => a.name === powerOrAbility.name
-        );
-        if (abilityIndex >= 0) {
-          sheet.classe.abilities[abilityIndex] = {
-            ...sheet.classe.abilities[abilityIndex],
-            text: `${chosen.name}. ${chosen.text}`,
+        if (persistChoice && chosenNames.length > 0) {
+          sheet.optionChoices = {
+            ...(sheet.optionChoices || {}),
+            [optionKey]: chosenNames,
           };
         }
 
-        const formattedText = `${chosen.name}. ${chosen.text}`;
+        const chosenOptions = chosenNames
+          .map((n) => options.find((o) => o.name === n))
+          .filter((o): o is (typeof options)[number] => Boolean(o));
 
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: chosen.name,
-        });
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: [
-            {
-              type: 'OptionChosen',
-              optionKey,
-              chosenName: chosen.name,
-              formattedText,
-            },
-          ],
-        });
-
-        // Apply sheetBonuses from the chosen option
-        if (chosen.sheetBonuses) {
-          sheet.sheetBonuses.push(...chosen.sheetBonuses);
+        // Atualiza o texto da habilidade de classe (quando houver) com as escolhas.
+        const abilityIndex = sheet.classe.abilities.findIndex(
+          (a) => a.name === powerOrAbility.name
+        );
+        if (abilityIndex >= 0 && chosenOptions.length > 0) {
+          sheet.classe.abilities[abilityIndex] = {
+            ...sheet.classe.abilities[abilityIndex],
+            text: chosenOptions.map((o) => `${o.name}. ${o.text}`).join(' '),
+          };
         }
+
+        chosenOptions.forEach((chosen) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: chosen.name,
+          });
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'OptionChosen',
+                optionKey,
+                chosenName: chosen.name,
+                formattedText: `${chosen.name}. ${chosen.text}`,
+              },
+            ],
+          });
+          if (chosen.sheetBonuses) {
+            sheet.sheetBonuses.push(...chosen.sheetBonuses);
+          }
+          // Magias concedidas pela opção escolhida (concessão fixa, sem nova
+          // escolha). Adiciona as que ainda não estão na ficha.
+          if (chosen.grantedSpells && chosen.grantedSpells.length > 0) {
+            chosen.grantedSpells.forEach((spell) => {
+              if (!sheet.spells.some((s) => s.nome === spell.nome)) {
+                sheet.spells.push(spell);
+              }
+            });
+            sheet.sheetActionHistory.push({
+              source: sheetAction.source,
+              powerName: powerOrAbility.name,
+              changes: [
+                {
+                  type: 'SpellsLearned',
+                  spellNames: chosen.grantedSpells.map((s) => s.nome),
+                },
+              ],
+            });
+          }
+          // Magias concedidas POR ESCOLHA do jogador nesta opção. Usa a seleção
+          // manual da opção (quando houver) ou sorteia. Aplicada uma vez aqui;
+          // as magias persistem em `sheet.spells` (o atalho de recálculo não as
+          // re-sorteia).
+          if (chosen.grantedSpellsAction) {
+            applyOptionGrantedSpells(
+              sheet,
+              chosen.grantedSpellsAction,
+              manualSelections?.optionSpells?.[chosen.name],
+              sheetAction.source,
+              getSourceName(sheetAction.source),
+              powerOrAbility.name,
+              subSteps
+            );
+          }
+          // Equipamento concedido pela opção (ex.: arma natural). addEquipment é
+          // idempotente por nome, então é seguro reaplicar no recálculo.
+          if (chosen.grantedEquipment) {
+            sheet.bag.addEquipment(chosen.grantedEquipment);
+          }
+        });
       } else if (sheetAction.action.type === 'trainSkillOrBonus') {
         const { skills } = sheetAction.action;
         const selectedSkill = getRandomItemFromArray(skills);
@@ -3499,6 +3686,28 @@ export function applyManualLevelUp(
 
   updatedSheet.nivel += 1;
 
+  // Picks adicionais concedidos ao subir de nível por ações `chooseFromOptions`
+  // com config `levelUp` (caso aditivo). Anexa as escolhas deste nível ao mapa
+  // persistido `optionChoices`; o recálculo final (chamado pelo caller após
+  // todos os level-ups) reproduz o conjunto acumulado e aplica os bônus. Não
+  // aplicamos os bônus inline porque o recálculo é a fonte autoritativa.
+  if (
+    selections.levelUpOptionPicks &&
+    Object.keys(selections.levelUpOptionPicks).length > 0
+  ) {
+    const merged: Record<string, string[]> = {
+      ...(updatedSheet.optionChoices || {}),
+    };
+    Object.entries(selections.levelUpOptionPicks).forEach(
+      ([optionKey, picks]) => {
+        if (picks && picks.length > 0) {
+          merged[optionKey] = [...(merged[optionKey] || []), ...picks];
+        }
+      }
+    );
+    updatedSheet.optionChoices = merged;
+  }
+
   // Multiclass: resolve selected class for this level
   const selectedClassName =
     selections.selectedClassName || updatedSheet.classe.name;
@@ -4080,6 +4289,12 @@ const applyStatModifiers = (
 ) => {
   const sheet = _.cloneDeep(_sheet);
 
+  // Remove bônus cuja condição (opcional) não é satisfeita antes de aplicar
+  // qualquer um — gateia todos os consumidores abaixo nesta função.
+  sheet.sheetBonuses = sheet.sheetBonuses.filter((bonus) =>
+    isBonusActive(sheet, bonus)
+  );
+
   const pvSubSteps: SubStep[] = [];
   const pmSubSteps: SubStep[] = [];
   const defSubSteps: SubStep[] = [];
@@ -4392,6 +4607,9 @@ const applyStatModifiers = (
       value: modifySkillAttributeSubSteps,
     });
   }
+
+  // Carimba os suplementos runtime usados (preserva inativos não verificáveis).
+  stampUsedSupplements(sheet);
 
   return sheet;
 };

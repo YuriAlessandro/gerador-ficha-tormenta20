@@ -44,7 +44,7 @@ import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Skill from '../../../interfaces/Skills';
 import { DiceRoll } from '../../../interfaces/DiceRoll';
 import { ItemE, ItemMod } from '../../../interfaces/Rewards';
-import { useAuth } from '../../../hooks/useAuth';
+import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { SupplementId } from '../../../types/supplement.types';
 import { applyItemEnhancements } from '../../../functions/itemEnhancements/applyEnhancements';
 import {
@@ -187,10 +187,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const [rollsOpen, setRollsOpen] = useState(false);
   const [modError, setModError] = useState('');
   const [enchError, setEnchError] = useState('');
-  const { user } = useAuth();
-  const userSupplements: SupplementId[] = user?.enabledSupplements ?? [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  const userSupplements: SupplementId[] = useContentSupplements();
 
   const isWeapon = item?.group === 'Arma';
   const isDefense = item ? isDefenseGroup(item.group) : false;
