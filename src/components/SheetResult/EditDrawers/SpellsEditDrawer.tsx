@@ -27,6 +27,7 @@ import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpell
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
 import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
+import { dataRegistry } from '@/data/registry';
 import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
 import {
   SpellFilterState,
@@ -61,9 +62,14 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   sheet,
   onSave,
 }) => {
-  // Use all available supplements for spell editing (not just user's enabled ones)
+  // Use all available supplements for spell editing (not just user's enabled
+  // ones) + os suplementos runtime ativados (ex.: Pacotes de Magias homebrew).
   const allSupplements = useMemo(
-    () => Object.keys(TORMENTA20_SYSTEM.supplements) as SupplementId[],
+    () =>
+      [
+        ...Object.keys(TORMENTA20_SYSTEM.supplements),
+        ...dataRegistry.getRuntimeSupplementIds(),
+      ] as SupplementId[],
     []
   );
 
@@ -93,7 +99,9 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     const spells: SpellWithSupplement[] = [];
 
     allSupplements.forEach((supplementId) => {
-      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      const supplement =
+        TORMENTA20_SYSTEM.supplements[supplementId] ??
+        dataRegistry.getRuntimeSupplement(supplementId as unknown as string);
       if (supplement?.spells) {
         // For arcane or both types
         if (sourceSpellType === 'arcane' || sourceSpellType === 'both') {
@@ -227,8 +235,10 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       all.push(...getSpellsOfCircle(circle));
     }
     allSupplements.forEach((supplementId) => {
-      const supplementSpells =
-        TORMENTA20_SYSTEM.supplements[supplementId]?.spells;
+      const supplementSpells = (
+        TORMENTA20_SYSTEM.supplements[supplementId] ??
+        dataRegistry.getRuntimeSupplement(supplementId as unknown as string)
+      )?.spells;
       if (supplementSpells) {
         supplementSpells.arcane?.forEach((spell) => all.push(spell));
         supplementSpells.divine?.forEach((spell) => all.push(spell));
@@ -632,7 +642,12 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                                             label={
                                               SUPPLEMENT_METADATA[
                                                 supplementSpell.supplementId
-                                              ]?.abbreviation || ''
+                                              ]?.abbreviation ||
+                                              (String(
+                                                supplementSpell.supplementId
+                                              ).startsWith('homebrew:')
+                                                ? 'HB'
+                                                : '')
                                             }
                                             size='small'
                                             color='primary'

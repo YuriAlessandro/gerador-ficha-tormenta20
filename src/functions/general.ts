@@ -2161,7 +2161,13 @@ export const applyPower = (
           ],
         });
       } else if (sheetAction.action.type === 'increaseAttribute') {
-        const usedAttributes = getAttributeIncreasesInSamePlateau(sheet);
+        const incValue = sheetAction.action.value ?? 1;
+        const oncePerTier = sheetAction.action.oncePerTier !== false;
+        const { optionKey } = sheetAction.action;
+        // 1×/patamar (opcional): exclui atributos já aumentados no patamar.
+        const usedAttributes = oncePerTier
+          ? getAttributeIncreasesInSamePlateau(sheet)
+          : [];
         const availableAttributes = Object.values(Atributo).filter(
           (attr) => !usedAttributes.includes(attr)
         );
@@ -2172,13 +2178,19 @@ export const applyPower = (
         );
 
         let targetAttribute: Atributo | undefined;
+        const persisted = optionKey
+          ? sheet.optionChoices?.[optionKey]?.[0]
+          : undefined;
 
-        // Use manual selection if provided
+        // Prioridade: escolha manual → escolha persistida (replay) → prioridade
+        // de classe → aleatório entre os disponíveis.
         if (
           manualSelections?.attributes &&
           manualSelections.attributes.length > 0
         ) {
           targetAttribute = manualSelections.attributes[0] as Atributo;
+        } else if (persisted) {
+          targetAttribute = persisted as Atributo;
         } else if (firstPriorityAttribute) {
           targetAttribute = firstPriorityAttribute;
         } else if (availableAttributes.length > 0) {
@@ -2188,7 +2200,15 @@ export const applyPower = (
 
         // Only apply if we found a valid target attribute
         if (targetAttribute && sheet.atributos[targetAttribute]) {
-          sheet.atributos[targetAttribute].value += 1;
+          sheet.atributos[targetAttribute].value += incValue;
+
+          // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
+          if (optionKey) {
+            sheet.optionChoices = {
+              ...(sheet.optionChoices || {}),
+              [optionKey]: [targetAttribute],
+            };
+          }
 
           sheet.sheetActionHistory.push({
             source: sheetAction.source,
@@ -2203,7 +2223,7 @@ export const applyPower = (
           });
           subSteps.push({
             name: getSourceName(sheetAction.source),
-            value: `Aumenta o atributo ${targetAttribute} por +1`,
+            value: `Aumenta o atributo ${targetAttribute} por +${incValue}`,
           });
         } else {
           // Skip this attribute increase if no valid target found
@@ -3037,6 +3057,15 @@ export const applyPower = (
           name: sourceName,
           value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].value} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
         });
+      } else if (bonus.target.type === 'Proficiency') {
+        const { proficiency } = bonus.target;
+        if (proficiency && !sheet.classe.proficiencias.includes(proficiency)) {
+          sheet.classe.proficiencias.push(proficiency);
+          subSteps.push({
+            name: sourceName,
+            value: `Proficiência: ${proficiency}`,
+          });
+        }
       } else if (bonus.target.type === 'DamageReduction') {
         const { damageType } = bonus.target;
         if (bonus.modifier.type === 'Fixed' && 'value' in bonus.modifier) {
@@ -4287,6 +4316,21 @@ const calculateBonusValue = (
     });
     return best ? (best as { fromLevel: number; value: number }).value : 0;
   }
+  if (bonus.type === 'ScaledValue') {
+    let v = 0;
+    if (bonus.base.kind === 'fixed') v = bonus.base.value;
+    else if (bonus.base.kind === 'level') v = sheet.nivel;
+    else if (bonus.base.kind === 'spellCircle')
+      v =
+        sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ??
+        0;
+    else if (bonus.base.kind === 'attribute')
+      v = sheet.atributos[bonus.base.attribute]?.value ?? 0;
+    if (bonus.capByLevel) v = Math.min(v, sheet.nivel);
+    if (bonus.capByAttribute)
+      v = Math.min(v, sheet.atributos[bonus.capByAttribute]?.value ?? 0);
+    return Math.max(0, v);
+  }
   if (bonus.type === 'Fixed') {
     return bonus.value;
   }
@@ -4382,16 +4426,30 @@ const applyStatModifiers = (
       });
     } else if (bonus.target.type === 'PickSkill') {
       let pickedSkills: Skill[];
+      const { optionKey } = bonus.target;
+      const persisted = optionKey
+        ? sheet.optionChoices?.[optionKey]
+        : undefined;
 
-      // Use manual selections if provided
+      // Prioridade: escolha manual → escolha persistida (replay) → aleatório.
       if (manualSelections?.skills && manualSelections.skills.length > 0) {
         pickedSkills = manualSelections.skills.slice(
           0,
           bonus.target.pick
         ) as Skill[];
+      } else if (persisted && persisted.length > 0) {
+        pickedSkills = persisted.slice(0, bonus.target.pick) as Skill[];
       } else {
         // Fall back to random selection
         pickedSkills = pickFromArray(bonus.target.skills, bonus.target.pick);
+      }
+
+      // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
+      if (optionKey && pickedSkills.length > 0) {
+        sheet.optionChoices = {
+          ...(sheet.optionChoices || {}),
+          [optionKey]: pickedSkills,
+        };
       }
 
       pickedSkills.forEach((skill) => {

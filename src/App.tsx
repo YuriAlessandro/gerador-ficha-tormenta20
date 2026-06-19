@@ -88,6 +88,9 @@ import {
   HomebrewViewPage,
   RaceHomebrewEditorPage,
   ClassHomebrewEditorPage,
+  SpellPackEditorPage,
+  PowerPackEditorPage,
+  CollectionEditorPage,
   HomebrewEditEntryPage,
   DiceRollProvider,
   BlogList,
@@ -424,6 +427,30 @@ function ThemedApp(): JSX.Element {
                                         redirectTo='/'
                                       >
                                         <ClassHomebrewEditorPage />
+                                      </ProtectedRoute>
+                                    </Route>
+                                    <Route path='/meus-homebrews/criar/magias'>
+                                      <ProtectedRoute
+                                        requireAuth
+                                        redirectTo='/'
+                                      >
+                                        <SpellPackEditorPage />
+                                      </ProtectedRoute>
+                                    </Route>
+                                    <Route path='/meus-homebrews/criar/poderes'>
+                                      <ProtectedRoute
+                                        requireAuth
+                                        redirectTo='/'
+                                      >
+                                        <PowerPackEditorPage />
+                                      </ProtectedRoute>
+                                    </Route>
+                                    <Route path='/meus-homebrews/criar/colecao'>
+                                      <ProtectedRoute
+                                        requireAuth
+                                        redirectTo='/'
+                                      >
+                                        <CollectionEditorPage />
                                       </ProtectedRoute>
                                     </Route>
                                     <Route path='/meus-homebrews/editar/:id'>

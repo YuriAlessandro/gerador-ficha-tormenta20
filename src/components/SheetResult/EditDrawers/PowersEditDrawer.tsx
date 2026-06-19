@@ -254,6 +254,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     SupplementId.TORMENTA20_AMEACAS_ARTON,
     SupplementId.TORMENTA20_DEUSES_ARTON,
     SupplementId.TORMENTA20_HEROIS_ARTON,
+    // Suplementos runtime ativados (ex.: Pacotes de Poderes homebrew).
+    ...(dataRegistry.getRuntimeSupplementIds() as unknown as SupplementId[]),
   ];
   const allPowersByCategory =
     dataRegistry.getPowersBySupplements(allSupplements);

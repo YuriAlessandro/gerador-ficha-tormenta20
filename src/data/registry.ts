@@ -191,6 +191,15 @@ class DataRegistry {
   }
 
   /**
+   * Dados de um suplemento registrado em runtime, por id. Permite a um
+   * consumidor ler o conteúdo (ex.: magias) de suplementos runtime sem
+   * acoplar-se ao sistema estático.
+   */
+  getRuntimeSupplement(id: string): SupplementData | undefined {
+    return this.runtimeSupplements.get(id);
+  }
+
+  /**
    * Retorna os dados do sistema com os suplementos runtime mesclados em
    * `supplements`. Indexar por um id runtime (string dinâmica) resolve para o
    * `SupplementData` registrado. Sem suplementos runtime, retorna o sistema

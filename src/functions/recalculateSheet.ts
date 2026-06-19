@@ -175,6 +175,13 @@ const resolveClassLevel = (
 };
 
 // We need to copy the applyStatModifiers function locally since it's not exported
+/**
+ * Maior círculo de magia que o personagem pode lançar atualmente (0 se não for
+ * conjurador). Considera a classe principal e multiclasse.
+ */
+const maxSpellCircleOf = (sheet: CharacterSheet): number =>
+  sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ?? 0;
+
 const calculateBonusValue = (
   sheet: CharacterSheet,
   bonus: {
@@ -185,6 +192,13 @@ const calculateBonusValue = (
     capBy?: 'level' | 'classLevel';
     breakpoints?: { fromLevel: number; value: number }[];
     by?: 'level' | 'classLevel';
+    base?: {
+      kind: 'fixed' | 'level' | 'spellCircle' | 'attribute';
+      value?: number;
+      attribute?: string;
+    };
+    capByLevel?: boolean;
+    capByAttribute?: string;
   },
   source?: SheetChangeSource
 ): number => {
@@ -254,6 +268,21 @@ const calculateBonusValue = (
     });
     return best ? (best as { fromLevel: number; value: number }).value : 0;
   }
+  if (bonus.type === 'ScaledValue' && bonus.base) {
+    let v = 0;
+    if (bonus.base.kind === 'fixed') v = bonus.base.value || 0;
+    else if (bonus.base.kind === 'level') v = sheet.nivel;
+    else if (bonus.base.kind === 'spellCircle') v = maxSpellCircleOf(sheet);
+    else if (bonus.base.kind === 'attribute')
+      v = sheet.atributos[bonus.base.attribute as Atributo]?.value ?? 0;
+    if (bonus.capByLevel) v = Math.min(v, sheet.nivel);
+    if (bonus.capByAttribute)
+      v = Math.min(
+        v,
+        sheet.atributos[bonus.capByAttribute as Atributo]?.value ?? 0
+      );
+    return Math.max(0, v);
+  }
   if (bonus.type === 'Fixed') {
     return bonus.value || 0;
   }
@@ -270,12 +299,23 @@ const weaponMatchesBonus = (
     meleeOnly?: boolean;
     rangedOnly?: boolean;
     thrownOnly?: boolean;
+    weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
   },
   _sheet: CharacterSheet
 ): boolean => {
   // Check specific weapon name
   if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
     return false;
+  }
+
+  // Escopo por categoria de proficiência (simples/marcial/exótica/de fogo).
+  if (bonus.weaponCategories && bonus.weaponCategories.length > 0) {
+    if (
+      !weapon.weaponCategory ||
+      !bonus.weaponCategories.includes(weapon.weaponCategory)
+    ) {
+      return false;
+    }
   }
 
   // Apenas armas de arremesso (têm `arremesso: true`).
@@ -419,7 +459,9 @@ const applyWeaponBonuses = (
       let totalDamageBonus = 0;
       let totalDamageSteps = 0;
       let totalThreatMarginBonus = 0;
+      let setThreatMargin: number | undefined;
       let totalCriticalMultiplierBonus = 0;
+      let setCritMultiplier: number | undefined;
 
       updatedSheet.sheetBonuses.forEach((bonus) => {
         // Bônus `thrownOnly` são específicos do modo de arremesso de armas
@@ -455,9 +497,25 @@ const applyWeaponBonuses = (
           } else if (bonus.target.type === 'WeaponDamageStep') {
             totalDamageSteps += bonusValue;
           } else if (bonus.target.type === 'WeaponThreatMargin') {
-            totalThreatMarginBonus += bonusValue;
+            if (bonus.target.mode === 'set') {
+              // Define a margem; com vários, prevalece a mais ampla (menor nº).
+              setThreatMargin =
+                setThreatMargin === undefined
+                  ? bonusValue
+                  : Math.min(setThreatMargin, bonusValue);
+            } else {
+              totalThreatMarginBonus += bonusValue;
+            }
           } else if (bonus.target.type === 'WeaponCriticalMultiplier') {
-            totalCriticalMultiplierBonus += bonusValue;
+            if (bonus.target.mode === 'set') {
+              // Define o multiplicador; com vários, prevalece o maior.
+              setCritMultiplier =
+                setCritMultiplier === undefined
+                  ? bonusValue
+                  : Math.max(setCritMultiplier, bonusValue);
+            } else {
+              totalCriticalMultiplierBonus += bonusValue;
+            }
           }
         }
       });
@@ -477,10 +535,12 @@ const applyWeaponBonuses = (
           : `+${totalDamageBonus}`;
       }
 
-      if (
-        (totalThreatMarginBonus > 0 || totalCriticalMultiplierBonus > 0) &&
-        weaponCopy.critico
-      ) {
+      const hasMarginChange =
+        totalThreatMarginBonus > 0 || setThreatMargin !== undefined;
+      const hasMultChange =
+        totalCriticalMultiplierBonus > 0 || setCritMultiplier !== undefined;
+
+      if ((hasMarginChange || hasMultChange) && weaponCopy.critico) {
         // Critical string may be "19", "x2" or "19/x2". Threat margin modifies
         // the numeric part before "/" (or the whole string if no "/"); the
         // multiplier modifies the "xN" portion.
@@ -499,25 +559,33 @@ const applyWeaponBonuses = (
           [marginPart, multPart] = parts;
         }
 
-        if (totalThreatMarginBonus > 0 && marginPart !== null) {
-          const currentRange = parseInt(marginPart, 10);
-          if (!Number.isNaN(currentRange)) {
-            marginPart = `${Math.max(
-              1,
-              currentRange - totalThreatMarginBonus
-            )}`;
-          }
+        if (hasMarginChange) {
+          // Margem base (20 implícito quando a arma só tem multiplicador, ex.:
+          // "x2"). `set` define a margem; o aumento (estreitamento) é aplicado
+          // por cima.
+          let currentRange =
+            marginPart !== null ? parseInt(marginPart, 10) : 20;
+          if (Number.isNaN(currentRange)) currentRange = 20;
+          if (setThreatMargin !== undefined) currentRange = setThreatMargin;
+          marginPart = `${Math.max(
+            1,
+            Math.min(20, currentRange - totalThreatMarginBonus)
+          )}`;
         }
 
-        if (totalCriticalMultiplierBonus > 0 && multPart !== null) {
-          const currentMult = parseInt(
-            multPart.match(/x(\d+)/)?.[1] || '2',
-            10
-          );
-          multPart = multPart.replace(
-            /x\d+/,
-            `x${currentMult + totalCriticalMultiplierBonus}`
-          );
+        if (hasMultChange) {
+          // Multiplicador base (x2 implícito quando a arma só tem margem, ex.:
+          // "19"). `set` define o multiplicador; o aumento soma por cima.
+          let currentMult =
+            multPart !== null
+              ? parseInt(multPart.match(/x(\d+)/)?.[1] || '2', 10)
+              : 2;
+          if (Number.isNaN(currentMult)) currentMult = 2;
+          if (setCritMultiplier !== undefined) currentMult = setCritMultiplier;
+          multPart = `x${Math.max(
+            2,
+            currentMult + totalCriticalMultiplierBonus
+          )}`;
         }
 
         if (marginPart !== null && multPart !== null) {
@@ -1737,28 +1805,25 @@ export function recalculateSheet(
         const skillName = bonus.target.name;
         addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
       } else if (bonus.target.type === 'PickSkill') {
-        // Re-apply PickSkill bonuses using manual selections
-        // Find which power this bonus belongs to by checking the bonus source
+        // Re-apply PickSkill. Prioridade: seleção manual → escolha persistida
+        // em optionChoices (homebrew com optionKey, sobrevive ao recálculo sem
+        // manualSelections).
+        let skillsToProcess: string[] = [];
         if (
           bonus.source?.type === 'power' &&
-          manualSelections?.[bonus.source.name]
+          manualSelections?.[bonus.source.name]?.skills
         ) {
-          const powerName = bonus.source.name;
-          const powerSelections = manualSelections[powerName];
+          skillsToProcess = manualSelections[bonus.source.name].skills ?? [];
+        } else if (bonus.target.optionKey) {
+          skillsToProcess =
+            updatedSheet.optionChoices?.[bonus.target.optionKey] ?? [];
+        }
 
-          // All selections are now combined in a single SelectionOptions object
-          let skillsToProcess: string[] = [];
-
-          if (powerSelections?.skills) {
-            skillsToProcess = powerSelections.skills;
-          }
-
-          if (skillsToProcess.length > 0) {
-            const selectedSkills = skillsToProcess.slice(0, bonus.target.pick);
-            selectedSkills.forEach((skillName: string) => {
-              addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
-            });
-          }
+        if (skillsToProcess.length > 0) {
+          const selectedSkills = skillsToProcess.slice(0, bonus.target.pick);
+          selectedSkills.forEach((skillName: string) => {
+            addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
+          });
         }
       } else if (bonus.target.type === 'Displacement') {
         updatedSheet.displacement += bonusValue;
@@ -1791,6 +1856,17 @@ export function recalculateSheet(
               return skill;
             }
           );
+        }
+      } else if (bonus.target.type === 'Proficiency') {
+        const { proficiency } = bonus.target;
+        if (
+          proficiency &&
+          !updatedSheet.classe.proficiencias.includes(proficiency)
+        ) {
+          updatedSheet.classe.proficiencias = [
+            ...updatedSheet.classe.proficiencias,
+            proficiency,
+          ];
         }
       }
     }

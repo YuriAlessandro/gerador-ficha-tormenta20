@@ -99,6 +99,10 @@ export type SheetActionStep =
     }
   | {
       type: 'increaseAttribute';
+      value?: number; // Quanto aumentar (padrão 1).
+      oncePerTier?: boolean; // Limitar a mesma escolha a 1×/patamar (padrão true).
+      // Persiste a escolha do jogador (replay sem manualSelections, ex.: homebrew).
+      optionKey?: string;
     }
   | {
       type: 'special';
@@ -316,6 +320,15 @@ export type StatModifierTarget =
       type: 'PickSkill';
       skills: Skill[];
       pick: number; // Number of skills to pick
+      // Persiste a escolha do jogador para sobreviver ao recálculo (homebrew).
+      optionKey?: string;
+    }
+  | {
+      // Atributo escolhido pelo jogador (compila para a ação `increaseAttribute`).
+      // Marcador usado pelo editor de homebrew; convertido em ação no compile.
+      type: 'PickAttribute';
+      pick: number;
+      oncePerTier?: boolean;
     }
   | {
       type: 'ModifySkillAttribute';
@@ -330,6 +343,8 @@ export type StatModifierTarget =
       meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
       thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
+      // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
+      weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
   | {
       type: 'WeaponAttack';
@@ -345,12 +360,26 @@ export type StatModifierTarget =
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;
+      meleeOnly?: boolean;
+      rangedOnly?: boolean;
+      thrownOnly?: boolean;
+      weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
+      // 'increase' (padrão): alarga a margem pelo valor; 'set': define a margem
+      // (ex.: "sua margem de ameaça passa a ser 19").
+      mode?: 'increase' | 'set';
     }
   | {
       type: 'WeaponCriticalMultiplier';
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;
+      meleeOnly?: boolean;
+      rangedOnly?: boolean;
+      thrownOnly?: boolean;
+      weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
+      // 'increase' (padrão): soma ao multiplicador; 'set': define o multiplicador
+      // (ex.: "seu multiplicador de crítico passa a ser x3").
+      mode?: 'increase' | 'set';
     }
   | {
       type: 'WeaponDamageStep';
@@ -378,6 +407,13 @@ export type StatModifierTarget =
     }
   | {
       type: 'AllAttackBonus';
+    }
+  | {
+      // Concede uma proficiência (ex.: 'Armas Marciais'). O modificador é
+      // irrelevante (a concessão é booleana); aplicado adicionando à lista
+      // `classe.proficiencias` se ainda não estiver presente.
+      type: 'Proficiency';
+      proficiency: string;
     }
   | {
       // Arremesso Potente: permite usar Força no teste de ataque com armas de
@@ -418,6 +454,20 @@ export type StatModifier =
       type: 'LevelBreakpoints';
       breakpoints: { fromLevel: number; value: number }[];
       by?: 'level' | 'classLevel';
+    }
+  | {
+      // Valor a partir de uma fonte (fixo / nível do personagem / círculo máximo
+      // de magia / atributo), opcionalmente limitado (min) pelo nível e/ou por um
+      // atributo. Ex.: "dano = círculo de magia, limitado pelo nível". Avaliado
+      // nativamente (sem eval). Genérico, mas hoje usado pelo bônus de Dano.
+      type: 'ScaledValue';
+      base:
+        | { kind: 'fixed'; value: number }
+        | { kind: 'level' }
+        | { kind: 'spellCircle' }
+        | { kind: 'attribute'; attribute: Atributo };
+      capByLevel?: boolean;
+      capByAttribute?: Atributo;
     };
 
 /** Operador de comparação numérica para condições de bônus. */
