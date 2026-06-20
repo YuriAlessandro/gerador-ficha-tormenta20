@@ -9,6 +9,7 @@ import Equipment, {
 import {
   calculateCurrencySpaces,
   calculateMaxSpaces,
+  getEquipmentMaxSpacesBonus,
 } from '../../../functions/general';
 import {
   applyWielding,
@@ -594,7 +595,12 @@ export function useBackpackState({
       staged.money.dinheiroTO
     );
     const totalSpaces = itemSpaces + currencySpaces;
-    const maxSpaces = staged.customMaxSpaces ?? calculateMaxSpaces(forca);
+    // Itens como a "Mochila de aventureiro" concedem bônus de capacidade
+    // (MaxSpaces) sem ocupar espaço — somá-los ao limite para que o limite e o
+    // destaque de sobrecarga reajam ao adicionar/remover esses itens.
+    const equipMaxSpacesBonus = getEquipmentMaxSpacesBonus(orderedItems);
+    const maxSpaces =
+      staged.customMaxSpaces ?? calculateMaxSpaces(forca) + equipMaxSpacesBonus;
     const { overflowItemIds, overflowStartIndex } = computeOverflow(
       orderedItems,
       maxSpaces - currencySpaces

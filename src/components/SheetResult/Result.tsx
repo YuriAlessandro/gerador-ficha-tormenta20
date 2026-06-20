@@ -39,7 +39,6 @@ import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   applyManualLevelUp,
   calculateCurrencySpaces,
-  calculateMaxSpaces,
 } from '@/functions/general';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
@@ -2548,9 +2547,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       </Tooltip>
                     )}
                     {(() => {
-                      const effectiveMaxSpaces =
-                        customMaxSpaces ??
-                        calculateMaxSpaces(atributos.Força.value);
+                      const effectiveMaxSpaces = customMaxSpaces ?? maxSpaces;
                       const totalUsedSpaces =
                         bag.getSpaces() +
                         calculateCurrencySpaces(

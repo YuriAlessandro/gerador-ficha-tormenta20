@@ -1356,6 +1356,26 @@ export function calculateMaxSpaces(forca: number): number {
   return 10 + 2 * forca;
 }
 
+// Soma os bônus de capacidade de carga (MaxSpaces) concedidos por equipamentos
+// na bolsa — p.ex. a "Mochila de aventureiro" (+2). Considera quantidade e só
+// modificadores fixos (os bônus de MaxSpaces de equipamento são sempre Fixed).
+export function getEquipmentMaxSpacesBonus(equipments: Equipment[]): number {
+  return equipments.reduce((acc, equip) => {
+    if (!equip.sheetBonuses) return acc;
+    const qty = equip.quantity || 1;
+    const itemBonus = equip.sheetBonuses.reduce((sum, bonus) => {
+      if (
+        bonus.target.type === 'MaxSpaces' &&
+        bonus.modifier.type === 'Fixed'
+      ) {
+        return sum + bonus.modifier.value * qty;
+      }
+      return sum;
+    }, 0);
+    return acc + itemBonus;
+  }, 0);
+}
+
 export function calculateCurrencySpaces(
   dinheiro = 0,
   dinheiroTC = 0,
@@ -1371,7 +1391,7 @@ export function calculateCurrencySpaces(
 function calcDisplacement(
   bag: Bag,
   raceDisplacement: number,
-  atributos: CharacterAttributes,
+  maxSpaces: number,
   baseDisplacement: number,
   dinheiro = 0,
   dinheiroTC = 0,
@@ -1380,7 +1400,6 @@ function calcDisplacement(
   hasHeavyArmor = false
 ): number {
   if (!ignoreEncumbrance) {
-    const maxSpaces = calculateMaxSpaces(atributos.Força.value);
     const totalUsedSpaces =
       bag.getSpaces() +
       calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
@@ -5131,7 +5150,9 @@ export default function generateRandomSheet(
   const displacement = calcDisplacement(
     charSheet.bag,
     getRaceDisplacement(charSheet.raca),
-    charSheet.atributos,
+    charSheet.customMaxSpaces ??
+      charSheet.maxSpaces +
+        getEquipmentMaxSpacesBonus(charSheet.bag.getOrderedEquipments()),
     charSheet.displacement,
     charSheet.dinheiro,
     charSheet.dinheiroTC,

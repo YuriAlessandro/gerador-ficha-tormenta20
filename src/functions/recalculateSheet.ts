@@ -1,7 +1,6 @@
 import _ from 'lodash';
 
 import Bag from '@/interfaces/Bag';
-import { CharacterAttributes } from '@/interfaces/Character';
 import CharacterSheet, {
   DamageReduction,
   DamageType,
@@ -750,7 +749,7 @@ const injectEstiloDeArmaEEscudoBonuses = (
 const calcDisplacement = (
   bag: Bag,
   raceDisplacement: number,
-  atributos: CharacterAttributes,
+  maxSpaces: number,
   baseDisplacement: number,
   dinheiro = 0,
   dinheiroTC = 0,
@@ -759,7 +758,6 @@ const calcDisplacement = (
   hasHeavyArmor = false
 ): number => {
   if (!ignoreEncumbrance) {
-    const maxSpaces = calculateMaxSpaces(atributos.Força.value);
     const totalUsedSpaces =
       bag.getSpaces() +
       calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
@@ -1966,7 +1964,7 @@ export function recalculateSheet(
     updatedSheet.displacement = calcDisplacement(
       updatedSheet.bag,
       getRaceDisplacement(updatedSheet.raca),
-      updatedSheet.atributos,
+      updatedSheet.customMaxSpaces ?? updatedSheet.maxSpaces,
       baseDisplacementBonuses,
       updatedSheet.dinheiro,
       updatedSheet.dinheiroTC,
