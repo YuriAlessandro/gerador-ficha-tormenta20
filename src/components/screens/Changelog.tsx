@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            19/06/2026 (v4.22).
+            20/06/2026 (v4.22).
           </p>
 
           <p>
@@ -189,6 +189,29 @@ const Changelog: React.FC = () => {
                   e marcação rápida de locais.
                 </Typography>
               </Alert>
+
+              <ul>
+                <li>
+                  <strong>Novo:</strong> o poder{' '}
+                  <strong>Estilo de Duas Mãos</strong> agora pode ser
+                  ligado/desligado como efeito de combate, concedendo{' '}
+                  <strong>+5 no dano</strong> com armas corpo a corpo empunhadas
+                  com as duas mãos (não se aplica a armas leves).
+                </li>
+                <li>
+                  <strong>Correção:</strong> armas com{' '}
+                  <strong>dano duplo</strong> (como o Bordão) passaram a receber
+                  o bônus de dano em <strong>ambos os modos</strong> — antes o
+                  bônus ficava só em um deles e a rolagem podia sair sem ele.
+                </li>
+                <li>
+                  <strong>Correção:</strong> os <strong>modos de ataque</strong>{' '}
+                  alternativos de algumas armas (por exemplo armas de fogo)
+                  agora incluem o bônus de dano de poderes e encantos tanto na{' '}
+                  <strong>prévia</strong> quanto na <strong>rolagem</strong>,
+                  ficando iguais ao que a ficha exibe.
+                </li>
+              </ul>
 
               <h3>4.21</h3>
 
