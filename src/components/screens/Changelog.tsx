@@ -192,6 +192,15 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> o modal de{' '}
+                  <strong>aplicar condições</strong> na ficha ficou mais limpo:
+                  agora as condições aparecem <strong>uma por linha</strong> e
+                  em <strong>ordem alfabética</strong>, com o nome em destaque e
+                  o efeito resumido mais discreto. Cada condição tem um botão
+                  para <strong>expandir e ler a descrição completa</strong>,
+                  funcionando bem também no celular.
+                </li>
+                <li>
                   <strong>Correção:</strong> as <strong>magias</strong> dos
                   suplementos (como <strong>Ameaças de Arton</strong>,{' '}
                   <strong>Deuses de Arton</strong> e{' '}
