@@ -192,6 +192,14 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Correção:</strong> na <strong>Mesa Virtual</strong>,
+                  abrir a ficha de um jogador podia, em alguns casos, carregar a
+                  ficha de <strong>outro jogador</strong> da mesma mesa. As
+                  fichas dos membros agora ficam sempre vinculadas corretamente,
+                  mesmo quando vários jogadores alteram suas fichas ao mesmo
+                  tempo.
+                </li>
+                <li>
                   <strong>Novo:</strong> o poder{' '}
                   <strong>Estilo de Duas Mãos</strong> agora pode ser
                   ligado/desligado como efeito de combate, concedendo{' '}
