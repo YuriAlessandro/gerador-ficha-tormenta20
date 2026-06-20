@@ -86,6 +86,7 @@ import {
   HomebrewsListPage,
   MyHomebrewsPage,
   HomebrewViewPage,
+  HomebrewTestSheetPage,
   RaceHomebrewEditorPage,
   ClassHomebrewEditorPage,
   SpellPackEditorPage,
@@ -468,6 +469,9 @@ function ThemedApp(): JSX.Element {
                                       >
                                         <MyHomebrewsPage />
                                       </ProtectedRoute>
+                                    </Route>
+                                    <Route path='/homebrew/:id/testar'>
+                                      <HomebrewTestSheetPage />
                                     </Route>
                                     <Route path='/homebrew/:id'>
                                       <HomebrewViewPage />

@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            11/06/2026 (v4.21).
+            19/06/2026 (v4.22).
           </p>
 
           <p>
@@ -69,6 +69,145 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.22</h3>
+              <p>
+                Esta atualização traz a maior novidade do projeto até hoje — os{' '}
+                <strong>Homebrews</strong> — e, junto, o{' '}
+                <strong>Mapa de Arton</strong>. Duas{' '}
+                <strong>super features</strong> num ciclo só.
+              </p>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Homebrews — crie o seu próprio conteúdo
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Apoiadores agora podem criar <strong>conteúdo próprio</strong>{' '}
+                  de jogo por meio de um editor visual, sem programar:{' '}
+                  <strong>Raças</strong>, <strong>Classes</strong>,{' '}
+                  <strong>Pacotes de Magias</strong>,{' '}
+                  <strong>Pacotes de Poderes</strong> e{' '}
+                  <strong>Coleções</strong>. O que você cria entra na ficha como
+                  se fosse oficial — calcula os números, aparece nas rolagens e
+                  na geração de personagens.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Editor Básico e Avançado:</strong> bônus passivos
+                  cobrindo atributos, perícias, PV/PM, defesa, deslocamento,
+                  redução de dano, <strong>dano de armas</strong>,{' '}
+                  <strong>margem de ameaça</strong>,{' '}
+                  <strong>multiplicador de crítico</strong>, proficiências e até
+                  escolhas feitas pelo próprio jogador. No modo Avançado, entram
+                  bônus por <strong>fórmula</strong>, bônus condicionais, opções
+                  de escolha e concessão de magias.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Classes completas:</strong> PV/PM, perícias,
+                  habilidades automáticas por nível, poderes de classe com
+                  pré-requisitos, conjuração (círculos plenos ou personalizados)
+                  e <strong>importação de poderes</strong> de classes existentes
+                  para montar variantes sem reescrever nada. Magias e poderes
+                  também podem ser publicados em pacotes, com aprimoramentos,
+                  rolagens de dados e efeitos ativos.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Teste antes de publicar:</strong> a{' '}
+                  <strong>ficha de teste</strong> gera um personagem aleatório
+                  efêmero (que não é salvo) forçando o seu homebrew, para você
+                  conferir os números na prática. Cada homebrew publicado tem{' '}
+                  <strong>fórum próprio</strong> e{' '}
+                  <strong>histórico de versões</strong>, e a quantidade que você
+                  mantém ativa ao mesmo tempo depende do seu nível de apoio.
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  Uma <strong>série completa de tutoriais</strong> no blog
+                  ensina, passo a passo, a criar cada tipo de homebrew. Feature
+                  exclusiva para apoiadores — e você é responsável pelo suporte
+                  e manutenção do conteúdo que publica.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Mapa de Arton
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Um <strong>mapa interativo de Arton</strong> chegou ao
+                  sistema. Há uma página pública (
+                  <Link to='/mapadearton'>/mapadearton</Link>) para explorar o
+                  continente, e cada <strong>mesa virtual</strong> ganha o seu
+                  próprio mapa.
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  Na mesa, mestre e jogadores podem marcar{' '}
+                  <strong>pontos de interesse</strong> no mapa, com controle de
+                  visibilidade — pins visíveis a <strong>todos</strong> ou{' '}
+                  <strong>apenas ao mestre</strong> —, além de menus de contexto
+                  e marcação rápida de locais.
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>
+                    Novo: Confirmação ao publicar e ao ativar homebrews.
+                  </strong>{' '}
+                  Ao <strong>publicar</strong> ou <strong>ativar</strong> um
+                  homebrew, um aviso reforça que o conteúdo não é oficial e que
+                  o suporte se dá pelo fórum da própria página — com um botão
+                  que só é liberado após alguns segundos, para garantir a
+                  leitura.
+                </li>
+                <li>
+                  <strong>Novo: Posts do blog podem ser ocultados.</strong>{' '}
+                  Autores podem marcar um post como <strong>oculto</strong>: ele
+                  some da listagem pública, mas continua acessível por link
+                  direto — útil para séries de posts interligados (como os
+                  tutoriais de homebrew), em que só a introdução precisa
+                  aparecer na lista.
+                </li>
+              </ul>
+
               <h3>4.21</h3>
 
               <ul>

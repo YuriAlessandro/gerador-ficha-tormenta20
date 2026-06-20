@@ -50,6 +50,12 @@ interface RandomSheetFormProps {
   userSupplements: SupplementId[];
   isAuthenticated: boolean;
   onConfigureSupplements: () => void;
+  /** Trava a raça a um único valor (lista mostra só ele; select desabilitado). */
+  lockedRace?: string;
+  /** Trava a classe a um único valor (lista mostra só ele; select desabilitado). */
+  lockedClass?: string;
+  /** Esconde a UI de configuração de suplementos (suplementos fixados externamente). */
+  hideSupplementsConfig?: boolean;
 }
 
 const formatOptionLabel = (option: SelectedOption) => (
@@ -91,6 +97,9 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
   userSupplements,
   isAuthenticated,
   onConfigureSupplements,
+  lockedRace,
+  lockedClass,
+  hideSupplementsConfig,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -160,13 +169,15 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
 
   const racas = React.useMemo<SelectedOption[]>(
     () =>
-      RACAS.map((raca: RaceWithSupplement) => ({
-        value: raca.name,
-        label: raca.name,
-        supplementId: raca.supplementId,
-        supplementName: raca.supplementName,
-      })),
-    [RACAS]
+      lockedRace
+        ? [{ value: lockedRace, label: lockedRace }]
+        : RACAS.map((raca: RaceWithSupplement) => ({
+            value: raca.name,
+            label: raca.name,
+            supplementId: raca.supplementId,
+            supplementName: raca.supplementName,
+          })),
+    [RACAS, lockedRace]
   );
 
   const rolesopt = React.useMemo<SelectedOption[]>(
@@ -179,6 +190,7 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
   );
 
   const classesopt = React.useMemo<SelectedOption[]>(() => {
+    if (lockedClass) return [{ value: lockedClass, label: lockedClass }];
     const baseClasses = CLASSES.filter((c) => !c.isVariant);
     const variants = CLASSES.filter((c) => c.isVariant);
     const options: SelectedOption[] = [];
@@ -204,7 +216,7 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
     });
 
     return options;
-  }, [CLASSES]);
+  }, [CLASSES, lockedClass]);
 
   const niveis = React.useMemo<{ value: string; label: string }[]>(() => {
     const result: { value: string; label: string }[] = [];
@@ -330,11 +342,13 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
       </Typography>
 
       {/* System & Supplements Indicator */}
-      <SupplementsIndicator
-        userSupplements={userSupplements}
-        isAuthenticated={isAuthenticated}
-        onConfigureSupplements={onConfigureSupplements}
-      />
+      {!hideSupplementsConfig && (
+        <SupplementsIndicator
+          userSupplements={userSupplements}
+          isAuthenticated={isAuthenticated}
+          onConfigureSupplements={onConfigureSupplements}
+        />
+      )}
 
       <Grid container spacing={2}>
         {/* Race Selection */}
@@ -343,15 +357,21 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
             Raça
           </Typography>
           <Select
-            options={[{ value: '', label: 'Aleatória' }, ...racas]}
+            options={
+              lockedRace ? racas : [{ value: '', label: 'Aleatória' }, ...racas]
+            }
             placeholder='Aleatória'
             value={
-              selectedOptions.raca
+              // eslint-disable-next-line no-nested-ternary
+              lockedRace
+                ? racas[0] ?? null
+                : selectedOptions.raca
                 ? [{ value: '', label: 'Aleatória' }, ...racas].find(
                     (r) => r.value === selectedOptions.raca
                   ) || null
                 : null
             }
+            isDisabled={!!lockedRace}
             onChange={onSelectRaca}
             isSearchable
             styles={selectStyles}
@@ -372,24 +392,35 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
             Classe / Role
           </Typography>
           <Select
-            options={[
-              {
-                label: 'Classes',
-                options: [{ value: '', label: 'Aleatória' }, ...classesopt],
-              },
-              {
-                label: 'Roles',
-                options: [{ value: '', label: 'Aleatória' }, ...rolesopt],
-              },
-            ]}
+            options={
+              lockedClass
+                ? classesopt
+                : [
+                    {
+                      label: 'Classes',
+                      options: [
+                        { value: '', label: 'Aleatória' },
+                        ...classesopt,
+                      ],
+                    },
+                    {
+                      label: 'Roles',
+                      options: [{ value: '', label: 'Aleatória' }, ...rolesopt],
+                    },
+                  ]
+            }
             placeholder='Aleatória'
             value={
-              selectedOptions.classe
+              // eslint-disable-next-line no-nested-ternary
+              lockedClass
+                ? classesopt[0] ?? null
+                : selectedOptions.classe
                 ? [...classesopt, ...rolesopt].find(
                     (c) => c.value === selectedOptions.classe
                   ) || null
                 : null
             }
+            isDisabled={!!lockedClass}
             formatGroupLabel={fmtGroupLabel}
             formatOptionLabel={formatOptionLabel}
             onChange={onSelectClasse}
