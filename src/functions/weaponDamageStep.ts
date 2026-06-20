@@ -71,3 +71,30 @@ export const stepUpDamage = (damage: string, steps: number): string => {
     .map((part) => stepUpSinglePart(part, steps))
     .join('/');
 };
+
+const addBonusToSinglePart = (part: string, bonus: number): string => {
+  const trimmed = part.trim();
+  if (!trimmed || trimmed === '-') return part;
+  // Captura um modificador fixo já existente (ex: "2d6+2") para mesclar em vez
+  // de duplicar; mantém o lado esquerdo (dado) intacto.
+  const match = trimmed.match(/^(.*?)([+-]\d+)?$/);
+  if (!match) return trimmed;
+  const base = match[1];
+  const existing = match[2] ? parseInt(match[2], 10) : 0;
+  const total = existing + bonus;
+  if (total === 0) return base;
+  return total > 0 ? `${base}+${total}` : `${base}${total}`;
+};
+
+// Soma um bônus fixo de dano a uma string de dano. Diferente de concatenar
+// "+N" diretamente, trata corretamente o modo duplo (cada lado do "/" recebe o
+// bônus, ex: "1d6/1d6" + 5 => "1d6+5/1d6+5") e mescla um modificador já
+// presente (ex: "2d6+2" + 5 => "2d6+7"). Retorna a string original quando não
+// há nada parsável (ex: "-").
+export const addFlatDamageBonus = (damage: string, bonus: number): string => {
+  if (!damage || bonus === 0) return damage;
+  return damage
+    .split('/')
+    .map((part) => addBonusToSinglePart(part, bonus))
+    .join('/');
+};

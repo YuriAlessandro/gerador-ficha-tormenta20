@@ -36,7 +36,10 @@ import {
   isWeaponMelee,
   resolveDamageAttribute,
 } from '../functions/weaponSkill';
-import { stepUpDamage } from '../functions/weaponDamageStep';
+import {
+  stepUpDamage,
+  addFlatDamageBonus,
+} from '../functions/weaponDamageStep';
 import Skill, { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
@@ -71,6 +74,16 @@ const abbreviateDamageType = (tipo?: string): string | undefined => {
     Trevas: 'Trevas',
   };
   return abbrevMap[tipo] || tipo;
+};
+
+// Extracts the trailing flat damage modifier (e.g. "+5"/"-1") from a damage
+// string. For dual-mode strings ("1d6+5/1d6+5") only the first mode is read —
+// baked bonuses are identical across modes.
+const extractFlatDamageBonus = (dano?: string): number => {
+  if (!dano) return 0;
+  const [firstMode] = dano.split('/');
+  const match = firstMode.trim().match(/([+-]\d+)$/);
+  return match ? parseInt(match[1], 10) : 0;
 };
 
 interface WeaponProps {
@@ -234,6 +247,18 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const damageModStr =
     damageModifier >= 0 ? `+${damageModifier}` : `${damageModifier}`;
 
+  // Flat damage bonus already baked into the weapon's main `dano` (from powers
+  // and/or enchantments), derived as the delta over the clean base. Attack-mode
+  // actions that override `dano` start from the raw dice and would otherwise
+  // drop this bonus — we re-apply it so both the preview and the roll match what
+  // the sheet shows for the main damage.
+  const bakedFlatDamageBonus = useMemo(
+    () =>
+      extractFlatDamageBonus(dano) -
+      extractFlatDamageBonus(equipment.baseDano ?? dano),
+    [dano, equipment.baseDano]
+  );
+
   // Preview helper used by the action picker dialog: computes the resolved
   // attack bonus and damage string for a given action (with all overrides
   // applied) so the player sees exactly what the chosen mode will roll.
@@ -267,10 +292,15 @@ const Weapon: React.FC<WeaponProps> = (props) => {
 
       const previewStepDelta =
         (action.damageStepDelta ?? 0) + arremessadorStepBonus(action);
+      // Action `dano` overrides carry only raw dice; re-apply the weapon's baked
+      // flat bonus so the preview matches the actual roll.
+      const baseActionDano = action.dano
+        ? addFlatDamageBonus(action.dano, bakedFlatDamageBonus)
+        : dano ?? '';
       const previewDano =
         previewStepDelta !== 0
-          ? stepUpDamage(action.dano ?? dano ?? '', previewStepDelta)
-          : action.dano ?? dano ?? '';
+          ? stepUpDamage(baseActionDano, previewStepDelta)
+          : baseActionDano;
 
       return {
         atk: previewAtk,
@@ -291,6 +321,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       dano,
       equipment,
       arremessadorStepBonus,
+      bakedFlatDamageBonus,
       isThrownAction,
       thrownAtkExtra,
       thrownDamageBonus,
@@ -528,7 +559,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
 
   const performAttackResolution = useCallback(
     (ctx: RollContext) => {
-      const actionDano = ctx.action?.dano ?? dano;
+      // An action's `dano` override carries only the raw dice, so re-apply the
+      // weapon's baked flat bonus; the main weapon `dano` already includes it.
+      const actionDano = ctx.action?.dano
+        ? addFlatDamageBonus(ctx.action.dano, bakedFlatDamageBonus)
+        : dano;
       if (!actionDano || actionDano === '-') return;
 
       // Dual-mode (e.g. weapons with "1d8/1d10" in dano) still works inside an
@@ -546,7 +581,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       }
       performWeaponRoll(actionDano, ctx);
     },
-    [dano, dualMode, performWeaponRoll]
+    [dano, dualMode, performWeaponRoll, bakedFlatDamageBonus]
   );
 
   // Should warn about unwielded weapon.

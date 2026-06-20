@@ -343,6 +343,7 @@ export type StatModifierTarget =
       meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
       thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
+      twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
       // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
@@ -354,6 +355,7 @@ export type StatModifierTarget =
       meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
       thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
+      twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
     }
   | {
       type: 'WeaponThreatMargin';
@@ -363,6 +365,7 @@ export type StatModifierTarget =
       meleeOnly?: boolean;
       rangedOnly?: boolean;
       thrownOnly?: boolean;
+      twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
       // 'increase' (padrão): alarga a margem pelo valor; 'set': define a margem
       // (ex.: "sua margem de ameaça passa a ser 19").
@@ -376,6 +379,7 @@ export type StatModifierTarget =
       meleeOnly?: boolean;
       rangedOnly?: boolean;
       thrownOnly?: boolean;
+      twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
       // 'increase' (padrão): soma ao multiplicador; 'set': define o multiplicador
       // (ex.: "seu multiplicador de crítico passa a ser x3").

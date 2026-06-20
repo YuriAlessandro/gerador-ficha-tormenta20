@@ -37,7 +37,7 @@ import {
   getMulticlassAvailableAbilities,
   findClassDescription,
 } from './multiclass';
-import { stepUpDamage } from './weaponDamageStep';
+import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
 import { stampUsedSupplements } from './contentSources';
@@ -299,6 +299,7 @@ const weaponMatchesBonus = (
     meleeOnly?: boolean;
     rangedOnly?: boolean;
     thrownOnly?: boolean;
+    twoHandedOnly?: boolean;
     weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
   },
   _sheet: CharacterSheet
@@ -346,6 +347,12 @@ const weaponMatchesBonus = (
     }
   }
 
+  // Apenas armas empunhadas com as duas mãos (ex.: Estilo de Duas Mãos).
+  // Armas leves nunca são `twoHanded`, então o filtro também as exclui.
+  if (bonus.twoHandedOnly && !weapon.twoHanded) {
+    return false;
+  }
+
   // Check weapon tags
   if (bonus.weaponTags && bonus.weaponTags.length > 0) {
     const weaponTags = weapon.weaponTags || [];
@@ -389,9 +396,13 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
   if (resetWeapon.baseDano) {
     resetWeapon.dano = resetWeapon.baseDano;
   } else if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
-    // Fallback: Extract base damage (everything before the first '+')
-    // and store it for future use
-    [resetWeapon.dano] = resetWeapon.dano.split('+');
+    // Fallback: strip the baked flat bonus to recover the base damage. Handle
+    // dual-mode strings per segment ("1d6+5/1d6+5" -> "1d6/1d6") so versatile/
+    // double-damage weapons aren't corrupted to a single mode.
+    resetWeapon.dano = resetWeapon.dano
+      .split('/')
+      .map((part) => part.split('+')[0])
+      .join('/');
     resetWeapon.baseDano = resetWeapon.dano;
   }
 
@@ -530,8 +541,11 @@ const applyWeaponBonuses = (
       }
 
       if (totalDamageBonus > 0) {
+        // Soma por modo (trata "1d6/1d6" como dois modos) e mescla qualquer
+        // modificador já presente — concatenar "+N" cru deixaria o bônus só no
+        // último modo de armas de dano duplo (ex.: Bordão + Estilo de Duas Mãos).
         weaponCopy.dano = weaponCopy.dano
-          ? `${weaponCopy.dano}+${totalDamageBonus}`
+          ? addFlatDamageBonus(weaponCopy.dano, totalDamageBonus)
           : `+${totalDamageBonus}`;
       }
 

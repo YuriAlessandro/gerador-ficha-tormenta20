@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { stepUpDamage } from '../../functions/weaponDamageStep';
+import {
+  stepUpDamage,
+  addFlatDamageBonus,
+} from '../../functions/weaponDamageStep';
 
 describe('stepUpDamage — linear ladder', () => {
   it('advances a single step on common dice', () => {
@@ -62,5 +65,39 @@ describe('stepUpDamage — linear ladder', () => {
   it('is a no-op when steps is 0', () => {
     expect(stepUpDamage('1d8', 0)).toBe('1d8');
     expect(stepUpDamage('3d6', 0)).toBe('3d6');
+  });
+});
+
+describe('addFlatDamageBonus — dual-mode aware flat bonus', () => {
+  it('adds the bonus to a simple single-mode string', () => {
+    expect(addFlatDamageBonus('2d6', 5)).toBe('2d6+5');
+    expect(addFlatDamageBonus('1d8', 2)).toBe('1d8+2');
+  });
+
+  it('adds the bonus to BOTH modes of a dual-damage weapon', () => {
+    // Regression: Bordão (1d6/1d6) + Estilo de Duas Mãos must buff both modes,
+    // not just the second one (the old "+5" concat bug).
+    expect(addFlatDamageBonus('1d6/1d6', 5)).toBe('1d6+5/1d6+5');
+    expect(addFlatDamageBonus('1d10/1d12', 5)).toBe('1d10+5/1d12+5');
+  });
+
+  it('merges with an existing trailing modifier instead of duplicating', () => {
+    expect(addFlatDamageBonus('2d6+2', 5)).toBe('2d6+7');
+    expect(addFlatDamageBonus('1d8+3/1d10+1', 2)).toBe('1d8+5/1d10+3');
+  });
+
+  it('cancels out to the bare dice when the totals reach zero', () => {
+    expect(addFlatDamageBonus('1d8+2', -2)).toBe('1d8');
+    expect(addFlatDamageBonus('1d6-5', 5)).toBe('1d6');
+  });
+
+  it('applies negative bonuses correctly', () => {
+    expect(addFlatDamageBonus('2d6', -2)).toBe('2d6-2');
+  });
+
+  it('is a no-op for zero bonus or non-parsable damage', () => {
+    expect(addFlatDamageBonus('1d8', 0)).toBe('1d8');
+    expect(addFlatDamageBonus('-', 5)).toBe('-');
+    expect(addFlatDamageBonus('', 5)).toBe('');
   });
 });
