@@ -192,6 +192,12 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Correção:</strong> o poder de combate{' '}
+                  <strong>Finta Aprimorada</strong> não aparece mais como
+                  indisponível ao subir de nível para personagens treinados em{' '}
+                  <strong>Enganação</strong>.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> na página inicial, os{' '}
                   <strong>tópicos do fórum</strong> agora aparecem sempre em{' '}
                   <strong>ordem do mais recente para o mais antigo</strong>, sem
