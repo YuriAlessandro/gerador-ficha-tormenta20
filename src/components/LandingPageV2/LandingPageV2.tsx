@@ -9,10 +9,11 @@ import background from '../../assets/images/fantasybg.png';
 import HeroCarousel from './HeroCarousel';
 import SupportBanner from './SupportBanner';
 import BestiaryBanner from './BestiaryBanner';
+import HomebrewsBanner from './HomebrewsBanner';
+import BuildsBanner from './BuildsBanner';
 import ContinueAndTablesSection from './ContinueAndTablesSection';
 import BlogHighlights from './BlogHighlights';
 import ForumActivity from './ForumActivity';
-import BuildsShowcase from './BuildsShowcase';
 import ToolsSidebar from './ToolsSidebar';
 import useCommunityHighlights from './hooks/useCommunityHighlights';
 
@@ -32,6 +33,8 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
     blogPosts,
     forumThreads,
     builds,
+    homebrews,
+    bestiary,
     loading: highlightsLoading,
   } = useCommunityHighlights();
 
@@ -156,16 +159,28 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                 </Box>
               </Box>
 
-              {/* Bestiary banner — full width below the 2-col section */}
+              {/* Criado pela comunidade — banners temáticos consistentes:
+                  Homebrews, Bestiário e Builds */}
+              <Box className='landing-section'>
+                <HomebrewsBanner
+                  onClickButton={onClickButton}
+                  homebrews={homebrews}
+                  loading={highlightsLoading}
+                />
+              </Box>
+
               {bestiaryEnabled && (
                 <Box className='landing-section'>
-                  <BestiaryBanner onClickButton={onClickButton} />
+                  <BestiaryBanner
+                    onClickButton={onClickButton}
+                    bestiary={bestiary}
+                    loading={highlightsLoading}
+                  />
                 </Box>
               )}
 
-              {/* Builds showcase (grid 4-col) */}
               <Box className='landing-section'>
-                <BuildsShowcase
+                <BuildsBanner
                   onClickButton={onClickButton}
                   builds={builds}
                   loading={highlightsLoading}
