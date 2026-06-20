@@ -192,6 +192,16 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Correção:</strong> as <strong>magias</strong> dos
+                  suplementos (como <strong>Ameaças de Arton</strong>,{' '}
+                  <strong>Deuses de Arton</strong> e{' '}
+                  <strong>Heróis de Arton</strong>) não apareciam na geração de
+                  personagens. Agora os conjuradores podem aprender as magias
+                  desses livros, conforme os{' '}
+                  <strong>suplementos ativos no seu perfil</strong> — tanto na
+                  ficha aleatória quanto ao editar os poderes da ficha.
+                </li>
+                <li>
                   <strong>Correção:</strong> as origens regionais (Atlas de
                   Arton) <strong>Aristocrata Dai&apos;zenshi (Tamu-ra)</strong>{' '}
                   e <strong>Bandoleiro da Fortaleza (Khalifor)</strong>{' '}
