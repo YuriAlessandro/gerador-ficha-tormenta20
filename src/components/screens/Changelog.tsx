@@ -142,14 +142,17 @@ const Changelog: React.FC = () => {
                   efêmero (que não é salvo) forçando o seu homebrew, para você
                   conferir os números na prática. Cada homebrew publicado tem{' '}
                   <strong>fórum próprio</strong> e{' '}
-                  <strong>histórico de versões</strong>, e a quantidade que você
-                  mantém ativa ao mesmo tempo depende do seu nível de apoio.
+                  <strong>histórico de versões</strong>.
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  Uma <strong>série completa de tutoriais</strong> no blog
-                  ensina, passo a passo, a criar cada tipo de homebrew. Feature
-                  exclusiva para apoiadores — e você é responsável pelo suporte
-                  e manutenção do conteúdo que publica.
+                  <strong>Criar é grátis para qualquer pessoa</strong> com
+                  conta: monte, teste e publique seus homebrews sem custo. O{' '}
+                  <strong>nível de apoio</strong> define apenas{' '}
+                  <strong>quantos você mantém ativos ao mesmo tempo</strong>{' '}
+                  (grátis: 3; Nível 1: 5; Nível 2: 10; Nível 3: ilimitado). Uma{' '}
+                  <strong>série completa de tutoriais</strong> no blog ensina,
+                  passo a passo, a criar cada tipo — e lembre-se: você é
+                  responsável pelo suporte e manutenção do conteúdo que publica.
                 </Typography>
               </Alert>
 
@@ -186,27 +189,6 @@ const Changelog: React.FC = () => {
                   e marcação rápida de locais.
                 </Typography>
               </Alert>
-
-              <ul>
-                <li>
-                  <strong>
-                    Novo: Confirmação ao publicar e ao ativar homebrews.
-                  </strong>{' '}
-                  Ao <strong>publicar</strong> ou <strong>ativar</strong> um
-                  homebrew, um aviso reforça que o conteúdo não é oficial e que
-                  o suporte se dá pelo fórum da própria página — com um botão
-                  que só é liberado após alguns segundos, para garantir a
-                  leitura.
-                </li>
-                <li>
-                  <strong>Novo: Posts do blog podem ser ocultados.</strong>{' '}
-                  Autores podem marcar um post como <strong>oculto</strong>: ele
-                  some da listagem pública, mas continua acessível por link
-                  direto — útil para séries de posts interligados (como os
-                  tutoriais de homebrew), em que só a introdução precisa
-                  aparecer na lista.
-                </li>
-              </ul>
 
               <h3>4.21</h3>
 
