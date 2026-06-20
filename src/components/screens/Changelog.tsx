@@ -192,6 +192,13 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> na página inicial, os{' '}
+                  <strong>tópicos do fórum</strong> agora aparecem sempre em{' '}
+                  <strong>ordem do mais recente para o mais antigo</strong>, sem
+                  os três primeiros lugares reservados para apoiadores. O
+                  destaque visual dos apoiadores continua.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> o modal de{' '}
                   <strong>aplicar condições</strong> na ficha ficou mais limpo:
                   agora as condições aparecem <strong>uma por linha</strong> e
