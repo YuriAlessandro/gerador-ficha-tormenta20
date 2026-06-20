@@ -37,7 +37,6 @@ import {
 import {
   standardFaithProbability,
   DivindadeEnum,
-  DIVINDADES,
 } from '../data/systems/tormenta20/divindades';
 import { generateRandomName } from '../data/systems/tormenta20/nomes';
 import {
@@ -164,6 +163,7 @@ import {
   feiticeiroPaths,
   arcanistaSpellPaths,
   ArcanistaSubtypes,
+  createLinhagemAbencoada,
 } from '../data/systems/tormenta20/classes/arcanista';
 
 // Race customization interface for races with customization options
@@ -5497,38 +5497,12 @@ export function generateEmptySheet(
 
         const deusEscolhido =
           wizardSelections.linhagemAbencoada?.deus || 'um deus maior';
-        modifiedClasse.abilities.push({
-          name: 'Linhagem Abençoada',
-          text: `Seu poder vem de ${deusEscolhido}. Você aprende uma magia divina de 1º círculo e pode aprender magias divinas de 1º círculo como magias de feiticeiro.`,
-          nivel: 1,
-        });
-
-        // Buscar poderes concedidos da divindade escolhida
-        const divindade = DIVINDADES.find((d) => d.name === deusEscolhido);
-        const poderesDisponiveis = divindade?.poderes || [];
-
-        // Habilidade de nível 2: poder concedido com escolha
-        modifiedClasse.abilities.push({
-          name: 'Linhagem Abençoada (Poder Concedido)',
-          text: `Você recebe um poder concedido de ${deusEscolhido}, aprovado pelo mestre, sem precisar ser devoto.`,
-          nivel: 2,
-          sheetActions:
-            poderesDisponiveis.length > 0
-              ? [
-                  {
-                    source: {
-                      type: 'power',
-                      name: 'Linhagem Abençoada (Poder Concedido)',
-                    },
-                    action: {
-                      type: 'getGeneralPower',
-                      availablePowers: poderesDisponiveis,
-                      pick: 1,
-                    },
-                  },
-                ]
-              : undefined,
-        });
+        // Habilidades da Linhagem Abençoada (nível 1 + poder concedido de nível 2).
+        // Fonte única em createLinhagemAbencoada para manter detecção do wizard
+        // (getClassSetupAbilities) e geração em sincronia.
+        modifiedClasse.abilities.push(
+          ...createLinhagemAbencoada(deusEscolhido)
+        );
       }
     }
 

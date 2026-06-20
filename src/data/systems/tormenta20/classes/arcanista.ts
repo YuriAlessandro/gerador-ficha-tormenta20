@@ -14,6 +14,7 @@ import tormentaPowers from '../powers/tormentaPowers';
 import { spellsCircle1 } from '../magias/generalSpells';
 import { allSpellSchools } from '../../../../interfaces/Spells';
 import { SupplementId } from '../../../../types/supplement.types';
+import { DIVINDADES } from '../divindades';
 
 export type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
 const allArcanistaSubtypes: ArcanistaSubtypes[] = [
@@ -167,12 +168,43 @@ export const DEUSES_MAIORES = [
   'Wynna',
 ];
 
-export function createLinhagemAbencoada(deus: string): ClassAbility {
-  return {
-    name: 'Linhagem Abençoada',
-    text: `Seu poder vem de ${deus}. Você aprende uma magia divina de 1º círculo e pode aprender magias divinas de 1º círculo como magias de feiticeiro.`,
-    nivel: 1,
-  };
+export function createLinhagemAbencoada(deus: string): ClassAbility[] {
+  const abilities: ClassAbility[] = [
+    {
+      name: 'Linhagem Abençoada',
+      text: `Seu poder vem de ${deus}. Você aprende uma magia divina de 1º círculo e pode aprender magias divinas de 1º círculo como magias de feiticeiro.`,
+      nivel: 1,
+    },
+  ];
+
+  // Habilidade de nível 2: poder concedido com escolha (definido pelo usuário no
+  // wizard, ou aleatório na geração de ficha aleatória).
+  const divindade = DIVINDADES.find((d) => d.name === deus);
+  const poderesDisponiveis = divindade?.poderes || [];
+
+  abilities.push({
+    name: 'Linhagem Abençoada (Poder Concedido)',
+    text: `Você recebe um poder concedido de ${deus}, aprovado pelo mestre, sem precisar ser devoto.`,
+    nivel: 2,
+    sheetActions:
+      poderesDisponiveis.length > 0
+        ? [
+            {
+              source: {
+                type: 'power',
+                name: 'Linhagem Abençoada (Poder Concedido)',
+              },
+              action: {
+                type: 'getGeneralPower',
+                availablePowers: poderesDisponiveis,
+                pick: 1,
+              },
+            },
+          ]
+        : undefined,
+  });
+
+  return abilities;
 }
 
 const ARCANISTA: ClassDescription = {
@@ -496,7 +528,7 @@ const ARCANISTA: ClassDescription = {
         modifiedClasse.abilities.push(selectedSubType);
       } else if (selectedSubType.name === 'Linhagem Abençoada') {
         const deus = getRandomItemFromArray(DEUSES_MAIORES);
-        const linhagemAbility = createLinhagemAbencoada(deus);
+        const linhagemAbilities = createLinhagemAbencoada(deus);
         if (modifiedClasse.spellPath) {
           // Clone the spellPath to avoid mutating the shared
           // arcanistaSpellPaths['Feiticeiro'] reference across generations.
@@ -508,7 +540,7 @@ const ARCANISTA: ClassDescription = {
             initialSpells: 4,
           };
         }
-        modifiedClasse.abilities.push(linhagemAbility);
+        modifiedClasse.abilities.push(...linhagemAbilities);
       }
     }
 

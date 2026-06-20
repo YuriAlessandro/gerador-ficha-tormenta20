@@ -457,7 +457,7 @@ export function getClassSetupAbilities(
     ) {
       if (classSetup.feiticeiroLinhagem === 'Linhagem Abençoada') {
         const deus = classSetup.linhagemAbencoadaDeus || 'um deus maior';
-        abilities.push(createLinhagemAbencoada(deus));
+        abilities.push(...createLinhagemAbencoada(deus));
       } else {
         const linhagemAbility = feiticeiroPaths.find(
           (p) => p.name === classSetup.feiticeiroLinhagem
