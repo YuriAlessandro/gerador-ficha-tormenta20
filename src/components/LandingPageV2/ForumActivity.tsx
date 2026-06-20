@@ -14,10 +14,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import PersonIcon from '@mui/icons-material/Person';
 import { ForumThread } from '../../premium/interfaces/forum.types';
-import {
-  SupportLevel,
-  getSupporterGlowColor,
-} from '../../types/subscription.types';
+import { getSupporterGlowColor } from '../../types/subscription.types';
 
 interface ForumActivityProps {
   onClickButton: (link: string) => void;
@@ -51,24 +48,6 @@ const formatDate = (dateString?: string): string => {
   });
 };
 
-const isSupporter = (thread: ForumThread) =>
-  thread.authorSupportLevel && thread.authorSupportLevel !== SupportLevel.FREE;
-
-/**
- * Ordering rule: top 3 prioritize supporters (most-recently-active first),
- * then the remaining slots are filled by overall activity order.
- */
-const orderThreads = (threads: ForumThread[]): ForumThread[] => {
-  if (threads.length === 0) return [];
-
-  const supporterPool = threads.filter(isSupporter).slice(0, 3);
-
-  const supporterIds = new Set(supporterPool.map((t) => t.id));
-  const rest = threads.filter((t) => !supporterIds.has(t.id));
-
-  return [...supporterPool, ...rest];
-};
-
 const ForumActivity: React.FC<ForumActivityProps> = ({
   onClickButton,
   threads,
@@ -80,7 +59,7 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
   const isDark = theme.palette.mode === 'dark';
 
   const ordered = useMemo(
-    () => orderThreads(threads).slice(0, maxItems),
+    () => threads.slice(0, maxItems),
     [threads, maxItems]
   );
 
