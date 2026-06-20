@@ -47,6 +47,7 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
+import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
 import { isClassOrVariantOf } from '@/functions/general';
 import {
@@ -85,6 +86,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   sheet,
   onSave,
 }) => {
+  const supplements = useContentSupplements();
   const [selectedPowers, setSelectedPowers] = useState<GeneralPower[]>([]);
   const [selectedClassPowers, setSelectedClassPowers] = useState<ClassPower[]>(
     []
@@ -446,7 +448,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     if (requirements) {
       // Check if any requirement actually has multiple options to choose from
       const requiresUserInput = requirements.requirements.some((req) => {
-        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        const availableOptions = getFilteredAvailableOptions(
+          req,
+          sheet,
+          supplements
+        );
         return (
           availableOptions.length > 1 && req.pick < availableOptions.length
         );
@@ -464,7 +470,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         // Auto-select when there's only one option or all options must be picked
         const autoSelections: SelectionOptions = {};
         requirements.requirements.forEach((req) => {
-          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            sheet,
+            supplements
+          );
           if (
             availableOptions.length === req.pick ||
             availableOptions.length === 1
@@ -558,7 +568,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
     if (requirements) {
       const requiresUserInput = requirements.requirements.some((req) => {
-        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        const availableOptions = getFilteredAvailableOptions(
+          req,
+          sheet,
+          supplements
+        );
         return (
           availableOptions.length > 1 && req.pick < availableOptions.length
         );
@@ -574,7 +588,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       } else {
         const autoSelections: SelectionOptions = {};
         requirements.requirements.forEach((req) => {
-          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            sheet,
+            supplements
+          );
           if (
             availableOptions.length === req.pick ||
             availableOptions.length === 1
@@ -726,7 +744,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     if (requirements) {
       // Check if any requirement actually has multiple options to choose from
       const requiresUserInput = requirements.requirements.some((req) => {
-        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        const availableOptions = getFilteredAvailableOptions(
+          req,
+          sheet,
+          supplements
+        );
         return (
           availableOptions.length > 1 && req.pick < availableOptions.length
         );
@@ -744,7 +766,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         // Auto-select when there's only one option or all options must be picked
         const autoSelections: SelectionOptions = {};
         requirements.requirements.forEach((req) => {
-          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            sheet,
+            supplements
+          );
           if (
             availableOptions.length === req.pick ||
             availableOptions.length === 1
@@ -884,7 +910,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
     if (requirements) {
       const requiresUserInput = requirements.requirements.some((req) => {
-        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        const availableOptions = getFilteredAvailableOptions(
+          req,
+          sheet,
+          supplements
+        );
         return (
           availableOptions.length > 1 && req.pick < availableOptions.length
         );
@@ -900,7 +930,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       } else {
         const autoSelections: SelectionOptions = {};
         requirements.requirements.forEach((req) => {
-          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            sheet,
+            supplements
+          );
           if (
             availableOptions.length === req.pick ||
             availableOptions.length === 1

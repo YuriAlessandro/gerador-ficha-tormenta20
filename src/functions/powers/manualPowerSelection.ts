@@ -800,7 +800,8 @@ export function getFilteredAvailableOptions(
 export function validateSelections(
   requirements: PowerSelectionRequirements,
   selections: SelectionOptions,
-  sheet: CharacterSheet
+  sheet: CharacterSheet,
+  supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE]
 ): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -920,7 +921,11 @@ export function validateSelections(
     }
 
     // Check if selections are available
-    const availableOptions = getFilteredAvailableOptions(requirement, sheet);
+    const availableOptions = getFilteredAvailableOptions(
+      requirement,
+      sheet,
+      supplements
+    );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const getName = (item: any): string => {
       if (typeof item === 'string') return item;

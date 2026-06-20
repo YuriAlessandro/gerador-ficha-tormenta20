@@ -78,31 +78,7 @@ import Divindade, { DivindadeNames } from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { generateRandomGolpePessoal } from './powers/golpePessoal';
 import { GOLPE_PESSOAL_EFFECTS } from '../data/systems/tormenta20/golpePessoal';
-import {
-  allArcaneSpellsCircle1,
-  allArcaneSpellsCircle2,
-  allArcaneSpellsCircle3,
-  allArcaneSpellsCircle4,
-  allArcaneSpellsCircle5,
-  arcaneSpellsCircle1,
-  arcaneSpellsCircle2,
-  arcaneSpellsCircle3,
-  arcaneSpellsCircle4,
-  arcaneSpellsCircle5,
-  getArcaneSpellsOfCircle,
-} from '../data/systems/tormenta20/magias/arcane';
-import {
-  allDivineSpellsCircle1,
-  allDivineSpellsCircle2,
-  allDivineSpellsCircle3,
-  allDivineSpellsCircle4,
-  allDivineSpellsCircle5,
-  divineSpellsCircle1,
-  divineSpellsCircle2,
-  divineSpellsCircle3,
-  divineSpellsCircle4,
-  divineSpellsCircle5,
-} from '../data/systems/tormenta20/magias/divine';
+import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcane';
 import { Spell, allSpellSchools } from '../interfaces/Spells';
 import {
   getRaceDisplacement,
@@ -1197,7 +1173,8 @@ function getReligiosidade(
 function getNewSpells(
   nivel: number,
   classe: ClassDescription,
-  usedSpells: Spell[]
+  usedSpells: Spell[],
+  supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE]
 ): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return [];
@@ -1220,25 +1197,20 @@ function getNewSpells(
   let spellList: Spell[] = [];
   if (spellType === 'Arcane') {
     for (let index = 1; index < circle + 1; index += 1) {
-      if (index === 1) spellList = allArcaneSpellsCircle1;
-      if (index === 2) spellList = spellList.concat(allArcaneSpellsCircle2);
-      if (index === 3) spellList = spellList.concat(allArcaneSpellsCircle3);
-      if (index === 4) spellList = spellList.concat(allArcaneSpellsCircle4);
-      if (index === 5) spellList = spellList.concat(allArcaneSpellsCircle5);
+      spellList = spellList.concat(
+        dataRegistry.getArcaneSpellsByCircleAndSupplements(index, supplements)
+      );
     }
 
     // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
     if (includeDivineSchools && includeDivineSchools.length > 0) {
-      const divineCircles = [
-        divineSpellsCircle1,
-        divineSpellsCircle2,
-        divineSpellsCircle3,
-        divineSpellsCircle4,
-        divineSpellsCircle5,
-      ];
       for (let index = 1; index < circle + 1; index += 1) {
+        const divineCircle = dataRegistry.getSpellsByCircleAndSupplements(
+          index,
+          supplements
+        ).divine;
         const circleSpells = includeDivineSchools.flatMap(
-          (school) => divineCircles[index - 1][school] || []
+          (school) => divineCircle[school] || []
         );
         if (crossTraditionLimit && circleSpells.length > 0) {
           const randomSpell = getRandomItemFromArray(circleSpells);
@@ -1250,25 +1222,20 @@ function getNewSpells(
     }
   } else {
     for (let index = 1; index < circle + 1; index += 1) {
-      if (index === 1) spellList = allDivineSpellsCircle1;
-      if (index === 2) spellList = spellList.concat(allDivineSpellsCircle2);
-      if (index === 3) spellList = spellList.concat(allDivineSpellsCircle3);
-      if (index === 4) spellList = spellList.concat(allDivineSpellsCircle4);
-      if (index === 5) spellList = spellList.concat(allDivineSpellsCircle5);
+      spellList = spellList.concat(
+        dataRegistry.getDivineSpellsByCircleAndSupplements(index, supplements)
+      );
     }
 
     // Include arcane spells from specified schools (e.g., Teurgista Místico)
     if (includeArcaneSchools && includeArcaneSchools.length > 0) {
-      const arcaneCircles = [
-        arcaneSpellsCircle1,
-        arcaneSpellsCircle2,
-        arcaneSpellsCircle3,
-        arcaneSpellsCircle4,
-        arcaneSpellsCircle5,
-      ];
       for (let index = 1; index < circle + 1; index += 1) {
+        const arcaneCircle = dataRegistry.getSpellsByCircleAndSupplements(
+          index,
+          supplements
+        ).arcane;
         const circleSpells = includeArcaneSchools.flatMap(
-          (school) => arcaneCircles[index - 1][school] || []
+          (school) => arcaneCircle[school] || []
         );
         if (crossTraditionLimit && circleSpells.length > 0) {
           const randomSpell = getRandomItemFromArray(circleSpells);
@@ -1281,48 +1248,15 @@ function getNewSpells(
   }
 
   if (schools) {
-    if (spellType === 'Arcane') {
-      for (let index = 1; index < circle + 1; index += 1) {
-        if (index === 1)
-          spellList = schools.flatMap((school) => arcaneSpellsCircle1[school]);
-        if (index === 2)
-          spellList = spellList.concat(
-            schools.flatMap((school) => arcaneSpellsCircle2[school])
-          );
-        if (index === 3)
-          spellList = spellList.concat(
-            schools.flatMap((school) => arcaneSpellsCircle3[school])
-          );
-        if (index === 4)
-          spellList = spellList.concat(
-            schools.flatMap((school) => arcaneSpellsCircle4[school])
-          );
-        if (index === 5)
-          spellList = spellList.concat(
-            schools.flatMap((school) => arcaneSpellsCircle5[school])
-          );
-      }
-    } else {
-      for (let index = 1; index < circle + 1; index += 1) {
-        if (index === 1)
-          spellList = schools.flatMap((school) => divineSpellsCircle1[school]);
-        if (index === 2)
-          spellList = spellList.concat(
-            schools.flatMap((school) => divineSpellsCircle2[school])
-          );
-        if (index === 3)
-          spellList = spellList.concat(
-            schools.flatMap((school) => divineSpellsCircle3[school])
-          );
-        if (index === 4)
-          spellList = spellList.concat(
-            schools.flatMap((school) => divineSpellsCircle4[school])
-          );
-        if (index === 5)
-          spellList = spellList.concat(
-            schools.flatMap((school) => divineSpellsCircle5[school])
-          );
-      }
+    for (let index = 1; index < circle + 1; index += 1) {
+      const circleByType = dataRegistry.getSpellsByCircleAndSupplements(
+        index,
+        supplements
+      );
+      const schoolMap =
+        spellType === 'Arcane' ? circleByType.arcane : circleByType.divine;
+      const circleSpells = schools.flatMap((school) => schoolMap[school] || []);
+      spellList = index === 1 ? circleSpells : spellList.concat(circleSpells);
     }
   }
 
@@ -3449,7 +3383,10 @@ function getAndApplyPowers(
   return updatedSheet;
 }
 
-function levelUp(sheet: CharacterSheet): CharacterSheet {
+function levelUp(
+  sheet: CharacterSheet,
+  supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE]
+): CharacterSheet {
   let updatedSheet = cloneDeep(sheet);
   updatedSheet.nivel += 1;
 
@@ -3547,7 +3484,8 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   const newSpells = getNewSpells(
     updatedSheet.nivel,
     sheet.classe,
-    sheet.spells
+    sheet.spells,
+    supplements
   );
   // Filter out duplicates before adding
   const uniqueNewSpells = newSpells.filter(
@@ -5121,7 +5059,12 @@ export default function generateRandomSheet(
   charSheet = calcDefense(charSheet);
 
   // Passo 13: Gerar magias se possível
-  const newSpells = getNewSpells(1, charSheet.classe, charSheet.spells);
+  const newSpells = getNewSpells(
+    1,
+    charSheet.classe,
+    charSheet.spells,
+    supplements
+  );
   // Filter out duplicates before adding
   const uniqueNewSpells = newSpells.filter(
     (newSpell) =>
@@ -5163,7 +5106,7 @@ export default function generateRandomSheet(
   charSheet.displacement = displacement;
 
   for (let index = 2; index <= targetLevel; index += 1) {
-    charSheet = levelUp(charSheet);
+    charSheet = levelUp(charSheet, supplements);
   }
 
   // Passo 14: Aplicar modificadores de atributos

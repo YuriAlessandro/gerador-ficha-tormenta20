@@ -27,6 +27,7 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
+import { useContentSupplements } from '@/hooks/useContentSupplements';
 
 interface PowerSelectionDialogProps {
   open: boolean;
@@ -49,6 +50,7 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
   instances = 1,
   initialSelections,
 }) => {
+  const supplements = useContentSupplements();
   const [selections, setSelections] = useState<SelectionOptions>({});
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -258,7 +260,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
   };
 
   const handleConfirm = () => {
-    const validation = validateSelections(requirements, selections, sheet);
+    const validation = validateSelections(
+      requirements,
+      selections,
+      sheet,
+      supplements
+    );
 
     if (validation.isValid) {
       onConfirm(selections);
@@ -271,7 +278,11 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderRequirement = (requirement: any, index: number) => {
     const { type, pick, label } = requirement;
-    const availableOptions = getFilteredAvailableOptions(requirement, sheet);
+    const availableOptions = getFilteredAvailableOptions(
+      requirement,
+      sheet,
+      supplements
+    );
 
     if (availableOptions.length === 0) {
       return (
