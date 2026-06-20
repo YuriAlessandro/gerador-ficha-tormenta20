@@ -227,6 +227,16 @@ const Changelog: React.FC = () => {
                   <strong>prévia</strong> quanto na <strong>rolagem</strong>,
                   ficando iguais ao que a ficha exibe.
                 </li>
+                <li>
+                  <strong>Correção:</strong> a{' '}
+                  <strong>Mochila de Aventureiro</strong> agora aumenta de fato
+                  a <strong>capacidade de carga</strong> em 2 espaços. Antes o
+                  limite até subia na ficha e no PDF, mas a verificação de
+                  sobrecarga continuava usando o limite antigo — então o
+                  personagem aparecia <strong>sobrecarregado</strong> e com o{' '}
+                  <strong>deslocamento reduzido</strong> sem motivo, inclusive
+                  no PDF.
+                </li>
               </ul>
 
               <h3>4.21</h3>
