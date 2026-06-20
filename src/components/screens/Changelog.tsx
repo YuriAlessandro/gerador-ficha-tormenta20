@@ -192,6 +192,14 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Correção:</strong> as origens regionais (Atlas de
+                  Arton) <strong>Aristocrata Dai&apos;zenshi (Tamu-ra)</strong>{' '}
+                  e <strong>Bandoleiro da Fortaleza (Khalifor)</strong>{' '}
+                  apareciam com o poder, a perícia e os itens de outra origem.
+                  Agora cada uma concede o{' '}
+                  <strong>benefício e os itens corretos</strong>.
+                </li>
+                <li>
                   <strong>Correção:</strong> na <strong>Mesa Virtual</strong>,
                   abrir a ficha de um jogador podia, em alguns casos, carregar a
                   ficha de <strong>outro jogador</strong> da mesma mesa. As
