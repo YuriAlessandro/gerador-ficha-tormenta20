@@ -192,6 +192,15 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Correção:</strong> ao subir de nível um{' '}
+                  <strong>Feiticeiro</strong> com a{' '}
+                  <strong>Linhagem Abençoada</strong>, o{' '}
+                  <strong>poder concedido</strong> da divindade no nível 2 era
+                  adicionado automaticamente <strong>sem você escolher</strong>.
+                  Agora o assistente de evolução pede para você{' '}
+                  <strong>escolher qual poder concedido</strong> receber.
+                </li>
+                <li>
                   <strong>Correção:</strong> o poder de combate{' '}
                   <strong>Finta Aprimorada</strong> não aparece mais como
                   indisponível ao subir de nível para personagens treinados em{' '}
