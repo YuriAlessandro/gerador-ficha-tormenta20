@@ -58,8 +58,9 @@ Antes de soltar um homebrew no mundo, rode esta lista:
 3. **Bônus no lugar certo** (passivo × ativo; alvo correto; escopo de arma certo).
 4. **[Ficha de teste](/blog/homebrew-ficha-de-teste)** gerada em pelo menos dois níveis diferentes, sem erros e com os números saindo como esperado.
 5. **Visibilidade** definida conforme a intenção (público / não listado / privado).
-6. **Direitos autorais**: o conteúdo é seu ou você tem direito de distribuí-lo; declaração de IA marcada se for o caso.
-7. Para **coleções**: todos os membros já publicados e selecionados.
+6. **Changelog** da versão escrito ao publicar — descreva o que mudou (aparece no histórico de versões; nas atualizações, detalhe as alterações em vez de deixar o texto padrão).
+7. **Direitos autorais**: o conteúdo é seu ou você tem direito de distribuí-lo; declaração de IA marcada se for o caso.
+8. Para **coleções**: todos os membros já publicados e selecionados.
 
 ---
 
