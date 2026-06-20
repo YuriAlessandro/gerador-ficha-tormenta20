@@ -373,7 +373,7 @@ const combatPowers: Record<string, GeneralPower> = {
     description:
       'Você recebe +2 em testes de Enganação para fintar e pode fintar como uma ação de movimento.',
     type: GeneralPowerType.COMBATE,
-    requirements: [[{ type: RequirementType.PERICIA, name: 'Enganação ' }]],
+    requirements: [[{ type: RequirementType.PERICIA, name: Skill.ENGANACAO }]],
   },
   FOCO_EM_ARMA: {
     name: 'Foco em Arma',
