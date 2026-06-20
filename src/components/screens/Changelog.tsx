@@ -96,7 +96,7 @@ const Changelog: React.FC = () => {
                   Homebrews — crie o seu próprio conteúdo
                 </Typography>
                 <Typography variant='body1' sx={{ mb: 1 }}>
-                  Apoiadores agora podem criar <strong>conteúdo próprio</strong>{' '}
+                  Usuários agora podem criar <strong>conteúdo próprio</strong>{' '}
                   de jogo por meio de um editor visual, sem programar:{' '}
                   <strong>Raças</strong>, <strong>Classes</strong>,{' '}
                   <strong>Pacotes de Magias</strong>,{' '}
@@ -191,6 +191,27 @@ const Changelog: React.FC = () => {
               </Alert>
 
               <ul>
+                <li>
+                  <strong>Novo:</strong> agora você pode{' '}
+                  <strong>ativar qualquer efeito manualmente</strong> na ficha,
+                  a qualquer momento. Na janela de{' '}
+                  <strong>Efeitos Ativos</strong>, a aba{' '}
+                  <strong>Adicionar</strong> deixa aplicar qualquer poder ou
+                  magia <strong>independentemente dos pré-requisitos</strong>{' '}
+                  (classe, nível, poder ou atributo) — útil quando o mestre cria
+                  uma situação de jogo que obriga o efeito a existir. Efeitos de
+                  outras classes oferecem a <strong>faixa completa</strong> de
+                  intensidades. As sugestões automáticas (botão ✨) continuam
+                  mostrando apenas o que o personagem realmente possui.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> na página de um{' '}
+                  <strong>Homebrew</strong>, os{' '}
+                  <strong>poderes de classe e os pacotes de poderes</strong>{' '}
+                  agora exibem seus <strong>pré-requisitos</strong> em linguagem
+                  natural (nível, atributo, perícia, proficiência ou outro
+                  poder), facilitando entender o que é preciso para usá-los.
+                </li>
                 <li>
                   <strong>Correção:</strong> ao subir de nível um{' '}
                   <strong>Feiticeiro</strong> com a{' '}
