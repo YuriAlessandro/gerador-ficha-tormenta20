@@ -39,6 +39,9 @@ export const ACCENT_COLORS: Record<AccentColorId, AccentColorPalette> = {
     dark: '#922325',
     light: '#da5b5d',
     contrastText: '#ffffff',
+    // Cor padrão da interface — SEMPRE disponível para todos os usuários,
+    // mesmo não-apoiadores. Garante que qualquer um possa voltar à cor padrão.
+    free: true,
   },
   brown: {
     id: 'brown',
