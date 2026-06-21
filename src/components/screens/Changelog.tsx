@@ -199,13 +199,6 @@ const Changelog: React.FC = () => {
                   <strong>perfil do autor</strong>.
                 </li>
                 <li>
-                  <strong>Correção:</strong> a seção{' '}
-                  <strong>Posts no blog</strong> no perfil deixava os cards{' '}
-                  <strong>cortados na borda direita</strong> quando o título do
-                  post era longo; agora a listagem se ajusta corretamente e os
-                  títulos longos são truncados dentro do card.
-                </li>
-                <li>
                   <strong>Novo:</strong> agora você pode{' '}
                   <strong>ativar qualquer efeito manualmente</strong> na ficha,
                   a qualquer momento. Na janela de{' '}
@@ -219,27 +212,19 @@ const Changelog: React.FC = () => {
                   mostrando apenas o que o personagem realmente possui.
                 </li>
                 <li>
+                  <strong>Novo:</strong> o poder{' '}
+                  <strong>Estilo de Duas Mãos</strong> agora pode ser
+                  ligado/desligado como efeito de combate, concedendo{' '}
+                  <strong>+5 no dano</strong> com armas corpo a corpo empunhadas
+                  com as duas mãos (não se aplica a armas leves).
+                </li>
+                <li>
                   <strong>Melhoria:</strong> na página de um{' '}
                   <strong>Homebrew</strong>, os{' '}
                   <strong>poderes de classe e os pacotes de poderes</strong>{' '}
                   agora exibem seus <strong>pré-requisitos</strong> em linguagem
                   natural (nível, atributo, perícia, proficiência ou outro
                   poder), facilitando entender o que é preciso para usá-los.
-                </li>
-                <li>
-                  <strong>Correção:</strong> ao subir de nível um{' '}
-                  <strong>Feiticeiro</strong> com a{' '}
-                  <strong>Linhagem Abençoada</strong>, o{' '}
-                  <strong>poder concedido</strong> da divindade no nível 2 era
-                  adicionado automaticamente <strong>sem você escolher</strong>.
-                  Agora o assistente de evolução pede para você{' '}
-                  <strong>escolher qual poder concedido</strong> receber.
-                </li>
-                <li>
-                  <strong>Correção:</strong> o poder de combate{' '}
-                  <strong>Finta Aprimorada</strong> não aparece mais como
-                  indisponível ao subir de nível para personagens treinados em{' '}
-                  <strong>Enganação</strong>.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> na página inicial, os{' '}
@@ -256,6 +241,28 @@ const Changelog: React.FC = () => {
                   o efeito resumido mais discreto. Cada condição tem um botão
                   para <strong>expandir e ler a descrição completa</strong>,
                   funcionando bem também no celular.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a seção{' '}
+                  <strong>Posts no blog</strong> no perfil deixava os cards{' '}
+                  <strong>cortados na borda direita</strong> quando o título do
+                  post era longo; agora a listagem se ajusta corretamente e os
+                  títulos longos são truncados dentro do card.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao subir de nível um{' '}
+                  <strong>Feiticeiro</strong> com a{' '}
+                  <strong>Linhagem Abençoada</strong>, o{' '}
+                  <strong>poder concedido</strong> da divindade no nível 2 era
+                  adicionado automaticamente <strong>sem você escolher</strong>.
+                  Agora o assistente de evolução pede para você{' '}
+                  <strong>escolher qual poder concedido</strong> receber.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder de combate{' '}
+                  <strong>Finta Aprimorada</strong> não aparece mais como
+                  indisponível ao subir de nível para personagens treinados em{' '}
+                  <strong>Enganação</strong>.
                 </li>
                 <li>
                   <strong>Correção:</strong> as <strong>magias</strong> dos
@@ -282,13 +289,6 @@ const Changelog: React.FC = () => {
                   fichas dos membros agora ficam sempre vinculadas corretamente,
                   mesmo quando vários jogadores alteram suas fichas ao mesmo
                   tempo.
-                </li>
-                <li>
-                  <strong>Novo:</strong> o poder{' '}
-                  <strong>Estilo de Duas Mãos</strong> agora pode ser
-                  ligado/desligado como efeito de combate, concedendo{' '}
-                  <strong>+5 no dano</strong> com armas corpo a corpo empunhadas
-                  com as duas mãos (não se aplica a armas leves).
                 </li>
                 <li>
                   <strong>Correção:</strong> armas com{' '}
