@@ -192,6 +192,20 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo:</strong> nos <strong>posts do blog</strong>, o
+                  nome do <strong>autor</strong> agora é{' '}
+                  <strong>clicável</strong> — tanto nos cards da listagem quanto
+                  no topo do post — e leva direto ao{' '}
+                  <strong>perfil do autor</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a seção{' '}
+                  <strong>Posts no blog</strong> no perfil deixava os cards{' '}
+                  <strong>cortados na borda direita</strong> quando o título do
+                  post era longo; agora a listagem se ajusta corretamente e os
+                  títulos longos são truncados dentro do card.
+                </li>
+                <li>
                   <strong>Novo:</strong> agora você pode{' '}
                   <strong>ativar qualquer efeito manualmente</strong> na ficha,
                   a qualquer momento. Na janela de{' '}
