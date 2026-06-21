@@ -1020,7 +1020,38 @@ class DataRegistry {
       });
     });
 
+    // Divindades NOVAS de suplementos (ex.: homebrew) — adicionadas à lista.
+    supplements.forEach((id) => {
+      const supplementDeities = systemData.supplements[id]?.divindades;
+      if (!supplementDeities) return;
+      supplementDeities.forEach((deity) => {
+        if (!deitiesWithPowers.some((d) => d.name === deity.name)) {
+          deitiesWithPowers.push({ ...deity, poderes: [...deity.poderes] });
+        }
+      });
+    });
+
     return deitiesWithPowers;
+  }
+
+  /**
+   * Divindades vindas de suplementos (não-core), ex.: homebrews ativados.
+   * Útil para os formulários listarem opções de devoção além do enum estático.
+   */
+  getSupplementDeities(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Divindade[] {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = this.getResolvedSystemData(systemId);
+    if (!systemData) return [];
+    const result: Divindade[] = [];
+    supplements.forEach((id) => {
+      if (id === SupplementId.TORMENTA20_CORE) return;
+      const supplementDeities = systemData.supplements[id]?.divindades;
+      if (supplementDeities) result.push(...supplementDeities);
+    });
+    return result;
   }
 
   /**

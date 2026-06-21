@@ -17,6 +17,7 @@ import { GeneralPowers } from '../../../../interfaces/Poderes';
 import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { Spell } from '../../../../interfaces/Spells';
 import Origin from '../../../../interfaces/Origin';
+import Divindade from '../../../../interfaces/Divindade';
 import { ItemE, ItemMod } from '../../../../interfaces/Rewards';
 import { GolpePessoalEffect } from '../golpePessoal';
 
@@ -61,6 +62,8 @@ export interface SupplementData {
   equipment?: SupplementEquipment;
   spells?: SupplementSpells;
   origins?: Origin[];
+  /** Divindades adicionais (ex.: homebrew). Core usa o enum estático. */
+  divindades?: Divindade[];
   improvements?: SupplementImprovements;
   enchantments?: SupplementEnchantments;
   /** Poderes adicionais para classes existentes (do livro básico) */

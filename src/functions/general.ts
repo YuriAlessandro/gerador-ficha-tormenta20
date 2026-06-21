@@ -1099,6 +1099,9 @@ function getPoderesConcedidos(
   classe: ClassDescription,
   qtd?: number
 ) {
+  // Divindade sem poderes (ex.: homebrew sem poderes concedidos) — nada a dar.
+  if (divindade.poderes.length === 0) return [];
+
   if (todosPoderes) {
     if (divindade.name === DivindadeEnum.THYATIS.name) {
       return getThyatisPowers(classe, divindade.poderes);
@@ -1108,7 +1111,10 @@ function getPoderesConcedidos(
   }
 
   if (qtd && qtd > 1) {
-    const poderesConcedidos = pickFromArray(divindade.poderes, qtd);
+    // Limita à quantidade disponível (divindades homebrew podem ter < poderes
+    // do que a classe pede) — evita entradas `undefined`.
+    const n = Math.min(qtd, divindade.poderes.length);
+    const poderesConcedidos = pickFromArray(divindade.poderes, n);
     return [...poderesConcedidos];
   }
 
@@ -1151,9 +1157,17 @@ function getReligiosidade(
       ) || DivindadeEnum[divindadeName];
   } else {
     const staticDeity = DivindadeEnum[selectedOption as DivindadeNames];
-    divindade =
-      dataRegistry.getDeityByName(staticDeity.name, supplements) || staticDeity;
+    if (staticDeity) {
+      divindade =
+        dataRegistry.getDeityByName(staticDeity.name, supplements) ||
+        staticDeity;
+    } else {
+      // Divindade homebrew: `selectedOption` é o NOME (não há chave no enum).
+      divindade = dataRegistry.getDeityByName(selectedOption, supplements);
+    }
   }
+
+  if (!divindade) return undefined;
 
   // Provavelmente uma merda de solução mas preguiça
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
@@ -6023,6 +6037,16 @@ export function generateEmptySheet(
         originBenefits.skills.forEach((skill) => {
           if (!emptySheet.skills.includes(skill as Skill)) {
             emptySheet.skills.push(skill as Skill);
+          }
+        });
+
+        // Poderes gerais concedidos automaticamente (origens regionais com
+        // poderes gerais no pool, ex.: origem homebrew "receber tudo").
+        (originBenefits.powers.generalPowers || []).forEach((generalPower) => {
+          if (
+            !emptySheet.generalPowers.some((p) => p.name === generalPower.name)
+          ) {
+            emptySheet.generalPowers.push(generalPower);
           }
         });
 

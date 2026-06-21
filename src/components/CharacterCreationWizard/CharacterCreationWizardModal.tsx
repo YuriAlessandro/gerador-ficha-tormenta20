@@ -242,7 +242,15 @@ const CharacterCreationWizardModal: React.FC<
         selectedOptions.devocao.value as keyof typeof DivindadeEnum
       ];
 
-    if (!baseDeity) return null;
+    if (!baseDeity) {
+      // Divindade homebrew: o value é o NOME (não há chave no enum).
+      return (
+        dataRegistry.getDeityByName(
+          selectedOptions.devocao.value,
+          supplements
+        ) || null
+      );
+    }
 
     // Get the deity with supplement powers from registry
     const deityWithPowers = dataRegistry.getDeityByName(

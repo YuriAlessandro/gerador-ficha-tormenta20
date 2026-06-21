@@ -254,25 +254,26 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
     [userSupplements]
   );
 
-  const divindades = React.useMemo(
-    () =>
-      allDivindadeNames
-        .filter((dv) => {
-          if (selectedOptions.classe) {
-            const classe = CLASSES.find(
-              (c) => c.name === selectedOptions.classe
-            );
-            if (classe) return classe?.faithProbability?.[dv] !== 0;
-            return true;
-          }
+  const divindades = React.useMemo(() => {
+    const staticOptions = allDivindadeNames
+      .filter((dv) => {
+        if (selectedOptions.classe) {
+          const classe = CLASSES.find((c) => c.name === selectedOptions.classe);
+          if (classe) return classe?.faithProbability?.[dv] !== 0;
           return true;
-        })
-        .map((sdv) => ({
-          value: sdv,
-          label: divindadeDisplayNames[sdv],
-        })),
-    [selectedOptions.classe, CLASSES]
-  );
+        }
+        return true;
+      })
+      .map((sdv) => ({
+        value: sdv as string,
+        label: divindadeDisplayNames[sdv],
+      }));
+    // Divindades homebrew ativas (suplementos runtime) — value = nome.
+    const homebrewOptions = dataRegistry
+      .getSupplementDeities(userSupplements)
+      .map((d) => ({ value: d.name, label: d.name }));
+    return [...staticOptions, ...homebrewOptions];
+  }, [selectedOptions.classe, CLASSES, userSupplements]);
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
