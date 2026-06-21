@@ -14,6 +14,7 @@ import {
   Typography,
   Grid,
   Alert,
+  Snackbar,
   CircularProgress,
   TextField,
   InputAdornment,
@@ -71,8 +72,10 @@ import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { useFolders } from '../../hooks/useFolders';
-import { SheetListData } from '../../services/sheets.service';
+import SheetsService, { SheetListData } from '../../services/sheets.service';
 import { Folder } from '../../services/folders.service';
+import CharacterSheet from '../../interfaces/CharacterSheet';
+import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
 import {
   getChildren,
   getDescendantIds,
@@ -93,6 +96,47 @@ import {
 import { PublishBestiaryModal } from '../../premium';
 import { SupportLevel } from '../../types/subscription.types';
 
+// Post do blog explicando o incidente de swap de fichas (fallback quando não há
+// cópia local recuperável).
+const INCIDENT_BLOG_URL = '/blog/incidente-fichas-mesa-virtual';
+
+interface LocalRecovery {
+  date: string;
+  id: string;
+  sheet: CharacterSheet;
+}
+
+const COPIA_SUFFIX = /\s*\(c[óo]pia\)\s*$/i;
+const normalizeName = (s: string | undefined): string => {
+  let r = (s || '').trim();
+  while (COPIA_SUFFIX.test(r)) r = r.replace(COPIA_SUFFIX, '').trim();
+  return r.toLowerCase();
+};
+
+// Procura no histórico local (fdnHistoric) uma versão da ficha cujo personagem
+// (sheet.nome) bata com o nome original (name top-level, que ficou intacto).
+const findLocalRecovery = (sheet: SheetListData): LocalRecovery | null => {
+  try {
+    const raw = localStorage.getItem('fdnHistoric');
+    if (!raw) return null;
+    const hist = JSON.parse(raw) as LocalRecovery[];
+    const target = normalizeName(sheet.name);
+    if (!target) return null;
+    const matches = hist.filter((h) => {
+      const n = normalizeName(h.sheet?.nome);
+      return (
+        !!n &&
+        (n === target ||
+          (target.length >= 2 && (n.includes(target) || target.includes(n))))
+      );
+    });
+    // Entradas são acrescentadas em ordem cronológica; a última é a mais recente.
+    return matches.length ? matches[matches.length - 1] : null;
+  } catch {
+    return null;
+  }
+};
+
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -105,6 +149,8 @@ const MyCharactersPage: React.FC = () => {
     error,
     deleteSheet: deleteSheetAction,
     duplicateSheet: duplicateSheetAction,
+    updateSheet: updateSheetAction,
+    fetchSheets,
     clearError,
   } = useSheets();
   const {
@@ -186,6 +232,15 @@ const MyCharactersPage: React.FC = () => {
   const [sheetToPublish, setSheetToPublish] = useState<SheetListData | null>(
     null
   );
+
+  // Recuperação de fichas atingidas pelo bug de swap de fichas.
+  const [recoverySheet, setRecoverySheet] = useState<SheetListData | null>(
+    null
+  );
+  const [recoveryCandidate, setRecoveryCandidate] =
+    useState<LocalRecovery | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  const [recoverySnackbar, setRecoverySnackbar] = useState<string | null>(null);
 
   // Drag-and-drop state
   const [isDragging, setIsDragging] = useState(false);
@@ -353,7 +408,7 @@ const MyCharactersPage: React.FC = () => {
     updateUrl(activeTab, null);
   };
 
-  const handleViewSheet = (sheet: SheetListData) => {
+  const navigateToSheet = (sheet: SheetListData) => {
     const isThreat = sheet.sheetData?.isThreat;
     const sheetFolder = sheet.folderId
       ? folders.find((f) => f.id === sheet.folderId)
@@ -366,6 +421,65 @@ const MyCharactersPage: React.FC = () => {
     } else {
       history.push(`/ficha/${sheet.id}`, { folderInfo });
     }
+  };
+
+  const handleViewSheet = (sheet: SheetListData) => {
+    // Fichas atingidas pelo bug de swap de fichas: intercepta o clique e oferece
+    // recuperar a cópia local antes de abrir (a ficha na nuvem está corrompida).
+    if (sheet.swapAffected) {
+      setRecoverySheet(sheet);
+      setRecoveryCandidate(findLocalRecovery(sheet));
+      return;
+    }
+    navigateToSheet(sheet);
+  };
+
+  const closeRecovery = () => {
+    if (recovering) return;
+    setRecoverySheet(null);
+    setRecoveryCandidate(null);
+  };
+
+  const handleRestoreRecovery = async () => {
+    if (!recoverySheet || !recoveryCandidate) return;
+    setRecovering(true);
+    try {
+      const local = recoveryCandidate.sheet;
+      const restored = needsMigration(local) ? migrateSheet(local) : local;
+      await updateSheetAction(recoverySheet.id, {
+        sheetData: restored as unknown as Parameters<
+          typeof updateSheetAction
+        >[1]['sheetData'],
+        name: restored.nome,
+      });
+      await SheetsService.clearSwapAffected(recoverySheet.id);
+      await fetchSheets();
+      const target = recoverySheet;
+      setRecoverySheet(null);
+      setRecoveryCandidate(null);
+      setRecoverySnackbar('Ficha recuperada a partir da sua cópia local!');
+      navigateToSheet(target);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao recuperar ficha:', err);
+      setRecoverySnackbar('Não foi possível recuperar a ficha. Tente de novo.');
+    } finally {
+      setRecovering(false);
+    }
+  };
+
+  const handleOpenAffectedAnyway = () => {
+    if (!recoverySheet) return;
+    const target = recoverySheet;
+    setRecoverySheet(null);
+    setRecoveryCandidate(null);
+    navigateToSheet(target);
+  };
+
+  const handleSeeIncident = () => {
+    setRecoverySheet(null);
+    setRecoveryCandidate(null);
+    history.push(INCIDENT_BLOG_URL);
   };
 
   const handleEditSheet = (sheet: SheetListData) => {
@@ -1906,6 +2020,69 @@ const MyCharactersPage: React.FC = () => {
           }}
         />
       )}
+
+      {/* Recuperação de ficha atingida pelo bug de swap de fichas */}
+      <Dialog
+        open={Boolean(recoverySheet)}
+        onClose={closeRecovery}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Recuperar ficha</DialogTitle>
+        <DialogContent>
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            Identificamos um problema que afetou esta ficha durante o uso da
+            Mesa Virtual: os dados salvos na nuvem foram sobrescritos. Pedimos
+            desculpas pelo ocorrido.
+          </Alert>
+          {recoveryCandidate ? (
+            <Typography variant='body2'>
+              Encontramos uma <strong>cópia local</strong> de{' '}
+              <strong>&ldquo;{recoveryCandidate.sheet.nome}&rdquo;</strong>{' '}
+              salva em <strong>{recoveryCandidate.date}</strong> neste
+              navegador. Deseja restaurá-la? Os dados atuais (incorretos) serão
+              substituídos pela sua cópia local.
+            </Typography>
+          ) : (
+            <Typography variant='body2'>
+              Não encontramos uma cópia local desta ficha neste navegador, então
+              não conseguimos recuperá-la automaticamente. Entenda o que
+              aconteceu e os próximos passos na página do incidente.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeRecovery} disabled={recovering}>
+            Cancelar
+          </Button>
+          <Button onClick={handleOpenAffectedAnyway} disabled={recovering}>
+            Abrir mesmo assim
+          </Button>
+          {recoveryCandidate ? (
+            <Button
+              variant='contained'
+              onClick={handleRestoreRecovery}
+              disabled={recovering}
+              startIcon={
+                recovering ? <CircularProgress size={18} /> : undefined
+              }
+            >
+              {recovering ? 'Restaurando...' : 'Restaurar cópia local'}
+            </Button>
+          ) : (
+            <Button variant='contained' onClick={handleSeeIncident}>
+              Ver explicação do incidente
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={Boolean(recoverySnackbar)}
+        autoHideDuration={5000}
+        onClose={() => setRecoverySnackbar(null)}
+        message={recoverySnackbar || ''}
+      />
     </Container>
   );
 };
