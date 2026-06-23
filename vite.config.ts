@@ -50,6 +50,20 @@ function spaFallbackPlugin(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig({
   appType: 'spa',
+  // Dev-only: proxia /api para o backend local. Usado ao testar a ficha
+  // embutida no Owlbear (frontend via túnel HTTPS) rodando com VITE_API_URL=/
+  // — evita mixed content e CORS. Não afeta o build de produção.
+  server: {
+    // Dev-only: libera hosts de túnel (ngrok/cloudflared) ao testar a ficha
+    // embutida no Owlbear. Não tem efeito no build de produção.
+    allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     outDir: 'build',
   },

@@ -116,6 +116,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [performLogout]);
 
   useEffect(() => {
+    // Modo embed do Owlbear: o iframe é particionado (sem sessão Firebase) e a
+    // auth é gerenciada pela própria página embed (token injetado). Sem este
+    // guard, o onAuthStateChanged dispararia com `null` e limparia a auth
+    // sintética definida pela embed.
+    if (
+      typeof window !== 'undefined' &&
+      window.parent !== window &&
+      window.location.pathname.startsWith('/owlbear/')
+    ) {
+      dispatch(setLoading(false));
+      return undefined;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         // User is signed in

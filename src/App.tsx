@@ -47,6 +47,7 @@ import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
 import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
 import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloudWrapper';
 import SheetViewPage from './components/screens/SheetViewPage';
+import OwlbearSheetEmbedPage from './components/screens/OwlbearSheetEmbedPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import NotificationDeepLinkHandler from './components/Notifications/NotificationDeepLinkHandler';
 import InstallPage from './components/screens/InstallPage';
@@ -256,7 +257,10 @@ function ThemedApp(): JSX.Element {
   // A página do Mapa de Arton tem chrome próprio (header minimalista), então
   // escondemos navbar/footer da plataforma, como na sessão de mesa.
   const isMapPage = location.pathname.startsWith('/mapadearton');
-  const hideChrome = isGameSession || isMapPage;
+
+  // Ficha embutida na extensão do Owlbear Rodeo: renderização sem chrome.
+  const isOwlbearEmbed = location.pathname.startsWith('/owlbear/ficha/');
+  const hideChrome = isGameSession || isMapPage || isOwlbearEmbed;
 
   const theme = React.useMemo(
     () => createTormentaTheme(darkMode ? 'dark' : 'light', accentColor),
@@ -398,6 +402,9 @@ function ThemedApp(): JSX.Element {
                                     </Route>
                                     <Route path='/ficha/:id'>
                                       <SheetViewPage />
+                                    </Route>
+                                    <Route path='/owlbear/ficha/:id'>
+                                      <OwlbearSheetEmbedPage />
                                     </Route>
                                     <Route path='/builds'>
                                       <BuildsListPage />

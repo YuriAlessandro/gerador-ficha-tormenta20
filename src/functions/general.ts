@@ -6350,6 +6350,11 @@ export function restoreSpellPath(
   sheet: CharacterSheet,
   classes: ClassDescription[]
 ): void {
+  // Defensivo: fichas malformadas / parcialmente reidratadas podem chegar sem
+  // `classe` (ex.: embed anônimo de uma ficha cujo conteúdo não está disponível).
+  // Sem isso, o acesso a `sheet.classe.spellPath` lança e quebra o render.
+  if (!sheet.classe) return;
+
   // If spellPath is completely missing, try to create it for known spellcasters
   // (e.g., old sheets or stripped exports where spellPath was never serialized)
   if (!sheet.classe.spellPath) {
