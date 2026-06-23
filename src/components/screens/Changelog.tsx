@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            20/06/2026 (v4.22).
+            23/06/2026 (v4.23).
           </p>
 
           <p>
@@ -69,6 +69,32 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.23</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Mesa Virtual — novo formato de exibição
+                  de PV das ameaças: <strong>&quot;Status de vida&quot;</strong>
+                  . Em vez de barra ou números, o mestre mostra um rótulo
+                  qualitativo colorido (ex.: Saudável, Ferido, Quase morto). As
+                  faixas de porcentagem, os rótulos e as cores são totalmente
+                  configuráveis nas Configurações da Mesa.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Mesa Virtual — o tracker de combate
+                  agora exibe <strong>avatares</strong> de todos os jogadores e
+                  ameaças (foto da ficha/ameaça ou, na ausência dela, as
+                  iniciais do nome). A borda do avatar reflete o status de vida
+                  da ameaça (no desktop, o rótulo aparece ao passar o mouse; no
+                  celular, fica sempre visível abaixo da foto).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Poder concedido{' '}
+                  <strong>Poder Oculto</strong> agora pode ser ativado como
+                  efeito de cena (2 PM para +2 em Força, Destreza ou
+                  Constituição).
+                </li>
+              </ul>
+
               <h3>4.22</h3>
               <p>
                 Esta atualização traz a maior novidade do projeto até hoje — os{' '}
