@@ -72,6 +72,18 @@ const Changelog: React.FC = () => {
               <h3>4.23</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> A listagem pública de{' '}
+                  <strong>Homebrews</strong> (/homebrews) agora carrega{' '}
+                  <strong>todos os itens</strong> conforme você rola a página
+                  (antes mostrava apenas os primeiros) e os exibe sempre dos{' '}
+                  <strong>mais recentes</strong> para os mais antigos.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A listagem de Homebrews ganhou um
+                  filtro rápido <strong>Coleções</strong>, para encontrar apenas
+                  coleções publicadas pela comunidade.
+                </li>
+                <li>
                   <strong>Correção:</strong> Mesa Virtual — a{' '}
                   <strong>Defesa</strong> (e os atributos e perícias) dos
                   jogadores no tracker de iniciativa do mestre agora atualizam{' '}
