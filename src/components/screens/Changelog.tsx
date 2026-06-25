@@ -117,6 +117,26 @@ const Changelog: React.FC = () => {
                   efeito de cena (2 PM para +2 em Força, Destreza ou
                   Constituição).
                 </li>
+                <li>
+                  <strong>Correção:</strong> Efeitos ativos que{' '}
+                  <strong>aumentam um atributo</strong> agora de fato aplicam o
+                  bônus — nas perícias do atributo, no dano de armas corpo a
+                  corpo (Força) e na Defesa (Destreza). Antes o efeito era
+                  registrado mas não alterava nada na ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Efeitos ativos de{' '}
+                  <strong>ataque e dano</strong> agora aplicam também o dano em{' '}
+                  <strong>armas mágicas ou aprimoradas</strong>. Antes, nessas
+                  armas, só o bônus de ataque era aplicado e o de dano se
+                  perdia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Mesa Virtual — magias{' '}
+                  <strong>homebrew</strong> com efeito ativo configurado agora
+                  oferecem a ativação do efeito ao serem lançadas (para você e
+                  para os outros jogadores da mesa), igual às magias oficiais.
+                </li>
               </ul>
 
               <h3>4.22</h3>
