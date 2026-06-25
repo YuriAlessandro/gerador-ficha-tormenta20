@@ -436,7 +436,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       );
 
       // Restore Bag class methods
-      sheet.bag = new Bag(sheet.bag?.equipments);
+      sheet.bag = Bag.fromStored(sheet.bag);
 
       // Restore spellPath functions if the class has spellcasting
       restoreSpellPath(sheet, CLASSES);
@@ -807,7 +807,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
 
     // Restore Bag class methods
-    sheet.bag = new Bag(sheet.bag?.equipments);
+    sheet.bag = Bag.fromStored(sheet.bag);
 
     // Restore spellPath functions if the class has spellcasting
     restoreSpellPath(sheet, CLASSES);

@@ -146,7 +146,7 @@ const OwlbearSheetEmbedPage: React.FC = () => {
           sheetSupplements
         );
         if (restoredSheet.bag) {
-          restoredSheet.bag = new Bag(restoredSheet.bag.equipments || {});
+          restoredSheet.bag = Bag.fromStored(restoredSheet.bag);
         }
         restoreSpellPath(restoredSheet, CLASSES);
 

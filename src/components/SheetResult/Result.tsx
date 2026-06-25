@@ -248,10 +248,7 @@ const Result: React.FC<ResultProps> = (props) => {
       const updatedSheet = recalculateSheet(nextSheet);
       // Rehydrate Bag (recalculateSheet cloneDeep strips methods)
       if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
-        const plainBag = updatedSheet.bag as unknown as {
-          equipments: Record<string, unknown>;
-        };
-        updatedSheet.bag = new Bag(plainBag.equipments || {});
+        updatedSheet.bag = Bag.fromStored(updatedSheet.bag);
       }
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) onSheetUpdate(updatedSheet);
@@ -464,10 +461,7 @@ const Result: React.FC<ResultProps> = (props) => {
 
       // Rehydrate Bag (recalculateSheet goes through cloneDeep and strips methods)
       if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
-        const plainBag = updatedSheet.bag as unknown as {
-          equipments: Record<string, unknown>;
-        };
-        updatedSheet.bag = new Bag(plainBag.equipments || {});
+        updatedSheet.bag = Bag.fromStored(updatedSheet.bag);
       }
 
       setCurrentSheet(updatedSheet);
@@ -543,10 +537,7 @@ const Result: React.FC<ResultProps> = (props) => {
         });
         updatedSheet = recalculateSheet(updatedSheet);
         if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
-          const plainBag = updatedSheet.bag as unknown as {
-            equipments: Record<string, unknown>;
-          };
-          updatedSheet.bag = new Bag(plainBag.equipments || {});
+          updatedSheet.bag = Bag.fromStored(updatedSheet.bag);
         }
         setLevelUpWizardOpen(false);
         setCurrentSheet(updatedSheet);
@@ -581,10 +572,7 @@ const Result: React.FC<ResultProps> = (props) => {
 
       // Rehydrate Bag instance after recalculateSheet strips class methods via cloneDeep
       if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
-        const plainBag = updatedSheet.bag as unknown as {
-          equipments: Record<string, unknown>;
-        };
-        updatedSheet.bag = new Bag(plainBag.equipments || {});
+        updatedSheet.bag = Bag.fromStored(updatedSheet.bag);
       }
 
       setCurrentSheet(updatedSheet);

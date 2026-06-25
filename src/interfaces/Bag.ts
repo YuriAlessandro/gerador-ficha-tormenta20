@@ -177,6 +177,19 @@ export default class Bag {
     this.armorPenalty = calcArmorPenalty(this.equipments);
   }
 
+  /**
+   * Reconstrói um Bag a partir de dados serializados (localStorage, cloud, socket).
+   * SEMPRE pula os itens padrão (Mochila/Saco de dormir/Traje de viajante) — eles só
+   * pertencem à criação de personagem novo, nunca à re-hidratação de uma ficha existente.
+   * Preserva o displayOrder salvo.
+   */
+  public static fromStored(stored?: {
+    equipments?: BagEquipments;
+    displayOrder?: string[];
+  }): Bag {
+    return new Bag(stored?.equipments ?? {}, true, stored?.displayOrder);
+  }
+
   public setEquipments(equipments: BagEquipments): void {
     this.equipments = equipments;
     ensureIds(this.equipments);

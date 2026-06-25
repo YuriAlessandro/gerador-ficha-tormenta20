@@ -119,7 +119,7 @@ const SheetViewPage: React.FC = () => {
 
         // Restore Bag class methods (same pattern as MainScreen)
         if (restoredSheet.bag) {
-          restoredSheet.bag = new Bag(restoredSheet.bag.equipments || {});
+          restoredSheet.bag = Bag.fromStored(restoredSheet.bag);
         }
 
         // Restore spellPath functions if the class has spellcasting
