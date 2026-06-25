@@ -72,6 +72,15 @@ const Changelog: React.FC = () => {
               <h3>4.23</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Os itens padrão da mochila (
+                  <strong>Mochila</strong>, <strong>Saco de dormir</strong> e{' '}
+                  <strong>Traje de viajante</strong>) não voltam mais sozinhos
+                  ao inventário. Antes, se você os apagasse, eles reapareciam
+                  toda vez que a ficha era salva e a página recarregada — agora
+                  a remoção é respeitada ao recarregar a ficha, inclusive em
+                  fichas na nuvem e na Mesa Virtual.
+                </li>
+                <li>
                   <strong>Correção:</strong> A listagem pública de{' '}
                   <strong>Homebrews</strong> (/homebrews) agora carrega{' '}
                   <strong>todos os itens</strong> conforme você rola a página
