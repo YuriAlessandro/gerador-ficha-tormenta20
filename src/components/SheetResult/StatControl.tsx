@@ -70,7 +70,11 @@ const StatControl: React.FC<StatControlProps> = ({
 
   const color = getColor();
 
-  const [amountInputValue, setAmountInputValue] = useState('');
+  const DEFAULT_AMOUNT = '1';
+  const [amountInputValue, setAmountInputValue] = useState(DEFAULT_AMOUNT);
+  // Tracks whether the field still holds the untouched default value, so we
+  // can clear it on focus and let the user type a new value right away.
+  const [isPristine, setIsPristine] = useState(true);
 
   const handleAmountChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,9 +83,28 @@ const StatControl: React.FC<StatControlProps> = ({
         return;
       }
       setAmountInputValue(inputValue);
+      setIsPristine(false);
     },
     []
   );
+
+  const handleAmountFocus = useCallback(() => {
+    if (isPristine) {
+      setAmountInputValue('');
+    }
+  }, [isPristine]);
+
+  const handleAmountBlur = useCallback(() => {
+    if (amountInputValue === '') {
+      setAmountInputValue(DEFAULT_AMOUNT);
+      setIsPristine(true);
+    }
+  }, [amountInputValue]);
+
+  const resetAmount = useCallback(() => {
+    setAmountInputValue(DEFAULT_AMOUNT);
+    setIsPristine(true);
+  }, []);
 
   const parsedAmount = parseInt(amountInputValue, 10);
   const isAmountValid = !Number.isNaN(parsedAmount) && parsedAmount > 0;
@@ -89,14 +112,14 @@ const StatControl: React.FC<StatControlProps> = ({
   const handleApplyDamage = useCallback(() => {
     if (!isAmountValid) return;
     onDecrement(parsedAmount);
-    setAmountInputValue('');
-  }, [isAmountValid, onDecrement, parsedAmount]);
+    resetAmount();
+  }, [isAmountValid, onDecrement, parsedAmount, resetAmount]);
 
   const handleApplyHeal = useCallback(() => {
     if (!isAmountValid) return;
     onHeal(parsedAmount);
-    setAmountInputValue('');
-  }, [isAmountValid, onHeal, parsedAmount]);
+    resetAmount();
+  }, [isAmountValid, onHeal, parsedAmount, resetAmount]);
 
   const tooltipContent = (
     <Box>
@@ -327,8 +350,10 @@ const StatControl: React.FC<StatControlProps> = ({
           size='small'
           value={amountInputValue}
           onChange={handleAmountChange}
+          onFocus={handleAmountFocus}
+          onBlur={handleAmountBlur}
           disabled={disabled}
-          placeholder='0'
+          placeholder='1'
           inputProps={{
             inputMode: 'numeric',
             style: {
