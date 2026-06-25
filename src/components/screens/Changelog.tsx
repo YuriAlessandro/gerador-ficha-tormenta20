@@ -72,6 +72,11 @@ const Changelog: React.FC = () => {
               <h3>4.23</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> A página de um homebrew que faz parte
+                  de uma <strong>coleção</strong> agora exibe um aviso com o
+                  nome da coleção e um link para abri-la inteira.
+                </li>
+                <li>
                   <strong>Novo:</strong> A criação de homebrews ganhou a ação{' '}
                   <strong>Conceder poder</strong> em habilidades e poderes:
                   conceda um ou mais poderes específicos, ou defina uma lista da
