@@ -602,6 +602,14 @@ function ThemedApp(): JSX.Element {
                                         <BlogEditor />
                                       </ProtectedRoute>
                                     </Route>
+                                    <Route path='/blog/:id/edit'>
+                                      <ProtectedRoute
+                                        requireAuth
+                                        redirectTo='/blog'
+                                      >
+                                        <BlogEditor />
+                                      </ProtectedRoute>
+                                    </Route>
                                     <Route path='/blog/:slug'>
                                       <BlogPostPage />
                                     </Route>
