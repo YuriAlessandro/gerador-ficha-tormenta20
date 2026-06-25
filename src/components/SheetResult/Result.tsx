@@ -86,7 +86,10 @@ import {
   ACTIVE_EFFECT_COLOR,
 } from '@/premium/functions/activeEffectHighlights';
 import { getActiveEffectForSpell } from '@/premium/data/activePowers';
-import { collectVirtualCustomEffectDefinitions } from '@/premium/data/activePowers/customEffectAdapter';
+import {
+  collectVirtualCustomEffectDefinitions,
+  buildVirtualDefinitionFromCustomEffect,
+} from '@/premium/data/activePowers/customEffectAdapter';
 import type {
   ActivePowerDefinition,
   ActiveEffectUsageOption,
@@ -887,7 +890,21 @@ const Result: React.FC<ResultProps> = (props) => {
       // dos poderes — o PM já foi pago no lançamento, então o efeito não
       // cobra de novo). A oferta aos aliados da mesa é feita ao confirmar.
       if (canUseActiveEffects) {
-        const def = getActiveEffectForSpell(spell.nome);
+        // Magias core: registry estático. Magias homebrew: efeito em
+        // `spell.customEffects` — constrói um virtual def (affectsAllies=true
+        // para também ofertar aos aliados da mesa, como as magias core). Caso
+        // de múltiplos efeitos numa magia homebrew, usa o primeiro (o diálogo
+        // de uso representa uma única definição).
+        const def =
+          getActiveEffectForSpell(spell.nome) ??
+          (spell.customEffects?.length
+            ? buildVirtualDefinitionFromCustomEffect(
+                spell.nome,
+                spell.customEffects[0],
+                currentSheet.nivel,
+                true
+              )
+            : undefined);
         if (def) {
           setSpellEffectDef(def);
         }

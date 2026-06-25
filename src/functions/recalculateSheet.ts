@@ -37,6 +37,7 @@ import {
   findClassDescription,
 } from './multiclass';
 import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
+import { expandAttributeBonus } from './attributeExpansion';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
 import { stampUsedSupplements } from './contentSources';
@@ -385,6 +386,20 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
     return resetWeapon;
   }
 
+  // Armas com aprimoramentos (modificações/encantamentos) já tiveram
+  // dano/atkBonus/critico recomputados a partir dos snapshots `base*` pela
+  // reaplicação de aprimoramentos (Step 17, que roda ANTES de applyWeaponBonuses)
+  // e portanto representam "base + delta de aprimoramento". NÃO resetar para a
+  // base pristina aqui — os bônus de efeito ativo são somados por cima desse
+  // valor. A idempotência é garantida porque o Step 17 recomputa do zero a cada
+  // recálculo, descartando o baking de efeito ativo do recálculo anterior.
+  const isEnhanced = !!(
+    resetWeapon.modifications?.length || resetWeapon.enchantments?.length
+  );
+  if (isEnhanced) {
+    return resetWeapon;
+  }
+
   // For weapons without manual edits, reset to base values
   // If base values exist, use them; otherwise, extract from current values
 
@@ -530,9 +545,12 @@ const applyWeaponBonuses = (
         }
       });
 
-      // Apply totaled bonuses
-      if (totalAttackBonus > 0) {
-        weaponCopy.atkBonus = totalAttackBonus;
+      // Apply totaled bonuses. Soma POR CIMA do atkBonus já presente (que, para
+      // armas com aprimoramento, é base + delta de aprimoramento; para armas
+      // comuns, é a base resetada) em vez de sobrescrever — senão o bônus de
+      // ataque do encantamento seria descartado.
+      if (totalAttackBonus !== 0) {
+        weaponCopy.atkBonus = (weaponCopy.atkBonus ?? 0) + totalAttackBonus;
       }
 
       if (totalDamageSteps > 0 && weaponCopy.dano) {
@@ -1169,12 +1187,29 @@ function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
 
   active.forEach((eff) => {
     eff.bonuses.forEach((b) => {
+      const source = {
+        type: 'activeEffect' as const,
+        powerKey: eff.powerKey,
+        name: eff.name,
+      };
+
+      // Bônus que miram um atributo são expandidos em suas perícias/dano/Defesa
+      // derivados (o motor não muta `atributos[attr].value` — vazaria pro estado
+      // persistido). Mesma estratégia das condições e dos efeitos pré-canned.
+      if (b.target.type === 'Attribute') {
+        const { attribute } = b.target;
+        expandAttributeBonus(attribute, b.modifier).forEach((expanded) => {
+          updated.sheetBonuses.push({
+            source,
+            target: expanded.target,
+            modifier: expanded.modifier,
+          });
+        });
+        return;
+      }
+
       updated.sheetBonuses.push({
-        source: {
-          type: 'activeEffect',
-          powerKey: eff.powerKey,
-          name: eff.name,
-        },
+        source,
         target: b.target,
         modifier: b.modifier,
       });
@@ -1982,9 +2017,6 @@ export function recalculateSheet(
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
   updatedSheet = applyHPAttributeReplacement(updatedSheet);
 
-  // Step 13: Apply weapon bonuses
-  updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
-
   // Step 14: Calculate Damage Reduction from sheetBonuses + manual
   const computedRd: DamageReduction = {};
 
@@ -2147,8 +2179,11 @@ export function recalculateSheet(
   // Step 17: Reapply item enhancements (superior-item modifications and magical
   // enchantments). Items with `modifications` and/or `enchantments` are
   // recomputed from their `base*` snapshots; items without enhancements are
-  // passed through unchanged. Done last so manual edits in earlier steps are
-  // respected (applyItemEnhancements reads `base*` fields, not current values).
+  // passed through unchanged. Reads `base*` fields (not current values), então é
+  // puro/idempotente. Roda ANTES do baking de bônus de arma (Step 17.5) para que
+  // os bônus de efeito ativo sejam aplicados por cima do valor com aprimoramento
+  // — antes, o Step de armas rodava primeiro e tinha seu dano/atk sobrescrito
+  // aqui, perdendo o bônus de dano de efeitos ativos em armas mágicas.
   if (updatedSheet.bag?.equipments) {
     const reapplied = _.cloneDeep(updatedSheet.bag.equipments);
     (Object.keys(reapplied) as (keyof typeof reapplied)[]).forEach((cat) => {
@@ -2166,6 +2201,12 @@ export function recalculateSheet(
     });
     updatedSheet.bag = new Bag(reapplied, true, updatedSheet.bag.displayOrder);
   }
+
+  // Step 17.5: Apply weapon bonuses (atk/dano/margem/crít de poderes e efeitos
+  // ativos). Roda DEPOIS da reaplicação de aprimoramentos (Step 17) para que o
+  // baking seja somado por cima do dano/atk com aprimoramento e não seja
+  // sobrescrito por ele.
+  updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
 
   // Step 18: Inject spells granted by the Conjuradora enchantment into
   // `sheet.spells`. Spells previously injected (tagged via `equipmentSource`)

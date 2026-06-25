@@ -327,8 +327,13 @@ export function captureBaseValues<T extends Equipment>(item: T): T {
   if (item.dano !== undefined && result.baseDano === undefined) {
     result.baseDano = item.dano;
   }
-  if (item.atkBonus !== undefined && result.baseAtkBonus === undefined) {
-    result.baseAtkBonus = item.atkBonus;
+  // Captura sempre (default 0 quando ausente): uma arma sem `atkBonus` explícito
+  // tem bônus de ataque base 0. Capturar 0 evita que um valor *baked* por
+  // bônus downstream (ex.: efeitos ativos, aplicados após a reaplicação de
+  // aprimoramentos) seja erroneamente capturado como base num recálculo
+  // posterior — o que comporia o bônus a cada recálculo.
+  if (result.baseAtkBonus === undefined) {
+    result.baseAtkBonus = item.atkBonus ?? 0;
   }
   if (item.critico !== undefined && result.baseCritico === undefined) {
     result.baseCritico = item.critico;
