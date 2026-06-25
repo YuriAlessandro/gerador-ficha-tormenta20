@@ -11,14 +11,23 @@ import {
   Button,
   Typography,
   Stack,
+  Fade,
   useTheme,
   useMediaQuery,
   IconButton,
 } from '@mui/material';
+import type { StepIconProps } from '@mui/material/StepIcon';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckIcon from '@mui/icons-material/Check';
 import HistoryIcon from '@mui/icons-material/History';
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import SheetsService from '@/services/sheets.service';
@@ -44,20 +53,65 @@ import {
 } from '../../functions/threatGenerator';
 import { saveThreat } from '../../store/slices/threatStorage';
 import { RootState } from '../../store';
-import StepOne from './steps/StepOne';
-import StepTwo from './steps/StepTwo';
-import StepThree from './steps/StepThree';
-import StepFour from './steps/StepFour';
-import StepFive from './steps/StepFive';
-import StepSix from './steps/StepSix';
-import StepSeven from './steps/StepSeven';
-import StepEight from './steps/StepEight';
+import StepGeneral from './steps/StepGeneral';
+import StepAttributesSkills from './steps/StepAttributesSkills';
+import StepAttacks from './steps/StepAttacks';
+import StepAbilities from './steps/StepAbilities';
+import StepSpells from './steps/StepSpells';
+import StepTreasure from './steps/StepTreasure';
+import StepSummary from './steps/StepSummary';
 import ThreatResult from './ThreatResult';
 import SheetLimitDialog from '../common/SheetLimitDialog';
 
 interface ThreatGeneratorScreenProps {
   isDarkMode: boolean;
 }
+
+const STEP_CONFIG = [
+  { label: 'Informações Gerais', icon: <BadgeOutlinedIcon /> },
+  { label: 'Atributos e Perícias', icon: <BarChartOutlinedIcon /> },
+  { label: 'Ataques', icon: <GpsFixedIcon /> },
+  { label: 'Habilidades', icon: <AutoAwesomeIcon /> },
+  { label: 'Magias', icon: <AutoFixHighIcon /> },
+  { label: 'Tesouro e Equipamentos', icon: <DiamondOutlinedIcon /> },
+  { label: 'Resumo', icon: <FactCheckOutlinedIcon /> },
+];
+
+const ThreatStepIcon: React.FC<StepIconProps> = ({
+  active,
+  completed,
+  icon,
+}) => {
+  const stepIndex = Number(icon) - 1;
+  const highlighted = active || completed;
+  return (
+    <Box
+      sx={{
+        width: 38,
+        height: 38,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.25s ease',
+        bgcolor: (t) =>
+          highlighted ? t.palette.primary.main : t.palette.action.selected,
+        color: (t) =>
+          highlighted
+            ? t.palette.primary.contrastText
+            : t.palette.text.secondary,
+        boxShadow: (t) =>
+          active ? `0 0 0 4px ${t.palette.primary.main}33` : 'none',
+      }}
+    >
+      {completed ? (
+        <CheckIcon fontSize='small' />
+      ) : (
+        STEP_CONFIG[stepIndex]?.icon
+      )}
+    </Box>
+  );
+};
 
 const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const theme = useTheme();
@@ -199,24 +253,13 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     }
   }, [location.search, location.state, threats, history, showAlert]);
 
-  const steps = [
-    'Tipo, Tamanho e Papel',
-    'Nível de Desafio',
-    'Estatísticas de Combate',
-    'Ataques',
-    'Habilidades',
-    'Atributos e Perícias',
-    'Equipamentos',
-    'Nome e Finalizar',
-  ];
+  const steps = STEP_CONFIG.map((s) => s.label);
 
   const handleNext = () => {
     setActiveStep((prevStep) => prevStep + 1);
 
-    // Scroll to top on mobile when going to next step
-    if (isMobile) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // Sempre rola para o topo ao avançar de etapa
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBack = () => {
@@ -329,8 +372,12 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
         updatedAt: new Date(),
       };
 
-      // Auto-calculate combat stats when role/challenge level/hasManaPoints changes
+      // Auto-calculate combat stats when role/challenge level/hasManaPoints
+      // changes — EXCETO quando o chamador já forneceu combatStats explícito
+      // (ex.: edição manual de Defesa/PV/CD ou toggle de mana aditivo na etapa
+      // de combate). Isso evita que recálculos apaguem ajustes feitos à mão.
       if (
+        updates.combatStats === undefined &&
         (updates.role ||
           updates.challengeLevel ||
           updates.hasManaPoints !== undefined) &&
@@ -360,21 +407,19 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <StepOne threat={threat} onUpdate={updateThreat} />;
+        return <StepGeneral threat={threat} onUpdate={updateThreat} />;
       case 1:
-        return <StepTwo threat={threat} onUpdate={updateThreat} />;
+        return <StepAttributesSkills threat={threat} onUpdate={updateThreat} />;
       case 2:
-        return <StepThree threat={threat} onUpdate={updateThreat} />;
+        return <StepAttacks threat={threat} onUpdate={updateThreat} />;
       case 3:
-        return <StepFour threat={threat} onUpdate={updateThreat} />;
+        return <StepAbilities threat={threat} onUpdate={updateThreat} />;
       case 4:
-        return <StepFive threat={threat} onUpdate={updateThreat} />;
+        return <StepSpells threat={threat} onUpdate={updateThreat} />;
       case 5:
-        return <StepSix threat={threat} onUpdate={updateThreat} />;
+        return <StepTreasure threat={threat} onUpdate={updateThreat} />;
       case 6:
-        return <StepSeven threat={threat} onUpdate={updateThreat} />;
-      case 7:
-        return <StepEight threat={threat} onUpdate={updateThreat} />;
+        return <StepSummary threat={threat} onUpdate={updateThreat} />;
       default:
         return <div>Etapa desconhecida</div>;
     }
@@ -426,8 +471,9 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
                   display='flex'
                   justifyContent='space-between'
                   alignItems='center'
+                  gap={2}
                 >
-                  <Box>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography
                       variant={isMobile ? 'h5' : 'h4'}
                       component='h1'
@@ -435,13 +481,27 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
                     >
                       {isEditing ? 'Editando Ameaça' : 'Gerador de Ameaças'}
                     </Typography>
-                    <Typography variant='body1' sx={{ opacity: 0.9 }}>
-                      Crie inimigos e NPCs seguindo as regras do Tormenta 20
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        opacity: 0.9,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {threat.name?.trim()
+                        ? `${threat.name}${
+                            threat.challengeLevel
+                              ? ` · ND ${threat.challengeLevel}`
+                              : ''
+                          }`
+                        : 'Crie inimigos e NPCs seguindo as regras do Tormenta 20'}
                     </Typography>
                   </Box>
                   <IconButton
                     onClick={handleViewHistory}
-                    sx={{ color: 'white' }}
+                    sx={{ color: 'white', flexShrink: 0 }}
                     title='Ver Histórico'
                   >
                     <HistoryIcon />
@@ -468,6 +528,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
                   {steps.map((label, index) => (
                     <Step key={label}>
                       <StepLabel
+                        StepIconComponent={ThreatStepIcon}
                         sx={{
                           cursor: 'pointer',
                           '&:hover': {
@@ -486,7 +547,11 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
               </Box>
 
               {/* Step Content */}
-              <Box sx={{ minHeight: 400 }}>{renderStepContent(activeStep)}</Box>
+              <Fade in key={activeStep} timeout={350}>
+                <Box sx={{ minHeight: 400 }}>
+                  {renderStepContent(activeStep)}
+                </Box>
+              </Fade>
 
               {/* Navigation */}
               <Box
