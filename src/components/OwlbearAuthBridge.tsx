@@ -43,6 +43,9 @@ function isAllowedOrigin(origin: string): boolean {
     if (hostname.endsWith('.ngrok-free.app')) return true;
     if (hostname.endsWith('.ngrok.io')) return true;
     if (hostname.endsWith('.trycloudflare.com')) return true;
+    // Extensão do Owlbear hospedada no Cloudflare Pages (produção + previews).
+    if (hostname === 'fichas-owlbear.pages.dev') return true;
+    if (hostname.endsWith('.fichas-owlbear.pages.dev')) return true;
     return false;
   } catch {
     return false;
