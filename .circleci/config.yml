@@ -9,6 +9,33 @@ jobs:
       - image: cimg/node:20.18.0
     steps:
       - checkout
+      # O código core e os testes importam de src/premium (submódulo PRIVADO).
+      # O `checkout` do CircleCI NÃO inicializa submódulos, então sem este passo
+      # o src/premium fica vazio e o vitest falha em cascata com
+      # "Failed to load url .../premium/...". Precisa de acesso de leitura ao
+      # repo privado fichas-de-nimb-premium.
+      #
+      # Opção em uso: PAT via env var (combina com a URL HTTPS do .gitmodules).
+      #   Crie um GitHub PAT fine-grained com permissão de leitura (Contents)
+      #   no repo fichas-de-nimb-premium e adicione como variável de ambiente
+      #   GITHUB_PAT em Project Settings > Environment Variables no CircleCI.
+      - run:
+          name: Init premium submodule
+          command: |
+            git config --global url."https://${GITHUB_PAT}@github.com/".insteadOf "https://github.com/"
+            git submodule update --init src/premium
+      # Alternativa com SSH deploy key (read-only) em vez do PAT:
+      #   1. Gere uma deploy key no repo premium e adicione a chave privada em
+      #      Project Settings > SSH Keys no CircleCI (anote o fingerprint).
+      #   2. Substitua o passo acima por:
+      #        - add_ssh_keys:
+      #            fingerprints:
+      #              - "SEU:FINGERPRINT:AQUI"
+      #        - run:
+      #            name: Init premium submodule
+      #            command: |
+      #              git config --global url."git@github.com:".insteadOf "https://github.com/"
+      #              git submodule update --init src/premium
       - node/install-packages:
           pkg-manager: npm
           cache-version: v3
