@@ -72,6 +72,46 @@ const Changelog: React.FC = () => {
               <h3>4.23</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> A criação de homebrews ganhou a ação{' '}
+                  <strong>Conceder poder</strong> em habilidades e poderes:
+                  conceda um ou mais poderes específicos, ou defina uma lista da
+                  qual o jogador escolhe (poderes gerais, de classe ou de outros
+                  homebrews ativos).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Os <strong>poderes</strong> de homebrew
+                  (de classe e de Pacote de Poderes) agora também oferecem{' '}
+                  <strong>Opções de escolha (pick)</strong>, e o{' '}
+                  <strong>Pacote de Poderes</strong> ganhou o editor{' '}
+                  <strong>Avançado</strong> (alternância Básico/Avançado), como
+                  Raças e Classes.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Cada opção de uma escolha (pick)
+                  virou um <strong>&quot;sub-poder&quot; completo</strong>, com
+                  os mesmos campos do item pai: custo de PM, bônus, efeitos
+                  ativos, rolagens, conceder magias e conceder poder.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Novo tipo de bônus{' '}
+                  <strong>Treinar perícia</strong> em habilidades e poderes de
+                  homebrew: treina uma ou mais perícias específicas, ou uma
+                  lista da qual o jogador escolhe quantas você definir.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na listagem de{' '}
+                  <strong>Homebrews</strong>, os cards agora são links — dá para{' '}
+                  <strong>abrir em nova aba</strong> (clique do meio ou
+                  Ctrl/Cmd+clique), mantendo a navegação normal no clique
+                  simples.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As telas de criação de homebrew
+                  passaram a exibir um aviso recomendando a leitura dos{' '}
+                  <strong>tutoriais de homebrew</strong> antes de criar o
+                  primeiro conteúdo.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O{' '}
                   <strong>Gerador de Ameaças</strong> foi reorganizado e
                   modernizado. O fluxo agora segue a ordem em que você costuma
