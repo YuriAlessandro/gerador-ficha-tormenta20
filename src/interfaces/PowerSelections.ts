@@ -18,6 +18,7 @@ export interface SelectionOptions {
   classAbilities?: Array<{ className: string; abilityName: string }>; // Class ability selections
   chosenOption?: string[]; // Option names for chooseFromOptions actions
   optionSpells?: Record<string, Spell[]>; // Spells chosen for a chooseFromOptions option that grants player-choice spells (keyed by option name)
+  optionPowers?: Record<string, GeneralPower[]>; // Powers chosen for a chooseFromOptions option that grants player-choice powers (keyed by option name)
   osteonOldRace?: string; // Old race name for Osteon/Soterrado Memória Póstuma
   yidishanOldRace?: string; // Old race name for Yidishan Natureza Orgânica
   raceAbilities?: Array<{ raceName: string; abilityName: string }>; // Race ability selections for Memória Póstuma

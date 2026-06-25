@@ -79,6 +79,8 @@ import { generateRandomGolpePessoal } from './powers/golpePessoal';
 import { GOLPE_PESSOAL_EFFECTS } from '../data/systems/tormenta20/golpePessoal';
 import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcane';
 import { Spell, allSpellSchools } from '../interfaces/Spells';
+import { DiceRoll } from '../interfaces/DiceRoll';
+import { CustomEffect } from '../premium/interfaces/CustomEffect';
 import {
   getRaceDisplacement,
   getRaceSize,
@@ -1506,6 +1508,60 @@ function applyOptionGrantedSpells(
   }
 }
 
+/** Ação de concessão de poderes de uma opção de pick (`grantedPowersAction`). */
+type OptionGrantedPowersAction = NonNullable<
+  Extract<
+    SheetActionStep,
+    { type: 'chooseFromOptions' }
+  >['options'][number]['grantedPowersAction']
+>;
+
+/**
+ * Anexa os efeitos ativos e rolagens de uma opção de pick escolhida ao
+ * poder/habilidade DONO (localizado por nome em `generalPowers`/`classPowers`/
+ * habilidades de classe). Dedup por `id` torna a operação idempotente no
+ * recálculo. Usado para os campos de "sub-poder" de uma opção.
+ */
+function mergeOptionEffectsIntoOwner(
+  sheet: CharacterSheet,
+  ownerName: string,
+  customEffects?: CustomEffect[],
+  rolls?: DiceRoll[]
+): void {
+  const hasEffects = customEffects && customEffects.length > 0;
+  const hasRolls = rolls && rolls.length > 0;
+  if (!hasEffects && !hasRolls) return;
+
+  const mergeInto = (obj: {
+    customEffects?: CustomEffect[];
+    rolls?: DiceRoll[];
+  }) => {
+    if (hasEffects) {
+      const existing = obj.customEffects || [];
+      const ids = new Set(existing.map((e) => e.id));
+      obj.customEffects = [
+        ...existing,
+        ...customEffects!.filter((e) => !ids.has(e.id)),
+      ];
+    }
+    if (hasRolls) {
+      const existing = obj.rolls || [];
+      const ids = new Set(existing.map((r) => r.id));
+      obj.rolls = [...existing, ...rolls!.filter((r) => !ids.has(r.id))];
+    }
+  };
+
+  sheet.generalPowers.forEach((p) => {
+    if (p.name === ownerName) mergeInto(p);
+  });
+  (sheet.classPowers || []).forEach((p) => {
+    if (p.name === ownerName) mergeInto(p);
+  });
+  sheet.classe.abilities.forEach((a) => {
+    if (a.name === ownerName) mergeInto(a);
+  });
+}
+
 export const applyPower = (
   _sheet: CharacterSheet,
   powerOrAbility: Pick<
@@ -1796,6 +1852,21 @@ export const applyPower = (
             }
             if (chosenOption?.grantedEquipment) {
               sheet.bag.addEquipment(chosenOption.grantedEquipment);
+            }
+            if (chosenOption?.grantedPowers) {
+              chosenOption.grantedPowers.forEach((power) => {
+                if (!sheet.generalPowers.some((p) => p.name === power.name)) {
+                  sheet.generalPowers.push(power);
+                }
+              });
+            }
+            if (chosenOption) {
+              mergeOptionEffectsIntoOwner(
+                sheet,
+                powerOrAbility.name,
+                chosenOption.customEffects,
+                chosenOption.rolls
+              );
             }
           });
         }
@@ -2916,6 +2987,58 @@ export const applyPower = (
           if (chosen.grantedEquipment) {
             sheet.bag.addEquipment(chosen.grantedEquipment);
           }
+          // Poderes concedidos pela opção (concessão fixa). Adiciona os que ainda
+          // não estão na ficha e cascateia seus sheetActions.
+          if (chosen.grantedPowers && chosen.grantedPowers.length > 0) {
+            const added: GeneralPower[] = [];
+            chosen.grantedPowers.forEach((power) => {
+              if (sheet.generalPowers.some((p) => p.name === power.name))
+                return;
+              sheet.generalPowers.push(power);
+              added.push(power);
+              if (power.sheetActions && power.sheetActions.length > 0) {
+                const [updatedSheet, nestedSubSteps] = applyPower(
+                  sheet,
+                  power,
+                  manualSelections
+                );
+                Object.assign(sheet, updatedSheet);
+                subSteps.push(...nestedSubSteps);
+              }
+            });
+            if (added.length > 0) {
+              sheet.sheetActionHistory.push({
+                source: sheetAction.source,
+                powerName: powerOrAbility.name,
+                changes: added.map((power) => ({
+                  type: 'PowerAdded',
+                  powerName: power.name,
+                })),
+              });
+            }
+          }
+          // Poderes concedidos POR ESCOLHA do jogador nesta opção.
+          if (chosen.grantedPowersAction) {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            applyOptionGrantedPowers(
+              sheet,
+              chosen.grantedPowersAction,
+              manualSelections?.optionPowers?.[chosen.name],
+              sheetAction.source,
+              getSourceName(sheetAction.source),
+              powerOrAbility.name,
+              subSteps,
+              manualSelections
+            );
+          }
+          // Efeitos ativos e rolagens da opção ("sub-poder") → anexados ao
+          // poder/habilidade dono para aparecerem na ficha.
+          mergeOptionEffectsIntoOwner(
+            sheet,
+            powerOrAbility.name,
+            chosen.customEffects,
+            chosen.rolls
+          );
         });
       } else if (sheetAction.action.type === 'trainSkillOrBonus') {
         const { skills } = sheetAction.action;
@@ -3047,6 +3170,62 @@ export const applyPower = (
 
   return [sheet, subSteps];
 };
+
+/**
+ * Aplica a concessão de poderes POR ESCOLHA do jogador de uma opção de pick
+ * escolhida. Usa a seleção manual quando presente, senão sorteia do pool. Os
+ * poderes são adicionados a `sheet.generalPowers` (idempotente por nome), seus
+ * `sheetActions` são cascateados e a concessão é registrada no histórico.
+ * Espelha o handler de `getGeneralPower`. Declarada após `applyPower` por
+ * referenciá-la (cascata de poderes concedidos).
+ */
+function applyOptionGrantedPowers(
+  sheet: CharacterSheet,
+  action: OptionGrantedPowersAction,
+  manualPowers: GeneralPower[] | undefined,
+  source: SheetChangeSource,
+  sourceName: string,
+  powerName: string,
+  subSteps: SubStep[],
+  manualSelections?: SelectionOptions
+): void {
+  const picked =
+    manualPowers && manualPowers.length > 0
+      ? manualPowers
+      : pickFromAllowed(
+          action.availablePowers,
+          action.pick,
+          sheet.generalPowers
+        );
+
+  const added: GeneralPower[] = [];
+  picked.forEach((power) => {
+    if (sheet.generalPowers.some((p) => p.name === power.name)) return;
+    sheet.generalPowers.push(power);
+    added.push(power);
+    subSteps.push({ name: sourceName, value: `Recebe o poder ${power.name}` });
+    if (power.sheetActions && power.sheetActions.length > 0) {
+      const [updatedSheet, nestedSubSteps] = applyPower(
+        sheet,
+        power,
+        manualSelections
+      );
+      Object.assign(sheet, updatedSheet);
+      subSteps.push(...nestedSubSteps);
+    }
+  });
+
+  if (added.length > 0) {
+    sheet.sheetActionHistory.push({
+      source,
+      powerName,
+      changes: added.map((power) => ({
+        type: 'PowerAdded',
+        powerName: power.name,
+      })),
+    });
+  }
+}
 
 export function applyRaceAbilities(
   sheet: CharacterSheet,

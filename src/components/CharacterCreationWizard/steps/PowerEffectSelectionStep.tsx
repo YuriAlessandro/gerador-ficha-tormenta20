@@ -795,6 +795,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               allowedType: 'Arcane' | 'Divine' | 'Both';
               schools?: string[];
             };
+        grantedPowersAction?: {
+          type: 'getGeneralPower';
+          availablePowers: GeneralPower[];
+          pick: number;
+        };
       }>;
       const chosen = powerSelections.chosenOption || [];
       const isMulti = pick > 1 || options.some((o) => o.repeatable);
@@ -957,6 +962,140 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         );
       })();
 
+      // Opções escolhidas que concedem poderes por ESCOLHA do jogador → seletor
+      // de poderes (uma seção por opção escolhida). Guardado em
+      // `optionPowers[nomeDaOpção]`.
+      const setOptionPowers = (optionName: string, powers: GeneralPower[]) =>
+        onChange({
+          ...selections,
+          [powerName]: {
+            ...powerSelections,
+            optionPowers: {
+              ...(powerSelections.optionPowers || {}),
+              [optionName]: powers,
+            },
+          },
+        });
+
+      const optionPowerPickers = (() => {
+        const optsWithPowers = options.filter(
+          (o) => o.grantedPowersAction && chosen.includes(o.name)
+        );
+        if (optsWithPowers.length === 0) return null;
+        return (
+          <Stack spacing={1.5} sx={{ mt: 2 }}>
+            {optsWithPowers.map((o) => {
+              const action = o.grantedPowersAction;
+              if (!action) return null;
+              const pool = action.availablePowers;
+              const selectedPowers =
+                powerSelections.optionPowers?.[o.name] || [];
+              const max = action.pick;
+              const searchKey = `optpower-${powerName}-${o.name}`;
+              const query = searchQueries[searchKey as unknown as number] || '';
+              const displayed = filterOptions(pool, query) as GeneralPower[];
+              const toggle = (power: GeneralPower, checked: boolean) => {
+                const cur = powerSelections.optionPowers?.[o.name] || [];
+                if (checked) {
+                  if (cur.length >= max) return;
+                  setOptionPowers(o.name, [...cur, power]);
+                } else {
+                  setOptionPowers(
+                    o.name,
+                    cur.filter((p) => getItemName(p) !== getItemName(power))
+                  );
+                }
+              };
+              return (
+                <Paper
+                  key={`optpower-${o.name}`}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    bgcolor: 'action.hover',
+                    borderLeft: 3,
+                    borderColor: 'primary.main',
+                  }}
+                >
+                  <Stack
+                    direction='row'
+                    justifyContent='space-between'
+                    alignItems='center'
+                  >
+                    <Typography variant='subtitle2' color='primary'>
+                      ⚔️ {o.name}: escolha {max} poder(es)
+                    </Typography>
+                    <Chip
+                      size='small'
+                      color={
+                        selectedPowers.length >= max ? 'success' : 'default'
+                      }
+                      label={`${selectedPowers.length} / ${max}`}
+                    />
+                  </Stack>
+                  {pool.length > 15 && (
+                    <TextField
+                      fullWidth
+                      size='small'
+                      placeholder='Buscar poder por nome...'
+                      value={query}
+                      onChange={(e) =>
+                        setSearchQueries((prev) => ({
+                          ...prev,
+                          [searchKey]: e.target.value,
+                        }))
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ my: 1 }}
+                    />
+                  )}
+                  {displayed.length === 0 ? (
+                    <Alert severity='info' sx={{ mt: 1 }}>
+                      {query
+                        ? `Nenhum poder encontrado para "${query}"`
+                        : 'Nenhum poder disponível.'}
+                    </Alert>
+                  ) : (
+                    <Stack sx={{ mt: 1 }}>
+                      {displayed.map((power) => {
+                        const pName = getItemName(power);
+                        const isChecked = selectedPowers.some(
+                          (p) => getItemName(p) === pName
+                        );
+                        const atLimit = selectedPowers.length >= max;
+                        return (
+                          <FormControlLabel
+                            key={pName}
+                            control={
+                              <Checkbox
+                                checked={isChecked}
+                                disabled={!isChecked && atLimit}
+                                onChange={(e) =>
+                                  toggle(power, e.target.checked)
+                                }
+                              />
+                            }
+                            label={
+                              <Typography variant='body2'>{pName}</Typography>
+                            }
+                          />
+                        );
+                      })}
+                    </Stack>
+                  )}
+                </Paper>
+              );
+            })}
+          </Stack>
+        );
+      })();
+
       // Caso simples: 1 escolha → radio (comportamento original).
       if (!isMulti) {
         return (
@@ -1005,6 +1144,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               </RadioGroup>
             </FormControl>
             {optionSpellPickers}
+            {optionPowerPickers}
           </Box>
         );
       }
@@ -1117,6 +1257,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             })}
           </Stack>
           {optionSpellPickers}
+          {optionPowerPickers}
         </Box>
       );
     }

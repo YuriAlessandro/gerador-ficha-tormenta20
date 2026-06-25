@@ -12,6 +12,8 @@ import { CustomPower } from './CustomPower';
 import { CompanionSheet } from './Companion';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
+import type { CustomEffect } from '../premium/interfaces/CustomEffect';
+import type { DiceRoll } from './DiceRoll';
 
 export type SheetChangeSource =
   | {
@@ -196,6 +198,21 @@ export type SheetActionStep =
         // Equipamento concedido ao escolher esta opção (ex.: arma natural).
         // Adicionado à mochila (idempotente por nome) quando a opção é escolhida.
         grantedEquipment?: Partial<BagEquipments>;
+        // Poderes concedidos ao escolher esta opção (concessão fixa). Adicionados
+        // a `sheet.generalPowers` (idempotente por nome) e seus `sheetActions`
+        // são cascateados (como em `getGeneralPower`).
+        grantedPowers?: GeneralPower[];
+        // Poderes concedidos POR ESCOLHA do jogador ao escolher esta opção
+        // (seleciona `pick` poderes do pool). Aplicado uma vez na criação/level-up.
+        grantedPowersAction?: {
+          type: 'getGeneralPower';
+          availablePowers: GeneralPower[];
+          pick: number;
+        };
+        // Efeitos ativos (ativáveis em jogo) e rolagens concedidos pela opção —
+        // anexados ao poder/habilidade dono quando a opção é escolhida ("sub-poder").
+        customEffects?: CustomEffect[];
+        rolls?: DiceRoll[];
       }>;
       pick?: number; // Quantas seleções o jogador faz (padrão 1). >1 = multi-pick.
       // Novas escolhas ao subir de nível. `substitutes` indica se cada pick novo
@@ -322,6 +339,15 @@ export type StatModifierTarget =
       pick: number; // Number of skills to pick
       // Persiste a escolha do jogador para sobreviver ao recálculo (homebrew).
       optionKey?: string;
+    }
+  | {
+      // Treina uma ou mais perícias (não um bônus numérico — marca a perícia
+      // como treinada). Marcador usado pelo editor de homebrew; convertido na
+      // ação `learnSkill` no compile. `pick` < `skills.length` = o jogador
+      // escolhe `pick` perícias da lista; senão todas as listadas são treinadas.
+      type: 'TrainSkill';
+      skills: Skill[];
+      pick: number;
     }
   | {
       // Atributo escolhido pelo jogador (compila para a ação `increaseAttribute`).
