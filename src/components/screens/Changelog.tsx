@@ -72,6 +72,15 @@ const Changelog: React.FC = () => {
               <h3>4.23</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Mesa Virtual — a{' '}
+                  <strong>Defesa</strong> (e os atributos e perícias) dos
+                  jogadores no tracker de iniciativa do mestre agora atualizam{' '}
+                  <strong>em tempo real</strong>. Antes, esses valores ficavam
+                  congelados no que foi capturado ao iniciar o combate; quando
+                  um efeito ativo, parceiro ou edição alterava a Defesa de um
+                  jogador, o mestre continuava vendo o valor antigo.
+                </li>
+                <li>
                   <strong>Novo:</strong> Integração com o{' '}
                   <strong>Owlbear Rodeo</strong> — agora é possível conectar
                   suas fichas e ameaças à extensão do Owlbear Rodeo, com uma
