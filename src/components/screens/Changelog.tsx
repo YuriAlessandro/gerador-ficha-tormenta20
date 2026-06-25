@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            23/06/2026 (v4.23).
+            25/06/2026 (v4.23).
           </p>
 
           <p>
@@ -71,6 +71,21 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.23</h3>
               <ul>
+                <li>
+                  <strong>Novo:</strong> Integração com o{' '}
+                  <strong>Owlbear Rodeo</strong> — agora é possível conectar
+                  suas fichas e ameaças à extensão do Owlbear Rodeo, com uma
+                  nova página de login (<strong>/owlbear-auth</strong>) para
+                  autorizar a extensão.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No resultado da ficha, os campos de
+                  dano/cura de <strong>PV e PM</strong> agora vêm com o valor{' '}
+                  <strong>1</strong> como padrão — basta clicar em Dano ou Curar
+                  para aplicar rapidamente. Ao clicar no campo, o valor padrão
+                  some para você digitar outro, e ele volta para 1 depois de
+                  aplicar.
+                </li>
                 <li>
                   <strong>Novo:</strong> Mesa Virtual — novo formato de exibição
                   de PV das ameaças: <strong>&quot;Status de vida&quot;</strong>
