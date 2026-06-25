@@ -92,16 +92,50 @@ const Changelog: React.FC = () => {
                   Raças e Classes.
                 </li>
                 <li>
-                  <strong>Melhoria:</strong> Cada opção de uma escolha (pick)
-                  virou um <strong>&quot;sub-poder&quot; completo</strong>, com
-                  os mesmos campos do item pai: custo de PM, bônus, efeitos
-                  ativos, rolagens, conceder magias e conceder poder.
-                </li>
-                <li>
                   <strong>Novo:</strong> Novo tipo de bônus{' '}
                   <strong>Treinar perícia</strong> em habilidades e poderes de
                   homebrew: treina uma ou mais perícias específicas, ou uma
                   lista da qual o jogador escolhe quantas você definir.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A listagem de Homebrews ganhou um
+                  filtro rápido <strong>Coleções</strong>, para encontrar apenas
+                  coleções publicadas pela comunidade.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Integração com o{' '}
+                  <strong>Owlbear Rodeo</strong> — agora é possível conectar
+                  suas fichas e ameaças à extensão do Owlbear Rodeo, com uma
+                  nova página de login (<strong>/owlbear-auth</strong>) para
+                  autorizar a extensão.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Mesa Virtual — novo formato de exibição
+                  de PV das ameaças: <strong>&quot;Status de vida&quot;</strong>
+                  . Em vez de barra ou números, o mestre mostra um rótulo
+                  qualitativo colorido (ex.: Saudável, Ferido, Quase morto). As
+                  faixas de porcentagem, os rótulos e as cores são totalmente
+                  configuráveis nas Configurações da Mesa.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Mesa Virtual — o tracker de combate
+                  agora exibe <strong>avatares</strong> de todos os jogadores e
+                  ameaças (foto da ficha/ameaça ou, na ausência dela, as
+                  iniciais do nome). A borda do avatar reflete o status de vida
+                  da ameaça (no desktop, o rótulo aparece ao passar o mouse; no
+                  celular, fica sempre visível abaixo da foto).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Poder concedido{' '}
+                  <strong>Poder Oculto</strong> agora pode ser ativado como
+                  efeito de cena (2 PM para +2 em Força, Destreza ou
+                  Constituição).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Cada opção de uma escolha (pick)
+                  virou um <strong>&quot;sub-poder&quot; completo</strong>, com
+                  os mesmos campos do item pai: custo de PM, bônus, efeitos
+                  ativos, rolagens, conceder magias e conceder poder.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> Na listagem de{' '}
@@ -134,6 +168,14 @@ const Changelog: React.FC = () => {
                   e transições mais suaves.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> No resultado da ficha, os campos de
+                  dano/cura de <strong>PV e PM</strong> agora vêm com o valor{' '}
+                  <strong>1</strong> como padrão — basta clicar em Dano ou Curar
+                  para aplicar rapidamente. Ao clicar no campo, o valor padrão
+                  some para você digitar outro, e ele volta para 1 depois de
+                  aplicar.
+                </li>
+                <li>
                   <strong>Correção:</strong> Os itens padrão da mochila (
                   <strong>Mochila</strong>, <strong>Saco de dormir</strong> e{' '}
                   <strong>Traje de viajante</strong>) não voltam mais sozinhos
@@ -150,11 +192,6 @@ const Changelog: React.FC = () => {
                   <strong>mais recentes</strong> para os mais antigos.
                 </li>
                 <li>
-                  <strong>Novo:</strong> A listagem de Homebrews ganhou um
-                  filtro rápido <strong>Coleções</strong>, para encontrar apenas
-                  coleções publicadas pela comunidade.
-                </li>
-                <li>
                   <strong>Correção:</strong> Mesa Virtual — a{' '}
                   <strong>Defesa</strong> (e os atributos e perícias) dos
                   jogadores no tracker de iniciativa do mestre agora atualizam{' '}
@@ -162,43 +199,6 @@ const Changelog: React.FC = () => {
                   congelados no que foi capturado ao iniciar o combate; quando
                   um efeito ativo, parceiro ou edição alterava a Defesa de um
                   jogador, o mestre continuava vendo o valor antigo.
-                </li>
-                <li>
-                  <strong>Novo:</strong> Integração com o{' '}
-                  <strong>Owlbear Rodeo</strong> — agora é possível conectar
-                  suas fichas e ameaças à extensão do Owlbear Rodeo, com uma
-                  nova página de login (<strong>/owlbear-auth</strong>) para
-                  autorizar a extensão.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> No resultado da ficha, os campos de
-                  dano/cura de <strong>PV e PM</strong> agora vêm com o valor{' '}
-                  <strong>1</strong> como padrão — basta clicar em Dano ou Curar
-                  para aplicar rapidamente. Ao clicar no campo, o valor padrão
-                  some para você digitar outro, e ele volta para 1 depois de
-                  aplicar.
-                </li>
-                <li>
-                  <strong>Novo:</strong> Mesa Virtual — novo formato de exibição
-                  de PV das ameaças: <strong>&quot;Status de vida&quot;</strong>
-                  . Em vez de barra ou números, o mestre mostra um rótulo
-                  qualitativo colorido (ex.: Saudável, Ferido, Quase morto). As
-                  faixas de porcentagem, os rótulos e as cores são totalmente
-                  configuráveis nas Configurações da Mesa.
-                </li>
-                <li>
-                  <strong>Novo:</strong> Mesa Virtual — o tracker de combate
-                  agora exibe <strong>avatares</strong> de todos os jogadores e
-                  ameaças (foto da ficha/ameaça ou, na ausência dela, as
-                  iniciais do nome). A borda do avatar reflete o status de vida
-                  da ameaça (no desktop, o rótulo aparece ao passar o mouse; no
-                  celular, fica sempre visível abaixo da foto).
-                </li>
-                <li>
-                  <strong>Novo:</strong> Poder concedido{' '}
-                  <strong>Poder Oculto</strong> agora pode ser ativado como
-                  efeito de cena (2 PM para +2 em Força, Destreza ou
-                  Constituição).
                 </li>
                 <li>
                   <strong>Correção:</strong> Efeitos ativos que{' '}
