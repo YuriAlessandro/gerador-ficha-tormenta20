@@ -72,6 +72,23 @@ const Changelog: React.FC = () => {
               <h3>4.23</h3>
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>Gerador de Ameaças</strong> foi reorganizado e
+                  modernizado. O fluxo agora segue a ordem em que você costuma
+                  montar uma ameaça a partir de uma ficha:{' '}
+                  <strong>Informações Gerais</strong> (nome, imagem, tipo,
+                  tamanho, papel e ND) → <strong>Atributos e Perícias</strong> →{' '}
+                  <strong>Ataques</strong> → <strong>Habilidades</strong> →{' '}
+                  <strong>Magias</strong> →{' '}
+                  <strong>Tesouro e Equipamentos</strong> →{' '}
+                  <strong>Resumo</strong>. As estatísticas de combate (Defesa,
+                  PV, PM e qualidades especiais) agora podem ser editadas
+                  diretamente na etapa de atributos, e a tabela de perícias
+                  passa a mostrar Iniciativa, Percepção e as resistências no
+                  topo. As telas ganharam ícones, cartões organizados por seção
+                  e transições mais suaves.
+                </li>
+                <li>
                   <strong>Correção:</strong> Os itens padrão da mochila (
                   <strong>Mochila</strong>, <strong>Saco de dormir</strong> e{' '}
                   <strong>Traje de viajante</strong>) não voltam mais sozinhos
