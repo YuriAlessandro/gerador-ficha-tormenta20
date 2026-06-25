@@ -7,7 +7,9 @@ steps:
       - '-c'
       - |
         git config --global url."https://x-access-token:$$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
-        git submodule update --init --recursive
+        # Apenas os submódulos necessários para o build do frontend.
+        # `extensions` (extensão do Owlbear) é hospedado à parte e não entra aqui.
+        git submodule update --init --recursive src/premium backend
 
   # Puxar imagem anterior para usar como cache
   - name: 'gcr.io/cloud-builders/docker'
