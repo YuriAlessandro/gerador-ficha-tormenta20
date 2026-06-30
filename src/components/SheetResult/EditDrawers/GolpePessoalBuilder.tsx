@@ -233,7 +233,7 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
       description: generateDescription(),
     };
 
-    const validation = validateGolpePessoalBuild(build);
+    const validation = validateGolpePessoalBuild(build, availableEffects);
 
     if (validation.isValid) {
       onConfirm(build);

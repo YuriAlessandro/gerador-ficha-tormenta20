@@ -700,6 +700,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               return pSelections.almaLivreClass && pSelections.almaLivrePower
                 ? 1
                 : 0;
+            case 'buildGolpePessoal':
+              return pSelections.golpePessoalBuild ? 1 : 0;
             default:
               return 0;
           }
@@ -707,6 +709,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return requirements.requirements.every((req) => {
           const { type, pick } = req;
+
+          // Golpe Pessoal usa um construtor próprio e tem availableOptions vazio
+          // por design — exige que um build tenha sido montado pelo usuário.
+          if (type === 'buildGolpePessoal') {
+            return getSelectionCount(power.name, type) >= 1;
+          }
 
           // Check available options - if none available, consider requirement satisfied
           const availableOptions = getFilteredAvailableOptions(

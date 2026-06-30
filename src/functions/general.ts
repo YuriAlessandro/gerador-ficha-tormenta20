@@ -76,7 +76,6 @@ import { alchemyItems } from '../data/systems/tormenta20/equipamentos-gerais';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { generateRandomGolpePessoal } from './powers/golpePessoal';
-import { GOLPE_PESSOAL_EFFECTS } from '../data/systems/tormenta20/golpePessoal';
 import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcane';
 import { Spell, allSpellSchools } from '../interfaces/Spells';
 import { DiceRoll } from '../interfaces/DiceRoll';
@@ -2531,8 +2530,19 @@ export const applyPower = (
           });
         }
       } else if (sheetAction.action.type === 'buildGolpePessoal') {
-        // For automatic generation, create a random Golpe Pessoal
-        const golpePessoalBuild = generateRandomGolpePessoal(sheet);
+        // Usa o build montado pelo usuário no assistente, se houver;
+        // senão gera um Golpe Pessoal aleatório (geração automática de ficha).
+        const golpePessoalBuild =
+          manualSelections?.golpePessoalBuild ??
+          generateRandomGolpePessoal(sheet);
+
+        // Mapa de efeitos incluindo todos os suplementos. O build já foi
+        // escolhido/validado, então efeitos de suplemento (ex.: Sequencial,
+        // Sifão) precisam ser encontrados aqui para aparecerem na descrição.
+        const golpePessoalEffects =
+          dataRegistry.getGolpePessoalEffectsBySupplements(
+            Object.values(SupplementId)
+          );
 
         // Store the build in the power's description
         const golpePessoalPower = sheet.classPowers?.find(
@@ -2545,7 +2555,7 @@ export const applyPower = (
           // Create detailed description with effect descriptions
           const effectDescriptions = golpePessoalBuild.effects
             .map((effectData) => {
-              const effect = GOLPE_PESSOAL_EFFECTS[effectData.effectName];
+              const effect = golpePessoalEffects[effectData.effectName];
               if (!effect) return '';
 
               let desc = `• ${effect.name}: ${effect.description}`;

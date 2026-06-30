@@ -2,6 +2,7 @@ import { ClassPower } from './Class';
 import Equipment from './Equipment';
 import { GeneralPower } from './Poderes';
 import { Spell } from './Spells';
+import { GolpePessoalBuild } from '../data/systems/tormenta20/golpePessoal';
 
 /**
  * Represents the different types of selections a user can make
@@ -25,6 +26,7 @@ export interface SelectionOptions {
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
   alchemyItems?: Equipment[]; // Selected alchemy items for addAlchemyItems action
+  golpePessoalBuild?: GolpePessoalBuild; // Build do Golpe Pessoal montado no assistente
 }
 
 /**

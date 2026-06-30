@@ -237,7 +237,10 @@ export function generateRandomGolpePessoal(
 /**
  * Validates a Golpe Pessoal build
  */
-export function validateGolpePessoalBuild(build: GolpePessoalBuild): {
+export function validateGolpePessoalBuild(
+  build: GolpePessoalBuild,
+  effectsMap: Record<string, GolpePessoalEffect> = GOLPE_PESSOAL_EFFECTS
+): {
   isValid: boolean;
   errors: string[];
 } {
@@ -260,7 +263,7 @@ export function validateGolpePessoalBuild(build: GolpePessoalBuild): {
 
   // Validate individual effects
   build.effects.forEach((effectData) => {
-    const effect = GOLPE_PESSOAL_EFFECTS[effectData.effectName];
+    const effect = effectsMap[effectData.effectName];
     if (!effect) {
       errors.push(`Efeito inválido: ${effectData.effectName}`);
       return;

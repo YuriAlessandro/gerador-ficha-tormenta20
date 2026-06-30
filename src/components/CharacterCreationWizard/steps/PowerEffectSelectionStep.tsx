@@ -32,6 +32,8 @@ import {
 } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
+import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
+import GolpePessoalBuilder from '@/components/SheetResult/EditDrawers/GolpePessoalBuilder';
 import Divindade from '@/interfaces/Divindade';
 import {
   getPowerSelectionRequirements,
@@ -100,6 +102,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
     {}
   );
+
+  // Nome do poder cujo construtor de Golpe Pessoal está aberto (null = fechado)
+  const [golpePessoalDialogPower, setGolpePessoalDialogPower] = useState<
+    string | null
+  >(null);
 
   // Helper to update search query for a specific requirement
   const updateSearchQuery = (requirementIndex: number, query: string) => {
@@ -592,6 +599,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         return powerSelections.animalTotems?.length || 0;
       case 'chooseFromOptions':
         return powerSelections.chosenOption?.length || 0;
+      case 'buildGolpePessoal':
+        return powerSelections.golpePessoalBuild ? 1 : 0;
       default:
         return 0;
     }
@@ -656,6 +665,51 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     const isSingleSelection = effectivePick === 1;
     const currentCount = getSelectionCount(powerName, type);
     const powerSelections = selections[powerName] || {};
+
+    // Golpe Pessoal usa um construtor próprio (Dialog), por isso seu requisito
+    // não tem opções em `availableOptions`. Renderiza o botão/resumo antes do
+    // early-return de "opções vazias".
+    if (type === 'buildGolpePessoal') {
+      const currentBuild = powerSelections.golpePessoalBuild;
+      return (
+        <Box key={requirementIndex} mb={2}>
+          <Typography variant='subtitle1' gutterBottom>
+            {label}
+          </Typography>
+          {currentBuild ? (
+            <Alert
+              severity='success'
+              action={
+                <Button
+                  color='inherit'
+                  size='small'
+                  onClick={() => setGolpePessoalDialogPower(powerName)}
+                >
+                  Editar
+                </Button>
+              }
+            >
+              <Typography variant='body2'>
+                {currentBuild.description}
+              </Typography>
+            </Alert>
+          ) : (
+            <>
+              <Alert severity='warning' sx={{ mb: 1 }}>
+                Monte seu Golpe Pessoal escolhendo a arma e os efeitos do
+                ataque.
+              </Alert>
+              <Button
+                variant='contained'
+                onClick={() => setGolpePessoalDialogPower(powerName)}
+              >
+                Construir Golpe Pessoal
+              </Button>
+            </>
+          )}
+        </Box>
+      );
+    }
 
     if (allAvailableOptions.length === 0) {
       return (
@@ -2036,6 +2090,27 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           </AccordionDetails>
         </Accordion>
       ))}
+
+      {golpePessoalDialogPower && (
+        <GolpePessoalBuilder
+          open={!!golpePessoalDialogPower}
+          sheet={sheetForFiltering}
+          activeSupplements={supplements}
+          initialBuild={selections[golpePessoalDialogPower]?.golpePessoalBuild}
+          onClose={() => setGolpePessoalDialogPower(null)}
+          onConfirm={(build: GolpePessoalBuild) => {
+            const powerName = golpePessoalDialogPower;
+            onChange({
+              ...selections,
+              [powerName]: {
+                ...(selections[powerName] || {}),
+                golpePessoalBuild: build,
+              },
+            });
+            setGolpePessoalDialogPower(null);
+          }}
+        />
+      )}
     </Box>
   );
 };
