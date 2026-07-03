@@ -85,6 +85,26 @@ const Changelog: React.FC = () => {
                   adequados, melhorando também a indexação em buscadores.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> No <strong>Golpe Pessoal</strong>,
+                  o custo em PM do efeito <strong>Conjurador</strong> agora
+                  reflete o círculo da magia escolhida (2 PM para 1º círculo e 4
+                  PM para 2º círculo).
+                </li>
+                <li>
+                  <strong>Correção:</strong> A lista de magias do efeito{' '}
+                  <strong>Conjurador</strong> do Golpe Pessoal agora mostra as
+                  magias corretas de 1º e 2º círculo (a{' '}
+                  <strong>Bola de Fogo</strong> voltou a aparecer), sem opções
+                  sem sentido, e com nomes que correspondem às magias reais do
+                  jogo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O construtor de Golpe Pessoal não
+                  fica mais travado quando o personagem ainda não tem armas no
+                  inventário (por exemplo, durante a criação): a lista de armas
+                  fica disponível e o botão de confirmar habilita normalmente.
+                </li>
+                <li>
                   <strong>Correção:</strong> Efeitos de Golpe Pessoal vindos de
                   suplementos (como <strong>Sequencial</strong> e{' '}
                   <strong>Sifão</strong>, de Heróis de Arton) não são mais
