@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            29/06/2026 (v4.24).
+            30/06/2026 (v4.24).
           </p>
 
           <p>
@@ -82,6 +82,12 @@ const Changelog: React.FC = () => {
                   suplementos (como <strong>Sequencial</strong> e{' '}
                   <strong>Sifão</strong>, de Heróis de Arton) não são mais
                   considerados inválidos ao montar o golpe.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido um erro que impedia
+                  salvar conteúdos <strong>homebrew</strong> (como raças) com
+                  habilidades que treinam perícias — a criação falhava com o
+                  erro <em>Request failed with status code 400</em>.
                 </li>
               </ul>
               <h3>4.23</h3>
