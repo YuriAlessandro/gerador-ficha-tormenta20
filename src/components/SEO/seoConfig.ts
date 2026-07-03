@@ -22,6 +22,11 @@ export const SEO_CONFIG = {
       description:
         'Artigos, dicas e novidades sobre Tormenta 20 e o Fichas de Nimb.',
     },
+    forum: {
+      title: 'Fórum',
+      description:
+        'Participe da comunidade de Tormenta 20: tire dúvidas, compartilhe ameaças, builds e discuta as regras no fórum do Fichas de Nimb.',
+    },
     database: {
       title: 'Enciclopédia de Tormenta 20',
       description:
