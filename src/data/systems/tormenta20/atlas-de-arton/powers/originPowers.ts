@@ -319,6 +319,23 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         },
       },
     ],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Desertor da Supremacia',
+        },
+        target: { type: 'WeaponAttack', weaponName: 'Espada Bastarda' },
+        modifier: { type: 'Fixed', value: 2 },
+        condition: {
+          combinator: 'AND',
+          clauses: [
+            { kind: 'wieldingItemNamed', value: 'Espada Bastarda' },
+            { kind: 'wieldingItemNamed', value: 'Escudo Pesado' },
+          ],
+        },
+      },
+    ],
   },
   DUPLO_FEERICO: {
     name: 'Duplo Feérico',
@@ -849,7 +866,42 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         },
       },
     ],
-    sheetBonuses: [],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Legionário (Império de Tauron)',
+        },
+        target: { type: 'Defense' },
+        modifier: { type: 'Fixed', value: 1 },
+        condition: {
+          combinator: 'AND',
+          clauses: [
+            { kind: 'wieldingItemNamed', value: 'Gládio' },
+            { kind: 'wieldingItemNamed', value: 'Escudo Pesado' },
+          ],
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Legionário (Império de Tauron)',
+        },
+        target: {
+          type: 'WeaponThreatMargin',
+          weaponName: 'Gládio',
+          mode: 'increase',
+        },
+        modifier: { type: 'Fixed', value: 1 },
+        condition: {
+          combinator: 'AND',
+          clauses: [
+            { kind: 'wieldingItemNamed', value: 'Gládio' },
+            { kind: 'wieldingItemNamed', value: 'Escudo Pesado' },
+          ],
+        },
+      },
+    ],
   },
   LENHADOR_DE_TOLLON: {
     name: 'Lenhador de Tollon',

@@ -512,6 +512,7 @@ export type BonusConditionClause = (
   | { kind: 'wearingHeavyArmor' }
   | { kind: 'wearingArmor' }
   | { kind: 'wieldingShield' }
+  | { kind: 'wieldingItemNamed'; value: string }
   | { kind: 'wieldingTwoHandedWeapon' }
   | { kind: 'wieldingMeleeWeapon' }
   | { kind: 'wieldingRangedWeapon' }

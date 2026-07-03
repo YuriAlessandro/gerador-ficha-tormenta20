@@ -83,6 +83,8 @@ function evaluateClause(
           s.id &&
           (s.id === sheet.mainHandItemId || s.id === sheet.offHandItemId)
       );
+    case 'wieldingItemNamed':
+      return getWieldedItems(sheet).some((i) => i.nome === clause.value);
     case 'wieldingTwoHandedWeapon':
       return getWieldedItems(sheet).some(isTwoHanded);
     case 'wieldingMeleeWeapon':
