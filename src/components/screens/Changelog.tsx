@@ -116,6 +116,13 @@ const Changelog: React.FC = () => {
                   habilidades que treinam perícias — a criação falhava com o
                   erro <em>Request failed with status code 400</em>.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Os <strong>poderes de raça</strong>{' '}
+                  (como <strong>Glamour</strong>) agora aparecem na lista de
+                  Poderes Gerais ao subir de nível, para personagens que atendem
+                  ao requisito de raça (por exemplo, um Eiradaan, Duende ou
+                  Sílfide). Antes eles eram omitidos do assistente de evolução.
+                </li>
               </ul>
               <h3>4.23</h3>
               <ul>
