@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            30/06/2026 (v4.24).
+            03/07/2026 (v4.24).
           </p>
 
           <p>
@@ -76,6 +76,13 @@ const Changelog: React.FC = () => {
                   <strong>Golpe Pessoal</strong> agora abre o construtor para
                   você escolher a arma e os efeitos do ataque, em vez de gerar
                   uma combinação aleatória automaticamente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As páginas do{' '}
+                  <strong>fórum</strong> agora têm SEO próprio: ao abrir um
+                  tópico, a aba do navegador mostra o título do tópico e os
+                  links compartilhados exibem título, descrição e imagem
+                  adequados, melhorando também a indexação em buscadores.
                 </li>
                 <li>
                   <strong>Correção:</strong> Efeitos de Golpe Pessoal vindos de
