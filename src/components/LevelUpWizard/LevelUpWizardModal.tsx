@@ -211,8 +211,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       classLevel: selectedClassLevel,
     });
 
-    // Use dataRegistry to get powers from all active supplements
-    // Only include the 5 general power types (exclude RACA)
+    // Use dataRegistry to get powers from all active supplements.
+    // Inclui os 5 tipos de poderes gerais, mais os poderes de raça (ex.: Glamour)
+    // que o personagem qualifica — poderes de raça só aparecem para quem atende
+    // ao requisito de raça, evitando poluir a lista com poderes de outras raças.
     const allPowers = dataRegistry.getPowersBySupplements(supplements);
     const allGeneralPowers = [
       ...allPowers.COMBATE,
@@ -220,6 +222,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       ...allPowers.DESTINO,
       ...allPowers.MAGIA,
       ...allPowers.TORMENTA,
+      ...allPowers.RACA.filter((power) =>
+        isPowerAvailable(sheetForCurrentLevel, power)
+      ),
     ];
 
     // Track which powers are unavailable (requirements not met)
