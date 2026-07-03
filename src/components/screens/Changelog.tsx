@@ -91,6 +91,17 @@ const Changelog: React.FC = () => {
                   PM para 2º círculo).
                 </li>
                 <li>
+                  <strong>Correção:</strong> Os poderes de origem{' '}
+                  <strong>Legionário</strong> e{' '}
+                  <strong>Desertor da Supremacia</strong> agora aplicam seus
+                  bônus condicionais de combate. Empunhando{' '}
+                  <strong>Gládio + Escudo Pesado</strong>, o Legionário recebe
+                  +1 na margem de ameaça do gládio e +1 na Defesa; empunhando{' '}
+                  <strong>Espada Bastarda + Escudo Pesado</strong>, o Desertor
+                  recebe +2 nos ataques com a espada bastarda. Antes o efeito
+                  não ativava mesmo com o equipamento correto.
+                </li>
+                <li>
                   <strong>Correção:</strong> A classe{' '}
                   <strong>Magimarcialista</strong> (variante do Bardo) agora
                   permite escolher as <strong>escolas de magia</strong> na
