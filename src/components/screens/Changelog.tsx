@@ -91,6 +91,20 @@ const Changelog: React.FC = () => {
                   PM para 2º círculo).
                 </li>
                 <li>
+                  <strong>Correção:</strong> A classe{' '}
+                  <strong>Magimarcialista</strong> (variante do Bardo) agora
+                  permite escolher as <strong>escolas de magia</strong> na
+                  criação de personagem, na evolução de nível e na multiclasse,
+                  assim como o Bardo — antes o passo de escolha das escolas não
+                  aparecia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Futura Lenda</strong> agora deixa você{' '}
+                  <strong>escolher</strong> qual poder de classe deseja receber,
+                  em vez de atribuir um poder aleatório automaticamente.
+                </li>
+                <li>
                   <strong>Correção:</strong> Fichas da raça{' '}
                   <strong>Duende</strong> voltaram a ser editáveis: em{' '}
                   <strong>Editar informações da ficha</strong>, o botão{' '}
