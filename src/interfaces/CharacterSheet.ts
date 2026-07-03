@@ -685,6 +685,7 @@ export default interface CharacterSheet {
   duendeNature?: string; // For Duende (animal/vegetal/mineral)
   duendePresentes?: string[]; // For Duende (3 selected powers)
   duendeTabuSkill?: string; // For Duende (skill with -5 penalty)
+  duendeBonusAttributes?: Atributo[]; // For Duende: chosen Dons (2 attrs, + 3rd if Animal)
   qareenElement?: DamageType; // For Qareen (chosen elemental resistance)
   cavaleiroCaminho?: 'Bastião' | 'Montaria'; // For Cavaleiro (path choice at level 5)
   // Seleções persistentes de habilidades de raça (evita re-seleção aleatória durante recalculação)

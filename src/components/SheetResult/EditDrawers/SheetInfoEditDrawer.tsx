@@ -100,6 +100,53 @@ import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
 const normalizeDeityName = (name: string): string =>
   name.toLowerCase().replace(/[-\s]/g, '');
 
+// Reconstrói (best-effort) os Dons de um Duende legado a partir dos atributos já
+// "assados" na raça, quando o campo dedicado `duendeBonusAttributes` não existe.
+// Usado apenas como fallback cosmético — a segurança do save NÃO depende da
+// precisão desta reconstrução (o mesmo valor é usado como seed, baseline do
+// detector de mudança e baseline do gate, então uma ficha não editada compara
+// igual e nunca dispara a reversão de atributos).
+const reconstructDuendeDonsFromRaca = (sheet: CharacterSheet): Atributo[] => {
+  const residual = new Map<Atributo, number>();
+  (sheet.raca.attributes?.attrs ?? []).forEach((a) => {
+    if (a.attr !== 'any') {
+      residual.set(a.attr, (residual.get(a.attr) ?? 0) + a.mod);
+    }
+  });
+
+  // Remover modificadores de tamanho para isolar os Dons (+ natureza Animal)
+  const sizeMods = sheet.raceSizeCategory
+    ? DUENDE_SIZES[sheet.raceSizeCategory]?.attributeModifiers
+    : undefined;
+  sizeMods?.forEach((m) => {
+    if (m.attr !== 'any') {
+      residual.set(m.attr, (residual.get(m.attr) ?? 0) - m.mod);
+    }
+  });
+
+  const natureId = sheet.duendeNature ?? sheet.raca.nature;
+  const isAnimal = natureId
+    ? Boolean(DUENDE_NATURES[natureId]?.extraAttribute)
+    : false;
+  const maxDons = isAnimal ? 3 : 2;
+
+  return Array.from(residual.entries())
+    .filter(([, mod]) => mod >= 1)
+    .sort((a, b) => b[1] - a[1])
+    .map(([attr]) => attr)
+    .slice(0, maxDons);
+};
+
+// Retorna os Dons do Duende para semear o editor: campo dedicado (fichas novas)
+// ou reconstrução (fichas legadas). O MESMO valor deve ser usado como baseline no
+// detector de mudança e no gate do botão Salvar.
+const getSeedDuendeBonusAttributes = (sheet: CharacterSheet): Atributo[] => {
+  if (sheet.duendeBonusAttributes && sheet.duendeBonusAttributes.length >= 2) {
+    return sheet.duendeBonusAttributes;
+  }
+  return reconstructDuendeDonsFromRaca(sheet);
+};
+
 interface SheetInfoEditDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -137,6 +184,29 @@ interface EditedData {
   imageUrl: string;
 }
 
+// Detecta se a configuração do Duende foi de fato editada em relação ao estado
+// semeado. Compara contra os MESMOS baselines usados para semear `editedData`
+// (com fallbacks para `raca.*`), de modo que uma ficha não editada — nova,
+// legada ou gerada aleatoriamente — compare igual e não dispare re-customização
+// nem valide o botão Salvar. Usado tanto no handleSave quanto no gate do botão.
+const isDuendeConfigChanged = (
+  editedData: EditedData,
+  sheet: CharacterSheet
+): boolean =>
+  editedData.raceName === 'Duende' &&
+  (editedData.raceSizeCategory !== sheet.raceSizeCategory ||
+    editedData.duendeNature !== (sheet.duendeNature || sheet.raca.nature) ||
+    editedData.duendeTabuSkill !==
+      (sheet.duendeTabuSkill || sheet.raca.tabuSkill) ||
+    !_.isEqual(
+      editedData.duendePresentes ?? [],
+      sheet.duendePresentes ?? sheet.raca.presentPowers ?? []
+    ) ||
+    !_.isEqual(
+      editedData.duendeBonusAttributes ?? [],
+      getSeedDuendeBonusAttributes(sheet)
+    ));
+
 const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   open,
   onClose,
@@ -173,7 +243,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     duendeNature: sheet.duendeNature || sheet.raca.nature,
     duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
     duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
-    duendeBonusAttributes: sheet.raceAttributeChoices,
+    duendeBonusAttributes:
+      sheet.raca.name === 'Duende'
+        ? getSeedDuendeBonusAttributes(sheet)
+        : sheet.raceAttributeChoices,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name || '',
@@ -254,7 +327,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       duendeNature: sheet.duendeNature || sheet.raca.nature,
       duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
       duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
-      duendeBonusAttributes: sheet.raceAttributeChoices,
+      duendeBonusAttributes:
+        sheet.raca.name === 'Duende'
+          ? getSeedDuendeBonusAttributes(sheet)
+          : sheet.raceAttributeChoices,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
@@ -1002,18 +1078,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           editedData.raceSizeCategory !== sheet.raceSizeCategory)) ||
       (editedData.raceName.startsWith('Suraggel') &&
         editedData.suragelAbility !== sheet.suragelAbility) ||
-      (editedData.raceName === 'Duende' &&
-        (editedData.raceSizeCategory !== sheet.raceSizeCategory ||
-          editedData.duendeNature !== sheet.duendeNature ||
-          editedData.duendeTabuSkill !== sheet.duendeTabuSkill ||
-          !_.isEqual(
-            editedData.duendePresentes ?? [],
-            sheet.duendePresentes ?? []
-          ) ||
-          !_.isEqual(
-            editedData.duendeBonusAttributes ?? [],
-            sheet.raceAttributeChoices ?? []
-          )));
+      isDuendeConfigChanged(editedData, sheet);
 
     if (raceOrSexOrHeritageOrGolemOrSuragelChanged) {
       let newRace = RACAS.find((r) => r.name === editedData.raceName);
@@ -1347,7 +1412,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       duendeNature: sheet.duendeNature || sheet.raca.nature,
       duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
       duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
-      duendeBonusAttributes: sheet.raceAttributeChoices,
+      duendeBonusAttributes:
+        sheet.raca.name === 'Duende'
+          ? getSeedDuendeBonusAttributes(sheet)
+          : sheet.raceAttributeChoices,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
@@ -2941,7 +3009,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                 (editedData.raceName === 'Moreau' &&
                   editedData.raceHeritage === 'Coruja' &&
                   !editedData.moreauSapienciaSpell) ||
+                // Só valida a config do Duende quando ela foi de fato editada.
+                // Uma ficha de Duende não editada (inclusive legada, sem os Dons
+                // persistidos) permanece sempre salvável — e, por estar inalterada,
+                // handleSave não re-customiza nem mexe nos atributos.
                 (editedData.raceName === 'Duende' &&
+                  isDuendeConfigChanged(editedData, sheet) &&
                   (() => {
                     const dons = editedData.duendeBonusAttributes || [];
                     const presentes = editedData.duendePresentes || [];

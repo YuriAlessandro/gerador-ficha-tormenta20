@@ -155,6 +155,10 @@ import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses
 import { addOtherBonusToSkill } from './skills/general';
 import { applyGolemDespertoCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 import { applyDuendeCustomization } from '../data/systems/tormenta20/herois-de-arton/races/duende';
+import {
+  DUENDE_SIZES,
+  DUENDE_SIZE_NAMES,
+} from '../data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { applyMoreauCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import {
   getAttributeIncreasesInSamePlateau,
@@ -5159,6 +5163,20 @@ export default function generateRandomSheet(
     dinheiro: initialMoney,
   };
 
+  // Persistir a customização do Duende (campos dedicados) a partir da raça
+  // gerada pelo setup(), para o editor poder editá-la sem depender de
+  // reconstrução. A natureza/presentes/tabu já ficam em `raca.*` (o editor faz
+  // fallback), mas os Dons e o id de tamanho não são recuperáveis de outra forma.
+  if (race.name === 'Duende') {
+    if (race.duendeBonusAttributes) {
+      charSheet.duendeBonusAttributes = race.duendeBonusAttributes;
+    }
+    // Reverse-lookup do id de tamanho (DUENDE_SIZES) a partir da categoria assada
+    charSheet.raceSizeCategory = DUENDE_SIZE_NAMES.find(
+      (id) => DUENDE_SIZES[id].sizeCategory === race.size
+    );
+  }
+
   // Propósito de Criação for Golem races (no origin)
   if (!origin && !raceHasOrigin(race.name)) {
     const allPowers = dataRegistry.getAllPowersBySupplements(supplements);
@@ -5476,6 +5494,11 @@ export function generateEmptySheet(
     if (raceCustomization.duendeTabuSkill) {
       emptySheet.duendeTabuSkill = raceCustomization.duendeTabuSkill;
     }
+    // Persistir os Dons escolhidos (campo dedicado) para o editor poder editá-los.
+    // Fallback para os Dons "assados" na raça pelo applyDuendeCustomization.
+    emptySheet.duendeBonusAttributes =
+      raceCustomization.duendeBonusAttributes ??
+      emptySheet.raca.duendeBonusAttributes;
   }
 
   // Save Golem Desperto customization fields
