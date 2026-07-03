@@ -8,6 +8,8 @@ export interface ArticleSchemaProps {
   authorName: string;
   publishedAt?: string;
   modifiedAt?: string;
+  /** Tópicos do artigo, indexados como `keywords` no schema para SEO. */
+  tags?: string[];
 }
 
 export const createArticleSchema = ({
@@ -18,12 +20,14 @@ export const createArticleSchema = ({
   authorName,
   publishedAt,
   modifiedAt,
+  tags,
 }: ArticleSchemaProps): Record<string, unknown> => ({
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: title,
   description,
   image: image || defaultSEO.image,
+  ...(tags && tags.length > 0 ? { keywords: tags.join(', ') } : {}),
   author: {
     '@type': 'Person',
     name: authorName,

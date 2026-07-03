@@ -11,6 +11,8 @@ export interface SEOProps {
   author?: string;
   publishedAt?: string;
   modifiedAt?: string;
+  /** Tópicos indexados como meta keywords e (em artigos) como article:tag. */
+  keywords?: string[];
   noindex?: boolean;
   structuredData?: Record<string, unknown>;
 }
@@ -24,6 +26,7 @@ const SEO: React.FC<SEOProps> = ({
   author,
   publishedAt,
   modifiedAt,
+  keywords,
   noindex = false,
   structuredData,
 }) => {
@@ -38,6 +41,9 @@ const SEO: React.FC<SEOProps> = ({
       {/* Basic Meta Tags */}
       <title>{fullTitle}</title>
       <meta name='description' content={description} />
+      {keywords && keywords.length > 0 && (
+        <meta name='keywords' content={keywords.join(', ')} />
+      )}
       {noindex && <meta name='robots' content='noindex, nofollow' />}
 
       {/* Open Graph */}
@@ -65,6 +71,11 @@ const SEO: React.FC<SEOProps> = ({
       {type === 'article' && modifiedAt && (
         <meta property='article:modified_time' content={modifiedAt} />
       )}
+      {type === 'article' &&
+        keywords &&
+        keywords.map((tag) => (
+          <meta key={tag} property='article:tag' content={tag} />
+        ))}
 
       {/* Canonical URL */}
       <link rel='canonical' href={fullUrl} />
