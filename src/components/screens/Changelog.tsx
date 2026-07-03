@@ -72,6 +72,12 @@ const Changelog: React.FC = () => {
               <h3>4.24</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Adicionada a modificação{' '}
+                  <strong>Macabro</strong> (+2 em Intimidação, -2 em Diplomacia)
+                  para itens superiores. Agora ela pode ser aplicada a armas,
+                  armaduras e escudos.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Ao evoluir de nível, o poder{' '}
                   <strong>Golpe Pessoal</strong> agora abre o construtor para
                   você escolher a arma e os efeitos do ataque, em vez de gerar
