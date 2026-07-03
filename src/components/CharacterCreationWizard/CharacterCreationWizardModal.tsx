@@ -29,7 +29,10 @@ import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/r
 
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
-import { getInitialMoneyWithDetails } from '@/functions/general';
+import {
+  getInitialMoneyWithDetails,
+  isClassOrVariantOf,
+} from '@/functions/general';
 import { rollAttributePool } from '@/functions/attributeMethods';
 import {
   getClassBaseSkillsWithChoices,
@@ -387,7 +390,11 @@ const CharacterCreationWizardModal: React.FC<
     if (!classe) return false;
     // Bardo e Druida precisam escolher 3 escolas de magia
     // Eles têm setup() que randomiza as escolas, mas no wizard queremos escolha manual
-    return classe.name === 'Bardo' || classe.name === 'Druida';
+    // Ciente de variantes: Magimarcialista (variante de Bardo) etc. herdam o comportamento
+    return (
+      isClassOrVariantOf(classe, 'Bardo') ||
+      isClassOrVariantOf(classe, 'Druida')
+    );
   };
 
   const needsInitialSpellSelection = (): boolean => {
@@ -396,13 +403,13 @@ const CharacterCreationWizardModal: React.FC<
     if (classe.spellPath) {
       return classe.spellPath.initialSpells > 0;
     }
-    // Classes que lançam magias sem spellPath explícito
+    // Classes que lançam magias sem spellPath explícito (ciente de variantes)
     return (
-      classe.name === 'Arcanista' ||
-      classe.name === 'Bardo' ||
-      classe.name === 'Druida' ||
-      classe.name === 'Clérigo' ||
-      classe.name === 'Frade'
+      isClassOrVariantOf(classe, 'Arcanista') ||
+      isClassOrVariantOf(classe, 'Bardo') ||
+      isClassOrVariantOf(classe, 'Druida') ||
+      isClassOrVariantOf(classe, 'Clérigo') ||
+      isClassOrVariantOf(classe, 'Frade')
     );
   };
 
@@ -521,13 +528,13 @@ const CharacterCreationWizardModal: React.FC<
           : initialSpellsBySubtype[selections.arcanistaSubtype],
         includeDivineSchools,
       };
-    } else if (classe.name === 'Bardo') {
+    } else if (isClassOrVariantOf(classe, 'Bardo')) {
       result = { spellType: 'Arcane', initialSpells: 2 };
-    } else if (classe.name === 'Druida') {
+    } else if (isClassOrVariantOf(classe, 'Druida')) {
       result = { spellType: 'Divine', initialSpells: 2 };
-    } else if (classe.name === 'Clérigo') {
+    } else if (isClassOrVariantOf(classe, 'Clérigo')) {
       result = { spellType: 'Divine', initialSpells: 3 };
-    } else if (classe.name === 'Frade') {
+    } else if (isClassOrVariantOf(classe, 'Frade')) {
       result = { spellType: 'Divine', initialSpells: 3 };
     }
 
@@ -1492,6 +1499,7 @@ const CharacterCreationWizardModal: React.FC<
             case 'addProficiency':
               return powerSelections.proficiencies?.length || 0;
             case 'getGeneralPower':
+            case 'getClassPower':
               return powerSelections.powers?.length || 0;
             case 'learnSpell':
             case 'learnAnySpellFromHighestCircle':

@@ -245,6 +245,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         subname: arcanistaSubtype,
         proficiencias: classe.proficiencias || [],
         abilities: classe.abilities || [],
+        // Necessário para filtrar poderes de classe (ex.: origem "Futura Lenda")
+        powers: classe.powers || [],
         spellPath: classe.spellPath,
       },
       raca: race,
@@ -271,6 +273,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   useEffect(() => {
     const AUTO_SELECTABLE_TYPES = new Set([
       'getGeneralPower',
+      'getClassPower',
       'learnSkill',
       'addProficiency',
       'learnSpell',
@@ -299,7 +302,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         const onlyOption = options[0];
 
         switch (req.type) {
-          case 'getGeneralPower': {
+          case 'getGeneralPower':
+          case 'getClassPower': {
             if (currentSelections.powers && currentSelections.powers.length > 0)
               return;
             updates[entry.powerName] = {
@@ -461,6 +465,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         updateKey = 'proficiencies';
         break;
       case 'getGeneralPower':
+      case 'getClassPower':
         currentItems = powerSelections.powers || [];
         updateKey = 'powers';
         break;
@@ -540,6 +545,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         currentItems = powerSelections.proficiencies || [];
         break;
       case 'getGeneralPower':
+      case 'getClassPower':
         currentItems = powerSelections.powers || [];
         break;
       case 'learnSpell':
@@ -585,6 +591,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       case 'addProficiency':
         return powerSelections.proficiencies?.length || 0;
       case 'getGeneralPower':
+      case 'getClassPower':
         return powerSelections.powers?.length || 0;
       case 'learnSpell':
       case 'learnAnySpellFromHighestCircle':
@@ -639,6 +646,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         schools?: string[];
         optionKey?: string;
         linkedTo?: string;
+        minLevel?: number;
+        ignoreOnlyLevelRequirement?: boolean;
       };
     },
     requirementIndex: number
@@ -1699,6 +1708,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             firstItem = powerSelections.proficiencies?.[0];
             break;
           case 'getGeneralPower':
+          case 'getClassPower':
             firstItem = powerSelections.powers?.[0];
             break;
           case 'learnSpell':

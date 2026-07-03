@@ -13,6 +13,8 @@ import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
 import { SupplementId } from '@/types/supplement.types';
 import { DEUSES_MAIORES } from '@/data/systems/tormenta20/classes/arcanista';
+import { findClassDescription } from '@/functions/multiclass';
+import { isClassOrVariantOf } from '@/functions/general';
 
 type ClassSetupData = NonNullable<LevelUpSelections['classSetup']>;
 
@@ -40,6 +42,20 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
   onChange,
   activeSupplements = [],
 }) => {
+  // Resolve a classe para tratar variantes (ex.: Magimarcialista, variante de
+  // Bardo) como a classe base na escolha de escolas de magia.
+  const classDesc = findClassDescription(
+    selectedClassName,
+    undefined,
+    activeSupplements
+  );
+  const isBardoLike = classDesc
+    ? isClassOrVariantOf(classDesc, 'Bardo')
+    : selectedClassName === 'Bardo';
+  const isDruidaLike = classDesc
+    ? isClassOrVariantOf(classDesc, 'Druida')
+    : selectedClassName === 'Druida';
+
   if (selectedClassName === 'Arcanista') {
     return (
       <Box>
@@ -161,10 +177,9 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
     );
   }
 
-  if (selectedClassName === 'Bardo' || selectedClassName === 'Druida') {
+  if (isBardoLike || isDruidaLike) {
     const selectedSchools = classSetup.spellSchools || [];
-    const spellType =
-      selectedClassName === 'Bardo' ? 'arcanas e divinas' : 'divinas';
+    const spellType = isBardoLike ? 'arcanas e divinas' : 'divinas';
 
     return (
       <Box>

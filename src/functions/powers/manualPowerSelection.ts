@@ -30,7 +30,7 @@ import {
 } from '@/data/systems/tormenta20/magias/divine';
 import { SupplementId } from '@/types/supplement.types';
 import { getAttributeIncreasesInSamePlateau } from './general';
-import { isPowerAvailable } from '../powers';
+import { getFuturaLendaClassPowers, isPowerAvailable } from '../powers';
 
 /**
  * Helper to determine if a spell list represents "all arcane spells of circle X"
@@ -338,6 +338,21 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Populated dynamically by the component
           pick: 1, // 1 class + 1 power
           label: 'Selecione uma classe e um poder dessa classe',
+        });
+      }
+
+      // Escolher um poder de classe (ex.: origem "Futura Lenda")
+      if (action.type === 'getClassPower') {
+        requirements.push({
+          type: 'getClassPower',
+          availableOptions: [], // Populated dynamically in getFilteredAvailableOptions
+          pick: 1,
+          label: 'Selecione um poder de classe',
+          metadata: {
+            minLevel: action.minLevel ?? 2,
+            ignoreOnlyLevelRequirement:
+              action.ignoreOnlyLevelRequirement ?? true,
+          },
         });
       }
     });
@@ -789,6 +804,16 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.localeCompare(b, 'pt-BR'));
     }
 
+    case 'getClassPower': {
+      // Poderes de classe elegíveis (ex.: origem "Futura Lenda"), filtrados por
+      // nível mínimo e disponibilidade. Mesma lógica usada pelo gerador.
+      return getFuturaLendaClassPowers(
+        sheet,
+        requirement.metadata?.minLevel ?? 2,
+        requirement.metadata?.ignoreOnlyLevelRequirement ?? true
+      ).sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     default:
       return availableOptions;
   }
@@ -824,6 +849,7 @@ export function validateSelections(
         break;
 
       case 'getGeneralPower':
+      case 'getClassPower':
         selectedItems = selections.powers || [];
         selectedCount = selectedItems.length;
         break;

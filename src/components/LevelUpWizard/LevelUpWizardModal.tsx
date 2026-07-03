@@ -27,6 +27,7 @@ import {
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
 import { getCurrentPlateau } from '@/functions/powers/general';
+import { isClassOrVariantOf } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
   getClassLevel,
@@ -164,11 +165,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     selectedClassLevel === 1 &&
     selectedClassName !== simulatedSheet.classe.name;
 
-  // Classes that require user choices during first-level setup
-  const CLASSES_NEEDING_USER_SETUP = ['Arcanista', 'Bardo', 'Druida'];
+  // Classes that require user choices during first-level setup (variant-aware:
+  // ex. Magimarcialista, variante de Bardo, herda o setup de escolas)
   const classNeedsUserSetup =
     isFirstLevelInNewClass &&
-    CLASSES_NEEDING_USER_SETUP.includes(selectedClassName);
+    !!selectedClassDesc &&
+    (isClassOrVariantOf(selectedClassDesc, 'Arcanista') ||
+      isClassOrVariantOf(selectedClassDesc, 'Bardo') ||
+      isClassOrVariantOf(selectedClassDesc, 'Druida'));
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (): {
@@ -648,7 +652,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           }
           return true;
         }
-        if (selectedClassName === 'Bardo' || selectedClassName === 'Druida') {
+        if (
+          selectedClassDesc &&
+          (isClassOrVariantOf(selectedClassDesc, 'Bardo') ||
+            isClassOrVariantOf(selectedClassDesc, 'Druida'))
+        ) {
           return setup.spellSchools?.length === 3;
         }
         return true;

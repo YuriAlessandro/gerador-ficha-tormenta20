@@ -93,6 +93,8 @@ export interface PowerSelectionRequirement {
     schools?: string[];
     optionKey?: string; // For chooseFromOptions: the option key identifier
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
+    minLevel?: number; // For getClassPower: minimum level of eligible class powers
+    ignoreOnlyLevelRequirement?: boolean; // For getClassPower: ignore only the level requirement
   };
 }
 

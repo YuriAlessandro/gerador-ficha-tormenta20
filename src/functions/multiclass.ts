@@ -15,6 +15,7 @@ import {
 } from '@/data/systems/tormenta20/classes/arcanista';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
+import { isClassOrVariantOf } from './general';
 
 /**
  * Verifica se a sheet tem multiclasse.
@@ -334,8 +335,8 @@ export function buildSpellPathFromSetup(
     return spellPath;
   }
 
-  // Bardo: Both (arcana + divina) com escolas selecionadas
-  if (className === 'Bardo' && classSetup?.spellSchools) {
+  // Bardo (e variantes, ex.: Magimarcialista): Both (arcana + divina) com escolas selecionadas
+  if (isClassOrVariantOf(classDesc, 'Bardo') && classSetup?.spellSchools) {
     return {
       initialSpells: 2,
       spellType: 'Both',
@@ -351,8 +352,8 @@ export function buildSpellPathFromSetup(
     };
   }
 
-  // Druida: Divine com escolas selecionadas
-  if (className === 'Druida' && classSetup?.spellSchools) {
+  // Druida (e variantes): Divine com escolas selecionadas
+  if (isClassOrVariantOf(classDesc, 'Druida') && classSetup?.spellSchools) {
     return {
       initialSpells: 2,
       spellType: 'Divine',

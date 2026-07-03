@@ -91,7 +91,6 @@ import {
   OriginPower,
   PowerGetter,
   PowersGetters,
-  Requirement,
   RequirementType,
 } from '../interfaces/Poderes';
 import CharacterSheet, {
@@ -122,6 +121,7 @@ import roles from '../data/systems/tormenta20/roles';
 import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
+  getFuturaLendaClassPowers,
   getPowersAllowedByRequirements,
   getWeightedInventorClassPowers,
   isPowerAvailable,
@@ -2632,50 +2632,11 @@ export const applyPower = (
           sheetAction.action;
 
         // Filter class powers by minimum level and requirements
-        const availablePowers = sheet.classe.powers.filter((power) => {
-          // Check if power already exists and if it can be repeated
-          const existingClassPowers = sheet.classPowers || [];
-          const isRepeatedPower = existingClassPowers.find(
-            (existingPower) => existingPower.name === power.name
-          );
-
-          if (isRepeatedPower && !power.canRepeat) {
-            return false;
-          }
-
-          // Check minimum level requirement in power requirements
-          let meetsMinLevel = true;
-          if (power.requirements && power.requirements.length > 0) {
-            // Check if any requirement path has a level requirement >= minLevel
-            meetsMinLevel = power.requirements.some((req: Requirement[]) =>
-              req.some(
-                (rule: Requirement) =>
-                  rule.type === 'NIVEL' && (rule.value as number) >= minLevel
-              )
-            );
-
-            // If no level requirement found, check if it's a basic power (usually level 1)
-            if (
-              !meetsMinLevel &&
-              !power.requirements.some((req: Requirement[]) =>
-                req.some((rule: Requirement) => rule.type === 'NIVEL')
-              )
-            ) {
-              // Power has no level requirement, assume it's available from level 1
-              meetsMinLevel = minLevel <= 1;
-            }
-          } else {
-            // No requirements, assume level 1 power
-            meetsMinLevel = minLevel <= 1;
-          }
-
-          return (
-            meetsMinLevel &&
-            isPowerAvailable(sheet, power, {
-              ignoreLevelRequirement: ignoreOnlyLevelRequirement,
-            })
-          );
-        });
+        const availablePowers = getFuturaLendaClassPowers(
+          sheet,
+          minLevel,
+          ignoreOnlyLevelRequirement
+        );
 
         if (availablePowers.length === 0) {
           throw new Error(
