@@ -26,9 +26,12 @@ import {
 import {
   GolpePessoalBuild,
   ELEMENTAL_DAMAGE_TYPES,
-  BASIC_SPELLS_1ST_2ND_CIRCLE,
 } from '../../../data/systems/tormenta20/golpePessoal';
-import { validateGolpePessoalBuild } from '../../../functions/powers/golpePessoal';
+import {
+  validateGolpePessoalBuild,
+  getConjuradorSpellOptions,
+  getConjuradorCost,
+} from '../../../functions/powers/golpePessoal';
 import {
   dataRegistry,
   GolpePessoalEffectWithSupplement,
@@ -74,17 +77,38 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
     [activeSupplements]
   );
 
+  // Magias que podem ser escolhidas pelo efeito Conjurador (RAW: 1º/2º círculo,
+  // alvo criatura ou área), das fontes ativas.
+  const conjuradorSpells = useMemo(
+    () => getConjuradorSpellOptions(activeSupplements),
+    [activeSupplements]
+  );
+
+  // Armas disponíveis: usa o inventário do personagem quando houver; caso
+  // contrário (ex.: assistente de criação, sem equipamento ainda) cai para a
+  // lista completa de armas dos suplementos ativos, evitando travar o builder.
+  const weaponOptions = useMemo(() => {
+    const inventoryWeapons = sheet?.bag?.equipments?.Arma ?? [];
+    if (inventoryWeapons.length > 0) {
+      return inventoryWeapons.map((arma) => arma.nome);
+    }
+    return dataRegistry
+      .getEquipmentBySupplements(activeSupplements)
+      .weapons.map((w) => w.nome);
+  }, [sheet, activeSupplements]);
+
   const calculateTotalCost = (): number =>
     Object.values(selectedEffects).reduce((total, selection) => {
       let cost = selection.effect.cost * selection.count;
 
-      // Handle variable costs
+      // Custo variável do Conjurador conforme o círculo da magia escolhida.
       if (
         selection.effect.variableCost &&
         selection.effect.name === 'Conjurador'
       ) {
-        // Assume 1st circle spell for now (could be enhanced)
-        cost = 2 * selection.count;
+        cost =
+          getConjuradorCost(selection.choices[0], conjuradorSpells) *
+          selection.count;
       }
 
       return total + cost;
@@ -400,9 +424,9 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
                       handleChoiceChange(effect.name, 0, e.target.value)
                     }
                   >
-                    {BASIC_SPELLS_1ST_2ND_CIRCLE.map((spell) => (
-                      <MenuItem key={spell} value={spell}>
-                        {spell}
+                    {conjuradorSpells.map((spell) => (
+                      <MenuItem key={spell.nome} value={spell.nome}>
+                        {spell.nome}
                       </MenuItem>
                     ))}
                   </Select>
@@ -444,29 +468,24 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
               label='Arma Específica'
               onChange={(e) => setWeapon(e.target.value)}
             >
-              {sheet?.bag?.equipments?.Arma &&
-              sheet.bag.equipments.Arma.length > 0 ? (
-                sheet.bag.equipments.Arma.map((arma) => (
-                  <MenuItem key={arma.nome} value={arma.nome}>
-                    {arma.nome}
+              {weaponOptions.length > 0 ? (
+                weaponOptions.map((weaponName) => (
+                  <MenuItem key={weaponName} value={weaponName}>
+                    {weaponName}
                   </MenuItem>
                 ))
               ) : (
-                <MenuItem disabled>
-                  Nenhuma arma disponível no inventário
-                </MenuItem>
+                <MenuItem disabled>Nenhuma arma disponível</MenuItem>
               )}
             </Select>
           </FormControl>
-          {(!sheet?.bag?.equipments?.Arma ||
-            sheet.bag.equipments.Arma.length === 0) && (
+          {weaponOptions.length === 0 && (
             <Typography
               variant='caption'
               color='error'
               sx={{ mt: 1, display: 'block' }}
             >
-              Adicione armas ao inventário do personagem antes de criar um Golpe
-              Pessoal
+              Nenhuma arma disponível para o Golpe Pessoal
             </Typography>
           )}
         </Box>
@@ -526,12 +545,7 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
         <Button
           onClick={handleConfirm}
           variant='contained'
-          disabled={
-            !weapon ||
-            Object.keys(selectedEffects).length === 0 ||
-            !sheet?.bag?.equipments?.Arma ||
-            sheet.bag.equipments.Arma.length === 0
-          }
+          disabled={!weapon || Object.keys(selectedEffects).length === 0}
         >
           Confirmar Golpe Pessoal
         </Button>
