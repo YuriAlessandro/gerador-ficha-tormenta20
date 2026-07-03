@@ -91,6 +91,14 @@ const Changelog: React.FC = () => {
                   PM para 2º círculo).
                 </li>
                 <li>
+                  <strong>Correção:</strong> Fichas da raça{' '}
+                  <strong>Duende</strong> voltaram a ser editáveis: em{' '}
+                  <strong>Editar informações da ficha</strong>, o botão{' '}
+                  <strong>Salvar</strong> não fica mais permanentemente
+                  desabilitado (cinza), permitindo alterar atributos, raça,
+                  classe e demais informações normalmente.
+                </li>
+                <li>
                   <strong>Correção:</strong> A lista de magias do efeito{' '}
                   <strong>Conjurador</strong> do Golpe Pessoal agora mostra as
                   magias corretas de 1º e 2º círculo (a{' '}
