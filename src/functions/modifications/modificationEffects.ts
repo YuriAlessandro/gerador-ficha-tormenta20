@@ -72,6 +72,12 @@ export const modificationEffects: Record<string, ModificationEffect> = {
       { skill: Skill.DIPLOMACIA, value: 2 },
     ],
   },
+  Macabro: {
+    skillBonuses: [
+      { skill: Skill.INTIMIDACAO, value: 2 },
+      { skill: Skill.DIPLOMACIA, value: -2 },
+    ],
+  },
 
   // Heróis de Arton — armas
   // O bônus em testes contra manobras não é representável no modelo atual

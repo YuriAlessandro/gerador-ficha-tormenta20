@@ -2003,6 +2003,12 @@ export const weaponsModifications: ItemMod[] = [
     description: '+2 em Intimidação; +2 em Diplomacia',
   },
   {
+    min: 54,
+    max: 55,
+    mod: 'Macabro',
+    description: '+2 em Intimidação; -2 em Diplomacia',
+  },
+  {
     min: 56,
     max: 65,
     mod: 'Maciça',
@@ -2079,6 +2085,12 @@ export const armorsModifications: ItemMod[] = [
     max: 40,
     mod: 'Luxuosa',
     description: '+2 em Intimidação; +2 em Diplomacia',
+  },
+  {
+    min: 38,
+    max: 40,
+    mod: 'Macabro',
+    description: '+2 em Intimidação; -2 em Diplomacia',
   },
   {
     min: 41,
