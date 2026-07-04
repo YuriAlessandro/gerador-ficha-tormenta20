@@ -139,7 +139,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       >
         {title} ({comments.length})
       </Typography>
-
       {/* Comment form */}
       <Paper
         elevation={0}
@@ -157,7 +156,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       >
         {!isAuthenticated && (
           <Box sx={{ textAlign: 'center', py: 2 }}>
-            <Typography variant='body1' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body1'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Faça login para comentar
             </Typography>
             <Button variant='contained' onClick={() => openLoginModal()}>
@@ -176,7 +181,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={submitting}
-              inputProps={{ maxLength }}
               helperText={`${newComment.length}/${maxLength} caracteres (Ctrl+Enter para enviar)`}
               sx={{
                 mb: 2,
@@ -185,6 +189,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     ? 'rgba(255,255,255,0.05)'
                     : 'rgba(255,255,255,0.8)',
                 },
+              }}
+              slotProps={{
+                htmlInput: { maxLength },
               }}
             />
             {(error || externalError) && (
@@ -215,7 +222,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           </Box>
         )}
       </Paper>
-
       {/* Comments list */}
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -225,8 +231,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       {!loading && comments.length === 0 && (
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'center', py: 4 }}
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'center',
+            py: 4,
+          }}
         >
           Nenhum comentário ainda. Seja o primeiro a comentar!
         </Typography>
@@ -332,7 +341,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     </Box>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant='caption' color='text.secondary'>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {formatDate(comment.createdAt)}
                       </Typography>
                       {checkCanDelete(comment) && (

@@ -291,13 +291,15 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     <Box>
       <Typography
         variant='body2'
-        color='text.secondary'
-        sx={{ mb: 2.5, fontStyle: 'italic' }}
+        sx={{
+          color: 'text.secondary',
+          mb: 2.5,
+          fontStyle: 'italic',
+        }}
       >
         Escolha as opções do seu personagem. Você poderá fazer mais escolhas no
         passo a passo.
       </Typography>
-
       <Grid container spacing={2}>
         {/* Race Selection - NO "Aleatoria" */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -425,16 +427,17 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
           />
         </Grid>
       </Grid>
-
       {/* Required fields note */}
       <Typography
         variant='caption'
-        color='text.secondary'
-        sx={{ display: 'block', mt: 2 }}
+        sx={{
+          color: 'text.secondary',
+          display: 'block',
+          mt: 2,
+        }}
       >
         <span style={{ color: '#d32f2f' }}>*</span> Campos obrigatorios
       </Typography>
-
       {/* Action Button */}
       <Box sx={{ mt: 3 }}>
         <Button
@@ -455,8 +458,12 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
         {!canCreateSheet && (
           <Typography
             variant='caption'
-            color='text.secondary'
-            sx={{ display: 'block', mt: 1, textAlign: 'center' }}
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+              mt: 1,
+              textAlign: 'center',
+            }}
           >
             Preencha todos os campos obrigatorios para continuar.
           </Typography>

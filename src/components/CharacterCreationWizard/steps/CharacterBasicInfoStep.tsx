@@ -81,11 +81,14 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
           Verifique suas fichas com atenção.
         </Typography>
       </Alert>
-
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Defina as informações básicas do seu personagem.
       </Typography>
-
       <Autocomplete
         freeSolo
         options={nameSuggestions}
@@ -108,7 +111,6 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
           />
         )}
       />
-
       <TextField
         fullWidth
         label='URL da Imagem (opcional)'
@@ -134,7 +136,6 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
           }}
         />
       )}
-
       <FormControl component='fieldset'>
         <FormLabel component='legend'>Gênero (Opcional)</FormLabel>
         <RadioGroup
@@ -155,7 +156,6 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
           <FormControlLabel value='Outro' control={<Radio />} label='Outro' />
         </RadioGroup>
       </FormControl>
-
       {isComplete ? (
         <Alert severity='success'>
           Informações básicas preenchidas! Você pode continuar.

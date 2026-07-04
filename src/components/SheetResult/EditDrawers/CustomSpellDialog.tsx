@@ -27,6 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import { v4 as uuid } from 'uuid';
+import NumberField from '@/components/common/NumberField';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import {
   Spell,
@@ -438,7 +439,13 @@ const CustomSpellDialog: React.FC<CustomSpellDialogProps> = ({
         <Stack spacing={3} sx={{ mt: 1 }}>
           {/* Informações da Magia */}
           <Box>
-            <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 2 }}>
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 'bold',
+                mb: 2,
+              }}
+            >
               Informações da Magia
             </Typography>
             <Stack spacing={2}>
@@ -670,14 +677,15 @@ const CustomSpellDialog: React.FC<CustomSpellDialogProps> = ({
                 </Grid>
               </Grid>
 
-              <TextField
+              <NumberField
                 label='Custo PM'
-                value={manaExpense}
-                onChange={(e) => setManaExpense(e.target.value)}
+                value={manaExpense === '' ? null : Number(manaExpense)}
+                onValueChange={(v) =>
+                  setManaExpense(v === null ? '' : String(v))
+                }
                 fullWidth
-                type='number'
+                min={0}
                 helperText='Opcional. Se não informado, usa o custo padrão do círculo'
-                inputProps={{ min: 0 }}
               />
 
               <TextField
@@ -701,10 +709,22 @@ const CustomSpellDialog: React.FC<CustomSpellDialogProps> = ({
 
           {/* Aprimoramentos */}
           <Box>
-            <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 1 }}>
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
+            >
               Aprimoramentos (Opcional)
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Adicione modificadores de PM para esta magia
             </Typography>
 
@@ -749,7 +769,13 @@ const CustomSpellDialog: React.FC<CustomSpellDialogProps> = ({
             )}
 
             <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 1 }}>
-              <Typography variant='body2' fontWeight='bold' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 'bold',
+                  mb: 2,
+                }}
+              >
                 {editingAprimIndex !== null
                   ? 'Editar Aprimoramento'
                   : 'Adicionar Aprimoramento'}
@@ -766,14 +792,15 @@ const CustomSpellDialog: React.FC<CustomSpellDialogProps> = ({
                   label='Truque (custo 0 PM)'
                 />
                 {!aprimTrick && (
-                  <TextField
+                  <NumberField
                     label='Custo adicional de PM'
-                    value={aprimAddPm}
-                    onChange={(e) => setAprimAddPm(e.target.value)}
+                    value={aprimAddPm === '' ? null : Number(aprimAddPm)}
+                    onValueChange={(v) =>
+                      setAprimAddPm(v === null ? '' : String(v))
+                    }
                     fullWidth
                     size='small'
-                    type='number'
-                    inputProps={{ min: 0 }}
+                    min={0}
                     helperText='Ex: 2 para "+2 PM"'
                   />
                 )}
@@ -830,10 +857,22 @@ const CustomSpellDialog: React.FC<CustomSpellDialogProps> = ({
 
           {/* Rolagens */}
           <Box>
-            <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 1 }}>
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
+            >
               Rolagens (Opcional)
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Adicione rolagens de dados associadas a esta magia
             </Typography>
 
@@ -875,7 +914,13 @@ const CustomSpellDialog: React.FC<CustomSpellDialogProps> = ({
             )}
 
             <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 1 }}>
-              <Typography variant='body2' fontWeight='bold' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 'bold',
+                  mb: 2,
+                }}
+              >
                 {editingRoll ? 'Editar Rolagem' : 'Adicionar Rolagem'}
               </Typography>
               <Stack spacing={2}>

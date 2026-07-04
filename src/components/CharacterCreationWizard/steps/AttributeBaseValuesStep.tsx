@@ -180,19 +180,22 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
           <ToggleButton value='points'>Pontos</ToggleButton>
         </ToggleButtonGroup>
 
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {methodDescriptions[method]} Os modificadores da raça {race.name} são
           aplicados automaticamente ao valor final.
         </Typography>
       </Box>
-
       {method === 'points' && (
         <Alert severity={remainingPoints === 0 ? 'success' : 'info'}>
           Pontos restantes: <strong>{remainingPoints}</strong> /{' '}
           {POINT_BUY_BUDGET}
         </Alert>
       )}
-
       {method === 'dice' && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Box
@@ -228,13 +231,17 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
             )}
           </Box>
           {(!dicePool || dicePool.length === 0) && (
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Clique em &quot;Rolar atributos&quot; para gerar seus valores.
             </Typography>
           )}
         </Box>
       )}
-
       <Box
         sx={{
           display: 'grid',
@@ -258,12 +265,14 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
             <Paper key={atributo} sx={{ p: 1.5 }}>
               <Typography
                 variant='subtitle2'
-                fontWeight='bold'
-                sx={{ mb: 1, fontFamily: 'Tfont, serif' }}
+                sx={{
+                  fontWeight: 'bold',
+                  mb: 1,
+                  fontFamily: 'Tfont, serif',
+                }}
               >
                 {atributo}
               </Typography>
-
               {method === 'free' && (
                 <TextField
                   size='small'
@@ -277,7 +286,6 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   }}
                 />
               )}
-
               {method === 'points' && (
                 <Box
                   sx={{
@@ -311,7 +319,6 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   </IconButton>
                 </Box>
               )}
-
               {method === 'dice' && (
                 <FormControl
                   size='small'
@@ -353,7 +360,6 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   </Select>
                 </FormControl>
               )}
-
               <Box
                 sx={{
                   display: 'flex',
@@ -364,23 +370,25 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
               >
                 <Typography
                   variant='body2'
-                  sx={{ fontSize: '0.85rem' }}
-                  color='text.secondary'
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.85rem',
+                  }}
                 >
                   Mod. Racial:
                 </Typography>
                 <Typography
                   variant='body2'
-                  sx={{ fontSize: '0.85rem' }}
                   color={getRacialModifierColor(racialModifier)}
-                  fontWeight='bold'
+                  sx={{
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem',
+                  }}
                 >
                   {formatMod(racialModifier)}
                 </Typography>
               </Box>
-
               <Divider sx={{ my: 0.5 }} />
-
               <Box
                 sx={{
                   display: 'flex',
@@ -388,13 +396,20 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   alignItems: 'center',
                 }}
               >
-                <Typography variant='caption' fontWeight='bold'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   Final:
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='primary.main'
-                  fontWeight='bold'
+                  sx={{
+                    color: 'primary.main',
+                    fontWeight: 'bold',
+                  }}
                 >
                   {formatMod(finalValue)}
                 </Typography>

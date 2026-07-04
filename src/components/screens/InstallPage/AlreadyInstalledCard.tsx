@@ -1,6 +1,6 @@
 import React from 'react';
 import { Paper, Typography } from '@mui/material';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
 
 interface AlreadyInstalledCardProps {
   wasJustInstalled: boolean;
@@ -28,7 +28,12 @@ const AlreadyInstalledCard: React.FC<AlreadyInstalledCardProps> = ({
         ? 'App instalado com sucesso!'
         : 'Você já está usando o app!'}
     </Typography>
-    <Typography variant='body1' color='text.secondary'>
+    <Typography
+      variant='body1'
+      sx={{
+        color: 'text.secondary',
+      }}
+    >
       {wasJustInstalled
         ? 'Agora você pode encontrar o Fichas de Nimb na sua tela inicial.'
         : 'O Fichas de Nimb já está instalado no seu dispositivo.'}

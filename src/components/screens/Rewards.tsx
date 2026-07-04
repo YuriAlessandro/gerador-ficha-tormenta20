@@ -11,7 +11,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
   FormControl,
   FormLabel,
@@ -24,6 +23,7 @@ import {
 import Select from 'react-select';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 
+import NumberField from '@/components/common/NumberField';
 import { SEO, getPageSEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
 import getSelectTheme from '../../functions/style';
@@ -49,7 +49,7 @@ const Rewards: React.FC = () => {
   const isDarkMode = theme.palette.mode === 'dark';
 
   const [items, setItems] = useState<RewardWithId[]>();
-  const [numberOfItems, setNumberOfItems] = useState<number>(1);
+  const [numberOfItems, setNumberOfItems] = useState<number | null>(1);
   const [nd, setNd] = useState<LEVELS>(LEVELS.S4);
   const [rewardMult, setRewardMult] = useState<'Padrão' | 'Metade' | 'Dobro'>(
     'Padrão'
@@ -60,7 +60,7 @@ const Rewards: React.FC = () => {
     const isDouble = rewardMult === 'Dobro';
     const isHalf = rewardMult === 'Metade';
 
-    let itemsToRoll = numberOfItems;
+    let itemsToRoll = numberOfItems ?? 0;
 
     if (isDouble) itemsToRoll *= 2;
 
@@ -79,10 +79,8 @@ const Rewards: React.FC = () => {
     if (newNd) setNd(newNd.value as LEVELS);
   };
 
-  const onChangeQtd = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const qtd = e.target.value as unknown as number;
-
-    if (qtd && qtd <= 0) setNumberOfItems(1);
+  const onChangeQtd = (qtd: number | null) => {
+    if (qtd !== null && qtd <= 0) setNumberOfItems(1);
     else setNumberOfItems(qtd);
   };
 
@@ -179,7 +177,12 @@ const Rewards: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     D% = {item?.moneyRoll}
                   </Typography>
                 </TableCell>
@@ -187,7 +190,12 @@ const Rewards: React.FC = () => {
                   <Typography variant='body2'>{moneyStr}</Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     D% = {item?.itemRoll}
                   </Typography>
                 </TableCell>
@@ -204,14 +212,24 @@ const Rewards: React.FC = () => {
                   <TableCell />
                   <TableCell />
                   <TableCell>
-                    <Typography variant='body2' fontWeight={500}>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                      }}
+                    >
                       {item?.money?.reward?.applyRollBonus ? '+% ' : ''}
                       {item.moneyApplied}
                     </Typography>
                   </TableCell>
                   <TableCell />
                   <TableCell sx={{ whiteSpace: 'pre-wrap' }}>
-                    <Typography variant='body2' fontWeight={500}>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                      }}
+                    >
                       {item?.item?.reward?.applyRollBonus ? '+% ' : ''}
                       {item.itemApplied}
                     </Typography>
@@ -251,20 +269,20 @@ const Rewards: React.FC = () => {
           <Stack
             spacing={3}
             direction={{ xs: 'column', md: 'row' }}
-            alignItems={{ xs: 'stretch', md: 'center' }}
-            justifyContent='center'
-            flexWrap='wrap'
+            sx={{
+              alignItems: { xs: 'stretch', md: 'center' },
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+            }}
           >
-            <TextField
+            <NumberField
               id='reward-quantity'
               label='Quantidade'
-              type='number'
-              variant='outlined'
-              onChange={onChangeQtd}
+              onValueChange={onChangeQtd}
               sx={{ width: { xs: '100%', sm: '120px' } }}
               size='small'
               value={numberOfItems}
-              inputProps={{ min: 1 }}
+              min={1}
             />
 
             <Box sx={{ minWidth: 200 }}>
@@ -341,7 +359,13 @@ const Rewards: React.FC = () => {
           <Box component='ul' sx={{ m: 0, pl: 2 }}>
             <Box component='li' sx={{ mb: 1 }}>
               <Typography variant='body2' component='span'>
-                <Typography component='span' fontWeight={600} variant='body2'>
+                <Typography
+                  component='span'
+                  variant='body2'
+                  sx={{
+                    fontWeight: 600,
+                  }}
+                >
                   Metade
                 </Typography>
                 : A criatura tem poucos tesouros; quaisquer resultados rolados
@@ -350,7 +374,13 @@ const Rewards: React.FC = () => {
             </Box>
             <Box component='li'>
               <Typography variant='body2' component='span'>
-                <Typography component='span' fontWeight={600} variant='body2'>
+                <Typography
+                  component='span'
+                  variant='body2'
+                  sx={{
+                    fontWeight: 600,
+                  }}
+                >
                   Dobro
                 </Typography>
                 : Será rolado normalmente, duas vezes para dinheiro e duas vezes

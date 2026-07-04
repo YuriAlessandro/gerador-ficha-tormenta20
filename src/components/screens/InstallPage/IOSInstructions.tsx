@@ -11,7 +11,14 @@ interface StepProps {
 }
 
 const Step: React.FC<StepProps> = ({ stepNumber, icon, text }) => (
-  <Stack direction='row' alignItems='center' spacing={2} sx={{ py: 1.5 }}>
+  <Stack
+    direction='row'
+    spacing={2}
+    sx={{
+      alignItems: 'center',
+      py: 1.5,
+    }}
+  >
     <Box
       sx={{
         width: 32,
@@ -47,8 +54,11 @@ const IOSInstructions: React.FC = () => (
   >
     <Typography
       variant='subtitle2'
-      color='text.secondary'
-      sx={{ mb: 1, textAlign: 'left' }}
+      sx={{
+        color: 'text.secondary',
+        mb: 1,
+        textAlign: 'left',
+      }}
     >
       Siga estes passos no Safari:
     </Typography>

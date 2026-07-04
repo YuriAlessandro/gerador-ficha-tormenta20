@@ -195,7 +195,13 @@ const CustomPowerDialog: React.FC<CustomPowerDialogProps> = ({
         <Stack spacing={3} sx={{ mt: 1 }}>
           {/* Campos do poder */}
           <Box>
-            <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 2 }}>
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 'bold',
+                mb: 2,
+              }}
+            >
               Informações do Poder
             </Typography>
             <Stack spacing={2}>
@@ -231,10 +237,22 @@ const CustomPowerDialog: React.FC<CustomPowerDialogProps> = ({
 
           {/* Seção de rolagens */}
           <Box>
-            <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 1 }}>
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
+            >
               Rolagens (Opcional)
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Adicione rolagens de dados associadas a este poder
             </Typography>
 
@@ -277,7 +295,13 @@ const CustomPowerDialog: React.FC<CustomPowerDialogProps> = ({
 
             {/* Formulário para adicionar/editar rolagem */}
             <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 1 }}>
-              <Typography variant='body2' fontWeight='bold' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 'bold',
+                  mb: 2,
+                }}
+              >
                 {editingRoll ? 'Editar Rolagem' : 'Adicionar Rolagem'}
               </Typography>
               <Stack spacing={2}>

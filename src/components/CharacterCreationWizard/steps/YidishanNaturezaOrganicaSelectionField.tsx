@@ -142,7 +142,6 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
           habilidade dessa raça a sua escolha.
         </Typography>
       </Alert>
-
       <FormControl fullWidth>
         <InputLabel id='yidishan-natureza-old-race-label'>
           Raça Anterior *
@@ -163,7 +162,6 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
           ))}
         </Select>
       </FormControl>
-
       <Box>
         <Typography variant='subtitle1' gutterBottom>
           Benefício
@@ -196,7 +194,6 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
           </RadioGroup>
         </FormControl>
       </Box>
-
       {benefitType === 'skill' && (
         <FormControl fullWidth>
           <InputLabel id='yidishan-natureza-skill-label'>Perícia *</InputLabel>
@@ -214,7 +211,6 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
           </Select>
         </FormControl>
       )}
-
       {benefitType === 'power' && (
         <FormControl fullWidth>
           <InputLabel id='yidishan-natureza-power-label'>
@@ -233,8 +229,10 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
                   {power.description && (
                     <Typography
                       variant='caption'
-                      color='text.secondary'
                       component='div'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       {power.description.length > 100
                         ? `${power.description.substring(0, 100)}...`
@@ -247,7 +245,6 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
           </Select>
         </FormControl>
       )}
-
       {benefitType === 'raceAbility' &&
         canPickRaceAbility &&
         selectedOldRace && (
@@ -272,7 +269,12 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
                           <Typography variant='body1'>
                             {ability.name}
                           </Typography>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {ability.description}
                           </Typography>
                         </Box>
@@ -296,15 +298,18 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
             </FormControl>
           </Box>
         )}
-
       {!isHumano && !selectedOldRace && (
         <Alert severity='warning'>
           Raça selecionada não encontrada. Selecione outra raça.
         </Alert>
       )}
-
       <Box sx={{ mt: 1 }}>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           <strong>Resumo:</strong> Raça herdada: <em>{selectedOldRaceName}</em>
           {benefitType === 'skill' && selectedSkill && (
             <>

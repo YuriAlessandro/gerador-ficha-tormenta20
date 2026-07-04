@@ -86,9 +86,12 @@ const CommunityCard: React.FC<{ item: CommunityItem }> = ({ item }) => (
       {item.subtitle && (
         <Typography
           variant='caption'
-          sx={{ color: item.accentColor, fontWeight: 700 }}
           noWrap
-          display='block'
+          sx={{
+            display: 'block',
+            color: item.accentColor,
+            fontWeight: 700,
+          }}
         >
           {item.subtitle}
         </Typography>
@@ -103,9 +106,12 @@ const CommunityCard: React.FC<{ item: CommunityItem }> = ({ item }) => (
       </Typography>
       <Stack
         direction='row'
-        alignItems='center'
         spacing={0.5}
-        sx={{ mt: 0.5, minHeight: 20 }}
+        sx={{
+          alignItems: 'center',
+          mt: 0.5,
+          minHeight: 20,
+        }}
       >
         {typeof item.rating === 'number' && item.rating > 0 ? (
           <>
@@ -118,12 +124,23 @@ const CommunityCard: React.FC<{ item: CommunityItem }> = ({ item }) => (
                 <StarIcon style={{ opacity: 0.3 }} fontSize='inherit' />
               }
             />
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               ({item.ratingCount || 0})
             </Typography>
           </>
         ) : (
-          <Typography variant='caption' color='text.secondary' noWrap>
+          <Typography
+            variant='caption'
+            noWrap
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {item.author ? `por ${item.author}` : 'Novo'}
           </Typography>
         )}
@@ -185,16 +202,21 @@ const CommunityBanner: React.FC<CommunityBannerProps> = ({
       >
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
-          alignItems='center'
-          justifyContent='space-between'
           spacing={{ xs: 2, sm: 3 }}
-          sx={{ position: 'relative', zIndex: 1 }}
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            position: 'relative',
+            zIndex: 1,
+          }}
         >
           <Stack
             direction='row'
-            alignItems='center'
             spacing={2}
-            sx={{ textAlign: { xs: 'center', sm: 'left' } }}
+            sx={{
+              alignItems: 'center',
+              textAlign: { xs: 'center', sm: 'left' },
+            }}
           >
             <Box
               sx={{
@@ -267,7 +289,6 @@ const CommunityBanner: React.FC<CommunityBannerProps> = ({
           </Stack>
         </Stack>
       </Box>
-
       {/* Bandeja anexada (grade): skeleton / cards / vazio */}
       <Box
         sx={{

@@ -12,7 +12,13 @@ const SheetPreviewStats = () => {
   }
 
   return (
-    <Stack justifyContent='space-around' direction='row' flexWrap='wrap'>
+    <Stack
+      direction='row'
+      sx={{
+        justifyContent: 'space-around',
+        flexWrap: 'wrap',
+      }}
+    >
       <SheetPreviewAttributes attributes={attributes} />
     </Stack>
   );

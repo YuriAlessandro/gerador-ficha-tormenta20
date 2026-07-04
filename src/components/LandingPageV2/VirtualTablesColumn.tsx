@@ -59,9 +59,11 @@ const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
   const sectionHeader = (action?: React.ReactNode) => (
     <Stack
       direction='row'
-      alignItems='center'
-      justifyContent='space-between'
-      sx={{ mb: 1.5 }}
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        mb: 1.5,
+      }}
     >
       <Typography
         variant='subtitle1'
@@ -138,7 +140,6 @@ const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
           Ver todas
         </Button>
       )}
-
       <Box
         sx={{
           display: 'grid',
@@ -213,8 +214,11 @@ const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
               <Stack
                 direction='row'
                 spacing={0.75}
-                alignItems='center'
-                sx={{ mt: 0.25, minWidth: 0 }}
+                sx={{
+                  alignItems: 'center',
+                  mt: 0.25,
+                  minWidth: 0,
+                }}
               >
                 <Chip
                   label={statusLabel(table.status)}
@@ -229,22 +233,28 @@ const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
                 <Stack
                   direction='row'
                   spacing={0.3}
-                  alignItems='center'
-                  sx={{ color: 'text.secondary' }}
+                  sx={{
+                    alignItems: 'center',
+                    color: 'text.secondary',
+                  }}
                 >
                   <PeopleAltIcon sx={{ fontSize: 11 }} />
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    sx={{ fontSize: '0.65rem' }}
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.65rem',
+                    }}
                   >
                     {table.members.length}
                   </Typography>
                 </Stack>
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ fontSize: '0.65rem' }}
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.65rem',
+                  }}
                 >
                   {formatDate(table.updatedAt)}
                 </Typography>

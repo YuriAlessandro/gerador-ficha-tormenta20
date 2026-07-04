@@ -140,10 +140,12 @@ const SheetBuilderPage: React.FC = () => {
   if (loading) {
     return (
       <Box
-        display='flex'
-        justifyContent='center'
-        alignItems='center'
-        minHeight='50vh'
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '50vh',
+        }}
       >
         <CircularProgress size={60} />
       </Box>
@@ -170,14 +172,18 @@ const SheetBuilderPage: React.FC = () => {
           </Fab>
         )}
       </FabDiv>
-
       <Breadcrumbs aria-label='breadcrumb' sx={{ p: 2 }}>
         <Link to='/sheets' color='inherit' href='/sheets'>
           Histórico Local
         </Link>
-        <Typography color='text.primary'>Gerenciar Personagem</Typography>
+        <Typography
+          sx={{
+            color: 'text.primary',
+          }}
+        >
+          Gerenciar Personagem
+        </Typography>
       </Breadcrumbs>
-
       <BackgroundBox sx={{ display: value === 0 ? 'block' : 'none' }}>
         <Box sx={{ p: 5 }}>
           <Title>Visualizar Ficha</Title>

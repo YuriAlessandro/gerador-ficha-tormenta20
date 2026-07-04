@@ -111,21 +111,34 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
       onClose={onCancel}
       maxWidth='md'
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+          },
         },
       }}
     >
       <DialogTitle>
-        <Typography variant='h5' component='div' fontWeight='bold'>
+        <Typography
+          variant='h5'
+          component='div'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           Customização do Moreau
         </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mt: 1,
+          }}
+        >
           Escolha a herança do seu moreau e os atributos de bônus
         </Typography>
       </DialogTitle>
-
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
           {/* Heritage Selection */}
@@ -158,8 +171,10 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
               >
                 <Typography
                   variant='subtitle2'
-                  fontWeight='bold'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    fontWeight: 'bold',
+                    mb: 1,
+                  }}
                 >
                   Habilidades:
                 </Typography>
@@ -168,15 +183,19 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
                     <Box key={ability.name}>
                       <Typography
                         variant='body2'
-                        fontWeight='bold'
                         component='span'
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
                       >
                         {ability.name}:
                       </Typography>{' '}
                       <Typography
                         variant='body2'
-                        color='text.secondary'
                         component='span'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
                       >
                         {ability.description}
                       </Typography>
@@ -185,7 +204,12 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
                 </Stack>
                 {fixedAttr && (
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant='subtitle2' fontWeight='bold'>
+                    <Typography
+                      variant='subtitle2'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       Atributo Fixo:{' '}
                       <Chip
                         label={`+1 ${fixedAttr.attr}`}
@@ -202,10 +226,21 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
           {/* Sapiência Spell Selection (Coruja heritage only) */}
           {showSpellPicker && (
             <Box>
-              <Typography variant='subtitle1' fontWeight='bold'>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Magia da Sapiência
               </Typography>
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 1,
+                }}
+              >
                 Escolha uma magia de 1º círculo da escola de Adivinhação. O
                 atributo-chave dessa magia será Sabedoria.
               </Typography>
@@ -237,10 +272,21 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
           )}
 
           {/* Bonus Attributes Selection */}
-          <Typography variant='subtitle1' fontWeight='bold'>
+          <Typography
+            variant='subtitle1'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             Atributos de Bônus (+1 cada)
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: -2 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mt: -2,
+            }}
+          >
             Escolha dois atributos para receber +1 (podem ser iguais)
           </Typography>
 
@@ -290,7 +336,12 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
                 borderRadius: 1,
               }}
             >
-              <Typography variant='subtitle2' fontWeight='bold'>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Resumo dos Atributos:
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
@@ -316,7 +367,6 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
           )}
         </Box>
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 3 }}>
         <Button onClick={onCancel} color='inherit'>
           Cancelar

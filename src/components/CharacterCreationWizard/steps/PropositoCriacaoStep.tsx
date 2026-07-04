@@ -141,11 +141,15 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Como um Golem, você não possui uma origem. Em vez disso, escolha um
         poder geral como seu <strong>Propósito de Criação</strong>.
       </Typography>
-
       <TextField
         label='Buscar poder'
         variant='outlined'
@@ -154,7 +158,6 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
         onChange={(e) => setSearchFilter(e.target.value)}
         fullWidth
       />
-
       {VALID_POWER_TYPES.map((type) => {
         const powers = powersByType[type];
         if (!powers || powers.length === 0) return null;
@@ -216,8 +219,10 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
                           {isSelected && (
                             <Typography
                               variant='body2'
-                              color='text.secondary'
-                              sx={{ mt: 0.5 }}
+                              sx={{
+                                color: 'text.secondary',
+                                mt: 0.5,
+                              }}
                             >
                               {power.description}
                             </Typography>
@@ -233,14 +238,12 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
           </Accordion>
         );
       })}
-
       {selectedPower && (
         <Alert severity='success'>
           Poder selecionado: <strong>{selectedPower.name}</strong>. Você pode
           continuar para o próximo passo.
         </Alert>
       )}
-
       {!selectedPower && (
         <Alert severity='info'>Selecione um poder geral para continuar.</Alert>
       )}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Grid, TextField, Button, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CasinoIcon from '@mui/icons-material/Casino';
+import NumberField from '@/components/common/NumberField';
 import { AbilityRoll } from '../../../../interfaces/ThreatSheet';
 
 interface RollsEditorProps {
@@ -57,16 +58,21 @@ const RollsEditor: React.FC<RollsEditorProps> = ({
       {helperText && (
         <Typography
           variant='caption'
-          color='text.secondary'
-          display='block'
-          mb={1}
+          sx={{
+            color: 'text.secondary',
+            display: 'block',
+            mb: 1,
+          }}
         >
           {helperText}
         </Typography>
       )}
-
       {value.length > 0 && (
-        <Box mb={2}>
+        <Box
+          sx={{
+            mb: 2,
+          }}
+        >
           {value.map((roll) => (
             <Chip
               key={roll.id}
@@ -81,7 +87,6 @@ const RollsEditor: React.FC<RollsEditorProps> = ({
           ))}
         </Box>
       )}
-
       <Grid container spacing={1}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <TextField
@@ -104,15 +109,12 @@ const RollsEditor: React.FC<RollsEditorProps> = ({
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <TextField
+          <NumberField
             size='small'
             fullWidth
             label='Bônus'
-            type='number'
             value={draft.bonus}
-            onChange={(e) =>
-              setDraft({ ...draft, bonus: parseInt(e.target.value, 10) || 0 })
-            }
+            onValueChange={(v) => setDraft({ ...draft, bonus: v ?? 0 })}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 2 }}>

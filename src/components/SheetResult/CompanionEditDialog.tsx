@@ -26,7 +26,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import {
   CompanionSheet,
@@ -53,6 +53,7 @@ import {
   ATTR_ABBREVIATIONS,
 } from '@/data/systems/tormenta20/atributos';
 import Skill from '@/interfaces/Skills';
+import NumberField from '@/components/common/NumberField';
 
 const COMPANION_TYPES: CompanionType[] = [
   'Animal',
@@ -241,11 +242,24 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
       <DialogTitle>
         <Stack
           direction='row'
-          alignItems='center'
-          justifyContent='space-between'
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
-          <Stack direction='row' alignItems='center' spacing={1}>
-            <Typography variant='h6' fontWeight='bold'>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Editar Melhor Amigo
             </Typography>
             {hasOverrides && (
@@ -257,7 +271,13 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
               />
             )}
           </Stack>
-          <Stack direction='row' alignItems='center' spacing={0.5}>
+          <Stack
+            direction='row'
+            spacing={0.5}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <Tooltip
               title={
                 canReset
@@ -359,7 +379,6 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
           Salvar
         </Button>
       </DialogActions>
-
       <Dialog
         open={confirmResetOpen}
         onClose={() => setConfirmResetOpen(false)}
@@ -503,8 +522,19 @@ const GeneralTab: React.FC<{
         label='Treino Intensivo (Treinador nível 5+)'
       />
       <Divider />
-      <Stack direction='row' justifyContent='space-between' alignItems='center'>
-        <Typography variant='subtitle2' fontWeight='bold'>
+      <Stack
+        direction='row'
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           Atributos
         </Typography>
         {hasAttrOverride && (
@@ -532,23 +562,31 @@ const GeneralTab: React.FC<{
           Atributo.SABEDORIA,
           Atributo.CARISMA,
         ].map((attr) => (
-          <TextField
+          <NumberField
             key={attr}
             label={ATTR_ABBREVIATIONS[attr]}
-            type='number'
             size='small'
             value={displayAttrs[attr]}
-            onChange={(e) =>
-              updateAttr(attr, parseInt(e.target.value, 10) || 0)
+            onValueChange={(v) => updateAttr(attr, v ?? 0)}
+            sx={
+              hasAttrOverride
+                ? {
+                    '& .MuiOutlinedInput-root': {
+                      borderColor: 'warning.main',
+                    },
+                  }
+                : undefined
             }
-            InputProps={{
-              sx: hasAttrOverride ? { borderColor: 'warning.main' } : undefined,
-            }}
           />
         ))}
       </Box>
       {autoAttrs && hasAttrOverride && (
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Valores automáticos:{' '}
           {[
             Atributo.FORCA,
@@ -584,13 +622,18 @@ const OverrideNumberField: React.FC<{
   const hasOverride = overrideValue !== undefined;
   const displayValue = hasOverride ? overrideValue : autoValue ?? 0;
   return (
-    <Stack direction='row' alignItems='center' spacing={1}>
-      <TextField
+    <Stack
+      direction='row'
+      spacing={1}
+      sx={{
+        alignItems: 'center',
+      }}
+    >
+      <NumberField
         label={label}
-        type='number'
         size='small'
         value={displayValue}
-        onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
+        onValueChange={(v) => onChange(v ?? 0)}
         fullWidth
         helperText={
           hasOverride && autoValue !== undefined
@@ -670,8 +713,19 @@ const CombatTab: React.FC<{
         />
       </Stack>
       <Divider />
-      <Stack direction='row' alignItems='center' justifyContent='space-between'>
-        <Typography variant='subtitle2' fontWeight='bold'>
+      <Stack
+        direction='row'
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           Tipos de movimento
         </Typography>
         {hasMovementOverride && (
@@ -685,39 +739,36 @@ const CombatTab: React.FC<{
         )}
       </Stack>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-        <TextField
+        <NumberField
           label='Voo'
-          type='number'
           size='small'
           value={move?.voo ?? 0}
-          onChange={(e) =>
+          onValueChange={(v) =>
             updateOverride('movementTypes', {
               ...(move || {}),
-              voo: parseInt(e.target.value, 10) || 0,
+              voo: v ?? 0,
             })
           }
         />
-        <TextField
+        <NumberField
           label='Escalada'
-          type='number'
           size='small'
           value={move?.escalada ?? 0}
-          onChange={(e) =>
+          onValueChange={(v) =>
             updateOverride('movementTypes', {
               ...(move || {}),
-              escalada: parseInt(e.target.value, 10) || 0,
+              escalada: v ?? 0,
             })
           }
         />
-        <TextField
+        <NumberField
           label='Natação'
-          type='number'
           size='small'
           value={move?.natacao ?? 0}
-          onChange={(e) =>
+          onValueChange={(v) =>
             updateOverride('movementTypes', {
               ...(move || {}),
-              natacao: parseInt(e.target.value, 10) || 0,
+              natacao: v ?? 0,
             })
           }
         />
@@ -749,7 +800,13 @@ const NaturalWeaponsTab: React.FC<{
 
   return (
     <Stack spacing={2}>
-      <Stack direction='row' alignItems='center' justifyContent='space-between'>
+      <Stack
+        direction='row'
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <FormControl size='small' sx={{ minWidth: 200 }}>
           <InputLabel>Tipo de dano (principal)</InputLabel>
           <Select
@@ -779,7 +836,12 @@ const NaturalWeaponsTab: React.FC<{
           </Button>
         )}
       </Stack>
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         O tipo de dano principal alimenta o cálculo automático das armas
         naturais. Editar a lista abaixo cria um override que substitui toda a
         lista auto-gerada.
@@ -792,7 +854,9 @@ const NaturalWeaponsTab: React.FC<{
             key={idx}
             direction={{ xs: 'column', sm: 'row' }}
             spacing={1}
-            alignItems='center'
+            sx={{
+              alignItems: 'center',
+            }}
           >
             <FormControl size='small' sx={{ minWidth: 130 }}>
               <InputLabel>Dano</InputLabel>
@@ -826,31 +890,29 @@ const NaturalWeaponsTab: React.FC<{
               }}
               sx={{ minWidth: 90 }}
             />
-            <TextField
+            <NumberField
               label='Crítico (x)'
-              type='number'
               size='small'
               value={w.criticalMultiplier}
-              onChange={(e) => {
+              onValueChange={(v) => {
                 const next = [...weapons];
                 next[idx] = {
                   ...w,
-                  criticalMultiplier: parseInt(e.target.value, 10) || 2,
+                  criticalMultiplier: v ?? 2,
                 };
                 setWeapons(next);
               }}
               sx={{ minWidth: 90 }}
             />
-            <TextField
+            <NumberField
               label='Margem'
-              type='number'
               size='small'
               value={w.threatMargin}
-              onChange={(e) => {
+              onValueChange={(v) => {
                 const next = [...weapons];
                 next[idx] = {
                   ...w,
-                  threatMargin: parseInt(e.target.value, 10) || 20,
+                  threatMargin: v ?? 20,
                 };
                 setWeapons(next);
               }}
@@ -917,7 +979,12 @@ const SkillsTab: React.FC<{
 
   return (
     <Stack spacing={2}>
-      <Typography variant='subtitle2' fontWeight='bold'>
+      <Typography
+        variant='subtitle2'
+        sx={{
+          fontWeight: 'bold',
+        }}
+      >
         Perícias escolhidas (input base)
       </Typography>
       <Autocomplete
@@ -932,8 +999,19 @@ const SkillsTab: React.FC<{
         )}
       />
       <Divider />
-      <Stack direction='row' alignItems='center' justifyContent='space-between'>
-        <Typography variant='subtitle2' fontWeight='bold'>
+      <Stack
+        direction='row'
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           Perícias treinadas finais (output)
         </Typography>
         {hasOverride && (
@@ -946,7 +1024,12 @@ const SkillsTab: React.FC<{
           </Button>
         )}
       </Stack>
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         A lista abaixo é a final (após processamento automático de truques e
         bônus do tipo). Edite para sobrescrever totalmente.
       </Typography>
@@ -1002,13 +1085,23 @@ const TricksTab: React.FC<{
 
   return (
     <Stack spacing={2}>
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Modificar truques recalcula automaticamente atributos, PV, defesa e
         outros derivados (a menos que estejam sobrescritos manualmente).
       </Typography>
       <Stack spacing={1}>
         {draft.tricks.length === 0 && (
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Nenhum truque.
           </Typography>
         )}
@@ -1019,21 +1112,35 @@ const TricksTab: React.FC<{
               // eslint-disable-next-line react/no-array-index-key
               key={`${trick.name}-${idx}`}
               direction='row'
-              alignItems='flex-start'
               spacing={1}
               sx={{
+                alignItems: 'flex-start',
                 p: 1,
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 1,
               }}
             >
-              <Box flex={1}>
-                <Typography variant='body2' fontWeight='bold'>
+              <Box
+                sx={{
+                  flex: 1,
+                }}
+              >
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   {trick.name}
                 </Typography>
                 {trick.choices && Object.keys(trick.choices).length > 0 && (
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     Escolhas:{' '}
                     {Object.entries(trick.choices)
                       .map(([k, v]) => `${k}: ${v}`)
@@ -1043,8 +1150,11 @@ const TricksTab: React.FC<{
                 {def?.text && (
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    sx={{ display: 'block', mt: 0.5 }}
+                    sx={{
+                      color: 'text.secondary',
+                      display: 'block',
+                      mt: 0.5,
+                    }}
                   >
                     {def.text}
                   </Typography>
@@ -1083,7 +1193,12 @@ const TricksTab: React.FC<{
           ))}
         </Select>
       </FormControl>
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Truques com sub-escolhas (atributo, movimento, etc.) são adicionados sem
         escolha — edite manualmente após adicionar se necessário.
       </Typography>
@@ -1100,12 +1215,22 @@ const SpellsTab: React.FC<{
   const spells = previewCompanion.spells || [];
   return (
     <Stack spacing={2}>
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Magias do parceiro são gerenciadas pelo fluxo de Ensinar Truque com sub
         escolha de magia. Aqui você pode visualizá-las.
       </Typography>
       {spells.length === 0 && (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Nenhuma magia.
         </Typography>
       )}
@@ -1120,10 +1245,20 @@ const SpellsTab: React.FC<{
             borderRadius: 1,
           }}
         >
-          <Typography variant='body2' fontWeight='bold'>
+          <Typography
+            variant='body2'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             {s.nome}
           </Typography>
-          <Typography variant='caption' color='text.secondary'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {s.spellCircle} · {s.school}
           </Typography>
         </Box>
@@ -1145,8 +1280,19 @@ const StringListEditor: React.FC<{
   const [newItem, setNewItem] = useState('');
   return (
     <Stack spacing={1}>
-      <Stack direction='row' alignItems='center' justifyContent='space-between'>
-        <Typography variant='subtitle2' fontWeight='bold'>
+      <Stack
+        direction='row'
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           {label}
         </Typography>
         {hasOverride && (
@@ -1155,7 +1301,14 @@ const StringListEditor: React.FC<{
           </Button>
         )}
       </Stack>
-      <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+      <Stack
+        direction='row'
+        spacing={1}
+        useFlexGap
+        sx={{
+          flexWrap: 'wrap',
+        }}
+      >
         {values.map((v, idx) => (
           <Chip
             // eslint-disable-next-line react/no-array-index-key
@@ -1239,7 +1392,12 @@ const OtherTab: React.FC<{
       />
       {autoSnapshot && (
         <Box>
-          <Typography variant='caption' color='text.secondary'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Valores automáticos: sentidos [
             {autoSnapshot.senses?.join(', ') || '—'}
             ]; imunidades [{autoSnapshot.immunities?.join(', ') || '—'}];

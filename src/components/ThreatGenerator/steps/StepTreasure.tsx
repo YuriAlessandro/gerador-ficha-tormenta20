@@ -29,16 +29,32 @@ const TREASURE_DESCRIPTIONS = [
 ];
 
 const StepTreasure: React.FC<StepTreasureProps> = ({ threat, onUpdate }) => (
-  <Box p={{ xs: 2, sm: 3 }}>
+  <Box
+    sx={{
+      p: { xs: 2, sm: 3 },
+    }}
+  >
     <Typography variant='h6' gutterBottom>
       Tesouro e Equipamentos
     </Typography>
-    <Typography variant='body2' color='text.secondary' mb={3}>
+    <Typography
+      variant='body2'
+      sx={{
+        color: 'text.secondary',
+        mb: 3,
+      }}
+    >
       Descreva os equipamentos da ameaça e o nível de tesouro que ela oferece
       quando derrotada.
     </Typography>
 
-    <Grid container spacing={3} alignItems='stretch'>
+    <Grid
+      container
+      spacing={3}
+      sx={{
+        alignItems: 'stretch',
+      }}
+    >
       <Grid size={{ xs: 12, md: 8 }}>
         <SectionCard
           icon={<Inventory2OutlinedIcon />}
@@ -87,9 +103,20 @@ const StepTreasure: React.FC<StepTreasureProps> = ({ threat, onUpdate }) => (
             </Select>
           </FormControl>
 
-          <Stack spacing={0.5} mt={2}>
+          <Stack
+            spacing={0.5}
+            sx={{
+              mt: 2,
+            }}
+          >
             {TREASURE_DESCRIPTIONS.map((item) => (
-              <Typography variant='caption' display='block' key={item.label}>
+              <Typography
+                variant='caption'
+                key={item.label}
+                sx={{
+                  display: 'block',
+                }}
+              >
                 • <strong>{item.label}:</strong> {item.text}
               </Typography>
             ))}
@@ -98,7 +125,11 @@ const StepTreasure: React.FC<StepTreasureProps> = ({ threat, onUpdate }) => (
       </Grid>
     </Grid>
 
-    <Box mt={3}>
+    <Box
+      sx={{
+        mt: 3,
+      }}
+    >
       <Alert severity='info'>
         <Typography variant='body2'>
           <strong>Dica:</strong> o tesouro padrão é baseado no ND da ameaça. Use

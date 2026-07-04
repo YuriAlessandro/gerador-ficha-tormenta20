@@ -99,9 +99,9 @@ const AttributeDisplay = ({
   return (
     <Stack
       direction='row'
-      flexWrap='wrap'
-      justifyContent='center'
       sx={{
+        flexWrap: 'wrap',
+        justifyContent: 'center',
         rowGap: { xs: 1, sm: 2 },
         columnGap: { xs: 1, sm: 2 },
       }}

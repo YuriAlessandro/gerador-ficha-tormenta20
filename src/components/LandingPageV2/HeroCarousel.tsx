@@ -327,7 +327,6 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
         );
       })}
       <Box className='hero-overlay' />
-
       {/* Content */}
       <Box
         className='hero-content'
@@ -341,9 +340,11 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
           <Stack
             direction='row'
             spacing={1}
-            justifyContent='center'
-            alignItems='center'
-            sx={{ mb: 1 }}
+            sx={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              mb: 1,
+            }}
           >
             {slide.isNew && (
               <Box
@@ -416,8 +417,10 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             spacing={2}
-            justifyContent='center'
-            alignItems='center'
+            sx={{
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
           >
             <Button
               variant='contained'
@@ -476,7 +479,6 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
           </Stack>
         )}
       </Box>
-
       {/* Navigation Arrows */}
       {totalSlides > 1 && (
         <>
@@ -518,7 +520,6 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
           </IconButton>
         </>
       )}
-
       {/* Dots Indicator */}
       {totalSlides > 1 && (
         <Stack

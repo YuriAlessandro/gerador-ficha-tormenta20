@@ -339,8 +339,8 @@ function ThemedApp(): JSX.Element {
                                   />
                                   {!hideChrome && (
                                     <Stack
-                                      alignItems='center'
                                       sx={{
+                                        alignItems: 'center',
                                         width: '100%',
                                         position: 'absolute',
                                       }}

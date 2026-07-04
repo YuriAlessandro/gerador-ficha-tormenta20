@@ -95,7 +95,13 @@ const RaceLevelUpPickStep: React.FC<RaceLevelUpPickStepProps> = ({
       <Typography variant='h6' gutterBottom>
         Novas escolhas de raça
       </Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 2,
+        }}
+      >
         Sua raça concede novas escolhas ao subir de nível. Selecione abaixo.
       </Typography>
       <Stack spacing={2}>
@@ -108,9 +114,11 @@ const RaceLevelUpPickStep: React.FC<RaceLevelUpPickStepProps> = ({
             <Paper key={pick.optionKey} variant='outlined' sx={{ p: 2 }}>
               <Stack
                 direction='row'
-                alignItems='center'
-                justifyContent='space-between'
-                sx={{ mb: 1 }}
+                sx={{
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
               >
                 <Typography variant='subtitle1' sx={{ fontWeight: 700 }}>
                   {pick.abilityName}
@@ -131,10 +139,10 @@ const RaceLevelUpPickStep: React.FC<RaceLevelUpPickStepProps> = ({
                       <Stack
                         key={option.name}
                         direction='row'
-                        alignItems='flex-start'
-                        justifyContent='space-between'
                         spacing={1}
                         sx={{
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
                           p: 1,
                           borderRadius: 1,
                           border: '1px solid',
@@ -145,7 +153,9 @@ const RaceLevelUpPickStep: React.FC<RaceLevelUpPickStepProps> = ({
                           <Stack
                             direction='row'
                             spacing={1}
-                            alignItems='center'
+                            sx={{
+                              alignItems: 'center',
+                            }}
                           >
                             <Typography
                               variant='body2'
@@ -164,7 +174,9 @@ const RaceLevelUpPickStep: React.FC<RaceLevelUpPickStepProps> = ({
                           {option.text && (
                             <Typography
                               variant='caption'
-                              color='text.secondary'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
                             >
                               {option.text}
                             </Typography>
@@ -172,8 +184,10 @@ const RaceLevelUpPickStep: React.FC<RaceLevelUpPickStepProps> = ({
                         </Box>
                         <Stack
                           direction='row'
-                          alignItems='center'
                           spacing={0.5}
+                          sx={{
+                            alignItems: 'center',
+                          }}
                         >
                           <IconButton
                             size='small'
@@ -221,7 +235,9 @@ const RaceLevelUpPickStep: React.FC<RaceLevelUpPickStepProps> = ({
                           {option.text && (
                             <Typography
                               variant='caption'
-                              color='text.secondary'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
                             >
                               {option.text}
                             </Typography>

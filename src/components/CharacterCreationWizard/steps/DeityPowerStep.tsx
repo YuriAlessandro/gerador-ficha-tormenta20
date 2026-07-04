@@ -31,7 +31,12 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
   if (!deity) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Você não selecionou uma divindade.
         </Typography>
         <Alert severity='info'>Você pode continuar para o próximo passo.</Alert>
@@ -50,7 +55,12 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           A classe {classe.name} concede todos os poderes de {deity.name}
           automaticamente.
         </Typography>
@@ -80,16 +90,24 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Selecione até {maxPowers} {maxPowers === 1 ? 'poder' : 'poderes'}{' '}
         {maxPowers === 1 ? 'concedido' : 'concedidos'} por {deity.name}. Esta
         etapa é opcional.
       </Typography>
-
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Selecionados: {selectedPowers.length} / {maxPowers}
       </Typography>
-
       <Paper sx={{ p: 2 }}>
         {availablePowers.map((power) => {
           const isSelected = selectedPowers.includes(power.name);
@@ -108,7 +126,12 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
                 label={
                   <Box>
                     <Typography variant='subtitle1'>{power.name}</Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {power.description}
                     </Typography>
                   </Box>
@@ -118,21 +141,18 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
           );
         })}
       </Paper>
-
       {isLimitReached && (
         <Alert severity='info'>
           Limite de {maxPowers} {maxPowers === 1 ? 'poder' : 'poderes'}{' '}
           atingido.
         </Alert>
       )}
-
       {selectedPowers.length > 0 && !isLimitReached && (
         <Alert severity='success'>
           Poderes selecionados com sucesso! Você pode continuar para o próximo
           passo.
         </Alert>
       )}
-
       {selectedPowers.length === 0 && (
         <Alert severity='info'>
           Você pode continuar sem selecionar poderes concedidos ou escolher até{' '}

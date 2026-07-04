@@ -164,11 +164,20 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
           </IconButton>
         </TableCell>
         <TableCell component='th' scope='row'>
-          <Box display='flex' alignItems='center' gap={1} flexWrap='wrap'>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexWrap: 'wrap',
+            }}
+          >
             <Typography
               variant='body1'
-              fontWeight={500}
-              sx={{ minWidth: 'fit-content' }}
+              sx={{
+                fontWeight: 500,
+                minWidth: 'fit-content',
+              }}
             >
               {spell.nome}
             </Typography>
@@ -269,11 +278,11 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
 
               <Typography
                 variant='body1'
-                paragraph
                 sx={{
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'pre-wrap',
+                  marginBottom: '16px',
                 }}
               >
                 {spell.description}
@@ -603,7 +612,12 @@ const UnifiedSpellsTable: React.FC = () => {
 
         {/* Results Summary */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {filteredSpells.length === 0
               ? 'Nenhuma magia encontrada com os filtros aplicados'
               : `${filteredSpells.length} magia${
@@ -688,7 +702,12 @@ const UnifiedSpellsTable: React.FC = () => {
               {filteredSpells.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} align='center' sx={{ py: 4 }}>
-                    <Typography variant='body1' color='text.secondary'>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Nenhuma magia encontrada. Tente ajustar os filtros.
                     </Typography>
                   </TableCell>

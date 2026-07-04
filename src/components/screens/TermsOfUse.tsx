@@ -55,15 +55,23 @@ const TermsOfUse: React.FC = () => {
 
           <Typography
             variant='body2'
-            color='text.secondary'
-            sx={{ textAlign: 'center', mb: 4 }}
+            sx={{
+              color: 'text.secondary',
+              textAlign: 'center',
+              mb: 4,
+            }}
           >
             Última atualização: {TERMS_LAST_UPDATED} | Versão:{' '}
             {TERMS_DOCUMENT_VERSION}
           </Typography>
 
           <Section number={1} title='Introdução e Aceitação dos Termos'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Bem-vindo ao Fichas de Nimb! Ao acessar ou utilizar nossa
               plataforma, você concorda com estes Termos de Uso. Se você não
               concordar com qualquer parte destes termos, por favor, não utilize
@@ -76,11 +84,21 @@ const TermsOfUse: React.FC = () => {
           </Section>
 
           <Section number={2} title='Sobre a Plataforma'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Fichas de Nimb é uma plataforma para geração de fichas de
               personagem para o sistema de RPG Tormenta 20.
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               <strong>Tormenta 20</strong> é um produto da{' '}
               <Link
                 href='https://jamboeditora.com.br'
@@ -93,7 +111,12 @@ const TermsOfUse: React.FC = () => {
               disponibilizado nesta plataforma <strong>não substitui</strong> a
               necessidade de adquirir os materiais oficiais por meios oficiais.
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Você pode adquirir os materiais oficiais de Tormenta 20 em:{' '}
               <Link
                 href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
@@ -110,7 +133,12 @@ const TermsOfUse: React.FC = () => {
           </Section>
 
           <Section number={3} title='Cadastro e Autenticação'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               A autenticação na plataforma é realizada via Google OAuth através
               do Firebase. Ao fazer login, coletamos as seguintes informações:
             </Typography>
@@ -135,7 +163,12 @@ const TermsOfUse: React.FC = () => {
             <Typography variant='h6' sx={{ mt: 2, mb: 1 }}>
               4.1 Dados Armazenados Localmente
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Utilizamos o armazenamento local do navegador (localStorage) para
               salvar:
             </Typography>
@@ -154,7 +187,12 @@ const TermsOfUse: React.FC = () => {
             <Typography variant='h6' sx={{ mt: 2, mb: 1 }}>
               4.2 Dados Armazenados em Servidores
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Para usuários autenticados, armazenamos em nossos servidores
               (MongoDB/Firebase):
             </Typography>
@@ -214,7 +252,12 @@ const TermsOfUse: React.FC = () => {
             <Typography variant='h6' sx={{ mt: 2, mb: 1 }}>
               5.1 Níveis de Apoio
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Oferecemos diferentes níveis de apoio (Nível 1, Nível 2 e Nível 3)
               com benefícios variados, incluindo maior limite de fichas, mesas
               virtuais e outras funcionalidades premium.
@@ -223,7 +266,12 @@ const TermsOfUse: React.FC = () => {
             <Typography variant='h6' sx={{ mt: 2, mb: 1 }}>
               5.2 Cancelamento
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               O administrador da plataforma pode cancelar o apoio de qualquer
               usuário a qualquer momento. Em caso de cancelamento, será
               oferecido <strong>reembolso proporcional</strong> ao período não
@@ -242,13 +290,23 @@ const TermsOfUse: React.FC = () => {
             <Typography variant='h6' sx={{ mt: 2, mb: 1 }}>
               6.1 Responsabilidade
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               O usuário é <strong>inteiramente responsável</strong> por todo o
               conteúdo que insere na plataforma, incluindo: nomes de
               personagens, descrições, builds, comentários e qualquer outro
               conteúdo.
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               O usuário garante que possui direitos sobre o conteúdo inserido e
               que <strong>não está infringindo</strong> direitos comerciais ou
               privados de terceiros, incluindo direitos autorais e propriedade
@@ -258,7 +316,12 @@ const TermsOfUse: React.FC = () => {
             <Typography variant='h6' sx={{ mt: 2, mb: 1 }}>
               6.2 Moderação e Remoção
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               A plataforma <strong>se isenta de responsabilidade</strong> por
               conteúdo inserido pelos usuários.
             </Typography>
@@ -271,7 +334,12 @@ const TermsOfUse: React.FC = () => {
           </Section>
 
           <Section number={7} title='Restrições de Uso'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Você concorda em NÃO:
             </Typography>
             <List dense>
@@ -294,12 +362,22 @@ const TermsOfUse: React.FC = () => {
           </Section>
 
           <Section number={8} title='Bloqueio de Usuários'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               A plataforma <strong>se reserva o direito</strong> de bloquear ou
               suspender usuários{' '}
               <strong>sem necessidade de declarar a razão</strong>.
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               O bloqueio pode ocorrer por violação destes termos ou por qualquer
               outro motivo a critério exclusivo da administração.
             </Typography>
@@ -311,11 +389,21 @@ const TermsOfUse: React.FC = () => {
           </Section>
 
           <Section number={9} title='Limitação de Responsabilidade'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               A plataforma é fornecida &quot;como está&quot; (as is), sem
               garantias de qualquer tipo, expressas ou implícitas.
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Não garantimos disponibilidade ininterrupta do serviço. Não nos
               responsabilizamos por perdas de dados ou danos indiretos.
             </Typography>
@@ -325,12 +413,22 @@ const TermsOfUse: React.FC = () => {
           </Section>
 
           <Section number={10} title='Propriedade Intelectual'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               <strong>Tormenta 20</strong> e todas as marcas relacionadas são
               propriedade da <strong>Jambô Editora</strong>. Todos os direitos
               são reservados a ela.
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               O código-fonte do projeto Fichas de Nimb é open-source e está
               disponível no GitHub.
             </Typography>
@@ -341,7 +439,12 @@ const TermsOfUse: React.FC = () => {
           </Section>
 
           <Section number={11} title='Alterações nos Termos'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Podemos alterar estes termos a qualquer momento. Alterações
               significativas serão comunicadas através da plataforma.
             </Typography>
@@ -363,10 +466,20 @@ const TermsOfUse: React.FC = () => {
           </Section>
 
           <Section number={13} title='Disposições Finais'>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Estes termos são regidos pelas leis brasileiras.
             </Typography>
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Se qualquer disposição destes termos for considerada inválida ou
               inexequível, as demais disposições permanecerão em pleno vigor e
               efeito.
@@ -381,8 +494,10 @@ const TermsOfUse: React.FC = () => {
 
           <Typography
             variant='body2'
-            color='text.secondary'
-            sx={{ textAlign: 'center' }}
+            sx={{
+              color: 'text.secondary',
+              textAlign: 'center',
+            }}
           >
             © {new Date().getFullYear()} Fichas de Nimb. Tormenta 20 © Jambô
             Editora.

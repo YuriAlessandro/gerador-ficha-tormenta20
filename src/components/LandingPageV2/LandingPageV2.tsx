@@ -41,7 +41,6 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
   return (
     <>
       <SEO title={homeSEO.title} description={homeSEO.description} url='/' />
-
       {/* Full-width backdrop behind the hero — sits at the top of the page,
           extends upward behind the navbar, and does NOT follow the scroll
           (position: absolute, not fixed). Once the user scrolls past the
@@ -70,13 +69,15 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
           pointerEvents: 'none',
         }}
       />
-
       <Stack
         direction='row'
-        alignItems='center'
-        justifyContent='center'
         spacing={2}
-        sx={{ position: 'relative', zIndex: 1 }}
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          zIndex: 1,
+        }}
       >
         <Box
           sx={{

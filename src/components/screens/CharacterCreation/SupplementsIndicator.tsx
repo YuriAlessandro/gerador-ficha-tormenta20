@@ -80,12 +80,21 @@ const SupplementsIndicator: React.FC<SupplementsIndicatorProps> = ({
       <Stack spacing={1}>
         <Typography
           variant='caption'
-          color='text.secondary'
-          sx={{ fontWeight: 'medium' }}
+          sx={{
+            color: 'text.secondary',
+            fontWeight: 'medium',
+          }}
         >
           Sistema e Suplementos Ativos:
         </Typography>
-        <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+        <Stack
+          direction='row'
+          spacing={1}
+          useFlexGap
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           {userSupplements.map((suppId) => {
             const supplement = SUPPLEMENT_METADATA[suppId];
             return supplement ? (
@@ -113,11 +122,19 @@ const SupplementsIndicator: React.FC<SupplementsIndicatorProps> = ({
             <Stack
               direction={isMobile ? 'column' : 'row'}
               spacing={1}
-              alignItems={isMobile ? 'stretch' : 'center'}
-              justifyContent='space-between'
+              sx={{
+                alignItems: isMobile ? 'stretch' : 'center',
+                justifyContent: 'space-between',
+              }}
             >
               <Stack spacing={1} sx={{ flex: 1 }}>
-                <Stack direction='row' spacing={0.5} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <AutoStoriesIcon
                     fontSize='small'
                     color='action'
@@ -125,15 +142,24 @@ const SupplementsIndicator: React.FC<SupplementsIndicatorProps> = ({
                   />
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    sx={{ fontWeight: 'medium' }}
+                    sx={{
+                      color: 'text.secondary',
+                      fontWeight: 'medium',
+                    }}
                   >
                     {inactiveSupplements.length === 1
                       ? '+1 suplemento disponível com mais raças, classes e origens:'
                       : `+${inactiveSupplements.length} suplementos disponíveis com mais raças, classes e origens:`}
                   </Typography>
                 </Stack>
-                <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  useFlexGap
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {inactiveSupplements.map((supplement) => (
                     <Chip
                       key={supplement.id}
@@ -150,8 +176,10 @@ const SupplementsIndicator: React.FC<SupplementsIndicatorProps> = ({
               <Stack
                 direction='row'
                 spacing={0.5}
-                alignItems='center'
-                justifyContent={isMobile ? 'space-between' : 'flex-end'}
+                sx={{
+                  alignItems: 'center',
+                  justifyContent: isMobile ? 'space-between' : 'flex-end',
+                }}
               >
                 <Button
                   size='small'

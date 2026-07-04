@@ -741,8 +741,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         title={`Rolar ataque com ${displayName}`}
       >
         <Typography
-          fontSize={16}
           sx={{
+            fontSize: 16,
             display: 'flex',
             alignItems: 'center',
             ...getConditionLabelStyle(attackConditions),
@@ -755,7 +755,13 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               title={
                 <Box>
                   {powerBonusEffects.map((effect) => (
-                    <Typography key={effect} variant='caption' display='block'>
+                    <Typography
+                      key={effect}
+                      variant='caption'
+                      sx={{
+                        display: 'block',
+                      }}
+                    >
                       {effect}
                     </Typography>
                   ))}
@@ -780,13 +786,23 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               title={
                 <Box>
                   {!!equipment.modifications?.length && (
-                    <Typography variant='caption' display='block'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        display: 'block',
+                      }}
+                    >
                       <strong>Modificações:</strong>{' '}
                       {equipment.modifications.map((m) => m.mod).join(', ')}
                     </Typography>
                   )}
                   {!!equipment.enchantments?.length && (
-                    <Typography variant='caption' display='block'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        display: 'block',
+                      }}
+                    >
                       <strong>Encantamentos:</strong>{' '}
                       {equipment.enchantments
                         .map((e) => e.enchantment)
@@ -875,7 +891,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           onSelect={handleModeSelect}
         />
       )}
-
       {/* 1) Unwielded warning */}
       <Dialog
         open={unwieldedDialogOpen}
@@ -891,8 +906,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
             {defaultIsTwoHanded(equipment) && (
               <Typography
                 variant='caption'
-                color='text.secondary'
-                sx={{ display: 'block', mt: 1 }}
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  mt: 1,
+                }}
               >
                 Empunhar esta arma vai ocupar as duas mãos.
               </Typography>
@@ -915,7 +933,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* 2) Action picker (specialActions) */}
       <Dialog
         open={actionDialogOpen}
@@ -990,7 +1007,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           <Button onClick={() => setActionDialogOpen(false)}>Cancelar</Button>
         </DialogActions>
       </Dialog>
-
       {/* 3) Trigger (mecanismo) confirmation */}
       <Dialog
         open={triggerDialogOpen}
@@ -1005,8 +1021,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
             {triggerAmmoLabel && (
               <Typography
                 variant='caption'
-                color='text.secondary'
-                sx={{ display: 'block', mt: 1 }}
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  mt: 1,
+                }}
               >
                 Você tem {availableAmmo ?? 0} {triggerAmmoLabel} disponível.
               </Typography>
@@ -1028,7 +1047,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* 4) Ammo prompt */}
       <Dialog
         open={ammoDialogOpen}

@@ -320,12 +320,21 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
       >
         <CardContent>
           <Box
-            display='flex'
-            justifyContent='space-between'
-            alignItems='flex-start'
-            mb={1}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              mb: 1,
+            }}
           >
-            <Box display='flex' alignItems='center' gap={1} flexWrap='wrap'>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                flexWrap: 'wrap',
+              }}
+            >
               <Typography variant='h6'>
                 {getCategoryIcon(effect.category)} {effect.name}
               </Typography>
@@ -353,7 +362,13 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
             </Box>
 
             {isSelected && selection && (
-              <Box display='flex' alignItems='center' gap={1}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
                 {effect.canRepeat && (
                   <>
                     <IconButton
@@ -386,13 +401,23 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
             )}
           </Box>
 
-          <Typography variant='body2' color='text.secondary' paragraph>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              marginBottom: '16px',
+            }}
+          >
             {effect.description}
           </Typography>
 
           {/* Choice selectors */}
           {isSelected && selection && effect.requiresChoice && (
-            <Box mt={2}>
+            <Box
+              sx={{
+                mt: 2,
+              }}
+            >
               {effect.requiresChoice === 'element' && (
                 <FormControl fullWidth size='small'>
                   <InputLabel>Tipo de Dano</InputLabel>
@@ -452,15 +477,24 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth='lg' fullWidth>
       <DialogTitle>
-        <Box display='flex' alignItems='center' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
           <SettingsIcon />
           Construtor de Golpe Pessoal
         </Box>
       </DialogTitle>
-
       <DialogContent>
         {/* Weapon Selection */}
-        <Box mb={3}>
+        <Box
+          sx={{
+            mb: 3,
+          }}
+        >
           <FormControl fullWidth>
             <InputLabel>Arma Específica</InputLabel>
             <Select
@@ -491,7 +525,11 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
         </Box>
 
         {/* Cost Display */}
-        <Box mb={3}>
+        <Box
+          sx={{
+            mb: 3,
+          }}
+        >
           <Alert
             severity={totalCost >= 1 ? 'success' : 'warning'}
             sx={{ mb: 2 }}
@@ -539,7 +577,6 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
           </Grid>
         </Grid>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
         <Button

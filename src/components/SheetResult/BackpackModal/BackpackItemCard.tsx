@@ -123,7 +123,13 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
       }}
     >
       <CardContent sx={{ flex: 1, p: 1.5, '&:last-child': { pb: 1.5 } }}>
-        <Stack direction='row' spacing={1} alignItems='flex-start'>
+        <Stack
+          direction='row'
+          spacing={1}
+          sx={{
+            alignItems: 'flex-start',
+          }}
+        >
           {reorderMode && (
             <Box
               sx={{
@@ -140,7 +146,13 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
             <Icon fontSize='small' />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction='row' spacing={0.5} alignItems='center'>
+            <Stack
+              direction='row'
+              spacing={0.5}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <Typography
                 variant='subtitle2'
                 sx={{
@@ -213,8 +225,11 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
 
             <Typography
               variant='caption'
-              color='text.secondary'
-              sx={{ display: 'block', mt: 0.25 }}
+              sx={{
+                color: 'text.secondary',
+                display: 'block',
+                mt: 0.25,
+              }}
             >
               {style.label}
               {isAmmoItem
@@ -246,8 +261,8 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
             {item.descricao && item.group !== 'Arma' && !isDefense(item) && (
               <Typography
                 variant='caption'
-                color='text.secondary'
                 sx={{
+                  color: 'text.secondary',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
@@ -263,8 +278,11 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               <Stack
                 direction='row'
                 spacing={0.5}
-                alignItems='center'
-                sx={{ mt: 0.75, color: 'error.main' }}
+                sx={{
+                  alignItems: 'center',
+                  mt: 0.75,
+                  color: 'error.main',
+                }}
               >
                 <OverflowIcon fontSize='small' />
                 <Typography variant='caption' sx={{ fontWeight: 600 }}>
@@ -274,7 +292,13 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
             )}
           </Box>
 
-          <Stack direction='column' spacing={0.25} alignItems='center'>
+          <Stack
+            direction='column'
+            spacing={0.25}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             {item.group === 'Armadura' && onWornChange && (
               <WornArmorControl
                 item={item}
@@ -316,9 +340,11 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
           <Stack
             direction='row'
             spacing={0.25}
-            alignItems='center'
-            justifyContent='flex-end'
-            sx={{ mt: 1 }}
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              mt: 1,
+            }}
           >
             <Tooltip title={`Reabastecer ${ammoPackSize}`}>
               <IconButton
@@ -361,9 +387,11 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
           <Stack
             direction='row'
             spacing={0.25}
-            alignItems='center'
-            justifyContent='flex-end'
-            sx={{ mt: 1 }}
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              mt: 1,
+            }}
           >
             <IconButton
               size='small'

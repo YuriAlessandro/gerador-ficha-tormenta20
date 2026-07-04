@@ -92,6 +92,7 @@ import {
   findClassDescription,
   reconcileClassLevels,
 } from '@/functions/multiclass';
+import NumberField from '@/components/common/NumberField';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
@@ -1811,16 +1812,20 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         anchor='right'
         open={open}
         onClose={handleCancel}
-        PaperProps={{
-          sx: { width: { xs: '100%', sm: 450 } },
+        slotProps={{
+          paper: {
+            sx: { width: { xs: '100%', sm: 450 } },
+          },
         }}
       >
         <Box sx={{ p: 3 }}>
           <Stack
             direction='row'
-            justifyContent='space-between'
-            alignItems='center'
-            mb={2}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
           >
             <Typography variant='h6'>Editar Informações da Ficha</Typography>
             <IconButton onClick={handleCancel} size='small'>
@@ -1837,7 +1842,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               onChange={() => handleAccordionChange('info-basicas')}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant='subtitle1' fontWeight='medium'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'medium',
+                  }}
+                >
                   Informações Básicas
                 </Typography>
               </AccordionSummary>
@@ -1893,19 +1903,25 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     />
                   )}
 
-                  <Stack direction='row' spacing={1} alignItems='flex-start'>
-                    <TextField
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <NumberField
                       fullWidth
                       label='Nível'
-                      type='number'
                       value={editedData.nivel}
-                      onChange={(e) =>
+                      onValueChange={(v) =>
                         setEditedData({
                           ...editedData,
-                          nivel: parseInt(e.target.value, 10) || 1,
+                          nivel: v ?? 1,
                         })
                       }
-                      inputProps={{ min: 1, max: 20 }}
+                      min={1}
+                      max={20}
                     />
                     <Tooltip
                       title={
@@ -2178,7 +2194,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                             <Stack
                               direction='row'
                               spacing={1}
-                              alignItems='center'
+                              sx={{
+                                alignItems: 'center',
+                              }}
                             >
                               <span>
                                 {editedData.raceName.includes('Aggelus')
@@ -2197,9 +2215,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                               <Stack
                                 direction='row'
                                 spacing={1}
-                                alignItems='center'
-                                justifyContent='space-between'
-                                width='100%'
+                                sx={{
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  width: '100%',
+                                }}
                               >
                                 <span>{ability.name}</span>
                                 <Stack direction='row' spacing={0.5}>
@@ -2286,8 +2306,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           <Box>
                             <Typography
                               variant='subtitle2'
-                              fontWeight='bold'
-                              sx={{ mb: 1 }}
+                              sx={{
+                                fontWeight: 'bold',
+                                mb: 1,
+                              }}
                             >
                               Dons (+1 em dois atributos diferentes
                               {isAnimal ? ' + 1 da Natureza Animal' : ''})
@@ -2295,8 +2317,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                             <Stack
                               direction='row'
                               spacing={2}
-                              flexWrap='wrap'
                               useFlexGap
+                              sx={{
+                                flexWrap: 'wrap',
+                              }}
                             >
                               <FormControl sx={{ minWidth: 150 }}>
                                 <InputLabel>Atributo 1</InputLabel>
@@ -2569,7 +2593,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         :
                       </Typography>
                       <FormGroup>
-                        <Stack direction='row' flexWrap='wrap' gap={1}>
+                        <Stack
+                          direction='row'
+                          sx={{
+                            flexWrap: 'wrap',
+                            gap: 1,
+                          }}
+                        >
                           {availableAttributes.map((atributo) => {
                             const isSelected =
                               editedData.raceAttributeChoices.includes(
@@ -2698,9 +2728,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           <Stack
                             direction='row'
                             spacing={1}
-                            alignItems='center'
-                            justifyContent='space-between'
-                            width='100%'
+                            sx={{
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '100%',
+                            }}
                           >
                             <span>{origin.name}</span>
                             {origin.supplementId !==
@@ -2748,7 +2780,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               onChange={() => handleAccordionChange('atributos')}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant='subtitle1' fontWeight='medium'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'medium',
+                  }}
+                >
                   Atributos
                 </Typography>
               </AccordionSummary>
@@ -2763,7 +2800,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       key={atributo}
                       direction='row'
                       spacing={2}
-                      alignItems='center'
+                      sx={{
+                        alignItems: 'center',
+                      }}
                     >
                       <Box sx={{ minWidth: '120px' }}>
                         <Typography variant='body2'>{atributo}:</Typography>
@@ -2788,7 +2827,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               onChange={() => handleAccordionChange('pv-pm')}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant='subtitle1' fontWeight='medium'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'medium',
+                  }}
+                >
                   Pontos de Vida e Mana
                 </Typography>
               </AccordionSummary>
@@ -2801,92 +2845,80 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     Customize os valores de PV e PM por nível. Deixe vazio para
                     usar o padrão da classe.
                   </Typography>
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='PV por Nível (após 1º nível)'
-                    type='number'
-                    value={
-                      editedData.customPVPerLevel !== undefined
-                        ? editedData.customPVPerLevel
-                        : ''
-                    }
+                    value={editedData.customPVPerLevel ?? null}
                     placeholder={
                       CLASSES.find(
                         (c) => c.name === editedData.className
                       )?.addpv?.toString() || '0'
                     }
-                    onChange={(e) => {
-                      const { value } = e.target;
+                    onValueChange={(v) => {
                       setEditedData({
                         ...editedData,
-                        customPVPerLevel:
-                          value === '' ? undefined : parseInt(value, 10),
+                        customPVPerLevel: v === null ? undefined : v,
                       });
                     }}
                     helperText={`Padrão da classe ${editedData.className}: ${
                       CLASSES.find((c) => c.name === editedData.className)
                         ?.addpv || 0
                     }`}
-                    inputProps={{ min: 0, max: 50 }}
+                    min={0}
+                    max={50}
                   />
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='PM por Nível (após 1º nível)'
-                    type='number'
-                    value={
-                      editedData.customPMPerLevel !== undefined
-                        ? editedData.customPMPerLevel
-                        : ''
-                    }
+                    value={editedData.customPMPerLevel ?? null}
                     placeholder={
                       CLASSES.find(
                         (c) => c.name === editedData.className
                       )?.addpm?.toString() || '0'
                     }
-                    onChange={(e) => {
-                      const { value } = e.target;
+                    onValueChange={(v) => {
                       setEditedData({
                         ...editedData,
-                        customPMPerLevel:
-                          value === '' ? undefined : parseInt(value, 10),
+                        customPMPerLevel: v === null ? undefined : v,
                       });
                     }}
                     helperText={`Padrão da classe ${editedData.className}: ${
                       CLASSES.find((c) => c.name === editedData.className)
                         ?.addpm || 0
                     }`}
-                    inputProps={{ min: 0, max: 50 }}
+                    min={0}
+                    max={50}
                   />
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='Bônus de PV'
-                    type='number'
                     value={editedData.bonusPV}
-                    onChange={(e) =>
+                    onValueChange={(v) =>
                       setEditedData({
                         ...editedData,
-                        bonusPV: parseInt(e.target.value, 10) || 0,
+                        bonusPV: v ?? 0,
                       })
                     }
                     helperText='Bônus fixo adicionado ao PV total'
-                    inputProps={{ min: -100, max: 500 }}
+                    min={-100}
+                    max={500}
                   />
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='Bônus de PM'
-                    type='number'
                     value={editedData.bonusPM}
-                    onChange={(e) =>
+                    onValueChange={(v) =>
                       setEditedData({
                         ...editedData,
-                        bonusPM: parseInt(e.target.value, 10) || 0,
+                        bonusPM: v ?? 0,
                       })
                     }
                     helperText='Bônus fixo adicionado ao PM total'
-                    inputProps={{ min: -100, max: 500 }}
+                    min={-100}
+                    max={500}
                   />
 
                   <Divider sx={{ my: 2 }} />
@@ -2899,46 +2931,34 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     para ajustar o valor final exibido na ficha.
                   </Typography>
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='PV Máximo Manual'
-                    type='number'
-                    value={
-                      editedData.manualMaxPV !== undefined
-                        ? editedData.manualMaxPV
-                        : ''
-                    }
-                    onChange={(e) => {
-                      const { value } = e.target;
+                    value={editedData.manualMaxPV ?? null}
+                    onValueChange={(v) => {
                       setEditedData({
                         ...editedData,
-                        manualMaxPV:
-                          value === '' ? undefined : parseInt(value, 10),
+                        manualMaxPV: v === null ? undefined : v,
                       });
                     }}
                     helperText='Se definido, substitui o valor calculado de PV'
-                    inputProps={{ min: 1, max: 9999 }}
+                    min={1}
+                    max={9999}
                   />
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='PM Máximo Manual'
-                    type='number'
-                    value={
-                      editedData.manualMaxPM !== undefined
-                        ? editedData.manualMaxPM
-                        : ''
-                    }
-                    onChange={(e) => {
-                      const { value } = e.target;
+                    value={editedData.manualMaxPM ?? null}
+                    onValueChange={(v) => {
                       setEditedData({
                         ...editedData,
-                        manualMaxPM:
-                          value === '' ? undefined : parseInt(value, 10),
+                        manualMaxPM: v === null ? undefined : v,
                       });
                     }}
                     helperText='Se definido, substitui o valor calculado de PM'
-                    inputProps={{ min: 0, max: 9999 }}
+                    min={0}
+                    max={9999}
                   />
 
                   {/* Preview de Cálculo de PV/PM */}
@@ -3035,7 +3055,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           </Stack>
         </Box>
       </Drawer>
-
       {/* OriginEditDrawer for benefit selection */}
       {pendingOrigin && (
         <OriginEditDrawer
@@ -3050,7 +3069,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           onSave={handleOriginBenefitsSave}
         />
       )}
-
       {/* DeityPowerEditDrawer for deity power selection */}
       {pendingDeity && (
         <DeityPowerEditDrawer
@@ -3065,7 +3083,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           onSave={handleDeityPowersSave}
         />
       )}
-
       {/* LevelUpWizard for leveling up with manual picks */}
       <LevelUpWizardModal
         open={levelUpWizardOpen}

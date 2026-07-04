@@ -393,7 +393,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   if (allRequirements.length === 0) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Nenhum dos seus poderes requer seleção manual de efeitos neste nível.
         </Typography>
         <Alert severity='success'>
@@ -681,7 +686,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     if (type === 'buildGolpePessoal') {
       const currentBuild = powerSelections.golpePessoalBuild;
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
@@ -722,7 +732,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
     if (allAvailableOptions.length === 0) {
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
@@ -737,11 +752,22 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     // Render familiar selection specially with descriptions
     if (type === 'selectFamiliar') {
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
-          <Typography variant='caption' color='text.secondary' display='block'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+            }}
+          >
             Selecionados: {currentCount} / {pick}
           </Typography>
           <FormControl component='fieldset' fullWidth>
@@ -763,7 +789,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                     label={
                       <Box>
                         <Typography variant='body1'>{familiar.name}</Typography>
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {familiar.description}
                         </Typography>
                       </Box>
@@ -792,11 +823,22 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     // Render animal totem selection specially with descriptions
     if (type === 'selectAnimalTotem') {
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
-          <Typography variant='caption' color='text.secondary' display='block'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+            }}
+          >
             Selecionados: {currentCount} / {pick}
           </Typography>
           <FormControl component='fieldset' fullWidth>
@@ -818,7 +860,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                     label={
                       <Box>
                         <Typography variant='body1'>{totem.name}</Typography>
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {totem.description}
                         </Typography>
                       </Box>
@@ -946,8 +993,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                 >
                   <Stack
                     direction='row'
-                    justifyContent='space-between'
-                    alignItems='center'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
                   >
                     <Typography variant='subtitle2' color='secondary'>
                       ✨ {o.name}: escolha {max} magia(s)
@@ -972,14 +1021,16 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                           [searchKey]: e.target.value,
                         }))
                       }
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
-                      }}
                       sx={{ my: 1 }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
                     />
                   )}
                   {displayed.length === 0 ? (
@@ -1082,8 +1133,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                 >
                   <Stack
                     direction='row'
-                    justifyContent='space-between'
-                    alignItems='center'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
                   >
                     <Typography variant='subtitle2' color='primary'>
                       ⚔️ {o.name}: escolha {max} poder(es)
@@ -1108,14 +1161,16 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                           [searchKey]: e.target.value,
                         }))
                       }
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
-                      }}
                       sx={{ my: 1 }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
                     />
                   )}
                   {displayed.length === 0 ? (
@@ -1162,7 +1217,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Caso simples: 1 escolha → radio (comportamento original).
       if (!isMulti) {
         return (
-          <Box key={requirementIndex} mb={2}>
+          <Box
+            key={requirementIndex}
+            sx={{
+              mb: 2,
+            }}
+          >
             <Typography variant='subtitle1' gutterBottom>
               {label}
             </Typography>
@@ -1182,10 +1242,20 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                       control={<Radio />}
                       label={
                         <Box>
-                          <Typography variant='body1' fontWeight='bold'>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {option.name}
                           </Typography>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {option.text}
                           </Typography>
                         </Box>
@@ -1235,11 +1305,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       };
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Stack
             direction='row'
-            justifyContent='space-between'
-            alignItems='center'
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
           >
             <Typography variant='subtitle1' gutterBottom>
               {label}
@@ -1268,7 +1345,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                   }}
                 >
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography variant='body1' fontWeight='bold'>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       {option.name}
                       {option.repeatable && (
                         <Chip
@@ -1278,12 +1360,23 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         />
                       )}
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {option.text}
                     </Typography>
                   </Box>
                   {option.repeatable ? (
-                    <Stack direction='row' spacing={0.5} alignItems='center'>
+                    <Stack
+                      direction='row'
+                      spacing={0.5}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
                       <Button
                         size='small'
                         variant='outlined'
@@ -1346,7 +1439,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       });
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <VersatilSelectionField
             availableSkills={availableSkillsForVersatil}
             availablePowers={availablePowersForVersatil}
@@ -1381,7 +1479,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       });
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <DeformidadeSelectionField
             availableSkills={availableSkillsForDeformidade}
             availablePowers={availableTormentaPowers}
@@ -1428,7 +1531,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <MemoriaPostumaSelectionField
             availableRaces={availableRacesForMP}
             availableSkills={availableSkillsForMP}
@@ -1478,7 +1586,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <YidishanNaturezaOrganicaSelectionField
             availableRaces={availableRacesForYNO}
             availableSkills={availableSkillsForYNO}
@@ -1503,7 +1616,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <AlmaLivreSelectionField
             availableClasses={availableClassesForAL}
             supplements={supplements}
@@ -1525,7 +1643,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         allAvailableOptions as unknown as Skill[];
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <MashinSelectionField
             availableSkills={availableSkillsForMashin}
             availableMarvels={MECHANICAL_MARVELS}
@@ -1603,7 +1726,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <Typography variant='subtitle1' gutterBottom>
             {nestedReq.label} (de {nestedPower.name})
           </Typography>
-
           {filteredSpells.length > 15 && (
             <TextField
               fullWidth
@@ -1616,17 +1738,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                   [nestedSearchKey]: e.target.value,
                 }))
               }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
               sx={{ mb: 2 }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
           )}
-
           {displayedSpells.length === 0 ? (
             <Alert severity='info' sx={{ mt: 1 }}>
               {nestedSearchQuery
@@ -1665,7 +1788,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         <Box>
                           <Typography variant='body1'>{spellName}</Typography>
                           {spell.description && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {spell.description.length > 150
                                 ? `${spell.description.substring(0, 150)}...`
                                 : spell.description}
@@ -1748,11 +1876,15 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
-
           {shouldShowSearch && (
             <>
               <TextField
@@ -1763,21 +1895,25 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                 onChange={(e) =>
                   updateSearchQuery(requirementIndex, e.target.value)
                 }
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
                 sx={{ mb: 2 }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
 
               {availableOptions.length === 0 && searchQuery && (
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                  }}
                 >
                   Nenhuma opção encontrada para &quot;{searchQuery}&quot;
                 </Typography>
@@ -1786,8 +1922,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               {searchQuery && availableOptions.length > 0 && (
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                  }}
                 >
                   {availableOptions.length}{' '}
                   {availableOptions.length === 1
@@ -1797,7 +1935,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               )}
             </>
           )}
-
           <FormControl component='fieldset' fullWidth>
             <RadioGroup
               value={getValue()}
@@ -1870,7 +2007,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         <Box>
                           <Typography variant='body1'>{optionName}</Typography>
                           {optionDescription && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {optionDescription}
                             </Typography>
                           )}
@@ -1896,7 +2038,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               })}
             </RadioGroup>
           </FormControl>
-
           {/* Render nested spell requirements if selected power has them */}
           {selectedPowerForNested &&
             nestedSpellReqs.map((nestedReq) =>
@@ -1908,20 +2049,29 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
     // Multiple selection - use checkboxes
     return (
-      <Box key={requirementIndex} mb={2}>
+      <Box
+        key={requirementIndex}
+        sx={{
+          mb: 2,
+        }}
+      >
         <Typography variant='subtitle1' gutterBottom>
           {label}
         </Typography>
-        <Typography variant='caption' color='text.secondary' display='block'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+            display: 'block',
+          }}
+        >
           Selecionados: {currentCount} / {effectivePick}
         </Typography>
-
         {effectivePick < pick && (
           <Alert severity='info' sx={{ mb: 1 }}>
             Você já possui {pick - effectivePick} proficiência(s) desta seleção.
           </Alert>
         )}
-
         {shouldShowSearch && (
           <>
             <TextField
@@ -1932,24 +2082,38 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               onChange={(e) =>
                 updateSearchQuery(requirementIndex, e.target.value)
               }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
               sx={{ mt: 1, mb: 2 }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
 
             {availableOptions.length === 0 && searchQuery && (
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 Nenhuma opção encontrada para &quot;{searchQuery}&quot;
               </Typography>
             )}
 
             {searchQuery && availableOptions.length > 0 && (
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 {availableOptions.length}{' '}
                 {availableOptions.length === 1
                   ? 'opção encontrada'
@@ -1958,7 +2122,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             )}
           </>
         )}
-
         <FormControl component='fieldset' fullWidth>
           <FormGroup>
             {availableOptions.map((option) => {
@@ -2001,7 +2164,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                       <Box>
                         <Typography variant='body1'>{optionName}</Typography>
                         {optionDescription && (
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {optionDescription}
                           </Typography>
                         )}
@@ -2027,7 +2195,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             })}
           </FormGroup>
         </FormControl>
-
         {/* Render nested spell requirements for multi-select powers */}
         {type === 'getGeneralPower' &&
           (() => {
@@ -2065,11 +2232,15 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Alguns dos seus poderes requerem seleções manuais. Escolha as opções
         abaixo para cada poder:
       </Typography>
-
       {allRequirements.map((powerReq) => (
         <Accordion
           key={`${powerReq.source}-${powerReq.powerName}`}
@@ -2078,7 +2249,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               <Typography variant='h6'>{powerReq.powerName}</Typography>
-              <Typography variant='caption' color='text.secondary'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {getSourceLabel(powerReq.source)} •{' '}
                 {powerReq.requirements.length} seleç
                 {powerReq.requirements.length > 1 ? 'ões' : 'ão'} necessária
@@ -2100,7 +2276,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           </AccordionDetails>
         </Accordion>
       ))}
-
       {golpePessoalDialogPower && (
         <GolpePessoalBuilder
           open={!!golpePessoalDialogPower}

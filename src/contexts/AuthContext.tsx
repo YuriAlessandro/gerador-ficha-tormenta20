@@ -186,7 +186,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         onClose={loggingOut ? undefined : cancelLogout}
         maxWidth='sm'
         fullWidth
-        disableEscapeKeyDown={loggingOut}
       >
         <DialogTitle>Sair da Conta</DialogTitle>
         <DialogContent>

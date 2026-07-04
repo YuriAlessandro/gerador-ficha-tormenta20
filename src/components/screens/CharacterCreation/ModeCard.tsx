@@ -102,11 +102,9 @@ const ModeCard: React.FC<ModeCardProps> = ({
       }}
     >
       {iconChip}
-
       <Typography className='mode-card-title' component='h3'>
         {isMinimized ? shortTitle : title}
       </Typography>
-
       {!isMinimized && (speedLabel || audienceLabel) && (
         <Box className='mode-card-meta'>
           {speedLabel && (
@@ -132,23 +130,22 @@ const ModeCard: React.FC<ModeCardProps> = ({
           )}
         </Box>
       )}
-
       {!isMinimized && description && (
         <Typography
           className='mode-card-description'
           variant='body2'
-          color='text.secondary'
+          sx={{
+            color: 'text.secondary',
+          }}
         >
           {description}
         </Typography>
       )}
-
       {!isMinimized && (
         <Box className='mode-card-arrow' sx={{ color: accentColor }}>
           <ArrowForwardIcon fontSize='small' />
         </Box>
       )}
-
       {isMinimized && (
         <Box
           className='mode-card-swap'

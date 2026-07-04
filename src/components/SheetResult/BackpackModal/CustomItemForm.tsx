@@ -190,7 +190,9 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
             onChange={(e) => setSpacesText(e.target.value)}
             error={!!spacesError}
             helperText={spacesError || 'Step 0,5'}
-            inputProps={{ inputMode: 'decimal' }}
+            slotProps={{
+              htmlInput: { inputMode: 'decimal' },
+            }}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
@@ -199,7 +201,9 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
             fullWidth
             value={precoText}
             onChange={(e) => setPrecoText(e.target.value)}
-            inputProps={{ inputMode: 'decimal' }}
+            slotProps={{
+              htmlInput: { inputMode: 'decimal' },
+            }}
           />
         </Grid>
 
@@ -220,7 +224,9 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                 fullWidth
                 value={atkBonusText}
                 onChange={(e) => setAtkBonusText(e.target.value)}
-                inputProps={{ inputMode: 'numeric' }}
+                slotProps={{
+                  htmlInput: { inputMode: 'numeric' },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
@@ -273,7 +279,9 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                 fullWidth
                 value={defenseBonusText}
                 onChange={(e) => setDefenseBonusText(e.target.value)}
-                inputProps={{ inputMode: 'numeric' }}
+                slotProps={{
+                  htmlInput: { inputMode: 'numeric' },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
@@ -282,7 +290,9 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                 fullWidth
                 value={armorPenaltyText}
                 onChange={(e) => setArmorPenaltyText(e.target.value)}
-                inputProps={{ inputMode: 'numeric' }}
+                slotProps={{
+                  htmlInput: { inputMode: 'numeric' },
+                }}
               />
             </Grid>
             {group === 'Armadura' && (
@@ -326,7 +336,6 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
           </Grid>
         )}
       </Grid>
-
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
         <Button onClick={onCancel}>Cancelar</Button>
         <Button variant='contained' onClick={handleSubmit}>

@@ -185,34 +185,36 @@ const EncyclopediaSearch: React.FC<IProps> = ({ baseUrl }) => {
           placeholder='Busque em toda a enciclopédia: poderes, magias, habilidades de classe, raças…'
           variant='outlined'
           autoComplete='off'
-          InputProps={{
-            sx: {
-              fontFamily: 'Tfont, serif',
-              borderRadius: 2,
-              background:
-                theme.palette.mode === 'dark'
-                  ? 'rgba(255,255,255,0.04)'
-                  : 'rgba(0,0,0,0.02)',
+          slotProps={{
+            input: {
+              sx: {
+                fontFamily: 'Tfont, serif',
+                borderRadius: 2,
+                background:
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(255,255,255,0.04)'
+                    : 'rgba(0,0,0,0.02)',
+              },
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon color='primary' />
+                </InputAdornment>
+              ),
+              endAdornment: query ? (
+                <InputAdornment position='end'>
+                  <IconButton
+                    size='small'
+                    aria-label='Limpar busca'
+                    onClick={() => {
+                      setQuery('');
+                      setOpen(false);
+                    }}
+                  >
+                    <CloseIcon fontSize='small' />
+                  </IconButton>
+                </InputAdornment>
+              ) : undefined,
             },
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon color='primary' />
-              </InputAdornment>
-            ),
-            endAdornment: query ? (
-              <InputAdornment position='end'>
-                <IconButton
-                  size='small'
-                  aria-label='Limpar busca'
-                  onClick={() => {
-                    setQuery('');
-                    setOpen(false);
-                  }}
-                >
-                  <CloseIcon fontSize='small' />
-                </IconButton>
-              </InputAdornment>
-            ) : undefined,
           }}
         />
 
@@ -236,7 +238,12 @@ const EncyclopediaSearch: React.FC<IProps> = ({ baseUrl }) => {
           >
             {results.length === 0 ? (
               <Box sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Nenhum resultado para “{query}”. Tente outro termo ou parte do
                   nome.
                 </Typography>
@@ -250,7 +257,12 @@ const EncyclopediaSearch: React.FC<IProps> = ({ baseUrl }) => {
                     borderBottom: `1px solid ${theme.palette.divider}`,
                   }}
                 >
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {results.length} resultado
                     {results.length > 1 ? 's' : ''} — ordenados por relevância
                   </Typography>
@@ -295,7 +307,9 @@ const EncyclopediaSearch: React.FC<IProps> = ({ baseUrl }) => {
                               <Typography
                                 component='span'
                                 variant='caption'
-                                color='text.secondary'
+                                sx={{
+                                  color: 'text.secondary',
+                                }}
                               >
                                 {entry.subtitle}
                               </Typography>
@@ -307,8 +321,11 @@ const EncyclopediaSearch: React.FC<IProps> = ({ baseUrl }) => {
                             <Typography
                               component='span'
                               variant='body2'
-                              color='text.secondary'
-                              sx={{ display: 'block', mt: 0.5 }}
+                              sx={{
+                                color: 'text.secondary',
+                                display: 'block',
+                                mt: 0.5,
+                              }}
                             >
                               {highlight(
                                 snippet(

@@ -5,10 +5,10 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  TextField,
   Switch,
   FormControlLabel,
 } from '@mui/material';
+import NumberField from '@/components/common/NumberField';
 import { ThreatActionType } from '../../../../interfaces/ThreatSheet';
 
 const ACTION_TYPES: ThreatActionType[] = [
@@ -70,16 +70,13 @@ const AbilityFormFields: React.FC<AbilityFormFieldsProps> = ({
         label={pmLabel}
       />
       {hasPmCost && (
-        <TextField
+        <NumberField
           fullWidth
-          type='number'
           label='Custo em PM'
           value={pmCost}
-          onChange={(e) =>
-            onPmCostChange(Math.max(1, parseInt(e.target.value, 10) || 1))
-          }
-          inputProps={{ min: 1 }}
+          onValueChange={(v) => onPmCostChange(Math.max(1, v ?? 1))}
           sx={{ mt: 2 }}
+          min={1}
         />
       )}
     </Box>

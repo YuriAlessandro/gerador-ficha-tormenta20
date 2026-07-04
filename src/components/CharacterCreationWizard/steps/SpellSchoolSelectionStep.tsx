@@ -64,16 +64,24 @@ const SpellSchoolSelectionStep: React.FC<SpellSchoolSelectionStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         A classe {className} requer que você escolha {requiredCount} escola
         {requiredCount > 1 ? 's' : ''} de magia {getSpellTypeDescription()}.
         Suas magias devem pertencer a essas escolas.
       </Typography>
-
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Selecionadas: {selectedSchools.length} / {requiredCount}
       </Typography>
-
       <Paper sx={{ p: 2 }}>
         <FormControl component='fieldset' fullWidth>
           <FormGroup>
@@ -95,7 +103,12 @@ const SpellSchoolSelectionStep: React.FC<SpellSchoolSelectionStepProps> = ({
                   label={
                     <Box>
                       <Typography variant='body1'>{school}</Typography>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {schoolDescriptions[school]}
                       </Typography>
                     </Box>
@@ -107,7 +120,6 @@ const SpellSchoolSelectionStep: React.FC<SpellSchoolSelectionStepProps> = ({
           </FormGroup>
         </FormControl>
       </Paper>
-
       {!isComplete && selectedSchools.length > 0 && (
         <Alert severity='warning'>
           Selecione {requiredCount - selectedSchools.length} escola
@@ -116,7 +128,6 @@ const SpellSchoolSelectionStep: React.FC<SpellSchoolSelectionStepProps> = ({
           continuar.
         </Alert>
       )}
-
       {isComplete && (
         <Alert severity='success'>
           Escolas selecionadas com sucesso! Você pode continuar para o próximo

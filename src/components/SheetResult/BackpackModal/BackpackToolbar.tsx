@@ -88,23 +88,25 @@ const BackpackToolbar: React.FC<BackpackToolbarProps> = ({
           placeholder='Buscar item...'
           value={searchQuery}
           onChange={(e) => onSearchQueryChange(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon fontSize='small' />
-              </InputAdornment>
-            ),
-            endAdornment: searchQuery ? (
-              <InputAdornment position='end'>
-                <IconButton
-                  size='small'
-                  onClick={() => onSearchQueryChange('')}
-                  aria-label='Limpar busca'
-                >
-                  <ClearIcon fontSize='small' />
-                </IconButton>
-              </InputAdornment>
-            ) : null,
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon fontSize='small' />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery ? (
+                <InputAdornment position='end'>
+                  <IconButton
+                    size='small'
+                    onClick={() => onSearchQueryChange('')}
+                    aria-label='Limpar busca'
+                  >
+                    <ClearIcon fontSize='small' />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            },
           }}
         />
 
@@ -180,7 +182,6 @@ const BackpackToolbar: React.FC<BackpackToolbarProps> = ({
           </IconButton>
         </Tooltip>
       </Box>
-
       <Collapse in={filtersOpen} unmountOnExit={isMobile}>
         <Stack
           direction='row'

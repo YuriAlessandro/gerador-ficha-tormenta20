@@ -12,7 +12,7 @@ import {
   Alert,
 } from '@mui/material';
 import {
-  ErrorOutline as ErrorIcon,
+  ErrorOutlined as ErrorIcon,
   ContentCopy as CopyIcon,
   ExpandMore as ExpandMoreIcon,
   Refresh as RefreshIcon,
@@ -187,15 +187,23 @@ const ErrorFallbackUI: React.FC<{
             </Typography>
             <Typography
               variant='h6'
-              color='text.secondary'
-              sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}
+              sx={{
+                color: 'text.secondary',
+                fontSize: { xs: '1rem', md: '1.25rem' },
+              }}
             >
               Encontramos um erro inesperado
             </Typography>
           </Box>
 
           {/* Description */}
-          <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+              mb: 3,
+            }}
+          >
             Não se preocupe! Este erro foi registrado e você pode tentar uma das
             opções abaixo para continuar usando o sistema.
           </Typography>
@@ -211,8 +219,10 @@ const ErrorFallbackUI: React.FC<{
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             spacing={2}
-            justifyContent='center'
-            sx={{ mb: 3 }}
+            sx={{
+              justifyContent: 'center',
+              mb: 3,
+            }}
           >
             <Button
               variant='contained'
@@ -349,7 +359,12 @@ const ErrorFallbackUI: React.FC<{
               borderColor: 'divider',
             }}
           >
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Problemas persistentes? Entre em contato:
             </Typography>
             <Typography

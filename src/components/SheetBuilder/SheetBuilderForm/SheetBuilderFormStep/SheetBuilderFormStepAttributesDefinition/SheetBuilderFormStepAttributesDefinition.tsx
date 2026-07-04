@@ -28,7 +28,13 @@ const SheetBuilderFormStepAttributesDefinition = () => {
   };
 
   return (
-    <Stack justifyContent='center' alignItems='center' spacing={2}>
+    <Stack
+      spacing={2}
+      sx={{
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <FormControl>
         <FormLabel>Gerar atributos por</FormLabel>
         <RadioGroup

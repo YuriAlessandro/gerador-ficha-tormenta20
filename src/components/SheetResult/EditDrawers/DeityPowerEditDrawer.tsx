@@ -83,16 +83,20 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
         anchor='right'
         open={open}
         onClose={handleCancel}
-        PaperProps={{
-          sx: { width: { xs: '100%', sm: 600 } },
+        slotProps={{
+          paper: {
+            sx: { width: { xs: '100%', sm: 600 } },
+          },
         }}
       >
         <Box sx={{ p: 3 }}>
           <Stack
             direction='row'
-            justifyContent='space-between'
-            alignItems='center'
-            mb={2}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
           >
             <Typography variant='h6'>Poderes Concedidos</Typography>
             <IconButton onClick={handleCancel} size='small'>
@@ -102,7 +106,13 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
 
           <Divider sx={{ mb: 3 }} />
 
-          <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+              mb: 3,
+            }}
+          >
             Como {sheet.classe.name}, você recebe todos os poderes concedidos
             por {deity.name} automaticamente.
           </Typography>
@@ -114,10 +124,20 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
 
             {deity.poderes.map((power) => (
               <Box key={power.name} sx={{ mb: 2 }}>
-                <Typography variant='subtitle2' fontWeight='bold'>
+                <Typography
+                  variant='subtitle2'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   {power.name}
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {power.description}
                 </Typography>
               </Box>
@@ -161,16 +181,20 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 600 } },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 600 } },
+        },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Poderes Concedidos</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -180,7 +204,13 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
 
         <Divider sx={{ mb: 3 }} />
 
-        <Typography variant='body1' color='text.secondary' sx={{ mb: 2 }}>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           Selecione os poderes concedidos por {deity.name} desejados:
         </Typography>
 
@@ -220,13 +250,21 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
                       />
                     }
                     label={
-                      <Typography fontWeight='bold'>{power.name}</Typography>
+                      <Typography
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {power.name}
+                      </Typography>
                     }
                   />
                   <Typography
                     variant='body2'
-                    color='text.secondary'
-                    sx={{ ml: 4 }}
+                    sx={{
+                      color: 'text.secondary',
+                      ml: 4,
+                    }}
                   >
                     {power.description}
                   </Typography>

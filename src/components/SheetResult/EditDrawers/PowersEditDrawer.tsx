@@ -1977,16 +1977,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 700 } },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 700 } },
+        },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Editar Poderes e Habilidades</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -2010,13 +2014,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           placeholder='Buscar poderes...'
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-            ),
-          }}
           sx={{ mb: 3 }}
           size='small'
+          slotProps={{
+            input: {
+              startAdornment: (
+                <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+              ),
+            },
+          }}
         />
 
         {/* Selected Powers Summary */}
@@ -2044,8 +2050,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {/* Show unique powers with counts */}
                   {Array.from(new Set(selectedPowers.map((p) => p.name))).map(
@@ -2081,8 +2089,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {selectedOriginPowers.map((power) => (
                     <Chip
@@ -2105,8 +2115,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {selectedDeityPowers.map((power) => (
                     <Chip
@@ -2129,8 +2141,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {selectedCustomGrantedPowers.map((power) => (
                     <Chip
@@ -2152,8 +2166,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {selectedCustomPowers.map((power) => (
                     <Chip
@@ -2175,8 +2191,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {/* Show unique class powers with counts */}
                   {Array.from(
@@ -2225,8 +2243,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                     <Stack
                       direction='row'
                       spacing={1}
-                      flexWrap='wrap'
-                      sx={{ mb: 2 }}
+                      sx={{
+                        flexWrap: 'wrap',
+                        mb: 2,
+                      }}
                     >
                       {classAbilitySets.flatMap(
                         ({ className: clsName, abilities }) =>
@@ -2252,7 +2272,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Typography variant='subtitle2' sx={{ mb: 1 }}>
                   Habilidades de Raça ({sheet.raca.abilities.length}):
                 </Typography>
-                <Stack direction='row' spacing={1} flexWrap='wrap'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {sheet.raca.abilities.map((ability) => (
                     <Chip
                       key={`race-${
@@ -2294,10 +2320,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                         backgroundColor: 'warning.50',
                       }}
                     >
-                      <Typography variant='body1' fontWeight='bold'>
+                      <Typography
+                        variant='body1'
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         {ability.name}
                       </Typography>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {ability.description}
                       </Typography>
                     </Box>
@@ -2331,10 +2367,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                           backgroundColor: 'info.50',
                         }}
                       >
-                        <Typography variant='body1' fontWeight='bold'>
+                        <Typography
+                          variant='body1'
+                          sx={{
+                            fontWeight: 'bold',
+                          }}
+                        >
                           {ability.name} (Nível {ability.nivel})
                         </Typography>
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {ability.text}
                         </Typography>
                       </Box>
@@ -2410,18 +2456,22 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                 <Box sx={{ width: '100%' }}>
                                   <Stack
                                     direction='row'
-                                    alignItems='center'
                                     spacing={1}
-                                    flexWrap='wrap'
+                                    sx={{
+                                      alignItems: 'center',
+                                      flexWrap: 'wrap',
+                                    }}
                                   >
                                     <Typography
                                       variant='body1'
-                                      fontWeight='bold'
                                       color={
                                         meetsRequirements
                                           ? 'text.primary'
                                           : 'error.main'
                                       }
+                                      sx={{
+                                        fontWeight: 'bold',
+                                      }}
                                     >
                                       {power.name}
                                     </Typography>
@@ -2471,8 +2521,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   </Stack>
                                   <Typography
                                     variant='body2'
-                                    color='text.secondary'
-                                    sx={{ mb: 1 }}
+                                    sx={{
+                                      color: 'text.secondary',
+                                      mb: 1,
+                                    }}
                                   >
                                     {power.text}
                                   </Typography>
@@ -2480,8 +2532,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                     power.requirements.length > 0 && (
                                       <Typography
                                         variant='caption'
-                                        color='text.secondary'
                                         sx={{
+                                          color: 'text.secondary',
                                           display: 'block',
                                           fontStyle: 'italic',
                                         }}
@@ -2672,18 +2724,22 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                 <Box sx={{ width: '100%' }}>
                                   <Stack
                                     direction='row'
-                                    alignItems='center'
                                     spacing={1}
-                                    flexWrap='wrap'
+                                    sx={{
+                                      alignItems: 'center',
+                                      flexWrap: 'wrap',
+                                    }}
                                   >
                                     <Typography
                                       variant='body1'
-                                      fontWeight='bold'
                                       color={
                                         meetsRequirements
                                           ? 'text.primary'
                                           : 'error.main'
                                       }
+                                      sx={{
+                                        fontWeight: 'bold',
+                                      }}
                                     >
                                       {power.name}
                                     </Typography>
@@ -2727,8 +2783,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   </Stack>
                                   <Typography
                                     variant='body2'
-                                    color='text.secondary'
-                                    sx={{ mb: 1 }}
+                                    sx={{
+                                      color: 'text.secondary',
+                                      mb: 1,
+                                    }}
                                   >
                                     {power.description}
                                   </Typography>
@@ -2736,8 +2794,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                     (power as GeneralPower).requirements) && (
                                     <Typography
                                       variant='caption'
-                                      color='text.secondary'
                                       sx={{
+                                        color: 'text.secondary',
                                         display: 'block',
                                         fontStyle: 'italic',
                                       }}
@@ -2796,8 +2854,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                         </Typography>
                         <Typography
                           variant='body2'
-                          color='text.secondary'
-                          sx={{ mb: 1 }}
+                          sx={{
+                            color: 'text.secondary',
+                            mb: 1,
+                          }}
                         >
                           Adicione poderes concedidos de outras fontes
                           (multiclasse, itens, decisões do mestre, etc.)
@@ -2828,20 +2888,26 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                               >
                                 <Stack
                                   direction='row'
-                                  justifyContent='space-between'
-                                  alignItems='flex-start'
+                                  sx={{
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                  }}
                                 >
                                   <Box sx={{ flex: 1 }}>
                                     <Typography
                                       variant='body2'
-                                      fontWeight='bold'
+                                      sx={{
+                                        fontWeight: 'bold',
+                                      }}
                                     >
                                       {power.name}
                                     </Typography>
                                     <Typography
                                       variant='caption'
-                                      color='text.secondary'
-                                      sx={{ whiteSpace: 'pre-wrap' }}
+                                      sx={{
+                                        color: 'text.secondary',
+                                        whiteSpace: 'pre-wrap',
+                                      }}
                                     >
                                       {power.description}
                                     </Typography>
@@ -2889,7 +2955,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 Adicione poderes homebrew ou concedidos pelo mestre durante a
                 aventura.
               </Typography>
@@ -2917,25 +2989,37 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                     >
                       <Stack
                         direction='row'
-                        justifyContent='space-between'
-                        alignItems='flex-start'
+                        sx={{
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                        }}
                       >
                         <Box sx={{ flex: 1 }}>
-                          <Typography variant='body1' fontWeight='bold'>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {power.name}
                           </Typography>
                           <Typography
                             variant='body2'
-                            color='text.secondary'
-                            sx={{ whiteSpace: 'pre-wrap' }}
+                            sx={{
+                              color: 'text.secondary',
+                              whiteSpace: 'pre-wrap',
+                            }}
                           >
                             {power.description}
                           </Typography>
                           {power.rolls && power.rolls.length > 0 && (
                             <Typography
                               variant='caption'
-                              color='text.secondary'
-                              sx={{ display: 'block', mt: 1 }}
+                              sx={{
+                                color: 'text.secondary',
+                                display: 'block',
+                                mt: 1,
+                              }}
                             >
                               <strong>Rolagens:</strong>{' '}
                               {power.rolls.map((r) => r.label).join(', ')}
@@ -2980,7 +3064,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           </Button>
         </Stack>
       </Box>
-
       {/* Power Selection Dialog */}
       {selectionDialog.open && selectionDialog.requirements && (
         <PowerSelectionDialog
@@ -2991,7 +3074,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           sheet={sheet}
         />
       )}
-
       {/* Golpe Pessoal Builder Dialog */}
       {golpePessoalDialog.open && golpePessoalDialog.powerToAdd && (
         <GolpePessoalBuilder
@@ -3048,7 +3130,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           }}
         />
       )}
-
       {/* Custom Power Dialog */}
       <CustomPowerDialog
         open={customPowerDialog.open}
@@ -3056,7 +3137,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         onSave={handleSaveCustomPower}
         power={customPowerDialog.powerToEdit}
       />
-
       {/* Custom Granted Power Dialog */}
       <CustomPowerDialog
         open={customGrantedPowerDialog.open}
@@ -3064,7 +3144,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         onSave={handleSaveCustomGrantedPower}
         power={customGrantedPowerDialog.powerToEdit}
       />
-
       {/* Ensinar Truque Dialog (Treinador) */}
       {ensinarTruqueDialog.open && sheet.companions?.length ? (
         <EnsinarTruqueDialog

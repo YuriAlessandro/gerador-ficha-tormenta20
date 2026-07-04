@@ -60,7 +60,6 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
           </Typography>
         </Box>
       </DialogTitle>
-
       <DialogContent>
         <DialogContentText sx={{ mb: 3 }}>
           Você atingiu o limite de <strong>{maxCount} fichas</strong> do plano{' '}
@@ -76,10 +75,20 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
               mb: 1,
             }}
           >
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Fichas utilizadas
             </Typography>
-            <Typography variant='body2' fontWeight='bold'>
+            <Typography
+              variant='body2'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               {currentCount}/{maxCount}
             </Typography>
           </Box>
@@ -109,7 +118,6 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
           </Alert>
         )}
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} color='inherit'>
           Cancelar

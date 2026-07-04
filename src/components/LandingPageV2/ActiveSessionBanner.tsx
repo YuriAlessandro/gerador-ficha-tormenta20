@@ -30,26 +30,38 @@ const ActiveSessionBanner: React.FC<ActiveSessionBannerProps> = ({
     >
       <Stack
         direction={{ xs: 'column', md: 'row' }}
-        alignItems={{ xs: 'flex-start', md: 'center' }}
-        justifyContent='space-between'
         spacing={2}
+        sx={{
+          alignItems: { xs: 'flex-start', md: 'center' },
+          justifyContent: 'space-between',
+        }}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack
             direction='row'
-            alignItems='center'
             spacing={1}
-            mb={1}
-            flexWrap='wrap'
-            sx={{ rowGap: 0.5 }}
+            sx={{
+              alignItems: 'center',
+              mb: 1,
+              flexWrap: 'wrap',
+              rowGap: 0.5,
+            }}
           >
             <Chip label='Sessão Ativa' color='success' size='small' />
-            <Stack direction='row' alignItems='center' spacing={0.5}>
+            <Stack
+              direction='row'
+              spacing={0.5}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <PeopleAltIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
               <Typography
                 variant='caption'
-                color='text.secondary'
-                sx={{ fontSize: '0.75rem' }}
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.75rem',
+                }}
               >
                 {table.members.length}{' '}
                 {table.members.length === 1 ? 'jogador' : 'jogadores'}
@@ -72,8 +84,8 @@ const ActiveSessionBanner: React.FC<ActiveSessionBannerProps> = ({
           {table.description && (
             <Typography
               variant='body2'
-              color='text.secondary'
               sx={{
+                color: 'text.secondary',
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',

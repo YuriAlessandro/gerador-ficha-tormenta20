@@ -571,14 +571,13 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                 }
                 onChange={handleItemChange}
                 renderInput={(params) => {
-                  const { InputLabelProps, InputProps, ...rest } = params;
+                  const { slotProps, ...rest } = params;
                   return (
                     <TextField
                       // eslint-disable-next-line react/jsx-props-no-spreading
                       {...rest}
-                      InputLabelProps={InputLabelProps}
-                      InputProps={InputProps}
                       label='Item Específico'
+                      slotProps={slotProps}
                     />
                   );
                 }}
@@ -667,8 +666,10 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                       </Typography>
                       <Typography
                         variant='body2'
-                        color='text.secondary'
                         gutterBottom
+                        sx={{
+                          color: 'text.secondary',
+                        }}
                       >
                         {item.itemType === 'weapon' && 'Arma'}
                         {item.itemType === 'armor' && 'Armadura'}
@@ -722,7 +723,9 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                                   {mod.prerequisite && (
                                     <Typography
                                       variant='caption'
-                                      color='warning.main'
+                                      sx={{
+                                        color: 'warning.main',
+                                      }}
                                     >
                                       Pré-requisito:{' '}
                                       {formatPrerequisite(mod.prerequisite)}

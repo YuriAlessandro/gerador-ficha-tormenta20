@@ -77,7 +77,13 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
       <Typography variant='h6' gutterBottom>
         Seleção de Magias - Até o {spellCircle}º Círculo
       </Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 1,
+        }}
+      >
         Escolha {requiredCount} {requiredCount === 1 ? 'magia' : 'magias'} de
         até o {spellCircle}º círculo.
       </Typography>
@@ -89,14 +95,17 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
         {selectedSpells.length} de {requiredCount}{' '}
         {requiredCount === 1 ? 'magia selecionada' : 'magias selecionadas'}
       </Typography>
-
       {availableSpells.length === 0 && (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Nenhuma magia disponível neste círculo. Você já conhece todas as
           magias disponíveis ou não há magias neste círculo para sua classe.
         </Typography>
       )}
-
       {availableSpells.length > 0 && (
         <>
           <SpellAdvancedFilters
@@ -112,13 +121,25 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
           />
 
           {filteredSpells.length === 0 && filtersActive && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Nenhuma magia encontrada com os filtros atuais.
             </Typography>
           )}
 
           {filtersActive && filteredSpells.length > 0 && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               {filteredSpells.length}{' '}
               {filteredSpells.length === 1
                 ? 'magia encontrada'
@@ -127,7 +148,6 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
           )}
         </>
       )}
-
       {crossTraditionSpellNames &&
         crossTraditionSpellNames.size > 0 &&
         crossTraditionLimit && (
@@ -137,7 +157,6 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
             {isCrossTraditionLimitReached && ' (Limite atingido)'}
           </Alert>
         )}
-
       <Grid container spacing={2}>
         {filteredSpells.map((spell) => {
           const selected = isSpellSelected(spell);
@@ -208,23 +227,29 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
                   <Box sx={{ mb: 1 }}>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block' }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                      }}
                     >
                       {spell.school}
                     </Typography>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block' }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                      }}
                     >
                       {spell.execucao} • {spell.alcance}
                       {spell.alvo && ` • ${spell.alvo}`}
                     </Typography>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block' }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                      }}
                     >
                       Duração: {spell.duracao}
                     </Typography>
@@ -232,8 +257,8 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
 
                   <Typography
                     variant='body2'
-                    color='text.secondary'
                     sx={{
+                      color: 'text.secondary',
                       display: '-webkit-box',
                       WebkitLineClamp: 3,
                       WebkitBoxOrient: 'vertical',
@@ -249,12 +274,14 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
           );
         })}
       </Grid>
-
       {!isComplete && filteredSpells.length > 0 && (
         <Typography
           variant='body2'
-          color='warning.main'
-          sx={{ mt: 2, textAlign: 'center' }}
+          sx={{
+            color: 'warning.main',
+            mt: 2,
+            textAlign: 'center',
+          }}
         >
           {requiredCount - selectedSpells.length > 0
             ? `Selecione ${requiredCount - selectedSpells.length} ${

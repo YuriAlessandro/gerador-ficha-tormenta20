@@ -162,14 +162,21 @@ const CavernaDoSaber: React.FC = () => {
   return (
     <MainDiv>
       <Typography
-        fontFamily='Tfont'
-        fontSize={50}
         color={theme.palette.primary.main}
         align='center'
+        sx={{
+          fontFamily: 'Tfont',
+          fontSize: 50,
+        }}
       >
         Caverna do Saber
       </Typography>
-      <Stack direction='row' alignItems='flex-start'>
+      <Stack
+        direction='row'
+        sx={{
+          alignItems: 'flex-start',
+        }}
+      >
         <div style={{ maxWidth: isMobile ? '100%' : '70%' }}>
           <StyledPaper sx={{ mt: 3, p: 2 }}>
             <p>

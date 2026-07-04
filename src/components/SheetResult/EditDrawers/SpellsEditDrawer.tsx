@@ -13,7 +13,6 @@ import {
   Checkbox,
   FormControlLabel,
   Chip,
-  TextField,
   Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -36,6 +35,7 @@ import {
   deriveSpellFilterOptions,
   applySpellFilters,
 } from '@/components/SpellPicker/spellFilters';
+import NumberField from '@/components/common/NumberField';
 import CustomSpellDialog from './CustomSpellDialog';
 
 interface SpellsEditDrawerProps {
@@ -362,8 +362,10 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 800 }, overflow: 'hidden' },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 800 }, overflow: 'hidden' },
+        },
       }}
     >
       <Box
@@ -377,9 +379,11 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       >
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Editar Magias</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -395,15 +399,15 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
         </Typography>
 
         {/* Bonus Spell DC */}
-        <TextField
+        <NumberField
           label='Bônus no Teste de Resistência'
-          type='number'
           value={bonusSpellDC}
-          onChange={(e) => setBonusSpellDC(parseInt(e.target.value, 10) || 0)}
+          onValueChange={(v) => setBonusSpellDC(v ?? 0)}
           helperText='Bônus adicional na CD de magias de fontes não automáticas'
-          inputProps={{ min: -50, max: 50 }}
           size='small'
           sx={{ mb: 3, maxWidth: 300 }}
+          min={-50}
+          max={50}
         />
 
         {/* Filters */}
@@ -452,14 +456,26 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                   <Stack
                     key={spell.nome}
                     direction='row'
-                    alignItems='center'
-                    justifyContent='space-between'
+                    sx={{
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
                   >
                     <Box>
-                      <Typography variant='body2' fontWeight='bold'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         {spell.nome}
                       </Typography>
-                      <Typography variant='caption' color='text.secondary'>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {spell.school} • {spell.spellCircle} • {spell.execucao}
                       </Typography>
                     </Box>
@@ -502,7 +518,13 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
               <Typography variant='subtitle2' sx={{ mb: 1 }}>
                 Magias Selecionadas ({selectedSpells.length}):
               </Typography>
-              <Stack direction='row' spacing={1} flexWrap='wrap'>
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  flexWrap: 'wrap',
+                }}
+              >
                 {selectedSpells
                   .filter((s) => !s.isCustom)
                   .map((spell) => {
@@ -555,7 +577,12 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
               return (
                 <Accordion key={category.name}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant='h6' color='text.primary'>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        color: 'text.primary',
+                      }}
+                    >
                       {category.name} ({filteredSpells.length})
                     </Typography>
                   </AccordionSummary>
@@ -626,12 +653,14 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                                     >
                                       <Typography
                                         variant='body1'
-                                        fontWeight='bold'
                                         color={
                                           isSpellSelected(spell)
                                             ? 'primary.main'
                                             : 'text.primary'
                                         }
+                                        sx={{
+                                          fontWeight: 'bold',
+                                        }}
                                       >
                                         {spell.nome}
                                       </Typography>
@@ -657,8 +686,11 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                                     </Box>
                                     <Typography
                                       variant='caption'
-                                      color='text.secondary'
-                                      sx={{ display: 'block', mb: 1 }}
+                                      sx={{
+                                        color: 'text.secondary',
+                                        display: 'block',
+                                        mb: 1,
+                                      }}
                                     >
                                       {spell.school} • {spell.execucao} •{' '}
                                       {spell.alcance} • {spell.duracao}
@@ -667,7 +699,9 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                                     </Typography>
                                     <Typography
                                       variant='body2'
-                                      color='text.secondary'
+                                      sx={{
+                                        color: 'text.secondary',
+                                      }}
                                     >
                                       {spell.description}
                                     </Typography>

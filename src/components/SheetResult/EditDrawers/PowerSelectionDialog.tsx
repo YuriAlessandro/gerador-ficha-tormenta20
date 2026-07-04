@@ -286,7 +286,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
 
     if (availableOptions.length === 0) {
       return (
-        <Box key={index} mb={2}>
+        <Box
+          key={index}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='h6' gutterBottom>
             {label}
           </Typography>
@@ -305,7 +310,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         const selectedSkills = selections.skills || [];
 
         return (
-          <Box key={index} mb={2}>
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
             <Typography variant='h6' gutterBottom>
               {label}
             </Typography>
@@ -357,7 +367,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         const selectedProfs = selections.proficiencies || [];
 
         return (
-          <Box key={index} mb={2}>
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
             <Typography variant='h6' gutterBottom>
               {label}
             </Typography>
@@ -413,7 +428,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         const selectedPowers = selections.powers || [];
 
         return (
-          <Box key={index} mb={2}>
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
             <Typography variant='h6' gutterBottom>
               {label}
             </Typography>
@@ -437,7 +457,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                         <Box>
                           <Typography variant='body1'>{power.name}</Typography>
                           {power.description && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {power.description}
                             </Typography>
                           )}
@@ -470,7 +495,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                         <Box>
                           <Typography variant='body1'>{power.name}</Typography>
                           {power.description && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {power.description}
                             </Typography>
                           )}
@@ -490,7 +520,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         const selectedSpells = selections.spells || [];
 
         return (
-          <Box key={index} mb={2}>
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
             <Typography variant='h6' gutterBottom>
               {label}
             </Typography>
@@ -514,7 +549,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                         <Box>
                           <Typography variant='body1'>{spell.nome}</Typography>
                           {spell.descricao && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {spell.descricao}
                             </Typography>
                           )}
@@ -547,7 +587,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                         <Box>
                           <Typography variant='body1'>{spell.nome}</Typography>
                           {spell.descricao && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {spell.descricao}
                             </Typography>
                           )}
@@ -566,7 +611,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         const selectedAttributes = selections.attributes || [];
 
         return (
-          <Box key={index} mb={2}>
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
             <Typography variant='h6' gutterBottom>
               {label}
             </Typography>
@@ -598,7 +648,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
 
         if (availableOptions.length === 0) {
           return (
-            <Box key={index} mb={2}>
+            <Box
+              key={index}
+              sx={{
+                mb: 2,
+              }}
+            >
               <Typography variant='h6' gutterBottom>
                 {label}
               </Typography>
@@ -624,7 +679,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
           const headerLabel =
             instances > 1 ? `Arma ${instanceIndex + 1}` : label;
           return (
-            <Box key={`weapon-instance-${instanceIndex}`} mb={2}>
+            <Box
+              key={`weapon-instance-${instanceIndex}`}
+              sx={{
+                mb: 2,
+              }}
+            >
               <Typography variant='h6' gutterBottom>
                 {headerLabel}
               </Typography>
@@ -659,7 +719,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         };
 
         return (
-          <Box key={index} mb={2}>
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
             {instances > 1 && (
               <Typography variant='subtitle2' gutterBottom>
                 {label}
@@ -674,7 +739,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         const selectedFamiliars = selections.familiars || [];
 
         return (
-          <Box key={index} mb={2}>
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
             <Typography variant='h6' gutterBottom>
               {label}
             </Typography>
@@ -697,7 +767,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                           <Typography variant='subtitle2'>
                             {familiar.name}
                           </Typography>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {familiar.description}
                           </Typography>
                         </Box>
@@ -715,7 +790,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         const selectedTotems = selections.animalTotems || [];
 
         return (
-          <Box key={index} mb={2}>
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
             <Typography variant='h6' gutterBottom>
               {label}
             </Typography>
@@ -738,7 +818,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                           <Typography variant='subtitle2'>
                             {totem.name}
                           </Typography>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {totem.description}
                           </Typography>
                         </Box>
@@ -761,7 +846,13 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth>
       <DialogTitle>Seleções para {requirements.powerName}</DialogTitle>
       <DialogContent>
-        <Typography variant='body1' color='text.secondary' gutterBottom>
+        <Typography
+          variant='body1'
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Este poder requer que você faça algumas seleções manuais.
         </Typography>
 

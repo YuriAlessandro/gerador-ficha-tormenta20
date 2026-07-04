@@ -36,7 +36,12 @@ const ClassPowerStep: React.FC<ClassPowerStepProps> = ({
   if (powersNeedingSelection.length === 0) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Sua classe não possui poderes que requerem seleção manual no nível 1.
         </Typography>
         <Alert severity='info'>Você pode continuar para o próximo passo.</Alert>
@@ -49,16 +54,25 @@ const ClassPowerStep: React.FC<ClassPowerStepProps> = ({
   // For now, showing a placeholder
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Alguns poderes da classe {classe.name} requerem seleção manual:
       </Typography>
-
       {powersNeedingSelection.map(
         (item) =>
           item && (
             <Box key={item.ability.name}>
               <Typography variant='h6'>{item.ability.name}</Typography>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {item.requirements.requirements
                   .map((req) => req.label)
                   .join(', ')}
@@ -66,12 +80,10 @@ const ClassPowerStep: React.FC<ClassPowerStepProps> = ({
             </Box>
           )
       )}
-
       <Alert severity='info'>
         A seleção de poderes de classe será implementada na próxima iteração.
         Por enquanto, continue para o próximo passo.
       </Alert>
-
       {/* TODO: Add selection UI based on PowerSelectionDialog */}
     </Box>
   );

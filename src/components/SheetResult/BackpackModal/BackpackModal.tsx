@@ -504,9 +504,11 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         const v = parseFloat(e.target.value.replace(',', '.'));
         onChange(Number.isNaN(v) ? 0 : v);
       }}
-      inputProps={{ inputMode: 'decimal' }}
       helperText={helper}
       sx={{ width: { xs: 'calc(50% - 4px)', sm: 120 } }}
+      slotProps={{
+        htmlInput: { inputMode: 'decimal' },
+      }}
     />
   );
 
@@ -517,12 +519,16 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       fullScreen={isMobile}
       maxWidth='lg'
       fullWidth
-      TransitionComponent={SlideUpTransition}
-      PaperProps={{
-        sx: {
-          height: isMobile ? '100%' : '90vh',
-          display: 'flex',
-          flexDirection: 'column',
+      slots={{
+        transition: SlideUpTransition,
+      }}
+      slotProps={{
+        paper: {
+          sx: {
+            height: isMobile ? '100%' : '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+          },
         },
       }}
     >
@@ -551,9 +557,11 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
             </Typography>
             <Typography
               variant='caption'
-              color='text.secondary'
-              sx={{ display: 'block' }}
               noWrap
+              sx={{
+                color: 'text.secondary',
+                display: 'block',
+              }}
             >
               {filteredItems.length} item(ns) · {totals.totalSpaces}/
               {totals.maxSpaces} esp.
@@ -571,7 +579,6 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           color={totals.isOverloaded ? 'error' : 'primary'}
         />
       </AppBar>
-
       <BackpackToolbar
         searchQuery={filters.searchQuery}
         onSearchQueryChange={setSearchQuery}
@@ -584,7 +591,6 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         groupByCategory={staged.groupByCategory}
         onGroupByCategoryChange={setGroupByCategory}
       />
-
       {(mainHandItem || offHandItem || wornArmor) && (
         <Box
           sx={{
@@ -650,7 +656,6 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           )}
         </Box>
       )}
-
       <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
         {ambiguousArmor && (
           <Alert severity='warning' sx={{ mb: 2 }}>
@@ -746,8 +751,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                     <Stack
                       direction='row'
                       spacing={1}
-                      alignItems='center'
                       sx={{
+                        alignItems: 'center',
                         mb: 1,
                         pb: 0.5,
                         borderBottom: 1,
@@ -761,7 +766,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                       <Typography variant='subtitle2' sx={{ fontWeight: 600 }}>
                         {style.label}
                       </Typography>
-                      <Typography variant='caption' color='text.secondary'>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         ({items.length})
                       </Typography>
                     </Stack>
@@ -815,9 +825,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           </DragDropContext>
         )}
       </Box>
-
       <Divider />
-
       <Box
         sx={{
           px: { xs: 1.25, sm: 2 },
@@ -841,7 +849,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
             spacing={1.5}
             sx={{ flexWrap: 'wrap', minWidth: 0 }}
           >
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Itens{' '}
               <Box
                 component='span'
@@ -850,7 +863,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                 {totals.itemSpaces}
               </Box>
             </Typography>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Moedas{' '}
               <Box
                 component='span'
@@ -859,7 +877,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                 {totals.currencySpaces}
               </Box>
             </Typography>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Total{' '}
               <Box
                 component='span'
@@ -932,9 +955,11 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                 const v = parseInt(raw, 10);
                 setCustomMaxSpaces(Number.isNaN(v) ? undefined : v);
               }}
-              inputProps={{ inputMode: 'numeric' }}
               helperText='Limpar = padrão'
               sx={{ width: { xs: 'calc(50% - 4px)', sm: 140 } }}
+              slotProps={{
+                htmlInput: { inputMode: 'numeric' },
+              }}
             />
           </Stack>
         </Collapse>
@@ -958,7 +983,6 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           </Button>
         </Stack>
       </Box>
-
       <AddItemDialog
         open={addDialogOpen}
         onClose={() => setAddDialogOpen(false)}
@@ -970,7 +994,6 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         autoDeductMoney={staged.autoDeductMoney}
         onToggleAutoDeductMoney={setAutoDeductMoney}
       />
-
       <ItemEditorDialog
         open={editorOpen}
         onClose={() => {

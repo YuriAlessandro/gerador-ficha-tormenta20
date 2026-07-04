@@ -120,7 +120,13 @@ const RollsEditorPanel: React.FC<RollsEditorPanelProps> = ({
   return (
     <Stack spacing={3} sx={{ mt: 1 }}>
       <Box>
-        <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 1 }}>
+        <Typography
+          variant='subtitle1'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
+        >
           Rolagens Configuradas
         </Typography>
         {rolls.length > 0 ? (
@@ -153,14 +159,24 @@ const RollsEditorPanel: React.FC<RollsEditorPanelProps> = ({
             ))}
           </List>
         ) : (
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Nenhuma rolagem configurada
           </Typography>
         )}
       </Box>
-
       <Box>
-        <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 2 }}>
+        <Typography
+          variant='subtitle1'
+          sx={{
+            fontWeight: 'bold',
+            mb: 2,
+          }}
+        >
           {editingRoll ? 'Editar Rolagem' : 'Adicionar Rolagem'}
         </Typography>
         <Stack spacing={2}>

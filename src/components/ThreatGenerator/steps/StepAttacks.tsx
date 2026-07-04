@@ -25,6 +25,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import NumberField from '@/components/common/NumberField';
 import { useAlert } from '../../../hooks/useDialog';
 import {
   ThreatSheet,
@@ -40,6 +41,11 @@ import {
 import { ConditionsListEditor } from '../../../premium/components/Conditions';
 import type { ConditionId } from '../../../premium/data/conditions';
 import SectionCard from './shared/SectionCard';
+
+// O state dos formulários guarda os campos numéricos como string (parse na
+// hora de salvar); estes helpers fazem a ponte com o NumberField.
+const strToNum = (s: string): number | null => (s === '' ? null : Number(s));
+const numToStr = (v: number | null): string => (v === null ? '' : String(v));
 
 interface StepAttacksProps {
   threat: Partial<ThreatSheet>;
@@ -286,11 +292,21 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
   return (
     <>
       <AlertDialog />
-      <Box p={{ xs: 2, sm: 3 }}>
+      <Box
+        sx={{
+          p: { xs: 2, sm: 3 },
+        }}
+      >
         <Typography variant='h6' gutterBottom>
           Ataques
         </Typography>
-        <Typography variant='body2' color='text.secondary' mb={3}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mb: 3,
+          }}
+        >
           Configure os ataques da ameaça. Use o valor de ataque e o dano médio
           calculados como referência.
         </Typography>
@@ -326,15 +342,14 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                   />
                 </Grid>
                 <Grid size={6}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='Bônus de Ataque'
-                    value={newAttack.attackBonus}
-                    onChange={(e) =>
+                    value={strToNum(newAttack.attackBonus)}
+                    onValueChange={(v) =>
                       setNewAttack({
                         ...newAttack,
-                        attackBonus: e.target.value,
+                        attackBonus: numToStr(v),
                       })
                     }
                     placeholder='0'
@@ -360,15 +375,14 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                   />
                 </Grid>
                 <Grid size={12}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='Dano Bônus'
-                    value={newAttack.bonusDamage}
-                    onChange={(e) =>
+                    value={strToNum(newAttack.bonusDamage)}
+                    onValueChange={(v) =>
                       setNewAttack({
                         ...newAttack,
-                        bonusDamage: e.target.value,
+                        bonusDamage: numToStr(v),
                       })
                     }
                     placeholder='0'
@@ -383,13 +397,21 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                   </Typography>
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    display='block'
-                    sx={{ mb: 1 }}
+                    sx={{
+                      color: 'text.secondary',
+                      display: 'block',
+                      mb: 1,
+                    }}
                   >
                     Dados de dano extra com tipo (ex: 2d12 trevas, 1d6 ácido)
                   </Typography>
-                  <Grid container spacing={1} alignItems='flex-start'>
+                  <Grid
+                    container
+                    spacing={1}
+                    sx={{
+                      alignItems: 'flex-start',
+                    }}
+                  >
                     <Grid size={4}>
                       <TextField
                         fullWidth
@@ -422,16 +444,14 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                           })
                         }
                         renderInput={(params) => {
-                          const { InputLabelProps, InputProps, ...rest } =
-                            params;
+                          const { slotProps, ...rest } = params;
                           return (
                             <TextField
                               // eslint-disable-next-line react/jsx-props-no-spreading
                               {...rest}
-                              InputLabelProps={InputLabelProps}
-                              InputProps={InputProps}
                               placeholder='Tipo de dano'
                               label='Tipo de Dano'
+                              slotProps={slotProps}
                             />
                           );
                         }}
@@ -477,37 +497,37 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                 </Grid>
 
                 <Grid size={6}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='Margem de Ameaça'
-                    value={newAttack.criticalThreshold}
-                    onChange={(e) =>
+                    value={strToNum(newAttack.criticalThreshold)}
+                    onValueChange={(v) =>
                       setNewAttack({
                         ...newAttack,
-                        criticalThreshold: e.target.value,
+                        criticalThreshold: numToStr(v),
                       })
                     }
                     placeholder='20'
                     helperText='Crítico em rolagem igual ou maior'
-                    slotProps={{ htmlInput: { min: 1, max: 20 } }}
+                    min={1}
+                    max={20}
                   />
                 </Grid>
                 <Grid size={6}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='Multiplicador de Crítico'
-                    value={newAttack.criticalMultiplier}
-                    onChange={(e) =>
+                    value={strToNum(newAttack.criticalMultiplier)}
+                    onValueChange={(v) =>
                       setNewAttack({
                         ...newAttack,
-                        criticalMultiplier: e.target.value,
+                        criticalMultiplier: numToStr(v),
                       })
                     }
                     placeholder='2'
                     helperText='x2, x3, x4...'
-                    slotProps={{ htmlInput: { min: 2, max: 6 } }}
+                    min={2}
+                    max={6}
                   />
                 </Grid>
 
@@ -524,17 +544,29 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                         }}
                       >
                         <Box
-                          display='flex'
-                          justifyContent='space-between'
-                          alignItems='center'
-                          flexWrap='wrap'
-                          gap={1}
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: 1,
+                          }}
                         >
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Dano calculado:{' '}
                             <strong>{calculatedNewDamage}</strong>
                           </Typography>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Sugerido:{' '}
                             <strong>{combatStats?.averageDamage || '?'}</strong>
                           </Typography>
@@ -602,8 +634,10 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
               {!threat.attacks || threat.attacks.length === 0 ? (
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ py: 2 }}
+                  sx={{
+                    color: 'text.secondary',
+                    py: 2,
+                  }}
                 >
                   Nenhum ataque configurado ainda.
                 </Typography>
@@ -670,24 +704,37 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Dicas */}
-        <Box mt={3}>
+        <Box
+          sx={{
+            mt: 3,
+          }}
+        >
           <Stack
             direction={{ xs: 'column', md: 'row' }}
             spacing={2}
             divider={<Divider flexItem orientation='vertical' />}
           >
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               <strong>Dados de Dano:</strong> use &quot;1d8&quot;,
               &quot;2d6&quot;... O médio é calculado automaticamente.
             </Typography>
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               <strong>Bônus de Ataque:</strong> valor do sistema (+
               {combatStats?.attackValue || '?'}), ajustável se necessário.
             </Typography>
           </Stack>
         </Box>
       </Box>
-
       {/* Edit Attack Dialog */}
       <Dialog
         open={editDialog}
@@ -711,14 +758,13 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
               />
             </Grid>
             <Grid size={6}>
-              <TextField
+              <NumberField
                 fullWidth
-                type='number'
                 label='Bônus de Ataque'
-                value={editingAttack?.attackBonus || ''}
-                onChange={(e) =>
+                value={strToNum(editingAttack?.attackBonus || '')}
+                onValueChange={(v) =>
                   setEditingAttack((prev) =>
-                    prev ? { ...prev, attackBonus: e.target.value } : null
+                    prev ? { ...prev, attackBonus: numToStr(v) } : null
                   )
                 }
               />
@@ -741,14 +787,13 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
               />
             </Grid>
             <Grid size={12}>
-              <TextField
+              <NumberField
                 fullWidth
-                type='number'
                 label='Dano Bônus'
-                value={editingAttack?.bonusDamage || ''}
-                onChange={(e) =>
+                value={strToNum(editingAttack?.bonusDamage || '')}
+                onValueChange={(v) =>
                   setEditingAttack((prev) =>
-                    prev ? { ...prev, bonusDamage: e.target.value } : null
+                    prev ? { ...prev, bonusDamage: numToStr(v) } : null
                   )
                 }
               />
@@ -758,7 +803,13 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
               <Typography variant='subtitle2' gutterBottom>
                 Dados de Dano Bônus
               </Typography>
-              <Grid container spacing={1} alignItems='flex-start'>
+              <Grid
+                container
+                spacing={1}
+                sx={{
+                  alignItems: 'flex-start',
+                }}
+              >
                 <Grid size={4}>
                   <TextField
                     fullWidth
@@ -791,15 +842,14 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                       })
                     }
                     renderInput={(params) => {
-                      const { InputLabelProps, InputProps, ...rest } = params;
+                      const { slotProps, ...rest } = params;
                       return (
                         <TextField
                           // eslint-disable-next-line react/jsx-props-no-spreading
                           {...rest}
-                          InputLabelProps={InputLabelProps}
-                          InputProps={InputProps}
                           placeholder='Tipo de dano'
                           label='Tipo de Dano'
+                          slotProps={slotProps}
                         />
                       );
                     }}
@@ -840,35 +890,33 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
             </Grid>
 
             <Grid size={6}>
-              <TextField
+              <NumberField
                 fullWidth
-                type='number'
                 label='Margem de Ameaça'
-                value={editingAttack?.criticalThreshold || ''}
-                onChange={(e) =>
+                value={strToNum(editingAttack?.criticalThreshold || '')}
+                onValueChange={(v) =>
                   setEditingAttack((prev) =>
-                    prev ? { ...prev, criticalThreshold: e.target.value } : null
+                    prev ? { ...prev, criticalThreshold: numToStr(v) } : null
                   )
                 }
                 helperText='Crítico em rolagem igual ou maior'
-                slotProps={{ htmlInput: { min: 1, max: 20 } }}
+                min={1}
+                max={20}
               />
             </Grid>
             <Grid size={6}>
-              <TextField
+              <NumberField
                 fullWidth
-                type='number'
                 label='Multiplicador de Crítico'
-                value={editingAttack?.criticalMultiplier || ''}
-                onChange={(e) =>
+                value={strToNum(editingAttack?.criticalMultiplier || '')}
+                onValueChange={(v) =>
                   setEditingAttack((prev) =>
-                    prev
-                      ? { ...prev, criticalMultiplier: e.target.value }
-                      : null
+                    prev ? { ...prev, criticalMultiplier: numToStr(v) } : null
                   )
                 }
                 helperText='x2, x3, x4...'
-                slotProps={{ htmlInput: { min: 2, max: 6 } }}
+                min={2}
+                max={6}
               />
             </Grid>
 

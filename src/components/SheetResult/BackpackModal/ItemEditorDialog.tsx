@@ -481,7 +481,12 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'geral' && (
           <Stack spacing={2}>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {item.group} · {item.nome}
             </Typography>
             <Grid container spacing={2}>
@@ -510,7 +515,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                       quantityText: e.target.value.replace(/[^0-9]/g, ''),
                     }))
                   }
-                  inputProps={{ inputMode: 'numeric' }}
+                  slotProps={{
+                    htmlInput: { inputMode: 'numeric' },
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 6, sm: 2 }}>
@@ -521,7 +528,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                   onChange={(e) =>
                     setForm((f) => ({ ...f, spacesText: e.target.value }))
                   }
-                  inputProps={{ inputMode: 'decimal' }}
+                  slotProps={{
+                    htmlInput: { inputMode: 'decimal' },
+                  }}
                 />
               </Grid>
               <Grid size={12}>
@@ -539,7 +548,13 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
             </Grid>
 
             <Box>
-              <Stack direction='row' alignItems='center' spacing={1}>
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <Typography variant='subtitle2'>
                   Rolagens ({form.rolls.length})
                 </Typography>
@@ -559,10 +574,17 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           <Stack spacing={2}>
             <Stack
               direction='row'
-              justifyContent='space-between'
-              alignItems='center'
+              sx={{
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
             >
-              <Typography variant='caption' color='text.secondary'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Edições manuais sobrescrevem os valores base do item.
               </Typography>
               <Tooltip title='Resetar para os valores base do item'>
@@ -598,7 +620,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                       markManualEdit('atkBonus');
                       setForm((f) => ({ ...f, atkBonusText: e.target.value }));
                     }}
-                    inputProps={{ inputMode: 'numeric' }}
+                    slotProps={{
+                      htmlInput: { inputMode: 'numeric' },
+                    }}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
@@ -661,8 +685,11 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                   <Grid size={{ xs: 12 }}>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block', mb: 0.5 }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mb: 0.5,
+                      }}
                     >
                       Atributo no dano por modo de ataque:
                     </Typography>
@@ -672,7 +699,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                           key={action.id}
                           direction='row'
                           spacing={1}
-                          alignItems='center'
+                          sx={{
+                            alignItems: 'center',
+                          }}
                         >
                           <Typography
                             variant='body2'
@@ -716,9 +745,11 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
               <Box>
                 <Stack
                   direction='row'
-                  alignItems='center'
-                  justifyContent='space-between'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    mb: 1,
+                  }}
                 >
                   <Typography variant='subtitle2'>
                     Danos extras ({form.userExtraDamage.length})
@@ -746,8 +777,11 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 </Stack>
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ display: 'block', mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    display: 'block',
+                    mb: 1,
+                  }}
                 >
                   Cada entrada rola junto com o dano base no ataque (não crita).
                   Encantamentos como Flamejante adicionam linhas automaticamente
@@ -759,7 +793,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                       key={entry.id}
                       direction='row'
                       spacing={1}
-                      alignItems='center'
+                      sx={{
+                        alignItems: 'center',
+                      }}
                     >
                       <TextField
                         size='small'
@@ -836,7 +872,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                         defenseBonusText: e.target.value,
                       }));
                     }}
-                    inputProps={{ inputMode: 'numeric' }}
+                    slotProps={{
+                      htmlInput: { inputMode: 'numeric' },
+                    }}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 4 }}>
@@ -851,7 +889,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                         armorPenaltyText: e.target.value,
                       }));
                     }}
-                    inputProps={{ inputMode: 'numeric' }}
+                    slotProps={{
+                      htmlInput: { inputMode: 'numeric' },
+                    }}
                   />
                 </Grid>
                 {item.group === 'Armadura' && (
@@ -879,13 +919,23 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'modificacoes' && hasModificationsTab && modItemType && (
           <Stack spacing={2}>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Modificações de item superior aplicam bônus numéricos
               automaticamente sobre os valores base do item. Custo máximo: 5
               pontos.
             </Typography>
             {modError && (
-              <Typography variant='caption' color='error.main'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'error.main',
+                }}
+              >
                 {modError}
               </Typography>
             )}
@@ -907,14 +957,24 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'encantamentos' && hasEnchantmentsTab && enchItemType && (
           <Stack spacing={2}>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Encantamentos mágicos aplicam bônus numéricos automaticamente
               sobre os valores base do item. Encantamentos descritivos (efeitos
               condicionais, dano elemental, resistências) ficam registrados no
               item mas não modificam stats. Custo máximo: 5 pontos.
             </Typography>
             {enchError && (
-              <Typography variant='caption' color='error.main'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'error.main',
+                }}
+              >
                 {enchError}
               </Typography>
             )}
@@ -940,7 +1000,6 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           Salvar
         </Button>
       </DialogActions>
-
       <RollsEditDialog
         open={rollsOpen}
         onClose={() => setRollsOpen(false)}

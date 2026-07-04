@@ -3,7 +3,6 @@ import {
   Drawer,
   Box,
   Typography,
-  TextField,
   Select,
   MenuItem,
   FormControl,
@@ -28,6 +27,7 @@ import { recalculateSheet } from '@/functions/recalculateSheet';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { DefenseEquipment } from '@/interfaces/Equipment';
 import { getWornArmor } from '@/components/SheetResult/BackpackModal/wielding';
+import NumberField from '@/components/common/NumberField';
 
 interface DefenseEditDrawerProps {
   open: boolean;
@@ -306,17 +306,15 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
   const renderRdField = (type: DamageType, size: 'small' | 'medium') => {
     const label = type === 'Geral' ? 'RD Geral' : `RD de ${type}`;
     return (
-      <TextField
+      <NumberField
         key={type}
         fullWidth
         label={label}
-        type='number'
         value={editedRd[type] ?? 0}
-        onChange={(e) =>
-          handleRdChange(type, parseInt(e.target.value, 10) || 0)
-        }
-        inputProps={{ min: 0, max: 99 }}
+        onValueChange={(v) => handleRdChange(type, v ?? 0)}
         size={size}
+        min={0}
+        max={99}
       />
     );
   };
@@ -331,16 +329,20 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 450 } },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 450 } },
+        },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Editar Defesa</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -352,21 +354,19 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
 
         <Stack spacing={3}>
           {/* Defesa Base */}
-          <TextField
+          <NumberField
             fullWidth
             label='Defesa Base'
-            type='number'
             value={editedData.customDefenseBase ?? 10}
-            onChange={(e) => {
-              const { value } = e.target;
-              const numValue = parseInt(value, 10);
+            onValueChange={(v) => {
               setEditedData({
                 ...editedData,
-                customDefenseBase: numValue === 10 ? undefined : numValue,
+                customDefenseBase: v === null || v === 10 ? undefined : v,
               });
             }}
             helperText='Padrão: 10 (regra base de Tormenta 20)'
-            inputProps={{ min: 0, max: 50 }}
+            min={0}
+            max={50}
           />
 
           {/* Usar Atributo na Defesa */}
@@ -394,7 +394,13 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
               label='Usar Atributo na Defesa'
             />
           </Tooltip>
-          <Typography variant='caption' color='text.secondary' sx={{ mt: -2 }}>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              mt: -2,
+            }}
+          >
             {heavyArmor
               ? 'Armaduras pesadas ignoram o modificador de atributo'
               : 'Desmarque para ignorar modificador de atributo (ex: armaduras pesadas customizadas)'}
@@ -427,7 +433,13 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
                 </MenuItem>
               ))}
             </Select>
-            <Typography variant='caption' color='text.secondary' sx={{ mt: 1 }}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+                mt: 1,
+              }}
+            >
               Modificador atual de {currentAttr}:{' '}
               {currentAttrValue >= 0 ? '+' : ''}
               {currentAttrValue}
@@ -435,29 +447,39 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
           </FormControl>
 
           {/* Bônus Manual */}
-          <TextField
+          <NumberField
             fullWidth
             label='Bônus Manual de Defesa'
-            type='number'
             value={editedData.bonusDefense}
-            onChange={(e) => {
-              const value = parseInt(e.target.value, 10) || 0;
+            onValueChange={(v) => {
               setEditedData({
                 ...editedData,
-                bonusDefense: value,
+                bonusDefense: v ?? 0,
               });
             }}
             helperText='Bônus adicional de fontes não automáticas'
-            inputProps={{ min: -50, max: 50 }}
+            min={-50}
+            max={50}
           />
 
           {/* Redução de Dano (RD) */}
           <Divider>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Redução de Dano
             </Typography>
           </Divider>
-          <Typography variant='caption' color='text.secondary' sx={{ mt: -2 }}>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              mt: -2,
+            }}
+          >
             Valores totais (automático + manual). Fontes automáticas como
             materiais (Adamante), raça e poderes já estão somadas — ajuste para
             adicionar RD de outras fontes.
@@ -466,7 +488,12 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
           {renderRdField('Geral', 'medium')}
 
           <Divider sx={{ my: 0.5 }}>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Por Tipo de Dano
             </Typography>
           </Divider>

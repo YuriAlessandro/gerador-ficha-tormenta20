@@ -298,9 +298,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         >
           <Stack
             direction='row'
-            alignItems='center'
             spacing={0.5}
-            sx={{ mr: 1, flexShrink: 0 }}
+            sx={{
+              alignItems: 'center',
+              mr: 1,
+              flexShrink: 0,
+            }}
           >
             <IconButton
               size='small'
@@ -334,7 +337,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
               {aprimoramento.text}
             </Typography>
             {count > 0 && aprimoramento.addPm > 0 && (
-              <Typography variant='caption' color='text.secondary'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Total: +{aprimoramento.addPm * count} PM
               </Typography>
             )}
@@ -371,7 +379,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             {aprimoramento.text}
           </Typography>
           {thisTruque && count > 0 && (
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Truques não podem ser combinados com outros aprimoramentos
             </Typography>
           )}
@@ -390,7 +403,13 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         fullScreen={isMobile}
       >
         <DialogTitle>
-          <Stack direction='row' alignItems='center' spacing={1}>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <CasinoIcon color='primary' />
             <Typography variant='h6' component='span'>
               {spell.nome}
@@ -415,10 +434,21 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         <DialogContent dividers>
           <Stack spacing={2}>
             <Box>
-              <Typography variant='subtitle2' color='text.secondary'>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {spell.spellCircle}
               </Typography>
-              <Stack direction='row' spacing={2} alignItems='center'>
+              <Stack
+                direction='row'
+                spacing={2}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <Typography>
                   <strong>Custo Base:</strong> {basePM} PM
                 </Typography>
@@ -442,10 +472,20 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   '& .MuiAlert-message': { color: 'text.primary' },
                 }}
               >
-                <Typography variant='body2' fontWeight='bold'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   Efeito ativo disponível
                 </Typography>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {activeEffectDef?.description ??
                     'Após confirmar o lançamento, você poderá aplicar o efeito desta magia na ficha.'}{' '}
                   Ao confirmar o lançamento, será perguntado se deseja aplicá-lo
@@ -457,7 +497,13 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             <Divider />
 
             <Box>
-              <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 1 }}>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 'bold',
+                  mb: 1,
+                }}
+              >
                 Descrição
               </Typography>
               <Typography
@@ -480,8 +526,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                 <Box>
                   <Typography
                     variant='subtitle1'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
+                    sx={{
+                      fontWeight: 'bold',
+                      mb: 1,
+                    }}
                   >
                     Aprimoramentos
                   </Typography>
@@ -501,11 +549,18 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             <Box>
               <Stack
                 direction='row'
-                justifyContent='space-between'
-                alignItems='center'
-                sx={{ mb: 1 }}
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
               >
-                <Typography variant='subtitle1' fontWeight='bold'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   Rolagens
                 </Typography>
                 <Stack direction='row' spacing={1}>
@@ -554,7 +609,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                           <strong>{roll.label}:</strong> {roll.dice}
                         </Typography>
                         {roll.description && (
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {roll.description}
                           </Typography>
                         )}
@@ -563,7 +623,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   ))}
                 </Stack>
               ) : (
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Nenhuma rolagem configurada
                 </Typography>
               )}
@@ -608,7 +673,6 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {onUpdateRolls && (
         <RollsEditDialog
           open={rollsDialogOpen}

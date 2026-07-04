@@ -33,11 +33,15 @@ const MoreauSapienciaSpellStep: React.FC<MoreauSapienciaSpellStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Escolha uma magia de 1º círculo da escola de Adivinhação. O
         atributo-chave dessa magia será Sabedoria.
       </Typography>
-
       <RadioGroup value={selectedSpell || ''} onChange={handleChange}>
         {divinationSpells.map((spell) => (
           <Paper key={spell.nome} sx={{ p: 2, mb: 1 }}>
@@ -46,19 +50,31 @@ const MoreauSapienciaSpellStep: React.FC<MoreauSapienciaSpellStepProps> = ({
               control={<Radio />}
               label={
                 <Box>
-                  <Typography variant='subtitle1' fontWeight='bold'>
+                  <Typography
+                    variant='subtitle1'
+                    sx={{
+                      fontWeight: 'bold',
+                    }}
+                  >
                     {spell.nome}
                   </Typography>
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    display='block'
-                    sx={{ mb: 0.5 }}
+                    sx={{
+                      color: 'text.secondary',
+                      display: 'block',
+                      mb: 0.5,
+                    }}
                   >
                     Execução: {spell.execucao} | Alcance: {spell.alcance} |
                     Duração: {spell.duracao}
                   </Typography>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {spell.description}
                   </Typography>
                 </Box>
@@ -67,7 +83,6 @@ const MoreauSapienciaSpellStep: React.FC<MoreauSapienciaSpellStepProps> = ({
           </Paper>
         ))}
       </RadioGroup>
-
       {selected && (
         <Alert severity='info'>
           Você escolheu <strong>{selected.nome}</strong>. Ela entrará na ficha

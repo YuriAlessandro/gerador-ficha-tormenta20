@@ -73,8 +73,10 @@ const ActiveContentBar: React.FC<ActiveContentBarProps> = ({
           />
           <Typography
             variant='caption'
-            color='text.secondary'
-            sx={{ fontWeight: 'medium' }}
+            sx={{
+              color: 'text.secondary',
+              fontWeight: 'medium',
+            }}
           >
             Conteúdo ativo
           </Typography>
@@ -144,7 +146,6 @@ const ActiveContentBar: React.FC<ActiveContentBarProps> = ({
           )}
         </Box>
       </Box>
-
       {/* Expanded detail: supplements activation + homebrews */}
       <Collapse in={expanded} timeout='auto' unmountOnExit>
         <Box sx={{ px: 1.5, pb: 1.5 }}>

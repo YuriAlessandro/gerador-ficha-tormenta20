@@ -102,20 +102,35 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
         </TableCell>
         <TableCell component='th' scope='row'>
           <Box
-            display='flex'
-            alignItems='center'
-            justifyContent='space-between'
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
           >
-            <Box display='flex' alignItems='center' gap={1}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
               <WhatshotIcon color='primary' fontSize='small' />
-              <Typography variant='body1' fontWeight={500}>
+              <Typography
+                variant='body1'
+                sx={{
+                  fontWeight: 500,
+                }}
+              >
                 {classe.name}
                 {classe.subname && (
                   <Typography
                     component='span'
                     variant='body2'
-                    color='text.secondary'
-                    sx={{ ml: 1 }}
+                    sx={{
+                      color: 'text.secondary',
+                      ml: 1,
+                    }}
                   >
                     ({classe.subname})
                   </Typography>
@@ -198,8 +213,11 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
               {classe.isVariant && classe.baseClassName && (
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 2, fontStyle: 'italic' }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                    fontStyle: 'italic',
+                  }}
                 >
                   Classe variante de {classe.baseClassName}. Utiliza os mesmos
                   poderes de classe.
@@ -267,7 +285,13 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                   <Typography variant='body2' gutterBottom>
                     <strong>Perícias básicas:</strong>
                   </Typography>
-                  <Box display='flex' gap={1} flexWrap='wrap'>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 1,
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     {classe.periciasbasicas.map((per) => (
                       <Chip
                         key={`basic-skill-${per.type}-${per.list.join('-')}`}
@@ -289,7 +313,14 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                     Mais {classe.periciasrestantes.qtd} à sua escolha entre:
                   </strong>
                 </Typography>
-                <Box display='flex' gap={1} flexWrap='wrap' sx={{ mt: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                    mt: 1,
+                  }}
+                >
                   {classe.periciasrestantes.list.map((skill) => (
                     <Chip
                       key={`remaining-skill-${skill}`}
@@ -311,7 +342,13 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                 >
                   Proficiências
                 </Typography>
-                <Box display='flex' gap={1} flexWrap='wrap'>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {classe.proficiencias.map((prof) => (
                     <Chip
                       key={`proficiency-${prof}`}
@@ -348,7 +385,12 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                   >
                     {ability.name} ({ability.nivel}º nível)
                   </Typography>
-                  <Typography variant='body1' paragraph>
+                  <Typography
+                    variant='body1'
+                    sx={{
+                      marginBottom: '16px',
+                    }}
+                  >
                     {ability.text}
                   </Typography>
                   {ability.name !==
@@ -381,7 +423,12 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                   >
                     {power.name}
                   </Typography>
-                  <Typography variant='body1' paragraph>
+                  <Typography
+                    variant='body1'
+                    sx={{
+                      marginBottom: '16px',
+                    }}
+                  >
                     {power.text}
                   </Typography>
                   {power.requirements && power.requirements.length > 0 && (
@@ -577,7 +624,12 @@ const ClassesTable: React.FC = () => {
 
         {/* Results Summary */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {classes.length === 0
               ? 'Nenhuma classe encontrada com os filtros aplicados'
               : `${classes.length} classe${
@@ -610,7 +662,12 @@ const ClassesTable: React.FC = () => {
               {classes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                    <Typography variant='body1' color='text.secondary'>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Nenhuma classe encontrada. Tente ajustar a busca.
                     </Typography>
                   </TableCell>

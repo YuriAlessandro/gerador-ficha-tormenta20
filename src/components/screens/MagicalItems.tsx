@@ -530,14 +530,13 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                 }
                 onChange={handleItemChange}
                 renderInput={(params) => {
-                  const { InputLabelProps, InputProps, ...rest } = params;
+                  const { slotProps, ...rest } = params;
                   return (
                     <TextField
                       // eslint-disable-next-line react/jsx-props-no-spreading
                       {...rest}
-                      InputLabelProps={InputLabelProps}
-                      InputProps={InputProps}
                       label='Item Específico'
+                      slotProps={slotProps}
                     />
                   );
                 }}
@@ -597,7 +596,7 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                         placeholder='Selecione os encantamentos'
                       />
                     )}
-                    renderTags={(value, getTagProps) =>
+                    renderValue={(value, getItemProps) =>
                       value.map((option, index) => (
                         <Chip
                           variant='outlined'
@@ -605,7 +604,7 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                             option.double ? ' (2 pts)' : ''
                           }`}
                           // eslint-disable-next-line react/jsx-props-no-spreading
-                          {...getTagProps({ index })}
+                          {...getItemProps({ index })}
                         />
                       ))
                     }
@@ -653,8 +652,11 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                             {option.effect && (
                               <Typography
                                 variant='caption'
-                                color='text.secondary'
-                                sx={{ display: 'block', mb: 0.5 }}
+                                sx={{
+                                  color: 'text.secondary',
+                                  display: 'block',
+                                  mb: 0.5,
+                                }}
                               >
                                 {option.effect}
                               </Typography>
@@ -669,7 +671,12 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
 
                 {state.selectedEnchantments.length > 0 && (
                   <Grid size={12}>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Custo total:{' '}
                       {calculateEnchantmentCost(state.selectedEnchantments)}{' '}
                       pontos
@@ -714,8 +721,10 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                       </Typography>
                       <Typography
                         variant='body2'
-                        color='text.secondary'
                         gutterBottom
+                        sx={{
+                          color: 'text.secondary',
+                        }}
                       >
                         {item.itemType === 'weapon' && 'Arma'}
                         {item.itemType === 'armor' && 'Armadura'}

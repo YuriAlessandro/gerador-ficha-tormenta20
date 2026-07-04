@@ -260,15 +260,24 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
   }
 
   return (
-    <Box p={{ xs: 2, sm: 3 }}>
+    <Box
+      sx={{
+        p: { xs: 2, sm: 3 },
+      }}
+    >
       <Typography variant='h6' gutterBottom>
         Habilidades
       </Typography>
-      <Typography variant='body2' color='text.secondary' mb={3}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         Adicione habilidades especiais que tornam a ameaça única. Crie do zero
         ou escolha das sugestões.
       </Typography>
-
       {abilityRecommendation && (
         <Alert severity='info' sx={{ mb: 3 }} icon={<InfoIcon />}>
           <Typography variant='body2'>
@@ -280,7 +289,6 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
           </Typography>
         </Alert>
       )}
-
       <Grid container spacing={3}>
         {/* Add New Ability */}
         <Grid size={{ xs: 12, md: 6 }}>
@@ -390,7 +398,13 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
             }
           >
             {!threat.abilities || threat.abilities.length === 0 ? (
-              <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  py: 2,
+                }}
+              >
                 Nenhuma habilidade configurada ainda.
               </Typography>
             ) : (
@@ -408,8 +422,10 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
                               <Typography
                                 component='span'
                                 variant='body2'
-                                color='text.secondary'
-                                sx={{ ml: 1 }}
+                                sx={{
+                                  color: 'text.secondary',
+                                  ml: 1,
+                                }}
                               >
                                 (
                                 {[
@@ -432,13 +448,19 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
                           <Box>
                             <Typography
                               variant='body2'
-                              color='text.secondary'
-                              sx={{ whiteSpace: 'pre-wrap' }}
+                              sx={{
+                                color: 'text.secondary',
+                                whiteSpace: 'pre-wrap',
+                              }}
                             >
                               {ability.description || 'Sem descrição fornecida'}
                             </Typography>
                             {ability.rolls && ability.rolls.length > 0 && (
-                              <Box mt={1}>
+                              <Box
+                                sx={{
+                                  mt: 1,
+                                }}
+                              >
                                 {ability.rolls.map((roll) => (
                                   <Chip
                                     key={roll.id}
@@ -484,7 +506,6 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
           </SectionCard>
         </Grid>
       </Grid>
-
       {/* Suggestions Dialog */}
       <Dialog
         open={suggestionDialog}
@@ -519,8 +540,11 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
                     </Typography>
                     <Typography
                       variant='body2'
-                      color='text.secondary'
-                      sx={{ height: '80px', overflow: 'auto' }}
+                      sx={{
+                        color: 'text.secondary',
+                        height: '80px',
+                        overflow: 'auto',
+                      }}
                     >
                       {suggestion.description}
                     </Typography>
@@ -542,7 +566,6 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
           <Button onClick={() => setSuggestionDialog(false)}>Cancelar</Button>
         </DialogActions>
       </Dialog>
-
       {/* Customize Dialog */}
       <Dialog
         open={customizeDialog}
@@ -604,7 +627,11 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
             value={selectedSuggestionRolls}
             onChange={setSelectedSuggestionRolls}
           />
-          <Box mt={3}>
+          <Box
+            sx={{
+              mt: 3,
+            }}
+          >
             <ConditionsListEditor
               value={selectedSuggestionConditions}
               onChange={setSelectedSuggestionConditions}
@@ -618,7 +645,6 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Edit Ability Dialog */}
       <Dialog
         open={editAbilityDialog}
@@ -680,7 +706,11 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
             value={editAbilityRolls}
             onChange={setEditAbilityRolls}
           />
-          <Box mt={3}>
+          <Box
+            sx={{
+              mt: 3,
+            }}
+          >
             <ConditionsListEditor
               value={editAbilityConditions}
               onChange={setEditAbilityConditions}

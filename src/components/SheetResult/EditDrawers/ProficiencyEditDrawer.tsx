@@ -113,16 +113,20 @@ const ProficiencyEditDrawer: React.FC<ProficiencyEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 450 } },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 450 } },
+        },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Proficiências</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -133,13 +137,29 @@ const ProficiencyEditDrawer: React.FC<ProficiencyEditDrawerProps> = ({
         <Divider sx={{ mb: 3 }} />
 
         <Stack spacing={2}>
-          <Typography variant='subtitle2' color='text.secondary'>
+          <Typography
+            variant='subtitle2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Proficiências atuais
           </Typography>
 
-          <Stack direction='row' flexWrap='wrap' gap={0.5}>
+          <Stack
+            direction='row'
+            sx={{
+              flexWrap: 'wrap',
+              gap: 0.5,
+            }}
+          >
             {editedProficiencies.length === 0 && (
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Nenhuma proficiência
               </Typography>
             )}
@@ -154,17 +174,33 @@ const ProficiencyEditDrawer: React.FC<ProficiencyEditDrawerProps> = ({
           </Stack>
 
           <Divider sx={{ my: 1 }}>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Adicionar Proficiência
             </Typography>
           </Divider>
 
           {availablePredefined.length > 0 && (
             <>
-              <Typography variant='subtitle2' color='text.secondary'>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Predefinidas
               </Typography>
-              <Stack direction='row' flexWrap='wrap' gap={0.5}>
+              <Stack
+                direction='row'
+                sx={{
+                  flexWrap: 'wrap',
+                  gap: 0.5,
+                }}
+              >
                 {availablePredefined.map((prof) => (
                   <Chip
                     key={prof}
@@ -179,10 +215,21 @@ const ProficiencyEditDrawer: React.FC<ProficiencyEditDrawerProps> = ({
             </>
           )}
 
-          <Typography variant='subtitle2' color='text.secondary'>
+          <Typography
+            variant='subtitle2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Customizada
           </Typography>
-          <Stack direction='row' spacing={1} alignItems='center'>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <TextField
               fullWidth
               size='small'

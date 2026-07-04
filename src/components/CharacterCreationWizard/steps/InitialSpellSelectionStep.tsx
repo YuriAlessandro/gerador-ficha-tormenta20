@@ -258,7 +258,12 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         A classe {className} permite escolher {requiredCount} magia
         {requiredCount > 1 ? 's' : ''} de 1º círculo
         {schools && schools.length > 0
@@ -266,11 +271,14 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
           : ''}
         .
       </Typography>
-
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Selecionadas: {selectedSpells.length} / {requiredCount}
       </Typography>
-
       {crossTraditionSpellNames.size > 0 && crossTraditionLimit && (
         <Alert severity='info'>
           Teurgista Místico: você pode escolher até {crossTraditionLimit} magia
@@ -280,7 +288,6 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
           {isCrossTraditionLimitReached && ' (Limite atingido)'}
         </Alert>
       )}
-
       {selectedSpells.length > 0 && (
         <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
           <Typography variant='subtitle2' gutterBottom>
@@ -299,7 +306,6 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
           </Box>
         </Paper>
       )}
-
       <SpellAdvancedFilters
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -310,13 +316,11 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
           spellType: showTypeFilter,
         }}
       />
-
       {spellsBySchool.length === 0 && (
         <Alert severity='info'>
           Nenhuma magia encontrada com os filtros atuais.
         </Alert>
       )}
-
       <Box>
         {spellsBySchool.map(([school, spells]) => (
           <Accordion key={school} defaultExpanded={spellsBySchool.length <= 3}>
@@ -358,8 +362,10 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
                                 <Typography
                                   component='span'
                                   variant='body2'
-                                  color='text.secondary'
-                                  sx={{ ml: 1 }}
+                                  sx={{
+                                    color: 'text.secondary',
+                                    ml: 1,
+                                  }}
                                 >
                                   ({spell.manaExpense} PM)
                                 </Typography>
@@ -376,7 +382,12 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
                                 />
                               )}
                             </Typography>
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {spell.description}
                             </Typography>
                           </Box>
@@ -404,7 +415,6 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
           </Accordion>
         ))}
       </Box>
-
       {!isComplete && selectedSpells.length > 0 && (
         <Alert severity='warning'>
           {requiredCount - selectedSpells.length > 0
@@ -418,7 +428,6 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
               } para continuar.`}
         </Alert>
       )}
-
       {isComplete && (
         <Alert severity='success'>
           Magias selecionadas com sucesso! Você pode continuar para o próximo

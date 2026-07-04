@@ -187,7 +187,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
               placeholder='Selecione as modificações'
             />
           )}
-          renderTags={(value, getTagProps) =>
+          renderValue={(value, getItemProps) =>
             value.map((option, index) => {
               const supplementMeta = option.supplementId
                 ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
@@ -218,7 +218,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
                     </Box>
                   }
                   // eslint-disable-next-line react/jsx-props-no-spreading
-                  {...getTagProps({ index })}
+                  {...getItemProps({ index })}
                 />
               );
             })
@@ -265,8 +265,11 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
                   {option.description && (
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block', mb: 0.5 }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mb: 0.5,
+                      }}
                     >
                       {option.description}
                     </Typography>
@@ -287,7 +290,6 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
           disabled={disabled}
         />
       </Grid>
-
       {hasMaterialEspecial && (
         <Grid size={12}>
           <Autocomplete
@@ -313,7 +315,6 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
           />
         </Grid>
       )}
-
       {showMaterialEffectPreview && materialData && materialEffect && (
         <Grid size={12}>
           <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
@@ -326,10 +327,14 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
           </Paper>
         </Grid>
       )}
-
       {showCost && selectedModifications.length > 0 && (
         <Grid size={12}>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Custo total: {totalCost} / {maxCost} pontos
           </Typography>
         </Grid>

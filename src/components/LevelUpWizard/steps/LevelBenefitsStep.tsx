@@ -203,11 +203,16 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
             selectedClassSubname ? ` (${selectedClassSubname})` : ''
           }`}
       </Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         Confira os benefícios automáticos deste nível antes de fazer suas
         escolhas.
       </Typography>
-
       {isNewClass && (
         <Alert severity='warning' sx={{ mb: 2 }}>
           <strong>Multiclasse:</strong> Esta é sua primeira vez nesta classe.
@@ -215,17 +220,27 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
           perícias treinadas nem proficiências novas.
         </Alert>
       )}
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* PV Gain */}
         <Paper variant='outlined' sx={{ p: { xs: 1.5, sm: 2 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <FavoriteIcon sx={{ color: 'error.main' }} />
-            <Typography variant='subtitle1' fontWeight='bold'>
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               +{benefits.pvGain} Pontos de Vida
             </Typography>
           </Box>
-          <Typography variant='body2' color='text.secondary' sx={{ ml: 4.5 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              ml: 4.5,
+            }}
+          >
             {benefits.pvClassBase} (classe) + {benefits.pvAttrMod} (
             {benefits.pvAttrName})
             {benefits.pvClassBase + benefits.pvAttrMod < 1 && ' = mínimo de 1'}
@@ -236,11 +251,22 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
         <Paper variant='outlined' sx={{ p: { xs: 1.5, sm: 2 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <AutoAwesomeIcon sx={{ color: 'info.main' }} />
-            <Typography variant='subtitle1' fontWeight='bold'>
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               +{benefits.pmGain} Pontos de Mana
             </Typography>
           </Box>
-          <Typography variant='body2' color='text.secondary' sx={{ ml: 4.5 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              ml: 4.5,
+            }}
+          >
             {benefits.pmClassBase} (classe)
             {benefits.pmLevelCalcBonus > 0 &&
               ` + ${benefits.pmLevelCalcBonus} (bônus racial)`}
@@ -252,7 +278,12 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
           <Paper variant='outlined' sx={{ p: { xs: 1.5, sm: 2 } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <StarIcon sx={{ color: 'warning.main' }} />
-              <Typography variant='subtitle1' fontWeight='bold'>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 {benefits.newAbilities.length === 1
                   ? 'Nova Habilidade de Classe'
                   : 'Novas Habilidades de Classe'}
@@ -282,7 +313,9 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
                   >
                     <ListItemText
                       primary={ability.name}
-                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      slotProps={{
+                        primary: { sx: { fontWeight: 'bold' } },
+                      }}
                     />
                     <IconButton size='small'>
                       {expandedAbilities[ability.name] ? (
@@ -299,8 +332,12 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
                   >
                     <Typography
                       variant='body2'
-                      color='text.secondary'
-                      sx={{ mt: 0.5, mb: 1, whiteSpace: 'pre-wrap' }}
+                      sx={{
+                        color: 'text.secondary',
+                        mt: 0.5,
+                        mb: 1,
+                        whiteSpace: 'pre-wrap',
+                      }}
                     >
                       {ability.text}
                     </Typography>
@@ -327,7 +364,12 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
           <Paper variant='outlined' sx={{ p: { xs: 1.5, sm: 2 } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <MenuBookIcon sx={{ color: 'secondary.main' }} />
-              <Typography variant='subtitle1' fontWeight='bold'>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Acesso ao {benefits.newSpellCircle}º círculo de magias!
               </Typography>
             </Box>

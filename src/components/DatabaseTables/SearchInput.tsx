@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import MicIcon from '@mui/icons-material/Mic';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import SpeechRecognition, {
   useSpeechRecognition,
 } from 'react-speech-recognition';
@@ -88,44 +88,52 @@ const SearchInput: React.FC<IProps> = ({
   }, [transcript]);
 
   return (
-    <Stack spacing={2} direction='row' alignItems='center'>
+    <Stack
+      spacing={2}
+      direction='row'
+      sx={{
+        alignItems: 'center',
+      }}
+    >
       <TextField
         id='races-search'
         label='Filtrar'
         variant='outlined'
         value={localValue}
         onChange={onInputChange}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position='end'>
-              {browserSupportsSpeechRecognition && (
-                <>
-                  {listening ? (
-                    <IconButton
-                      onClick={() => SpeechRecognition.stopListening()}
-                    >
-                      <GraphicEqIcon sx={{ color: 'green' }} />
-                    </IconButton>
-                  ) : (
-                    <IconButton
-                      onClick={() =>
-                        SpeechRecognition.startListening({ language: 'pt-BR' })
-                      }
-                    >
-                      <MicIcon />
-                    </IconButton>
-                  )}
-                </>
-              )}
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position='end'>
+                {browserSupportsSpeechRecognition && (
+                  <>
+                    {listening ? (
+                      <IconButton
+                        onClick={() => SpeechRecognition.stopListening()}
+                      >
+                        <GraphicEqIcon sx={{ color: 'green' }} />
+                      </IconButton>
+                    ) : (
+                      <IconButton
+                        onClick={() =>
+                          SpeechRecognition.startListening({
+                            language: 'pt-BR',
+                          })
+                        }
+                      >
+                        <MicIcon />
+                      </IconButton>
+                    )}
+                  </>
+                )}
+              </InputAdornment>
+            ),
+          },
         }}
       />
-
       <Box onMouseEnter={handlePopoverOpen} onMouseLeave={handlePopoverClose}>
         <HelpOutlineIcon />
       </Box>
-
       <Popover
         sx={{
           pointerEvents: 'none',

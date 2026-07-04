@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
 import { CompanionSheet, CompanionNaturalWeapon } from '@/interfaces/Companion';
@@ -88,14 +88,21 @@ const CompanionAttributeDisplay: React.FC<{
       }}
       title={`Rolar teste de ${label}`}
     >
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {label}
       </Typography>
       <Typography
         variant='body1'
-        fontWeight='bold'
         color='primary'
-        sx={{ textDecoration: 'underline dotted' }}
+        sx={{
+          fontWeight: 'bold',
+          textDecoration: 'underline dotted',
+        }}
       >
         {value >= 0 ? `+${value}` : value}
       </Typography>
@@ -107,11 +114,27 @@ const StatRow: React.FC<{
   label: string;
   value: string | number;
 }> = ({ label, value }) => (
-  <Stack direction='row' justifyContent='space-between' alignItems='center'>
-    <Typography variant='body2' color='text.secondary'>
+  <Stack
+    direction='row'
+    sx={{
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    }}
+  >
+    <Typography
+      variant='body2'
+      sx={{
+        color: 'text.secondary',
+      }}
+    >
       {label}
     </Typography>
-    <Typography variant='body2' fontWeight='bold'>
+    <Typography
+      variant='body2'
+      sx={{
+        fontWeight: 'bold',
+      }}
+    >
       {value}
     </Typography>
   </Stack>
@@ -328,15 +351,34 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
       <DialogTitle>
         <Stack
           direction='row'
-          alignItems='center'
-          justifyContent='space-between'
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
-          <Stack direction='row' alignItems='center' spacing={1}>
-            <Typography variant='h6' fontWeight='bold'>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               {displayName}
             </Typography>
           </Stack>
-          <Stack direction='row' alignItems='center' spacing={0.5}>
+          <Stack
+            direction='row'
+            spacing={0.5}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             {onEdit && (
               <Tooltip title='Editar ficha'>
                 <IconButton size='small' onClick={onEdit} color='primary'>
@@ -367,7 +409,14 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             </IconButton>
           </Stack>
         </Stack>
-        <Stack direction='row' spacing={1} sx={{ mt: 0.5 }} flexWrap='wrap'>
+        <Stack
+          direction='row'
+          spacing={1}
+          sx={{
+            flexWrap: 'wrap',
+            mt: 0.5,
+          }}
+        >
           <Chip
             label={companion.companionType}
             size='small'
@@ -419,7 +468,6 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           </Tabs>
         )}
       </DialogTitle>
-
       <DialogContent dividers>
         {pendingEnsinarTruqueCount && pendingEnsinarTruqueCount > 0 ? (
           <Box
@@ -447,18 +495,22 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         {/* Atributos */}
         <Typography
           variant='subtitle2'
-          fontWeight='bold'
-          sx={{ mb: 1 }}
           color='primary'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
         >
           Atributos
         </Typography>
         <Stack
           direction='row'
           spacing={1}
-          justifyContent='center'
-          flexWrap='wrap'
-          sx={{ mb: 2 }}
+          sx={{
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            mb: 2,
+          }}
         >
           {Object.values(Atributo).map((attr) => (
             <CompanionAttributeDisplay
@@ -473,7 +525,13 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         <Divider sx={{ my: 1.5 }} />
 
         {/* PV Control */}
-        <Stack direction='row' justifyContent='center' sx={{ mb: 2 }}>
+        <Stack
+          direction='row'
+          sx={{
+            justifyContent: 'center',
+            mb: 2,
+          }}
+        >
           <StatControl
             type='PV'
             current={companion.currentPV ?? companion.pv}
@@ -489,9 +547,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         {/* Stats de Combate */}
         <Typography
           variant='subtitle2'
-          fontWeight='bold'
-          sx={{ mb: 1 }}
           color='primary'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
         >
           Combate
         </Typography>
@@ -527,12 +587,20 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
               <Box sx={{ mb: 1 }}>
                 <Typography
                   variant='subtitle2'
-                  fontWeight='bold'
                   color='primary'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
                 >
                   Sentidos
                 </Typography>
-                <Stack direction='row' spacing={0.5} flexWrap='wrap'>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {companion.senses.map((sense) => (
                     <Chip key={sense} label={sense} size='small' />
                   ))}
@@ -543,12 +611,20 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
               <Box sx={{ mb: 1 }}>
                 <Typography
                   variant='subtitle2'
-                  fontWeight='bold'
                   color='primary'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
                 >
                   Imunidades
                 </Typography>
-                <Stack direction='row' spacing={0.5} flexWrap='wrap'>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {companion.immunities.map((imm) => (
                     <Chip key={imm} label={imm} size='small' color='warning' />
                   ))}
@@ -564,9 +640,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Armas Naturais
             </Typography>
@@ -617,13 +695,21 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Proficiências
             </Typography>
-            <Stack direction='row' spacing={0.5} flexWrap='wrap'>
+            <Stack
+              direction='row'
+              spacing={0.5}
+              sx={{
+                flexWrap: 'wrap',
+              }}
+            >
               {companion.proficiencies.map((prof) => (
                 <Chip key={prof} label={prof} size='small' />
               ))}
@@ -635,9 +721,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         <Divider sx={{ my: 1.5 }} />
         <Typography
           variant='subtitle2'
-          fontWeight='bold'
-          sx={{ mb: 1 }}
           color='primary'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
         >
           Perícias Treinadas
         </Typography>
@@ -675,9 +763,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                 <Typography variant='body2'>{skill}</Typography>
                 <Typography
                   variant='body2'
-                  fontWeight='bold'
                   color='primary'
-                  sx={{ textDecoration: 'underline dotted' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    textDecoration: 'underline dotted',
+                  }}
                 >
                   {bonusStr}
                 </Typography>
@@ -692,9 +782,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Habilidades Especiais ({companion.companionType})
             </Typography>
@@ -712,9 +804,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Truques ({companion.tricks.length})
             </Typography>
@@ -724,9 +818,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                 <Accordion key={trick.name} disableGutters>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography
-                      fontWeight='bold'
                       color='primary'
-                      sx={{ fontSize: '0.9rem' }}
+                      sx={{
+                        fontWeight: 'bold',
+                        fontSize: '0.9rem',
+                      }}
                     >
                       {trick.name}
                     </Typography>
@@ -738,7 +834,12 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                     {trick.choices &&
                       Object.entries(trick.choices).length > 0 && (
                         <Box sx={{ mt: 1 }}>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Escolhas:{' '}
                             {Object.entries(trick.choices)
                               .map(([key, val]) => `${key}: ${val}`)
@@ -759,9 +860,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Magias ({companion.spells.length})
             </Typography>
@@ -785,9 +888,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                       }}
                     >
                       <Typography
-                        fontWeight='bold'
                         color='primary'
-                        sx={{ fontSize: '0.9rem' }}
+                        sx={{
+                          fontWeight: 'bold',
+                          fontSize: '0.9rem',
+                        }}
                       >
                         {spell.nome}
                       </Typography>
@@ -811,8 +916,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                   <AccordionDetails>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block', mb: 1 }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mb: 1,
+                      }}
                     >
                       {spell.spellCircle} • {spell.execucao} • {spell.alcance}
                       {spell.alvo && ` • ${spell.alvo}`}
@@ -823,8 +931,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                     </Typography>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block', mt: 1 }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mt: 1,
+                      }}
                     >
                       Atributo-chave: Carisma do treinador
                     </Typography>
@@ -837,7 +948,12 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
 
         {/* Info do nível do treinador */}
         <Divider sx={{ my: 1.5 }} />
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Nível do Treinador: {trainerLevel}
         </Typography>
       </DialogContent>

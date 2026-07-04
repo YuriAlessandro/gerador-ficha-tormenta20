@@ -64,7 +64,12 @@ const Changelog: React.FC = () => {
                 '& .MuiSvgIcon-root': { color: 'primary.contrastText' },
               }}
             >
-              <Typography variant='h6' fontWeight='bold'>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Versão 4 (Atual)
               </Typography>
             </AccordionSummary>
@@ -367,9 +372,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Homebrews — crie o seu próprio conteúdo
                 </Typography>
@@ -385,8 +392,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Editor Básico e Avançado:</strong> bônus passivos
                   cobrindo atributos, perícias, PV/PM, defesa, deslocamento,
@@ -399,8 +408,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Classes completas:</strong> PV/PM, perícias,
                   habilidades automáticas por nível, poderes de classe com
@@ -412,8 +423,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Teste antes de publicar:</strong> a{' '}
                   <strong>ficha de teste</strong> gera um personagem aleatório
@@ -422,7 +435,12 @@ const Changelog: React.FC = () => {
                   <strong>fórum próprio</strong> e{' '}
                   <strong>histórico de versões</strong>.
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   <strong>Criar é grátis para qualquer pessoa</strong> com
                   conta: monte, teste e publique seus homebrews sem custo. O{' '}
                   <strong>nível de apoio</strong> define apenas{' '}
@@ -446,9 +464,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Mapa de Arton
                 </Typography>
@@ -459,7 +479,12 @@ const Changelog: React.FC = () => {
                   continente, e cada <strong>mesa virtual</strong> ganha o seu
                   próprio mapa.
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Na mesa, mestre e jogadores podem marcar{' '}
                   <strong>pontos de interesse</strong> no mapa, com controle de
                   visibilidade — pins visíveis a <strong>todos</strong> ou{' '}
@@ -1594,9 +1619,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Bestiário da Comunidade
                 </Typography>
@@ -1612,8 +1639,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Copiar para usar:</strong> gostou de uma criatura?
                   Copie a ameaça para a sua conta com um clique e use nas suas
@@ -1621,8 +1650,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Comunidade e curadoria:</strong> avalie e comente as
                   ameaças.
@@ -1641,9 +1672,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Efeitos Ativos de Poderes e Magias
                 </Typography>
@@ -1660,8 +1693,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Cobertura ampla:</strong> os poderes ativos das{' '}
                   <strong>13 classes</strong>, além de poderes{' '}
@@ -1671,8 +1706,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Também em magias:</strong> magias que alteram a ficha
                   temporariamente — como <strong>Armadura Arcana</strong>,{' '}
@@ -1687,8 +1724,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Integração com a mesa virtual:</strong> ao ativar um
                   efeito, ele é <strong>oferecido em tempo real</strong> aos
@@ -2777,9 +2816,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Condições (Status Effects)
                 </Typography>
@@ -2795,8 +2836,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Cascata inteligente:</strong> condições que
                   &quot;contêm&quot; outras aplicam as derivadas automaticamente
@@ -2807,15 +2850,22 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Regra oficial de não-acúmulo:</strong> condições com
                   mesmo efeito não empilham — Desprevenido (−5 Defesa) +
                   Vulnerável (−2 Defesa) resulta em −5, não −7. O sistema aplica
                   automaticamente a penalidade mais severa por alvo.
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   <strong>Integração total com mesa virtual:</strong> o mestre
                   pode aplicar condições em qualquer combatente direto da tela
                   de combate (jogadores, ameaças ou combatentes manuais). Para
@@ -3157,9 +3207,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Wyrt
                 </Typography>
@@ -3448,9 +3500,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Multiclasse
                 </Typography>
@@ -3461,7 +3515,12 @@ const Changelog: React.FC = () => {
                   pode escolher uma classe diferente para aquele nível,
                   combinando habilidades, poderes e magias de múltiplas classes.
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   O sistema calcula automaticamente PV, PM, perícias e magias
                   para cada classe. Classes conjuradoras como Arcanista, Bardo,
                   Druida e Clérigo possuem configuração completa ao entrar pela

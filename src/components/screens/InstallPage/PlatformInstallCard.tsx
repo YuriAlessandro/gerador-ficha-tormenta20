@@ -105,7 +105,6 @@ const PlatformInstallCard: React.FC<PlatformInstallCardProps> = ({
       <Box sx={{ color: 'primary.main', mb: 2 }}>
         {getPlatformIcon(platformInfo.platform)}
       </Box>
-
       <Typography
         variant='h6'
         sx={{ fontFamily: 'Tfont, serif', fontWeight: 700, mb: 1 }}
@@ -114,7 +113,6 @@ const PlatformInstallCard: React.FC<PlatformInstallCardProps> = ({
           platformInfo.platform
         )}`}
       </Typography>
-
       {showInstallButton && (
         <Box sx={{ mt: 3 }}>
           <Button
@@ -135,26 +133,31 @@ const PlatformInstallCard: React.FC<PlatformInstallCardProps> = ({
           </Button>
         </Box>
       )}
-
       {showIOSInstructions && (
         <Box sx={{ mt: 3 }}>
           <IOSInstructions />
         </Box>
       )}
-
       {showManualInstructions && (
         <Box sx={{ mt: 3 }}>
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {getManualInstructions(platformInfo)}
           </Typography>
         </Box>
       )}
-
       {platformInfo.supportsNativeInstall && !canPromptInstall && (
         <Typography
           variant='caption'
-          color='text.secondary'
-          sx={{ display: 'block', mt: 2 }}
+          sx={{
+            color: 'text.secondary',
+            display: 'block',
+            mt: 2,
+          }}
         >
           Se o botão de instalar não aparecer, tente recarregar a página.
         </Typography>

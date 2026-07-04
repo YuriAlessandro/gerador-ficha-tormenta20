@@ -430,7 +430,6 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   return (
     <>
       <AlertDialog />
-
       {/* Sheet Limit Dialog */}
       <SheetLimitDialog
         open={showLimitDialog}
@@ -439,7 +438,6 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
         maxCount={maxMenaceSheets}
         tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
       />
-
       {showResult && threat ? (
         <ThreatResult
           threat={threat as ThreatSheet}
@@ -468,10 +466,12 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
                 }}
               >
                 <Box
-                  display='flex'
-                  justifyContent='space-between'
-                  alignItems='center'
-                  gap={2}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 2,
+                  }}
                 >
                   <Box sx={{ minWidth: 0 }}>
                     <Typography
@@ -528,7 +528,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
                   {steps.map((label, index) => (
                     <Step key={label}>
                       <StepLabel
-                        StepIconComponent={ThreatStepIcon}
+                        slots={{ stepIcon: ThreatStepIcon }}
                         sx={{
                           cursor: 'pointer',
                           '&:hover': {
@@ -563,8 +563,10 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
               >
                 <Stack
                   direction='row'
-                  justifyContent='space-between'
-                  alignItems='center'
+                  sx={{
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
                 >
                   <Button
                     variant='outlined'
@@ -578,8 +580,10 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
                   <Typography
                     variant='body2'
-                    color='text.secondary'
-                    sx={{ display: { xs: 'none', sm: 'block' } }}
+                    sx={{
+                      color: 'text.secondary',
+                      display: { xs: 'none', sm: 'block' },
+                    }}
                   >
                     Etapa {activeStep + 1} de {steps.length}
                   </Typography>

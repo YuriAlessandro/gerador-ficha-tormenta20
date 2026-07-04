@@ -15,17 +15,24 @@ interface SheetUnavailableProps {
  */
 const SheetUnavailable: React.FC<SheetUnavailableProps> = ({ count }) => (
   <Box
-    display='flex'
-    flexDirection='column'
-    justifyContent='center'
-    alignItems='center'
-    minHeight='50vh'
-    textAlign='center'
-    px={3}
-    gap={2}
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '50vh',
+      textAlign: 'center',
+      px: 3,
+      gap: 2,
+    }}
   >
     <Typography variant='h6'>Ficha indisponível</Typography>
-    <Typography color='text.secondary' maxWidth={520}>
+    <Typography
+      sx={{
+        color: 'text.secondary',
+        maxWidth: 520,
+      }}
+    >
       Esta ficha usa {count} homebrew(s) que não estão ativos no momento. Ative
       o(s) homebrew(s) necessário(s) para abri-la.
     </Typography>

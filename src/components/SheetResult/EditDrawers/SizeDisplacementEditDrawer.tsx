@@ -3,7 +3,6 @@ import {
   Drawer,
   Box,
   Typography,
-  TextField,
   Select,
   MenuItem,
   FormControl,
@@ -25,6 +24,7 @@ import {
   getRaceDisplacement,
 } from '@/data/systems/tormenta20/races/functions/functions';
 import { RACE_SIZES } from '@/data/systems/tormenta20/races/raceSizes/raceSizes';
+import NumberField from '@/components/common/NumberField';
 
 interface SizeDisplacementEditDrawerProps {
   open: boolean;
@@ -205,16 +205,20 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 450 } },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 450 } },
+        },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Editar Deslocamento e Tamanho</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -230,22 +234,26 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
             Deslocamento
           </Typography>
 
-          <TextField
+          <NumberField
             fullWidth
             label='Terrestre (metros)'
-            type='number'
-            value={editedData.displacementStr}
-            onChange={(e) => {
+            value={
+              editedData.displacementStr === ''
+                ? null
+                : Number(editedData.displacementStr)
+            }
+            onValueChange={(v) => {
               setEditedData({
                 ...editedData,
-                displacementStr: e.target.value,
+                displacementStr: v === null ? '' : String(v),
                 useCustomDisplacement: true,
               });
             }}
             helperText={`Valor automático: ${autoDisplacement}m (${Math.floor(
               autoDisplacement / 1.5
             )}q)`}
-            inputProps={{ min: 0, max: 100 }}
+            min={0}
+            max={100}
           />
 
           {editedData.useCustomDisplacement && (
@@ -267,52 +275,73 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
             Outros Deslocamentos
           </Typography>
 
-          <TextField
+          <NumberField
             fullWidth
             label='Escalada (metros)'
-            type='number'
-            value={editedData.escaladaStr}
-            onChange={(e) =>
-              setEditedData({ ...editedData, escaladaStr: e.target.value })
+            value={
+              editedData.escaladaStr === ''
+                ? null
+                : Number(editedData.escaladaStr)
             }
-            inputProps={{ min: 0, max: 100 }}
-          />
-
-          <TextField
-            fullWidth
-            label='Escavar (metros)'
-            type='number'
-            value={editedData.escavarStr}
-            onChange={(e) =>
-              setEditedData({ ...editedData, escavarStr: e.target.value })
-            }
-            inputProps={{ min: 0, max: 100 }}
-          />
-
-          <TextField
-            fullWidth
-            label='Natação (metros)'
-            type='number'
-            value={editedData.natacaoStr}
-            onChange={(e) =>
-              setEditedData({ ...editedData, natacaoStr: e.target.value })
-            }
-            inputProps={{ min: 0, max: 100 }}
-          />
-
-          <TextField
-            fullWidth
-            label='Voo (metros)'
-            type='number'
-            value={editedData.vooStr}
-            onChange={(e) =>
+            onValueChange={(v) =>
               setEditedData({
                 ...editedData,
-                vooStr: e.target.value,
-                pairar: Number(e.target.value) > 0 ? editedData.pairar : false,
+                escaladaStr: v === null ? '' : String(v),
               })
             }
-            inputProps={{ min: 0, max: 100 }}
+            min={0}
+            max={100}
+          />
+
+          <NumberField
+            fullWidth
+            label='Escavar (metros)'
+            value={
+              editedData.escavarStr === ''
+                ? null
+                : Number(editedData.escavarStr)
+            }
+            onValueChange={(v) =>
+              setEditedData({
+                ...editedData,
+                escavarStr: v === null ? '' : String(v),
+              })
+            }
+            min={0}
+            max={100}
+          />
+
+          <NumberField
+            fullWidth
+            label='Natação (metros)'
+            value={
+              editedData.natacaoStr === ''
+                ? null
+                : Number(editedData.natacaoStr)
+            }
+            onValueChange={(v) =>
+              setEditedData({
+                ...editedData,
+                natacaoStr: v === null ? '' : String(v),
+              })
+            }
+            min={0}
+            max={100}
+          />
+
+          <NumberField
+            fullWidth
+            label='Voo (metros)'
+            value={editedData.vooStr === '' ? null : Number(editedData.vooStr)}
+            onValueChange={(v) =>
+              setEditedData({
+                ...editedData,
+                vooStr: v === null ? '' : String(v),
+                pairar: (v ?? 0) > 0 ? editedData.pairar : false,
+              })
+            }
+            min={0}
+            max={100}
           />
 
           <FormControlLabel
@@ -359,7 +388,12 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
           </FormControl>
 
           {previewSize && (
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Modificadores: Furtividade{' '}
               {previewSize.modifiers.stealth >= 0 ? '+' : ''}
               {previewSize.modifiers.stealth}, Manobra{' '}
@@ -426,7 +460,12 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
                 </Typography>
               )}
               {!hasSecondaryMovement && (
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Nenhum deslocamento secundário
                 </Typography>
               )}

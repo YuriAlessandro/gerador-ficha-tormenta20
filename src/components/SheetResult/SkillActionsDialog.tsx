@@ -55,15 +55,27 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onRoll }) => {
     >
       <Stack
         direction='row'
-        justifyContent='space-between'
-        alignItems='flex-start'
         spacing={1}
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+        }}
       >
         <Box sx={{ flex: 1 }}>
-          <Typography variant='subtitle1' fontWeight='bold'>
+          <Typography
+            variant='subtitle1'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             {action.name}
           </Typography>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {action.summary}
           </Typography>
         </Box>
@@ -77,7 +89,6 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onRoll }) => {
           Rolar
         </Button>
       </Stack>
-
       <Box sx={{ mt: 1 }}>
         <Button
           size='small'
@@ -139,15 +150,28 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
       <DialogTitle>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
         >
-          <Stack direction='row' alignItems='center' spacing={1}>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <CasinoIcon color='primary' />
             <Typography variant='h6' component='span'>
               {skill.name}
             </Typography>
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               (+{skillTotal})
             </Typography>
           </Stack>
@@ -172,22 +196,37 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
         >
           <Stack
             direction='row'
-            justifyContent='space-between'
-            alignItems='center'
             spacing={1}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
           >
             <Box>
-              <Typography variant='subtitle1' fontWeight='bold'>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Teste de {skill.name}
               </Typography>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Rolar 1d20{skillTotal >= 0 ? '+' : ''}
                 {skillTotal}
               </Typography>
               <Typography
                 variant='caption'
-                color='text.secondary'
-                sx={{ display: 'block', mt: 0.5 }}
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  mt: 0.5,
+                }}
               >
                 {attrName} ({attrValue >= 0 ? '+' : ''}
                 {attrValue}) + Treino ({skill.training ?? 0}) + ½ Nível (
@@ -208,8 +247,11 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
         {actions.length > 0 && (
           <Typography
             variant='overline'
-            color='text.secondary'
-            sx={{ display: 'block', mb: 1 }}
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+              mb: 1,
+            }}
           >
             Ações Específicas
           </Typography>

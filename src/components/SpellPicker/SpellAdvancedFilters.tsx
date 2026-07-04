@@ -103,19 +103,23 @@ const SpellAdvancedFilters: React.FC<SpellAdvancedFiltersProps> = ({
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={1}
-        alignItems={{ xs: 'stretch', sm: 'center' }}
+        sx={{
+          alignItems: { xs: 'stretch', sm: 'center' },
+        }}
       >
         <TextField
           placeholder={searchPlaceholder}
           value={filters.search}
           onChange={(e) => onFilterChange({ search: e.target.value })}
-          InputProps={{
-            startAdornment: (
-              <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-            ),
-          }}
           size='small'
           sx={{ flexGrow: 1 }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+              ),
+            },
+          }}
         />
         {hasAnyFilterControl && (
           <Button
@@ -138,7 +142,6 @@ const SpellAdvancedFilters: React.FC<SpellAdvancedFiltersProps> = ({
           </Button>
         )}
       </Stack>
-
       {hasAnyFilterControl && (
         <Collapse in={expanded} timeout='auto'>
           <Box sx={{ mt: 2 }}>

@@ -312,7 +312,12 @@ const SheetViewPage: React.FC = () => {
           }}
         >
           <CircularProgress size={60} />
-          <Typography variant='h6' color='text.secondary'>
+          <Typography
+            variant='h6'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Carregando ficha...
           </Typography>
         </Box>
@@ -431,7 +436,11 @@ const SheetViewPage: React.FC = () => {
                     </Link>
                   </>
                 )}
-                <Typography color='text.primary'>
+                <Typography
+                  sx={{
+                    color: 'text.primary',
+                  }}
+                >
                   Ficha de {sheet.nome}
                 </Typography>
               </Breadcrumbs>

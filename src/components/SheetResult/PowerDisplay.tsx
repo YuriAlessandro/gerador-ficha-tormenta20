@@ -196,7 +196,13 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
             },
           }}
         >
-          <Stack direction='row' alignItems='center' spacing={0.5}>
+          <Stack
+            direction='row'
+            spacing={0.5}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             {powerRolls.length > 0 ? (
               <Box onClick={(e) => e.stopPropagation()}>
                 <RollButton
@@ -271,7 +277,12 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
           {generateClassPowerDiv(power as ClassPower)}
           {generateGeneralPowerDiv(power as RaceAbility)}
           <div style={{ paddingTop: '16px' }}>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Vindo de: {powerSources || 'Origem não identificada'}
             </Typography>
           </div>

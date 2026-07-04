@@ -77,7 +77,6 @@ const BuildsPreviewSection: React.FC<BuildsPreviewSectionProps> = ({
       <Typography variant='h5' className='section-title' sx={{ mb: 2 }}>
         Builds da Comunidade
       </Typography>
-
       <Stack spacing={1.5}>
         {builds.map((build, index) => (
           <Box
@@ -104,8 +103,10 @@ const BuildsPreviewSection: React.FC<BuildsPreviewSectionProps> = ({
           >
             <Stack
               direction='row'
-              justifyContent='space-between'
-              alignItems='center'
+              sx={{
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
             >
               <Typography
                 variant='subtitle2'
@@ -122,15 +123,33 @@ const BuildsPreviewSection: React.FC<BuildsPreviewSectionProps> = ({
                 {build.name}
               </Typography>
               {build.ratings && build.ratings.count > 0 && (
-                <Stack direction='row' alignItems='center' spacing={0.5}>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <StarIcon sx={{ fontSize: 14, color: 'warning.main' }} />
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {build.ratings.average.toFixed(1)}
                   </Typography>
                 </Stack>
               )}
             </Stack>
-            <Stack direction='row' spacing={0.5} mt={0.5} flexWrap='wrap'>
+            <Stack
+              direction='row'
+              spacing={0.5}
+              sx={{
+                mt: 0.5,
+                flexWrap: 'wrap',
+              }}
+            >
               <Chip
                 label={build.isMulticlass ? 'Multiclasse' : build.classe}
                 size='small'
@@ -149,8 +168,8 @@ const BuildsPreviewSection: React.FC<BuildsPreviewSectionProps> = ({
             {build.description && (
               <Typography
                 variant='caption'
-                color='text.secondary'
                 sx={{
+                  color: 'text.secondary',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -165,7 +184,6 @@ const BuildsPreviewSection: React.FC<BuildsPreviewSectionProps> = ({
           </Box>
         ))}
       </Stack>
-
       <Button
         variant='contained'
         size='small'

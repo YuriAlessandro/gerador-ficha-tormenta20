@@ -16,6 +16,7 @@ import {
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import PetsOutlinedIcon from '@mui/icons-material/PetsOutlined';
+import NumberField from '@/components/common/NumberField';
 import { ThreatSheet } from '../../../interfaces/ThreatSheet';
 import {
   getTierDisplayName,
@@ -49,15 +50,24 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
     combatStats.manaPoints > 0;
 
   return (
-    <Box p={{ xs: 2, sm: 3 }}>
+    <Box
+      sx={{
+        p: { xs: 2, sm: 3 },
+      }}
+    >
       <Typography variant='h6' gutterBottom>
         Resumo
       </Typography>
-      <Typography variant='body2' color='text.secondary' mb={3}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         Revise a ameaça e faça ajustes finais de nome e estatísticas vitais
         antes de finalizar.
       </Typography>
-
       <Stack spacing={3}>
         {/* Ajustes finais */}
         <SectionCard
@@ -65,16 +75,30 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
           title='Ajustes Finais'
           subtitle='Altere o nome e os valores vitais sem voltar etapas.'
         >
-          <Grid container spacing={2} alignItems='center'>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <Grid size={{ xs: 12, md: 5 }}>
-              <Box display='flex' gap={2} alignItems='center'>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  alignItems: 'center',
+                }}
+              >
                 <Avatar
                   src={
                     threat.imageUrl && !imageError ? threat.imageUrl : undefined
                   }
                   variant='rounded'
-                  imgProps={{ onError: () => setImageError(true) }}
                   sx={{ width: 56, height: 56, flexShrink: 0 }}
+                  slotProps={{
+                    img: { onError: () => setImageError(true) },
+                  }}
                 >
                   <PetsOutlinedIcon />
                 </Avatar>
@@ -90,45 +114,33 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
             {combatStats && (
               <>
                 <Grid size={{ xs: 4, md: hasMana ? 2 : 3 }}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='Defesa'
                     value={combatStats.defense}
-                    onChange={(e) =>
-                      handleCombatStatChange(
-                        'defense',
-                        parseInt(e.target.value, 10) || 0
-                      )
+                    onValueChange={(v) =>
+                      handleCombatStatChange('defense', v ?? 0)
                     }
                   />
                 </Grid>
                 <Grid size={{ xs: 4, md: hasMana ? 2 : 4 }}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='PV'
                     value={combatStats.hitPoints}
-                    onChange={(e) =>
-                      handleCombatStatChange(
-                        'hitPoints',
-                        parseInt(e.target.value, 10) || 0
-                      )
+                    onValueChange={(v) =>
+                      handleCombatStatChange('hitPoints', v ?? 0)
                     }
                   />
                 </Grid>
                 {hasMana && (
                   <Grid size={{ xs: 4, md: 3 }}>
-                    <TextField
+                    <NumberField
                       fullWidth
-                      type='number'
                       label='PM'
                       value={combatStats.manaPoints ?? 0}
-                      onChange={(e) =>
-                        handleCombatStatChange(
-                          'manaPoints',
-                          parseInt(e.target.value, 10) || 0
-                        )
+                      onValueChange={(v) =>
+                        handleCombatStatChange('manaPoints', v ?? 0)
                       }
                     />
                   </Grid>
@@ -144,7 +156,12 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
           title='Visão Geral'
           subtitle='Confira tudo o que foi configurado.'
         >
-          <Typography variant='body1' mb={2}>
+          <Typography
+            variant='body1'
+            sx={{
+              mb: 2,
+            }}
+          >
             <strong>{threat.name || 'Ameaça Sem Nome'}</strong> é um(a){' '}
             {threat.type?.toLowerCase()} {threat.size?.toLowerCase()} de papel{' '}
             {threat.role?.toLowerCase()} com nível de desafio{' '}
@@ -158,7 +175,14 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
             {threat.spells?.length || 0} magias.
           </Typography>
 
-          <Box display='flex' gap={1} flexWrap='wrap' mb={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              flexWrap: 'wrap',
+              mb: 2,
+            }}
+          >
             {threat.type && (
               <Chip label={`Tipo: ${threat.type}`} size='small' />
             )}
@@ -184,7 +208,14 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
           </Box>
 
           {combatStats && (
-            <Box display='flex' gap={1} flexWrap='wrap' mb={2}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1,
+                flexWrap: 'wrap',
+                mb: 2,
+              }}
+            >
               <Chip
                 label={`Ataque: +${combatStats.attackValue}`}
                 size='small'
@@ -229,7 +260,12 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
                   {section.title} ({section.items?.length || 0})
                 </Typography>
                 {!section.items || section.items.length === 0 ? (
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     Nenhum(a) configurado(a)
                   </Typography>
                 ) : (
@@ -238,7 +274,9 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
                       <ListItem key={item.id} sx={{ px: 0, py: 0.25 }}>
                         <ListItemText
                           primary={item.name}
-                          primaryTypographyProps={{ variant: 'body2' }}
+                          slotProps={{
+                            primary: { variant: 'body2' },
+                          }}
                         />
                       </ListItem>
                     ))}
@@ -253,12 +291,18 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
           )}
 
           {threat.specialQualities && (
-            <Box mb={1.5}>
+            <Box
+              sx={{
+                mb: 1.5,
+              }}
+            >
               <Typography variant='subtitle2'>Qualidades Especiais</Typography>
               <Typography
                 variant='body2'
-                color='text.secondary'
-                sx={{ whiteSpace: 'pre-wrap' }}
+                sx={{
+                  color: 'text.secondary',
+                  whiteSpace: 'pre-wrap',
+                }}
               >
                 {threat.specialQualities}
               </Typography>
@@ -277,8 +321,10 @@ const StepSummary: React.FC<StepSummaryProps> = ({ threat, onUpdate }) => {
               </Typography>
               <Typography
                 variant='body2'
-                color='text.secondary'
-                sx={{ whiteSpace: 'pre-wrap' }}
+                sx={{
+                  color: 'text.secondary',
+                  whiteSpace: 'pre-wrap',
+                }}
               >
                 {threat.equipment}
               </Typography>

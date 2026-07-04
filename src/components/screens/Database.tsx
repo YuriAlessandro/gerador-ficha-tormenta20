@@ -239,8 +239,10 @@ const Database: React.FC<IProps> = ({ embedded = false }) => {
                           </Typography>
                           <Typography
                             variant='body2'
-                            color='text.secondary'
-                            sx={{ fontSize: '0.9rem' }}
+                            sx={{
+                              color: 'text.secondary',
+                              fontSize: '0.9rem',
+                            }}
                           >
                             Explorar {item.title.toLowerCase()}
                           </Typography>

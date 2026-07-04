@@ -141,10 +141,11 @@ export function isPowerAvailable(
           case RequirementType.PODER_TORMENTA: {
             const qtdPowers = rule.value as number;
             return (
+              // OTHER powers, so can't count itself
               sheet.generalPowers.filter(
                 (actualPower) => actualPower.type === 'TORMENTA'
               ).length >=
-              qtdPowers + 1 // OTHER powers, so can't count itself
+              qtdPowers + 1
             );
           }
           case RequirementType.PROFICIENCIA: {

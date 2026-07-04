@@ -91,12 +91,23 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
       >
         <ListItemText
           primary={
-            <Box display='flex' alignItems='center' gap={1}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
               {locked && <LockIcon fontSize='small' color='disabled' />}
               {!locked && isSelected && (
                 <CheckCircleIcon color='primary' fontSize='small' />
               )}
-              <Typography variant='body1' fontWeight={isSelected ? 600 : 400}>
+              <Typography
+                variant='body1'
+                sx={{
+                  fontWeight: isSelected ? 600 : 400,
+                }}
+              >
                 {cls.subname ? `${cls.name} (${cls.subname})` : cls.name}
               </Typography>
               {isCurrent && (
@@ -118,7 +129,12 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
             </Box>
           }
           secondary={
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               PV/nivel: +{cls.addpv} | PM/nivel: +{cls.addpm}
               {cls.spellPath ? ' | Conjurador' : ''}
             </Typography>
@@ -130,10 +146,15 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
 
   return (
     <Box>
-      <Typography variant='subtitle1' gutterBottom fontWeight={600}>
+      <Typography
+        variant='subtitle1'
+        gutterBottom
+        sx={{
+          fontWeight: 600,
+        }}
+      >
         Escolha a classe para este nivel
       </Typography>
-
       {isNewClass && (
         <Alert severity='warning' sx={{ mb: 2 }}>
           <strong>Multiclasse:</strong> Voce ganha PV de nivel subsequente (nao
@@ -141,10 +162,15 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
           classe.
         </Alert>
       )}
-
       {currentClasses.length > 0 && (
         <Paper variant='outlined' sx={{ mb: 2, p: 1 }}>
-          <Typography variant='caption' color='text.secondary' sx={{ px: 1 }}>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              px: 1,
+            }}
+          >
             Suas classes atuais
           </Typography>
           <List dense disablePadding>
@@ -152,7 +178,6 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
           </List>
         </Paper>
       )}
-
       {isOtherClassLocked && (
         <Alert
           severity='info'
@@ -167,9 +192,14 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
           Multiclasse é exclusiva para apoiadores do projeto!
         </Alert>
       )}
-
       <Paper variant='outlined' sx={{ p: 1, maxHeight: 300, overflow: 'auto' }}>
-        <Typography variant='caption' color='text.secondary' sx={{ px: 1 }}>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+            px: 1,
+          }}
+        >
           Outras classes
         </Typography>
         <List dense disablePadding>

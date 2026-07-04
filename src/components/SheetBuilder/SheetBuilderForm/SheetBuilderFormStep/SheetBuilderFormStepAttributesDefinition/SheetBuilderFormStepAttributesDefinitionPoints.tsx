@@ -90,8 +90,19 @@ const SheetBuilderFormStepAttributesDefinitionPoints = () => {
 
   return (
     <Box>
-      <Stack spacing={2} justifyContent='center'>
-        <Stack spacing={2} justifyContent='center' alignItems='center'>
+      <Stack
+        spacing={2}
+        sx={{
+          justifyContent: 'center',
+        }}
+      >
+        <Stack
+          spacing={2}
+          sx={{
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <AttributeLabel>{points}</AttributeLabel>
           <h3>Pontos</h3>
         </Stack>
@@ -107,7 +118,11 @@ const SheetBuilderFormStepAttributesDefinitionPoints = () => {
                 >
                   <RemoveIcon />
                 </AttributeInputButton>
-                <Stack alignItems='center'>
+                <Stack
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <AttributeLabel key={attribute}>
                     {addSign(attributeValue)}
                   </AttributeLabel>

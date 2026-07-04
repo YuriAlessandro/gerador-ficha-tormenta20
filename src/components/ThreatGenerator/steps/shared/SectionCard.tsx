@@ -72,7 +72,12 @@ const SectionCard: React.FC<SectionCardProps> = ({
             {title}
           </Typography>
           {subtitle && (
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {subtitle}
             </Typography>
           )}

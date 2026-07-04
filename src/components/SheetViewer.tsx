@@ -86,13 +86,17 @@ const SheetViewer: React.FC<Props> = ({
               <Card sx={{ p: 3, pb: 10, mb: 2 }}>
                 <Stack
                   direction={isScreen ? 'row' : 'column'}
-                  justifyContent='space-between'
                   spacing={2}
+                  sx={{
+                    justifyContent: 'space-between',
+                  }}
                 >
                   <Stack
                     direction={isScreen ? 'row' : 'column'}
                     spacing={2}
-                    alignItems={isScreen ? 'flex-start' : 'center'}
+                    sx={{
+                      alignItems: isScreen ? 'flex-start' : 'center',
+                    }}
                   >
                     <Box
                       sx={{
@@ -111,7 +115,13 @@ const SheetViewer: React.FC<Props> = ({
                       <LabelDisplay text={name} size='large' />
                       <Box sx={{ mt: 1 }}>
                         <LabelDisplay text={title} size='medium' />
-                        <Stack direction='row' spacing={1} alignItems='center'>
+                        <Stack
+                          direction='row'
+                          spacing={1}
+                          sx={{
+                            alignItems: 'center',
+                          }}
+                        >
                           <LabelDisplay
                             title='Level'
                             text={`${level}`}
@@ -150,9 +160,11 @@ const SheetViewer: React.FC<Props> = ({
                   </Stack>
                   <Stack
                     direction='row'
-                    justifyContent='center'
-                    alignItems='center'
                     spacing={2}
+                    sx={{
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
                   >
                     <SheetPreviewPoints />
                     <SheetPreviewDefense />

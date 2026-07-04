@@ -123,7 +123,7 @@ npx prettier --check <filename>  # Check if files are formatted
 1. **Multi-step Character Builder**: Wizard-style form with steps for race, class, origin, attributes, equipment
 2. **PDF Generation**: Uses pdf-lib to fill template PDF (`public/sheet.pdf`) with character data
 3. **Persistent Storage**: Redux Persist saves character sheets locally
-4. **Theme System**: Material-UI v5 with light/dark mode support
+4. **Theme System**: Material-UI v9 with light/dark mode support
 
 ### Important Files
 
@@ -157,7 +157,7 @@ npx prettier --check <filename>  # Check if files are formatted
 
 - React 17 + TypeScript (strict mode)
 - Vite 4.3.9 (build tool)
-- Material-UI v5 + Tailwind CSS
+- Material-UI v9 + Tailwind CSS (inputs numéricos usam o wrapper `src/components/common/NumberField.tsx` — Base UI + blocos MUI)
 - Redux Toolkit with Redux Persist
 - pdf-lib for PDF generation
 

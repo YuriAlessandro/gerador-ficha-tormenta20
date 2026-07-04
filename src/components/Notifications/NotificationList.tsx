@@ -247,8 +247,10 @@ const NotificationList: React.FC<NotificationListProps> = ({
               secondary={
                 <Typography
                   variant='caption'
-                  color='text.secondary'
                   component='span'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
                 >
                   {formatDistanceToNow(new Date(notification.createdAt), {
                     addSuffix: true,

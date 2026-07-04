@@ -35,7 +35,7 @@ import {
   Extension as ExtensionIcon,
   Warning as WarningIcon,
   Cloud as CloudIcon,
-  HelpOutline as HelpIcon,
+  HelpOutlined as HelpIcon,
   Favorite as FavoriteIcon,
   Article as ArticleIcon,
   Subject as SubjectIcon,
@@ -1403,12 +1403,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       />
 
       {/* Unsaved Changes Dialog */}
-      <Dialog
-        open={showUnsavedDialog}
-        maxWidth='sm'
-        fullWidth
-        disableEscapeKeyDown
-      >
+      <Dialog open={showUnsavedDialog} maxWidth='sm' fullWidth>
         <DialogTitle>Ficha Não Salva</DialogTitle>
         <DialogContent>
           <DialogContentText>

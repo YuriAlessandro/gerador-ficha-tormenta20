@@ -172,7 +172,13 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
     onClearTemp: () => void
   ) => (
     <Stack spacing={2}>
-      <Stack direction='row' spacing={1} alignItems='center'>
+      <Stack
+        direction='row'
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+        }}
+      >
         <Box sx={{ color: sectionColor, display: 'flex' }}>{icon}</Box>
         <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
           Pontos de {type === 'PV' ? 'Vida' : 'Mana'} ({type})
@@ -185,16 +191,20 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
           label='Atual'
           value={form[fields.currentKey]}
           onChange={(e) => updateField(fields.currentKey, e.target.value)}
-          inputProps={{ inputMode: 'numeric' }}
           size='small'
+          slotProps={{
+            htmlInput: { inputMode: 'numeric' },
+          }}
         />
         <TextField
           fullWidth
           label='Máximo calculado'
           value={calculatedMax}
-          InputProps={{ readOnly: true }}
           size='small'
           helperText='Baseado em raça, classe, atributos'
+          slotProps={{
+            input: { readOnly: true },
+          }}
         />
       </Stack>
 
@@ -203,9 +213,11 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
         label='Temporário'
         value={form[fields.tempKey]}
         onChange={(e) => updateField(fields.tempKey, e.target.value)}
-        inputProps={{ inputMode: 'numeric' }}
         size='small'
         helperText='Consumido primeiro ao tomar dano'
+        slotProps={{
+          htmlInput: { inputMode: 'numeric' },
+        }}
       />
 
       <TextField
@@ -213,9 +225,11 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
         label='Máximo manual (opcional)'
         value={form[fields.manualMaxKey]}
         onChange={(e) => updateField(fields.manualMaxKey, e.target.value)}
-        inputProps={{ inputMode: 'numeric' }}
         size='small'
         helperText='Sobrescreve o cálculo automático. Vazio = usar calculado.'
+        slotProps={{
+          htmlInput: { inputMode: 'numeric' },
+        }}
       />
 
       <Stack direction='row' spacing={1}>
@@ -251,21 +265,25 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
       anchor={isMobile ? 'bottom' : 'right'}
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: {
-          width: { xs: '100%', sm: 450 },
-          maxHeight: isMobile ? '85vh' : '100%',
-          borderTopLeftRadius: isMobile ? 12 : 0,
-          borderTopRightRadius: isMobile ? 12 : 0,
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: '100%', sm: 450 },
+            maxHeight: isMobile ? '85vh' : '100%',
+            borderTopLeftRadius: isMobile ? 12 : 0,
+            borderTopRightRadius: isMobile ? 12 : 0,
+          },
         },
       }}
     >
       <Box sx={{ p: 3, overflowY: 'auto' }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Editar PV e PM</Typography>
           <IconButton onClick={handleCancel} size='small' aria-label='fechar'>

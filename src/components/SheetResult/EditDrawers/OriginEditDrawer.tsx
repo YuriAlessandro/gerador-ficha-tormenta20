@@ -77,16 +77,20 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
         anchor='right'
         open={open}
         onClose={handleCancel}
-        PaperProps={{
-          sx: { width: { xs: '100%', sm: 600 } },
+        slotProps={{
+          paper: {
+            sx: { width: { xs: '100%', sm: 600 } },
+          },
         }}
       >
         <Box sx={{ p: 3 }}>
           <Stack
             direction='row'
-            justifyContent='space-between'
-            alignItems='center'
-            mb={2}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
           >
             <Typography variant='h6'>Benefícios de Origem</Typography>
             <IconButton onClick={handleCancel} size='small'>
@@ -96,7 +100,13 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
 
           <Divider sx={{ mb: 3 }} />
 
-          <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+              mb: 3,
+            }}
+          >
             A origem {origin.name} é uma origem regional (Atlas de Arton) e
             concede todos os benefícios automaticamente.
           </Typography>
@@ -109,7 +119,12 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
             {originBenefits.skills.length > 0 && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant='subtitle2'>Perícias:</Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {originBenefits.skills.join(', ')}
                 </Typography>
               </Box>
@@ -122,7 +137,9 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
                   <Typography
                     key={power.name}
                     variant='body2'
-                    color='text.secondary'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
                   >
                     • {power.name}
                   </Typography>
@@ -144,7 +161,9 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
                     <Typography
                       key={itemKey}
                       variant='body2'
-                      color='text.secondary'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       • {itemName}
                       {item.qtd && item.qtd > 1 ? ` (x${item.qtd})` : ''}
@@ -231,16 +250,20 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 600 } },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 600 } },
+        },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Benefícios de Origem</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -250,7 +273,13 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
 
         <Divider sx={{ mb: 3 }} />
 
-        <Typography variant='body1' color='text.secondary' sx={{ mb: 2 }}>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           A origem {origin.name} permite escolher {REQUIRED_SELECTIONS}{' '}
           benefícios entre perícias, itens e poderes. Selecione abaixo:
         </Typography>

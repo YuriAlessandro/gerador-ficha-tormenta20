@@ -680,7 +680,11 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               p: 0,
             }}
           />
-          <Box display='inline'>
+          <Box
+            sx={{
+              display: 'inline',
+            }}
+          >
             <Box
               component='span'
               onClick={() => handleSkillRoll('Iniciativa', initiativeValue)}

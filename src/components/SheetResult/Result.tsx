@@ -1565,7 +1565,11 @@ const Result: React.FC<ResultProps> = (props) => {
       <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
         <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
           {/* LADO ESQUERDO, 60% */}
-          <Box width={isMobile ? '100%' : '60%'}>
+          <Box
+            sx={{
+              width: isMobile ? '100%' : '60%',
+            }}
+          >
             {/* PARTE DE CIMA: Informações da ficha */}
             <Card
               sx={{
@@ -1637,10 +1641,12 @@ const Result: React.FC<ResultProps> = (props) => {
               <Stack
                 direction='row'
                 spacing={2}
-                alignItems='center'
-                flexWrap='wrap'
-                justifyContent='center'
-                gap={isMobile ? 5 : 0}
+                sx={{
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: isMobile ? 5 : 0,
+                }}
               >
                 {currentSheet.imageUrl && (
                   <Box
@@ -1660,7 +1666,13 @@ const Result: React.FC<ResultProps> = (props) => {
                   />
                 )}
                 <Box sx={{ flexGrow: 1, position: 'relative', zIndex: 1 }}>
-                  <Stack direction='row' alignItems='center' spacing={0.5}>
+                  <Stack
+                    direction='row'
+                    spacing={0.5}
+                    sx={{
+                      alignItems: 'center',
+                    }}
+                  >
                     {markersEnabled && (
                       <ConditionMarker
                         conditions={conditionHighlights.name}
@@ -1754,10 +1766,12 @@ const Result: React.FC<ResultProps> = (props) => {
                   )}
                 </Box>
                 <Stack
-                  justifyContent='space-around'
-                  alignItems='center'
                   direction='row'
                   spacing={3}
+                  sx={{
+                    justifyContent: 'space-around',
+                    alignItems: 'center',
+                  }}
                 >
                   <Box
                     sx={{
@@ -2018,15 +2032,19 @@ const Result: React.FC<ResultProps> = (props) => {
               <Stack
                 direction={isMobile ? 'column' : 'row'}
                 spacing={2}
-                alignItems='center'
+                sx={{
+                  alignItems: 'center',
+                }}
               >
                 <Box
-                  width={isMobile ? '100%' : '20%'}
-                  display='flex'
-                  flexDirection='column'
-                  alignItems='center'
-                  justifyContent='center'
-                  order={isMobile ? 1 : 0}
+                  sx={{
+                    width: isMobile ? '100%' : '20%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    order: isMobile ? 1 : 0,
+                  }}
                 >
                   <FancyBox>
                     <Box
@@ -2104,7 +2122,12 @@ const Result: React.FC<ResultProps> = (props) => {
                     </Tooltip>
                   )}
                 </Box>
-                <Box width={defenseInfoWidth} order={isMobile ? 0 : 1}>
+                <Box
+                  sx={{
+                    width: defenseInfoWidth,
+                    order: isMobile ? 0 : 1,
+                  }}
+                >
                   <DefenseEquipments
                     getKey={getKey}
                     defenseEquipments={defenseEquipments}
@@ -2123,7 +2146,12 @@ const Result: React.FC<ResultProps> = (props) => {
                       mt: 1,
                     }}
                   >
-                    <Typography fontSize={12} color='text.secondary'>
+                    <Typography
+                      sx={{
+                        fontSize: 12,
+                        color: 'text.secondary',
+                      }}
+                    >
                       <strong>Penalidade de Armadura: </strong>
                       {((() => {
                         if (bag.getActiveArmorPenalty) {
@@ -2141,9 +2169,12 @@ const Result: React.FC<ResultProps> = (props) => {
                     </Typography>
                   </Box>
                   <Typography
-                    fontSize={12}
-                    color='text.secondary'
-                    sx={{ mt: 1, fontFamily: 'monospace' }}
+                    sx={{
+                      fontSize: 12,
+                      color: 'text.secondary',
+                      mt: 1,
+                      fontFamily: 'monospace',
+                    }}
                   >
                     {defenseFormula}
                   </Typography>
@@ -2336,7 +2367,11 @@ const Result: React.FC<ResultProps> = (props) => {
             </Card>
           </Box>
           {/* LADO DIREITO, 40% */}
-          <Box width={isMobile ? '100%' : '40%'}>
+          <Box
+            sx={{
+              width: isMobile ? '100%' : '40%',
+            }}
+          >
             <Stack spacing={4}>
               <Card sx={{ position: 'relative', overflow: 'visible' }}>
                 {onSheetUpdate && (
@@ -2383,23 +2418,37 @@ const Result: React.FC<ResultProps> = (props) => {
                     <EditIcon />
                   </IconButton>
                 )}
-                <Box p={2}>
+                <Box
+                  sx={{
+                    p: 2,
+                  }}
+                >
                   <BookTitle>Equipamentos</BookTitle>
                   <Stack
                     // spacing={2}
                     direction='row'
-                    flexWrap='wrap'
-                    justifyContent='flex-start'
+                    sx={{
+                      flexWrap: 'wrap',
+                      justifyContent: 'flex-start',
+                    }}
                   >
                     {equipamentosDiv}
                   </Stack>
-                  <Box mt={2}>
+                  <Box
+                    sx={{
+                      mt: 2,
+                    }}
+                  >
                     <strong>Dinheiro: </strong>
                     T$ {dinheiro}
                     {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
                     {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
                   </Box>
-                  <Box mt={1}>
+                  <Box
+                    sx={{
+                      mt: 1,
+                    }}
+                  >
                     <strong>Espaços (atual/limite-máximo): </strong>
                     {bag.getSpaces() +
                       calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO)}
@@ -2445,7 +2494,12 @@ const Result: React.FC<ResultProps> = (props) => {
                   </IconButton>
                 )}
                 <BookTitle>Proficiências</BookTitle>
-                <Stack direction='row' flexWrap='wrap'>
+                <Stack
+                  direction='row'
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {proficienciasDiv}
                 </Stack>
               </Card>
@@ -2469,7 +2523,13 @@ const Result: React.FC<ResultProps> = (props) => {
                     <EditIcon />
                   </IconButton>
                 )}
-                <Stack spacing={2} direction='row' justifyContent='center'>
+                <Stack
+                  spacing={2}
+                  direction='row'
+                  sx={{
+                    justifyContent: 'center',
+                  }}
+                >
                   <Box
                     sx={{
                       display: 'flex',
@@ -2517,9 +2577,11 @@ const Result: React.FC<ResultProps> = (props) => {
                         </Typography>
                         <Stack
                           direction='row'
-                          alignItems='center'
                           spacing={0.5}
-                          justifyContent='center'
+                          sx={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
                         >
                           {markersEnabled && (
                             <ConditionMarker
@@ -2584,8 +2646,11 @@ const Result: React.FC<ResultProps> = (props) => {
                           currentSheet.movementTypes.escalada > 0 && (
                             <Typography
                               variant='caption'
-                              color='text.secondary'
-                              sx={{ textAlign: 'center', lineHeight: 1.3 }}
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                lineHeight: 1.3,
+                              }}
                             >
                               Escalada: {currentSheet.movementTypes.escalada}m (
                               {Math.floor(
@@ -2598,8 +2663,11 @@ const Result: React.FC<ResultProps> = (props) => {
                           currentSheet.movementTypes.escavar > 0 && (
                             <Typography
                               variant='caption'
-                              color='text.secondary'
-                              sx={{ textAlign: 'center', lineHeight: 1.3 }}
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                lineHeight: 1.3,
+                              }}
                             >
                               Escavar: {currentSheet.movementTypes.escavar}m (
                               {Math.floor(
@@ -2612,8 +2680,11 @@ const Result: React.FC<ResultProps> = (props) => {
                           currentSheet.movementTypes.natacao > 0 && (
                             <Typography
                               variant='caption'
-                              color='text.secondary'
-                              sx={{ textAlign: 'center', lineHeight: 1.3 }}
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                lineHeight: 1.3,
+                              }}
                             >
                               Natação: {currentSheet.movementTypes.natacao}m (
                               {Math.floor(
@@ -2626,8 +2697,11 @@ const Result: React.FC<ResultProps> = (props) => {
                           currentSheet.movementTypes.voo > 0 && (
                             <Typography
                               variant='caption'
-                              color='text.secondary'
-                              sx={{ textAlign: 'center', lineHeight: 1.3 }}
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                lineHeight: 1.3,
+                              }}
                             >
                               Voo: {currentSheet.movementTypes.voo}m (
                               {Math.floor(currentSheet.movementTypes.voo / 1.5)}
@@ -2755,7 +2829,6 @@ const Result: React.FC<ResultProps> = (props) => {
           </Accordion>
         </Box>
       </Container>
-
       <>
         <SheetInfoEditDrawer
           open={sheetInfoDrawerOpen}

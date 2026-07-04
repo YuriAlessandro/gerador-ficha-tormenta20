@@ -108,7 +108,12 @@ const EnsinarTruqueDialog: React.FC<EnsinarTruqueDialogProps> = ({
       </DialogTitle>
       <DialogContent dividers>
         <Box sx={{ mb: 2 }}>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             O poder &quot;Ensinar Truque&quot; permite que um de seus melhores
             amigos aprenda um truque adicional. Escolha o companheiro alvo e o
             truque a aprender.

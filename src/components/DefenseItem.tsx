@@ -34,18 +34,26 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
       <Stack
         direction='row'
         spacing={0.75}
-        alignItems='center'
-        justifyContent='space-between'
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
       >
         <Stack
           direction='row'
           spacing={0.75}
-          alignItems='center'
-          sx={{ minWidth: 0, flex: 1 }}
+          sx={{
+            alignItems: 'center',
+            minWidth: 0,
+            flex: 1,
+          }}
         >
           <Typography
-            fontSize={14}
-            sx={{ display: 'flex', alignItems: 'center' }}
+            sx={{
+              fontSize: 14,
+              display: 'flex',
+              alignItems: 'center',
+            }}
           >
             {nome} +{defenseBonus} (-{armorPenalty} PA)
             {equipment.descricao && (

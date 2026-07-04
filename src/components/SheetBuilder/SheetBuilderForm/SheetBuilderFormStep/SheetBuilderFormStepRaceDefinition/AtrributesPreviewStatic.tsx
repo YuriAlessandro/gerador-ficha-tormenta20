@@ -10,7 +10,13 @@ type Props = {
 const AtrributesPreviewStatic = ({ attributesPreview }: Props) => (
   <Box>
     <h3 className='mb-3'>Atributos</h3>
-    <Stack direction='row' spacing={2} justifyContent='center'>
+    <Stack
+      direction='row'
+      spacing={2}
+      sx={{
+        justifyContent: 'center',
+      }}
+    >
       {attributesPreview.map(({ attribute, modifier, value }) => (
         <AttributePreviewItem
           key={attribute}

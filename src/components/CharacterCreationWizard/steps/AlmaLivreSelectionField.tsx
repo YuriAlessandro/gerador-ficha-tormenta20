@@ -97,7 +97,6 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
           o direito de escolhê-lo mais tarde.
         </Typography>
       </Alert>
-
       {/* Class Selection */}
       <FormControl fullWidth>
         <InputLabel id='alma-livre-class-label'>Classe *</InputLabel>
@@ -122,7 +121,6 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
           ))}
         </Select>
       </FormControl>
-
       {/* Power Selection */}
       {selectedClassName && selectedClassPowers.length > 0 && (
         <Box>
@@ -137,18 +135,26 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
             placeholder='Buscar poderes por nome ou descrição...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
             sx={{ mb: 2 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
 
           {filteredPowers.length === 0 && searchQuery && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Nenhum poder encontrado para &quot;{searchQuery}&quot;
             </Typography>
           )}
@@ -191,14 +197,21 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
                     </Box>
                     <Typography
                       variant='body2'
-                      color='text.secondary'
-                      sx={{ whiteSpace: 'pre-wrap' }}
+                      sx={{
+                        color: 'text.secondary',
+                        whiteSpace: 'pre-wrap',
+                      }}
                     >
                       {power.text}
                     </Typography>
                     {power.requirements && power.requirements.length > 0 && (
                       <Box sx={{ mt: 1 }}>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           Pré-requisitos:{' '}
                           {power.requirements
                             .map((reqGroup) =>
@@ -236,16 +249,19 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
           </Box>
         </Box>
       )}
-
       {selectedClassName && selectedClassPowers.length === 0 && (
         <Alert severity='warning'>
           Nenhum poder encontrado para a classe {selectedClassName}.
         </Alert>
       )}
-
       {/* Selection Summary */}
       <Box sx={{ mt: 1 }}>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           <strong>Resumo:</strong>{' '}
           {selectedClassName ? (
             <>

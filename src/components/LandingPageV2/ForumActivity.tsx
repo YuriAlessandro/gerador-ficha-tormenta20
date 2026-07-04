@@ -11,7 +11,7 @@ import {
 import ForumIcon from '@mui/icons-material/Forum';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AddIcon from '@mui/icons-material/Add';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import PersonIcon from '@mui/icons-material/Person';
 import { ForumThread } from '../../premium/interfaces/forum.types';
 import { getSupporterGlowColor } from '../../types/subscription.types';
@@ -66,9 +66,13 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
   const renderHeader = () => (
     <Stack
       direction='row'
-      justifyContent='space-between'
-      alignItems='center'
-      sx={{ mb: 1.5, flexWrap: 'wrap', gap: 1 }}
+      sx={{
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 1.5,
+        flexWrap: 'wrap',
+        gap: 1,
+      }}
     >
       <Typography variant='h5' className='section-title' sx={{ mb: 0 }}>
         Fórum
@@ -111,7 +115,6 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
   return (
     <Box>
       {renderHeader()}
-
       <Stack spacing={1}>
         {ordered.map((thread, index) => {
           const shadowColor = getSupporterGlowColor(thread.authorSupportLevel);
@@ -156,11 +159,10 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
               >
                 {thread.title}
               </Typography>
-
               <Typography
                 variant='caption'
-                color='text.secondary'
                 sx={{
+                  color: 'text.secondary',
                   fontSize: '0.7rem',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
@@ -171,13 +173,14 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
               >
                 {getBodyPreview(thread.body)}
               </Typography>
-
               <Stack
                 direction='row'
                 spacing={1}
-                alignItems='center'
-                flexWrap='wrap'
-                sx={{ rowGap: 0.25 }}
+                sx={{
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  rowGap: 0.25,
+                }}
               >
                 {thread.category?.name && (
                   <Chip
@@ -193,32 +196,51 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
                     }}
                   />
                 )}
-                <Stack direction='row' spacing={0.4} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={0.4}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <PersonIcon sx={{ fontSize: 11, color: 'text.secondary' }} />
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    sx={{ fontSize: '0.65rem' }}
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.65rem',
+                    }}
                   >
                     {thread.authorUsername}
                   </Typography>
                 </Stack>
-                <Stack direction='row' spacing={0.4} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={0.4}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <ChatBubbleOutlineIcon
                     sx={{ fontSize: 11, color: 'text.secondary' }}
                   />
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    sx={{ fontSize: '0.65rem' }}
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.65rem',
+                    }}
                   >
                     {thread.commentCount}
                   </Typography>
                 </Stack>
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ fontSize: '0.65rem', ml: 'auto' }}
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.65rem',
+                    ml: 'auto',
+                  }}
                 >
                   {formatDate(thread.lastActivityAt || thread.createdAt)}
                 </Typography>
@@ -227,7 +249,6 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
           );
         })}
       </Stack>
-
       <Button
         variant='outlined'
         size='small'

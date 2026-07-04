@@ -124,7 +124,6 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
           dessas perícias por um poder geral a sua escolha.
         </Typography>
       </Alert>
-
       {/* First Skill Selection (Required) */}
       <FormControl fullWidth>
         <InputLabel id='versatil-first-skill-label'>
@@ -143,7 +142,6 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
           ))}
         </Select>
       </FormControl>
-
       {/* Second Choice Type Selection */}
       <Box>
         <Typography variant='subtitle1' gutterBottom>
@@ -170,7 +168,6 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
           </RadioGroup>
         </FormControl>
       </Box>
-
       {/* Second Skill Selection (if skill type) */}
       {secondChoiceType === 'skill' && (
         <FormControl fullWidth>
@@ -192,7 +189,6 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
           </Select>
         </FormControl>
       )}
-
       {/* Power Selection (if power type) */}
       {secondChoiceType === 'power' && (
         <FormControl fullWidth>
@@ -211,8 +207,10 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
                   {power.description && (
                     <Typography
                       variant='caption'
-                      color='text.secondary'
                       component='div'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       {power.description.length > 100
                         ? `${power.description.substring(0, 100)}...`
@@ -225,10 +223,14 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
           </Select>
         </FormControl>
       )}
-
       {/* Selection Summary */}
       <Box sx={{ mt: 1 }}>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           <strong>Resumo:</strong>
           {firstSkill && (
             <>

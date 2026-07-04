@@ -218,19 +218,21 @@ const SkillTable: React.FC<IProps> = ({
         value={localSearchQuery}
         onChange={handleSearchChange}
         sx={{ p: 1.5, width: '95%' }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position='start'>
-              <SearchIcon color='action' fontSize='small' />
-            </InputAdornment>
-          ),
-          endAdornment: localSearchQuery && (
-            <InputAdornment position='end'>
-              <IconButton size='small' onClick={handleClearSearch} edge='end'>
-                <ClearIcon fontSize='small' />
-              </IconButton>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position='start'>
+                <SearchIcon color='action' fontSize='small' />
+              </InputAdornment>
+            ),
+            endAdornment: localSearchQuery && (
+              <InputAdornment position='end'>
+                <IconButton size='small' onClick={handleClearSearch} edge='end'>
+                  <ClearIcon fontSize='small' />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
         }}
       />
       <Box
@@ -368,8 +370,12 @@ const SkillTable: React.FC<IProps> = ({
       </TableContainer>
       <Typography
         variant='caption'
-        color='text.secondary'
-        sx={{ display: 'block', mt: 1, px: 1.5 }}
+        sx={{
+          color: 'text.secondary',
+          display: 'block',
+          mt: 1,
+          px: 1.5,
+        }}
       >
         * Somente treinada
       </Typography>

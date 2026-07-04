@@ -1707,15 +1707,23 @@ const CharacterCreationWizardModal: React.FC<
         onClose={handleCloseAttempt}
         maxWidth='md'
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minHeight: '500px',
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2,
+              minHeight: '500px',
+            },
           },
         }}
       >
         <DialogTitle>
-          <Typography variant='h5' component='div' fontWeight='bold'>
+          <Typography
+            variant='h5'
+            component='div'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             Criação Manual de Personagem
           </Typography>
         </DialogTitle>
@@ -1779,7 +1787,6 @@ const CharacterCreationWizardModal: React.FC<
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Confirmation Dialog */}
       <Dialog
         open={confirmCloseOpen}

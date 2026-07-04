@@ -1052,7 +1052,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             <Typography variant='h6' gutterBottom>
               Efeitos de Habilidades de Classe
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Sua classe ganhou novas habilidades neste nível que requerem
               seleções.
             </Typography>
@@ -1569,9 +1575,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         onClose={handleCloseAttempt}
         maxWidth='md'
         fullWidth
-        PaperProps={{
-          sx: {
-            maxHeight: '90vh',
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: '90vh',
+            },
           },
         }}
       >
@@ -1580,7 +1588,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             <Typography variant='h6'>
               Progressão de Nível - Nível {currentLevel}
             </Typography>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Progresso geral: Nível {currentLevel} de {targetLevel}
             </Typography>
           </Box>
@@ -1623,7 +1636,6 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Confirmation Dialog */}
       <Dialog
         open={confirmCloseOpen}

@@ -44,9 +44,11 @@ const BlogHighlights: React.FC<BlogHighlightsProps> = ({
   const renderHeader = () => (
     <Stack
       direction='row'
-      justifyContent='space-between'
-      alignItems='center'
-      sx={{ mb: 1.5 }}
+      sx={{
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 1.5,
+      }}
     >
       <Typography variant='h5' className='section-title' sx={{ mb: 0 }}>
         Blog
@@ -95,7 +97,6 @@ const BlogHighlights: React.FC<BlogHighlightsProps> = ({
   return (
     <Box>
       {renderHeader()}
-
       <Stack spacing={1.25}>
         {/* Featured post — full-width inside column */}
         <Box
@@ -196,8 +197,8 @@ const BlogHighlights: React.FC<BlogHighlightsProps> = ({
             {featured.description && (
               <Typography
                 variant='body2'
-                color='text.secondary'
                 sx={{
+                  color: 'text.secondary',
                   fontSize: '0.825rem',
                   mb: 1,
                   display: '-webkit-box',
@@ -209,25 +210,47 @@ const BlogHighlights: React.FC<BlogHighlightsProps> = ({
                 {featured.description}
               </Typography>
             )}
-            <Stack direction='row' spacing={1.5} alignItems='center'>
-              <Stack direction='row' spacing={0.5} alignItems='center'>
+            <Stack
+              direction='row'
+              spacing={1.5}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
+              <Stack
+                direction='row'
+                spacing={0.5}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <PersonIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ fontSize: '0.7rem' }}
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.7rem',
+                  }}
                 >
                   {featured.authorName}
                 </Typography>
               </Stack>
-              <Stack direction='row' spacing={0.5} alignItems='center'>
+              <Stack
+                direction='row'
+                spacing={0.5}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <CalendarTodayIcon
                   sx={{ fontSize: 12, color: 'text.secondary' }}
                 />
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ fontSize: '0.7rem' }}
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.7rem',
+                  }}
                 >
                   {formatDate(featured.publishedAt || featured.createdAt)}
                 </Typography>
@@ -312,25 +335,37 @@ const BlogHighlights: React.FC<BlogHighlightsProps> = ({
               >
                 {post.title}
               </Typography>
-              <Stack direction='row' spacing={0.75} alignItems='center'>
+              <Stack
+                direction='row'
+                spacing={0.75}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ fontSize: '0.65rem' }}
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.65rem',
+                  }}
                 >
                   {post.authorName}
                 </Typography>
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ fontSize: '0.65rem' }}
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.65rem',
+                  }}
                 >
                   ·
                 </Typography>
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ fontSize: '0.65rem' }}
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.65rem',
+                  }}
                 >
                   {formatDate(post.publishedAt || post.createdAt)}
                 </Typography>

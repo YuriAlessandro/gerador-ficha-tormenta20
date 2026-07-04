@@ -140,13 +140,23 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Configure o Melhor Amigo do seu Treinador:
       </Typography>
-
       {/* Nome (opcional) */}
       <Box>
-        <Typography variant='subtitle2' fontWeight='bold' sx={{ mb: 1 }}>
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
+        >
           Nome do Parceiro (opcional)
         </Typography>
         <TextField
@@ -157,12 +167,16 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           onChange={(e) => onNameChange(e.target.value)}
         />
       </Box>
-
       <Divider />
-
       {/* Tipo */}
       <Box>
-        <Typography variant='subtitle2' fontWeight='bold' sx={{ mb: 1 }}>
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
+        >
           Tipo do Parceiro
         </Typography>
         <RadioGroup
@@ -176,10 +190,20 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
               control={<Radio size='small' />}
               label={
                 <Box>
-                  <Typography variant='body2' fontWeight='bold'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      fontWeight: 'bold',
+                    }}
+                  >
                     {typeDef.name}
                   </Typography>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {typeDef.description}
                   </Typography>
                 </Box>
@@ -189,12 +213,16 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           ))}
         </RadioGroup>
       </Box>
-
       <Divider />
-
       {/* Tamanho */}
       <Box>
-        <Typography variant='subtitle2' fontWeight='bold' sx={{ mb: 1 }}>
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
+        >
           Tamanho
         </Typography>
         <RadioGroup
@@ -212,12 +240,16 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           ))}
         </RadioGroup>
       </Box>
-
       <Divider />
-
       {/* Tipo de dano da arma natural */}
       <Box>
-        <Typography variant='subtitle2' fontWeight='bold' sx={{ mb: 1 }}>
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
+        >
           Tipo de Dano da Arma Natural
         </Typography>
         <RadioGroup
@@ -237,13 +269,18 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           ))}
         </RadioGroup>
       </Box>
-
       {/* Energia Espiritual (só para Espírito) */}
       {companionType === 'Espírito' && (
         <>
           <Divider />
           <Box>
-            <Typography variant='subtitle2' fontWeight='bold' sx={{ mb: 1 }}>
+            <Typography
+              variant='subtitle2'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
+            >
               Tipo de Energia Espiritual
             </Typography>
             <RadioGroup
@@ -267,15 +304,24 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           </Box>
         </>
       )}
-
       <Divider />
-
       {/* Perícias */}
       <Box>
-        <Typography variant='subtitle2' fontWeight='bold' sx={{ mb: 1 }}>
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
+        >
           Perícias Treinadas (escolha 3)
         </Typography>
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Selecionadas: {companionSkills.length} / 3
         </Typography>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
@@ -306,15 +352,24 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           })}
         </Box>
       </Box>
-
       <Divider />
-
       {/* Truques */}
       <Box>
-        <Typography variant='subtitle2' fontWeight='bold' sx={{ mb: 1 }}>
+        <Typography
+          variant='subtitle2'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
+        >
           Truques Iniciais (escolha 2)
         </Typography>
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Selecionados: {companionTricks.length} / 2
         </Typography>
         {companionType && companionSize ? (
@@ -342,7 +397,12 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
                         <Typography variant='subtitle1'>
                           {trick.name}
                         </Typography>
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {trick.text}
                         </Typography>
                       </Box>
@@ -445,7 +505,6 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           </Alert>
         )}
       </Box>
-
       {/* Validação */}
       {companionType &&
         companionSize &&

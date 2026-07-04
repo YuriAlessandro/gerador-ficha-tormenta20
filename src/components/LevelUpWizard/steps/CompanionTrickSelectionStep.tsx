@@ -195,12 +195,15 @@ const CompanionTrickSelectionStep: React.FC<
           </Select>
         </FormControl>
       )}
-
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Escolha um novo truque para {companionName} ({companion.companionType}{' '}
         {companion.size}):
       </Typography>
-
       {availableTricks.length > 0 ? (
         <Box>
           {availableTricks.map((trick) => {
@@ -217,7 +220,12 @@ const CompanionTrickSelectionStep: React.FC<
                   label={
                     <Box>
                       <Typography variant='subtitle1'>{trick.name}</Typography>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {trick.text}
                       </Typography>
                     </Box>
@@ -311,14 +319,16 @@ const CompanionTrickSelectionStep: React.FC<
                         placeholder='Buscar magia por nome, escola ou descrição...'
                         value={spellSearch}
                         onChange={(e) => setSpellSearch(e.target.value)}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <SearchIcon />
-                            </InputAdornment>
-                          ),
-                        }}
                         sx={{ mb: 1 }}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <SearchIcon />
+                              </InputAdornment>
+                            ),
+                          },
+                        }}
                       />
                       <Box
                         sx={{
@@ -368,8 +378,8 @@ const CompanionTrickSelectionStep: React.FC<
                                 </Box>
                                 <Typography
                                   variant='caption'
-                                  color='text.secondary'
                                   sx={{
+                                    color: 'text.secondary',
                                     display: '-webkit-box',
                                     WebkitLineClamp: 2,
                                     WebkitBoxOrient: 'vertical',
@@ -383,7 +393,12 @@ const CompanionTrickSelectionStep: React.FC<
                           );
                         })}
                         {filteredInnateSpells.length === 0 && (
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Nenhuma magia encontrada.
                           </Typography>
                         )}
@@ -399,21 +414,23 @@ const CompanionTrickSelectionStep: React.FC<
           Nenhum truque disponível para este nível e tipo de parceiro.
         </Alert>
       )}
-
       {selectedTrick && isSelectionComplete && (
         <Alert severity='success'>
           Truque selecionado: <strong>{selectedTrick.name}</strong>
           {selectedSpell && ` — ${selectedSpell.nome}`}
         </Alert>
       )}
-
       {selectedTrick && !isSelectionComplete && (
         <Alert severity='warning'>
           Preencha as escolhas do truque para continuar.
         </Alert>
       )}
-
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Truques atuais: {companion.tricks.map((t) => t.name).join(', ') || '—'}
       </Typography>
     </Box>

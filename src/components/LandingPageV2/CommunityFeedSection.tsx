@@ -17,7 +17,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import ForumIcon from '@mui/icons-material/Forum';
 import StarIcon from '@mui/icons-material/Star';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import PersonIcon from '@mui/icons-material/Person';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import BlogService from '../../premium/services/blog.service';
@@ -270,8 +270,8 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
         {item.description && (
           <Typography
             variant='caption'
-            color='text.secondary'
             sx={{
+              color: 'text.secondary',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -283,23 +283,45 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
             {item.description}
           </Typography>
         )}
-        <Stack direction='row' spacing={1} alignItems='center'>
-          <Stack direction='row' spacing={0.5} alignItems='center'>
+        <Stack
+          direction='row'
+          spacing={1}
+          sx={{
+            alignItems: 'center',
+          }}
+        >
+          <Stack
+            direction='row'
+            spacing={0.5}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <PersonIcon sx={{ fontSize: 11, color: 'text.secondary' }} />
             <Typography
               variant='caption'
-              color='text.secondary'
-              sx={{ fontSize: '0.6rem' }}
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.6rem',
+              }}
             >
               {item.authorName}
             </Typography>
           </Stack>
-          <Stack direction='row' spacing={0.5} alignItems='center'>
+          <Stack
+            direction='row'
+            spacing={0.5}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <CalendarTodayIcon sx={{ fontSize: 11, color: 'text.secondary' }} />
             <Typography
               variant='caption'
-              color='text.secondary'
-              sx={{ fontSize: '0.6rem' }}
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.6rem',
+              }}
             >
               {formatDate(item.date)}
             </Typography>
@@ -311,7 +333,14 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
 
   const renderBuildContent = (item: BuildFeedItem) => (
     <Box>
-      <Stack direction='row' spacing={0.5} flexWrap='wrap' gap={0.5}>
+      <Stack
+        direction='row'
+        spacing={0.5}
+        sx={{
+          flexWrap: 'wrap',
+          gap: 0.5,
+        }}
+      >
         <Chip
           label={item.classe}
           size='small'
@@ -327,12 +356,20 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
           />
         )}
         {item.rating && (
-          <Stack direction='row' alignItems='center' spacing={0.3}>
+          <Stack
+            direction='row'
+            spacing={0.3}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <StarIcon sx={{ fontSize: 12, color: 'warning.main' }} />
             <Typography
               variant='caption'
-              color='text.secondary'
-              sx={{ fontSize: '0.6rem' }}
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.6rem',
+              }}
             >
               {item.rating.average.toFixed(1)}
             </Typography>
@@ -342,8 +379,8 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
       {item.description && (
         <Typography
           variant='caption'
-          color='text.secondary'
           sx={{
+            color: 'text.secondary',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -362,8 +399,8 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
     <Box>
       <Typography
         variant='caption'
-        color='text.secondary'
         sx={{
+          color: 'text.secondary',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
@@ -374,7 +411,14 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
       >
         {item.bodyPreview}
       </Typography>
-      <Stack direction='row' spacing={1} alignItems='center' flexWrap='wrap'>
+      <Stack
+        direction='row'
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
         {item.categoryName && (
           <Chip
             label={item.categoryName}
@@ -388,24 +432,40 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
             }}
           />
         )}
-        <Stack direction='row' spacing={0.5} alignItems='center'>
+        <Stack
+          direction='row'
+          spacing={0.5}
+          sx={{
+            alignItems: 'center',
+          }}
+        >
           <PersonIcon sx={{ fontSize: 11, color: 'text.secondary' }} />
           <Typography
             variant='caption'
-            color='text.secondary'
-            sx={{ fontSize: '0.6rem' }}
+            sx={{
+              color: 'text.secondary',
+              fontSize: '0.6rem',
+            }}
           >
             {item.authorUsername}
           </Typography>
         </Stack>
-        <Stack direction='row' spacing={0.5} alignItems='center'>
+        <Stack
+          direction='row'
+          spacing={0.5}
+          sx={{
+            alignItems: 'center',
+          }}
+        >
           <ChatBubbleOutlineIcon
             sx={{ fontSize: 11, color: 'text.secondary' }}
           />
           <Typography
             variant='caption'
-            color='text.secondary'
-            sx={{ fontSize: '0.6rem' }}
+            sx={{
+              color: 'text.secondary',
+              fontSize: '0.6rem',
+            }}
           >
             {item.commentCount}
           </Typography>

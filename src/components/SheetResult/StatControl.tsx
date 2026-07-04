@@ -294,9 +294,14 @@ const StatControl: React.FC<StatControlProps> = ({
           </Box>
         </Box>
       </Tooltip>
-
       {/* Label */}
-      <Stack direction='row' spacing={0.5} alignItems='center'>
+      <Stack
+        direction='row'
+        spacing={0.5}
+        sx={{
+          alignItems: 'center',
+        }}
+      >
         <Typography
           sx={{
             fontFamily: 'Tfont',
@@ -308,7 +313,6 @@ const StatControl: React.FC<StatControlProps> = ({
           {type} {current}/{max}
         </Typography>
       </Stack>
-
       {/* Status chips */}
       {hasTemp && (
         <Chip
@@ -343,9 +347,15 @@ const StatControl: React.FC<StatControlProps> = ({
           }}
         />
       )}
-
       {/* Amount input + Dano/Curar */}
-      <Stack direction='row' spacing={0.5} alignItems='center' sx={{ mt: 0.5 }}>
+      <Stack
+        direction='row'
+        spacing={0.5}
+        sx={{
+          alignItems: 'center',
+          mt: 0.5,
+        }}
+      >
         <TextField
           size='small'
           value={amountInputValue}
@@ -354,21 +364,23 @@ const StatControl: React.FC<StatControlProps> = ({
           onBlur={handleAmountBlur}
           disabled={disabled}
           placeholder='1'
-          inputProps={{
-            inputMode: 'numeric',
-            style: {
-              textAlign: 'center',
-              padding: '6px 4px',
-              fontSize: '13px',
-              fontWeight: 600,
-              width: 44,
-            },
-            'aria-label': `Valor de dano ou cura para ${type}`,
-          }}
           sx={{
             '& .MuiOutlinedInput-root': {
               height: 32,
               '& fieldset': { borderColor: theme.palette.divider },
+            },
+          }}
+          slotProps={{
+            htmlInput: {
+              inputMode: 'numeric',
+              style: {
+                textAlign: 'center',
+                padding: '6px 4px',
+                fontSize: '13px',
+                fontWeight: 600,
+                width: 44,
+              },
+              'aria-label': `Valor de dano ou cura para ${type}`,
             },
           }}
         />

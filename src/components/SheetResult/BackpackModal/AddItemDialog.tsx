@@ -158,8 +158,10 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
             <Stack
               direction='row'
               spacing={0.75}
-              alignItems='center'
-              sx={{ flexWrap: 'wrap' }}
+              sx={{
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
             >
               <Typography variant='body2' sx={{ fontWeight: 500 }}>
                 {item.nome}
@@ -190,20 +192,30 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
               sx={{ flexWrap: 'wrap', mt: 0.25 }}
             >
               {item.preco !== undefined && (
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   T$ {item.preco}
                 </Typography>
               )}
               {item.spaces !== undefined && (
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {item.spaces} esp.
                 </Typography>
               )}
               {item.descricao && (
                 <Typography
                   variant='caption'
-                  color='text.secondary'
                   sx={{
+                    color: 'text.secondary',
                     display: '-webkit-box',
                     WebkitLineClamp: 1,
                     WebkitBoxOrient: 'vertical',
@@ -229,8 +241,11 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       <Box key={sub.key} sx={{ mb: 1.5 }}>
         <Typography
           variant='overline'
-          color='text.secondary'
-          sx={{ pl: 2, display: 'block' }}
+          sx={{
+            color: 'text.secondary',
+            pl: 2,
+            display: 'block',
+          }}
         >
           {sub.label}
         </Typography>
@@ -280,23 +295,25 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
                 placeholder='Buscar item no catálogo...'
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <SearchIcon fontSize='small' />
-                    </InputAdornment>
-                  ),
-                  endAdornment: search ? (
-                    <InputAdornment position='end'>
-                      <IconButton
-                        size='small'
-                        onClick={() => setSearch('')}
-                        aria-label='Limpar busca'
-                      >
-                        <ClearIcon fontSize='small' />
-                      </IconButton>
-                    </InputAdornment>
-                  ) : null,
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <SearchIcon fontSize='small' />
+                      </InputAdornment>
+                    ),
+                    endAdornment: search ? (
+                      <InputAdornment position='end'>
+                        <IconButton
+                          size='small'
+                          onClick={() => setSearch('')}
+                          aria-label='Limpar busca'
+                        >
+                          <ClearIcon fontSize='small' />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null,
+                  },
                 }}
               />
             </Box>
@@ -332,7 +349,12 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
                 if (activeCategory.subgroups.length === 0) {
                   return (
                     <Box sx={{ p: 3, textAlign: 'center' }}>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         Sem itens de catálogo para esta categoria. Crie um item
                         personalizado.
                       </Typography>
@@ -342,7 +364,12 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
                 if (totalMatches === 0) {
                   return (
                     <Box sx={{ p: 3, textAlign: 'center' }}>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         Nenhum item corresponde à busca.
                       </Typography>
                     </Box>
@@ -371,10 +398,17 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
               <Stack
                 direction='row'
                 spacing={2}
-                alignItems='center'
-                sx={{ flexWrap: 'wrap' }}
+                sx={{
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}
               >
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {availableTibares !== undefined && (
                     <>Saldo: T$ {availableTibares.toFixed(2)}</>
                   )}

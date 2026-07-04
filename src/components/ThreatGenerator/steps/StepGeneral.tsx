@@ -154,15 +154,24 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
     : null;
 
   return (
-    <Box p={{ xs: 2, sm: 3 }}>
+    <Box
+      sx={{
+        p: { xs: 2, sm: 3 },
+      }}
+    >
       <Typography variant='h6' gutterBottom>
         Informações Gerais
       </Typography>
-      <Typography variant='body2' color='text.secondary' mb={3}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         Comece pela identidade e classificação da ameaça. O ND determina todas
         as estatísticas base da criatura.
       </Typography>
-
       <Stack spacing={3}>
         {/* Identidade */}
         <SectionCard
@@ -170,7 +179,13 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
           title='Identidade'
           subtitle='Nome e imagem que aparecerão na ficha.'
         >
-          <Grid container spacing={2} alignItems='flex-start'>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              alignItems: 'flex-start',
+            }}
+          >
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
@@ -182,7 +197,13 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Box display='flex' gap={2} alignItems='flex-start'>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  alignItems: 'flex-start',
+                }}
+              >
                 <TextField
                   fullWidth
                   label='URL da Imagem (opcional)'
@@ -199,8 +220,10 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
                     threat.imageUrl && !imageError ? threat.imageUrl : undefined
                   }
                   variant='rounded'
-                  imgProps={{ onError: () => setImageError(true) }}
                   sx={{ width: 56, height: 56, flexShrink: 0 }}
+                  slotProps={{
+                    img: { onError: () => setImageError(true) },
+                  }}
                 >
                   <PetsOutlinedIcon />
                 </Avatar>
@@ -272,7 +295,13 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
             </Grid>
           </Grid>
 
-          <Grid container spacing={2} mt={0.5}>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              mt: 0.5,
+            }}
+          >
             {roleCards.map((card) => {
               const selected = threat.role === card.role;
               return (
@@ -292,7 +321,12 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
                     <Typography variant='subtitle2' gutterBottom>
                       <strong>{card.title}</strong>
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {card.description}
                     </Typography>
                   </Paper>
@@ -308,7 +342,13 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
           title='Nível de Desafio'
           subtitle='Escolha o ND diretamente ou selecione um patamar representativo.'
         >
-          <Grid container spacing={2} alignItems='center'>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <Grid size={{ xs: 12, md: 5 }}>
               <FormControl fullWidth>
                 <InputLabel>Nível de Desafio (ND)</InputLabel>
@@ -344,7 +384,13 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
             </Grid>
           </Grid>
 
-          <Grid container spacing={2} mt={0.5}>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              mt: 0.5,
+            }}
+          >
             {tierCards.map((item) => {
               const selected = currentTier === item.tier;
               return (
@@ -373,7 +419,9 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
                       variant='subtitle2'
                       gutterBottom
                       color={selected ? 'primary' : 'text.primary'}
-                      fontWeight={selected ? 'bold' : 'medium'}
+                      sx={{
+                        fontWeight: selected ? 'bold' : 'medium',
+                      }}
                     >
                       {item.name}
                     </Typography>
@@ -384,7 +432,11 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
                       {item.range}
                     </Typography>
                     {selected && (
-                      <Box mt={1}>
+                      <Box
+                        sx={{
+                          mt: 1,
+                        }}
+                      >
                         <Chip
                           label={`ND ${threat.challengeLevel}`}
                           color='primary'
@@ -424,7 +476,12 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
             <Grid size={{ xs: 12, sm: 6, md: 8 }}>
               {threat.size ? (
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {`Sugestões baseadas no tamanho ${threat.size}:`}
                   </Typography>
                   {(['Bípede', 'Quadrúpede'] as DisplacementPosture[]).map(
@@ -436,11 +493,13 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
                       return (
                         <Box
                           key={posture}
-                          mt={0.5}
-                          display='flex'
-                          alignItems='center'
-                          flexWrap='wrap'
-                          gap={1}
+                          sx={{
+                            mt: 0.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: 1,
+                          }}
                         >
                           <Typography
                             variant='caption'
@@ -448,7 +507,13 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
                           >
                             {posture}:
                           </Typography>
-                          <Stack direction='row' flexWrap='wrap' gap={0.5}>
+                          <Stack
+                            direction='row'
+                            sx={{
+                              flexWrap: 'wrap',
+                              gap: 0.5,
+                            }}
+                          >
                             {chipsForPosture.map((suggestion) => {
                               const isSelected =
                                 threat.displacement === suggestion.value;
@@ -473,7 +538,12 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
                   )}
                 </Box>
               ) : (
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Selecione um tamanho para ver sugestões de deslocamento.
                 </Typography>
               )}

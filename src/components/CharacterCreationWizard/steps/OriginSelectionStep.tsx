@@ -129,11 +129,15 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           A origem {origin.name} é uma origem regional (Atlas de Arton) e
           concede todos os benefícios automaticamente.
         </Typography>
-
         <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
           <Typography variant='h6' gutterBottom>
             Benefícios Concedidos Automaticamente:
@@ -142,7 +146,12 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           {originBenefits.skills.length > 0 && (
             <Box sx={{ mb: 2 }}>
               <Typography variant='subtitle2'>Perícias:</Typography>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {originBenefits.skills.join(', ')}
               </Typography>
             </Box>
@@ -155,7 +164,9 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
                 <Typography
                   key={power.name}
                   variant='body2'
-                  color='text.secondary'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
                 >
                   • {power.name}
                 </Typography>
@@ -178,7 +189,9 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
                   <Typography
                     key={itemKey}
                     variant='body2'
-                    color='text.secondary'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
                   >
                     • {itemName}
                     {item.qtd && item.qtd > 1 ? ` (x${item.qtd})` : ''}
@@ -188,7 +201,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             </Box>
           )}
         </Paper>
-
         <Alert severity='success'>
           Nenhuma seleção necessária - todos os benefícios serão concedidos
           automaticamente. Você pode continuar para o próximo passo.
@@ -319,16 +331,24 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         A origem {origin.name} concede itens automaticamente e permite escolher{' '}
         {REQUIRED_SELECTIONS} benefícios entre perícias e poderes. Selecione
         abaixo:
       </Typography>
-
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Selecionados: {selectedBenefits.length} / {REQUIRED_SELECTIONS}
       </Typography>
-
       {/* Items Section - Always granted, display only */}
       {items.length > 0 && (
         <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
@@ -344,7 +364,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             const itemKey = `${itemName}-${item.qtd || 1}-${index}`;
 
             return (
-              <Typography key={itemKey} variant='body2' color='text.secondary'>
+              <Typography
+                key={itemKey}
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 • {itemName}
                 {item.qtd && item.qtd > 1 ? ` (x${item.qtd})` : ''}
               </Typography>
@@ -352,7 +378,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           })}
         </Paper>
       )}
-
       {/* Skills Section */}
       {skillOptions.length > 0 && (
         <Paper sx={{ p: 2 }}>
@@ -408,7 +433,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           })}
         </Paper>
       )}
-
       {/* Powers Section */}
       {powerOptions.length > 0 && (
         <Paper sx={{ p: 2 }}>
@@ -483,7 +507,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           })}
         </Paper>
       )}
-
       {!isComplete && selectedBenefits.length > 0 && (
         <Alert severity='warning'>
           Selecione {REQUIRED_SELECTIONS - selectedBenefits.length} benefício
@@ -493,7 +516,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           continuar.
         </Alert>
       )}
-
       {isComplete && (
         <Alert severity='success'>
           Benefícios selecionados com sucesso! Você pode continuar para o

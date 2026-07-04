@@ -243,8 +243,8 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography
                   variant='subtitle2'
-                  fontWeight='bold'
                   sx={{
+                    fontWeight: 'bold',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -254,8 +254,8 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                 </Typography>
                 <Typography
                   variant='caption'
-                  color='text.secondary'
                   sx={{
+                    color: 'text.secondary',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',

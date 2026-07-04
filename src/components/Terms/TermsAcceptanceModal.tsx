@@ -59,7 +59,6 @@ const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
       open={open}
       maxWidth='sm'
       fullWidth
-      disableEscapeKeyDown
       onClose={(_event, reason) => {
         // Prevent closing on backdrop click or escape key
         if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
@@ -72,26 +71,46 @@ const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
           {isNewTerms ? 'Novos Termos de Uso' : 'Termos de Uso'}
         </Typography>
       </DialogTitle>
-
       <DialogContent>
         <Box sx={{ mb: 2 }}>
           {isNewTerms ? (
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Atualizamos nossos Termos de Uso. Por favor, leia e aceite os
               novos termos para continuar utilizando a plataforma.
             </Typography>
           ) : (
-            <Typography variant='body1' paragraph>
+            <Typography
+              variant='body1'
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               Para utilizar o Fichas de Nimb, você precisa aceitar nossos Termos
               de Uso.
             </Typography>
           )}
 
-          <Typography variant='body2' color='text.secondary' paragraph>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              marginBottom: '16px',
+            }}
+          >
             Atualizado em {TERMS_LAST_UPDATED}
           </Typography>
 
-          <Typography variant='body2' paragraph>
+          <Typography
+            variant='body2'
+            sx={{
+              marginBottom: '16px',
+            }}
+          >
             Leia os termos completos em:{' '}
             <Link
               component={RouterLink}
@@ -133,7 +152,6 @@ const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
           )}
         </Box>
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button
           variant='contained'

@@ -265,12 +265,19 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
     >
       <Stack
         direction='row'
-        justifyContent='space-between'
-        alignItems='center'
         spacing={2}
-        width='100%'
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+        }}
       >
-        <Box flexDirection='row' display='flex'>
+        <Box
+          sx={{
+            flexDirection: 'row',
+            display: 'flex',
+          }}
+        >
           {/* Left side: Menu button */}
           <IconButton
             onClick={onClickMenu}
@@ -281,7 +288,13 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
           </IconButton>
 
           {/* Center: Logo and Dropdowns */}
-          <Stack direction='row' alignItems='center' spacing={{ xs: 1, md: 3 }}>
+          <Stack
+            direction='row'
+            spacing={{ xs: 1, md: 3 }}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             {/* Logo */}
             <Link
               href='/'
@@ -342,17 +355,6 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                           open={Boolean(anchorEls[category.label])}
                           onClose={() => handleMenuClose(category.label)}
                           disableScrollLock
-                          MenuListProps={{
-                            sx: { py: 0.5 },
-                          }}
-                          PaperProps={{
-                            sx: {
-                              borderRadius: 2,
-                              mt: 1,
-                              minWidth: 180,
-                              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                            },
-                          }}
                           transformOrigin={{
                             horizontal: 'left',
                             vertical: 'top',
@@ -360,6 +362,19 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                           anchorOrigin={{
                             horizontal: 'left',
                             vertical: 'bottom',
+                          }}
+                          slotProps={{
+                            paper: {
+                              sx: {
+                                borderRadius: 2,
+                                mt: 1,
+                                minWidth: 180,
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                              },
+                            },
+                            list: {
+                              sx: { py: 0.5 },
+                            },
                           }}
                         >
                           {category.items?.map((item, index) => (
@@ -436,9 +451,11 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
         {/* Right side: Instagram + User menu */}
         <Stack
           direction='row'
-          alignItems='center'
           spacing={1}
-          sx={{ ml: 'auto' }}
+          sx={{
+            alignItems: 'center',
+            ml: 'auto',
+          }}
         >
           {/* Support CTA - desktop only, non-supporters */}
           {!isMobile && !isSupporter && (

@@ -25,10 +25,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (loading || (requirePremium && subscriptionLoading)) {
     return (
       <Box
-        display='flex'
-        justifyContent='center'
-        alignItems='center'
-        minHeight='50vh'
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '50vh',
+        }}
       >
         <CircularProgress />
       </Box>

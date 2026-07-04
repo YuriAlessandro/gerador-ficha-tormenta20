@@ -12,7 +12,13 @@ const SheetPreviewInventory = () => {
     <>
       <BookTitle>Equipamentos</BookTitle>
       {equipments.length === 0 && <p>Nenhum equipamento.</p>}
-      <Stack direction='row' flexWrap='wrap' spacing={2}>
+      <Stack
+        direction='row'
+        spacing={2}
+        sx={{
+          flexWrap: 'wrap',
+        }}
+      >
         {equipments.map((equipment) => (
           <Chip
             key={equipment.name}

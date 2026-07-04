@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import {
   Casino as CasinoIcon,
-  HelpOutline as HelpIcon,
+  HelpOutlined as HelpIcon,
 } from '@mui/icons-material';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
@@ -337,13 +337,15 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
     <Box>
       <Typography
         variant='body2'
-        color='text.secondary'
-        sx={{ mb: 2.5, fontStyle: 'italic' }}
+        sx={{
+          color: 'text.secondary',
+          mb: 2.5,
+          fontStyle: 'italic',
+        }}
       >
         Configure os parâmetros (opcional). Deixe como &ldquo;Aleatória&rdquo;
         para uma ficha totalmente aleatória.
       </Typography>
-
       <Grid container spacing={2}>
         {/* Race Selection */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -470,9 +472,11 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Stack
             direction='row'
-            alignItems='center'
             spacing={0.5}
-            sx={{ mb: 1 }}
+            sx={{
+              alignItems: 'center',
+              mb: 1,
+            }}
           >
             <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
               Divindade
@@ -578,7 +582,6 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
           />
         </Grid>
       </Grid>
-
       {/* Action Button */}
       <Box sx={{ mt: 3 }}>
         <Button

@@ -5,11 +5,12 @@
   "private": true,
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
+    "@base-ui/react": "^1.6.0",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^7.0.0",
-    "@mui/lab": "^7.0.0-alpha.1",
-    "@mui/material": "^7.0.0",
+    "@mui/icons-material": "^9.2.0",
+    "@mui/lab": "^9.0.0-beta.6",
+    "@mui/material": "^9.2.0",
     "@reduxjs/toolkit": "^1.9.5",
     "@testing-library/dom": "^7.30.0",
     "@testing-library/jest-dom": "^5.11.9",
@@ -115,7 +116,7 @@
     "vite-plugin-handlebars": "^1.6.0",
     "vite-plugin-pwa": "^1.0.2",
     "vite-tsconfig-paths": "^4.2.0",
-    "vitest": "^0.32.2",
+    "vitest": "^1.6.1",
     "workbox-window": "^7.3.0"
   },
   "jest": {

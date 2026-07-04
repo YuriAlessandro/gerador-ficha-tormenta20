@@ -197,9 +197,11 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
       <Box>
         <Stack
           direction='row'
-          alignItems='center'
-          justifyContent='space-between'
-          sx={{ mb: 1.5 }}
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 1.5,
+          }}
         >
           <Typography
             variant='subtitle1'
@@ -280,9 +282,11 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
     <Box>
       <Stack
         direction='row'
-        alignItems='center'
-        justifyContent='space-between'
-        sx={{ mb: 1.5 }}
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 1.5,
+        }}
       >
         <Typography
           variant='subtitle1'
@@ -303,7 +307,6 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
           Ver todas
         </Button>
       </Stack>
-
       <Box
         sx={{
           display: 'grid',
@@ -394,8 +397,11 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
                 <Stack
                   direction='row'
                   spacing={0.5}
-                  alignItems='center'
-                  sx={{ mt: 0.25, minWidth: 0 }}
+                  sx={{
+                    alignItems: 'center',
+                    mt: 0.25,
+                    minWidth: 0,
+                  }}
                 >
                   {classLabel && (
                     <Typography

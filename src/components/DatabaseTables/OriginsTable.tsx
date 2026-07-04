@@ -55,9 +55,20 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
           </IconButton>
         </TableCell>
         <TableCell component='th' scope='row'>
-          <Box display='flex' alignItems='center' gap={1}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
             <BrowseGalleryIcon color='primary' fontSize='small' />
-            <Typography variant='body1' fontWeight={500}>
+            <Typography
+              variant='body1'
+              sx={{
+                fontWeight: 500,
+              }}
+            >
               {origin.name}
             </Typography>
             {origin.supplementId !== SupplementId.TORMENTA20_CORE && (
@@ -199,7 +210,12 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
                           >
                             {power.name}
                           </Typography>
-                          <Typography variant='body1' paragraph>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              marginBottom: '16px',
+                            }}
+                          >
                             {power.description}
                           </Typography>
                         </Box>
@@ -333,7 +349,12 @@ const OriginsTable: React.FC = () => {
 
         {/* Results Summary */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {origins.length === 0
               ? 'Nenhuma origem encontrada com os filtros aplicados'
               : `${origins.length} origem${
@@ -366,7 +387,12 @@ const OriginsTable: React.FC = () => {
               {origins.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                    <Typography variant='body1' color='text.secondary'>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Nenhuma origem encontrada. Tente ajustar a busca.
                     </Typography>
                   </TableCell>

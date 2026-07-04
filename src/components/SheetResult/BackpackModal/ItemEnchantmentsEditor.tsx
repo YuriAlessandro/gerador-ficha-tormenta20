@@ -159,7 +159,7 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
               placeholder='Selecione os encantamentos'
             />
           )}
-          renderTags={(value, getTagProps) =>
+          renderValue={(value, getItemProps) =>
             value.map((option, index) => {
               const hasNumericEffect =
                 enchantmentEffects[option.enchantment] !== undefined;
@@ -199,7 +199,7 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
                     </Box>
                   }
                   // eslint-disable-next-line react/jsx-props-no-spreading
-                  {...getTagProps({ index })}
+                  {...getItemProps({ index })}
                 />
               );
             })
@@ -244,8 +244,11 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
                   {option.effect && (
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block', mb: 0.5 }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mb: 0.5,
+                      }}
                     >
                       {option.effect}
                     </Typography>
@@ -257,7 +260,6 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
           disabled={disabled}
         />
       </Grid>
-
       {hasConjuradora && (
         <Grid size={12}>
           <Autocomplete
@@ -285,10 +287,14 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
           />
         </Grid>
       )}
-
       {showCost && selectedEnchantments.length > 0 && (
         <Grid size={12}>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Custo total: {totalCost} / {maxCost} pontos
           </Typography>
         </Grid>

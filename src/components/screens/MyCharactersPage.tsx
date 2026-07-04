@@ -837,8 +837,12 @@ const MyCharactersPage: React.FC = () => {
         </Typography>
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}
+          sx={{
+            color: 'text.secondary',
+            mb: 4,
+            maxWidth: 600,
+            mx: 'auto',
+          }}
         >
           {description}
         </Typography>
@@ -959,7 +963,12 @@ const MyCharactersPage: React.FC = () => {
                       >
                         {folder.name}
                       </Typography>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {countLabel}
                         {subfolderCount > 0 &&
                           ` • ${subfolderCount} ${
@@ -1033,7 +1042,12 @@ const MyCharactersPage: React.FC = () => {
               mb: 1,
             }}
           />
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Nova Pasta
           </Typography>
         </CardActionArea>
@@ -1201,8 +1215,8 @@ const MyCharactersPage: React.FC = () => {
 
                   <Typography
                     variant='body2'
-                    color='text.secondary'
                     sx={{
+                      color: 'text.secondary',
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
@@ -1216,9 +1230,11 @@ const MyCharactersPage: React.FC = () => {
                   <Stack
                     direction='row'
                     spacing={1}
-                    alignItems='center'
-                    flexWrap='wrap'
                     useFlexGap
+                    sx={{
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                    }}
                   >
                     <Chip
                       label={`Nível ${getLevel(sheet)}`}
@@ -1267,8 +1283,11 @@ const MyCharactersPage: React.FC = () => {
 
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    sx={{ mt: 1, display: 'block' }}
+                    sx={{
+                      color: 'text.secondary',
+                      mt: 1,
+                      display: 'block',
+                    }}
                   >
                     Editado em{' '}
                     {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
@@ -1277,7 +1296,12 @@ const MyCharactersPage: React.FC = () => {
               </CardActionArea>
 
               <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-                <Box display='flex' alignItems='center'>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
                   <Tooltip title='Arrastar para mover'>
                     <IconButton
                       size='small'
@@ -1349,10 +1373,12 @@ const MyCharactersPage: React.FC = () => {
     return (
       <Container maxWidth='lg' sx={{ py: 4 }}>
         <Box
-          display='flex'
-          justifyContent='center'
-          alignItems='center'
-          minHeight='50vh'
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '50vh',
+          }}
         >
           <CircularProgress size={60} />
         </Box>
@@ -1367,12 +1393,14 @@ const MyCharactersPage: React.FC = () => {
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Box
-          display='flex'
-          justifyContent='space-between'
-          alignItems='flex-start'
-          flexWrap='wrap'
-          gap={2}
-          mb={3}
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 3,
+          }}
         >
           <Box>
             <Typography
@@ -1387,19 +1415,33 @@ const MyCharactersPage: React.FC = () => {
             >
               Meus Personagens
             </Typography>
-            <Box display='flex' alignItems='center' gap={1} mt={1}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mt: 1,
+              }}
+            >
               <CloudIcon color='success' fontSize='small' />
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Sincronizado com a nuvem
               </Typography>
             </Box>
           </Box>
 
           <Box
-            display='flex'
-            flexDirection='column'
-            alignItems='flex-end'
-            gap={1}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: 1,
+            }}
           >
             <Button
               variant='contained'
@@ -1422,8 +1464,10 @@ const MyCharactersPage: React.FC = () => {
             <Stack
               direction='row'
               spacing={2}
-              alignItems='center'
-              flexWrap='wrap'
+              sx={{
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
             >
               <SupporterBadge
                 level={supportLevel}
@@ -1431,7 +1475,13 @@ const MyCharactersPage: React.FC = () => {
                 showTooltip={false}
               />
               {activeTab === 0 && !isCharacterLimitUnlimited && (
-                <Stack direction='row' spacing={1} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <CharacterLimitIndicator
                     current={playerSheets.length}
                     max={maxSheets}
@@ -1441,14 +1491,22 @@ const MyCharactersPage: React.FC = () => {
                     color={
                       isNearCharacterLimit ? 'warning.main' : 'text.secondary'
                     }
-                    fontWeight={isNearCharacterLimit ? 'bold' : 'normal'}
+                    sx={{
+                      fontWeight: isNearCharacterLimit ? 'bold' : 'normal',
+                    }}
                   >
                     {playerSheets.length} de {maxSheets} fichas de personagem
                   </Typography>
                 </Stack>
               )}
               {activeTab === 1 && !isMenaceLimitUnlimited && (
-                <Stack direction='row' spacing={1} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <CharacterLimitIndicator
                     current={threatSheets.length}
                     max={maxMenaceSheets}
@@ -1458,7 +1516,9 @@ const MyCharactersPage: React.FC = () => {
                     color={
                       isNearMenaceLimit ? 'warning.main' : 'text.secondary'
                     }
-                    fontWeight={isNearMenaceLimit ? 'bold' : 'normal'}
+                    sx={{
+                      fontWeight: isNearMenaceLimit ? 'bold' : 'normal',
+                    }}
                   >
                     {threatSheets.length} de {maxMenaceSheets} fichas de ameaças
                   </Typography>
@@ -1534,12 +1594,12 @@ const MyCharactersPage: React.FC = () => {
         {/* Folder navigation bar (breadcrumb when inside a folder) */}
         {isInsideFolder && openFolder && (
           <Box
-            display='flex'
-            alignItems='center'
-            gap={1}
-            mb={2}
-            flexWrap='wrap'
             sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              mb: 2,
+              flexWrap: 'wrap',
               py: 1,
               px: 2,
               borderRadius: 1,
@@ -1575,8 +1635,11 @@ const MyCharactersPage: React.FC = () => {
                 return isLast ? (
                   <Typography
                     key={segment.id}
-                    color='text.primary'
-                    sx={{ fontFamily: 'Tfont', fontWeight: 'bold' }}
+                    sx={{
+                      color: 'text.primary',
+                      fontFamily: 'Tfont',
+                      fontWeight: 'bold',
+                    }}
                   >
                     {segment.name}
                   </Typography>
@@ -1598,7 +1661,13 @@ const MyCharactersPage: React.FC = () => {
                 );
               })}
             </Breadcrumbs>
-            <Typography variant='body2' color='text.secondary' sx={{ ml: 1 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                ml: 1,
+              }}
+            >
               ({filteredSheets.length}{' '}
               {activeTab === 0 ? 'personagens' : 'ameaças'})
             </Typography>
@@ -1608,11 +1677,13 @@ const MyCharactersPage: React.FC = () => {
         {/* Filters and Search */}
         {currentSheets.length > 0 && (
           <Box
-            display='flex'
-            gap={2}
-            flexWrap='wrap'
-            alignItems='center'
-            mb={3}
+            sx={{
+              display: 'flex',
+              gap: 2,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              mb: 3,
+            }}
           >
             <TextField
               placeholder={
@@ -1622,12 +1693,14 @@ const MyCharactersPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               size='small'
               sx={{ minWidth: 250, flexGrow: 1 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -1662,26 +1735,28 @@ const MyCharactersPage: React.FC = () => {
 
         {/* Summary (only at root when not searching) */}
         {!isInsideFolder && currentSheets.length > 0 && (
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {currentSheets.length} {activeTab === 0 ? 'personagens' : 'ameaças'}{' '}
             no total
           </Typography>
         )}
       </Box>
-
       {/* Error */}
       {error && (
         <Alert severity='error' onClose={clearError} sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
-
       {/* Empty State (only when no sheets and no folders) */}
       {!loading &&
         currentSheets.length === 0 &&
         folders.length === 0 &&
         !isInsideFolder && <EmptyState />}
-
       {/* Grid: folders + sheets (with drag-and-drop) */}
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* "Remove from folder" drop zone (when inside a folder) */}
@@ -1750,7 +1825,6 @@ const MyCharactersPage: React.FC = () => {
           )}
         </Droppable>
       </DragDropContext>
-
       {/* Empty folder state (no sheets AND no subfolders) */}
       {isInsideFolder &&
         filteredSheets.length === 0 &&
@@ -1760,16 +1834,26 @@ const MyCharactersPage: React.FC = () => {
             <FolderOpenIcon
               sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }}
             />
-            <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
+            <Typography
+              variant='h6'
+              sx={{
+                color: 'text.secondary',
+                mb: 1,
+              }}
+            >
               Pasta vazia
             </Typography>
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Crie subpastas, mova fichas para esta pasta usando o botão de
               mover ou arrastando os cards.
             </Typography>
           </Box>
         )}
-
       {/* Folder card context menu */}
       <Menu
         anchorEl={folderContextAnchor}
@@ -1807,7 +1891,6 @@ const MyCharactersPage: React.FC = () => {
           <ListItemText sx={{ color: 'error.main' }}>Excluir</ListItemText>
         </MenuItem>
       </Menu>
-
       {/* Move sheet to Folder Menu */}
       <Menu
         anchorEl={moveMenuAnchor}
@@ -1833,13 +1916,18 @@ const MyCharactersPage: React.FC = () => {
               <FolderOpenIcon fontSize='small' />
             </ListItemIcon>
             <ListItemText>{formatFolderPath(folders, folder.id)}</ListItemText>
-            <Typography variant='caption' color='text.secondary' sx={{ ml: 1 }}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+                ml: 1,
+              }}
+            >
               {folderCounts[folder.id] || 0}
             </Typography>
           </MenuItem>
         ))}
       </Menu>
-
       {/* Move folder picker — excludes self and descendants to prevent cycles */}
       <Menu
         anchorEl={folderMoveAnchor}
@@ -1877,7 +1965,6 @@ const MyCharactersPage: React.FC = () => {
               </MenuItem>
             ))}
       </Menu>
-
       {/* Delete Sheet Confirmation Dialog */}
       <Dialog
         open={deleteConfirmOpen}
@@ -1904,7 +1991,6 @@ const MyCharactersPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Folder Create/Rename Dialog */}
       <Dialog
         open={folderDialogOpen}
@@ -1928,13 +2014,15 @@ const MyCharactersPage: React.FC = () => {
             label='Nome da pasta'
             value={folderName}
             onChange={(e) => setFolderName(e.target.value)}
-            inputProps={{ maxLength: 50 }}
             helperText={`${folderName.length}/50 caracteres`}
             sx={{ mt: 1 }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && folderName.trim()) {
                 handleFolderDialogConfirm();
               }
+            }}
+            slotProps={{
+              htmlInput: { maxLength: 50 },
             }}
           />
         </DialogContent>
@@ -1949,7 +2037,6 @@ const MyCharactersPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Delete Folder Confirmation Dialog */}
       <Dialog
         open={deleteFolderConfirmOpen}
@@ -1963,7 +2050,13 @@ const MyCharactersPage: React.FC = () => {
             Tem certeza que deseja excluir a pasta{' '}
             <strong>&ldquo;{folderToDelete?.name}&rdquo;</strong>?
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mt: 1,
+            }}
+          >
             Subpastas e fichas dentro desta pasta serão movidas para{' '}
             {folderToDelete?.parentId
               ? `"${formatFolderPath(folders, folderToDelete.parentId)}"`
@@ -1982,7 +2075,6 @@ const MyCharactersPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Batch Threat Export */}
       {isSelectMode && activeTab === 1 && (
         <>
@@ -2006,7 +2098,6 @@ const MyCharactersPage: React.FC = () => {
           <Box sx={{ height: 80 }} />
         </>
       )}
-
       {/* Publicar ameaça no Bestiário da Comunidade */}
       {sheetToPublish && (
         <PublishBestiaryModal
@@ -2020,7 +2111,6 @@ const MyCharactersPage: React.FC = () => {
           }}
         />
       )}
-
       {/* Recuperação de ficha atingida pelo bug de swap de fichas */}
       <Dialog
         open={Boolean(recoverySheet)}
@@ -2076,7 +2166,6 @@ const MyCharactersPage: React.FC = () => {
           )}
         </DialogActions>
       </Dialog>
-
       <Snackbar
         open={Boolean(recoverySnackbar)}
         autoHideDuration={5000}

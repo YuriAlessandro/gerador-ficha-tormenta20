@@ -62,11 +62,16 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
         <Typography variant='h6' gutterBottom>
           Configuração do Arcanista
         </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           Escolha o caminho do seu Arcanista. Cada subtipo possui uma forma
           diferente de conjurar magias.
         </Typography>
-
         <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel>Subtipo do Arcanista</InputLabel>
           <Select
@@ -93,7 +98,6 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
             </MenuItem>
           </Select>
         </FormControl>
-
         {classSetup.arcanistaSubtype === 'Feiticeiro' && (
           <>
             <FormControl fullWidth sx={{ mb: 2 }}>
@@ -186,11 +190,16 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
         <Typography variant='h6' gutterBottom>
           Escolas de Magia — {selectedClassName}
         </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           Escolha 3 escolas de magia. Você poderá aprender magias {spellType}{' '}
           dessas escolas.
         </Typography>
-
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
           {allSpellSchools.map((school) => {
             const isSelected = selectedSchools.includes(school);
@@ -221,14 +230,12 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
             );
           })}
         </Box>
-
         {selectedSchools.length < 3 && (
           <Alert severity='info'>
             Selecione {3 - selectedSchools.length} escola
             {3 - selectedSchools.length > 1 ? 's' : ''} de magia.
           </Alert>
         )}
-
         {selectedSchools.length === 3 && (
           <Alert severity='success'>
             Escolas selecionadas:{' '}

@@ -152,15 +152,24 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
   };
 
   return (
-    <Box p={{ xs: 2, sm: 3 }}>
+    <Box
+      sx={{
+        p: { xs: 2, sm: 3 },
+      }}
+    >
       <Typography variant='h6' gutterBottom>
         Magias
       </Typography>
-      <Typography variant='body2' color='text.secondary' mb={3}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         Adicione magias que a ameaça pode conjurar. Elas aparecem em uma seção
         separada na ficha.
       </Typography>
-
       <Grid container spacing={3}>
         {/* Add New Spell */}
         <Grid size={{ xs: 12, md: 6 }}>
@@ -247,7 +256,13 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
             title={`Magias (${threat.spells?.length || 0})`}
           >
             {!threat.spells || threat.spells.length === 0 ? (
-              <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  py: 2,
+                }}
+              >
                 Nenhuma magia configurada ainda.
               </Typography>
             ) : (
@@ -265,8 +280,10 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
                               <Typography
                                 component='span'
                                 variant='body2'
-                                color='text.secondary'
-                                sx={{ ml: 1 }}
+                                sx={{
+                                  color: 'text.secondary',
+                                  ml: 1,
+                                }}
                               >
                                 (
                                 {[
@@ -287,13 +304,19 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
                           <Box>
                             <Typography
                               variant='body2'
-                              color='text.secondary'
-                              sx={{ whiteSpace: 'pre-wrap' }}
+                              sx={{
+                                color: 'text.secondary',
+                                whiteSpace: 'pre-wrap',
+                              }}
                             >
                               {spell.description || 'Sem descrição fornecida'}
                             </Typography>
                             {spell.rolls && spell.rolls.length > 0 && (
-                              <Box mt={1}>
+                              <Box
+                                sx={{
+                                  mt: 1,
+                                }}
+                              >
                                 {spell.rolls.map((roll) => (
                                   <Chip
                                     key={roll.id}
@@ -339,7 +362,6 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
           </SectionCard>
         </Grid>
       </Grid>
-
       {/* Edit Spell Dialog */}
       <Dialog
         open={editSpellDialog}
@@ -397,7 +419,11 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
             </Box>
           )}
           <RollsEditor value={editSpellRolls} onChange={setEditSpellRolls} />
-          <Box mt={3}>
+          <Box
+            sx={{
+              mt: 3,
+            }}
+          >
             <ConditionsListEditor
               value={editSpellConditions}
               onChange={setEditSpellConditions}

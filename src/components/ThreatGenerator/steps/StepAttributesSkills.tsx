@@ -25,6 +25,7 @@ import {
 import FitnessCenterOutlinedIcon from '@mui/icons-material/FitnessCenterOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import PsychologyOutlinedIcon from '@mui/icons-material/PsychologyOutlined';
+import NumberField from '@/components/common/NumberField';
 import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import {
   ThreatSheet,
@@ -169,11 +170,14 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
     }
   };
 
-  const handleSkillOverrideChange = (skillName: string, value: string) => {
+  const handleSkillOverrideChange = (
+    skillName: string,
+    value: number | null
+  ) => {
     const updatedSkills = (threat.skills || []).map((skill) => {
       if (skill.name !== skillName) return skill;
 
-      if (value === '') {
+      if (value === null) {
         return {
           name: skill.name,
           attribute: skill.attribute,
@@ -183,10 +187,7 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
         };
       }
 
-      const parsed = parseInt(value, 10);
-      if (Number.isNaN(parsed)) return skill;
-
-      return { ...skill, overrideTotal: parsed };
+      return { ...skill, overrideTotal: value };
     });
 
     onUpdate({ skills: updatedSkills });
@@ -213,7 +214,11 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
 
   if (!threat.challengeLevel || !threat.role) {
     return (
-      <Box p={{ xs: 2, sm: 3 }}>
+      <Box
+        sx={{
+          p: { xs: 2, sm: 3 },
+        }}
+      >
         <Alert severity='warning'>
           Defina o papel e o nível de desafio na etapa{' '}
           <strong>Informações Gerais</strong> para configurar atributos, combate
@@ -253,16 +258,16 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
           )}
         </TableCell>
         <TableCell align='center'>
-          <TextField
+          <NumberField
             size='small'
-            type='number'
-            value={skill.overrideTotal !== undefined ? skill.overrideTotal : ''}
-            placeholder={`${skill.total}`}
-            onChange={(e) =>
-              handleSkillOverrideChange(skill.name, e.target.value)
+            value={
+              skill.overrideTotal !== undefined ? skill.overrideTotal : null
             }
-            inputProps={{
-              style: {
+            placeholder={`${skill.total}`}
+            onValueChange={(v) => handleSkillOverrideChange(skill.name, v)}
+            sx={{
+              maxWidth: 90,
+              '& input': {
                 textAlign: 'center',
                 width: 60,
                 fontWeight:
@@ -273,7 +278,6 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
                     : undefined,
               },
             }}
-            sx={{ maxWidth: 90 }}
           />
         </TableCell>
       </TableRow>
@@ -281,15 +285,24 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
   };
 
   return (
-    <Box p={{ xs: 2, sm: 3 }}>
+    <Box
+      sx={{
+        p: { xs: 2, sm: 3 },
+      }}
+    >
       <Typography variant='h6' gutterBottom>
         Atributos e Perícias
       </Typography>
-      <Typography variant='body2' color='text.secondary' mb={3}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         Defina os atributos, ajuste as estatísticas de combate e configure as
         perícias da ameaça.
       </Typography>
-
       <Stack spacing={3}>
         {/* Atributos */}
         <SectionCard
@@ -320,16 +333,24 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
               </Grid>
               <Typography
                 variant='caption'
-                color='text.secondary'
-                display='block'
-                mt={1.5}
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  mt: 1.5,
+                }}
               >
                 Esses valores não impactam as estatísticas de combate (definidas
                 pelo ND), apenas o cálculo das perícias.
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 5 }}>
-              <Typography variant='body2' fontWeight='bold' gutterBottom>
+              <Typography
+                variant='body2'
+                gutterBottom
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Referência de Modificadores
               </Typography>
               <Table size='small'>
@@ -369,62 +390,52 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
 
           {combatStats && (
             <>
-              <Grid container spacing={2} mt={0.5}>
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  mt: 0.5,
+                }}
+              >
                 <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='Defesa'
                     value={combatStats.defense}
-                    onChange={(e) =>
-                      handleCombatStatChange(
-                        'defense',
-                        parseInt(e.target.value, 10) || 0
-                      )
+                    onValueChange={(v) =>
+                      handleCombatStatChange('defense', v ?? 0)
                     }
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='Pontos de Vida'
                     value={combatStats.hitPoints}
-                    onChange={(e) =>
-                      handleCombatStatChange(
-                        'hitPoints',
-                        parseInt(e.target.value, 10) || 0
-                      )
+                    onValueChange={(v) =>
+                      handleCombatStatChange('hitPoints', v ?? 0)
                     }
                   />
                 </Grid>
                 {threat.hasManaPoints && (
                   <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                    <TextField
+                    <NumberField
                       fullWidth
-                      type='number'
                       label='Pontos de Mana'
                       value={combatStats.manaPoints ?? 0}
-                      onChange={(e) =>
-                        handleCombatStatChange(
-                          'manaPoints',
-                          parseInt(e.target.value, 10) || 0
-                        )
+                      onValueChange={(v) =>
+                        handleCombatStatChange('manaPoints', v ?? 0)
                       }
                     />
                   </Grid>
                 )}
                 <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <TextField
+                  <NumberField
                     fullWidth
-                    type='number'
                     label='CD de Efeitos'
                     value={combatStats.standardEffectDC}
-                    onChange={(e) =>
-                      handleCombatStatChange(
-                        'standardEffectDC',
-                        parseInt(e.target.value, 10) || 0
-                      )
+                    onValueChange={(v) =>
+                      handleCombatStatChange('standardEffectDC', v ?? 0)
                     }
                   />
                 </Grid>
@@ -447,11 +458,21 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
               </Grid>
 
               {/* Atribuição de resistências */}
-              <Box mt={3}>
+              <Box
+                sx={{
+                  mt: 3,
+                }}
+              >
                 <Typography variant='subtitle2' gutterBottom>
                   Testes de Resistência
                 </Typography>
-                <Typography variant='body2' color='text.secondary' mb={2}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                  }}
+                >
                   Atribua qual resistência será Forte, Média ou Fraca. O valor
                   escolhido pré-preenche Fortitude/Reflexos/Vontade na tabela de
                   perícias abaixo.
@@ -489,7 +510,14 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
                     </Grid>
                   ))}
                 </Grid>
-                <Box display='flex' gap={1} flexWrap='wrap' mt={2}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                    mt: 2,
+                  }}
+                >
                   <Chip
                     label={`Forte: +${combatStats.strongSave}`}
                     color='success'
@@ -509,7 +537,11 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
               </Box>
 
               {/* Qualidades especiais */}
-              <Box mt={3}>
+              <Box
+                sx={{
+                  mt: 3,
+                }}
+              >
                 <TextField
                   fullWidth
                   multiline
@@ -563,8 +595,10 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
                     >
                       <Typography
                         variant='caption'
-                        color='text.secondary'
-                        fontWeight={600}
+                        sx={{
+                          color: 'text.secondary',
+                          fontWeight: 600,
+                        }}
                       >
                         Demais perícias
                       </Typography>

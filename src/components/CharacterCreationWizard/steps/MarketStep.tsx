@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import NumberField from '@/components/common/NumberField';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
@@ -286,12 +287,20 @@ const MarketStep: React.FC<MarketStepProps> = ({
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction='row' spacing={1} alignItems='center'>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <Typography
               variant='body2'
-              fontWeight='medium'
               noWrap={!isMobile}
-              sx={{ wordBreak: isMobile ? 'break-word' : 'normal' }}
+              sx={{
+                fontWeight: 'medium',
+                wordBreak: isMobile ? 'break-word' : 'normal',
+              }}
             >
               {item.nome}
             </Typography>
@@ -305,7 +314,14 @@ const MarketStep: React.FC<MarketStepProps> = ({
               />
             )}
           </Stack>
-          <Stack direction='row' spacing={1} flexWrap='wrap' sx={{ mt: 0.5 }}>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              flexWrap: 'wrap',
+              mt: 0.5,
+            }}
+          >
             {item.dano && (
               <Chip
                 label={`Dano: ${item.dano}`}
@@ -337,7 +353,6 @@ const MarketStep: React.FC<MarketStepProps> = ({
             )}
           </Stack>
         </Box>
-
         <Box
           sx={{
             display: 'flex',
@@ -436,7 +451,12 @@ const MarketStep: React.FC<MarketStepProps> = ({
       <Typography variant='body2'>{item.nome}</Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {item.preco !== undefined && item.preco > 0 && (
-          <Typography variant='caption' color='text.secondary'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             T$ {item.preco}
           </Typography>
         )}
@@ -460,40 +480,40 @@ const MarketStep: React.FC<MarketStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Gerencie o dinheiro inicial e os equipamentos do seu personagem. Você
         pode comprar itens gastando dinheiro ($) ou adicioná-los gratuitamente
         (+).
       </Typography>
-
       {/* Money Section */}
       <Paper sx={{ p: 2 }}>
         <Typography variant='h6' gutterBottom>
           Dinheiro Inicial
         </Typography>
-        <TextField
-          type='number'
-          value={currentMoneyStr}
-          onChange={(e) => handleMoneyChange(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>T$</InputAdornment>
-            ),
-          }}
-          inputProps={{ min: 0 }}
+        <NumberField
+          value={currentMoneyStr === '' ? null : Number(currentMoneyStr)}
+          onValueChange={(v) => handleMoneyChange(v === null ? '' : String(v))}
           size='small'
+          min={0}
           sx={{ width: 150 }}
+          startAdornment={<InputAdornment position='start'>T$</InputAdornment>}
         />
         <Typography
           variant='caption'
-          display='block'
-          color='text.secondary'
-          sx={{ mt: 1 }}
+          sx={{
+            display: 'block',
+            color: 'text.secondary',
+            mt: 1,
+          }}
         >
           Dinheiro restante: T$ {remainingMoney}
         </Typography>
       </Paper>
-
       {/* Bag Section */}
       <Paper sx={{ p: 2 }}>
         <Typography variant='h6' gutterBottom>
@@ -507,7 +527,12 @@ const MarketStep: React.FC<MarketStepProps> = ({
         </Typography>
 
         {!bagHasItems && (
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Nenhum item na mochila ainda.
           </Typography>
         )}
@@ -520,8 +545,10 @@ const MarketStep: React.FC<MarketStepProps> = ({
             <Box key={category} sx={{ mb: 2 }}>
               <Typography
                 variant='subtitle2'
-                color='text.secondary'
-                sx={{ mb: 0.5 }}
+                sx={{
+                  color: 'text.secondary',
+                  mb: 0.5,
+                }}
               >
                 {BAG_CATEGORY_LABELS[categoryKey] || category}
               </Typography>
@@ -532,9 +559,7 @@ const MarketStep: React.FC<MarketStepProps> = ({
           );
         })}
       </Paper>
-
       <Divider />
-
       {/* Market Section */}
       <Box>
         <Typography variant='h6' gutterBottom>
@@ -549,12 +574,14 @@ const MarketStep: React.FC<MarketStepProps> = ({
           size='small'
           fullWidth
           sx={{ mb: 2 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -591,7 +618,6 @@ const MarketStep: React.FC<MarketStepProps> = ({
           );
         })}
       </Box>
-
       <Alert severity='info'>
         Você pode editar o dinheiro inicial manualmente se o mestre permitir.
         Itens adicionados com o botão + não descontam do dinheiro.

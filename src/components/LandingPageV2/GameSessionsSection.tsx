@@ -62,7 +62,14 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
             marginTop: 2,
           }}
         >
-          <Stack spacing={2} alignItems='center' textAlign='center' py={2}>
+          <Stack
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+              textAlign: 'center',
+              py: 2,
+            }}
+          >
             <TableRestaurantIcon
               sx={{ fontSize: 48, color: 'primary.main', opacity: 0.7 }}
             />
@@ -75,8 +82,11 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
               </Typography>
               <Typography
                 variant='body2'
-                color='text.secondary'
-                sx={{ maxWidth: 400, mx: 'auto' }}
+                sx={{
+                  color: 'text.secondary',
+                  maxWidth: 400,
+                  mx: 'auto',
+                }}
               >
                 Crie mesas virtuais, convide jogadores, gerencie encontros e
                 role dados em tempo real com seus amigos.
@@ -125,12 +135,21 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
         >
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
-            alignItems={{ xs: 'flex-start', sm: 'center' }}
-            justifyContent='space-between'
             spacing={2}
+            sx={{
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+            }}
           >
             <Box>
-              <Stack direction='row' alignItems='center' spacing={1} mb={1}>
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  alignItems: 'center',
+                  mb: 1,
+                }}
+              >
                 <Chip
                   label={
                     activeSession.status === GameTableStatus.ACTIVE
@@ -152,7 +171,12 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
                 {activeSession.name}
               </Typography>
               {activeSession.description && (
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {activeSession.description}
                 </Typography>
               )}
@@ -203,9 +227,11 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
       >
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'flex-start', sm: 'center' }}
-          justifyContent='space-between'
           spacing={2}
+          sx={{
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            justifyContent: 'space-between',
+          }}
         >
           <Box>
             <Typography
@@ -214,7 +240,12 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
             >
               Mesas Virtuais
             </Typography>
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {lastTable
                 ? `Última mesa: ${lastTable.name}`
                 : 'Crie uma mesa e convide seus jogadores para jogar online'}
