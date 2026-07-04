@@ -10,7 +10,11 @@ import { Spell } from '@/interfaces/Spells';
 import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
-import { getWeaponSkill, getSkillAttackBonus } from './weaponSkill';
+import {
+  getWeaponSkill,
+  getSkillAttackBonus,
+  getWeaponDisplayDamage,
+} from './weaponSkill';
 import { applyPowersOrder } from './powers/applyPowersOrder';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
 import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
@@ -194,7 +198,9 @@ const preparePDF: (
       ? `${weapon.nome} (${weapon.customSkill})`
       : weapon.nome;
     weaponNameField.setText(sanitizeForWinAnsi(weaponNameDisplay));
-    weaponDamageField.setText(sanitizeForWinAnsi(weapon.dano));
+    weaponDamageField.setText(
+      sanitizeForWinAnsi(getWeaponDisplayDamage(weapon, sheet.atributos))
+    );
     weaponCritField.setText(sanitizeForWinAnsi(weapon.critico));
     weaponTypeField.setText(sanitizeForWinAnsi(weapon.tipo));
     weaponRangeField.setText(sanitizeForWinAnsi(weapon.alcance));

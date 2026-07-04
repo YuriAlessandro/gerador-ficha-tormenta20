@@ -4,6 +4,8 @@ import Equipment, {
 } from '../interfaces/Equipment';
 import Skill, { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
+import { Atributo } from '../data/systems/tormenta20/atributos';
+import { parseDualModeDamage } from './diceRoller';
 
 export function getWeaponSkill(weapon: Equipment): Skill {
   if (weapon.customSkill) return weapon.customSkill;
@@ -44,4 +46,33 @@ export function resolveDamageAttribute(
   if (action?.damageAttribute) return action.damageAttribute;
   if (weapon.damageAttribute) return weapon.damageAttribute;
   return isWeaponMelee(weapon) ? 'Força' : 'Nenhum';
+}
+
+/**
+ * Dano exibido na ficha para a linha principal da arma. Replica exatamente a
+ * lógica de `Weapon.tsx`: para armas melee não-dual, anexa o modificador de
+ * atributo (normalmente Força) ao `dano`; armas à distância e de modo duplo
+ * mantêm o `dano` cru. O modificador de atributo NÃO está embutido em
+ * `weapon.dano` (só bônus fixos de poder/encantamento), então anexar aqui não
+ * duplica. Usado tanto na exibição quanto na exportação do PDF para garantir
+ * que os dois mostrem o mesmo valor.
+ */
+export function getWeaponDisplayDamage(
+  weapon: Equipment,
+  atributos: CharacterAttributes
+): string {
+  const dano = weapon.dano ?? '';
+  if (!dano) return dano;
+
+  const dualMode = parseDualModeDamage(dano);
+  if (!isWeaponMelee(weapon) || dualMode) return dano;
+
+  const attr = resolveDamageAttribute(weapon);
+  let mod = 0;
+  if (attr !== 'Nenhum') {
+    const value = atributos[attr as Atributo]?.value;
+    mod = typeof value === 'number' ? value : atributos.Força.value;
+  }
+  const modStr = mod >= 0 ? `+${mod}` : `${mod}`;
+  return `${dano}${modStr}`;
 }

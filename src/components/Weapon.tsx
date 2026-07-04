@@ -33,8 +33,8 @@ import {
 import {
   getWeaponSkill,
   getSkillAttackBonus,
-  isWeaponMelee,
   resolveDamageAttribute,
+  getWeaponDisplayDamage,
 } from '../functions/weaponSkill';
 import {
   stepUpDamage,
@@ -154,7 +154,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   );
   const baseAtk = atkBonus ? atkBonus + baseModAtk : baseModAtk;
 
-  const isMelee = isWeaponMelee(equipment);
   // Resolve the damage modifier given an attribute choice. 'Nenhum' adds 0.
   // Otherwise, returns `atributos[attr].value`. Falls back to `modDano`
   // (Força) when the attribute lookup fails for any reason.
@@ -239,13 +238,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
 
   // Total de ataque extra aplicável no modo de arremesso.
   const thrownAtkExtra = thrownAttackBonus + strengthThrowDelta;
-
-  // Resolve the default-display damage attribute for the main weapon row
-  // (without any specific action picked).
-  const baseDamageAttribute = resolveDamageAttribute(equipment);
-  const damageModifier = damageModForAttribute(baseDamageAttribute);
-  const damageModStr =
-    damageModifier >= 0 ? `+${damageModifier}` : `${damageModifier}`;
 
   // Flat damage bonus already baked into the weapon's main `dano` (from powers
   // and/or enchantments), derived as the delta over the clean base. Attack-mode
@@ -389,7 +381,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     return effects;
   }, [sheetBonuses, nome, equipment.weaponTags, equipment.arremesso]);
 
-  const damage = !isMelee || dualMode ? dano : `${dano}${damageModStr}`;
+  const damage = getWeaponDisplayDamage(equipment, atributos);
 
   const performWeaponRoll = useCallback(
     (selectedDano: string, ctx: RollContext) => {
