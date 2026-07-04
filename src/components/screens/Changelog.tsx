@@ -83,6 +83,16 @@ const Changelog: React.FC = () => {
                   armaduras e escudos.
                 </li>
                 <li>
+                  <strong>Novo:</strong> No <strong>Escudo do Mestre</strong> da
+                  mesa virtual, agora é possível{' '}
+                  <strong>arrastar e soltar</strong> os painéis para
+                  reorganizá-los (no computador): arraste pela alça no cabeçalho
+                  do painel e solte em um espaço vazio para movê-lo, ou solte
+                  sobre outro painel para trocar os conteúdos de lugar — cada
+                  espaço mantém seu tamanho. Antes era preciso remover e recriar
+                  o painel para mudá-lo de posição.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Em{' '}
                   <strong>Meus Personagens</strong>, criar uma nova ficha ou
                   ameaça estando dentro de uma <strong>pasta</strong> agora
@@ -205,6 +215,13 @@ const Changelog: React.FC = () => {
                   <strong>2d6+4</strong>), exatamente como aparece na tela.
                   Antes o PDF mostrava apenas os dados de dano sem o bônus (por
                   exemplo, <strong>2d6</strong>).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em{' '}
+                  <strong>Meus Personagens</strong>, ao criar uma ficha ou
+                  ameaça estando dentro de uma pasta, a criação agora aparece na
+                  pasta imediatamente — antes era preciso recarregar a página
+                  para vê-la.
                 </li>
               </ul>
               <h3>4.23</h3>
