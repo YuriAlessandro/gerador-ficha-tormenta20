@@ -162,6 +162,13 @@ const Changelog: React.FC = () => {
                   ao requisito de raça (por exemplo, um Eiradaan, Duende ou
                   Sílfide). Antes eles eram omitidos do assistente de evolução.
                 </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>perícias treinadas do melhor amigo</strong> do{' '}
+                  <strong>Treinador</strong> agora somam o bônus de treinamento
+                  (+2, +4 ou +6 conforme o nível), que antes ficava de fora — o
+                  parceiro exibia um total menor do que o correto.
+                </li>
               </ul>
               <h3>4.23</h3>
               <ul>
