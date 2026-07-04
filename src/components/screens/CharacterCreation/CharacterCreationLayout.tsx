@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, useTheme, useMediaQuery } from '@mui/material';
+import { Box } from '@mui/material';
 import { Casino as CasinoIcon, Edit as EditIcon } from '@mui/icons-material';
 import ModeCard from './ModeCard';
 import './characterCreation.css';
@@ -19,98 +19,89 @@ const CharacterCreationLayout: React.FC<CharacterCreationLayoutProps> = ({
   randomFormContent,
   manualFormContent,
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const handleSelectRandom = () => onModeChange('random');
+  const handleSelectManual = () => onModeChange('manual');
+  const handleBackToSelection = () => onModeChange('selection');
 
-  const handleSelectRandom = () => {
-    onModeChange('random');
-  };
-
-  const handleSelectManual = () => {
-    onModeChange('manual');
-  };
-
-  const handleBackToSelection = () => {
-    onModeChange('selection');
-  };
-
-  // Initial state: show both cards
+  // Initial state: two clearly differentiated cards.
   if (mode === 'selection') {
     return (
       <Box className='mode-cards-container'>
         <ModeCard
           icon={<EditIcon sx={{ fontSize: 'inherit' }} />}
           title='Nova Ficha'
-          shortTitle='NOVA'
+          shortTitle='Nova Ficha'
           description='Você escolhe cada opção passo a passo: raça, classe, atributos, poderes e magias.'
-          isMinimized={false}
-          position='left'
+          speedLabel='Passo a passo'
+          audienceLabel='Controle total'
           onClick={handleSelectManual}
-          variant='default'
+          accent='edit'
         />
         <ModeCard
           icon={<CasinoIcon sx={{ fontSize: 'inherit' }} />}
           title='Ficha Aleatória'
-          shortTitle='ALEAT.'
-          description='O sistema escolhe raça, classe, atributos, e poderes aleatoriamente. Ideal para jogar rápido!'
-          isMinimized={false}
-          position='right'
+          shortTitle='Ficha Aleatória'
+          description='O sistema escolhe raça, classe, atributos e poderes aleatoriamente. Ideal para jogar rápido!'
+          speedLabel='Instantâneo'
+          audienceLabel='Ideal para começar'
           onClick={handleSelectRandom}
-          variant='default'
+          accent='random'
         />
       </Box>
     );
   }
 
-  // Random mode selected: form on left, minimized card on right
-  if (mode === 'random') {
-    return (
-      <Box
-        className={`mode-selected-layout random-selected ${
-          isMobile ? '' : 'slide-in-left'
-        }`}
-      >
-        <Box className='creation-form-container'>{randomFormContent}</Box>
-        <ModeCard
-          icon={<CasinoIcon sx={{ fontSize: 'inherit' }} />}
-          title='Ficha Aleatória'
-          shortTitle='ALEAT.'
-          description=''
-          isMinimized
-          position='right'
-          onClick={handleSelectRandom}
-          onBack={handleBackToSelection}
-          variant='primary'
-        />
-      </Box>
-    );
-  }
+  // Selected state: each collapsed card keeps ITS OWN side (matching where it sat
+  // in the selection screen) — Ficha Aleatória on the right, Nova Ficha on the
+  // left — so the transition preserves spatial continuity.
+  const isRandom = mode === 'random';
 
-  // Manual mode selected: minimized card on left, form on right
-  if (mode === 'manual') {
-    return (
-      <Box
-        className={`mode-selected-layout manual-selected ${
-          isMobile ? '' : 'slide-in-right'
-        }`}
-      >
-        <ModeCard
-          icon={<EditIcon sx={{ fontSize: 'inherit' }} />}
-          title='Nova Ficha'
-          shortTitle='NOVA'
-          description=''
-          isMinimized
-          position='left'
-          onClick={handleSelectManual}
-          onBack={handleBackToSelection}
-          variant='primary'
-        />
-        <Box className='creation-form-container'>{manualFormContent}</Box>
-      </Box>
-    );
-  }
+  const collapsedCard = (
+    <ModeCard
+      icon={
+        isRandom ? (
+          <CasinoIcon sx={{ fontSize: 'inherit' }} />
+        ) : (
+          <EditIcon sx={{ fontSize: 'inherit' }} />
+        )
+      }
+      title={isRandom ? 'Ficha Aleatória' : 'Nova Ficha'}
+      shortTitle={isRandom ? 'Ficha Aleatória' : 'Nova Ficha'}
+      isMinimized
+      onClick={isRandom ? handleSelectRandom : handleSelectManual}
+      onBack={handleBackToSelection}
+      accent={isRandom ? 'random' : 'edit'}
+    />
+  );
 
-  return null;
+  const form = (
+    <Box className='creation-form-container'>
+      {isRandom ? randomFormContent : manualFormContent}
+    </Box>
+  );
+
+  return (
+    <Box
+      key={mode}
+      className={`mode-selected-layout ${
+        isRandom
+          ? 'random-selected slide-in-right'
+          : 'manual-selected slide-in-left'
+      }`}
+    >
+      {isRandom ? (
+        <>
+          {form}
+          {collapsedCard}
+        </>
+      ) : (
+        <>
+          {collapsedCard}
+          {form}
+        </>
+      )}
+    </Box>
+  );
 };
 
 export default CharacterCreationLayout;

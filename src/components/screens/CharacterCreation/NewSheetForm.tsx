@@ -13,7 +13,6 @@ import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import SelectOptions from '../../../interfaces/SelectedOptions';
 import { SupplementId } from '../../../types/supplement.types';
-import SupplementsIndicator from './SupplementsIndicator';
 import {
   allDivindadeNames,
   divindadeDisplayNames,
@@ -41,8 +40,14 @@ interface NewSheetFormProps {
   onSelectedOptionsChange: (options: SelectOptions) => void;
   onCreateSheet: () => void;
   userSupplements: SupplementId[];
-  isAuthenticated: boolean;
-  onConfigureSupplements: () => void;
+  /**
+   * Props de suplementos mantidas por compatibilidade. A UI de suplementos agora
+   * vive no ActiveContentBar, então estas são opcionais e não são renderizadas.
+   */
+  /* eslint-disable react/no-unused-prop-types */
+  isAuthenticated?: boolean;
+  onConfigureSupplements?: () => void;
+  /* eslint-enable react/no-unused-prop-types */
 }
 
 const formatOptionLabel = (option: SelectedOption) => (
@@ -82,8 +87,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
   onSelectedOptionsChange,
   onCreateSheet,
   userSupplements,
-  isAuthenticated,
-  onConfigureSupplements,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -289,18 +292,11 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
       <Typography
         variant='body2'
         color='text.secondary'
-        sx={{ mb: 2, fontStyle: 'italic' }}
+        sx={{ mb: 2.5, fontStyle: 'italic' }}
       >
         Escolha as opções do seu personagem. Você poderá fazer mais escolhas no
         passo a passo.
       </Typography>
-
-      {/* System & Supplements Indicator */}
-      <SupplementsIndicator
-        userSupplements={userSupplements}
-        isAuthenticated={isAuthenticated}
-        onConfigureSupplements={onConfigureSupplements}
-      />
 
       <Grid container spacing={2}>
         {/* Race Selection - NO "Aleatoria" */}

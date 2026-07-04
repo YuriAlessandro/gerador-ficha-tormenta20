@@ -19,7 +19,6 @@ import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
 import SelectOptions from '../../../interfaces/SelectedOptions';
 import { SupplementId } from '../../../types/supplement.types';
-import SupplementsIndicator from './SupplementsIndicator';
 import {
   allDivindadeNames,
   divindadeDisplayNames,
@@ -48,14 +47,20 @@ interface RandomSheetFormProps {
   onSelectedOptionsChange: (options: SelectOptions) => void;
   onGenerate: () => void;
   userSupplements: SupplementId[];
-  isAuthenticated: boolean;
-  onConfigureSupplements: () => void;
+  /**
+   * Props de suplementos mantidas por compatibilidade (ex.: premium
+   * HomebrewTestSheetPage). A UI de suplementos agora vive no ActiveContentBar,
+   * então estas são opcionais e não são mais renderizadas aqui.
+   */
+  /* eslint-disable react/no-unused-prop-types */
+  isAuthenticated?: boolean;
+  onConfigureSupplements?: () => void;
+  hideSupplementsConfig?: boolean;
+  /* eslint-enable react/no-unused-prop-types */
   /** Trava a raça a um único valor (lista mostra só ele; select desabilitado). */
   lockedRace?: string;
   /** Trava a classe a um único valor (lista mostra só ele; select desabilitado). */
   lockedClass?: string;
-  /** Esconde a UI de configuração de suplementos (suplementos fixados externamente). */
-  hideSupplementsConfig?: boolean;
 }
 
 const formatOptionLabel = (option: SelectedOption) => (
@@ -95,11 +100,8 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
   onSelectedOptionsChange,
   onGenerate,
   userSupplements,
-  isAuthenticated,
-  onConfigureSupplements,
   lockedRace,
   lockedClass,
-  hideSupplementsConfig,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -336,20 +338,11 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
       <Typography
         variant='body2'
         color='text.secondary'
-        sx={{ mb: 2, fontStyle: 'italic' }}
+        sx={{ mb: 2.5, fontStyle: 'italic' }}
       >
         Configure os parâmetros (opcional). Deixe como &ldquo;Aleatória&rdquo;
         para uma ficha totalmente aleatória.
       </Typography>
-
-      {/* System & Supplements Indicator */}
-      {!hideSupplementsConfig && (
-        <SupplementsIndicator
-          userSupplements={userSupplements}
-          isAuthenticated={isAuthenticated}
-          onConfigureSupplements={onConfigureSupplements}
-        />
-      )}
 
       <Grid container spacing={2}>
         {/* Race Selection */}

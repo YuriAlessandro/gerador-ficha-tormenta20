@@ -1,26 +1,25 @@
 import React from 'react';
+import { Box, Typography, Chip, useTheme, alpha } from '@mui/material';
 import {
-  Box,
-  Typography,
-  Button,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
-import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
+  ArrowForward as ArrowForwardIcon,
+  SwapHoriz as SwapHorizIcon,
+} from '@mui/icons-material';
 import './characterCreation.css';
 
-export type ModePosition = 'left' | 'right';
+export type ModeAccent = 'edit' | 'random';
 
 interface ModeCardProps {
   icon: React.ReactNode;
   title: string;
   shortTitle: string;
-  description: string;
-  isMinimized: boolean;
-  position: ModePosition;
+  description?: string;
+  /** Small chips giving a real basis to choose (speed / audience). */
+  speedLabel?: string;
+  audienceLabel?: string;
+  isMinimized?: boolean;
   onClick: () => void;
   onBack?: () => void;
-  variant?: 'default' | 'primary' | 'secondary';
+  accent?: ModeAccent;
 }
 
 const ModeCard: React.FC<ModeCardProps> = ({
@@ -28,163 +27,137 @@ const ModeCard: React.FC<ModeCardProps> = ({
   title,
   shortTitle,
   description,
-  isMinimized,
-  position: _position,
+  speedLabel,
+  audienceLabel,
+  isMinimized = false,
   onClick,
   onBack,
-  variant = 'default',
+  accent = 'edit',
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
 
-  const handleClick = () => {
-    if (isMinimized && onBack) {
-      onBack();
-    } else if (!isMinimized) {
+  // Each mode gets a distinct identity color so the two cards never read as twins.
+  const accentColor =
+    accent === 'random' ? theme.palette.info.main : theme.palette.primary.main;
+
+  const handleActivate = () => {
+    if (isMinimized) {
+      onBack?.();
+    } else {
       onClick();
     }
   };
 
-  const getVariantClass = () => {
-    if (variant === 'primary') return 'primary';
-    if (variant === 'secondary') return 'secondary';
-    return isDark ? 'dark' : 'light';
-  };
-
-  const getBackgroundStyle = () => {
-    if (variant === 'primary') {
-      return `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`;
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleActivate();
     }
-    if (variant === 'secondary') {
-      return `linear-gradient(135deg, #424242 0%, #212121 100%)`;
-    }
-    if (isDark) {
-      return 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)';
-    }
-    return 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)';
   };
 
-  const getBorderColor = () => {
-    if (variant === 'primary') return theme.palette.primary.dark;
-    if (isDark) return '#404040';
-    return '#e0e0e0';
-  };
+  const cardBackground = isDark
+    ? `linear-gradient(160deg, ${alpha(accentColor, 0.1)} 0%, ${
+        theme.palette.background.paper
+      } 55%)`
+    : `linear-gradient(160deg, ${alpha(accentColor, 0.06)} 0%, ${
+        theme.palette.background.paper
+      } 55%)`;
 
-  const getHoverBorderColor = () => {
-    if (variant === 'primary') return theme.palette.primary.main;
-    if (isDark) return '#505050';
-    return '#bdbdbd';
-  };
+  const iconChip = (
+    <Box
+      className='mode-card-icon'
+      sx={{
+        backgroundColor: alpha(accentColor, isDark ? 0.22 : 0.12),
+        color: accentColor,
+      }}
+    >
+      {icon}
+    </Box>
+  );
 
-  const getDescriptionColor = () => {
-    if (variant === 'primary' || variant === 'secondary') {
-      return 'rgba(255, 255, 255, 0.85)';
-    }
-    if (isDark) return '#b0b0b0';
-    return '#666666';
-  };
-
-  const getButtonColor = () => {
-    if (variant === 'primary') return '#ffffff';
-    if (variant === 'secondary' || isDark) return '#ffffff';
-    return 'inherit';
-  };
-
-  const getButtonHoverBg = () => {
-    if (variant === 'primary' || variant === 'secondary' || isDark) {
-      return 'rgba(255, 255, 255, 0.1)';
-    }
-    return undefined;
-  };
+  const ariaLabel = isMinimized
+    ? `Trocar modo de criação (atual: ${title})`
+    : `Selecionar: ${title}`;
 
   return (
     <Box
-      className={`mode-card ${
-        isMinimized ? 'minimized' : ''
-      } ${getVariantClass()}`}
-      onClick={handleClick}
+      className={`mode-card ${isMinimized ? 'minimized' : ''}`}
+      role='button'
+      tabIndex={0}
+      aria-label={ariaLabel}
+      onClick={handleActivate}
+      onKeyDown={handleKeyDown}
       sx={{
-        background: getBackgroundStyle(),
-        color:
-          variant === 'primary' || variant === 'secondary' || isDark
-            ? '#ffffff'
-            : 'inherit',
-        border: `1px solid ${getBorderColor()}`,
-        '&:hover': {
-          borderColor: getHoverBorderColor(),
-          boxShadow:
-            variant === 'primary'
-              ? `0 8px 24px ${theme.palette.primary.main}4D`
-              : undefined,
+        background: cardBackground,
+        border: `1px solid ${
+          isDark ? theme.palette.divider : alpha(accentColor, 0.25)
+        }`,
+        borderLeft: `3px solid ${accentColor}`,
+        '@media (hover: hover) and (pointer: fine)': {
+          '&:hover': {
+            borderColor: alpha(accentColor, 0.6),
+          },
         },
       }}
     >
-      <Box className='mode-card-icon'>{icon}</Box>
+      {iconChip}
 
-      <Typography
-        className='mode-card-title'
-        variant='h6'
-        component='h3'
-        sx={{
-          fontSize: isMinimized ? '0.75rem' : { xs: '1rem', sm: '1.25rem' },
-        }}
-      >
+      <Typography className='mode-card-title' component='h3'>
         {isMinimized ? shortTitle : title}
       </Typography>
 
-      <Typography
-        className='mode-card-description'
-        variant='body2'
-        sx={{
-          color: getDescriptionColor(),
-        }}
-      >
-        {description}
-      </Typography>
+      {!isMinimized && (speedLabel || audienceLabel) && (
+        <Box className='mode-card-meta'>
+          {speedLabel && (
+            <Chip
+              label={speedLabel}
+              size='small'
+              sx={{
+                height: 22,
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                backgroundColor: alpha(accentColor, isDark ? 0.22 : 0.12),
+                color: accentColor,
+              }}
+            />
+          )}
+          {audienceLabel && (
+            <Chip
+              label={audienceLabel}
+              size='small'
+              variant='outlined'
+              sx={{ height: 22, fontSize: '0.7rem' }}
+            />
+          )}
+        </Box>
+      )}
+
+      {!isMinimized && description && (
+        <Typography
+          className='mode-card-description'
+          variant='body2'
+          color='text.secondary'
+        >
+          {description}
+        </Typography>
+      )}
 
       {!isMinimized && (
-        <Button
-          className='mode-card-button'
-          variant={variant === 'primary' ? 'contained' : 'outlined'}
-          size={isMobile ? 'medium' : 'small'}
-          endIcon={<ArrowForwardIcon />}
-          sx={{
-            mt: 2,
-            color: getButtonColor(),
-            borderColor:
-              variant === 'primary' || variant === 'secondary' || isDark
-                ? 'rgba(255, 255, 255, 0.5)'
-                : undefined,
-            '&:hover': {
-              borderColor:
-                variant === 'primary' || variant === 'secondary' || isDark
-                  ? 'rgba(255, 255, 255, 0.8)'
-                  : undefined,
-              backgroundColor: getButtonHoverBg(),
-            },
-          }}
-        >
-          Começar
-        </Button>
+        <Box className='mode-card-arrow' sx={{ color: accentColor }}>
+          <ArrowForwardIcon fontSize='small' />
+        </Box>
       )}
 
       {isMinimized && (
-        <Button
-          variant='text'
-          size='small'
-          sx={{
-            mt: 1,
-            color: getButtonColor(),
-            fontSize: '0.75rem',
-            textTransform: 'none',
-            '&:hover': {
-              backgroundColor: getButtonHoverBg(),
-            },
-          }}
+        <Box
+          className='mode-card-swap'
+          sx={{ color: 'text.secondary' }}
+          aria-hidden
         >
-          Alterar modo
-        </Button>
+          <SwapHorizIcon sx={{ fontSize: '1rem' }} />
+          <span>Trocar</span>
+        </Box>
       )}
     </Box>
   );

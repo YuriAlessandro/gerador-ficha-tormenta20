@@ -88,7 +88,6 @@ import { MAX_CHARACTERS_LIMIT } from '../../store/slices/sheetStorage/sheetStora
 import { useAuth } from '../../hooks/useAuth';
 import { useContentSupplements } from '../../hooks/useContentSupplements';
 import { getMissingRuntimeSupplements } from '../../functions/contentSources';
-import { HomebrewActivationPanel } from '../../premium';
 import SheetUnavailable from './SheetUnavailable';
 import { useSheets } from '../../hooks/useSheets';
 import { useAlert } from '../../hooks/useDialog';
@@ -115,6 +114,7 @@ import {
   CharacterCreationLayout,
   RandomSheetForm,
   NewSheetForm,
+  ActiveContentBar,
   CreationMode,
 } from './CharacterCreation';
 
@@ -1600,6 +1600,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Tooltip>
             </Box>
 
+            <ActiveContentBar
+              userSupplements={userSupplements}
+              isAuthenticated={isAuthenticated}
+              onConfigureSupplements={handleConfigureSupplements}
+            />
+
             <CharacterCreationLayout
               mode={creationMode}
               onModeChange={handleCreationModeChange}
@@ -1610,8 +1616,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   onSelectedOptionsChange={setSelectedOptions}
                   onGenerate={onClickGenerate}
                   userSupplements={userSupplements}
-                  isAuthenticated={isAuthenticated}
-                  onConfigureSupplements={handleConfigureSupplements}
                 />
               }
               manualFormContent={
@@ -1621,17 +1625,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   onSelectedOptionsChange={setSelectedOptions}
                   onCreateSheet={onClickGenerateEmptySheet}
                   userSupplements={userSupplements}
-                  isAuthenticated={isAuthenticated}
-                  onConfigureSupplements={handleConfigureSupplements}
                 />
               }
             />
-
-            {isAuthenticated && (
-              <Box sx={{ mt: 2, px: { xs: 1, sm: 2 } }}>
-                <HomebrewActivationPanel />
-              </Box>
-            )}
           </Card>
 
           {randomSheet && (
