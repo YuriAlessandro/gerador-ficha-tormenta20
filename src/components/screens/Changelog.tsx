@@ -169,6 +169,14 @@ const Changelog: React.FC = () => {
                   (+2, +4 ou +6 conforme o nível), que antes ficava de fora — o
                   parceiro exibia um total menor do que o correto.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Ao baixar a ficha em{' '}
+                  <strong>PDF</strong>, o <strong>dano</strong> das armas corpo
+                  a corpo agora inclui o modificador de atributo (por exemplo,{' '}
+                  <strong>2d6+4</strong>), exatamente como aparece na tela.
+                  Antes o PDF mostrava apenas os dados de dano sem o bônus (por
+                  exemplo, <strong>2d6</strong>).
+                </li>
               </ul>
               <h3>4.23</h3>
               <ul>
