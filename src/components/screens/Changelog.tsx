@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            03/07/2026 (v4.24).
+            04/07/2026 (v4.24).
           </p>
 
           <p>
@@ -81,6 +81,14 @@ const Changelog: React.FC = () => {
                   <strong>Macabro</strong> (+2 em Intimidação, -2 em Diplomacia)
                   para itens superiores. Agora ela pode ser aplicada a armas,
                   armaduras e escudos.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Em{' '}
+                  <strong>Meus Personagens</strong>, criar uma nova ficha ou
+                  ameaça estando dentro de uma <strong>pasta</strong> agora
+                  salva a criação automaticamente nessa pasta — antes ela sempre
+                  ia para a raiz. Um aviso <strong>Salvando em</strong> indica a
+                  pasta de destino durante a criação.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> Ao evoluir de nível, o poder{' '}
