@@ -310,6 +310,13 @@ function getTreinamentoMarcialBonus(trainerLevel: number): number {
   return 5;
 }
 
+/** Bônus de treinamento em perícias treinadas do melhor amigo, por nível do treinador. */
+export function getCompanionSkillTrainingBonus(trainerLevel: number): number {
+  if (trainerLevel >= 15) return 6;
+  if (trainerLevel >= 7) return 4;
+  return 2;
+}
+
 /** Recalcula todos os stats derivados do parceiro */
 export function calculateCompanionStats(
   companion: CompanionSheet,

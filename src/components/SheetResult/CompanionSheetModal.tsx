@@ -29,6 +29,7 @@ import {
   CompanionTypeDefinition,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTypes';
 import { getCompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import { getCompanionSkillTrainingBonus } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
   Atributo,
   ATTR_ABBREVIATIONS,
@@ -203,6 +204,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   );
 
   const halfTrainerLevel = Math.floor(trainerLevel / 2);
+  const skillTrainingBonus = getCompanionSkillTrainingBonus(trainerLevel);
   const forMod = companion.attributes[Atributo.FORCA];
   const companionAtkBonus = companion.attackBonus || 0;
   const companionDmgBonus = companion.damageBonus || 0;
@@ -280,7 +282,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
     (skillName: string) => {
       const skillAttr = SkillsAttrs[skillName];
       const attrMod = skillAttr ? companion.attributes[skillAttr] : 0;
-      const skillBonus = attrMod + halfTrainerLevel;
+      const skillBonus = attrMod + halfTrainerLevel + skillTrainingBonus;
 
       const d20Roll = rollD20();
       const total = Math.max(1, d20Roll + skillBonus);
@@ -306,7 +308,13 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         displayName
       );
     },
-    [companion.attributes, halfTrainerLevel, showDiceResult, displayName]
+    [
+      companion.attributes,
+      halfTrainerLevel,
+      skillTrainingBonus,
+      showDiceResult,
+      displayName,
+    ]
   );
 
   return (
@@ -637,7 +645,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           {companion.skills.map((skill) => {
             const skillAttr = SkillsAttrs[skill];
             const attrMod = skillAttr ? companion.attributes[skillAttr] : 0;
-            const skillBonus = attrMod + halfTrainerLevel;
+            const skillBonus = attrMod + halfTrainerLevel + skillTrainingBonus;
             const bonusStr =
               skillBonus >= 0 ? `+${skillBonus}` : `${skillBonus}`;
 
