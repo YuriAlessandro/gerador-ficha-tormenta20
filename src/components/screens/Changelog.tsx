@@ -97,6 +97,22 @@ const Changelog: React.FC = () => {
                   PM para 2º círculo).
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> A página de{' '}
+                  <strong>Criar Nova Ficha</strong> foi redesenhada: os dois
+                  modos, <strong>Nova Ficha</strong> (passo a passo) e{' '}
+                  <strong>Ficha Aleatória</strong>, agora têm identidade visual
+                  própria, com um resumo do que esperar de cada um, e as
+                  transições ao escolher um modo ficaram mais suaves.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os{' '}
+                  <strong>suplementos ativos</strong> e os{' '}
+                  <strong>homebrews ativos</strong> agora ficam reunidos em um
+                  único painel recolhível de <strong>Conteúdo ativo</strong> no
+                  topo da criação de ficha, em vez de espalhados pela tela, com
+                  layout ajustado para telas de celular.
+                </li>
+                <li>
                   <strong>Correção:</strong> Os poderes de origem{' '}
                   <strong>Legionário</strong> e{' '}
                   <strong>Desertor da Supremacia</strong> agora aplicam seus
