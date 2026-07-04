@@ -34,9 +34,17 @@ Based on the git log, create a new `<h3>$ARGUMENTS</h3>` section with `<ul><li>`
 
 Use these categories:
 - **Novo:** — for new features
-- **Correção:** — for bug fixes
 - **Melhoria:** — for improvements/enhancements
+- **Correção:** — for bug fixes
 - **Remoção:** — for removed features
+
+**IMPORTANT — ordem dos itens:** Dentro de cada versão (`<h3>`), os `<li>` DEVEM ser
+agrupados e ordenados nesta ordem: **Novo → Melhoria → Correção → Remoção**. Sempre
+liste todos os itens `Novo` primeiro, depois todos os `Melhoria`, depois todos os
+`Correção`, e por fim `Remoção`. Esta regra vale para toda edição do `Changelog.tsx`,
+seja criando uma nova versão ou adicionando itens a uma versão existente — nunca
+intercale categorias fora dessa ordem. (Não é necessário reordenar entradas antigas
+já existentes; a regra vale para o conteúdo novo que você adicionar.)
 
 Also update the "Última atualização em" date in the introductory paragraph to today's date in DD/MM/YYYY format.
 
