@@ -380,10 +380,14 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const handleCreateNewSheet = () => {
+    // Carry the open folder so the new sheet is created inside it
+    const folderInfo = openFolder
+      ? { folderId: openFolder.id, folderName: openFolder.name }
+      : undefined;
     if (activeTab === 0) {
-      history.push('/criar-ficha');
+      history.push('/criar-ficha', { folderInfo });
     } else {
-      history.push('/gerador-ameacas');
+      history.push('/gerador-ameacas', { folderInfo });
     }
   };
 

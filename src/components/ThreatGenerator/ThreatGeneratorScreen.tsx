@@ -15,6 +15,7 @@ import {
   useTheme,
   useMediaQuery,
   IconButton,
+  Chip,
 } from '@mui/material';
 import type { StepIconProps } from '@mui/material/StepIcon';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -28,6 +29,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
+import FolderIcon from '@mui/icons-material/Folder';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import SheetsService from '@/services/sheets.service';
@@ -53,6 +55,7 @@ import {
 } from '../../functions/threatGenerator';
 import { saveThreat } from '../../store/slices/threatStorage';
 import { RootState } from '../../store';
+import { FolderInfo } from './ThreatViewCloudWrapper';
 import StepGeneral from './steps/StepGeneral';
 import StepAttributesSkills from './steps/StepAttributesSkills';
 import StepAttacks from './steps/StepAttacks';
@@ -139,6 +142,8 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSavedToCloud, setIsSavedToCloud] = useState(false);
   const [cloudThreatId, setCloudThreatId] = useState<string | null>(null);
+  // Folder context from MyCharactersPage — new threats are created inside it
+  const [targetFolder, setTargetFolder] = useState<FolderInfo | null>(null);
   const [threat, setThreat] = useState<Partial<ThreatSheet>>({
     id: generateThreatId(),
     attributes: createDefaultAttributes(),
@@ -192,6 +197,11 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   // Check for edit mode on component mount
   React.useEffect(() => {
     const locationState = location.state as any;
+
+    // Capture folder context before the edit flows clear location.state
+    if (locationState?.folderInfo) {
+      setTargetFolder(locationState.folderInfo as FolderInfo);
+    }
 
     // Cloud threat edit with full data (from ThreatViewCloudWrapper)
     if (locationState?.cloudThreat?.sheetData) {
@@ -338,6 +348,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
           isThreat: true,
         } as any,
         image: completeThreat.imageUrl,
+        folderId: targetFolder?.folderId ?? undefined,
       });
 
       if (result.type.endsWith('/fulfilled')) {
@@ -498,6 +509,19 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
                           }`
                         : 'Crie inimigos e NPCs seguindo as regras do Tormenta 20'}
                     </Typography>
+                    {targetFolder && !cloudThreatId && (
+                      <Chip
+                        icon={<FolderIcon />}
+                        label={`Salvando em: ${targetFolder.folderName}`}
+                        size='small'
+                        sx={{
+                          mt: 1,
+                          bgcolor: 'rgba(255, 255, 255, 0.2)',
+                          color: 'white',
+                          '& .MuiChip-icon': { color: 'white' },
+                        }}
+                      />
+                    )}
                   </Box>
                   <IconButton
                     onClick={handleViewHistory}

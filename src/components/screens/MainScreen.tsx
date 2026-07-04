@@ -39,6 +39,7 @@ import {
   Favorite as FavoriteIcon,
   Article as ArticleIcon,
   Subject as SubjectIcon,
+  Folder as FolderIcon,
 } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import React from 'react';
@@ -110,6 +111,7 @@ import { applyDuendeCustomization } from '../../data/systems/tormenta20/herois-d
 import { applyMoreauCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import Skill from '../../interfaces/Skills';
 import SheetLimitDialog from '../common/SheetLimitDialog';
+import { FolderInfo } from '../ThreatGenerator/ThreatViewCloudWrapper';
 import {
   CharacterCreationLayout,
   RandomSheetForm,
@@ -262,7 +264,8 @@ const updateSheetInHistoric = (updatedSheet: CharacterSheet) => {
 const saveSheetToDatabase = async (
   sheet: CharacterSheet,
   isAuthenticated: boolean,
-  createSheetAction: (request: CreateSheetRequest) => Promise<unknown>
+  createSheetAction: (request: CreateSheetRequest) => Promise<unknown>,
+  folderId?: string | null
 ) => {
   if (!isAuthenticated) return;
 
@@ -277,6 +280,7 @@ const saveSheetToDatabase = async (
       } as unknown as CreateSheetRequest['sheetData'],
       image: sheet.imageUrl,
       description: `Personagem gerado automaticamente (Nível ${sheet.nivel})`,
+      folderId: folderId ?? undefined,
     };
 
     // Use Redux action instead of direct service call
@@ -395,7 +399,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   // Use ref to bypass navigation blocking immediately without waiting for state updates
   const allowNavigationRef = React.useRef(false);
 
-  const location = useLocation<{ cloudSheet?: any }>();
+  const location = useLocation<{ cloudSheet?: any; folderInfo?: FolderInfo }>();
+
+  // Capture folder context on mount (location.state is cleared by history.replace
+  // in the cloud-sheet edit flow, so it must be read via lazy initializer)
+  const [targetFolder] = React.useState<FolderInfo | null>(
+    () => location.state?.folderInfo ?? null
+  );
 
   // Get races and classes based on user's enabled supplements
   // Default to TORMENTA20_CORE for non-authenticated users
@@ -782,7 +792,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       await saveSheetToDatabase(
         randomSheet,
         isAuthenticated,
-        createSheetAction
+        createSheetAction,
+        isNewSheet ? targetFolder?.folderId : null
       );
       setSheetSavedToCloud(true);
       showAlert(
@@ -1627,6 +1638,14 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
           {randomSheet && (
             <Card sx={{ p: 2, mb: 2 }}>
+              {targetFolder && !cloudSheetId && (
+                <Chip
+                  icon={<FolderIcon />}
+                  label={`Salvando em: ${targetFolder.folderName}`}
+                  size='small'
+                  sx={{ mb: 1 }}
+                />
+              )}
               <Stack
                 spacing={1}
                 direction={isMobile ? 'column' : 'row'}
