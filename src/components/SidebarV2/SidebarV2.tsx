@@ -46,7 +46,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-const APP_VERSION = '4.24.1';
+const APP_VERSION = '4.24.2';
 const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
 interface SidebarV2Props {
