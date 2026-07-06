@@ -16,6 +16,8 @@ import { rehydrateSheet } from '../../functions/sheetPayloadOptimizer';
 import { normalizeSheet } from '../../functions/sheetNormalizer';
 import { convertToFoundry } from '../../2foundry';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import Bag from '../../interfaces/Bag';
+import { BagEquipments } from '../../interfaces/Equipment';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
@@ -110,6 +112,93 @@ describe('normalizeSheet - fichas sem campos obrigatórios', () => {
     expect(sheet.classe.powers).toEqual([]);
     expect(sheet.classe.periciasbasicas).toEqual([]);
     expect(sheet.classe.periciasrestantes).toEqual({ qtd: 0, list: [] });
+  });
+
+  it('saneia elementos corrompidos dentro dos arrays', () => {
+    const sheet = {
+      classe: {
+        name: 'Guerreiro',
+        abilities: [
+          null,
+          { name: 'Ataque Especial' }, // sem nivel → vira nivel 1
+          { text: 'sem nome' },
+        ],
+      },
+      raca: { name: 'Humano', abilities: [null, { name: 'Versátil' }] },
+      spells: [
+        null,
+        { nome: 'Curar Ferimentos', spellCircle: '1' },
+        { spellCircle: '1' }, // sem nome → Spells.tsx faz nome.localeCompare
+        {
+          nome: 'Com Aprimoramentos',
+          aprimoramentos: [null, { addPm: 1, text: 'ok' }, { addPm: 2 }],
+        },
+      ],
+      generalPowers: [null, { name: 'Poder Válido' }],
+      steps: [
+        null,
+        { label: 'Passo válido', value: [] },
+        { label: 'Sem value' }, // Result faz step.value.map
+      ],
+      sheetActionHistory: [
+        null,
+        { source: { type: 'power', name: 'X' } }, // sem changes
+        {
+          source: { type: 'power', name: 'Y' },
+          changes: [
+            null,
+            { type: 'Attribute', attribute: 'Inexistente', value: 1 },
+            { type: 'Attribute', attribute: 'Força', value: 1 },
+          ],
+        },
+      ],
+      completeSkills: [
+        null,
+        { name: 'Atletismo', modAttr: 'Força' },
+        { name: 'Corrompida', modAttr: 'AtributoInvalido' },
+      ],
+    } as unknown as CharacterSheet;
+
+    normalizeSheet(sheet);
+
+    expect(sheet.classe.abilities).toEqual([
+      { name: 'Ataque Especial', nivel: 1 },
+    ]);
+    expect(sheet.raca.abilities).toEqual([{ name: 'Versátil' }]);
+    expect(sheet.spells.map((s) => s.nome)).toEqual([
+      'Curar Ferimentos',
+      'Com Aprimoramentos',
+    ]);
+    expect(sheet.spells[1].aprimoramentos).toEqual([{ addPm: 1, text: 'ok' }]);
+    expect(sheet.generalPowers).toEqual([{ name: 'Poder Válido' }]);
+    expect(sheet.steps).toEqual([{ label: 'Passo válido', value: [] }]);
+    expect(sheet.sheetActionHistory).toHaveLength(1);
+    expect(sheet.sheetActionHistory[0].changes).toEqual([
+      { type: 'Attribute', attribute: 'Força', value: 1 },
+    ]);
+    expect(sheet.completeSkills).toEqual([
+      { name: 'Atletismo', modAttr: 'Força' },
+      { name: 'Corrompida', modAttr: undefined },
+    ]);
+    // undefined continua undefined (sinal de "reconstruir" no recalc)
+    const semSkills = {
+      classe: { name: 'Guerreiro' },
+    } as unknown as CharacterSheet;
+    normalizeSheet(semSkills);
+    expect(semSkills.completeSkills).toBeUndefined();
+  });
+
+  it('Bag descarta elementos inválidos nos grupos de equipamentos', () => {
+    const bag = Bag.fromStored({
+      equipments: {
+        Arma: [null, { nome: 'Espada longa', group: 'Arma', spaces: 1 }],
+        Armadura: 'corrompido',
+      } as unknown as BagEquipments,
+    });
+
+    expect(bag.equipments.Arma).toHaveLength(1);
+    expect(bag.equipments.Arma[0].nome).toBe('Espada longa');
+    expect(bag.equipments.Armadura).toEqual([]);
   });
 
   it('remove devoto parcial (sem divindade) e preenche poderes', () => {

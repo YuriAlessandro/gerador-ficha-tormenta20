@@ -106,6 +106,24 @@ function calcArmorPenalty(equipments: BagEquipments): number {
  * Mutates the bag in place to assign a stable UUID to every equipment that lacks one.
  * The Bag's runtime invariant is that every stored item has an `id`.
  */
+/**
+ * Remove entradas inválidas (null/não-objeto) dos grupos e força grupos
+ * não-array a virarem arrays vazios. Dados corrompidos de fichas antigas
+ * sobrevivem ao merge do construtor e explodiriam depois em iterações cruas
+ * como `equipments.Arma.map` no recalculateSheet.
+ */
+function sanitizeGroups(bagEquipments: BagEquipments): void {
+  // Grupos têm tipos distintos (Armadura/Escudo são DefenseEquipment[]);
+  // o filter preserva o conteúdo, então o cast é seguro.
+  const groups = bagEquipments as unknown as Record<string, Equipment[]>;
+  BAG_CATEGORIES.forEach((category) => {
+    const list = groups[category];
+    groups[category] = Array.isArray(list)
+      ? list.filter((eq) => eq && typeof eq === 'object')
+      : [];
+  });
+}
+
 export function ensureIds(bagEquipments: BagEquipments): void {
   flattenEquipments(bagEquipments).forEach((equipment) => {
     if (!equipment.id) {
@@ -169,6 +187,7 @@ export default class Bag {
     const base = skipDefaults ? emptyEquipments : defaultEquipments;
     this.equipments = merge(cloneDeep(base), equipments);
 
+    sanitizeGroups(this.equipments);
     ensureIds(this.equipments);
     seedAmmoUnits(this.equipments);
 
@@ -192,6 +211,7 @@ export default class Bag {
 
   public setEquipments(equipments: BagEquipments): void {
     this.equipments = equipments;
+    sanitizeGroups(this.equipments);
     ensureIds(this.equipments);
     seedAmmoUnits(this.equipments);
     this.displayOrder = reconcileDisplayOrder(

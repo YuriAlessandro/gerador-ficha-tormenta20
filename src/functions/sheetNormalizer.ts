@@ -5,6 +5,112 @@ import Bag from '../interfaces/Bag';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 
+const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
+
+/**
+ * Saneia os ELEMENTOS dos arrays da ficha. Garantir que os arrays existem não
+ * basta: entradas nulas ou sem campos obrigatórios (magia sem `nome`, poder
+ * sem `name`, entrada de histórico sem `changes`, step sem `value`) explodem
+ * em `.map`/`.localeCompare`/`.forEach` no render do Result e em ~15 pontos do
+ * recalculateSheet. Descarta o irrecuperável e repara o reparável.
+ */
+function sanitizeSheetElements(sheet: CharacterSheet): void {
+  sheet.spells = sheet.spells
+    .filter((s) => s && typeof s.nome === 'string')
+    .map((s) => {
+      if (s.aprimoramentos === undefined) return s;
+      const aprimoramentos = Array.isArray(s.aprimoramentos)
+        ? s.aprimoramentos.filter((a) => a && typeof a.text === 'string')
+        : [];
+      return { ...s, aprimoramentos };
+    });
+
+  sheet.skills = sheet.skills.filter((s) => typeof s === 'string');
+
+  sheet.generalPowers = sheet.generalPowers.filter(
+    (p) => p && typeof p.name === 'string'
+  );
+  if (sheet.classPowers) {
+    sheet.classPowers = Array.isArray(sheet.classPowers)
+      ? sheet.classPowers.filter((p) => p && typeof p.name === 'string')
+      : [];
+  }
+
+  if (sheet.classe) {
+    sheet.classe.abilities = sheet.classe.abilities
+      .filter((a) => a && typeof a.name === 'string')
+      .map((a) => (typeof a.nivel === 'number' ? a : { ...a, nivel: 1 }));
+    if (sheet.classe.originalAbilities !== undefined) {
+      sheet.classe.originalAbilities = Array.isArray(
+        sheet.classe.originalAbilities
+      )
+        ? sheet.classe.originalAbilities
+            .filter((a) => a && typeof a.name === 'string')
+            .map((a) => (typeof a.nivel === 'number' ? a : { ...a, nivel: 1 }))
+        : undefined;
+    }
+    sheet.classe.powers = sheet.classe.powers.filter(
+      (p) => p && typeof p.name === 'string'
+    );
+  }
+
+  if (sheet.raca) {
+    sheet.raca.abilities = sheet.raca.abilities.filter(
+      (a) => a && typeof a.name === 'string'
+    );
+  }
+
+  if (sheet.devoto) {
+    sheet.devoto.poderes = sheet.devoto.poderes.filter(
+      (p) => p && typeof p.name === 'string'
+    );
+  }
+
+  if (sheet.origin) {
+    sheet.origin.powers = Array.isArray(sheet.origin.powers)
+      ? sheet.origin.powers.filter((p) => p && typeof p.name === 'string')
+      : [];
+  }
+
+  // Result renderiza `step.value.map` e o recalculateSheet lê `step.label`.
+  sheet.steps = sheet.steps.filter(
+    (s) => s && typeof s.label === 'string' && Array.isArray(s.value)
+  );
+
+  sheet.sheetBonuses = sheet.sheetBonuses.filter(
+    (b) => b && b.target && b.modifier
+  );
+
+  // recalculateSheet lê `entry.source.type` e itera `entry.changes`; a
+  // reversão de poderes acessa `atributos[change.attribute]` sem validação.
+  sheet.sheetActionHistory = sheet.sheetActionHistory
+    .filter((e) => e && e.source && Array.isArray(e.changes))
+    .map((e) => ({
+      ...e,
+      changes: e.changes.filter(
+        (c) =>
+          c &&
+          typeof c.type === 'string' &&
+          (c.type !== 'Attribute' || VALID_ATRIBUTOS.includes(c.attribute))
+      ),
+    }));
+
+  // SkillTable acessa `atributos[skill.modAttr].value` quando modAttr é
+  // truthy — um valor corrompido fora dos 6 atributos quebraria o render.
+  // (completeSkills === undefined é válido: sinal de "reconstruir" no recalc.)
+  if (sheet.completeSkills !== undefined) {
+    sheet.completeSkills = Array.isArray(sheet.completeSkills)
+      ? sheet.completeSkills
+          .filter((sk) => sk && typeof sk.name === 'string')
+          .map((sk) =>
+            sk.modAttr && !VALID_ATRIBUTOS.includes(sk.modAttr)
+              ? { ...sk, modAttr: undefined }
+              : sk
+          )
+      : undefined;
+  }
+}
+
 /**
  * Repara invariantes estruturais de uma ficha desserializada (nuvem,
  * localStorage, embed). Documentos antigos ou corrompidos podem chegar sem
@@ -86,6 +192,8 @@ export function normalizeSheet(sheet: CharacterSheet): void {
       sheet.devoto.poderes = [];
     }
   }
+
+  sanitizeSheetElements(sheet);
 }
 
 export default normalizeSheet;
