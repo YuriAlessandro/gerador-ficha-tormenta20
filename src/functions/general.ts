@@ -8,6 +8,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 import { recalculateSheet } from './recalculateSheet';
+import { normalizeSheet } from './sheetNormalizer';
 import { isBonusActive } from './bonusConditions';
 import { stampUsedSupplements } from './contentSources';
 import {
@@ -6526,11 +6527,12 @@ export function restoreSpellPath(
   // Defensivo: fichas malformadas / parcialmente reidratadas podem chegar sem
   // `classe` (ex.: embed anônimo de uma ficha cujo conteúdo não está disponível).
   // Sem isso, o acesso a `sheet.classe.spellPath` lança e quebra o render.
-  if (!sheet.classe) return;
 
-  // Fichas antigas podem ter sido gravadas sem `classe.abilities`. Todo o
-  // pipeline (setup do Arcanista, recalculateSheet, UI) assume o array.
-  if (!sheet.classe.abilities) sheet.classe.abilities = [];
+  // Repara invariantes estruturais (atributos, arrays, size, etc.) de fichas
+  // antigas/corrompidas. Este é o chokepoint de todos os caminhos de carga.
+  normalizeSheet(sheet);
+
+  if (!sheet.classe) return;
 
   // If spellPath is completely missing, try to create it for known spellcasters
   // (e.g., old sheets or stripped exports where spellPath was never serialized)

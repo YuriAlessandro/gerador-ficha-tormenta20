@@ -256,16 +256,22 @@ const SheetViewPage: React.FC = () => {
     if (!sheet) return;
     setLoadingFoundry(true);
 
-    const foundryJSON = convertToFoundry(sheet);
-    const encodedJSON = encodeFoundryJSON(foundryJSON);
+    try {
+      const foundryJSON = convertToFoundry(sheet);
+      const encodedJSON = encodeFoundryJSON(foundryJSON);
 
-    setTimeout(() => {
-      const link = document.createElement('a');
-      link.href = encodedJSON;
-      link.download = `${sheet.nome}.json`;
-      link.click();
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = encodedJSON;
+        link.download = `${sheet.nome}.json`;
+        link.click();
+        setLoadingFoundry(false);
+      }, 300);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao exportar para Foundry:', err);
       setLoadingFoundry(false);
-    }, 300);
+    }
   };
 
   const handleCopySheet = async () => {

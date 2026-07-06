@@ -1,13 +1,20 @@
 /**
- * Regression tests for restoreSpellPath / rehydrateSheet with malformed sheets.
- * Prod crash (jul/2026): "undefined is not an object (evaluating 'tt.abilities.push')"
- * — ficha Arcanista sem subname e sem classe.abilities fazia restoreSpellPath
- * chamar ARCANISTA.setup(), que dava push num array inexistente.
+ * Regression tests for restoreSpellPath / rehydrateSheet / normalizeSheet with
+ * malformed sheets. Prod crashes (jul/2026), mesma ficha corrompida na nuvem:
+ * 1. "undefined is not an object (evaluating 'tt.abilities.push')" — Arcanista
+ *    sem subname e sem classe.abilities fazia restoreSpellPath chamar
+ *    ARCANISTA.setup(), que dava push num array inexistente.
+ * 2. "Cannot read properties of undefined (reading 'Força')" — ficha sem
+ *    `atributos` quebrava convertToFoundry, chamado em todo render do
+ *    MainScreen.
  */
 import { describe, it, expect } from 'vitest';
 import { restoreSpellPath } from '../../functions/general';
 import { rehydrateSheet } from '../../functions/sheetPayloadOptimizer';
+import { normalizeSheet } from '../../functions/sheetNormalizer';
+import { convertToFoundry } from '../../2foundry';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
 
@@ -75,5 +82,61 @@ describe('rehydrateSheet - fallback de abilities', () => {
 
     const sheet = rehydrateSheet(stored, [SupplementId.TORMENTA20_CORE]);
     expect(sheet.classe.abilities).toEqual(storedAbilities);
+  });
+});
+
+describe('normalizeSheet - fichas sem campos obrigatórios', () => {
+  it('preenche atributos, arrays e size com defaults neutros', () => {
+    const sheet = {
+      classe: { name: 'Guerreiro' },
+      raca: { name: 'Humano' },
+    } as unknown as CharacterSheet;
+
+    normalizeSheet(sheet);
+
+    Object.values(Atributo).forEach((attr) => {
+      expect(sheet.atributos[attr]).toEqual({ name: attr, value: 0 });
+    });
+    expect(sheet.skills).toEqual([]);
+    expect(sheet.size.name).toBe('Médio');
+    expect(sheet.nivel).toBe(1);
+    expect(sheet.classe.abilities).toEqual([]);
+    expect(sheet.raca.abilities).toEqual([]);
+    expect(sheet.bag).toBeDefined();
+  });
+
+  it('não sobrescreve valores presentes', () => {
+    const sheet = {
+      nome: 'Test',
+      nivel: 7,
+      pv: 55,
+      atributos: {
+        [Atributo.FORCA]: { name: Atributo.FORCA, value: 3 },
+      },
+      classe: { name: 'Guerreiro', abilities: [{ name: 'X' }] },
+    } as unknown as CharacterSheet;
+
+    normalizeSheet(sheet);
+
+    expect(sheet.nivel).toBe(7);
+    expect(sheet.pv).toBe(55);
+    expect(sheet.atributos[Atributo.FORCA].value).toBe(3);
+    // Atributos ausentes são preenchidos, presentes são preservados
+    expect(sheet.atributos[Atributo.CARISMA].value).toBe(0);
+    expect(sheet.classe.abilities).toHaveLength(1);
+  });
+
+  it('ficha sem atributos sobrevive a restoreSpellPath + convertToFoundry (crash 2)', () => {
+    const sheet = {
+      nome: 'Ficha Corrompida',
+      classe: { name: 'Arcanista' },
+      raca: { name: 'Humano' },
+    } as unknown as CharacterSheet;
+
+    expect(() => restoreSpellPath(sheet, coreClasses)).not.toThrow();
+    expect(() => convertToFoundry(sheet)).not.toThrow();
+
+    const foundry = convertToFoundry(sheet);
+    expect(foundry.system.atributos.for.base).toBe(0);
   });
 });

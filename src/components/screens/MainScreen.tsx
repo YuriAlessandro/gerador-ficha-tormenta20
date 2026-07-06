@@ -1105,7 +1105,16 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     return '';
   }
 
-  const foundryJSON = randomSheet ? convertToFoundry(randomSheet) : undefined;
+  // A conversão roda em todo render só para pré-computar o export; uma ficha
+  // malformada não pode derrubar a página inteira por causa disso.
+  let foundryJSON: FoundryJSON | undefined;
+  if (randomSheet) {
+    try {
+      foundryJSON = convertToFoundry(randomSheet);
+    } catch {
+      foundryJSON = undefined;
+    }
+  }
 
   const encodedJSON = foundryJSON ? encodeFoundryJSON(foundryJSON) : '';
 
