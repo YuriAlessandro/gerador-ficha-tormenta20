@@ -7,6 +7,8 @@
  * 2. "Cannot read properties of undefined (reading 'Força')" — ficha sem
  *    `atributos` quebrava convertToFoundry, chamado em todo render do
  *    MainScreen.
+ * 3. "undefined is not an object (evaluating 'Gr.proficiencias.filter')" —
+ *    ficha sem `classe.proficiencias` quebrava useMemo do Result.
  */
 import { describe, it, expect } from 'vitest';
 import { restoreSpellPath } from '../../functions/general';
@@ -103,6 +105,29 @@ describe('normalizeSheet - fichas sem campos obrigatórios', () => {
     expect(sheet.classe.abilities).toEqual([]);
     expect(sheet.raca.abilities).toEqual([]);
     expect(sheet.bag).toBeDefined();
+    // Crash 3: Result faz classe.proficiencias.filter direto
+    expect(sheet.classe.proficiencias).toEqual([]);
+    expect(sheet.classe.powers).toEqual([]);
+    expect(sheet.classe.periciasbasicas).toEqual([]);
+    expect(sheet.classe.periciasrestantes).toEqual({ qtd: 0, list: [] });
+  });
+
+  it('remove devoto parcial (sem divindade) e preenche poderes', () => {
+    const semDivindade = {
+      classe: { name: 'Guerreiro' },
+      devoto: { poderes: [] },
+    } as unknown as CharacterSheet;
+    normalizeSheet(semDivindade);
+    // Result renderiza devoto.divindade.name se devoto existir
+    expect(semDivindade.devoto).toBeUndefined();
+
+    const semPoderes = {
+      classe: { name: 'Guerreiro' },
+      devoto: { divindade: { name: 'Khalmyr' } },
+    } as unknown as CharacterSheet;
+    normalizeSheet(semPoderes);
+    expect(semPoderes.devoto?.divindade.name).toBe('Khalmyr');
+    expect(semPoderes.devoto?.poderes).toEqual([]);
   });
 
   it('não sobrescreve valores presentes', () => {

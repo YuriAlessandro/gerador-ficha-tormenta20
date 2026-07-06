@@ -55,15 +55,36 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   if (!Array.isArray(sheet.steps)) sheet.steps = [];
 
   // Todo o pipeline (setup do Arcanista, recalculateSheet, UI) assume esses
-  // arrays dentro de classe/raça.
-  if (sheet.classe && !Array.isArray(sheet.classe.abilities)) {
-    sheet.classe.abilities = [];
+  // arrays dentro de classe/raça. O Result acessa proficiencias/powers
+  // diretamente (ex.: `classe.proficiencias.filter`).
+  if (sheet.classe) {
+    if (!Array.isArray(sheet.classe.abilities)) sheet.classe.abilities = [];
+    if (!Array.isArray(sheet.classe.powers)) sheet.classe.powers = [];
+    if (!Array.isArray(sheet.classe.proficiencias)) {
+      sheet.classe.proficiencias = [];
+    }
+    if (!Array.isArray(sheet.classe.periciasbasicas)) {
+      sheet.classe.periciasbasicas = [];
+    }
+    if (!Array.isArray(sheet.classe.periciasrestantes?.list)) {
+      sheet.classe.periciasrestantes = { qtd: 0, list: [] };
+    }
   }
   if (sheet.raca && !Array.isArray(sheet.raca.abilities)) {
     sheet.raca.abilities = [];
   }
   if (sheet.raca && !Array.isArray(sheet.raca.attributes?.attrs)) {
     sheet.raca.attributes = { attrs: [] };
+  }
+
+  // Devoto parcial (sem divindade) quebra o Result (`devoto.divindade.name`);
+  // sem como reconstruir a divindade, remove o resto.
+  if (sheet.devoto) {
+    if (!sheet.devoto.divindade?.name) {
+      delete sheet.devoto;
+    } else if (!Array.isArray(sheet.devoto.poderes)) {
+      sheet.devoto.poderes = [];
+    }
   }
 }
 
