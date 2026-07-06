@@ -492,6 +492,11 @@ const ARCANISTA: ClassDescription = {
   attrPriority: [Atributo.INTELIGENCIA],
   setup: (classe, supplements) => {
     const modifiedClasse = _.cloneDeep(classe);
+    // Fichas antigas/stripped podem chegar sem esses arrays quando o setup é
+    // reaproveitado fora da geração (ex.: restoreSpellPath com uma classe
+    // desserializada sem subname).
+    if (!modifiedClasse.abilities) modifiedClasse.abilities = [];
+    if (!modifiedClasse.periciasbasicas) modifiedClasse.periciasbasicas = [];
     const subtype = getRandomItemFromArray(allArcanistaSubtypes);
     modifiedClasse.subname = subtype;
     modifiedClasse.spellPath = arcanistaSpellPaths[subtype];

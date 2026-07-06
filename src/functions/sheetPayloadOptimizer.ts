@@ -268,6 +268,9 @@ export function rehydrateSheet(
       sheet.classe = {
         // Start with stored data (has abilities, numeric fields, identity)
         ...sheet.classe,
+        // Fichas antigas podem ter sido gravadas sem `abilities`; sem esse
+        // fallback, restoreSpellPath e recalculateSheet quebram ao iterar/push
+        abilities: sheet.classe.abilities ?? fullClass.abilities,
         // Restore catalog data from registry
         powers: fullClass.powers,
         periciasbasicas: fullClass.periciasbasicas,

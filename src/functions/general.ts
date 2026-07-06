@@ -6528,6 +6528,10 @@ export function restoreSpellPath(
   // Sem isso, o acesso a `sheet.classe.spellPath` lança e quebra o render.
   if (!sheet.classe) return;
 
+  // Fichas antigas podem ter sido gravadas sem `classe.abilities`. Todo o
+  // pipeline (setup do Arcanista, recalculateSheet, UI) assume o array.
+  if (!sheet.classe.abilities) sheet.classe.abilities = [];
+
   // If spellPath is completely missing, try to create it for known spellcasters
   // (e.g., old sheets or stripped exports where spellPath was never serialized)
   if (!sheet.classe.spellPath) {
