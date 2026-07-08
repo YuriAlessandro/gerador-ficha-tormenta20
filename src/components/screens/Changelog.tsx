@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            04/07/2026 (v4.24).
+            08/07/2026 (v4.25).
           </p>
 
           <p>
@@ -74,6 +74,27 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.25</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Classes conjuradoras de{' '}
+                  <strong>homebrew</strong> agora podem configurar o{' '}
+                  <strong>acesso às escolas de magia</strong>. No editor de
+                  classe, escolha entre três modos: <strong>todas</strong> as
+                  escolas, um conjunto de <strong>escolas fixas</strong>, ou{' '}
+                  <strong>escolha do jogador</strong> (como o Bardo) — definindo
+                  quantas escolas podem ser escolhidas e quais estão
+                  disponíveis. A escolha aparece no assistente de criação de
+                  ficha e ao multiclassear na evolução de nível; fichas geradas
+                  aleatoriamente sorteiam as escolas automaticamente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao multiclassear para uma classe
+                  conjuradora de <strong>homebrew</strong> na evolução de nível,
+                  a conjuração da classe secundária agora é salva e restaurada
+                  corretamente ao recarregar a ficha.
+                </li>
+              </ul>
               <h3>4.24</h3>
               <ul>
                 <li>
