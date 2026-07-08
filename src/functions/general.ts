@@ -113,6 +113,7 @@ import {
   applySerializedOverrides,
   getClassSetupAbilities,
 } from './multiclass';
+import { resolveSchoolChoice } from './spellPathUtils';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
@@ -802,6 +803,9 @@ export function selectClass(
   selectedClass = _.cloneDeep(selectedClass);
   if (selectedClass.setup)
     return selectedClass.setup(selectedClass, supplements);
+  // Classes sem setup() com escolha de escolas (homebrew): sorteia aqui,
+  // por ficha (o clone acima garante que o registry não é mutado)
+  if (selectedClass.spellPath) resolveSchoolChoice(selectedClass.spellPath);
   return selectedClass;
 }
 
@@ -5708,6 +5712,22 @@ export function generateEmptySheet(
   } else if (generatedClass.setup) {
     // No wizard selection, use random setup
     emptySheet.classe = generatedClass.setup(generatedClass, supplements);
+  } else if (
+    wizardSelections?.spellSchools &&
+    generatedClass.spellPath?.schoolChoice
+  ) {
+    // Classes sem setup() com escolha de escolas (homebrew): aplica a escolha
+    // do wizard sobre um clone (nunca mutar o objeto do registry)
+    const clonedClass = _.cloneDeep(generatedClass);
+    if (clonedClass.spellPath) {
+      clonedClass.spellPath.schools = wizardSelections.spellSchools;
+    }
+    emptySheet.classe = clonedClass;
+  } else if (generatedClass.spellPath?.schoolChoice) {
+    // Sem escolha do wizard: sorteia as escolas (por ficha, sobre um clone)
+    const clonedClass = _.cloneDeep(generatedClass);
+    if (clonedClass.spellPath) resolveSchoolChoice(clonedClass.spellPath);
+    emptySheet.classe = clonedClass;
   } else {
     emptySheet.classe = generatedClass;
   }
@@ -6550,7 +6570,9 @@ export function restoreSpellPath(
           sheet.classe.spellPath = setupClass.spellPath;
         }
       } else if (baseClass?.spellPath) {
-        sheet.classe.spellPath = baseClass.spellPath;
+        // Cópia rasa: applySerializedOverrides muta o spellPath; sem isso as
+        // escolas de uma ficha contaminariam a classe do registry (homebrew)
+        sheet.classe.spellPath = { ...baseClass.spellPath };
       }
     }
     if (!sheet.classe.spellPath) return;
@@ -6588,7 +6610,8 @@ export function restoreSpellPath(
         return (c.subname || '') === (sheet.classe.subname || '');
       });
       if (originalClass?.spellPath) {
-        sheet.classe.spellPath = originalClass.spellPath;
+        // Cópia rasa: nunca compartilhar o spellPath do registry com a ficha
+        sheet.classe.spellPath = { ...originalClass.spellPath };
       }
     }
   }

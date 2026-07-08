@@ -17,7 +17,7 @@ import CharacterSheet, {
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
-import { Spell } from '@/interfaces/Spells';
+import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { CompanionTrick } from '@/interfaces/Companion';
 import { getAllowedClassPowers, isPowerAvailable } from '@/functions/powers';
 import { dataRegistry } from '@/data/registry';
@@ -172,7 +172,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     !!selectedClassDesc &&
     (isClassOrVariantOf(selectedClassDesc, 'Arcanista') ||
       isClassOrVariantOf(selectedClassDesc, 'Bardo') ||
-      isClassOrVariantOf(selectedClassDesc, 'Druida'));
+      isClassOrVariantOf(selectedClassDesc, 'Druida') ||
+      // Classes homebrew com escolha de escolas (estilo Bardo)
+      !!selectedClassDesc.spellPath?.schoolChoice);
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (): {
@@ -651,6 +653,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               return false;
           }
           return true;
+        }
+        if (selectedClassDesc?.spellPath?.schoolChoice) {
+          // Classes homebrew: quantidade declarada no spellPath (nunca maior
+          // que o pool de escolas disponíveis)
+          const { count, available } = selectedClassDesc.spellPath.schoolChoice;
+          const poolSize = available?.length ?? allSpellSchools.length;
+          return setup.spellSchools?.length === Math.min(count, poolSize);
         }
         if (
           selectedClassDesc &&

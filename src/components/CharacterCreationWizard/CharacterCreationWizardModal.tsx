@@ -18,7 +18,7 @@ import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race, { AttributeVariant } from '@/interfaces/Race';
 import { ClassDescription, SpellPath } from '@/interfaces/Class';
-import { allSpellSchools } from '@/interfaces/Spells';
+import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
 import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
@@ -391,10 +391,26 @@ const CharacterCreationWizardModal: React.FC<
     // Bardo e Druida precisam escolher 3 escolas de magia
     // Eles têm setup() que randomiza as escolas, mas no wizard queremos escolha manual
     // Ciente de variantes: Magimarcialista (variante de Bardo) etc. herdam o comportamento
+    // Classes homebrew declaram a escolha via spellPath.schoolChoice
     return (
       isClassOrVariantOf(classe, 'Bardo') ||
-      isClassOrVariantOf(classe, 'Druida')
+      isClassOrVariantOf(classe, 'Druida') ||
+      !!classe.spellPath?.schoolChoice
     );
+  };
+
+  // Configuração da escolha de escolas: declarada no spellPath (homebrew) ou
+  // o padrão de Bardo/Druida (3 escolas dentre todas)
+  const getSchoolChoiceConfig = (): {
+    count: number;
+    available: SpellSchool[];
+  } => {
+    const choice = classe?.spellPath?.schoolChoice;
+    if (choice) {
+      const available = choice.available ?? allSpellSchools;
+      return { count: Math.min(choice.count, available.length), available };
+    }
+    return { count: 3, available: allSpellSchools };
   };
 
   const needsInitialSpellSelection = (): boolean => {
@@ -1141,13 +1157,15 @@ const CharacterCreationWizardModal: React.FC<
       case 'Escolas de Magia': {
         const spellInfo = getSpellInfo();
         if (!spellInfo) return null;
+        const schoolConfig = getSchoolChoiceConfig();
         return (
           <SpellSchoolSelectionStep
             selectedSchools={selections.spellSchools || []}
             onChange={(schools) =>
               setSelections({ ...selections, spellSchools: schools })
             }
-            requiredCount={3}
+            requiredCount={schoolConfig.count}
+            availableSchools={schoolConfig.available}
             className={classe?.name || ''}
             spellType={spellInfo.spellType}
           />
@@ -1408,7 +1426,9 @@ const CharacterCreationWizardModal: React.FC<
         return selections.feiticeiroLinhagem !== undefined;
 
       case 'Escolas de Magia':
-        return selections.spellSchools?.length === 3;
+        return (
+          selections.spellSchools?.length === getSchoolChoiceConfig().count
+        );
 
       case 'Magias Iniciais': {
         const spellInfo = getSpellInfo();

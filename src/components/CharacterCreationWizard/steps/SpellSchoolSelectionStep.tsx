@@ -15,6 +15,8 @@ interface SpellSchoolSelectionStepProps {
   selectedSchools: SpellSchool[];
   onChange: (schools: SpellSchool[]) => void;
   requiredCount: number;
+  // Pool de escolas escolhíveis (homebrew pode restringir); default: todas
+  availableSchools?: SpellSchool[];
   className: string;
   spellType: 'Arcane' | 'Divine' | 'Both';
 }
@@ -38,6 +40,7 @@ const SpellSchoolSelectionStep: React.FC<SpellSchoolSelectionStepProps> = ({
   selectedSchools,
   onChange,
   requiredCount,
+  availableSchools = allSpellSchools,
   className,
   spellType,
 }) => {
@@ -85,7 +88,7 @@ const SpellSchoolSelectionStep: React.FC<SpellSchoolSelectionStepProps> = ({
       <Paper sx={{ p: 2 }}>
         <FormControl component='fieldset' fullWidth>
           <FormGroup>
-            {allSpellSchools.map((school) => {
+            {availableSchools.map((school) => {
               const isSelected = selectedSchools.includes(school);
               const isDisabled =
                 !isSelected && selectedSchools.length >= requiredCount;

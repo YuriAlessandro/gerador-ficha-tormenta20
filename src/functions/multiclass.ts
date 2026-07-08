@@ -16,6 +16,7 @@ import {
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
 import { isClassOrVariantOf } from './general';
+import { resolveSchoolChoice } from './spellPathUtils';
 
 /**
  * Verifica se a sheet tem multiclasse.
@@ -133,7 +134,13 @@ export function findClassDescription(
   classSubname?: string,
   supplements?: SupplementId[]
 ): ClassDescription | undefined {
-  const supps = supplements ?? Object.values(SupplementId);
+  // Default: todos os oficiais + suplementos runtime (homebrews ativos), para
+  // que classes homebrew sejam encontradas em caminhos sem lista explícita
+  // (ex.: persistência/restauração de spellPath de multiclasse)
+  const supps = supplements ?? [
+    ...Object.values(SupplementId),
+    ...(dataRegistry.getRuntimeSupplementIds() as SupplementId[]),
+  ];
   const allClasses = dataRegistry.getClassesBySupplements(supps);
 
   // Exact match first (handles variant classes with explicit subname)
@@ -317,9 +324,21 @@ export function buildSpellPathFromSetup(
   const classDesc = findClassDescription(className, classSubname, supplements);
   if (!classDesc) return null;
 
-  // Classes com spellPath estático (variantes como Necromante, Ventanista)
+  // Classes com spellPath estático (variantes como Necromante, Ventanista,
+  // e classes homebrew). Cópia rasa: applySerializedOverrides muta o retorno,
+  // e o spellPath do registry não pode ser compartilhado entre fichas.
   if (classDesc.spellPath) {
-    return classDesc.spellPath;
+    const spellPath = { ...classDesc.spellPath };
+    if (spellPath.schoolChoice) {
+      // Escolha de escolas (homebrew): usa a escolha do jogador se houver,
+      // senão sorteia (por ficha)
+      if (classSetup?.spellSchools) {
+        spellPath.schools = classSetup.spellSchools as SpellSchool[];
+      } else {
+        resolveSchoolChoice(spellPath);
+      }
+    }
+    return spellPath;
   }
 
   // Arcanista: usar subtype das choices

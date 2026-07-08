@@ -181,9 +181,27 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
     );
   }
 
-  if (isBardoLike || isDruidaLike) {
+  // Escolha de escolas: declarada no spellPath (classes homebrew) ou o padrão
+  // de Bardo/Druida (3 escolas dentre todas). Follow-up: migrar Bardo/Druida
+  // para spellPath.schoolChoice e remover o fallback hardcoded.
+  const schoolChoice = classDesc?.spellPath?.schoolChoice;
+  const schoolConfig =
+    schoolChoice ?? (isBardoLike || isDruidaLike ? { count: 3 } : null);
+
+  if (schoolConfig) {
     const selectedSchools = classSetup.spellSchools || [];
-    const spellType = isBardoLike ? 'arcanas e divinas' : 'divinas';
+    const pool = schoolConfig.available ?? allSpellSchools;
+    const requiredCount = Math.min(schoolConfig.count, pool.length);
+
+    const getSpellTypeText = (): string => {
+      const type = schoolChoice
+        ? classDesc?.spellPath?.spellType
+        : (isBardoLike && 'Both') || 'Divine';
+      if (type === 'Arcane') return 'arcanas';
+      if (type === 'Both') return 'arcanas e divinas';
+      return 'divinas';
+    };
+    const spellType = getSpellTypeText();
 
     return (
       <Box>
@@ -197,13 +215,14 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
             mb: 2,
           }}
         >
-          Escolha 3 escolas de magia. Você poderá aprender magias {spellType}{' '}
-          dessas escolas.
+          Escolha {requiredCount} escola{requiredCount > 1 ? 's' : ''} de magia.
+          Você poderá aprender magias {spellType} dessas escolas.
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-          {allSpellSchools.map((school) => {
+          {pool.map((school) => {
             const isSelected = selectedSchools.includes(school);
-            const isDisabled = !isSelected && selectedSchools.length >= 3;
+            const isDisabled =
+              !isSelected && selectedSchools.length >= requiredCount;
 
             return (
               <Chip
@@ -230,13 +249,13 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
             );
           })}
         </Box>
-        {selectedSchools.length < 3 && (
+        {selectedSchools.length < requiredCount && (
           <Alert severity='info'>
-            Selecione {3 - selectedSchools.length} escola
-            {3 - selectedSchools.length > 1 ? 's' : ''} de magia.
+            Selecione {requiredCount - selectedSchools.length} escola
+            {requiredCount - selectedSchools.length > 1 ? 's' : ''} de magia.
           </Alert>
         )}
-        {selectedSchools.length === 3 && (
+        {selectedSchools.length === requiredCount && (
           <Alert severity='success'>
             Escolas selecionadas:{' '}
             {selectedSchools.map((s) => SPELL_SCHOOL_LABELS[s]).join(', ')}

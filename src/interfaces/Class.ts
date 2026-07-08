@@ -82,6 +82,10 @@ export interface SpellPath {
   initialSpells: number;
   spellType: 'Arcane' | 'Divine' | 'Both';
   schools?: SpellSchool[];
+  // Escolha de escolas pelo jogador (estilo Bardo): `schools` fica indefinido
+  // até a geração/wizard preencher com `count` escolas do pool `available`
+  // (ausente = todas). Usado por classes homebrew, que não têm setup().
+  schoolChoice?: { count: number; available?: SpellSchool[] };
   excludeSchools?: SpellSchool[];
   includeDivineSchools?: SpellSchool[];
   includeArcaneSchools?: SpellSchool[];
