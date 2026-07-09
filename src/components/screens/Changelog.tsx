@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            08/07/2026 (v4.25).
+            09/07/2026 (v4.25).
           </p>
 
           <p>
@@ -89,10 +89,67 @@ const Changelog: React.FC = () => {
                   aleatoriamente sorteiam as escolas automaticamente.
                 </li>
                 <li>
+                  <strong>Novo:</strong> <strong>Rotas no Mapa de Arton</strong>
+                  : o Mestre da mesa agora pode traçar rotas entre cidades,
+                  locais customizados e a posição do grupo, com distância em km
+                  e <strong>tempo de viagem</strong> calculado pela tabela de
+                  deslocamento do Tormenta 20 (escolhendo o deslocamento do
+                  membro mais lento do grupo, levando montarias em conta).
+                </li>
+                <li>
+                  <strong>Novo:</strong> As rotas oferecem{' '}
+                  <strong>caminhos alternativos</strong> — incluindo, quando
+                  possível, uma opção <strong>pelo mar</strong> para grupos que
+                  preferem navegar — sempre indicando se o trajeto é todo por
+                  terra ou inclui embarcação (Barcaça, Biga de Guerra, Jangada
+                  ou Veleiro, cada uma com sua velocidade).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Estradas podem ter{' '}
+                  <strong>condições especiais</strong>, destacadas na rota e
+                  explicadas no painel: <strong>terreno difícil</strong>{' '}
+                  (amarelo, metade da distância por dia),{' '}
+                  <strong>zona de Tormenta</strong> (vermelho) e{' '}
+                  <strong>estrada em guerra</strong> (laranja).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Ajustes do Mestre em tempo real na
+                  rota: ative <strong>terreno difícil/clima hostil</strong> para
+                  a viagem inteira ou marque trechos específicos clicando sobre
+                  a rota (inclusive os trechos fora das estradas), reduzindo a
+                  distância diária pela metade nos pedaços afetados.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Botão <strong>Rotas</strong> na busca
+                  de cidades e nos cards dos locais do Mapa de Arton, e{' '}
+                  <strong>Rotas daqui</strong> na posição do grupo e nos
+                  pins/marcadores customizados.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A busca de cidades do Mapa de Arton
+                  foi reposicionada para o canto superior esquerdo, ao lado do
+                  seletor de mapa, com um card do local selecionado.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Tempos de viagem longos são
+                  exibidos em <strong>meses e dias</strong> (a partir de 60
+                  dias).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A camada de reinos é ocultada
+                  automaticamente ao traçar rotas no Mapa de Arton, voltando ao
+                  normal ao fechar a rota.
+                </li>
+                <li>
                   <strong>Correção:</strong> Ao multiclassear para uma classe
                   conjuradora de <strong>homebrew</strong> na evolução de nível,
                   a conjuração da classe secundária agora é salva e restaurada
                   corretamente ao recarregar a ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As sugestões de preenchimento
+                  automático do navegador não aparecem mais por cima da busca de
+                  cidades e dos campos de origem/destino do Mapa de Arton.
                 </li>
               </ul>
               <h3>4.24</h3>
