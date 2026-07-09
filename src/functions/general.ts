@@ -10,6 +10,7 @@ import { SupplementId } from '../types/supplement.types';
 import { recalculateSheet } from './recalculateSheet';
 import { normalizeSheet } from './sheetNormalizer';
 import { isBonusActive } from './bonusConditions';
+import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
 import {
   getClassBaseSkills,
@@ -5212,6 +5213,14 @@ export default function generateRandomSheet(
   // Passo 11:
   // Gerar poderes restantes, e aplicar habilidades, e poderes
   charSheet = getAndApplyPowers(charSheet, powersGetters);
+
+  // Passo 11.5:
+  // Define a empunhadura inicial (arma/escudo) e a armadura vestida a partir do
+  // equipamento gerado — o mesmo que `recalculateSheet` já faz ao carregar uma
+  // ficha. Sem isso a geração deixa as mãos vazias, e tanto o bônus de Defesa do
+  // escudo (que `calcDefense` só conta com o escudo empunhado) quanto os bônus
+  // condicionais de empunhadura (ex.: Legionário) são descartados abaixo.
+  charSheet = migrateLegacyEquipState(charSheet);
 
   // Calcular valor das perícias após poderes (pois vários poderes adicionam perícias e bonificadores)
   charSheet.completeSkills = Object.values(Skill)

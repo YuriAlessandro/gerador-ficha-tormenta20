@@ -214,6 +214,13 @@ const Changelog: React.FC = () => {
                   layout ajustado para telas de celular.
                 </li>
                 <li>
+                  <strong>Correção:</strong> Fichas recém-geradas agora já saem
+                  com a <strong>arma e o escudo empunhados</strong> e a armadura
+                  vestida. Antes as mãos ficavam vazias, e o{' '}
+                  <strong>bônus de Defesa do escudo</strong> só era somado
+                  depois que você abria a mochila e o empunhava manualmente.
+                </li>
+                <li>
                   <strong>Correção:</strong> Os poderes de origem{' '}
                   <strong>Legionário</strong> e{' '}
                   <strong>Desertor da Supremacia</strong> agora aplicam seus
