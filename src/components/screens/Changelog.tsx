@@ -175,6 +175,16 @@ const Changelog: React.FC = () => {
                   separadamente.
                 </li>
                 <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Armas da Ambição</strong> (Valkaria) agora exibe o +1
+                  em testes de ataque nas perícias <strong>Luta</strong> e{' '}
+                  <strong>Pontaria</strong> — antes o bônus era somado
+                  silenciosamente ao ataque de cada arma, sem indicação de
+                  origem. O +1 na margem de ameaça continua aplicado nas armas e
+                  agora aparece no ícone de efeitos ao lado da arma. Fichas
+                  existentes são corrigidas automaticamente ao serem carregadas.
+                </li>
+                <li>
                   <strong>Correção:</strong> A escolha de{' '}
                   <strong>Treino Especializado</strong> (5º nível de Treinador)
                   não pode mais ser pulada sem querer no assistente de evolução
