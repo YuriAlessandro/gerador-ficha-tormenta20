@@ -5,8 +5,13 @@ import Bag from '../interfaces/Bag';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
+
+const GRANTED_POWERS_BY_NAME = new Map(
+  Object.values(GRANTED_POWERS).map((power) => [power.name, power])
+);
 
 /**
  * Saneia os ELEMENTOS dos arrays da ficha. Garantir que os arrays existem não
@@ -62,9 +67,22 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
   }
 
   if (sheet.devoto) {
-    sheet.devoto.poderes = sheet.devoto.poderes.filter(
-      (p) => p && typeof p.name === 'string'
-    );
+    // Fichas salvas embutem a cópia do poder da época em que foi escolhido; os
+    // recálculos aplicam essa cópia, não a definição atual. Refrescar
+    // `sheetBonuses`/`description` pelo dado atual para que correções nos
+    // poderes concedidos alcancem fichas antigas. Poderes fora do core
+    // (homebrew/outras fontes) não têm match e ficam intocados.
+    sheet.devoto.poderes = sheet.devoto.poderes
+      .filter((p) => p && typeof p.name === 'string')
+      .map((p) => {
+        const current = GRANTED_POWERS_BY_NAME.get(p.name);
+        if (!current) return p;
+        return {
+          ...p,
+          description: current.description,
+          sheetBonuses: current.sheetBonuses,
+        };
+      });
   }
 
   if (sheet.origin) {

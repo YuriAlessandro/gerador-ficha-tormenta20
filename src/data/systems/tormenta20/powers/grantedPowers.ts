@@ -53,9 +53,10 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
           type: 'power',
           name: 'Armas da Ambição',
         },
+        // Testes de ataque são testes de Luta/Pontaria — o bônus entra no
+        // total das perícias (e as armas herdam), onde o jogador espera vê-lo.
         target: {
-          type: 'WeaponAttack',
-          proficiencyRequired: true,
+          type: 'AllAttackBonus',
         },
         modifier: {
           type: 'Fixed',
@@ -77,63 +78,6 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
         },
       },
     ],
-    // action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-    //   const sheetClone = _.cloneDeep(sheet);
-
-    //   const simpleWeapons = EQUIPAMENTOS.armasSimples.map((w) => w.nome);
-    //   const martialWeapons = EQUIPAMENTOS.armasMarciais.map((w) => w.nome);
-    //   const exoticWeapons = EQUIPAMENTOS.armasExoticas.map((w) => w.nome);
-    //   const fireWeapons = EQUIPAMENTOS.armasDeFogo.map((w) => w.nome);
-
-    //   const { proficiencias } = sheetClone.classe;
-
-    //   sheetClone.bag.equipments.Arma.forEach((weapon) => {
-    //     if (simpleWeapons.includes(weapon.nome)) {
-    //       // Arma simples recebe +1
-    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
-
-    //       substeps.push({
-    //         name: 'Armas da Ambição',
-    //         value: `+1 de ataque em ${weapon.nome} (armas simples)`,
-    //       });
-    //     } else if (
-    //       martialWeapons.includes(weapon.nome) &&
-    //       proficiencias.includes(PROFICIENCIAS.MARCIAIS)
-    //     ) {
-    //       // Arma marcial recebe +1
-    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
-
-    //       substeps.push({
-    //         name: 'Armas da Ambição',
-    //         value: `+1 de ataque em ${weapon.nome} (armas marciais)`,
-    //       });
-    //     } else if (
-    //       exoticWeapons.includes(weapon.nome) &&
-    //       proficiencias.includes(PROFICIENCIAS.EXOTICAS)
-    //     ) {
-    //       // Arma exótica recebe +1
-    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
-
-    //       substeps.push({
-    //         name: 'Armas da Ambição',
-    //         value: `+1 de ataque em ${weapon.nome} (armas exóticas)`,
-    //       });
-    //     } else if (
-    //       fireWeapons.includes(weapon.nome) &&
-    //       proficiencias.includes(PROFICIENCIAS.FOGO)
-    //     ) {
-    //       // Arma de fogo recebe +1
-    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
-
-    //       substeps.push({
-    //         name: 'Armas da Ambição',
-    //         value: `+1 de ataque em ${weapon.nome} (armas de fogo)`,
-    //       });
-    //     }
-    //   });
-
-    //   return sheetClone;
-    // },
   },
   ARSENAL_DAS_PROFUNDEZAS: {
     name: 'Arsenal das profundezas',

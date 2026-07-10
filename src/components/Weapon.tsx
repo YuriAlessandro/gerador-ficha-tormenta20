@@ -343,7 +343,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       if (
         targetType !== 'WeaponAttack' &&
         targetType !== 'WeaponDamage' &&
-        targetType !== 'WeaponDamageStep'
+        targetType !== 'WeaponDamageStep' &&
+        targetType !== 'WeaponThreatMargin'
       ) {
         return;
       }
@@ -362,7 +363,28 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         'thrownOnly' in b.target &&
         (b.target as { thrownOnly?: boolean }).thrownOnly === true &&
         !!equipment.arremesso;
-      if (!matchesName && !matchesTag && !matchesThrown) return;
+      // Bônus sem escopo de arma (ex.: só proficiencyRequired, como Armas da
+      // Ambição) valem para todas as armas.
+      const scope = b.target as {
+        weaponName?: string;
+        weaponTags?: string[];
+        thrownOnly?: boolean;
+        weaponCategories?: string[];
+        meleeOnly?: boolean;
+        rangedOnly?: boolean;
+        twoHandedOnly?: boolean;
+      };
+      const matchesGlobal =
+        !scope.weaponName &&
+        !(scope.weaponTags && scope.weaponTags.length > 0) &&
+        !scope.thrownOnly &&
+        !(scope.weaponCategories && scope.weaponCategories.length > 0) &&
+        !scope.meleeOnly &&
+        !scope.rangedOnly &&
+        !scope.twoHandedOnly;
+      if (!matchesName && !matchesTag && !matchesThrown && !matchesGlobal) {
+        return;
+      }
       const value =
         b.modifier.type === 'Fixed'
           ? (b.modifier as { value: number }).value
@@ -375,6 +397,12 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       } else if (targetType === 'WeaponDamageStep') {
         effects.push(
           `${b.source.name}: +${value} passo${value > 1 ? 's' : ''} de dano`
+        );
+      } else if (targetType === 'WeaponThreatMargin') {
+        effects.push(
+          b.target.mode === 'set'
+            ? `${b.source.name}: margem de ameaça ${value}`
+            : `${b.source.name}: +${value} na margem de ameaça`
         );
       }
     });

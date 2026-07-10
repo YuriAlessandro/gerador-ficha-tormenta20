@@ -4615,6 +4615,16 @@ const applyStatModifiers = (
         name: subStepName,
         value: `${bonusValue} em ${skillName}`,
       });
+    } else if (bonus.target.type === 'AllAttackBonus') {
+      // Testes de ataque = testes de Luta/Pontaria (mesmo roteamento do
+      // recalculateSheet).
+      addOtherBonusToSkill(sheet, Skill.LUTA, bonusValue);
+      addOtherBonusToSkill(sheet, Skill.PONTARIA, bonusValue);
+
+      skillSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em Luta e Pontaria`,
+      });
     } else if (bonus.target.type === 'Displacement') {
       sheet.displacement += bonusValue;
 
@@ -6575,6 +6585,11 @@ export function generateEmptySheet(
       skillBonusSubSteps.push({
         name: subStepName,
         value: `${bonusValue} em ${bonus.target.name}`,
+      });
+    } else if (bonus.target.type === 'AllAttackBonus') {
+      skillBonusSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em Luta e Pontaria`,
       });
     } else if (bonus.target.type === 'Displacement') {
       displacementSubSteps.push({
