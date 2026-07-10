@@ -65,6 +65,18 @@ interface LevelUpWizardModalProps {
   onCancel: () => void;
 }
 
+// Treinador nível 5: escolha de Treino Especializado
+const TREINO_ESPECIALIZADO = 'Treino Especializado';
+const CONQUISTAR_PELOS_NUMEROS = 'Conquistar pelos Números';
+const TREINO_INTENSIVO = 'Treino Intensivo';
+
+// Escolha (pendente) de Treino Especializado feita no step 'Efeitos de
+// Habilidades' do nível atual
+const getTreinoEspecializadoChoice = (
+  sel: LevelUpSelections
+): string | undefined =>
+  sel.abilityEffectSelections?.[TREINO_ESPECIALIZADO]?.chosenOption?.[0];
+
 const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   open,
   initialSheet,
@@ -617,6 +629,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       steps.push('Efeitos de Habilidades');
     }
 
+    // Treinador 5: Conquistar pelos Números concede um segundo melhor amigo,
+    // que o jogador personaliza como o primeiro
+    const treinoChoice = getTreinoEspecializadoChoice(currentLevelSelection);
+    if (
+      selectedClassName === 'Treinador' &&
+      selectedClassLevel === 5 &&
+      simulatedSheet.companions?.length &&
+      treinoChoice === CONQUISTAR_PELOS_NUMEROS
+    ) {
+      steps.push('Segundo Melhor Amigo');
+    }
+
     if (getRaceLevelUpPicks().length > 0) {
       steps.push('Escolhas de Raça');
     }
@@ -627,9 +651,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     }
 
     // Treinador: truque do parceiro nos níveis 4, 7, 10, 13, 16, 19
-    // Treino Intensivo: truque extra nos níveis 5 e 11
+    // Treino Intensivo: truque extra nos níveis 5 e 11 (a escolha pendente do
+    // próprio nível 5 também conta, antes de ser refletida no sheet simulado)
     const COMPANION_TRICK_LEVELS = [4, 7, 10, 13, 16, 19];
-    const hasTreinoIntensivo = simulatedSheet.companions?.[0]?.treinoIntensivo;
+    const hasTreinoIntensivo =
+      simulatedSheet.companions?.[0]?.treinoIntensivo ||
+      (selectedClassName === 'Treinador' &&
+        selectedClassLevel === 5 &&
+        treinoChoice === TREINO_INTENSIVO);
     const allTrickLevels = hasTreinoIntensivo
       ? [...COMPANION_TRICK_LEVELS, 5, 11]
       : COMPANION_TRICK_LEVELS;
@@ -807,7 +836,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Efeitos de Habilidades': {
-        // For now, assume optional (can skip)
+        // Treinador 5: a escolha de Treino Especializado é obrigatória — sem
+        // ela, o chooseFromOptions sorteia uma opção aleatória no apply
+        if (selectedClassName === 'Treinador' && selectedClassLevel === 5) {
+          return !!getTreinoEspecializadoChoice(currentLevelSelection);
+        }
+        // Demais habilidades: opcional (pode pular)
         // TODO: Implement validation for required ability selections
         return true;
       }
@@ -865,7 +899,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return true;
       }
 
-      case 'Melhor Amigo': {
+      case 'Melhor Amigo':
+      case 'Segundo Melhor Amigo': {
         const {
           companionType,
           companionSize,
@@ -1099,12 +1134,29 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               classe={expandedClass}
               origin={undefined}
               selections={currentLevelSelection.abilityEffectSelections || {}}
-              onChange={(selections) =>
-                setCurrentLevelSelection({
+              onChange={(selections) => {
+                const next: LevelUpSelections = {
                   ...currentLevelSelection,
                   abilityEffectSelections: selections,
-                })
-              }
+                };
+                // Treinador 5: o step de truque deste nível só existe com
+                // Treino Intensivo — trocar a escolha invalida o truque bônus
+                // já selecionado (a entry 'power' do Ensinar Truque fica)
+                if (
+                  selectedClassName === 'Treinador' &&
+                  selectedClassLevel === 5 &&
+                  selections[TREINO_ESPECIALIZADO]?.chosenOption?.[0] !==
+                    TREINO_INTENSIVO
+                ) {
+                  const remaining = (
+                    next.companionTrickSelections || []
+                  ).filter((e) => e.reason !== 'auto');
+                  next.companionTrickSelections = remaining.length
+                    ? remaining
+                    : undefined;
+                }
+                setCurrentLevelSelection(next);
+              }}
               actualSheet={sheetForCurrentLevel}
               skipRaceAbilities
               classAbilityLevel={selectedClassLevel}
@@ -1231,8 +1283,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Melhor Amigo':
+      case 'Segundo Melhor Amigo':
         return (
           <CompanionCreationStep
+            trainerLevel={selectedClassLevel}
             companionName={currentLevelSelection.companionName}
             companionType={currentLevelSelection.companionType}
             companionSize={currentLevelSelection.companionSize}
@@ -1378,6 +1432,52 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               trainerCharisma,
             }),
           ];
+        }
+
+        // Treinador 5: refletir a escolha de Treino Especializado no sheet
+        // simulado, para que os próximos níveis da sessão enxerguem o 2º
+        // companheiro / o truque bônus de Treino Intensivo (níveis 5 e 11)
+        const treinoChoice = getTreinoEspecializadoChoice(
+          currentLevelSelection
+        );
+        if (
+          selectedClassName === 'Treinador' &&
+          selectedClassLevel === 5 &&
+          treinoChoice &&
+          nextSheet.companions?.length
+        ) {
+          if (
+            treinoChoice === CONQUISTAR_PELOS_NUMEROS &&
+            nextSheet.companions.length === 1 &&
+            currentLevelSelection.companionType &&
+            currentLevelSelection.companionSize &&
+            currentLevelSelection.companionWeaponDamageType &&
+            currentLevelSelection.companionSkills &&
+            currentLevelSelection.companionTricks
+          ) {
+            const trainerCharisma =
+              nextSheet.atributos[Atributo.CARISMA]?.value ?? 0;
+            nextSheet.companions = [
+              ...nextSheet.companions,
+              createCompanion({
+                name: currentLevelSelection.companionName,
+                type: currentLevelSelection.companionType,
+                size: currentLevelSelection.companionSize,
+                weaponDamageType:
+                  currentLevelSelection.companionWeaponDamageType,
+                spiritEnergyType:
+                  currentLevelSelection.companionSpiritEnergyType,
+                skills: currentLevelSelection.companionSkills,
+                tricks: currentLevelSelection.companionTricks,
+                trainerLevel: selectedClassLevel,
+                trainerCharisma,
+              }),
+            ];
+          } else if (treinoChoice === TREINO_INTENSIVO) {
+            nextSheet.companions = nextSheet.companions.map((companion, idx) =>
+              idx === 0 ? { ...companion, treinoIntensivo: true } : companion
+            );
+          }
         }
 
         // Add selected power to the simulated sheet
@@ -1616,6 +1716,27 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               }
             );
           });
+        }
+
+        // Treinador 5: reverter a escolha de Treino Especializado aplicada em
+        // handleNext (depois do revert de truques, para o clamp de índice dos
+        // truques ainda enxergar o 2º companheiro)
+        const prevTreinoChoice = getTreinoEspecializadoChoice(
+          previousLevelSelection
+        );
+        if (prevTreinoChoice && prevSheet.companions?.length) {
+          if (
+            prevTreinoChoice === CONQUISTAR_PELOS_NUMEROS &&
+            prevSheet.companions.length > 1
+          ) {
+            prevSheet.companions = prevSheet.companions.slice(0, -1);
+          } else if (prevTreinoChoice === TREINO_INTENSIVO) {
+            prevSheet.companions = prevSheet.companions.map((companion, idx) =>
+              idx === 0
+                ? { ...companion, treinoIntensivo: undefined }
+                : companion
+            );
+          }
         }
 
         // Remove sheetActionHistory entries for attribute increases from the level we're returning to

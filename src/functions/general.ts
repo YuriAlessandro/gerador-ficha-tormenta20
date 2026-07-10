@@ -4271,14 +4271,41 @@ export function applyManualLevelUp(
           if (treinoChoice.chosenName === 'Conquistar pelos Números') {
             const trainerCha =
               updatedSheet.atributos[Atributo.CARISMA]?.value ?? 0;
-            const secondCompanion = generateRandomCompanion(
-              updatedSheet.nivel,
-              trainerCha
-            );
+            const {
+              companionName,
+              companionType,
+              companionSize,
+              companionWeaponDamageType,
+              companionSpiritEnergyType,
+              companionSkills,
+              companionTricks,
+            } = selections;
+            // Usa a personalização feita no wizard quando completa; fallback
+            // aleatório (retrocompatibilidade/robustez)
+            const secondCompanion =
+              companionType &&
+              companionSize &&
+              companionWeaponDamageType &&
+              companionSkills?.length &&
+              companionTricks?.length
+                ? createCompanion({
+                    name: companionName,
+                    type: companionType,
+                    size: companionSize,
+                    weaponDamageType: companionWeaponDamageType,
+                    spiritEnergyType: companionSpiritEnergyType,
+                    skills: companionSkills,
+                    tricks: companionTricks,
+                    trainerLevel: newClassLevel,
+                    trainerCharisma: trainerCha,
+                  })
+                : generateRandomCompanion(updatedSheet.nivel, trainerCha);
             updatedSheet.companions.push(secondCompanion);
             abilitySubSteps.push({
               name: 'Conquistar pelos Números',
-              value: `Segundo melhor amigo: ${secondCompanion.companionType} ${secondCompanion.size}`,
+              value: `Segundo melhor amigo: ${
+                secondCompanion.name ? `${secondCompanion.name} — ` : ''
+              }${secondCompanion.companionType} ${secondCompanion.size}`,
             });
           } else if (treinoChoice.chosenName === 'Treino Intensivo') {
             updatedSheet.companions[0] = {

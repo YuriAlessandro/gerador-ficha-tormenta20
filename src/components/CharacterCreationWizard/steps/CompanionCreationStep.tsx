@@ -47,6 +47,10 @@ const COMPANION_ATTRIBUTE_OPTIONS = [
 ];
 
 interface CompanionCreationStepProps {
+  // Nível de Treinador no momento da criação do melhor amigo — os
+  // pré-requisitos de truque usam o nível do Treinador, então um 2º amigo
+  // ganho no nível 5 (Conquistar pelos Números) pode pegar truques de nível 5
+  trainerLevel?: number;
   companionName?: string;
   companionType?: CompanionType;
   companionSize?: CompanionSize;
@@ -64,6 +68,7 @@ interface CompanionCreationStepProps {
 }
 
 const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
+  trainerLevel = 1,
   companionName,
   companionType,
   companionSize,
@@ -82,14 +87,14 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
   const tricksWithAvailability: TrickWithAvailability[] = useMemo(() => {
     if (!companionType || !companionSize) return [];
     return getTricksWithAvailability(
-      1,
+      trainerLevel,
       companionType,
       companionSize,
       companionTricks,
       countNaturalWeapons(companionType, companionTricks),
       true
     );
-  }, [companionType, companionSize, companionTricks]);
+  }, [trainerLevel, companionType, companionSize, companionTricks]);
 
   const handleToggleSkill = (skill: Skill) => {
     if (companionSkills.includes(skill)) {
