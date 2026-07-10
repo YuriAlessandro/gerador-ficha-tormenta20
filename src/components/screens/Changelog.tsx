@@ -158,6 +158,30 @@ const Changelog: React.FC = () => {
                   nível 7), em vez de ficarem ocultos como se não existissem.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> Ao escolher{' '}
+                  <strong>Conquistar pelos Números</strong> no 5º nível de
+                  Treinador, o assistente de evolução agora abre o passo{' '}
+                  <strong>Segundo Melhor Amigo</strong> para você personalizar o
+                  novo parceiro (nome, tipo, tamanho, perícias e truques), como
+                  manda a regra — antes ele era gerado aleatoriamente. Truques
+                  de nível 5 (como Amigo Veterano) já podem ser escolhidos como
+                  iniciais do novo amigo.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao escolher{' '}
+                  <strong>Treino Intensivo</strong> no 5º nível de Treinador, os
+                  truques bônus dos níveis 5 e 11 agora aparecem na própria
+                  sessão de evolução — antes só apareciam evoluindo os níveis
+                  separadamente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A escolha de{' '}
+                  <strong>Treino Especializado</strong> (5º nível de Treinador)
+                  não pode mais ser pulada sem querer no assistente de evolução
+                  — antes, avançar sem escolher sorteava silenciosamente entre
+                  Conquistar pelos Números e Treino Intensivo.
+                </li>
+                <li>
                   <strong>Correção:</strong> Truques do melhor amigo que só
                   podem ser escolhidos uma vez não podem mais ser{' '}
                   <strong>repetidos</strong> na evolução de nível — nem ao subir
