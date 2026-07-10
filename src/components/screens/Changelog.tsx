@@ -241,6 +241,29 @@ const Changelog: React.FC = () => {
                   assistente com uma lista vazia. A geração aleatória também não
                   quebra mais quando Moreau é sorteado como vida passada.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Os atributos raciais de{' '}
+                  <strong>dimorfismo sexual</strong> da <strong>Nagah</strong>{' '}
+                  agora respeitam o gênero escolhido na criação customizada:
+                  fichas femininas recebem Inteligência, Sabedoria e Carisma +1
+                  (antes sempre recebiam o conjunto masculino de Força, Destreza
+                  e Constituição). O gênero <strong>Outro</strong> agora permite
+                  escolher qual dos dois conjuntos usar, e as pré-visualizações
+                  de bônus e requisitos do assistente refletem o conjunto
+                  correto.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes concedidos por escolhas de
+                  habilidades raciais — <strong>Natureza Orgânica</strong>{' '}
+                  (Yidishan), <strong>Deformidade</strong> (Lefou),{' '}
+                  <strong>Memória Póstuma</strong> (Osteon) e{' '}
+                  <strong>Chassi</strong> (Mashin) — agora podem ser removidos
+                  da ficha pelo editor de poderes. Antes, a escolha armazenada
+                  era reaplicada a cada salvamento e o poder &quot;voltava&quot;
+                  sozinho (ex.: Membros Estendidos recebido via Natureza
+                  Orgânica). As perícias e demais benefícios da habilidade são
+                  preservados ao remover apenas o poder.
+                </li>
               </ul>
               <h3>4.24</h3>
               <ul>
