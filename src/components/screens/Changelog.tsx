@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            09/07/2026 (v4.25).
+            10/07/2026 (v4.25).
           </p>
 
           <p>
