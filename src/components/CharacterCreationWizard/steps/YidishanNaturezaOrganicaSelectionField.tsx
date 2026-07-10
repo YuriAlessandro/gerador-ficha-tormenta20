@@ -15,6 +15,7 @@ import Skill from '@/interfaces/Skills';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import Race from '@/interfaces/Race';
+import { getSelectableRaceAbilities } from '@/functions/raceHeritageAbilities';
 
 interface YidishanNaturezaOrganicaSelectionFieldProps {
   availableRaces: Race[];
@@ -43,10 +44,13 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
     [availableRaces, selectedOldRaceName]
   );
 
-  const canPickRaceAbility =
-    !isHumano &&
-    !!selectedOldRace?.abilities &&
-    selectedOldRace.abilities.length > 0;
+  // Habilidades selecionáveis (achatadas por herança para raças como Moreau)
+  const selectableAbilities = useMemo(
+    () => (selectedOldRace ? getSelectableRaceAbilities(selectedOldRace) : []),
+    [selectedOldRace]
+  );
+
+  const canPickRaceAbility = !isHumano && selectableAbilities.length > 0;
 
   const [benefitType, setBenefitType] = useState<BenefitType>(() => {
     if (selections.raceAbilities && selections.raceAbilities.length > 0) {
@@ -257,17 +261,17 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
                 value={selectedAbilityName}
                 onChange={(e) => handleAbilityChange(e.target.value)}
               >
-                {selectedOldRace.abilities.map((ability) => {
-                  const isSelected = selectedAbilityName === ability.name;
+                {selectableAbilities.map((option) => {
+                  const isSelected = selectedAbilityName === option.value;
                   return (
                     <FormControlLabel
-                      key={ability.name}
-                      value={ability.name}
+                      key={option.value}
+                      value={option.value}
                       control={<Radio />}
                       label={
                         <Box>
                           <Typography variant='body1'>
-                            {ability.name}
+                            {option.value}
                           </Typography>
                           <Typography
                             variant='body2'
@@ -275,7 +279,7 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
                               color: 'text.secondary',
                             }}
                           >
-                            {ability.description}
+                            {option.ability.description}
                           </Typography>
                         </Box>
                       }

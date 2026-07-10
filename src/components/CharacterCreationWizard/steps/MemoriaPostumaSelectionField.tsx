@@ -15,6 +15,7 @@ import Skill from '@/interfaces/Skills';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import Race from '@/interfaces/Race';
+import { getSelectableRaceAbilities } from '@/functions/raceHeritageAbilities';
 
 interface MemoriaPostumaSelectionFieldProps {
   availableRaces: Race[];
@@ -55,6 +56,12 @@ const MemoriaPostumaSelectionField: React.FC<
   );
 
   const isHumano = selectedOldRaceName === 'Humano';
+
+  // Habilidades selecionáveis (achatadas por herança para raças como Moreau)
+  const selectableAbilities = useMemo(
+    () => (selectedOldRace ? getSelectableRaceAbilities(selectedOldRace) : []),
+    [selectedOldRace]
+  );
 
   // Get current selections
   const selectedSkill = selections.skills?.[0] || '';
@@ -241,7 +248,13 @@ const MemoriaPostumaSelectionField: React.FC<
         </>
       )}
       {/* Non-Humano Path: Race Ability Selection */}
-      {!isHumano && selectedOldRace && (
+      {!isHumano && selectedOldRace && selectableAbilities.length === 0 && (
+        <Alert severity='warning'>
+          {selectedOldRaceName} não possui habilidades de raça selecionáveis.
+          Selecione outra raça.
+        </Alert>
+      )}
+      {!isHumano && selectedOldRace && selectableAbilities.length > 0 && (
         <Box>
           <Typography variant='subtitle1' gutterBottom>
             Habilidade de {selectedOldRaceName}
@@ -251,23 +264,23 @@ const MemoriaPostumaSelectionField: React.FC<
               value={selectedAbility}
               onChange={(e) => handleAbilityChange(e.target.value)}
             >
-              {selectedOldRace.abilities.map((ability) => {
-                const isSelected = selectedAbility === ability.name;
+              {selectableAbilities.map((option) => {
+                const isSelected = selectedAbility === option.value;
                 return (
                   <FormControlLabel
-                    key={ability.name}
-                    value={ability.name}
+                    key={option.value}
+                    value={option.value}
                     control={<Radio />}
                     label={
                       <Box>
-                        <Typography variant='body1'>{ability.name}</Typography>
+                        <Typography variant='body1'>{option.value}</Typography>
                         <Typography
                           variant='body2'
                           sx={{
                             color: 'text.secondary',
                           }}
                         >
-                          {ability.description}
+                          {option.ability.description}
                         </Typography>
                       </Box>
                     }

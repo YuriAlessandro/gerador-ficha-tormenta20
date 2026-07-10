@@ -17,6 +17,10 @@ import {
 } from '../randomUtils';
 import { getPowersAllowedByRequirements } from '../powers';
 import { applyPower } from '../general';
+import {
+  findSelectableRaceAbility,
+  getSelectableRaceAbilities,
+} from '../raceHeritageAbilities';
 
 export function applyHumanoVersatil(
   sheet: CharacterSheet,
@@ -285,19 +289,19 @@ export function applyOsteonMemoriaPostuma(
         value: `Poder geral recebido (${value})`,
       });
     } else if (type === 'raceAbility') {
-      if (_sheet.raca.oldRace?.abilities) {
-        const ability = _sheet.raca.oldRace.abilities.find(
-          (a) => a.name === value
-        );
-        if (ability) {
-          if (!_sheet.raca.abilities?.some((a) => a.name === value)) {
-            _sheet.raca.abilities?.push(ability);
+      if (_sheet.raca.oldRace) {
+        const found = findSelectableRaceAbility(_sheet.raca.oldRace, value);
+        if (found) {
+          if (
+            !_sheet.raca.abilities?.some((a) => a.name === found.ability.name)
+          ) {
+            _sheet.raca.abilities?.push(found.ability);
           }
           subSteps.push({
             name: 'Memória Póstuma',
-            value: `${_sheet.raca.oldRace.name} (${ability.name})`,
+            value: `${_sheet.raca.oldRace.name} (${found.value})`,
           });
-          applyPower(_sheet, ability);
+          applyPower(_sheet, found.ability);
         }
       }
     }
@@ -360,40 +364,40 @@ export function applyOsteonMemoriaPostuma(
           });
         }
       }
-    } else if (_sheet.raca.oldRace.abilities) {
-      if (hasManualRaceAbilities) {
+    } else {
+      const selectable = getSelectableRaceAbilities(_sheet.raca.oldRace);
+      if (hasManualRaceAbilities && selectable.length > 0) {
         const selectedAbilityName =
           manualSelections.raceAbilities![0].abilityName;
-        const ability = _sheet.raca.oldRace.abilities.find(
-          (a) => a.name === selectedAbilityName
+        const found = findSelectableRaceAbility(
+          _sheet.raca.oldRace,
+          selectedAbilityName
         );
-        if (ability) {
-          _sheet.raca.abilities?.push(ability);
+        if (found) {
+          _sheet.raca.abilities?.push(found.ability);
           _sheet.osteonMemoriaPostumaChoice = {
             type: 'raceAbility',
-            value: ability.name,
+            value: found.value,
           };
           subSteps.push({
             name: 'Memória Póstuma',
-            value: `${_sheet.raca.oldRace.name} (${ability.name})`,
+            value: `${_sheet.raca.oldRace.name} (${found.value})`,
           });
-          applyPower(_sheet, ability);
+          applyPower(_sheet, found.ability);
         }
-      } else {
+      } else if (selectable.length > 0) {
         // Random fallback
-        const randomAbility = getRandomItemFromArray(
-          _sheet.raca.oldRace.abilities
-        );
-        _sheet.raca.abilities?.push(randomAbility);
+        const randomAbility = getRandomItemFromArray(selectable);
+        _sheet.raca.abilities?.push(randomAbility.ability);
         _sheet.osteonMemoriaPostumaChoice = {
           type: 'raceAbility',
-          value: randomAbility.name,
+          value: randomAbility.value,
         };
         subSteps.push({
           name: 'Memória Póstuma',
-          value: `${_sheet.raca.oldRace.name} (${randomAbility.name})`,
+          value: `${_sheet.raca.oldRace.name} (${randomAbility.value})`,
         });
-        applyPower(_sheet, randomAbility);
+        applyPower(_sheet, randomAbility.ability);
       }
     }
   }
@@ -445,19 +449,19 @@ export function applyYidishanNaturezaOrganica(
         value: `Poder geral recebido (${value})`,
       });
     } else if (type === 'raceAbility') {
-      if (_sheet.raca.oldRace?.abilities) {
-        const ability = _sheet.raca.oldRace.abilities.find(
-          (a) => a.name === value
-        );
-        if (ability) {
-          if (!_sheet.raca.abilities?.some((a) => a.name === value)) {
-            _sheet.raca.abilities?.push(ability);
+      if (_sheet.raca.oldRace) {
+        const found = findSelectableRaceAbility(_sheet.raca.oldRace, value);
+        if (found) {
+          if (
+            !_sheet.raca.abilities?.some((a) => a.name === found.ability.name)
+          ) {
+            _sheet.raca.abilities?.push(found.ability);
           }
           subSteps.push({
             name: 'Natureza Orgânica',
-            value: `${_sheet.raca.oldRace.name} (${ability.name})`,
+            value: `${_sheet.raca.oldRace.name} (${found.value})`,
           });
-          applyPower(_sheet, ability);
+          applyPower(_sheet, found.ability);
         }
       }
     }
@@ -488,24 +492,25 @@ export function applyYidishanNaturezaOrganica(
       name: 'Natureza Orgânica',
       value: `Poder geral recebido (${power.name})`,
     });
-  } else if (hasManualRaceAbilities && _sheet.raca.oldRace?.abilities) {
+  } else if (hasManualRaceAbilities && _sheet.raca.oldRace) {
     const selectedAbilityName = manualSelections.raceAbilities![0].abilityName;
-    const ability = _sheet.raca.oldRace.abilities.find(
-      (a) => a.name === selectedAbilityName
+    const found = findSelectableRaceAbility(
+      _sheet.raca.oldRace,
+      selectedAbilityName
     );
-    if (ability) {
-      if (!_sheet.raca.abilities?.some((a) => a.name === ability.name)) {
-        _sheet.raca.abilities?.push(ability);
+    if (found) {
+      if (!_sheet.raca.abilities?.some((a) => a.name === found.ability.name)) {
+        _sheet.raca.abilities?.push(found.ability);
       }
       _sheet.yidishanNaturezaChoice = {
         type: 'raceAbility',
-        value: ability.name,
+        value: found.value,
       };
       subSteps.push({
         name: 'Natureza Orgânica',
-        value: `${_sheet.raca.oldRace.name} (${ability.name})`,
+        value: `${_sheet.raca.oldRace.name} (${found.value})`,
       });
-      applyPower(_sheet, ability);
+      applyPower(_sheet, found.ability);
     }
   } else if (_sheet.raca.oldRace) {
     // RANDOM fallback
@@ -538,20 +543,21 @@ export function applyYidishanNaturezaOrganica(
           value: `Poder geral recebido (${randomPower.name})`,
         });
       }
-    } else if (_sheet.raca.oldRace.abilities) {
-      const randomAbility = getRandomItemFromArray(
-        _sheet.raca.oldRace.abilities
-      );
-      _sheet.raca.abilities?.push(randomAbility);
-      _sheet.yidishanNaturezaChoice = {
-        type: 'raceAbility',
-        value: randomAbility.name,
-      };
-      subSteps.push({
-        name: 'Natureza Orgânica',
-        value: `${_sheet.raca.oldRace.name} (${randomAbility.name})`,
-      });
-      applyPower(_sheet, randomAbility);
+    } else {
+      const selectable = getSelectableRaceAbilities(_sheet.raca.oldRace);
+      if (selectable.length > 0) {
+        const randomAbility = getRandomItemFromArray(selectable);
+        _sheet.raca.abilities?.push(randomAbility.ability);
+        _sheet.yidishanNaturezaChoice = {
+          type: 'raceAbility',
+          value: randomAbility.value,
+        };
+        subSteps.push({
+          name: 'Natureza Orgânica',
+          value: `${_sheet.raca.oldRace.name} (${randomAbility.value})`,
+        });
+        applyPower(_sheet, randomAbility.ability);
+      }
     }
   }
 
