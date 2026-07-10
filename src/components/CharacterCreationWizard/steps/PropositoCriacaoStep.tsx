@@ -21,6 +21,7 @@ import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import Skill from '@/interfaces/Skills';
 import { normalizeSearch } from '@/functions/stringUtils';
+import { getEffectiveRaceAttrs } from '@/functions/general';
 
 interface PropositoCriacaoStepProps {
   selectedPower?: GeneralPower;
@@ -28,6 +29,7 @@ interface PropositoCriacaoStepProps {
   baseAttributes?: Record<Atributo, number>;
   raceAttributes?: Atributo[];
   race?: Race;
+  sexForAttributes?: 'Masculino' | 'Feminino'; // Dimorfismo sexual (ex: Nagah)
   classe?: ClassDescription;
   usedSkills: Skill[];
   supplements: SupplementId[];
@@ -53,6 +55,7 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
   baseAttributes,
   raceAttributes,
   race,
+  sexForAttributes,
   classe,
   usedSkills,
   supplements,
@@ -77,7 +80,7 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
       atributos[attr as Atributo].mod = modifier;
     });
 
-    race.attributes.attrs.forEach((attrMod) => {
+    getEffectiveRaceAttrs(race, sexForAttributes).forEach((attrMod) => {
       if (attrMod.attr === 'any') {
         raceAttributes?.forEach((chosenAttr) => {
           atributos[chosenAttr].value += attrMod.mod;
@@ -104,7 +107,14 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
       spells: [],
       sheetActionHistory: [],
     } as unknown as CharacterSheet;
-  }, [baseAttributes, race, raceAttributes, usedSkills, classe]);
+  }, [
+    baseAttributes,
+    race,
+    sexForAttributes,
+    raceAttributes,
+    usedSkills,
+    classe,
+  ]);
 
   // Get all general powers and group by type
   const powersByType = useMemo(() => {

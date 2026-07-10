@@ -20,6 +20,7 @@ import {
   OriginPower,
 } from '@/interfaces/Poderes';
 import { ClassDescription } from '@/interfaces/Class';
+import { getEffectiveRaceAttrs } from '@/functions/general';
 
 interface OriginSelectionStepProps {
   origin: Origin;
@@ -31,6 +32,7 @@ interface OriginSelectionStepProps {
   baseAttributes?: Record<Atributo, number>;
   raceAttributes?: Atributo[];
   race?: Race;
+  sexForAttributes?: 'Masculino' | 'Feminino'; // Dimorfismo sexual (ex: Nagah)
   classe?: ClassDescription;
 }
 
@@ -43,6 +45,7 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   baseAttributes,
   raceAttributes,
   race,
+  sexForAttributes,
   classe,
 }) => {
   const REQUIRED_SELECTIONS = 2;
@@ -68,7 +71,7 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
     });
 
     // Apply racial modifiers
-    race.attributes.attrs.forEach((attrMod) => {
+    getEffectiveRaceAttrs(race, sexForAttributes).forEach((attrMod) => {
       if (attrMod.attr === 'any') {
         // Apply to chosen attributes
         raceAttributes?.forEach((chosenAttr) => {
@@ -96,7 +99,14 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
       spells: [],
       sheetActionHistory: [],
     } as unknown as CharacterSheet;
-  }, [baseAttributes, race, raceAttributes, usedSkills, classe]);
+  }, [
+    baseAttributes,
+    race,
+    sexForAttributes,
+    raceAttributes,
+    usedSkills,
+    classe,
+  ]);
 
   // Helper to check if a power meets requirements
   const checkPowerRequirements = (

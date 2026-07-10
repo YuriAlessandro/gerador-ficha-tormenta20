@@ -32,8 +32,11 @@ import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSel
 import {
   buildClassEquipmentsFromChoices,
   convertOriginItemsToBagEquipments,
+  getEffectiveRaceAttrs,
   getInitialMoneyWithDetails,
   isClassOrVariantOf,
+  raceHasSexDimorphism,
+  resolveSexForAttributes,
 } from '@/functions/general';
 import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
 import { rollAttributePool } from '@/functions/attributeMethods';
@@ -267,6 +270,12 @@ const CharacterCreationWizardModal: React.FC<
     return deityWithPowers || baseDeity;
   }, [selectedOptions.devocao?.value, supplements]);
 
+  // Sexo efetivo para atributos raciais (dimorfismo sexual, ex: Nagah)
+  const sexForAttributes = resolveSexForAttributes(
+    selections.characterGender,
+    selections.dimorphismChoice
+  );
+
   // Helper to calculate intelligence modifier (including racial modifiers)
   const getIntelligenceModifier = (): number => {
     if (!selections.baseAttributes || !race) return 0;
@@ -275,9 +284,10 @@ const CharacterCreationWizardModal: React.FC<
 
     // Add racial modifier for Intelligence
     let racialModifier = 0;
+    const raceAttrs = getEffectiveRaceAttrs(race, sexForAttributes);
 
     // Count fixed modifiers for INT
-    race.attributes.attrs.forEach((attr) => {
+    raceAttrs.forEach((attr) => {
       if (attr.attr === Atributo.INTELIGENCIA) {
         racialModifier += attr.mod;
       }
@@ -286,7 +296,7 @@ const CharacterCreationWizardModal: React.FC<
     // For 'any' attributes: add the bonus only if INT was selected
     // and only once (using the mod from the first 'any' found)
     if (selections.raceAttributes?.includes(Atributo.INTELIGENCIA)) {
-      const anyAttr = race.attributes.attrs.find((attr) => attr.attr === 'any');
+      const anyAttr = raceAttrs.find((attr) => attr.attr === 'any');
       if (anyAttr) {
         racialModifier += anyAttr.mod;
       }
@@ -312,7 +322,9 @@ const CharacterCreationWizardModal: React.FC<
   const needsRaceAttributes = (): boolean => {
     if (!race) return false;
     // If variant is selected, use variant's attrs, otherwise use race's attrs
-    const attrs = selections.attributeVariant?.attrs || race.attributes.attrs;
+    const attrs =
+      selections.attributeVariant?.attrs ||
+      getEffectiveRaceAttrs(race, sexForAttributes);
     return attrs.some((attr) => attr.attr === 'any');
   };
 
@@ -805,6 +817,7 @@ const CharacterCreationWizardModal: React.FC<
               name: selections.characterName,
               gender: selections.characterGender,
               imageUrl: selections.characterImageUrl,
+              dimorphismChoice: selections.dimorphismChoice,
             }}
             onChange={(info) =>
               setSelections({
@@ -812,9 +825,11 @@ const CharacterCreationWizardModal: React.FC<
                 characterName: info.name,
                 characterGender: info.gender,
                 characterImageUrl: info.imageUrl,
+                dimorphismChoice: info.dimorphismChoice,
               })
             }
             raceName={selectedOptions.raca}
+            race={race}
             supplements={supplements}
           />
         );
@@ -833,6 +848,7 @@ const CharacterCreationWizardModal: React.FC<
         return (
           <AttributeBaseValuesStep
             race={race}
+            sexForAttributes={sexForAttributes}
             baseAttributes={selections.baseAttributes || zeroedAttributes}
             raceAttributeChoices={selections.raceAttributes}
             method={selections.attributeMethod || 'free'}
@@ -1044,6 +1060,7 @@ const CharacterCreationWizardModal: React.FC<
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
             race={race}
+            sexForAttributes={sexForAttributes}
             classe={classe}
           />
         );
@@ -1058,6 +1075,7 @@ const CharacterCreationWizardModal: React.FC<
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
             race={race}
+            sexForAttributes={sexForAttributes}
             classe={classe}
             usedSkills={getAllUsedSkills()}
             supplements={supplements}
@@ -1324,10 +1342,15 @@ const CharacterCreationWizardModal: React.FC<
 
     switch (stepName) {
       case 'Informações Básicas':
-        // Require at least a name
+        // Require at least a name (and the racial attribute set choice for
+        // sex-dimorphic races when gender is 'Outro')
         return (
           !!selections.characterName &&
-          selections.characterName.trim().length > 0
+          selections.characterName.trim().length > 0 &&
+          (!race ||
+            !raceHasSexDimorphism(race) ||
+            selections.characterGender !== 'Outro' ||
+            !!selections.dimorphismChoice)
         );
 
       case 'Valores dos Atributos':
@@ -1349,7 +1372,8 @@ const CharacterCreationWizardModal: React.FC<
         if (!race) return false;
         // Use variant's attrs if selected, otherwise use race's default attrs
         const attrs =
-          selections.attributeVariant?.attrs || race.attributes.attrs;
+          selections.attributeVariant?.attrs ||
+          getEffectiveRaceAttrs(race, sexForAttributes);
         const attrCount = attrs.filter((a) => a.attr === 'any').length;
         return (
           selections.raceAttributes?.length === attrCount &&

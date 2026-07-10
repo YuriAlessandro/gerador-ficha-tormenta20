@@ -569,6 +569,37 @@ interface ReduceAttributesParams {
   nomesDosAtributosModificados: string[];
 }
 
+// Use getAttributes if available (for sex-dependent attributes like Nagah)
+export function getEffectiveRaceAttrs(
+  race: Race,
+  sex?: 'Masculino' | 'Feminino'
+): RaceAttributeAbility[] {
+  return race.getAttributes && sex
+    ? race.getAttributes(sex)
+    : race.attributes.attrs;
+}
+
+// Moreau também tem getAttributes, mas retorna o mesmo conjunto para ambos os
+// sexos (depende de herança) — por isso a detecção compara os dois resultados
+export function raceHasSexDimorphism(race: Race): boolean {
+  if (!race.getAttributes) return false;
+  return (
+    JSON.stringify(race.getAttributes('Masculino')) !==
+    JSON.stringify(race.getAttributes('Feminino'))
+  );
+}
+
+// Gênero 'Outro' não é coberto pelas regras de dimorfismo; nesse caso o
+// jogador escolhe o conjunto de atributos via dimorphismChoice (wizard)
+export function resolveSexForAttributes(
+  gender?: string,
+  dimorphismChoice?: 'Masculino' | 'Feminino'
+): 'Masculino' | 'Feminino' | undefined {
+  if (gender === 'Masculino' || gender === 'Feminino') return gender;
+  if (gender === 'Outro') return dimorphismChoice;
+  return undefined;
+}
+
 export function modifyAttributesBasedOnRace(
   raca: Race,
   atributosRolados: CharacterAttributes,
@@ -580,9 +611,7 @@ export function modifyAttributesBasedOnRace(
   const values: { name: string; value: string | number }[] = [];
   let manualChoiceIndex = 0; // Track which manual choice to use next
 
-  // Use getAttributes if available (for sex-dependent attributes like Nagah)
-  const raceAttributes =
-    raca.getAttributes && sex ? raca.getAttributes(sex) : raca.attributes.attrs;
+  const raceAttributes = getEffectiveRaceAttrs(raca, sex);
   const excludeFromAny = raca.attributes.excludeFromAny || [];
 
   const reducedAttrs = raceAttributes.reduce<ReduceAttributesParams>(
@@ -6290,7 +6319,10 @@ export function generateEmptySheet(
     emptySheet.classe.attrPriority || [],
     tempSteps,
     wizardSelections?.raceAttributes,
-    undefined // Sex not defined in empty sheet yet
+    resolveSexForAttributes(
+      wizardSelections?.characterGender,
+      wizardSelections?.dimorphismChoice
+    )
   );
   emptySheet.steps.push(...tempSteps);
 

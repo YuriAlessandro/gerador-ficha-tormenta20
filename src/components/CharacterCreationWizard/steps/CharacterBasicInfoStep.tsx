@@ -14,24 +14,41 @@ import {
 } from '@mui/material';
 import { SupplementId } from '@/types/supplement.types';
 import getNameSuggestions from '@/functions/nameSuggestions';
+import Race from '@/interfaces/Race';
+import {
+  getEffectiveRaceAttrs,
+  raceHasSexDimorphism,
+} from '@/functions/general';
 
 interface CharacterBasicInfo {
   name?: string;
   gender?: 'Masculino' | 'Feminino' | 'Outro';
   imageUrl?: string;
+  dimorphismChoice?: 'Masculino' | 'Feminino';
 }
 
 interface CharacterBasicInfoStepProps {
   basicInfo: CharacterBasicInfo;
   onChange: (info: CharacterBasicInfo) => void;
   raceName: string;
+  race?: Race;
   supplements: SupplementId[];
 }
+
+const formatAttrSet = (race: Race, sex: 'Masculino' | 'Feminino'): string =>
+  getEffectiveRaceAttrs(race, sex)
+    .map((attr) =>
+      attr.attr === 'any'
+        ? `Qualquer ${attr.mod > 0 ? '+' : ''}${attr.mod}`
+        : `${attr.attr} ${attr.mod > 0 ? '+' : ''}${attr.mod}`
+    )
+    .join(', ');
 
 const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
   basicInfo,
   onChange,
   raceName,
+  race,
   supplements,
 }) => {
   const [nameSuggestions, setNameSuggestions] = useState<string[]>(() =>
@@ -46,13 +63,32 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
   }, [raceName, basicInfo.gender, supplements]);
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const gender = event.target.value as 'Masculino' | 'Feminino' | 'Outro';
     onChange({
       ...basicInfo,
-      gender: event.target.value as 'Masculino' | 'Feminino' | 'Outro',
+      gender,
+      // A escolha de dimorfismo só se aplica ao gênero 'Outro'
+      dimorphismChoice:
+        gender === 'Outro' ? basicInfo.dimorphismChoice : undefined,
     });
   };
 
-  const isComplete = basicInfo.name && basicInfo.name.trim().length > 0;
+  const handleDimorphismChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    onChange({
+      ...basicInfo,
+      dimorphismChoice: event.target.value as 'Masculino' | 'Feminino',
+    });
+  };
+
+  const needsDimorphismChoice =
+    !!race && raceHasSexDimorphism(race) && basicInfo.gender === 'Outro';
+
+  const isComplete =
+    basicInfo.name &&
+    basicInfo.name.trim().length > 0 &&
+    (!needsDimorphismChoice || !!basicInfo.dimorphismChoice);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -156,13 +192,39 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
           <FormControlLabel value='Outro' control={<Radio />} label='Outro' />
         </RadioGroup>
       </FormControl>
+      {needsDimorphismChoice && race && (
+        <FormControl component='fieldset'>
+          <FormLabel component='legend'>Atributos Raciais</FormLabel>
+          <Typography variant='body2' sx={{ color: 'text.secondary', mb: 1 }}>
+            A raça {race.name} possui atributos diferentes conforme o
+            dimorfismo. Escolha qual conjunto seu personagem recebe.
+          </Typography>
+          <RadioGroup
+            value={basicInfo.dimorphismChoice || ''}
+            onChange={handleDimorphismChange}
+          >
+            <FormControlLabel
+              value='Masculino'
+              control={<Radio />}
+              label={`Aspecto físico (${formatAttrSet(race, 'Masculino')})`}
+            />
+            <FormControlLabel
+              value='Feminino'
+              control={<Radio />}
+              label={`Aspecto mental (${formatAttrSet(race, 'Feminino')})`}
+            />
+          </RadioGroup>
+        </FormControl>
+      )}
       {isComplete ? (
         <Alert severity='success'>
           Informações básicas preenchidas! Você pode continuar.
         </Alert>
       ) : (
         <Alert severity='info'>
-          Preencha pelo menos o nome do personagem para continuar.
+          {needsDimorphismChoice && !basicInfo.dimorphismChoice
+            ? 'Preencha o nome do personagem e escolha o conjunto de atributos raciais para continuar.'
+            : 'Preencha pelo menos o nome do personagem para continuar.'}
         </Alert>
       )}
     </Box>

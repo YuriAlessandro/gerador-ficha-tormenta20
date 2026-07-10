@@ -28,11 +28,13 @@ import {
   POINT_BUY_MAX,
   POINT_BUY_MIN,
 } from '@/functions/attributeMethods';
+import { getEffectiveRaceAttrs } from '@/functions/general';
 
 export type AttributeMethod = 'free' | 'dice' | 'points';
 
 interface AttributeBaseValuesStepProps {
   race: Race;
+  sexForAttributes?: 'Masculino' | 'Feminino'; // Dimorfismo sexual (ex: Nagah)
   baseAttributes: Record<Atributo, number>;
   raceAttributeChoices?: Atributo[]; // For races with 'any' attributes
   method: AttributeMethod;
@@ -52,6 +54,7 @@ const formatMod = (mod: number): string => {
 
 const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
   race,
+  sexForAttributes,
   baseAttributes,
   raceAttributeChoices,
   method,
@@ -126,17 +129,19 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
     let modifier = 0;
     let anyIndex = 0;
 
-    race.attributes.attrs.forEach((attr: RaceAttributeAbility) => {
-      if (attr.attr === atributo) {
-        modifier += attr.mod;
-      } else if (attr.attr === 'any') {
-        // Each 'any' slot corresponds to one specific choice by index
-        if (raceAttributeChoices?.[anyIndex] === atributo) {
+    getEffectiveRaceAttrs(race, sexForAttributes).forEach(
+      (attr: RaceAttributeAbility) => {
+        if (attr.attr === atributo) {
           modifier += attr.mod;
+        } else if (attr.attr === 'any') {
+          // Each 'any' slot corresponds to one specific choice by index
+          if (raceAttributeChoices?.[anyIndex] === atributo) {
+            modifier += attr.mod;
+          }
+          anyIndex += 1;
         }
-        anyIndex += 1;
       }
-    });
+    );
 
     return modifier;
   };

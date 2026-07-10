@@ -89,6 +89,10 @@ export interface WizardSelections {
   characterGender?: 'Masculino' | 'Feminino' | 'Outro';
   characterImageUrl?: string;
 
+  // Conjunto de atributos raciais escolhido quando a raça tem dimorfismo
+  // sexual (ex: Nagah) e o gênero é 'Outro'
+  dimorphismChoice?: 'Masculino' | 'Feminino';
+
   // Base attribute values (before racial modifiers)
   baseAttributes?: Record<Atributo, number>;
 
