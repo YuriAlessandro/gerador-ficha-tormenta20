@@ -266,6 +266,9 @@ export function applyOsteonMemoriaPostuma(
     !hasManualPowers &&
     !hasManualRaceAbilities
   ) {
+    if (_sheet.osteonMemoriaPostumaChoice.type === 'cleared') {
+      return subSteps;
+    }
     const { type, value } = _sheet.osteonMemoriaPostumaChoice;
     if (type === 'skill') {
       const skill = value as Skill;
@@ -426,6 +429,9 @@ export function applyYidishanNaturezaOrganica(
     !hasManualPowers &&
     !hasManualRaceAbilities
   ) {
+    if (_sheet.yidishanNaturezaChoice.type === 'cleared') {
+      return subSteps;
+    }
     const { type, value } = _sheet.yidishanNaturezaChoice;
     if (type === 'skill') {
       const skill = value as Skill;
@@ -804,14 +810,15 @@ export function applyMashinChassi(
       value: `Perícia treinada (${storedSkill})`,
     });
 
+    if (sheet.mashinChassiChoice.type === 'cleared') {
+      return substeps;
+    }
+
     if (sheet.mashinChassiChoice.type === 'power') {
-      if (
-        !sheet.generalPowers.some(
-          (p) => p.name === sheet.mashinChassiChoice!.value
-        )
-      ) {
+      const storedMarvelName = sheet.mashinChassiChoice.value;
+      if (!sheet.generalPowers.some((p) => p.name === storedMarvelName)) {
         const storedMarvel = MECHANICAL_MARVELS.find(
-          (m) => m.name === sheet.mashinChassiChoice!.value
+          (m) => m.name === storedMarvelName
         );
         if (storedMarvel) {
           sheet.generalPowers.push(storedMarvel);
@@ -819,7 +826,7 @@ export function applyMashinChassi(
       }
       substeps.push({
         name: 'Chassi Mashin',
-        value: `Maravilha Mecânica recebida (${sheet.mashinChassiChoice.value})`,
+        value: `Maravilha Mecânica recebida (${storedMarvelName})`,
       });
     } else {
       const storedSecondSkill = sheet.mashinChassiChoice.value as Skill;

@@ -103,7 +103,10 @@ describe('Memória Póstuma / Natureza Orgânica com Moreau como raça anterior'
       applyOsteonMemoriaPostuma(sheet);
       expect(sheet.raca.abilities?.length).toBe(1);
       expect(sheet.raca.abilities?.[0]).toBeDefined();
-      expect(sheet.osteonMemoriaPostumaChoice?.value).toMatch(/^.+ \(.+\)$/);
+      const choice = sheet.osteonMemoriaPostumaChoice;
+      expect(choice && choice.type !== 'cleared' ? choice.value : '').toMatch(
+        /^.+ \(.+\)$/
+      );
     }
   });
 
@@ -125,7 +128,10 @@ describe('Memória Póstuma / Natureza Orgânica com Moreau como raça anterior'
       applyYidishanNaturezaOrganica(sheet);
       expect(sheet.raca.abilities?.length).toBe(1);
       expect(sheet.raca.abilities?.[0]).toBeDefined();
-      expect(sheet.yidishanNaturezaChoice?.value).toMatch(/^.+ \(.+\)$/);
+      const choice = sheet.yidishanNaturezaChoice;
+      expect(choice && choice.type !== 'cleared' ? choice.value : '').toMatch(
+        /^.+ \(.+\)$/
+      );
     }
   });
 

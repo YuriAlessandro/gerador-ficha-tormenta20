@@ -12,6 +12,7 @@ import LUTADOR from '../../data/systems/tormenta20/classes/lutador';
 import BUCANEIRO from '../../data/systems/tormenta20/classes/bucaneiro';
 import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
 import GUERREIRO_HEROIS_POWERS from '../../data/systems/tormenta20/herois-de-arton/classPowers/guerreiro';
+import MECHANICAL_MARVELS from '../../data/systems/tormenta20/ameacas-de-arton/powers/mechanicalMarvels';
 import Bag from '../../interfaces/Bag';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { DefenseEquipment } from '../../interfaces/Equipment';
@@ -830,6 +831,9 @@ describe('recalculateSheet', () => {
       expect(
         result.generalPowers.some((p) => p.name === 'Olhos Vermelhos')
       ).toBe(false);
+      // The 'cleared' sentinel prevents the random path from rolling a
+      // replacement choice on the next recalculation
+      expect(result.osteonMemoriaPostumaChoice).toEqual({ type: 'cleared' });
     });
 
     it('should keep the power when the user did not remove it', () => {
@@ -837,6 +841,213 @@ describe('recalculateSheet', () => {
       const result = recalculateSheet(sheetWithPower, sheetWithPower);
       expect(
         result.generalPowers.some((p) => p.name === 'Olhos Vermelhos')
+      ).toBe(true);
+    });
+  });
+
+  describe('Removed power reappearing via Yidishan Natureza Orgânica', () => {
+    const membrosEstendidos = tormentaPowers.MEMBROS_ESTENDIDOS as GeneralPower;
+
+    const naturezaOrganicaAbility = {
+      name: 'Natureza Orgânica',
+      description: 'Você recebe um poder geral a sua escolha.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Natureza Orgânica' },
+          action: {
+            type: 'special' as const,
+            specialAction: 'yidishanNaturezaOrganica' as const,
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockSheet.raca = {
+        name: 'Yidishan',
+        attributes: { attrs: [] },
+        faithProbability: {},
+        abilities: [naturezaOrganicaAbility],
+      };
+      mockSheet.yidishanNaturezaChoice = {
+        type: 'power',
+        value: 'Membros Estendidos',
+      };
+      mockSheet.generalPowers = [membrosEstendidos];
+    });
+
+    it('should not re-add a general power removed by the user (deterministic replay)', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      expect(
+        sheetWithPower.generalPowers.some(
+          (p) => p.name === 'Membros Estendidos'
+        )
+      ).toBe(true);
+
+      const editedSheet = {
+        ...sheetWithPower,
+        generalPowers: sheetWithPower.generalPowers.filter(
+          (p) => p.name !== 'Membros Estendidos'
+        ),
+      };
+
+      const result = recalculateSheet(editedSheet, sheetWithPower);
+
+      expect(
+        result.generalPowers.some((p) => p.name === 'Membros Estendidos')
+      ).toBe(false);
+      expect(result.yidishanNaturezaChoice).toEqual({ type: 'cleared' });
+    });
+
+    it('should keep the power when the user did not remove it', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      const result = recalculateSheet(sheetWithPower, sheetWithPower);
+      expect(
+        result.generalPowers.some((p) => p.name === 'Membros Estendidos')
+      ).toBe(true);
+    });
+  });
+
+  describe('Removed power reappearing via Lefou Deformidade', () => {
+    const membrosEstendidos = tormentaPowers.MEMBROS_ESTENDIDOS as GeneralPower;
+
+    const deformidadeAbility = {
+      name: 'Deformidade',
+      description: 'Você recebe +2 em uma perícia e um poder da Tormenta.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Deformidade' },
+          action: {
+            type: 'special' as const,
+            specialAction: 'lefouDeformidade' as const,
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockSheet.raca = {
+        name: 'Lefou',
+        attributes: { attrs: [] },
+        faithProbability: {},
+        abilities: [deformidadeAbility],
+      };
+      mockSheet.lefouDeformidadeSkills = [Skill.INICIATIVA];
+      mockSheet.lefouDeformidadePower = 'Membros Estendidos';
+      mockSheet.generalPowers = [membrosEstendidos];
+    });
+
+    it('should not re-add a general power removed by the user (deterministic replay)', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      expect(
+        sheetWithPower.generalPowers.some(
+          (p) => p.name === 'Membros Estendidos'
+        )
+      ).toBe(true);
+
+      const editedSheet = {
+        ...sheetWithPower,
+        generalPowers: sheetWithPower.generalPowers.filter(
+          (p) => p.name !== 'Membros Estendidos'
+        ),
+      };
+
+      const result = recalculateSheet(editedSheet, sheetWithPower);
+
+      expect(
+        result.generalPowers.some((p) => p.name === 'Membros Estendidos')
+      ).toBe(false);
+      expect(result.lefouDeformidadePower).toBeUndefined();
+      // The skill bonus from Deformidade must survive the power removal
+      expect(result.lefouDeformidadeSkills).toEqual([Skill.INICIATIVA]);
+      expect(
+        result.sheetBonuses.some(
+          (b) =>
+            b.source.type === 'power' &&
+            b.source.name === 'Deformidade' &&
+            b.target.type === 'Skill' &&
+            b.target.name === Skill.INICIATIVA
+        )
+      ).toBe(true);
+    });
+
+    it('should keep the power when the user did not remove it', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      const result = recalculateSheet(sheetWithPower, sheetWithPower);
+      expect(
+        result.generalPowers.some((p) => p.name === 'Membros Estendidos')
+      ).toBe(true);
+    });
+  });
+
+  describe('Removed power reappearing via Mashin Chassi', () => {
+    const armaAcoplada = MECHANICAL_MARVELS.find(
+      (m) => m.name === 'Maravilha Mecânica: Arma Acoplada'
+    ) as GeneralPower;
+
+    const chassiAbility = {
+      name: 'Chassi Mashin',
+      description: 'Você recebe uma perícia e uma Maravilha Mecânica.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Chassi Mashin' },
+          action: {
+            type: 'special' as const,
+            specialAction: 'mashinChassi' as const,
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockSheet.raca = {
+        name: 'Golem Desperto',
+        attributes: { attrs: [] },
+        faithProbability: {},
+        abilities: [chassiAbility],
+      };
+      mockSheet.mashinChassiSkill = Skill.LUTA;
+      mockSheet.mashinChassiChoice = {
+        type: 'power',
+        value: 'Maravilha Mecânica: Arma Acoplada',
+      };
+      mockSheet.generalPowers = [armaAcoplada];
+    });
+
+    it('should not re-add a general power removed by the user (deterministic replay)', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      expect(
+        sheetWithPower.generalPowers.some(
+          (p) => p.name === 'Maravilha Mecânica: Arma Acoplada'
+        )
+      ).toBe(true);
+
+      const editedSheet = {
+        ...sheetWithPower,
+        generalPowers: sheetWithPower.generalPowers.filter(
+          (p) => p.name !== 'Maravilha Mecânica: Arma Acoplada'
+        ),
+      };
+
+      const result = recalculateSheet(editedSheet, sheetWithPower);
+
+      expect(
+        result.generalPowers.some(
+          (p) => p.name === 'Maravilha Mecânica: Arma Acoplada'
+        )
+      ).toBe(false);
+      expect(result.mashinChassiChoice).toEqual({ type: 'cleared' });
+      // The first trained skill from Chassi must survive the power removal
+      expect(result.skills).toContain(Skill.LUTA);
+    });
+
+    it('should keep the power when the user did not remove it', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      const result = recalculateSheet(sheetWithPower, sheetWithPower);
+      expect(
+        result.generalPowers.some(
+          (p) => p.name === 'Maravilha Mecânica: Arma Acoplada'
+        )
       ).toBe(true);
     });
   });

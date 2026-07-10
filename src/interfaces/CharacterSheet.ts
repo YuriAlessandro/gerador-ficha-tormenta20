@@ -697,20 +697,19 @@ export default interface CharacterSheet {
     | { type: 'cleared' }; // Segunda escolha
   lefouDeformidadeSkills?: string[]; // Perícias escolhidas por Deformidade (Lefou)
   lefouDeformidadePower?: string; // Poder da Tormenta escolhido (se aplicável)
-  osteonMemoriaPostumaChoice?: {
-    type: 'skill' | 'power' | 'raceAbility';
-    value: string;
-  }; // Escolha de Memória Póstuma
-  yidishanNaturezaChoice?: {
-    type: 'skill' | 'power' | 'raceAbility';
-    value: string;
-  }; // Escolha de Natureza Orgânica
+  osteonMemoriaPostumaChoice?:
+    | { type: 'skill' | 'power' | 'raceAbility'; value: string }
+    | { type: 'cleared' }; // Escolha de Memória Póstuma
+  yidishanNaturezaChoice?:
+    | { type: 'skill' | 'power' | 'raceAbility'; value: string }
+    | { type: 'cleared' }; // Escolha de Natureza Orgânica
   meioElfoAmbicaoType?: 'generalPower' | 'originPower' | 'cleared'; // Tipo de Ambição Herdada
   meioElfoAmbicaoPower?: string; // Nome do poder escolhido por Ambição Herdada
   mashinChassiSkill?: string; // Perícia escolhida por Chassi Mashin
   mashinChassiChoice?:
     | { type: 'skill'; value: string }
-    | { type: 'power'; value: string }; // Segunda escolha
+    | { type: 'power'; value: string }
+    | { type: 'cleared' }; // Segunda escolha
   moreauSapienciaSpell?: string; // Magia escolhida por Sapiência (Moreau)
   moreauEspertezaSkills?: [string, string]; // Perícias escolhidas por Esperteza Vulpina (Moreau)
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)

@@ -1585,16 +1585,37 @@ export function recalculateSheet(
       reverseSheetActionsForPower(updatedSheet, powerName);
     });
 
-    // If the user removed the general power that Osteon's "Memória Póstuma"
-    // deterministically replays from `osteonMemoriaPostumaChoice`, clear the
-    // stored choice. Otherwise `applyOsteonMemoriaPostuma` (special.ts) would
-    // re-inject the removed power into `generalPowers` on every recalculation,
-    // making it impossible to delete via the Powers edit drawer.
+    // If the user removed a general power that a race ability deterministically
+    // replays from a stored choice (Osteon "Memória Póstuma", Yidishan
+    // "Natureza Orgânica", Lefou "Deformidade", Mashin "Chassi"), clear the
+    // stored choice. Otherwise the special action (special.ts) would re-inject
+    // the removed power into `generalPowers` on every recalculation, making it
+    // impossible to delete via the Powers edit drawer. The `cleared` sentinel
+    // (not `undefined`) keeps the special action from falling through to its
+    // random path and rolling a replacement.
     if (
       updatedSheet.osteonMemoriaPostumaChoice?.type === 'power' &&
       removedPowerNames.includes(updatedSheet.osteonMemoriaPostumaChoice.value)
     ) {
-      updatedSheet.osteonMemoriaPostumaChoice = undefined;
+      updatedSheet.osteonMemoriaPostumaChoice = { type: 'cleared' };
+    }
+    if (
+      updatedSheet.yidishanNaturezaChoice?.type === 'power' &&
+      removedPowerNames.includes(updatedSheet.yidishanNaturezaChoice.value)
+    ) {
+      updatedSheet.yidishanNaturezaChoice = { type: 'cleared' };
+    }
+    if (
+      updatedSheet.lefouDeformidadePower &&
+      removedPowerNames.includes(updatedSheet.lefouDeformidadePower)
+    ) {
+      updatedSheet.lefouDeformidadePower = undefined;
+    }
+    if (
+      updatedSheet.mashinChassiChoice?.type === 'power' &&
+      removedPowerNames.includes(updatedSheet.mashinChassiChoice.value)
+    ) {
+      updatedSheet.mashinChassiChoice = { type: 'cleared' };
     }
   }
 
