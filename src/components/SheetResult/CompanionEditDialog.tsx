@@ -41,12 +41,13 @@ import {
 import {
   calculateCompanionStats,
   revertCompanionToOriginal,
+  countNaturalWeapons,
   COMPANION_AVAILABLE_SKILLS,
   COMPANION_WEAPON_DAMAGE_TYPES,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
   getCompanionTrickDefinition,
-  getAvailableTricks,
+  getTricksWithAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import {
   Atributo,
@@ -1056,17 +1057,14 @@ const TricksTab: React.FC<{
   setDraft: React.Dispatch<React.SetStateAction<DraftState>>;
   trainerLevel: number;
 }> = ({ draft, setDraft, trainerLevel }) => {
-  // Contar armas naturais aproximadamente
-  const naturalWeaponCount = 1;
-
-  const availableToAdd = useMemo(
+  const tricksWithAvailability = useMemo(
     () =>
-      getAvailableTricks(
+      getTricksWithAvailability(
         trainerLevel,
         draft.companionType,
         draft.size,
         draft.tricks,
-        naturalWeaponCount,
+        countNaturalWeapons(draft.companionType, draft.tricks),
         false
       ),
     [trainerLevel, draft.companionType, draft.size, draft.tricks]
@@ -1181,14 +1179,19 @@ const TricksTab: React.FC<{
             if (e.target.value) addTrick(e.target.value as string);
           }}
         >
-          {availableToAdd.length === 0 && (
-            <MenuItem value='' disabled>
-              Nenhum disponível
-            </MenuItem>
-          )}
-          {availableToAdd.map((t) => (
-            <MenuItem key={t.name} value={t.name}>
-              {t.name}
+          {tricksWithAvailability.map(({ trick, available, unmetReasons }) => (
+            <MenuItem key={trick.name} value={trick.name} disabled={!available}>
+              <Box>
+                <Typography variant='body2'>{trick.name}</Typography>
+                {unmetReasons.length > 0 && (
+                  <Typography
+                    variant='caption'
+                    sx={{ color: 'text.disabled', whiteSpace: 'normal' }}
+                  >
+                    {unmetReasons.join(' · ')}
+                  </Typography>
+                )}
+              </Box>
             </MenuItem>
           ))}
         </Select>

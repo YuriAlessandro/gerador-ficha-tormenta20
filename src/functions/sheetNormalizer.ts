@@ -4,6 +4,7 @@ import { CharacterAttributes } from '../interfaces/Character';
 import Bag from '../interfaces/Bag';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
+import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
 
@@ -108,6 +109,28 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
               : sk
           )
       : undefined;
+  }
+
+  // Truques de parceiro duplicados (bug histórico do LevelUpWizard, que
+  // permitia repetir truques não-repetíveis): mantém a 1ª ocorrência (preserva
+  // as `choices` originais); truques com canRepeat ficam intactos. O
+  // recalculateSheet refaz os stats derivados na sequência.
+  if (Array.isArray(sheet.companions)) {
+    sheet.companions = sheet.companions.map((companion) => {
+      if (!companion || !Array.isArray(companion.tricks)) return companion;
+      const seen = new Set<string>();
+      const tricks = companion.tricks.filter((t) => {
+        if (!t || typeof t.name !== 'string') return false;
+        const def = getCompanionTrickDefinition(t.name);
+        if (def?.requirements?.canRepeat) return true;
+        if (seen.has(t.name)) return false;
+        seen.add(t.name);
+        return true;
+      });
+      return tricks.length === companion.tricks.length
+        ? companion
+        : { ...companion, tricks };
+    });
   }
 }
 

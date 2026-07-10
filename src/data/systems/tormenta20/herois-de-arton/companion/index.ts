@@ -17,10 +17,40 @@ import {
 import COMPANION_TRICKS, {
   getAvailableTricks,
   getCompanionTrickDefinition,
+  getTrickAvailability,
+  getTricksWithAvailability,
 } from './companionTricks';
 
-export { COMPANION_TRICKS, getAvailableTricks, getCompanionTrickDefinition };
+export {
+  COMPANION_TRICKS,
+  getAvailableTricks,
+  getCompanionTrickDefinition,
+  getTrickAvailability,
+  getTricksWithAvailability,
+};
+export type {
+  TrickAvailability,
+  TrickWithAvailability,
+} from './companionTricks';
 export { COMPANION_TYPES, getCompanionTypeDefinition } from './companionTypes';
+
+/**
+ * Conta as armas naturais que o parceiro teria com o tipo e truques dados,
+ * seguindo a mesma semântica de computeNaturalWeapons (Anatomia Humanoide
+ * remove todas; Monstro tem uma extra; Arma Natural Adicional soma +1 cada).
+ */
+export function countNaturalWeapons(
+  companionType: CompanionType,
+  tricks: CompanionTrick[]
+): number {
+  if (tricks.some((t) => t.name === 'Anatomia Humanoide')) return 0;
+  const typeDef = getCompanionTypeDefinition(companionType);
+  const base = typeDef?.extraNaturalWeapon ? 2 : 1;
+  const extra = tricks.filter(
+    (t) => t.name === 'Arma Natural Adicional'
+  ).length;
+  return base + extra;
+}
 
 /** Perícias disponíveis para o parceiro escolher */
 export const COMPANION_AVAILABLE_SKILLS: Skill[] = [

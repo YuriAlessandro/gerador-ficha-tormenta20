@@ -63,6 +63,7 @@ import todasProficiencias from '../data/systems/tormenta20/proficiencias';
 import {
   generateRandomCompanion,
   createCompanion,
+  getCompanionTrickDefinition,
 } from '../data/systems/tormenta20/herois-de-arton/companion';
 import { generateEquipmentRewards } from './equipmentRewardGenerator';
 import {
@@ -4307,6 +4308,17 @@ export function applyManualLevelUp(
         entry.companionIndex,
         updatedSheet.companions!.length - 1
       );
+      // Dedup defensivo: ignora seleção duplicada de truque não-repetível
+      const trickDef = getCompanionTrickDefinition(entry.trick.name);
+      const canRepeat = !!trickDef?.requirements?.canRepeat;
+      if (
+        !canRepeat &&
+        updatedSheet.companions![targetIdx].tricks.some(
+          (t) => t.name === entry.trick.name
+        )
+      ) {
+        return;
+      }
       updatedSheet.companions = updatedSheet.companions!.map(
         (companion, idx) => {
           if (idx !== targetIdx) return companion;

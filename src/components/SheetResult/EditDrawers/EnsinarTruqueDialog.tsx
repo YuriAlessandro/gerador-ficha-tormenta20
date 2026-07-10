@@ -10,7 +10,11 @@ import {
 } from '@mui/material';
 import { CompanionSheet, CompanionTrick } from '@/interfaces/Companion';
 import { Spell } from '@/interfaces/Spells';
-import { getAvailableTricks } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import {
+  countNaturalWeapons,
+  getCompanionTrickDefinition,
+  getTrickAvailability,
+} from '@/data/systems/tormenta20/herois-de-arton/companion';
 import CompanionTrickSelectionStep from '@/components/LevelUpWizard/steps/CompanionTrickSelectionStep';
 
 export interface EnsinarTruquePick {
@@ -69,15 +73,22 @@ const EnsinarTruqueDialog: React.FC<EnsinarTruqueDialogProps> = ({
 
   const isCurrentComplete = useMemo(() => {
     if (!trick || !projectedCompanion) return false;
-    const def = getAvailableTricks(
+    const def = getCompanionTrickDefinition(trick.name);
+    if (!def) return false;
+    const { available } = getTrickAvailability(
+      def,
       trainerLevel,
       projectedCompanion.companionType,
       projectedCompanion.size,
       projectedCompanion.tricks,
-      projectedCompanion.naturalWeapons.length || 1,
+      countNaturalWeapons(
+        projectedCompanion.companionType,
+        projectedCompanion.tricks
+      ),
       false
-    ).find((t) => t.name === trick.name);
-    if (!def?.hasSubChoice) return true;
+    );
+    if (!available) return false;
+    if (!def.hasSubChoice) return true;
     if (def.subChoiceType === 'attribute')
       return !!trick.choices?.primary && !!trick.choices?.secondary;
     if (def.subChoiceType === 'movement') return !!trick.choices?.type;

@@ -28,9 +28,14 @@ import {
   COMPANION_AVAILABLE_SKILLS,
   COMPANION_SIZES,
   COMPANION_WEAPON_DAMAGE_TYPES,
-  getAvailableTricks,
+  countNaturalWeapons,
+  getTricksWithAvailability,
+  TrickWithAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
-import { CompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import {
+  CompanionTrickDefinition,
+  getCompanionTrickDefinition,
+} from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 
 const COMPANION_ATTRIBUTE_OPTIONS = [
@@ -74,26 +79,17 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
   onSkillsChange,
   onTricksChange,
 }) => {
-  const naturalWeaponCount = useMemo(() => {
-    let count = 1;
-    if (companionType === 'Monstro') count = 2;
-    count += companionTricks.filter(
-      (t) => t.name === 'Arma Natural Adicional'
-    ).length;
-    return count;
-  }, [companionType, companionTricks]);
-
-  const availableTricks: CompanionTrickDefinition[] = useMemo(() => {
+  const tricksWithAvailability: TrickWithAvailability[] = useMemo(() => {
     if (!companionType || !companionSize) return [];
-    return getAvailableTricks(
+    return getTricksWithAvailability(
       1,
       companionType,
       companionSize,
       companionTricks,
-      naturalWeaponCount,
+      countNaturalWeapons(companionType, companionTricks),
       true
     );
-  }, [companionType, companionSize, companionTricks, naturalWeaponCount]);
+  }, [companionType, companionSize, companionTricks]);
 
   const handleToggleSkill = (skill: Skill) => {
     if (companionSkills.includes(skill)) {
@@ -374,129 +370,163 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
         </Typography>
         {companionType && companionSize ? (
           <Box sx={{ mt: 1 }}>
-            {availableTricks.map((trick) => {
-              const isSelected = companionTricks.some(
-                (t) => t.name === trick.name
-              );
-              const isDisabled = !isSelected && companionTricks.length >= 2;
-              const selectedTrickData = companionTricks.find(
-                (t) => t.name === trick.name
-              );
-              return (
-                <Box key={trick.name} sx={{ mb: 2 }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={() => handleToggleTrick(trick)}
-                        disabled={isDisabled}
-                      />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant='subtitle1'>
-                          {trick.name}
-                        </Typography>
-                        <Typography
-                          variant='body2'
+            {tricksWithAvailability.map(
+              ({ trick, available, unmetReasons }) => {
+                const isSelected = companionTricks.some(
+                  (t) => t.name === trick.name
+                );
+                const isDisabled =
+                  !isSelected && (companionTricks.length >= 2 || !available);
+                const selectedTrickData = companionTricks.find(
+                  (t) => t.name === trick.name
+                );
+                return (
+                  <Box key={trick.name} sx={{ mb: 2 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={() => handleToggleTrick(trick)}
+                          disabled={isDisabled}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography
+                            variant='subtitle1'
+                            sx={{
+                              color: isDisabled
+                                ? 'text.disabled'
+                                : 'text.primary',
+                            }}
+                          >
+                            {trick.name}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: isDisabled
+                                ? 'text.disabled'
+                                : 'text.secondary',
+                            }}
+                          >
+                            {trick.text}
+                          </Typography>
+                          {unmetReasons.length > 0 && (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                gap: 0.5,
+                                flexWrap: 'wrap',
+                                mt: 0.5,
+                              }}
+                            >
+                              {unmetReasons.map((reason) => (
+                                <Chip
+                                  key={reason}
+                                  label={reason}
+                                  size='small'
+                                  variant='outlined'
+                                  color='warning'
+                                />
+                              ))}
+                            </Box>
+                          )}
+                        </Box>
+                      }
+                      sx={{ alignItems: 'flex-start' }}
+                    />
+                    {isSelected &&
+                      trick.hasSubChoice &&
+                      trick.subChoiceType === 'attribute' && (
+                        <Box
                           sx={{
-                            color: 'text.secondary',
+                            ml: 4,
+                            mt: 1,
+                            display: 'flex',
+                            gap: 2,
+                            flexWrap: 'wrap',
                           }}
                         >
-                          {trick.text}
-                        </Typography>
-                      </Box>
-                    }
-                    sx={{ alignItems: 'flex-start' }}
-                  />
-                  {isSelected &&
-                    trick.hasSubChoice &&
-                    trick.subChoiceType === 'attribute' && (
-                      <Box
-                        sx={{
-                          ml: 4,
-                          mt: 1,
-                          display: 'flex',
-                          gap: 2,
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <FormControl size='small' sx={{ minWidth: 160 }}>
-                          <InputLabel>Primário (+2)</InputLabel>
-                          <Select
-                            label='Primário (+2)'
-                            value={selectedTrickData?.choices?.primary || ''}
+                          <FormControl size='small' sx={{ minWidth: 160 }}>
+                            <InputLabel>Primário (+2)</InputLabel>
+                            <Select
+                              label='Primário (+2)'
+                              value={selectedTrickData?.choices?.primary || ''}
+                              onChange={(e) =>
+                                handleTrickChoiceChange(
+                                  trick.name,
+                                  'primary',
+                                  e.target.value
+                                )
+                              }
+                            >
+                              {COMPANION_ATTRIBUTE_OPTIONS.map((attr) => (
+                                <MenuItem key={attr} value={attr}>
+                                  {attr}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <FormControl size='small' sx={{ minWidth: 160 }}>
+                            <InputLabel>Secundário (+1)</InputLabel>
+                            <Select
+                              label='Secundário (+1)'
+                              value={
+                                selectedTrickData?.choices?.secondary || ''
+                              }
+                              onChange={(e) =>
+                                handleTrickChoiceChange(
+                                  trick.name,
+                                  'secondary',
+                                  e.target.value
+                                )
+                              }
+                            >
+                              {COMPANION_ATTRIBUTE_OPTIONS.filter(
+                                (attr) =>
+                                  attr !== selectedTrickData?.choices?.primary
+                              ).map((attr) => (
+                                <MenuItem key={attr} value={attr}>
+                                  {attr}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      )}
+                    {isSelected &&
+                      trick.hasSubChoice &&
+                      trick.subChoiceType === 'movement' && (
+                        <Box sx={{ ml: 4, mt: 1 }}>
+                          <RadioGroup
+                            row
+                            value={selectedTrickData?.choices?.type || ''}
                             onChange={(e) =>
                               handleTrickChoiceChange(
                                 trick.name,
-                                'primary',
+                                'type',
                                 e.target.value
                               )
                             }
                           >
-                            {COMPANION_ATTRIBUTE_OPTIONS.map((attr) => (
-                              <MenuItem key={attr} value={attr}>
-                                {attr}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <FormControl size='small' sx={{ minWidth: 160 }}>
-                          <InputLabel>Secundário (+1)</InputLabel>
-                          <Select
-                            label='Secundário (+1)'
-                            value={selectedTrickData?.choices?.secondary || ''}
-                            onChange={(e) =>
-                              handleTrickChoiceChange(
-                                trick.name,
-                                'secondary',
-                                e.target.value
-                              )
-                            }
-                          >
-                            {COMPANION_ATTRIBUTE_OPTIONS.filter(
-                              (attr) =>
-                                attr !== selectedTrickData?.choices?.primary
-                            ).map((attr) => (
-                              <MenuItem key={attr} value={attr}>
-                                {attr}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Box>
-                    )}
-                  {isSelected &&
-                    trick.hasSubChoice &&
-                    trick.subChoiceType === 'movement' && (
-                      <Box sx={{ ml: 4, mt: 1 }}>
-                        <RadioGroup
-                          row
-                          value={selectedTrickData?.choices?.type || ''}
-                          onChange={(e) =>
-                            handleTrickChoiceChange(
-                              trick.name,
-                              'type',
-                              e.target.value
-                            )
-                          }
-                        >
-                          <FormControlLabel
-                            value='Escalada'
-                            control={<Radio size='small' />}
-                            label='Escalada'
-                          />
-                          <FormControlLabel
-                            value='Natação'
-                            control={<Radio size='small' />}
-                            label='Natação'
-                          />
-                        </RadioGroup>
-                      </Box>
-                    )}
-                </Box>
-              );
-            })}
+                            <FormControlLabel
+                              value='Escalada'
+                              control={<Radio size='small' />}
+                              label='Escalada'
+                            />
+                            <FormControlLabel
+                              value='Natação'
+                              control={<Radio size='small' />}
+                              label='Natação'
+                            />
+                          </RadioGroup>
+                        </Box>
+                      )}
+                  </Box>
+                );
+              }
+            )}
           </Box>
         ) : (
           <Alert severity='info' sx={{ mt: 1 }}>
@@ -513,7 +543,7 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
         companionTricks.length === 2 &&
         (companionType !== 'Espírito' || companionSpiritEnergyType) &&
         companionTricks.every((t) => {
-          const def = availableTricks.find((d) => d.name === t.name);
+          const def = getCompanionTrickDefinition(t.name);
           if (!def?.hasSubChoice) return true;
           if (def.subChoiceType === 'attribute')
             return t.choices?.primary && t.choices?.secondary;
