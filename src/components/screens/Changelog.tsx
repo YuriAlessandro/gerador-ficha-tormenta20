@@ -141,6 +141,35 @@ const Changelog: React.FC = () => {
                   normal ao fechar a rota.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> A seleção de{' '}
+                  <strong>truques do melhor amigo</strong> do{' '}
+                  <strong>Treinador</strong> agora mostra a lista completa de
+                  truques: os que não atendem aos pré-requisitos aparecem
+                  desabilitados com o motivo indicado (ex.:{' '}
+                  <strong>Amigão</strong> exige melhor amigo Grande e Treinador
+                  nível 7), em vez de ficarem ocultos como se não existissem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Truques do melhor amigo que só
+                  podem ser escolhidos uma vez não podem mais ser{' '}
+                  <strong>repetidos</strong> na evolução de nível — nem ao subir
+                  vários níveis de uma vez, nem ao combinar o truque automático
+                  do nível com o poder <strong>Ensinar Truque</strong>. Fichas
+                  já afetadas são corrigidas automaticamente ao serem
+                  carregadas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O truque <strong>Bote</strong> não
+                  fica mais indevidamente bloqueado para parceiros com duas ou
+                  mais armas naturais (como Monstros) na edição do melhor amigo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Com{' '}
+                  <strong>Conquistar pelos Números</strong>, o seletor de
+                  companheiro na escolha de truques não volta mais sozinho para
+                  o primeiro melhor amigo.
+                </li>
+                <li>
                   <strong>Correção:</strong> Ao multiclassear para uma classe
                   conjuradora de <strong>homebrew</strong> na evolução de nível,
                   a conjuração da classe secundária agora é salva e restaurada
