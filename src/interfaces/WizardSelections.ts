@@ -6,6 +6,7 @@ import { ClassPower } from './Class';
 import { GeneralPower } from './Poderes';
 import { OriginBenefits } from './Origin';
 import { MarketSelections } from './MarketEquipment';
+import Equipment, { DefenseEquipment } from './Equipment';
 import { AttributeVariant } from './Race';
 import { DamageType } from './CharacterSheet';
 import {
@@ -15,6 +16,13 @@ import {
   NaturalWeaponDamageType,
   SpiritEnergyType,
 } from './Companion';
+
+export interface ClassEquipmentSelections {
+  simpleWeapon?: Equipment;
+  martialWeapon?: Equipment;
+  armor?: DefenseEquipment;
+  instrument?: string;
+}
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -172,6 +180,9 @@ export interface WizardSelections {
 
   // Propósito de Criação (for Golem races that don't have origins)
   propositoCriacaoPower?: GeneralPower;
+
+  // Equipamento inicial da classe escolhido no step "Equipamento Inicial"
+  classEquipment?: ClassEquipmentSelections;
 
   // Market step selections (equipment and money)
   marketSelections?: MarketSelections;

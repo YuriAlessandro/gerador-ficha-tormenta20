@@ -87,7 +87,7 @@ import {
   getRaceDisplacement,
   getRaceSize,
 } from '../data/systems/tormenta20/races/functions/functions';
-import Origin from '../interfaces/Origin';
+import Origin, { Items } from '../interfaces/Origin';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -1000,7 +1000,7 @@ function getArmors(classe: ClassDescription, currentBag?: Bag) {
   return armors;
 }
 
-function getClassEquipments(
+export function getClassEquipments(
   classe: ClassDescription,
   currentBag?: Bag
 ): Pick<BagEquipments, 'Arma' | 'Escudo' | 'Armadura' | 'Item Geral'> {
@@ -1025,64 +1025,106 @@ function getClassEquipments(
   };
 }
 
-function getInitialBag(origin: Origin | undefined): Bag {
-  // 6.1 A depender da classe os itens podem variar
+export function buildClassEquipmentsFromChoices(
+  classe: ClassDescription,
+  choices: import('../interfaces/WizardSelections').ClassEquipmentSelections,
+  currentBag?: Bag
+): Pick<BagEquipments, 'Arma' | 'Escudo' | 'Armadura' | 'Item Geral'> {
+  const weapons: Equipment[] = [];
+  if (choices.simpleWeapon) {
+    weapons.push(choices.simpleWeapon);
+  }
+  if (
+    choices.martialWeapon &&
+    classe.proficiencias.includes(todasProficiencias.MARCIAIS)
+  ) {
+    weapons.push(choices.martialWeapon);
+  }
+
+  const shields = getShields(classe);
+
+  const armors: DefenseEquipment[] = [];
+  if (!currentBag?.equipments?.Armadura?.length) {
+    if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
+      armors.push(Armaduras.BRUNEA);
+    } else if (choices.armor && classe.name !== 'Arcanista') {
+      armors.push(choices.armor);
+    }
+  }
+
+  const instruments: Equipment[] = [];
+  if (isClassOrVariantOf(classe, 'Bardo')) {
+    instruments.push({
+      nome: choices.instrument || getRandomItemFromArray(bardInstruments),
+      group: 'Item Geral',
+    });
+  }
+
+  return {
+    Arma: weapons,
+    Escudo: shields,
+    Armadura: armors,
+    'Item Geral': instruments,
+  };
+}
+
+export function convertOriginItemsToBagEquipments(
+  items: Items[] | undefined
+): Partial<BagEquipments> {
   const equipments: Partial<BagEquipments> = {
     'Item Geral': [],
   };
 
+  items?.forEach((equip) => {
+    if (typeof equip.equipment === 'string') {
+      equipments['Item Geral']?.push({
+        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+        group: 'Item Geral',
+      });
+    } else if (equip.equipment) {
+      const equipValue = equip.equipment;
+
+      // Verifica se é uma armadura (comparação por nome)
+      if (
+        Object.values(Armaduras).some((armor) => armor.nome === equipValue.nome)
+      ) {
+        if (!equipments.Armadura) {
+          equipments.Armadura = [];
+        }
+        equipments.Armadura.push(equipValue as DefenseEquipment);
+      }
+      // Verifica se é um escudo
+      else if (
+        Object.values(Escudos).some((shield) => shield.nome === equipValue.nome)
+      ) {
+        if (!equipments.Escudo) {
+          equipments.Escudo = [];
+        }
+        equipments.Escudo.push(equipValue as DefenseEquipment);
+      }
+      // Arma ou item geral, conforme o grupo
+      else if (equipValue.group === 'Arma') {
+        if (!equipments.Arma) {
+          equipments.Arma = [];
+        }
+        equipments.Arma.push(equipValue);
+      } else {
+        equipments['Item Geral']?.push(equipValue);
+      }
+    }
+  });
+
+  return equipments;
+}
+
+function getInitialBag(origin: Origin | undefined): Bag {
   // Apenas origens regionais (isRegional = true) adicionam itens automaticamente
   // Origens do core não adicionam itens aqui (apenas se escolhidos nos 2 benefícios)
   if (origin?.isRegional) {
-    const originItems = origin.getItems();
-
-    originItems?.forEach((equip) => {
-      if (typeof equip.equipment === 'string') {
-        const newEquip: Equipment = {
-          nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-          group: 'Item Geral',
-        };
-        if (equipments['Item Geral']) {
-          equipments['Item Geral'].push(newEquip);
-        }
-      } else if (equip.equipment) {
-        // Verificar se é Armadura, Escudo ou Arma
-        const equipValue = equip.equipment;
-
-        // Verifica se é uma armadura
-        if (
-          Object.values(Armaduras).includes(
-            equipValue as unknown as DefenseEquipment
-          )
-        ) {
-          if (!equipments.Armadura) {
-            equipments.Armadura = [];
-          }
-          equipments.Armadura.push(equipValue as DefenseEquipment);
-        }
-        // Verifica se é um escudo
-        else if (
-          Object.values(Escudos).includes(
-            equipValue as unknown as DefenseEquipment
-          )
-        ) {
-          if (!equipments.Escudo) {
-            equipments.Escudo = [];
-          }
-          equipments.Escudo.push(equipValue as DefenseEquipment);
-        }
-        // Se não for armadura nem escudo, é uma arma
-        else {
-          if (!equipments.Arma) {
-            equipments.Arma = [];
-          }
-          equipments.Arma.push(equipValue);
-        }
-      }
-    });
+    return new Bag(convertOriginItemsToBagEquipments(origin.getItems()));
   }
 
-  return new Bag(equipments);
+  return new Bag({ 'Item Geral': [] });
 }
 
 function getThyatisPowers(
@@ -6267,6 +6309,18 @@ export function generateEmptySheet(
 
         // Use resolved powers from getPowersAndSkills
         originPowers = originBenefits.powers.origin;
+
+        // Itens e dinheiro da origem regional. Só no fallback: se o usuário
+        // interagiu com o Mercado, o bag do mercado já os contém.
+        if (!wizardSelections?.marketSelections) {
+          emptySheet.bag.addEquipment(
+            convertOriginItemsToBagEquipments(selectedOrigin.getItems())
+          );
+          if (selectedOrigin.getMoney) {
+            emptySheet.dinheiro =
+              (emptySheet.dinheiro || 0) + selectedOrigin.getMoney();
+          }
+        }
       } else if (
         wizardSelections?.originBenefits &&
         wizardSelections.originBenefits.length > 0
@@ -6306,8 +6360,24 @@ export function generateEmptySheet(
                 emptySheet.generalPowers.push(generalPower);
               }
             }
-          } else if (benefit.type === 'item') {
-            // TODO: Add item to bag (requires equipment lookup)
+          } else if (
+            benefit.type === 'item' &&
+            !wizardSelections?.marketSelections
+          ) {
+            // Item escolhido como benefício da origem. Só no fallback: se o
+            // usuário interagiu com o Mercado, o bag do mercado já o contém.
+            const benefitItem = selectedOrigin.getItems().find((i) => {
+              const itemName =
+                typeof i.equipment === 'string'
+                  ? i.equipment
+                  : i.equipment.nome;
+              return itemName === benefit.name;
+            });
+            if (benefitItem) {
+              emptySheet.bag.addEquipment(
+                convertOriginItemsToBagEquipments([benefitItem])
+              );
+            }
           }
         });
 
@@ -6327,6 +6397,29 @@ export function generateEmptySheet(
         selectedBenefits: wizardSelections?.originBenefits,
       };
     }
+  }
+
+  // Equipamento inicial da classe: escolhido no step "Equipamento Inicial" ou
+  // sorteado como fallback. Só no fallback sem Mercado: se o usuário interagiu
+  // com o Mercado, o bag do mercado já contém o equipamento de classe.
+  // Fica após o bloco de origem para o dedup de armadura ver os itens da origem.
+  if (!wizardSelections?.marketSelections) {
+    const classEquipments = wizardSelections?.classEquipment
+      ? buildClassEquipmentsFromChoices(
+          generatedClass,
+          wizardSelections.classEquipment,
+          emptySheet.bag
+        )
+      : getClassEquipments(generatedClass, emptySheet.bag);
+    emptySheet.bag.addEquipment(classEquipments);
+
+    emptySheet.steps.push({
+      type: 'Equipamentos',
+      label: 'Equipamentos da classe',
+      value: [...Object.values(classEquipments).flat()].map((equip) => ({
+        value: equip.nome,
+      })),
+    });
   }
 
   // Propósito de Criação for Golem races (no origin)

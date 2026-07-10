@@ -30,17 +30,19 @@ import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/r
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
 import {
+  buildClassEquipmentsFromChoices,
+  convertOriginItemsToBagEquipments,
   getInitialMoneyWithDetails,
   isClassOrVariantOf,
 } from '@/functions/general';
+import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
 import { rollAttributePool } from '@/functions/attributeMethods';
 import {
   getClassBaseSkillsWithChoices,
   expandOficioInBasicas,
 } from '@/data/systems/tormenta20/pericias';
 import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
-import { BagEquipments, DefenseEquipment } from '@/interfaces/Equipment';
-import { Armaduras, Escudos } from '@/data/systems/tormenta20/equipamentos';
+import Equipment, { BagEquipments } from '@/interfaces/Equipment';
 import { alchemyItems as coreAlchemyItems } from '@/data/systems/tormenta20/equipamentos-gerais';
 import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
@@ -60,6 +62,7 @@ import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelection
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
 import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
+import ClassEquipmentStep from './steps/ClassEquipmentStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
 import MoreauSapienciaSpellStep from './steps/MoreauSapienciaSpellStep';
 import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
@@ -595,6 +598,7 @@ const CharacterCreationWizardModal: React.FC<
     if (needsClassPowers()) stepsArray.push('Poderes da Classe');
     if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
     if (needsCompanionCreation()) stepsArray.push('Melhor Amigo');
+    if (classe) stepsArray.push('Equipamento Inicial');
     stepsArray.push('Mercado'); // Always show as final step
     return stepsArray;
   };
@@ -662,6 +666,18 @@ const CharacterCreationWizardModal: React.FC<
     }
   }, [origin?.name]);
 
+  // Clear class equipment and market selections when class changes
+  // (avoids stale equipment from the previous class)
+  useEffect(() => {
+    if (selections.classEquipment || selections.marketSelections) {
+      setSelections((prev) => ({
+        ...prev,
+        classEquipment: undefined,
+        marketSelections: undefined,
+      }));
+    }
+  }, [classe?.name]);
+
   // Helper function to get all skills already selected in previous steps
   const getAllUsedSkills = (): Skill[] => {
     const skills: Skill[] = [];
@@ -707,41 +723,19 @@ const CharacterCreationWizardModal: React.FC<
       Serviço: [],
     };
 
-    // Add origin items (for regional origins)
-    if (currentOrigin?.isRegional) {
-      const originItems = currentOrigin.getItems();
-      originItems?.forEach((equip) => {
-        if (typeof equip.equipment === 'string') {
-          bag['Item Geral'].push({
-            nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-            group: 'Item Geral',
-          });
-        } else if (equip.equipment) {
-          const equipValue = equip.equipment;
-          // Check if it's an armor
-          if (
-            Object.values(Armaduras).find(
-              (armor) => armor.nome === equipValue.nome
-            )
-          ) {
-            bag.Armadura.push(equipValue as DefenseEquipment);
-          }
-          // Check if it's a shield
-          else if (
-            Object.values(Escudos).find(
-              (shield) => shield.nome === equipValue.nome
-            )
-          ) {
-            bag.Escudo.push(equipValue as DefenseEquipment);
-          }
-          // Otherwise it's a weapon or general item
-          else if (equipValue.group === 'Arma') {
-            bag.Arma.push(equipValue);
-          } else {
-            bag['Item Geral'].push(equipValue);
-          }
+    const mergeIntoBag = (partial: Partial<BagEquipments>) => {
+      Object.entries(partial).forEach(([group, items]) => {
+        if (items) {
+          (bag[group as keyof BagEquipments] as Equipment[]).push(
+            ...(items as Equipment[])
+          );
         }
       });
+    };
+
+    // Add origin items (for regional origins)
+    if (currentOrigin?.isRegional) {
+      mergeIntoBag(convertOriginItemsToBagEquipments(currentOrigin.getItems()));
     }
 
     // Add items from non-regional origin benefits if selected as 'item' type
@@ -760,16 +754,23 @@ const CharacterCreationWizardModal: React.FC<
             return itemName === benefit.name;
           });
           if (item) {
-            if (typeof item.equipment === 'string') {
-              bag['Item Geral'].push({
-                nome: `${item.qtd ? `${item.qtd}x ` : ''}${item.equipment}`,
-                group: 'Item Geral',
-              });
-            } else {
-              bag['Item Geral'].push(item.equipment);
-            }
+            mergeIntoBag(convertOriginItemsToBagEquipments([item]));
           }
         });
+    }
+
+    // Add class starting equipment chosen in the "Equipamento Inicial" step
+    if (classe && currentSelections.classEquipment) {
+      const classEquipments = buildClassEquipmentsFromChoices(
+        classe,
+        currentSelections.classEquipment
+      );
+      mergeIntoBag({
+        ...classEquipments,
+        // Se a origem já concedeu armadura, não adicionar outra (mesmo dedup
+        // de getArmors no fluxo aleatório)
+        Armadura: bag.Armadura.length > 0 ? [] : classEquipments.Armadura,
+      });
     }
 
     // Add alchemy items from Laboratório Pessoal if selected
@@ -1262,6 +1263,18 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
+      case 'Equipamento Inicial':
+        if (!classe) return null;
+        return (
+          <ClassEquipmentStep
+            classe={classe}
+            selections={selections.classEquipment}
+            onChange={(classEquipment) =>
+              setSelections((prev) => ({ ...prev, classEquipment }))
+            }
+          />
+        );
+
       case 'Mercado': {
         // Calculate initial money
         const moneyInfo = getInitialMoneyWithDetails(
@@ -1644,6 +1657,24 @@ const CharacterCreationWizardModal: React.FC<
           hasTricks &&
           hasSpiritEnergy
         );
+      }
+
+      case 'Equipamento Inicial': {
+        if (!classe) return true;
+        const eq = selections.classEquipment;
+        if (!eq?.simpleWeapon) return false;
+        if (
+          classe.proficiencias.includes(PROFICIENCIAS.MARCIAIS) &&
+          !eq.martialWeapon
+        ) {
+          return false;
+        }
+        const needsLightArmor =
+          !classe.proficiencias.includes(PROFICIENCIAS.PESADAS) &&
+          classe.name !== 'Arcanista';
+        if (needsLightArmor && !eq.armor) return false;
+        if (isClassOrVariantOf(classe, 'Bardo') && !eq.instrument) return false;
+        return true;
       }
 
       case 'Mercado':

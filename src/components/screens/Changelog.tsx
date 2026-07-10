@@ -126,6 +126,14 @@ const Changelog: React.FC = () => {
                   pins/marcadores customizados.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Passo{' '}
+                  <strong>Equipamento Inicial</strong> na criação customizada de
+                  ficha: escolha a arma simples, a arma marcial (se a classe for
+                  proficiente), a armadura leve e o instrumento do Bardo, em vez
+                  de partir de uma mochila vazia. Itens automáticos (como Brunea
+                  e Escudo Leve) são exibidos no passo.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> A busca de cidades do Mapa de Arton
                   foi reposicionada para o canto superior esquerdo, ao lado do
                   seletor de mapa, com um card do local selecionado.
@@ -179,6 +187,15 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> As sugestões de preenchimento
                   automático do navegador não aparecem mais por cima da busca de
                   cidades e dos campos de origem/destino do Mapa de Arton.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas criadas pela{' '}
+                  <strong>criação customizada</strong> agora recebem o{' '}
+                  <strong>equipamento inicial da classe</strong> e os{' '}
+                  <strong>itens e dinheiro extra da origem</strong> (incluindo
+                  origens regionais e o benefício de item das origens do
+                  básico), mesmo quando o passo do Mercado é atravessado sem
+                  nenhuma compra.
                 </li>
               </ul>
               <h3>4.24</h3>
