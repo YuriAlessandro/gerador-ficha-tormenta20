@@ -197,6 +197,16 @@ const Changelog: React.FC = () => {
                   básico), mesmo quando o passo do Mercado é atravessado sem
                   nenhuma compra.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Agora é possível criar um{' '}
+                  <strong>Osteon</strong> (ou <strong>Yidishan</strong>) com{' '}
+                  <strong>Moreau</strong> como raça anterior: a escolha da
+                  habilidade de Memória Póstuma / Natureza Orgânica lista as
+                  habilidades de todas as heranças do Moreau identificadas pelo
+                  animal (ex.: <strong>Faro (Lobo)</strong>), em vez de travar o
+                  assistente com uma lista vazia. A geração aleatória também não
+                  quebra mais quando Moreau é sorteado como vida passada.
+                </li>
               </ul>
               <h3>4.24</h3>
               <ul>
