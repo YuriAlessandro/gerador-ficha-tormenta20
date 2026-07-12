@@ -552,6 +552,155 @@ describe('applyItemEnhancements — encantamentos', () => {
       expect(result.atkBonus).toBe(0);
       expect(result.extraDamage).toBeUndefined();
     });
+
+    test('Couraça de Kaiju em arma aumenta o dado de dano em um passo', () => {
+      const item: Equipment = {
+        ...baseSword,
+        dano: '1d8',
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Couraça de Kaiju' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.dano).toBe('1d10');
+    });
+
+    test('Cristal de Sol em arma adiciona +2 dano por fogo (extraDamage)', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Cristal de Sol' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.extraDamage).toHaveLength(1);
+      expect(result.extraDamage?.[0]).toMatchObject({
+        dice: '2',
+        damageType: 'Fogo',
+      });
+    });
+
+    test('Casco de Monstro em armadura reduz a penalidade em 1', () => {
+      const armor: DefenseEquipment = {
+        nome: 'Armadura de Couro',
+        group: 'Armadura',
+        defenseBonus: 2,
+        armorPenalty: -1,
+        spaces: 2,
+      };
+      const item: DefenseEquipment = {
+        ...armor,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Casco de Monstro' },
+        ],
+      };
+      const result = applyItemEnhancements(item) as DefenseEquipment;
+      expect(result.armorPenalty).toBe(-2);
+    });
+
+    test('Lanajuste em armadura leve dá redução de corte 5', () => {
+      const armor: DefenseEquipment = {
+        nome: 'Armadura de Couro',
+        group: 'Armadura',
+        defenseBonus: 2,
+        armorPenalty: 0,
+        spaces: 2,
+        isHeavyArmor: false,
+      };
+      const item: DefenseEquipment = {
+        ...armor,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Lanajuste' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      const dr = result.sheetBonuses?.find(
+        (b) =>
+          b.target.type === 'DamageReduction' && b.target.damageType === 'Corte'
+      );
+      expect(dr?.modifier).toMatchObject({ type: 'Fixed', value: 5 });
+    });
+
+    test('Lanajuste em armadura pesada dá redução de corte 10', () => {
+      const armor: DefenseEquipment = {
+        nome: 'Armadura de Placas',
+        group: 'Armadura',
+        defenseBonus: 8,
+        armorPenalty: -5,
+        spaces: 4,
+        isHeavyArmor: true,
+      };
+      const item: DefenseEquipment = {
+        ...armor,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Lanajuste' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      const dr = result.sheetBonuses?.find(
+        (b) =>
+          b.target.type === 'DamageReduction' && b.target.damageType === 'Corte'
+      );
+      expect(dr?.modifier).toMatchObject({ type: 'Fixed', value: 10 });
+    });
+
+    test('Quitina Razza em armadura leve dá +1 Defesa e +2 Percepção', () => {
+      const armor: DefenseEquipment = {
+        nome: 'Armadura de Couro',
+        group: 'Armadura',
+        defenseBonus: 2,
+        armorPenalty: 0,
+        spaces: 2,
+        isHeavyArmor: false,
+      };
+      const item: DefenseEquipment = {
+        ...armor,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Quitina Razza' },
+        ],
+      };
+      const result = applyItemEnhancements(item) as DefenseEquipment;
+      expect(result.defenseBonus).toBe(3);
+      const skill = result.sheetBonuses?.find(
+        (b) => b.target.type === 'Skill' && b.target.name === 'Percepção'
+      );
+      expect(skill?.modifier).toMatchObject({ type: 'Fixed', value: 2 });
+    });
+
+    test('Quitina Razza em armadura pesada dá +2 Defesa e +5 Percepção', () => {
+      const armor: DefenseEquipment = {
+        nome: 'Armadura de Placas',
+        group: 'Armadura',
+        defenseBonus: 8,
+        armorPenalty: -5,
+        spaces: 4,
+        isHeavyArmor: true,
+      };
+      const item: DefenseEquipment = {
+        ...armor,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Quitina Razza' },
+        ],
+      };
+      const result = applyItemEnhancements(item) as DefenseEquipment;
+      expect(result.defenseBonus).toBe(10);
+      const skill = result.sheetBonuses?.find(
+        (b) => b.target.type === 'Skill' && b.target.name === 'Percepção'
+      );
+      expect(skill?.modifier).toMatchObject({ type: 'Fixed', value: 5 });
+    });
+
+    test('material do Ameaças sem efeito numérico (Prata) não muda stats', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [{ mod: 'Material especial', specialMaterial: 'Prata' }],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.dano).toBe('1d8');
+      expect(result.critico).toBe('x2');
+      expect(result.atkBonus).toBe(0);
+      expect(result.extraDamage).toBeUndefined();
+    });
   });
 
   describe('hasManualEdits preserva stats numéricos', () => {

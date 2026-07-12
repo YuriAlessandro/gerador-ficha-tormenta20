@@ -114,4 +114,6 @@ export const TEXT_ONLY_MODIFICATIONS: ReadonlySet<string> = new Set([
   'Injetora',
   'Pressurizada',
   'Prudente',
+  // Ameaças de Arton (ignorar RD do alvo não é representável nos deltas)
+  'Penetrante',
 ]);

@@ -1,5 +1,6 @@
 import { DefenseEquipment } from '../../interfaces/Equipment';
 import { DamageType } from '../../interfaces/CharacterSheet';
+import Skill from '../../interfaces/Skills';
 import { EnhancementEffect } from './core';
 
 /**
@@ -51,6 +52,40 @@ export const materialEffects: Record<string, MaterialEffect> = {
   },
   'matéria vermelha': {
     weaponEffect: { extraDamage: [{ dice: '1d6', damageType: 'Essência' }] },
+  },
+
+  // Ameaças de Arton. Ficam text-only: Casco de Monstro arma (interação com
+  // Armamento da Natureza), Couraça de Kaiju defesa (RD X/mágico não tem
+  // qualificador de bypass no modelo), Couro de Bulette (deslocamento de
+  // escavação + redução condicional), Cristal de Sol defesa (rolar dois dados),
+  // Lanajuste arma (combate submerso), Pena de Kraken (dano só no crítico /
+  // retaliação em erro), Prata (efeitos condicionais a tipo de criatura) e
+  // Quitina Razza arma (dados explosivos).
+  'casco de monstro': {
+    defenseEffect: { defenseStats: { armorPenaltyDelta: -1 } },
+  },
+  'couraça de kaiju': {
+    weaponEffect: { weaponStats: { danoStepUp: 1 } },
+  },
+  // A restrição a armas de corte/perfuração fica na descrição (a elegibilidade
+  // do item é responsabilidade de quem aplica o material).
+  'cristal de sol': {
+    weaponEffect: { extraDamage: [{ dice: '2', damageType: 'Fogo' }] },
+  },
+  lanajuste: {
+    defenseEffect: (item) => ({
+      damageReduction: [
+        { damageType: 'Corte', value: item.isHeavyArmor ? 10 : 5 },
+      ],
+    }),
+  },
+  'quitina razza': {
+    defenseEffect: (item) => ({
+      defenseStats: { defenseBonusDelta: item.isHeavyArmor ? 2 : 1 },
+      skillBonuses: [
+        { skill: Skill.PERCEPCAO, value: item.isHeavyArmor ? 5 : 2 },
+      ],
+    }),
   },
 };
 

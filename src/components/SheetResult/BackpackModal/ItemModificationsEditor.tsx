@@ -53,6 +53,29 @@ const MATERIAL_OPTIONS: { value: string; label: string }[] = [
   { value: 'mitral', label: 'Mitral' },
 ];
 
+/**
+ * Opções de material especial: core + materiais dos suplementos ativos.
+ * Materiais de suplemento são filtrados pelo tipo do item (ex.: Couro de
+ * Bulette só tem efeito de armadura e não aparece para armas nem escudos).
+ */
+function getMaterialOptions(
+  itemType: ModificationItemType,
+  userSupplements: SupplementId[]
+): { value: string; label: string }[] {
+  const options = [...MATERIAL_OPTIONS];
+  userSupplements.forEach((supplementId) => {
+    const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+    supplement?.specialMaterials?.forEach((material) => {
+      const effect =
+        itemType === 'weapon' ? material.weaponEffect : material.armorEffect;
+      if (!effect) return;
+      if (itemType === 'shield' && effect.type === 'Armadura') return;
+      options.push({ value: material.name, label: effect.material });
+    });
+  });
+  return options;
+}
+
 const DEFAULT_MAX_COST = 5;
 
 function getModificationsForType(
@@ -92,6 +115,11 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
 }) => {
   const allMods = useMemo(
     () => getModificationsForType(itemType, userSupplements),
+    [itemType, userSupplements]
+  );
+
+  const materialOptions = useMemo(
+    () => getMaterialOptions(itemType, userSupplements),
     [itemType, userSupplements]
   );
 
@@ -293,10 +321,10 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
       {hasMaterialEspecial && (
         <Grid size={12}>
           <Autocomplete
-            options={MATERIAL_OPTIONS}
+            options={materialOptions}
             getOptionLabel={(option) => option.label}
             value={
-              MATERIAL_OPTIONS.find((opt) => opt.value === selectedMaterial) ||
+              materialOptions.find((opt) => opt.value === selectedMaterial) ||
               null
             }
             onChange={(_, value) =>

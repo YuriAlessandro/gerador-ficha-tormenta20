@@ -19,6 +19,7 @@ import { Spell } from '../../../../interfaces/Spells';
 import Origin from '../../../../interfaces/Origin';
 import Divindade from '../../../../interfaces/Divindade';
 import { ItemE, ItemMod } from '../../../../interfaces/Rewards';
+import { SpecialMaterial } from '../../../../interfaces/SpecialMaterials';
 import { GolpePessoalEffect } from '../golpePessoal';
 
 /**
@@ -65,6 +66,8 @@ export interface SupplementData {
   /** Divindades adicionais (ex.: homebrew). Core usa o enum estático. */
   divindades?: Divindade[];
   improvements?: SupplementImprovements;
+  /** Materiais especiais adicionais (ex.: Ameaças de Arton) */
+  specialMaterials?: SpecialMaterial[];
   enchantments?: SupplementEnchantments;
   /** Poderes adicionais para classes existentes (do livro básico) */
   classPowers?: SupplementClassPowers;
