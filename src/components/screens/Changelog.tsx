@@ -168,6 +168,16 @@ const Changelog: React.FC = () => {
                   ficha.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Nos encontros da mesa virtual, ameaças
+                  agora podem ter <strong>PV e PM temporários</strong> acima do
+                  total, como as fichas de jogadores: o mestre edita os valores
+                  pelo novo botão de lápis no card do combatente, e o dano
+                  consome os pontos temporários primeiro. O valor aparece em
+                  laranja (<strong>+N</strong>) ao lado do PV/PM, sem inflar a
+                  barra — e uma ameaça com 0 PV mas com PV temporário continua
+                  em combate.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> A busca de cidades do Mapa de Arton
                   foi reposicionada para o canto superior esquerdo, ao lado do
                   seletor de mapa, com um card do local selecionado.
@@ -237,6 +247,13 @@ const Changelog: React.FC = () => {
                   bônus é aplicado no modo correto — Arqueiro ao arremessar,
                   Esgrimista no corpo a corpo. Fichas existentes recebem a
                   automação ao serem carregadas.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os{' '}
+                  <strong>PV/PM temporários dos personagens</strong> agora
+                  aparecem no rastreador de combate da mesa virtual (em laranja,
+                  ao lado do valor atual), para o mestre e para os jogadores —
+                  respeitando as configurações de exibição de PV/PM da mesa.
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder concedido{' '}
