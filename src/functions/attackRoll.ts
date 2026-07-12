@@ -181,6 +181,82 @@ export function extractValuesBySides(
   return bySides;
 }
 
+const copyQueues = (
+  valuesBySides: Record<number, number[]>
+): Record<number, number[]> => {
+  const queues: Record<number, number[]> = {};
+  Object.entries(valuesBySides).forEach(([sides, values]) => {
+    queues[Number(sides)] = [...values];
+  });
+  return queues;
+};
+
+const takeFromQueues = (
+  queues: Record<number, number[]>,
+  spec: DiceSpec
+): number[] | null => {
+  const queue = queues[spec.sides];
+  if (!queue || queue.length < spec.count) return null;
+  return queue.splice(0, spec.count);
+};
+
+/**
+ * Consome `specs` (em ordem) das filas por faces. Retorna null se faltar dado.
+ * Não muta o objeto recebido.
+ */
+export function takeDiceValues(
+  specs: DiceSpec[],
+  valuesBySides: Record<number, number[]>
+): number[] | null {
+  const queues = copyQueues(valuesBySides);
+  const taken: number[] = [];
+  for (let i = 0; i < specs.length; i += 1) {
+    const values = takeFromQueues(queues, specs[i]);
+    if (!values) return null;
+    taken.push(...values);
+  }
+  return taken;
+}
+
+function distributeValues(
+  plan: AttackRollPlan,
+  valuesBySides: Record<number, number[]>,
+  critDice: DiceSpec[]
+): AttackDiceValues | null {
+  const queues = copyQueues(valuesBySides);
+
+  const d20Values = takeFromQueues(queues, { count: 1, sides: 20 });
+  if (!d20Values) return null;
+
+  const baseDamage: number[] = [];
+  for (let i = 0; i < plan.baseDamage.groups.length; i += 1) {
+    const values = takeFromQueues(queues, plan.baseDamage.groups[i]);
+    if (!values) return null;
+    baseDamage.push(...values);
+  }
+
+  const extras: number[][] = [];
+  for (let i = 0; i < plan.extras.length; i += 1) {
+    const extraValues: number[] = [];
+    for (let j = 0; j < plan.extras[i].groups.length; j += 1) {
+      const values = takeFromQueues(queues, plan.extras[i].groups[j]);
+      if (!values) return null;
+      extraValues.push(...values);
+    }
+    extras.push(extraValues);
+  }
+
+  // Dados adicionais de crítico vêm APÓS os da fase 1 nas filas (ordem de
+  // inserção da cena) e são appendados ao dano base.
+  for (let i = 0; i < critDice.length; i += 1) {
+    const values = takeFromQueues(queues, critDice[i]);
+    if (!values) return null;
+    baseDamage.push(...values);
+  }
+
+  return { d20: d20Values[0], baseDamage, extras };
+}
+
 /**
  * Distribui os valores 3D (agrupados por faces) na ordem canônica da fase 1.
  * Retorna null se faltar dado em alguma fila — gatilho para o fallback local.
@@ -190,39 +266,21 @@ export function distributePhase1Values(
   plan: AttackRollPlan,
   valuesBySides: Record<number, number[]>
 ): AttackDiceValues | null {
-  const queues: Record<number, number[]> = {};
-  Object.entries(valuesBySides).forEach(([sides, values]) => {
-    queues[Number(sides)] = [...values];
-  });
+  return distributeValues(plan, valuesBySides, []);
+}
 
-  const take = (spec: DiceSpec): number[] | null => {
-    const queue = queues[spec.sides];
-    if (!queue || queue.length < spec.count) return null;
-    return queue.splice(0, spec.count);
-  };
-
-  const d20Values = take({ count: 1, sides: 20 });
-  if (!d20Values) return null;
-
-  const baseDamage: number[] = [];
-  for (let i = 0; i < plan.baseDamage.groups.length; i += 1) {
-    const values = take(plan.baseDamage.groups[i]);
-    if (!values) return null;
-    baseDamage.push(...values);
-  }
-
-  const extras: number[][] = [];
-  for (let i = 0; i < plan.extras.length; i += 1) {
-    const extraValues: number[] = [];
-    for (let j = 0; j < plan.extras[i].groups.length; j += 1) {
-      const values = take(plan.extras[i].groups[j]);
-      if (!values) return null;
-      extraValues.push(...values);
-    }
-    extras.push(extraValues);
-  }
-
-  return { d20: d20Values[0], baseDamage, extras };
+/**
+ * Distribui a cena 3D COMPLETA após a segunda fase de um crítico: fase 1 na
+ * ordem canônica + dados adicionais de crítico appendados ao dano base. O
+ * `getRollResults()` do DiceBox devolve todos os grupos em cena em ordem de
+ * inserção, então os dados da fase 1 ocupam o início de cada fila por faces
+ * e os adicionados o final. Retorna null se as contagens não fecharem.
+ */
+export function distributeFullAttackValues(
+  plan: AttackRollPlan,
+  valuesBySides: Record<number, number[]>
+): AttackDiceValues | null {
+  return distributeValues(plan, valuesBySides, getCritExtraDice(plan));
 }
 
 const sum = (values: number[]): number =>

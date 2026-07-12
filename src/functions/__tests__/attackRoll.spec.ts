@@ -4,6 +4,7 @@ import {
   AttackRollRequest,
   buildAttackRollPlan,
   diceSpecsToNotation,
+  distributeFullAttackValues,
   distributePhase1Values,
   extractValuesBySides,
   getCritExtraDice,
@@ -12,6 +13,7 @@ import {
   isFumbleRoll,
   resolveAttackRoll,
   rollAttackLocally,
+  takeDiceValues,
   DiceRollerFn,
 } from '../attackRoll';
 
@@ -326,5 +328,75 @@ describe('extractValuesBySides / distributePhase1Values', () => {
     const input = { 20: [15], 8: [4] };
     distributePhase1Values(plan, input);
     expect(input).toEqual({ 20: [15], 8: [4] });
+  });
+});
+
+describe('distributeFullAttackValues / takeDiceValues (fase 2 do crítico)', () => {
+  test('cena completa após o add: Maça 1d8 x2 com 20 natural (cenário do bug)', () => {
+    // Fase 1: d20=20 + 1d8=6; fase 2 adicionou 1d8=4. getRollResults devolve
+    // a cena inteira, com os dados da fase 1 no início de cada fila.
+    const plan = mustBuild(
+      makeRequest({
+        crit: { threshold: 20, multiplier: 2 },
+        damage: { dice: '1d8+2' },
+      })
+    );
+    const values = distributeFullAttackValues(plan, { 20: [20], 8: [6, 4] });
+    expect(values).toEqual({ d20: 20, baseDamage: [6, 4], extras: [] });
+
+    const groups = resolveAttackRoll(
+      plan,
+      values as NonNullable<typeof values>
+    );
+    expect(groups[0].isCritical).toBe(true);
+    expect(groups[0].rolls).toEqual([20]);
+    expect(groups[1].label).toBe('Dano x2 (normal: 8)'); // 6 + 2
+    expect(groups[1].total).toBe(12); // 6 + 4 + 2
+  });
+
+  test('cena completa com extra de mesmas faces: crítico não rouba dado do extra', () => {
+    // Base 2d6 (x2 => +2d6) + extra 1d6. Ordem nas filas: fase 1 (2 base +
+    // 1 extra) e depois os 2 adicionados do crítico.
+    const plan = mustBuild(
+      makeRequest({
+        crit: { threshold: 19, multiplier: 2 },
+        damage: { dice: '2d6+1' },
+        extras: [{ kind: 'extra', label: 'Fogo', dice: '1d6' }],
+      })
+    );
+    const values = distributeFullAttackValues(plan, {
+      20: [19],
+      6: [3, 5, 2, 6, 1],
+    });
+    expect(values).toEqual({
+      d20: 19,
+      baseDamage: [3, 5, 6, 1],
+      extras: [[2]],
+    });
+  });
+
+  test('contagem que não fecha retorna null', () => {
+    const plan = mustBuild(makeRequest({ damage: { dice: '1d8+2' } }));
+    // Falta o dado adicionado do crítico (só a fase 1 presente).
+    expect(distributeFullAttackValues(plan, { 20: [20], 8: [6] })).toBe(null);
+    // Falta o d20.
+    expect(distributeFullAttackValues(plan, { 8: [6, 4] })).toBe(null);
+  });
+
+  test('takeDiceValues consome specs em ordem e devolve null se faltar', () => {
+    expect(takeDiceValues([{ count: 1, sides: 8 }], { 8: [4] })).toEqual([4]);
+    expect(
+      takeDiceValues(
+        [
+          { count: 1, sides: 8 },
+          { count: 1, sides: 6 },
+        ],
+        { 8: [4, 7], 6: [2] }
+      )
+    ).toEqual([4, 2]);
+    expect(takeDiceValues([{ count: 2, sides: 8 }], { 8: [4] })).toBe(null);
+    const input = { 8: [4, 7] };
+    takeDiceValues([{ count: 1, sides: 8 }], input);
+    expect(input).toEqual({ 8: [4, 7] }); // não muta
   });
 });
