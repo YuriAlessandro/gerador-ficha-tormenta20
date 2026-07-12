@@ -294,8 +294,9 @@ function applyArmorModifications(
           break;
 
         case 'Reforçada':
-          // +1 na Defesa
+          // +1 na Defesa; +1 na penalidade de armadura
           modifiedArmor.defenseBonus += 1;
+          modifiedArmor.armorPenalty += 1;
           priceMultiplier += 0.6;
           break;
 

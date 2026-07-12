@@ -331,6 +331,16 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       // (e.g. Adamante armor/shield material) actually persists. Without this,
       // recalculateSheet's RD result was silently dropped on equipment saves.
       reducaoDeDano: recalculated.reducaoDeDano,
+      // Propagate the recomputed skills so armor-penalty changes (standard and
+      // the non-proficiency extension to Str/Dex skills) reflect immediately
+      // when the worn armor / wielded shield changes on this save. Equipment
+      // modifications that grant skill bonuses (e.g. Cravejada de gemas → +2
+      // Enganação) also land here via the recalculated completeSkills.
+      completeSkills: recalculated.completeSkills ?? sheet.completeSkills,
+      // Propagate spells injected by the Conjuradora enchantment (Step 18 of
+      // recalculateSheet). Without this, adding/removing the enchantment from
+      // the backpack would not persist the granted spell until a later recalc.
+      spells: recalculated.spells ?? sheet.spells,
       steps: [...sheet.steps, editStep],
     });
 
