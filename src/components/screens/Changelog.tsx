@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            10/07/2026 (v4.25).
+            11/07/2026 (v4.25).
           </p>
 
           <p>
@@ -132,6 +132,39 @@ const Changelog: React.FC = () => {
                   proficiente), a armadura leve e o instrumento do Bardo, em vez
                   de partir de uma mochila vazia. Itens automáticos (como Brunea
                   e Escudo Leve) são exibidos no passo.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Penalidade por não proficiência</strong> em armas:
+                  atacar com uma arma marcial, exótica ou de fogo sem a
+                  proficiência correspondente agora aplica automaticamente o{' '}
+                  <strong>–5 nos testes de ataque</strong> (regra do livro
+                  básico) — no bônus exibido na ficha, nas rolagens, no preview
+                  dos modos de ataque e no PDF exportado. A arma ganha um aviso{' '}
+                  <strong>&quot;Sem prof. –5&quot;</strong> explicando a
+                  penalidade. Armas simples nunca penalizam, e{' '}
+                  <strong>Armas Marciais de Distância</strong> cobre as marciais
+                  com alcance ou arremesso. Itens customizados podem definir a
+                  categoria de proficiência no formulário (sem categoria, não há
+                  penalidade).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Vestir uma <strong>armadura</strong> ou
+                  empunhar um <strong>escudo</strong> sem proficiência agora
+                  estende a <strong>penalidade de armadura</strong> a todas as
+                  perícias baseadas em <strong>Força e Destreza</strong>{' '}
+                  (incluindo Luta e Pontaria), como manda a regra — com aviso
+                  &quot;Sem proficiência&quot; no item. Editar as proficiências
+                  da ficha atualiza as penalidades na hora.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Materiais especiais</strong> do
+                  Bazar Monstruoso (<strong>Ameaças de Arton</strong>, cap. 3)
+                  no editor de modificações de itens — como casco de monstro e
+                  couraça de kaiju — além da melhoria de arma{' '}
+                  <strong>Penetrante</strong>. Disponíveis com o suplemento
+                  ativo; efeitos numéricos são aplicados automaticamente na
+                  ficha.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> A busca de cidades do Mapa de Arton
@@ -263,6 +296,14 @@ const Changelog: React.FC = () => {
                   sozinho (ex.: Membros Estendidos recebido via Natureza
                   Orgânica). As perícias e demais benefícios da habilidade são
                   preservados ao remover apenas o poder.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Bônus de poderes que{' '}
+                  <strong>exigem proficiência</strong> com a arma agora só se
+                  aplicam quando o personagem realmente sabe usá-la, e bônus com
+                  escopo por <strong>categoria de arma</strong> (ex.: de
+                  homebrews) passam a valer também para as armas do livro básico
+                  em fichas salvas antigas.
                 </li>
               </ul>
               <h3>4.24</h3>
