@@ -140,9 +140,9 @@ const Changelog: React.FC = () => {
                   proficiência correspondente agora aplica automaticamente o{' '}
                   <strong>–5 nos testes de ataque</strong> (regra do livro
                   básico) — no bônus exibido na ficha, nas rolagens, no preview
-                  dos modos de ataque e no PDF exportado. A arma ganha um aviso{' '}
-                  <strong>&quot;Sem prof. –5&quot;</strong> explicando a
-                  penalidade. Armas simples nunca penalizam, e{' '}
+                  dos modos de ataque e no PDF exportado. A arma fica{' '}
+                  <strong>destacada em âmbar</strong> na ficha, com uma legenda
+                  explicando a penalidade. Armas simples nunca penalizam, e{' '}
                   <strong>Armas Marciais de Distância</strong> cobre as marciais
                   com alcance ou arremesso. Itens customizados podem definir a
                   categoria de proficiência no formulário (sem categoria, não há
@@ -153,9 +153,10 @@ const Changelog: React.FC = () => {
                   empunhar um <strong>escudo</strong> sem proficiência agora
                   estende a <strong>penalidade de armadura</strong> a todas as
                   perícias baseadas em <strong>Força e Destreza</strong>{' '}
-                  (incluindo Luta e Pontaria), como manda a regra — com aviso
-                  &quot;Sem proficiência&quot; no item. Editar as proficiências
-                  da ficha atualiza as penalidades na hora.
+                  (incluindo Luta e Pontaria), como manda a regra — o item fica{' '}
+                  <strong>destacado em âmbar</strong> na ficha, com uma legenda
+                  explicando a penalidade. Editar as proficiências da ficha
+                  atualiza as penalidades na hora.
                 </li>
                 <li>
                   <strong>Novo:</strong> <strong>Materiais especiais</strong> do
@@ -206,6 +207,22 @@ const Changelog: React.FC = () => {
                   truques bônus dos níveis 5 e 11 agora aparecem na própria
                   sessão de evolução — antes só apareciam evoluindo os níveis
                   separadamente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Acertos críticos ficaram mais
+                  visíveis: o <strong>histórico de rolagens</strong> da mesa
+                  agora mostra um selo <strong>CRÍTICO</strong> (ou{' '}
+                  <strong>FALHA</strong>) em cada rolagem — inclusive nas
+                  rolagens dos outros jogadores — e, na tela de resultado, o
+                  dado que critou dentro da margem de ameaça (ex.: um 19 com
+                  Espada Longa) fica destacado em verde, não apenas o 20
+                  natural.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Com <strong>dados 3D</strong>{' '}
+                  ativados, ao sair um crítico os dados de dano adicionais agora{' '}
+                  <strong>caem na mesa</strong> em seguida, e o resultado é
+                  sempre calculado com os valores dos dados que você viu rolar.
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder concedido{' '}
@@ -304,6 +321,24 @@ const Changelog: React.FC = () => {
                   escopo por <strong>categoria de arma</strong> (ex.: de
                   homebrews) passam a valer também para as armas do livro básico
                   em fichas salvas antigas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Acertos críticos</strong>{' '}
+                  nas rolagens da plataforma voltaram a funcionar corretamente,
+                  para fichas de jogadores, ameaças e aliados. Com dados 3D
+                  ativados, armas com margem de ameaça ampliada (ex.: 19 ou 18)
+                  nunca exibiam o crítico, e o d20 mostrado na tela podia
+                  discordar do dano multiplicado (dano dobrado sem crítico
+                  aparente, ou um 20 natural sem dano dobrado). Agora o crítico
+                  é decidido pelo dado que aparece na tela, respeitando a margem
+                  de ameaça e o multiplicador da arma — e apenas os dados de
+                  dano da arma são multiplicados, nunca os bônus numéricos e
+                  dados extras (como manda a regra).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Armas sem valor de crítico
+                  cadastrado (ex.: itens customizados) agora acertam crítico no{' '}
+                  <strong>20 natural</strong> (20/x2), em vez de nunca critarem.
                 </li>
               </ul>
               <h3>4.24</h3>
