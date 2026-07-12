@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            11/07/2026 (v4.25).
+            12/07/2026 (v4.25).
           </p>
 
           <p>
@@ -225,6 +225,20 @@ const Changelog: React.FC = () => {
                   sempre calculado com os valores dos dados que você viu rolar.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> Os poderes{' '}
+                  <strong>Arqueiro</strong>, <strong>Esgrimista</strong> e{' '}
+                  <strong>Estilo de Disparo</strong> agora somam o atributo no{' '}
+                  <strong>dano</strong> automaticamente na ficha e nas rolagens:
+                  Arqueiro soma <strong>Sabedoria</strong> com armas à
+                  distância, Esgrimista soma <strong>Inteligência</strong> com
+                  armas corpo a corpo leves ou ágeis (ambos limitados pelo seu
+                  nível), e Estilo de Disparo soma <strong>Destreza</strong> com
+                  armas de disparo. Em armas de arremesso (como a adaga), o
+                  bônus é aplicado no modo correto — Arqueiro ao arremessar,
+                  Esgrimista no corpo a corpo. Fichas existentes recebem a
+                  automação ao serem carregadas.
+                </li>
+                <li>
                   <strong>Correção:</strong> O poder concedido{' '}
                   <strong>Armas da Ambição</strong> (Valkaria) agora exibe o +1
                   em testes de ataque nas perícias <strong>Luta</strong> e{' '}
@@ -339,6 +353,28 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> Armas sem valor de crítico
                   cadastrado (ex.: itens customizados) agora acertam crítico no{' '}
                   <strong>20 natural</strong> (20/x2), em vez de nunca critarem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A modificação{' '}
+                  <strong>Reforçada</strong> aplicava <strong>+2</strong> na
+                  Defesa e <strong>+2</strong> na penalidade de armadura na
+                  primeira vez em que era adicionada a um item; agora aplica
+                  corretamente <strong>+1 / +1</strong>. O mesmo problema
+                  afetava outras modificações numéricas de arma (como Certeira)
+                  na primeira aplicação.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A modificação{' '}
+                  <strong>Cravejada de gemas</strong> agora concede o{' '}
+                  <strong>+2 em Enganação</strong> na ficha ao ser aplicada a
+                  uma arma ou armadura pela mochila — antes o bônus era
+                  calculado mas não aparecia nas perícias até um recálculo
+                  posterior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Adicionar ou remover o encantamento{' '}
+                  <strong>Conjuradora</strong> por um item da mochila agora
+                  salva imediatamente a magia concedida na ficha.
                 </li>
               </ul>
               <h3>4.24</h3>
