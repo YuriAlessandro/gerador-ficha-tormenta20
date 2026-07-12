@@ -149,6 +149,8 @@ export interface WeaponActionTrigger {
   consumesAmmo?: AmmoType;
 }
 
+export type WeaponCategory = 'simple' | 'martial' | 'exotic' | 'firearm';
+
 export interface WeaponAction {
   id: string;
   label: string;
@@ -189,10 +191,10 @@ export default interface Equipment {
   preco?: number;
 
   // Proficiency category used to slot weapons into the item-generator subtype
-  // filters (Simples/Marciais/Exóticas/De Fogo). Core weapons are categorized by
-  // their array placement in EQUIPAMENTOS; supplement weapons carry this field so
-  // they land in the correct subtype.
-  weaponCategory?: 'simple' | 'martial' | 'exotic' | 'firearm';
+  // filters (Simples/Marciais/Exóticas/De Fogo) and to detect non-proficiency
+  // attack penalties. Weapon copies embedded in old saved sheets may lack this
+  // field — resolve via getEffectiveWeaponCategory (name-based fallback).
+  weaponCategory?: WeaponCategory;
 
   // Base values (original stats before any modifications). When modifications change,
   // the final stat is recomputed from the base value plus the aggregated effect.

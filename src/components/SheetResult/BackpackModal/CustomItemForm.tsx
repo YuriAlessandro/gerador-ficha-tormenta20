@@ -17,10 +17,12 @@ import { v4 as uuid } from 'uuid';
 import Equipment, {
   DefenseEquipment,
   equipGroup,
+  WeaponCategory,
 } from '../../../interfaces/Equipment';
 import Skill from '../../../interfaces/Skills';
 import { CATEGORY_ORDER } from './itemTypeStyles';
 import { isDefenseGroup } from './equipmentCatalog';
+import { WEAPON_CATEGORY_LABELS } from '../../../functions/proficiencies';
 
 export interface CustomItemFormProps {
   /** Optional initial values when editing an existing custom item. */
@@ -59,6 +61,9 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
   const [critico, setCritico] = useState(initial?.critico ?? 'x2');
   const [customSkill, setCustomSkill] = useState<Skill | ''>(
     initial?.customSkill ?? ''
+  );
+  const [weaponCategory, setWeaponCategory] = useState<WeaponCategory | ''>(
+    initial?.weaponCategory ?? ''
   );
 
   // Defense fields
@@ -128,6 +133,7 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
       baseItem.atkBonus = Number.isNaN(atkBonus) ? 0 : atkBonus;
       baseItem.critico = critico.trim() || 'x2';
       baseItem.customSkill = (customSkill || undefined) as Skill | undefined;
+      baseItem.weaponCategory = weaponCategory || undefined;
       baseItem.baseDano = baseItem.dano;
       baseItem.baseAtkBonus = baseItem.atkBonus;
       baseItem.baseCritico = baseItem.critico;
@@ -252,6 +258,32 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                   {ALL_SKILLS.map((s) => (
                     <MenuItem key={s} value={s}>
                       {s}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <InputLabel>Categoria de proficiência (opcional)</InputLabel>
+                <Select
+                  label='Categoria de proficiência (opcional)'
+                  value={weaponCategory}
+                  onChange={(e) =>
+                    setWeaponCategory(e.target.value as WeaponCategory | '')
+                  }
+                >
+                  <MenuItem value=''>
+                    <em>Nenhuma (sem penalidade)</em>
+                  </MenuItem>
+                  {(
+                    Object.entries(WEAPON_CATEGORY_LABELS) as [
+                      WeaponCategory,
+                      string
+                    ][]
+                  ).map(([value, label]) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
                     </MenuItem>
                   ))}
                 </Select>

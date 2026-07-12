@@ -16,6 +16,8 @@ interface DefenseEquipmentProps {
   /** Quick-wield handler. When provided, a hand-icon button is rendered. */
   onWieldingChange?: (slot: WieldingSlot) => void;
   wieldingDisabledSlots?: Partial<Record<'main' | 'off', { reason: string }>>;
+  /** True when the character lacks proficiency with this armor/shield. */
+  isNonProficient?: boolean;
 }
 
 const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
@@ -26,6 +28,7 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
     wieldingSlot = null,
     onWieldingChange,
     wieldingDisabledSlots,
+    isNonProficient = false,
   } = props;
   const { nome, defenseBonus, armorPenalty } = equipment;
 
@@ -84,6 +87,21 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
               color='primary'
               sx={{ height: 18, fontSize: '0.65rem' }}
             />
+          )}
+          {isNonProficient && (
+            <Tooltip
+              title={`Sem proficiência: enquanto ${
+                equipment.group === 'Escudo' ? 'empunhado' : 'vestida'
+              }, a penalidade de armadura se aplica a todas as perícias de Força e Destreza`}
+              arrow
+            >
+              <Chip
+                size='small'
+                label='Sem proficiência'
+                color='warning'
+                sx={{ height: 18, fontSize: '0.65rem' }}
+              />
+            </Tooltip>
           )}
         </Stack>
         {onWieldingChange && (

@@ -36,6 +36,7 @@ import {
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+import { getSheetProficiencias } from '@/functions/proficiencies';
 import {
   applyManualLevelUp,
   calculateCurrencySpaces,
@@ -523,6 +524,16 @@ const Result: React.FC<ResultProps> = (props) => {
       handleSheetInfoUpdate({ notes });
     },
     [handleSheetInfoUpdate]
+  );
+
+  // Proficiency edits must trigger a full recalculation: the non-proficiency
+  // armor penalty lives in completeSkills.others, which a plain merge would
+  // leave stale.
+  const handleProficiencyUpdate = useCallback(
+    (updates: Partial<CharacterSheet>) => {
+      applyRecalculatedSheet({ ...currentSheet, ...updates });
+    },
+    [currentSheet, applyRecalculatedSheet]
   );
 
   const handleLevelUpConfirm = useCallback(
@@ -1075,17 +1086,14 @@ const Result: React.FC<ResultProps> = (props) => {
     ]
   );
 
-  const effectiveProficiencias = useMemo(() => {
-    const base = classe.proficiencias.filter(
-      (p) => !(currentSheet.removedProficiencias ?? []).includes(p)
-    );
-    const custom = currentSheet.customProficiencias ?? [];
-    return [...base, ...custom];
-  }, [
-    classe.proficiencias,
-    currentSheet.removedProficiencias,
-    currentSheet.customProficiencias,
-  ]);
+  const effectiveProficiencias = useMemo(
+    () => getSheetProficiencias(currentSheet),
+    [
+      classe.proficiencias,
+      currentSheet.removedProficiencias,
+      currentSheet.customProficiencias,
+    ]
+  );
 
   const proficienciasDiv = useMemo(
     () =>
@@ -1340,6 +1348,7 @@ const Result: React.FC<ResultProps> = (props) => {
         bagEquipments={bagEquipments}
         onConsumeAmmo={onSheetUpdate ? handleConsumeAmmo : undefined}
         hasArremessador={hasArremessador}
+        proficiencias={effectiveProficiencias}
       />
     );
   }, [
@@ -1359,6 +1368,7 @@ const Result: React.FC<ResultProps> = (props) => {
     handleQuickWieldChange,
     handleConsumeAmmo,
     computeWieldingDisabled,
+    effectiveProficiencias,
   ]);
 
   const defenseEquipments = useMemo(
@@ -2138,6 +2148,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       onSheetUpdate ? handleQuickWieldChange : undefined
                     }
                     getWieldingDisabledSlots={computeWieldingDisabled}
+                    proficiencias={effectiveProficiencias}
                   />
                   <Box
                     sx={{
@@ -2917,7 +2928,7 @@ const Result: React.FC<ResultProps> = (props) => {
           open={proficiencyDrawerOpen}
           onClose={() => setProficiencyDrawerOpen(false)}
           sheet={currentSheet}
-          onSave={handleSheetInfoUpdate}
+          onSave={handleProficiencyUpdate}
         />
 
         <SizeDisplacementEditDrawer

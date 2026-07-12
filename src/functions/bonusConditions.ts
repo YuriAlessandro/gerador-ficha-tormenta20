@@ -24,6 +24,7 @@ import {
   getWornArmor,
 } from '../components/SheetResult/BackpackModal/wielding';
 import { getClassLevel } from './multiclass';
+import { getSheetProficiencias } from './proficiencies';
 
 function compare(actual: number, op: BonusConditionOp, value: number): boolean {
   if (op === 'gte') return actual >= value;
@@ -117,7 +118,7 @@ function evaluateClause(
     case 'hasPower':
       return characterHasPower(sheet, clause.value);
     case 'hasProficiency':
-      return (sheet.classe.proficiencias || []).includes(clause.value);
+      return getSheetProficiencias(sheet).includes(clause.value);
     case 'hasSkill':
       return (sheet.skills || []).includes(clause.value);
     case 'devoteOf':

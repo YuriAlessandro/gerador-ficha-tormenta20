@@ -70,6 +70,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ADAGA: {
     nome: 'Adaga',
+    weaponCategory: 'simple',
     dano: '1d4',
     critico: '19',
     spaces: 1,
@@ -90,6 +91,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ESPADACURTA: {
     nome: 'Espada Curta',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: '19',
     spaces: 1,
@@ -100,6 +102,7 @@ export const Armas: Record<string, Equipment> = {
   },
   FOICE: {
     nome: 'Foice',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x3',
     spaces: 1,
@@ -110,6 +113,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MANOPLA: {
     nome: 'Manopla',
+    weaponCategory: 'simple',
     dano: '-',
     critico: '-',
     spaces: 1,
@@ -120,6 +124,7 @@ export const Armas: Record<string, Equipment> = {
   },
   CLAVA: {
     nome: 'Clava',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x2',
     spaces: 1,
@@ -130,6 +135,7 @@ export const Armas: Record<string, Equipment> = {
   },
   LANCA: {
     nome: 'Lança',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x2',
     spaces: 1,
@@ -151,6 +157,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MACA: {
     nome: 'Maça',
+    weaponCategory: 'simple',
     dano: '1d8',
     critico: 'x2',
     spaces: 1,
@@ -161,6 +168,7 @@ export const Armas: Record<string, Equipment> = {
   },
   BORDAO: {
     nome: 'Bordão',
+    weaponCategory: 'simple',
     dano: '1d6/1d6',
     critico: 'x2',
     spaces: 2,
@@ -172,6 +180,7 @@ export const Armas: Record<string, Equipment> = {
   },
   PIQUE: {
     nome: 'Pique',
+    weaponCategory: 'simple',
     dano: '1d8',
     critico: 'x2',
     spaces: 2,
@@ -184,6 +193,7 @@ export const Armas: Record<string, Equipment> = {
   },
   TACAPE: {
     nome: 'Tacape',
+    weaponCategory: 'simple',
     dano: '1d10',
     critico: 'x2',
     spaces: 2,
@@ -195,6 +205,7 @@ export const Armas: Record<string, Equipment> = {
   },
   AZAGAIA: {
     nome: 'Azagaia',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x2',
     spaces: 1,
@@ -222,6 +233,7 @@ export const Armas: Record<string, Equipment> = {
   },
   BESTALEVE: {
     nome: 'Besta Leve',
+    weaponCategory: 'simple',
     dano: '1d8',
     critico: '19',
     spaces: 1,
@@ -233,6 +245,7 @@ export const Armas: Record<string, Equipment> = {
   },
   FUNDA: {
     nome: 'Funda',
+    weaponCategory: 'simple',
     dano: '1d4',
     critico: 'x2',
     spaces: 1,
@@ -261,6 +274,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ARCOCURTO: {
     nome: 'Arco Curto',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x3',
     spaces: 2,
@@ -273,6 +287,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MACHADINHA: {
     nome: 'Machadinha',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: 'x3',
     spaces: 1,
@@ -294,6 +309,7 @@ export const Armas: Record<string, Equipment> = {
   },
   CIMITARRA: {
     nome: 'Cimitarra',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: '18',
     spaces: 1,
@@ -303,6 +319,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ESPADA_LONGA: {
     nome: 'Espada Longa',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: '19',
     spaces: 1,
@@ -313,6 +330,7 @@ export const Armas: Record<string, Equipment> = {
   },
   FLORETE: {
     nome: 'Florete',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: '18',
     spaces: 1,
@@ -322,6 +340,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MACHADO_DE_BATALHA: {
     nome: 'Machado de Batalha',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
     spaces: 1,
@@ -332,6 +351,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MANGUAL: {
     nome: 'Mangual',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x2',
     spaces: 1,
@@ -341,6 +361,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MARTELO_DE_GUERRA: {
     nome: 'Martelo de Guerra',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
     spaces: 1,
@@ -351,6 +372,7 @@ export const Armas: Record<string, Equipment> = {
   },
   PICARETA: {
     nome: 'Picareta',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: 'x4',
     spaces: 1,
@@ -361,6 +383,7 @@ export const Armas: Record<string, Equipment> = {
   },
   TRIDENTE: {
     nome: 'Tridente',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x2',
     spaces: 1,
@@ -382,6 +405,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ALABARDA: {
     nome: 'Alabarda',
+    weaponCategory: 'martial',
     dano: '1d10',
     critico: 'x3',
     spaces: 2,
@@ -393,6 +417,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ALFANGE: {
     nome: 'Alfange',
+    weaponCategory: 'martial',
     dano: '2d4',
     critico: '18',
     spaces: 2,
@@ -403,6 +428,7 @@ export const Armas: Record<string, Equipment> = {
   },
   GADANHO: {
     nome: 'Gadanho',
+    weaponCategory: 'martial',
     dano: '2d4',
     critico: 'x4',
     spaces: 2,
@@ -413,6 +439,7 @@ export const Armas: Record<string, Equipment> = {
   },
   LANCA_MONTADA: {
     nome: 'Lança Montada',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
     spaces: 2,
@@ -424,6 +451,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MACHADO_DE_GUERRA: {
     nome: 'Machado de Guerra',
+    weaponCategory: 'martial',
     dano: '1d12',
     critico: 'x3',
     spaces: 2,
@@ -435,6 +463,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MARRETA: {
     nome: 'Marreta',
+    weaponCategory: 'martial',
     dano: '3d4',
     critico: 'x2',
     spaces: 2,
@@ -445,6 +474,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MONTANTE: {
     nome: 'Montante',
+    weaponCategory: 'martial',
     dano: '2d6',
     critico: '19',
     spaces: 2,
@@ -455,6 +485,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ARCO_LONGO: {
     nome: 'Arco Longo',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
     alcance: 'Médio',
@@ -467,6 +498,7 @@ export const Armas: Record<string, Equipment> = {
   },
   BESTA_PESADA: {
     nome: 'Besta Pesada',
+    weaponCategory: 'martial',
     dano: '1d12',
     critico: '19',
     alcance: 'Médio',
@@ -478,6 +510,7 @@ export const Armas: Record<string, Equipment> = {
   },
   CHICOTE: {
     nome: 'Chicote',
+    weaponCategory: 'exotic',
     dano: '1d3',
     critico: 'x2',
     spaces: 1,
@@ -487,6 +520,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ESPADA_BASTARDA: {
     nome: 'Espada Bastarda',
+    weaponCategory: 'exotic',
     dano: '1d10/1d12',
     critico: '19',
     spaces: 1,
@@ -496,6 +530,7 @@ export const Armas: Record<string, Equipment> = {
   },
   KATANA: {
     nome: 'Katana',
+    weaponCategory: 'exotic',
     dano: '1d8/1d10',
     critico: '19',
     spaces: 1,
@@ -505,6 +540,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MACHADO_ANAO: {
     nome: 'Machado Anão',
+    weaponCategory: 'exotic',
     dano: '1d10',
     critico: 'x3',
     spaces: 1,
@@ -515,6 +551,7 @@ export const Armas: Record<string, Equipment> = {
   },
   CORRENTE_DE_ESPINHOS: {
     nome: 'Corrente de Espinhos',
+    weaponCategory: 'exotic',
     dano: '2d4/2d4',
     critico: '19',
     spaces: 2,
@@ -525,6 +562,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MACHADO_TAURICO: {
     nome: 'Machado Táurico',
+    weaponCategory: 'exotic',
     dano: '2d8',
     critico: 'x3',
     spaces: 2,
@@ -536,6 +574,7 @@ export const Armas: Record<string, Equipment> = {
   },
   REDE: {
     nome: 'Rede',
+    weaponCategory: 'exotic',
     alcance: 'Curto',
     spaces: 1,
     group: 'Arma',
@@ -543,6 +582,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MOSQUETE: {
     nome: 'Mosquete',
+    weaponCategory: 'firearm',
     dano: '2d8',
     critico: '19/x3',
     alcance: 'Médio',
@@ -556,6 +596,7 @@ export const Armas: Record<string, Equipment> = {
   },
   PISTOLA: {
     nome: 'Pistola',
+    weaponCategory: 'firearm',
     dano: '2d6',
     critico: '19/x3',
     alcance: 'Curto',

@@ -382,6 +382,8 @@ export type StatModifierTarget =
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
       thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
+      // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
+      weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
   | {
       type: 'WeaponThreatMargin';

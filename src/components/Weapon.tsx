@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -36,6 +37,10 @@ import {
   resolveDamageAttribute,
   getWeaponDisplayDamage,
 } from '../functions/weaponSkill';
+import {
+  getEffectiveWeaponCategory,
+  WEAPON_CATEGORY_LABELS,
+} from '../functions/proficiencies';
 import {
   stepUpDamage,
   addFlatDamageBonus,
@@ -117,6 +122,11 @@ interface WeaponProps {
    * (Funda) or a thrown weapon. Melee modes and bows/crossbows are unaffected.
    */
   hasArremessador?: boolean;
+  /**
+   * Non-proficiency attack penalty (0 or -5). Applied to the displayed attack
+   * bonus, action previews and attack rolls, with a warning chip on the card.
+   */
+  proficiencyPenalty?: number;
 }
 
 interface RollContext {
@@ -140,6 +150,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     availableAmmo,
     onConsumeAmmo,
     hasArremessador = false,
+    proficiencyPenalty = 0,
   } = props;
   const { nome, dano, critico, atkBonus, customSkill } = equipment;
   const displayName = equipment.customDisplayName?.trim() || nome;
@@ -152,7 +163,15 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     completeSkills,
     atributos
   );
-  const baseAtk = atkBonus ? atkBonus + baseModAtk : baseModAtk;
+  const baseAtk =
+    (atkBonus ? atkBonus + baseModAtk : baseModAtk) + proficiencyPenalty;
+
+  const nonProficiencyTooltip = useMemo(() => {
+    if (proficiencyPenalty === 0) return '';
+    const category = getEffectiveWeaponCategory(equipment);
+    const categoryLabel = category ? WEAPON_CATEGORY_LABELS[category] : 'arma';
+    return `Sem proficiência com ${categoryLabel}: ${proficiencyPenalty} nos testes de ataque`;
+  }, [proficiencyPenalty, equipment]);
 
   // Resolve the damage modifier given an attribute choice. 'Nenhum' adds 0.
   // Otherwise, returns `atributos[attr].value`. Falls back to `modDano`
@@ -275,6 +294,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       const thrown = isThrownAction(action);
       const previewAtk =
         baseFromBonus +
+        proficiencyPenalty +
         (action.atkBonusDelta ?? 0) +
         (thrown ? thrownAtkExtra : 0);
 
@@ -315,6 +335,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       arremessadorStepBonus,
       bakedFlatDamageBonus,
       isThrownAction,
+      proficiencyPenalty,
       thrownAtkExtra,
       thrownDamageBonus,
     ]
@@ -436,6 +457,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       const thrown = isThrownAction(action);
       const atk =
         baseAtkFromBonus +
+        proficiencyPenalty +
         (action?.atkBonusDelta ?? 0) +
         (thrown ? thrownAtkExtra : 0);
 
@@ -559,6 +581,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       showDiceResult,
       arremessadorStepBonus,
       isThrownAction,
+      proficiencyPenalty,
       thrownAtkExtra,
       thrownDamageBonus,
     ]
@@ -848,6 +871,17 @@ const Weapon: React.FC<WeaponProps> = (props) => {
                   color: theme.palette.secondary.main,
                   cursor: 'help',
                 }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          )}
+          {proficiencyPenalty !== 0 && (
+            <Tooltip title={nonProficiencyTooltip} arrow>
+              <Chip
+                size='small'
+                color='warning'
+                label={`Sem prof. ${proficiencyPenalty}`}
+                sx={{ height: 18, fontSize: '0.65rem', ml: 0.5 }}
                 onClick={(e) => e.stopPropagation()}
               />
             </Tooltip>

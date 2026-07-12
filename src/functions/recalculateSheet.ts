@@ -40,6 +40,12 @@ import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
 import { expandAttributeBonus } from './attributeExpansion';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
+import {
+  getEffectiveWeaponCategory,
+  getNonProficientArmorPenalty,
+  getSheetProficiencias,
+  isProficientWithWeapon,
+} from './proficiencies';
 import { stampUsedSupplements } from './contentSources';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
@@ -302,7 +308,7 @@ const weaponMatchesBonus = (
     twoHandedOnly?: boolean;
     weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
   },
-  _sheet: CharacterSheet
+  sheet: CharacterSheet
 ): boolean => {
   // Check specific weapon name
   if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
@@ -310,11 +316,11 @@ const weaponMatchesBonus = (
   }
 
   // Escopo por categoria de proficiência (simples/marcial/exótica/de fogo).
+  // Resolve via getEffectiveWeaponCategory para cobrir cópias legadas de armas
+  // core embutidas em fichas salvas (sem o campo `weaponCategory`).
   if (bonus.weaponCategories && bonus.weaponCategories.length > 0) {
-    if (
-      !weapon.weaponCategory ||
-      !bonus.weaponCategories.includes(weapon.weaponCategory)
-    ) {
+    const category = getEffectiveWeaponCategory(weapon);
+    if (!category || !bonus.weaponCategories.includes(category)) {
       return false;
     }
   }
@@ -364,11 +370,13 @@ const weaponMatchesBonus = (
     }
   }
 
-  // Check proficiency requirement
-  if (bonus.proficiencyRequired) {
-    // TODO: Implement proficiency check logic
-    // For now, assume all weapons are proficient
-    // This would need to check against sheet.classe.proficiencias
+  // Bônus que exigem proficiência com a arma (ex.: Armas da Ambição) só se
+  // aplicam quando o personagem sabe usá-la.
+  if (
+    bonus.proficiencyRequired &&
+    !isProficientWithWeapon(weapon, getSheetProficiencias(sheet))
+  ) {
+    return false;
   }
 
   return true;
@@ -812,6 +820,12 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
     armorPenalty = updatedSheet.bag.armorPenalty;
   }
 
+  // Non-proficient armor/shield (T20 rule): the armor penalty of active items
+  // the character can't use extends to ALL Força/Destreza-based skills, not
+  // only the standard armor-penalty skills (which already take the full
+  // penalty above and must not double-count).
+  const nonProficientArmorPenalty = getNonProficientArmorPenalty(updatedSheet);
+
   // Helper function to determine training bonus
   const skillTrainingMod = (isTrained: boolean, level: number): number => {
     if (!isTrained) return 0;
@@ -854,8 +868,13 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
       // The sheetBonuses (from race abilities, powers, etc.) will be reapplied
       // after this function is called
       const isAffectedByArmor = SkillsWithArmorPenalty.includes(skill.name);
-      const baseOthers =
-        isAffectedByArmor && armorPenalty > 0 ? armorPenalty * -1 : 0;
+      const skillAttr = skill.modAttr ?? SkillsAttrs[skill.name];
+      const isStrDexSkill =
+        skillAttr === Atributo.FORCA || skillAttr === Atributo.DESTREZA;
+      let basePenalty = 0;
+      if (isAffectedByArmor) basePenalty = armorPenalty;
+      else if (isStrDexSkill) basePenalty = nonProficientArmorPenalty;
+      const baseOthers = basePenalty > 0 ? basePenalty * -1 : 0;
 
       return {
         ...skill,
@@ -872,6 +891,11 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
       .map(([skillName, attr]) => {
         const skill = skillName as Skill;
         const isAffectedByArmor = SkillsWithArmorPenalty.includes(skill);
+        const isStrDexSkill =
+          attr === Atributo.FORCA || attr === Atributo.DESTREZA;
+        let basePenalty = 0;
+        if (isAffectedByArmor) basePenalty = armorPenalty;
+        else if (isStrDexSkill) basePenalty = nonProficientArmorPenalty;
 
         return {
           name: skill,
@@ -881,7 +905,7 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
             updatedSheet.nivel
           ),
           modAttr: attr as unknown as Atributo,
-          others: isAffectedByArmor && armorPenalty > 0 ? armorPenalty * -1 : 0,
+          others: basePenalty > 0 ? basePenalty * -1 : 0,
         };
       })
       .filter(

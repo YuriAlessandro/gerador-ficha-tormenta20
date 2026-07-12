@@ -6,6 +6,7 @@ import {
   getWieldingSlot,
   WieldingSlot,
 } from './SheetResult/BackpackModal/wielding';
+import { isProficientWithDefense } from '../functions/proficiencies';
 
 interface DefenseEquipmentsProps {
   defenseEquipments: DefenseEquipment[];
@@ -19,6 +20,11 @@ interface DefenseEquipmentsProps {
   getWieldingDisabledSlots?: (
     itemId: string | undefined
   ) => Partial<Record<'main' | 'off', { reason: string }>> | undefined;
+  /**
+   * Effective proficiency list of the sheet (class + custom − removed). When
+   * provided, non-proficient armors/shields render a warning chip.
+   */
+  proficiencias?: string[];
 }
 
 const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
@@ -30,6 +36,7 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
     offHandItemId,
     onWieldingChange,
     getWieldingDisabledSlots,
+    proficiencias,
   } = props;
   const wieldingState = { mainHandItemId, offHandItemId };
 
@@ -73,12 +80,16 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
           equip.id !== undefined &&
           (equip.id === mainHandItemId || equip.id === offHandItemId);
         const isShield = equip.group === 'Escudo';
+        const isNonProficient = proficiencias
+          ? !isProficientWithDefense(equip, proficiencias)
+          : false;
         return (
           <DefenseItem
             key={getKey(equip.nome)}
             equipment={equip}
             isWorn={isWorn}
             isWielded={isWielded}
+            isNonProficient={isNonProficient}
             wieldingSlot={
               isShield ? getWieldingSlot(equip.id, wieldingState) : null
             }

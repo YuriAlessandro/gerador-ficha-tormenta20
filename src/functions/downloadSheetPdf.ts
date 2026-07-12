@@ -15,6 +15,10 @@ import {
   getSkillAttackBonus,
   getWeaponDisplayDamage,
 } from './weaponSkill';
+import {
+  getSheetProficiencias,
+  getWeaponNonProficiencyPenalty,
+} from './proficiencies';
 import { applyPowersOrder } from './powers/applyPowersOrder';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
 import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
@@ -186,6 +190,8 @@ const preparePDF: (
     MAX_WEAPON_FIELDS
   );
 
+  const effectiveProficiencias = getSheetProficiencias(sheet);
+
   weapons.forEach((weapon, index) => {
     const weaponNameField = form.getTextField(`ataque${index + 1}`);
     const weaponBonusField = form.getTextField(`tAtak${index + 1}`);
@@ -210,7 +216,9 @@ const preparePDF: (
       sheet.completeSkills,
       sheet.atributos
     );
-    const atk = weapon.atkBonus ? weapon.atkBonus + modAtk : modAtk;
+    const atk =
+      (weapon.atkBonus ? weapon.atkBonus + modAtk : modAtk) +
+      getWeaponNonProficiencyPenalty(weapon, effectiveProficiencias);
     weaponBonusField.setText(`${atk >= 0 ? '+' : ''}${atk}`);
   });
 
@@ -428,13 +436,7 @@ const preparePDF: (
   spellsField.setFontSize(spellsFieldFontSize());
 
   // Proficiencies
-  const baseProficiencies = sheet.classe.proficiencias.filter(
-    (p) => !(sheet.removedProficiencias ?? []).includes(p)
-  );
-  const customProficiencies = sheet.customProficiencias ?? [];
-  const proficienciesText = [...baseProficiencies, ...customProficiencies].join(
-    '\n'
-  );
+  const proficienciesText = effectiveProficiencias.join('\n');
   proficienciesField.setText(sanitizeForWinAnsi(proficienciesText));
 
   // The PDF sheet only allows 30 skills, being two max "Oficios". We need to make sure we don't exceed that.

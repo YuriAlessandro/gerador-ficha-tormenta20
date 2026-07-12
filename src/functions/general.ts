@@ -60,6 +60,7 @@ import {
   rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/systems/tormenta20/proficiencias';
+import { getNonProficientArmorPenalty } from './proficiencies';
 import {
   generateRandomCompanion,
   createCompanion,
@@ -5343,18 +5344,32 @@ export default function generateRandomSheet(
   charSheet = migrateLegacyEquipState(charSheet);
 
   // Calcular valor das perícias após poderes (pois vários poderes adicionam perícias e bonificadores)
+  // Armadura/escudo sem proficiência (regra T20): a penalidade de armadura dos
+  // itens ativos se estende a TODAS as perícias de Força/Destreza (as perícias
+  // com penalidade de armadura padrão já levam a penalidade cheia e não
+  // acumulam com esta parcela).
+  const nonProficientArmorPenalty = getNonProficientArmorPenalty(charSheet);
   charSheet.completeSkills = Object.values(Skill)
     .map((skill) => {
       const skillAttr = SkillsAttrs[skill];
       const attr = atributos[skillAttr as unknown as Atributo];
 
-      const armorPenalty = SkillsWithArmorPenalty.includes(skill)
-        ? charSheet.bag.getActiveArmorPenalty?.(
+      let armorPenalty = 0;
+      if (SkillsWithArmorPenalty.includes(skill)) {
+        armorPenalty =
+          charSheet.bag.getActiveArmorPenalty?.(
             charSheet.wornArmorId,
             charSheet.mainHandItemId,
             charSheet.offHandItemId
-          ) ?? charSheet.bag.getArmorPenalty?.()
-        : 0;
+          ) ??
+          charSheet.bag.getArmorPenalty?.() ??
+          0;
+      } else if (
+        skillAttr === Atributo.FORCA ||
+        skillAttr === Atributo.DESTREZA
+      ) {
+        armorPenalty = nonProficientArmorPenalty;
+      }
 
       return {
         name: skill,

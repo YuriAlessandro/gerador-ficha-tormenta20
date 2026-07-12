@@ -11,6 +11,7 @@ import {
   WieldingSlot,
 } from './SheetResult/BackpackModal/wielding';
 import { getAmmoUnits } from './SheetResult/BackpackModal/ammo';
+import { getWeaponNonProficiencyPenalty } from '../functions/proficiencies';
 
 interface WeaponsProps {
   weapons: Equipment[];
@@ -45,6 +46,11 @@ interface WeaponsProps {
    * Forwarded to each Weapon to grant +1 damage step on ranged/thrown attacks.
    */
   hasArremessador?: boolean;
+  /**
+   * Effective proficiency list of the sheet (class + custom − removed). When
+   * provided, weapons outside the list get the -5 non-proficiency penalty.
+   */
+  proficiencias?: string[];
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
@@ -65,6 +71,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     bagEquipments,
     onConsumeAmmo,
     hasArremessador,
+    proficiencias,
   } = props;
 
   if (!weapons || weapons.length === 0) {
@@ -82,6 +89,9 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
       equip.ammoType && bagEquipments
         ? getAmmoUnits(bagEquipments, equip.ammoType)
         : undefined;
+    const proficiencyPenalty = proficiencias
+      ? getWeaponNonProficiencyPenalty(equip, proficiencias)
+      : 0;
     return (
       <Weapon
         key={getKey(equip.nome)}
@@ -107,6 +117,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         availableAmmo={availableAmmo}
         onConsumeAmmo={onConsumeAmmo}
         hasArremessador={hasArremessador}
+        proficiencyPenalty={proficiencyPenalty}
       />
     );
   });
