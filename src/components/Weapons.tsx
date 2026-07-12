@@ -19,6 +19,9 @@ interface WeaponsProps {
   completeSkills: CompleteSkill[] | undefined;
   atributos: CharacterAttributes;
   modFor: number;
+  /** Nível total do personagem — repassado a cada Weapon para os bônus de dano
+   * por modo baseados em atributo limitado pelo nível (Arqueiro, Esgrimista). */
+  nivel?: number;
   characterName?: string;
   attackConditions?: ActiveCondition[];
   sheetBonuses?: SheetBonus[];
@@ -60,6 +63,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     completeSkills,
     atributos,
     modFor,
+    nivel,
     characterName,
     attackConditions,
     sheetBonuses,
@@ -105,6 +109,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         completeSkills={completeSkills}
         atributos={atributos}
         modDano={modFor}
+        nivel={nivel}
         characterName={characterName}
         attackConditions={attackConditions}
         sheetBonuses={sheetBonuses}

@@ -4,6 +4,7 @@ import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import { spellsCircle1 } from '../magias/generalSpells';
+import { ESGRIMISTA_SHEET_BONUSES } from '../powers/classPowerSheetBonuses';
 
 const BUCANEIRO: ClassDescription = {
   name: 'Bucaneiro',
@@ -194,6 +195,7 @@ const BUCANEIRO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
       ],
+      sheetBonuses: ESGRIMISTA_SHEET_BONUSES,
     },
     {
       name: 'Flagelo dos Mares',

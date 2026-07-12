@@ -1,17 +1,42 @@
 import _ from 'lodash';
-import CharacterSheet from '../interfaces/CharacterSheet';
+import CharacterSheet, { SheetBonus } from '../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../interfaces/Character';
 import Bag from '../interfaces/Bag';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
+import {
+  ARQUEIRO_SHEET_BONUSES,
+  ESGRIMISTA_SHEET_BONUSES,
+  ESTILO_DE_DISPARO_SHEET_BONUSES,
+} from '../data/systems/tormenta20/powers/classPowerSheetBonuses';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
 
 const GRANTED_POWERS_BY_NAME = new Map(
   Object.values(GRANTED_POWERS).map((power) => [power.name, power])
 );
+
+// Poderes cujos `sheetBonuses` passaram a existir depois de já haver fichas
+// salvas com a cópia embutida SEM automação (Arqueiro, Esgrimista, Estilo de
+// Disparo). Refrescamos a cópia embutida pelo dado atual para que a automação
+// alcance essas fichas — mesmo princípio do refresh de poderes concedidos
+// (GRANTED_POWERS) logo abaixo. Homebrew de mesmo nome ficaria com bônus
+// sobrescrito, mas nenhum dos três é reproduzível como homebrew hoje.
+const WEAPON_DAMAGE_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
+  ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
+  ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
+  ['Estilo de Disparo', ESTILO_DE_DISPARO_SHEET_BONUSES],
+]);
+
+function refreshWeaponDamagePower<
+  T extends { name: string; sheetBonuses?: SheetBonus[] }
+>(power: T): T {
+  const bonuses = WEAPON_DAMAGE_POWER_BONUSES_BY_NAME.get(power.name);
+  if (!bonuses) return power;
+  return { ...power, sheetBonuses: bonuses };
+}
 
 /**
  * Saneia os ELEMENTOS dos arrays da ficha. Garantir que os arrays existem não
@@ -33,12 +58,14 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
 
   sheet.skills = sheet.skills.filter((s) => typeof s === 'string');
 
-  sheet.generalPowers = sheet.generalPowers.filter(
-    (p) => p && typeof p.name === 'string'
-  );
+  sheet.generalPowers = sheet.generalPowers
+    .filter((p) => p && typeof p.name === 'string')
+    .map(refreshWeaponDamagePower);
   if (sheet.classPowers) {
     sheet.classPowers = Array.isArray(sheet.classPowers)
-      ? sheet.classPowers.filter((p) => p && typeof p.name === 'string')
+      ? sheet.classPowers
+          .filter((p) => p && typeof p.name === 'string')
+          .map(refreshWeaponDamagePower)
       : [];
   }
 

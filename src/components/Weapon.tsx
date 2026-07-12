@@ -36,6 +36,12 @@ import {
   stepUpDamage,
   addFlatDamageBonus,
 } from '../functions/weaponDamageStep';
+import {
+  evaluateSimpleModifier,
+  isModeScopedForWeapon,
+  weaponMatchesScope,
+  WeaponBonusScope,
+} from '../functions/weaponBonusScope';
 import Skill, { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
@@ -87,6 +93,9 @@ interface WeaponProps {
   completeSkills: CompleteSkill[] | undefined;
   atributos: CharacterAttributes;
   modDano: number;
+  /** Nível total do personagem — usado pelos bônus de dano por modo baseados
+   * em atributo limitado pelo nível (Arqueiro, Esgrimista). */
+  nivel?: number;
   characterName?: string;
   attackConditions?: ActiveCondition[];
   sheetBonuses?: SheetBonus[];
@@ -132,6 +141,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     completeSkills,
     atributos,
     modDano,
+    nivel,
     characterName,
     attackConditions,
     sheetBonuses,
@@ -198,37 +208,39 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [equipment.arremesso]
   );
 
-  // Estilo de Arremesso: +N nas rolagens de dano com armas de arremesso.
-  const thrownDamageBonus = useMemo(
-    () =>
-      (sheetBonuses ?? []).reduce((sum, b) => {
-        if (
-          b.target.type === 'WeaponDamage' &&
-          b.target.thrownOnly &&
-          b.modifier.type === 'Fixed'
-        ) {
-          return sum + (b.modifier as { value: number }).value;
-        }
-        return sum;
-      }, 0),
-    [sheetBonuses]
+  // Bônus de arma aplicados POR MODO de ataque (não bakeados na string `dano`/
+  // `atkBonus` porque valem só em um dos modos de uma arma híbrida de arremesso).
+  // Somamos os bônus `mode-scoped` (ver isModeScopedForWeapon) cujo escopo casa
+  // com a arma E com o modo atual: no modo de arremesso valem thrownOnly e
+  // rangedOnly (arremessar É atacar à distância — ex.: Arqueiro na adaga); no
+  // modo corpo a corpo valem meleeOnly (ex.: Esgrimista na adaga). Armas puras
+  // já têm esses bônus bakeados pelo recalculateSheet.
+  const modeWeaponBonus = useCallback(
+    (targetType: 'WeaponDamage' | 'WeaponAttack', action?: WeaponAction) => {
+      const thrown = isThrownAction(action);
+      return (sheetBonuses ?? []).reduce((sum, b) => {
+        if (b.target.type !== targetType) return sum;
+        const scope = b.target as WeaponBonusScope;
+        if (!isModeScopedForWeapon(equipment, scope)) return sum;
+        if (!weaponMatchesScope(equipment, scope)) return sum;
+        const appliesInMode = thrown
+          ? !!scope.thrownOnly || !!scope.rangedOnly
+          : !!scope.meleeOnly;
+        if (!appliesInMode) return sum;
+        return sum + evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1);
+      }, 0);
+    },
+    [sheetBonuses, equipment, isThrownAction, atributos, nivel]
   );
 
-  // Bônus condicional de ataque com armas de arremesso, emitido como
-  // WeaponAttack thrownOnly (ex.: Estilo de Arremesso + Saque Rápido).
-  const thrownAttackBonus = useMemo(
-    () =>
-      (sheetBonuses ?? []).reduce((sum, b) => {
-        if (
-          b.target.type === 'WeaponAttack' &&
-          b.target.thrownOnly &&
-          b.modifier.type === 'Fixed'
-        ) {
-          return sum + (b.modifier as { value: number }).value;
-        }
-        return sum;
-      }, 0),
-    [sheetBonuses]
+  const modeDamageBonus = useCallback(
+    (action?: WeaponAction) => modeWeaponBonus('WeaponDamage', action),
+    [modeWeaponBonus]
+  );
+
+  const modeAttackBonus = useCallback(
+    (action?: WeaponAction) => modeWeaponBonus('WeaponAttack', action),
+    [modeWeaponBonus]
   );
 
   // Arremesso Potente: pode usar Força em vez de Destreza no teste de ataque de
@@ -243,9 +255,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     const destreza = atributos.Destreza?.value ?? 0;
     return Math.max(0, forca - destreza);
   }, [sheetBonuses, atributos]);
-
-  // Total de ataque extra aplicável no modo de arremesso.
-  const thrownAtkExtra = thrownAttackBonus + strengthThrowDelta;
 
   // Flat damage bonus already baked into the weapon's main `dano` (from powers
   // and/or enchantments), derived as the delta over the clean base. Attack-mode
@@ -285,11 +294,12 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         baseFromBonus +
         proficiencyPenalty +
         (action.atkBonusDelta ?? 0) +
-        (thrown ? thrownAtkExtra : 0);
+        modeAttackBonus(action) +
+        (thrown ? strengthThrowDelta : 0);
 
       const resolvedAttr = resolveDamageAttribute(equipment, action);
       const previewDamageMod =
-        damageModForAttribute(resolvedAttr) + (thrown ? thrownDamageBonus : 0);
+        damageModForAttribute(resolvedAttr) + modeDamageBonus(action);
 
       const previewStepDelta =
         (action.damageStepDelta ?? 0) + arremessadorStepBonus(action);
@@ -325,8 +335,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       bakedFlatDamageBonus,
       isThrownAction,
       proficiencyPenalty,
-      thrownAtkExtra,
-      thrownDamageBonus,
+      modeAttackBonus,
+      modeDamageBonus,
+      strengthThrowDelta,
     ]
   );
 
@@ -358,48 +369,23 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       ) {
         return;
       }
-      const matchesName =
-        'weaponName' in b.target && b.target.weaponName === nome;
-      const matchesTag =
-        'weaponTags' in b.target &&
-        b.target.weaponTags &&
-        b.target.weaponTags.length > 0 &&
-        (equipment.weaponTags || []).some((t) =>
-          (b.target as { weaponTags?: string[] }).weaponTags?.includes(t)
-        );
-      // Bônus específicos de arremesso (thrownOnly) valem para armas de
-      // arremesso e só no modo de arremesso.
-      const matchesThrown =
-        'thrownOnly' in b.target &&
-        (b.target as { thrownOnly?: boolean }).thrownOnly === true &&
-        !!equipment.arremesso;
-      // Bônus sem escopo de arma (ex.: só proficiencyRequired, como Armas da
-      // Ambição) valem para todas as armas.
-      const scope = b.target as {
-        weaponName?: string;
-        weaponTags?: string[];
-        thrownOnly?: boolean;
-        weaponCategories?: string[];
-        meleeOnly?: boolean;
-        rangedOnly?: boolean;
-        twoHandedOnly?: boolean;
-      };
-      const matchesGlobal =
-        !scope.weaponName &&
-        !(scope.weaponTags && scope.weaponTags.length > 0) &&
-        !scope.thrownOnly &&
-        !(scope.weaponCategories && scope.weaponCategories.length > 0) &&
-        !scope.meleeOnly &&
-        !scope.rangedOnly &&
-        !scope.twoHandedOnly;
-      if (!matchesName && !matchesTag && !matchesThrown && !matchesGlobal) {
+      // Casamento estático arma × escopo pela fonte única (weaponMatchesScope) —
+      // cobre name/tags/categorias/melee/ranged/thrown/firing/leve-ágil/2-mãos.
+      const scope = b.target as WeaponBonusScope;
+      if (!weaponMatchesScope(equipment, scope)) {
         return;
       }
-      const value =
-        b.modifier.type === 'Fixed'
-          ? (b.modifier as { value: number }).value
-          : 0;
-      const suffix = matchesThrown ? ' (arremesso)' : '';
+      const value = evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1);
+      // Sufixo de modo para armas híbridas de arremesso (o bônus vale só num dos
+      // modos). Armas puras não recebem sufixo (o modo é único).
+      let suffix = '';
+      if (scope.thrownOnly) {
+        suffix = ' (arremesso)';
+      } else if (equipment.arremesso && scope.rangedOnly) {
+        suffix = ' (arremesso)';
+      } else if (equipment.arremesso && scope.meleeOnly) {
+        suffix = ' (corpo a corpo)';
+      }
       if (targetType === 'WeaponAttack') {
         effects.push(`${b.source.name}: +${value} no ataque${suffix}`);
       } else if (targetType === 'WeaponDamage') {
@@ -417,7 +403,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       }
     });
     return effects;
-  }, [sheetBonuses, nome, equipment.weaponTags, equipment.arremesso]);
+  }, [sheetBonuses, equipment, atributos, nivel]);
 
   const damage = getWeaponDisplayDamage(equipment, atributos);
 
@@ -448,11 +434,12 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         baseAtkFromBonus +
         proficiencyPenalty +
         (action?.atkBonusDelta ?? 0) +
-        (thrown ? thrownAtkExtra : 0);
+        modeAttackBonus(action) +
+        (thrown ? strengthThrowDelta : 0);
 
       const resolvedAttr = resolveDamageAttribute(equipment, action);
       const localDamageMod =
-        damageModForAttribute(resolvedAttr) + (thrown ? thrownDamageBonus : 0);
+        damageModForAttribute(resolvedAttr) + modeDamageBonus(action);
 
       // Apply step delta to the chosen dano string (if any), including the
       // Hynne "Arremessador" +1 step on ranged/thrown attacks.
@@ -522,8 +509,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       arremessadorStepBonus,
       isThrownAction,
       proficiencyPenalty,
-      thrownAtkExtra,
-      thrownDamageBonus,
+      modeAttackBonus,
+      modeDamageBonus,
+      strengthThrowDelta,
     ]
   );
 

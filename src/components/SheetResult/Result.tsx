@@ -1335,6 +1335,7 @@ const Result: React.FC<ResultProps> = (props) => {
         completeSkills={completeSkills}
         atributos={atributos}
         modFor={modFor}
+        nivel={currentSheet.nivel}
         characterName={nome}
         attackConditions={
           markersEnabled ? conditionHighlights.attack : undefined

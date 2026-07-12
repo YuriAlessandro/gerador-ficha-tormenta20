@@ -6,6 +6,7 @@ import {
   RequirementType,
 } from '../../../../interfaces/Poderes';
 import PROFICIENCIAS from '../proficiencias';
+import { ESTILO_DE_DISPARO_SHEET_BONUSES } from './classPowerSheetBonuses';
 
 const combatPowers: Record<string, GeneralPower> = {
   ACUIDADE_COM_ARMA: {
@@ -305,6 +306,7 @@ const combatPowers: Record<string, GeneralPower> = {
       'Se estiver usando uma arma de disparo, você soma sua Destreza nas rolagens de dano',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Pontaria' }]],
+    sheetBonuses: ESTILO_DE_DISPARO_SHEET_BONUSES,
   },
   ESTILO_DE_DUAS_ARMAS: {
     name: 'Estilo de Duas Armas',

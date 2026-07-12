@@ -41,12 +41,16 @@ import { expandAttributeBonus } from './attributeExpansion';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
 import {
-  getEffectiveWeaponCategory,
   getNonProficientArmorPenalty,
   getSheetProficiencias,
   isProficientWithWeapon,
 } from './proficiencies';
 import { stampUsedSupplements } from './contentSources';
+import {
+  isModeScopedForWeapon,
+  weaponMatchesScope,
+  WeaponBonusScope,
+} from './weaponBonusScope';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
@@ -295,79 +299,16 @@ const calculateBonusValue = (
   return 0;
 };
 
-// Helper function to check if a weapon matches bonus criteria
+// Helper function to check if a weapon matches bonus criteria. Delega o
+// matching estático a `weaponMatchesScope` (fonte única, compartilhada com
+// Weapon.tsx) e soma a checagem de proficiência, que depende da ficha.
 const weaponMatchesBonus = (
   weapon: Equipment,
-  bonus: {
-    weaponName?: string;
-    weaponTags?: string[];
-    proficiencyRequired?: boolean;
-    meleeOnly?: boolean;
-    rangedOnly?: boolean;
-    thrownOnly?: boolean;
-    twoHandedOnly?: boolean;
-    weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
-  },
+  bonus: WeaponBonusScope & { proficiencyRequired?: boolean },
   sheet: CharacterSheet
 ): boolean => {
-  // Check specific weapon name
-  if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
+  if (!weaponMatchesScope(weapon, bonus)) {
     return false;
-  }
-
-  // Escopo por categoria de proficiência (simples/marcial/exótica/de fogo).
-  // Resolve via getEffectiveWeaponCategory para cobrir cópias legadas de armas
-  // core embutidas em fichas salvas (sem o campo `weaponCategory`).
-  if (bonus.weaponCategories && bonus.weaponCategories.length > 0) {
-    const category = getEffectiveWeaponCategory(weapon);
-    if (!category || !bonus.weaponCategories.includes(category)) {
-      return false;
-    }
-  }
-
-  // Apenas armas de arremesso (têm `arremesso: true`).
-  if (bonus.thrownOnly && !weapon.arremesso) {
-    return false;
-  }
-
-  // Apenas armas corpo a corpo: exclui armas à distância (têm `alcance`
-  // real e não são de arremesso — ex.: arcos, bestas, armas de fogo).
-  // Armas de arremesso (adaga, azagaia) continuam valendo por serem
-  // usáveis corpo a corpo.
-  if (bonus.meleeOnly) {
-    const { alcance } = weapon;
-    const isRanged = !!alcance && alcance !== '-' && !weapon.arremesso;
-    if (isRanged) {
-      return false;
-    }
-  }
-
-  // Apenas armas à distância: exclui corpo a corpo puro (sem `alcance` ou
-  // `alcance` '-'). Armas de arremesso (têm `alcance`) contam como à
-  // distância para este filtro.
-  if (bonus.rangedOnly) {
-    const { alcance } = weapon;
-    const isRangedWeapon = !!alcance && alcance !== '-';
-    if (!isRangedWeapon) {
-      return false;
-    }
-  }
-
-  // Apenas armas empunhadas com as duas mãos (ex.: Estilo de Duas Mãos).
-  // Armas leves nunca são `twoHanded`, então o filtro também as exclui.
-  if (bonus.twoHandedOnly && !weapon.twoHanded) {
-    return false;
-  }
-
-  // Check weapon tags
-  if (bonus.weaponTags && bonus.weaponTags.length > 0) {
-    const weaponTags = weapon.weaponTags || [];
-    const hasMatchingTag = bonus.weaponTags.some((tag) =>
-      weaponTags.includes(tag)
-    );
-    if (!hasMatchingTag) {
-      return false;
-    }
   }
 
   // Bônus que exigem proficiência com a arma (ex.: Armas da Ambição) só se
@@ -497,14 +438,15 @@ const applyWeaponBonuses = (
       let setCritMultiplier: number | undefined;
 
       updatedSheet.sheetBonuses.forEach((bonus) => {
-        // Bônus `thrownOnly` são específicos do modo de arremesso de armas
-        // híbridas e são aplicados por modo de ataque em Weapon.tsx — não
+        // Bônus com escopo POR MODO (arremesso, ou melee/ranged em arma híbrida
+        // de arremesso) são aplicados por modo de ataque em Weapon.tsx — não
         // devem ser bakeados na string `dano`/`atkBonus` da arma inteira
-        // (vazaria para o modo corpo a corpo).
+        // (vazaria para o outro modo). Armas puras (só corpo a corpo, ou só
+        // disparo) têm um único modo relevante e são bakeadas normalmente.
         if (
           (bonus.target.type === 'WeaponDamage' ||
             bonus.target.type === 'WeaponAttack') &&
-          bonus.target.thrownOnly
+          isModeScopedForWeapon(weapon, bonus.target)
         ) {
           return;
         }

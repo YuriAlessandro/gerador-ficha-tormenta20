@@ -3,6 +3,10 @@ import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import {
+  ARQUEIRO_SHEET_BONUSES,
+  ESGRIMISTA_SHEET_BONUSES,
+} from '../powers/classPowerSheetBonuses';
 
 const GUERREIRO: ClassDescription = {
   name: 'Guerreiro',
@@ -79,6 +83,7 @@ const GUERREIRO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 }],
       ],
+      sheetBonuses: ARQUEIRO_SHEET_BONUSES,
     },
     {
       name: 'Ataque Reflexo',
@@ -117,6 +122,7 @@ const GUERREIRO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
       ],
+      sheetBonuses: ESGRIMISTA_SHEET_BONUSES,
     },
     {
       name: 'Especialização em Arma',
