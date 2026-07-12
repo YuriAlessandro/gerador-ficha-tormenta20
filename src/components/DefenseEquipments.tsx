@@ -57,6 +57,12 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
   }
   const ambiguousArmor = !wornArmorId && armors.length >= 2;
 
+  const hasNonProficientItem =
+    !!proficiencias &&
+    defenseEquipments.some(
+      (equip) => !isProficientWithDefense(equip, proficiencias)
+    );
+
   return (
     <Box>
       {ambiguousArmor && (
@@ -106,6 +112,16 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
           />
         );
       })}
+      {hasNonProficientItem && (
+        <Typography
+          variant='caption'
+          sx={{ display: 'block', mt: 0.5, color: 'warning.main' }}
+        >
+          ⚠️ Itens destacados: sem proficiência — enquanto vestidos/empunhados,
+          a penalidade de armadura se aplica a todas as perícias de Força e
+          Destreza.
+        </Typography>
+      )}
     </Box>
   );
 };

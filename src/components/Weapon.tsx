@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -13,6 +12,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
@@ -32,10 +32,6 @@ import {
   resolveDamageAttribute,
   getWeaponDisplayDamage,
 } from '../functions/weaponSkill';
-import {
-  getEffectiveWeaponCategory,
-  WEAPON_CATEGORY_LABELS,
-} from '../functions/proficiencies';
 import {
   stepUpDamage,
   addFlatDamageBonus,
@@ -119,7 +115,8 @@ interface WeaponProps {
   hasArremessador?: boolean;
   /**
    * Non-proficiency attack penalty (0 or -5). Applied to the displayed attack
-   * bonus, action previews and attack rolls, with a warning chip on the card.
+   * bonus, action previews and attack rolls; the row gets a subtle warning
+   * background (the explanatory legend is rendered once by Weapons.tsx).
    */
   proficiencyPenalty?: number;
 }
@@ -161,12 +158,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const baseAtk =
     (atkBonus ? atkBonus + baseModAtk : baseModAtk) + proficiencyPenalty;
 
-  const nonProficiencyTooltip = useMemo(() => {
-    if (proficiencyPenalty === 0) return '';
-    const category = getEffectiveWeaponCategory(equipment);
-    const categoryLabel = category ? WEAPON_CATEGORY_LABELS[category] : 'arma';
-    return `Sem proficiência com ${categoryLabel}: ${proficiencyPenalty} nos testes de ataque`;
-  }, [proficiencyPenalty, equipment]);
+  // Sem proficiência: a row inteira ganha um fundo âmbar sutil; a legenda
+  // explicativa é renderizada uma única vez pela lista (Weapons.tsx).
+  const isNonProficient = proficiencyPenalty !== 0;
 
   // Resolve the damage modifier given an attribute choice. 'Nenhum' adds 0.
   // Otherwise, returns `atributos[attr].value`. Falls back to `modDano`
@@ -726,8 +720,13 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           cursor: 'pointer',
           userSelect: 'none',
           transition: 'all 0.2s ease',
+          backgroundColor: isNonProficient
+            ? alpha(theme.palette.warning.main, 0.12)
+            : undefined,
           '&:hover': {
-            backgroundColor: theme.palette.action.hover,
+            backgroundColor: isNonProficient
+              ? alpha(theme.palette.warning.main, 0.2)
+              : theme.palette.action.hover,
             borderBottom: `1px solid ${theme.palette.primary.main}`,
           },
           '&:active': {
@@ -817,17 +816,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
                   color: theme.palette.secondary.main,
                   cursor: 'help',
                 }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </Tooltip>
-          )}
-          {proficiencyPenalty !== 0 && (
-            <Tooltip title={nonProficiencyTooltip} arrow>
-              <Chip
-                size='small'
-                color='warning'
-                label={`Sem prof. ${proficiencyPenalty}`}
-                sx={{ height: 18, fontSize: '0.65rem', ml: 0.5 }}
                 onClick={(e) => e.stopPropagation()}
               />
             </Tooltip>

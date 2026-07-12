@@ -84,6 +84,12 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
 
   const wieldingState = { mainHandItemId, offHandItemId };
 
+  const hasNonProficientWeapon =
+    !!proficiencias &&
+    weapons.some(
+      (equip) => getWeaponNonProficiencyPenalty(equip, proficiencias) !== 0
+    );
+
   const weaponsDiv = weapons.map((equip) => {
     const availableAmmo =
       equip.ammoType && bagEquipments
@@ -122,7 +128,20 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     );
   });
 
-  return <Box>{weaponsDiv}</Box>;
+  return (
+    <Box>
+      {weaponsDiv}
+      {hasNonProficientWeapon && (
+        <Typography
+          variant='caption'
+          sx={{ display: 'block', mt: 0.5, color: 'warning.main' }}
+        >
+          ⚠️ Armas destacadas: sem proficiência — a penalidade de –5 nos testes
+          de ataque já está aplicada.
+        </Typography>
+      )}
+    </Box>
+  );
 };
 
 export default Weapons;

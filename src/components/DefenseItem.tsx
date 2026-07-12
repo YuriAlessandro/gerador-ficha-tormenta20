@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Chip, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { DefenseEquipment } from '../interfaces/Equipment';
 import WieldingControl from './SheetResult/BackpackModal/WieldingControl';
@@ -33,7 +34,17 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
   const { nome, defenseBonus, armorPenalty } = equipment;
 
   return (
-    <Box sx={{ borderBottom: '1px solid #ccc', padding: '8px' }}>
+    <Box
+      sx={{
+        borderBottom: '1px solid #ccc',
+        padding: '8px',
+        // Sem proficiência: fundo âmbar sutil; a legenda explicativa é
+        // renderizada uma única vez pela lista (DefenseEquipments.tsx).
+        backgroundColor: isNonProficient
+          ? (theme) => alpha(theme.palette.warning.main, 0.12)
+          : undefined,
+      }}
+    >
       <Stack
         direction='row'
         spacing={0.75}
@@ -87,21 +98,6 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
               color='primary'
               sx={{ height: 18, fontSize: '0.65rem' }}
             />
-          )}
-          {isNonProficient && (
-            <Tooltip
-              title={`Sem proficiência: enquanto ${
-                equipment.group === 'Escudo' ? 'empunhado' : 'vestida'
-              }, a penalidade de armadura se aplica a todas as perícias de Força e Destreza`}
-              arrow
-            >
-              <Chip
-                size='small'
-                label='Sem proficiência'
-                color='warning'
-                sx={{ height: 18, fontSize: '0.65rem' }}
-              />
-            </Tooltip>
           )}
         </Stack>
         {onWieldingChange && (
