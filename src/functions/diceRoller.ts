@@ -194,7 +194,7 @@ export function checkD20Result(roll: number): 'critical' | 'fumble' | 'normal' {
  * - 'x2', 'x3', 'x4' - apenas multiplicador (threshold 20)
  * - '19', '18', '17' - apenas threshold (multiplicador x2)
  * - '19/x3', '18/x4' - threshold/multiplicador
- * - '-', '**' - sem crítico (threshold 21 = impossível)
+ * - '-', '**', vazio - padrão 20/x2 (todo ataque crita no 20 natural)
  * @param criticalString String no formato do crítico da arma
  * @returns { threshold, multiplier }
  */
@@ -205,7 +205,7 @@ export function parseCritical(criticalString: string): {
   const defaultResult = { threshold: 20, multiplier: 2 };
 
   if (!criticalString || criticalString === '-' || criticalString === '**') {
-    return { threshold: 21, multiplier: 2 }; // Impossível acertar crítico
+    return defaultResult;
   }
 
   const cleaned = criticalString.trim().toLowerCase();

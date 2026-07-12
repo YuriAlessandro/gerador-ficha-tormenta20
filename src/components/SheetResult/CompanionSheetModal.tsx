@@ -35,11 +35,7 @@ import {
   ATTR_ABBREVIATIONS,
 } from '@/data/systems/tormenta20/atributos';
 import { SkillsAttrs } from '@/interfaces/Skills';
-import {
-  rollD20,
-  rollDamage,
-  rollCriticalDamage,
-} from '@/functions/diceRoller';
+import { rollD20 } from '@/functions/diceRoller';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
 import StatControl from './StatControl';
 
@@ -159,7 +155,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const isMobile = useMemo(() => window.innerWidth < 720, []);
   const theme = useTheme();
-  const { showDiceResult } = useDiceRoll();
+  const { showDiceResult, showAttackRoll } = useDiceRoll();
 
   const typeDef: CompanionTypeDefinition = useMemo(
     () => getCompanionTypeDefinition(companion.companionType),
@@ -237,66 +233,29 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
       const atkBonus = forMod + halfTrainerLevel + companionAtkBonus;
       const damageModifier = forMod + companionDmgBonus;
 
-      const attackRoll = rollD20();
-      const attackTotal = Math.max(1, attackRoll + atkBonus);
-
-      const isCritical = attackRoll >= weapon.threatMargin;
-      const isFumble = attackRoll === 1;
-
       const damageModStr =
         damageModifier >= 0 ? `+${damageModifier}` : `${damageModifier}`;
       const damageString = `${weapon.damageDice}${damageModStr}`;
 
-      const normalRoll = rollDamage(damageString);
-      if (!normalRoll) return;
-
-      const normalDamage = Math.max(1, normalRoll.total);
-
-      const damageRollResult = isCritical
-        ? rollCriticalDamage(damageString, weapon.criticalMultiplier)
-        : normalRoll;
-
-      if (!damageRollResult) return;
-
-      const finalDamage = Math.max(1, damageRollResult.total);
-
-      const atkModStr = atkBonus >= 0 ? `+${atkBonus}` : `${atkBonus}`;
-      const attackDiceNotation = `1d20${atkModStr}`;
-
-      const damageLabel = isCritical
-        ? `Dano x${weapon.criticalMultiplier} (normal: ${normalDamage})`
-        : 'Dano';
-
-      showDiceResult(
-        `Arma Natural ${weaponIndex + 1}`,
-        [
-          {
-            label: 'Ataque',
-            diceNotation: attackDiceNotation,
-            rolls: [attackRoll],
-            modifier: atkBonus,
-            total: attackTotal,
-            isCritical,
-            isFumble,
-          },
-          {
-            label: damageLabel,
-            diceNotation: damageRollResult.diceString,
-            rolls: damageRollResult.diceRolls,
-            modifier: damageRollResult.modifier,
-            total: finalDamage,
-            damageType: weapon.damageType,
-          },
-        ],
-        displayName
-      );
+      // A resolução (d20 vs margem, multiplicação dos dados em crítico e
+      // rótulos) é do pipeline central — ver src/functions/attackRoll.ts.
+      showAttackRoll({
+        rollLabel: `Arma Natural ${weaponIndex + 1}`,
+        characterName: displayName,
+        attackBonus: atkBonus,
+        crit: {
+          threshold: weapon.threatMargin,
+          multiplier: weapon.criticalMultiplier,
+        },
+        damage: { dice: damageString, damageType: weapon.damageType },
+      });
     },
     [
       forMod,
       halfTrainerLevel,
       companionAtkBonus,
       companionDmgBonus,
-      showDiceResult,
+      showAttackRoll,
       displayName,
     ]
   );

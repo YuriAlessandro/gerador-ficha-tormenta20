@@ -55,11 +55,7 @@ import {
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 import { FolderInfo } from './ThreatViewCloudWrapper';
-import {
-  rollD20,
-  rollDamage,
-  rollCriticalDamage,
-} from '../../functions/diceRoller';
+import { rollD20, rollDamage } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
 // Styled components for threat sheet (uses theme accent color)
@@ -146,7 +142,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { showConfirm, ConfirmDialog } = useConfirm();
   const { isAuthenticated } = useAuth();
-  const { showDiceResult } = useDiceRoll();
+  const { showDiceResult, showAttackRoll } = useDiceRoll();
   const [showExportButton, setExportButton] = React.useState<boolean>();
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
   const [loadingPDF, setLoadingPDF] = React.useState(false);
@@ -286,85 +282,31 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
   const handleAttackClick = (attack: ThreatAttack) => {
     if (rollsDisabled) return;
-    const attackRoll = rollD20();
-    const attackTotal = Math.max(1, attackRoll + attack.attackBonus);
-    const criticalThreshold = attack.criticalThreshold || 20;
-    const criticalMultiplier = attack.criticalMultiplier || 2;
-    const isCritical = attackRoll >= criticalThreshold;
-    const isFumble = attackRoll === 1;
 
     // Build damage string with bonus
     const damageString = `${attack.damageDice}${
       attack.bonusDamage >= 0 ? '+' : ''
     }${attack.bonusDamage}`;
 
-    // Rola dano normal para referência (criaturas imunes a crítico)
-    const normalRoll = rollDamage(damageString);
-    if (!normalRoll) {
-      return;
-    }
-
-    const normalDamage = Math.max(1, normalRoll.total);
-
-    // Se crítico, rola dados multiplicados (ex: 3d12 x3 = 9d12)
-    const damageRollResult = isCritical
-      ? rollCriticalDamage(damageString, criticalMultiplier)
-      : normalRoll;
-
-    if (!damageRollResult) {
-      return;
-    }
-
-    const finalDamage = Math.max(1, damageRollResult.total);
-
-    // Format attack dice notation
-    const atkModifierStr =
-      attack.attackBonus >= 0
-        ? `+${attack.attackBonus}`
-        : `${attack.attackBonus}`;
-    const attackDiceNotation = `1d20${atkModifierStr}`;
-
-    // Label mostrando dano normal entre parênteses (para criaturas imunes a crítico)
-    const damageLabel = isCritical
-      ? `Dano x${criticalMultiplier} (normal: ${normalDamage})`
-      : 'Dano';
-
-    const rollGroups = [
-      {
-        label: 'Ataque',
-        diceNotation: attackDiceNotation,
-        rolls: [attackRoll],
-        modifier: attack.attackBonus,
-        total: attackTotal,
-        isCritical,
-        isFumble,
+    // A resolução (d20 vs margem de ameaça, multiplicação apenas dos dados
+    // base em crítico e o dano normal de referência para criaturas imunes)
+    // é do pipeline central — ver src/functions/attackRoll.ts. Dados de dano
+    // bônus NÃO são multiplicados em crítico (regra T20).
+    showAttackRoll({
+      rollLabel: `${threat.name}: ${attack.name}`,
+      characterName: threat.name,
+      attackBonus: attack.attackBonus,
+      crit: {
+        threshold: attack.criticalThreshold || 20,
+        multiplier: attack.criticalMultiplier || 2,
       },
-      {
-        label: damageLabel,
-        diceNotation: damageRollResult.diceString,
-        rolls: damageRollResult.diceRolls,
-        modifier: damageRollResult.modifier,
-        total: finalDamage,
-      },
-    ];
-
-    // Dados de dano bônus NÃO são multiplicados em crítico (regra T20)
-    if (attack.bonusDamageDice && attack.bonusDamageDice.length > 0) {
-      attack.bonusDamageDice.forEach((bd) => {
-        const bonusRoll = rollDamage(bd.dice);
-        if (bonusRoll) {
-          rollGroups.push({
-            label: `Dano de ${bd.damageType}`,
-            diceNotation: bonusRoll.diceString,
-            rolls: bonusRoll.diceRolls,
-            modifier: bonusRoll.modifier,
-            total: Math.max(1, bonusRoll.total),
-          });
-        }
-      });
-    }
-
-    showDiceResult(`${threat.name}: ${attack.name}`, rollGroups, threat.name);
+      damage: { dice: damageString },
+      extras: (attack.bonusDamageDice ?? []).map((bd) => ({
+        kind: 'extra' as const,
+        label: `Dano de ${bd.damageType}`,
+        dice: bd.dice,
+      })),
+    });
   };
 
   const handleSaveToCloud = async () => {

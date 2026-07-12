@@ -24,13 +24,8 @@ import Equipment, {
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import type { SheetBonus } from '../interfaces/CharacterSheet';
 import { AMMO_LABELS } from './SheetResult/BackpackModal/ammo';
-import {
-  rollD20,
-  rollDamage,
-  rollCriticalDamage,
-  parseCritical,
-  parseDualModeDamage,
-} from '../functions/diceRoller';
+import { parseCritical, parseDualModeDamage } from '../functions/diceRoller';
+import { AttackExtraSpec } from '../functions/attackRoll';
 import {
   getWeaponSkill,
   getSkillAttackBonus,
@@ -155,7 +150,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const { nome, dano, critico, atkBonus, customSkill } = equipment;
   const displayName = equipment.customDisplayName?.trim() || nome;
   const theme = useTheme();
-  const { showDiceResult } = useDiceRoll();
+  const { showAttackRoll } = useDiceRoll();
 
   const baseWeaponSkill = getWeaponSkill(equipment);
   const baseModAtk = getSkillAttackBonus(
@@ -474,76 +469,21 @@ const Weapon: React.FC<WeaponProps> = (props) => {
 
       const effectiveCritico = action?.critico ?? critico ?? '';
 
-      const attackRoll = rollD20();
-      const attackTotal = Math.max(1, attackRoll + atk);
-
-      const { threshold, multiplier } = parseCritical(effectiveCritico);
-      const isCritical = attackRoll >= threshold;
-      const isFumble = attackRoll === 1;
-
       const damageRollString =
         localDamageMod >= 0
           ? `${adjustedDano}+${localDamageMod}`
           : `${adjustedDano}${localDamageMod}`;
 
-      const normalRoll = rollDamage(damageRollString);
-      if (!normalRoll) return;
-
-      const normalDamage = Math.max(1, normalRoll.total);
-
-      const damageRollResult = isCritical
-        ? rollCriticalDamage(damageRollString, multiplier)
-        : normalRoll;
-      if (!damageRollResult) return;
-
-      const finalDamage = Math.max(1, damageRollResult.total);
-
-      const atkModifierStr = atk >= 0 ? `+${atk}` : `${atk}`;
-      const attackDiceNotation = `1d20${atkModifierStr}`;
-
-      const damageLabel = isCritical
-        ? `Dano x${multiplier} (normal: ${normalDamage})`
-        : 'Dano';
-
       const damageType = abbreviateDamageType(equipment.tipo);
 
+      const extras: AttackExtraSpec[] = [];
+
       // Optional trigger extra damage (Lança de Fogo / Pistola-Punhal mecanismo).
-      const triggerExtra =
-        useTrigger && action?.trigger
-          ? rollDamage(action.trigger.extraDamage)
-          : null;
-
-      const rolls = [
-        {
-          label: action ? `Ataque (${action.label})` : 'Ataque',
-          diceNotation: attackDiceNotation,
-          rolls: [attackRoll],
-          modifier: atk,
-          total: attackTotal,
-          isCritical,
-          isFumble,
-        },
-        {
-          label: damageLabel,
-          diceNotation: damageRollResult.diceString,
-          rolls: damageRollResult.diceRolls,
-          modifier: damageRollResult.modifier,
-          total: finalDamage,
-          damageType,
-        },
-      ];
-
-      if (triggerExtra && action?.trigger) {
-        const hit = !isFumble && attackTotal > 0;
-        const triggerLabel = hit
-          ? 'Mecanismo (acertou — somar ao dano)'
-          : 'Mecanismo (errou — não soma)';
-        rolls.push({
-          label: triggerLabel,
-          diceNotation: triggerExtra.diceString,
-          rolls: triggerExtra.diceRolls,
-          modifier: triggerExtra.modifier,
-          total: Math.max(1, triggerExtra.total),
+      if (useTrigger && action?.trigger) {
+        extras.push({
+          kind: 'trigger',
+          label: 'Mecanismo',
+          dice: action.trigger.extraDamage,
           damageType,
         });
       }
@@ -552,20 +492,26 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       // They roll once on hit and never crit (per Tormenta 20 rules for
       // elemental adds from enchantments).
       (equipment.extraDamage ?? []).forEach((extra) => {
-        const extraRoll = rollDamage(extra.dice);
-        if (!extraRoll) return;
         const labelSuffix = extra.sourceName ? ` (${extra.sourceName})` : '';
-        rolls.push({
+        extras.push({
+          kind: 'extra',
           label: `Dano extra${labelSuffix}`,
-          diceNotation: extraRoll.diceString,
-          rolls: extraRoll.diceRolls,
-          modifier: extraRoll.modifier,
-          total: Math.max(1, extraRoll.total),
+          dice: extra.dice,
           damageType: abbreviateDamageType(extra.damageType),
         });
       });
 
-      showDiceResult(displayName, rolls, characterName);
+      // A resolução (d20 vs margem, multiplicação dos dados em crítico e
+      // rótulos) é do pipeline central — ver src/functions/attackRoll.ts.
+      showAttackRoll({
+        rollLabel: displayName,
+        characterName,
+        attackLabel: action ? `Ataque (${action.label})` : 'Ataque',
+        attackBonus: atk,
+        crit: parseCritical(effectiveCritico),
+        damage: { dice: damageRollString, damageType },
+        extras,
+      });
     },
     [
       atributos,
@@ -578,7 +524,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       damageModForAttribute,
       equipment,
       displayName,
-      showDiceResult,
+      showAttackRoll,
       arremessadorStepBonus,
       isThrownAction,
       proficiencyPenalty,
