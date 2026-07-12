@@ -6,7 +6,11 @@ orbs:
 jobs:
   build:
     docker:
-      - image: cimg/node:20.18.0
+      # Espelha o ambiente local de dev (node 22 + npm 11). O npm precisa ser
+      # >= 11 porque o package-lock.json é gerado pelo npm 11, e o npm 10
+      # rejeita o lock no `npm ci` ("Missing: yaml@x.y.z from lock file") por
+      # divergência no tratamento de peer deps opcionais.
+      - image: cimg/node:22.21.1
     steps:
       - checkout
       # O código core e os testes importam de src/premium (submódulo PRIVADO).
@@ -36,9 +40,13 @@ jobs:
       #            command: |
       #              git config --global url."git@github.com:".insteadOf "https://github.com/"
       #              git submodule update --init src/premium
+      # A imagem cimg/node:22.x embute npm 10.x; sobe pro 11 (mesmo do dev local)
+      - run:
+          name: Use npm 11
+          command: sudo npm install -g npm@11
       - node/install-packages:
           pkg-manager: npm
-          cache-version: v3
+          cache-version: v4
       - run:
           name: Run Tests
           command: npm test
