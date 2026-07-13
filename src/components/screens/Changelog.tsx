@@ -90,11 +90,13 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>Novo:</strong> <strong>Rotas no Mapa de Arton</strong>
-                  : o Mestre da mesa agora pode traçar rotas entre cidades,
-                  locais customizados e a posição do grupo, com distância em km
-                  e <strong>tempo de viagem</strong> calculado pela tabela de
+                  , para todo mundo: trace rotas entre cidades, locais
+                  customizados e a posição do grupo, com distância em km e{' '}
+                  <strong>tempo de viagem</strong> calculado pela tabela de
                   deslocamento do Tormenta 20 (escolhendo o deslocamento do
                   membro mais lento do grupo, levando montarias em conta).
+                  Disponível na página pública do mapa e na mesa virtual, para
+                  Mestres e jogadores.
                 </li>
                 <li>
                   <strong>Novo:</strong> As rotas oferecem{' '}
