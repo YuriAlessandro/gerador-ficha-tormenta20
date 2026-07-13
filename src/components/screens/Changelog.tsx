@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            12/07/2026 (v4.25).
+            12/07/2026 (v4.25.1).
           </p>
 
           <p>
@@ -74,6 +74,52 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.25.1</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> O editor de item da Mochila ganhou o
+                  campo <strong>Categoria de proficiência</strong> (aba
+                  Estatísticas): dá para mudar a categoria de qualquer arma —
+                  ex.: tornar um Tridente &quot;Simples&quot; para o seu
+                  personagem — e a opção &quot;Padrão&quot; mostra e restaura a
+                  categoria original do catálogo.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Proficiência em arma específica</strong>: adicionar o
+                  nome exato de uma arma no editor de proficiências (ex.:
+                  &quot;Katana&quot;) agora concede proficiência apenas com ela,
+                  sem precisar da categoria inteira — o –5 não é aplicado. O
+                  editor mostra uma dica explicando o recurso.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes e habilidades que tornam
+                  armas específicas <strong>armas simples para você</strong>{' '}
+                  agora concedem as proficiências correspondentes (nada de –5
+                  indevido): <strong>Mestre do Tridente</strong> (Sereia),{' '}
+                  <strong>Tradição de Heredrimm</strong> (Anão),{' '}
+                  <strong>Arquearia Élfica</strong>,{' '}
+                  <strong>Tradição de Lin-Wu</strong> e{' '}
+                  <strong>Pirata Oceânico</strong>. As proficiências aparecem
+                  como chips na ficha e podem ser removidas manualmente. O{' '}
+                  <strong>Arsenal Oceano</strong> (Elfo-do-Mar), que já concedia
+                  proficiência em arpão, rede e tridente, agora é reconhecido
+                  pela checagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O +2 em ataques da{' '}
+                  <strong>Tradição de Heredrimm</strong> agora cobre a{' '}
+                  <strong>Marreta</strong> e os martelos/machados do Heróis de
+                  Arton (Martelo leve, Martelo longo, Malho, Bico de corvo,
+                  Marrão e Machado de haste) — a marcação de arma anã faltava
+                  nesses itens.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O +2 nas rolagens de dano com arcos
+                  da <strong>Arquearia Élfica</strong> agora é aplicado
+                  automaticamente (antes o poder era apenas descritivo).
+                </li>
+              </ul>
               <h3>4.25</h3>
               <ul>
                 <li>
