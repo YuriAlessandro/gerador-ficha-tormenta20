@@ -470,6 +470,10 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Impacto',
     group: 'Arma',
     preco: 20,
+    // Marreta é coberta por Tradição de Heredrimm ("machados, martelos,
+    // marretas e picaretas"); a tag faltava. Cópias em fichas antigas não
+    // ganham a tag retroativamente.
+    weaponTags: ['heredrimm'],
     twoHanded: true,
   },
   MONTANTE: {

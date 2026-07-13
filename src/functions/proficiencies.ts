@@ -6,6 +6,8 @@ import Equipment, {
 import EQUIPAMENTOS, {
   isHeavyArmor,
 } from '../data/systems/tormenta20/equipamentos';
+import { AMEACAS_ARTON_WEAPONS } from '../data/systems/tormenta20/ameacas-de-arton/equipment/weapons';
+import { HEROIS_ARTON_WEAPONS } from '../data/systems/tormenta20/herois-de-arton/equipment/weapons';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 
 export const WEAPON_NON_PROFICIENCY_PENALTY = -5;
@@ -33,9 +35,11 @@ export function getSheetProficiencias(sheet: CharacterSheet): string[] {
   return [...base, ...custom];
 }
 
-// Lookup nome→categoria construído dos arrays de EQUIPAMENTOS. Cobre cópias de
-// armas core embutidas em fichas antigas, que não carregam `weaponCategory`.
-const CORE_WEAPON_CATEGORY_BY_NAME = new Map<string, WeaponCategory>();
+// Lookup nome→categoria construído dos catálogos (core + suplementos). Cobre
+// cópias de armas embutidas em fichas antigas, que não carregam
+// `weaponCategory`, e resolve a categoria "de catálogo" de uma arma quando o
+// usuário limpa um override no editor de item.
+const WEAPON_CATEGORY_BY_NAME = new Map<string, WeaponCategory>();
 (
   [
     [EQUIPAMENTOS.armasSimples, 'simple'],
@@ -45,9 +49,23 @@ const CORE_WEAPON_CATEGORY_BY_NAME = new Map<string, WeaponCategory>();
   ] as [Equipment[], WeaponCategory][]
 ).forEach(([weapons, category]) => {
   weapons.forEach((weapon) => {
-    CORE_WEAPON_CATEGORY_BY_NAME.set(weapon.nome, category);
+    WEAPON_CATEGORY_BY_NAME.set(weapon.nome, category);
   });
 });
+[AMEACAS_ARTON_WEAPONS, HEROIS_ARTON_WEAPONS].forEach((catalog) => {
+  Object.values(catalog).forEach((weapon) => {
+    if (weapon.weaponCategory) {
+      WEAPON_CATEGORY_BY_NAME.set(weapon.nome, weapon.weaponCategory);
+    }
+  });
+});
+
+/** Categoria de catálogo de uma arma pelo nome (core + suplementos). */
+export function getCatalogWeaponCategoryByName(
+  nome: string
+): WeaponCategory | undefined {
+  return WEAPON_CATEGORY_BY_NAME.get(nome);
+}
 
 /**
  * Categoria de proficiência da arma. Usa `weaponCategory` quando presente
@@ -58,12 +76,25 @@ const CORE_WEAPON_CATEGORY_BY_NAME = new Map<string, WeaponCategory>();
 export function getEffectiveWeaponCategory(
   weapon: Equipment
 ): WeaponCategory | undefined {
-  return weapon.weaponCategory ?? CORE_WEAPON_CATEGORY_BY_NAME.get(weapon.nome);
+  return weapon.weaponCategory ?? WEAPON_CATEGORY_BY_NAME.get(weapon.nome);
 }
+
+// Normaliza para comparação de proficiências nomeadas: sem acentos, sem
+// espaços nas pontas e caixa baixa ('Arpao' casa 'Arpão').
+const normalizeProficiencyName = (value: string): string =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
 
 /**
  * Verifica se uma lista de proficiências cobre a arma.
  *
+ * - Proficiência nomeada: uma entrada igual ao NOME da arma (ex.: 'Tridente',
+ *   concedida por poderes como Mestre do Tridente / Arsenal Oceano ou digitada
+ *   pelo usuário no editor de proficiências) cobre aquela arma específica.
+ *   Compara só `weapon.nome` (nunca `customDisplayName`), sem acentos/caixa.
  * - Armas simples: todos os personagens sabem usar (nunca penaliza).
  * - Marciais: exigem 'Armas Marciais'; se a arma tem alcance (incluindo
  *   arremesso), 'Armas Marciais de Distância' também satisfaz. A proficiência
@@ -77,6 +108,11 @@ export function isProficientWithWeapon(
   weapon: Equipment,
   proficiencias: string[]
 ): boolean {
+  const weaponName = normalizeProficiencyName(weapon.nome);
+  if (proficiencias.some((p) => normalizeProficiencyName(p) === weaponName)) {
+    return true;
+  }
+
   const category = getEffectiveWeaponCategory(weapon);
   if (!category || category === 'simple') return true;
 

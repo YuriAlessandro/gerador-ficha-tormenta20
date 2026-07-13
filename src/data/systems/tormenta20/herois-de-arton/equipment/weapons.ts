@@ -105,6 +105,7 @@ const DIRK: Equipment = {
 const MARTELO_LEVE: Equipment = {
   nome: 'Martelo leve',
   weaponCategory: 'martial',
+  weaponTags: ['heredrimm'],
   dano: '1d4',
   critico: 'x4',
   spaces: 1,
@@ -177,6 +178,7 @@ const SERRILHEIRA: Equipment = {
 const BICO_DE_CORVO: Equipment = {
   nome: 'Bico de corvo',
   weaponCategory: 'martial',
+  weaponTags: ['heredrimm'],
   dano: '1d8',
   critico: 'x3',
   spaces: 2,
@@ -229,6 +231,7 @@ const LANCA_DE_JUSTA: Equipment = {
 const MALHO: Equipment = {
   nome: 'Malho',
   weaponCategory: 'martial',
+  weaponTags: ['heredrimm'],
   dano: '1d10',
   critico: 'x2',
   spaces: 2,
@@ -242,6 +245,7 @@ const MALHO: Equipment = {
 const MARTELO_LONGO: Equipment = {
   nome: 'Martelo longo',
   weaponCategory: 'martial',
+  weaponTags: ['heredrimm'],
   dano: '2d4',
   critico: 'x4',
   spaces: 2,
@@ -417,6 +421,7 @@ const LANCA_DE_FALANGE: Equipment = {
 const MACHADO_DE_HASTE: Equipment = {
   nome: 'Machado de haste',
   weaponCategory: 'exotic',
+  weaponTags: ['heredrimm'],
   dano: '1d8/1d10',
   critico: 'x3',
   spaces: 1,
@@ -442,6 +447,7 @@ const RAPIEIRA: Equipment = {
 const MARRAO: Equipment = {
   nome: 'Marrão',
   weaponCategory: 'exotic',
+  weaponTags: ['heredrimm'],
   dano: '4d4',
   critico: 'x2',
   spaces: 2,

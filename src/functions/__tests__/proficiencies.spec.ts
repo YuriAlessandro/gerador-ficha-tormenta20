@@ -1,4 +1,10 @@
+import _ from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
+import { applyRaceAbilities } from '../general';
+import { inventor } from '../../__mocks__/classes/inventor';
+import SEREIA from '../../data/systems/tormenta20/races/sereia';
+import ANAO from '../../data/systems/tormenta20/races/anao';
+import { AMEACAS_ARTON_WEAPONS } from '../../data/systems/tormenta20/ameacas-de-arton/equipment/weapons';
 import {
   getSheetProficiencias,
   getEffectiveWeaponCategory,
@@ -344,6 +350,83 @@ describe('proficiencies', () => {
         (w) => w.id === 'w1'
       );
       expect(weapon?.atkBonus ?? 0).toBe(0);
+    });
+  });
+
+  describe('proficiência por nome de arma', () => {
+    it('proficiência nomeada cobre arma marcial e exótica', () => {
+      expect(getWeaponNonProficiencyPenalty(Armas.TRIDENTE, ['Tridente'])).toBe(
+        0
+      );
+      expect(getWeaponNonProficiencyPenalty(Armas.KATANA, ['Katana'])).toBe(0);
+    });
+
+    it('normaliza caixa, espaços e acentos', () => {
+      expect(
+        getWeaponNonProficiencyPenalty(Armas.TRIDENTE, [' tridente '])
+      ).toBe(0);
+      expect(
+        getWeaponNonProficiencyPenalty(AMEACAS_ARTON_WEAPONS.ARPAO, ['Arpao'])
+      ).toBe(0);
+    });
+
+    it('customDisplayName não conta — só o nome base da arma', () => {
+      const renamed: Equipment = {
+        ...Armas.ESPADA_LONGA,
+        customDisplayName: 'Tridente',
+      };
+      expect(getWeaponNonProficiencyPenalty(renamed, ['Tridente'])).toBe(
+        WEAPON_NON_PROFICIENCY_PENALTY
+      );
+    });
+
+    it('remoção manual da proficiência nomeada vence', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe.proficiencias = [PROFICIENCIAS.SIMPLES, 'Tridente'];
+      sheet.removedProficiencias = ['Tridente'];
+      expect(
+        getWeaponNonProficiencyPenalty(
+          Armas.TRIDENTE,
+          getSheetProficiencias(sheet)
+        )
+      ).toBe(WEAPON_NON_PROFICIENCY_PENALTY);
+    });
+
+    it('fallback por nome resolve categoria de arma de suplemento', () => {
+      const legacyArpao: Equipment = { nome: 'Arpão', group: 'Arma' };
+      expect(getEffectiveWeaponCategory(legacyArpao)).toBe('exotic');
+    });
+  });
+
+  describe('poderes que tornam armas específicas simples', () => {
+    it('Mestre do Tridente (Sereia): Tridente sem penalidade após recálculo', () => {
+      const sheet = _.cloneDeep(inventor(SEREIA));
+      const recalculated = recalculateSheet(applyRaceAbilities(sheet));
+      const proficiencias = getSheetProficiencias(recalculated);
+
+      expect(recalculated.classe.proficiencias).toContain('Tridente');
+      expect(
+        getWeaponNonProficiencyPenalty(Armas.TRIDENTE, proficiencias)
+      ).toBe(0);
+      // Controle: outra marcial continua penalizada (Inventor não tem
+      // Armas Marciais).
+      expect(
+        getWeaponNonProficiencyPenalty(Armas.ESPADA_LONGA, proficiencias)
+      ).toBe(WEAPON_NON_PROFICIENCY_PENALTY);
+    });
+
+    it('Tradição de Heredrimm (Anão): Marreta e Machado Anão sem penalidade', () => {
+      const sheet = _.cloneDeep(inventor(ANAO));
+      const recalculated = recalculateSheet(applyRaceAbilities(sheet));
+      const proficiencias = getSheetProficiencias(recalculated);
+
+      expect(recalculated.classe.proficiencias).toContain('Marreta');
+      expect(getWeaponNonProficiencyPenalty(Armas.MARRETA, proficiencias)).toBe(
+        0
+      );
+      expect(
+        getWeaponNonProficiencyPenalty(Armas.MACHADO_ANAO, proficiencias)
+      ).toBe(0);
     });
   });
 });

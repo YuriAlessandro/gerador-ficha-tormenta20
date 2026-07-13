@@ -27,6 +27,7 @@ const mkForm = (
   criticoText: 'x2',
   customSkill: '',
   damageAttribute: 'Nenhum',
+  weaponCategory: '',
   actionDamageAttributes: {},
   defenseBonusText: '0',
   armorPenaltyText: '0',
@@ -118,5 +119,32 @@ describe('buildSavedItem — mods de arma na primeira aplicação', () => {
     const result = save(withCerteira, form);
     expect(result.atkBonus).toBe(0);
     expect(result.modifications).toBeUndefined();
+  });
+});
+
+describe('buildSavedItem — categoria de proficiência (weaponCategory)', () => {
+  const espadaLonga: Equipment = {
+    nome: 'Espada Longa',
+    group: 'Arma',
+    dano: '1d8',
+    critico: 'x2',
+    atkBonus: 0,
+    spaces: 1,
+    weaponCategory: 'martial',
+  };
+
+  it('categoria escolhida no form é persistida', () => {
+    const result = save(espadaLonga, mkForm({ weaponCategory: 'exotic' }));
+    expect(result.weaponCategory).toBe('exotic');
+  });
+
+  it("'' (Padrão) limpa o override — undefined herda do catálogo", () => {
+    const result = save(espadaLonga, mkForm({ weaponCategory: '' }));
+    expect(result.weaponCategory).toBeUndefined();
+  });
+
+  it('editar categoria não marca hasManualEdits', () => {
+    const result = save(espadaLonga, mkForm({ weaponCategory: 'simple' }));
+    expect(result.hasManualEdits).toBeUndefined();
   });
 });

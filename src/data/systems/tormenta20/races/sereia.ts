@@ -66,38 +66,24 @@ const SEREIA: Race = {
             value: 2,
           },
         },
+        // "O tridente é uma arma simples para você": proficiência nomeada,
+        // reconhecida por isProficientWithWeapon (evita o -5 de não
+        // proficiência). Lança e Azagaia já são armas simples.
+        {
+          source: {
+            type: 'race',
+            raceName: 'Sereia',
+          },
+          target: {
+            type: 'Proficiency',
+            proficiency: 'Tridente',
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 1,
+          },
+        },
       ],
-      // action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-      //   const cloneSheet = cloneDeep(sheet);
-
-      //   cloneSheet.bag.equipments.Arma = cloneSheet.bag.equipments.Arma.map(
-      //     (equipment) => {
-      //       if (goodWeapons.includes(equipment.nome)) {
-      //         return {
-      //           ...equipment,
-      //           tipo:
-      //             equipment.nome === Armas.TRIDENTE.nome
-      //               ? 'Simples'
-      //               : equipment.tipo,
-      //           atkBonus: (equipment.atkBonus || 0) + 2,
-      //         };
-      //       }
-      //       return equipment;
-      //     }
-      //   );
-
-      //   substeps.push({
-      //     name: 'Mestre do Tridente',
-      //     value: `Tridente é uma arma simples.`,
-      //   });
-
-      //   substeps.push({
-      //     name: 'Mestre do Tridente',
-      //     value: `+2 em dano com azagaias, lanças e tridentes.`,
-      //   });
-
-      //   return cloneSheet;
-      // },
     },
     {
       name: 'Transformação Anfíbia',

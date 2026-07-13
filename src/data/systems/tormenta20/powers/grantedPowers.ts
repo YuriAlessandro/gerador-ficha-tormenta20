@@ -909,6 +909,26 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
     sheetBonuses: [
+      // "Você considera a katana uma arma simples": proficiência nomeada,
+      // reconhecida por isProficientWithWeapon (evita o -5 de não
+      // proficiência). Desvio aceito: o +1 de margem abaixo usa
+      // proficiencyRequired, que passa a ser satisfeito pela própria
+      // proficiência nomeada (a regra pede proficiência em armas marciais)
+      // — pequeno, a favor do jogador.
+      {
+        source: {
+          type: 'power',
+          name: 'Tradição de Lin-Wu',
+        },
+        target: {
+          type: 'Proficiency',
+          proficiency: 'Katana',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
       {
         source: {
           type: 'power',
@@ -925,36 +945,6 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
         },
       },
     ],
-    // action(
-    //   sheet: CharacterSheet,
-    //   subSteps: { name: string; value: string }[]
-    // ): CharacterSheet {
-    //   const sheetClone = cloneDeep(sheet);
-
-    //   subSteps.push({
-    //     name: 'Tradição de Lin-Wu',
-    //     value: 'Katana considerada arma simples.',
-    //   });
-
-    //   sheetClone.bag.equipments.Arma = sheetClone.bag.equipments.Arma.map(
-    //     (item) => {
-    //       if (item.nome === Armas.Katana.nome) {
-    //         return {
-    //           ...item,
-    //           critico: `${item.critico} - 1`,
-    //         };
-    //       }
-    //       return item;
-    //     }
-    //   );
-
-    //   subSteps.push({
-    //     name: 'Tradição de Lin-Wu',
-    //     value: 'Margem de ameaça da Katana aumentada em 1.',
-    //   });
-
-    //   return sheetClone;
-    // },
   },
   TRANSMISSAO_DA_LOUCURA: {
     name: 'Transmissão da Loucura',

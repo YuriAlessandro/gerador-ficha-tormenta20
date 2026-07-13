@@ -79,6 +79,23 @@ const racePowers: Record<string, GeneralPower> = {
       'Para você, todos os arcos são armas simples. Além disso, você recebe +2 nas rolagens de dano com arcos.',
     type: GeneralPowerType.RACA,
     requirements: [[{ type: RequirementType.RACA, name: 'Elfo' }]],
+    sheetBonuses: [
+      // "Todos os arcos são armas simples": proficiências nomeadas para os
+      // arcos não-simples dos catálogos (Arco Curto já é arma simples).
+      ...['Arco Longo', 'Arco montado', 'Arco de guerra'].map((nome) => ({
+        source: { type: 'power' as const, name: 'Arquearia Élfica' },
+        target: { type: 'Proficiency' as const, proficiency: nome },
+        modifier: { type: 'Fixed' as const, value: 1 },
+      })),
+      // +2 nas rolagens de dano com arcos (por nome — não há tag de arco).
+      ...['Arco Curto', 'Arco Longo', 'Arco montado', 'Arco de guerra'].map(
+        (nome) => ({
+          source: { type: 'power' as const, name: 'Arquearia Élfica' },
+          target: { type: 'WeaponDamage' as const, weaponName: nome },
+          modifier: { type: 'Fixed' as const, value: 2 },
+        })
+      ),
+    ],
   },
   ARSENAL_DE_LISANDRA: {
     name: 'Arsenal de Lisandra',
@@ -868,6 +885,32 @@ const racePowers: Record<string, GeneralPower> = {
       'Sua habilidade Mestre do Tridente passa a afetar também arpões. Além disso, você recebe +2 em testes de ataque com todas as armas afetadas por essa habilidade e as considera armas ágeis.',
     type: GeneralPowerType.RACA,
     requirements: [[{ type: RequirementType.RACA, name: 'Sereia/Tritão' }]],
+    sheetBonuses: [
+      // Mestre do Tridente passa a afetar arpões: proficiência nomeada
+      // (arpão é arma exótica) + o mesmo +2 de dano da habilidade base.
+      {
+        source: { type: 'power', name: 'Pirata Oceânico' },
+        target: { type: 'Proficiency', proficiency: 'Arpão' },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+      {
+        source: { type: 'power', name: 'Pirata Oceânico' },
+        target: { type: 'WeaponDamage', weaponName: 'Arpão' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      // +2 em testes de ataque com todas as armas afetadas (azagaias,
+      // lanças e tridentes via tag; arpão por nome, sem tag no catálogo).
+      {
+        source: { type: 'power', name: 'Pirata Oceânico' },
+        target: { type: 'WeaponAttack', weaponTags: ['armaDeMar'] },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Pirata Oceânico' },
+        target: { type: 'WeaponAttack', weaponName: 'Arpão' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   PROGRAMACAO_DE_COMBATE: {
     name: 'Programação de Combate',

@@ -6,6 +6,7 @@ import Equipment, {
   DefenseEquipment,
   ExtraDamage,
   WeaponAction,
+  WeaponCategory,
 } from '../../../interfaces/Equipment';
 import Skill from '../../../interfaces/Skills';
 import { DiceRoll } from '../../../interfaces/DiceRoll';
@@ -34,6 +35,9 @@ export interface ItemEditorFormState {
   criticoText: string;
   customSkill: Skill | '';
   damageAttribute: DamageAttribute;
+  // '' = herda a categoria do catálogo (via getEffectiveWeaponCategory);
+  // para itens custom, '' = sem categoria = sempre proficiente.
+  weaponCategory: WeaponCategory | '';
   actionDamageAttributes: Record<string, DamageAttribute>;
   defenseBonusText: string;
   armorPenaltyText: string;
@@ -138,6 +142,10 @@ export function buildSavedItem(
     }
     next.customSkill = (form.customSkill || undefined) as Skill | undefined;
     next.damageAttribute = form.damageAttribute;
+    // Campo semântico (como customSkill): gravado sempre, sem marcar
+    // hasManualEdits — não congela os bônus automáticos da arma.
+    next.weaponCategory =
+      form.weaponCategory === '' ? undefined : form.weaponCategory;
     if (item.specialActions && item.specialActions.length > 0) {
       next.specialActions = item.specialActions.map((action) => {
         const overridden = form.actionDamageAttributes[action.id];

@@ -246,6 +246,10 @@ const ProficiencyEditDrawer: React.FC<ProficiencyEditDrawerProps> = ({
               <AddIcon />
             </IconButton>
           </Stack>
+          <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+            Dica: digite o nome exato de uma arma (ex.: Tridente) para ficar
+            proficiente apenas com ela, sem precisar da categoria inteira.
+          </Typography>
 
           <Stack direction='row' spacing={2} sx={{ mt: 3 }}>
             <Button variant='outlined' onClick={handleCancel} fullWidth>

@@ -36,8 +36,13 @@ import Equipment, {
   DAMAGE_TYPES,
   DamageType,
   DefenseEquipment,
+  WeaponCategory,
 } from '../../../interfaces/Equipment';
 import { resolveDamageAttribute } from '../../../functions/weaponSkill';
+import {
+  getCatalogWeaponCategoryByName,
+  WEAPON_CATEGORY_LABELS,
+} from '../../../functions/proficiencies';
 import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Skill from '../../../interfaces/Skills';
 import { DiceRoll } from '../../../interfaces/DiceRoll';
@@ -141,6 +146,7 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
     criticoText: item?.critico ?? 'x2',
     customSkill: (item?.customSkill ?? '') as Skill | '',
     damageAttribute: baseDamageAttribute,
+    weaponCategory: item?.weaponCategory ?? '',
     actionDamageAttributes,
     defenseBonusText:
       item && isDefenseGroup(item.group)
@@ -188,6 +194,15 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const isWeapon = item?.group === 'Arma';
   const isDefense = item ? isDefenseGroup(item.group) : false;
   const hasStatsTab = isWeapon || isDefense;
+  // Label da opção "Padrão" do Select de categoria: mostra a categoria de
+  // catálogo que vale quando não há override; custom/desconhecida = sempre
+  // proficiente.
+  const catalogCategory = item
+    ? getCatalogWeaponCategoryByName(item.nome)
+    : undefined;
+  const defaultCategoryLabel = catalogCategory
+    ? `Padrão (${WEAPON_CATEGORY_LABELS[catalogCategory]})`
+    : 'Padrão (sem categoria — sempre proficiente)';
   const modItemType = item ? modItemTypeFor(item) : null;
   const hasModificationsTab = modItemType !== null;
   const enchItemType = item ? enchItemTypeFor(item) : null;
@@ -579,6 +594,35 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                       {DAMAGE_ATTRIBUTE_OPTIONS.map((opt) => (
                         <MenuItem key={opt} value={opt}>
                           {opt}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Categoria de proficiência</InputLabel>
+                    <Select
+                      label='Categoria de proficiência'
+                      value={form.weaponCategory}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          weaponCategory: e.target.value as WeaponCategory | '',
+                        }))
+                      }
+                    >
+                      <MenuItem value=''>
+                        <em>{defaultCategoryLabel}</em>
+                      </MenuItem>
+                      {(
+                        Object.entries(WEAPON_CATEGORY_LABELS) as [
+                          WeaponCategory,
+                          string
+                        ][]
+                      ).map(([value, label]) => (
+                        <MenuItem key={value} value={value}>
+                          {label}
                         </MenuItem>
                       ))}
                     </Select>

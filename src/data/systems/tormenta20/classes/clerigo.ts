@@ -77,6 +77,12 @@ const CLERIGO: ClassDescription = {
     {
       name: 'Abençoar Arma',
       text: 'Você se torna proficiente na arma preferida de sua divindade. Se estiver empunhando essa arma, pode gastar uma ação de movimento e 3 PM para infundi-la com poder divino. Até o final da cena, a arma é considerada mágica e emite luz dourada ou púrpura (como uma tocha). Além disso, o dano da arma aumenta em um passo e você pode usar sua Sabedoria em testes de ataque e rolagens de dano com ela, em vez do atributo padrão (não cumulativo com efeitos que somam este atributo).',
+      // FOLLOW-UP: "proficiente na arma preferida de sua divindade" não é
+      // modelado — Divindade.preferredWeapon existe na interface mas nenhuma
+      // divindade core o popula. Exige popular o campo nas divindades e uma
+      // injeção dinâmica de Proficiency lendo sheet.devoto (padrão de
+      // injectEstiloDeUmaArmaBonuses em recalculateSheet.ts). Enquanto isso,
+      // o usuário pode digitar o nome da arma no editor de proficiências.
       requirements: [],
     },
     {
