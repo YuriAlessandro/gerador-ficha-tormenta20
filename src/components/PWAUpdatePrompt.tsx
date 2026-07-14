@@ -50,24 +50,35 @@ const PWAUpdatePrompt: React.FC<PWAUpdatePromptProps> = ({ onUpdate }) => {
   const handleDismiss = () => {
     setShowUpdatePrompt(false);
     // Store dismissal time - will show again after 30 minutes
-    sessionStorage.setItem('pwa-update-dismissed', Date.now().toString());
+    try {
+      sessionStorage.setItem('pwa-update-dismissed', Date.now().toString());
+    } catch {
+      // sessionStorage indisponível (ex.: embed com storage bloqueado) — o
+      // dismiss vale só até o próximo mount.
+    }
   };
 
   // Auto-show again after 30 minutes if dismissed
   useEffect(() => {
     if (!showUpdatePrompt) {
-      const dismissedAt = sessionStorage.getItem('pwa-update-dismissed');
-      if (dismissedAt) {
-        const thirtyMinutes = 30 * 60 * 1000;
-        const timeSinceDismiss = Date.now() - parseInt(dismissedAt, 10);
-        if (timeSinceDismiss > thirtyMinutes) {
-          // Check if there's still a pending update
-          const hasPendingUpdate =
-            sessionStorage.getItem('pwa-has-pending-update') === 'true';
-          if (hasPendingUpdate) {
-            setShowUpdatePrompt(true);
+      try {
+        const dismissedAt = sessionStorage.getItem('pwa-update-dismissed');
+        if (dismissedAt) {
+          const thirtyMinutes = 30 * 60 * 1000;
+          const timeSinceDismiss = Date.now() - parseInt(dismissedAt, 10);
+          if (timeSinceDismiss > thirtyMinutes) {
+            // Check if there's still a pending update
+            const hasPendingUpdate =
+              sessionStorage.getItem('pwa-has-pending-update') === 'true';
+            if (hasPendingUpdate) {
+              setShowUpdatePrompt(true);
+            }
           }
         }
+      } catch {
+        // sessionStorage indisponível (ex.: embed com storage bloqueado).
+        // Sem o guard, o acesso lança SecurityError dentro do useEffect e
+        // derruba a árvore React inteira (tela branca).
       }
     }
   }, [showUpdatePrompt]);

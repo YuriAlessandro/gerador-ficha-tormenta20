@@ -24,7 +24,11 @@ const updateSW = registerSW({
     // Dispatch a custom event that the PWAUpdatePrompt component listens for
     // eslint-disable-next-line no-console
     console.log('[PWA] Nova versão disponível - mostrando notificação');
-    sessionStorage.setItem('pwa-has-pending-update', 'true');
+    try {
+      sessionStorage.setItem('pwa-has-pending-update', 'true');
+    } catch {
+      // sessionStorage indisponível (ex.: embed com storage bloqueado).
+    }
     window.dispatchEvent(new CustomEvent('pwa-update-available'));
   },
   onOfflineReady() {
