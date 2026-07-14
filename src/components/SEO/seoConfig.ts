@@ -111,6 +111,11 @@ export const SEO_CONFIG = {
       description:
         'Jogue Wyrt, o jogo de cartas do universo de Tormenta 20. Aposte, blefe e tente acertar o Número da Raposa! Jogue solo contra bots ou online com amigos.',
     },
+    mapaDeArton: {
+      title: 'Mapa Interativo de Arton',
+      description:
+        'Mapa interativo de Arton, o mundo oficial de Tormenta 20. Explore reinos e cidades de Arton, Tamu-ra, Lamnor, Doherimm e Moreania, meça distâncias e trace rotas.',
+    },
   },
 };
 
