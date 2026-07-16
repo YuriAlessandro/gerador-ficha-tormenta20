@@ -77,6 +77,14 @@ const Changelog: React.FC = () => {
               <h3>4.26</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Recuperação de fichas afetadas</strong>: fichas
+                  atingidas pelo problema de zeramento passam a exibir um aviso
+                  ao abrir ou editar em &quot;Meus Personagens&quot;, com a
+                  opção de restaurar a cópia local salva no seu navegador — o
+                  mesmo mecanismo usado no incidente da Mesa Virtual.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O <strong>Mapa de Arton</strong>{' '}
                   agora funciona embutido em outros sites e aplicativos (iframe
                   com sandbox): o app passa a lidar com o bloqueio de
@@ -96,6 +104,25 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> A página pública do Mapa de Arton
                   aparecia em buscadores com o título genérico do site; agora
                   tem título e descrição próprios.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido um problema grave em que{' '}
+                  <strong>
+                    editar uma ficha por &quot;Meus Personagens&quot; podia
+                    zerá-la
+                  </strong>{' '}
+                  — atributos, perícias e itens eram apagados no próximo
+                  salvamento (por exemplo, ao subir de nível). A edição agora
+                  carrega a ficha completa da nuvem, e tanto o app quanto o
+                  servidor passam a bloquear qualquer salvamento que apagaria
+                  dados críticos da ficha, exibindo um aviso para recarregar a
+                  página.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A página da ficha compartilhada
+                  mostrava &quot;Ficha atualizada com sucesso!&quot; mesmo
+                  quando o salvamento na nuvem falhava; agora o erro é informado
+                  corretamente.
                 </li>
               </ul>
               <h3>4.25.1</h3>
