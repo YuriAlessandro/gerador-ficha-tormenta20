@@ -14,6 +14,7 @@ import {
   calculateMulticlassPM,
   getMulticlassAvailableAbilities,
   findClassDescription,
+  classNeedsFirstLevelSetup,
 } from '../multiclass';
 
 // Helper: create a simple class description for testing
@@ -644,5 +645,64 @@ describe('calculateMulticlassPM com classes variantes', () => {
     // Usurpador (4 levels): pm(5) + addpm(5) * (4-1) = 20
     // Total: 24 + 20 = 44
     expect(calculateMulticlassPM(sheet)).toBe(44);
+  });
+});
+
+// ===== classNeedsFirstLevelSetup =====
+describe('classNeedsFirstLevelSetup', () => {
+  test('Necromante (variante de Arcanista com spellPath estático) não exige configuração', () => {
+    const necromante = findClassDescription('Necromante')!;
+
+    expect(necromante).toBeDefined();
+    expect(necromante.spellPath).toBeDefined();
+    expect(classNeedsFirstLevelSetup(necromante)).toBe(false);
+  });
+
+  test('variantes com spellPath estático de bases sem setup não exigem configuração', () => {
+    const ventanista = findClassDescription('Ventanista')!;
+    const usurpador = findClassDescription('Usurpador')!;
+
+    expect(classNeedsFirstLevelSetup(ventanista)).toBe(false);
+    expect(classNeedsFirstLevelSetup(usurpador)).toBe(false);
+  });
+
+  test('Arcanista, Bardo e Druida base exigem configuração', () => {
+    const arcanista = findClassDescription('Arcanista')!;
+    const bardo = findClassDescription('Bardo')!;
+    const druida = findClassDescription('Druida')!;
+
+    expect(classNeedsFirstLevelSetup(arcanista)).toBe(true);
+    expect(classNeedsFirstLevelSetup(bardo)).toBe(true);
+    expect(classNeedsFirstLevelSetup(druida)).toBe(true);
+  });
+
+  test('variantes sem spellPath próprio herdam a configuração da base', () => {
+    const magimarcialista = findClassDescription('Magimarcialista')!;
+    const ermitao = findClassDescription('Ermitão')!;
+
+    expect(classNeedsFirstLevelSetup(magimarcialista)).toBe(true);
+    expect(classNeedsFirstLevelSetup(ermitao)).toBe(true);
+  });
+
+  test('classe com spellPath.schoolChoice (homebrew) exige configuração', () => {
+    const homebrew = makeClassDesc({
+      name: 'Conjurador Teste',
+      spellPath: {
+        initialSpells: 2,
+        spellType: 'Arcane',
+        schoolChoice: { count: 2 },
+        qtySpellsLearnAtLevel: () => 1,
+        spellCircleAvailableAtLevel: () => 1,
+        keyAttribute: Atributo.INTELIGENCIA,
+      },
+    });
+
+    expect(classNeedsFirstLevelSetup(homebrew)).toBe(true);
+  });
+
+  test('classe não conjuradora não exige configuração', () => {
+    const guerreiro = findClassDescription('Guerreiro')!;
+
+    expect(classNeedsFirstLevelSetup(guerreiro)).toBe(false);
   });
 });

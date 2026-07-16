@@ -36,6 +36,7 @@ import {
   buildSpellPathFromSetup,
   serializeSpellPath,
   getClassSetupAbilities,
+  classNeedsFirstLevelSetup,
 } from '@/functions/multiclass';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
@@ -207,15 +208,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     selectedClassName !== simulatedSheet.classe.name;
 
   // Classes that require user choices during first-level setup (variant-aware:
-  // ex. Magimarcialista, variante de Bardo, herda o setup de escolas)
+  // ex. Magimarcialista, variante de Bardo, herda o setup de escolas; variantes
+  // com spellPath estático próprio, ex. Necromante, não exigem configuração)
   const classNeedsUserSetup =
     isFirstLevelInNewClass &&
     !!selectedClassDesc &&
-    (isClassOrVariantOf(selectedClassDesc, 'Arcanista') ||
-      isClassOrVariantOf(selectedClassDesc, 'Bardo') ||
-      isClassOrVariantOf(selectedClassDesc, 'Druida') ||
-      // Classes homebrew com escolha de escolas (estilo Bardo)
-      !!selectedClassDesc.spellPath?.schoolChoice);
+    classNeedsFirstLevelSetup(selectedClassDesc);
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (): {

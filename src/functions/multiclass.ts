@@ -310,6 +310,26 @@ export function getMulticlassAvailableAbilities(
 }
 
 /**
+ * Verifica se a classe exige escolhas do usuário na configuração de primeiro
+ * nível ao multiclassar (subtipo de Arcanista, escolas de Bardo/Druida ou
+ * spellPath.schoolChoice). Classes com spellPath estático próprio sem
+ * schoolChoice (ex.: Necromante, Ventanista) não exigem configuração:
+ * buildSpellPathFromSetup retorna esse spellPath diretamente.
+ */
+export function classNeedsFirstLevelSetup(
+  classDesc: ClassDescription
+): boolean {
+  if (classDesc.spellPath) {
+    return !!classDesc.spellPath.schoolChoice;
+  }
+  return (
+    isClassOrVariantOf(classDesc, 'Arcanista') ||
+    isClassOrVariantOf(classDesc, 'Bardo') ||
+    isClassOrVariantOf(classDesc, 'Druida')
+  );
+}
+
+/**
  * Constrói um SpellPath a partir das escolhas de classSetup do wizard de level-up.
  * Para classes com setup() automático (Clérigo, Frade), chama setup() diretamente.
  * Para classes com spellPath estático (Necromante, Ventanista), retorna o spellPath da ClassDescription.
