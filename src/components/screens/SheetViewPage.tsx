@@ -42,7 +42,10 @@ import { dataRegistry } from '@/data/registry';
 import { SubscriptionTier } from '@/types/subscription.types';
 import preparePDF from '@/functions/downloadSheetPdf';
 import { restoreSpellPath } from '@/functions/general';
-import { rehydrateSheet } from '@/functions/sheetPayloadOptimizer';
+import {
+  rehydrateSheet,
+  isSheetIntegrityError,
+} from '@/functions/sheetPayloadOptimizer';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
 import SheetUnavailable from './SheetUnavailable';
 
@@ -153,14 +156,15 @@ const SheetViewPage: React.FC = () => {
       }
 
       try {
-        // Update sheet in backend
+        // Update sheet in backend. O unwrap() propaga rejeições do thunk —
+        // sem ele, o dispatch resolve mesmo quando o save falha.
         await updateSheet(id, {
           sheetData: updatedSheet as unknown as Parameters<
             typeof updateSheet
           >[1]['sheetData'],
           name: updatedSheet.nome,
           image: updatedSheet.imageUrl,
-        });
+        }).unwrap();
 
         // Update local state
         setSheet(updatedSheet);
@@ -170,7 +174,11 @@ const SheetViewPage: React.FC = () => {
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Error updating sheet:', err);
-        setSnackbarMessage('Erro ao atualizar a ficha.');
+        setSnackbarMessage(
+          isSheetIntegrityError(err)
+            ? 'Salvamento bloqueado: a ficha carregada está incompleta (atributos/perícias/itens vazios). Recarregue a página — seus dados na nuvem foram preservados.'
+            : 'Erro ao atualizar a ficha.'
+        );
         setSnackbarOpen(true);
       }
     },

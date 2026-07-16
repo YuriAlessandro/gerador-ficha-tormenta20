@@ -428,9 +428,10 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const handleViewSheet = (sheet: SheetListData) => {
-    // Fichas atingidas pelo bug de swap de fichas: intercepta o clique e oferece
-    // recuperar a cópia local antes de abrir (a ficha na nuvem está corrompida).
-    if (sheet.swapAffected) {
+    // Fichas atingidas pelo bug de swap de fichas ou pelo bug de wipe
+    // (sheetData zerado): intercepta o clique e oferece recuperar a cópia
+    // local antes de abrir (a ficha na nuvem está corrompida).
+    if (sheet.swapAffected || sheet.wipeAffected) {
       setRecoverySheet(sheet);
       setRecoveryCandidate(findLocalRecovery(sheet));
       return;
@@ -456,7 +457,12 @@ const MyCharactersPage: React.FC = () => {
         >[1]['sheetData'],
         name: restored.nome,
       });
-      await SheetsService.clearSwapAffected(recoverySheet.id);
+      if (recoverySheet.swapAffected) {
+        await SheetsService.clearSwapAffected(recoverySheet.id);
+      }
+      if (recoverySheet.wipeAffected) {
+        await SheetsService.clearWipeAffected(recoverySheet.id);
+      }
       await fetchSheets();
       const target = recoverySheet;
       setRecoverySheet(null);
@@ -487,6 +493,13 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const handleEditSheet = (sheet: SheetListData) => {
+    // Mesma interceptação do handleViewSheet: não deixa editar uma ficha
+    // corrompida na nuvem sem antes oferecer a recuperação da cópia local.
+    if (sheet.swapAffected || sheet.wipeAffected) {
+      setRecoverySheet(sheet);
+      setRecoveryCandidate(findLocalRecovery(sheet));
+      return;
+    }
     const isThreat = sheet.sheetData?.isThreat;
     const sheetFolder = sheet.folderId
       ? folders.find((f) => f.id === sheet.folderId)
@@ -2115,7 +2128,7 @@ const MyCharactersPage: React.FC = () => {
           }}
         />
       )}
-      {/* Recuperação de ficha atingida pelo bug de swap de fichas */}
+      {/* Recuperação de ficha corrompida na nuvem (swap de fichas ou wipe) */}
       <Dialog
         open={Boolean(recoverySheet)}
         onClose={closeRecovery}
@@ -2125,9 +2138,9 @@ const MyCharactersPage: React.FC = () => {
         <DialogTitle>Recuperar ficha</DialogTitle>
         <DialogContent>
           <Alert severity='warning' sx={{ mb: 2 }}>
-            Identificamos um problema que afetou esta ficha durante o uso da
-            Mesa Virtual: os dados salvos na nuvem foram sobrescritos. Pedimos
-            desculpas pelo ocorrido.
+            {recoverySheet?.swapAffected
+              ? 'Identificamos um problema que afetou esta ficha durante o uso da Mesa Virtual: os dados salvos na nuvem foram sobrescritos. Pedimos desculpas pelo ocorrido.'
+              : 'Identificamos um erro de sincronização que afetou esta ficha: os dados salvos na nuvem foram sobrescritos com valores zerados ou incompletos. Pedimos desculpas pelo ocorrido.'}
           </Alert>
           {recoveryCandidate ? (
             <Typography variant='body2'>
@@ -2139,9 +2152,9 @@ const MyCharactersPage: React.FC = () => {
             </Typography>
           ) : (
             <Typography variant='body2'>
-              Não encontramos uma cópia local desta ficha neste navegador, então
-              não conseguimos recuperá-la automaticamente. Entenda o que
-              aconteceu e os próximos passos na página do incidente.
+              {recoverySheet?.swapAffected
+                ? 'Não encontramos uma cópia local desta ficha neste navegador, então não conseguimos recuperá-la automaticamente. Entenda o que aconteceu e os próximos passos na página do incidente.'
+                : 'Não encontramos uma cópia local desta ficha neste navegador, então não conseguimos recuperá-la automaticamente. Entre em contato conosco para tentarmos restaurar a partir de um backup.'}
             </Typography>
           )}
         </DialogContent>
@@ -2164,9 +2177,11 @@ const MyCharactersPage: React.FC = () => {
               {recovering ? 'Restaurando...' : 'Restaurar cópia local'}
             </Button>
           ) : (
-            <Button variant='contained' onClick={handleSeeIncident}>
-              Ver explicação do incidente
-            </Button>
+            recoverySheet?.swapAffected && (
+              <Button variant='contained' onClick={handleSeeIncident}>
+                Ver explicação do incidente
+              </Button>
+            )
           )}
         </DialogActions>
       </Dialog>

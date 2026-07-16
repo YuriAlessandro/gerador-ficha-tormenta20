@@ -73,7 +73,10 @@ import generateRandomSheet, {
 import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
 import { recalculateSheet } from '../../functions/recalculateSheet';
 import { applyRaceCustomizationToSheet } from '../../functions/applyRaceCustomizationToSheet';
-import { rehydrateSheet } from '../../functions/sheetPayloadOptimizer';
+import {
+  rehydrateSheet,
+  isSheetIntegrityError,
+} from '../../functions/sheetPayloadOptimizer';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';
@@ -98,6 +101,7 @@ import { useSubscription } from '../../hooks/useSubscription';
 import { SubscriptionTier } from '../../types/subscription.types';
 import SheetsService, {
   CreateSheetRequest,
+  UpdateSheetRequest,
 } from '../../services/sheets.service';
 import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
@@ -430,33 +434,58 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }));
   }, [contentSupplements]);
 
-  // Load cloud sheet on mount if passed via navigation state
+  // Load cloud sheet on mount if passed via navigation state.
+  // O state da navegação (MyCharactersPage "Editar") carrega a ficha da
+  // LISTAGEM LEVE — projeção só com metadados, SEM atributos/skills/bag.
+  // Tratá-la como ficha completa fazia o normalizeSheet zerar tudo e o
+  // primeiro save gravar a ficha zerada na nuvem (bug do wipe, jul/2026).
+  // Por isso buscamos a ficha completa por id — o getSheetById também semeia
+  // o baseline do delta, evitando um PUT completo cego no próximo save.
   React.useEffect(() => {
-    if (location.state?.cloudSheet) {
-      const { cloudSheet } = location.state;
-      // Create a deep copy to avoid read-only object issues
-      const parsed = JSON.parse(
-        JSON.stringify(cloudSheet.sheetData)
-      ) as CharacterSheet;
+    const stateCloudSheet = location.state?.cloudSheet;
+    if (!stateCloudSheet?.id) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const fullSheet = await SheetsService.getSheetById(stateCloudSheet.id);
+        if (cancelled) return;
+        // Create a deep copy to avoid read-only object issues
+        const parsed = JSON.parse(
+          JSON.stringify(fullSheet.sheetData)
+        ) as CharacterSheet;
 
-      // Rehydrate stripped sheet data (reconstruct catalog fields from registry)
-      const sheet = rehydrateSheet(
-        parsed as unknown as Record<string, unknown>,
-        userSupplements
-      );
+        // Rehydrate stripped sheet data (reconstruct catalog fields from registry)
+        const sheet = rehydrateSheet(
+          parsed as unknown as Record<string, unknown>,
+          userSupplements
+        );
 
-      // Restore Bag class methods
-      sheet.bag = Bag.fromStored(sheet.bag);
+        // Restore Bag class methods
+        sheet.bag = Bag.fromStored(sheet.bag);
 
-      // Restore spellPath functions if the class has spellcasting
-      restoreSpellPath(sheet, CLASSES);
+        // Restore spellPath functions if the class has spellcasting
+        restoreSpellPath(sheet, CLASSES);
 
-      setRandomSheet(sheet);
-      setSheetSavedToCloud(true); // It came from cloud, so it's already saved
-      setCloudSheetId(cloudSheet.id); // Store the cloud sheet ID for updates
-      // Clear the state to prevent reloading on subsequent renders
-      history.replace('/criar-ficha', {});
-    }
+        setRandomSheet(sheet);
+        setSheetSavedToCloud(true); // It came from cloud, so it's already saved
+        setCloudSheetId(fullSheet.id); // Store the cloud sheet ID for updates
+      } catch {
+        if (!cancelled) {
+          showAlert(
+            'Não foi possível carregar a ficha da nuvem. Tente novamente.',
+            'Erro'
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          // Clear the state to prevent reloading on subsequent renders
+          history.replace('/criar-ficha', {});
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [location.state]);
 
   // Warn before leaving if sheet is not saved to cloud (refresh/close tab)
@@ -738,27 +767,42 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const handleLevelUpWizardConfirm = (
     levelUpSelections: import('@/interfaces/WizardSelections').LevelUpSelections[]
   ) => {
-    setLevelUpWizardModalOpen(false);
+    if (!pendingLevel1Sheet) {
+      setLevelUpWizardModalOpen(false);
+      return;
+    }
 
-    if (!pendingLevel1Sheet) return;
+    try {
+      // Aplica todas as seleções numa cópia local; só finaliza a ficha se
+      // tudo der certo — uma exceção no meio (ex.: poder de classe não
+      // encontrado) não pode finalizar uma ficha parcial. Espelha o guard de
+      // handleLevelUpConfirm em Result.tsx.
+      let finalSheet = pendingLevel1Sheet;
+      levelUpSelections.forEach((levelSelection) => {
+        finalSheet = applyManualLevelUp(finalSheet, levelSelection);
+      });
 
-    // Apply all level ups sequentially
-    let finalSheet = pendingLevel1Sheet;
-    levelUpSelections.forEach((levelSelection) => {
-      finalSheet = applyManualLevelUp(finalSheet, levelSelection);
-    });
+      // Reset current PV/PM to undefined so recalculateSheet sets them to the new max
+      // This is safe because we're in initial character creation, not gameplay
+      finalSheet.currentPV = undefined;
+      finalSheet.currentPM = undefined;
 
-    // Reset current PV/PM to undefined so recalculateSheet sets them to the new max
-    // This is safe because we're in initial character creation, not gameplay
-    finalSheet.currentPV = undefined;
-    finalSheet.currentPM = undefined;
+      // Recalculate sheet to apply attribute bonuses to PM/PV
+      finalSheet = recalculateSheet(finalSheet);
 
-    // Recalculate sheet to apply attribute bonuses to PM/PV
-    finalSheet = recalculateSheet(finalSheet);
+      setLevelUpWizardModalOpen(false);
 
-    // Finalize the sheet
-    finalizeSheet(finalSheet);
-    setPendingLevel1Sheet(null);
+      // Finalize the sheet
+      finalizeSheet(finalSheet);
+      setPendingLevel1Sheet(null);
+    } catch (error) {
+      setLevelUpWizardModalOpen(false);
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      // eslint-disable-next-line no-console
+      console.error('Erro ao subir de nível na criação:', error);
+      showAlert(`Não foi possível subir de nível: ${message}`, 'Erro');
+    }
   };
 
   const handleLevelUpWizardCancel = () => {
@@ -856,15 +900,28 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           equipments: updatedSheet.bag?.equipments ?? {},
           spaces: updatedSheet.bag?.spaces ?? 0,
           armorPenalty: updatedSheet.bag?.armorPenalty ?? 0,
+          displayOrder: updatedSheet.bag?.displayOrder ?? [],
         },
       };
 
       // Update in Redux state (for immediate UI update)
       updateSheetAction(cloudSheetId, {
         name: updatedSheet.nome,
-        sheetData: serializableSheet as any,
+        sheetData:
+          serializableSheet as unknown as UpdateSheetRequest['sheetData'],
         image: updatedSheet.imageUrl,
-      });
+      })
+        .unwrap()
+        .catch((err: unknown) => {
+          if (isSheetIntegrityError(err)) {
+            showAlert(
+              'Salvamento na nuvem bloqueado: a ficha em edição está incompleta (atributos/perícias/itens vazios). Recarregue a página — seus dados na nuvem foram preservados.',
+              'Erro'
+            );
+          }
+          // Outros erros seguem o comportamento anterior (registrados no
+          // slice de sheets, sem alerta bloqueante).
+        });
     }
   };
 

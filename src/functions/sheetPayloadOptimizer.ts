@@ -12,6 +12,130 @@ import { stampUsedSupplements } from './contentSources';
 const STRIPPED_MARKER = '__stripped__';
 
 /**
+ * Chaves de sheetData que nenhum fluxo legítimo jamais remove de uma ficha.
+ * Após qualquer carga o normalizeSheet garante que elas existem, então um
+ * delta com `null` nelas só pode significar corrupção em memória — e o
+ * backend faria `$unset`, apagando o campo permanentemente do documento
+ * (incidente do wipe, jul/2026).
+ *
+ * Espelha NEVER_UNSET_SHEET_KEYS em `backend/src/utils/sheetIntegrity.ts` —
+ * mantenha as duas listas em sincronia.
+ *
+ * `completeSkills` fica FORA da lista: `undefined` é o sinal legítimo de
+ * "reconstruir no recálculo" (é totalmente derivável de `skills`).
+ */
+export const NEVER_UNSET_SHEET_KEYS: readonly string[] = [
+  'atributos',
+  'skills',
+  'bag',
+  'classe',
+  'raca',
+  'nivel',
+  'spells',
+  'generalPowers',
+  'sheetActionHistory',
+  'steps',
+];
+
+/**
+ * Erro lançado pelos serviços de save quando a escrita apagaria dados
+ * críticos da ficha (ver detectCriticalWipe). A UI deve tratar mostrando
+ * um aviso pedindo reload — os dados na nuvem ficam preservados.
+ */
+export class SheetIntegrityError extends Error {
+  constructor(public readonly wipedFields: string[]) {
+    super(
+      `Salvamento bloqueado: a atualização apagaria dados críticos da ficha (${wipedFields.join(
+        ', '
+      )}).`
+    );
+    this.name = 'SheetIntegrityError';
+  }
+}
+
+/**
+ * Detecta um SheetIntegrityError mesmo depois de serializado pelo Redux
+ * Toolkit (`unwrap()` re-lança um objeto plain com `name`/`message`, não a
+ * instância original).
+ */
+export function isSheetIntegrityError(err: unknown): boolean {
+  if (err instanceof SheetIntegrityError) return true;
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { name?: string }).name === 'SheetIntegrityError'
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** Existe ao menos um atributo com value numérico diferente de zero. */
+function attributesHaveRealValues(sheetData: Record<string, unknown>): boolean {
+  const { atributos } = sheetData;
+  if (!isRecord(atributos)) return false;
+  return Object.values(atributos).some(
+    (attr) =>
+      isRecord(attr) && typeof attr.value === 'number' && attr.value !== 0
+  );
+}
+
+function skillsAreNonEmpty(sheetData: Record<string, unknown>): boolean {
+  return Array.isArray(sheetData.skills) && sheetData.skills.length > 0;
+}
+
+/** Bag com ao menos um item em algum grupo de equipments. */
+function bagHasItems(sheetData: Record<string, unknown>): boolean {
+  const { bag } = sheetData;
+  if (!isRecord(bag)) return false;
+  const { equipments } = bag;
+  if (!isRecord(equipments)) return false;
+  return Object.values(equipments).some(
+    (group) => Array.isArray(group) && group.length > 0
+  );
+}
+
+/**
+ * Compara o baseline (último estado conhecido na nuvem) com a ficha stripped
+ * que está prestes a ser salva e retorna os grupos críticos que o save
+ * apagaria: 'atributos' (tinha value != 0 → todos zero/ausente), 'skills'
+ * (não-vazio → vazio) e 'bag' (com itens → vazio).
+ *
+ * Sem baseline (fallback de PUT completo), usa a assinatura absoluta do bug
+ * do wipe: ficha não-ameaça com todos os atributos em 0 E skills vazio nunca
+ * é legítima — é o output do normalizeSheet sobre um documento corrompido.
+ *
+ * Política do chamador: >= 2 grupos → bloquear o save (SheetIntegrityError);
+ * 1 grupo → permitir (vender tudo / destreinar tudo são legítimos).
+ */
+export function detectCriticalWipe(
+  baseline: Record<string, unknown> | undefined,
+  updated: Record<string, unknown>
+): string[] {
+  if (updated.isThreat === true) return [];
+
+  if (!baseline) {
+    // Assinatura absoluta do wipe (Path A): sem referência de baseline, só
+    // bloqueia o que nunca é uma ficha válida.
+    if (!attributesHaveRealValues(updated) && !skillsAreNonEmpty(updated)) {
+      return ['atributos', 'skills'];
+    }
+    return [];
+  }
+
+  if (baseline.isThreat === true) return [];
+
+  const wiped: string[] = [];
+  if (attributesHaveRealValues(baseline) && !attributesHaveRealValues(updated))
+    wiped.push('atributos');
+  if (skillsAreNonEmpty(baseline) && !skillsAreNonEmpty(updated))
+    wiped.push('skills');
+  if (bagHasItems(baseline) && !bagHasItems(updated)) wiped.push('bag');
+  return wiped;
+}
+
+/**
  * Strips redundant/reconstructable data from a CharacterSheet before sending to the backend.
  *
  * SAFE to strip (purely static catalog data, never read at runtime):
@@ -177,6 +301,14 @@ export function computeSheetDelta(
   Object.keys(baseline).forEach((key) => {
     if (key === STRIPPED_MARKER) return;
     if (!(key in updated)) {
+      // Nunca emitir $unset de chave crítica: uma ficha válida sempre as tem
+      // (normalizeSheet), então a ausência aqui é corrupção em memória — e o
+      // $unset apagaria o campo permanentemente do documento na nuvem.
+      if (NEVER_UNSET_SHEET_KEYS.includes(key)) {
+        // eslint-disable-next-line no-console
+        console.error(`[sheet-integrity] blocked $unset of "${key}"`);
+        return;
+      }
       delta[key] = null;
       hasChanges = true;
     }

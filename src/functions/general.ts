@@ -4281,7 +4281,11 @@ export function applyManualLevelUp(
         ability,
         selections.abilityEffectSelections?.[ability.name]
       );
-      updatedSheet = newSheet;
+      // Mesmo guard do branch de poderes: nunca substituir a ficha por um
+      // retorno vazio de applyPower.
+      if (newSheet) {
+        updatedSheet = newSheet;
+      }
       abilitySubSteps.push(...newSubSteps);
 
       // Treinador: aplicar efeitos de Treino Especializado no level-up
