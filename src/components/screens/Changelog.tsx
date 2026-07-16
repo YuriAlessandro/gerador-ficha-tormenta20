@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            12/07/2026 (v4.25.1).
+            16/07/2026 (v4.26).
           </p>
 
           <p>
@@ -74,6 +74,30 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.26</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> O <strong>Mapa de Arton</strong>{' '}
+                  agora funciona embutido em outros sites e aplicativos (iframe
+                  com sandbox): o app passa a lidar com o bloqueio de
+                  armazenamento do navegador nesse modo, e o botão de voltar
+                  abre o Fichas de Nimb em uma nova aba.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigida a{' '}
+                  <strong>multiclasse com Necromante</strong>: ao escolher a
+                  variante no assistente de subir de nível, o passo
+                  &quot;Configuração da Classe&quot; aparecia em branco e
+                  travava a evolução. Como o Necromante já tem caminho de magias
+                  próprio (necromancia divina, sem encantamento), a escolha
+                  agora segue direto para os ganhos do nível.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A página pública do Mapa de Arton
+                  aparecia em buscadores com o título genérico do site; agora
+                  tem título e descrição próprios.
+                </li>
+              </ul>
               <h3>4.25.1</h3>
               <ul>
                 <li>
