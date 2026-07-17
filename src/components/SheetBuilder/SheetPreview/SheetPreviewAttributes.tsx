@@ -42,7 +42,14 @@ const SheetPreviewAttributes = ({ attributes }: Props) => {
   };
 
   return (
-    <Stack spacing={2} direction='row' flexWrap='wrap' justifyContent='center'>
+    <Stack
+      spacing={2}
+      direction='row'
+      sx={{
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      }}
+    >
       {Object.entries(attributes).map(([attribute, value]) => {
         const label = Translator.getAttributeTranslation(
           attribute as Attribute

@@ -1,3 +1,4 @@
+import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { DiceRoll } from './DiceRoll';
 
@@ -34,6 +35,13 @@ export type Spell = {
   memorized?: boolean; // Para Magos: magia memorizada para o dia
   alwaysPrepared?: boolean; // Para Magos: magia sempre preparada (não conta no limite)
   isCustom?: boolean; // Magia personalizada criada pelo usuário
+  customEffects?: CustomEffect[]; // Efeitos ativos (ex.: magia homebrew com buff)
+  /**
+   * Set when this spell entry was injected by an equipment enchantment (e.g.
+   * Conjuradora). The value is the equipment id, so `recalculateSheet` can
+   * strip and re-inject these entries idempotently as gear changes.
+   */
+  equipmentSource?: string;
 };
 
 export type SpellSchool =

@@ -21,9 +21,11 @@ const SupportBanner: React.FC<SupportBannerProps> = ({ onClickButton }) => {
     <Box className='support-banner'>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        alignItems='center'
-        justifyContent='center'
         spacing={{ xs: 2, sm: 3 }}
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
         <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
           <Typography

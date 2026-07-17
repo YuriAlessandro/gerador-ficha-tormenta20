@@ -24,7 +24,13 @@ export const RaceAttributeVariantStep: React.FC<Props> = ({
     <Typography variant='h6' gutterBottom>
       Escolha sua variante de atributos
     </Typography>
-    <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+    <Typography
+      variant='body2'
+      sx={{
+        color: 'text.secondary',
+        mb: 2,
+      }}
+    >
       Esta raca permite escolher entre diferentes configuracoes de bonus de
       atributos.
     </Typography>
@@ -59,7 +65,12 @@ export const RaceAttributeVariantStep: React.FC<Props> = ({
             label={
               <Box>
                 <Typography variant='subtitle1'>{variant.label}</Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {variant.attrs.length === 1
                     ? `Escolha 1 atributo para receber +${variant.attrs[0].mod}`
                     : `Escolha ${variant.attrs.length} atributos para receber +${variant.attrs[0].mod} cada`}

@@ -1,5 +1,6 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
+import type { ConditionId } from '../premium/data/conditions';
 
 export enum ThreatType {
   ANIMAL = 'Animal',
@@ -91,6 +92,7 @@ export interface ThreatAttack {
   averageDamage?: number; // Calculado automaticamente
   criticalThreshold?: number; // Margem de ameaça (padrão: 20)
   criticalMultiplier?: number; // Multiplicador de crítico (padrão: 2)
+  grantsConditions?: ConditionId[]; // Condições concedidas pelo ataque (Mesa Virtual)
 }
 
 export interface AbilityRoll {
@@ -108,6 +110,7 @@ export interface ThreatAbility {
   rolls?: AbilityRoll[];
   pmCost?: number;
   actionType?: ThreatActionType;
+  grantsConditions?: ConditionId[]; // Condições concedidas pela habilidade (Mesa Virtual)
 }
 
 // Magias usam a mesma estrutura que habilidades
@@ -212,6 +215,31 @@ export interface ThreatSheet {
   activeConditions?: ActiveCondition[];
 }
 
+/**
+ * Fonte única de verdade para o mapeamento tipo de resistência → valor de
+ * salvaguarda da tabela de combate. Usado no cálculo de perícias
+ * (calculateAllSkills), na sanitização de fichas antigas (normalizeThreatSheet)
+ * e no statblock (getResistanceNumeric). Manter um único ponto evita que os
+ * caminhos divirjam (causa raiz do bug de resistências infladas).
+ */
+export function getResistanceSave(
+  type: ResistanceType,
+  combatStats: Pick<ThreatCombatStats, 'strongSave' | 'mediumSave' | 'weakSave'>
+): number {
+  switch (type) {
+    case ResistanceType.STRONG:
+      return combatStats.strongSave;
+    case ResistanceType.MEDIUM:
+      return combatStats.mediumSave;
+    case ResistanceType.WEAK:
+      return combatStats.weakSave;
+    default:
+      return 0;
+  }
+}
+
+const RESISTANCE_SKILL_NAMES = ['Fortitude', 'Reflexos', 'Vontade'];
+
 /** Ensures old threat data has resistanceAssignments and bonusDamageDice populated. */
 export function normalizeThreatSheet(threat: ThreatSheet): ThreatSheet {
   let normalized = threat;
@@ -228,6 +256,29 @@ export function normalizeThreatSheet(threat: ThreatSheet): ThreatSheet {
         ...attack,
         bonusDamageDice: attack.bonusDamageDice || [],
       })),
+    };
+  }
+  // Descorrompe fichas antigas: o bug de acumulação dobrava o bônus de
+  // resistência dentro de customBonus a cada recálculo, inflando o total de
+  // Fortitude/Reflexos/Vontade. Não há UI para definir customBonus de
+  // resistência, então o valor inflado era inteiramente a corrupção: zeramos
+  // customBonus e recomputamos o total a partir da tabela de combate.
+  if (normalized.skills && normalized.combatStats) {
+    const assignments =
+      normalized.resistanceAssignments || DEFAULT_RESISTANCE_ASSIGNMENTS;
+    const { combatStats } = normalized;
+    normalized = {
+      ...normalized,
+      skills: normalized.skills.map((skill) => {
+        if (!RESISTANCE_SKILL_NAMES.includes(skill.name)) return skill;
+        const resistanceType =
+          assignments[skill.name as keyof ResistanceAssignments];
+        const resistanceSave = getResistanceSave(resistanceType, combatStats);
+        if (skill.customBonus === 0 && skill.total === resistanceSave) {
+          return skill;
+        }
+        return { ...skill, customBonus: 0, total: resistanceSave };
+      }),
     };
   }
   return normalized;

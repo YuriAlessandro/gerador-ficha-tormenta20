@@ -1,137 +1,148 @@
 /* Character Creation Layout - Mode Selection and Transitions */
 
-/* Container for the entire character creation section */
+/*
+ * Motion tokens (Emil Kowalski's design-engineering philosophy):
+ * - Strong custom ease-out for entrances & hover-return (built-in easings are too weak).
+ * - Durations kept under 300ms; hover ~180ms; press feedback ~140ms.
+ */
 .character-creation-container {
   width: 100%;
+  --cc-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* Mode cards container - horizontal layout on desktop */
+/* ------------------------------------------------------------------ */
+/* Mode selection (two cards)                                          */
+/* ------------------------------------------------------------------ */
+
 .mode-cards-container {
   display: flex;
   gap: 16px;
   width: 100%;
-  min-height: 280px;
 }
 
 /* Individual mode card */
 .mode-card {
+  --cc-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 24px;
-  border-radius: 12px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 28px 24px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
-  text-align: center;
+  text-align: left;
   min-height: 240px;
   position: relative;
   overflow: hidden;
+  outline: none;
+  /* Only animate transform/shadow/border — never `all`. */
+  transition: transform 180ms var(--cc-ease-out),
+    box-shadow 180ms var(--cc-ease-out), border-color 180ms var(--cc-ease-out);
 }
 
-.mode-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+/* Entrance: gentle fade-up, staggered so the two cards don't pop at once. */
+.mode-cards-container .mode-card {
+  opacity: 0;
+  animation: cardIn 320ms var(--cc-ease-out) forwards;
+}
+.mode-cards-container .mode-card:nth-child(1) {
+  animation-delay: 20ms;
+}
+.mode-cards-container .mode-card:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+.mode-card:focus-visible {
+  box-shadow: 0 0 0 3px rgba(209, 50, 53, 0.4);
+}
+
+/* Hover lift — gated to real pointers so touch taps don't trigger it. */
+@media (hover: hover) and (pointer: fine) {
+  .mode-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  }
+  /* Arrow nudges forward on hover — a small invitation to click. */
+  .mode-card:hover .mode-card-arrow {
+    transform: translateX(4px);
+  }
+}
+
+/* Press feedback: the card scales down, confirming the click was heard. */
+.mode-card:active {
+  transform: scale(0.98);
+  transition: transform 140ms var(--cc-ease-out);
 }
 
 .mode-card-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  transition: all 0.3s ease-in-out;
+  font-size: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  margin-bottom: 18px;
 }
 
 .mode-card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.mode-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 12px;
-  transition: all 0.3s ease-in-out;
 }
 
 .mode-card-description {
   font-size: 0.9rem;
-  line-height: 1.5;
-  max-width: 280px;
-  opacity: 0.85;
-  transition: all 0.3s ease-in-out;
+  line-height: 1.55;
+  max-width: 320px;
+  opacity: 0.9;
 }
 
-.mode-card-button {
-  margin-top: 20px;
-  transition: all 0.3s ease-in-out;
+.mode-card-arrow {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  display: inline-flex;
+  transition: transform 180ms var(--cc-ease-out);
 }
 
-/* Minimized card state (desktop) */
-.mode-card.minimized {
-  flex: 0 0 80px;
-  min-height: 100%;
-  padding: 16px 8px;
-  cursor: pointer;
-}
+/* ------------------------------------------------------------------ */
+/* Selected state: collapsed card (left) + form (right)                */
+/* ------------------------------------------------------------------ */
 
-.mode-card.minimized .mode-card-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
-}
-
-.mode-card.minimized .mode-card-title {
-  font-size: 0.75rem;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  margin-bottom: 8px;
-}
-
-.mode-card.minimized .mode-card-description,
-.mode-card.minimized .mode-card-button {
-  display: none;
-}
-
-.mode-card.minimized .mode-card-back-arrow {
+.mode-selected-layout {
   display: flex;
-  margin-top: 8px;
+  flex-direction: row;
+  gap: 16px;
+  width: 100%;
+  align-items: stretch;
 }
 
-.mode-card-back-arrow {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
+/*
+ * Selection transition: the layout slides in from the side the chosen card
+ * lives on (right for Aleatória, left for Nova), preserving spatial continuity.
+ * ease-out (custom curve) — entering elements should feel immediate.
+ */
+.slide-in-right {
+  animation: slideInFromRight 280ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.mode-card.minimized:hover .mode-card-back-arrow {
-  background-color: rgba(255, 255, 255, 0.1);
+.slide-in-left {
+  animation: slideInFromLeft 280ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.mode-card-switch-text {
-  display: none;
-  font-size: 0.65rem;
-  opacity: 0.7;
-  margin-top: 4px;
-}
-
-.mode-card.minimized .mode-card-switch-text {
-  display: block;
-}
-
-/* Hidden card (completely removed from view) */
-.mode-card.hidden {
-  display: none;
-}
-
-/* Form container that appears next to minimized card */
-.creation-form-container {
-  flex: 1;
-  animation: slideIn 0.3s ease-in-out;
-}
-
-/* Animations */
 @keyframes slideInFromRight {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(24px);
   }
   to {
     opacity: 1;
@@ -142,7 +153,7 @@
 @keyframes slideInFromLeft {
   from {
     opacity: 0;
-    transform: translateX(-30px);
+    transform: translateX(-24px);
   }
   to {
     opacity: 1;
@@ -150,185 +161,163 @@
   }
 }
 
-@keyframes slideIn {
+/* Collapsed card — a narrow, READABLE rail (no sideways writing-mode). */
+.mode-card.minimized {
+  flex: 0 0 96px;
+  min-height: 100%;
+  padding: 18px 8px;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  min-width: 0;
+}
+
+.mode-card.minimized .mode-card-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.mode-card.minimized .mode-card-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  /* Horizontal, readable text — the whole point of the redesign. */
+  writing-mode: horizontal-tb;
+}
+
+.mode-card-swap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: auto;
+  font-size: 0.62rem;
+  opacity: 0.85;
+  transition: opacity 180ms var(--cc-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mode-card.minimized:hover .mode-card-swap {
+    opacity: 1;
+  }
+}
+
+.creation-form-container {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyframes — small translate + opacity only (never scale from 0).    */
+/* ------------------------------------------------------------------ */
+
+@keyframes cardIn {
   from {
     opacity: 0;
-    transform: translateX(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
-@keyframes fadeIn {
+@keyframes contentIn {
   from {
     opacity: 0;
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
+/* ------------------------------------------------------------------ */
+/* Mobile                                                              */
+/* ------------------------------------------------------------------ */
 
-.slide-in-right {
-  animation: slideInFromRight 0.3s ease-in-out;
-}
-
-.slide-in-left {
-  animation: slideInFromLeft 0.3s ease-in-out;
-}
-
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Layout when a mode is selected (desktop) */
-.mode-selected-layout {
-  display: flex;
-  gap: 16px;
-  width: 100%;
-  min-height: 400px;
-}
-
-.mode-selected-layout.random-selected {
-  flex-direction: row;
-}
-
-.mode-selected-layout.manual-selected {
-  flex-direction: row;
-}
-
-/* Mobile styles */
 @media (max-width: 768px) {
   .mode-cards-container {
     flex-direction: column;
-    min-height: auto;
   }
 
   .mode-card {
-    min-height: 180px;
-    padding: 24px 20px;
-  }
-
-  .mode-card-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-  }
-
-  .mode-card-title {
-    font-size: 1.1rem;
-  }
-
-  .mode-card-description {
-    font-size: 0.85rem;
-  }
-
-  /* On mobile, minimized card becomes a header bar */
-  .mode-card.minimized {
-    flex: 0 0 auto;
     min-height: auto;
-    flex-direction: row;
-    padding: 12px 16px;
-    justify-content: flex-start;
-    gap: 12px;
-    border-radius: 8px;
+    padding: 22px 20px;
   }
 
-  .mode-card.minimized .mode-card-icon {
-    font-size: 24px;
-    margin-bottom: 0;
-  }
-
-  .mode-card.minimized .mode-card-title {
-    writing-mode: horizontal-tb;
-    text-orientation: mixed;
-    font-size: 0.9rem;
-    margin-bottom: 0;
-  }
-
-  .mode-card.minimized .mode-card-back-arrow {
-    margin-top: 0;
-    margin-left: auto;
-  }
-
-  .mode-card.minimized .mode-card-switch-text {
-    display: none;
+  .mode-card-arrow {
+    top: 22px;
+    bottom: auto;
   }
 
   .mode-selected-layout {
     flex-direction: column;
+  }
+
+  /* A horizontal translate would overflow a narrow column — fade up instead. */
+  .slide-in-left,
+  .slide-in-right {
+    animation: contentIn 260ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  /* Keep the mode/back header on top regardless of which side the card is on. */
+  .mode-selected-layout .mode-card.minimized {
+    order: -1;
+  }
+
+  /* Collapsed card becomes a horizontal header bar on mobile. */
+  .mode-card.minimized {
+    flex: 0 0 auto;
     min-height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    text-align: left;
+    border-radius: 10px;
   }
 
-  .mode-selected-layout.random-selected,
-  .mode-selected-layout.manual-selected {
-    flex-direction: column;
+  .mode-card.minimized .mode-card-icon {
+    margin-bottom: 0;
   }
 
-  .creation-form-container {
-    animation: fadeIn 0.3s ease-in-out;
+  .mode-card.minimized .mode-card-title {
+    margin-bottom: 0;
+  }
+
+  .mode-card-swap {
+    flex-direction: row;
+    gap: 4px;
+    margin-top: 0;
+    margin-left: auto;
   }
 }
 
-/* Theme-specific styles - Light mode */
-.mode-card.light {
-  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
-  border: 1px solid #e0e0e0;
-  color: #333333;
-}
+/* ------------------------------------------------------------------ */
+/* Reduced motion — keep opacity fades, drop all movement.             */
+/* ------------------------------------------------------------------ */
 
-.mode-card.light:hover {
-  border-color: #bdbdbd;
-}
-
-.mode-card.light .mode-card-description {
-  color: #666666;
-}
-
-/* Theme-specific styles - Dark mode */
-.mode-card.dark {
-  background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
-  border: 1px solid #404040;
-  color: #ffffff;
-}
-
-.mode-card.dark:hover {
-  border-color: #505050;
-}
-
-.mode-card.dark .mode-card-description {
-  color: #b0b0b0;
-}
-
-/* Primary variant for highlighted card - colors controlled by MUI theme */
-.mode-card.primary {
-  color: #ffffff;
-}
-
-.mode-card.primary .mode-card-description {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* Secondary variant */
-.mode-card.secondary {
-  background: linear-gradient(135deg, #424242 0%, #212121 100%);
-  border: 1px solid #616161;
-  color: #ffffff;
-}
-
-.mode-card.secondary:hover {
-  box-shadow: 0 8px 24px rgba(66, 66, 66, 0.3);
-}
-
-.mode-card.secondary .mode-card-description {
-  color: rgba(255, 255, 255, 0.85);
+@media (prefers-reduced-motion: reduce) {
+  .mode-card,
+  .mode-card-arrow,
+  .mode-card-swap,
+  .slide-in-left,
+  .slide-in-right,
+  .mode-cards-container .mode-card {
+    animation: none !important;
+    transition: opacity 180ms ease !important;
+    transform: none !important;
+  }
+  .mode-cards-container .mode-card {
+    opacity: 1;
+  }
+  .mode-card:active {
+    transform: none !important;
+  }
 }

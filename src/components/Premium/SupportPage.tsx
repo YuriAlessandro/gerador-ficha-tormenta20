@@ -106,8 +106,11 @@ const SupportPage: React.FC = () => {
       >
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'left', lineHeight: 1.8 }}
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'left',
+            lineHeight: 1.8,
+          }}
         >
           O <strong>Fichas de Nimb</strong> é um projeto criado com muito
           carinho para a comunidade de Tormenta 20. Desenvolvemos esta
@@ -116,8 +119,12 @@ const SupportPage: React.FC = () => {
         </Typography>
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'left',
+            lineHeight: 1.8,
+            mt: 2,
+          }}
         >
           Por muito tempo, fomos um projeto feito completamente no tempo livre,
           por vontade própria, com custos mínimos de operação. Um verdadeiro
@@ -125,8 +132,12 @@ const SupportPage: React.FC = () => {
         </Typography>
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'left',
+            lineHeight: 1.8,
+            mt: 2,
+          }}
         >
           Agora, estamos dando um passo adiante e expandindo ainda mais nossa
           plataforma. Porém, com tudo isso, vieram vários custos. Agora
@@ -135,8 +146,12 @@ const SupportPage: React.FC = () => {
         </Typography>
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'left',
+            lineHeight: 1.8,
+            mt: 2,
+          }}
         >
           Com o seu apoio, você ajuda a manter o projeto de pé, com atualizações
           constantes, crescimento para novos sistemas, novos suplementos, e cada
@@ -148,8 +163,12 @@ const SupportPage: React.FC = () => {
         </Typography>
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'left',
+            lineHeight: 1.8,
+            mt: 2,
+          }}
         >
           Fichas de Nimb é de graça e sempre será de graça. Todas as regras de
           livro básico e dos suplementos continuam open-source. Estamos
@@ -161,8 +180,12 @@ const SupportPage: React.FC = () => {
         </Typography>
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'left',
+            lineHeight: 1.8,
+            mt: 2,
+          }}
         >
           Queremos crescer uma comunidade, aumentar o repertório de ferramentas,
           de sistemas e de suplementos. E para isso, precisamos do seu apoio.
@@ -187,8 +210,10 @@ const SupportPage: React.FC = () => {
       >
         <Typography
           variant='body1'
-          fontWeight='bold'
-          sx={{ textAlign: 'center' }}
+          sx={{
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
         >
           Apoiadores de qualquer nível têm acesso ao dado 3D nas mesas de jogo!
         </Typography>
@@ -197,7 +222,13 @@ const SupportPage: React.FC = () => {
       {/* Footer info - only on desktop */}
       {!isMobile && (
         <Box sx={{ mt: 4 }}>
-          <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 1,
+            }}
+          >
             Os pagamentos são processados de forma segura através do{' '}
             <a
               href='https://docs.stripe.com/security'
@@ -208,7 +239,12 @@ const SupportPage: React.FC = () => {
             </a>
             .
           </Typography>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Você pode cancelar seu apoio a qualquer momento.
           </Typography>
         </Box>
@@ -297,14 +333,15 @@ const SupportPage: React.FC = () => {
                     }}
                   />
                 )}
-
                 <CardContent sx={{ pt: 4 }}>
                   {/* Level badge and icon */}
                   <Stack
                     direction='row'
-                    alignItems='center'
                     spacing={1}
-                    sx={{ mb: 2 }}
+                    sx={{
+                      alignItems: 'center',
+                      mb: 2,
+                    }}
                   >
                     {(() => {
                       if (isLevel3)
@@ -315,7 +352,12 @@ const SupportPage: React.FC = () => {
                         return <StarIcon sx={{ color: config.badgeColor }} />;
                       return <FavoriteIcon sx={{ color: config.badgeColor }} />;
                     })()}
-                    <Typography variant='h5' fontWeight='bold'>
+                    <Typography
+                      variant='h5'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       {levelInfo.name}
                     </Typography>
                   </Stack>
@@ -354,8 +396,8 @@ const SupportPage: React.FC = () => {
                     <Typography
                       variant='h3'
                       component='span'
-                      fontWeight='bold'
                       sx={{
+                        fontWeight: 'bold',
                         background: config.badgeGradient,
                         backgroundClip: 'text',
                         WebkitBackgroundClip: 'text',
@@ -366,8 +408,10 @@ const SupportPage: React.FC = () => {
                     </Typography>
                     <Typography
                       variant='body2'
-                      color='text.secondary'
                       component='span'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       {levelInfo.billingPeriod === 'yearly' ? '/ano' : '/mês'}
                     </Typography>
@@ -376,8 +420,10 @@ const SupportPage: React.FC = () => {
                   {/* Description */}
                   <Typography
                     variant='body2'
-                    color='text.secondary'
-                    sx={{ mb: 2 }}
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 2,
+                    }}
                   >
                     {levelInfo.description}
                   </Typography>
@@ -386,9 +432,11 @@ const SupportPage: React.FC = () => {
                   <Box sx={{ mb: 2 }}>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      display='block'
-                      sx={{ mb: 1 }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mb: 1,
+                      }}
                     >
                       Seu badge:
                     </Typography>
@@ -405,7 +453,9 @@ const SupportPage: React.FC = () => {
                         key={feature}
                         direction='row'
                         spacing={1}
-                        alignItems='center'
+                        sx={{
+                          alignItems: 'center',
+                        }}
                       >
                         <CheckIcon
                           sx={{ color: 'success.main', fontSize: 18 }}
@@ -415,7 +465,6 @@ const SupportPage: React.FC = () => {
                     ))}
                   </Stack>
                 </CardContent>
-
                 <CardActions sx={{ p: 3, pt: 0 }}>
                   <Button
                     fullWidth
@@ -464,10 +513,21 @@ const SupportPage: React.FC = () => {
       {/* Footer info - only on mobile */}
       {isMobile && (
         <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 1,
+            }}
+          >
             Os pagamentos são processados de forma segura através do Stripe.
           </Typography>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Você pode cancelar seu apoio a qualquer momento.
           </Typography>
         </Box>
@@ -497,7 +557,6 @@ const SupportPage: React.FC = () => {
           <Box sx={{ flex: '0 0 45%', maxWidth: '45%' }}>
             <LeftContent />
           </Box>
-
           {/* Right column - Scrollable */}
           <Box sx={{ flex: '1 1 55%', maxWidth: '55%' }}>
             <RightContent />

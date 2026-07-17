@@ -17,7 +17,9 @@ import { GeneralPowers } from '../../../../interfaces/Poderes';
 import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { Spell } from '../../../../interfaces/Spells';
 import Origin from '../../../../interfaces/Origin';
-import { ItemMod } from '../../../../interfaces/Rewards';
+import Divindade from '../../../../interfaces/Divindade';
+import { ItemE, ItemMod } from '../../../../interfaces/Rewards';
+import { SpecialMaterial } from '../../../../interfaces/SpecialMaterials';
 import { GolpePessoalEffect } from '../golpePessoal';
 
 /**
@@ -48,6 +50,11 @@ export interface SupplementImprovements {
   armors?: ItemMod[];
 }
 
+export interface SupplementEnchantments {
+  weapons?: ItemE[];
+  armors?: ItemE[];
+}
+
 export interface SupplementData {
   id: SupplementId;
   races: Race[];
@@ -56,7 +63,12 @@ export interface SupplementData {
   equipment?: SupplementEquipment;
   spells?: SupplementSpells;
   origins?: Origin[];
+  /** Divindades adicionais (ex.: homebrew). Core usa o enum estático. */
+  divindades?: Divindade[];
   improvements?: SupplementImprovements;
+  /** Materiais especiais adicionais (ex.: Ameaças de Arton) */
+  specialMaterials?: SpecialMaterial[];
+  enchantments?: SupplementEnchantments;
   /** Poderes adicionais para classes existentes (do livro básico) */
   classPowers?: SupplementClassPowers;
   /** Efeitos adicionais de Golpe Pessoal (habilidade do Guerreiro) */

@@ -102,9 +102,20 @@ const Row: React.FC<{
           </IconButton>
         </TableCell>
         <TableCell component='th' scope='row' sx={{ position: 'relative' }}>
-          <Box display='flex' alignItems='center' gap={1}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
             <LocalFireDepartmentIcon color='primary' fontSize='small' />
-            <Typography variant='body1' fontWeight={500}>
+            <Typography
+              variant='body1'
+              sx={{
+                fontWeight: 500,
+              }}
+            >
               {power.name}
             </Typography>
             <Chip
@@ -154,7 +165,12 @@ const Row: React.FC<{
                 {power.name}
               </Typography>
 
-              <Typography variant='body1' paragraph>
+              <Typography
+                variant='body1'
+                sx={{
+                  marginBottom: '16px',
+                }}
+              >
                 {power.description}
               </Typography>
 
@@ -434,7 +450,12 @@ const PowersTable: React.FC = () => {
 
         {/* Results Summary */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {powers.length > 0
               ? `${powers.length} poder${
                   powers.length !== 1 ? 'es' : ''

@@ -120,6 +120,7 @@ export function applyDuendeCustomization(
     nature: natureId,
     presentPowers: presenteIds,
     tabuSkill,
+    duendeBonusAttributes: bonusAttributes, // Dons escolhidos (2, ou 3 se Animal)
     attributes: {
       attrs: accumulatedAttrs,
     },

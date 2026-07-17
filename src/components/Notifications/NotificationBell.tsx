@@ -76,13 +76,15 @@ const NotificationBell: React.FC = () => {
           vertical: 'top',
           horizontal: 'right',
         }}
-        PaperProps={{
-          sx: {
-            width: { xs: '100vw', sm: 360 },
-            maxWidth: { xs: '100vw', sm: 360 },
-            maxHeight: 500,
-            display: 'flex',
-            flexDirection: 'column',
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: '100vw', sm: 360 },
+              maxWidth: { xs: '100vw', sm: 360 },
+              maxHeight: 500,
+              display: 'flex',
+              flexDirection: 'column',
+            },
           },
         }}
       >

@@ -22,6 +22,11 @@ export const SEO_CONFIG = {
       description:
         'Artigos, dicas e novidades sobre Tormenta 20 e o Fichas de Nimb.',
     },
+    forum: {
+      title: 'Fórum',
+      description:
+        'Participe da comunidade de Tormenta 20: tire dúvidas, compartilhe ameaças, builds e discuta as regras no fórum do Fichas de Nimb.',
+    },
     database: {
       title: 'Enciclopédia de Tormenta 20',
       description:
@@ -105,6 +110,11 @@ export const SEO_CONFIG = {
       title: 'Wyrt - Jogo de Cartas de Arton',
       description:
         'Jogue Wyrt, o jogo de cartas do universo de Tormenta 20. Aposte, blefe e tente acertar o Número da Raposa! Jogue solo contra bots ou online com amigos.',
+    },
+    mapaDeArton: {
+      title: 'Mapa Interativo de Arton',
+      description:
+        'Mapa interativo de Arton, o mundo oficial de Tormenta 20. Explore reinos e cidades de Arton, Tamu-ra, Lamnor, Doherimm e Moreania, meça distâncias e trace rotas.',
     },
   },
 };

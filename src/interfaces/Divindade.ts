@@ -73,6 +73,15 @@ export const divindadeDisplayNames: Record<DivindadeNames, string> = {
 export default interface Divindade {
   name: string;
   poderes: GeneralPower[];
+  // Campos do livro (descritivos; usados por divindades homebrew). Opcionais —
+  // nada no motor depende deles; servem para exibição.
+  beliefs?: string;
+  holySymbol?: string;
+  energy?: 'positiva' | 'negativa' | 'qualquer';
+  preferredWeapon?: string;
+  allowedRaces?: string[];
+  allowedClasses?: string[];
+  obligations?: string;
 }
 
 export type FaithProbability = {

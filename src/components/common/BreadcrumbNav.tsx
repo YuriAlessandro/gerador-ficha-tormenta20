@@ -28,8 +28,12 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({ items }) => (
         return (
           <Typography
             key={item.label}
-            color='text.primary'
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            sx={{
+              color: 'text.primary',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
           >
             {item.icon}
             {item.label}

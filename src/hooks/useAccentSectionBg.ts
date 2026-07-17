@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import sectionBgRed from '@/assets/images/sectionBg/sectionBg.png';
 import sectionBgBrown from '@/assets/images/sectionBg/sectionBg_brown.png';
 import sectionBgDarkBrown from '@/assets/images/sectionBg/sectionBg_dark-brown.png';
+import sectionBgYellow from '@/assets/images/sectionBg/sectionBg_yellow.png';
+import sectionBgGreen from '@/assets/images/sectionBg/sectionBg_green.png';
 import sectionBgPurple from '@/assets/images/sectionBg/sectionBg_purple.png';
 import sectionBgNavy from '@/assets/images/sectionBg/sectionBg_navy.png';
 import { AccentColorId } from '@/theme/accentColors';
@@ -14,6 +16,8 @@ const sectionBgMap: Record<AccentColorId, string> = {
   'dark-brown': sectionBgDarkBrown,
   purple: sectionBgPurple,
   navy: sectionBgNavy,
+  'brazil-green': sectionBgGreen,
+  'brazil-yellow': sectionBgYellow,
 };
 
 /**

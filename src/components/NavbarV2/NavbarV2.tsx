@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Stack,
@@ -16,7 +16,6 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import ArchitectureIcon from '@mui/icons-material/Architecture';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -24,7 +23,8 @@ import BookIcon from '@mui/icons-material/Book';
 import MapIcon from '@mui/icons-material/Map';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
-import SecurityIcon from '@mui/icons-material/Security';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import PetsIcon from '@mui/icons-material/Pets';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import GroupIcon from '@mui/icons-material/Group';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
@@ -53,6 +53,7 @@ interface NavMenuItem {
   link: string;
   icon: React.ReactNode;
   isExternal?: boolean;
+  requireAuth?: boolean;
 }
 
 interface NavCategory {
@@ -62,125 +63,137 @@ interface NavCategory {
   requireAuth?: boolean;
 }
 
-const navCategories: NavCategory[] = [
-  {
-    label: 'Meus Personagens',
-    link: '/meus-personagens',
-    requireAuth: true,
-  },
-  {
-    label: 'Minhas Ameaças',
-    link: '/meus-personagens?tab=ameacas',
-    requireAuth: true,
-  },
-  {
-    label: 'Ferramentas',
-    items: [
+const buildNavCategories = (isAuthenticated: boolean): NavCategory[] => {
+  const jogarItems: NavMenuItem[] = [];
+  if (isAuthenticated) {
+    jogarItems.push(
       {
-        label: 'Criar Ficha',
-        link: '/criar-ficha',
-        icon: <PersonAddIcon fontSize='small' />,
-      },
-      {
-        label: 'Gerador de Ameaças',
-        link: '/gerador-ameacas',
-        icon: <SecurityIcon fontSize='small' />,
-      },
-      {
-        label: 'Item Superior',
-        link: '/itens-superiores',
-        icon: <ArchitectureIcon fontSize='small' />,
-      },
-      {
-        label: 'Item Mágico',
-        link: '/itens-magicos',
-        icon: <AutoFixHighIcon fontSize='small' />,
-      },
-      {
-        label: 'Recompensas',
-        link: '/recompensas',
-        icon: <AttachMoneyIcon fontSize='small' />,
-      },
-    ],
-  },
-  {
-    label: 'Enciclopédia',
-    items: [
-      {
-        label: 'Raças',
-        link: '/database/raças',
+        label: 'Personagens',
+        link: '/meus-personagens',
         icon: <GroupIcon fontSize='small' />,
       },
       {
-        label: 'Classes',
-        link: '/database/classes',
-        icon: <WhatshotIcon fontSize='small' />,
-      },
-      {
-        label: 'Origens',
-        link: '/database/origens',
-        icon: <BrowseGalleryIcon fontSize='small' />,
-      },
-      {
-        label: 'Divindades',
-        link: '/database/divindades',
-        icon: <FilterDramaIcon fontSize='small' />,
-      },
-      {
-        label: 'Poderes',
-        link: '/database/poderes',
-        icon: <LocalFireDepartmentIcon fontSize='small' />,
-      },
-      {
-        label: 'Magias',
-        link: '/database/magias',
-        icon: <AutoFixHighIcon fontSize='small' />,
-      },
-    ],
-  },
-  {
-    label: 'Consulta',
-    items: [
-      {
-        label: 'Caverna do Saber',
-        link: '/caverna-do-saber',
-        icon: <BookIcon fontSize='small' />,
-      },
-      {
-        label: 'Mapa de Arton',
-        link: 'https://mapadearton.fichasdenimb.com.br/',
-        icon: <MapIcon fontSize='small' />,
-        isExternal: true,
-      },
-    ],
-  },
-  {
-    label: 'Comunidade',
-    items: [
-      {
-        label: 'Wyrt',
-        link: '/wyrt',
-        icon: <DynamicFeedIcon fontSize='small' />,
-      },
-      {
-        label: 'Mesas Virtuais',
-        link: '/mesas',
-        icon: <TableRestaurantIcon fontSize='small' />,
-      },
-      {
-        label: 'Explorar Builds',
-        link: '/builds',
-        icon: <AccountTreeIcon fontSize='small' />,
-      },
-    ],
-  },
-];
+        label: 'Ameaças',
+        link: '/meus-personagens?tab=ameacas',
+        icon: <PetsIcon fontSize='small' />,
+      }
+    );
+  }
+  jogarItems.push(
+    {
+      label: 'Mesa Virtual',
+      link: '/mesas',
+      icon: <TableRestaurantIcon fontSize='small' />,
+    },
+    {
+      label: 'Wyrt',
+      link: '/wyrt',
+      icon: <DynamicFeedIcon fontSize='small' />,
+    }
+  );
+
+  return [
+    {
+      label: 'Jogar',
+      items: jogarItems,
+    },
+    {
+      label: 'Ferramentas',
+      items: [
+        {
+          label: 'Rolador de Recompensas',
+          link: '/recompensas',
+          icon: <AttachMoneyIcon fontSize='small' />,
+        },
+        {
+          label: 'Criar Item Superior',
+          link: '/itens-superiores',
+          icon: <ArchitectureIcon fontSize='small' />,
+        },
+        {
+          label: 'Criar Item Mágico',
+          link: '/itens-magicos',
+          icon: <AutoFixHighIcon fontSize='small' />,
+        },
+      ],
+    },
+    {
+      label: 'Comunidade',
+      items: [
+        {
+          label: 'Bestiário',
+          link: '/bestiario',
+          icon: <AutoStoriesIcon fontSize='small' />,
+        },
+        {
+          label: 'Builds',
+          link: '/builds',
+          icon: <AccountTreeIcon fontSize='small' />,
+        },
+      ],
+    },
+    {
+      label: 'Enciclopédia',
+      items: [
+        {
+          label: 'Raças',
+          link: '/database/raças',
+          icon: <GroupIcon fontSize='small' />,
+        },
+        {
+          label: 'Classes',
+          link: '/database/classes',
+          icon: <WhatshotIcon fontSize='small' />,
+        },
+        {
+          label: 'Origens',
+          link: '/database/origens',
+          icon: <BrowseGalleryIcon fontSize='small' />,
+        },
+        {
+          label: 'Divindades',
+          link: '/database/divindades',
+          icon: <FilterDramaIcon fontSize='small' />,
+        },
+        {
+          label: 'Poderes',
+          link: '/database/poderes',
+          icon: <LocalFireDepartmentIcon fontSize='small' />,
+        },
+        {
+          label: 'Magias',
+          link: '/database/magias',
+          icon: <AutoFixHighIcon fontSize='small' />,
+        },
+      ],
+    },
+    {
+      label: 'Consulta',
+      items: [
+        {
+          label: 'Caverna do Saber',
+          link: '/caverna-do-saber',
+          icon: <BookIcon fontSize='small' />,
+        },
+        {
+          label: 'Mapa de Arton',
+          link: '/mapadearton',
+          icon: <MapIcon fontSize='small' />,
+        },
+      ],
+    },
+  ];
+};
 
 const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
   const theme = useTheme();
   const { isAuthenticated } = useAuth();
   const { isSupporter } = useSubscription();
   const isMobile = useMediaQuery(theme.breakpoints.down('xl'));
+  const navCategories = useMemo(
+    () => buildNavCategories(isAuthenticated),
+    [isAuthenticated]
+  );
   const [anchorEls, setAnchorEls] = useState<{
     [key: string]: HTMLElement | null;
   }>({});
@@ -252,12 +265,19 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
     >
       <Stack
         direction='row'
-        justifyContent='space-between'
-        alignItems='center'
         spacing={2}
-        width='100%'
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+        }}
       >
-        <Box flexDirection='row' display='flex'>
+        <Box
+          sx={{
+            flexDirection: 'row',
+            display: 'flex',
+          }}
+        >
           {/* Left side: Menu button */}
           <IconButton
             onClick={onClickMenu}
@@ -268,7 +288,13 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
           </IconButton>
 
           {/* Center: Logo and Dropdowns */}
-          <Stack direction='row' alignItems='center' spacing={{ xs: 1, md: 3 }}>
+          <Stack
+            direction='row'
+            spacing={{ xs: 1, md: 3 }}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             {/* Logo */}
             <Link
               href='/'
@@ -329,17 +355,6 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                           open={Boolean(anchorEls[category.label])}
                           onClose={() => handleMenuClose(category.label)}
                           disableScrollLock
-                          MenuListProps={{
-                            sx: { py: 0.5 },
-                          }}
-                          PaperProps={{
-                            sx: {
-                              borderRadius: 2,
-                              mt: 1,
-                              minWidth: 180,
-                              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                            },
-                          }}
                           transformOrigin={{
                             horizontal: 'left',
                             vertical: 'top',
@@ -347,6 +362,19 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                           anchorOrigin={{
                             horizontal: 'left',
                             vertical: 'bottom',
+                          }}
+                          slotProps={{
+                            paper: {
+                              sx: {
+                                borderRadius: 2,
+                                mt: 1,
+                                minWidth: 180,
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                              },
+                            },
+                            list: {
+                              sx: { py: 0.5 },
+                            },
                           }}
                         >
                           {category.items?.map((item, index) => (
@@ -423,9 +451,11 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
         {/* Right side: Instagram + User menu */}
         <Stack
           direction='row'
-          alignItems='center'
           spacing={1}
-          sx={{ ml: 'auto' }}
+          sx={{
+            alignItems: 'center',
+            ml: 'auto',
+          }}
         >
           {/* Support CTA - desktop only, non-supporters */}
           {!isMobile && !isSupporter && (

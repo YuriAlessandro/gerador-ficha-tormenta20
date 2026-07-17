@@ -8,6 +8,10 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 import { recalculateSheet } from './recalculateSheet';
+import { normalizeSheet } from './sheetNormalizer';
+import { isBonusActive } from './bonusConditions';
+import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
+import { stampUsedSupplements } from './contentSources';
 import {
   getClassBaseSkills,
   getClassBaseSkillsWithChoices,
@@ -23,6 +27,7 @@ import EQUIPAMENTOS, {
   Armas,
   isHeavyArmor,
 } from '../data/systems/tormenta20/equipamentos';
+import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import {
   FAMILIARS,
   FAMILIAR_NAMES,
@@ -34,7 +39,6 @@ import {
 import {
   standardFaithProbability,
   DivindadeEnum,
-  DIVINDADES,
 } from '../data/systems/tormenta20/divindades';
 import { generateRandomName } from '../data/systems/tormenta20/nomes';
 import {
@@ -48,6 +52,7 @@ import SelectedOptions from '../interfaces/SelectedOptions';
 import {
   countTormentaPowers,
   getRandomItemFromArray,
+  getVirtudePaladinescaPMBonus,
   mergeFaithProbabilities,
   pickFaith,
   pickFromAllowed,
@@ -55,9 +60,11 @@ import {
   rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/systems/tormenta20/proficiencias';
+import { getNonProficientArmorPenalty } from './proficiencies';
 import {
   generateRandomCompanion,
   createCompanion,
+  getCompanionTrickDefinition,
 } from '../data/systems/tormenta20/herois-de-arton/companion';
 import { generateEquipmentRewards } from './equipmentRewardGenerator';
 import {
@@ -73,49 +80,27 @@ import { alchemyItems } from '../data/systems/tormenta20/equipamentos-gerais';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { generateRandomGolpePessoal } from './powers/golpePessoal';
-import { GOLPE_PESSOAL_EFFECTS } from '../data/systems/tormenta20/golpePessoal';
-import {
-  allArcaneSpellsCircle1,
-  allArcaneSpellsCircle2,
-  allArcaneSpellsCircle3,
-  allArcaneSpellsCircle4,
-  allArcaneSpellsCircle5,
-  arcaneSpellsCircle1,
-  arcaneSpellsCircle2,
-  arcaneSpellsCircle3,
-  arcaneSpellsCircle4,
-  arcaneSpellsCircle5,
-  getArcaneSpellsOfCircle,
-} from '../data/systems/tormenta20/magias/arcane';
-import {
-  allDivineSpellsCircle1,
-  allDivineSpellsCircle2,
-  allDivineSpellsCircle3,
-  allDivineSpellsCircle4,
-  allDivineSpellsCircle5,
-  divineSpellsCircle1,
-  divineSpellsCircle2,
-  divineSpellsCircle3,
-  divineSpellsCircle4,
-  divineSpellsCircle5,
-} from '../data/systems/tormenta20/magias/divine';
+import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcane';
 import { Spell, allSpellSchools } from '../interfaces/Spells';
+import { DiceRoll } from '../interfaces/DiceRoll';
+import { CustomEffect } from '../premium/interfaces/CustomEffect';
 import {
   getRaceDisplacement,
   getRaceSize,
 } from '../data/systems/tormenta20/races/functions/functions';
-import Origin from '../interfaces/Origin';
+import Origin, { Items } from '../interfaces/Origin';
 import {
   GeneralPower,
   GeneralPowerType,
   OriginPower,
   PowerGetter,
   PowersGetters,
-  Requirement,
   RequirementType,
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   ClassLevelEntry,
+  SheetActionStep,
+  SheetBonus,
   SheetChangeSource,
   StatModifier,
   Step,
@@ -123,6 +108,7 @@ import CharacterSheet, {
 } from '../interfaces/CharacterSheet';
 import {
   initializeClassLevels,
+  reconcileClassLevels,
   getClassLevel,
   findClassDescription,
   buildSpellPathFromSetup,
@@ -130,6 +116,7 @@ import {
   applySerializedOverrides,
   getClassSetupAbilities,
 } from './multiclass';
+import { resolveSchoolChoice } from './spellPathUtils';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
@@ -139,6 +126,7 @@ import roles from '../data/systems/tormenta20/roles';
 import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
+  getFuturaLendaClassPowers,
   getPowersAllowedByRequirements,
   getWeightedInventorClassPowers,
   isPowerAvailable,
@@ -172,6 +160,10 @@ import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses
 import { addOtherBonusToSkill } from './skills/general';
 import { applyGolemDespertoCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 import { applyDuendeCustomization } from '../data/systems/tormenta20/herois-de-arton/races/duende';
+import {
+  DUENDE_SIZES,
+  DUENDE_SIZE_NAMES,
+} from '../data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { applyMoreauCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import {
   getAttributeIncreasesInSamePlateau,
@@ -181,6 +173,7 @@ import {
   feiticeiroPaths,
   arcanistaSpellPaths,
   ArcanistaSubtypes,
+  createLinhagemAbencoada,
 } from '../data/systems/tormenta20/classes/arcanista';
 
 // Race customization interface for races with customization options
@@ -577,6 +570,37 @@ interface ReduceAttributesParams {
   nomesDosAtributosModificados: string[];
 }
 
+// Use getAttributes if available (for sex-dependent attributes like Nagah)
+export function getEffectiveRaceAttrs(
+  race: Race,
+  sex?: 'Masculino' | 'Feminino'
+): RaceAttributeAbility[] {
+  return race.getAttributes && sex
+    ? race.getAttributes(sex)
+    : race.attributes.attrs;
+}
+
+// Moreau também tem getAttributes, mas retorna o mesmo conjunto para ambos os
+// sexos (depende de herança) — por isso a detecção compara os dois resultados
+export function raceHasSexDimorphism(race: Race): boolean {
+  if (!race.getAttributes) return false;
+  return (
+    JSON.stringify(race.getAttributes('Masculino')) !==
+    JSON.stringify(race.getAttributes('Feminino'))
+  );
+}
+
+// Gênero 'Outro' não é coberto pelas regras de dimorfismo; nesse caso o
+// jogador escolhe o conjunto de atributos via dimorphismChoice (wizard)
+export function resolveSexForAttributes(
+  gender?: string,
+  dimorphismChoice?: 'Masculino' | 'Feminino'
+): 'Masculino' | 'Feminino' | undefined {
+  if (gender === 'Masculino' || gender === 'Feminino') return gender;
+  if (gender === 'Outro') return dimorphismChoice;
+  return undefined;
+}
+
 export function modifyAttributesBasedOnRace(
   raca: Race,
   atributosRolados: CharacterAttributes,
@@ -588,9 +612,7 @@ export function modifyAttributesBasedOnRace(
   const values: { name: string; value: string | number }[] = [];
   let manualChoiceIndex = 0; // Track which manual choice to use next
 
-  // Use getAttributes if available (for sex-dependent attributes like Nagah)
-  const raceAttributes =
-    raca.getAttributes && sex ? raca.getAttributes(sex) : raca.attributes.attrs;
+  const raceAttributes = getEffectiveRaceAttrs(raca, sex);
   const excludeFromAny = raca.attributes.excludeFromAny || [];
 
   const reducedAttrs = raceAttributes.reduce<ReduceAttributesParams>(
@@ -813,6 +835,9 @@ export function selectClass(
   selectedClass = _.cloneDeep(selectedClass);
   if (selectedClass.setup)
     return selectedClass.setup(selectedClass, supplements);
+  // Classes sem setup() com escolha de escolas (homebrew): sorteia aqui,
+  // por ficha (o clone acima garante que o registry não é mutado)
+  if (selectedClass.spellPath) resolveSchoolChoice(selectedClass.spellPath);
   return selectedClass;
 }
 
@@ -1005,7 +1030,7 @@ function getArmors(classe: ClassDescription, currentBag?: Bag) {
   return armors;
 }
 
-function getClassEquipments(
+export function getClassEquipments(
   classe: ClassDescription,
   currentBag?: Bag
 ): Pick<BagEquipments, 'Arma' | 'Escudo' | 'Armadura' | 'Item Geral'> {
@@ -1030,64 +1055,106 @@ function getClassEquipments(
   };
 }
 
-function getInitialBag(origin: Origin | undefined): Bag {
-  // 6.1 A depender da classe os itens podem variar
+export function buildClassEquipmentsFromChoices(
+  classe: ClassDescription,
+  choices: import('../interfaces/WizardSelections').ClassEquipmentSelections,
+  currentBag?: Bag
+): Pick<BagEquipments, 'Arma' | 'Escudo' | 'Armadura' | 'Item Geral'> {
+  const weapons: Equipment[] = [];
+  if (choices.simpleWeapon) {
+    weapons.push(choices.simpleWeapon);
+  }
+  if (
+    choices.martialWeapon &&
+    classe.proficiencias.includes(todasProficiencias.MARCIAIS)
+  ) {
+    weapons.push(choices.martialWeapon);
+  }
+
+  const shields = getShields(classe);
+
+  const armors: DefenseEquipment[] = [];
+  if (!currentBag?.equipments?.Armadura?.length) {
+    if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
+      armors.push(Armaduras.BRUNEA);
+    } else if (choices.armor && classe.name !== 'Arcanista') {
+      armors.push(choices.armor);
+    }
+  }
+
+  const instruments: Equipment[] = [];
+  if (isClassOrVariantOf(classe, 'Bardo')) {
+    instruments.push({
+      nome: choices.instrument || getRandomItemFromArray(bardInstruments),
+      group: 'Item Geral',
+    });
+  }
+
+  return {
+    Arma: weapons,
+    Escudo: shields,
+    Armadura: armors,
+    'Item Geral': instruments,
+  };
+}
+
+export function convertOriginItemsToBagEquipments(
+  items: Items[] | undefined
+): Partial<BagEquipments> {
   const equipments: Partial<BagEquipments> = {
     'Item Geral': [],
   };
 
+  items?.forEach((equip) => {
+    if (typeof equip.equipment === 'string') {
+      equipments['Item Geral']?.push({
+        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+        group: 'Item Geral',
+      });
+    } else if (equip.equipment) {
+      const equipValue = equip.equipment;
+
+      // Verifica se é uma armadura (comparação por nome)
+      if (
+        Object.values(Armaduras).some((armor) => armor.nome === equipValue.nome)
+      ) {
+        if (!equipments.Armadura) {
+          equipments.Armadura = [];
+        }
+        equipments.Armadura.push(equipValue as DefenseEquipment);
+      }
+      // Verifica se é um escudo
+      else if (
+        Object.values(Escudos).some((shield) => shield.nome === equipValue.nome)
+      ) {
+        if (!equipments.Escudo) {
+          equipments.Escudo = [];
+        }
+        equipments.Escudo.push(equipValue as DefenseEquipment);
+      }
+      // Arma ou item geral, conforme o grupo
+      else if (equipValue.group === 'Arma') {
+        if (!equipments.Arma) {
+          equipments.Arma = [];
+        }
+        equipments.Arma.push(equipValue);
+      } else {
+        equipments['Item Geral']?.push(equipValue);
+      }
+    }
+  });
+
+  return equipments;
+}
+
+function getInitialBag(origin: Origin | undefined): Bag {
   // Apenas origens regionais (isRegional = true) adicionam itens automaticamente
   // Origens do core não adicionam itens aqui (apenas se escolhidos nos 2 benefícios)
   if (origin?.isRegional) {
-    const originItems = origin.getItems();
-
-    originItems?.forEach((equip) => {
-      if (typeof equip.equipment === 'string') {
-        const newEquip: Equipment = {
-          nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-          group: 'Item Geral',
-        };
-        if (equipments['Item Geral']) {
-          equipments['Item Geral'].push(newEquip);
-        }
-      } else if (equip.equipment) {
-        // Verificar se é Armadura, Escudo ou Arma
-        const equipValue = equip.equipment;
-
-        // Verifica se é uma armadura
-        if (
-          Object.values(Armaduras).includes(
-            equipValue as unknown as DefenseEquipment
-          )
-        ) {
-          if (!equipments.Armadura) {
-            equipments.Armadura = [];
-          }
-          equipments.Armadura.push(equipValue as DefenseEquipment);
-        }
-        // Verifica se é um escudo
-        else if (
-          Object.values(Escudos).includes(
-            equipValue as unknown as DefenseEquipment
-          )
-        ) {
-          if (!equipments.Escudo) {
-            equipments.Escudo = [];
-          }
-          equipments.Escudo.push(equipValue as DefenseEquipment);
-        }
-        // Se não for armadura nem escudo, é uma arma
-        else {
-          if (!equipments.Arma) {
-            equipments.Arma = [];
-          }
-          equipments.Arma.push(equipValue);
-        }
-      }
-    });
+    return new Bag(convertOriginItemsToBagEquipments(origin.getItems()));
   }
 
-  return new Bag(equipments);
+  return new Bag({ 'Item Geral': [] });
 }
 
 function getThyatisPowers(
@@ -1116,6 +1183,9 @@ function getPoderesConcedidos(
   classe: ClassDescription,
   qtd?: number
 ) {
+  // Divindade sem poderes (ex.: homebrew sem poderes concedidos) — nada a dar.
+  if (divindade.poderes.length === 0) return [];
+
   if (todosPoderes) {
     if (divindade.name === DivindadeEnum.THYATIS.name) {
       return getThyatisPowers(classe, divindade.poderes);
@@ -1125,7 +1195,10 @@ function getPoderesConcedidos(
   }
 
   if (qtd && qtd > 1) {
-    const poderesConcedidos = pickFromArray(divindade.poderes, qtd);
+    // Limita à quantidade disponível (divindades homebrew podem ter < poderes
+    // do que a classe pede) — evita entradas `undefined`.
+    const n = Math.min(qtd, divindade.poderes.length);
+    const poderesConcedidos = pickFromArray(divindade.poderes, n);
     return [...poderesConcedidos];
   }
 
@@ -1168,9 +1241,17 @@ function getReligiosidade(
       ) || DivindadeEnum[divindadeName];
   } else {
     const staticDeity = DivindadeEnum[selectedOption as DivindadeNames];
-    divindade =
-      dataRegistry.getDeityByName(staticDeity.name, supplements) || staticDeity;
+    if (staticDeity) {
+      divindade =
+        dataRegistry.getDeityByName(staticDeity.name, supplements) ||
+        staticDeity;
+    } else {
+      // Divindade homebrew: `selectedOption` é o NOME (não há chave no enum).
+      divindade = dataRegistry.getDeityByName(selectedOption, supplements);
+    }
   }
+
+  if (!divindade) return undefined;
 
   // Provavelmente uma merda de solução mas preguiça
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
@@ -1190,7 +1271,8 @@ function getReligiosidade(
 function getNewSpells(
   nivel: number,
   classe: ClassDescription,
-  usedSpells: Spell[]
+  usedSpells: Spell[],
+  supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE]
 ): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return [];
@@ -1213,25 +1295,20 @@ function getNewSpells(
   let spellList: Spell[] = [];
   if (spellType === 'Arcane') {
     for (let index = 1; index < circle + 1; index += 1) {
-      if (index === 1) spellList = allArcaneSpellsCircle1;
-      if (index === 2) spellList = spellList.concat(allArcaneSpellsCircle2);
-      if (index === 3) spellList = spellList.concat(allArcaneSpellsCircle3);
-      if (index === 4) spellList = spellList.concat(allArcaneSpellsCircle4);
-      if (index === 5) spellList = spellList.concat(allArcaneSpellsCircle5);
+      spellList = spellList.concat(
+        dataRegistry.getArcaneSpellsByCircleAndSupplements(index, supplements)
+      );
     }
 
     // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
     if (includeDivineSchools && includeDivineSchools.length > 0) {
-      const divineCircles = [
-        divineSpellsCircle1,
-        divineSpellsCircle2,
-        divineSpellsCircle3,
-        divineSpellsCircle4,
-        divineSpellsCircle5,
-      ];
       for (let index = 1; index < circle + 1; index += 1) {
+        const divineCircle = dataRegistry.getSpellsByCircleAndSupplements(
+          index,
+          supplements
+        ).divine;
         const circleSpells = includeDivineSchools.flatMap(
-          (school) => divineCircles[index - 1][school] || []
+          (school) => divineCircle[school] || []
         );
         if (crossTraditionLimit && circleSpells.length > 0) {
           const randomSpell = getRandomItemFromArray(circleSpells);
@@ -1243,25 +1320,20 @@ function getNewSpells(
     }
   } else {
     for (let index = 1; index < circle + 1; index += 1) {
-      if (index === 1) spellList = allDivineSpellsCircle1;
-      if (index === 2) spellList = spellList.concat(allDivineSpellsCircle2);
-      if (index === 3) spellList = spellList.concat(allDivineSpellsCircle3);
-      if (index === 4) spellList = spellList.concat(allDivineSpellsCircle4);
-      if (index === 5) spellList = spellList.concat(allDivineSpellsCircle5);
+      spellList = spellList.concat(
+        dataRegistry.getDivineSpellsByCircleAndSupplements(index, supplements)
+      );
     }
 
     // Include arcane spells from specified schools (e.g., Teurgista Místico)
     if (includeArcaneSchools && includeArcaneSchools.length > 0) {
-      const arcaneCircles = [
-        arcaneSpellsCircle1,
-        arcaneSpellsCircle2,
-        arcaneSpellsCircle3,
-        arcaneSpellsCircle4,
-        arcaneSpellsCircle5,
-      ];
       for (let index = 1; index < circle + 1; index += 1) {
+        const arcaneCircle = dataRegistry.getSpellsByCircleAndSupplements(
+          index,
+          supplements
+        ).arcane;
         const circleSpells = includeArcaneSchools.flatMap(
-          (school) => arcaneCircles[index - 1][school] || []
+          (school) => arcaneCircle[school] || []
         );
         if (crossTraditionLimit && circleSpells.length > 0) {
           const randomSpell = getRandomItemFromArray(circleSpells);
@@ -1274,48 +1346,15 @@ function getNewSpells(
   }
 
   if (schools) {
-    if (spellType === 'Arcane') {
-      for (let index = 1; index < circle + 1; index += 1) {
-        if (index === 1)
-          spellList = schools.flatMap((school) => arcaneSpellsCircle1[school]);
-        if (index === 2)
-          spellList = spellList.concat(
-            schools.flatMap((school) => arcaneSpellsCircle2[school])
-          );
-        if (index === 3)
-          spellList = spellList.concat(
-            schools.flatMap((school) => arcaneSpellsCircle3[school])
-          );
-        if (index === 4)
-          spellList = spellList.concat(
-            schools.flatMap((school) => arcaneSpellsCircle4[school])
-          );
-        if (index === 5)
-          spellList = spellList.concat(
-            schools.flatMap((school) => arcaneSpellsCircle5[school])
-          );
-      }
-    } else {
-      for (let index = 1; index < circle + 1; index += 1) {
-        if (index === 1)
-          spellList = schools.flatMap((school) => divineSpellsCircle1[school]);
-        if (index === 2)
-          spellList = spellList.concat(
-            schools.flatMap((school) => divineSpellsCircle2[school])
-          );
-        if (index === 3)
-          spellList = spellList.concat(
-            schools.flatMap((school) => divineSpellsCircle3[school])
-          );
-        if (index === 4)
-          spellList = spellList.concat(
-            schools.flatMap((school) => divineSpellsCircle4[school])
-          );
-        if (index === 5)
-          spellList = spellList.concat(
-            schools.flatMap((school) => divineSpellsCircle5[school])
-          );
-      }
+    for (let index = 1; index < circle + 1; index += 1) {
+      const circleByType = dataRegistry.getSpellsByCircleAndSupplements(
+        index,
+        supplements
+      );
+      const schoolMap =
+        spellType === 'Arcane' ? circleByType.arcane : circleByType.divine;
+      const circleSpells = schools.flatMap((school) => schoolMap[school] || []);
+      spellList = index === 1 ? circleSpells : spellList.concat(circleSpells);
     }
   }
 
@@ -1349,6 +1388,26 @@ export function calculateMaxSpaces(forca: number): number {
   return 10 + 2 * forca;
 }
 
+// Soma os bônus de capacidade de carga (MaxSpaces) concedidos por equipamentos
+// na bolsa — p.ex. a "Mochila de aventureiro" (+2). Considera quantidade e só
+// modificadores fixos (os bônus de MaxSpaces de equipamento são sempre Fixed).
+export function getEquipmentMaxSpacesBonus(equipments: Equipment[]): number {
+  return equipments.reduce((acc, equip) => {
+    if (!equip.sheetBonuses) return acc;
+    const qty = equip.quantity || 1;
+    const itemBonus = equip.sheetBonuses.reduce((sum, bonus) => {
+      if (
+        bonus.target.type === 'MaxSpaces' &&
+        bonus.modifier.type === 'Fixed'
+      ) {
+        return sum + bonus.modifier.value * qty;
+      }
+      return sum;
+    }, 0);
+    return acc + itemBonus;
+  }, 0);
+}
+
 export function calculateCurrencySpaces(
   dinheiro = 0,
   dinheiroTC = 0,
@@ -1364,7 +1423,7 @@ export function calculateCurrencySpaces(
 function calcDisplacement(
   bag: Bag,
   raceDisplacement: number,
-  atributos: CharacterAttributes,
+  maxSpaces: number,
   baseDisplacement: number,
   dinheiro = 0,
   dinheiroTC = 0,
@@ -1373,7 +1432,6 @@ function calcDisplacement(
   hasHeavyArmor = false
 ): number {
   if (!ignoreEncumbrance) {
-    const maxSpaces = calculateMaxSpaces(atributos.Força.value);
     const totalUsedSpaces =
       bag.getSpaces() +
       calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
@@ -1387,10 +1445,215 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
+// Bônus mecânicos por familiar (poder "Familiar" do Arcanista).
+// Apenas os familiares com efeito modelável retornam bônus; os demais
+// (Borboleta/Cobra/Lagarto +1 CD, Coruja, Corvo, Falcão, Morcego) ficam só
+// descritivos no texto do poder.
+const buildFamiliarSheetBonuses = (
+  familiarKey: string,
+  sheet: CharacterSheet,
+  source: SheetChangeSource
+): SheetBonus[] => {
+  // GATO: visão no escuro (narrativa) + +2 Furtividade
+  if (familiarKey === 'GATO') {
+    return [
+      {
+        source,
+        target: { type: 'Skill', name: Skill.FURTIVIDADE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ];
+  }
+  // SAPO: soma o atributo-chave ao total de PV (cumulativo com CON, não substitui)
+  if (familiarKey === 'SAPO') {
+    return [
+      {
+        source,
+        target: { type: 'PV' },
+        modifier: { type: 'SpecialAttribute', attribute: 'spellKeyAttr' },
+      },
+    ];
+  }
+  // RATO: pode usar o atributo-chave em Fortitude no lugar de Constituição.
+  // Por ser opcional ("você pode usar"), só troca quando for benéfico.
+  if (familiarKey === 'RATO') {
+    const keyAttr =
+      sheet.classe.spellPath?.keyAttribute ??
+      sheet.overrideKeyAttribute ??
+      Atributo.CARISMA;
+    if (
+      (sheet.atributos[keyAttr]?.value ?? 0) >
+      (sheet.atributos[Atributo.CONSTITUICAO]?.value ?? 0)
+    ) {
+      return [
+        {
+          source,
+          target: {
+            type: 'ModifySkillAttribute',
+            skill: Skill.FORTITUDE,
+            attribute: keyAttr,
+          },
+          modifier: { type: 'Fixed', value: 0 },
+        },
+      ];
+    }
+  }
+  return [];
+};
+
+/**
+ * Resolve e aplica a concessão de magias POR ESCOLHA de uma opção de
+ * `chooseFromOptions` (quando a opção escolhida tem `grantedSpellsAction`).
+ * Usa a seleção manual quando presente, senão sorteia do pool. As magias são
+ * adicionadas a `sheet.spells` (idempotente por nome) e registradas no
+ * histórico. Espelha os handlers de `learnSpell`/`learnAnySpellFromHighestCircle`.
+ */
+type OptionGrantedSpellsAction = NonNullable<
+  Extract<
+    SheetActionStep,
+    { type: 'chooseFromOptions' }
+  >['options'][number]['grantedSpellsAction']
+>;
+
+function applyOptionGrantedSpells(
+  sheet: CharacterSheet,
+  action: OptionGrantedSpellsAction,
+  manualSpells: Spell[] | undefined,
+  source: SheetChangeSource,
+  sourceName: string,
+  powerName: string,
+  subSteps: SubStep[]
+): void {
+  let available: Spell[] = [];
+  let customAttribute: Atributo | undefined;
+
+  if (action.type === 'learnSpell') {
+    available = action.availableSpells;
+    customAttribute = action.customAttribute;
+  } else {
+    const highestCircle =
+      sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+    for (let circle = 1; circle <= highestCircle; circle += 1) {
+      if (action.allowedType === 'Arcane') {
+        available.push(...getArcaneSpellsOfCircle(circle));
+      } else if (action.allowedType === 'Divine') {
+        available.push(...getSpellsOfCircle(circle));
+      } else {
+        available.push(...getArcaneSpellsOfCircle(circle));
+        available.push(...getSpellsOfCircle(circle));
+      }
+    }
+    available = available.filter(
+      (spell, index, arr) =>
+        arr.findIndex((s) => s.nome === spell.nome) === index
+    );
+    const allowedSchools = action.schools || [];
+    if (allowedSchools.length > 0) {
+      available = available.filter((s) => allowedSchools.includes(s.school));
+    }
+  }
+
+  let learnedSpells: Spell[];
+  if (manualSpells && manualSpells.length > 0) {
+    learnedSpells = manualSpells;
+    learnedSpells.forEach((spell) => {
+      if (!sheet.spells.some((existing) => existing.nome === spell.nome)) {
+        sheet.spells.push(
+          customAttribute ? { ...spell, customKeyAttr: customAttribute } : spell
+        );
+      }
+    });
+  } else {
+    learnedSpells = addOrCheapenRandomSpells(
+      sheet,
+      subSteps,
+      available,
+      sourceName,
+      customAttribute ||
+        sheet.classe.spellPath?.keyAttribute ||
+        Atributo.INTELIGENCIA,
+      action.pick
+    );
+  }
+
+  if (learnedSpells.length > 0) {
+    sheet.sheetActionHistory.push({
+      source,
+      powerName,
+      changes: [
+        {
+          type: 'SpellsLearned',
+          spellNames: learnedSpells.map((spell) => spell.nome),
+        },
+      ],
+    });
+  }
+}
+
+/** Ação de concessão de poderes de uma opção de pick (`grantedPowersAction`). */
+type OptionGrantedPowersAction = NonNullable<
+  Extract<
+    SheetActionStep,
+    { type: 'chooseFromOptions' }
+  >['options'][number]['grantedPowersAction']
+>;
+
+/**
+ * Anexa os efeitos ativos e rolagens de uma opção de pick escolhida ao
+ * poder/habilidade DONO (localizado por nome em `generalPowers`/`classPowers`/
+ * habilidades de classe). Dedup por `id` torna a operação idempotente no
+ * recálculo. Usado para os campos de "sub-poder" de uma opção.
+ */
+function mergeOptionEffectsIntoOwner(
+  sheet: CharacterSheet,
+  ownerName: string,
+  customEffects?: CustomEffect[],
+  rolls?: DiceRoll[]
+): void {
+  const hasEffects = customEffects && customEffects.length > 0;
+  const hasRolls = rolls && rolls.length > 0;
+  if (!hasEffects && !hasRolls) return;
+
+  const mergeInto = (obj: {
+    customEffects?: CustomEffect[];
+    rolls?: DiceRoll[];
+  }) => {
+    if (hasEffects) {
+      const existing = obj.customEffects || [];
+      const ids = new Set(existing.map((e) => e.id));
+      obj.customEffects = [
+        ...existing,
+        ...customEffects!.filter((e) => !ids.has(e.id)),
+      ];
+    }
+    if (hasRolls) {
+      const existing = obj.rolls || [];
+      const ids = new Set(existing.map((r) => r.id));
+      obj.rolls = [...existing, ...rolls!.filter((r) => !ids.has(r.id))];
+    }
+  };
+
+  sheet.generalPowers.forEach((p) => {
+    if (p.name === ownerName) mergeInto(p);
+  });
+  (sheet.classPowers || []).forEach((p) => {
+    if (p.name === ownerName) mergeInto(p);
+  });
+  sheet.classe.abilities.forEach((a) => {
+    if (a.name === ownerName) mergeInto(a);
+  });
+}
+
 export const applyPower = (
   _sheet: CharacterSheet,
-  powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses' | 'name'>,
-  manualSelections?: SelectionOptions
+  powerOrAbility: Pick<
+    GeneralPower,
+    'sheetActions' | 'sheetBonuses' | 'name'
+  > & {
+    sourceClassName?: string;
+  },
+  manualSelections?: SelectionOptions,
+  forceApply?: boolean
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
@@ -1427,6 +1690,9 @@ export const applyPower = (
     addAlchemyItems: ['EquipmentAdded'],
     chooseFromOptions: ['OptionChosen'],
     trainSkillOrBonus: ['SkillTrainedOrBonused'],
+    selectFamiliar: ['FamiliarSelected'],
+    selectWeaponSpecialization: ['WeaponSpecializationSelected'],
+    selectAnimalTotem: ['AnimalTotemSelected'],
   };
 
   const isActionAlreadyApplied = (
@@ -1445,28 +1711,246 @@ export const applyPower = (
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
+      // Unified handling for selectWeaponSpecialization (handles new instances,
+      // recalculation, and override-on-change in a single block — bypassing the
+      // generic isActionAlreadyApplied short-circuit below).
+      if (sheetAction.action.type === 'selectWeaponSpecialization') {
+        const { action } = sheetAction;
+        const allWeaponNames = Object.values(Armas).map((w) => w.nome);
+        const fallbackBonuses: typeof action.bonuses = [
+          { kind: 'damage', value: 2 },
+        ];
+        const bonuses = action.bonuses ?? fallbackBonuses;
+        const bonusesPerInstance = Math.max(1, bonuses.length);
+
+        // Count how many bonuses for this power+source have already been emitted
+        // in the current sheet pass — this determines which instance we're on.
+        const previousBonusCount = sheet.sheetBonuses.filter(
+          (b) =>
+            b.source.type === 'power' &&
+            b.source.name === powerOrAbility.name &&
+            (b.target.type === 'WeaponDamage' ||
+              b.target.type === 'WeaponAttack' ||
+              b.target.type === 'WeaponDamageStep')
+        ).length;
+        const instanceIndex = Math.floor(
+          previousBonusCount / bonusesPerInstance
+        );
+
+        const historicalEntries = sheet.sheetActionHistory.filter(
+          (entry) =>
+            entry.powerName === powerOrAbility.name &&
+            entry.changes.some((c) => c.type === 'WeaponSpecializationSelected')
+        );
+        const historicalForThisInstance = historicalEntries[instanceIndex];
+        const recordedChange = historicalForThisInstance?.changes.find(
+          (c) => c.type === 'WeaponSpecializationSelected'
+        );
+        const recordedWeapon =
+          recordedChange?.type === 'WeaponSpecializationSelected'
+            ? recordedChange.weaponName
+            : undefined;
+
+        const userWeapons = manualSelections?.weapons || [];
+        const userChoiceForThisInstance = userWeapons[instanceIndex];
+
+        // If user provided a different weapon than recorded, drop the recorded
+        // entry so we replace it with the new selection.
+        if (
+          userChoiceForThisInstance &&
+          recordedWeapon &&
+          userChoiceForThisInstance !== recordedWeapon &&
+          historicalForThisInstance
+        ) {
+          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+            (entry) => entry !== historicalForThisInstance
+          );
+        }
+
+        let selectedWeapon = userChoiceForThisInstance || recordedWeapon;
+
+        if (!selectedWeapon) {
+          if (action.optional) {
+            // Optional and no choice: skip (no bonus, no history entry).
+            return;
+          }
+          selectedWeapon = getRandomItemFromArray(allWeaponNames);
+        }
+
+        bonuses.forEach((bonus) => {
+          if (bonus.kind === 'attack') {
+            sheet.sheetBonuses.push({
+              source: sheetAction.source,
+              target: {
+                type: 'WeaponAttack' as const,
+                weaponName: selectedWeapon,
+              },
+              modifier: { type: 'Fixed' as const, value: bonus.value },
+            });
+          } else if (bonus.kind === 'damage') {
+            sheet.sheetBonuses.push({
+              source: sheetAction.source,
+              target: {
+                type: 'WeaponDamage' as const,
+                weaponName: selectedWeapon,
+              },
+              modifier: { type: 'Fixed' as const, value: bonus.value },
+            });
+          } else if (bonus.kind === 'damageStep') {
+            sheet.sheetBonuses.push({
+              source: sheetAction.source,
+              target: {
+                type: 'WeaponDamageStep' as const,
+                weaponName: selectedWeapon,
+              },
+              modifier: { type: 'Fixed' as const, value: bonus.steps },
+            });
+          }
+        });
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Arma escolhida: ${selectedWeapon}`,
+        });
+
+        const stillHasEntry = sheet.sheetActionHistory.some(
+          (entry) =>
+            entry.powerName === powerOrAbility.name &&
+            entry === historicalForThisInstance
+        );
+        if (!stillHasEntry) {
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'WeaponSpecializationSelected',
+                weaponName: selectedWeapon,
+              },
+            ],
+          });
+        }
+
+        return;
+      }
+
+      // Override: if user provides a new manual selection that differs from the
+      // recorded history, drop the old history entry so the handler runs fresh
+      // with the new value (instead of being short-circuited by isActionAlreadyApplied).
+      if (
+        sheetAction.action.type === 'selectFamiliar' &&
+        manualSelections?.familiars &&
+        manualSelections.familiars.length > 0
+      ) {
+        const [newFamiliar] = manualSelections.familiars;
+        const recorded = sheet.sheetActionHistory
+          .filter((entry) => entry.powerName === powerOrAbility.name)
+          .flatMap((entry) => entry.changes)
+          .find((change) => change.type === 'FamiliarSelected');
+        if (
+          recorded &&
+          recorded.type === 'FamiliarSelected' &&
+          recorded.familiarKey !== newFamiliar
+        ) {
+          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+            (entry) =>
+              !(
+                entry.powerName === powerOrAbility.name &&
+                entry.changes.some((c) => c.type === 'FamiliarSelected')
+              )
+          );
+        }
+      }
+      if (
+        sheetAction.action.type === 'selectAnimalTotem' &&
+        manualSelections?.animalTotems &&
+        manualSelections.animalTotems.length > 0
+      ) {
+        const [newTotem] = manualSelections.animalTotems;
+        const recorded = sheet.sheetActionHistory
+          .filter((entry) => entry.powerName === powerOrAbility.name)
+          .flatMap((entry) => entry.changes)
+          .find((change) => change.type === 'AnimalTotemSelected');
+        if (
+          recorded &&
+          recorded.type === 'AnimalTotemSelected' &&
+          recorded.totemKey !== newTotem
+        ) {
+          // Remove the previously-learned totem spell so it doesn't accumulate
+          const oldSpellName = recorded.spellName;
+          if (oldSpellName) {
+            sheet.spells = sheet.spells.filter((s) => s.nome !== oldSpellName);
+          }
+          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+            (entry) =>
+              !(
+                entry.powerName === powerOrAbility.name &&
+                entry.changes.some((c) => c.type === 'AnimalTotemSelected')
+              )
+          );
+        }
+      }
+
       // Skip if this action was already applied (prevents duplication during recalculation)
       if (
+        !forceApply &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
         // For chooseFromOptions, re-apply sheetBonuses from the chosen option
         // (sheetBonuses are cleared during recalculation, so they need to be re-added)
         if (sheetAction.action.type === 'chooseFromOptions') {
           const { optionKey, options } = sheetAction.action;
-          const previousChoice = sheet.sheetActionHistory
-            .flatMap((entry) => entry.changes)
-            .find(
-              (change) =>
-                change.type === 'OptionChosen' && change.optionKey === optionKey
-            );
-          if (previousChoice && previousChoice.type === 'OptionChosen') {
-            const chosenOption = options.find(
-              (o) => o.name === previousChoice.chosenName
-            );
+          // Replay das escolhas durante o recálculo (bônus são zerados e
+          // precisam ser re-aplicados). Prioriza `optionChoices` (todas as
+          // escolhas, incluindo multi-pick e picks acumulados de level-up); cai
+          // para o histórico (escolha única, fichas legadas).
+          let chosenNames: string[] = [];
+          const persisted = sheet.optionChoices?.[optionKey];
+          if (persisted && persisted.length > 0) {
+            chosenNames = persisted;
+          } else {
+            const previousChoice = sheet.sheetActionHistory
+              .flatMap((entry) => entry.changes)
+              .find(
+                (change) =>
+                  change.type === 'OptionChosen' &&
+                  change.optionKey === optionKey
+              );
+            if (previousChoice && previousChoice.type === 'OptionChosen') {
+              chosenNames = [previousChoice.chosenName];
+            }
+          }
+          chosenNames.forEach((name) => {
+            const chosenOption = options.find((o) => o.name === name);
             if (chosenOption?.sheetBonuses) {
               sheet.sheetBonuses.push(...chosenOption.sheetBonuses);
             }
-          }
+            if (chosenOption?.grantedSpells) {
+              chosenOption.grantedSpells.forEach((spell) => {
+                if (!sheet.spells.some((s) => s.nome === spell.nome)) {
+                  sheet.spells.push(spell);
+                }
+              });
+            }
+            if (chosenOption?.grantedEquipment) {
+              sheet.bag.addEquipment(chosenOption.grantedEquipment);
+            }
+            if (chosenOption?.grantedPowers) {
+              chosenOption.grantedPowers.forEach((power) => {
+                if (!sheet.generalPowers.some((p) => p.name === power.name)) {
+                  sheet.generalPowers.push(power);
+                }
+              });
+            }
+            if (chosenOption) {
+              mergeOptionEffectsIntoOwner(
+                sheet,
+                powerOrAbility.name,
+                chosenOption.customEffects,
+                chosenOption.rolls
+              );
+            }
+          });
         }
         // For trainSkillOrBonus, re-apply the +2 bonus if the skill was already trained
         if (sheetAction.action.type === 'trainSkillOrBonus') {
@@ -1484,6 +1968,56 @@ export const applyPower = (
               target: { type: 'Skill', name: previousResult.skill },
               modifier: { type: 'Fixed', value: 2 },
             });
+          }
+        }
+        // For selectFamiliar, re-apply Gato's +2 Furtividade and refresh power text
+        // (sheetBonuses are cleared during recalculation, so they need to be re-added)
+        if (sheetAction.action.type === 'selectFamiliar') {
+          const previousResult = sheet.sheetActionHistory
+            .filter((entry) => entry.powerName === powerOrAbility.name)
+            .flatMap((entry) => entry.changes)
+            .find((change) => change.type === 'FamiliarSelected');
+          if (previousResult && previousResult.type === 'FamiliarSelected') {
+            const familiar = FAMILIARS[previousResult.familiarKey];
+            if (familiar) {
+              sheet.sheetBonuses.push(
+                ...buildFamiliarSheetBonuses(
+                  previousResult.familiarKey,
+                  sheet,
+                  sheetAction.source
+                )
+              );
+              if (sheet.classPowers) {
+                const powerIndex = sheet.classPowers.findIndex(
+                  (power) => power.name === 'Familiar'
+                );
+                if (powerIndex !== -1) {
+                  sheet.classPowers[
+                    powerIndex
+                  ].text = `Você possui um familiar ${familiar.name}. ${familiar.description}`;
+                }
+              }
+            }
+          }
+        }
+        // For selectAnimalTotem, refresh power text (spell already in sheet.spells)
+        if (sheetAction.action.type === 'selectAnimalTotem') {
+          const previousResult = sheet.sheetActionHistory
+            .filter((entry) => entry.powerName === powerOrAbility.name)
+            .flatMap((entry) => entry.changes)
+            .find((change) => change.type === 'AnimalTotemSelected');
+          if (previousResult && previousResult.type === 'AnimalTotemSelected') {
+            const totem = ANIMAL_TOTEMS[previousResult.totemKey];
+            if (totem && sheet.classPowers) {
+              const powerIndex = sheet.classPowers.findIndex(
+                (power) => power.name === 'Totem Espiritual'
+              );
+              if (powerIndex !== -1) {
+                sheet.classPowers[
+                  powerIndex
+                ].text = `Você soma seu bônus de Sabedoria no seu total de pontos de mana. Animal totêmico escolhido: ${totem.name}. ${totem.description}`;
+              }
+            }
           }
         }
         return;
@@ -1747,7 +2281,13 @@ export const applyPower = (
           ],
         });
       } else if (sheetAction.action.type === 'increaseAttribute') {
-        const usedAttributes = getAttributeIncreasesInSamePlateau(sheet);
+        const incValue = sheetAction.action.value ?? 1;
+        const oncePerTier = sheetAction.action.oncePerTier !== false;
+        const { optionKey } = sheetAction.action;
+        // 1×/patamar (opcional): exclui atributos já aumentados no patamar.
+        const usedAttributes = oncePerTier
+          ? getAttributeIncreasesInSamePlateau(sheet)
+          : [];
         const availableAttributes = Object.values(Atributo).filter(
           (attr) => !usedAttributes.includes(attr)
         );
@@ -1758,13 +2298,19 @@ export const applyPower = (
         );
 
         let targetAttribute: Atributo | undefined;
+        const persisted = optionKey
+          ? sheet.optionChoices?.[optionKey]?.[0]
+          : undefined;
 
-        // Use manual selection if provided
+        // Prioridade: escolha manual → escolha persistida (replay) → prioridade
+        // de classe → aleatório entre os disponíveis.
         if (
           manualSelections?.attributes &&
           manualSelections.attributes.length > 0
         ) {
           targetAttribute = manualSelections.attributes[0] as Atributo;
+        } else if (persisted) {
+          targetAttribute = persisted as Atributo;
         } else if (firstPriorityAttribute) {
           targetAttribute = firstPriorityAttribute;
         } else if (availableAttributes.length > 0) {
@@ -1774,7 +2320,15 @@ export const applyPower = (
 
         // Only apply if we found a valid target attribute
         if (targetAttribute && sheet.atributos[targetAttribute]) {
-          sheet.atributos[targetAttribute].value += 1;
+          sheet.atributos[targetAttribute].value += incValue;
+
+          // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
+          if (optionKey) {
+            sheet.optionChoices = {
+              ...(sheet.optionChoices || {}),
+              [optionKey]: [targetAttribute],
+            };
+          }
 
           sheet.sheetActionHistory.push({
             source: sheetAction.source,
@@ -1789,7 +2343,7 @@ export const applyPower = (
           });
           subSteps.push({
             name: getSourceName(sheetAction.source),
-            value: `Aumenta o atributo ${targetAttribute} por +1`,
+            value: `Aumenta o atributo ${targetAttribute} por +${incValue}`,
           });
         } else {
           // Skip this attribute increase if no valid target found
@@ -1801,71 +2355,48 @@ export const applyPower = (
           );
           // Skip adding to history or substeps when no valid attribute found
         }
-      } else if (sheetAction.action.type === 'selectWeaponSpecialization') {
-        // Get all available weapons
-        const allWeaponNames = Object.values(Armas).map(
-          (weapon) => weapon.nome
-        );
-
-        let selectedWeapon: string;
-
-        // Use manual selection if provided, otherwise random
-        if (manualSelections?.weapons && manualSelections.weapons.length > 0) {
-          [selectedWeapon] = manualSelections.weapons;
-        } else {
-          selectedWeapon = getRandomItemFromArray(allWeaponNames);
-        }
-
-        // Add weapon specialization bonus (+2 damage to the selected weapon)
-        sheet.sheetBonuses.push({
-          source: sheetAction.source,
-          target: {
-            type: 'WeaponDamage' as const,
-            weaponName: selectedWeapon,
-          },
-          modifier: {
-            type: 'Fixed' as const,
-            value: 2,
-          },
-        });
-
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: `Especialização em ${selectedWeapon} (+2 dano)`,
-        });
       } else if (sheetAction.action.type === 'selectFamiliar') {
         // Get all available familiars
         const availableFamiliars = FAMILIAR_NAMES;
 
         let selectedFamiliar: string;
 
-        // Use manual selection if provided, otherwise random
+        // Use manual selection if provided, otherwise try to recover from power text
+        // (migration for legacy sheets without FamiliarSelected history), else random.
         if (
           manualSelections?.familiars &&
           manualSelections.familiars.length > 0
         ) {
           [selectedFamiliar] = manualSelections.familiars;
         } else {
-          selectedFamiliar = getRandomItemFromArray(availableFamiliars);
+          let extracted: string | undefined;
+          if (sheet.classPowers) {
+            const existingPower = sheet.classPowers.find(
+              (p) => p.name === 'Familiar'
+            );
+            if (existingPower?.text) {
+              const lowerText = existingPower.text.toLowerCase();
+              const matchedEntry = Object.entries(FAMILIARS).find(([, f]) =>
+                lowerText.includes(`familiar ${f.name.toLowerCase()}.`)
+              );
+              if (matchedEntry) [extracted] = matchedEntry;
+            }
+          }
+          selectedFamiliar =
+            extracted ?? getRandomItemFromArray(availableFamiliars);
         }
 
         // Get familiar data
         const familiar = FAMILIARS[selectedFamiliar];
 
-        // Apply Cat bonus (+2 Stealth) if Gato is selected
-        if (selectedFamiliar === 'GATO') {
-          sheet.sheetBonuses.push({
-            source: sheetAction.source,
-            target: {
-              type: 'Skill',
-              name: Skill.FURTIVIDADE,
-            },
-            modifier: {
-              type: 'Fixed',
-              value: 2,
-            },
-          });
-        }
+        // Aplica os bônus mecânicos do familiar selecionado (Gato/Sapo/Rato)
+        sheet.sheetBonuses.push(
+          ...buildFamiliarSheetBonuses(
+            selectedFamiliar,
+            sheet,
+            sheetAction.source
+          )
+        );
 
         // Update power text to show selected familiar
         if (sheet.classPowers) {
@@ -1883,19 +2414,41 @@ export const applyPower = (
           name: getSourceName(sheetAction.source),
           value: `Familiar selecionado: ${familiar.name}`,
         });
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            { type: 'FamiliarSelected', familiarKey: selectedFamiliar },
+          ],
+        });
       } else if (sheetAction.action.type === 'selectAnimalTotem') {
         // Get all available totems
         const availableTotems = ANIMAL_TOTEM_NAMES;
         let selectedTotem: string;
 
-        // Use manual selection if provided, otherwise random
+        // Use manual selection if provided, otherwise try to recover from power text
+        // (migration for legacy sheets without AnimalTotemSelected history), else random.
         if (
           manualSelections?.animalTotems &&
           manualSelections.animalTotems.length > 0
         ) {
           [selectedTotem] = manualSelections.animalTotems;
         } else {
-          selectedTotem = getRandomItemFromArray(availableTotems);
+          let extracted: string | undefined;
+          if (sheet.classPowers) {
+            const existingPower = sheet.classPowers.find(
+              (p) => p.name === 'Totem Espiritual'
+            );
+            if (existingPower?.text) {
+              const lowerText = existingPower.text.toLowerCase();
+              const matchedEntry = Object.entries(ANIMAL_TOTEMS).find(([, t]) =>
+                lowerText.includes(`escolhido: ${t.name.toLowerCase()}.`)
+              );
+              if (matchedEntry) [extracted] = matchedEntry;
+            }
+          }
+          selectedTotem = extracted ?? getRandomItemFromArray(availableTotems);
         }
 
         // Get totem data
@@ -1932,6 +2485,18 @@ export const applyPower = (
         subSteps.push({
           name: getSourceName(sheetAction.source),
           value: `Animal totêmico selecionado: ${totem.name}`,
+        });
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            {
+              type: 'AnimalTotemSelected',
+              totemKey: selectedTotem,
+              spellName: spellToLearn?.nome ?? '',
+            },
+          ],
         });
       } else if (sheetAction.action.type === 'addTruqueMagicSpells') {
         // Add the three truque magic spells
@@ -2048,8 +2613,19 @@ export const applyPower = (
           });
         }
       } else if (sheetAction.action.type === 'buildGolpePessoal') {
-        // For automatic generation, create a random Golpe Pessoal
-        const golpePessoalBuild = generateRandomGolpePessoal(sheet);
+        // Usa o build montado pelo usuário no assistente, se houver;
+        // senão gera um Golpe Pessoal aleatório (geração automática de ficha).
+        const golpePessoalBuild =
+          manualSelections?.golpePessoalBuild ??
+          generateRandomGolpePessoal(sheet);
+
+        // Mapa de efeitos incluindo todos os suplementos. O build já foi
+        // escolhido/validado, então efeitos de suplemento (ex.: Sequencial,
+        // Sifão) precisam ser encontrados aqui para aparecerem na descrição.
+        const golpePessoalEffects =
+          dataRegistry.getGolpePessoalEffectsBySupplements(
+            Object.values(SupplementId)
+          );
 
         // Store the build in the power's description
         const golpePessoalPower = sheet.classPowers?.find(
@@ -2062,7 +2638,7 @@ export const applyPower = (
           // Create detailed description with effect descriptions
           const effectDescriptions = golpePessoalBuild.effects
             .map((effectData) => {
-              const effect = GOLPE_PESSOAL_EFFECTS[effectData.effectName];
+              const effect = golpePessoalEffects[effectData.effectName];
               if (!effect) return '';
 
               let desc = `• ${effect.name}: ${effect.description}`;
@@ -2096,7 +2672,7 @@ export const applyPower = (
         } else if (
           sheetAction.action.specialAction === 'yidishanNaturezaOrganica'
         ) {
-          currentSteps = applyYidishanNaturezaOrganica(sheet);
+          currentSteps = applyYidishanNaturezaOrganica(sheet, manualSelections);
         } else if (sheetAction.action.specialAction === 'moreauSapiencia') {
           currentSteps = applyMoreauSapiencia(sheet);
         } else if (
@@ -2135,50 +2711,11 @@ export const applyPower = (
           sheetAction.action;
 
         // Filter class powers by minimum level and requirements
-        const availablePowers = sheet.classe.powers.filter((power) => {
-          // Check if power already exists and if it can be repeated
-          const existingClassPowers = sheet.classPowers || [];
-          const isRepeatedPower = existingClassPowers.find(
-            (existingPower) => existingPower.name === power.name
-          );
-
-          if (isRepeatedPower && !power.canRepeat) {
-            return false;
-          }
-
-          // Check minimum level requirement in power requirements
-          let meetsMinLevel = true;
-          if (power.requirements && power.requirements.length > 0) {
-            // Check if any requirement path has a level requirement >= minLevel
-            meetsMinLevel = power.requirements.some((req: Requirement[]) =>
-              req.some(
-                (rule: Requirement) =>
-                  rule.type === 'NIVEL' && (rule.value as number) >= minLevel
-              )
-            );
-
-            // If no level requirement found, check if it's a basic power (usually level 1)
-            if (
-              !meetsMinLevel &&
-              !power.requirements.some((req: Requirement[]) =>
-                req.some((rule: Requirement) => rule.type === 'NIVEL')
-              )
-            ) {
-              // Power has no level requirement, assume it's available from level 1
-              meetsMinLevel = minLevel <= 1;
-            }
-          } else {
-            // No requirements, assume level 1 power
-            meetsMinLevel = minLevel <= 1;
-          }
-
-          return (
-            meetsMinLevel &&
-            isPowerAvailable(sheet, power, {
-              ignoreLevelRequirement: ignoreOnlyLevelRequirement,
-            })
-          );
-        });
+        const availablePowers = getFuturaLendaClassPowers(
+          sheet,
+          minLevel,
+          ignoreOnlyLevelRequirement
+        );
 
         if (availablePowers.length === 0) {
           throw new Error(
@@ -2239,9 +2776,23 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'grantSpecificClassPower') {
         const { powerName: targetPowerName } = sheetAction.action;
 
-        const targetPower = sheet.classe.powers.find(
+        let targetPower = sheet.classe.powers.find(
           (p) => p.name === targetPowerName
         );
+
+        // Fallback: o catálogo `classe.powers` pode estar vazio em fichas
+        // carregadas (stripSheetForStorage zera os poderes e rehydrateSheet só
+        // os restaura se a variante for resolvida). Buscar no catálogo completo
+        // da classe antes de falhar.
+        if (!targetPower) {
+          const fullClass = findClassDescription(
+            sheet.classe.name,
+            sheet.classe.subname
+          );
+          targetPower = fullClass?.powers.find(
+            (p) => p.name === targetPowerName
+          );
+        }
 
         if (!targetPower) {
           throw new Error(
@@ -2356,19 +2907,35 @@ export const applyPower = (
         }
       } else if (sheetAction.action.type === 'chooseFromOptions') {
         const { optionKey, options, linkedTo } = sheetAction.action;
-        let chosen;
+        const pick = sheetAction.action.pick ?? 1;
 
-        // Use manual selection if provided
+        // Resolve os nomes escolhidos (com repetição quando permitido). Suporta
+        // multi-pick (`pick` > 1) e picks acumulados por subida de nível.
+        //
+        // Prioridade de resolução:
+        //  1. `manualSelections.chosenOption` — escolha fresca (geração/wizard);
+        //  2. `sheet.optionChoices[optionKey]` — replay persistido (sobrevive a
+        //     recálculos e a acúmulo de picks de level-up, sem o problema de
+        //     deduplicação do `sheetActionHistory`);
+        //  3. `linkedTo` — escolha espelhada de outra ação (conteúdo oficial);
+        //  4. sorteio aleatório (apenas geração inicial sem seleção).
+        // Quando a escolha NÃO vem do replay persistido (casos 1/4), gravamos em
+        // `optionChoices[optionKey]` para que recálculos futuros sejam
+        // determinísticos.
+        let chosenNames: string[] = [];
+        let persistChoice = false;
+        const persistedChoices = sheet.optionChoices?.[optionKey];
         if (
           manualSelections?.chosenOption &&
           manualSelections.chosenOption.length > 0
         ) {
-          const chosenName = manualSelections.chosenOption[0];
-          chosen = options.find((o) => o.name === chosenName);
-        }
-
-        if (!chosen && linkedTo) {
-          // Auto-select based on a previous choice
+          chosenNames = manualSelections.chosenOption.slice(0, pick);
+          persistChoice = true;
+        } else if (persistedChoices && persistedChoices.length > 0) {
+          // Replay: usa TODAS as escolhas persistidas (inclui picks de level-up
+          // acumulados); não corta por `pick`.
+          chosenNames = [...persistedChoices];
+        } else if (linkedTo) {
           const previousChoice = sheet.sheetActionHistory
             .flatMap((entry) => entry.changes)
             .find(
@@ -2376,48 +2943,157 @@ export const applyPower = (
                 change.type === 'OptionChosen' && change.optionKey === linkedTo
             );
           if (previousChoice && previousChoice.type === 'OptionChosen') {
-            chosen = options.find((o) => o.name === previousChoice.chosenName);
+            chosenNames = [previousChoice.chosenName];
           }
         }
-
-        if (!chosen) {
-          chosen = getRandomItemFromArray(options);
+        if (chosenNames.length === 0 && options.length > 0) {
+          // Fallback aleatório respeitando `repeatable` e a quantidade `pick`.
+          const pool = [...options];
+          while (chosenNames.length < pick && pool.length > 0) {
+            const opt = getRandomItemFromArray(pool);
+            chosenNames.push(opt.name);
+            if (!opt.repeatable) {
+              const idx = pool.indexOf(opt);
+              if (idx >= 0) pool.splice(idx, 1);
+            }
+          }
+          persistChoice = true;
         }
 
-        // Update the ability text on the sheet to show only the chosen option
-        const abilityIndex = sheet.classe.abilities.findIndex(
-          (a) => a.name === powerOrAbility.name
-        );
-        if (abilityIndex >= 0) {
-          sheet.classe.abilities[abilityIndex] = {
-            ...sheet.classe.abilities[abilityIndex],
-            text: `${chosen.name}. ${chosen.text}`,
+        if (persistChoice && chosenNames.length > 0) {
+          sheet.optionChoices = {
+            ...(sheet.optionChoices || {}),
+            [optionKey]: chosenNames,
           };
         }
 
-        const formattedText = `${chosen.name}. ${chosen.text}`;
+        const chosenOptions = chosenNames
+          .map((n) => options.find((o) => o.name === n))
+          .filter((o): o is (typeof options)[number] => Boolean(o));
 
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: chosen.name,
-        });
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: [
-            {
-              type: 'OptionChosen',
-              optionKey,
-              chosenName: chosen.name,
-              formattedText,
-            },
-          ],
-        });
-
-        // Apply sheetBonuses from the chosen option
-        if (chosen.sheetBonuses) {
-          sheet.sheetBonuses.push(...chosen.sheetBonuses);
+        // Atualiza o texto da habilidade de classe (quando houver) com as escolhas.
+        const abilityIndex = sheet.classe.abilities.findIndex(
+          (a) => a.name === powerOrAbility.name
+        );
+        if (abilityIndex >= 0 && chosenOptions.length > 0) {
+          sheet.classe.abilities[abilityIndex] = {
+            ...sheet.classe.abilities[abilityIndex],
+            text: chosenOptions.map((o) => `${o.name}. ${o.text}`).join(' '),
+          };
         }
+
+        chosenOptions.forEach((chosen) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: chosen.name,
+          });
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'OptionChosen',
+                optionKey,
+                chosenName: chosen.name,
+                formattedText: `${chosen.name}. ${chosen.text}`,
+              },
+            ],
+          });
+          if (chosen.sheetBonuses) {
+            sheet.sheetBonuses.push(...chosen.sheetBonuses);
+          }
+          // Magias concedidas pela opção escolhida (concessão fixa, sem nova
+          // escolha). Adiciona as que ainda não estão na ficha.
+          if (chosen.grantedSpells && chosen.grantedSpells.length > 0) {
+            chosen.grantedSpells.forEach((spell) => {
+              if (!sheet.spells.some((s) => s.nome === spell.nome)) {
+                sheet.spells.push(spell);
+              }
+            });
+            sheet.sheetActionHistory.push({
+              source: sheetAction.source,
+              powerName: powerOrAbility.name,
+              changes: [
+                {
+                  type: 'SpellsLearned',
+                  spellNames: chosen.grantedSpells.map((s) => s.nome),
+                },
+              ],
+            });
+          }
+          // Magias concedidas POR ESCOLHA do jogador nesta opção. Usa a seleção
+          // manual da opção (quando houver) ou sorteia. Aplicada uma vez aqui;
+          // as magias persistem em `sheet.spells` (o atalho de recálculo não as
+          // re-sorteia).
+          if (chosen.grantedSpellsAction) {
+            applyOptionGrantedSpells(
+              sheet,
+              chosen.grantedSpellsAction,
+              manualSelections?.optionSpells?.[chosen.name],
+              sheetAction.source,
+              getSourceName(sheetAction.source),
+              powerOrAbility.name,
+              subSteps
+            );
+          }
+          // Equipamento concedido pela opção (ex.: arma natural). addEquipment é
+          // idempotente por nome, então é seguro reaplicar no recálculo.
+          if (chosen.grantedEquipment) {
+            sheet.bag.addEquipment(chosen.grantedEquipment);
+          }
+          // Poderes concedidos pela opção (concessão fixa). Adiciona os que ainda
+          // não estão na ficha e cascateia seus sheetActions.
+          if (chosen.grantedPowers && chosen.grantedPowers.length > 0) {
+            const added: GeneralPower[] = [];
+            chosen.grantedPowers.forEach((power) => {
+              if (sheet.generalPowers.some((p) => p.name === power.name))
+                return;
+              sheet.generalPowers.push(power);
+              added.push(power);
+              if (power.sheetActions && power.sheetActions.length > 0) {
+                const [updatedSheet, nestedSubSteps] = applyPower(
+                  sheet,
+                  power,
+                  manualSelections
+                );
+                Object.assign(sheet, updatedSheet);
+                subSteps.push(...nestedSubSteps);
+              }
+            });
+            if (added.length > 0) {
+              sheet.sheetActionHistory.push({
+                source: sheetAction.source,
+                powerName: powerOrAbility.name,
+                changes: added.map((power) => ({
+                  type: 'PowerAdded',
+                  powerName: power.name,
+                })),
+              });
+            }
+          }
+          // Poderes concedidos POR ESCOLHA do jogador nesta opção.
+          if (chosen.grantedPowersAction) {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            applyOptionGrantedPowers(
+              sheet,
+              chosen.grantedPowersAction,
+              manualSelections?.optionPowers?.[chosen.name],
+              sheetAction.source,
+              getSourceName(sheetAction.source),
+              powerOrAbility.name,
+              subSteps,
+              manualSelections
+            );
+          }
+          // Efeitos ativos e rolagens da opção ("sub-poder") → anexados ao
+          // poder/habilidade dono para aparecerem na ficha.
+          mergeOptionEffectsIntoOwner(
+            sheet,
+            powerOrAbility.name,
+            chosen.customEffects,
+            chosen.rolls
+          );
+        });
       } else if (sheetAction.action.type === 'trainSkillOrBonus') {
         const { skills } = sheetAction.action;
         const selectedSkill = getRandomItemFromArray(skills);
@@ -2464,7 +3140,15 @@ export const applyPower = (
 
   // sheet bonuses
   if (powerOrAbility.sheetBonuses) {
-    sheet.sheetBonuses.push(...powerOrAbility.sheetBonuses);
+    const { sourceClassName } = powerOrAbility;
+    const bonusesToPush = sourceClassName
+      ? powerOrAbility.sheetBonuses.map((b) =>
+          b.source.type === 'power'
+            ? { ...b, source: { ...b.source, className: sourceClassName } }
+            : b
+        )
+      : powerOrAbility.sheetBonuses;
+    sheet.sheetBonuses.push(...bonusesToPush);
 
     // Generate substeps for important bonuses so they appear in the step-by-step
     powerOrAbility.sheetBonuses.forEach((bonus) => {
@@ -2517,6 +3201,15 @@ export const applyPower = (
           name: sourceName,
           value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].value} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
         });
+      } else if (bonus.target.type === 'Proficiency') {
+        const { proficiency } = bonus.target;
+        if (proficiency && !sheet.classe.proficiencias.includes(proficiency)) {
+          sheet.classe.proficiencias.push(proficiency);
+          subSteps.push({
+            name: sourceName,
+            value: `Proficiência: ${proficiency}`,
+          });
+        }
       } else if (bonus.target.type === 'DamageReduction') {
         const { damageType } = bonus.target;
         if (bonus.modifier.type === 'Fixed' && 'value' in bonus.modifier) {
@@ -2531,6 +3224,62 @@ export const applyPower = (
 
   return [sheet, subSteps];
 };
+
+/**
+ * Aplica a concessão de poderes POR ESCOLHA do jogador de uma opção de pick
+ * escolhida. Usa a seleção manual quando presente, senão sorteia do pool. Os
+ * poderes são adicionados a `sheet.generalPowers` (idempotente por nome), seus
+ * `sheetActions` são cascateados e a concessão é registrada no histórico.
+ * Espelha o handler de `getGeneralPower`. Declarada após `applyPower` por
+ * referenciá-la (cascata de poderes concedidos).
+ */
+function applyOptionGrantedPowers(
+  sheet: CharacterSheet,
+  action: OptionGrantedPowersAction,
+  manualPowers: GeneralPower[] | undefined,
+  source: SheetChangeSource,
+  sourceName: string,
+  powerName: string,
+  subSteps: SubStep[],
+  manualSelections?: SelectionOptions
+): void {
+  const picked =
+    manualPowers && manualPowers.length > 0
+      ? manualPowers
+      : pickFromAllowed(
+          action.availablePowers,
+          action.pick,
+          sheet.generalPowers
+        );
+
+  const added: GeneralPower[] = [];
+  picked.forEach((power) => {
+    if (sheet.generalPowers.some((p) => p.name === power.name)) return;
+    sheet.generalPowers.push(power);
+    added.push(power);
+    subSteps.push({ name: sourceName, value: `Recebe o poder ${power.name}` });
+    if (power.sheetActions && power.sheetActions.length > 0) {
+      const [updatedSheet, nestedSubSteps] = applyPower(
+        sheet,
+        power,
+        manualSelections
+      );
+      Object.assign(sheet, updatedSheet);
+      subSteps.push(...nestedSubSteps);
+    }
+  });
+
+  if (added.length > 0) {
+    sheet.sheetActionHistory.push({
+      source,
+      powerName,
+      changes: added.map((power) => ({
+        type: 'PowerAdded',
+        powerName: power.name,
+      })),
+    });
+  }
+}
 
 export function applyRaceAbilities(
   sheet: CharacterSheet,
@@ -2671,7 +3420,11 @@ function applyClassAbilities(
   sheetClone = (availableAbilities || []).reduce((acc, ability) => {
     // Extract selections for this specific ability
     const abilitySelections = manualSelections?.[ability.name];
-    const [newAcc, newSubSteps] = applyPower(acc, ability, abilitySelections);
+    const [newAcc, newSubSteps] = applyPower(
+      acc,
+      { ...ability, sourceClassName: sheetClone.classe.name },
+      abilitySelections
+    );
     subSteps.push(...newSubSteps);
 
     // Cavaleiro: random path selection for Caminho do Cavaleiro
@@ -2877,7 +3630,10 @@ function getAndApplyPowers(
   return updatedSheet;
 }
 
-function levelUp(sheet: CharacterSheet): CharacterSheet {
+function levelUp(
+  sheet: CharacterSheet,
+  supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE]
+): CharacterSheet {
   let updatedSheet = cloneDeep(sheet);
   updatedSheet.nivel += 1;
 
@@ -2975,7 +3731,8 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   const newSpells = getNewSpells(
     updatedSheet.nivel,
     sheet.classe,
-    sheet.spells
+    sheet.spells,
+    supplements
   );
   // Filter out duplicates before adding
   const uniqueNewSpells = newSpells.filter(
@@ -3146,12 +3903,43 @@ export function applyManualLevelUp(
 ): CharacterSheet {
   let updatedSheet = cloneDeep(sheet);
 
-  // Initialize classLevels BEFORE incrementing nivel to avoid counting the new level as primary class
+  // Initialize classLevels BEFORE incrementing nivel to avoid counting the new level as primary class.
+  // Se já existe mas está dessincronizado com nivel (ex.: nível foi reduzido manualmente sem
+  // aparar classLevels), reconcilia antes do push para não acumular um nível extra fantasma.
   if (!updatedSheet.classLevels) {
     updatedSheet.classLevels = initializeClassLevels(updatedSheet);
+  } else if (updatedSheet.classLevels.length !== updatedSheet.nivel) {
+    updatedSheet.classLevels = reconcileClassLevels(
+      updatedSheet.classLevels,
+      updatedSheet.nivel,
+      updatedSheet.classe.name,
+      updatedSheet.classe.subname
+    );
   }
 
   updatedSheet.nivel += 1;
+
+  // Picks adicionais concedidos ao subir de nível por ações `chooseFromOptions`
+  // com config `levelUp` (caso aditivo). Anexa as escolhas deste nível ao mapa
+  // persistido `optionChoices`; o recálculo final (chamado pelo caller após
+  // todos os level-ups) reproduz o conjunto acumulado e aplica os bônus. Não
+  // aplicamos os bônus inline porque o recálculo é a fonte autoritativa.
+  if (
+    selections.levelUpOptionPicks &&
+    Object.keys(selections.levelUpOptionPicks).length > 0
+  ) {
+    const merged: Record<string, string[]> = {
+      ...(updatedSheet.optionChoices || {}),
+    };
+    Object.entries(selections.levelUpOptionPicks).forEach(
+      ([optionKey, picks]) => {
+        if (picks && picks.length > 0) {
+          merged[optionKey] = [...(merged[optionKey] || []), ...picks];
+        }
+      }
+    );
+    updatedSheet.optionChoices = merged;
+  }
 
   // Multiclass: resolve selected class for this level
   const selectedClassName =
@@ -3343,7 +4131,8 @@ export function applyManualLevelUp(
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
         newPower,
-        selections.powerEffectSelections?.[newPower.name]
+        selections.powerEffectSelections?.[newPower.name],
+        true
       );
       nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
@@ -3387,7 +4176,8 @@ export function applyManualLevelUp(
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
         newPower,
-        selections.powerEffectSelections?.[newPower.name]
+        selections.powerEffectSelections?.[newPower.name],
+        true
       );
       nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
@@ -3433,7 +4223,8 @@ export function applyManualLevelUp(
     const [newSheet, newSubSteps] = applyPower(
       updatedSheet,
       newPower,
-      selections.powerEffectSelections?.[newPower.name]
+      selections.powerEffectSelections?.[newPower.name],
+      true
     );
     nSubSteps.push(...newSubSteps);
     if (newSheet) updatedSheet = newSheet;
@@ -3510,14 +4301,41 @@ export function applyManualLevelUp(
           if (treinoChoice.chosenName === 'Conquistar pelos Números') {
             const trainerCha =
               updatedSheet.atributos[Atributo.CARISMA]?.value ?? 0;
-            const secondCompanion = generateRandomCompanion(
-              updatedSheet.nivel,
-              trainerCha
-            );
+            const {
+              companionName,
+              companionType,
+              companionSize,
+              companionWeaponDamageType,
+              companionSpiritEnergyType,
+              companionSkills,
+              companionTricks,
+            } = selections;
+            // Usa a personalização feita no wizard quando completa; fallback
+            // aleatório (retrocompatibilidade/robustez)
+            const secondCompanion =
+              companionType &&
+              companionSize &&
+              companionWeaponDamageType &&
+              companionSkills?.length &&
+              companionTricks?.length
+                ? createCompanion({
+                    name: companionName,
+                    type: companionType,
+                    size: companionSize,
+                    weaponDamageType: companionWeaponDamageType,
+                    spiritEnergyType: companionSpiritEnergyType,
+                    skills: companionSkills,
+                    tricks: companionTricks,
+                    trainerLevel: newClassLevel,
+                    trainerCharisma: trainerCha,
+                  })
+                : generateRandomCompanion(updatedSheet.nivel, trainerCha);
             updatedSheet.companions.push(secondCompanion);
             abilitySubSteps.push({
               name: 'Conquistar pelos Números',
-              value: `Segundo melhor amigo: ${secondCompanion.companionType} ${secondCompanion.size}`,
+              value: `Segundo melhor amigo: ${
+                secondCompanion.name ? `${secondCompanion.name} — ` : ''
+              }${secondCompanion.companionType} ${secondCompanion.size}`,
             });
           } else if (treinoChoice.chosenName === 'Treino Intensivo') {
             updatedSheet.companions[0] = {
@@ -3577,16 +4395,67 @@ export function applyManualLevelUp(
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(updatedSheet);
 
-  // Treinador: aplicar truque do parceiro selecionado no level up
-  if (selections.companionTrick && updatedSheet.companions?.length) {
-    updatedSheet.companions = updatedSheet.companions.map((companion, idx) => {
-      if (idx === 0) {
-        return {
-          ...companion,
-          tricks: [...companion.tricks, selections.companionTrick!],
-        };
+  // Treinador: aplicar truques do parceiro selecionados no level up
+  // Pode incluir o truque automático do nível ('auto') E o truque concedido
+  // pelo poder "Ensinar Truque" ('power'), em qualquer um dos companheiros.
+  if (
+    selections.companionTrickSelections?.length &&
+    updatedSheet.companions?.length
+  ) {
+    selections.companionTrickSelections.forEach((entry) => {
+      const targetIdx = Math.min(
+        entry.companionIndex,
+        updatedSheet.companions!.length - 1
+      );
+      // Dedup defensivo: ignora seleção duplicada de truque não-repetível
+      const trickDef = getCompanionTrickDefinition(entry.trick.name);
+      const canRepeat = !!trickDef?.requirements?.canRepeat;
+      if (
+        !canRepeat &&
+        updatedSheet.companions![targetIdx].tricks.some(
+          (t) => t.name === entry.trick.name
+        )
+      ) {
+        return;
       }
-      return companion;
+      updatedSheet.companions = updatedSheet.companions!.map(
+        (companion, idx) => {
+          if (idx !== targetIdx) return companion;
+          const next = {
+            ...companion,
+            tricks: [...companion.tricks, entry.trick],
+          };
+          if (entry.spell) {
+            const spellWithKey = {
+              ...entry.spell,
+              customKeyAttr: Atributo.CARISMA,
+            };
+            next.spells = [...(companion.spells || []), spellWithKey];
+          }
+          return next;
+        }
+      );
+
+      const isPowerTrick = entry.reason === 'power';
+      updatedSheet.sheetActionHistory.push({
+        source: isPowerTrick
+          ? {
+              type: 'power',
+              name: 'Ensinar Truque',
+              className: 'Treinador',
+            }
+          : { type: 'class', className: 'Treinador' },
+        powerName: isPowerTrick ? 'Ensinar Truque' : 'Truque do Melhor Amigo',
+        changes: [
+          {
+            type: 'CompanionTrickLearned',
+            companionIndex: targetIdx,
+            trickName: entry.trick.name,
+            choices: entry.trick.choices,
+            spellName: entry.spell?.nome,
+          },
+        ],
+      });
     });
   }
 
@@ -3621,15 +4490,30 @@ export function applyManualLevelUp(
   return updatedSheet;
 }
 
-const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
+const calculateBonusValue = (
+  sheet: CharacterSheet,
+  bonus: StatModifier,
+  source?: SheetChangeSource
+) => {
+  const resolveClassLevel = (): number => {
+    const className = source?.type === 'power' ? source.className : undefined;
+    return className ? getClassLevel(sheet, className) : sheet.nivel;
+  };
+
   if (bonus.type === 'Attribute') {
     return sheet.atributos[bonus.attribute].value;
   }
   if (bonus.type === 'LevelCalc') {
-    const filledFormula = bonus.formula.replace(
+    let filledFormula = bonus.formula.replace(
       /{level}/g,
       sheet.nivel.toString()
     );
+    if (filledFormula.includes('{classLevel}')) {
+      filledFormula = filledFormula.replace(
+        /{classLevel}/g,
+        resolveClassLevel().toString()
+      );
+    }
     // eslint-disable-next-line no-eval
     return eval(filledFormula);
   }
@@ -3658,6 +4542,37 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
       ].value;
     }
   }
+  if (bonus.type === 'CappedAttribute') {
+    const attrValue = sheet.atributos[bonus.attribute]?.value ?? 0;
+    const cap =
+      bonus.capBy === 'classLevel' ? resolveClassLevel() : sheet.nivel;
+    return Math.max(0, Math.min(attrValue, cap));
+  }
+  if (bonus.type === 'LevelBreakpoints') {
+    const lvl = bonus.by === 'classLevel' ? resolveClassLevel() : sheet.nivel;
+    let best: { fromLevel: number; value: number } | null = null;
+    bonus.breakpoints.forEach((bp) => {
+      if (lvl >= bp.fromLevel && (!best || bp.fromLevel > best.fromLevel)) {
+        best = bp;
+      }
+    });
+    return best ? (best as { fromLevel: number; value: number }).value : 0;
+  }
+  if (bonus.type === 'ScaledValue') {
+    let v = 0;
+    if (bonus.base.kind === 'fixed') v = bonus.base.value;
+    else if (bonus.base.kind === 'level') v = sheet.nivel;
+    else if (bonus.base.kind === 'spellCircle')
+      v =
+        sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ??
+        0;
+    else if (bonus.base.kind === 'attribute')
+      v = sheet.atributos[bonus.base.attribute]?.value ?? 0;
+    if (bonus.capByLevel) v = Math.min(v, sheet.nivel);
+    if (bonus.capByAttribute)
+      v = Math.min(v, sheet.atributos[bonus.capByAttribute]?.value ?? 0);
+    return Math.max(0, v);
+  }
   if (bonus.type === 'Fixed') {
     return bonus.value;
   }
@@ -3670,6 +4585,12 @@ const applyStatModifiers = (
 ) => {
   const sheet = _.cloneDeep(_sheet);
 
+  // Remove bônus cuja condição (opcional) não é satisfeita antes de aplicar
+  // qualquer um — gateia todos os consumidores abaixo nesta função.
+  sheet.sheetBonuses = sheet.sheetBonuses.filter((bonus) =>
+    isBonusActive(sheet, bonus)
+  );
+
   const pvSubSteps: SubStep[] = [];
   const pmSubSteps: SubStep[] = [];
   const defSubSteps: SubStep[] = [];
@@ -3679,7 +4600,7 @@ const applyStatModifiers = (
   const modifySkillAttributeSubSteps: SubStep[] = [];
 
   sheet.sheetBonuses.forEach((bonus) => {
-    const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+    const bonusValue = calculateBonusValue(sheet, bonus.modifier, bonus.source);
     const getSubStepName = (source: SheetChangeSource) => {
       if (source.type === 'power') {
         return `${source.name}:`;
@@ -3724,6 +4645,16 @@ const applyStatModifiers = (
         name: subStepName,
         value: `${bonusValue} em ${skillName}`,
       });
+    } else if (bonus.target.type === 'AllAttackBonus') {
+      // Testes de ataque = testes de Luta/Pontaria (mesmo roteamento do
+      // recalculateSheet).
+      addOtherBonusToSkill(sheet, Skill.LUTA, bonusValue);
+      addOtherBonusToSkill(sheet, Skill.PONTARIA, bonusValue);
+
+      skillSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em Luta e Pontaria`,
+      });
     } else if (bonus.target.type === 'Displacement') {
       sheet.displacement += bonusValue;
 
@@ -3747,16 +4678,30 @@ const applyStatModifiers = (
       });
     } else if (bonus.target.type === 'PickSkill') {
       let pickedSkills: Skill[];
+      const { optionKey } = bonus.target;
+      const persisted = optionKey
+        ? sheet.optionChoices?.[optionKey]
+        : undefined;
 
-      // Use manual selections if provided
+      // Prioridade: escolha manual → escolha persistida (replay) → aleatório.
       if (manualSelections?.skills && manualSelections.skills.length > 0) {
         pickedSkills = manualSelections.skills.slice(
           0,
           bonus.target.pick
         ) as Skill[];
+      } else if (persisted && persisted.length > 0) {
+        pickedSkills = persisted.slice(0, bonus.target.pick) as Skill[];
       } else {
         // Fall back to random selection
         pickedSkills = pickFromArray(bonus.target.skills, bonus.target.pick);
+      }
+
+      // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
+      if (optionKey && pickedSkills.length > 0) {
+        sheet.optionChoices = {
+          ...(sheet.optionChoices || {}),
+          [optionKey]: pickedSkills,
+        };
       }
 
       pickedSkills.forEach((skill) => {
@@ -3799,9 +4744,34 @@ const applyStatModifiers = (
     }
   });
 
-  // Class-conditional Damage Reduction
-  const equippedArmors = sheet.bag.equipments.Armadura || [];
-  const hasHeavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
+  // Class-conditional Damage Reduction. Uses ONLY the worn armor — multiple
+  // armors may live in the bag now, but only the worn one drives effects.
+  const allArmors = sheet.bag.equipments.Armadura || [];
+  let wornArmor = sheet.wornArmorId
+    ? allArmors.find((a) => a.id === sheet.wornArmorId)
+    : undefined;
+  if (!wornArmor && !sheet.wornArmorId && allArmors.length === 1) {
+    [wornArmor] = allArmors; // legacy compat
+  }
+  const hasHeavyArmor = wornArmor ? isHeavyArmor(wornArmor) : false;
+
+  // Material especial em armadura/escudo EQUIPADO (ex.: Adamante). Só o item de
+  // fato equipado contribui — itens na mochila não dão RD.
+  const equippedShields = sheet.bag.equipments.Escudo || [];
+  const wornShield = equippedShields.find(
+    (shield) =>
+      shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId
+  );
+  [
+    ...(wornArmor ? getDefenseMaterialRd(wornArmor, hasHeavyArmor) : []),
+    ...(wornShield ? getDefenseMaterialRd(wornShield, false) : []),
+  ].forEach((dr) => {
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    sheet.reducaoDeDano[dr.damageType] =
+      (sheet.reducaoDeDano[dr.damageType] ?? 0) + dr.value;
+  });
 
   // Bárbaro: Resistência a Dano (RD Geral escalável)
   if (sheet.classe.name === 'Bárbaro' && sheet.nivel >= 5) {
@@ -3895,6 +4865,13 @@ const applyStatModifiers = (
     });
   }
 
+  // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
+  const virtudePM = getVirtudePaladinescaPMBonus(sheet.classPowers);
+  if (virtudePM > 0) {
+    sheet.pm += virtudePM;
+    pmSubSteps.push({ name: 'Virtudes Paladinescas:', value: `${virtudePM}` });
+  }
+
   if (pvSubSteps.length) {
     sheet.steps.push({
       label: 'Bonus de PV',
@@ -3950,6 +4927,9 @@ const applyStatModifiers = (
       value: modifySkillAttributeSubSteps,
     });
   }
+
+  // Carimba os suplementos runtime usados (preserva inativos não verificáveis).
+  stampUsedSupplements(sheet);
 
   return sheet;
 };
@@ -4271,6 +5251,20 @@ export default function generateRandomSheet(
     dinheiro: initialMoney,
   };
 
+  // Persistir a customização do Duende (campos dedicados) a partir da raça
+  // gerada pelo setup(), para o editor poder editá-la sem depender de
+  // reconstrução. A natureza/presentes/tabu já ficam em `raca.*` (o editor faz
+  // fallback), mas os Dons e o id de tamanho não são recuperáveis de outra forma.
+  if (race.name === 'Duende') {
+    if (race.duendeBonusAttributes) {
+      charSheet.duendeBonusAttributes = race.duendeBonusAttributes;
+    }
+    // Reverse-lookup do id de tamanho (DUENDE_SIZES) a partir da categoria assada
+    charSheet.raceSizeCategory = DUENDE_SIZE_NAMES.find(
+      (id) => DUENDE_SIZES[id].sizeCategory === race.size
+    );
+  }
+
   // Propósito de Criação for Golem races (no origin)
   if (!origin && !raceHasOrigin(race.name)) {
     const allPowers = dataRegistry.getAllPowersBySupplements(supplements);
@@ -4341,15 +5335,41 @@ export default function generateRandomSheet(
   // Gerar poderes restantes, e aplicar habilidades, e poderes
   charSheet = getAndApplyPowers(charSheet, powersGetters);
 
+  // Passo 11.5:
+  // Define a empunhadura inicial (arma/escudo) e a armadura vestida a partir do
+  // equipamento gerado — o mesmo que `recalculateSheet` já faz ao carregar uma
+  // ficha. Sem isso a geração deixa as mãos vazias, e tanto o bônus de Defesa do
+  // escudo (que `calcDefense` só conta com o escudo empunhado) quanto os bônus
+  // condicionais de empunhadura (ex.: Legionário) são descartados abaixo.
+  charSheet = migrateLegacyEquipState(charSheet);
+
   // Calcular valor das perícias após poderes (pois vários poderes adicionam perícias e bonificadores)
+  // Armadura/escudo sem proficiência (regra T20): a penalidade de armadura dos
+  // itens ativos se estende a TODAS as perícias de Força/Destreza (as perícias
+  // com penalidade de armadura padrão já levam a penalidade cheia e não
+  // acumulam com esta parcela).
+  const nonProficientArmorPenalty = getNonProficientArmorPenalty(charSheet);
   charSheet.completeSkills = Object.values(Skill)
     .map((skill) => {
       const skillAttr = SkillsAttrs[skill];
       const attr = atributos[skillAttr as unknown as Atributo];
 
-      const armorPenalty = SkillsWithArmorPenalty.includes(skill)
-        ? charSheet.bag.getArmorPenalty?.()
-        : 0;
+      let armorPenalty = 0;
+      if (SkillsWithArmorPenalty.includes(skill)) {
+        armorPenalty =
+          charSheet.bag.getActiveArmorPenalty?.(
+            charSheet.wornArmorId,
+            charSheet.mainHandItemId,
+            charSheet.offHandItemId
+          ) ??
+          charSheet.bag.getArmorPenalty?.() ??
+          0;
+      } else if (
+        skillAttr === Atributo.FORCA ||
+        skillAttr === Atributo.DESTREZA
+      ) {
+        armorPenalty = nonProficientArmorPenalty;
+      }
 
       return {
         name: skill,
@@ -4370,7 +5390,12 @@ export default function generateRandomSheet(
   charSheet = calcDefense(charSheet);
 
   // Passo 13: Gerar magias se possível
-  const newSpells = getNewSpells(1, charSheet.classe, charSheet.spells);
+  const newSpells = getNewSpells(
+    1,
+    charSheet.classe,
+    charSheet.spells,
+    supplements
+  );
   // Filter out duplicates before adding
   const uniqueNewSpells = newSpells.filter(
     (newSpell) =>
@@ -4386,12 +5411,22 @@ export default function generateRandomSheet(
     });
   }
 
-  const equippedArmors = charSheet.bag.equipments.Armadura || [];
-  const hasHeavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
+  const armorsInBag = charSheet.bag.equipments.Armadura || [];
+  let wornArmorForDisp = charSheet.wornArmorId
+    ? armorsInBag.find((a) => a.id === charSheet.wornArmorId)
+    : undefined;
+  if (!wornArmorForDisp && !charSheet.wornArmorId && armorsInBag.length === 1) {
+    [wornArmorForDisp] = armorsInBag; // legacy compat
+  }
+  const hasHeavyArmor = wornArmorForDisp
+    ? isHeavyArmor(wornArmorForDisp)
+    : false;
   const displacement = calcDisplacement(
     charSheet.bag,
     getRaceDisplacement(charSheet.raca),
-    charSheet.atributos,
+    charSheet.customMaxSpaces ??
+      charSheet.maxSpaces +
+        getEquipmentMaxSpacesBonus(charSheet.bag.getOrderedEquipments()),
     charSheet.displacement,
     charSheet.dinheiro,
     charSheet.dinheiroTC,
@@ -4402,7 +5437,7 @@ export default function generateRandomSheet(
   charSheet.displacement = displacement;
 
   for (let index = 2; index <= targetLevel; index += 1) {
-    charSheet = levelUp(charSheet);
+    charSheet = levelUp(charSheet, supplements);
   }
 
   // Passo 14: Aplicar modificadores de atributos
@@ -4569,6 +5604,11 @@ export function generateEmptySheet(
     if (raceCustomization.duendeTabuSkill) {
       emptySheet.duendeTabuSkill = raceCustomization.duendeTabuSkill;
     }
+    // Persistir os Dons escolhidos (campo dedicado) para o editor poder editá-los.
+    // Fallback para os Dons "assados" na raça pelo applyDuendeCustomization.
+    emptySheet.duendeBonusAttributes =
+      raceCustomization.duendeBonusAttributes ??
+      emptySheet.raca.duendeBonusAttributes;
   }
 
   // Save Golem Desperto customization fields
@@ -4625,6 +5665,15 @@ export function generateEmptySheet(
     emptySheet.qareenElement = wizardSelections.qareenElement;
   }
 
+  // Apply Moreau Coruja Sapiência spell selection from wizard
+  if (
+    wizardSelections?.moreauSapienciaSpell &&
+    emptySheet.raca.name === 'Moreau' &&
+    emptySheet.raceHeritage === 'Coruja'
+  ) {
+    emptySheet.moreauSapienciaSpell = wizardSelections.moreauSapienciaSpell;
+  }
+
   // Apply Osteon/Soterrado old race selection from wizard
   const wizardOldRaceName =
     wizardSelections?.powerEffectSelections?.['Memória Póstuma']
@@ -4642,6 +5691,24 @@ export function generateEmptySheet(
     if (oldRaceObj) {
       const modifiedRace = _.cloneDeep(emptySheet.raca);
       modifiedRace.oldRace = _.cloneDeep(oldRaceObj);
+      emptySheet.raca = modifiedRace;
+    }
+  }
+
+  // Apply Yidishan old race selection from wizard (Natureza Orgânica)
+  const wizardYidishanOldRaceName =
+    wizardSelections?.powerEffectSelections?.['Natureza Orgânica']
+      ?.yidishanOldRace;
+  if (wizardYidishanOldRaceName && emptySheet.raca.name === 'Yidishan') {
+    const allRacesForYidishan = dataRegistry.getRacesBySupplements(
+      selectedOptions.supplements || [SupplementId.TORMENTA20_CORE]
+    );
+    const yidishanOldRaceObj = allRacesForYidishan.find(
+      (r) => r.name === wizardYidishanOldRaceName
+    );
+    if (yidishanOldRaceObj) {
+      const modifiedRace = _.cloneDeep(emptySheet.raca);
+      modifiedRace.oldRace = _.cloneDeep(yidishanOldRaceObj);
       emptySheet.raca = modifiedRace;
     }
   }
@@ -4757,45 +5824,21 @@ export function generateEmptySheet(
           modifiedClasse.abilities.push(linhagemRubra);
         }
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada') {
-        // Linhagem Abençoada: include divine spells from all schools
+        // Linhagem Abençoada: include divine spells from all schools and grant
+        // one extra spell (the divine spell), for a total of 4 at level 1.
         if (modifiedClasse.spellPath) {
           modifiedClasse.spellPath.includeDivineSchools = allSpellSchools;
+          modifiedClasse.spellPath.initialSpells = 4;
         }
 
         const deusEscolhido =
           wizardSelections.linhagemAbencoada?.deus || 'um deus maior';
-        modifiedClasse.abilities.push({
-          name: 'Linhagem Abençoada',
-          text: `Seu poder vem de ${deusEscolhido}. Você aprende uma magia divina de 1º círculo e pode aprender magias divinas de 1º círculo como magias de feiticeiro.`,
-          nivel: 1,
-        });
-
-        // Buscar poderes concedidos da divindade escolhida
-        const divindade = DIVINDADES.find((d) => d.name === deusEscolhido);
-        const poderesDisponiveis = divindade?.poderes || [];
-
-        // Habilidade de nível 2: poder concedido com escolha
-        modifiedClasse.abilities.push({
-          name: 'Linhagem Abençoada (Poder Concedido)',
-          text: `Você recebe um poder concedido de ${deusEscolhido}, aprovado pelo mestre, sem precisar ser devoto.`,
-          nivel: 2,
-          sheetActions:
-            poderesDisponiveis.length > 0
-              ? [
-                  {
-                    source: {
-                      type: 'power',
-                      name: 'Linhagem Abençoada (Poder Concedido)',
-                    },
-                    action: {
-                      type: 'getGeneralPower',
-                      availablePowers: poderesDisponiveis,
-                      pick: 1,
-                    },
-                  },
-                ]
-              : undefined,
-        });
+        // Habilidades da Linhagem Abençoada (nível 1 + poder concedido de nível 2).
+        // Fonte única em createLinhagemAbencoada para manter detecção do wizard
+        // (getClassSetupAbilities) e geração em sincronia.
+        modifiedClasse.abilities.push(
+          ...createLinhagemAbencoada(deusEscolhido)
+        );
       }
     }
 
@@ -4813,6 +5856,22 @@ export function generateEmptySheet(
   } else if (generatedClass.setup) {
     // No wizard selection, use random setup
     emptySheet.classe = generatedClass.setup(generatedClass, supplements);
+  } else if (
+    wizardSelections?.spellSchools &&
+    generatedClass.spellPath?.schoolChoice
+  ) {
+    // Classes sem setup() com escolha de escolas (homebrew): aplica a escolha
+    // do wizard sobre um clone (nunca mutar o objeto do registry)
+    const clonedClass = _.cloneDeep(generatedClass);
+    if (clonedClass.spellPath) {
+      clonedClass.spellPath.schools = wizardSelections.spellSchools;
+    }
+    emptySheet.classe = clonedClass;
+  } else if (generatedClass.spellPath?.schoolChoice) {
+    // Sem escolha do wizard: sorteia as escolas (por ficha, sobre um clone)
+    const clonedClass = _.cloneDeep(generatedClass);
+    if (clonedClass.spellPath) resolveSchoolChoice(clonedClass.spellPath);
+    emptySheet.classe = clonedClass;
   } else {
     emptySheet.classe = generatedClass;
   }
@@ -4958,6 +6017,19 @@ export function generateEmptySheet(
     emptySheet.steps.push({
       label: 'Elemento Qareen',
       value: [{ name: 'Elemento', value: wizardSelections.qareenElement }],
+    });
+  }
+
+  // Step: Moreau Coruja Sapiência spell selection
+  if (wizardSelections?.moreauSapienciaSpell) {
+    emptySheet.steps.push({
+      label: 'Sapiência (Moreau Coruja)',
+      value: [
+        {
+          name: 'Magia escolhida',
+          value: wizardSelections.moreauSapienciaSpell,
+        },
+      ],
     });
   }
 
@@ -5262,7 +6334,10 @@ export function generateEmptySheet(
     emptySheet.classe.attrPriority || [],
     tempSteps,
     wizardSelections?.raceAttributes,
-    undefined // Sex not defined in empty sheet yet
+    resolveSexForAttributes(
+      wizardSelections?.characterGender,
+      wizardSelections?.dimorphismChoice
+    )
   );
   emptySheet.steps.push(...tempSteps);
 
@@ -5306,8 +6381,30 @@ export function generateEmptySheet(
           }
         });
 
+        // Poderes gerais concedidos automaticamente (origens regionais com
+        // poderes gerais no pool, ex.: origem homebrew "receber tudo").
+        (originBenefits.powers.generalPowers || []).forEach((generalPower) => {
+          if (
+            !emptySheet.generalPowers.some((p) => p.name === generalPower.name)
+          ) {
+            emptySheet.generalPowers.push(generalPower);
+          }
+        });
+
         // Use resolved powers from getPowersAndSkills
         originPowers = originBenefits.powers.origin;
+
+        // Itens e dinheiro da origem regional. Só no fallback: se o usuário
+        // interagiu com o Mercado, o bag do mercado já os contém.
+        if (!wizardSelections?.marketSelections) {
+          emptySheet.bag.addEquipment(
+            convertOriginItemsToBagEquipments(selectedOrigin.getItems())
+          );
+          if (selectedOrigin.getMoney) {
+            emptySheet.dinheiro =
+              (emptySheet.dinheiro || 0) + selectedOrigin.getMoney();
+          }
+        }
       } else if (
         wizardSelections?.originBenefits &&
         wizardSelections.originBenefits.length > 0
@@ -5347,8 +6444,24 @@ export function generateEmptySheet(
                 emptySheet.generalPowers.push(generalPower);
               }
             }
-          } else if (benefit.type === 'item') {
-            // TODO: Add item to bag (requires equipment lookup)
+          } else if (
+            benefit.type === 'item' &&
+            !wizardSelections?.marketSelections
+          ) {
+            // Item escolhido como benefício da origem. Só no fallback: se o
+            // usuário interagiu com o Mercado, o bag do mercado já o contém.
+            const benefitItem = selectedOrigin.getItems().find((i) => {
+              const itemName =
+                typeof i.equipment === 'string'
+                  ? i.equipment
+                  : i.equipment.nome;
+              return itemName === benefit.name;
+            });
+            if (benefitItem) {
+              emptySheet.bag.addEquipment(
+                convertOriginItemsToBagEquipments([benefitItem])
+              );
+            }
           }
         });
 
@@ -5368,6 +6481,29 @@ export function generateEmptySheet(
         selectedBenefits: wizardSelections?.originBenefits,
       };
     }
+  }
+
+  // Equipamento inicial da classe: escolhido no step "Equipamento Inicial" ou
+  // sorteado como fallback. Só no fallback sem Mercado: se o usuário interagiu
+  // com o Mercado, o bag do mercado já contém o equipamento de classe.
+  // Fica após o bloco de origem para o dedup de armadura ver os itens da origem.
+  if (!wizardSelections?.marketSelections) {
+    const classEquipments = wizardSelections?.classEquipment
+      ? buildClassEquipmentsFromChoices(
+          generatedClass,
+          wizardSelections.classEquipment,
+          emptySheet.bag
+        )
+      : getClassEquipments(generatedClass, emptySheet.bag);
+    emptySheet.bag.addEquipment(classEquipments);
+
+    emptySheet.steps.push({
+      type: 'Equipamentos',
+      label: 'Equipamentos da classe',
+      value: [...Object.values(classEquipments).flat()].map((equip) => ({
+        value: equip.nome,
+      })),
+    });
   }
 
   // Propósito de Criação for Golem races (no origin)
@@ -5479,7 +6615,11 @@ export function generateEmptySheet(
   };
 
   emptySheet.sheetBonuses.forEach((bonus) => {
-    const bonusValue = calculateBonusValue(emptySheet, bonus.modifier);
+    const bonusValue = calculateBonusValue(
+      emptySheet,
+      bonus.modifier,
+      bonus.source
+    );
     const subStepName = getBonusStepName(bonus.source);
 
     if (bonus.target.type === 'PV') {
@@ -5492,6 +6632,11 @@ export function generateEmptySheet(
       skillBonusSubSteps.push({
         name: subStepName,
         value: `${bonusValue} em ${bonus.target.name}`,
+      });
+    } else if (bonus.target.type === 'AllAttackBonus') {
+      skillBonusSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em Luta e Pontaria`,
       });
     } else if (bonus.target.type === 'Displacement') {
       displacementSubSteps.push({
@@ -5602,6 +6747,16 @@ export function restoreSpellPath(
   sheet: CharacterSheet,
   classes: ClassDescription[]
 ): void {
+  // Defensivo: fichas malformadas / parcialmente reidratadas podem chegar sem
+  // `classe` (ex.: embed anônimo de uma ficha cujo conteúdo não está disponível).
+  // Sem isso, o acesso a `sheet.classe.spellPath` lança e quebra o render.
+
+  // Repara invariantes estruturais (atributos, arrays, size, etc.) de fichas
+  // antigas/corrompidas. Este é o chokepoint de todos os caminhos de carga.
+  normalizeSheet(sheet);
+
+  if (!sheet.classe) return;
+
   // If spellPath is completely missing, try to create it for known spellcasters
   // (e.g., old sheets or stripped exports where spellPath was never serialized)
   if (!sheet.classe.spellPath) {
@@ -5618,7 +6773,9 @@ export function restoreSpellPath(
           sheet.classe.spellPath = setupClass.spellPath;
         }
       } else if (baseClass?.spellPath) {
-        sheet.classe.spellPath = baseClass.spellPath;
+        // Cópia rasa: applySerializedOverrides muta o spellPath; sem isso as
+        // escolas de uma ficha contaminariam a classe do registry (homebrew)
+        sheet.classe.spellPath = { ...baseClass.spellPath };
       }
     }
     if (!sheet.classe.spellPath) return;
@@ -5656,7 +6813,8 @@ export function restoreSpellPath(
         return (c.subname || '') === (sheet.classe.subname || '');
       });
       if (originalClass?.spellPath) {
-        sheet.classe.spellPath = originalClass.spellPath;
+        // Cópia rasa: nunca compartilhar o spellPath do registry com a ficha
+        sheet.classe.spellPath = { ...originalClass.spellPath };
       }
     }
   }

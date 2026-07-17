@@ -89,7 +89,6 @@ const RecentSheetsSection: React.FC<RecentSheetsSectionProps> = ({
       <Typography variant='h5' className='section-title' sx={{ mb: 2 }}>
         Suas Fichas Recentes
       </Typography>
-
       <Stack spacing={1.5}>
         {recentSheets.map((sheet, index) => {
           const data = getSheetData(sheet);
@@ -145,7 +144,14 @@ const RecentSheetsSection: React.FC<RecentSheetsSectionProps> = ({
                   {sheet.name}
                 </Typography>
 
-                <Stack direction='row' spacing={0.5} flexWrap='wrap' gap={0.5}>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    flexWrap: 'wrap',
+                    gap: 0.5,
+                  }}
+                >
                   {(() => {
                     let classLabel = data.classe?.name;
                     if (
@@ -195,8 +201,12 @@ const RecentSheetsSection: React.FC<RecentSheetsSectionProps> = ({
 
                 <Typography
                   variant='caption'
-                  color='text.secondary'
-                  sx={{ fontSize: '0.65rem', display: 'block', mt: 0.5 }}
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.65rem',
+                    display: 'block',
+                    mt: 0.5,
+                  }}
                 >
                   Editado em{' '}
                   {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
@@ -206,7 +216,6 @@ const RecentSheetsSection: React.FC<RecentSheetsSectionProps> = ({
           );
         })}
       </Stack>
-
       <Button
         variant='contained'
         size='small'

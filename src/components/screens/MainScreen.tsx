@@ -35,10 +35,11 @@ import {
   Extension as ExtensionIcon,
   Warning as WarningIcon,
   Cloud as CloudIcon,
-  HelpOutline as HelpIcon,
+  HelpOutlined as HelpIcon,
   Favorite as FavoriteIcon,
   Article as ArticleIcon,
   Subject as SubjectIcon,
+  Folder as FolderIcon,
 } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import React from 'react';
@@ -66,12 +67,12 @@ import {
 
 import generateRandomSheet, {
   generateEmptySheet,
-  applyPower,
   applyManualLevelUp,
   restoreSpellPath,
 } from '../../functions/general';
 import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
 import { recalculateSheet } from '../../functions/recalculateSheet';
+import { applyRaceCustomizationToSheet } from '../../functions/applyRaceCustomizationToSheet';
 import { rehydrateSheet } from '../../functions/sheetPayloadOptimizer';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
@@ -86,6 +87,9 @@ import {
 import { HistoricI } from '../../interfaces/Historic';
 import { MAX_CHARACTERS_LIMIT } from '../../store/slices/sheetStorage/sheetStorage';
 import { useAuth } from '../../hooks/useAuth';
+import { useContentSupplements } from '../../hooks/useContentSupplements';
+import { getMissingRuntimeSupplements } from '../../functions/contentSources';
+import SheetUnavailable from './SheetUnavailable';
 import { useSheets } from '../../hooks/useSheets';
 import { useAlert } from '../../hooks/useDialog';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
@@ -107,10 +111,12 @@ import { applyDuendeCustomization } from '../../data/systems/tormenta20/herois-d
 import { applyMoreauCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import Skill from '../../interfaces/Skills';
 import SheetLimitDialog from '../common/SheetLimitDialog';
+import { FolderInfo } from '../ThreatGenerator/ThreatViewCloudWrapper';
 import {
   CharacterCreationLayout,
   RandomSheetForm,
   NewSheetForm,
+  ActiveContentBar,
   CreationMode,
 } from './CharacterCreation';
 
@@ -258,7 +264,8 @@ const updateSheetInHistoric = (updatedSheet: CharacterSheet) => {
 const saveSheetToDatabase = async (
   sheet: CharacterSheet,
   isAuthenticated: boolean,
-  createSheetAction: (request: CreateSheetRequest) => Promise<unknown>
+  createSheetAction: (request: CreateSheetRequest) => Promise<unknown>,
+  folderId?: string | null
 ) => {
   if (!isAuthenticated) return;
 
@@ -273,6 +280,7 @@ const saveSheetToDatabase = async (
       } as unknown as CreateSheetRequest['sheetData'],
       image: sheet.imageUrl,
       description: `Personagem gerado automaticamente (Nível ${sheet.nivel})`,
+      folderId: folderId ?? undefined,
     };
 
     // Use Redux action instead of direct service call
@@ -288,6 +296,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated, user } = useAuth();
+  // Fontes de conteúdo ativas (suplementos oficiais + suplementos runtime).
+  const contentSupplements = useContentSupplements();
   const {
     openLoginModal,
     registerUnsavedChangesChecker,
@@ -313,7 +323,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     origin: '',
     devocao: { label: 'Não devoto', value: '--' },
     gerarItens: 'nao-gerar',
-    supplements: user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
+    supplements: contentSupplements,
   });
 
   const [simpleSheet, setSimpleSheet] = React.useState(false);
@@ -389,26 +399,36 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   // Use ref to bypass navigation blocking immediately without waiting for state updates
   const allowNavigationRef = React.useRef(false);
 
-  const location = useLocation<{ cloudSheet?: any }>();
+  const location = useLocation<{ cloudSheet?: any; folderInfo?: FolderInfo }>();
+
+  // Capture folder context on mount (location.state is cleared by history.replace
+  // in the cloud-sheet edit flow, so it must be read via lazy initializer)
+  const [targetFolder] = React.useState<FolderInfo | null>(
+    () => location.state?.folderInfo ?? null
+  );
 
   // Get races and classes based on user's enabled supplements
   // Default to TORMENTA20_CORE for non-authenticated users
-  const userSupplements = user?.enabledSupplements || [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  const userSupplements = contentSupplements;
   const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
-  // Sync selectedOptions.supplements when user's enabledSupplements change
+  // Navigate to supplement configuration (logged in) or open login (logged out)
+  const handleConfigureSupplements = React.useCallback(() => {
+    if (isAuthenticated && user?.username) {
+      history.push(`/perfil/${user.username}#suplementos`);
+    } else {
+      openLoginModal();
+    }
+  }, [isAuthenticated, user?.username, history, openLoginModal]);
+
+  // Sync selectedOptions.supplements when content sources change
   React.useEffect(() => {
-    const newSupplements = user?.enabledSupplements || [
-      SupplementId.TORMENTA20_CORE,
-    ];
     setSelectedOptions((prev) => ({
       ...prev,
-      supplements: newSupplements,
+      supplements: contentSupplements,
     }));
-  }, [user?.enabledSupplements]);
+  }, [contentSupplements]);
 
   // Load cloud sheet on mount if passed via navigation state
   React.useEffect(() => {
@@ -426,7 +446,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       );
 
       // Restore Bag class methods
-      sheet.bag = new Bag(sheet.bag?.equipments);
+      sheet.bag = Bag.fromStored(sheet.bag);
 
       // Restore spellPath functions if the class has spellcasting
       restoreSpellPath(sheet, CLASSES);
@@ -772,7 +792,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       await saveSheetToDatabase(
         randomSheet,
         isAuthenticated,
-        createSheetAction
+        createSheetAction,
+        isNewSheet ? targetFolder?.folderId : null
       );
       setSheetSavedToCloud(true);
       showAlert(
@@ -797,7 +818,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
 
     // Restore Bag class methods
-    sheet.bag = new Bag(sheet.bag?.equipments);
+    sheet.bag = Bag.fromStored(sheet.bag);
 
     // Restore spellPath functions if the class has spellcasting
     restoreSpellPath(sheet, CLASSES);
@@ -1050,17 +1071,29 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     </div>
   );
 
-  const sheetComponent =
-    randomSheet &&
-    (simpleSheet ? (
-      <SimpleResult sheet={randomSheet} />
-    ) : (
+  // Bloqueia a renderização se a ficha depende de homebrews que não estão
+  // ativos (ex.: foram desativados para liberar slot). Essencial para os
+  // limites de ativação — a ficha não deve carregar com conteúdo ausente.
+  const missingRuntime = randomSheet
+    ? getMissingRuntimeSupplements(randomSheet)
+    : [];
+
+  const renderSheetBody = () => {
+    if (!randomSheet) return null;
+    if (missingRuntime.length > 0) {
+      return <SheetUnavailable count={missingRuntime.length} />;
+    }
+    if (simpleSheet) return <SimpleResult sheet={randomSheet} />;
+    return (
       <Result
         sheet={randomSheet}
         isDarkMode={isDarkMode}
         onSheetUpdate={handleSheetUpdate}
       />
-    ));
+    );
+  };
+
+  const sheetComponent = randomSheet && renderSheetBody();
 
   function encodeFoundryJSON(json: FoundryJSON | undefined) {
     if (json) {
@@ -1072,7 +1105,16 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     return '';
   }
 
-  const foundryJSON = randomSheet ? convertToFoundry(randomSheet) : undefined;
+  // A conversão roda em todo render só para pré-computar o export; uma ficha
+  // malformada não pode derrubar a página inteira por causa disso.
+  let foundryJSON: FoundryJSON | undefined;
+  if (randomSheet) {
+    try {
+      foundryJSON = convertToFoundry(randomSheet);
+    } catch {
+      foundryJSON = undefined;
+    }
+  }
 
   const encodedJSON = foundryJSON ? encodeFoundryJSON(foundryJSON) : '';
 
@@ -1098,6 +1140,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         sessionStorage.setItem('fdnPdfSupportShown', 'true');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao gerar PDF:', error);
       showAlert('Erro ao gerar PDF.', 'Erro');
     } finally {
       setLoadingPDF(false);
@@ -1183,12 +1227,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     const baseRace = RACAS.find((r) => r.name === 'Golem Desperto');
     if (!baseRace) return;
 
-    // Check if customization changed from what was originally generated
-    const customizationChanged =
-      chassisId !== pendingGolemDespertoSheet.raca.chassis ||
-      energySourceId !== pendingGolemDespertoSheet.raca.energySource ||
-      sizeId !== pendingGolemDespertoSheet.raca.sizeCategory;
-
     const customizedRace = applyGolemDespertoCustomization(
       baseRace,
       chassisId,
@@ -1196,40 +1234,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       sizeId
     );
 
-    let finalSheet: CharacterSheet = {
-      ...pendingGolemDespertoSheet,
-      raca: customizedRace,
-      raceChassis: chassisId,
-      raceEnergySource: energySourceId,
-      raceSizeCategory: sizeId,
-      displacement: customizedRace.getDisplacement
-        ? customizedRace.getDisplacement(customizedRace)
-        : pendingGolemDespertoSheet.displacement,
-      size: customizedRace.size || pendingGolemDespertoSheet.size,
-    };
-
-    // If customization changed, we need to reprocess the abilities
-    // to execute their sheetActions (like adding spells for Fonte Sagrada)
-    if (customizationChanged) {
-      // Get the new chassis and energy source abilities
-      const newAbilities = customizedRace.abilities.filter(
-        (a) =>
-          a.name.startsWith('Chassi') || a.name.startsWith('Fonte de Energia')
-      );
-
-      // Process each new ability's sheetActions
-      newAbilities.forEach((ability) => {
-        if (ability.sheetActions) {
-          const [updatedSheet] = applyPower(finalSheet, ability);
-          finalSheet = {
-            ...updatedSheet,
-            raceChassis: chassisId,
-            raceEnergySource: energySourceId,
-            raceSizeCategory: sizeId,
-          };
-        }
-      });
-    }
+    const finalSheet = applyRaceCustomizationToSheet(
+      pendingGolemDespertoSheet,
+      customizedRace,
+      {
+        raceChassis: chassisId,
+        raceEnergySource: energySourceId,
+        raceSizeCategory: sizeId,
+      }
+    );
 
     // Save to historic
     saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>
@@ -1291,26 +1304,16 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       tabuSkill
     );
 
-    let finalSheet: CharacterSheet = {
-      ...pendingDuendeSheet,
-      raca: customizedRace,
-      raceSizeCategory: sizeId,
-      displacement: customizedRace.getDisplacement
-        ? customizedRace.getDisplacement(customizedRace)
-        : pendingDuendeSheet.displacement,
-      size: customizedRace.size || pendingDuendeSheet.size,
-    };
-
-    // Process each ability's sheetActions
-    customizedRace.abilities.forEach((ability) => {
-      if (ability.sheetActions || ability.sheetBonuses) {
-        const [updatedSheet] = applyPower(finalSheet, ability);
-        finalSheet = {
-          ...updatedSheet,
-          raceSizeCategory: sizeId,
-        };
+    const finalSheet = applyRaceCustomizationToSheet(
+      pendingDuendeSheet,
+      customizedRace,
+      {
+        raceSizeCategory: sizeId,
+        duendeNature: natureId,
+        duendePresentes: presenteIds,
+        duendeTabuSkill: tabuSkill,
       }
-    });
+    );
 
     // Save to historic
     saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>
@@ -1335,7 +1338,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   // Moreau modal handlers
   const handleMoreauConfirm = (
     heritageName: string,
-    bonusAttributes: Atributo[]
+    bonusAttributes: Atributo[],
+    sapienciaSpell?: string
   ) => {
     // Pre-wizard flow: store customization and open wizard
     if (pendingWizardAfterCustomization) {
@@ -1363,27 +1367,32 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       bonusAttributes
     );
 
-    let finalSheet: CharacterSheet = {
+    // Drop the previously chosen Sapiência spell if heritage is Coruja and the
+    // user picked a different one (or moved away from Coruja entirely).
+    const previousSapienciaSpell = pendingMoreauSheet.moreauSapienciaSpell;
+    const nextSapienciaSpell =
+      heritageName === 'Coruja' ? sapienciaSpell : undefined;
+    const spellsAfterReplacement =
+      previousSapienciaSpell && previousSapienciaSpell !== nextSapienciaSpell
+        ? pendingMoreauSheet.spells.filter(
+            (s) => s.nome !== previousSapienciaSpell
+          )
+        : pendingMoreauSheet.spells;
+
+    const sheetWithAdjustedSpells: CharacterSheet = {
       ...pendingMoreauSheet,
-      raca: customizedRace,
-      raceHeritage: heritageName,
-      raceAttributeChoices: bonusAttributes,
-      displacement: customizedRace.getDisplacement
-        ? customizedRace.getDisplacement(customizedRace)
-        : pendingMoreauSheet.displacement,
+      moreauSapienciaSpell: nextSapienciaSpell,
+      spells: spellsAfterReplacement,
     };
 
-    // Process each ability's sheetActions and sheetBonuses
-    customizedRace.abilities.forEach((ability) => {
-      if (ability.sheetActions || ability.sheetBonuses) {
-        const [updatedSheet] = applyPower(finalSheet, ability);
-        finalSheet = {
-          ...updatedSheet,
-          raceHeritage: heritageName,
-          raceAttributeChoices: bonusAttributes,
-        };
+    const finalSheet = applyRaceCustomizationToSheet(
+      sheetWithAdjustedSpells,
+      customizedRace,
+      {
+        raceHeritage: heritageName,
+        raceAttributeChoices: bonusAttributes,
       }
-    });
+    );
 
     // Save to historic
     saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>
@@ -1414,12 +1423,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       />
 
       {/* Unsaved Changes Dialog */}
-      <Dialog
-        open={showUnsavedDialog}
-        maxWidth='sm'
-        fullWidth
-        disableEscapeKeyDown
-      >
+      <Dialog open={showUnsavedDialog} maxWidth='sm' fullWidth>
         <DialogTitle>Ficha Não Salva</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -1524,6 +1528,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           initialBonusAttributes={
             (pendingMoreauSheet?.raceAttributeChoices as Atributo[]) || []
           }
+          initialSapienciaSpell={pendingMoreauSheet?.moreauSapienciaSpell}
+          showSapienciaSelector={!pendingWizardAfterCustomization}
           onConfirm={handleMoreauConfirm}
           onCancel={handleMoreauCancel}
         />
@@ -1609,6 +1615,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Tooltip>
             </Box>
 
+            <ActiveContentBar
+              userSupplements={userSupplements}
+              isAuthenticated={isAuthenticated}
+              onConfigureSupplements={handleConfigureSupplements}
+            />
+
             <CharacterCreationLayout
               mode={creationMode}
               onModeChange={handleCreationModeChange}
@@ -1619,7 +1631,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   onSelectedOptionsChange={setSelectedOptions}
                   onGenerate={onClickGenerate}
                   userSupplements={userSupplements}
-                  enabledSupplements={user?.enabledSupplements}
                 />
               }
               manualFormContent={
@@ -1629,7 +1640,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   onSelectedOptionsChange={setSelectedOptions}
                   onCreateSheet={onClickGenerateEmptySheet}
                   userSupplements={userSupplements}
-                  enabledSupplements={user?.enabledSupplements}
                 />
               }
             />
@@ -1637,6 +1647,14 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
           {randomSheet && (
             <Card sx={{ p: 2, mb: 2 }}>
+              {targetFolder && !cloudSheetId && (
+                <Chip
+                  icon={<FolderIcon />}
+                  label={`Salvando em: ${targetFolder.folderName}`}
+                  size='small'
+                  sx={{ mb: 1 }}
+                />
+              )}
               <Stack
                 spacing={1}
                 direction={isMobile ? 'column' : 'row'}

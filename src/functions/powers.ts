@@ -3,7 +3,11 @@ import generalPowers from '../data/poderes';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
-import { GeneralPower, RequirementType } from '../interfaces/Poderes';
+import {
+  GeneralPower,
+  Requirement,
+  RequirementType,
+} from '../interfaces/Poderes';
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
   isGenericOficio,
@@ -43,26 +47,48 @@ export function getPowerCountInCurrentTier(
   return count;
 }
 
+/**
+ * Reúne todos os poderes que o personagem possui (gerais, de origem e de classe).
+ * Retorna apenas o que os checadores de requisito consomem (o nome).
+ */
+function getAllCharacterPowers(sheet: CharacterSheet): { name: string }[] {
+  return [
+    ...sheet.generalPowers,
+    ...(sheet.origin?.powers || []),
+    ...(sheet.classPowers || []),
+  ];
+}
+
 export function isPowerAvailable(
   sheet: CharacterSheet,
   power: GeneralPower | ClassPower,
   options?: { ignoreLevelRequirement?: boolean }
 ): boolean {
+  // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
+  // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+  const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
+    a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
+  );
+  if (raceBypass) return true;
+
   if (power.requirements && power.requirements.length > 0) {
     return power.requirements.some((req) =>
       req.every((rule) => {
         switch (rule.type) {
           case RequirementType.PODER: {
-            const allPowers = [
-              ...sheet.generalPowers,
-              ...(sheet.origin?.powers || []),
-              ...(sheet.classPowers || []),
-            ];
+            const allPowers = getAllCharacterPowers(sheet);
 
             const foundInPowers = allPowers.some(
               (currPower) => currPower.name === rule.name
             );
             if (foundInPowers) return true;
+
+            // Habilidades raciais que contam como possuir um poder
+            // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+            const grantedByRace = (sheet.raca.abilities ?? []).some((a) =>
+              a.grantsPowerRequirements?.includes(rule.name ?? '')
+            );
+            if (grantedByRace) return true;
 
             // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
             return (sheet.sheetActionHistory ?? []).some((entry) =>
@@ -85,8 +111,25 @@ export function isPowerAvailable(
                 (s) => s === Skill.OFICIO || ALL_SPECIFIC_OFICIOS.includes(s)
               );
             }
+
             const pericia = rule.name as Skill;
-            return rule.name && sheet.skills.includes(pericia);
+            if (rule.name && sheet.skills.includes(pericia)) return true;
+
+            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
+            // específico para fins de pré-requisito.
+            if (ALL_SPECIFIC_OFICIOS.includes(pericia)) {
+              const hasArtesaoCriativo = getAllCharacterPowers(sheet).some(
+                (p) => p.name === 'Artesão Criativo'
+              );
+              if (
+                hasArtesaoCriativo &&
+                sheet.skills.includes(Skill.OFICIO_ARTESANATO)
+              ) {
+                return true;
+              }
+            }
+
+            return false;
           }
           case RequirementType.HABILIDADE: {
             const result = sheet.classe.abilities.some(
@@ -98,10 +141,11 @@ export function isPowerAvailable(
           case RequirementType.PODER_TORMENTA: {
             const qtdPowers = rule.value as number;
             return (
+              // OTHER powers, so can't count itself
               sheet.generalPowers.filter(
                 (actualPower) => actualPower.type === 'TORMENTA'
               ).length >=
-              qtdPowers + 1 // OTHER powers, so can't count itself
+              qtdPowers + 1
             );
           }
           case RequirementType.PROFICIENCIA: {
@@ -224,6 +268,67 @@ export function getAllowedClassPowers(
   });
 }
 
+/**
+ * Retorna os poderes de classe elegíveis para a ação `getClassPower`
+ * (ex.: origem "Futura Lenda", que concede um poder de classe normalmente
+ * disponível a partir do 2º nível). Filtra por nível mínimo do poder,
+ * repetição e disponibilidade (ignorando o requisito de nível quando pedido).
+ *
+ * Mesma lógica usada pelo gerador em applyPower (getClassPower), extraída para
+ * ser reaproveitada pela UI de seleção manual (assistente de criação).
+ */
+export function getFuturaLendaClassPowers(
+  sheet: CharacterSheet,
+  minLevel = 2,
+  ignoreOnlyLevelRequirement = true
+): ClassPower[] {
+  return sheet.classe.powers.filter((power) => {
+    // Check if power already exists and if it can be repeated
+    const existingClassPowers = sheet.classPowers || [];
+    const isRepeatedPower = existingClassPowers.find(
+      (existingPower) => existingPower.name === power.name
+    );
+
+    if (isRepeatedPower && !power.canRepeat) {
+      return false;
+    }
+
+    // Check minimum level requirement in power requirements
+    let meetsMinLevel = true;
+    if (power.requirements && power.requirements.length > 0) {
+      // Check if any requirement path has a level requirement >= minLevel
+      meetsMinLevel = power.requirements.some((req: Requirement[]) =>
+        req.some(
+          (rule: Requirement) =>
+            rule.type === RequirementType.NIVEL &&
+            (rule.value as number) >= minLevel
+        )
+      );
+
+      // If no level requirement found, check if it's a basic power (usually level 1)
+      if (
+        !meetsMinLevel &&
+        !power.requirements.some((req: Requirement[]) =>
+          req.some((rule: Requirement) => rule.type === RequirementType.NIVEL)
+        )
+      ) {
+        // Power has no level requirement, assume it's available from level 1
+        meetsMinLevel = minLevel <= 1;
+      }
+    } else {
+      // No requirements, assume level 1 power
+      meetsMinLevel = minLevel <= 1;
+    }
+
+    return (
+      meetsMinLevel &&
+      isPowerAvailable(sheet, power, {
+        ignoreLevelRequirement: ignoreOnlyLevelRequirement,
+      })
+    );
+  });
+}
+
 interface WeightedPower {
   power: ClassPower;
   weight: number;
@@ -250,7 +355,10 @@ export function getWeightedInventorClassPowers(
 ): ClassPower[] {
   const allowedPowers = getAllowedClassPowers(sheet);
 
-  if (sheet.classe.name !== 'Inventor' || allowedPowers.length === 0) {
+  if (
+    !isClassOrVariantOf(sheet.classe, 'Inventor') ||
+    allowedPowers.length === 0
+  ) {
     return allowedPowers;
   }
 

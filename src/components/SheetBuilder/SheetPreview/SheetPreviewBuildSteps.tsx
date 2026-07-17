@@ -24,11 +24,18 @@ const SheetPreviewBuildSteps: React.FC<{
   return (
     <Dialog
       open={open}
-      TransitionComponent={Transition}
       keepMounted
       onClose={handleClose}
+      slots={{
+        transition: Transition,
+      }}
     >
-      <Stack spacing={2} p={2}>
+      <Stack
+        spacing={2}
+        sx={{
+          p: 2,
+        }}
+      >
         {buildSteps.length === 0 && (
           <p>Você ainda não adicionou detalhes a esta ficha.</p>
         )}

@@ -35,11 +35,16 @@ import PowersTable from '../DatabaseTables/PowersTable';
 import SpellsTable from '../DatabaseTables/SpellsTable';
 import OriginsTable from '../DatabaseTables/OriginsTable';
 import TormentaTitle from '../Database/TormentaTitle';
+import EncyclopediaSearch from '../Database/EncyclopediaSearch';
 import { useSubscription } from '../../hooks/useSubscription';
 import { SEO, getPageSEO } from '../SEO';
 
 interface IProps {
-  isDarkMode?: boolean;
+  // Quando true, o componente é renderizado embutido em outro contexto (ex.:
+  // dentro da mesa virtual via MemoryRouter). Suprime o <SEO> (não sobrescreve
+  // o título/meta da aba durante a sessão ao vivo) e o CTA "Apoiar o projeto"
+  // (o Link resolveria para o router em memória, virando link morto).
+  embedded?: boolean;
 }
 
 // Menu items configuration
@@ -82,7 +87,7 @@ const menuItems = [
   },
 ];
 
-const Database: React.FC<IProps> = () => {
+const Database: React.FC<IProps> = ({ embedded = false }) => {
   const [selectedMenu, setSelectedMenu] = useState<number>(-1);
   const [isLoaded, setIsLoaded] = useState(false);
   const { path, url } = useRouteMatch();
@@ -129,11 +134,13 @@ const Database: React.FC<IProps> = () => {
 
   return (
     <>
-      <SEO
-        title={databaseSEO.title}
-        description={databaseSEO.description}
-        url='/database'
-      />
+      {!embedded && (
+        <SEO
+          title={databaseSEO.title}
+          description={databaseSEO.description}
+          url='/database'
+        />
+      )}
       <Container className='database-container' maxWidth='xl'>
         <Fade in={isLoaded} timeout={800}>
           <Box>
@@ -146,6 +153,9 @@ const Database: React.FC<IProps> = () => {
             >
               Enciclópedia de Tanah-Toh
             </TormentaTitle>
+
+            {/* Busca unificada — "Google das regras", sempre visível */}
+            <EncyclopediaSearch baseUrl={url} />
 
             {/* Modern Navigation */}
             <Box sx={{ mb: 3 }}>
@@ -229,8 +239,10 @@ const Database: React.FC<IProps> = () => {
                           </Typography>
                           <Typography
                             variant='body2'
-                            color='text.secondary'
-                            sx={{ fontSize: '0.9rem' }}
+                            sx={{
+                              color: 'text.secondary',
+                              fontSize: '0.9rem',
+                            }}
                           >
                             Explorar {item.title.toLowerCase()}
                           </Typography>
@@ -370,7 +382,7 @@ const Database: React.FC<IProps> = () => {
             </Box>
 
             {/* Support CTA - only for non-supporters, when viewing content */}
-            {selectedMenu !== -1 && !isSupporter && (
+            {selectedMenu !== -1 && !isSupporter && !embedded && (
               <Alert
                 severity='info'
                 icon={<FavoriteIcon />}

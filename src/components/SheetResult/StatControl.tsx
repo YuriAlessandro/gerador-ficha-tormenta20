@@ -1,32 +1,28 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
   Button,
   Chip,
   CircularProgress,
   IconButton,
+  Stack,
   TextField,
   Tooltip,
   Typography,
   useTheme,
-  Stack,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import HotelIcon from '@mui/icons-material/Hotel';
-import ClearIcon from '@mui/icons-material/Clear';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface StatControlProps {
   type: 'PV' | 'PM';
   current: number;
   max: number;
   calculatedMax: number;
-  increment: number;
   temp: number;
-  onUpdateCurrent: (newCurrent: number) => void;
-  onUpdateIncrement: (newIncrement: number) => void;
-  onUpdateTemp: (newTemp: number) => void;
   onDecrement: (amount: number) => void;
+  onHeal: (amount: number) => void;
+  onOpenDrawer?: () => void;
   disabled?: boolean;
 }
 
@@ -35,16 +31,13 @@ const StatControl: React.FC<StatControlProps> = ({
   current,
   max,
   calculatedMax,
-  increment,
   temp,
-  onUpdateCurrent,
-  onUpdateIncrement,
-  onUpdateTemp,
   onDecrement,
+  onHeal,
+  onOpenDrawer,
   disabled = false,
 }) => {
   const theme = useTheme();
-  const [isHovering, setIsHovering] = useState(false);
 
   const hasTemp = temp > 0;
 
@@ -67,7 +60,6 @@ const StatControl: React.FC<StatControlProps> = ({
     type === 'PV' ? theme.palette.success.dark : theme.palette.info.dark;
   const tempColor = theme.palette.warning.main;
   const negativeColor = theme.palette.error.main;
-  const negativeDarkColor = theme.palette.error.dark;
   const deadColor = theme.palette.grey[500];
 
   const getColor = () => {
@@ -76,78 +68,58 @@ const StatControl: React.FC<StatControlProps> = ({
     return normalColor;
   };
 
-  const getDarkColor = () => {
-    if (isDead) return theme.palette.grey[700];
-    if (isNegative) return negativeDarkColor;
-    return normalDarkColor;
-  };
-
   const color = getColor();
-  const darkColor = getDarkColor();
 
-  const handleIncrement = useCallback(() => {
-    const newValue = Math.min(current + increment, max);
-    onUpdateCurrent(newValue);
-  }, [current, increment, max, onUpdateCurrent]);
+  const DEFAULT_AMOUNT = '1';
+  const [amountInputValue, setAmountInputValue] = useState(DEFAULT_AMOUNT);
+  // Tracks whether the field still holds the untouched default value, so we
+  // can clear it on focus and let the user type a new value right away.
+  const [isPristine, setIsPristine] = useState(true);
 
-  const handleDecrement = useCallback(() => {
-    onDecrement(increment);
-  }, [increment, onDecrement]);
-
-  // Estado local para o input de incremento
-  const [incrementInputValue, setIncrementInputValue] = useState(
-    String(increment)
-  );
-
-  useEffect(() => {
-    setIncrementInputValue(String(increment));
-  }, [increment]);
-
-  const handleIncrementChange = useCallback(
+  const handleAmountChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = event.target.value;
       if (inputValue !== '' && !/^\d*$/.test(inputValue)) {
         return;
       }
-      setIncrementInputValue(inputValue);
-      const numValue = parseInt(inputValue, 10);
-      if (!Number.isNaN(numValue) && numValue >= 1) {
-        onUpdateIncrement(numValue);
-      }
+      setAmountInputValue(inputValue);
+      setIsPristine(false);
     },
-    [onUpdateIncrement]
+    []
   );
 
-  // Estado local para o input de temp
-  const [tempInputValue, setTempInputValue] = useState(String(temp));
+  const handleAmountFocus = useCallback(() => {
+    if (isPristine) {
+      setAmountInputValue('');
+    }
+  }, [isPristine]);
 
-  useEffect(() => {
-    setTempInputValue(String(temp));
-  }, [temp]);
+  const handleAmountBlur = useCallback(() => {
+    if (amountInputValue === '') {
+      setAmountInputValue(DEFAULT_AMOUNT);
+      setIsPristine(true);
+    }
+  }, [amountInputValue]);
 
-  const handleTempChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = event.target.value;
-      if (inputValue !== '' && !/^\d*$/.test(inputValue)) {
-        return;
-      }
-      setTempInputValue(inputValue);
-      const numValue = parseInt(inputValue, 10);
-      if (!Number.isNaN(numValue) && numValue >= 0) {
-        onUpdateTemp(numValue);
-      }
-    },
-    [onUpdateTemp]
-  );
+  const resetAmount = useCallback(() => {
+    setAmountInputValue(DEFAULT_AMOUNT);
+    setIsPristine(true);
+  }, []);
 
-  const handleClearTemp = useCallback(() => {
-    onUpdateTemp(0);
-  }, [onUpdateTemp]);
+  const parsedAmount = parseInt(amountInputValue, 10);
+  const isAmountValid = !Number.isNaN(parsedAmount) && parsedAmount > 0;
 
-  const isDecrementDisabled =
-    type === 'PV'
-      ? current <= pvMinimo && temp <= 0
-      : current <= 0 && temp <= 0;
+  const handleApplyDamage = useCallback(() => {
+    if (!isAmountValid) return;
+    onDecrement(parsedAmount);
+    resetAmount();
+  }, [isAmountValid, onDecrement, parsedAmount, resetAmount]);
+
+  const handleApplyHeal = useCallback(() => {
+    if (!isAmountValid) return;
+    onHeal(parsedAmount);
+    resetAmount();
+  }, [isAmountValid, onHeal, parsedAmount, resetAmount]);
 
   const tooltipContent = (
     <Box>
@@ -199,28 +171,49 @@ const StatControl: React.FC<StatControlProps> = ({
   );
 
   return (
-    <Tooltip title={tooltipContent} arrow>
-      <Box
-        sx={{
-          position: 'relative',
-          display: 'inline-flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 1,
-        }}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-      >
-        {/* Circular Progress Container */}
+    <Box
+      sx={{
+        display: 'inline-flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 1,
+      }}
+    >
+      {/* Circular Progress + value (tap to open drawer) */}
+      <Tooltip title={tooltipContent} arrow>
         <Box
+          onClick={disabled || !onOpenDrawer ? undefined : onOpenDrawer}
+          role={disabled || !onOpenDrawer ? undefined : 'button'}
+          tabIndex={disabled || !onOpenDrawer ? undefined : 0}
+          onKeyDown={(e) => {
+            if (disabled || !onOpenDrawer) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onOpenDrawer();
+            }
+          }}
+          aria-label={onOpenDrawer ? `Editar ${type}` : undefined}
           sx={{
             position: 'relative',
             display: 'inline-flex',
             width: 100,
             height: 100,
+            cursor: disabled || !onOpenDrawer ? 'default' : 'pointer',
+            borderRadius: '50%',
+            transition: 'transform 120ms ease, box-shadow 120ms ease',
+            '&:hover':
+              disabled || !onOpenDrawer
+                ? undefined
+                : {
+                    transform: 'scale(1.03)',
+                    boxShadow: `0 0 0 4px ${color}22`,
+                  },
+            '&:focus-visible': {
+              outline: `2px solid ${color}`,
+              outlineOffset: 4,
+            },
           }}
         >
-          {/* Background circle */}
           <CircularProgress
             variant='determinate'
             value={100}
@@ -231,7 +224,6 @@ const StatControl: React.FC<StatControlProps> = ({
               color: theme.palette.grey[300],
             }}
           />
-          {/* Progress circle */}
           <CircularProgress
             variant='determinate'
             value={percentage}
@@ -250,7 +242,6 @@ const StatControl: React.FC<StatControlProps> = ({
               }),
             }}
           />
-          {/* Current value in center */}
           <Box
             sx={{
               top: 0,
@@ -266,12 +257,7 @@ const StatControl: React.FC<StatControlProps> = ({
             }}
           >
             {isDead ? (
-              <Typography
-                sx={{
-                  fontSize: '40px',
-                  lineHeight: 1,
-                }}
-              >
+              <Typography sx={{ fontSize: '40px', lineHeight: 1 }}>
                 💀
               </Typography>
             ) : (
@@ -307,8 +293,15 @@ const StatControl: React.FC<StatControlProps> = ({
             )}
           </Box>
         </Box>
-
-        {/* Label */}
+      </Tooltip>
+      {/* Label */}
+      <Stack
+        direction='row'
+        spacing={0.5}
+        sx={{
+          alignItems: 'center',
+        }}
+      >
         <Typography
           sx={{
             fontFamily: 'Tfont',
@@ -317,293 +310,132 @@ const StatControl: React.FC<StatControlProps> = ({
             color: theme.palette.text.primary,
           }}
         >
-          {type}
+          {type} {current}/{max}
         </Typography>
-
-        {/* Temp indicator chip */}
-        {hasTemp && (
-          <Chip
-            size='small'
-            label={`+${temp} temp`}
-            color='warning'
-            sx={{
-              height: 20,
-              fontSize: '0.65rem',
-            }}
-          />
-        )}
-
-        {/* Unconscious indicator */}
-        {isUnconscious && (
-          <Chip
-            size='small'
-            label='Desacordado'
-            color='error'
-            icon={<HotelIcon sx={{ fontSize: 14 }} />}
-            sx={{
-              height: 20,
-              fontSize: '0.65rem',
-              '& .MuiChip-icon': {
-                marginLeft: '4px',
+      </Stack>
+      {/* Status chips */}
+      {hasTemp && (
+        <Chip
+          size='small'
+          label={`+${temp} temp`}
+          color='warning'
+          sx={{ height: 20, fontSize: '0.65rem' }}
+        />
+      )}
+      {isUnconscious && (
+        <Chip
+          size='small'
+          label='Desacordado'
+          color='error'
+          icon={<HotelIcon sx={{ fontSize: 14 }} />}
+          sx={{
+            height: 20,
+            fontSize: '0.65rem',
+            '& .MuiChip-icon': { marginLeft: '4px' },
+          }}
+        />
+      )}
+      {isDead && (
+        <Chip
+          size='small'
+          label='Morto'
+          sx={{
+            height: 20,
+            fontSize: '0.65rem',
+            backgroundColor: deadColor,
+            color: 'white',
+          }}
+        />
+      )}
+      {/* Amount input + Dano/Curar */}
+      <Stack
+        direction='row'
+        spacing={0.5}
+        sx={{
+          alignItems: 'center',
+          mt: 0.5,
+        }}
+      >
+        <TextField
+          size='small'
+          value={amountInputValue}
+          onChange={handleAmountChange}
+          onFocus={handleAmountFocus}
+          onBlur={handleAmountBlur}
+          disabled={disabled}
+          placeholder='1'
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              height: 32,
+              '& fieldset': { borderColor: theme.palette.divider },
+            },
+          }}
+          slotProps={{
+            htmlInput: {
+              inputMode: 'numeric',
+              style: {
+                textAlign: 'center',
+                padding: '6px 4px',
+                fontSize: '13px',
+                fontWeight: 600,
+                width: 44,
               },
-            }}
-          />
-        )}
-
-        {/* Dead indicator */}
-        {isDead && (
-          <Chip
-            size='small'
-            label='Morto'
-            sx={{
-              height: 20,
-              fontSize: '0.65rem',
-              backgroundColor: deadColor,
-              color: 'white',
-            }}
-          />
-        )}
-
-        {/* Hover Controls */}
-        {isHovering && !disabled && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              backgroundColor:
-                theme.palette.mode === 'dark' ? '#2c2c2c' : '#ffffff',
-              borderRadius: 2,
-              boxShadow: theme.shadows[16],
-              border: `2px solid ${color}`,
-              p: 1.5,
-              zIndex: 10,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1,
-              minWidth: 160,
-            }}
-          >
-            {/* +/- Buttons */}
-            <Stack direction='row' spacing={1} alignItems='center'>
+              'aria-label': `Valor de dano ou cura para ${type}`,
+            },
+          }}
+        />
+        <Button
+          size='small'
+          variant='contained'
+          color='error'
+          onClick={handleApplyDamage}
+          disabled={disabled || !isAmountValid}
+          sx={{
+            minWidth: 0,
+            height: 32,
+            px: 1.2,
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            textTransform: 'none',
+          }}
+        >
+          Dano
+        </Button>
+        <Button
+          size='small'
+          variant='contained'
+          onClick={handleApplyHeal}
+          disabled={disabled || !isAmountValid}
+          sx={{
+            minWidth: 0,
+            height: 32,
+            px: 1.2,
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            textTransform: 'none',
+            backgroundColor: color,
+            '&:hover': { backgroundColor: normalDarkColor },
+          }}
+        >
+          Curar
+        </Button>
+        {onOpenDrawer && (
+          <Tooltip title='Editar PV/PM, temp e máximo'>
+            <span>
               <IconButton
                 size='small'
-                onClick={handleDecrement}
-                disabled={isDecrementDisabled}
-                sx={{
-                  backgroundColor: color,
-                  color: 'white',
-                  boxShadow: 2,
-                  '&:hover': {
-                    backgroundColor: darkColor,
-                    boxShadow: 4,
-                  },
-                  '&:disabled': {
-                    backgroundColor: theme.palette.grey[400],
-                    color: theme.palette.grey[600],
-                  },
-                }}
+                onClick={onOpenDrawer}
+                disabled={disabled}
+                aria-label={`Abrir edição completa de ${type}`}
+                sx={{ width: 32, height: 32 }}
               >
-                <RemoveIcon fontSize='small' />
+                <EditIcon fontSize='small' />
               </IconButton>
-
-              <Box
-                sx={{
-                  minWidth: 60,
-                  textAlign: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
-                <Typography
-                  variant='body2'
-                  sx={{
-                    fontWeight: 'bold',
-                    color:
-                      isDead || isNegative ? color : theme.palette.text.primary,
-                    fontSize: '0.95rem',
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {isDead ? '💀' : `${current}/${max}`}
-                </Typography>
-                {hasTemp && (
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      fontSize: '0.7rem',
-                      color: tempColor,
-                      fontWeight: 600,
-                      lineHeight: 1,
-                    }}
-                  >
-                    (+{temp} temp)
-                  </Typography>
-                )}
-                {isUnconscious && (
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      fontSize: '0.6rem',
-                      color: negativeColor,
-                      fontWeight: 600,
-                      lineHeight: 1,
-                    }}
-                  >
-                    Desacordado
-                  </Typography>
-                )}
-              </Box>
-
-              <IconButton
-                size='small'
-                onClick={handleIncrement}
-                disabled={current >= max}
-                sx={{
-                  backgroundColor: color,
-                  color: 'white',
-                  boxShadow: 2,
-                  '&:hover': {
-                    backgroundColor: darkColor,
-                    boxShadow: 4,
-                  },
-                  '&:disabled': {
-                    backgroundColor: theme.palette.grey[400],
-                    color: theme.palette.grey[600],
-                  },
-                }}
-              >
-                <AddIcon fontSize='small' />
-              </IconButton>
-            </Stack>
-
-            {/* Increment Control */}
-            <Stack direction='row' spacing={0.5} alignItems='center'>
-              <Typography
-                variant='caption'
-                sx={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                }}
-              >
-                Incremento:
-              </Typography>
-              <TextField
-                size='small'
-                value={incrementInputValue}
-                onChange={handleIncrementChange}
-                inputProps={{
-                  style: {
-                    textAlign: 'center',
-                    padding: '2px 4px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                  },
-                }}
-                sx={{
-                  width: 50,
-                  '& .MuiOutlinedInput-root': {
-                    height: 24,
-                    backgroundColor:
-                      theme.palette.mode === 'dark' ? '#404040' : '#f5f5f5',
-                    '& fieldset': {
-                      borderColor: color,
-                      borderWidth: '1px',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: darkColor,
-                      borderWidth: '2px',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: color,
-                      borderWidth: '2px',
-                    },
-                  },
-                  '& .MuiInputBase-input': {
-                    color: theme.palette.text.primary,
-                  },
-                }}
-              />
-            </Stack>
-
-            {/* Temp Control */}
-            <Stack direction='row' spacing={0.5} alignItems='center'>
-              <Typography
-                variant='caption'
-                sx={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: tempColor,
-                }}
-              >
-                Temp:
-              </Typography>
-              <TextField
-                size='small'
-                value={tempInputValue}
-                onChange={handleTempChange}
-                inputProps={{
-                  style: {
-                    textAlign: 'center',
-                    padding: '2px 4px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                  },
-                }}
-                sx={{
-                  width: 50,
-                  '& .MuiOutlinedInput-root': {
-                    height: 24,
-                    backgroundColor:
-                      theme.palette.mode === 'dark' ? '#404040' : '#f5f5f5',
-                    '& fieldset': {
-                      borderColor: tempColor,
-                      borderWidth: '1px',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme.palette.warning.dark,
-                      borderWidth: '2px',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: tempColor,
-                      borderWidth: '2px',
-                    },
-                  },
-                  '& .MuiInputBase-input': {
-                    color: theme.palette.text.primary,
-                  },
-                }}
-              />
-              {hasTemp && (
-                <Button
-                  size='small'
-                  variant='outlined'
-                  color='warning'
-                  onClick={handleClearTemp}
-                  startIcon={<ClearIcon sx={{ fontSize: 12 }} />}
-                  sx={{
-                    minWidth: 0,
-                    height: 24,
-                    fontSize: '0.6rem',
-                    padding: '2px 6px',
-                    '& .MuiButton-startIcon': {
-                      marginRight: '2px',
-                      marginLeft: 0,
-                    },
-                  }}
-                >
-                  Limpar
-                </Button>
-              )}
-            </Stack>
-          </Box>
+            </span>
+          </Tooltip>
         )}
-      </Box>
-    </Tooltip>
+      </Stack>
+    </Box>
   );
 };
 

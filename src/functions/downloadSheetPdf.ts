@@ -10,6 +10,18 @@ import { Spell } from '@/interfaces/Spells';
 import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
+import {
+  getWeaponSkill,
+  getSkillAttackBonus,
+  getWeaponDisplayDamage,
+} from './weaponSkill';
+import {
+  getSheetProficiencias,
+  getWeaponNonProficiencyPenalty,
+} from './proficiencies';
+import { applyPowersOrder } from './powers/applyPowersOrder';
+import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
+import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -19,6 +31,29 @@ function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
     return true;
   });
 }
+
+const CP1252_REPLACEMENTS: Record<string, string> = {
+  '‘': "'",
+  '’': "'",
+  '“': '"',
+  '”': '"',
+  '–': '-',
+  '—': '-',
+  '…': '...',
+  '•': '*',
+  ' ': ' ',
+};
+
+const sanitizeForWinAnsi = (text: string | undefined | null): string => {
+  if (!text) return '';
+  let out = text;
+  Object.entries(CP1252_REPLACEMENTS).forEach(([from, to]) => {
+    out = out.split(from).join(to);
+  });
+  return Array.from(out)
+    .filter((char) => (char.codePointAt(0) ?? 0) <= 0xff)
+    .join('');
+};
 
 const generateClassPowerText = (power: ClassPower | ClassAbility) =>
   power.text || '';
@@ -90,9 +125,9 @@ const preparePDF: (
   const craftSkillFirstField = form.getTextField('Texto8');
   const craftSkillSecondField = form.getTextField('Texto9');
 
-  nameField.setText(sheet.nome);
-  raceField.setText(sheet.raca.name);
-  originField.setText(sheet.origin?.name || '');
+  nameField.setText(sanitizeForWinAnsi(sheet.nome));
+  raceField.setText(sanitizeForWinAnsi(sheet.raca.name));
+  originField.setText(sanitizeForWinAnsi(sheet.origin?.name));
   let classDisplay: string;
   if (isMulticlass(sheet)) {
     classDisplay = getMulticlassDisplayName(sheet);
@@ -101,8 +136,8 @@ const preparePDF: (
   } else {
     classDisplay = `${sheet.classe.name} ${sheet.nivel}`;
   }
-  classField.setText(classDisplay);
-  deytiField.setText(sheet.devoto?.divindade.name || '');
+  classField.setText(sanitizeForWinAnsi(classDisplay));
+  deytiField.setText(sanitizeForWinAnsi(sheet.devoto?.divindade.name));
   forceField.setText(sheet.atributos.Força.value.toString());
   dexterityField.setText(sheet.atributos.Destreza.value.toString());
   constitutionField.setText(sheet.atributos.Constituição.value.toString());
@@ -126,7 +161,7 @@ const preparePDF: (
       displacementText += ` (${parts.join(', ')})`;
     }
   }
-  displacimentField.setText(displacementText);
+  displacimentField.setText(sanitizeForWinAnsi(displacementText));
   halfLevelField.setText(Math.floor(sheet.nivel / 2).toString());
 
   pvMaxField.setText(sheet.pv.toString());
@@ -137,32 +172,25 @@ const preparePDF: (
   const MAX_DEFENSE_FIELDS = 2;
 
   const bagEquipaments = sheet.bag.getEquipments();
-  const weapons = bagEquipaments.Arma.slice(0, MAX_WEAPON_FIELDS);
-
-  const fightSkill = sheet.completeSkills?.find(
-    (skill) => skill.name === 'Luta'
+  // Weapons in the PDF: wielded ones first (so the active weapon is always
+  // visible even when the player owns more than 5), then the rest in the
+  // user-defined manual order.
+  const allWeapons = getOrderedItemsByGroup(
+    sheet.bag,
+    (it) => it.group === 'Arma'
   );
-  const rangeSkill = sheet.completeSkills?.find(
-    (skill) => skill.name === 'Pontaria'
+  const wieldedWeapons = allWeapons.filter(
+    (w) =>
+      w.id !== undefined &&
+      (w.id === sheet.mainHandItemId || w.id === sheet.offHandItemId)
+  );
+  const restWeapons = allWeapons.filter((w) => !wieldedWeapons.includes(w));
+  const weapons = [...wieldedWeapons, ...restWeapons].slice(
+    0,
+    MAX_WEAPON_FIELDS
   );
 
-  const fightAttrBonus = fightSkill?.modAttr
-    ? sheet.atributos[fightSkill.modAttr].value
-    : 0;
-  const fightBonus =
-    (fightSkill?.halfLevel ?? 0) +
-    fightAttrBonus +
-    (fightSkill?.others ?? 0) +
-    (fightSkill?.training ?? 0);
-
-  const rangeAttrBonus = rangeSkill?.modAttr
-    ? sheet.atributos[rangeSkill.modAttr].value
-    : 0;
-  const rangeBonus =
-    (rangeSkill?.halfLevel ?? 0) +
-    rangeAttrBonus +
-    (rangeSkill?.others ?? 0) +
-    (rangeSkill?.training ?? 0);
+  const effectiveProficiencias = getSheetProficiencias(sheet);
 
   weapons.forEach((weapon, index) => {
     const weaponNameField = form.getTextField(`ataque${index + 1}`);
@@ -172,29 +200,81 @@ const preparePDF: (
     const weaponTypeField = form.getTextField(`tipo${index + 1}`);
     const weaponRangeField = form.getTextField(`alcance${index + 1}`);
 
-    weaponNameField.setText(weapon.nome);
-    weaponDamageField.setText(weapon.dano);
-    weaponCritField.setText(weapon.critico);
-    weaponTypeField.setText(weapon.tipo || '');
-    weaponRangeField.setText(weapon.alcance || '');
+    const weaponNameDisplay = weapon.customSkill
+      ? `${weapon.nome} (${weapon.customSkill})`
+      : weapon.nome;
+    weaponNameField.setText(sanitizeForWinAnsi(weaponNameDisplay));
+    weaponDamageField.setText(
+      sanitizeForWinAnsi(getWeaponDisplayDamage(weapon, sheet.atributos))
+    );
+    weaponCritField.setText(sanitizeForWinAnsi(weapon.critico));
+    weaponTypeField.setText(sanitizeForWinAnsi(weapon.tipo));
+    weaponRangeField.setText(sanitizeForWinAnsi(weapon.alcance));
 
-    const isRange =
-      weapon.alcance && weapon.alcance !== '-' && !weapon.arremesso;
-
-    const modAtk = isRange ? rangeBonus : fightBonus;
-    const atk = weapon.atkBonus ? weapon.atkBonus + modAtk : modAtk;
+    const modAtk = getSkillAttackBonus(
+      getWeaponSkill(weapon),
+      sheet.completeSkills,
+      sheet.atributos
+    );
+    const atk =
+      (weapon.atkBonus ? weapon.atkBonus + modAtk : modAtk) +
+      getWeaponNonProficiencyPenalty(weapon, effectiveProficiencias);
     weaponBonusField.setText(`${atk >= 0 ? '+' : ''}${atk}`);
   });
 
-  const defenseEquipments = bagEquipaments.Armadura.concat(
-    bagEquipaments.Escudo
-  ).slice(0, MAX_DEFENSE_FIELDS);
+  // Prioritize the worn armor and the wielded shield(s) in the fixed PDF
+  // slots. Other armors/shields owned but not active fall to the inventory
+  // list below.
+  const allArmors = bagEquipaments.Armadura;
+  const allShields = bagEquipaments.Escudo;
+  let resolvedWornArmor = sheet.wornArmorId
+    ? allArmors.find((a) => a.id === sheet.wornArmorId)
+    : undefined;
+  if (!resolvedWornArmor && !sheet.wornArmorId && allArmors.length === 1) {
+    [resolvedWornArmor] = allArmors;
+  }
+  const wieldedShields = allShields.filter(
+    (s) =>
+      s.id !== undefined &&
+      (s.id === sheet.mainHandItemId || s.id === sheet.offHandItemId)
+  );
+  // Fallback: if neither hand has a shield assigned but exactly 1 shield
+  // exists, treat it as wielded for PDF purposes (legacy compat).
+  const effectiveShields =
+    wieldedShields.length === 0 &&
+    !sheet.mainHandItemId &&
+    !sheet.offHandItemId &&
+    allShields.length === 1
+      ? allShields
+      : wieldedShields;
+  const prioritizedDefense: (typeof allArmors)[number][] = [];
+  if (resolvedWornArmor) prioritizedDefense.push(resolvedWornArmor);
+  prioritizedDefense.push(...effectiveShields);
+  // Top up with any leftover defense equipment so we don't leave PDF slots
+  // empty when neither armor nor shield is "active". Leftovers come in the
+  // user-defined manual order.
+  if (prioritizedDefense.length < MAX_DEFENSE_FIELDS) {
+    const leftoverOrdered = getOrderedItemsByGroup(
+      sheet.bag,
+      (it) => it.group === 'Armadura' || it.group === 'Escudo'
+    ).filter(
+      (eq) =>
+        !prioritizedDefense.some((p) => p.id === eq.id && eq.id !== undefined)
+    );
+    prioritizedDefense.push(
+      ...(leftoverOrdered.slice(
+        0,
+        MAX_DEFENSE_FIELDS - prioritizedDefense.length
+      ) as typeof prioritizedDefense)
+    );
+  }
+  const defenseEquipments = prioritizedDefense.slice(0, MAX_DEFENSE_FIELDS);
   defenseEquipments.forEach((defense, index) => {
     const defenseNameField = form.getTextField(`armadura${index + 1}`);
     const defenseBonusField = form.getTextField(`defesa${index + 1}`);
     const penaltyField = form.getTextField(`penalidade${index + 1}`);
 
-    defenseNameField.setText(defense.nome);
+    defenseNameField.setText(sanitizeForWinAnsi(defense.nome));
     defenseBonusField.setText(
       `${defense.defenseBonus >= 0 ? '+' : ''}${defense.defenseBonus}`
     );
@@ -203,12 +283,13 @@ const preparePDF: (
     );
   });
 
-  // Add remain equipments
-  const equipsEntriesNoWeapons: Equipment[] = Object.entries(
-    sheet.bag.getEquipments()
-  )
-    .filter(([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo')
-    .flatMap((value) => value[1]);
+  // Add remain equipments — respects the user-defined manual order so the
+  // text inventory mirrors what the player sees in the Mochila.
+  const equipsEntriesNoWeapons: Equipment[] = getOrderedItemsByGroup(
+    sheet.bag,
+    (it) =>
+      it.group !== 'Arma' && it.group !== 'Armadura' && it.group !== 'Escudo'
+  );
 
   // Concanenate all equipments names into one string
   const equipmentsNames = equipsEntriesNoWeapons
@@ -224,16 +305,28 @@ const preparePDF: (
     )
     .join('\n');
 
-  const allWeapons = bagEquipaments.Arma;
-  const allDefenseEquipments = bagEquipaments.Armadura.concat(
-    bagEquipaments.Escudo
+  const allWeaponsForList = getOrderedItemsByGroup(
+    sheet.bag,
+    (it) => it.group === 'Arma'
+  );
+  const allDefenseEquipments = getOrderedItemsByGroup(
+    sheet.bag,
+    (it) => it.group === 'Armadura' || it.group === 'Escudo'
   );
 
-  const weaponsNames = allWeapons
-    .map(
-      (weapon) =>
-        `${weapon.nome}${weapon.spaces ? ` (${weapon.spaces} espaços)` : ''}`
-    )
+  const weaponsNames = allWeaponsForList
+    .map((weapon) => {
+      if (weapon.isAmmo) {
+        const units = weapon.unitsRemaining ?? 0;
+        const ammoSpaces = calcAmmoSpaces(weapon);
+        return `${weapon.nome}: ${units}${
+          ammoSpaces > 0 ? ` (${ammoSpaces} espaços)` : ''
+        }`;
+      }
+      return `${weapon.nome}${
+        weapon.spaces ? ` (${weapon.spaces} espaços)` : ''
+      }`;
+    })
     .join('\n');
 
   const defenseNames = allDefenseEquipments
@@ -244,8 +337,9 @@ const preparePDF: (
     .join('\n');
 
   const allEquipments = `${equipmentsNames}\n${weaponsNames}\n${defenseNames}`;
-  equipamentsFirstField.setText(allEquipments.slice(0, 1000));
-  equipamentsSecondField.setText(allEquipments.slice(1000, 2000));
+  const sanitizedEquipments = sanitizeForWinAnsi(allEquipments);
+  equipamentsFirstField.setText(sanitizedEquipments.slice(0, 1000));
+  equipamentsSecondField.setText(sanitizedEquipments.slice(1000, 2000));
 
   // Add equipment current cargo (including currency weight)
   const currencySpaces = calculateCurrencySpaces(
@@ -286,14 +380,17 @@ const preparePDF: (
     powerCount[power.name] = (powerCount[power.name] || 0) + 1;
   });
 
-  const uniquePowers = [
-    ...filterUniqueByName(classPowers),
-    ...filterUniqueByName(raceAbilities),
-    ...filterUniqueByName(classAbilities),
-    ...filterUniqueByName(originPowers),
-    ...filterUniqueByName(deityPowers),
-    ...filterUniqueByName(generalPowers),
-  ].sort((a, b) => a.name.localeCompare(b.name));
+  const uniquePowers = applyPowersOrder(
+    [
+      ...filterUniqueByName(classPowers),
+      ...filterUniqueByName(raceAbilities),
+      ...filterUniqueByName(classAbilities),
+      ...filterUniqueByName(originPowers),
+      ...filterUniqueByName(deityPowers),
+      ...filterUniqueByName(generalPowers),
+    ],
+    sheet.powersOrder
+  );
 
   const powersText = uniquePowers
     .map((power) => {
@@ -304,7 +401,7 @@ const preparePDF: (
       )}${generateGeneralPowerText(power as RaceAbility | OriginPower)}`;
     })
     .join('\n');
-  powersField.setText(powersText);
+  powersField.setText(sanitizeForWinAnsi(powersText));
   const powersFieldFontSize = () => {
     if (powersText.length > 7000) {
       return 6;
@@ -329,7 +426,7 @@ const preparePDF: (
     })
     .map(generateSpellText)
     .join('\n');
-  spellsField.setText(spellsText);
+  spellsField.setText(sanitizeForWinAnsi(spellsText));
   const spellsFieldFontSize = (): number => {
     if (spellsText.length > 7000) return 6;
     if (spellsText.length > 5000) return 7;
@@ -339,14 +436,8 @@ const preparePDF: (
   spellsField.setFontSize(spellsFieldFontSize());
 
   // Proficiencies
-  const baseProficiencies = sheet.classe.proficiencias.filter(
-    (p) => !(sheet.removedProficiencias ?? []).includes(p)
-  );
-  const customProficiencies = sheet.customProficiencias ?? [];
-  const proficienciesText = [...baseProficiencies, ...customProficiencies].join(
-    '\n'
-  );
-  proficienciesField.setText(proficienciesText);
+  const proficienciesText = effectiveProficiencias.join('\n');
+  proficienciesField.setText(sanitizeForWinAnsi(proficienciesText));
 
   // The PDF sheet only allows 30 skills, being two max "Oficios". We need to make sure we don't exceed that.
   // If there is more than 2 "Oficios", we will remove the extra ones. If there is only one, let's create a empty one (we need always two).
@@ -358,16 +449,20 @@ const preparePDF: (
     [];
   if (oficioSkills.length > 2) {
     oficioSkills.splice(2);
-  } else if (oficioSkills.length === 1) {
-    // If there is only one "Ofício", we will add an empty one to make sure there are two.
-    oficioSkills.push({
-      training: 0,
-      others: 0,
-      halfLevel: 0,
-      modAttr: Atributo.INTELIGENCIA,
-      countAsTormentaPower: false,
-      name: Skill.OFICIO,
-    });
+  } else {
+    // The PDF reserves two "Ofício" rows. Pad with empty ones until there are
+    // exactly two, otherwise the alphabetical positional mapping shifts every
+    // skill after the "Ofício" rows (Percepção onward) up to the wrong row.
+    while (oficioSkills.length < 2) {
+      oficioSkills.push({
+        training: 0,
+        others: 0,
+        halfLevel: 0,
+        modAttr: Atributo.INTELIGENCIA,
+        countAsTormentaPower: false,
+        name: Skill.OFICIO,
+      });
+    }
   }
   skills.push(...oficioSkills);
 
@@ -430,12 +525,15 @@ const preparePDF: (
         // Use regex to get the text between the parantheses
         const oficioMatch = skill.name.match(/Ofício\s*(.*)/);
         const oficioText = oficioMatch ? oficioMatch[1] : '';
-        // There are two "Oficio" fields in the PDF, the first is for skill index 22, the second for index 23
-        // So we need to check the index
+        // There are two "Oficio" name fields in the PDF. After sorting, the two
+        // "Ofício" skills land at indices 21 and 22 (right after Nobreza), and the
+        // first name field maps to the first Ofício row, the second to the next.
         if (oficioText) {
           const oficioField =
-            index === 22 ? craftSkillFirstField : craftSkillSecondField;
-          oficioField.setText(oficioText.replace('(', '').replace(')', ''));
+            index === 21 ? craftSkillFirstField : craftSkillSecondField;
+          oficioField.setText(
+            sanitizeForWinAnsi(oficioText.replace('(', '').replace(')', ''))
+          );
         }
       }
     });

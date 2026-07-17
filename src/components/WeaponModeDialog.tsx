@@ -27,7 +27,13 @@ const WeaponModeDialog: React.FC<WeaponModeDialogProps> = ({
 }) => (
   <Dialog open={open} onClose={onClose} maxWidth='xs' fullWidth>
     <DialogTitle>
-      <Stack direction='row' alignItems='center' spacing={1}>
+      <Stack
+        direction='row'
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+        }}
+      >
         <CasinoIcon color='primary' />
         <Typography variant='h6' component='span'>
           {weaponName}
@@ -35,7 +41,13 @@ const WeaponModeDialog: React.FC<WeaponModeDialogProps> = ({
       </Stack>
     </DialogTitle>
     <DialogContent>
-      <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 2,
+        }}
+      >
         Esta arma possui mais de um tipo de ataque. Escolha qual deseja rolar:
       </Typography>
       <Stack spacing={1.5}>
@@ -47,7 +59,12 @@ const WeaponModeDialog: React.FC<WeaponModeDialogProps> = ({
             onClick={() => onSelect(damage)}
             sx={{ textTransform: 'none', py: 1.5 }}
           >
-            <Typography fontWeight='bold' fontSize={18}>
+            <Typography
+              sx={{
+                fontWeight: 'bold',
+                fontSize: 18,
+              }}
+            >
               {damage}
             </Typography>
           </Button>

@@ -15,6 +15,9 @@ export const Armas: Record<string, Equipment> = {
     alcance: '-',
     group: 'Arma',
     preco: 20,
+    isAmmo: true,
+    ammoType: 'Balas',
+    ammoPackSize: 20,
   },
   FLECHAS: {
     nome: 'Flechas (20)',
@@ -25,6 +28,9 @@ export const Armas: Record<string, Equipment> = {
     alcance: '-',
     group: 'Arma',
     preco: 1,
+    isAmmo: true,
+    ammoType: 'Flechas',
+    ammoPackSize: 20,
   },
   MUNICAO: {
     nome: 'Munição (20)',
@@ -45,9 +51,26 @@ export const Armas: Record<string, Equipment> = {
     alcance: '-',
     group: 'Arma',
     preco: 2,
+    isAmmo: true,
+    ammoType: 'Virotes',
+    ammoPackSize: 20,
+  },
+  PEDRAS: {
+    nome: 'Pedras (20)',
+    dano: '-',
+    critico: '-',
+    spaces: 1,
+    tipo: '-',
+    alcance: '-',
+    group: 'Arma',
+    preco: 0,
+    isAmmo: true,
+    ammoType: 'Pedras',
+    ammoPackSize: 20,
   },
   ADAGA: {
     nome: 'Adaga',
+    weaponCategory: 'simple',
     dano: '1d4',
     critico: '19',
     spaces: 1,
@@ -55,9 +78,20 @@ export const Armas: Record<string, Equipment> = {
     alcance: 'Curto',
     group: 'Arma',
     preco: 2,
+    arremesso: true,
+    specialActions: [
+      { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      {
+        id: 'arremessar',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Força',
+      },
+    ],
   },
   ESPADACURTA: {
     nome: 'Espada Curta',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: '19',
     spaces: 1,
@@ -68,6 +102,7 @@ export const Armas: Record<string, Equipment> = {
   },
   FOICE: {
     nome: 'Foice',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x3',
     spaces: 1,
@@ -78,6 +113,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MANOPLA: {
     nome: 'Manopla',
+    weaponCategory: 'simple',
     dano: '-',
     critico: '-',
     spaces: 1,
@@ -88,6 +124,7 @@ export const Armas: Record<string, Equipment> = {
   },
   CLAVA: {
     nome: 'Clava',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x2',
     spaces: 1,
@@ -98,6 +135,7 @@ export const Armas: Record<string, Equipment> = {
   },
   LANCA: {
     nome: 'Lança',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x2',
     spaces: 1,
@@ -107,9 +145,19 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 2,
     weaponTags: ['armaDeMar'],
+    specialActions: [
+      { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      {
+        id: 'arremessar',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Força',
+      },
+    ],
   },
   MACA: {
     nome: 'Maça',
+    weaponCategory: 'simple',
     dano: '1d8',
     critico: 'x2',
     spaces: 1,
@@ -120,6 +168,7 @@ export const Armas: Record<string, Equipment> = {
   },
   BORDAO: {
     nome: 'Bordão',
+    weaponCategory: 'simple',
     dano: '1d6/1d6',
     critico: 'x2',
     spaces: 2,
@@ -127,9 +176,11 @@ export const Armas: Record<string, Equipment> = {
     alcance: '-',
     group: 'Arma',
     preco: 0,
+    twoHanded: true,
   },
   PIQUE: {
     nome: 'Pique',
+    weaponCategory: 'simple',
     dano: '1d8',
     critico: 'x2',
     spaces: 2,
@@ -138,9 +189,11 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 2,
     weaponTags: ['alongada'],
+    twoHanded: true,
   },
   TACAPE: {
     nome: 'Tacape',
+    weaponCategory: 'simple',
     dano: '1d10',
     critico: 'x2',
     spaces: 2,
@@ -148,20 +201,39 @@ export const Armas: Record<string, Equipment> = {
     alcance: '-',
     group: 'Arma',
     preco: 0,
+    twoHanded: true,
   },
   AZAGAIA: {
     nome: 'Azagaia',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x2',
     spaces: 1,
     tipo: 'Perf.',
     alcance: 'Médio',
+    arremesso: true,
     group: 'Arma',
     preco: 1,
     weaponTags: ['armaDeMar'],
+    specialActions: [
+      {
+        id: 'arremessar',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Força',
+      },
+      {
+        id: 'corpo-a-corpo',
+        label: 'Corpo a corpo (-5 ataque)',
+        skill: 'Luta',
+        atkBonusDelta: -5,
+        damageAttribute: 'Força',
+      },
+    ],
   },
   BESTALEVE: {
     nome: 'Besta Leve',
+    weaponCategory: 'simple',
     dano: '1d8',
     critico: '19',
     spaces: 1,
@@ -169,9 +241,11 @@ export const Armas: Record<string, Equipment> = {
     alcance: 'Médio',
     group: 'Arma',
     preco: 35,
+    ammoType: 'Virotes',
   },
   FUNDA: {
     nome: 'Funda',
+    weaponCategory: 'simple',
     dano: '1d4',
     critico: 'x2',
     spaces: 1,
@@ -179,9 +253,28 @@ export const Armas: Record<string, Equipment> = {
     alcance: 'Médio',
     group: 'Arma',
     preco: 0,
+    ammoType: 'Pedras',
+    damageAttribute: 'Força',
+    specialActions: [
+      {
+        id: 'pedras',
+        label: 'Disparar Pedras (consome munição)',
+        skill: 'Pontaria',
+      },
+      {
+        id: 'pedra-improvisada',
+        label: 'Pedra improvisada (-1 passo de dano)',
+        description:
+          'Sem munição adequada — usa uma pedra comum, dano reduzido em 1 passo.',
+        skill: 'Pontaria',
+        damageStepDelta: -1,
+        skipAmmo: true,
+      },
+    ],
   },
   ARCOCURTO: {
     nome: 'Arco Curto',
+    weaponCategory: 'simple',
     dano: '1d6',
     critico: 'x3',
     spaces: 2,
@@ -189,9 +282,12 @@ export const Armas: Record<string, Equipment> = {
     alcance: 'Médio',
     group: 'Arma',
     preco: 30,
+    twoHanded: true,
+    ammoType: 'Flechas',
   },
   MACHADINHA: {
     nome: 'Machadinha',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: 'x3',
     spaces: 1,
@@ -199,9 +295,21 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 6,
     weaponTags: ['heredrimm'],
+    arremesso: true,
+    alcance: 'Curto',
+    specialActions: [
+      { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      {
+        id: 'arremessar',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Força',
+      },
+    ],
   },
   CIMITARRA: {
     nome: 'Cimitarra',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: '18',
     spaces: 1,
@@ -211,6 +319,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ESPADA_LONGA: {
     nome: 'Espada Longa',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: '19',
     spaces: 1,
@@ -221,6 +330,7 @@ export const Armas: Record<string, Equipment> = {
   },
   FLORETE: {
     nome: 'Florete',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: '18',
     spaces: 1,
@@ -230,6 +340,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MACHADO_DE_BATALHA: {
     nome: 'Machado de Batalha',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
     spaces: 1,
@@ -240,6 +351,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MANGUAL: {
     nome: 'Mangual',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x2',
     spaces: 1,
@@ -249,6 +361,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MARTELO_DE_GUERRA: {
     nome: 'Martelo de Guerra',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
     spaces: 1,
@@ -259,6 +372,7 @@ export const Armas: Record<string, Equipment> = {
   },
   PICARETA: {
     nome: 'Picareta',
+    weaponCategory: 'martial',
     dano: '1d6',
     critico: 'x4',
     spaces: 1,
@@ -269,6 +383,7 @@ export const Armas: Record<string, Equipment> = {
   },
   TRIDENTE: {
     nome: 'Tridente',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x2',
     spaces: 1,
@@ -276,9 +391,21 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 15,
     weaponTags: ['armaDeMar'],
+    arremesso: true,
+    alcance: 'Curto',
+    specialActions: [
+      { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      {
+        id: 'arremessar',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Força',
+      },
+    ],
   },
   ALABARDA: {
     nome: 'Alabarda',
+    weaponCategory: 'martial',
     dano: '1d10',
     critico: 'x3',
     spaces: 2,
@@ -286,27 +413,33 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 10,
     weaponTags: ['alongada'],
+    twoHanded: true,
   },
   ALFANGE: {
     nome: 'Alfange',
+    weaponCategory: 'martial',
     dano: '2d4',
     critico: '18',
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
     preco: 75,
+    twoHanded: true,
   },
   GADANHO: {
     nome: 'Gadanho',
+    weaponCategory: 'martial',
     dano: '2d4',
     critico: 'x4',
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
     preco: 18,
+    twoHanded: true,
   },
   LANCA_MONTADA: {
     nome: 'Lança Montada',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
     spaces: 2,
@@ -314,9 +447,11 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 10,
     weaponTags: ['alongada'],
+    twoHanded: true,
   },
   MACHADO_DE_GUERRA: {
     nome: 'Machado de Guerra',
+    weaponCategory: 'martial',
     dano: '1d12',
     critico: 'x3',
     spaces: 2,
@@ -324,27 +459,37 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 20,
     weaponTags: ['heredrimm'],
+    twoHanded: true,
   },
   MARRETA: {
     nome: 'Marreta',
+    weaponCategory: 'martial',
     dano: '3d4',
     critico: 'x2',
     spaces: 2,
     tipo: 'Impacto',
     group: 'Arma',
     preco: 20,
+    // Marreta é coberta por Tradição de Heredrimm ("machados, martelos,
+    // marretas e picaretas"); a tag faltava. Cópias em fichas antigas não
+    // ganham a tag retroativamente.
+    weaponTags: ['heredrimm'],
+    twoHanded: true,
   },
   MONTANTE: {
     nome: 'Montante',
+    weaponCategory: 'martial',
     dano: '2d6',
     critico: '19',
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
     preco: 50,
+    twoHanded: true,
   },
   ARCO_LONGO: {
     nome: 'Arco Longo',
+    weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
     alcance: 'Médio',
@@ -352,9 +497,12 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perfuração',
     group: 'Arma',
     preco: 100,
+    ammoType: 'Flechas',
+    damageAttribute: 'Força',
   },
   BESTA_PESADA: {
     nome: 'Besta Pesada',
+    weaponCategory: 'martial',
     dano: '1d12',
     critico: '19',
     alcance: 'Médio',
@@ -362,9 +510,11 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perfuração',
     group: 'Arma',
     preco: 50,
+    ammoType: 'Virotes',
   },
   CHICOTE: {
     nome: 'Chicote',
+    weaponCategory: 'exotic',
     dano: '1d3',
     critico: 'x2',
     spaces: 1,
@@ -374,6 +524,7 @@ export const Armas: Record<string, Equipment> = {
   },
   ESPADA_BASTARDA: {
     nome: 'Espada Bastarda',
+    weaponCategory: 'exotic',
     dano: '1d10/1d12',
     critico: '19',
     spaces: 1,
@@ -383,6 +534,7 @@ export const Armas: Record<string, Equipment> = {
   },
   KATANA: {
     nome: 'Katana',
+    weaponCategory: 'exotic',
     dano: '1d8/1d10',
     critico: '19',
     spaces: 1,
@@ -392,6 +544,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MACHADO_ANAO: {
     nome: 'Machado Anão',
+    weaponCategory: 'exotic',
     dano: '1d10',
     critico: 'x3',
     spaces: 1,
@@ -402,15 +555,18 @@ export const Armas: Record<string, Equipment> = {
   },
   CORRENTE_DE_ESPINHOS: {
     nome: 'Corrente de Espinhos',
+    weaponCategory: 'exotic',
     dano: '2d4/2d4',
     critico: '19',
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
     preco: 25,
+    twoHanded: true,
   },
   MACHADO_TAURICO: {
     nome: 'Machado Táurico',
+    weaponCategory: 'exotic',
     dano: '2d8',
     critico: 'x3',
     spaces: 2,
@@ -418,9 +574,11 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 50,
     weaponTags: ['heredrimm'],
+    twoHanded: true,
   },
   REDE: {
     nome: 'Rede',
+    weaponCategory: 'exotic',
     alcance: 'Curto',
     spaces: 1,
     group: 'Arma',
@@ -428,6 +586,7 @@ export const Armas: Record<string, Equipment> = {
   },
   MOSQUETE: {
     nome: 'Mosquete',
+    weaponCategory: 'firearm',
     dano: '2d8',
     critico: '19/x3',
     alcance: 'Médio',
@@ -436,9 +595,12 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 500,
     weaponTags: ['armaDeFogo'],
+    twoHanded: true,
+    ammoType: 'Balas',
   },
   PISTOLA: {
     nome: 'Pistola',
+    weaponCategory: 'firearm',
     dano: '2d6',
     critico: '19/x3',
     alcance: 'Curto',
@@ -447,6 +609,7 @@ export const Armas: Record<string, Equipment> = {
     group: 'Arma',
     preco: 250,
     weaponTags: ['armaDeFogo'],
+    ammoType: 'Balas',
   },
 };
 
@@ -599,7 +762,7 @@ const EQUIPAMENTOS: CombatItems = {
     Armas.REDE,
   ],
   armasDeFogo: [Armas.MOSQUETE, Armas.PISTOLA],
-  municao: [Armas.BALAS, Armas.FLECHAS, Armas.VIROTES],
+  municao: [Armas.BALAS, Armas.FLECHAS, Armas.PEDRAS, Armas.VIROTES],
   armadurasLeves: [
     Armaduras.ARMADURA_ACOLCHOADA,
     Armaduras.ARMADURADECOURO,
@@ -660,10 +823,39 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
 
   const cloneSheet = _.cloneDeep(charSheet);
 
+  // Resolve which armor (if any) is "worn" for this sheet. Armors only apply
+  // when worn; with a fallback for legacy sheets that have exactly 1 armor.
+  const allArmors = (cloneSheet.bag.getEquipments().Armadura ??
+    []) as DefenseEquipment[];
+  let wornArmor: DefenseEquipment | undefined;
+  if (cloneSheet.wornArmorId) {
+    wornArmor = allArmors.find((a) => a.id === cloneSheet.wornArmorId);
+  }
+  if (!wornArmor && !cloneSheet.wornArmorId && allArmors.length === 1) {
+    // Legacy compat: single armor with no explicit selection still applies.
+    [wornArmor] = allArmors;
+  }
+  // ≥2 armors with no wornArmorId → ambiguous, no armor applies.
+
   let updatedDefense = Object.values(cloneSheet.bag.getEquipments())
     .flat()
     .reduce((acc, equip) => {
       if (isDefenseEquip(equip)) {
+        // Armor: only the worn one applies.
+        if (equip.group === 'Armadura') {
+          if (!wornArmor || equip.id !== wornArmor.id) return acc;
+        }
+        // Shield: only counts when explicitly wielded in a hand slot. There
+        // is no legacy fallback — a shield in the bag with no hand assigned
+        // does NOT contribute to defense.
+        if (equip.group === 'Escudo') {
+          const inHand =
+            equip.id !== undefined &&
+            (equip.id === cloneSheet.mainHandItemId ||
+              equip.id === cloneSheet.offHandItemId);
+          if (!inHand) return acc;
+        }
+
         equipped.push(equip);
 
         // Only add step if defense actually changed (equipment bonus > 0)

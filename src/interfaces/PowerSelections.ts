@@ -2,6 +2,7 @@ import { ClassPower } from './Class';
 import Equipment from './Equipment';
 import { GeneralPower } from './Poderes';
 import { Spell } from './Spells';
+import { GolpePessoalBuild } from '../data/systems/tormenta20/golpePessoal';
 
 /**
  * Represents the different types of selections a user can make
@@ -17,11 +18,15 @@ export interface SelectionOptions {
   animalTotems?: string[]; // Animal totem names for selection
   classAbilities?: Array<{ className: string; abilityName: string }>; // Class ability selections
   chosenOption?: string[]; // Option names for chooseFromOptions actions
+  optionSpells?: Record<string, Spell[]>; // Spells chosen for a chooseFromOptions option that grants player-choice spells (keyed by option name)
+  optionPowers?: Record<string, GeneralPower[]>; // Powers chosen for a chooseFromOptions option that grants player-choice powers (keyed by option name)
   osteonOldRace?: string; // Old race name for Osteon/Soterrado Memória Póstuma
+  yidishanOldRace?: string; // Old race name for Yidishan Natureza Orgânica
   raceAbilities?: Array<{ raceName: string; abilityName: string }>; // Race ability selections for Memória Póstuma
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
   alchemyItems?: Equipment[]; // Selected alchemy items for addAlchemyItems action
+  golpePessoalBuild?: GolpePessoalBuild; // Build do Golpe Pessoal montado no assistente
 }
 
 /**
@@ -40,6 +45,14 @@ export interface PowerSelection {
 export interface ManualPowerSelections {
   [powerName: string]: SelectionOptions;
 }
+
+/**
+ * Bonus emitted by a `selectWeaponSpecialization` action.
+ */
+export type WeaponSpecializationBonus =
+  | { kind: 'attack'; value: number }
+  | { kind: 'damage'; value: number }
+  | { kind: 'damageStep'; steps: number };
 
 /**
  * Requirements for a power that needs manual selection
@@ -61,6 +74,7 @@ export interface PowerSelectionRequirement {
     | 'humanoVersatil'
     | 'lefouDeformidade'
     | 'osteonMemoriaPostuma'
+    | 'yidishanNaturezaOrganica'
     | 'chooseFromOptions'
     | 'almaLivreSelectClass'
     | 'mashinChassi';
@@ -68,12 +82,19 @@ export interface PowerSelectionRequirement {
   availableOptions: any[];
   pick: number;
   label: string; // Human-readable label like "Selecione 2 perícias"
+  // For selectWeaponSpecialization: when true, listed options come only from
+  // weapons already in the sheet. When true on `optional`, user may pick none.
+  onlyFromSheet?: boolean;
+  optional?: boolean;
+  bonuses?: WeaponSpecializationBonus[];
   // Additional metadata for special cases
   metadata?: {
     allowedType?: 'Arcane' | 'Divine' | 'Both';
     schools?: string[];
     optionKey?: string; // For chooseFromOptions: the option key identifier
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
+    minLevel?: number; // For getClassPower: minimum level of eligible class powers
+    ignoreOnlyLevelRequirement?: boolean; // For getClassPower: ignore only the level requirement
   };
 }
 

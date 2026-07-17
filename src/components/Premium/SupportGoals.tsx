@@ -118,12 +118,14 @@ const SupportGoals: React.FC = () => {
     >
       <Typography
         variant='h5'
-        fontWeight='bold'
-        sx={{ fontFamily: 'Tfont', mb: 2 }}
+        sx={{
+          fontWeight: 'bold',
+          fontFamily: 'Tfont',
+          mb: 2,
+        }}
       >
         Metas de Apoio
       </Typography>
-
       {/* Current supporter count */}
       {loading ? (
         <Skeleton variant='rounded' height={40} sx={{ mb: 3 }} />
@@ -141,12 +143,16 @@ const SupportGoals: React.FC = () => {
           }}
         >
           <PeopleIcon />
-          <Typography variant='body1' fontWeight='bold'>
+          <Typography
+            variant='body1'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             {count} {count === 1 ? 'apoiador ativo' : 'apoiadores ativos'}
           </Typography>
         </Box>
       )}
-
       {/* Goals list */}
       <Stack spacing={2.5}>
         {loading
@@ -183,11 +189,19 @@ const SupportGoals: React.FC = () => {
                   {/* Goal header */}
                   <Stack
                     direction='row'
-                    alignItems='center'
-                    justifyContent='space-between'
-                    sx={{ mb: 0.5 }}
+                    sx={{
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mb: 0.5,
+                    }}
                   >
-                    <Stack direction='row' alignItems='center' spacing={1}>
+                    <Stack
+                      direction='row'
+                      spacing={1}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
                       {state === 'completed' && (
                         <CheckCircleIcon
                           sx={{ color: 'success.main', fontSize: 20 }}
@@ -200,12 +214,14 @@ const SupportGoals: React.FC = () => {
                       )}
                       <Typography
                         variant={isMobile ? 'body2' : 'body1'}
-                        fontWeight={state !== 'upcoming' ? 'bold' : 'normal'}
                         color={
                           state === 'upcoming'
                             ? 'text.secondary'
                             : 'text.primary'
                         }
+                        sx={{
+                          fontWeight: state !== 'upcoming' ? 'bold' : 'normal',
+                        }}
                       >
                         {goal.label} — até {goal.target} apoiadores
                       </Typography>
@@ -220,7 +236,13 @@ const SupportGoals: React.FC = () => {
                       />
                     )}
                     {state === 'active' && (
-                      <Stack direction='row' alignItems='center' spacing={1}>
+                      <Stack
+                        direction='row'
+                        spacing={1}
+                        sx={{
+                          alignItems: 'center',
+                        }}
+                      >
                         <Chip
                           label='Em andamento!'
                           size='small'
@@ -230,23 +252,26 @@ const SupportGoals: React.FC = () => {
                         <Typography
                           variant='caption'
                           color='primary'
-                          fontWeight='bold'
+                          sx={{
+                            fontWeight: 'bold',
+                          }}
                         >
                           {count}/{goal.target}
                         </Typography>
                       </Stack>
                     )}
                   </Stack>
-
                   {/* Goal description */}
                   <Typography
                     variant={isMobile ? 'caption' : 'body2'}
-                    color='text.secondary'
-                    sx={{ mb: 1, ml: state !== 'upcoming' ? 3.5 : 0 }}
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 1,
+                      ml: state !== 'upcoming' ? 3.5 : 0,
+                    }}
                   >
                     {goal.description}
                   </Typography>
-
                   {/* Progress bar */}
                   <LinearProgress
                     variant='determinate'

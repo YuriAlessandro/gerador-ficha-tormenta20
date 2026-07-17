@@ -51,17 +51,20 @@ const RaceAttributeStep: React.FC<RaceAttributeStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Sua raça permite escolher {requiredCount} atributo
         {requiredCount > 1 ? 's' : ''} para receber bônus. Selecione abaixo:
       </Typography>
-
       {excludedAttributes.length > 0 && (
         <Alert severity='info'>
           Atributos bloqueados pela raça: {excludedAttributes.join(', ')}
         </Alert>
       )}
-
       {Array.from({ length: requiredCount }).map((_, index) => {
         const fieldId = `attribute-slot-${index + 1}`;
         return (
@@ -86,13 +89,11 @@ const RaceAttributeStep: React.FC<RaceAttributeStepProps> = ({
           </FormControl>
         );
       })}
-
       {hasDuplicates() && (
         <Alert severity='error'>
           Você não pode selecionar o mesmo atributo mais de uma vez.
         </Alert>
       )}
-
       {!isComplete() &&
         selectedAttributes.length === requiredCount &&
         !hasDuplicates() && (
@@ -100,7 +101,6 @@ const RaceAttributeStep: React.FC<RaceAttributeStepProps> = ({
             Selecione todos os {requiredCount} atributos para continuar.
           </Alert>
         )}
-
       {isComplete() && (
         <Alert severity='success'>
           Atributos selecionados com sucesso! Você pode continuar para o próximo

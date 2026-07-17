@@ -10,7 +10,13 @@ const PWAInstallPrompt: React.FC = () => {
   useEffect(() => {
     if (!canPromptInstall || isStandalone) return;
 
-    const lastDismissed = localStorage.getItem('pwa-install-dismissed');
+    let lastDismissed: string | null = null;
+    try {
+      lastDismissed = localStorage.getItem('pwa-install-dismissed');
+    } catch {
+      // localStorage indisponível (ex.: embed com storage bloqueado) —
+      // trata como nunca dispensado.
+    }
     const daysSinceLastDismiss = lastDismissed
       ? Math.floor(
           (Date.now() - parseInt(lastDismissed, 10)) / (1000 * 60 * 60 * 24)
@@ -29,7 +35,11 @@ const PWAInstallPrompt: React.FC = () => {
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    try {
+      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    } catch {
+      // localStorage indisponível — o dismiss vale só para a sessão.
+    }
   };
 
   if (isStandalone || !canPromptInstall) {

@@ -1,12 +1,12 @@
 import _ from 'lodash';
 
 import Bag from '@/interfaces/Bag';
-import { CharacterAttributes } from '@/interfaces/Character';
 import CharacterSheet, {
   DamageReduction,
   DamageType,
   SheetAction,
   SheetActionHistoryEntry,
+  SheetChangeSource,
   Step,
 } from '@/interfaces/CharacterSheet';
 import { calculateCompanionStats } from '@/data/systems/tormenta20/herois-de-arton/companion';
@@ -36,6 +36,25 @@ import {
   getMulticlassAvailableAbilities,
   findClassDescription,
 } from './multiclass';
+import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
+import { expandAttributeBonus } from './attributeExpansion';
+import { isWeaponMelee } from './weaponSkill';
+import { isBonusActive } from './bonusConditions';
+import {
+  getNonProficientArmorPenalty,
+  getSheetProficiencias,
+  isProficientWithWeapon,
+} from './proficiencies';
+import { stampUsedSupplements } from './contentSources';
+import {
+  isModeScopedForWeapon,
+  weaponMatchesScope,
+  WeaponBonusScope,
+} from './weaponBonusScope';
+import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
+import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
+import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
+import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 
 import {
   applyRaceAbilities,
@@ -44,7 +63,10 @@ import {
   calculateMaxSpaces,
   calculateCurrencySpaces,
 } from './general';
-import { countTormentaPowers } from './randomUtils';
+import {
+  countTormentaPowers,
+  getVirtudePaladinescaPMBonus,
+} from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
 
 /**
@@ -154,10 +176,41 @@ function deduplicateSpells(spells: Spell[]): Spell[] {
   return uniqueSpells;
 }
 
+const resolveClassLevel = (
+  sheet: CharacterSheet,
+  source?: SheetChangeSource
+): number => {
+  const className = source?.type === 'power' ? source.className : undefined;
+  return className ? getClassLevel(sheet, className) : sheet.nivel;
+};
+
 // We need to copy the applyStatModifiers function locally since it's not exported
+/**
+ * Maior círculo de magia que o personagem pode lançar atualmente (0 se não for
+ * conjurador). Considera a classe principal e multiclasse.
+ */
+const maxSpellCircleOf = (sheet: CharacterSheet): number =>
+  sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ?? 0;
+
 const calculateBonusValue = (
   sheet: CharacterSheet,
-  bonus: { type: string; value?: number; attribute?: string; formula?: string }
+  bonus: {
+    type: string;
+    value?: number;
+    attribute?: string;
+    formula?: string;
+    capBy?: 'level' | 'classLevel';
+    breakpoints?: { fromLevel: number; value: number }[];
+    by?: 'level' | 'classLevel';
+    base?: {
+      kind: 'fixed' | 'level' | 'spellCircle' | 'attribute';
+      value?: number;
+      attribute?: string;
+    };
+    capByLevel?: boolean;
+    capByAttribute?: string;
+  },
+  source?: SheetChangeSource
 ): number => {
   if (bonus.type === 'Level') {
     return sheet.nivel;
@@ -187,8 +240,14 @@ const calculateBonusValue = (
     }
   }
   if (bonus.type === 'LevelCalc' && bonus.formula) {
-    // Handle formulas like 'Math.floor(({level} + 3) / 4)'
-    const formula = bonus.formula.replace(/{level}/g, sheet.nivel.toString());
+    // Handle formulas like 'Math.floor(({level} + 3) / 4)' or with {classLevel}.
+    let formula = bonus.formula.replace(/{level}/g, sheet.nivel.toString());
+    if (formula.includes('{classLevel}')) {
+      formula = formula.replace(
+        /{classLevel}/g,
+        resolveClassLevel(sheet, source).toString()
+      );
+    }
     try {
       // eslint-disable-next-line no-eval
       return eval(formula);
@@ -196,43 +255,69 @@ const calculateBonusValue = (
       return 0;
     }
   }
+  if (bonus.type === 'CappedAttribute') {
+    const attr = bonus.attribute as Atributo;
+    const attrValue = sheet.atributos[attr]?.value ?? 0;
+    const cap =
+      bonus.capBy === 'classLevel'
+        ? resolveClassLevel(sheet, source)
+        : sheet.nivel;
+    return Math.max(0, Math.min(attrValue, cap));
+  }
+  if (bonus.type === 'LevelBreakpoints') {
+    const lvl =
+      bonus.by === 'classLevel'
+        ? resolveClassLevel(sheet, source)
+        : sheet.nivel;
+    // Maior `fromLevel` que seja <= nível atual (independe da ordem da lista).
+    let best: { fromLevel: number; value: number } | null = null;
+    (bonus.breakpoints || []).forEach((bp) => {
+      if (lvl >= bp.fromLevel && (!best || bp.fromLevel > best.fromLevel)) {
+        best = bp;
+      }
+    });
+    return best ? (best as { fromLevel: number; value: number }).value : 0;
+  }
+  if (bonus.type === 'ScaledValue' && bonus.base) {
+    let v = 0;
+    if (bonus.base.kind === 'fixed') v = bonus.base.value || 0;
+    else if (bonus.base.kind === 'level') v = sheet.nivel;
+    else if (bonus.base.kind === 'spellCircle') v = maxSpellCircleOf(sheet);
+    else if (bonus.base.kind === 'attribute')
+      v = sheet.atributos[bonus.base.attribute as Atributo]?.value ?? 0;
+    if (bonus.capByLevel) v = Math.min(v, sheet.nivel);
+    if (bonus.capByAttribute)
+      v = Math.min(
+        v,
+        sheet.atributos[bonus.capByAttribute as Atributo]?.value ?? 0
+      );
+    return Math.max(0, v);
+  }
   if (bonus.type === 'Fixed') {
     return bonus.value || 0;
   }
   return 0;
 };
 
-// Helper function to check if a weapon matches bonus criteria
+// Helper function to check if a weapon matches bonus criteria. Delega o
+// matching estático a `weaponMatchesScope` (fonte única, compartilhada com
+// Weapon.tsx) e soma a checagem de proficiência, que depende da ficha.
 const weaponMatchesBonus = (
   weapon: Equipment,
-  bonus: {
-    weaponName?: string;
-    weaponTags?: string[];
-    proficiencyRequired?: boolean;
-  },
-  _sheet: CharacterSheet
+  bonus: WeaponBonusScope & { proficiencyRequired?: boolean },
+  sheet: CharacterSheet
 ): boolean => {
-  // Check specific weapon name
-  if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
+  if (!weaponMatchesScope(weapon, bonus)) {
     return false;
   }
 
-  // Check weapon tags
-  if (bonus.weaponTags && bonus.weaponTags.length > 0) {
-    const weaponTags = weapon.weaponTags || [];
-    const hasMatchingTag = bonus.weaponTags.some((tag) =>
-      weaponTags.includes(tag)
-    );
-    if (!hasMatchingTag) {
-      return false;
-    }
-  }
-
-  // Check proficiency requirement
-  if (bonus.proficiencyRequired) {
-    // TODO: Implement proficiency check logic
-    // For now, assume all weapons are proficient
-    // This would need to check against sheet.classe.proficiencias
+  // Bônus que exigem proficiência com a arma (ex.: Armas da Ambição) só se
+  // aplicam quando o personagem sabe usá-la.
+  if (
+    bonus.proficiencyRequired &&
+    !isProficientWithWeapon(weapon, getSheetProficiencias(sheet))
+  ) {
+    return false;
   }
 
   return true;
@@ -250,6 +335,20 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
     return resetWeapon;
   }
 
+  // Armas com aprimoramentos (modificações/encantamentos) já tiveram
+  // dano/atkBonus/critico recomputados a partir dos snapshots `base*` pela
+  // reaplicação de aprimoramentos (Step 17, que roda ANTES de applyWeaponBonuses)
+  // e portanto representam "base + delta de aprimoramento". NÃO resetar para a
+  // base pristina aqui — os bônus de efeito ativo são somados por cima desse
+  // valor. A idempotência é garantida porque o Step 17 recomputa do zero a cada
+  // recálculo, descartando o baking de efeito ativo do recálculo anterior.
+  const isEnhanced = !!(
+    resetWeapon.modifications?.length || resetWeapon.enchantments?.length
+  );
+  if (isEnhanced) {
+    return resetWeapon;
+  }
+
   // For weapons without manual edits, reset to base values
   // If base values exist, use them; otherwise, extract from current values
 
@@ -260,9 +359,13 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
   if (resetWeapon.baseDano) {
     resetWeapon.dano = resetWeapon.baseDano;
   } else if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
-    // Fallback: Extract base damage (everything before the first '+')
-    // and store it for future use
-    [resetWeapon.dano] = resetWeapon.dano.split('+');
+    // Fallback: strip the baked flat bonus to recover the base damage. Handle
+    // dual-mode strings per segment ("1d6+5/1d6+5" -> "1d6/1d6") so versatile/
+    // double-damage weapons aren't corrupted to a single mode.
+    resetWeapon.dano = resetWeapon.dano
+      .split('/')
+      .map((part) => part.split('+')[0])
+      .join('/');
     resetWeapon.baseDano = resetWeapon.dano;
   }
 
@@ -328,46 +431,97 @@ const applyWeaponBonuses = (
       // Calculate total bonuses for this weapon
       let totalAttackBonus = 0;
       let totalDamageBonus = 0;
+      let totalDamageSteps = 0;
       let totalThreatMarginBonus = 0;
+      let setThreatMargin: number | undefined;
       let totalCriticalMultiplierBonus = 0;
+      let setCritMultiplier: number | undefined;
 
       updatedSheet.sheetBonuses.forEach((bonus) => {
+        // Bônus com escopo POR MODO (arremesso, ou melee/ranged em arma híbrida
+        // de arremesso) são aplicados por modo de ataque em Weapon.tsx — não
+        // devem ser bakeados na string `dano`/`atkBonus` da arma inteira
+        // (vazaria para o outro modo). Armas puras (só corpo a corpo, ou só
+        // disparo) têm um único modo relevante e são bakeadas normalmente.
+        if (
+          (bonus.target.type === 'WeaponDamage' ||
+            bonus.target.type === 'WeaponAttack') &&
+          isModeScopedForWeapon(weapon, bonus.target)
+        ) {
+          return;
+        }
+
         if (
           (bonus.target.type === 'WeaponDamage' ||
             bonus.target.type === 'WeaponAttack' ||
+            bonus.target.type === 'WeaponDamageStep' ||
             bonus.target.type === 'WeaponThreatMargin' ||
             bonus.target.type === 'WeaponCriticalMultiplier') &&
           weaponMatchesBonus(weapon, bonus.target, updatedSheet)
         ) {
-          const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+          const bonusValue = calculateBonusValue(
+            updatedSheet,
+            bonus.modifier,
+            bonus.source
+          );
 
           if (bonus.target.type === 'WeaponAttack') {
             totalAttackBonus += bonusValue;
           } else if (bonus.target.type === 'WeaponDamage') {
             totalDamageBonus += bonusValue;
+          } else if (bonus.target.type === 'WeaponDamageStep') {
+            totalDamageSteps += bonusValue;
           } else if (bonus.target.type === 'WeaponThreatMargin') {
-            totalThreatMarginBonus += bonusValue;
+            if (bonus.target.mode === 'set') {
+              // Define a margem; com vários, prevalece a mais ampla (menor nº).
+              setThreatMargin =
+                setThreatMargin === undefined
+                  ? bonusValue
+                  : Math.min(setThreatMargin, bonusValue);
+            } else {
+              totalThreatMarginBonus += bonusValue;
+            }
           } else if (bonus.target.type === 'WeaponCriticalMultiplier') {
-            totalCriticalMultiplierBonus += bonusValue;
+            if (bonus.target.mode === 'set') {
+              // Define o multiplicador; com vários, prevalece o maior.
+              setCritMultiplier =
+                setCritMultiplier === undefined
+                  ? bonusValue
+                  : Math.max(setCritMultiplier, bonusValue);
+            } else {
+              totalCriticalMultiplierBonus += bonusValue;
+            }
           }
         }
       });
 
-      // Apply totaled bonuses
-      if (totalAttackBonus > 0) {
-        weaponCopy.atkBonus = totalAttackBonus;
+      // Apply totaled bonuses. Soma POR CIMA do atkBonus já presente (que, para
+      // armas com aprimoramento, é base + delta de aprimoramento; para armas
+      // comuns, é a base resetada) em vez de sobrescrever — senão o bônus de
+      // ataque do encantamento seria descartado.
+      if (totalAttackBonus !== 0) {
+        weaponCopy.atkBonus = (weaponCopy.atkBonus ?? 0) + totalAttackBonus;
+      }
+
+      if (totalDamageSteps > 0 && weaponCopy.dano) {
+        weaponCopy.dano = stepUpDamage(weaponCopy.dano, totalDamageSteps);
       }
 
       if (totalDamageBonus > 0) {
+        // Soma por modo (trata "1d6/1d6" como dois modos) e mescla qualquer
+        // modificador já presente — concatenar "+N" cru deixaria o bônus só no
+        // último modo de armas de dano duplo (ex.: Bordão + Estilo de Duas Mãos).
         weaponCopy.dano = weaponCopy.dano
-          ? `${weaponCopy.dano}+${totalDamageBonus}`
+          ? addFlatDamageBonus(weaponCopy.dano, totalDamageBonus)
           : `+${totalDamageBonus}`;
       }
 
-      if (
-        (totalThreatMarginBonus > 0 || totalCriticalMultiplierBonus > 0) &&
-        weaponCopy.critico
-      ) {
+      const hasMarginChange =
+        totalThreatMarginBonus > 0 || setThreatMargin !== undefined;
+      const hasMultChange =
+        totalCriticalMultiplierBonus > 0 || setCritMultiplier !== undefined;
+
+      if ((hasMarginChange || hasMultChange) && weaponCopy.critico) {
         // Critical string may be "19", "x2" or "19/x2". Threat margin modifies
         // the numeric part before "/" (or the whole string if no "/"); the
         // multiplier modifies the "xN" portion.
@@ -386,25 +540,33 @@ const applyWeaponBonuses = (
           [marginPart, multPart] = parts;
         }
 
-        if (totalThreatMarginBonus > 0 && marginPart !== null) {
-          const currentRange = parseInt(marginPart, 10);
-          if (!Number.isNaN(currentRange)) {
-            marginPart = `${Math.max(
-              1,
-              currentRange - totalThreatMarginBonus
-            )}`;
-          }
+        if (hasMarginChange) {
+          // Margem base (20 implícito quando a arma só tem multiplicador, ex.:
+          // "x2"). `set` define a margem; o aumento (estreitamento) é aplicado
+          // por cima.
+          let currentRange =
+            marginPart !== null ? parseInt(marginPart, 10) : 20;
+          if (Number.isNaN(currentRange)) currentRange = 20;
+          if (setThreatMargin !== undefined) currentRange = setThreatMargin;
+          marginPart = `${Math.max(
+            1,
+            Math.min(20, currentRange - totalThreatMarginBonus)
+          )}`;
         }
 
-        if (totalCriticalMultiplierBonus > 0 && multPart !== null) {
-          const currentMult = parseInt(
-            multPart.match(/x(\d+)/)?.[1] || '2',
-            10
-          );
-          multPart = multPart.replace(
-            /x\d+/,
-            `x${currentMult + totalCriticalMultiplierBonus}`
-          );
+        if (hasMultChange) {
+          // Multiplicador base (x2 implícito quando a arma só tem margem, ex.:
+          // "19"). `set` define o multiplicador; o aumento soma por cima.
+          let currentMult =
+            multPart !== null
+              ? parseInt(multPart.match(/x(\d+)/)?.[1] || '2', 10)
+              : 2;
+          if (Number.isNaN(currentMult)) currentMult = 2;
+          if (setCritMultiplier !== undefined) currentMult = setCritMultiplier;
+          multPart = `x${Math.max(
+            2,
+            currentMult + totalCriticalMultiplierBonus
+          )}`;
         }
 
         if (marginPart !== null && multPart !== null) {
@@ -443,9 +605,109 @@ const applyDefenseBonuses = (sheet: CharacterSheet): CharacterSheet => {
 
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (bonus.target.type === 'Defense') {
-      const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+      const bonusValue = calculateBonusValue(
+        updatedSheet,
+        bonus.modifier,
+        bonus.source
+      );
       updatedSheet.defesa += bonusValue;
     }
+  });
+
+  return updatedSheet;
+};
+
+/**
+ * Estilo de Uma Arma: +2 na Defesa e +2 nos testes de ataque com a arma
+ * empunhada, mas SÓ quando há uma arma corpo a corpo em uma das mãos e nada
+ * na outra (regra condicional). Como a condição depende da empunhadura atual
+ * (`mainHandItemId`/`offHandItemId`), os bônus não podem ser `sheetBonuses`
+ * estáticos no dado do poder — são injetados dinamicamente aqui, antes do
+ * cálculo de Defesa (Step 10) e de armas (Step 13). Como `recalculateSheet`
+ * zera `sheetBonuses` no Step 1, a injeção é idempotente: aparece/some
+ * conforme a empunhadura muda.
+ */
+const injectEstiloDeUmaArmaBonuses = (
+  sheet: CharacterSheet
+): CharacterSheet => {
+  const hasPower = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Estilo de Uma Arma'
+  );
+  if (!hasPower) return sheet;
+
+  const { mainHandItemId, offHandItemId } = sheet;
+
+  // Arma de duas mãos ocupa as duas mãos (mesmo id nos dois slots) → não vale.
+  if (mainHandItemId && mainHandItemId === offHandItemId) return sheet;
+
+  // Exatamente uma mão ocupada e a outra vazia.
+  let occupiedId: string | undefined;
+  if (mainHandItemId && !offHandItemId) {
+    occupiedId = mainHandItemId;
+  } else if (offHandItemId && !mainHandItemId) {
+    occupiedId = offHandItemId;
+  }
+  if (!occupiedId) return sheet;
+
+  // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
+  // `Escudo`, então não casam aqui).
+  const weapon = (sheet.bag.equipments.Arma || []).find(
+    (w) => w.id === occupiedId
+  );
+  if (!weapon || !isWeaponMelee(weapon)) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push(
+    {
+      source: { type: 'power', name: 'Estilo de Uma Arma' },
+      target: { type: 'Defense' },
+      modifier: { type: 'Fixed', value: 2 },
+    },
+    {
+      source: { type: 'power', name: 'Estilo de Uma Arma' },
+      target: {
+        type: 'WeaponAttack',
+        weaponName: weapon.nome,
+        meleeOnly: true,
+      },
+      modifier: { type: 'Fixed', value: 2 },
+    }
+  );
+
+  return updatedSheet;
+};
+
+/**
+ * Estilo de Arma e Escudo: se um escudo estiver empunhado, o bônus na Defesa
+ * que ele fornece aumenta em +2. Injetamos um `sheetBonus` de Defesa (em vez de
+ * alterar o `defenseBonus` do escudo) porque `calcDefense` lê o valor estático
+ * do equipamento, enquanto os bônus condicionais passam por `applyDefenseBonuses`.
+ * Idempotente: `sheetBonuses` é zerado a cada recálculo, então o +2 aparece/some
+ * conforme a empunhadura muda.
+ */
+const injectEstiloDeArmaEEscudoBonuses = (
+  sheet: CharacterSheet
+): CharacterSheet => {
+  const hasPower = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Estilo de Arma e Escudo'
+  );
+  if (!hasPower) return sheet;
+
+  const { mainHandItemId, offHandItemId } = sheet;
+
+  // Precisa ter um escudo empunhado em uma das mãos.
+  const hasShieldWielded = (sheet.bag.equipments.Escudo || []).some(
+    (shield) =>
+      shield.id !== undefined &&
+      (shield.id === mainHandItemId || shield.id === offHandItemId)
+  );
+  if (!hasShieldWielded) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push({
+    source: { type: 'power', name: 'Estilo de Arma e Escudo' },
+    target: { type: 'Defense' },
+    modifier: { type: 'Fixed', value: 2 },
   });
 
   return updatedSheet;
@@ -455,7 +717,7 @@ const applyDefenseBonuses = (sheet: CharacterSheet): CharacterSheet => {
 const calcDisplacement = (
   bag: Bag,
   raceDisplacement: number,
-  atributos: CharacterAttributes,
+  maxSpaces: number,
   baseDisplacement: number,
   dinheiro = 0,
   dinheiroTC = 0,
@@ -464,14 +726,15 @@ const calcDisplacement = (
   hasHeavyArmor = false
 ): number => {
   if (!ignoreEncumbrance) {
-    const maxSpaces = calculateMaxSpaces(atributos.Força.value);
     const totalUsedSpaces =
       bag.getSpaces() +
       calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
     const isOverloaded = totalUsedSpaces > maxSpaces;
 
     if (isOverloaded || hasHeavyArmor) {
-      return raceDisplacement - 3;
+      // Penalidade de armadura pesada/sobrecarga, mas bônus (poderes,
+      // condições, efeitos ativos como Ímpeto) ainda somam por cima.
+      return raceDisplacement - 3 + baseDisplacement;
     }
   }
 
@@ -483,10 +746,27 @@ const calcDisplacement = (
 function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
   const updatedSheet = _.cloneDeep(sheet);
 
-  // Calculate armor penalty for skills that are affected by armor
-  const armorPenalty = updatedSheet.bag.getArmorPenalty
-    ? updatedSheet.bag.getArmorPenalty()
-    : updatedSheet.bag.armorPenalty;
+  // Calculate armor penalty for skills that are affected by armor. Use the
+  // wielding/worn-aware variant so multiple armors in the bag don't double-
+  // count — only the worn armor and the wielded shield contribute.
+  let armorPenalty = 0;
+  if (updatedSheet.bag.getActiveArmorPenalty) {
+    armorPenalty = updatedSheet.bag.getActiveArmorPenalty(
+      updatedSheet.wornArmorId,
+      updatedSheet.mainHandItemId,
+      updatedSheet.offHandItemId
+    );
+  } else if (updatedSheet.bag.getArmorPenalty) {
+    armorPenalty = updatedSheet.bag.getArmorPenalty();
+  } else {
+    armorPenalty = updatedSheet.bag.armorPenalty;
+  }
+
+  // Non-proficient armor/shield (T20 rule): the armor penalty of active items
+  // the character can't use extends to ALL Força/Destreza-based skills, not
+  // only the standard armor-penalty skills (which already take the full
+  // penalty above and must not double-count).
+  const nonProficientArmorPenalty = getNonProficientArmorPenalty(updatedSheet);
 
   // Helper function to determine training bonus
   const skillTrainingMod = (isTrained: boolean, level: number): number => {
@@ -513,21 +793,30 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
         updatedSheet.nivel
       );
 
-      // If skill has training in completeSkills but not in base skills array,
-      // it was manually trained - preserve it
-      // If skill is in base skills array, use the calculated training
-      const finalTraining =
-        existingTraining > 0 && !isBaseSkillTrained
-          ? existingTraining // Manually trained - preserve
-          : baseTraining; // Use base calculation
+      // Manual untrain wins over base recalculation: if the user explicitly
+      // unchecked a skill that came from character creation, the flag survives
+      // subsequent recalculations triggered by other edits.
+      let finalTraining: number;
+      if (skill.manuallyUntrained) {
+        finalTraining = 0;
+      } else if (existingTraining > 0 && !isBaseSkillTrained) {
+        finalTraining = existingTraining; // Manually trained - preserve
+      } else {
+        finalTraining = baseTraining;
+      }
 
       // Reset 'others' to base value (armor penalty only)
       // This prevents accumulation of bonuses from sheetBonuses
       // The sheetBonuses (from race abilities, powers, etc.) will be reapplied
       // after this function is called
       const isAffectedByArmor = SkillsWithArmorPenalty.includes(skill.name);
-      const baseOthers =
-        isAffectedByArmor && armorPenalty > 0 ? armorPenalty * -1 : 0;
+      const skillAttr = skill.modAttr ?? SkillsAttrs[skill.name];
+      const isStrDexSkill =
+        skillAttr === Atributo.FORCA || skillAttr === Atributo.DESTREZA;
+      let basePenalty = 0;
+      if (isAffectedByArmor) basePenalty = armorPenalty;
+      else if (isStrDexSkill) basePenalty = nonProficientArmorPenalty;
+      const baseOthers = basePenalty > 0 ? basePenalty * -1 : 0;
 
       return {
         ...skill,
@@ -535,6 +824,7 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
         training: finalTraining,
         others: baseOthers + (skill.manualOthers ?? 0),
         manualOthers: skill.manualOthers,
+        manuallyUntrained: skill.manuallyUntrained,
       };
     });
   } else {
@@ -543,6 +833,11 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
       .map(([skillName, attr]) => {
         const skill = skillName as Skill;
         const isAffectedByArmor = SkillsWithArmorPenalty.includes(skill);
+        const isStrDexSkill =
+          attr === Atributo.FORCA || attr === Atributo.DESTREZA;
+        let basePenalty = 0;
+        if (isAffectedByArmor) basePenalty = armorPenalty;
+        else if (isStrDexSkill) basePenalty = nonProficientArmorPenalty;
 
         return {
           name: skill,
@@ -552,7 +847,7 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
             updatedSheet.nivel
           ),
           modAttr: attr as unknown as Atributo,
-          others: isAffectedByArmor && armorPenalty > 0 ? armorPenalty * -1 : 0,
+          others: basePenalty > 0 ? basePenalty * -1 : 0,
         };
       })
       .filter(
@@ -675,7 +970,11 @@ function applyClassPowers(
 
     // All selections are now combined for repeatable powers
 
-    const [newAcc] = applyPower(acc, power, powerSelections);
+    const [newAcc] = applyPower(
+      acc,
+      { ...power, sourceClassName: sheetClone.classe.name },
+      powerSelections
+    );
     return newAcc;
   }, sheetClone);
 
@@ -757,9 +1056,17 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
 
   // Process each equipment
   allEquipment.forEach((equip) => {
-    // Add direct sheet bonuses
+    // Add direct sheet bonuses. DamageReduction bonuses from equipment
+    // materials are intentionally excluded here: armor-material RD is computed
+    // in Step 14 from the WORN armor/shield only (see getDefenseMaterialRd), so
+    // collecting them here would double-count and also grant RD from armor
+    // sitting unused in the bag.
     if (equip.sheetBonuses) {
-      updatedSheet.sheetBonuses.push(...equip.sheetBonuses);
+      updatedSheet.sheetBonuses.push(
+        ...equip.sheetBonuses.filter(
+          (bonus) => bonus.target.type !== 'DamageReduction'
+        )
+      );
     }
 
     // Process conditional bonuses
@@ -793,43 +1100,19 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
  * conditions with the same effect target do not accumulate — only the most
  * severe applies (aggregation via `aggregateConditionBonuses`).
  *
- * Pipeline:
- *   1. REVERT any attribute penalties from a previous recalc by reading
- *      `conditionAttributePenalties` (the ledger of what we mutated last time).
- *      Without this, removing a condition would leave atributos stuck at the
- *      reduced value — `atributos[attr].value` is the canonical source for
- *      skills/defense and is persisted across saves.
- *   2. Collect every bonus from every mechanical condition into a flat array.
- *   3. Aggregate: group by target key and keep the winner per group.
- *   4. Apply:
- *      - For `Attribute` targets: mutate `atributos[attr].value` (so skills
- *        and defense recalculate from adjusted stats) AND record the delta
- *        in the fresh `conditionAttributePenalties` ledger.
- *      - For everything else: push to `sheetBonuses` (main forEach consumes).
+ * Conditions são puramente temporárias: emitem `SheetBonus` (Skill, Defense,
+ * Displacement, AllAttackBonus, etc.) e nunca mutam `atributos[attr].value`.
+ * Penalidades de "testes de atributo" são modeladas como `Skill` bonuses para
+ * cada perícia derivada do atributo (via `skillsByAttrsPenalty` em conditions.ts).
+ * Isso preserva PM máximo, Defesa, PV e demais stats derivados — eles continuam
+ * lendo o atributo base, conforme o RAW de T20.
  */
 function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
   const updated = _.cloneDeep(sheet);
 
-  // Step 1: revert previously-applied attribute penalties
-  const previous = updated.conditionAttributePenalties;
-  if (previous) {
-    (Object.entries(previous) as [Atributo, number][]).forEach(
-      ([attr, delta]) => {
-        if (updated.atributos[attr]) {
-          updated.atributos[attr] = {
-            ...updated.atributos[attr],
-            value: updated.atributos[attr].value - delta,
-          };
-        }
-      }
-    );
-  }
-  updated.conditionAttributePenalties = undefined;
-
   const active = updated.activeConditions ?? [];
   if (active.length === 0) return updated;
 
-  // Step 2: collect bonuses
   const collected: SheetBonus[] = [];
   active.forEach((ac) => {
     const tpl = CONDITION_TEMPLATES[ac.id];
@@ -843,31 +1126,209 @@ function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
     });
   });
 
-  // Step 3: aggregate (non-stacking rule)
   const aggregated = aggregateConditionBonuses(collected);
-
-  // Step 4: apply
-  const newPenalties: Partial<Record<Atributo, number>> = {};
   aggregated.forEach((b) => {
-    if (b.target.type === 'Attribute' && b.modifier.type === 'Fixed') {
-      const attr = b.target.attribute;
-      if (updated.atributos[attr]) {
-        updated.atributos[attr] = {
-          ...updated.atributos[attr],
-          value: updated.atributos[attr].value + b.modifier.value,
-        };
-        newPenalties[attr] = (newPenalties[attr] ?? 0) + b.modifier.value;
-      }
-      return;
-    }
     updated.sheetBonuses.push(b);
   });
 
-  if (Object.keys(newPenalties).length > 0) {
-    updated.conditionAttributePenalties = newPenalties;
-  }
+  return updated;
+}
+
+/**
+ * Aplica os bônus dos efeitos ativos (poderes com bônus temporário, ex.:
+ * Inspiração do Bardo). Espelha `applyConditionBonuses`, mas:
+ *  - cada `ActiveEffect` carrega seus próprios `bonuses` (já resolvidos no
+ *    momento do uso a partir do tier escolhido), então não há `generate`;
+ *  - efeitos distintos somam (v1) — não há regra de não-acúmulo entre eles;
+ *  - PM/PV temporários (`grantsTempPM/PV`) NÃO são tratados aqui: são
+ *    aplicados imperativamente ao ativar/desativar o efeito, evitando
+ *    compounding a cada recálculo (sheetBonuses é zerado no Step 1, mas
+ *    tempPM/tempPV não têm "base" para recomputar).
+ */
+function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
+  const updated = _.cloneDeep(sheet);
+
+  const active = updated.activeEffects ?? [];
+  if (active.length === 0) return updated;
+
+  active.forEach((eff) => {
+    eff.bonuses.forEach((b) => {
+      const source = {
+        type: 'activeEffect' as const,
+        powerKey: eff.powerKey,
+        name: eff.name,
+      };
+
+      // Bônus que miram um atributo são expandidos em suas perícias/dano/Defesa
+      // derivados (o motor não muta `atributos[attr].value` — vazaria pro estado
+      // persistido). Mesma estratégia das condições e dos efeitos pré-canned.
+      if (b.target.type === 'Attribute') {
+        const { attribute } = b.target;
+        expandAttributeBonus(attribute, b.modifier).forEach((expanded) => {
+          updated.sheetBonuses.push({
+            source,
+            target: expanded.target,
+            modifier: expanded.modifier,
+          });
+        });
+        return;
+      }
+
+      updated.sheetBonuses.push({
+        source,
+        target: b.target,
+        modifier: b.modifier,
+      });
+    });
+  });
 
   return updated;
+}
+
+/**
+ * Reverts the side effects of a power/ability identified by `powerName` by
+ * walking its `sheetActionHistory` entries and undoing arrays mutated outside
+ * `sheetBonuses` (which is wiped in Step 1 of `recalculateSheet`).
+ *
+ * Mutates `sheet` in place. Used by:
+ *   - `recalculateSheet` Step 0: to revert removed `generalPowers/classPowers/origin.powers`.
+ *   - `applyRaceCustomizationToSheet`: to revert removed race abilities when
+ *     a customizable race (Duende/Moreau/Golem Desperto) is reconfigured.
+ */
+export function reverseSheetActionsForPower(
+  sheet: CharacterSheet,
+  powerName: string
+): void {
+  const powerHistoryEntries = sheet.sheetActionHistory.filter(
+    (entry) => entry.powerName === powerName
+  );
+
+  // Reverse each action in reverse order (LIFO)
+  powerHistoryEntries.reverse().forEach((historyEntry) => {
+    historyEntry.changes.forEach((change) => {
+      switch (change.type) {
+        case 'Attribute': {
+          // Find the original modification to get the exact value that was added
+          const relevantHistory = sheet.sheetActionHistory.find(
+            (entry) =>
+              entry.powerName === powerName &&
+              entry.changes.some(
+                (c) =>
+                  c.type === 'Attribute' && c.attribute === change.attribute
+              )
+          );
+          if (relevantHistory) {
+            const attributeChange = relevantHistory.changes.find(
+              (c) => c.type === 'Attribute' && c.attribute === change.attribute
+            ) as { type: 'Attribute'; attribute: Atributo; value: number };
+            if (attributeChange) {
+              const originalValue = sheet.atributos[change.attribute].value;
+              const modificationValue = attributeChange.value - originalValue;
+              sheet.atributos[change.attribute].value -= modificationValue;
+            }
+          }
+          break;
+        }
+
+        case 'ProficiencyAdded': {
+          const profIndex = sheet.classe.proficiencias.indexOf(
+            change.proficiency
+          );
+          if (profIndex > -1) {
+            sheet.classe.proficiencias.splice(profIndex, 1);
+          }
+          break;
+        }
+
+        case 'SkillsAdded': {
+          change.skills.forEach((skill: string) => {
+            const skillIndex = sheet.skills.indexOf(skill as Skill);
+            if (skillIndex > -1) {
+              sheet.skills.splice(skillIndex, 1);
+            }
+          });
+          break;
+        }
+
+        case 'SenseAdded': {
+          if (sheet.sentidos) {
+            const senseIndex = sheet.sentidos.indexOf(change.sense);
+            if (senseIndex > -1) {
+              sheet.sentidos.splice(senseIndex, 1);
+            }
+          }
+          break;
+        }
+
+        case 'PowerAdded': {
+          if (sheet.generalPowers) {
+            const powerIndex = sheet.generalPowers.findIndex(
+              (power) => power.name === change.powerName
+            );
+            if (powerIndex > -1) {
+              sheet.generalPowers.splice(powerIndex, 1);
+            }
+          }
+          break;
+        }
+
+        case 'ClassPowerAdded': {
+          if (sheet.classPowers) {
+            const powerIndex = sheet.classPowers.findIndex(
+              (power) => power.name === change.powerName
+            );
+            if (powerIndex > -1) {
+              sheet.classPowers.splice(powerIndex, 1);
+            }
+          }
+          break;
+        }
+
+        case 'SpellsLearned': {
+          if (sheet.spells) {
+            change.spellNames.forEach((spellName: string) => {
+              const spellIndex = sheet.spells.findIndex(
+                (spell) => spell.nome === spellName
+              );
+              if (spellIndex > -1) {
+                sheet.spells.splice(spellIndex, 1);
+              }
+            });
+          }
+          break;
+        }
+
+        case 'AttributeIncreasedByAumentoDeAtributo':
+          sheet.atributos[change.attribute].value -= 1;
+          break;
+
+        default:
+          // Other action types not yet implemented
+          break;
+      }
+    });
+  });
+
+  // Remove history entries for this power.
+  // Note: powers granted via a `getGeneralPower` sheetAction store the entry
+  // keyed by the *source ability* name (e.g. "Linhagem Rubra"), not by the
+  // granted power name. So besides dropping entries keyed by this power, also
+  // strip any `PowerAdded`/`ClassPowerAdded` change that references it and drop
+  // entries left without changes — keeping other grants from the same ability.
+  sheet.sheetActionHistory = sheet.sheetActionHistory
+    .filter((entry) => entry.powerName !== powerName)
+    .map((entry) => ({
+      ...entry,
+      changes: entry.changes.filter(
+        (change) =>
+          !(
+            (change.type === 'PowerAdded' ||
+              change.type === 'ClassPowerAdded') &&
+            change.powerName === powerName
+          )
+      ),
+    }))
+    .filter((entry) => entry.changes.length > 0);
 }
 
 /**
@@ -934,11 +1395,16 @@ function synthesizeHistoryForRemovedPowers(
     sourcesWithGetPower.forEach((source) => {
       if (!source.availablePowerNames.includes(removedPower)) return;
 
-      // Check if history already has an entry for this source ability
+      // Check if history already records this source ability granting THIS
+      // specific power. Per-ability granularity is too coarse: an ability that
+      // can grant several powers (e.g. Linhagem Rubra → any Tormenta power)
+      // would wrongly look "already handled" for a different removed power.
       const hasHistory = sheet.sheetActionHistory.some(
         (entry) =>
           entry.powerName === source.abilityName &&
-          entry.changes.some((c) => c.type === 'PowerAdded')
+          entry.changes.some(
+            (c) => c.type === 'PowerAdded' && c.powerName === removedPower
+          )
       );
 
       if (!hasHistory) {
@@ -981,6 +1447,37 @@ export function recalculateSheet(
   let updatedSheet = _.cloneDeep(sheet);
   let removedPowerNames: string[] = [];
 
+  // One-shot migration: legacy sheets created before the wielding/worn-armor
+  // system have no slot or armor selection. Without this seed, a sheet with
+  // (e.g.) 1 shield in the bag would silently lose its defense bonus because
+  // the new rules require an explicit `offHandItemId`. Marks the sheet as
+  // migrated so later "soltar"/"tirar" actions are preserved across recalcs.
+  updatedSheet = migrateLegacyEquipState(updatedSheet);
+
+  // Migração: limpar `conditionAttributePenalties` (deprecated). Versões
+  // anteriores aplicavam penalidades de condições mutando `atributos[attr].value`
+  // e rastreando o delta neste ledger. Isso vazava efeitos temporários para o
+  // estado persistido (PM máximo, Defesa, perícias) e corrompia atributos
+  // editados manualmente. Agora condições só emitem `Skill` bonuses; o ledger
+  // é revertido aqui (devolvendo `atributos` ao valor base) e descartado para
+  // sempre. Após esta passagem, a ficha é salva limpa naturalmente.
+  if (updatedSheet.conditionAttributePenalties) {
+    (
+      Object.entries(updatedSheet.conditionAttributePenalties) as [
+        Atributo,
+        number
+      ][]
+    ).forEach(([attr, delta]) => {
+      if (updatedSheet.atributos[attr]) {
+        updatedSheet.atributos[attr] = {
+          ...updatedSheet.atributos[attr],
+          value: updatedSheet.atributos[attr].value - delta,
+        };
+      }
+    });
+    updatedSheet.conditionAttributePenalties = undefined;
+  }
+
   // Migração: remover Canalizar Reparos de fichas Golem Desperto antigas
   // (era incluído antes do commit 711e921, mas só deve existir no Golem básico
   // ou como Maravilha Mecânica do chassi Mashin)
@@ -991,6 +1488,24 @@ export function recalculateSheet(
     updatedSheet.raca.abilities = updatedSheet.raca.abilities.filter(
       (ability) => ability.name !== 'Canalizar Reparos'
     );
+
+    if (updatedSheet.sheetActionHistory) {
+      updatedSheet.sheetActionHistory = updatedSheet.sheetActionHistory
+        .map((entry) => {
+          if (entry.source.type !== 'race') return entry;
+          return {
+            ...entry,
+            changes: entry.changes.filter(
+              (change) =>
+                !(
+                  change.type === 'PowerAdded' &&
+                  change.powerName === 'Canalizar Reparos'
+                )
+            ),
+          };
+        })
+        .filter((entry) => entry.changes.length > 0);
+    }
   }
 
   // Note: Attribute reset/re-application was removed - value now contains the final modifier directly.
@@ -1033,127 +1548,41 @@ export function recalculateSheet(
 
     // Only reverse sheet actions (not bonuses) since bonuses will be cleared anyway
     removedPowerNames.forEach((powerName) => {
-      // Find all history entries for this power
-      const powerHistoryEntries = updatedSheet.sheetActionHistory.filter(
-        (entry) => entry.powerName === powerName
-      );
-
-      // Reverse each action in reverse order (LIFO)
-      powerHistoryEntries.reverse().forEach((historyEntry) => {
-        historyEntry.changes.forEach((change) => {
-          // Inline reversal logic to avoid circular imports
-          switch (change.type) {
-            case 'Attribute': {
-              // Find the original modification to get the exact value that was added
-              const relevantHistory = updatedSheet.sheetActionHistory.find(
-                (entry) =>
-                  entry.powerName === powerName &&
-                  entry.changes.some(
-                    (c) =>
-                      c.type === 'Attribute' && c.attribute === change.attribute
-                  )
-              );
-              if (relevantHistory) {
-                const attributeChange = relevantHistory.changes.find(
-                  (c) =>
-                    c.type === 'Attribute' && c.attribute === change.attribute
-                ) as { type: 'Attribute'; attribute: Atributo; value: number };
-                if (attributeChange) {
-                  const originalValue =
-                    updatedSheet.atributos[change.attribute].value;
-                  const modificationValue =
-                    attributeChange.value - originalValue;
-                  updatedSheet.atributos[change.attribute].value -=
-                    modificationValue;
-                }
-              }
-              break;
-            }
-
-            case 'ProficiencyAdded': {
-              const profIndex = updatedSheet.classe.proficiencias.indexOf(
-                change.proficiency
-              );
-              if (profIndex > -1) {
-                updatedSheet.classe.proficiencias.splice(profIndex, 1);
-              }
-              break;
-            }
-
-            case 'SkillsAdded': {
-              change.skills.forEach((skill: string) => {
-                const skillIndex = updatedSheet.skills.indexOf(skill as Skill);
-                if (skillIndex > -1) {
-                  updatedSheet.skills.splice(skillIndex, 1);
-                }
-              });
-              break;
-            }
-
-            case 'SenseAdded': {
-              if (updatedSheet.sentidos) {
-                const senseIndex = updatedSheet.sentidos.indexOf(change.sense);
-                if (senseIndex > -1) {
-                  updatedSheet.sentidos.splice(senseIndex, 1);
-                }
-              }
-              break;
-            }
-
-            case 'PowerAdded': {
-              if (updatedSheet.generalPowers) {
-                const powerIndex = updatedSheet.generalPowers.findIndex(
-                  (power) => power.name === change.powerName
-                );
-                if (powerIndex > -1) {
-                  updatedSheet.generalPowers.splice(powerIndex, 1);
-                }
-              }
-              break;
-            }
-
-            case 'ClassPowerAdded': {
-              if (updatedSheet.classPowers) {
-                const powerIndex = updatedSheet.classPowers.findIndex(
-                  (power) => power.name === change.powerName
-                );
-                if (powerIndex > -1) {
-                  updatedSheet.classPowers.splice(powerIndex, 1);
-                }
-              }
-              break;
-            }
-
-            case 'SpellsLearned': {
-              if (updatedSheet.spells) {
-                change.spellNames.forEach((spellName: string) => {
-                  const spellIndex = updatedSheet.spells.findIndex(
-                    (spell) => spell.nome === spellName
-                  );
-                  if (spellIndex > -1) {
-                    updatedSheet.spells.splice(spellIndex, 1);
-                  }
-                });
-              }
-              break;
-            }
-
-            case 'AttributeIncreasedByAumentoDeAtributo':
-              updatedSheet.atributos[change.attribute].value -= 1;
-              break;
-
-            default:
-              // Other action types not yet implemented
-              break;
-          }
-        });
-      });
-
-      // Remove history entries for this power
-      updatedSheet.sheetActionHistory = updatedSheet.sheetActionHistory.filter(
-        (entry) => entry.powerName !== powerName
-      );
+      reverseSheetActionsForPower(updatedSheet, powerName);
     });
+
+    // If the user removed a general power that a race ability deterministically
+    // replays from a stored choice (Osteon "Memória Póstuma", Yidishan
+    // "Natureza Orgânica", Lefou "Deformidade", Mashin "Chassi"), clear the
+    // stored choice. Otherwise the special action (special.ts) would re-inject
+    // the removed power into `generalPowers` on every recalculation, making it
+    // impossible to delete via the Powers edit drawer. The `cleared` sentinel
+    // (not `undefined`) keeps the special action from falling through to its
+    // random path and rolling a replacement.
+    if (
+      updatedSheet.osteonMemoriaPostumaChoice?.type === 'power' &&
+      removedPowerNames.includes(updatedSheet.osteonMemoriaPostumaChoice.value)
+    ) {
+      updatedSheet.osteonMemoriaPostumaChoice = { type: 'cleared' };
+    }
+    if (
+      updatedSheet.yidishanNaturezaChoice?.type === 'power' &&
+      removedPowerNames.includes(updatedSheet.yidishanNaturezaChoice.value)
+    ) {
+      updatedSheet.yidishanNaturezaChoice = { type: 'cleared' };
+    }
+    if (
+      updatedSheet.lefouDeformidadePower &&
+      removedPowerNames.includes(updatedSheet.lefouDeformidadePower)
+    ) {
+      updatedSheet.lefouDeformidadePower = undefined;
+    }
+    if (
+      updatedSheet.mashinChassiChoice?.type === 'power' &&
+      removedPowerNames.includes(updatedSheet.mashinChassiChoice.value)
+    ) {
+      updatedSheet.mashinChassiChoice = { type: 'cleared' };
+    }
   }
 
   // Step 0.5: Synthesize history entries for removed powers so that
@@ -1199,12 +1628,17 @@ export function recalculateSheet(
   //   - Other targets are pushed to sheetBonuses for the main loop
   updatedSheet = applyConditionBonuses(updatedSheet);
 
+  // Step 7.45: Apply active effect bonuses (powers with temporary bonus,
+  // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
+  // replace it. Pushes SheetBonus entries for the main loop below.
+  updatedSheet = applyActiveEffectBonuses(updatedSheet);
+
   // Check for manual max overrides - when set, skip ALL recalculation for that stat
   // Player takes full control of these values when manually defined
   const hasManualMaxPV =
-    updatedSheet.manualMaxPV !== undefined && updatedSheet.manualMaxPV > 0;
+    updatedSheet.manualMaxPV != null && updatedSheet.manualMaxPV > 0;
   const hasManualMaxPM =
-    updatedSheet.manualMaxPM !== undefined && updatedSheet.manualMaxPM > 0;
+    updatedSheet.manualMaxPM != null && updatedSheet.manualMaxPM > 0;
 
   // Step 7.5: Reset PV and PM to base values AFTER all powers applied (to use correct attributes)
   // Skip PV recalculation if flag is set (e.g., equipment-only changes)
@@ -1287,6 +1721,11 @@ export function recalculateSheet(
       }
     }
 
+    // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
+    if (!hasManualMaxPM) {
+      updatedSheet.pm += getVirtudePaladinescaPMBonus(updatedSheet.classPowers);
+    }
+
     // Initialize current PM if not set (first time or reset)
     if (updatedSheet.currentPM === undefined) {
       updatedSheet.currentPM = updatedSheet.pm;
@@ -1311,6 +1750,13 @@ export function recalculateSheet(
   updatedSheet = recalculateCompleteSkills(updatedSheet);
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
+  // Antes de aplicar, remove bônus cuja condição (opcional) não é satisfeita.
+  // Como todos os consumidores abaixo (PV/PM/perícias, defesa, deslocamento,
+  // armas, RD) leem o mesmo array, este filtro único gateia todos eles.
+  updatedSheet.sheetBonuses = updatedSheet.sheetBonuses.filter((bonus) =>
+    isBonusActive(updatedSheet, bonus)
+  );
+
   // PM Debug - Initial state (calculate values for debug even if skipped)
   const debugBasePM = updatedSheet.classe.pm || 0;
   const debugAddPMPerLevel =
@@ -1349,7 +1795,11 @@ export function recalculateSheet(
       bonus.target.type !== 'HPAttributeReplacement' &&
       bonus.target.type !== 'DamageReduction'
     ) {
-      const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+      const bonusValue = calculateBonusValue(
+        updatedSheet,
+        bonus.modifier,
+        bonus.source
+      );
 
       if (
         bonus.target.type === 'PV' &&
@@ -1389,28 +1839,25 @@ export function recalculateSheet(
         const skillName = bonus.target.name;
         addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
       } else if (bonus.target.type === 'PickSkill') {
-        // Re-apply PickSkill bonuses using manual selections
-        // Find which power this bonus belongs to by checking the bonus source
+        // Re-apply PickSkill. Prioridade: seleção manual → escolha persistida
+        // em optionChoices (homebrew com optionKey, sobrevive ao recálculo sem
+        // manualSelections).
+        let skillsToProcess: string[] = [];
         if (
           bonus.source?.type === 'power' &&
-          manualSelections?.[bonus.source.name]
+          manualSelections?.[bonus.source.name]?.skills
         ) {
-          const powerName = bonus.source.name;
-          const powerSelections = manualSelections[powerName];
+          skillsToProcess = manualSelections[bonus.source.name].skills ?? [];
+        } else if (bonus.target.optionKey) {
+          skillsToProcess =
+            updatedSheet.optionChoices?.[bonus.target.optionKey] ?? [];
+        }
 
-          // All selections are now combined in a single SelectionOptions object
-          let skillsToProcess: string[] = [];
-
-          if (powerSelections?.skills) {
-            skillsToProcess = powerSelections.skills;
-          }
-
-          if (skillsToProcess.length > 0) {
-            const selectedSkills = skillsToProcess.slice(0, bonus.target.pick);
-            selectedSkills.forEach((skillName: string) => {
-              addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
-            });
-          }
+        if (skillsToProcess.length > 0) {
+          const selectedSkills = skillsToProcess.slice(0, bonus.target.pick);
+          selectedSkills.forEach((skillName: string) => {
+            addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
+          });
         }
       } else if (bonus.target.type === 'Displacement') {
         updatedSheet.displacement += bonusValue;
@@ -1444,9 +1891,26 @@ export function recalculateSheet(
             }
           );
         }
+      } else if (bonus.target.type === 'Proficiency') {
+        const { proficiency } = bonus.target;
+        if (
+          proficiency &&
+          !updatedSheet.classe.proficiencias.includes(proficiency)
+        ) {
+          updatedSheet.classe.proficiencias = [
+            ...updatedSheet.classe.proficiencias,
+            proficiency,
+          ];
+        }
       }
     }
   });
+
+  // Step 8.5: Inject Estilo de Uma Arma bonuses (condicional à empunhadura).
+  // Precisa rodar APÓS sheetBonuses estarem populados e ANTES dos Steps 9-10
+  // (Defesa) e 13 (armas), que consomem os bônus injetados.
+  updatedSheet = injectEstiloDeUmaArmaBonuses(updatedSheet);
+  updatedSheet = injectEstiloDeArmaEEscudoBonuses(updatedSheet);
 
   // Step 9: Reset defense to base and recalculate from ground up
   const baseDefense = updatedSheet.customDefenseBase ?? 10;
@@ -1500,25 +1964,29 @@ export function recalculateSheet(
     (bonus) => bonus.target.type === 'DisplacementOverride'
   );
 
+  const baseDisplacementBonuses = updatedSheet.sheetBonuses
+    .filter((bonus) => bonus.target.type === 'Displacement')
+    .reduce(
+      (acc, bonus) =>
+        acc + calculateBonusValue(updatedSheet, bonus.modifier, bonus.source),
+      0
+    );
+
   if (displacementOverrideBonus) {
     updatedSheet.displacement = calculateBonusValue(
       updatedSheet,
-      displacementOverrideBonus.modifier
+      displacementOverrideBonus.modifier,
+      displacementOverrideBonus.source
     );
   } else if (updatedSheet.customDisplacement !== undefined) {
-    updatedSheet.displacement = updatedSheet.customDisplacement;
+    // Base manual + bônus (poderes/condições/efeitos ativos) por cima.
+    updatedSheet.displacement =
+      updatedSheet.customDisplacement + baseDisplacementBonuses;
   } else {
-    const baseDisplacementBonuses = updatedSheet.sheetBonuses
-      .filter((bonus) => bonus.target.type === 'Displacement')
-      .reduce(
-        (acc, bonus) => acc + calculateBonusValue(updatedSheet, bonus.modifier),
-        0
-      );
-
     updatedSheet.displacement = calcDisplacement(
       updatedSheet.bag,
       getRaceDisplacement(updatedSheet.raca),
-      updatedSheet.atributos,
+      updatedSheet.customMaxSpaces ?? updatedSheet.maxSpaces,
       baseDisplacementBonuses,
       updatedSheet.dinheiro,
       updatedSheet.dinheiroTC,
@@ -1536,18 +2004,47 @@ export function recalculateSheet(
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
   updatedSheet = applyHPAttributeReplacement(updatedSheet);
 
-  // Step 13: Apply weapon bonuses
-  updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
-
   // Step 14: Calculate Damage Reduction from sheetBonuses + manual
   const computedRd: DamageReduction = {};
 
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (bonus.target.type === 'DamageReduction') {
-      const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+      const bonusValue = calculateBonusValue(
+        updatedSheet,
+        bonus.modifier,
+        bonus.source
+      );
       const { damageType } = bonus.target;
       computedRd[damageType] = (computedRd[damageType] ?? 0) + bonusValue;
     }
+  });
+
+  // Material especial em armadura/escudo EQUIPADO (ex.: Adamante RD 5 pesada /
+  // 2 leve e escudos). Só o item de fato equipado contribui — armaduras na
+  // mochila não dão RD.
+  let wornArmorItem = updatedSheet.wornArmorId
+    ? equippedArmors.find((armor) => armor.id === updatedSheet.wornArmorId)
+    : undefined;
+  if (
+    !wornArmorItem &&
+    !updatedSheet.wornArmorId &&
+    equippedArmors.length === 1
+  ) {
+    [wornArmorItem] = equippedArmors; // legacy compat (sem wornArmorId)
+  }
+  const equippedShields = updatedSheet.bag.equipments.Escudo || [];
+  const wornShield = equippedShields.find(
+    (shield) =>
+      shield.id === updatedSheet.mainHandItemId ||
+      shield.id === updatedSheet.offHandItemId
+  );
+  [
+    ...(wornArmorItem
+      ? getDefenseMaterialRd(wornArmorItem, isHeavyArmor(wornArmorItem))
+      : []),
+    ...(wornShield ? getDefenseMaterialRd(wornShield, false) : []),
+  ].forEach((dr) => {
+    computedRd[dr.damageType] = (computedRd[dr.damageType] ?? 0) + dr.value;
   });
 
   // Bárbaro: Resistência a Dano (RD Geral escalável com nível de Bárbaro)
@@ -1665,6 +2162,49 @@ export function recalculateSheet(
     updatedSheet.sheetActionHistory
   );
   updatedSheet.steps = deduplicateSteps(updatedSheet.steps);
+
+  // Step 17: Reapply item enhancements (superior-item modifications and magical
+  // enchantments). Items with `modifications` and/or `enchantments` are
+  // recomputed from their `base*` snapshots; items without enhancements are
+  // passed through unchanged. Reads `base*` fields (not current values), então é
+  // puro/idempotente. Roda ANTES do baking de bônus de arma (Step 17.5) para que
+  // os bônus de efeito ativo sejam aplicados por cima do valor com aprimoramento
+  // — antes, o Step de armas rodava primeiro e tinha seu dano/atk sobrescrito
+  // aqui, perdendo o bônus de dano de efeitos ativos em armas mágicas.
+  if (updatedSheet.bag?.equipments) {
+    const reapplied = _.cloneDeep(updatedSheet.bag.equipments);
+    (Object.keys(reapplied) as (keyof typeof reapplied)[]).forEach((cat) => {
+      const list = reapplied[cat] as Equipment[] | undefined;
+      if (!Array.isArray(list)) return;
+      list.forEach((item, idx) => {
+        if (!item) return;
+        // applyItemEnhancements short-circuits items without any enhancement
+        // or prior base capture, so calling it unconditionally is cheap and
+        // ensures stale derived state (e.g. specialActions left behind by a
+        // removed Arremesso enchantment) gets cleaned up.
+        // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+        (list as any)[idx] = applyItemEnhancements(item);
+      });
+    });
+    updatedSheet.bag = new Bag(reapplied, true, updatedSheet.bag.displayOrder);
+  }
+
+  // Step 17.5: Apply weapon bonuses (atk/dano/margem/crít de poderes e efeitos
+  // ativos). Roda DEPOIS da reaplicação de aprimoramentos (Step 17) para que o
+  // baking seja somado por cima do dano/atk com aprimoramento e não seja
+  // sobrescrito por ele.
+  updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
+
+  // Step 18: Inject spells granted by the Conjuradora enchantment into
+  // `sheet.spells`. Spells previously injected (tagged via `equipmentSource`)
+  // are stripped first so removing the enchantment also removes the spell.
+  updatedSheet.spells = injectConjuradoraSpells(
+    updatedSheet.spells,
+    updatedSheet.bag?.equipments
+  );
+
+  // Carimba os suplementos runtime usados (preserva inativos não verificáveis).
+  stampUsedSupplements(updatedSheet);
 
   return updatedSheet;
 }

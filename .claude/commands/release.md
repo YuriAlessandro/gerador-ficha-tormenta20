@@ -34,9 +34,17 @@ Based on the git log, create a new `<h3>$ARGUMENTS</h3>` section with `<ul><li>`
 
 Use these categories:
 - **Novo:** — for new features
-- **Correção:** — for bug fixes
 - **Melhoria:** — for improvements/enhancements
+- **Correção:** — for bug fixes
 - **Remoção:** — for removed features
+
+**IMPORTANT — ordem dos itens:** Dentro de cada versão (`<h3>`), os `<li>` DEVEM ser
+agrupados e ordenados nesta ordem: **Novo → Melhoria → Correção → Remoção**. Sempre
+liste todos os itens `Novo` primeiro, depois todos os `Melhoria`, depois todos os
+`Correção`, e por fim `Remoção`. Esta regra vale para toda edição do `Changelog.tsx`,
+seja criando uma nova versão ou adicionando itens a uma versão existente — nunca
+intercale categorias fora dessa ordem. (Não é necessário reordenar entradas antigas
+já existentes; a regra vale para o conteúdo novo que você adicionar.)
 
 Also update the "Última atualização em" date in the introductory paragraph to today's date in DD/MM/YYYY format.
 
@@ -67,6 +75,30 @@ After all code changes are committed:
 Include the co-author line in all commits:
 ```
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+```
+
+### Step 5: Manual testing walkthrough (SEMPRE)
+
+After committing, you **MUST** output a manual testing walkthrough for at least one scenario from the work done in this release. This is mandatory — never skip this step.
+
+Requirements:
+- Pick at least one meaningful change from this release (prefer a user-visible feature, fix, or improvement).
+- Write the walkthrough in Brazilian Portuguese, addressed to the user as if they were a normal end user of the app.
+- Describe the steps as clicks/taps and visible UI interactions only (e.g., "abra o app", "clique em X", "selecione Y", "verifique que Z aparece").
+- Do NOT include project setup, dev server, build commands, env vars, or any technical/developer context — assume the user is just using the app in the browser.
+- Be specific: name the actual buttons, screens, fields, and expected results so the user can follow it without guessing.
+- If there are multiple distinct changes worth testing, you may include more than one scenario, but at least one is required.
+
+Format the output as a clearly labeled section at the end of your final message, e.g.:
+
+```
+## Como testar manualmente
+
+**Cenário: <nome curto do que está sendo testado>**
+
+1. ...
+2. ...
+3. Resultado esperado: ...
 ```
 
 ### Important notes

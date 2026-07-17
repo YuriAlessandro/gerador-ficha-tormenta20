@@ -1,3 +1,4 @@
+import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { CharacterAttributes, CharacterReligion } from './Character';
 // eslint-disable-next-line
@@ -66,6 +67,11 @@ export type RaceAbility = {
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
+  customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
+  // Satisfaz um requisito `PODER: <name>` como se o personagem tivesse esses poderes
+  grantsPowerRequirements?: string[];
+  // Ignora TODOS os pré-requisitos de poderes cujo nome inclua qualquer destes termos
+  bypassPrereqForPowersNamed?: string[];
 };
 
 export interface RaceHeritage {
@@ -148,6 +154,7 @@ export default interface Race {
   nature?: string; // For Duende (animal/vegetal/mineral)
   presentPowers?: string[]; // For Duende (3 selected powers)
   tabuSkill?: Skill; // For Duende (skill with -5 penalty)
+  duendeBonusAttributes?: Atributo[]; // For Duende: chosen Dons (transport for generation)
   attributeVariants?: AttributeVariant[];
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;

@@ -11,6 +11,7 @@ import Equipment from '../../../../../interfaces/Equipment';
 // Corpo a Corpo — Leves
 const BASTAO_LUDICO: Equipment = {
   nome: 'Bastão lúdico',
+  weaponCategory: 'simple',
   dano: '1d6',
   critico: 'x2',
   spaces: 1,
@@ -23,6 +24,7 @@ const BASTAO_LUDICO: Equipment = {
 // Ataque à Distância — Uma Mão
 const BESTA_DE_MAO: Equipment = {
   nome: 'Besta de mão',
+  weaponCategory: 'simple',
   dano: '1d6',
   critico: '19',
   spaces: 1,
@@ -30,6 +32,7 @@ const BESTA_DE_MAO: Equipment = {
   alcance: 'Curto',
   group: 'Arma',
   preco: 30,
+  ammoType: 'Virotes',
 };
 
 const VIROTES_BESTA_MAO: Equipment = {
@@ -41,6 +44,9 @@ const VIROTES_BESTA_MAO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 2,
+  isAmmo: true,
+  ammoType: 'Virotes',
+  ammoPackSize: 20,
 };
 
 // ==========================================
@@ -50,6 +56,7 @@ const VIROTES_BESTA_MAO: Equipment = {
 // Corpo a Corpo — Leves
 const ADAGA_OPOSTA: Equipment = {
   nome: 'Adaga oposta',
+  weaponCategory: 'martial',
   dano: '1d4',
   critico: '19',
   spaces: 1,
@@ -61,6 +68,7 @@ const ADAGA_OPOSTA: Equipment = {
 
 const AGULHA_DE_AHLEN: Equipment = {
   nome: 'Agulha de Ahlen',
+  weaponCategory: 'martial',
   dano: '1d4',
   critico: '19',
   spaces: 1,
@@ -72,6 +80,7 @@ const AGULHA_DE_AHLEN: Equipment = {
 
 const CINQUEDEA: Equipment = {
   nome: 'Cinquedea',
+  weaponCategory: 'martial',
   dano: '1d4',
   critico: '19',
   spaces: 1,
@@ -83,6 +92,7 @@ const CINQUEDEA: Equipment = {
 
 const DIRK: Equipment = {
   nome: 'Dirk',
+  weaponCategory: 'martial',
   dano: '1d4',
   critico: '19',
   spaces: 1,
@@ -94,6 +104,8 @@ const DIRK: Equipment = {
 
 const MARTELO_LEVE: Equipment = {
   nome: 'Martelo leve',
+  weaponCategory: 'martial',
+  weaponTags: ['heredrimm'],
   dano: '1d4',
   critico: 'x4',
   spaces: 1,
@@ -102,11 +114,21 @@ const MARTELO_LEVE: Equipment = {
   arremesso: true,
   group: 'Arma',
   preco: 2,
+  specialActions: [
+    { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+    {
+      id: 'arremessar',
+      label: 'Arremessar',
+      skill: 'Pontaria',
+      damageAttribute: 'Força',
+    },
+  ],
 };
 
 // Corpo a Corpo — Uma Mão
 const ESPADA_LARGA: Equipment = {
   nome: 'Espada larga',
+  weaponCategory: 'martial',
   dano: '2d4',
   critico: 'x2',
   spaces: 1,
@@ -118,6 +140,7 @@ const ESPADA_LARGA: Equipment = {
 
 const ESPADIM: Equipment = {
   nome: 'Espadim',
+  weaponCategory: 'martial',
   dano: '1d8',
   critico: '20',
   spaces: 1,
@@ -129,6 +152,7 @@ const ESPADIM: Equipment = {
 
 const MACA_ESTRELA: Equipment = {
   nome: 'Maça-estrela',
+  weaponCategory: 'martial',
   dano: '2d4',
   critico: 'x2',
   spaces: 1,
@@ -140,6 +164,7 @@ const MACA_ESTRELA: Equipment = {
 
 const SERRILHEIRA: Equipment = {
   nome: 'Serrilheira',
+  weaponCategory: 'martial',
   dano: '1d6',
   critico: '19',
   spaces: 1,
@@ -152,6 +177,8 @@ const SERRILHEIRA: Equipment = {
 // Corpo a Corpo — Duas Mãos
 const BICO_DE_CORVO: Equipment = {
   nome: 'Bico de corvo',
+  weaponCategory: 'martial',
+  weaponTags: ['heredrimm'],
   dano: '1d8',
   critico: 'x3',
   spaces: 2,
@@ -159,10 +186,12 @@ const BICO_DE_CORVO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 15,
+  twoHanded: true,
 };
 
 const DESMONTADOR: Equipment = {
   nome: 'Desmontador',
+  weaponCategory: 'martial',
   dano: '-',
   critico: '-',
   spaces: 2,
@@ -170,10 +199,12 @@ const DESMONTADOR: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 20,
+  twoHanded: true,
 };
 
 const ESPADA_DE_EXECUCAO: Equipment = {
   nome: 'Espada de execução',
+  weaponCategory: 'martial',
   dano: '2d6',
   critico: '18/x4',
   spaces: 2,
@@ -181,10 +212,12 @@ const ESPADA_DE_EXECUCAO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 75,
+  twoHanded: true,
 };
 
 const LANCA_DE_JUSTA: Equipment = {
   nome: 'Lança de justa',
+  weaponCategory: 'martial',
   dano: '1d8',
   critico: 'x2',
   spaces: 2,
@@ -192,10 +225,13 @@ const LANCA_DE_JUSTA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 3,
+  twoHanded: true,
 };
 
 const MALHO: Equipment = {
   nome: 'Malho',
+  weaponCategory: 'martial',
+  weaponTags: ['heredrimm'],
   dano: '1d10',
   critico: 'x2',
   spaces: 2,
@@ -203,10 +239,13 @@ const MALHO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 8,
+  twoHanded: true,
 };
 
 const MARTELO_LONGO: Equipment = {
   nome: 'Martelo longo',
+  weaponCategory: 'martial',
+  weaponTags: ['heredrimm'],
   dano: '2d4',
   critico: 'x4',
   spaces: 2,
@@ -214,10 +253,12 @@ const MARTELO_LONGO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 12,
+  twoHanded: true,
 };
 
 const TAN_KORAK: Equipment = {
   nome: 'Tan-korak',
+  weaponCategory: 'martial',
   dano: '1d8',
   critico: 'x2',
   spaces: 2,
@@ -225,11 +266,13 @@ const TAN_KORAK: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 40,
+  twoHanded: true,
 };
 
 // Ataque à Distância — Uma Mão
 const TAI_TAI: Equipment = {
   nome: 'Tai-tai',
+  weaponCategory: 'martial',
   dano: '2d4',
   critico: 'x2',
   spaces: 2,
@@ -242,6 +285,7 @@ const TAI_TAI: Equipment = {
 // Ataque à Distância — Duas Mãos
 const ARCO_MONTADO: Equipment = {
   nome: 'Arco montado',
+  weaponCategory: 'martial',
   dano: '1d6',
   critico: 'x3',
   spaces: 2,
@@ -249,6 +293,8 @@ const ARCO_MONTADO: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 45,
+  twoHanded: true,
+  ammoType: 'Flechas',
 };
 
 const FLECHAS: Equipment = {
@@ -260,10 +306,14 @@ const FLECHAS: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 1,
+  isAmmo: true,
+  ammoType: 'Flechas',
+  ammoPackSize: 20,
 };
 
 const BESTA_DUPLA: Equipment = {
   nome: 'Besta dupla',
+  weaponCategory: 'martial',
   dano: '1d8',
   critico: '19',
   spaces: 2,
@@ -271,6 +321,8 @@ const BESTA_DUPLA: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 125,
+  twoHanded: true,
+  ammoType: 'Virotes',
 };
 
 const VIROTES: Equipment = {
@@ -282,6 +334,9 @@ const VIROTES: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 2,
+  isAmmo: true,
+  ammoType: 'Virotes',
+  ammoPackSize: 20,
 };
 
 // ==========================================
@@ -291,6 +346,7 @@ const VIROTES: Equipment = {
 // Corpo a Corpo — Leves
 const KIMBATA: Equipment = {
   nome: 'Kimbata',
+  weaponCategory: 'exotic',
   dano: '1d4',
   critico: '18',
   spaces: 1,
@@ -303,6 +359,7 @@ const KIMBATA: Equipment = {
 // Corpo a Corpo — Uma Mão
 const CLAVA_GRAO: Equipment = {
   nome: 'Clava-grão',
+  weaponCategory: 'exotic',
   dano: '1d6',
   critico: 'x2',
   spaces: 1,
@@ -314,6 +371,7 @@ const CLAVA_GRAO: Equipment = {
 
 const ESPADA_CANORA: Equipment = {
   nome: 'Espada canora',
+  weaponCategory: 'exotic',
   dano: '1d6',
   critico: '19',
   spaces: 1,
@@ -325,6 +383,7 @@ const ESPADA_CANORA: Equipment = {
 
 const ESPADA_GADANHO: Equipment = {
   nome: 'Espada-gadanho',
+  weaponCategory: 'exotic',
   dano: '1d6',
   critico: '18',
   spaces: 1,
@@ -336,6 +395,7 @@ const ESPADA_GADANHO: Equipment = {
 
 const KHOPESH: Equipment = {
   nome: 'Khopesh',
+  weaponCategory: 'exotic',
   dano: '1d8',
   critico: '19/x3',
   spaces: 1,
@@ -347,6 +407,7 @@ const KHOPESH: Equipment = {
 
 const LANCA_DE_FALANGE: Equipment = {
   nome: 'Lança de falange',
+  weaponCategory: 'exotic',
   dano: '1d8',
   critico: 'x3',
   spaces: 1,
@@ -359,6 +420,8 @@ const LANCA_DE_FALANGE: Equipment = {
 
 const MACHADO_DE_HASTE: Equipment = {
   nome: 'Machado de haste',
+  weaponCategory: 'exotic',
+  weaponTags: ['heredrimm'],
   dano: '1d8/1d10',
   critico: 'x3',
   spaces: 1,
@@ -370,6 +433,7 @@ const MACHADO_DE_HASTE: Equipment = {
 
 const RAPIEIRA: Equipment = {
   nome: 'Rapieira',
+  weaponCategory: 'exotic',
   dano: '1d8',
   critico: '18',
   spaces: 1,
@@ -382,6 +446,8 @@ const RAPIEIRA: Equipment = {
 // Corpo a Corpo — Duas Mãos
 const MARRAO: Equipment = {
   nome: 'Marrão',
+  weaponCategory: 'exotic',
+  weaponTags: ['heredrimm'],
   dano: '4d4',
   critico: 'x2',
   spaces: 2,
@@ -389,10 +455,12 @@ const MARRAO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 50,
+  twoHanded: true,
 };
 
 const MONTANTE_CINETICO: Equipment = {
   nome: 'Montante cinético',
+  weaponCategory: 'exotic',
   dano: '2d6',
   critico: '19/x4',
   spaces: 2,
@@ -400,11 +468,13 @@ const MONTANTE_CINETICO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 3000,
+  twoHanded: true,
 };
 
 // Ataque à Distância — Uma Mão
 const BOLEADEIRA: Equipment = {
   nome: 'Boleadeira',
+  weaponCategory: 'exotic',
   dano: '1d4',
   critico: 'x2',
   spaces: 1,
@@ -416,6 +486,7 @@ const BOLEADEIRA: Equipment = {
 
 const CHAKRAM: Equipment = {
   nome: 'Chakram',
+  weaponCategory: 'exotic',
   dano: '1d6',
   critico: 'x3',
   spaces: 1,
@@ -428,6 +499,7 @@ const CHAKRAM: Equipment = {
 // Ataque à Distância — Duas Mãos
 const ARCO_DE_GUERRA: Equipment = {
   nome: 'Arco de guerra',
+  weaponCategory: 'exotic',
   dano: '1d12',
   critico: 'x3',
   spaces: 2,
@@ -435,10 +507,14 @@ const ARCO_DE_GUERRA: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 200,
+  twoHanded: true,
+  ammoType: 'Flechas',
+  damageAttribute: 'Força',
 };
 
 const BALESTRA: Equipment = {
   nome: 'Balestra',
+  weaponCategory: 'exotic',
   dano: '1d12',
   critico: '19',
   spaces: 2,
@@ -446,10 +522,14 @@ const BALESTRA: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 180,
+  twoHanded: true,
+  ammoType: 'Virotes',
+  damageAttribute: 'Força',
 };
 
 const BESTA_DE_REPETICAO: Equipment = {
   nome: 'Besta de repetição',
+  weaponCategory: 'exotic',
   dano: '1d8',
   critico: '19',
   spaces: 2,
@@ -457,6 +537,8 @@ const BESTA_DE_REPETICAO: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 250,
+  twoHanded: true,
+  ammoType: 'Virotes',
 };
 
 // ==========================================
@@ -466,6 +548,7 @@ const BESTA_DE_REPETICAO: Equipment = {
 // Ataque à Distância — Leve
 const GARRUCHA: Equipment = {
   nome: 'Garrucha',
+  weaponCategory: 'firearm',
   dano: '2d4',
   critico: '19/x3',
   spaces: 1,
@@ -473,6 +556,7 @@ const GARRUCHA: Equipment = {
   alcance: 'Curto',
   group: 'Arma',
   preco: 250,
+  ammoType: 'Balas',
 };
 
 const BALAS: Equipment = {
@@ -484,11 +568,15 @@ const BALAS: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 20,
+  isAmmo: true,
+  ammoType: 'Balas',
+  ammoPackSize: 20,
 };
 
 // Ataque à Distância — Duas Mãos
 const CANHAO_PORTATIL: Equipment = {
   nome: 'Canhão portátil',
+  weaponCategory: 'firearm',
   dano: '4d10',
   critico: '19/x3',
   spaces: 2,
@@ -496,6 +584,8 @@ const CANHAO_PORTATIL: Equipment = {
   alcance: 'Curto',
   group: 'Arma',
   preco: 3000,
+  twoHanded: true,
+  ammoType: 'Bola de Ferro',
 };
 
 const BOLA_DE_FERRO: Equipment = {
@@ -507,10 +597,15 @@ const BOLA_DE_FERRO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 5,
+  isAmmo: true,
+  ammoType: 'Bola de Ferro',
+  ammoPackSize: 1,
+  ammoUnitsPerSpace: 2,
 };
 
 const SIFAO_CAUSTICO: Equipment = {
   nome: 'Sifão cáustico',
+  weaponCategory: 'firearm',
   dano: '4d6',
   critico: 'x2',
   spaces: 2,
@@ -518,6 +613,7 @@ const SIFAO_CAUSTICO: Equipment = {
   alcance: 'Especial',
   group: 'Arma',
   preco: 600,
+  twoHanded: true,
 };
 
 export const HEROIS_ARTON_WEAPONS: Record<string, Equipment> = {

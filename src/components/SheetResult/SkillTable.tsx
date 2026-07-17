@@ -33,14 +33,23 @@ import SkillActionsDialog from './SkillActionsDialog';
 import { ConditionMarker } from '../../premium/components/Conditions';
 import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
+import { ActiveEffectMarker } from '../../premium/components/ActiveEffects';
+import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
+import { getActiveEffectLabelStyle } from '../../premium/functions/activeEffectHighlights';
 
 interface IProps {
   sheet: CharacterSheet;
   skills?: CompleteSkill[];
   skillHighlights?: Partial<Record<Skill, ActiveCondition[]>>;
+  skillEffectHighlights?: Partial<Record<Skill, ActiveEffect[]>>;
 }
 
-const SkillTable: React.FC<IProps> = ({ sheet, skills, skillHighlights }) => {
+const SkillTable: React.FC<IProps> = ({
+  sheet,
+  skills,
+  skillHighlights,
+  skillEffectHighlights,
+}) => {
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
   const [actionsDialogOpen, setActionsDialogOpen] = useState(false);
@@ -209,19 +218,21 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills, skillHighlights }) => {
         value={localSearchQuery}
         onChange={handleSearchChange}
         sx={{ p: 1.5, width: '95%' }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position='start'>
-              <SearchIcon color='action' fontSize='small' />
-            </InputAdornment>
-          ),
-          endAdornment: localSearchQuery && (
-            <InputAdornment position='end'>
-              <IconButton size='small' onClick={handleClearSearch} edge='end'>
-                <ClearIcon fontSize='small' />
-              </IconButton>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position='start'>
+                <SearchIcon color='action' fontSize='small' />
+              </InputAdornment>
+            ),
+            endAdornment: localSearchQuery && (
+              <InputAdornment position='end'>
+                <IconButton size='small' onClick={handleClearSearch} edge='end'>
+                  <ClearIcon fontSize='small' />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
         }}
       />
       <Box
@@ -290,7 +301,10 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills, skillHighlights }) => {
                 : '';
 
               const skillConditions = skillHighlights?.[skill.name];
-              const skillLabelStyle = getConditionLabelStyle(skillConditions);
+              const skillEffects = skillEffectHighlights?.[skill.name];
+              const skillLabelStyle = skillEffects?.length
+                ? getActiveEffectLabelStyle(skillEffects)
+                : getConditionLabelStyle(skillConditions);
 
               return (
                 <StyledTableRow key={skill.name}>
@@ -312,6 +326,10 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills, skillHighlights }) => {
                     >
                       <ConditionMarker
                         conditions={skillConditions}
+                        fontSize='inherit'
+                      />
+                      <ActiveEffectMarker
+                        effects={skillEffects}
                         fontSize='inherit'
                       />
                       <ClickableSkillName
@@ -352,8 +370,12 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills, skillHighlights }) => {
       </TableContainer>
       <Typography
         variant='caption'
-        color='text.secondary'
-        sx={{ display: 'block', mt: 1, px: 1.5 }}
+        sx={{
+          color: 'text.secondary',
+          display: 'block',
+          mt: 1,
+          px: 1.5,
+        }}
       >
         * Somente treinada
       </Typography>

@@ -43,6 +43,7 @@ const getNotificationIcon = (type: NotificationType): React.ReactNode => {
       return <MailIcon />;
     case NotificationType.BUILD_COMMENT:
     case NotificationType.BLOG_COMMENT:
+    case NotificationType.BESTIARY_COMMENT:
       return <CommentIcon />;
     case NotificationType.FORUM_COMMENT:
     case NotificationType.FORUM_REPLY:
@@ -61,8 +62,8 @@ const getNotificationIcon = (type: NotificationType): React.ReactNode => {
   }
 };
 
-// Get navigation link for notification
-const getNotificationLink = (notification: Notification): string | null => {
+// Get the base path (no query string) for a notification's destination page.
+const getNotificationBasePath = (notification: Notification): string | null => {
   switch (notification.type) {
     case NotificationType.INVITE_RECEIVED:
       return '/mesas';
@@ -74,7 +75,7 @@ const getNotificationLink = (notification: Notification): string | null => {
       return '/mesas';
     case NotificationType.BUILD_COMMENT:
       if (notification.referenceId) {
-        return `/builds/${notification.referenceId}`;
+        return `/build/${notification.referenceId}`;
       }
       return '/builds';
     case NotificationType.BLOG_COMMENT:
@@ -88,6 +89,11 @@ const getNotificationLink = (notification: Notification): string | null => {
         return `/forum/${notification.metadata.threadSlug as string}`;
       }
       return '/forum';
+    case NotificationType.BESTIARY_COMMENT:
+      if (notification.referenceId) {
+        return `/bestiario/${notification.referenceId}`;
+      }
+      return '/bestiario';
     case NotificationType.SUBSCRIPTION_NEW:
     case NotificationType.PAYMENT_CONFIRMED:
     case NotificationType.PAYMENT_FAILED:
@@ -103,6 +109,26 @@ const getNotificationLink = (notification: Notification): string | null => {
     default:
       return null;
   }
+};
+
+// Get navigation link for notification, including ?highlight=<commentId>
+// when the notification points to a specific comment so the destination page
+// can scroll to it.
+const getNotificationLink = (notification: Notification): string | null => {
+  const basePath = getNotificationBasePath(notification);
+  if (!basePath) return null;
+
+  // Admin broadcasts to internal URLs may already include their own query
+  // string; don't second-guess them.
+  if (notification.type === NotificationType.ADMIN_BROADCAST) {
+    return basePath;
+  }
+
+  const commentId = notification.metadata?.commentId as string | undefined;
+  if (!commentId) return basePath;
+
+  const separator = basePath.includes('?') ? '&' : '?';
+  return `${basePath}${separator}highlight=${encodeURIComponent(commentId)}`;
 };
 
 const NotificationList: React.FC<NotificationListProps> = ({
@@ -221,8 +247,10 @@ const NotificationList: React.FC<NotificationListProps> = ({
               secondary={
                 <Typography
                   variant='caption'
-                  color='text.secondary'
                   component='span'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
                 >
                   {formatDistanceToNow(new Date(notification.createdAt), {
                     addSuffix: true,

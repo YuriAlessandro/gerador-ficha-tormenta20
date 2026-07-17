@@ -73,7 +73,12 @@ const SupportSuccessPage: React.FC = () => {
         }}
       >
         <CircularProgress size={48} />
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Processando seu pagamento...
         </Typography>
       </Box>
@@ -102,10 +107,22 @@ const SupportSuccessPage: React.FC = () => {
             <CheckCircleIcon
               sx={{ fontSize: 80, color: 'success.main', mb: 2 }}
             />
-            <Typography variant='h4' gutterBottom fontWeight='bold'>
+            <Typography
+              variant='h4'
+              gutterBottom
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Obrigado pelo apoio!
             </Typography>
-            <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+            <Typography
+              variant='body1'
+              sx={{
+                color: 'text.secondary',
+                mb: 3,
+              }}
+            >
               Seu apoio foi processado com sucesso. Agora voce e um{' '}
               {getSupportLevelName(supportLevel)}!
             </Typography>
@@ -131,7 +148,13 @@ const SupportSuccessPage: React.FC = () => {
             <Typography variant='h5' gutterBottom>
               Pagamento em Processamento
             </Typography>
-            <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+            <Typography
+              variant='body1'
+              sx={{
+                color: 'text.secondary',
+                mb: 3,
+              }}
+            >
               Seu pagamento esta sendo processado. Isso pode levar alguns
               instantes. Se o problema persistir, entre em contato conosco.
             </Typography>

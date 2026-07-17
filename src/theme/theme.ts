@@ -311,6 +311,15 @@ export const getThemeOptions = (
           },
         },
       },
+      MuiListItemIcon: {
+        styleOverrides: {
+          root: {
+            // MUI v9 reduziu o min-width padrão de 56px para 36px; mantém o
+            // espaçamento anterior em menus e listas de todo o app
+            minWidth: 56,
+          },
+        },
+      },
       MuiTextField: {
         styleOverrides: {
           root: {

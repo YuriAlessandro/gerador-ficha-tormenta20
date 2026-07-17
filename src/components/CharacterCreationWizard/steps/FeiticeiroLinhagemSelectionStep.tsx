@@ -133,11 +133,15 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Como Feiticeiro, seu poder mágico vem de uma linhagem sobrenatural.
         Escolha a origem de seu poder inato:
       </Typography>
-
       <RadioGroup value={selectedLinhagem || ''} onChange={handleChange}>
         {linhagemOptions.map((option) => (
           <Paper key={option.value} sx={{ p: 2, mb: 2 }}>
@@ -165,29 +169,50 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
                         />
                       )}
                   </Box>
-                  <Typography variant='body2' color='text.secondary' paragraph>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                      marginBottom: '16px',
+                    }}
+                  >
                     {option.description}
                   </Typography>
                   <Typography
                     variant='body2'
-                    color='primary.main'
-                    sx={{ fontWeight: 'bold' }}
+                    sx={{
+                      color: 'primary.main',
+                      fontWeight: 'bold',
+                    }}
                   >
                     Benefício Básico:
                   </Typography>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {option.benefit}
                   </Typography>
                   {option.aprimorada && (
                     <>
                       <Typography
                         variant='body2'
-                        color='primary.main'
-                        sx={{ fontWeight: 'bold', mt: 1 }}
+                        sx={{
+                          color: 'primary.main',
+                          fontWeight: 'bold',
+                          mt: 1,
+                        }}
                       >
                         Aprimorada:
                       </Typography>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {option.aprimorada}
                       </Typography>
                     </>
@@ -196,12 +221,20 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
                     <>
                       <Typography
                         variant='body2'
-                        color='primary.main'
-                        sx={{ fontWeight: 'bold', mt: 1 }}
+                        sx={{
+                          color: 'primary.main',
+                          fontWeight: 'bold',
+                          mt: 1,
+                        }}
                       >
                         Superior:
                       </Typography>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {option.superior}
                       </Typography>
                     </>
@@ -239,20 +272,17 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
           </Paper>
         ))}
       </RadioGroup>
-
       {isComplete && (
         <Alert severity='success'>
           Linhagem selecionada com sucesso! Você pode continuar para o próximo
           passo.
         </Alert>
       )}
-
       {!isComplete && selectedLinhagem === 'Linhagem Abençoada' && (
         <Alert severity='warning'>
           Selecione um deus maior para continuar.
         </Alert>
       )}
-
       {!isComplete && selectedLinhagem !== 'Linhagem Abençoada' && (
         <Alert severity='info'>Selecione uma linhagem para continuar.</Alert>
       )}

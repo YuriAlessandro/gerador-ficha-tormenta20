@@ -37,6 +37,7 @@ interface Dice3DContextValue {
   settings: Dice3DSettings;
   updateSettings: (newSettings: Partial<Dice3DSettings>) => void;
   roll3D: (notation: string) => Promise<DiceRollResult[]>;
+  add3D: (notation: string) => Promise<DiceRollResult[]>;
   isReady: boolean;
   isRolling: boolean;
   rollPhase: RollPhase;
@@ -132,8 +133,15 @@ export function Dice3DProvider({
   const [rollPhase, setRollPhase] = useState<RollPhase>('idle');
   const [showCanvas, setShowCanvas] = useState(false);
 
-  const { rollMultiple, isReady, loading, clear, reinitialize, resizeWorld } =
-    useDiceBox(settings);
+  const {
+    rollMultiple,
+    addMultiple,
+    isReady,
+    loading,
+    clear,
+    reinitialize,
+    resizeWorld,
+  } = useDiceBox(settings);
 
   const updateSettings = useCallback((newSettings: Partial<Dice3DSettings>) => {
     setSettingsState((prev) => ({ ...prev, ...newSettings }));
@@ -213,10 +221,47 @@ export function Dice3DProvider({
     [settings.enabled, rollMultiple, reinitialize, resizeWorld]
   );
 
+  // Adiciona dados à jogada já em cena (segunda fase de um crítico), sem
+  // reinicializar o DiceBox nem mexer no canvas — a cena está viva desde a
+  // fase 1 do roll3D. Em erro, apenas propaga; quem esconde o canvas é o
+  // catch de quem chamou.
+  const add3D = useCallback(
+    async (notation: string): Promise<DiceRollResult[]> => {
+      if (!settings.enabled) {
+        throw new Error('3D Dice not enabled');
+      }
+
+      setRollPhase('rolling');
+
+      // Play dice rolling sound
+      const audio = new Audio(diceRollingSound);
+      audio.volume = 0.5;
+      audio.play().catch(() => {
+        // Ignore errors (e.g., autoplay blocked)
+      });
+
+      // Same caveat as roll3D: DiceBox misreads combined notation like
+      // "1d20+1d6" (treats the tail as a modifier), so add each type apart.
+      const diceTypes = notation.split('+').filter((d) => /\d+d\d+/i.test(d));
+
+      if (diceTypes.length === 0) {
+        setRollPhase('complete');
+        return [];
+      }
+
+      const allResults = await addMultiple(diceTypes);
+
+      setRollPhase('complete');
+      return allResults;
+    },
+    [settings.enabled, addMultiple]
+  );
+
   const contextValue: Dice3DContextValue = {
     settings,
     updateSettings,
     roll3D,
+    add3D,
     isReady,
     isRolling,
     rollPhase,

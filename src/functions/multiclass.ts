@@ -15,6 +15,8 @@ import {
 } from '@/data/systems/tormenta20/classes/arcanista';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
+import { isClassOrVariantOf } from './general';
+import { resolveSchoolChoice } from './spellPathUtils';
 
 /**
  * Verifica se a sheet tem multiclasse.
@@ -75,6 +77,32 @@ export function initializeClassLevels(
 }
 
 /**
+ * Reconcilia classLevels para que tenha exatamente `targetLevel` entradas.
+ * - Se sobram entradas (length > targetLevel): corta as do fim (níveis mais altos).
+ * - Se faltam entradas (length < targetLevel): completa com a classe primária.
+ * - Renumera o campo `level` para 1..targetLevel.
+ *
+ * Usado para garantir o invariante classLevels.length === nivel quando o nível é
+ * alterado fora do level-up normal (ex.: edição direta do campo de nível).
+ */
+export function reconcileClassLevels(
+  classLevels: ClassLevelEntry[],
+  targetLevel: number,
+  primaryClassName: string,
+  primarySubname?: string
+): ClassLevelEntry[] {
+  const out = classLevels.slice(0, targetLevel);
+  for (let i = out.length; i < targetLevel; i += 1) {
+    out.push({
+      level: i + 1,
+      className: primaryClassName,
+      classSubname: primarySubname,
+    });
+  }
+  return out.map((cl, i) => ({ ...cl, level: i + 1 }));
+}
+
+/**
  * Retorna string de display para multiclasse.
  * Ex: "Arcanista 3 / Paladino 1" ou "Guerreiro 5" (mono-classe).
  */
@@ -106,7 +134,13 @@ export function findClassDescription(
   classSubname?: string,
   supplements?: SupplementId[]
 ): ClassDescription | undefined {
-  const supps = supplements ?? Object.values(SupplementId);
+  // Default: todos os oficiais + suplementos runtime (homebrews ativos), para
+  // que classes homebrew sejam encontradas em caminhos sem lista explícita
+  // (ex.: persistência/restauração de spellPath de multiclasse)
+  const supps = supplements ?? [
+    ...Object.values(SupplementId),
+    ...(dataRegistry.getRuntimeSupplementIds() as SupplementId[]),
+  ];
   const allClasses = dataRegistry.getClassesBySupplements(supps);
 
   // Exact match first (handles variant classes with explicit subname)
@@ -131,9 +165,9 @@ export function findClassDescription(
  * Calcula PV total para multiclasse.
  *
  * Fórmula:
- * - Classe primária: pv (base) + addpv * (primaryLevel - 1)
- * - Classes secundárias: addpv * secondaryLevel (sem base)
- * - CON por nível: max(conMod, 0) * characterLevel
+ * - Classe primária: pv (base) + conMod + max(addpv + conMod, 1) * (primaryLevel - 1)
+ * - Classes secundárias: max(addpv + conMod, 1) * secondaryLevel (sem base)
+ * - CON negativo reduz o PV mas o ganho mínimo por nível é 1
  * - Bonus: bonusPV, manualPVEdit, customPVPerLevel
  */
 export function calculateMulticlassPV(sheet: CharacterSheet): number {
@@ -290,9 +324,21 @@ export function buildSpellPathFromSetup(
   const classDesc = findClassDescription(className, classSubname, supplements);
   if (!classDesc) return null;
 
-  // Classes com spellPath estático (variantes como Necromante, Ventanista)
+  // Classes com spellPath estático (variantes como Necromante, Ventanista,
+  // e classes homebrew). Cópia rasa: applySerializedOverrides muta o retorno,
+  // e o spellPath do registry não pode ser compartilhado entre fichas.
   if (classDesc.spellPath) {
-    return classDesc.spellPath;
+    const spellPath = { ...classDesc.spellPath };
+    if (spellPath.schoolChoice) {
+      // Escolha de escolas (homebrew): usa a escolha do jogador se houver,
+      // senão sorteia (por ficha)
+      if (classSetup?.spellSchools) {
+        spellPath.schools = classSetup.spellSchools as SpellSchool[];
+      } else {
+        resolveSchoolChoice(spellPath);
+      }
+    }
+    return spellPath;
   }
 
   // Arcanista: usar subtype das choices
@@ -308,8 +354,8 @@ export function buildSpellPathFromSetup(
     return spellPath;
   }
 
-  // Bardo: Both (arcana + divina) com escolas selecionadas
-  if (className === 'Bardo' && classSetup?.spellSchools) {
+  // Bardo (e variantes, ex.: Magimarcialista): Both (arcana + divina) com escolas selecionadas
+  if (isClassOrVariantOf(classDesc, 'Bardo') && classSetup?.spellSchools) {
     return {
       initialSpells: 2,
       spellType: 'Both',
@@ -325,8 +371,8 @@ export function buildSpellPathFromSetup(
     };
   }
 
-  // Druida: Divine com escolas selecionadas
-  if (className === 'Druida' && classSetup?.spellSchools) {
+  // Druida (e variantes): Divine com escolas selecionadas
+  if (isClassOrVariantOf(classDesc, 'Druida') && classSetup?.spellSchools) {
     return {
       initialSpells: 2,
       spellType: 'Divine',
@@ -431,7 +477,7 @@ export function getClassSetupAbilities(
     ) {
       if (classSetup.feiticeiroLinhagem === 'Linhagem Abençoada') {
         const deus = classSetup.linhagemAbencoadaDeus || 'um deus maior';
-        abilities.push(createLinhagemAbencoada(deus));
+        abilities.push(...createLinhagemAbencoada(deus));
       } else {
         const linhagemAbility = feiticeiroPaths.find(
           (p) => p.name === classSetup.feiticeiroLinhagem

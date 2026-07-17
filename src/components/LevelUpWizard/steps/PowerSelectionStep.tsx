@@ -107,13 +107,18 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
       <Typography variant='h6' gutterBottom>
         Escolha um Poder
       </Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         A cada nível, você pode escolher um poder de classe ou um poder geral.
         {hasAlmaLivre &&
           ' Você também pode escolher o poder de Alma Livre.'}{' '}
         Selecione o tipo de poder e depois escolha qual poder deseja adicionar.
       </Typography>
-
       {/* Step 1: Choose power type */}
       <Box sx={{ mb: 3 }}>
         <Typography variant='subtitle1' gutterBottom>
@@ -150,7 +155,6 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
           )}
         </RadioGroup>
       </Box>
-
       {/* Step 2: Show available powers based on choice */}
       {selectedPowerChoice === 'class' && hasClassPowers && (
         <Box>
@@ -165,18 +169,26 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
             placeholder='Buscar poderes por nome ou descrição...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
             sx={{ mb: 2 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
 
           {filteredClassPowers.length === 0 && searchQuery && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Nenhum poder encontrado para &quot;{searchQuery}&quot;
             </Typography>
           )}
@@ -237,14 +249,21 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                     </Box>
                     <Typography
                       variant='body2'
-                      color='text.secondary'
-                      sx={{ whiteSpace: 'pre-wrap' }}
+                      sx={{
+                        color: 'text.secondary',
+                        whiteSpace: 'pre-wrap',
+                      }}
                     >
                       {power.text}
                     </Typography>
                     {power.requirements && power.requirements.length > 0 && (
                       <Box sx={{ mt: 1 }}>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           Pré-requisitos:{' '}
                           {power.requirements
                             .map((reqGroup) =>
@@ -302,7 +321,6 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
           </Stack>
         </Box>
       )}
-
       {selectedPowerChoice === 'general' && hasGeneralPowers && (
         <Box>
           <Typography variant='subtitle1' gutterBottom>
@@ -316,18 +334,26 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
             placeholder='Buscar poderes por nome ou descrição...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
             sx={{ mb: 2 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
 
           {filteredGeneralPowers.length === 0 && searchQuery && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Nenhum poder encontrado para &quot;{searchQuery}&quot;
             </Typography>
           )}
@@ -399,14 +425,21 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                     </Box>
                     <Typography
                       variant='body2'
-                      color='text.secondary'
-                      sx={{ whiteSpace: 'pre-wrap' }}
+                      sx={{
+                        color: 'text.secondary',
+                        whiteSpace: 'pre-wrap',
+                      }}
                     >
                       {power.description}
                     </Typography>
                     {power.requirements && power.requirements.length > 0 && (
                       <Box sx={{ mt: 1 }}>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           Pré-requisitos:{' '}
                           {power.requirements
                             .map((reqGroup) =>
@@ -464,7 +497,6 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
           </Stack>
         </Box>
       )}
-
       {selectedPowerChoice === 'almaLivre' &&
         hasAlmaLivre &&
         almaLivreClassName && (
@@ -525,15 +557,22 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                 </Box>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ whiteSpace: 'pre-wrap' }}
+                  sx={{
+                    color: 'text.secondary',
+                    whiteSpace: 'pre-wrap',
+                  }}
                 >
                   {almaLivrePower!.text}
                 </Typography>
                 {almaLivrePower!.requirements &&
                   almaLivrePower!.requirements.length > 0 && (
                     <Box sx={{ mt: 1 }}>
-                      <Typography variant='caption' color='text.secondary'>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         Pré-requisitos:{' '}
                         {almaLivrePower!.requirements
                           .map((reqGroup) =>
@@ -567,8 +606,10 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                 {!almaLivrePowerAvailable && (
                   <Typography
                     variant='body2'
-                    color='warning.main'
-                    sx={{ mt: 1 }}
+                    sx={{
+                      color: 'warning.main',
+                      mt: 1,
+                    }}
                   >
                     Você ainda não atende aos requisitos deste poder (nível
                     efetivo = seu nível − 4).
@@ -578,16 +619,20 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
             </Card>
           </Box>
         )}
-
       {!hasClassPowers && !hasGeneralPowers && !hasAlmaLivre && (
         <Typography variant='body2' color='error'>
           Nenhum poder disponível para este nível. Isso não deveria acontecer -
           por favor, reporte este bug.
         </Typography>
       )}
-
       {selectedPowerChoice && !isComplete && (
-        <Typography variant='body2' color='warning.main' sx={{ mt: 2 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'warning.main',
+            mt: 2,
+          }}
+        >
           Selecione um poder para continuar.
         </Typography>
       )}

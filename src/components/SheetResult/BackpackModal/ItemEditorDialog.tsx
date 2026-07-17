@@ -1,0 +1,964 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Box,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormControlLabel,
+  Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Casino as RollsIcon,
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  RestartAlt as ResetIcon,
+} from '@mui/icons-material';
+
+import Equipment, {
+  AppliedEnchantment,
+  AppliedModification,
+  DamageAttribute,
+  DAMAGE_TYPES,
+  DamageType,
+  DefenseEquipment,
+  WeaponCategory,
+} from '../../../interfaces/Equipment';
+import { resolveDamageAttribute } from '../../../functions/weaponSkill';
+import {
+  getCatalogWeaponCategoryByName,
+  WEAPON_CATEGORY_LABELS,
+} from '../../../functions/proficiencies';
+import { Atributo } from '../../../data/systems/tormenta20/atributos';
+import Skill from '../../../interfaces/Skills';
+import { DiceRoll } from '../../../interfaces/DiceRoll';
+import { ItemE, ItemMod } from '../../../interfaces/Rewards';
+import { useContentSupplements } from '../../../hooks/useContentSupplements';
+import { SupplementId } from '../../../types/supplement.types';
+import { applyItemEnhancements } from '../../../functions/itemEnhancements/applyEnhancements';
+import {
+  armorEnchantments,
+  weaponsEnchantments,
+} from '../../../data/rewards/items';
+import RollsEditDialog from '../../RollsEditDialog';
+import ItemModificationsEditor, {
+  ModificationItemType,
+} from './ItemModificationsEditor';
+import ItemEnchantmentsEditor, {
+  EnchantmentItemType,
+} from './ItemEnchantmentsEditor';
+import { isDefenseGroup } from './equipmentCatalog';
+import {
+  buildSavedItem,
+  ItemEditorFormState,
+  StatField,
+} from './itemEditorSave';
+
+const DAMAGE_ATTRIBUTE_OPTIONS: DamageAttribute[] = [
+  Atributo.FORCA,
+  Atributo.DESTREZA,
+  Atributo.CONSTITUICAO,
+  Atributo.INTELIGENCIA,
+  Atributo.SABEDORIA,
+  Atributo.CARISMA,
+  'Nenhum',
+];
+
+export interface ItemEditorDialogProps {
+  open: boolean;
+  onClose: () => void;
+  item: Equipment | null;
+  onSave: (next: Equipment) => void;
+}
+
+type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos';
+
+const ALL_SKILLS = Object.values(Skill);
+
+function modItemTypeFor(item: Equipment): ModificationItemType | null {
+  if (item.group === 'Arma') return 'weapon';
+  if (item.group === 'Armadura') return 'armor';
+  if (item.group === 'Escudo') return 'shield';
+  return null;
+}
+
+function enchItemTypeFor(item: Equipment): EnchantmentItemType | null {
+  if (item.group === 'Arma') return 'weapon';
+  if (item.group === 'Armadura') return 'armor';
+  if (item.group === 'Escudo') return 'shield';
+  return null;
+}
+
+function findEnchantmentByName(name: string): ItemE | undefined {
+  return (
+    weaponsEnchantments.find((e) => e.enchantment === name) ||
+    armorEnchantments.find((e) => e.enchantment === name)
+  );
+}
+
+function buildInitial(item: Equipment | null): ItemEditorFormState {
+  const initialMods: ItemMod[] = (item?.modifications ?? []).map((m) => ({
+    min: 0,
+    max: 0,
+    mod: m.mod,
+  }));
+  const initialEnchantments: ItemE[] = (item?.enchantments ?? [])
+    .map((e) => findEnchantmentByName(e.enchantment))
+    .filter((e): e is ItemE => e !== undefined);
+  const materialEntry = item?.modifications?.find(
+    (m) => m.mod === 'Material especial'
+  );
+  const conjuradoraEntry = item?.enchantments?.find(
+    (e) => e.enchantment === 'Conjuradora'
+  );
+  const baseDamageAttribute: DamageAttribute = item
+    ? resolveDamageAttribute(item)
+    : 'Nenhum';
+  const actionDamageAttributes: Record<string, DamageAttribute> = {};
+  (item?.specialActions ?? []).forEach((action) => {
+    actionDamageAttributes[action.id] = resolveDamageAttribute(
+      item as Equipment,
+      action
+    );
+  });
+  return {
+    customDisplayName: item?.customDisplayName ?? '',
+    quantityText: String(item?.quantity ?? 1),
+    spacesText: item?.spaces !== undefined ? String(item.spaces) : '',
+    descricao: item?.descricao ?? '',
+    rolls: (item?.rolls as DiceRoll[]) ?? [],
+    danoText: item?.dano ?? '',
+    atkBonusText: item?.atkBonus !== undefined ? String(item.atkBonus) : '0',
+    criticoText: item?.critico ?? 'x2',
+    customSkill: (item?.customSkill ?? '') as Skill | '',
+    damageAttribute: baseDamageAttribute,
+    weaponCategory: item?.weaponCategory ?? '',
+    actionDamageAttributes,
+    defenseBonusText:
+      item && isDefenseGroup(item.group)
+        ? String((item as DefenseEquipment).defenseBonus)
+        : '0',
+    armorPenaltyText:
+      item && isDefenseGroup(item.group)
+        ? String((item as DefenseEquipment).armorPenalty)
+        : '0',
+    isHeavyArmor:
+      item && item.group === 'Armadura'
+        ? (item as DefenseEquipment).isHeavyArmor ?? false
+        : false,
+    selectedModifications: initialMods,
+    selectedMaterial: materialEntry?.specialMaterial ?? '',
+    selectedEnchantments: initialEnchantments,
+    selectedConjuradoraSpell: conjuradoraEntry?.selectedSpell ?? '',
+    userExtraDamage: (item?.extraDamage ?? [])
+      .filter((e) => e.source === 'user')
+      .map((e) => ({
+        id: e.id ?? crypto.randomUUID(),
+        dice: e.dice,
+        damageType: e.damageType,
+        source: 'user' as const,
+      })),
+  };
+}
+
+const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
+  open,
+  onClose,
+  item,
+  onSave,
+}) => {
+  const [tab, setTab] = useState<TabKey>('geral');
+  const [form, setForm] = useState(buildInitial(item));
+  const [manualEditedFields, setManualEditedFields] = useState<Set<StatField>>(
+    new Set()
+  );
+  const [rollsOpen, setRollsOpen] = useState(false);
+  const [modError, setModError] = useState('');
+  const [enchError, setEnchError] = useState('');
+  const userSupplements: SupplementId[] = useContentSupplements();
+
+  const isWeapon = item?.group === 'Arma';
+  const isDefense = item ? isDefenseGroup(item.group) : false;
+  const hasStatsTab = isWeapon || isDefense;
+  // Label da opção "Padrão" do Select de categoria: mostra a categoria de
+  // catálogo que vale quando não há override; custom/desconhecida = sempre
+  // proficiente.
+  const catalogCategory = item
+    ? getCatalogWeaponCategoryByName(item.nome)
+    : undefined;
+  const defaultCategoryLabel = catalogCategory
+    ? `Padrão (${WEAPON_CATEGORY_LABELS[catalogCategory]})`
+    : 'Padrão (sem categoria — sempre proficiente)';
+  const modItemType = item ? modItemTypeFor(item) : null;
+  const hasModificationsTab = modItemType !== null;
+  const enchItemType = item ? enchItemTypeFor(item) : null;
+  const hasEnchantmentsTab = enchItemType !== null;
+
+  useEffect(() => {
+    if (open) {
+      setForm(buildInitial(item));
+      // Preserve prior manual edits when reopening an item that already had
+      // the flag set — otherwise the live-preview effect below would silently
+      // recompute over the user's persisted values.
+      setManualEditedFields(
+        item?.hasManualEdits
+          ? new Set<StatField>([
+              'dano',
+              'atkBonus',
+              'critico',
+              'defenseBonus',
+              'armorPenalty',
+            ])
+          : new Set()
+      );
+      setTab('geral');
+      setModError('');
+      setEnchError('');
+    }
+  }, [open, item]);
+
+  // Live preview: when mods / material / enchantments change, recompute the
+  // stat fields the user has NOT manually edited. Fields the user touched stay
+  // exactly as-is. This is the same pipeline that runs on save, so what the
+  // user sees in the Stats tab matches what gets persisted.
+  useEffect(() => {
+    if (!open || !item) return;
+    if (!isWeapon && !isDefense) return;
+
+    const previewMods: AppliedModification[] = form.selectedModifications.map(
+      (m) => ({
+        mod: m.mod,
+        specialMaterial:
+          m.mod === 'Material especial' ? form.selectedMaterial : undefined,
+      })
+    );
+    const previewEnch: AppliedEnchantment[] = form.selectedEnchantments.map(
+      (e) => ({
+        enchantment: e.enchantment,
+        selectedSpell:
+          e.enchantment === 'Conjuradora' && form.selectedConjuradoraSpell
+            ? form.selectedConjuradoraSpell
+            : undefined,
+      })
+    );
+
+    const virtual: Equipment = {
+      ...item,
+      modifications: previewMods.length > 0 ? previewMods : undefined,
+      enchantments: previewEnch.length > 0 ? previewEnch : undefined,
+      hasManualEdits: false,
+    };
+    const recomputed = applyItemEnhancements(virtual);
+
+    setForm((f) => {
+      const next = { ...f };
+      if (!manualEditedFields.has('dano') && recomputed.dano !== undefined) {
+        next.danoText = recomputed.dano;
+      }
+      if (
+        !manualEditedFields.has('atkBonus') &&
+        recomputed.atkBonus !== undefined
+      ) {
+        next.atkBonusText = String(recomputed.atkBonus);
+      }
+      if (
+        !manualEditedFields.has('critico') &&
+        recomputed.critico !== undefined
+      ) {
+        next.criticoText = recomputed.critico;
+      }
+      if (isDefense) {
+        const def = recomputed as DefenseEquipment;
+        if (
+          !manualEditedFields.has('defenseBonus') &&
+          def.defenseBonus !== undefined
+        ) {
+          next.defenseBonusText = String(def.defenseBonus);
+        }
+        if (
+          !manualEditedFields.has('armorPenalty') &&
+          def.armorPenalty !== undefined
+        ) {
+          next.armorPenaltyText = String(def.armorPenalty);
+        }
+      }
+      return next;
+    });
+    // Depending only on enhancement inputs (mods / material / ench), not on
+    // form stat fields — recomputing on every keystroke would fight the user's
+    // typing in those inputs.
+  }, [
+    open,
+    item,
+    isWeapon,
+    isDefense,
+    form.selectedModifications,
+    form.selectedMaterial,
+    form.selectedEnchantments,
+    form.selectedConjuradoraSpell,
+    manualEditedFields,
+  ]);
+
+  const markManualEdit = (field: StatField) =>
+    setManualEditedFields((s) => {
+      if (s.has(field)) return s;
+      const next = new Set(s);
+      next.add(field);
+      return next;
+    });
+
+  const baseSnapshot = useMemo(() => {
+    if (!item) return null;
+    return {
+      dano: item.baseDano ?? item.dano ?? '',
+      atkBonus: item.baseAtkBonus ?? item.atkBonus ?? 0,
+      critico: item.baseCritico ?? item.critico ?? 'x2',
+      defenseBonus: isDefense
+        ? (item as DefenseEquipment).baseDefenseBonus ??
+          (item as DefenseEquipment).defenseBonus
+        : 0,
+      armorPenalty: isDefense
+        ? (item as DefenseEquipment).baseArmorPenalty ??
+          (item as DefenseEquipment).armorPenalty
+        : 0,
+    };
+  }, [item, isDefense]);
+
+  if (!item) return null;
+
+  const handleResetToBase = () => {
+    if (!baseSnapshot) return;
+    setManualEditedFields(new Set());
+    setForm((f) => ({
+      ...f,
+      danoText: baseSnapshot.dano,
+      atkBonusText: String(baseSnapshot.atkBonus),
+      criticoText: baseSnapshot.critico,
+      defenseBonusText: String(baseSnapshot.defenseBonus),
+      armorPenaltyText: String(baseSnapshot.armorPenalty),
+    }));
+  };
+
+  const handleSave = () => {
+    // Build the persisted item (pure composition — stat fields only written
+    // when manually edited), then apply enhancement effects (numeric bonuses
+    // from mods + enchantments, plus rebuilding extraDamage / specialActions /
+    // arremesso). Pipeline is idempotent — when all enhancements are cleared it
+    // restores stats from `base*` snapshots automatically.
+    const finalItem = applyItemEnhancements(
+      buildSavedItem(item, form, manualEditedFields)
+    );
+
+    onSave(finalItem);
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth='sm'>
+      <DialogTitle sx={{ pr: 6 }}>
+        Editar item
+        <IconButton
+          onClick={onClose}
+          sx={{ position: 'absolute', right: 8, top: 8 }}
+          aria-label='Fechar'
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)}
+          variant='scrollable'
+          scrollButtons='auto'
+          allowScrollButtonsMobile
+          sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab value='geral' label='Geral' />
+          {hasStatsTab && <Tab value='stats' label='Estatísticas' />}
+          {hasModificationsTab && (
+            <Tab value='modificacoes' label='Modificações' />
+          )}
+          {hasEnchantmentsTab && (
+            <Tab value='encantamentos' label='Encantamentos' />
+          )}
+        </Tabs>
+
+        {tab === 'geral' && (
+          <Stack spacing={2}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              {item.group} · {item.nome}
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 8 }}>
+                <TextField
+                  label='Apelido (display name)'
+                  fullWidth
+                  value={form.customDisplayName}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      customDisplayName: e.target.value,
+                    }))
+                  }
+                  helperText='Substitui o nome padrão na ficha quando preenchido.'
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 2 }}>
+                <TextField
+                  label='Quantidade'
+                  fullWidth
+                  value={form.quantityText}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      quantityText: e.target.value.replace(/[^0-9]/g, ''),
+                    }))
+                  }
+                  slotProps={{
+                    htmlInput: { inputMode: 'numeric' },
+                  }}
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 2 }}>
+                <TextField
+                  label='Espaços'
+                  fullWidth
+                  value={form.spacesText}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, spacesText: e.target.value }))
+                  }
+                  slotProps={{
+                    htmlInput: { inputMode: 'decimal' },
+                  }}
+                />
+              </Grid>
+              <Grid size={12}>
+                <TextField
+                  label='Descrição'
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  value={form.descricao}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, descricao: e.target.value }))
+                  }
+                />
+              </Grid>
+            </Grid>
+
+            <Box>
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
+                <Typography variant='subtitle2'>
+                  Rolagens ({form.rolls.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<RollsIcon />}
+                  onClick={() => setRollsOpen(true)}
+                >
+                  Editar rolagens
+                </Button>
+              </Stack>
+            </Box>
+          </Stack>
+        )}
+
+        {tab === 'stats' && hasStatsTab && (
+          <Stack spacing={2}>
+            <Stack
+              direction='row'
+              sx={{
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
+                Edições manuais sobrescrevem os valores base do item.
+              </Typography>
+              <Tooltip title='Resetar para os valores base do item'>
+                <Button
+                  size='small'
+                  startIcon={<ResetIcon />}
+                  onClick={handleResetToBase}
+                >
+                  Resetar
+                </Button>
+              </Tooltip>
+            </Stack>
+
+            {isWeapon && (
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <TextField
+                    label='Dano'
+                    fullWidth
+                    value={form.danoText}
+                    onChange={(e) => {
+                      markManualEdit('dano');
+                      setForm((f) => ({ ...f, danoText: e.target.value }));
+                    }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <TextField
+                    label='Bônus de Ataque'
+                    fullWidth
+                    value={form.atkBonusText}
+                    onChange={(e) => {
+                      markManualEdit('atkBonus');
+                      setForm((f) => ({ ...f, atkBonusText: e.target.value }));
+                    }}
+                    slotProps={{
+                      htmlInput: { inputMode: 'numeric' },
+                    }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <TextField
+                    label='Crítico'
+                    fullWidth
+                    value={form.criticoText}
+                    onChange={(e) => {
+                      markManualEdit('critico');
+                      setForm((f) => ({ ...f, criticoText: e.target.value }));
+                    }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Perícia</InputLabel>
+                    <Select
+                      label='Perícia'
+                      value={form.customSkill}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          customSkill: e.target.value as Skill,
+                        }))
+                      }
+                    >
+                      <MenuItem value=''>
+                        <em>Padrão (Luta / Pontaria)</em>
+                      </MenuItem>
+                      {ALL_SKILLS.map((s) => (
+                        <MenuItem key={s} value={s}>
+                          {s}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Atributo no dano</InputLabel>
+                    <Select
+                      label='Atributo no dano'
+                      value={form.damageAttribute}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          damageAttribute: e.target.value as DamageAttribute,
+                        }))
+                      }
+                    >
+                      {DAMAGE_ATTRIBUTE_OPTIONS.map((opt) => (
+                        <MenuItem key={opt} value={opt}>
+                          {opt}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Categoria de proficiência</InputLabel>
+                    <Select
+                      label='Categoria de proficiência'
+                      value={form.weaponCategory}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          weaponCategory: e.target.value as WeaponCategory | '',
+                        }))
+                      }
+                    >
+                      <MenuItem value=''>
+                        <em>{defaultCategoryLabel}</em>
+                      </MenuItem>
+                      {(
+                        Object.entries(WEAPON_CATEGORY_LABELS) as [
+                          WeaponCategory,
+                          string
+                        ][]
+                      ).map(([value, label]) => (
+                        <MenuItem key={value} value={value}>
+                          {label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                {item.specialActions && item.specialActions.length > 0 && (
+                  <Grid size={{ xs: 12 }}>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mb: 0.5,
+                      }}
+                    >
+                      Atributo no dano por modo de ataque:
+                    </Typography>
+                    <Stack spacing={1}>
+                      {item.specialActions.map((action) => (
+                        <Stack
+                          key={action.id}
+                          direction='row'
+                          spacing={1}
+                          sx={{
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Typography
+                            variant='body2'
+                            sx={{ flex: 1, minWidth: 0 }}
+                          >
+                            {action.label}
+                          </Typography>
+                          <FormControl size='small' sx={{ minWidth: 140 }}>
+                            <Select
+                              value={
+                                form.actionDamageAttributes[action.id] ??
+                                'Nenhum'
+                              }
+                              onChange={(e) =>
+                                setForm((f) => ({
+                                  ...f,
+                                  actionDamageAttributes: {
+                                    ...f.actionDamageAttributes,
+                                    [action.id]: e.target
+                                      .value as DamageAttribute,
+                                  },
+                                }))
+                              }
+                            >
+                              {DAMAGE_ATTRIBUTE_OPTIONS.map((opt) => (
+                                <MenuItem key={opt} value={opt}>
+                                  {opt}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </Grid>
+                )}
+              </Grid>
+            )}
+
+            {isWeapon && (
+              <Box>
+                <Stack
+                  direction='row'
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    mb: 1,
+                  }}
+                >
+                  <Typography variant='subtitle2'>
+                    Danos extras ({form.userExtraDamage.length})
+                  </Typography>
+                  <Button
+                    size='small'
+                    startIcon={<AddIcon />}
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        userExtraDamage: [
+                          ...f.userExtraDamage,
+                          {
+                            id: crypto.randomUUID(),
+                            dice: '1d6',
+                            damageType: 'Fogo',
+                            source: 'user',
+                          },
+                        ],
+                      }))
+                    }
+                  >
+                    Adicionar
+                  </Button>
+                </Stack>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                    display: 'block',
+                    mb: 1,
+                  }}
+                >
+                  Cada entrada rola junto com o dano base no ataque (não crita).
+                  Encantamentos como Flamejante adicionam linhas automaticamente
+                  e não aparecem aqui.
+                </Typography>
+                <Stack spacing={1}>
+                  {form.userExtraDamage.map((entry, idx) => (
+                    <Stack
+                      key={entry.id}
+                      direction='row'
+                      spacing={1}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
+                      <TextField
+                        size='small'
+                        label='Dado'
+                        value={entry.dice}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            userExtraDamage: f.userExtraDamage.map((x, i) =>
+                              i === idx ? { ...x, dice: e.target.value } : x
+                            ),
+                          }))
+                        }
+                        sx={{ width: 120 }}
+                        placeholder='1d6'
+                      />
+                      <FormControl size='small' sx={{ flex: 1, minWidth: 120 }}>
+                        <InputLabel>Tipo</InputLabel>
+                        <Select
+                          label='Tipo'
+                          value={entry.damageType}
+                          onChange={(e) =>
+                            setForm((f) => ({
+                              ...f,
+                              userExtraDamage: f.userExtraDamage.map((x, i) =>
+                                i === idx
+                                  ? {
+                                      ...x,
+                                      damageType: e.target.value as DamageType,
+                                    }
+                                  : x
+                              ),
+                            }))
+                          }
+                        >
+                          {DAMAGE_TYPES.map((t) => (
+                            <MenuItem key={t} value={t}>
+                              {t}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <IconButton
+                        size='small'
+                        aria-label='Remover dano extra'
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            userExtraDamage: f.userExtraDamage.filter(
+                              (_, i) => i !== idx
+                            ),
+                          }))
+                        }
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </IconButton>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
+            {isDefense && (
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <TextField
+                    label='Bônus de Defesa'
+                    fullWidth
+                    value={form.defenseBonusText}
+                    onChange={(e) => {
+                      markManualEdit('defenseBonus');
+                      setForm((f) => ({
+                        ...f,
+                        defenseBonusText: e.target.value,
+                      }));
+                    }}
+                    slotProps={{
+                      htmlInput: { inputMode: 'numeric' },
+                    }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <TextField
+                    label='Penalidade de Armadura'
+                    fullWidth
+                    value={form.armorPenaltyText}
+                    onChange={(e) => {
+                      markManualEdit('armorPenalty');
+                      setForm((f) => ({
+                        ...f,
+                        armorPenaltyText: e.target.value,
+                      }));
+                    }}
+                    slotProps={{
+                      htmlInput: { inputMode: 'numeric' },
+                    }}
+                  />
+                </Grid>
+                {item.group === 'Armadura' && (
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={form.isHeavyArmor}
+                          onChange={(e) =>
+                            setForm((f) => ({
+                              ...f,
+                              isHeavyArmor: e.target.checked,
+                            }))
+                          }
+                        />
+                      }
+                      label='Pesada'
+                    />
+                  </Grid>
+                )}
+              </Grid>
+            )}
+          </Stack>
+        )}
+
+        {tab === 'modificacoes' && hasModificationsTab && modItemType && (
+          <Stack spacing={2}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              Modificações de item superior aplicam bônus numéricos
+              automaticamente sobre os valores base do item. Custo máximo: 5
+              pontos.
+            </Typography>
+            {modError && (
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'error.main',
+                }}
+              >
+                {modError}
+              </Typography>
+            )}
+            <ItemModificationsEditor
+              itemType={modItemType}
+              selectedModifications={form.selectedModifications}
+              onChange={(mods) =>
+                setForm((f) => ({ ...f, selectedModifications: mods }))
+              }
+              selectedMaterial={form.selectedMaterial}
+              onSelectedMaterialChange={(m) =>
+                setForm((f) => ({ ...f, selectedMaterial: m }))
+              }
+              userSupplements={userSupplements}
+              onError={setModError}
+            />
+          </Stack>
+        )}
+
+        {tab === 'encantamentos' && hasEnchantmentsTab && enchItemType && (
+          <Stack spacing={2}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              Encantamentos mágicos aplicam bônus numéricos automaticamente
+              sobre os valores base do item. Encantamentos descritivos (efeitos
+              condicionais, dano elemental, resistências) ficam registrados no
+              item mas não modificam stats. Custo máximo: 5 pontos.
+            </Typography>
+            {enchError && (
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'error.main',
+                }}
+              >
+                {enchError}
+              </Typography>
+            )}
+            <ItemEnchantmentsEditor
+              itemType={enchItemType}
+              selectedEnchantments={form.selectedEnchantments}
+              onChange={(ench) =>
+                setForm((f) => ({ ...f, selectedEnchantments: ench }))
+              }
+              userSupplements={userSupplements}
+              onError={setEnchError}
+              selectedSpell={form.selectedConjuradoraSpell}
+              onSelectedSpellChange={(spell) =>
+                setForm((f) => ({ ...f, selectedConjuradoraSpell: spell }))
+              }
+            />
+          </Stack>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant='contained' onClick={handleSave}>
+          Salvar
+        </Button>
+      </DialogActions>
+      <RollsEditDialog
+        open={rollsOpen}
+        onClose={() => setRollsOpen(false)}
+        rolls={form.rolls}
+        onSave={(rolls) => {
+          setForm((f) => ({ ...f, rolls }));
+          setRollsOpen(false);
+        }}
+        title={`Rolagens de ${item.nome}`}
+      />
+    </Dialog>
+  );
+};
+
+export default ItemEditorDialog;

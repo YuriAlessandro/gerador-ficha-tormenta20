@@ -77,25 +77,33 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
       maxWidth='sm'
       fullWidth
       fullScreen={isMobile}
-      disableEscapeKeyDown
       onClose={(_, reason) => {
-        // Previne fechar clicando fora - não faz nada se for backdrop click
-        if (reason !== 'backdropClick') {
+        // Previne fechar clicando fora ou com Esc - não faz nada nesses casos
+        if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
           // Pode adicionar lógica futura aqui se necessário
         }
       }}
     >
       <DialogTitle>
         <Stack spacing={1}>
-          <Typography variant='h5' fontWeight='bold'>
+          <Typography
+            variant='h5'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             Bem-vindo ao Fichas de Nimb!
           </Typography>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Configure seus suplementos para começar
           </Typography>
         </Stack>
       </DialogTitle>
-
       <DialogContent>
         {error && (
           <Alert severity='error' sx={{ mb: 2 }}>
@@ -104,7 +112,13 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
         )}
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant='subtitle2' color='text.secondary' gutterBottom>
+          <Typography
+            variant='subtitle2'
+            gutterBottom
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Sistema Selecionado
           </Typography>
           <Chip
@@ -116,13 +130,22 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
         </Box>
 
         <Box>
-          <Typography variant='subtitle2' color='text.secondary' gutterBottom>
+          <Typography
+            variant='subtitle2'
+            gutterBottom
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Suplementos Disponíveis
           </Typography>
           <Typography
             variant='body2'
-            color='text.secondary'
-            sx={{ mb: 2, display: 'block' }}
+            sx={{
+              color: 'text.secondary',
+              mb: 2,
+              display: 'block',
+            }}
           >
             Selecione os suplementos que você possui. Lembre-se que tentar usar
             regras de suplementos sem possuir os livros e dominar suas regras
@@ -130,8 +153,11 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
           </Typography>
           <Typography
             variant='body2'
-            color='text.secondary'
-            sx={{ mb: 2, display: 'block' }}
+            sx={{
+              color: 'text.secondary',
+              mb: 2,
+              display: 'block',
+            }}
           >
             Você pode alterar essa configuração a qualquer momento no seu
             perfil.
@@ -167,8 +193,19 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
                     }
                     label={
                       <Stack spacing={0.5}>
-                        <Stack direction='row' spacing={1} alignItems='center'>
-                          <Typography variant='body1' fontWeight='medium'>
+                        <Stack
+                          direction='row'
+                          spacing={1}
+                          sx={{
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'medium',
+                            }}
+                          >
                             {supplement.name}
                           </Typography>
                           {isCore && (
@@ -180,7 +217,12 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
                             />
                           )}
                         </Stack>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {supplement.description}
                         </Typography>
                       </Stack>
@@ -192,7 +234,6 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
           </FormGroup>
         </Box>
       </DialogContent>
-
       <DialogActions sx={{ p: 2, pt: 0 }}>
         <Button
           onClick={handleSave}

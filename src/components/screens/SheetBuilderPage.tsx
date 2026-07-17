@@ -23,17 +23,20 @@ import SheetBuilderForm from '../SheetBuilder/SheetBuilderForm/SheetBuilderForm'
 import SheetPreview from '../SheetBuilder/SheetPreview/SheetPreview';
 import SheetsService from '../../services/sheets.service';
 import { rehydrateSheet } from '../../functions/sheetPayloadOptimizer';
-import { useAuth } from '../../hooks/useAuth';
-import { SupplementId } from '../../types/supplement.types';
+import { getMissingRuntimeSupplements } from '../../functions/contentSources';
+import SheetUnavailable from './SheetUnavailable';
+import { useContentSupplements } from '../../hooks/useContentSupplements';
 import { RootState } from '../../store';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 
 const SheetBuilderPage: React.FC = () => {
   const [value, setValue] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [blockedMissing, setBlockedMissing] = useState<string[]>([]);
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const contentSupplements = useContentSupplements();
 
   // Check if sheet exists in local storage
   const localSheet = useSelector((state: RootState) =>
@@ -44,19 +47,23 @@ const SheetBuilderPage: React.FC = () => {
     const loadSheet = async () => {
       setLoading(true);
 
+      // Ficha (local existente) ou carregada da nuvem, para checar homebrews.
+      let sheetForCheck: CharacterSheet | null = localSheet
+        ? (localSheet as unknown as CharacterSheet)
+        : null;
+
       // If sheet doesn't exist in local storage, try to load from cloud
       if (!localSheet) {
         try {
           const cloudSheet = await SheetsService.getSheetById(id);
 
           // Rehydrate stripped sheet data (reconstruct catalog fields from registry)
-          const userSupplements = user?.enabledSupplements || [
-            SupplementId.TORMENTA20_CORE,
-          ];
+          const userSupplements = contentSupplements;
           const rehydrated = rehydrateSheet(
             cloudSheet.sheetData as unknown as Record<string, unknown>,
             userSupplements
           );
+          sheetForCheck = rehydrated as unknown as CharacterSheet;
 
           // Convert cloud sheet to local format and store temporarily
           // Spread all sheetData fields to ensure devotion, skills, proficiencies, etc are available
@@ -81,13 +88,21 @@ const SheetBuilderPage: React.FC = () => {
         }
       }
 
-      dispatch(setActiveSheet(id));
-      if (window.location.href.includes('new')) setValue(1);
+      // Bloqueia se a ficha depende de homebrews que não estão ativos.
+      const missing = sheetForCheck
+        ? getMissingRuntimeSupplements(sheetForCheck)
+        : [];
+      setBlockedMissing(missing);
+
+      if (missing.length === 0) {
+        dispatch(setActiveSheet(id));
+        if (window.location.href.includes('new')) setValue(1);
+      }
       setLoading(false);
     };
 
     loadSheet();
-  }, [id, localSheet, dispatch]);
+  }, [id, localSheet, dispatch, contentSupplements]);
 
   const isDarkTheme = theme.palette.mode === 'dark';
 
@@ -125,14 +140,20 @@ const SheetBuilderPage: React.FC = () => {
   if (loading) {
     return (
       <Box
-        display='flex'
-        justifyContent='center'
-        alignItems='center'
-        minHeight='50vh'
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '50vh',
+        }}
       >
         <CircularProgress size={60} />
       </Box>
     );
+  }
+
+  if (blockedMissing.length > 0) {
+    return <SheetUnavailable count={blockedMissing.length} />;
   }
 
   return (
@@ -151,14 +172,18 @@ const SheetBuilderPage: React.FC = () => {
           </Fab>
         )}
       </FabDiv>
-
       <Breadcrumbs aria-label='breadcrumb' sx={{ p: 2 }}>
         <Link to='/sheets' color='inherit' href='/sheets'>
           Histórico Local
         </Link>
-        <Typography color='text.primary'>Gerenciar Personagem</Typography>
+        <Typography
+          sx={{
+            color: 'text.primary',
+          }}
+        >
+          Gerenciar Personagem
+        </Typography>
       </Breadcrumbs>
-
       <BackgroundBox sx={{ display: value === 0 ? 'block' : 'none' }}>
         <Box sx={{ p: 5 }}>
           <Title>Visualizar Ficha</Title>

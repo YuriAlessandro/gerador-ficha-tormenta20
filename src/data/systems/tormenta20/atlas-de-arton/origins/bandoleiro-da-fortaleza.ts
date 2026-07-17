@@ -23,18 +23,16 @@ const BANDOLEIRO_DA_FORTALEZA: Origin = {
   isRegional: true,
   getItems: (): Items[] => [
     {
-      equipment: 'Anel com símbolo da família',
-      description: 'Vale T$ 200',
+      equipment: 'Adaga',
     },
     {
-      equipment: 'Títulos de terras expirados',
-      description: '+2 em Diplomacia com nobres e burocratas',
+      equipment: 'Gazua',
     },
     {
-      equipment: 'Traje da corte',
+      equipment: 'Manto camuflado',
+      description: 'Urbano',
     },
   ],
-  getMoney: () => 200,
 };
 
 export default BANDOLEIRO_DA_FORTALEZA;

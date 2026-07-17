@@ -6,18 +6,50 @@ export interface ValidationResult {
   errors: string[];
 }
 
+/** Normaliza um pré-requisito para array (`undefined` → `[]`). */
+const prereqList = (
+  prereq: string | string[] | undefined
+): readonly string[] => {
+  if (!prereq) return [];
+  return Array.isArray(prereq) ? prereq : [prereq];
+};
+
+/** Junta uma lista de pré-requisitos para exibir ao usuário. */
+export const formatPrerequisite = (
+  prereq: string | string[] | undefined
+): string => prereqList(prereq).join(' ou ');
+
+/**
+ * Variante de checagem de pré-requisito que opera sobre uma lista de nomes
+ * (em vez de `ItemMod[]`). Útil para reward generators que rastreiam só o
+ * nome da modificação tomada.
+ */
+export const isPrereqMetByNames = (
+  prereq: string | string[] | undefined,
+  appliedNames: readonly string[]
+): boolean => {
+  const list = prereqList(prereq);
+  if (list.length === 0) return true;
+  return list.some((name) => appliedNames.includes(name));
+};
+
+/**
+ * Verifica se ao menos um dos pré-requisitos está presente nas modificações
+ * tomadas. Pré-requisito ausente sempre conta como satisfeito.
+ */
+const isPrereqMet = (
+  prereq: string | string[] | undefined,
+  taken: ItemMod[]
+): boolean => {
+  const list = prereqList(prereq);
+  if (list.length === 0) return true;
+  return list.some((name) => taken.some((t) => t.mod === name));
+};
+
 export const validateModificationRequirement = (
   modification: ItemMod,
   selectedModifications: ItemMod[]
-): boolean => {
-  if (!modification.prerequisite) {
-    return true;
-  }
-
-  return selectedModifications.some(
-    (mod) => mod.mod === modification.prerequisite
-  );
-};
+): boolean => isPrereqMet(modification.prerequisite, selectedModifications);
 
 export const validateModificationCombination = (
   modifications: ItemMod[]
@@ -29,16 +61,15 @@ export const validateModificationCombination = (
   };
 
   modifications.forEach((mod) => {
-    if (mod.prerequisite) {
-      const hasPrerequisite = modifications.some(
-        (m) => m.mod === mod.prerequisite
-      );
-      if (!hasPrerequisite) {
-        result.isValid = false;
-        result.missingPrerequisites.push(mod.prerequisite);
-        result.errors.push(`${mod.mod} requer ${mod.prerequisite}`);
-      }
-    }
+    if (!mod.prerequisite) return;
+    if (isPrereqMet(mod.prerequisite, modifications)) return;
+
+    const list = prereqList(mod.prerequisite);
+    result.isValid = false;
+    result.missingPrerequisites.push(...list);
+    result.errors.push(
+      `${mod.mod} requer ${formatPrerequisite(mod.prerequisite)}`
+    );
   });
 
   return result;
@@ -51,17 +82,18 @@ export const addModificationWithPrerequisites = (
 ): ItemMod[] => {
   const result = [...currentModifications];
 
-  if (modification.prerequisite) {
-    const hasPrerequisite = result.some(
-      (mod) => mod.mod === modification.prerequisite
+  if (
+    modification.prerequisite &&
+    !isPrereqMet(modification.prerequisite, result)
+  ) {
+    // Para OR, adiciona o primeiro do array como escolha padrão. O usuário
+    // pode trocar removendo e selecionando outro pré-requisito antes.
+    const [firstPrereq] = prereqList(modification.prerequisite);
+    const prerequisiteMod = allModifications.find(
+      (mod) => mod.mod === firstPrereq
     );
-    if (!hasPrerequisite) {
-      const prerequisiteMod = allModifications.find(
-        (mod) => mod.mod === modification.prerequisite
-      );
-      if (prerequisiteMod) {
-        result.push(prerequisiteMod);
-      }
+    if (prerequisiteMod) {
+      result.push(prerequisiteMod);
     }
   }
 
@@ -95,9 +127,13 @@ export const removeModificationWithDependents = (
     (mod) => mod.mod !== modificationToRemove.mod
   );
 
-  const dependents = result.filter(
-    (mod) => mod.prerequisite === modificationToRemove.mod
-  );
+  // Remove em cascata só se NENHUM dos pré-requisitos restantes ainda satisfizer.
+  const dependents = result.filter((mod) => {
+    const list = prereqList(mod.prerequisite);
+    if (list.length === 0) return false;
+    if (!list.includes(modificationToRemove.mod)) return false;
+    return !isPrereqMet(mod.prerequisite, result);
+  });
 
   if (dependents.length > 0) {
     return dependents.reduce(

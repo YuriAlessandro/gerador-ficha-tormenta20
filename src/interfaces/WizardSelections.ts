@@ -6,6 +6,7 @@ import { ClassPower } from './Class';
 import { GeneralPower } from './Poderes';
 import { OriginBenefits } from './Origin';
 import { MarketSelections } from './MarketEquipment';
+import Equipment, { DefenseEquipment } from './Equipment';
 import { AttributeVariant } from './Race';
 import { DamageType } from './CharacterSheet';
 import {
@@ -15,6 +16,13 @@ import {
   NaturalWeaponDamageType,
   SpiritEnergyType,
 } from './Companion';
+
+export interface ClassEquipmentSelections {
+  simpleWeapon?: Equipment;
+  martialWeapon?: Equipment;
+  armor?: DefenseEquipment;
+  instrument?: string;
+}
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -35,10 +43,22 @@ export interface LevelUpSelections {
   powerEffectSelections?: ManualPowerSelections;
   // Seleções para habilidades automáticas com pick actions (keyed by ability name)
   abilityEffectSelections?: ManualPowerSelections;
+  // Picks adicionais de ações `chooseFromOptions` que concedem novas escolhas ao
+  // subir de nível (config `levelUp` na ação). Indexado por `optionKey` → nomes
+  // das opções escolhidas NESTE nível. São anexados a `sheet.optionChoices` para
+  // que o recálculo final reproduza o conjunto acumulado.
+  levelUpOptionPicks?: Record<string, string[]>;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
-  // Truque do parceiro (Treinador nos níveis 4, 7, 10, 13, 16, 19)
-  companionTrick?: CompanionTrick;
+  // Truques do parceiro (Treinador). Pode conter múltiplas entradas:
+  // - 'auto': truque automático nos níveis 4/7/10/13/16/19 (e 5/11 com Treino Intensivo)
+  // - 'power': truque adicional concedido pelo poder "Ensinar Truque"
+  companionTrickSelections?: Array<{
+    companionIndex: number;
+    trick: CompanionTrick;
+    spell?: Spell;
+    reason: 'auto' | 'power';
+  }>;
 
   // Multiclasse: criação do Melhor Amigo ao pegar o 1º nível de Treinador
   companionName?: string;
@@ -69,8 +89,22 @@ export interface WizardSelections {
   characterGender?: 'Masculino' | 'Feminino' | 'Outro';
   characterImageUrl?: string;
 
+  // Conjunto de atributos raciais escolhido quando a raça tem dimorfismo
+  // sexual (ex: Nagah) e o gênero é 'Outro'
+  dimorphismChoice?: 'Masculino' | 'Feminino';
+
   // Base attribute values (before racial modifiers)
   baseAttributes?: Record<Atributo, number>;
+
+  // Attribute generation method chosen in the wizard (default 'free' when absent)
+  attributeMethod?: 'free' | 'dice' | 'points';
+
+  // The 6 rolled modifiers (method 'dice'), kept to preserve the roll while distributing
+  attributeDicePool?: number[];
+
+  // Pool index assigned to each attribute (method 'dice'), aligned to Object.values(Atributo).
+  // null = not yet assigned. Source of truth for the dice distribution UI.
+  attributeDiceAssignment?: (number | null)[];
 
   // Race attribute variant selection (for races with multiple attribute options like Kallyanach)
   attributeVariant?: AttributeVariant;
@@ -134,6 +168,9 @@ export interface WizardSelections {
   // Qareen element selection (determines elemental resistance)
   qareenElement?: DamageType;
 
+  // Moreau Coruja Sapiência: 1st-circle Divination spell name
+  moreauSapienciaSpell?: string;
+
   // Osteon/Soterrado old race selection for Memória Póstuma
   osteonOldRace?: string;
 
@@ -147,6 +184,9 @@ export interface WizardSelections {
 
   // Propósito de Criação (for Golem races that don't have origins)
   propositoCriacaoPower?: GeneralPower;
+
+  // Equipamento inicial da classe escolhido no step "Equipamento Inicial"
+  classEquipment?: ClassEquipmentSelections;
 
   // Market step selections (equipment and money)
   marketSelections?: MarketSelections;

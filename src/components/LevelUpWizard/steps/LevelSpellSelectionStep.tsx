@@ -7,11 +7,15 @@ import {
   CardContent,
   Chip,
   Grid,
-  TextField,
-  InputAdornment,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import { Spell } from '@/interfaces/Spells';
+import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
+import {
+  SpellFilterState,
+  EMPTY_SPELL_FILTERS,
+  deriveSpellFilterOptions,
+  applySpellFilters,
+} from '@/components/SpellPicker/spellFilters';
 
 interface LevelSpellSelectionStepProps {
   availableSpells: Spell[];
@@ -32,7 +36,14 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
   crossTraditionSpellNames,
   crossTraditionLimit,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<SpellFilterState>(EMPTY_SPELL_FILTERS);
+  const handleFilterChange = (patch: Partial<SpellFilterState>) =>
+    setFilters((prev) => ({ ...prev, ...patch }));
+
+  const filterOptions = useMemo(
+    () => deriveSpellFilterOptions(availableSpells),
+    [availableSpells]
+  );
 
   const isSpellSelected = (spell: Spell): boolean =>
     selectedSpells.some((s) => s.nome === spell.nome);
@@ -50,29 +61,29 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
     crossTraditionLimit !== undefined &&
     selectedCrossTraditionCount >= crossTraditionLimit;
 
-  // Filter spells by search query
-  const filteredSpells = useMemo(() => {
-    if (!searchQuery) return availableSpells;
+  const filteredSpells = useMemo(
+    () => applySpellFilters(availableSpells, filters),
+    [availableSpells, filters]
+  );
 
-    const lowerQuery = searchQuery.toLowerCase();
-    return availableSpells.filter((spell) => {
-      const name = spell.nome.toLowerCase();
-      const school = spell.school.toLowerCase();
-      const description = spell.description.toLowerCase();
-      return (
-        name.includes(lowerQuery) ||
-        school.includes(lowerQuery) ||
-        description.includes(lowerQuery)
-      );
-    });
-  }, [availableSpells, searchQuery]);
+  const filtersActive =
+    filters.search !== '' ||
+    filters.circle !== 'all' ||
+    filters.school !== 'all' ||
+    filters.execution !== 'all';
 
   return (
     <Box>
       <Typography variant='h6' gutterBottom>
         Seleção de Magias - Até o {spellCircle}º Círculo
       </Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 1,
+        }}
+      >
         Escolha {requiredCount} {requiredCount === 1 ? 'magia' : 'magias'} de
         até o {spellCircle}º círculo.
       </Typography>
@@ -84,41 +95,51 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
         {selectedSpells.length} de {requiredCount}{' '}
         {requiredCount === 1 ? 'magia selecionada' : 'magias selecionadas'}
       </Typography>
-
       {availableSpells.length === 0 && (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Nenhuma magia disponível neste círculo. Você já conhece todas as
           magias disponíveis ou não há magias neste círculo para sua classe.
         </Typography>
       )}
-
       {availableSpells.length > 0 && (
         <>
-          {/* Search field */}
-          <TextField
-            fullWidth
-            size='small'
-            placeholder='Buscar magias por nome, escola ou descrição...'
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+          <SpellAdvancedFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            options={filterOptions}
+            visibleFilters={{
+              circle: true,
+              school: true,
+              execution: true,
             }}
-            sx={{ mb: 2 }}
+            searchPlaceholder='Buscar magias por nome, escola ou descrição...'
           />
 
-          {filteredSpells.length === 0 && searchQuery && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
-              Nenhuma magia encontrada para &quot;{searchQuery}&quot;
+          {filteredSpells.length === 0 && filtersActive && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
+              Nenhuma magia encontrada com os filtros atuais.
             </Typography>
           )}
 
-          {searchQuery && filteredSpells.length > 0 && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+          {filtersActive && filteredSpells.length > 0 && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               {filteredSpells.length}{' '}
               {filteredSpells.length === 1
                 ? 'magia encontrada'
@@ -127,7 +148,6 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
           )}
         </>
       )}
-
       {crossTraditionSpellNames &&
         crossTraditionSpellNames.size > 0 &&
         crossTraditionLimit && (
@@ -137,7 +157,6 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
             {isCrossTraditionLimitReached && ' (Limite atingido)'}
           </Alert>
         )}
-
       <Grid container spacing={2}>
         {filteredSpells.map((spell) => {
           const selected = isSpellSelected(spell);
@@ -208,23 +227,29 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
                   <Box sx={{ mb: 1 }}>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block' }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                      }}
                     >
                       {spell.school}
                     </Typography>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block' }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                      }}
                     >
                       {spell.execucao} • {spell.alcance}
                       {spell.alvo && ` • ${spell.alvo}`}
                     </Typography>
                     <Typography
                       variant='caption'
-                      color='text.secondary'
-                      sx={{ display: 'block' }}
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                      }}
                     >
                       Duração: {spell.duracao}
                     </Typography>
@@ -232,8 +257,8 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
 
                   <Typography
                     variant='body2'
-                    color='text.secondary'
                     sx={{
+                      color: 'text.secondary',
                       display: '-webkit-box',
                       WebkitLineClamp: 3,
                       WebkitBoxOrient: 'vertical',
@@ -249,12 +274,14 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
           );
         })}
       </Grid>
-
       {!isComplete && filteredSpells.length > 0 && (
         <Typography
           variant='body2'
-          color='warning.main'
-          sx={{ mt: 2, textAlign: 'center' }}
+          sx={{
+            color: 'warning.main',
+            mt: 2,
+            textAlign: 'center',
+          }}
         >
           {requiredCount - selectedSpells.length > 0
             ? `Selecione ${requiredCount - selectedSpells.length} ${

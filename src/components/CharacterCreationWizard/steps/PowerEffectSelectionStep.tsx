@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
   Alert,
+  Button,
+  Chip,
+  Stack,
   FormControl,
   FormGroup,
   FormControlLabel,
@@ -29,6 +32,8 @@ import {
 } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
+import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
+import GolpePessoalBuilder from '@/components/SheetResult/EditDrawers/GolpePessoalBuilder';
 import Divindade from '@/interfaces/Divindade';
 import {
   getPowerSelectionRequirements,
@@ -46,6 +51,7 @@ import { normalizeSearch } from '@/functions/stringUtils';
 import VersatilSelectionField from './VersatilSelectionField';
 import DeformidadeSelectionField from './DeformidadeSelectionField';
 import MemoriaPostumaSelectionField from './MemoriaPostumaSelectionField';
+import YidishanNaturezaOrganicaSelectionField from './YidishanNaturezaOrganicaSelectionField';
 import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import MashinSelectionField from './MashinSelectionField';
 
@@ -97,6 +103,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     {}
   );
 
+  // Nome do poder cujo construtor de Golpe Pessoal está aberto (null = fechado)
+  const [golpePessoalDialogPower, setGolpePessoalDialogPower] = useState<
+    string | null
+  >(null);
+
   // Helper to update search query for a specific requirement
   const updateSearchQuery = (requirementIndex: number, query: string) => {
     setSearchQueries((prev) => ({
@@ -126,6 +137,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'humanoVersatil'
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
+        | 'yidishanNaturezaOrganica'
         | 'chooseFromOptions'
         | 'almaLivreSelectClass'
         | 'mashinChassi';
@@ -222,20 +234,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     });
   }
 
-  // If no requirements, show message
-  if (allRequirements.length === 0) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
-          Nenhum dos seus poderes requer seleção manual de efeitos neste nível.
-        </Typography>
-        <Alert severity='success'>
-          Você pode continuar para o próximo passo.
-        </Alert>
-      </Box>
-    );
-  }
-
   // Use actual sheet if provided, otherwise create mock sheet
   const sheetForFiltering =
     actualSheet ||
@@ -247,12 +245,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         subname: arcanistaSubtype,
         proficiencias: classe.proficiencias || [],
         abilities: classe.abilities || [],
+        // Necessário para filtrar poderes de classe (ex.: origem "Futura Lenda")
+        powers: classe.powers || [],
         spellPath: classe.spellPath,
       },
-      raca: {
-        name: race.name,
-        chassis: race.chassis,
-      },
+      raca: race,
       generalPowers: [],
       classPowers: [],
       origin: undefined,
@@ -268,6 +265,148 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       },
       sheetActionHistory: [],
     } as unknown as CharacterSheet);
+
+  // Auto-select for requirements with a single available option and pick === 1.
+  // Covers race abilities like Couraça Rúbea/Disforme (Kaijin) that use
+  // `getGeneralPower` with a single fake power: the user shouldn't have to
+  // click a radio to confirm the only available choice.
+  useEffect(() => {
+    const AUTO_SELECTABLE_TYPES = new Set([
+      'getGeneralPower',
+      'getClassPower',
+      'learnSkill',
+      'addProficiency',
+      'learnSpell',
+      'selectWeaponSpecialization',
+      'selectFamiliar',
+      'selectAnimalTotem',
+    ]);
+
+    const updates: ManualPowerSelections = {};
+
+    allRequirements.forEach((entry) => {
+      entry.requirements.forEach((req) => {
+        if (!AUTO_SELECTABLE_TYPES.has(req.type)) return;
+        if (req.pick !== 1) return;
+
+        const currentSelections = selections[entry.powerName] || {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const options: any[] = getFilteredAvailableOptions(
+          req,
+          sheetForFiltering,
+          supplements
+        );
+
+        if (options.length !== 1) return;
+
+        const onlyOption = options[0];
+
+        switch (req.type) {
+          case 'getGeneralPower':
+          case 'getClassPower': {
+            if (currentSelections.powers && currentSelections.powers.length > 0)
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              powers: [onlyOption as GeneralPower],
+            };
+            break;
+          }
+          case 'learnSkill': {
+            if (currentSelections.skills && currentSelections.skills.length > 0)
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              skills: [onlyOption as string],
+            };
+            break;
+          }
+          case 'addProficiency': {
+            if (
+              currentSelections.proficiencies &&
+              currentSelections.proficiencies.length > 0
+            )
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              proficiencies: [onlyOption as string],
+            };
+            break;
+          }
+          case 'learnSpell': {
+            if (currentSelections.spells && currentSelections.spells.length > 0)
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              spells: [onlyOption as Spell],
+            };
+            break;
+          }
+          case 'selectWeaponSpecialization': {
+            if (
+              currentSelections.weapons &&
+              currentSelections.weapons.length > 0
+            )
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              weapons: [onlyOption as string],
+            };
+            break;
+          }
+          case 'selectFamiliar': {
+            if (
+              currentSelections.familiars &&
+              currentSelections.familiars.length > 0
+            )
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              familiars: [onlyOption as string],
+            };
+            break;
+          }
+          case 'selectAnimalTotem': {
+            if (
+              currentSelections.animalTotems &&
+              currentSelections.animalTotems.length > 0
+            )
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              animalTotems: [onlyOption as string],
+            };
+            break;
+          }
+          default:
+            break;
+        }
+      });
+    });
+
+    if (Object.keys(updates).length > 0) {
+      onChange({ ...selections, ...updates });
+    }
+  }, [race.name, classe.name, origin?.name, deity?.name, selectedDeityPowers]);
+
+  // If no requirements, show message
+  if (allRequirements.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
+          Nenhum dos seus poderes requer seleção manual de efeitos neste nível.
+        </Typography>
+        <Alert severity='success'>
+          Você pode continuar para o próximo passo.
+        </Alert>
+      </Box>
+    );
+  }
 
   // Helper to get name from item (string or object)
   const getItemName = (item: string | object): string => {
@@ -331,6 +470,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         updateKey = 'proficiencies';
         break;
       case 'getGeneralPower':
+      case 'getClassPower':
         currentItems = powerSelections.powers || [];
         updateKey = 'powers';
         break;
@@ -410,6 +550,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         currentItems = powerSelections.proficiencies || [];
         break;
       case 'getGeneralPower':
+      case 'getClassPower':
         currentItems = powerSelections.powers || [];
         break;
       case 'learnSpell':
@@ -455,6 +596,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       case 'addProficiency':
         return powerSelections.proficiencies?.length || 0;
       case 'getGeneralPower':
+      case 'getClassPower':
         return powerSelections.powers?.length || 0;
       case 'learnSpell':
       case 'learnAnySpellFromHighestCircle':
@@ -469,6 +611,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         return powerSelections.animalTotems?.length || 0;
       case 'chooseFromOptions':
         return powerSelections.chosenOption?.length || 0;
+      case 'buildGolpePessoal':
+        return powerSelections.golpePessoalBuild ? 1 : 0;
       default:
         return 0;
     }
@@ -494,6 +638,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'humanoVersatil'
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
+        | 'yidishanNaturezaOrganica'
         | 'chooseFromOptions'
         | 'almaLivreSelectClass'
         | 'mashinChassi';
@@ -506,6 +651,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         schools?: string[];
         optionKey?: string;
         linkedTo?: string;
+        minLevel?: number;
+        ignoreOnlyLevelRequirement?: boolean;
       };
     },
     requirementIndex: number
@@ -533,9 +680,64 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     const currentCount = getSelectionCount(powerName, type);
     const powerSelections = selections[powerName] || {};
 
+    // Golpe Pessoal usa um construtor próprio (Dialog), por isso seu requisito
+    // não tem opções em `availableOptions`. Renderiza o botão/resumo antes do
+    // early-return de "opções vazias".
+    if (type === 'buildGolpePessoal') {
+      const currentBuild = powerSelections.golpePessoalBuild;
+      return (
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
+          <Typography variant='subtitle1' gutterBottom>
+            {label}
+          </Typography>
+          {currentBuild ? (
+            <Alert
+              severity='success'
+              action={
+                <Button
+                  color='inherit'
+                  size='small'
+                  onClick={() => setGolpePessoalDialogPower(powerName)}
+                >
+                  Editar
+                </Button>
+              }
+            >
+              <Typography variant='body2'>
+                {currentBuild.description}
+              </Typography>
+            </Alert>
+          ) : (
+            <>
+              <Alert severity='warning' sx={{ mb: 1 }}>
+                Monte seu Golpe Pessoal escolhendo a arma e os efeitos do
+                ataque.
+              </Alert>
+              <Button
+                variant='contained'
+                onClick={() => setGolpePessoalDialogPower(powerName)}
+              >
+                Construir Golpe Pessoal
+              </Button>
+            </>
+          )}
+        </Box>
+      );
+    }
+
     if (allAvailableOptions.length === 0) {
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
@@ -550,11 +752,22 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     // Render familiar selection specially with descriptions
     if (type === 'selectFamiliar') {
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
-          <Typography variant='caption' color='text.secondary' display='block'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+            }}
+          >
             Selecionados: {currentCount} / {pick}
           </Typography>
           <FormControl component='fieldset' fullWidth>
@@ -576,7 +789,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                     label={
                       <Box>
                         <Typography variant='body1'>{familiar.name}</Typography>
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {familiar.description}
                         </Typography>
                       </Box>
@@ -605,11 +823,22 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     // Render animal totem selection specially with descriptions
     if (type === 'selectAnimalTotem') {
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
-          <Typography variant='caption' color='text.secondary' display='block'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+            }}
+          >
             Selecionados: {currentCount} / {pick}
           </Typography>
           <FormControl component='fieldset' fullWidth>
@@ -631,7 +860,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                     label={
                       <Box>
                         <Typography variant='body1'>{totem.name}</Typography>
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {totem.description}
                         </Typography>
                       </Box>
@@ -657,56 +891,529 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
     }
 
-    // Render chooseFromOptions with radio buttons (name + description)
+    // Render chooseFromOptions (radio para 1 escolha; checkbox/stepper para N)
     if (type === 'chooseFromOptions') {
-      const options = availableOptions as Array<{ name: string; text: string }>;
-      return (
-        <Box key={requirementIndex} mb={2}>
-          <Typography variant='subtitle1' gutterBottom>
-            {label}
-          </Typography>
-          <FormControl component='fieldset' fullWidth>
-            <RadioGroup
-              value={powerSelections.chosenOption?.[0] || ''}
-              onChange={(e) =>
-                handleSelection(powerName, type, e.target.value, true, pick)
-              }
-            >
-              {options.map((option) => {
-                const isSelected =
-                  powerSelections.chosenOption?.[0] === option.name;
-                return (
-                  <FormControlLabel
-                    key={option.name}
-                    value={option.name}
-                    control={<Radio />}
-                    label={
-                      <Box>
-                        <Typography variant='body1' fontWeight='bold'>
-                          {option.name}
-                        </Typography>
-                        <Typography variant='body2' color='text.secondary'>
-                          {option.text}
-                        </Typography>
-                      </Box>
+      const options = availableOptions as Array<{
+        name: string;
+        text: string;
+        repeatable?: boolean;
+        grantedSpellsAction?:
+          | { type: 'learnSpell'; availableSpells: Spell[]; pick: number }
+          | {
+              type: 'learnAnySpellFromHighestCircle';
+              pick: number;
+              allowedType: 'Arcane' | 'Divine' | 'Both';
+              schools?: string[];
+            };
+        grantedPowersAction?: {
+          type: 'getGeneralPower';
+          availablePowers: GeneralPower[];
+          pick: number;
+        };
+      }>;
+      const chosen = powerSelections.chosenOption || [];
+      const isMulti = pick > 1 || options.some((o) => o.repeatable);
+
+      // Para opções escolhidas que concedem magias por ESCOLHA do jogador,
+      // renderiza um seletor de magias (uma seção por opção escolhida). As
+      // magias selecionadas ficam em `optionSpells[nomeDaOpção]`.
+      const setOptionSpells = (optionName: string, spells: Spell[]) =>
+        onChange({
+          ...selections,
+          [powerName]: {
+            ...powerSelections,
+            optionSpells: {
+              ...(powerSelections.optionSpells || {}),
+              [optionName]: spells,
+            },
+          },
+        });
+
+      const optionSpellPickers = (() => {
+        const optsWithSpells = options.filter(
+          (o) => o.grantedSpellsAction && chosen.includes(o.name)
+        );
+        if (optsWithSpells.length === 0) return null;
+        return (
+          <Stack spacing={1.5} sx={{ mt: 2 }}>
+            {optsWithSpells.map((o) => {
+              const action = o.grantedSpellsAction;
+              if (!action) return null;
+              const req: PowerSelectionRequirement =
+                action.type === 'learnSpell'
+                  ? {
+                      type: 'learnSpell',
+                      availableOptions: action.availableSpells,
+                      pick: action.pick,
+                      label: '',
                     }
+                  : {
+                      type: 'learnAnySpellFromHighestCircle',
+                      availableOptions: [],
+                      pick: action.pick,
+                      label: '',
+                      metadata: {
+                        allowedType: action.allowedType,
+                        schools: action.schools,
+                      },
+                    };
+              const pool = getFilteredAvailableOptions(
+                req,
+                sheetForFiltering,
+                supplements
+              ) as Spell[];
+              const selectedSpells =
+                powerSelections.optionSpells?.[o.name] || [];
+              const max = action.pick;
+              const searchKey = `optspell-${powerName}-${o.name}`;
+              const query = searchQueries[searchKey as unknown as number] || '';
+              const displayed = filterOptions(pool, query);
+              const toggle = (spell: Spell, checked: boolean) => {
+                const cur = powerSelections.optionSpells?.[o.name] || [];
+                if (checked) {
+                  if (cur.length >= max) return;
+                  setOptionSpells(o.name, [...cur, spell]);
+                } else {
+                  setOptionSpells(
+                    o.name,
+                    cur.filter((s) => getItemName(s) !== getItemName(spell))
+                  );
+                }
+              };
+              return (
+                <Paper
+                  key={`optspell-${o.name}`}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    bgcolor: 'action.hover',
+                    borderLeft: 3,
+                    borderColor: 'secondary.main',
+                  }}
+                >
+                  <Stack
+                    direction='row'
                     sx={{
-                      ml: 0,
-                      py: 1,
-                      px: 1,
-                      borderRadius: 1,
-                      transition: 'background-color 0.2s',
-                      ...(isSelected && {
-                        bgcolor: 'action.selected',
-                        borderLeft: 3,
-                        borderColor: 'primary.main',
-                      }),
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                     }}
-                  />
-                );
-              })}
-            </RadioGroup>
-          </FormControl>
+                  >
+                    <Typography variant='subtitle2' color='secondary'>
+                      ✨ {o.name}: escolha {max} magia(s)
+                    </Typography>
+                    <Chip
+                      size='small'
+                      color={
+                        selectedSpells.length >= max ? 'success' : 'default'
+                      }
+                      label={`${selectedSpells.length} / ${max}`}
+                    />
+                  </Stack>
+                  {pool.length > 15 && (
+                    <TextField
+                      fullWidth
+                      size='small'
+                      placeholder='Buscar magia por nome...'
+                      value={query}
+                      onChange={(e) =>
+                        setSearchQueries((prev) => ({
+                          ...prev,
+                          [searchKey]: e.target.value,
+                        }))
+                      }
+                      sx={{ my: 1 }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+                  )}
+                  {displayed.length === 0 ? (
+                    <Alert severity='info' sx={{ mt: 1 }}>
+                      {query
+                        ? `Nenhuma magia encontrada para "${query}"`
+                        : 'Você já conhece todas as magias disponíveis.'}
+                    </Alert>
+                  ) : (
+                    <Stack sx={{ mt: 1 }}>
+                      {displayed.map((spell) => {
+                        const spellName = getItemName(spell);
+                        const isChecked = selectedSpells.some(
+                          (s) => getItemName(s) === spellName
+                        );
+                        const atLimit = selectedSpells.length >= max;
+                        return (
+                          <FormControlLabel
+                            key={spellName}
+                            control={
+                              <Checkbox
+                                checked={isChecked}
+                                disabled={!isChecked && atLimit}
+                                onChange={(e) =>
+                                  toggle(spell, e.target.checked)
+                                }
+                              />
+                            }
+                            label={
+                              <Typography variant='body2'>
+                                {spellName}
+                              </Typography>
+                            }
+                          />
+                        );
+                      })}
+                    </Stack>
+                  )}
+                </Paper>
+              );
+            })}
+          </Stack>
+        );
+      })();
+
+      // Opções escolhidas que concedem poderes por ESCOLHA do jogador → seletor
+      // de poderes (uma seção por opção escolhida). Guardado em
+      // `optionPowers[nomeDaOpção]`.
+      const setOptionPowers = (optionName: string, powers: GeneralPower[]) =>
+        onChange({
+          ...selections,
+          [powerName]: {
+            ...powerSelections,
+            optionPowers: {
+              ...(powerSelections.optionPowers || {}),
+              [optionName]: powers,
+            },
+          },
+        });
+
+      const optionPowerPickers = (() => {
+        const optsWithPowers = options.filter(
+          (o) => o.grantedPowersAction && chosen.includes(o.name)
+        );
+        if (optsWithPowers.length === 0) return null;
+        return (
+          <Stack spacing={1.5} sx={{ mt: 2 }}>
+            {optsWithPowers.map((o) => {
+              const action = o.grantedPowersAction;
+              if (!action) return null;
+              const pool = action.availablePowers;
+              const selectedPowers =
+                powerSelections.optionPowers?.[o.name] || [];
+              const max = action.pick;
+              const searchKey = `optpower-${powerName}-${o.name}`;
+              const query = searchQueries[searchKey as unknown as number] || '';
+              const displayed = filterOptions(pool, query) as GeneralPower[];
+              const toggle = (power: GeneralPower, checked: boolean) => {
+                const cur = powerSelections.optionPowers?.[o.name] || [];
+                if (checked) {
+                  if (cur.length >= max) return;
+                  setOptionPowers(o.name, [...cur, power]);
+                } else {
+                  setOptionPowers(
+                    o.name,
+                    cur.filter((p) => getItemName(p) !== getItemName(power))
+                  );
+                }
+              };
+              return (
+                <Paper
+                  key={`optpower-${o.name}`}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    bgcolor: 'action.hover',
+                    borderLeft: 3,
+                    borderColor: 'primary.main',
+                  }}
+                >
+                  <Stack
+                    direction='row'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant='subtitle2' color='primary'>
+                      ⚔️ {o.name}: escolha {max} poder(es)
+                    </Typography>
+                    <Chip
+                      size='small'
+                      color={
+                        selectedPowers.length >= max ? 'success' : 'default'
+                      }
+                      label={`${selectedPowers.length} / ${max}`}
+                    />
+                  </Stack>
+                  {pool.length > 15 && (
+                    <TextField
+                      fullWidth
+                      size='small'
+                      placeholder='Buscar poder por nome...'
+                      value={query}
+                      onChange={(e) =>
+                        setSearchQueries((prev) => ({
+                          ...prev,
+                          [searchKey]: e.target.value,
+                        }))
+                      }
+                      sx={{ my: 1 }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+                  )}
+                  {displayed.length === 0 ? (
+                    <Alert severity='info' sx={{ mt: 1 }}>
+                      {query
+                        ? `Nenhum poder encontrado para "${query}"`
+                        : 'Nenhum poder disponível.'}
+                    </Alert>
+                  ) : (
+                    <Stack sx={{ mt: 1 }}>
+                      {displayed.map((power) => {
+                        const pName = getItemName(power);
+                        const isChecked = selectedPowers.some(
+                          (p) => getItemName(p) === pName
+                        );
+                        const atLimit = selectedPowers.length >= max;
+                        return (
+                          <FormControlLabel
+                            key={pName}
+                            control={
+                              <Checkbox
+                                checked={isChecked}
+                                disabled={!isChecked && atLimit}
+                                onChange={(e) =>
+                                  toggle(power, e.target.checked)
+                                }
+                              />
+                            }
+                            label={
+                              <Typography variant='body2'>{pName}</Typography>
+                            }
+                          />
+                        );
+                      })}
+                    </Stack>
+                  )}
+                </Paper>
+              );
+            })}
+          </Stack>
+        );
+      })();
+
+      // Caso simples: 1 escolha → radio (comportamento original).
+      if (!isMulti) {
+        return (
+          <Box
+            key={requirementIndex}
+            sx={{
+              mb: 2,
+            }}
+          >
+            <Typography variant='subtitle1' gutterBottom>
+              {label}
+            </Typography>
+            <FormControl component='fieldset' fullWidth>
+              <RadioGroup
+                value={chosen[0] || ''}
+                onChange={(e) =>
+                  handleSelection(powerName, type, e.target.value, true, pick)
+                }
+              >
+                {options.map((option) => {
+                  const isSelected = chosen[0] === option.name;
+                  return (
+                    <FormControlLabel
+                      key={option.name}
+                      value={option.name}
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            {option.name}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
+                            {option.text}
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{
+                        ml: 0,
+                        py: 1,
+                        px: 1,
+                        borderRadius: 1,
+                        ...(isSelected && {
+                          bgcolor: 'action.selected',
+                          borderLeft: 3,
+                          borderColor: 'primary.main',
+                        }),
+                      }}
+                    />
+                  );
+                })}
+              </RadioGroup>
+            </FormControl>
+            {optionSpellPickers}
+            {optionPowerPickers}
+          </Box>
+        );
+      }
+
+      // Multi-pick: o jogador faz `pick` seleções; opções repetíveis usam
+      // stepper, as demais usam checkbox. `chosenOption` guarda os nomes (com
+      // repetição). O total não pode exceder `pick`.
+      const total = chosen.length;
+      const countOf = (name: string) => chosen.filter((n) => n === name).length;
+      const setChosen = (next: string[]) =>
+        onChange({
+          ...selections,
+          [powerName]: { ...powerSelections, chosenOption: next },
+        });
+      const addOne = (name: string) => {
+        if (total < pick) setChosen([...chosen, name]);
+      };
+      const removeOne = (name: string) => {
+        const i = chosen.indexOf(name);
+        if (i >= 0) {
+          const next = [...chosen];
+          next.splice(i, 1);
+          setChosen(next);
+        }
+      };
+
+      return (
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
+          <Stack
+            direction='row'
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <Typography variant='subtitle1' gutterBottom>
+              {label}
+            </Typography>
+            <Chip
+              size='small'
+              color={total >= pick ? 'success' : 'default'}
+              label={`${total} / ${pick}`}
+            />
+          </Stack>
+          <Stack spacing={1}>
+            {options.map((option) => {
+              const count = countOf(option.name);
+              const atLimit = total >= pick;
+              return (
+                <Box
+                  key={option.name}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1,
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: count > 0 ? 'action.selected' : undefined,
+                  }}
+                >
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {option.name}
+                      {option.repeatable && (
+                        <Chip
+                          size='small'
+                          label='repetível'
+                          sx={{ ml: 1, height: 18, fontSize: 10 }}
+                        />
+                      )}
+                    </Typography>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {option.text}
+                    </Typography>
+                  </Box>
+                  {option.repeatable ? (
+                    <Stack
+                      direction='row'
+                      spacing={0.5}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Button
+                        size='small'
+                        variant='outlined'
+                        disabled={count === 0}
+                        onClick={() => removeOne(option.name)}
+                      >
+                        −
+                      </Button>
+                      <Typography sx={{ minWidth: 20, textAlign: 'center' }}>
+                        {count}
+                      </Typography>
+                      <Button
+                        size='small'
+                        variant='outlined'
+                        disabled={atLimit}
+                        onClick={() => addOne(option.name)}
+                      >
+                        +
+                      </Button>
+                    </Stack>
+                  ) : (
+                    <Checkbox
+                      checked={count > 0}
+                      disabled={count === 0 && atLimit}
+                      onChange={(e) =>
+                        e.target.checked
+                          ? addOne(option.name)
+                          : removeOne(option.name)
+                      }
+                    />
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+          {optionSpellPickers}
+          {optionPowerPickers}
         </Box>
       );
     }
@@ -732,7 +1439,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       });
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <VersatilSelectionField
             availableSkills={availableSkillsForVersatil}
             availablePowers={availablePowersForVersatil}
@@ -767,7 +1479,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       });
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <DeformidadeSelectionField
             availableSkills={availableSkillsForDeformidade}
             availablePowers={availableTormentaPowers}
@@ -814,11 +1531,71 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <MemoriaPostumaSelectionField
             availableRaces={availableRacesForMP}
             availableSkills={availableSkillsForMP}
             availablePowers={availablePowersForMP}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // Render Natureza Orgânica (Yidishan) selection with custom component
+    if (type === 'yidishanNaturezaOrganica') {
+      const availableSkillsForYNO = allAvailableOptions as unknown as Skill[];
+
+      // Get available general powers (filtered by requirements/existing)
+      const allPowersForYNO = dataRegistry.getPowersBySupplements(supplements);
+      const allGeneralPowersForYNO = Object.values(allPowersForYNO).flat();
+      const existingGeneralPowersForYNO = sheetForFiltering.generalPowers || [];
+      const availablePowersForYNO = allGeneralPowersForYNO.filter((power) => {
+        const isRepeatedPower = existingGeneralPowersForYNO.find(
+          (existingPower) => existingPower.name === power.name
+        );
+        if (isRepeatedPower) {
+          return power.allowSeveralPicks;
+        }
+        return isPowerAvailable(sheetForFiltering, power);
+      });
+
+      // Available previous races: humanoids only (per book) — exclude Yidishan
+      // itself and other non-humanoid races
+      const allRacesForYNO = dataRegistry.getRacesBySupplements(supplements);
+      const excludedRaceNamesForYNO = [
+        'Golem',
+        'Golem Desperto',
+        'Osteon',
+        'Soterrado',
+        'Yidishan',
+      ];
+      const availableRacesForYNO = allRacesForYNO.filter(
+        (r) => !excludedRaceNamesForYNO.includes(r.name)
+      );
+
+      return (
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
+          <YidishanNaturezaOrganicaSelectionField
+            availableRaces={availableRacesForYNO}
+            availableSkills={availableSkillsForYNO}
+            availablePowers={availablePowersForYNO}
             selections={powerSelections}
             onChange={(newSelections) => {
               onChange({
@@ -839,7 +1616,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <AlmaLivreSelectionField
             availableClasses={availableClassesForAL}
             supplements={supplements}
@@ -861,7 +1643,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         allAvailableOptions as unknown as Skill[];
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <MashinSelectionField
             availableSkills={availableSkillsForMashin}
             availableMarvels={MECHANICAL_MARVELS}
@@ -939,7 +1726,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <Typography variant='subtitle1' gutterBottom>
             {nestedReq.label} (de {nestedPower.name})
           </Typography>
-
           {filteredSpells.length > 15 && (
             <TextField
               fullWidth
@@ -952,17 +1738,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                   [nestedSearchKey]: e.target.value,
                 }))
               }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
               sx={{ mb: 2 }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
           )}
-
           {displayedSpells.length === 0 ? (
             <Alert severity='info' sx={{ mt: 1 }}>
               {nestedSearchQuery
@@ -1001,7 +1788,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         <Box>
                           <Typography variant='body1'>{spellName}</Typography>
                           {spell.description && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {spell.description.length > 150
                                 ? `${spell.description.substring(0, 150)}...`
                                 : spell.description}
@@ -1044,6 +1836,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             firstItem = powerSelections.proficiencies?.[0];
             break;
           case 'getGeneralPower':
+          case 'getClassPower':
             firstItem = powerSelections.powers?.[0];
             break;
           case 'learnSpell':
@@ -1083,11 +1876,15 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
 
       return (
-        <Box key={requirementIndex} mb={2}>
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
-
           {shouldShowSearch && (
             <>
               <TextField
@@ -1098,21 +1895,25 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                 onChange={(e) =>
                   updateSearchQuery(requirementIndex, e.target.value)
                 }
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
                 sx={{ mb: 2 }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
 
               {availableOptions.length === 0 && searchQuery && (
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                  }}
                 >
                   Nenhuma opção encontrada para &quot;{searchQuery}&quot;
                 </Typography>
@@ -1121,8 +1922,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               {searchQuery && availableOptions.length > 0 && (
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                  }}
                 >
                   {availableOptions.length}{' '}
                   {availableOptions.length === 1
@@ -1132,7 +1935,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               )}
             </>
           )}
-
           <FormControl component='fieldset' fullWidth>
             <RadioGroup
               value={getValue()}
@@ -1205,7 +2007,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         <Box>
                           <Typography variant='body1'>{optionName}</Typography>
                           {optionDescription && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {optionDescription}
                             </Typography>
                           )}
@@ -1231,7 +2038,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               })}
             </RadioGroup>
           </FormControl>
-
           {/* Render nested spell requirements if selected power has them */}
           {selectedPowerForNested &&
             nestedSpellReqs.map((nestedReq) =>
@@ -1243,20 +2049,29 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
     // Multiple selection - use checkboxes
     return (
-      <Box key={requirementIndex} mb={2}>
+      <Box
+        key={requirementIndex}
+        sx={{
+          mb: 2,
+        }}
+      >
         <Typography variant='subtitle1' gutterBottom>
           {label}
         </Typography>
-        <Typography variant='caption' color='text.secondary' display='block'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+            display: 'block',
+          }}
+        >
           Selecionados: {currentCount} / {effectivePick}
         </Typography>
-
         {effectivePick < pick && (
           <Alert severity='info' sx={{ mb: 1 }}>
             Você já possui {pick - effectivePick} proficiência(s) desta seleção.
           </Alert>
         )}
-
         {shouldShowSearch && (
           <>
             <TextField
@@ -1267,24 +2082,38 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               onChange={(e) =>
                 updateSearchQuery(requirementIndex, e.target.value)
               }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
               sx={{ mt: 1, mb: 2 }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
 
             {availableOptions.length === 0 && searchQuery && (
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 Nenhuma opção encontrada para &quot;{searchQuery}&quot;
               </Typography>
             )}
 
             {searchQuery && availableOptions.length > 0 && (
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 {availableOptions.length}{' '}
                 {availableOptions.length === 1
                   ? 'opção encontrada'
@@ -1293,7 +2122,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             )}
           </>
         )}
-
         <FormControl component='fieldset' fullWidth>
           <FormGroup>
             {availableOptions.map((option) => {
@@ -1336,7 +2164,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                       <Box>
                         <Typography variant='body1'>{optionName}</Typography>
                         {optionDescription && (
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {optionDescription}
                           </Typography>
                         )}
@@ -1362,7 +2195,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             })}
           </FormGroup>
         </FormControl>
-
         {/* Render nested spell requirements for multi-select powers */}
         {type === 'getGeneralPower' &&
           (() => {
@@ -1400,11 +2232,15 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Alguns dos seus poderes requerem seleções manuais. Escolha as opções
         abaixo para cada poder:
       </Typography>
-
       {allRequirements.map((powerReq) => (
         <Accordion
           key={`${powerReq.source}-${powerReq.powerName}`}
@@ -1413,7 +2249,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               <Typography variant='h6'>{powerReq.powerName}</Typography>
-              <Typography variant='caption' color='text.secondary'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {getSourceLabel(powerReq.source)} •{' '}
                 {powerReq.requirements.length} seleç
                 {powerReq.requirements.length > 1 ? 'ões' : 'ão'} necessária
@@ -1435,6 +2276,26 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           </AccordionDetails>
         </Accordion>
       ))}
+      {golpePessoalDialogPower && (
+        <GolpePessoalBuilder
+          open={!!golpePessoalDialogPower}
+          sheet={sheetForFiltering}
+          activeSupplements={supplements}
+          initialBuild={selections[golpePessoalDialogPower]?.golpePessoalBuild}
+          onClose={() => setGolpePessoalDialogPower(null)}
+          onConfirm={(build: GolpePessoalBuild) => {
+            const powerName = golpePessoalDialogPower;
+            onChange({
+              ...selections,
+              [powerName]: {
+                ...(selections[powerName] || {}),
+                golpePessoalBuild: build,
+              },
+            });
+            setGolpePessoalDialogPower(null);
+          }}
+        />
+      )}
     </Box>
   );
 };

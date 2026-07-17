@@ -17,7 +17,13 @@ interface BenefitItemProps {
 }
 
 const BenefitItem: React.FC<BenefitItemProps> = ({ icon, text }) => (
-  <Stack direction='row' alignItems='center' spacing={1.5}>
+  <Stack
+    direction='row'
+    spacing={1.5}
+    sx={{
+      alignItems: 'center',
+    }}
+  >
     <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
     <Typography variant='body1'>{text}</Typography>
   </Stack>
@@ -67,7 +73,12 @@ const InstallPage: React.FC = () => {
           >
             Instale o Fichas de Nimb
           </Typography>
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {subtitle}
           </Typography>
         </Box>

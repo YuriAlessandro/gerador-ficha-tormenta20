@@ -118,7 +118,6 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
           maravilha mecânica.
         </Typography>
       </Alert>
-
       {/* First Skill Selection (Required) */}
       <FormControl fullWidth>
         <InputLabel id='mashin-first-skill-label'>
@@ -137,7 +136,6 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
           ))}
         </Select>
       </FormControl>
-
       {/* Second Choice Type Selection */}
       <Box>
         <Typography variant='subtitle1' gutterBottom>
@@ -164,7 +162,6 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
           </RadioGroup>
         </FormControl>
       </Box>
-
       {/* Second Skill Selection */}
       {secondChoiceType === 'skill' && (
         <FormControl fullWidth>
@@ -186,7 +183,6 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
           </Select>
         </FormControl>
       )}
-
       {/* Mechanical Marvel Selection */}
       {secondChoiceType === 'marvel' && (
         <FormControl fullWidth>
@@ -205,8 +201,10 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
                   {marvel.description && (
                     <Typography
                       variant='caption'
-                      color='text.secondary'
                       component='div'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       {marvel.description.length > 100
                         ? `${marvel.description.substring(0, 100)}...`
@@ -219,10 +217,14 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
           </Select>
         </FormControl>
       )}
-
       {/* Selection Summary */}
       <Box sx={{ mt: 1 }}>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           <strong>Resumo:</strong>
           {firstSkill && (
             <>

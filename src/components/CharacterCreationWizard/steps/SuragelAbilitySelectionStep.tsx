@@ -34,12 +34,16 @@ const SuragelAbilitySelectionStep: React.FC<
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Como Suraggel, você pode substituir sua habilidade racial padrão (
         {defaultAbilityName}) por uma habilidade de outro Plano. Esta escolha é
         permanente.
       </Typography>
-
       <RadioGroup value={selectedAbility || ''} onChange={handleChange}>
         {/* Default ability option */}
         <Paper sx={{ p: 2, mb: 2 }}>
@@ -64,7 +68,12 @@ const SuragelAbilitySelectionStep: React.FC<
                     variant='outlined'
                   />
                 </Box>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {defaultAbilityDescription}
                 </Typography>
               </Box>
@@ -102,14 +111,22 @@ const SuragelAbilitySelectionStep: React.FC<
                       sx={{ opacity: 0.7 }}
                     />
                   </Box>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {ability.description}
                   </Typography>
                   {ability.sheetBonuses && ability.sheetBonuses.length > 0 && (
                     <Typography
                       variant='caption'
-                      color='success.main'
-                      sx={{ display: 'block', mt: 0.5 }}
+                      sx={{
+                        color: 'success.main',
+                        display: 'block',
+                        mt: 0.5,
+                      }}
                     >
                       Bônus automáticos aplicados
                     </Typography>
@@ -117,8 +134,11 @@ const SuragelAbilitySelectionStep: React.FC<
                   {ability.sheetActions && ability.sheetActions.length > 0 && (
                     <Typography
                       variant='caption'
-                      color='info.main'
-                      sx={{ display: 'block', mt: 0.5 }}
+                      sx={{
+                        color: 'info.main',
+                        display: 'block',
+                        mt: 0.5,
+                      }}
                     >
                       Requer seleção adicional
                     </Typography>
@@ -129,7 +149,6 @@ const SuragelAbilitySelectionStep: React.FC<
           </Paper>
         ))}
       </RadioGroup>
-
       <Alert severity='info'>
         {selectedAbility
           ? `Você escolheu ${selectedAbility}. Esta habilidade substituirá ${defaultAbilityName}.`

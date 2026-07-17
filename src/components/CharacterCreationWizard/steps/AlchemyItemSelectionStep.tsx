@@ -70,13 +70,24 @@ const AlchemyItemSelectionStep: React.FC<AlchemyItemSelectionStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         A habilidade <strong>Laboratório Pessoal</strong> concede instrumentos
         de alquimista aprimorados e {maxItems} itens alquímicos com preço total
         de até T$ {budget}. Selecione seus itens abaixo.
       </Typography>
-
-      <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+      <Stack
+        direction='row'
+        spacing={1}
+        useFlexGap
+        sx={{
+          flexWrap: 'wrap',
+        }}
+      >
         <Chip
           label={`${totalCount}/${maxItems} itens`}
           color={totalCount === maxItems ? 'success' : 'default'}
@@ -96,7 +107,6 @@ const AlchemyItemSelectionStep: React.FC<AlchemyItemSelectionStepProps> = ({
           size='small'
         />
       </Stack>
-
       <Paper sx={{ p: 2, maxHeight: 400, overflow: 'auto' }}>
         {sortedItems.map((item) => {
           const count = itemCounts[item.nome] || 0;
@@ -121,11 +131,15 @@ const AlchemyItemSelectionStep: React.FC<AlchemyItemSelectionStepProps> = ({
                 <Typography variant='body2' noWrap>
                   {item.nome}
                 </Typography>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   T$ {item.preco}
                 </Typography>
               </Box>
-
               <Box
                 sx={{
                   display: 'flex',
@@ -163,7 +177,6 @@ const AlchemyItemSelectionStep: React.FC<AlchemyItemSelectionStepProps> = ({
           );
         })}
       </Paper>
-
       {!isComplete && totalCount > 0 && totalCount < maxItems && (
         <Alert severity='warning'>
           Selecione mais {remainingSlots} ite
@@ -171,14 +184,12 @@ const AlchemyItemSelectionStep: React.FC<AlchemyItemSelectionStepProps> = ({
           T$ {remainingBudget}.
         </Alert>
       )}
-
       {totalCount === maxItems && totalCost > budget && (
         <Alert severity='error'>
           O preço total (T$ {totalCost}) excede o orçamento de T$ {budget}.
           Remova itens mais caros.
         </Alert>
       )}
-
       {isComplete && (
         <Alert severity='success'>
           Itens alquímicos selecionados com sucesso! Você pode continuar para o

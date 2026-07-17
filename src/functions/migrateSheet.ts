@@ -1,5 +1,12 @@
 import { CharacterAttributes } from '@/interfaces/Character';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import Skill from '@/interfaces/Skills';
+
+/**
+ * Nome antigo da perícia de Ofício de artesão, antes do rename para o nome do
+ * livro ("Ofício (Artesão)" = Skill.OFICIO_ARTESANATO).
+ */
+const LEGACY_OFICIO_ARTESANATO = 'Ofício (Artesanato)';
 
 /**
  * Interface do atributo antigo (antes da migração)
@@ -66,6 +73,23 @@ export function migrateSheet(sheet: CharacterSheet): CharacterSheet {
     ).manualAttributeEdits;
   }
 
+  // Renomear perícia antiga "Ofício (Artesanato)" → "Ofício (Artesão)"
+  if (Array.isArray(sheet.skills)) {
+    migratedSheet.skills = sheet.skills.map((skill) =>
+      (skill as string) === LEGACY_OFICIO_ARTESANATO
+        ? Skill.OFICIO_ARTESANATO
+        : skill
+    );
+  }
+
+  if (Array.isArray(sheet.completeSkills)) {
+    migratedSheet.completeSkills = sheet.completeSkills.map((skill) =>
+      (skill.name as string) === LEGACY_OFICIO_ARTESANATO
+        ? { ...skill, name: Skill.OFICIO_ARTESANATO }
+        : skill
+    );
+  }
+
   return migratedSheet;
 }
 
@@ -75,6 +99,18 @@ export function migrateSheet(sheet: CharacterSheet): CharacterSheet {
  * @returns true se precisa de migração
  */
 export function needsMigration(sheet: CharacterSheet): boolean {
+  // Perícia antiga "Ofício (Artesanato)" precisa ser renomeada
+  const hasLegacyOficio =
+    (Array.isArray(sheet.skills) &&
+      sheet.skills.some(
+        (skill) => (skill as string) === LEGACY_OFICIO_ARTESANATO
+      )) ||
+    (Array.isArray(sheet.completeSkills) &&
+      sheet.completeSkills.some(
+        (skill) => (skill.name as string) === LEGACY_OFICIO_ARTESANATO
+      ));
+  if (hasLegacyOficio) return true;
+
   if (!sheet.atributos) return false;
 
   // Verificar se algum atributo ainda tem o campo 'mod'

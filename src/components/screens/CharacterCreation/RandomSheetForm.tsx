@@ -12,16 +12,13 @@ import {
 } from '@mui/material';
 import {
   Casino as CasinoIcon,
-  HelpOutline as HelpIcon,
+  HelpOutlined as HelpIcon,
 } from '@mui/icons-material';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
 import SelectOptions from '../../../interfaces/SelectedOptions';
-import {
-  SupplementId,
-  SUPPLEMENT_METADATA,
-} from '../../../types/supplement.types';
+import { SupplementId } from '../../../types/supplement.types';
 import {
   allDivindadeNames,
   divindadeDisplayNames,
@@ -50,7 +47,20 @@ interface RandomSheetFormProps {
   onSelectedOptionsChange: (options: SelectOptions) => void;
   onGenerate: () => void;
   userSupplements: SupplementId[];
-  enabledSupplements?: SupplementId[];
+  /**
+   * Props de suplementos mantidas por compatibilidade (ex.: premium
+   * HomebrewTestSheetPage). A UI de suplementos agora vive no ActiveContentBar,
+   * então estas são opcionais e não são mais renderizadas aqui.
+   */
+  /* eslint-disable react/no-unused-prop-types */
+  isAuthenticated?: boolean;
+  onConfigureSupplements?: () => void;
+  hideSupplementsConfig?: boolean;
+  /* eslint-enable react/no-unused-prop-types */
+  /** Trava a raça a um único valor (lista mostra só ele; select desabilitado). */
+  lockedRace?: string;
+  /** Trava a classe a um único valor (lista mostra só ele; select desabilitado). */
+  lockedClass?: string;
 }
 
 const formatOptionLabel = (option: SelectedOption) => (
@@ -90,7 +100,8 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
   onSelectedOptionsChange,
   onGenerate,
   userSupplements,
-  enabledSupplements,
+  lockedRace,
+  lockedClass,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -160,13 +171,15 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
 
   const racas = React.useMemo<SelectedOption[]>(
     () =>
-      RACAS.map((raca: RaceWithSupplement) => ({
-        value: raca.name,
-        label: raca.name,
-        supplementId: raca.supplementId,
-        supplementName: raca.supplementName,
-      })),
-    [RACAS]
+      lockedRace
+        ? [{ value: lockedRace, label: lockedRace }]
+        : RACAS.map((raca: RaceWithSupplement) => ({
+            value: raca.name,
+            label: raca.name,
+            supplementId: raca.supplementId,
+            supplementName: raca.supplementName,
+          })),
+    [RACAS, lockedRace]
   );
 
   const rolesopt = React.useMemo<SelectedOption[]>(
@@ -179,6 +192,7 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
   );
 
   const classesopt = React.useMemo<SelectedOption[]>(() => {
+    if (lockedClass) return [{ value: lockedClass, label: lockedClass }];
     const baseClasses = CLASSES.filter((c) => !c.isVariant);
     const variants = CLASSES.filter((c) => c.isVariant);
     const options: SelectedOption[] = [];
@@ -204,7 +218,7 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
     });
 
     return options;
-  }, [CLASSES]);
+  }, [CLASSES, lockedClass]);
 
   const niveis = React.useMemo<{ value: string; label: string }[]>(() => {
     const result: { value: string; label: string }[] = [];
@@ -242,25 +256,26 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
     [userSupplements]
   );
 
-  const divindades = React.useMemo(
-    () =>
-      allDivindadeNames
-        .filter((dv) => {
-          if (selectedOptions.classe) {
-            const classe = CLASSES.find(
-              (c) => c.name === selectedOptions.classe
-            );
-            if (classe) return classe?.faithProbability?.[dv] !== 0;
-            return true;
-          }
+  const divindades = React.useMemo(() => {
+    const staticOptions = allDivindadeNames
+      .filter((dv) => {
+        if (selectedOptions.classe) {
+          const classe = CLASSES.find((c) => c.name === selectedOptions.classe);
+          if (classe) return classe?.faithProbability?.[dv] !== 0;
           return true;
-        })
-        .map((sdv) => ({
-          value: sdv,
-          label: divindadeDisplayNames[sdv],
-        })),
-    [selectedOptions.classe, CLASSES]
-  );
+        }
+        return true;
+      })
+      .map((sdv) => ({
+        value: sdv as string,
+        label: divindadeDisplayNames[sdv],
+      }));
+    // Divindades homebrew ativas (suplementos runtime) — value = nome.
+    const homebrewOptions = dataRegistry
+      .getSupplementDeities(userSupplements)
+      .map((d) => ({ value: d.name, label: d.name }));
+    return [...staticOptions, ...homebrewOptions];
+  }, [selectedOptions.classe, CLASSES, userSupplements]);
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
@@ -322,53 +337,15 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
     <Box>
       <Typography
         variant='body2'
-        color='text.secondary'
-        sx={{ mb: 2, fontStyle: 'italic' }}
+        sx={{
+          color: 'text.secondary',
+          mb: 2.5,
+          fontStyle: 'italic',
+        }}
       >
         Configure os parâmetros (opcional). Deixe como &ldquo;Aleatória&rdquo;
         para uma ficha totalmente aleatória.
       </Typography>
-
-      {/* System & Supplements Indicator */}
-      {enabledSupplements && enabledSupplements.length > 0 && (
-        <Box
-          sx={{
-            mt: 3,
-            mb: 3,
-            p: 1.5,
-            borderRadius: 1,
-            bgcolor: 'action.hover',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          <Stack spacing={1}>
-            <Typography
-              variant='caption'
-              color='text.secondary'
-              sx={{ fontWeight: 'medium' }}
-            >
-              Sistema e Suplementos Ativos:
-            </Typography>
-            <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
-              {enabledSupplements.map((suppId) => {
-                const supplement = SUPPLEMENT_METADATA[suppId];
-                return supplement ? (
-                  <Chip
-                    key={suppId}
-                    label={supplement.name}
-                    size='small'
-                    color='primary'
-                    variant='outlined'
-                    sx={{ fontSize: '0.75rem' }}
-                  />
-                ) : null;
-              })}
-            </Stack>
-          </Stack>
-        </Box>
-      )}
-
       <Grid container spacing={2}>
         {/* Race Selection */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -376,15 +353,21 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
             Raça
           </Typography>
           <Select
-            options={[{ value: '', label: 'Aleatória' }, ...racas]}
+            options={
+              lockedRace ? racas : [{ value: '', label: 'Aleatória' }, ...racas]
+            }
             placeholder='Aleatória'
             value={
-              selectedOptions.raca
+              // eslint-disable-next-line no-nested-ternary
+              lockedRace
+                ? racas[0] ?? null
+                : selectedOptions.raca
                 ? [{ value: '', label: 'Aleatória' }, ...racas].find(
                     (r) => r.value === selectedOptions.raca
                   ) || null
                 : null
             }
+            isDisabled={!!lockedRace}
             onChange={onSelectRaca}
             isSearchable
             styles={selectStyles}
@@ -405,24 +388,35 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
             Classe / Role
           </Typography>
           <Select
-            options={[
-              {
-                label: 'Classes',
-                options: [{ value: '', label: 'Aleatória' }, ...classesopt],
-              },
-              {
-                label: 'Roles',
-                options: [{ value: '', label: 'Aleatória' }, ...rolesopt],
-              },
-            ]}
+            options={
+              lockedClass
+                ? classesopt
+                : [
+                    {
+                      label: 'Classes',
+                      options: [
+                        { value: '', label: 'Aleatória' },
+                        ...classesopt,
+                      ],
+                    },
+                    {
+                      label: 'Roles',
+                      options: [{ value: '', label: 'Aleatória' }, ...rolesopt],
+                    },
+                  ]
+            }
             placeholder='Aleatória'
             value={
-              selectedOptions.classe
+              // eslint-disable-next-line no-nested-ternary
+              lockedClass
+                ? classesopt[0] ?? null
+                : selectedOptions.classe
                 ? [...classesopt, ...rolesopt].find(
                     (c) => c.value === selectedOptions.classe
                   ) || null
                 : null
             }
+            isDisabled={!!lockedClass}
             formatGroupLabel={fmtGroupLabel}
             formatOptionLabel={formatOptionLabel}
             onChange={onSelectClasse}
@@ -478,9 +472,11 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Stack
             direction='row'
-            alignItems='center'
             spacing={0.5}
-            sx={{ mb: 1 }}
+            sx={{
+              alignItems: 'center',
+              mb: 1,
+            }}
           >
             <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
               Divindade
@@ -586,7 +582,6 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
           />
         </Grid>
       </Grid>
-
       {/* Action Button */}
       <Box sx={{ mt: 3 }}>
         <Button

@@ -5,6 +5,7 @@ import { BrowserRouter as HashRouter } from 'react-router-dom';
 // eslint-disable-next-line import/no-unresolved
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
+import OwlbearAuthBridge from './components/OwlbearAuthBridge';
 import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import reportWebVitals from './reportWebVitals';
 import * as ReactGAConfig from './reactGA.config';
@@ -23,7 +24,11 @@ const updateSW = registerSW({
     // Dispatch a custom event that the PWAUpdatePrompt component listens for
     // eslint-disable-next-line no-console
     console.log('[PWA] Nova versão disponível - mostrando notificação');
-    sessionStorage.setItem('pwa-has-pending-update', 'true');
+    try {
+      sessionStorage.setItem('pwa-has-pending-update', 'true');
+    } catch {
+      // sessionStorage indisponível (ex.: embed com storage bloqueado).
+    }
     window.dispatchEvent(new CustomEvent('pwa-update-available'));
   },
   onOfflineReady() {
@@ -54,15 +59,26 @@ const handlePWAUpdate = (reloadPage?: boolean) => {
   }
 };
 
-ReactDOM.render(
-  <React.StrictMode>
-    <HashRouter>
-      <App />
-      <PWAUpdatePrompt onUpdate={handlePWAUpdate} />
-    </HashRouter>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+// Página standalone para a extensão do Owlbear Rodeo (popup de login). Renderiza
+// sem o chrome/providers do app principal — apenas o auth bridge.
+if (window.location.pathname === '/owlbear-auth') {
+  ReactDOM.render(
+    <React.StrictMode>
+      <OwlbearAuthBridge />
+    </React.StrictMode>,
+    document.getElementById('root')
+  );
+} else {
+  ReactDOM.render(
+    <React.StrictMode>
+      <HashRouter>
+        <App />
+        <PWAUpdatePrompt onUpdate={handlePWAUpdate} />
+      </HashRouter>
+    </React.StrictMode>,
+    document.getElementById('root')
+  );
+}
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

@@ -61,13 +61,26 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
         </TableCell>
         <TableCell component='th' scope='row'>
           <Box
-            display='flex'
-            alignItems='center'
-            justifyContent='space-between'
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
           >
-            <Box display='flex' alignItems='center' gap={1}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
               <FilterDramaIcon color='primary' fontSize='small' />
-              <Typography variant='body1' fontWeight={500}>
+              <Typography
+                variant='body1'
+                sx={{
+                  fontWeight: 500,
+                }}
+              >
                 {divindade.name}
               </Typography>
             </Box>
@@ -128,7 +141,12 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
                   >
                     {power.name}
                   </Typography>
-                  <Typography variant='body1' paragraph>
+                  <Typography
+                    variant='body1'
+                    sx={{
+                      marginBottom: '16px',
+                    }}
+                  >
                     {power.description}
                   </Typography>
                   {power.name !==
@@ -225,7 +243,12 @@ const DivindadesTable: React.FC = () => {
 
         {/* Results Summary */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {divindades.length === 0
               ? 'Nenhuma divindade encontrada com os filtros aplicados'
               : `${divindades.length} divindade${
@@ -258,7 +281,12 @@ const DivindadesTable: React.FC = () => {
               {divindades.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                    <Typography variant='body1' color='text.secondary'>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Nenhuma divindade encontrada. Tente ajustar a busca.
                     </Typography>
                   </TableCell>

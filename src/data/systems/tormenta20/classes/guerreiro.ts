@@ -3,6 +3,10 @@ import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import {
+  ARQUEIRO_SHEET_BONUSES,
+  ESGRIMISTA_SHEET_BONUSES,
+} from '../powers/classPowerSheetBonuses';
 
 const GUERREIRO: ClassDescription = {
   name: 'Guerreiro',
@@ -79,6 +83,7 @@ const GUERREIRO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 }],
       ],
+      sheetBonuses: ARQUEIRO_SHEET_BONUSES,
     },
     {
       name: 'Ataque Reflexo',
@@ -117,6 +122,7 @@ const GUERREIRO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
       ],
+      sheetBonuses: ESGRIMISTA_SHEET_BONUSES,
     },
     {
       name: 'Especialização em Arma',
@@ -131,18 +137,12 @@ const GUERREIRO: ClassDescription = {
           },
           action: {
             type: 'selectWeaponSpecialization',
+            bonuses: [{ kind: 'damage', value: 2 }],
+            onlyFromSheet: true,
+            optional: true,
           },
         },
       ],
-      // action: (sheet, subSteps) => {
-      //   // TODO
-      //   subSteps.push({
-      //     name: 'Escolha uma arma',
-      //     value:
-      //       'Escolha uma arma para receber +2 em rolagens de dano com ela.',
-      //   });
-      //   return sheet;
-      // },
     },
     {
       name: 'Especialização em Armadura',
@@ -184,6 +184,17 @@ const GUERREIRO: ClassDescription = {
           { type: RequirementType.PODER, name: 'Especialização em Arma' },
           { type: RequirementType.NIVEL, value: 2 },
         ],
+      ],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Mestre em Arma' },
+          action: {
+            type: 'selectWeaponSpecialization',
+            bonuses: [{ kind: 'damageStep', steps: 1 }],
+            onlyFromSheet: true,
+            optional: true,
+          },
+        },
       ],
     },
     {

@@ -1,4 +1,6 @@
+import { cloneDeep } from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
+import { getVirtudePaladinescaPMBonus } from '../randomUtils';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
 import { DestinyPowers } from '../../data/systems/tormenta20/powers/destinyPowers';
@@ -6,6 +8,14 @@ import tormentaPowers from '../../data/systems/tormenta20/powers/tormentaPowers'
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { GeneralPower, GeneralPowerType } from '../../interfaces/Poderes';
+import LUTADOR from '../../data/systems/tormenta20/classes/lutador';
+import BUCANEIRO from '../../data/systems/tormenta20/classes/bucaneiro';
+import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
+import GUERREIRO_HEROIS_POWERS from '../../data/systems/tormenta20/herois-de-arton/classPowers/guerreiro';
+import MECHANICAL_MARVELS from '../../data/systems/tormenta20/ameacas-de-arton/powers/mechanicalMarvels';
+import Bag from '../../interfaces/Bag';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { DefenseEquipment } from '../../interfaces/Equipment';
 
 describe('recalculateSheet', () => {
   let mockSheet: CharacterSheet;
@@ -89,6 +99,105 @@ describe('recalculateSheet', () => {
       expect(proficienciaHistoryEntry?.changes[0].type).toBe(
         'ProficiencyAdded'
       );
+    });
+  });
+
+  describe('Estilo de Uma Arma', () => {
+    const MELEE_WEAPON_ID = 'estilo-uma-arma-test-weapon';
+
+    const buildSheetWithWeapon = (
+      weaponOverrides: Partial<{
+        alcance: string;
+        arremesso: boolean;
+      }> = {}
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.generalPowers = [combatPowers.ESTILO_DE_UMA_ARMA];
+      sheet.classPowers = [];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag({
+        Arma: [
+          {
+            id: MELEE_WEAPON_ID,
+            nome: 'Espada Longa (teste)',
+            group: 'Arma',
+            dano: '1d8',
+            critico: '19/x2',
+            ...weaponOverrides,
+          },
+        ],
+      });
+      return sheet;
+    };
+
+    const weaponAtkBonus = (sheet: CharacterSheet): number =>
+      sheet.bag.equipments.Arma.find((w) => w.id === MELEE_WEAPON_ID)
+        ?.atkBonus ?? 0;
+
+    it('applies +2 Defesa and +2 attack when wielding a one-handed melee weapon with empty off-hand', () => {
+      // Baseline: same sheet without the power applied.
+      const baseline = buildSheetWithWeapon();
+      baseline.generalPowers = [];
+      baseline.mainHandItemId = MELEE_WEAPON_ID;
+      baseline.offHandItemId = undefined;
+      const baselineResult = recalculateSheet(baseline);
+
+      const sheet = buildSheetWithWeapon();
+      sheet.mainHandItemId = MELEE_WEAPON_ID;
+      sheet.offHandItemId = undefined;
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baselineResult.defesa + 2);
+      expect(weaponAtkBonus(result)).toBe(weaponAtkBonus(baselineResult) + 2);
+    });
+
+    it('does not apply bonuses when the off-hand is occupied', () => {
+      const baseline = buildSheetWithWeapon();
+      baseline.generalPowers = [];
+      baseline.mainHandItemId = MELEE_WEAPON_ID;
+      baseline.offHandItemId = 'some-other-item';
+      const baselineResult = recalculateSheet(baseline);
+
+      const sheet = buildSheetWithWeapon();
+      sheet.mainHandItemId = MELEE_WEAPON_ID;
+      sheet.offHandItemId = 'some-other-item';
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baselineResult.defesa);
+      expect(weaponAtkBonus(result)).toBe(weaponAtkBonus(baselineResult));
+    });
+
+    it('does not apply bonuses for a two-handed weapon (occupies both hands)', () => {
+      const baseline = buildSheetWithWeapon();
+      baseline.generalPowers = [];
+      baseline.mainHandItemId = MELEE_WEAPON_ID;
+      baseline.offHandItemId = MELEE_WEAPON_ID;
+      const baselineResult = recalculateSheet(baseline);
+
+      const sheet = buildSheetWithWeapon();
+      sheet.mainHandItemId = MELEE_WEAPON_ID;
+      sheet.offHandItemId = MELEE_WEAPON_ID;
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baselineResult.defesa);
+      expect(weaponAtkBonus(result)).toBe(weaponAtkBonus(baselineResult));
+    });
+
+    it('does not apply bonuses for a ranged weapon in hand', () => {
+      const baseline = buildSheetWithWeapon({ alcance: 'Médio' });
+      baseline.generalPowers = [];
+      baseline.mainHandItemId = MELEE_WEAPON_ID;
+      baseline.offHandItemId = undefined;
+      const baselineResult = recalculateSheet(baseline);
+
+      const sheet = buildSheetWithWeapon({ alcance: 'Médio' });
+      sheet.mainHandItemId = MELEE_WEAPON_ID;
+      sheet.offHandItemId = undefined;
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baselineResult.defesa);
+      expect(weaponAtkBonus(result)).toBe(weaponAtkBonus(baselineResult));
     });
   });
 
@@ -258,6 +367,199 @@ describe('recalculateSheet', () => {
         (entry) => entry.powerName === 'Treinamento em Perícia'
       );
       expect(treinamentoHistoryEntry).toBeDefined();
+    });
+  });
+
+  describe('Familiar selection persistence', () => {
+    const familiarPower = {
+      name: 'Familiar',
+      text: 'Você possui um animal de estimação mágico. Escolha um familiar para receber seus benefícios.',
+      requirements: [],
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Familiar' },
+          action: { type: 'selectFamiliar' as const },
+        },
+      ],
+    };
+
+    it('should keep the same familiar across recalculations without manualSelections', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+
+      const firstRun = recalculateSheet(mockSheet);
+      const firstFamiliar = firstRun.sheetActionHistory.find((entry) =>
+        entry.changes.some((c) => c.type === 'FamiliarSelected')
+      );
+      expect(firstFamiliar).toBeDefined();
+      const firstFamiliarKey =
+        firstFamiliar &&
+        firstFamiliar.changes.find((c) => c.type === 'FamiliarSelected');
+      expect(firstFamiliarKey?.type).toBe('FamiliarSelected');
+
+      // Multiple recalculations without manualSelections should NOT re-randomize
+      let current = firstRun;
+      for (let i = 0; i < 5; i += 1) {
+        current = recalculateSheet(current);
+      }
+
+      const finalFamiliar = current.sheetActionHistory.find((entry) =>
+        entry.changes.some((c) => c.type === 'FamiliarSelected')
+      );
+      const finalFamiliarKey =
+        finalFamiliar &&
+        finalFamiliar.changes.find((c) => c.type === 'FamiliarSelected');
+
+      expect(finalFamiliarKey).toEqual(firstFamiliarKey);
+      // Power text should remain consistent
+      const finalPower = current.classPowers?.find(
+        (p) => p.name === 'Familiar'
+      );
+      expect(finalPower?.text).toBe(
+        firstRun.classPowers?.find((p) => p.name === 'Familiar')?.text
+      );
+    });
+
+    it('should re-apply Gato +2 Furtividade bonus across recalculations', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+
+      // Force Gato selection through the manualSelections path
+      const firstRun = recalculateSheet(mockSheet, undefined, {
+        Familiar: { familiars: ['GATO'] },
+      });
+
+      const firstBonus = firstRun.sheetBonuses.find(
+        (b) =>
+          b.target.type === 'Skill' &&
+          b.target.name === Skill.FURTIVIDADE &&
+          b.modifier.type === 'Fixed' &&
+          b.modifier.value === 2
+      );
+      expect(firstBonus).toBeDefined();
+
+      // After 3 recalculations without manualSelections, bonus should still be present
+      let current = firstRun;
+      for (let i = 0; i < 3; i += 1) {
+        current = recalculateSheet(current);
+      }
+
+      const finalBonus = current.sheetBonuses.find(
+        (b) =>
+          b.target.type === 'Skill' &&
+          b.target.name === Skill.FURTIVIDADE &&
+          b.modifier.type === 'Fixed' &&
+          b.modifier.value === 2
+      );
+      expect(finalBonus).toBeDefined();
+    });
+
+    it('should override the recorded familiar when a new manualSelection is provided', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+
+      const withGato = recalculateSheet(mockSheet, undefined, {
+        Familiar: { familiars: ['GATO'] },
+      });
+      const gatoEntry = withGato.sheetActionHistory.find((entry) =>
+        entry.changes.some(
+          (c) => c.type === 'FamiliarSelected' && c.familiarKey === 'GATO'
+        )
+      );
+      expect(gatoEntry).toBeDefined();
+
+      const withMorcego = recalculateSheet(withGato, undefined, {
+        Familiar: { familiars: ['MORCEGO'] },
+      });
+      const morcegoEntries = withMorcego.sheetActionHistory.filter((entry) =>
+        entry.changes.some((c) => c.type === 'FamiliarSelected')
+      );
+      // Should have exactly one FamiliarSelected entry, and it should be Morcego
+      expect(morcegoEntries).toHaveLength(1);
+      const morcegoChange = morcegoEntries[0].changes.find(
+        (c) => c.type === 'FamiliarSelected'
+      );
+      expect(
+        morcegoChange?.type === 'FamiliarSelected' && morcegoChange.familiarKey
+      ).toBe('MORCEGO');
+
+      // +2 Furtividade should NOT be present anymore (Morcego doesn't grant it)
+      const furtividadeBonus = withMorcego.sheetBonuses.find(
+        (b) => b.target.type === 'Skill' && b.target.name === Skill.FURTIVIDADE
+      );
+      expect(furtividadeBonus).toBeUndefined();
+    });
+
+    it('should add the key attribute to PV when Sapo is selected', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+      // No spellPath on the mock class → spellKeyAttr resolves via overrideKeyAttribute
+      mockSheet.overrideKeyAttribute = Atributo.FORCA; // value 2 in the mock
+
+      // Gato has no PV effect, so it isolates Sapo's PV bonus
+      const withGato = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['GATO'] },
+      });
+      const withSapo = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['SAPO'] },
+      });
+
+      expect(withSapo.pv).toBe(withGato.pv + 2);
+
+      const pvBonus = withSapo.sheetBonuses.find(
+        (b) =>
+          b.target.type === 'PV' &&
+          b.modifier.type === 'SpecialAttribute' &&
+          b.modifier.attribute === 'spellKeyAttr'
+      );
+      expect(pvBonus).toBeDefined();
+    });
+
+    it('should keep the Sapo PV bonus stable (no duplication) across recalculations', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+      mockSheet.overrideKeyAttribute = Atributo.FORCA;
+
+      const first = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['SAPO'] },
+      });
+
+      let current = first;
+      for (let i = 0; i < 3; i += 1) {
+        current = recalculateSheet(current);
+      }
+
+      expect(current.pv).toBe(first.pv);
+      const pvBonuses = current.sheetBonuses.filter(
+        (b) =>
+          b.target.type === 'PV' &&
+          b.modifier.type === 'SpecialAttribute' &&
+          b.modifier.attribute === 'spellKeyAttr'
+      );
+      expect(pvBonuses).toHaveLength(1);
+    });
+
+    it('should use the key attribute for Fortitude when Rato is selected and it beats CON', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+      mockSheet.overrideKeyAttribute = Atributo.FORCA; // value 2 > CON value 1
+
+      const withRato = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['RATO'] },
+      });
+
+      const fortitude = withRato.completeSkills?.find(
+        (s) => s.name === Skill.FORTITUDE
+      );
+      expect(fortitude?.modAttr).toBe(Atributo.FORCA);
+    });
+
+    it('should NOT swap Fortitude attribute when the key attribute does not beat CON', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+      mockSheet.overrideKeyAttribute = Atributo.INTELIGENCIA; // value 0 <= CON value 1
+
+      const withRato = recalculateSheet(cloneDeep(mockSheet), undefined, {
+        Familiar: { familiars: ['RATO'] },
+      });
+
+      const fortitude = withRato.completeSkills?.find(
+        (s) => s.name === Skill.FORTITUDE
+      );
+      expect(fortitude?.modAttr).toBe(Atributo.CONSTITUICAO);
     });
   });
 
@@ -477,6 +779,695 @@ describe('recalculateSheet', () => {
         (e) => e.powerName === 'Couraça Rúbea'
       );
       expect(syntheticEntry).toBeDefined();
+    });
+  });
+
+  describe('Removed power reappearing via Osteon Memória Póstuma', () => {
+    const olhosVermelhos = tormentaPowers.OLHOS_VERMELHOS as GeneralPower;
+
+    const memoriaPostumaAbility = {
+      name: 'Memória Póstuma',
+      description: 'Você recebe um poder geral a sua escolha.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Memória Póstuma' },
+          action: {
+            type: 'special' as const,
+            specialAction: 'osteonMemoriaPostuma' as const,
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockSheet.raca = {
+        name: 'Osteon',
+        attributes: { attrs: [] },
+        faithProbability: {},
+        abilities: [memoriaPostumaAbility],
+      };
+      mockSheet.osteonMemoriaPostumaChoice = {
+        type: 'power',
+        value: 'Olhos Vermelhos',
+      };
+      mockSheet.generalPowers = [olhosVermelhos];
+    });
+
+    it('should not re-add a general power removed by the user (deterministic replay)', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      expect(
+        sheetWithPower.generalPowers.some((p) => p.name === 'Olhos Vermelhos')
+      ).toBe(true);
+
+      const editedSheet = {
+        ...sheetWithPower,
+        generalPowers: sheetWithPower.generalPowers.filter(
+          (p) => p.name !== 'Olhos Vermelhos'
+        ),
+      };
+
+      const result = recalculateSheet(editedSheet, sheetWithPower);
+
+      expect(
+        result.generalPowers.some((p) => p.name === 'Olhos Vermelhos')
+      ).toBe(false);
+      // The 'cleared' sentinel prevents the random path from rolling a
+      // replacement choice on the next recalculation
+      expect(result.osteonMemoriaPostumaChoice).toEqual({ type: 'cleared' });
+    });
+
+    it('should keep the power when the user did not remove it', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      const result = recalculateSheet(sheetWithPower, sheetWithPower);
+      expect(
+        result.generalPowers.some((p) => p.name === 'Olhos Vermelhos')
+      ).toBe(true);
+    });
+  });
+
+  describe('Removed power reappearing via Yidishan Natureza Orgânica', () => {
+    const membrosEstendidos = tormentaPowers.MEMBROS_ESTENDIDOS as GeneralPower;
+
+    const naturezaOrganicaAbility = {
+      name: 'Natureza Orgânica',
+      description: 'Você recebe um poder geral a sua escolha.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Natureza Orgânica' },
+          action: {
+            type: 'special' as const,
+            specialAction: 'yidishanNaturezaOrganica' as const,
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockSheet.raca = {
+        name: 'Yidishan',
+        attributes: { attrs: [] },
+        faithProbability: {},
+        abilities: [naturezaOrganicaAbility],
+      };
+      mockSheet.yidishanNaturezaChoice = {
+        type: 'power',
+        value: 'Membros Estendidos',
+      };
+      mockSheet.generalPowers = [membrosEstendidos];
+    });
+
+    it('should not re-add a general power removed by the user (deterministic replay)', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      expect(
+        sheetWithPower.generalPowers.some(
+          (p) => p.name === 'Membros Estendidos'
+        )
+      ).toBe(true);
+
+      const editedSheet = {
+        ...sheetWithPower,
+        generalPowers: sheetWithPower.generalPowers.filter(
+          (p) => p.name !== 'Membros Estendidos'
+        ),
+      };
+
+      const result = recalculateSheet(editedSheet, sheetWithPower);
+
+      expect(
+        result.generalPowers.some((p) => p.name === 'Membros Estendidos')
+      ).toBe(false);
+      expect(result.yidishanNaturezaChoice).toEqual({ type: 'cleared' });
+    });
+
+    it('should keep the power when the user did not remove it', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      const result = recalculateSheet(sheetWithPower, sheetWithPower);
+      expect(
+        result.generalPowers.some((p) => p.name === 'Membros Estendidos')
+      ).toBe(true);
+    });
+  });
+
+  describe('Removed power reappearing via Lefou Deformidade', () => {
+    const membrosEstendidos = tormentaPowers.MEMBROS_ESTENDIDOS as GeneralPower;
+
+    const deformidadeAbility = {
+      name: 'Deformidade',
+      description: 'Você recebe +2 em uma perícia e um poder da Tormenta.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Deformidade' },
+          action: {
+            type: 'special' as const,
+            specialAction: 'lefouDeformidade' as const,
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockSheet.raca = {
+        name: 'Lefou',
+        attributes: { attrs: [] },
+        faithProbability: {},
+        abilities: [deformidadeAbility],
+      };
+      mockSheet.lefouDeformidadeSkills = [Skill.INICIATIVA];
+      mockSheet.lefouDeformidadePower = 'Membros Estendidos';
+      mockSheet.generalPowers = [membrosEstendidos];
+    });
+
+    it('should not re-add a general power removed by the user (deterministic replay)', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      expect(
+        sheetWithPower.generalPowers.some(
+          (p) => p.name === 'Membros Estendidos'
+        )
+      ).toBe(true);
+
+      const editedSheet = {
+        ...sheetWithPower,
+        generalPowers: sheetWithPower.generalPowers.filter(
+          (p) => p.name !== 'Membros Estendidos'
+        ),
+      };
+
+      const result = recalculateSheet(editedSheet, sheetWithPower);
+
+      expect(
+        result.generalPowers.some((p) => p.name === 'Membros Estendidos')
+      ).toBe(false);
+      expect(result.lefouDeformidadePower).toBeUndefined();
+      // The skill bonus from Deformidade must survive the power removal
+      expect(result.lefouDeformidadeSkills).toEqual([Skill.INICIATIVA]);
+      expect(
+        result.sheetBonuses.some(
+          (b) =>
+            b.source.type === 'power' &&
+            b.source.name === 'Deformidade' &&
+            b.target.type === 'Skill' &&
+            b.target.name === Skill.INICIATIVA
+        )
+      ).toBe(true);
+    });
+
+    it('should keep the power when the user did not remove it', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      const result = recalculateSheet(sheetWithPower, sheetWithPower);
+      expect(
+        result.generalPowers.some((p) => p.name === 'Membros Estendidos')
+      ).toBe(true);
+    });
+  });
+
+  describe('Removed power reappearing via Mashin Chassi', () => {
+    const armaAcoplada = MECHANICAL_MARVELS.find(
+      (m) => m.name === 'Maravilha Mecânica: Arma Acoplada'
+    ) as GeneralPower;
+
+    const chassiAbility = {
+      name: 'Chassi Mashin',
+      description: 'Você recebe uma perícia e uma Maravilha Mecânica.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Chassi Mashin' },
+          action: {
+            type: 'special' as const,
+            specialAction: 'mashinChassi' as const,
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockSheet.raca = {
+        name: 'Golem Desperto',
+        attributes: { attrs: [] },
+        faithProbability: {},
+        abilities: [chassiAbility],
+      };
+      mockSheet.mashinChassiSkill = Skill.LUTA;
+      mockSheet.mashinChassiChoice = {
+        type: 'power',
+        value: 'Maravilha Mecânica: Arma Acoplada',
+      };
+      mockSheet.generalPowers = [armaAcoplada];
+    });
+
+    it('should not re-add a general power removed by the user (deterministic replay)', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      expect(
+        sheetWithPower.generalPowers.some(
+          (p) => p.name === 'Maravilha Mecânica: Arma Acoplada'
+        )
+      ).toBe(true);
+
+      const editedSheet = {
+        ...sheetWithPower,
+        generalPowers: sheetWithPower.generalPowers.filter(
+          (p) => p.name !== 'Maravilha Mecânica: Arma Acoplada'
+        ),
+      };
+
+      const result = recalculateSheet(editedSheet, sheetWithPower);
+
+      expect(
+        result.generalPowers.some(
+          (p) => p.name === 'Maravilha Mecânica: Arma Acoplada'
+        )
+      ).toBe(false);
+      expect(result.mashinChassiChoice).toEqual({ type: 'cleared' });
+      // The first trained skill from Chassi must survive the power removal
+      expect(result.skills).toContain(Skill.LUTA);
+    });
+
+    it('should keep the power when the user did not remove it', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      const result = recalculateSheet(sheetWithPower, sheetWithPower);
+      expect(
+        result.generalPowers.some(
+          (p) => p.name === 'Maravilha Mecânica: Arma Acoplada'
+        )
+      ).toBe(true);
+    });
+  });
+
+  describe('Casca Grossa (Lutador)', () => {
+    const buildLutadorSheet = (
+      level: number,
+      conMod: number,
+      heavyArmor = false
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = cloneDeep(LUTADOR);
+      sheet.nivel = level;
+      sheet.atributos[Atributo.CONSTITUICAO].value = conMod;
+      sheet.generalPowers = [];
+      sheet.classPowers = [];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+
+      if (heavyArmor) {
+        const placas: DefenseEquipment = {
+          nome: 'Placas (teste)',
+          group: 'Armadura',
+          defenseBonus: 0,
+          armorPenalty: 0,
+          isHeavyArmor: true,
+        };
+        sheet.bag = new Bag({ Armadura: [placas] });
+      } else {
+        sheet.bag = new Bag();
+      }
+
+      return sheet;
+    };
+
+    const getBaselineDefense = (
+      level: number,
+      conMod: number,
+      heavyArmor = false
+    ): number => {
+      // Baseline = sheet recalculated com Lutador mas SEM Casca Grossa aplicada.
+      // Como o fix ainda não existe / quando o fix existir, usamos nível abaixo
+      // de 3 (onde Casca Grossa não se aplica) para obter a defesa base esperada.
+      const baseline = buildLutadorSheet(2, conMod, heavyArmor);
+      return recalculateSheet(baseline).defesa;
+    };
+
+    it('nível 3, Con +3, sem armadura pesada: adiciona +3 (capado pelo nível)', () => {
+      const sheet = buildLutadorSheet(3, 3);
+      const baseline = getBaselineDefense(3, 3);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('nível 3, Con +5, sem armadura pesada: cap do nível limita o bônus a +3', () => {
+      const sheet = buildLutadorSheet(3, 5);
+      const baseline = getBaselineDefense(3, 5);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('nível 5, Con +3, sem armadura pesada: ainda apenas Con (+3), sem escalonamento', () => {
+      const sheet = buildLutadorSheet(5, 3);
+      const baseline = getBaselineDefense(5, 3);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('nível 3, Con +3, com armadura pesada: Con soma normalmente (regra noHeavy ignorada)', () => {
+      const sheet = buildLutadorSheet(3, 3, true);
+      const baseline = getBaselineDefense(3, 3, true);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('nível 7, Con +3, sem armadura pesada: Con (+3) + escalonamento (+1) = +4', () => {
+      const sheet = buildLutadorSheet(7, 3);
+      const baseline = getBaselineDefense(7, 3);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 4);
+    });
+
+    it('nível 7, Con +3, com armadura pesada: Con (+3) + escalonamento (+1) = +4', () => {
+      const sheet = buildLutadorSheet(7, 3, true);
+      const baseline = getBaselineDefense(7, 3, true);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 4);
+    });
+
+    it('nível 11, Con +4, sem armadura: Con (+4) + escalonamento (+2) = +6', () => {
+      const sheet = buildLutadorSheet(11, 4);
+      const baseline = getBaselineDefense(11, 4);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 6);
+    });
+
+    it('nível 2 (Lutador sem Casca Grossa ainda): sem bônus', () => {
+      const sheetWithoutCasca = buildLutadorSheet(2, 3);
+      const defaultSheet = createMockCharacterSheet();
+      defaultSheet.nivel = 2;
+      defaultSheet.atributos[Atributo.CONSTITUICAO].value = 3;
+      defaultSheet.generalPowers = [];
+      defaultSheet.classPowers = [];
+      defaultSheet.sheetBonuses = [];
+      defaultSheet.sheetActionHistory = [];
+      defaultSheet.bag = new Bag();
+
+      const withLutador = recalculateSheet(sheetWithoutCasca).defesa;
+      const withSimple = recalculateSheet(defaultSheet).defesa;
+
+      expect(withLutador).toBe(withSimple);
+    });
+
+    it('classe sem Casca Grossa (regressão): Con não afeta Defesa', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.nivel = 7;
+      sheet.atributos[Atributo.CONSTITUICAO].value = 5;
+      sheet.generalPowers = [];
+      sheet.classPowers = [];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag();
+      const baselineCon0 = cloneDeep(sheet);
+      baselineCon0.atributos[Atributo.CONSTITUICAO].value = 0;
+
+      const result = recalculateSheet(sheet);
+      const baseline = recalculateSheet(baselineCon0);
+
+      expect(result.defesa).toBe(baseline.defesa);
+    });
+
+    it('multiclasse Lutador 3 / Guerreiro 4, Con +5: cap pelo nível de Lutador (=3), não pelo nível total', () => {
+      const sheet = buildLutadorSheet(7, 5);
+      sheet.classLevels = [
+        { level: 1, className: 'Lutador' },
+        { level: 2, className: 'Lutador' },
+        { level: 3, className: 'Lutador' },
+        { level: 4, className: 'Guerreiro' },
+        { level: 5, className: 'Guerreiro' },
+        { level: 6, className: 'Guerreiro' },
+        { level: 7, className: 'Guerreiro' },
+      ];
+      const baseline = getBaselineDefense(7, 5);
+
+      const result = recalculateSheet(sheet);
+
+      // Lutador classLevel = 3 → Con +5 cap = +3 (e não +5 do nível total)
+      // classLevel 3 < 7 → sem escalonamento
+      expect(result.defesa).toBe(baseline + 3);
+    });
+  });
+
+  describe('Insolência (Bucaneiro)', () => {
+    const buildBucaneiroSheet = (
+      level: number,
+      chaMod: number
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = cloneDeep(BUCANEIRO);
+      sheet.nivel = level;
+      sheet.atributos[Atributo.CARISMA].value = chaMod;
+      sheet.generalPowers = [];
+      sheet.classPowers = [];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag();
+      return sheet;
+    };
+
+    const getBaselineDefense = (level: number, chaMod: number): number => {
+      const baseline = buildBucaneiroSheet(level, chaMod);
+      baseline.atributos[Atributo.CARISMA].value = 0;
+      return recalculateSheet(baseline).defesa;
+    };
+
+    it('nível 1, Cha +0: sem bônus (Cha=0)', () => {
+      const sheet = buildBucaneiroSheet(1, 0);
+      const baseline = getBaselineDefense(1, 0);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline);
+    });
+
+    it('nível 3, Cha +2: +2 (capado pelo nível)', () => {
+      const sheet = buildBucaneiroSheet(3, 2);
+      const baseline = getBaselineDefense(3, 2);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 2);
+    });
+
+    it('nível 1, Cha +5: cap pelo nível limita a +1', () => {
+      const sheet = buildBucaneiroSheet(1, 5);
+      const baseline = getBaselineDefense(1, 5);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 1);
+    });
+
+    it('multiclasse Bucaneiro 2 / Guerreiro 5, Cha +5: cap pelo nível de Bucaneiro (=2)', () => {
+      const classLevels = [
+        { level: 1, className: 'Bucaneiro' },
+        { level: 2, className: 'Bucaneiro' },
+        { level: 3, className: 'Guerreiro' },
+        { level: 4, className: 'Guerreiro' },
+        { level: 5, className: 'Guerreiro' },
+        { level: 6, className: 'Guerreiro' },
+        { level: 7, className: 'Guerreiro' },
+      ];
+
+      const baselineSheet = buildBucaneiroSheet(7, 0);
+      baselineSheet.classLevels = cloneDeep(classLevels);
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const sheet = buildBucaneiroSheet(7, 5);
+      sheet.classLevels = cloneDeep(classLevels);
+      const result = recalculateSheet(sheet);
+
+      // Bucaneiro classLevel = 2 → Cha +5 cap = +2
+      expect(result.defesa).toBe(baseline + 2);
+    });
+  });
+
+  describe('Braços Calejados (Lutador)', () => {
+    const bracosCalejadosPower = LUTADOR.powers.find(
+      (p) => p.name === 'Braços Calejados'
+    )!;
+
+    const buildLutadorWithBracos = (
+      level: number,
+      forMod: number
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = cloneDeep(LUTADOR);
+      sheet.nivel = level;
+      sheet.atributos[Atributo.FORCA].value = forMod;
+      sheet.generalPowers = [];
+      sheet.classPowers = [bracosCalejadosPower];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag();
+      return sheet;
+    };
+
+    it('Lutador 5, For +3: +3 na Defesa (capado pelo nível)', () => {
+      const sheet = buildLutadorWithBracos(5, 3);
+      const baselineSheet = buildLutadorWithBracos(5, 3);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('Lutador 2, For +5: cap pelo nível limita a +2', () => {
+      const sheet = buildLutadorWithBracos(2, 5);
+      const baselineSheet = buildLutadorWithBracos(2, 5);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 2);
+    });
+
+    it('multiclasse Lutador 3 / Guerreiro 4, For +5: cap pelo nível de Lutador (=3)', () => {
+      const classLevels = [
+        { level: 1, className: 'Lutador' },
+        { level: 2, className: 'Lutador' },
+        { level: 3, className: 'Lutador' },
+        { level: 4, className: 'Guerreiro' },
+        { level: 5, className: 'Guerreiro' },
+        { level: 6, className: 'Guerreiro' },
+        { level: 7, className: 'Guerreiro' },
+      ];
+
+      const baselineSheet = buildLutadorWithBracos(7, 5);
+      baselineSheet.classLevels = cloneDeep(classLevels);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const sheet = buildLutadorWithBracos(7, 5);
+      sheet.classLevels = cloneDeep(classLevels);
+      const result = recalculateSheet(sheet);
+
+      // Lutador classLevel = 3 → For +5 cap = +3
+      expect(result.defesa).toBe(baseline + 3);
+    });
+  });
+
+  describe('Defesa Estratégica (Guerreiro HdA)', () => {
+    const defesaEstrategicaPower = GUERREIRO_HEROIS_POWERS.find(
+      (p) => p.name === 'Defesa Estratégica'
+    )!;
+
+    const buildGuerreiroWithDefesaEstrategica = (
+      level: number,
+      intMod: number
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = cloneDeep(GUERREIRO);
+      sheet.nivel = level;
+      sheet.atributos[Atributo.INTELIGENCIA].value = intMod;
+      sheet.generalPowers = [];
+      sheet.classPowers = [defesaEstrategicaPower];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag();
+      return sheet;
+    };
+
+    it('Guerreiro 5, Int +3: +3 na Defesa (capado pelo nível)', () => {
+      const sheet = buildGuerreiroWithDefesaEstrategica(5, 3);
+      const baselineSheet = buildGuerreiroWithDefesaEstrategica(5, 3);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('Guerreiro 2, Int +5: cap pelo nível limita a +2', () => {
+      const sheet = buildGuerreiroWithDefesaEstrategica(2, 5);
+      const baselineSheet = buildGuerreiroWithDefesaEstrategica(2, 5);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 2);
+    });
+  });
+
+  describe('Virtudes Paladinescas (bônus progressivo de PM)', () => {
+    const VIRTUDES = [
+      'Virtude Paladinesca: Caridade',
+      'Virtude Paladinesca: Castidade',
+      'Virtude Paladinesca: Compaixão',
+      'Virtude Paladinesca: Humildade',
+      'Virtude Paladinesca: Temperança',
+      'Virtude Paladinesca: Paciência',
+    ];
+
+    const makeVirtudePowers = (n: number) =>
+      VIRTUDES.slice(0, n).map((name) => ({
+        name,
+        text: '',
+        requirements: [],
+      })) as CharacterSheet['classPowers'];
+
+    it('getVirtudePaladinescaPMBonus retorna a tabela 0/1/3/6/10/15/15', () => {
+      const expected = [0, 1, 3, 6, 10, 15, 15];
+      expected.forEach((bonus, count) => {
+        expect(getVirtudePaladinescaPMBonus(makeVirtudePowers(count))).toBe(
+          bonus
+        );
+      });
+    });
+
+    it('helper ignora poderes que não são Virtudes e dedupe por nome', () => {
+      expect(getVirtudePaladinescaPMBonus([])).toBe(0);
+      expect(getVirtudePaladinescaPMBonus(undefined)).toBe(0);
+      expect(
+        getVirtudePaladinescaPMBonus([
+          { name: 'Aumento de Atributo' },
+          { name: 'Orar' },
+        ])
+      ).toBe(0);
+      // mesma virtude duplicada conta apenas uma vez
+      expect(
+        getVirtudePaladinescaPMBonus([
+          { name: 'Virtude Paladinesca: Compaixão' },
+          { name: 'Virtude Paladinesca: Compaixão' },
+        ])
+      ).toBe(1);
+    });
+
+    it('recalculateSheet soma o bônus progressivo ao total de PM', () => {
+      const baseline = recalculateSheet(cloneDeep(mockSheet)).pm;
+
+      [1, 2, 3, 4, 5].forEach((n) => {
+        const sheet = cloneDeep(mockSheet);
+        sheet.classPowers = makeVirtudePowers(n);
+        const result = recalculateSheet(sheet);
+        const expectedBonus = [0, 1, 3, 6, 10, 15][n];
+        expect(result.pm).toBe(baseline + expectedBonus);
+      });
+    });
+
+    it('uma 6ª Virtude mantém o bônus no teto de +15', () => {
+      const baseline = recalculateSheet(cloneDeep(mockSheet)).pm;
+      const sheet = cloneDeep(mockSheet);
+      sheet.classPowers = makeVirtudePowers(6);
+      expect(recalculateSheet(sheet).pm).toBe(baseline + 15);
+    });
+
+    it('PM máximo manual ignora o bônus de Virtudes', () => {
+      const sheet = cloneDeep(mockSheet);
+      sheet.classPowers = makeVirtudePowers(5);
+      sheet.manualMaxPM = 42;
+      expect(recalculateSheet(sheet).pm).toBe(42);
     });
   });
 });

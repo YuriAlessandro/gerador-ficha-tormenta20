@@ -60,12 +60,16 @@ const ArcanistSubtypeSelectionStep: React.FC<
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Como Arcanista, você deve escolher seu Caminho: Bruxo, Mago ou
         Feiticeiro. Esta escolha define seu atributo-chave para magias e a forma
         como você aprende novas magias.
       </Typography>
-
       <RadioGroup value={selectedSubtype || ''} onChange={handleChange}>
         {subtypeOptions.map((option) => (
           <Paper key={option.value} sx={{ p: 2, mb: 2 }}>
@@ -75,7 +79,13 @@ const ArcanistSubtypeSelectionStep: React.FC<
               label={
                 <Box>
                   <Typography variant='h6'>{option.name}</Typography>
-                  <Typography variant='body2' color='text.secondary' paragraph>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                      marginBottom: '16px',
+                    }}
+                  >
                     {option.description}
                   </Typography>
                   <Typography
@@ -91,14 +101,12 @@ const ArcanistSubtypeSelectionStep: React.FC<
           </Paper>
         ))}
       </RadioGroup>
-
       {isComplete && (
         <Alert severity='success'>
           Caminho selecionado com sucesso! Você pode continuar para o próximo
           passo.
         </Alert>
       )}
-
       {!isComplete && (
         <Alert severity='info'>Selecione um caminho para continuar.</Alert>
       )}

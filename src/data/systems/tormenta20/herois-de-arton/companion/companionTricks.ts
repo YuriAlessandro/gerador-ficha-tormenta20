@@ -178,6 +178,82 @@ export function getCompanionTrickDefinition(
   return COMPANION_TRICKS.find((t) => t.name === name);
 }
 
+export interface TrickAvailability {
+  available: boolean;
+  unmetReasons: string[];
+}
+
+export interface TrickWithAvailability {
+  trick: CompanionTrickDefinition;
+  available: boolean;
+  unmetReasons: string[];
+}
+
+export function getTrickAvailability(
+  trick: CompanionTrickDefinition,
+  trainerLevel: number,
+  companionType: CompanionType,
+  companionSize: CompanionSize,
+  existingTricks: CompanionTrick[],
+  naturalWeaponCount: number,
+  isCreation: boolean
+): TrickAvailability {
+  const reqs = trick.requirements;
+  const unmetReasons: string[] = [];
+
+  if (reqs) {
+    if (reqs.creationOnly && !isCreation)
+      unmetReasons.push('Disponível apenas na criação do melhor amigo');
+    if (reqs.minTrainerLevel && trainerLevel < reqs.minTrainerLevel)
+      unmetReasons.push(`Requer Treinador nível ${reqs.minTrainerLevel}`);
+    if (reqs.allowedTypes && !reqs.allowedTypes.includes(companionType))
+      unmetReasons.push(`Apenas para tipo: ${reqs.allowedTypes.join(', ')}`);
+    if (reqs.requiredSize && companionSize !== reqs.requiredSize)
+      unmetReasons.push(`Requer melhor amigo ${reqs.requiredSize}`);
+    if (reqs.minNaturalWeapons && naturalWeaponCount < reqs.minNaturalWeapons)
+      unmetReasons.push(
+        `Requer ${reqs.minNaturalWeapons} ou mais armas naturais`
+      );
+
+    if (reqs.requiredTricks) {
+      const existingNames = existingTricks.map((t) => t.name);
+      reqs.requiredTricks.forEach((rt) => {
+        if (!existingNames.includes(rt))
+          unmetReasons.push(`Requer o truque: ${rt}`);
+      });
+    }
+  }
+
+  // Se não pode repetir e já possui, não está disponível (vale também para
+  // truques sem bloco de requirements — a ausência de canRepeat = único)
+  if (!reqs?.canRepeat && existingTricks.some((t) => t.name === trick.name))
+    unmetReasons.push('Já aprendido (não pode repetir)');
+
+  return { available: unmetReasons.length === 0, unmetReasons };
+}
+
+export function getTricksWithAvailability(
+  trainerLevel: number,
+  companionType: CompanionType,
+  companionSize: CompanionSize,
+  existingTricks: CompanionTrick[],
+  naturalWeaponCount: number,
+  isCreation: boolean
+): TrickWithAvailability[] {
+  return COMPANION_TRICKS.map((trick) => {
+    const { available, unmetReasons } = getTrickAvailability(
+      trick,
+      trainerLevel,
+      companionType,
+      companionSize,
+      existingTricks,
+      naturalWeaponCount,
+      isCreation
+    );
+    return { trick, available, unmetReasons };
+  });
+}
+
 export function isTrickAvailable(
   trick: CompanionTrickDefinition,
   trainerLevel: number,
@@ -187,28 +263,15 @@ export function isTrickAvailable(
   naturalWeaponCount: number,
   isCreation: boolean
 ): boolean {
-  const reqs = trick.requirements;
-  if (!reqs) return true;
-
-  if (reqs.creationOnly && !isCreation) return false;
-  if (reqs.minTrainerLevel && trainerLevel < reqs.minTrainerLevel) return false;
-  if (reqs.allowedTypes && !reqs.allowedTypes.includes(companionType))
-    return false;
-  if (reqs.requiredSize && companionSize !== reqs.requiredSize) return false;
-  if (reqs.minNaturalWeapons && naturalWeaponCount < reqs.minNaturalWeapons)
-    return false;
-
-  if (reqs.requiredTricks) {
-    const existingNames = existingTricks.map((t) => t.name);
-    if (!reqs.requiredTricks.every((rt) => existingNames.includes(rt)))
-      return false;
-  }
-
-  // Se não pode repetir e já possui, não está disponível
-  if (!reqs.canRepeat && existingTricks.some((t) => t.name === trick.name))
-    return false;
-
-  return true;
+  return getTrickAvailability(
+    trick,
+    trainerLevel,
+    companionType,
+    companionSize,
+    existingTricks,
+    naturalWeaponCount,
+    isCreation
+  ).available;
 }
 
 export function getAvailableTricks(

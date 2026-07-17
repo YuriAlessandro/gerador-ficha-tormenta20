@@ -1,14 +1,29 @@
 import Race from '../../../../interfaces/Race';
 import { Atributo } from '../atributos';
 
-// const DWARF_WEAPONS = [
-//   Armas.MACHADO_DE_BATALHA.nome,
-//   Armas.MACHADO_DE_GUERRA.nome,
-//   Armas.MACHADO_ANAO.nome,
-//   Armas.MACHADO_TAURICO.nome,
-//   Armas.MARTELO_DE_GUERRA.nome,
-//   Armas.PICARETA.nome,
-// ];
+// Machados, martelos, marretas e picaretas cobertos por Tradição de Heredrimm
+// (core + Heróis de Arton). Mantido como lista de nomes: cada um vira uma
+// proficiência nomeada na ficha (removível pelo editor de proficiências).
+const HEREDRIMM_WEAPON_NAMES = [
+  // Core (marciais)
+  'Machadinha',
+  'Machado de Batalha',
+  'Martelo de Guerra',
+  'Picareta',
+  'Machado de Guerra',
+  'Marreta',
+  // Core (exóticas)
+  'Machado Anão',
+  'Machado Táurico',
+  // Heróis de Arton (marciais)
+  'Martelo leve',
+  'Martelo longo',
+  'Malho',
+  'Bico de corvo',
+  // Heróis de Arton (exóticas)
+  'Marrão',
+  'Machado de haste',
+];
 
 const ANAO: Race = {
   name: 'Anão',
@@ -28,6 +43,8 @@ const ANAO: Race = {
     TENEBRA: 1,
   },
   getDisplacement: () => 6,
+  // "Devagar e Sempre": deslocamento não é reduzido por armadura ou carga.
+  ignoreEncumbrance: true,
   abilities: [
     {
       name: 'Conhecimento das Rochas',
@@ -70,30 +87,24 @@ const ANAO: Race = {
             value: 2,
           },
         },
+        // "Todos os machados, martelos, marretas e picaretas são armas
+        // simples para você": proficiências nomeadas, reconhecidas por
+        // isProficientWithWeapon (evitam o -5 de não proficiência).
+        ...HEREDRIMM_WEAPON_NAMES.map((nome) => ({
+          source: {
+            type: 'race' as const,
+            raceName: 'Anão',
+          },
+          target: {
+            type: 'Proficiency' as const,
+            proficiency: nome,
+          },
+          modifier: {
+            type: 'Fixed' as const,
+            value: 1,
+          },
+        })),
       ],
-      // action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-      //   const cloneSheet = _.cloneDeep(sheet);
-
-      //   cloneSheet.bag.equipments.Arma = cloneSheet.bag.equipments.Arma.map(
-      //     (equipment) => {
-      //       if (DWARF_WEAPONS.includes(equipment.nome)) {
-      //         return {
-      //           ...equipment,
-      //           tipo: 'Simples',
-      //           atkBonus: (equipment.atkBonus || 0) + 2,
-      //         };
-      //       }
-      //       return equipment;
-      //     }
-      //   );
-
-      //   substeps.push({
-      //     name: 'Tradição de Heredrimm',
-      //     value: `+2 em ataques com armas simples anãs`,
-      //   });
-
-      //   return cloneSheet;
-      // },
     },
     {
       name: 'Duro com Pedra',

@@ -4,3 +4,6 @@
 [submodule "src/premium"]
 	path = src/premium
 	url = https://github.com/YuriAlessandro/fichas-de-nimb-premium.git
+[submodule "extensions"]
+	path = extensions
+	url = https://github.com/YuriAlessandro/fichas-de-nimb-extensions.git

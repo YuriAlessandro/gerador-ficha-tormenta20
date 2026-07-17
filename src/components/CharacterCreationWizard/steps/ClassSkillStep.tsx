@@ -66,10 +66,14 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Section 1: Base Skills */}
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Perícias básicas da classe {className}:
       </Typography>
-
       {periciasbasicas.map((be) => {
         if (be.type === 'and') {
           return (
@@ -97,7 +101,13 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
 
           return (
             <Box key={`or-${be.list.join('-')}`}>
-              <Typography variant='caption' color='text.secondary' mb={1}>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 1,
+                }}
+              >
                 Escolha uma:
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
@@ -129,24 +139,32 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
 
         return null;
       })}
-
       {hasOrGroups && !allOrGroupsChosen && (
         <Alert severity='warning'>
           Selecione uma perícia em cada grupo acima para continuar.
         </Alert>
       )}
-
       {/* Section 2: Remaining Skills */}
       {requiredCount > 0 && (
         <>
           <Divider />
 
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Escolha {requiredCount} perícia{requiredCount > 1 ? 's' : ''}{' '}
             adicional{requiredCount > 1 ? 'is' : ''}:
           </Typography>
 
-          <Typography variant='caption' color='text.secondary'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Selecionadas: {selectedSkills.length} / {requiredCount}
           </Typography>
 
@@ -206,7 +224,6 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
           )}
         </>
       )}
-
       {isComplete && (
         <Alert severity='success'>
           Perícias selecionadas com sucesso! Você pode continuar para o próximo

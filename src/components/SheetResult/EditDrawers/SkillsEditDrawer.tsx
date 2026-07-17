@@ -33,6 +33,7 @@ import {
   ATTR_ABBREVIATIONS,
 } from '@/data/systems/tormenta20/atributos';
 import { normalizeSearch } from '@/functions/stringUtils';
+import NumberField from '@/components/common/NumberField';
 
 interface SkillsEditDrawerProps {
   open: boolean;
@@ -51,7 +52,7 @@ interface EditedSkill {
 // Available Oficio options based on the Skills enum
 const AVAILABLE_OFICIOS = [
   'Ofício (Armeiro)',
-  'Ofício (Artesanato)',
+  'Ofício (Artesão)',
   'Ofício (Alquímia)',
   'Ofício (Culinária)',
   'Ofício (Alfaiate)',
@@ -189,6 +190,10 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         );
         if (!editedSkill) return originalSkill;
 
+        const isBaseSkill = sheet.skills.includes(originalSkill.name);
+        const manuallyUntrained =
+          isBaseSkill && editedSkill.trained === false ? true : undefined;
+
         const computedOthers =
           (originalSkill.others ?? 0) - (originalSkill.manualOthers ?? 0);
         return {
@@ -198,6 +203,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           manualOthers:
             editedSkill.others !== 0 ? editedSkill.others : undefined,
           modAttr: editedSkill.modAttr,
+          manuallyUntrained,
         };
       });
 
@@ -215,6 +221,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         training: skillTrainingMod(editedSkill.trained, sheet.nivel),
         others: editedSkill.others,
         manualOthers: editedSkill.others !== 0 ? editedSkill.others : undefined,
+        manuallyUntrained: undefined,
       }));
 
     const finalSkills = [...updatedSkills, ...newOficios];
@@ -353,8 +360,10 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 600 }, overflow: 'hidden' },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 600 }, overflow: 'hidden' },
+        },
       }}
     >
       <Box
@@ -368,9 +377,11 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       >
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Editar Perícias</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -392,12 +403,14 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           sx={{ mb: 2 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon color='action' />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon color='action' />
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -506,24 +519,21 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
                     />
                   </TableCell>
                   <TableCell align='center'>
-                    <TextField
-                      type='number'
+                    <NumberField
                       value={skill.others}
-                      onChange={(e) =>
-                        handleSkillOthersChange(
-                          skill.name,
-                          parseInt(e.target.value, 10) || 0
-                        )
+                      onValueChange={(v) =>
+                        handleSkillOthersChange(skill.name, v ?? 0)
                       }
                       size='small'
-                      sx={{ width: 70 }}
-                      inputProps={{
-                        style: { textAlign: 'center' },
-                      }}
+                      sx={{ width: 70, '& input': { textAlign: 'center' } }}
                     />
                   </TableCell>
                   <TableCell align='center'>
-                    <Typography fontWeight='bold'>
+                    <Typography
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       {calculateSkillTotal(skill)}
                     </Typography>
                   </TableCell>
@@ -546,7 +556,13 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
             <Typography variant='subtitle2' sx={{ mb: 2 }}>
               Adicionar Novo Ofício
             </Typography>
-            <Stack direction='row' spacing={2} alignItems='center'>
+            <Stack
+              direction='row'
+              spacing={2}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <FormControl sx={{ minWidth: 200, flexGrow: 1 }}>
                 <InputLabel>Selecione um Ofício</InputLabel>
                 <Select

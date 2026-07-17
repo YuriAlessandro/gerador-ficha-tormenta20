@@ -156,49 +156,4 @@ export const ELEMENTAL_DAMAGE_TYPES = [
   'frio',
 ] as const;
 
-export const BASIC_SPELLS_1ST_2ND_CIRCLE = [
-  // 1º Círculo
-  'Alarme',
-  'Arma Mágica',
-  'Compreensão',
-  'Curar Ferimentos',
-  'Detectar Magia',
-  'Disco Flutuante',
-  'Escudo',
-  'Identificação',
-  'Imagem Ilusória',
-  'Mísseis Mágicos',
-  'Primeiros Socorros',
-  'Proteção',
-  'Queda Suave',
-  'Raio de Luz',
-  'Recuo Acelerado',
-  'Santuário',
-  'Sono',
-  'Suporte',
-  'Toque Chocante',
-  'Zumbido',
-  // 2º Círculo
-  'Agilidade do Gato',
-  'Arma Espiritual',
-  'Armadura Arcana',
-  'Aura Mágica',
-  'Força do Touro',
-  'Ignorar Ferimentos',
-  'Imagem Maior',
-  'Invisibilidade',
-  'Levitação',
-  'Localizar',
-  'Lufada de Vento',
-  'Moldar Metal',
-  'Passos Longos',
-  'Resistência a Energia',
-  'Restauração Menor',
-  'Silêncio',
-  'Sugestão',
-  'Velocidade',
-  'Web',
-] as const;
-
 export type ElementalDamageType = (typeof ELEMENTAL_DAMAGE_TYPES)[number];
-export type SpellChoice = (typeof BASIC_SPELLS_1ST_2ND_CIRCLE)[number];

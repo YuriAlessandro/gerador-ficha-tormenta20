@@ -120,7 +120,6 @@ const DeformidadeSelectionField: React.FC<DeformidadeSelectionFieldProps> = ({
           Esta habilidade não causa perda de Carisma.
         </Typography>
       </Alert>
-
       {/* First Skill Selection (Required) */}
       <FormControl fullWidth>
         <InputLabel id='deformidade-first-skill-label'>
@@ -139,7 +138,6 @@ const DeformidadeSelectionField: React.FC<DeformidadeSelectionFieldProps> = ({
           ))}
         </Select>
       </FormControl>
-
       {/* Second Choice Type Selection */}
       <Box>
         <Typography variant='subtitle1' gutterBottom>
@@ -166,7 +164,6 @@ const DeformidadeSelectionField: React.FC<DeformidadeSelectionFieldProps> = ({
           </RadioGroup>
         </FormControl>
       </Box>
-
       {/* Second Skill Selection */}
       {secondChoiceType === 'skill' && (
         <FormControl fullWidth>
@@ -188,7 +185,6 @@ const DeformidadeSelectionField: React.FC<DeformidadeSelectionFieldProps> = ({
           </Select>
         </FormControl>
       )}
-
       {/* Power Selection */}
       {secondChoiceType === 'power' && (
         <FormControl fullWidth>
@@ -209,8 +205,10 @@ const DeformidadeSelectionField: React.FC<DeformidadeSelectionFieldProps> = ({
                   {power.description && (
                     <Typography
                       variant='caption'
-                      color='text.secondary'
                       component='div'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       {power.description.length > 100
                         ? `${power.description.substring(0, 100)}...`
@@ -223,10 +221,14 @@ const DeformidadeSelectionField: React.FC<DeformidadeSelectionFieldProps> = ({
           </Select>
         </FormControl>
       )}
-
       {/* Selection Summary */}
       <Box sx={{ mt: 1 }}>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           <strong>Resumo:</strong>
           {firstSkill && (
             <>

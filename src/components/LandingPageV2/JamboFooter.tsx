@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 
-const APP_VERSION = '4.10';
+const APP_VERSION = '4.25.2';
 
 // Image credits - add more as needed
 const imageCredits = [
@@ -84,11 +84,7 @@ const footerSections: FooterSection[] = [
       { label: 'Mesas Virtuais', link: '/mesas' },
       { label: 'Explorar Builds', link: '/builds' },
       { label: 'Caverna do Saber', link: '/caverna-do-saber' },
-      {
-        label: 'Mapa de Arton',
-        link: 'https://mapadearton.fichasdenimb.com.br/',
-        isExternal: true,
-      },
+      { label: 'Mapa de Arton', link: '/mapadearton' },
     ],
   },
   {
@@ -146,9 +142,11 @@ const JamboFooter: React.FC = () => {
             <Grid size={{ xs: 6, sm: 3 }} key={section.title}>
               <Typography
                 variant='subtitle2'
-                fontWeight='bold'
-                color='text.primary'
-                sx={{ mb: 1.5 }}
+                sx={{
+                  fontWeight: 'bold',
+                  color: 'text.primary',
+                  mb: 1.5,
+                }}
               >
                 {section.title}
               </Typography>
@@ -184,16 +182,25 @@ const JamboFooter: React.FC = () => {
         {/* Bottom Section */}
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
-          justifyContent='space-between'
-          alignItems={{ xs: 'center', sm: 'flex-start' }}
           spacing={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: { xs: 'center', sm: 'flex-start' },
+          }}
         >
           {/* Left side - Copyright and year */}
-          <Stack spacing={0.5} alignItems={{ xs: 'center', sm: 'flex-start' }}>
+          <Stack
+            spacing={0.5}
+            sx={{
+              alignItems: { xs: 'center', sm: 'flex-start' },
+            }}
+          >
             <Typography
               variant='body2'
-              color='text.secondary'
-              sx={{ fontFamily: 'Tfont, serif' }}
+              sx={{
+                color: 'text.secondary',
+                fontFamily: 'Tfont, serif',
+              }}
             >
               &copy; {currentYear} &middot; (v{APP_VERSION})
             </Typography>
@@ -202,8 +209,10 @@ const JamboFooter: React.FC = () => {
           {/* Center - Stripe */}
           <Typography
             variant='caption'
-            color='text.disabled'
-            sx={{ textAlign: 'center' }}
+            sx={{
+              color: 'text.disabled',
+              textAlign: 'center',
+            }}
           >
             Pagamentos processados via{' '}
             <Link
@@ -220,7 +229,12 @@ const JamboFooter: React.FC = () => {
           </Typography>
 
           {/* Right side - Jambô */}
-          <Stack spacing={0.5} alignItems={{ xs: 'center', sm: 'flex-end' }}>
+          <Stack
+            spacing={0.5}
+            sx={{
+              alignItems: { xs: 'center', sm: 'flex-end' },
+            }}
+          >
             <Link
               href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
               target='_blank'
@@ -236,8 +250,8 @@ const JamboFooter: React.FC = () => {
             </Link>
             <Typography
               variant='caption'
-              color='text.disabled'
               sx={{
+                color: 'text.disabled',
                 fontSize: '0.7rem',
                 textAlign: { xs: 'center', sm: 'right' },
               }}
@@ -248,7 +262,12 @@ const JamboFooter: React.FC = () => {
             <Tooltip
               title={
                 <Stack spacing={0.5} sx={{ p: 0.5 }}>
-                  <Typography variant='caption' fontWeight='bold'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      fontWeight: 'bold',
+                    }}
+                  >
                     Créditos de Imagens
                   </Typography>
                   {imageCredits.map((credit) => (

@@ -14,8 +14,13 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import Race from '@/interfaces/Race';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { isPowerAvailable } from '@/functions/powers';
-import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
+import {
+  GeneralPower,
+  GeneralPowerType,
+  OriginPower,
+} from '@/interfaces/Poderes';
 import { ClassDescription } from '@/interfaces/Class';
+import { getEffectiveRaceAttrs } from '@/functions/general';
 
 interface OriginSelectionStepProps {
   origin: Origin;
@@ -27,6 +32,7 @@ interface OriginSelectionStepProps {
   baseAttributes?: Record<Atributo, number>;
   raceAttributes?: Atributo[];
   race?: Race;
+  sexForAttributes?: 'Masculino' | 'Feminino'; // Dimorfismo sexual (ex: Nagah)
   classe?: ClassDescription;
 }
 
@@ -39,6 +45,7 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   baseAttributes,
   raceAttributes,
   race,
+  sexForAttributes,
   classe,
 }) => {
   const REQUIRED_SELECTIONS = 2;
@@ -64,7 +71,7 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
     });
 
     // Apply racial modifiers
-    race.attributes.attrs.forEach((attrMod) => {
+    getEffectiveRaceAttrs(race, sexForAttributes).forEach((attrMod) => {
       if (attrMod.attr === 'any') {
         // Apply to chosen attributes
         raceAttributes?.forEach((chosenAttr) => {
@@ -92,7 +99,14 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
       spells: [],
       sheetActionHistory: [],
     } as unknown as CharacterSheet;
-  }, [baseAttributes, race, raceAttributes, usedSkills, classe]);
+  }, [
+    baseAttributes,
+    race,
+    sexForAttributes,
+    raceAttributes,
+    usedSkills,
+    classe,
+  ]);
 
   // Helper to check if a power meets requirements
   const checkPowerRequirements = (
@@ -125,11 +139,15 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           A origem {origin.name} é uma origem regional (Atlas de Arton) e
           concede todos os benefícios automaticamente.
         </Typography>
-
         <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
           <Typography variant='h6' gutterBottom>
             Benefícios Concedidos Automaticamente:
@@ -138,7 +156,12 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           {originBenefits.skills.length > 0 && (
             <Box sx={{ mb: 2 }}>
               <Typography variant='subtitle2'>Perícias:</Typography>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {originBenefits.skills.join(', ')}
               </Typography>
             </Box>
@@ -151,7 +174,9 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
                 <Typography
                   key={power.name}
                   variant='body2'
-                  color='text.secondary'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
                 >
                   • {power.name}
                 </Typography>
@@ -174,7 +199,9 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
                   <Typography
                     key={itemKey}
                     variant='body2'
-                    color='text.secondary'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
                   >
                     • {itemName}
                     {item.qtd && item.qtd > 1 ? ` (x${item.qtd})` : ''}
@@ -184,7 +211,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             </Box>
           )}
         </Paper>
-
         <Alert severity='success'>
           Nenhuma seleção necessária - todos os benefícios serão concedidos
           automaticamente. Você pode continuar para o próximo passo.
@@ -271,6 +297,20 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
     })
   );
 
+  // Algumas origens concedem apenas UM poder de um tipo "à sua escolha"
+  // (ex.: Gladiador/Soldado = um poder de combate; Assistente de Laboratório = um
+  // poder da Tormenta). Esses poderes são exibidos individualmente, mas representam
+  // um único slot de benefício — o usuário pode escolher no máximo um deles.
+  const limitedType = originBenefits.limitedPowerType;
+  const limitedPowerNames = new Set(
+    powerOptionsWithRequirements
+      .filter((p) => limitedType && p.power.type === limitedType)
+      .map((p) => p.name)
+  );
+  const hasLimitedSelected = selectedBenefits.some((b) =>
+    limitedPowerNames.has(b.name)
+  );
+
   const handleToggle = (benefit: OriginBenefit) => {
     const isSelected = selectedBenefits.some(
       (b) => b.type === benefit.type && b.name === benefit.name
@@ -283,7 +323,15 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           (b) => !(b.type === benefit.type && b.name === benefit.name)
         )
       );
-    } else if (selectedBenefits.length < REQUIRED_SELECTIONS) {
+      return;
+    }
+
+    // Bloqueia escolher um segundo poder do grupo limitado (ex.: dois poderes de combate)
+    if (limitedPowerNames.has(benefit.name) && hasLimitedSelected) {
+      return;
+    }
+
+    if (selectedBenefits.length < REQUIRED_SELECTIONS) {
       // Add benefit if under limit
       onChange([...selectedBenefits, benefit]);
     }
@@ -293,16 +341,24 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         A origem {origin.name} concede itens automaticamente e permite escolher{' '}
         {REQUIRED_SELECTIONS} benefícios entre perícias e poderes. Selecione
         abaixo:
       </Typography>
-
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Selecionados: {selectedBenefits.length} / {REQUIRED_SELECTIONS}
       </Typography>
-
       {/* Items Section - Always granted, display only */}
       {items.length > 0 && (
         <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
@@ -318,7 +374,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             const itemKey = `${itemName}-${item.qtd || 1}-${index}`;
 
             return (
-              <Typography key={itemKey} variant='body2' color='text.secondary'>
+              <Typography
+                key={itemKey}
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 • {itemName}
                 {item.qtd && item.qtd > 1 ? ` (x${item.qtd})` : ''}
               </Typography>
@@ -326,7 +388,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           })}
         </Paper>
       )}
-
       {/* Skills Section */}
       {skillOptions.length > 0 && (
         <Paper sx={{ p: 2 }}>
@@ -382,7 +443,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           })}
         </Paper>
       )}
-
       {/* Powers Section */}
       {powerOptions.length > 0 && (
         <Paper sx={{ p: 2 }}>
@@ -393,6 +453,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             <Alert severity='info' sx={{ mb: 2 }}>
               Alguns poderes estão indisponíveis pois você não atende aos
               pré-requisitos (ex: atributo mínimo).
+            </Alert>
+          )}
+          {limitedPowerNames.size > 0 && (
+            <Alert severity='info' sx={{ mb: 2 }}>
+              {limitedType === GeneralPowerType.COMBATE
+                ? 'Esta origem permite escolher apenas um poder de combate.'
+                : 'Esta origem permite escolher apenas um poder da Tormenta.'}
             </Alert>
           )}
           {powerOptionsWithRequirements.map((powerOpt) => {
@@ -406,7 +473,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             const isDisabledByLimit =
               !isSelected && selectedBenefits.length >= REQUIRED_SELECTIONS;
             const isDisabledByRequirements = !powerOpt.meetsRequirements;
-            const isDisabled = isDisabledByLimit || isDisabledByRequirements;
+            const isInLimitedGroup = limitedPowerNames.has(powerOpt.name);
+            const isDisabledByLimitedGroup =
+              !isSelected && isInLimitedGroup && hasLimitedSelected;
+            const isDisabled =
+              isDisabledByLimit ||
+              isDisabledByRequirements ||
+              isDisabledByLimitedGroup;
 
             return (
               <FormControlLabel
@@ -444,7 +517,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           })}
         </Paper>
       )}
-
       {!isComplete && selectedBenefits.length > 0 && (
         <Alert severity='warning'>
           Selecione {REQUIRED_SELECTIONS - selectedBenefits.length} benefício
@@ -454,7 +526,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           continuar.
         </Alert>
       )}
-
       {isComplete && (
         <Alert severity='success'>
           Benefícios selecionados com sucesso! Você pode continuar para o

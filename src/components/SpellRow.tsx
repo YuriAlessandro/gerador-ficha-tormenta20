@@ -29,7 +29,7 @@ interface SpellProps {
   currentPM?: number;
   maxPM?: number;
   tempPM?: number;
-  onSpellCast?: (pmSpent: number) => void;
+  onSpellCast?: (pmSpent: number, spell: Spell) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
@@ -69,9 +69,9 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
   }, []);
 
   const handleSpellCast = useCallback(
-    (pmSpent: number) => {
+    (pmSpent: number, castSpell: Spell) => {
       if (onSpellCast) {
-        onSpellCast(pmSpent);
+        onSpellCast(pmSpent, castSpell);
       }
     },
     [onSpellCast]
@@ -91,7 +91,13 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
       >
         <Grid container spacing={2} sx={{ width: '100%' }}>
           <Grid size={isMobile ? 12 : 4}>
-            <Stack direction='row' alignItems='center' spacing={0.5}>
+            <Stack
+              direction='row'
+              spacing={0.5}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               {isMago && onToggleMemorized && (
                 <>
                   {spell.alwaysPrepared ? (
@@ -243,43 +249,91 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
         </Grid>
       </AccordionSummary>
       <AccordionDetails>
-        <Grid container spacing={2} marginBottom={1}>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            marginBottom: 1,
+          }}
+        >
           <Grid size={6}>
-            <Typography variant='caption' fontWeight='bold'>
+            <Typography
+              variant='caption'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Escola:
             </Typography>
             <Typography>{spell.school}</Typography>
           </Grid>
           <Grid size={6}>
-            <Typography variant='caption' fontWeight='bold'>
+            <Typography
+              variant='caption'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Execução:
             </Typography>
             <Typography>{spell.execucao}</Typography>
           </Grid>
         </Grid>
-        <Grid container spacing={2} marginBottom={2}>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            marginBottom: 2,
+          }}
+        >
           <Grid size={6}>
-            <Typography variant='caption' fontWeight='bold'>
+            <Typography
+              variant='caption'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Alcance:
             </Typography>
             <Typography>{spell.alcance}</Typography>
           </Grid>
           <Grid size={6}>
-            <Typography variant='caption' fontWeight='bold'>
+            <Typography
+              variant='caption'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Alvo/Área:
             </Typography>
             <Typography>{spell.alvo || spell.area || '-'}</Typography>
           </Grid>
         </Grid>
-        <Grid container spacing={2} marginBottom={2}>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            marginBottom: 2,
+          }}
+        >
           <Grid size={6}>
-            <Typography variant='caption' fontWeight='bold'>
+            <Typography
+              variant='caption'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Duração:
             </Typography>
             <Typography>{spell.duracao}</Typography>
           </Grid>
           <Grid size={6}>
-            <Typography variant='caption' fontWeight='bold'>
+            <Typography
+              variant='caption'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Resistência:
             </Typography>
             <Typography>{spell.resistencia || '-'}</Typography>
@@ -287,7 +341,13 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
         </Grid>
         <Grid container>
           <Grid size={10}>
-            <Typography fontWeight='bold'>{spell.spellCircle}</Typography>
+            <Typography
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
+              {spell.spellCircle}
+            </Typography>
           </Grid>
           <Grid size={2}>
             <Typography

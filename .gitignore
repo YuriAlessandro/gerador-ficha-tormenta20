@@ -11,6 +11,9 @@
 # production
 /build
 
+# blog drafts (rascunhos de posts — mantidos localmente, não versionados)
+/release-posts
+
 # misc
 .DS_Store
 request.json
@@ -31,3 +34,6 @@ yarn-error.log*
 /backend/node_modules
 /backend/dist
 /backend/build
+
+# Saída gerada pela skill /brag (vídeos, composições)
+/brag-output

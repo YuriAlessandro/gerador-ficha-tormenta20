@@ -15,7 +15,13 @@ const SheetBuilderFormStepRaceDefinitionLefeuAttributeCheckboxes = ({
 }: Props) => (
   <div className=''>
     <h3 className='mb-3'>+1 em três atributos diferentes, -1 em Carisma</h3>
-    <Stack direction='row' spacing={2} justifyContent='center'>
+    <Stack
+      direction='row'
+      spacing={2}
+      sx={{
+        justifyContent: 'center',
+      }}
+    >
       {attributesPreview.map(({ attribute, value, modifier }) => (
         <AttributePreviewItem
           key={attribute}

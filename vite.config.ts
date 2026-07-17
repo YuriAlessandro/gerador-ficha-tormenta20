@@ -7,7 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 
 // Version used for cache naming - changing this invalidates all PWA caches
-const APP_VERSION = '4.10';
+const APP_VERSION = '4.25.2';
 
 // Plugin to handle SPA routing for paths with dots (e.g., /perfil/user.name)
 // This runs AFTER Vite's middleware to catch 404s on client-side routes
@@ -50,6 +50,20 @@ function spaFallbackPlugin(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig({
   appType: 'spa',
+  // Dev-only: proxia /api para o backend local. Usado ao testar a ficha
+  // embutida no Owlbear (frontend via túnel HTTPS) rodando com VITE_API_URL=/
+  // — evita mixed content e CORS. Não afeta o build de produção.
+  server: {
+    // Dev-only: libera hosts de túnel (ngrok/cloudflared) ao testar a ficha
+    // embutida no Owlbear. Não tem efeito no build de produção.
+    allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     outDir: 'build',
   },
@@ -79,7 +93,9 @@ export default defineConfig({
         theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',
-        orientation: 'portrait-primary',
+        // No 'orientation' field on purpose: omitting it makes the installed PWA
+        // respect the device's system-level auto-rotate lock. Setting it to 'any'
+        // forces rotation even when the user has auto-rotate disabled.
         scope: '/',
         start_url: '/',
         categories: ['games', 'utilities', 'entertainment'],

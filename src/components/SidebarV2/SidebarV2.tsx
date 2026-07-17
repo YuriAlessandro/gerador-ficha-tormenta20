@@ -43,9 +43,10 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-const APP_VERSION = '4.10';
+const APP_VERSION = '4.25.2';
 const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
 interface SidebarV2Props {
@@ -92,6 +93,7 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   const history = useHistory();
   const { isAuthenticated, user } = useAuth();
   const isAdmin = user?.email === ADMIN_EMAIL;
+  const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
   const { requestLogout } = useAuthContext();
   // const { settings, updateSettings } = useDice3D();
 
@@ -241,8 +243,8 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography
                   variant='subtitle2'
-                  fontWeight='bold'
                   sx={{
+                    fontWeight: 'bold',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -252,8 +254,8 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                 </Typography>
                 <Typography
                   variant='caption'
-                  color='text.secondary'
                   sx={{
+                    color: 'text.secondary',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -343,6 +345,38 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                   </ListItemIcon>
                   <Typography variant='inherit'>Explorar Builds</Typography>
                 </StyledMenuItem>
+                <StyledMenuItem onClick={() => navigateTo('/meus-homebrews')}>
+                  <ListItemIcon>
+                    <AutoFixHighIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>Meus Homebrews</Typography>
+                </StyledMenuItem>
+                <StyledMenuItem onClick={() => navigateTo('/homebrews')}>
+                  <ListItemIcon>
+                    <AutoFixHighIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>
+                    Homebrews da Comunidade
+                  </Typography>
+                </StyledMenuItem>
+                {bestiaryEnabled && (
+                  <StyledMenuItem onClick={() => navigateTo('/meu-bestiario')}>
+                    <ListItemIcon>
+                      <SecurityIcon />
+                    </ListItemIcon>
+                    <Typography variant='inherit'>Meu Bestiário</Typography>
+                  </StyledMenuItem>
+                )}
+                {bestiaryEnabled && (
+                  <StyledMenuItem onClick={() => navigateTo('/bestiario')}>
+                    <ListItemIcon>
+                      <SecurityIcon />
+                    </ListItemIcon>
+                    <Typography variant='inherit'>
+                      Bestiário da Comunidade
+                    </Typography>
+                  </StyledMenuItem>
+                )}
                 {isAdmin && (
                   <StyledMenuItem onClick={() => navigateTo('/admin')}>
                     <ListItemIcon>
@@ -387,15 +421,11 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 
             {/* CONSULTA */}
             <StyledSubheader>Consulta</StyledSubheader>
-            <StyledMenuItem
-              onClick={() =>
-                openExternal('https://mapadearton.fichasdenimb.com.br/')
-              }
-            >
+            <StyledMenuItem onClick={() => navigateTo('/mapadearton')}>
               <ListItemIcon>
                 <MapIcon />
               </ListItemIcon>
-              <Typography variant='inherit'>Mapa Interativo</Typography>
+              <Typography variant='inherit'>Mapa de Arton</Typography>
             </StyledMenuItem>
             <StyledMenuItem onClick={() => navigateTo('/database')}>
               <ListItemIcon>

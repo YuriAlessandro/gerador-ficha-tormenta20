@@ -106,13 +106,26 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
         </TableCell>
         <TableCell component='th' scope='row'>
           <Box
-            display='flex'
-            alignItems='center'
-            justifyContent='space-between'
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
           >
-            <Box display='flex' alignItems='center' gap={1}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
               <GroupIcon color='primary' fontSize='small' />
-              <Typography variant='body1' fontWeight={500}>
+              <Typography
+                variant='body1'
+                sx={{
+                  fontWeight: 500,
+                }}
+              >
                 {race.name}
               </Typography>
               {race.supplementId !== SupplementId.TORMENTA20_CORE && (
@@ -185,7 +198,13 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                 >
                   Modificadores de Atributos
                 </Typography>
-                <Box display='flex' gap={1} flexWrap='wrap'>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {processRaceAttributes(race).map((attrInfo, _idx) => (
                     <Chip
                       key={`${race.name}-attr-${attrInfo.label.replace(
@@ -202,8 +221,10 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                 {race.heritages && (
                   <Typography
                     variant='body2'
-                    color='text.secondary'
-                    sx={{ mt: 1 }}
+                    sx={{
+                      color: 'text.secondary',
+                      mt: 1,
+                    }}
                   >
                     Os modificadores específicos variam de acordo com a herança
                     escolhida. Veja os detalhes abaixo.
@@ -247,10 +268,12 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                         </Box>
 
                         <Box
-                          display='flex'
-                          gap={0.5}
-                          flexWrap='wrap'
-                          sx={{ mb: 1.5 }}
+                          sx={{
+                            display: 'flex',
+                            gap: 0.5,
+                            flexWrap: 'wrap',
+                            mb: 1.5,
+                          }}
                         >
                           {processRaceAttributes({
                             ...race,
@@ -287,7 +310,12 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                             >
                               {ability.name}
                             </Typography>
-                            <Typography variant='body1' paragraph>
+                            <Typography
+                              variant='body1'
+                              sx={{
+                                marginBottom: '16px',
+                              }}
+                            >
                               {ability.description}
                             </Typography>
                             {abilityIdx < heritage.abilities.length - 1 && (
@@ -315,7 +343,12 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                       >
                         {ability.name}
                       </Typography>
-                      <Typography variant='body1' paragraph>
+                      <Typography
+                        variant='body1'
+                        sx={{
+                          marginBottom: '16px',
+                        }}
+                      >
                         {ability.description}
                       </Typography>
                       {ability.name !==
@@ -459,7 +492,12 @@ const RacesTable: React.FC = () => {
 
         {/* Results Summary */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {races.length === 0
               ? 'Nenhuma raça encontrada com os filtros aplicados'
               : `${races.length} raça${
@@ -492,7 +530,12 @@ const RacesTable: React.FC = () => {
               {races.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                    <Typography variant='body1' color='text.secondary'>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Nenhuma raça encontrada. Tente ajustar a busca.
                     </Typography>
                   </TableCell>

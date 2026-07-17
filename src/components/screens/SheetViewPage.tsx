@@ -26,9 +26,11 @@ import ArticleIcon from '@mui/icons-material/Article';
 import SubjectIcon from '@mui/icons-material/Subject';
 import Result from '@/components/SheetResult/Result';
 import SimpleResult from '@/components/SimpleResult';
+import { getMissingRuntimeSupplements } from '@/functions/contentSources';
 import SheetsService from '@/services/sheets.service';
 import { SEO } from '@/components/SEO';
 import { useAuth } from '@/hooks/useAuth';
+import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useSheets } from '@/hooks/useSheets';
 import { useSheetLimit } from '@/hooks/useSheetLimit';
@@ -37,12 +39,12 @@ import SheetLimitDialog from '@/components/common/SheetLimitDialog';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Bag from '@/interfaces/Bag';
 import { dataRegistry } from '@/data/registry';
-import { SupplementId } from '@/types/supplement.types';
 import { SubscriptionTier } from '@/types/subscription.types';
 import preparePDF from '@/functions/downloadSheetPdf';
 import { restoreSpellPath } from '@/functions/general';
 import { rehydrateSheet } from '@/functions/sheetPayloadOptimizer';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
+import SheetUnavailable from './SheetUnavailable';
 
 const SheetViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,7 +55,8 @@ const SheetViewPage: React.FC = () => {
   const folderInfo = location.state?.folderInfo || null;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { user, firebaseUser, isAuthenticated } = useAuth();
+  const { firebaseUser, isAuthenticated } = useAuth();
+  const contentSupplements = useContentSupplements();
   const { openLoginModal } = useAuthContext();
   const { updateSheet, createSheet } = useSheets();
   const { canCreateCharacter, characterCount, maxSheets } = useSheetLimit();
@@ -104,9 +107,7 @@ const SheetViewPage: React.FC = () => {
 
         // Get classes based on user's enabled supplements
         // Default to TORMENTA20_CORE for non-authenticated users
-        const userSupplements = user?.enabledSupplements || [
-          SupplementId.TORMENTA20_CORE,
-        ];
+        const userSupplements = contentSupplements;
         const CLASSES =
           dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
@@ -118,7 +119,7 @@ const SheetViewPage: React.FC = () => {
 
         // Restore Bag class methods (same pattern as MainScreen)
         if (restoredSheet.bag) {
-          restoredSheet.bag = new Bag(restoredSheet.bag.equipments || {});
+          restoredSheet.bag = Bag.fromStored(restoredSheet.bag);
         }
 
         // Restore spellPath functions if the class has spellcasting
@@ -231,7 +232,9 @@ const SheetViewPage: React.FC = () => {
       link.download = `Ficha de ${sheet.nome}.pdf`;
       link.click();
       URL.revokeObjectURL(link.href);
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao gerar PDF:', err);
       setSnackbarMessage('Erro ao gerar PDF.');
       setSnackbarOpen(true);
     } finally {
@@ -253,16 +256,22 @@ const SheetViewPage: React.FC = () => {
     if (!sheet) return;
     setLoadingFoundry(true);
 
-    const foundryJSON = convertToFoundry(sheet);
-    const encodedJSON = encodeFoundryJSON(foundryJSON);
+    try {
+      const foundryJSON = convertToFoundry(sheet);
+      const encodedJSON = encodeFoundryJSON(foundryJSON);
 
-    setTimeout(() => {
-      const link = document.createElement('a');
-      link.href = encodedJSON;
-      link.download = `${sheet.nome}.json`;
-      link.click();
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = encodedJSON;
+        link.download = `${sheet.nome}.json`;
+        link.click();
+        setLoadingFoundry(false);
+      }, 300);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao exportar para Foundry:', err);
       setLoadingFoundry(false);
-    }, 300);
+    }
   };
 
   const handleCopySheet = async () => {
@@ -309,7 +318,12 @@ const SheetViewPage: React.FC = () => {
           }}
         >
           <CircularProgress size={60} />
-          <Typography variant='h6' color='text.secondary'>
+          <Typography
+            variant='h6'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Carregando ficha...
           </Typography>
         </Box>
@@ -338,6 +352,23 @@ const SheetViewPage: React.FC = () => {
       </Container>
     );
   }
+
+  // Bloqueia a renderização da ficha quando ela depende de homebrews que não
+  // estão ativos para o visualizador (ex.: desativado para liberar slot).
+  const renderSheetResult = () => {
+    const missing = getMissingRuntimeSupplements(sheet);
+    if (missing.length > 0) {
+      return <SheetUnavailable count={missing.length} />;
+    }
+    if (simpleSheet) return <SimpleResult sheet={sheet} />;
+    return (
+      <Result
+        sheet={sheet}
+        isDarkMode={isDarkMode}
+        onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
+      />
+    );
+  };
 
   return (
     <>
@@ -411,7 +442,11 @@ const SheetViewPage: React.FC = () => {
                     </Link>
                   </>
                 )}
-                <Typography color='text.primary'>
+                <Typography
+                  sx={{
+                    color: 'text.primary',
+                  }}
+                >
                   Ficha de {sheet.nome}
                 </Typography>
               </Breadcrumbs>
@@ -518,16 +553,8 @@ const SheetViewPage: React.FC = () => {
               </Alert>
             )}
 
-            {/* Sheet Result */}
-            {simpleSheet ? (
-              <SimpleResult sheet={sheet} />
-            ) : (
-              <Result
-                sheet={sheet}
-                isDarkMode={isDarkMode}
-                onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
-              />
-            )}
+            {/* Sheet Result — bloqueia se depende de homebrews inativos. */}
+            {renderSheetResult()}
           </Box>
 
           {/* Snackbar for notifications */}

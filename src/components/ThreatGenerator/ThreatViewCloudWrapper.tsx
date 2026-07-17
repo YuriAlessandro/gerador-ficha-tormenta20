@@ -7,15 +7,18 @@ import {
   Box,
   Button,
   CircularProgress,
+  Container,
   Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PublicIcon from '@mui/icons-material/Public';
 import SheetsService from '@/services/sheets.service';
 import {
   ThreatSheet,
   normalizeThreatSheet,
 } from '../../interfaces/ThreatSheet';
 import ThreatResult from './ThreatResult';
+import { PublishBestiaryModal } from '../../premium';
 
 export interface FolderInfo {
   folderId: string;
@@ -34,6 +37,7 @@ const ThreatViewCloudWrapper: React.FC = () => {
   const [folderInfo, setFolderInfo] = useState<FolderInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [publishOpen, setPublishOpen] = useState(false);
   const idExtracted = useRef(false);
 
   useEffect(() => {
@@ -103,7 +107,12 @@ const ThreatViewCloudWrapper: React.FC = () => {
         }}
       >
         <CircularProgress />
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Carregando ameaça...
         </Typography>
       </Box>
@@ -128,15 +137,41 @@ const ThreatViewCloudWrapper: React.FC = () => {
   }
 
   return (
-    <ThreatResult
-      threat={threat}
-      onEdit={handleEdit}
-      isFromHistory={false}
-      isSavedToCloud
-      onSaveToCloud={async () => {}}
-      folderInfo={folderInfo}
-      onThreatUpdate={setThreat}
-    />
+    <Box>
+      <Container maxWidth='xl' sx={{ pt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant='outlined'
+            color='secondary'
+            startIcon={<PublicIcon />}
+            onClick={() => setPublishOpen(true)}
+          >
+            Publicar no Bestiário
+          </Button>
+        </Box>
+      </Container>
+      <ThreatResult
+        threat={threat}
+        onEdit={handleEdit}
+        isFromHistory={false}
+        isSavedToCloud
+        onSaveToCloud={async () => {}}
+        folderInfo={folderInfo}
+        onThreatUpdate={setThreat}
+      />
+      {cloudThreatId && (
+        <PublishBestiaryModal
+          open={publishOpen}
+          presetSheetId={cloudThreatId}
+          presetName={threat.name}
+          onClose={() => setPublishOpen(false)}
+          onSuccess={(pub) => {
+            setPublishOpen(false);
+            history.push(`/bestiario/${pub.id}`);
+          }}
+        />
+      )}
+    </Box>
   );
 };
 

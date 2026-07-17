@@ -116,7 +116,7 @@ const atlasOriginPowers: Record<string, OriginPower> = {
   ARISTOCRATA_DAIZENSHI: {
     name: "Aristocrata Dai'zenshi",
     description:
-      'Você é treinado em Ofício (armeiro) e pode fabricar armas com uma melhoria. Se aprender a fabricar armas superiores por outra habilidade, gasta apenas 1/4 do preço das melhorias que aplica em armas.',
+      'Você é treinado em Nobreza. Além disso, ao completar um descanso, caso não tenha feito nenhum teste de Enganação, Furtividade ou Ladinagem desde seu último descanso, você recebe +1 PM temporário para cada dois níveis.',
     type: ORIGIN_POWER_TYPE,
   },
   ASPIRANTE_A_HEROI: {
@@ -145,7 +145,7 @@ const atlasOriginPowers: Record<string, OriginPower> = {
   BANDOLEIRO_DA_FORTALEZA: {
     name: 'Bandoleiro da Fortaleza',
     description:
-      'Você é treinado em Nobreza. Sempre que falha em um teste de perícia e a falha acarreta uma consequência negativa, você recebe +2 em testes da mesma perícia até o final da cena.',
+      'Você é treinado em Furtividade e Intimidação, e recebe resistência a medo +5.',
     type: ORIGIN_POWER_TYPE,
   },
   CATADOR_DA_CIDADE_VELHA: {
@@ -157,7 +157,7 @@ const atlasOriginPowers: Record<string, OriginPower> = {
   BARAO_ARRUINADO: {
     name: 'Barão Arruinado',
     description:
-      'Você é treinado em Nobreza. Sempre que falha em um teste de perícia e a falha acarreta uma consequência negativa, você recebe +2 em testes da mesma perícia até o final da cena.',
+      'Você é treinado em Nobreza. Sempre que falha em um teste de perícia e a falha acarreta uma consequência negativa (gastar uma ação, perder PV, sofrer um efeito etc.), você recebe +2 em testes da mesma perícia até o final da cena.',
     type: ORIGIN_POWER_TYPE,
   },
   CATIVO_DAS_FADAS: {
@@ -316,6 +316,23 @@ const atlasOriginPowers: Record<string, OriginPower> = {
           type: 'addProficiency',
           availableProficiencies: ['Espada Bastarda', 'Escudos'],
           pick: 2,
+        },
+      },
+    ],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Desertor da Supremacia',
+        },
+        target: { type: 'WeaponAttack', weaponName: 'Espada Bastarda' },
+        modifier: { type: 'Fixed', value: 2 },
+        condition: {
+          combinator: 'AND',
+          clauses: [
+            { kind: 'wieldingItemNamed', value: 'Espada Bastarda' },
+            { kind: 'wieldingItemNamed', value: 'Escudo Pesado' },
+          ],
         },
       },
     ],
@@ -849,7 +866,42 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         },
       },
     ],
-    sheetBonuses: [],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Legionário (Império de Tauron)',
+        },
+        target: { type: 'Defense' },
+        modifier: { type: 'Fixed', value: 1 },
+        condition: {
+          combinator: 'AND',
+          clauses: [
+            { kind: 'wieldingItemNamed', value: 'Gládio' },
+            { kind: 'wieldingItemNamed', value: 'Escudo Pesado' },
+          ],
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Legionário (Império de Tauron)',
+        },
+        target: {
+          type: 'WeaponThreatMargin',
+          weaponName: 'Gládio',
+          mode: 'increase',
+        },
+        modifier: { type: 'Fixed', value: 1 },
+        condition: {
+          combinator: 'AND',
+          clauses: [
+            { kind: 'wieldingItemNamed', value: 'Gládio' },
+            { kind: 'wieldingItemNamed', value: 'Escudo Pesado' },
+          ],
+        },
+      },
+    ],
   },
   LENHADOR_DE_TOLLON: {
     name: 'Lenhador de Tollon',

@@ -12,6 +12,7 @@ import { DestinyPowers } from '../../data/systems/tormenta20/powers/destinyPower
 import PODERES_COMBATE from '../../data/systems/tormenta20/powers/combatPowers';
 import { SupplementId } from '../../types/supplement.types';
 import { spellsCircles } from '../../interfaces/Spells';
+import Skill from '../../interfaces/Skills';
 
 // Import classes and races data
 import { dataRegistry } from '../../data/registry';
@@ -183,6 +184,67 @@ describe('recalculateSheet - Attribute and PM Preservation', () => {
 
     // The attribute value should remain as set
     expect(recalculated.atributos[Atributo.CARISMA].value).toBe(6);
+  });
+
+  it('should preserve manuallyUntrained flag on base skill across recalculation', () => {
+    // Bug scenario: user untrains a base skill (came from class/origin), saves,
+    // then performs another edit that triggers recalculateSheet. Without the
+    // flag, recalculateSheet sees the skill still in sheet.skills and re-trains
+    // it, overwriting the user's intent.
+    const sheet = createBaseBardSheet();
+    const sheetWithUntrained: CharacterSheet = {
+      ...sheet,
+      skills: [Skill.ATLETISMO],
+      completeSkills: [
+        {
+          name: Skill.ATLETISMO,
+          halfLevel: 3,
+          modAttr: Atributo.FORCA,
+          training: 0,
+          others: 0,
+          manuallyUntrained: true,
+        },
+      ],
+    };
+
+    const recalculated = recalculateSheet(sheetWithUntrained);
+    const atletismo = recalculated.completeSkills?.find(
+      (s) => s.name === Skill.ATLETISMO
+    );
+
+    expect(atletismo).toBeDefined();
+    expect(atletismo?.training).toBe(0);
+    expect(atletismo?.manuallyUntrained).toBe(true);
+  });
+
+  it('should re-train base skill when manuallyUntrained flag is cleared', () => {
+    // User re-trains a previously manually-untrained base skill: drawer save
+    // sets manuallyUntrained=undefined and training to the base value. After
+    // recalculateSheet, training should match the level-based base bonus.
+    const sheet = createBaseBardSheet();
+    const sheetReTrained: CharacterSheet = {
+      ...sheet,
+      skills: [Skill.ATLETISMO],
+      completeSkills: [
+        {
+          name: Skill.ATLETISMO,
+          halfLevel: 3,
+          modAttr: Atributo.FORCA,
+          training: 2, // base bonus at level 6 (< 7)
+          others: 0,
+          manuallyUntrained: undefined,
+        },
+      ],
+    };
+
+    const recalculated = recalculateSheet(sheetReTrained);
+    const atletismo = recalculated.completeSkills?.find(
+      (s) => s.name === Skill.ATLETISMO
+    );
+
+    expect(atletismo).toBeDefined();
+    expect(atletismo?.training).toBe(2); // skillTrainingMod(true, 6) = 2
+    expect(atletismo?.manuallyUntrained).toBeUndefined();
   });
 
   it('should correctly use shouldRecalculatePM to avoid unnecessary PM recalculation', () => {

@@ -17,8 +17,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { useHighlightFromUrl } from '../../hooks/useHighlightFromUrl';
 import { SupportLevel } from '../../types/subscription.types';
 import SupporterBadge from '../Premium/SupporterBadge';
+import { UserLink } from '../../premium/components/UserLink/UserLink';
 
 export interface CommentData {
   id: string;
@@ -73,6 +75,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useHighlightFromUrl(loading);
 
   const handleSubmit = async () => {
     if (!newComment.trim()) return;
@@ -135,7 +139,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       >
         {title} ({comments.length})
       </Typography>
-
       {/* Comment form */}
       <Paper
         elevation={0}
@@ -153,7 +156,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       >
         {!isAuthenticated && (
           <Box sx={{ textAlign: 'center', py: 2 }}>
-            <Typography variant='body1' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body1'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Faça login para comentar
             </Typography>
             <Button variant='contained' onClick={() => openLoginModal()}>
@@ -172,7 +181,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={submitting}
-              inputProps={{ maxLength }}
               helperText={`${newComment.length}/${maxLength} caracteres (Ctrl+Enter para enviar)`}
               sx={{
                 mb: 2,
@@ -181,6 +189,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     ? 'rgba(255,255,255,0.05)'
                     : 'rgba(255,255,255,0.8)',
                 },
+              }}
+              slotProps={{
+                htmlInput: { maxLength },
               }}
             />
             {(error || externalError) && (
@@ -211,7 +222,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           </Box>
         )}
       </Paper>
-
       {/* Comments list */}
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -221,8 +231,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       {!loading && comments.length === 0 && (
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'center', py: 4 }}
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'center',
+            py: 4,
+          }}
         >
           Nenhum comentário ainda. Seja o primeiro a comentar!
         </Typography>
@@ -232,6 +245,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           {comments.map((comment) => (
             <Paper
               key={comment.id}
+              id={`comment-${comment.id}`}
               elevation={0}
               sx={{
                 p: 2,
@@ -242,6 +256,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 border: `1px solid ${
                   isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
                 }`,
+                scrollMarginTop: 100,
               }}
             >
               <Box
@@ -288,27 +303,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     <Box
                       sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
                     >
-                      {/* Clickable Author Name */}
-                      <Link
-                        component={RouterLink}
-                        to={`/u/${comment.authorUsername}`}
-                        underline='hover'
-                        color='inherit'
-                        sx={{
-                          fontWeight: 600,
-                          '&:hover': {
-                            color: 'primary.main',
-                          },
-                        }}
-                      >
-                        <Typography
-                          variant='subtitle2'
-                          component='span'
-                          sx={{ fontWeight: 600 }}
-                        >
-                          {comment.authorName}
-                        </Typography>
-                      </Link>
+                      {/* Clickable Author Name (with hover card) */}
+                      <UserLink
+                        username={comment.authorUsername}
+                        displayName={comment.authorName}
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        showBadge={false}
+                      />
 
                       {/* Clickable Username */}
                       <Link
@@ -339,7 +341,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     </Box>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant='caption' color='text.secondary'>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {formatDate(comment.createdAt)}
                       </Typography>
                       {checkCanDelete(comment) && (

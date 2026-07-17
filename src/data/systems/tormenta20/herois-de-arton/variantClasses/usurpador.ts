@@ -72,6 +72,40 @@ const USURPADOR: VariantClassOverrides = {
       name: 'Discrição Divina',
       text: 'No 3º nível, você recebe +1 em Furtividade e testes de resistência. A cada seis níveis, esse bônus aumenta em +1.',
       nivel: 3,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Discrição Divina' },
+          target: { type: 'Skill', name: Skill.FURTIVIDADE },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({classLevel} + 3) / 6)',
+          },
+        },
+        {
+          source: { type: 'power', name: 'Discrição Divina' },
+          target: { type: 'Skill', name: Skill.FORTITUDE },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({classLevel} + 3) / 6)',
+          },
+        },
+        {
+          source: { type: 'power', name: 'Discrição Divina' },
+          target: { type: 'Skill', name: Skill.REFLEXOS },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({classLevel} + 3) / 6)',
+          },
+        },
+        {
+          source: { type: 'power', name: 'Discrição Divina' },
+          target: { type: 'Skill', name: Skill.VONTADE },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({classLevel} + 3) / 6)',
+          },
+        },
+      ],
     },
     {
       name: 'Poder Capturado',

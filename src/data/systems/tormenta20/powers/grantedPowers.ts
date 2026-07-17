@@ -53,9 +53,10 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
           type: 'power',
           name: 'Armas da Ambição',
         },
+        // Testes de ataque são testes de Luta/Pontaria — o bônus entra no
+        // total das perícias (e as armas herdam), onde o jogador espera vê-lo.
         target: {
-          type: 'WeaponAttack',
-          proficiencyRequired: true,
+          type: 'AllAttackBonus',
         },
         modifier: {
           type: 'Fixed',
@@ -77,63 +78,6 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
         },
       },
     ],
-    // action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-    //   const sheetClone = _.cloneDeep(sheet);
-
-    //   const simpleWeapons = EQUIPAMENTOS.armasSimples.map((w) => w.nome);
-    //   const martialWeapons = EQUIPAMENTOS.armasMarciais.map((w) => w.nome);
-    //   const exoticWeapons = EQUIPAMENTOS.armasExoticas.map((w) => w.nome);
-    //   const fireWeapons = EQUIPAMENTOS.armasDeFogo.map((w) => w.nome);
-
-    //   const { proficiencias } = sheetClone.classe;
-
-    //   sheetClone.bag.equipments.Arma.forEach((weapon) => {
-    //     if (simpleWeapons.includes(weapon.nome)) {
-    //       // Arma simples recebe +1
-    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
-
-    //       substeps.push({
-    //         name: 'Armas da Ambição',
-    //         value: `+1 de ataque em ${weapon.nome} (armas simples)`,
-    //       });
-    //     } else if (
-    //       martialWeapons.includes(weapon.nome) &&
-    //       proficiencias.includes(PROFICIENCIAS.MARCIAIS)
-    //     ) {
-    //       // Arma marcial recebe +1
-    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
-
-    //       substeps.push({
-    //         name: 'Armas da Ambição',
-    //         value: `+1 de ataque em ${weapon.nome} (armas marciais)`,
-    //       });
-    //     } else if (
-    //       exoticWeapons.includes(weapon.nome) &&
-    //       proficiencias.includes(PROFICIENCIAS.EXOTICAS)
-    //     ) {
-    //       // Arma exótica recebe +1
-    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
-
-    //       substeps.push({
-    //         name: 'Armas da Ambição',
-    //         value: `+1 de ataque em ${weapon.nome} (armas exóticas)`,
-    //       });
-    //     } else if (
-    //       fireWeapons.includes(weapon.nome) &&
-    //       proficiencias.includes(PROFICIENCIAS.FOGO)
-    //     ) {
-    //       // Arma de fogo recebe +1
-    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
-
-    //       substeps.push({
-    //         name: 'Armas da Ambição',
-    //         value: `+1 de ataque em ${weapon.nome} (armas de fogo)`,
-    //       });
-    //     }
-    //   });
-
-    //   return sheetClone;
-    // },
   },
   ARSENAL_DAS_PROFUNDEZAS: {
     name: 'Arsenal das profundezas',
@@ -965,6 +909,26 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
     sheetBonuses: [
+      // "Você considera a katana uma arma simples": proficiência nomeada,
+      // reconhecida por isProficientWithWeapon (evita o -5 de não
+      // proficiência). Desvio aceito: o +1 de margem abaixo usa
+      // proficiencyRequired, que passa a ser satisfeito pela própria
+      // proficiência nomeada (a regra pede proficiência em armas marciais)
+      // — pequeno, a favor do jogador.
+      {
+        source: {
+          type: 'power',
+          name: 'Tradição de Lin-Wu',
+        },
+        target: {
+          type: 'Proficiency',
+          proficiency: 'Katana',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
       {
         source: {
           type: 'power',
@@ -981,36 +945,6 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
         },
       },
     ],
-    // action(
-    //   sheet: CharacterSheet,
-    //   subSteps: { name: string; value: string }[]
-    // ): CharacterSheet {
-    //   const sheetClone = cloneDeep(sheet);
-
-    //   subSteps.push({
-    //     name: 'Tradição de Lin-Wu',
-    //     value: 'Katana considerada arma simples.',
-    //   });
-
-    //   sheetClone.bag.equipments.Arma = sheetClone.bag.equipments.Arma.map(
-    //     (item) => {
-    //       if (item.nome === Armas.Katana.nome) {
-    //         return {
-    //           ...item,
-    //           critico: `${item.critico} - 1`,
-    //         };
-    //       }
-    //       return item;
-    //     }
-    //   );
-
-    //   subSteps.push({
-    //     name: 'Tradição de Lin-Wu',
-    //     value: 'Margem de ameaça da Katana aumentada em 1.',
-    //   });
-
-    //   return sheetClone;
-    // },
   },
   TRANSMISSAO_DA_LOUCURA: {
     name: 'Transmissão da Loucura',

@@ -125,7 +125,13 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
         }}
         onClick={() => setExpanded(!expanded)}
       >
-        <Box display='flex' alignItems='center' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
           <FilterListIcon color='primary' />
           <Typography
             variant='h6'
@@ -147,7 +153,13 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
           )}
         </Box>
 
-        <Box display='flex' alignItems='center' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
           {hasActiveFilters && (
             <IconButton
               size='small'
@@ -166,16 +178,27 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
           </IconButton>
         </Box>
       </Box>
-
       {/* Active Filters Chips */}
       {hasActiveFilters && (
         <Box
           sx={{ p: 2, pt: 1, borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}
         >
-          <Typography variant='body2' color='text.secondary' gutterBottom>
+          <Typography
+            variant='body2'
+            gutterBottom
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Filtros aplicados:
           </Typography>
-          <Box display='flex' gap={1} flexWrap='wrap'>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              flexWrap: 'wrap',
+            }}
+          >
             {getActiveFilterChips().map((chip) => (
               <Chip
                 key={chip.key}
@@ -190,7 +213,6 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
           </Box>
         </Box>
       )}
-
       {/* Filter Controls */}
       <Collapse in={expanded} timeout='auto'>
         <Box sx={{ p: 3 }}>
@@ -290,7 +312,12 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
               borderRadius: 1,
             }}
           >
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               <strong>Dica:</strong> Use os filtros para refinar sua busca. Você
               pode combinar múltiplos critérios para encontrar exatamente as
               magias que precisa. A busca por texto funciona no nome, descrição

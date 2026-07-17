@@ -44,10 +44,15 @@ const SheetPreviewDefense = () => {
           <DefenseTitle>Defesa</DefenseTitle>
         </Box>
       </FancyBox>
-
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
         <DialogTitle id='alert-dialog-title'>Detalhes da Defesa</DialogTitle>
-        <Stack direction='row' alignItems='center' sx={{ p: 5 }}>
+        <Stack
+          direction='row'
+          sx={{
+            alignItems: 'center',
+            p: 5,
+          }}
+        >
           <Box sx={{ fontSize: '50px', mr: 1 }}>{defense.total}</Box>
           <Box>=</Box>
           <Box

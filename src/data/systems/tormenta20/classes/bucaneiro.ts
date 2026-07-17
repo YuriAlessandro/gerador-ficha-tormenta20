@@ -4,6 +4,7 @@ import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import { spellsCircle1 } from '../magias/generalSpells';
+import { ESGRIMISTA_SHEET_BONUSES } from '../powers/classPowerSheetBonuses';
 
 const BUCANEIRO: ClassDescription = {
   name: 'Bucaneiro',
@@ -55,6 +56,17 @@ const BUCANEIRO: ClassDescription = {
       name: 'Insolência',
       text: 'Você soma seu Carisma na Defesa, limitado pelo seu nível. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
       nivel: 1,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Insolência' },
+          target: { type: 'Defense' },
+          modifier: {
+            type: 'CappedAttribute',
+            attribute: Atributo.CARISMA,
+            capBy: 'classLevel',
+          },
+        },
+      ],
     },
     {
       name: 'Evasão',
@@ -65,6 +77,7 @@ const BUCANEIRO: ClassDescription = {
       name: 'Esquiva Sagaz',
       text: 'Você recebe +1 na Defesa e em Reflexos. Esse bônus aumenta em +1 a cada quatro níveis. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
       nivel: 3,
+      // Nota: condição "armadura pesada/imóvel" do texto não é modelada — bônus aplica sempre.
       sheetBonuses: [
         {
           source: {
@@ -76,7 +89,7 @@ const BUCANEIRO: ClassDescription = {
           },
           modifier: {
             type: 'LevelCalc',
-            formula: 'Math.floor(({level} + 3) / 4)',
+            formula: 'Math.floor(({classLevel} + 3) / 4)',
           },
         },
         {
@@ -90,7 +103,7 @@ const BUCANEIRO: ClassDescription = {
           },
           modifier: {
             type: 'LevelCalc',
-            formula: 'Math.floor(({level} + 3) / 4)',
+            formula: 'Math.floor(({classLevel} + 3) / 4)',
           },
         },
       ],
@@ -182,6 +195,7 @@ const BUCANEIRO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
       ],
+      sheetBonuses: ESGRIMISTA_SHEET_BONUSES,
     },
     {
       name: 'Flagelo dos Mares',

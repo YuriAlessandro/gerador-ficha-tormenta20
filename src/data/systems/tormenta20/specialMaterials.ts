@@ -1,4 +1,5 @@
 import { SpecialMaterial } from '../../../interfaces/SpecialMaterials';
+import { AMEACAS_ARTON_SPECIAL_MATERIALS } from './ameacas-de-arton/specialMaterials';
 
 export const specialMaterials: SpecialMaterial[] = [
   {
@@ -90,7 +91,17 @@ export const specialMaterials: SpecialMaterial[] = [
   },
 ];
 
+/**
+ * Todos os materiais conhecidos (core + suplementos). O lookup por nome busca
+ * em todos, independente dos suplementos ativos — uma ficha pode carregar um
+ * item com material de suplemento desativado e ainda precisa exibir o efeito.
+ */
+const allSpecialMaterials: SpecialMaterial[] = [
+  ...specialMaterials,
+  ...AMEACAS_ARTON_SPECIAL_MATERIALS,
+];
+
 export const getSpecialMaterialData = (
   materialName: string
 ): SpecialMaterial | undefined =>
-  specialMaterials.find((material) => material.name === materialName);
+  allSpecialMaterials.find((material) => material.name === materialName);

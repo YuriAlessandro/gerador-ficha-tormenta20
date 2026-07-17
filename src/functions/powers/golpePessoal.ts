@@ -4,10 +4,72 @@ import {
   GolpePessoalEffect,
   GolpePessoalEffectInstance,
   ELEMENTAL_DAMAGE_TYPES,
-  BASIC_SPELLS_1ST_2ND_CIRCLE,
 } from '../../data/systems/tormenta20/golpePessoal';
 import { getRandomItemFromArray } from '../randomUtils';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import { dataRegistry } from '../../data/registry';
+import { Spell, SpellCircle, spellsCircles } from '../../interfaces/Spells';
+import { SupplementId } from '../../types/supplement.types';
+
+/**
+ * Retorna as magias que podem ser escolhidas pelo efeito "Conjurador" do Golpe
+ * Pessoal. Pela regra oficial (RAW), a magia deve ser de 1º ou 2º círculo e ter
+ * como alvo uma criatura ou afetar uma área.
+ *
+ * A lista é montada dinamicamente a partir das magias reais (arcanas + divinas)
+ * do core e dos suplementos ativos, garantindo que os nomes correspondam aos
+ * dados do jogo (ex.: "Bola de Fogo" aparece; buffs pessoais como "Armadura
+ * Elemental" não).
+ */
+export function getConjuradorSpellOptions(
+  activeSupplements: SupplementId[]
+): Spell[] {
+  const flattenCircle = (circle: {
+    arcane: SpellCircle;
+    divine: SpellCircle;
+  }): Spell[] => [
+    ...Object.values(circle.arcane).flat(),
+    ...Object.values(circle.divine).flat(),
+  ];
+
+  const circle1 = dataRegistry.getSpellsByCircleAndSupplements(
+    1,
+    activeSupplements
+  );
+  const circle2 = dataRegistry.getSpellsByCircleAndSupplements(
+    2,
+    activeSupplements
+  );
+
+  const spells = [...flattenCircle(circle1), ...flattenCircle(circle2)].filter(
+    (spell) =>
+      spell.alvo?.toLowerCase().includes('criatura') || Boolean(spell.area)
+  );
+
+  // Dedup por nome (magias universais aparecem em arcana e divina) e ordena.
+  const byName = new Map<string, Spell>();
+  spells.forEach((spell) => {
+    if (!byName.has(spell.nome)) byName.set(spell.nome, spell);
+  });
+
+  return Array.from(byName.values()).sort((a, b) =>
+    a.nome.localeCompare(b.nome)
+  );
+}
+
+/**
+ * Custo em PM do efeito "Conjurador" conforme o círculo da magia escolhida:
+ * 1º círculo = 2 PM, 2º círculo = 4 PM (custo da magia + 1). Retorna 2 (mínimo)
+ * quando nenhuma magia foi escolhida ou não é encontrada nas opções.
+ */
+export function getConjuradorCost(
+  spellName: string | undefined,
+  options: Spell[]
+): number {
+  if (!spellName) return 2;
+  const spell = options.find((s) => s.nome === spellName);
+  return spell?.spellCircle === spellsCircles.c2 ? 4 : 2;
+}
 
 /**
  * Gets available weapons for the character from their inventory
@@ -56,11 +118,17 @@ function createEffectInstance(
           getRandomItemFromArray([...ELEMENTAL_DAMAGE_TYPES]),
         ];
         break;
-      case 'spell':
-        instance.choices = [
-          getRandomItemFromArray([...BASIC_SPELLS_1ST_2ND_CIRCLE]),
-        ];
+      case 'spell': {
+        // Geração aleatória: escolhe apenas magias de 1º círculo (custo 2 PM),
+        // mantendo o custo consistente com getEffectCost.
+        const firstCircleSpells = getConjuradorSpellOptions([]).filter(
+          (spell) => spell.spellCircle === spellsCircles.c1
+        );
+        if (firstCircleSpells.length > 0) {
+          instance.choices = [getRandomItemFromArray(firstCircleSpells).nome];
+        }
         break;
+      }
       default:
         break;
     }
@@ -153,13 +221,16 @@ function generateRandomEffects(maxCost: number): GolpePessoalEffectInstance[] {
  * Calculates total cost of all effects
  */
 function calculateTotalCost(effects: GolpePessoalEffectInstance[]): number {
+  const conjuradorOptions = getConjuradorSpellOptions([]);
+
   return effects.reduce((total, instance) => {
     let cost = instance.effect.cost * instance.count;
 
-    // Handle variable costs
+    // Custo variável do Conjurador conforme o círculo da magia escolhida.
     if (instance.effect.variableCost && instance.effect.name === 'Conjurador') {
-      // Assume 1st circle spell cost (1) + base cost (1) = 2 per instance
-      cost = 2 * instance.count;
+      cost =
+        getConjuradorCost(instance.choices?.[0], conjuradorOptions) *
+        instance.count;
     }
 
     return total + cost;
@@ -237,7 +308,10 @@ export function generateRandomGolpePessoal(
 /**
  * Validates a Golpe Pessoal build
  */
-export function validateGolpePessoalBuild(build: GolpePessoalBuild): {
+export function validateGolpePessoalBuild(
+  build: GolpePessoalBuild,
+  effectsMap: Record<string, GolpePessoalEffect> = GOLPE_PESSOAL_EFFECTS
+): {
   isValid: boolean;
   errors: string[];
 } {
@@ -260,7 +334,7 @@ export function validateGolpePessoalBuild(build: GolpePessoalBuild): {
 
   // Validate individual effects
   build.effects.forEach((effectData) => {
-    const effect = GOLPE_PESSOAL_EFFECTS[effectData.effectName];
+    const effect = effectsMap[effectData.effectName];
     if (!effect) {
       errors.push(`Efeito inválido: ${effectData.effectName}`);
       return;

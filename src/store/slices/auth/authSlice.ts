@@ -119,6 +119,21 @@ export const saveAppearanceSettings = createAsyncThunk(
   }
 );
 
+export const saveBestiaryAnonymous = createAsyncThunk(
+  'auth/saveBestiaryAnonymous',
+  async (enabled: boolean, { rejectWithValue }) => {
+    try {
+      const updatedUser = await authService.saveBestiaryAnonymous(enabled);
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Failed to save bestiary anonymous setting');
+    }
+  }
+);
+
 export const acceptTerms = createAsyncThunk(
   'auth/acceptTerms',
   async (version: number, { rejectWithValue }) => {
@@ -227,47 +242,53 @@ const authSlice = createSlice({
     });
 
     // Save System Setup
+    // Não tocar em state.loading: o AuthLoadingWrapper desmonta a árvore
+    // inteira quando loading=true, o que reseta state local (ex.: aba ativa
+    // na ProfilePage). Loading de cada save é controlado pela própria UI.
     builder
       .addCase(saveSystemSetup.pending, (state) => {
-        state.loading = true;
         state.error = null;
       })
       .addCase(saveSystemSetup.fulfilled, (state, action) => {
-        state.loading = false;
         state.dbUser = action.payload;
       })
       .addCase(saveSystemSetup.rejected, (state, action) => {
-        state.loading = false;
         state.error = action.payload as string;
       });
 
     // Save Dice 3D Settings
     builder
       .addCase(saveDice3DSettings.pending, (state) => {
-        state.loading = true;
         state.error = null;
       })
       .addCase(saveDice3DSettings.fulfilled, (state, action) => {
-        state.loading = false;
         state.dbUser = action.payload;
       })
       .addCase(saveDice3DSettings.rejected, (state, action) => {
-        state.loading = false;
         state.error = action.payload as string;
       });
 
     // Save Appearance Settings
     builder
       .addCase(saveAppearanceSettings.pending, (state) => {
-        state.loading = true;
         state.error = null;
       })
       .addCase(saveAppearanceSettings.fulfilled, (state, action) => {
-        state.loading = false;
         state.dbUser = action.payload;
       })
       .addCase(saveAppearanceSettings.rejected, (state, action) => {
-        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // Save Bestiary Anonymous
+    builder
+      .addCase(saveBestiaryAnonymous.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(saveBestiaryAnonymous.fulfilled, (state, action) => {
+        state.dbUser = action.payload;
+      })
+      .addCase(saveBestiaryAnonymous.rejected, (state, action) => {
         state.error = action.payload as string;
       });
 

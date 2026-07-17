@@ -20,24 +20,22 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import EditIcon from '@mui/icons-material/Edit';
 import { CompanionSheet, CompanionNaturalWeapon } from '@/interfaces/Companion';
 import {
   getCompanionTypeDefinition,
   CompanionTypeDefinition,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTypes';
 import { getCompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import { getCompanionSkillTrainingBonus } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
   Atributo,
   ATTR_ABBREVIATIONS,
 } from '@/data/systems/tormenta20/atributos';
 import { SkillsAttrs } from '@/interfaces/Skills';
-import {
-  rollD20,
-  rollDamage,
-  rollCriticalDamage,
-} from '@/functions/diceRoller';
+import { rollD20 } from '@/functions/diceRoller';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
 import StatControl from './StatControl';
 
@@ -47,12 +45,15 @@ interface CompanionSheetModalProps {
   companion: CompanionSheet;
   trainerLevel: number;
   trainerName?: string;
+  trainerCharismaMod?: number;
+  pendingEnsinarTruqueCount?: number;
   onCompanionUpdate?: (updated: CompanionSheet) => void;
   totalCompanions?: number;
   currentIndex?: number;
   onIndexChange?: (index: number) => void;
   onAdd?: () => void;
   onRemove?: (index: number) => void;
+  onEdit?: () => void;
 }
 
 const CompanionAttributeDisplay: React.FC<{
@@ -83,14 +84,21 @@ const CompanionAttributeDisplay: React.FC<{
       }}
       title={`Rolar teste de ${label}`}
     >
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {label}
       </Typography>
       <Typography
         variant='body1'
-        fontWeight='bold'
         color='primary'
-        sx={{ textDecoration: 'underline dotted' }}
+        sx={{
+          fontWeight: 'bold',
+          textDecoration: 'underline dotted',
+        }}
       >
         {value >= 0 ? `+${value}` : value}
       </Typography>
@@ -102,11 +110,27 @@ const StatRow: React.FC<{
   label: string;
   value: string | number;
 }> = ({ label, value }) => (
-  <Stack direction='row' justifyContent='space-between' alignItems='center'>
-    <Typography variant='body2' color='text.secondary'>
+  <Stack
+    direction='row'
+    sx={{
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    }}
+  >
+    <Typography
+      variant='body2'
+      sx={{
+        color: 'text.secondary',
+      }}
+    >
       {label}
     </Typography>
-    <Typography variant='body2' fontWeight='bold'>
+    <Typography
+      variant='body2'
+      sx={{
+        fontWeight: 'bold',
+      }}
+    >
       {value}
     </Typography>
   </Stack>
@@ -118,17 +142,20 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   companion,
   trainerLevel,
   trainerName,
+  trainerCharismaMod,
+  pendingEnsinarTruqueCount,
   onCompanionUpdate,
   totalCompanions = 1,
   currentIndex = 0,
   onIndexChange,
   onAdd,
   onRemove,
+  onEdit,
 }) => {
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const isMobile = useMemo(() => window.innerWidth < 720, []);
   const theme = useTheme();
-  const { showDiceResult } = useDiceRoll();
+  const { showDiceResult, showAttackRoll } = useDiceRoll();
 
   const typeDef: CompanionTypeDefinition = useMemo(
     () => getCompanionTypeDefinition(companion.companionType),
@@ -136,33 +163,6 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   );
 
   const displayName = companion.name || 'Melhor Amigo';
-
-  const handlePVCurrentUpdate = useCallback(
-    (newCurrent: number) => {
-      if (onCompanionUpdate) {
-        onCompanionUpdate({ ...companion, currentPV: newCurrent });
-      }
-    },
-    [companion, onCompanionUpdate]
-  );
-
-  const handlePVIncrementUpdate = useCallback(
-    (newIncrement: number) => {
-      if (onCompanionUpdate) {
-        onCompanionUpdate({ ...companion, pvIncrement: newIncrement });
-      }
-    },
-    [companion, onCompanionUpdate]
-  );
-
-  const handlePVTempUpdate = useCallback(
-    (newTemp: number) => {
-      if (onCompanionUpdate) {
-        onCompanionUpdate({ ...companion, tempPV: newTemp });
-      }
-    },
-    [companion, onCompanionUpdate]
-  );
 
   const handlePVDecrement = useCallback(
     (amount: number) => {
@@ -177,6 +177,17 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           tempPV: currentTemp - tempConsumed,
           currentPV: Math.max(pvMinimo, currentPVVal - remaining),
         });
+      }
+    },
+    [companion, onCompanionUpdate]
+  );
+
+  const handlePVHeal = useCallback(
+    (amount: number) => {
+      if (onCompanionUpdate) {
+        const currentPVVal = companion.currentPV ?? companion.pv;
+        const newCurrent = Math.min(companion.pv, currentPVVal + amount);
+        onCompanionUpdate({ ...companion, currentPV: newCurrent });
       }
     },
     [companion, onCompanionUpdate]
@@ -212,6 +223,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   );
 
   const halfTrainerLevel = Math.floor(trainerLevel / 2);
+  const skillTrainingBonus = getCompanionSkillTrainingBonus(trainerLevel);
   const forMod = companion.attributes[Atributo.FORCA];
   const companionAtkBonus = companion.attackBonus || 0;
   const companionDmgBonus = companion.damageBonus || 0;
@@ -221,66 +233,29 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
       const atkBonus = forMod + halfTrainerLevel + companionAtkBonus;
       const damageModifier = forMod + companionDmgBonus;
 
-      const attackRoll = rollD20();
-      const attackTotal = Math.max(1, attackRoll + atkBonus);
-
-      const isCritical = attackRoll >= weapon.threatMargin;
-      const isFumble = attackRoll === 1;
-
       const damageModStr =
         damageModifier >= 0 ? `+${damageModifier}` : `${damageModifier}`;
       const damageString = `${weapon.damageDice}${damageModStr}`;
 
-      const normalRoll = rollDamage(damageString);
-      if (!normalRoll) return;
-
-      const normalDamage = Math.max(1, normalRoll.total);
-
-      const damageRollResult = isCritical
-        ? rollCriticalDamage(damageString, weapon.criticalMultiplier)
-        : normalRoll;
-
-      if (!damageRollResult) return;
-
-      const finalDamage = Math.max(1, damageRollResult.total);
-
-      const atkModStr = atkBonus >= 0 ? `+${atkBonus}` : `${atkBonus}`;
-      const attackDiceNotation = `1d20${atkModStr}`;
-
-      const damageLabel = isCritical
-        ? `Dano x${weapon.criticalMultiplier} (normal: ${normalDamage})`
-        : 'Dano';
-
-      showDiceResult(
-        `Arma Natural ${weaponIndex + 1}`,
-        [
-          {
-            label: 'Ataque',
-            diceNotation: attackDiceNotation,
-            rolls: [attackRoll],
-            modifier: atkBonus,
-            total: attackTotal,
-            isCritical,
-            isFumble,
-          },
-          {
-            label: damageLabel,
-            diceNotation: damageRollResult.diceString,
-            rolls: damageRollResult.diceRolls,
-            modifier: damageRollResult.modifier,
-            total: finalDamage,
-            damageType: weapon.damageType,
-          },
-        ],
-        displayName
-      );
+      // A resolução (d20 vs margem, multiplicação dos dados em crítico e
+      // rótulos) é do pipeline central — ver src/functions/attackRoll.ts.
+      showAttackRoll({
+        rollLabel: `Arma Natural ${weaponIndex + 1}`,
+        characterName: displayName,
+        attackBonus: atkBonus,
+        crit: {
+          threshold: weapon.threatMargin,
+          multiplier: weapon.criticalMultiplier,
+        },
+        damage: { dice: damageString, damageType: weapon.damageType },
+      });
     },
     [
       forMod,
       halfTrainerLevel,
       companionAtkBonus,
       companionDmgBonus,
-      showDiceResult,
+      showAttackRoll,
       displayName,
     ]
   );
@@ -289,7 +264,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
     (skillName: string) => {
       const skillAttr = SkillsAttrs[skillName];
       const attrMod = skillAttr ? companion.attributes[skillAttr] : 0;
-      const skillBonus = attrMod + halfTrainerLevel;
+      const skillBonus = attrMod + halfTrainerLevel + skillTrainingBonus;
 
       const d20Roll = rollD20();
       const total = Math.max(1, d20Roll + skillBonus);
@@ -315,7 +290,13 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         displayName
       );
     },
-    [companion.attributes, halfTrainerLevel, showDiceResult, displayName]
+    [
+      companion.attributes,
+      halfTrainerLevel,
+      skillTrainingBonus,
+      showDiceResult,
+      displayName,
+    ]
   );
 
   return (
@@ -329,15 +310,41 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
       <DialogTitle>
         <Stack
           direction='row'
-          alignItems='center'
-          justifyContent='space-between'
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
-          <Stack direction='row' alignItems='center' spacing={1}>
-            <Typography variant='h6' fontWeight='bold'>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               {displayName}
             </Typography>
           </Stack>
-          <Stack direction='row' alignItems='center' spacing={0.5}>
+          <Stack
+            direction='row'
+            spacing={0.5}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
+            {onEdit && (
+              <Tooltip title='Editar ficha'>
+                <IconButton size='small' onClick={onEdit} color='primary'>
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+            )}
             {onAdd && (
               <Tooltip title='Adicionar Melhor Amigo'>
                 <IconButton size='small' onClick={onAdd} color='primary'>
@@ -361,7 +368,14 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             </IconButton>
           </Stack>
         </Stack>
-        <Stack direction='row' spacing={1} sx={{ mt: 0.5 }} flexWrap='wrap'>
+        <Stack
+          direction='row'
+          spacing={1}
+          sx={{
+            flexWrap: 'wrap',
+            mt: 0.5,
+          }}
+        >
           <Chip
             label={companion.companionType}
             size='small'
@@ -384,6 +398,15 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
               color='secondary'
             />
           )}
+          {companion.manualOverrides &&
+            Object.keys(companion.manualOverrides).length > 0 && (
+              <Chip
+                label='Editado manualmente'
+                size='small'
+                color='warning'
+                variant='outlined'
+              />
+            )}
         </Stack>
         {totalCompanions > 1 && onIndexChange && (
           <Tabs
@@ -404,23 +427,49 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           </Tabs>
         )}
       </DialogTitle>
-
       <DialogContent dividers>
+        {pendingEnsinarTruqueCount && pendingEnsinarTruqueCount > 0 ? (
+          <Box
+            sx={{
+              mb: 2,
+              p: 1.5,
+              border: '1px solid',
+              borderColor: 'warning.main',
+              borderRadius: 1,
+              bgcolor: 'warning.light',
+              color: 'warning.contrastText',
+            }}
+          >
+            <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+              Truque pendente
+            </Typography>
+            <Typography variant='caption'>
+              {pendingEnsinarTruqueCount === 1
+                ? 'O treinador possui o poder "Ensinar Truque" sem truque alocado. Reabra "Editar Poderes" e re-selecione o poder para escolher o truque adicional.'
+                : `O treinador possui ${pendingEnsinarTruqueCount} instâncias do poder "Ensinar Truque" sem truques alocados. Reabra "Editar Poderes" e re-selecione cada poder para escolher os truques adicionais.`}
+            </Typography>
+          </Box>
+        ) : null}
+
         {/* Atributos */}
         <Typography
           variant='subtitle2'
-          fontWeight='bold'
-          sx={{ mb: 1 }}
           color='primary'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
         >
           Atributos
         </Typography>
         <Stack
           direction='row'
           spacing={1}
-          justifyContent='center'
-          flexWrap='wrap'
-          sx={{ mb: 2 }}
+          sx={{
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            mb: 2,
+          }}
         >
           {Object.values(Atributo).map((attr) => (
             <CompanionAttributeDisplay
@@ -435,18 +484,21 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         <Divider sx={{ my: 1.5 }} />
 
         {/* PV Control */}
-        <Stack direction='row' justifyContent='center' sx={{ mb: 2 }}>
+        <Stack
+          direction='row'
+          sx={{
+            justifyContent: 'center',
+            mb: 2,
+          }}
+        >
           <StatControl
             type='PV'
             current={companion.currentPV ?? companion.pv}
             max={companion.pv}
             calculatedMax={companion.pv}
-            increment={companion.pvIncrement ?? 1}
             temp={companion.tempPV ?? 0}
-            onUpdateCurrent={handlePVCurrentUpdate}
-            onUpdateIncrement={handlePVIncrementUpdate}
-            onUpdateTemp={handlePVTempUpdate}
             onDecrement={handlePVDecrement}
+            onHeal={handlePVHeal}
             disabled={!onCompanionUpdate}
           />
         </Stack>
@@ -454,9 +506,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         {/* Stats de Combate */}
         <Typography
           variant='subtitle2'
-          fontWeight='bold'
-          sx={{ mb: 1 }}
           color='primary'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
         >
           Combate
         </Typography>
@@ -492,12 +546,20 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
               <Box sx={{ mb: 1 }}>
                 <Typography
                   variant='subtitle2'
-                  fontWeight='bold'
                   color='primary'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
                 >
                   Sentidos
                 </Typography>
-                <Stack direction='row' spacing={0.5} flexWrap='wrap'>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {companion.senses.map((sense) => (
                     <Chip key={sense} label={sense} size='small' />
                   ))}
@@ -508,12 +570,20 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
               <Box sx={{ mb: 1 }}>
                 <Typography
                   variant='subtitle2'
-                  fontWeight='bold'
                   color='primary'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
                 >
                   Imunidades
                 </Typography>
-                <Stack direction='row' spacing={0.5} flexWrap='wrap'>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {companion.immunities.map((imm) => (
                     <Chip key={imm} label={imm} size='small' color='warning' />
                   ))}
@@ -529,9 +599,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Armas Naturais
             </Typography>
@@ -582,13 +654,21 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Proficiências
             </Typography>
-            <Stack direction='row' spacing={0.5} flexWrap='wrap'>
+            <Stack
+              direction='row'
+              spacing={0.5}
+              sx={{
+                flexWrap: 'wrap',
+              }}
+            >
               {companion.proficiencies.map((prof) => (
                 <Chip key={prof} label={prof} size='small' />
               ))}
@@ -600,9 +680,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         <Divider sx={{ my: 1.5 }} />
         <Typography
           variant='subtitle2'
-          fontWeight='bold'
-          sx={{ mb: 1 }}
           color='primary'
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+          }}
         >
           Perícias Treinadas
         </Typography>
@@ -610,7 +692,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           {companion.skills.map((skill) => {
             const skillAttr = SkillsAttrs[skill];
             const attrMod = skillAttr ? companion.attributes[skillAttr] : 0;
-            const skillBonus = attrMod + halfTrainerLevel;
+            const skillBonus = attrMod + halfTrainerLevel + skillTrainingBonus;
             const bonusStr =
               skillBonus >= 0 ? `+${skillBonus}` : `${skillBonus}`;
 
@@ -640,9 +722,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                 <Typography variant='body2'>{skill}</Typography>
                 <Typography
                   variant='body2'
-                  fontWeight='bold'
                   color='primary'
-                  sx={{ textDecoration: 'underline dotted' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    textDecoration: 'underline dotted',
+                  }}
                 >
                   {bonusStr}
                 </Typography>
@@ -657,9 +741,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Habilidades Especiais ({companion.companionType})
             </Typography>
@@ -677,9 +763,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             <Divider sx={{ my: 1.5 }} />
             <Typography
               variant='subtitle2'
-              fontWeight='bold'
-              sx={{ mb: 1 }}
               color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
             >
               Truques ({companion.tricks.length})
             </Typography>
@@ -689,9 +777,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                 <Accordion key={trick.name} disableGutters>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography
-                      fontWeight='bold'
                       color='primary'
-                      sx={{ fontSize: '0.9rem' }}
+                      sx={{
+                        fontWeight: 'bold',
+                        fontSize: '0.9rem',
+                      }}
                     >
                       {trick.name}
                     </Typography>
@@ -703,7 +793,12 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                     {trick.choices &&
                       Object.entries(trick.choices).length > 0 && (
                         <Box sx={{ mt: 1 }}>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Escolhas:{' '}
                             {Object.entries(trick.choices)
                               .map(([key, val]) => `${key}: ${val}`)
@@ -718,9 +813,106 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           </>
         )}
 
+        {/* Magias (Magia Inata) */}
+        {companion.spells && companion.spells.length > 0 && (
+          <>
+            <Divider sx={{ my: 1.5 }} />
+            <Typography
+              variant='subtitle2'
+              color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
+            >
+              Magias ({companion.spells.length})
+            </Typography>
+            {companion.spells.map((spell) => {
+              const circleNumber = parseInt(spell.spellCircle, 10) || 1;
+              const cd =
+                trainerCharismaMod !== undefined
+                  ? 10 + trainerCharismaMod + circleNumber
+                  : null;
+              return (
+                <Accordion key={spell.nome} disableGutters>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 1,
+                        width: '100%',
+                        pr: 1,
+                      }}
+                    >
+                      <Typography
+                        color='primary'
+                        sx={{
+                          fontWeight: 'bold',
+                          fontSize: '0.9rem',
+                        }}
+                      >
+                        {spell.nome}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Chip
+                          label={spell.school}
+                          size='small'
+                          variant='outlined'
+                        />
+                        {cd !== null && (
+                          <Chip
+                            label={`CD ${cd}`}
+                            size='small'
+                            color='primary'
+                            variant='outlined'
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mb: 1,
+                      }}
+                    >
+                      {spell.spellCircle} • {spell.execucao} • {spell.alcance}
+                      {spell.alvo && ` • ${spell.alvo}`}
+                      {' • '}Duração: {spell.duracao}
+                    </Typography>
+                    <Typography variant='body2' sx={{ whiteSpace: 'pre-wrap' }}>
+                      {spell.description}
+                    </Typography>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        mt: 1,
+                      }}
+                    >
+                      Atributo-chave: Carisma do treinador
+                    </Typography>
+                  </AccordionDetails>
+                </Accordion>
+              );
+            })}
+          </>
+        )}
+
         {/* Info do nível do treinador */}
         <Divider sx={{ my: 1.5 }} />
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Nível do Treinador: {trainerLevel}
         </Typography>
       </DialogContent>

@@ -13,6 +13,7 @@ import {
   Stack,
   Divider,
   Chip,
+  Tooltip,
   useTheme,
   Alert,
 } from '@mui/material';
@@ -21,6 +22,10 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CasinoIcon from '@mui/icons-material/Casino';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { getActiveEffectForSpell } from '@/premium/data/activePowers';
+import { ACTIVE_EFFECT_COLOR } from '@/premium/functions/activeEffectHighlights';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { executeMultipleDiceRolls } from '@/utils/diceRoller';
 import { Spell, Aprimoramento } from '../interfaces/Spells';
@@ -36,7 +41,7 @@ interface SpellCastDialogProps {
   currentPM: number;
   maxPM: number;
   tempPM?: number;
-  onCast: (pmSpent: number) => void;
+  onCast: (pmSpent: number, spell: Spell) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
 }
@@ -61,6 +66,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
   const isMobile = useMemo(() => window.innerWidth < 720, []);
+
+  // Indicador de que a magia possui um efeito ativo (será oferecido para
+  // aplicar na ficha após confirmar o lançamento). Só exibido quando o
+  // recurso de efeitos ativos está disponível, para não confundir.
+  const { hasAccess: canUseActiveEffects } = useFeatureAccess('activeEffects');
+  const activeEffectDef = useMemo(
+    () => getActiveEffectForSpell(spell.nome),
+    [spell.nome]
+  );
+  const showActiveEffectHint = canUseActiveEffects && !!activeEffectDef;
 
   const [selections, setSelections] = useState<Map<number, number>>(new Map());
   const [shouldSpendPM, setShouldSpendPM] = useState(true);
@@ -238,9 +253,9 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       showDiceResult(spell.nome, rollGroups, characterName);
     }
 
-    if (shouldSpendPM && totalPMCost > 0) {
-      onCast(totalPMCost);
-    }
+    // Sempre repassa o lançamento (com 0 PM quando o jogador opta por não
+    // gastar) para que o efeito ativo da magia, se houver, seja oferecido.
+    onCast(shouldSpendPM ? totalPMCost : 0, spell);
 
     onClose();
   }, [
@@ -251,7 +266,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     onCast,
     onClose,
     showDiceResult,
-    spell.nome,
+    spell,
     characterName,
   ]);
 
@@ -283,9 +298,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         >
           <Stack
             direction='row'
-            alignItems='center'
             spacing={0.5}
-            sx={{ mr: 1, flexShrink: 0 }}
+            sx={{
+              alignItems: 'center',
+              mr: 1,
+              flexShrink: 0,
+            }}
           >
             <IconButton
               size='small'
@@ -319,7 +337,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
               {aprimoramento.text}
             </Typography>
             {count > 0 && aprimoramento.addPm > 0 && (
-              <Typography variant='caption' color='text.secondary'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Total: +{aprimoramento.addPm * count} PM
               </Typography>
             )}
@@ -356,7 +379,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             {aprimoramento.text}
           </Typography>
           {thisTruque && count > 0 && (
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Truques não podem ser combinados com outros aprimoramentos
             </Typography>
           )}
@@ -375,20 +403,52 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         fullScreen={isMobile}
       >
         <DialogTitle>
-          <Stack direction='row' alignItems='center' spacing={1}>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <CasinoIcon color='primary' />
             <Typography variant='h6' component='span'>
               {spell.nome}
             </Typography>
+            {showActiveEffectHint && (
+              <Tooltip title='Esta magia possui um efeito que poderá ser aplicado à sua ficha (e ofertado aos aliados da mesa) após confirmar o lançamento.'>
+                <Chip
+                  icon={<AutoAwesomeIcon />}
+                  label='Efeito ativo'
+                  size='small'
+                  variant='outlined'
+                  sx={{
+                    color: ACTIVE_EFFECT_COLOR,
+                    borderColor: ACTIVE_EFFECT_COLOR,
+                    '& .MuiChip-icon': { color: ACTIVE_EFFECT_COLOR },
+                  }}
+                />
+              </Tooltip>
+            )}
           </Stack>
         </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2}>
             <Box>
-              <Typography variant='subtitle2' color='text.secondary'>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {spell.spellCircle}
               </Typography>
-              <Stack direction='row' spacing={2} alignItems='center'>
+              <Stack
+                direction='row'
+                spacing={2}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <Typography>
                   <strong>Custo Base:</strong> {basePM} PM
                 </Typography>
@@ -403,10 +463,47 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
               </Stack>
             </Box>
 
+            {showActiveEffectHint && (
+              <Alert
+                icon={<AutoAwesomeIcon sx={{ color: ACTIVE_EFFECT_COLOR }} />}
+                variant='outlined'
+                sx={{
+                  borderColor: ACTIVE_EFFECT_COLOR,
+                  '& .MuiAlert-message': { color: 'text.primary' },
+                }}
+              >
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Efeito ativo disponível
+                </Typography>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
+                  {activeEffectDef?.description ??
+                    'Após confirmar o lançamento, você poderá aplicar o efeito desta magia na ficha.'}{' '}
+                  Ao confirmar o lançamento, será perguntado se deseja aplicá-lo
+                  (e ofertá-lo aos aliados da mesa).
+                </Typography>
+              </Alert>
+            )}
+
             <Divider />
 
             <Box>
-              <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 1 }}>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 'bold',
+                  mb: 1,
+                }}
+              >
                 Descrição
               </Typography>
               <Typography
@@ -429,8 +526,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                 <Box>
                   <Typography
                     variant='subtitle1'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
+                    sx={{
+                      fontWeight: 'bold',
+                      mb: 1,
+                    }}
                   >
                     Aprimoramentos
                   </Typography>
@@ -450,11 +549,18 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             <Box>
               <Stack
                 direction='row'
-                justifyContent='space-between'
-                alignItems='center'
-                sx={{ mb: 1 }}
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
               >
-                <Typography variant='subtitle1' fontWeight='bold'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   Rolagens
                 </Typography>
                 <Stack direction='row' spacing={1}>
@@ -503,7 +609,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                           <strong>{roll.label}:</strong> {roll.dice}
                         </Typography>
                         {roll.description && (
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {roll.description}
                           </Typography>
                         )}
@@ -512,7 +623,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   ))}
                 </Stack>
               ) : (
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Nenhuma rolagem configurada
                 </Typography>
               )}
@@ -557,7 +673,6 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {onUpdateRolls && (
         <RollsEditDialog
           open={rollsDialogOpen}

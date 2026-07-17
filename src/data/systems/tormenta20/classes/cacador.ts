@@ -5,6 +5,7 @@ import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import { spellsCircle1 } from '../magias/generalSpells';
+import { ARQUEIRO_SHEET_BONUSES } from '../powers/classPowerSheetBonuses';
 
 const CACADOR: ClassDescription = {
   name: 'Caçador',
@@ -166,6 +167,7 @@ const CACADOR: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 }],
       ],
+      sheetBonuses: ARQUEIRO_SHEET_BONUSES,
     },
     {
       name: 'Aumento de Atributo',

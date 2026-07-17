@@ -42,6 +42,10 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
         addPm: 1,
         text: 'aumenta o dano em +1d6.',
       },
+      {
+        addPm: 1,
+        text: 'aumenta o número de alvos em +1 (total de alvos limitado pelo círculo máximo de magia que você pode lançar).',
+      },
     ],
   },
   {

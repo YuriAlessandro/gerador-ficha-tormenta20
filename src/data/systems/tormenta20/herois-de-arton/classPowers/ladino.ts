@@ -22,7 +22,7 @@ const LADINO_POWERS: ClassPower[] = [
     name: 'Bombardeiro Furtivo',
     text: 'Você pode usar Ataque Furtivo ao utilizar preparados alquímicos de dano.',
     requirements: [
-      [{ type: RequirementType.PERICIA, name: 'Ofício (alquimista)' }],
+      [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ALQUIMIA }],
     ],
   },
   {

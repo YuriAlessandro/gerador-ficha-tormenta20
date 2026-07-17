@@ -41,8 +41,20 @@ const AttributeRollResult = forwardRef<HTMLDivElement, Props>(
           }}
         >
           <CardActions>
-            <Stack direction='column' alignItems='center' spacing={1}>
-              <Stack direction='row' alignItems='center' spacing={2}>
+            <Stack
+              direction='column'
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
+              <Stack
+                direction='row'
+                spacing={2}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <Box
                   sx={{
                     backgroundImage: `url(${diceIcon})`,
@@ -65,13 +77,38 @@ const AttributeRollResult = forwardRef<HTMLDivElement, Props>(
                       borderRadius: '20% 40% 20% 40%',
                     }}
                   >
-                    <Stack alignItems='center'>
-                      <Typography fontSize={20}>{total}</Typography>
+                    <Stack
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: 20,
+                        }}
+                      >
+                        {total}
+                      </Typography>
                       {bonus !== 0 && (
-                        <Stack justifyContent='center' alignItems='center'>
+                        <Stack
+                          sx={{
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
                           <Stack direction='row'>
-                            <Typography fontSize={10}>{rollResult}</Typography>
-                            <Typography fontSize={10}>
+                            <Typography
+                              sx={{
+                                fontSize: 10,
+                              }}
+                            >
+                              {rollResult}
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: 10,
+                              }}
+                            >
                               {addSignForRoll(bonus as number)}
                             </Typography>
                           </Stack>

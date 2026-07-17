@@ -137,17 +137,31 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
       onClose={onCancel}
       maxWidth='md'
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+          },
         },
       }}
     >
       <DialogTitle>
-        <Typography variant='h5' component='div' fontWeight='bold'>
+        <Typography
+          variant='h5'
+          component='div'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           Customização do Duende
         </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mt: 1,
+          }}
+        >
           Escolha a natureza, tamanho, dons, presentes e tabu do seu duende
         </Typography>
         <Chip
@@ -157,7 +171,6 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
           sx={{ mt: 1 }}
         />
       </DialogTitle>
-
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
           {/* Natureza Selection */}
@@ -192,12 +205,19 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
                   <Box key={ability.name} sx={{ mb: 1 }}>
                     <Typography
                       variant='subtitle2'
-                      fontWeight='bold'
                       color='primary'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
                     >
                       {ability.name}
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {ability.description}
                     </Typography>
                   </Box>
@@ -234,7 +254,12 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
                   borderRadius: 1,
                 }}
               >
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Deslocamento: {sizeConfig.displacement}m
                   {sizeConfig.attributeModifiers &&
                     sizeConfig.attributeModifiers.length > 0 && (
@@ -257,7 +282,13 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
 
           {/* Dons - Atributos */}
           <Box>
-            <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+            <Typography
+              variant='subtitle1'
+              gutterBottom
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Dons (+1 em dois atributos diferentes)
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -385,12 +416,19 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
                   <Box key={id} sx={{ mb: 1 }}>
                     <Typography
                       variant='subtitle2'
-                      fontWeight='bold'
                       color='primary'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
                     >
                       {presente.ability.name}
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {presente.ability.description}
                     </Typography>
                   </Box>
@@ -423,7 +461,12 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
                 borderRadius: 1,
               }}
             >
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Você possui um tabu — algo que nunca pode fazer (ou deixar de
                 fazer). Se desrespeitar, fica fatigado por um dia. Se continuar
                 desrespeitando: exausto no 2º dia, morte no 3º dia.
@@ -432,7 +475,6 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
           </FormControl>
         </Box>
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 3 }}>
         <Button onClick={onCancel} color='inherit'>
           Cancelar

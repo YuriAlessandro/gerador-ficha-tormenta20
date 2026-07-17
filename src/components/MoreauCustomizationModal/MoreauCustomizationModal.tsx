@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -13,6 +13,7 @@ import {
   Box,
   Chip,
   Stack,
+  Alert,
 } from '@mui/material';
 import {
   MOREAU_HERITAGES,
@@ -20,6 +21,7 @@ import {
   MoreauHeritageName,
 } from '../../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { getSpellsOfCircle } from '../../data/systems/tormenta20/magias/generalSpells';
 
 const ATRIBUTOS = Object.values(Atributo);
 
@@ -27,7 +29,13 @@ interface MoreauCustomizationModalProps {
   open: boolean;
   initialHeritage: string;
   initialBonusAttributes: Atributo[];
-  onConfirm: (heritage: string, bonusAttributes: Atributo[]) => void;
+  initialSapienciaSpell?: string;
+  showSapienciaSelector?: boolean;
+  onConfirm: (
+    heritage: string,
+    bonusAttributes: Atributo[],
+    sapienciaSpell?: string
+  ) => void;
   onCancel: () => void;
 }
 
@@ -35,6 +43,8 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
   open,
   initialHeritage,
   initialBonusAttributes,
+  initialSapienciaSpell,
+  showSapienciaSelector,
   onConfirm,
   onCancel,
 }) => {
@@ -45,6 +55,14 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
   const [bonusAttr2, setBonusAttr2] = useState<Atributo | ''>(
     initialBonusAttributes[1] || ''
   );
+  const [sapienciaSpell, setSapienciaSpell] = useState<string>(
+    initialSapienciaSpell || ''
+  );
+
+  const divinationSpells = useMemo(
+    () => getSpellsOfCircle(1).filter((spell) => spell.school === 'Adiv'),
+    []
+  );
 
   // Reset to initial values when modal opens
   useEffect(() => {
@@ -52,14 +70,24 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
       setHeritageId(initialHeritage);
       setBonusAttr1(initialBonusAttributes[0] || '');
       setBonusAttr2(initialBonusAttributes[1] || '');
+      setSapienciaSpell(initialSapienciaSpell || '');
     }
-  }, [open, initialHeritage, initialBonusAttributes]);
+  }, [open, initialHeritage, initialBonusAttributes, initialSapienciaSpell]);
+
+  // Clear stale spell selection when heritage switches away from Coruja
+  useEffect(() => {
+    if (heritageId !== 'Coruja') {
+      setSapienciaSpell('');
+    }
+  }, [heritageId]);
 
   const handleConfirm = () => {
     const bonusAttrs: Atributo[] = [];
     if (bonusAttr1) bonusAttrs.push(bonusAttr1);
     if (bonusAttr2) bonusAttrs.push(bonusAttr2);
-    onConfirm(heritageId, bonusAttrs);
+    const spellPayload =
+      heritageId === 'Coruja' && sapienciaSpell ? sapienciaSpell : undefined;
+    onConfirm(heritageId, bonusAttrs, spellPayload);
   };
 
   const heritage = MOREAU_HERITAGES[heritageId as MoreauHeritageName];
@@ -67,8 +95,15 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
   // Get the fixed attribute from the heritage (non-'any')
   const fixedAttr = heritage?.attributes.find((a) => a.attr !== 'any');
 
-  // Check if form is valid (heritage selected and 2 bonus attributes)
-  const isValid = heritageId && bonusAttr1 && bonusAttr2;
+  const showSpellPicker = showSapienciaSelector && heritageId === 'Coruja';
+
+  // Check if form is valid (heritage selected, 2 bonus attributes,
+  // and Sapiência spell picked when the selector is visible)
+  const isValid =
+    heritageId &&
+    bonusAttr1 &&
+    bonusAttr2 &&
+    (!showSpellPicker || sapienciaSpell);
 
   return (
     <Dialog
@@ -76,21 +111,34 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
       onClose={onCancel}
       maxWidth='md'
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+          },
         },
       }}
     >
       <DialogTitle>
-        <Typography variant='h5' component='div' fontWeight='bold'>
+        <Typography
+          variant='h5'
+          component='div'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           Customização do Moreau
         </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mt: 1,
+          }}
+        >
           Escolha a herança do seu moreau e os atributos de bônus
         </Typography>
       </DialogTitle>
-
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
           {/* Heritage Selection */}
@@ -123,8 +171,10 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
               >
                 <Typography
                   variant='subtitle2'
-                  fontWeight='bold'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    fontWeight: 'bold',
+                    mb: 1,
+                  }}
                 >
                   Habilidades:
                 </Typography>
@@ -133,15 +183,19 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
                     <Box key={ability.name}>
                       <Typography
                         variant='body2'
-                        fontWeight='bold'
                         component='span'
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
                       >
                         {ability.name}:
                       </Typography>{' '}
                       <Typography
                         variant='body2'
-                        color='text.secondary'
                         component='span'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
                       >
                         {ability.description}
                       </Typography>
@@ -150,7 +204,12 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
                 </Stack>
                 {fixedAttr && (
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant='subtitle2' fontWeight='bold'>
+                    <Typography
+                      variant='subtitle2'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       Atributo Fixo:{' '}
                       <Chip
                         label={`+1 ${fixedAttr.attr}`}
@@ -164,11 +223,70 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
             )}
           </FormControl>
 
+          {/* Sapiência Spell Selection (Coruja heritage only) */}
+          {showSpellPicker && (
+            <Box>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
+                Magia da Sapiência
+              </Typography>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 1,
+                }}
+              >
+                Escolha uma magia de 1º círculo da escola de Adivinhação. O
+                atributo-chave dessa magia será Sabedoria.
+              </Typography>
+              <FormControl fullWidth>
+                <InputLabel id='sapiencia-spell-label'>Magia</InputLabel>
+                <Select
+                  labelId='sapiencia-spell-label'
+                  id='sapiencia-spell-select'
+                  value={sapienciaSpell}
+                  label='Magia'
+                  onChange={(e) => setSapienciaSpell(e.target.value)}
+                >
+                  {divinationSpells.map((spell) => (
+                    <MenuItem key={spell.nome} value={spell.nome}>
+                      {spell.nome}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {sapienciaSpell && (
+                <Alert severity='info' sx={{ mt: 1 }}>
+                  {
+                    divinationSpells.find((s) => s.nome === sapienciaSpell)
+                      ?.description
+                  }
+                </Alert>
+              )}
+            </Box>
+          )}
+
           {/* Bonus Attributes Selection */}
-          <Typography variant='subtitle1' fontWeight='bold'>
+          <Typography
+            variant='subtitle1'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             Atributos de Bônus (+1 cada)
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: -2 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mt: -2,
+            }}
+          >
             Escolha dois atributos para receber +1 (podem ser iguais)
           </Typography>
 
@@ -218,7 +336,12 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
                 borderRadius: 1,
               }}
             >
-              <Typography variant='subtitle2' fontWeight='bold'>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Resumo dos Atributos:
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
@@ -244,7 +367,6 @@ const MoreauCustomizationModal: React.FC<MoreauCustomizationModalProps> = ({
           )}
         </Box>
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 3 }}>
         <Button onClick={onCancel} color='inherit'>
           Cancelar

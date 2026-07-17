@@ -26,21 +26,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth='xs' fullWidth>
       <DialogTitle>
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <Typography variant='h6'>Entrar na sua conta</Typography>
           <IconButton onClick={onClose} size='small'>
             <CloseIcon />
           </IconButton>
         </Box>
       </DialogTitle>
-
       <DialogContent>
         <Box sx={{ py: 2 }}>
           <Typography
             variant='body2'
-            color='text.secondary'
-            textAlign='center'
-            sx={{ mb: 3 }}
+            sx={{
+              color: 'text.secondary',
+              textAlign: 'center',
+              mb: 3,
+            }}
           >
             Entre com sua conta Google para salvar e sincronizar suas fichas
           </Typography>
@@ -56,9 +63,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
 
           <Typography
             variant='caption'
-            color='text.secondary'
-            textAlign='center'
-            display='block'
+            sx={{
+              color: 'text.secondary',
+              textAlign: 'center',
+              display: 'block',
+            }}
           >
             Ao entrar, você concorda com nossos{' '}
             <Link component={RouterLink} to='/termos-de-uso' onClick={onClose}>

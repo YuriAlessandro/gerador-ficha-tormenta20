@@ -31,7 +31,7 @@ interface SpellsProp {
   currentPM?: number;
   maxPM?: number;
   tempPM?: number;
-  onSpellCast?: (pmSpent: number) => void;
+  onSpellCast?: (pmSpent: number, spell: Spell) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;

@@ -24,7 +24,8 @@ enum Skill {
   NOBREZA = 'Nobreza',
   OFICIO = 'Ofício (Qualquer)',
   OFICIO_ARMEIRO = 'Ofício (Armeiro)',
-  OFICIO_ARTESANATO = 'Ofício (Artesanato)',
+  // Nome do membro mantido por compatibilidade; valor segue o livro ("Ofício (Artesão)")
+  OFICIO_ARTESANATO = 'Ofício (Artesão)',
   OFICIO_ALQUIMIA = 'Ofício (Alquímia)',
   OFICIO_CULINARIA = 'Ofício (Culinária)',
   OFICIO_ALFAIATE = 'Ofício (Alfaiate)',
@@ -72,7 +73,7 @@ export const SkillsAttrs: Record<string, Atributo> = {
   Nobreza: Atributo.INTELIGENCIA,
   'Ofício (Qualquer)': Atributo.INTELIGENCIA,
   'Ofício (Armeiro)': Atributo.INTELIGENCIA,
-  'Ofício (Artesanato)': Atributo.INTELIGENCIA,
+  'Ofício (Artesão)': Atributo.INTELIGENCIA,
   'Ofício (Alquímia)': Atributo.INTELIGENCIA,
   'Ofício (Culinária)': Atributo.INTELIGENCIA,
   'Ofício (Alfaiate)': Atributo.INTELIGENCIA,
@@ -162,6 +163,7 @@ export type CompleteSkill = {
   training?: number;
   others?: number;
   manualOthers?: number;
+  manuallyUntrained?: boolean;
   countAsTormentaPower?: boolean;
 };
 

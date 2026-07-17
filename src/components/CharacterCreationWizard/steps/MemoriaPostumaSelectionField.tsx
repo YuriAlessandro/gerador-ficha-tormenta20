@@ -15,6 +15,7 @@ import Skill from '@/interfaces/Skills';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import Race from '@/interfaces/Race';
+import { getSelectableRaceAbilities } from '@/functions/raceHeritageAbilities';
 
 interface MemoriaPostumaSelectionFieldProps {
   availableRaces: Race[];
@@ -55,6 +56,12 @@ const MemoriaPostumaSelectionField: React.FC<
   );
 
   const isHumano = selectedOldRaceName === 'Humano';
+
+  // Habilidades selecionáveis (achatadas por herança para raças como Moreau)
+  const selectableAbilities = useMemo(
+    () => (selectedOldRace ? getSelectableRaceAbilities(selectedOldRace) : []),
+    [selectedOldRace]
+  );
 
   // Get current selections
   const selectedSkill = selections.skills?.[0] || '';
@@ -134,7 +141,6 @@ const MemoriaPostumaSelectionField: React.FC<
           você ganha uma habilidade dessa raça a sua escolha.
         </Typography>
       </Alert>
-
       {/* Old Race Selection */}
       <FormControl fullWidth>
         <InputLabel id='memoria-postuma-old-race-label'>
@@ -156,7 +162,6 @@ const MemoriaPostumaSelectionField: React.FC<
           ))}
         </Select>
       </FormControl>
-
       {/* Humano Path: Skill or Power */}
       {isHumano && (
         <>
@@ -224,8 +229,10 @@ const MemoriaPostumaSelectionField: React.FC<
                       {power.description && (
                         <Typography
                           variant='caption'
-                          color='text.secondary'
                           component='div'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
                         >
                           {power.description.length > 100
                             ? `${power.description.substring(0, 100)}...`
@@ -240,9 +247,14 @@ const MemoriaPostumaSelectionField: React.FC<
           )}
         </>
       )}
-
       {/* Non-Humano Path: Race Ability Selection */}
-      {!isHumano && selectedOldRace && (
+      {!isHumano && selectedOldRace && selectableAbilities.length === 0 && (
+        <Alert severity='warning'>
+          {selectedOldRaceName} não possui habilidades de raça selecionáveis.
+          Selecione outra raça.
+        </Alert>
+      )}
+      {!isHumano && selectedOldRace && selectableAbilities.length > 0 && (
         <Box>
           <Typography variant='subtitle1' gutterBottom>
             Habilidade de {selectedOldRaceName}
@@ -252,18 +264,23 @@ const MemoriaPostumaSelectionField: React.FC<
               value={selectedAbility}
               onChange={(e) => handleAbilityChange(e.target.value)}
             >
-              {selectedOldRace.abilities.map((ability) => {
-                const isSelected = selectedAbility === ability.name;
+              {selectableAbilities.map((option) => {
+                const isSelected = selectedAbility === option.value;
                 return (
                   <FormControlLabel
-                    key={ability.name}
-                    value={ability.name}
+                    key={option.value}
+                    value={option.value}
                     control={<Radio />}
                     label={
                       <Box>
-                        <Typography variant='body1'>{ability.name}</Typography>
-                        <Typography variant='body2' color='text.secondary'>
-                          {ability.description}
+                        <Typography variant='body1'>{option.value}</Typography>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
+                          {option.ability.description}
                         </Typography>
                       </Box>
                     }
@@ -286,16 +303,19 @@ const MemoriaPostumaSelectionField: React.FC<
           </FormControl>
         </Box>
       )}
-
       {!isHumano && !selectedOldRace && (
         <Alert severity='warning'>
           Raça selecionada não encontrada. Selecione outra raça.
         </Alert>
       )}
-
       {/* Selection Summary */}
       <Box sx={{ mt: 1 }}>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           <strong>Resumo:</strong> Raça anterior: <em>{selectedOldRaceName}</em>
           {isHumano && benefitType === 'skill' && selectedSkill && (
             <>

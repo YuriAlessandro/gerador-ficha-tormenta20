@@ -6,6 +6,7 @@ import {
   RequirementType,
 } from '../../../../interfaces/Poderes';
 import PROFICIENCIAS from '../proficiencias';
+import { ESTILO_DE_DISPARO_SHEET_BONUSES } from './classPowerSheetBonuses';
 
 const combatPowers: Record<string, GeneralPower> = {
   ACUIDADE_COM_ARMA: {
@@ -37,6 +38,13 @@ const combatPowers: Record<string, GeneralPower> = {
         { type: RequirementType.ATRIBUTO, name: 'Força', value: 1 },
       ],
     ],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Arremesso Potente' },
+        target: { type: 'ThrownAttackUseStrength' },
+        modifier: { type: 'Fixed', value: 0 },
+      },
+    ],
   },
   ARREMESSO_MULTIPLO: {
     name: 'Arremesso Múltiplo',
@@ -53,7 +61,7 @@ const combatPowers: Record<string, GeneralPower> = {
   ATAQUE_COM_ESCUDO: {
     name: 'Ataque com Escudo',
     description:
-      'Uma vez por rodada, quando faz um ataque com uma arma de arremesso, você pode gastar 1 PM para fazer um ataque adicional contra o mesmo alvo, arremessando outra arma de arremesso.',
+      'Uma vez por rodada, se estiver empunhando um escudo e fizer a ação agredir, você pode gastar 1 PM para fazer um ataque corpo a corpo extra com o escudo. Este ataque não faz você perder o bônus do escudo na Defesa.',
     type: GeneralPowerType.COMBATE,
     requirements: [
       [{ type: RequirementType.PODER, name: 'Estilo de Arma e Escudo' }],
@@ -284,6 +292,13 @@ const combatPowers: Record<string, GeneralPower> = {
       'Você pode sacar armas de arremesso como uma ação livre e recebe +2 nas rolagens de dano com elas. Se também possuir o poder Saque Rápido, também recebe +2 nos testes de ataque com essas armas.',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Pontaria' }]],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Estilo de Arremesso' },
+        target: { type: 'WeaponDamage', thrownOnly: true },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   ESTILO_DE_DISPARO: {
     name: 'Estilo de Disparo',
@@ -291,6 +306,7 @@ const combatPowers: Record<string, GeneralPower> = {
       'Se estiver usando uma arma de disparo, você soma sua Destreza nas rolagens de dano',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Pontaria' }]],
+    sheetBonuses: ESTILO_DE_DISPARO_SHEET_BONUSES,
   },
   ESTILO_DE_DUAS_ARMAS: {
     name: 'Estilo de Duas Armas',
@@ -359,7 +375,7 @@ const combatPowers: Record<string, GeneralPower> = {
     description:
       'Você recebe +2 em testes de Enganação para fintar e pode fintar como uma ação de movimento.',
     type: GeneralPowerType.COMBATE,
-    requirements: [[{ type: RequirementType.PERICIA, name: 'Enganação ' }]],
+    requirements: [[{ type: RequirementType.PERICIA, name: Skill.ENGANACAO }]],
   },
   FOCO_EM_ARMA: {
     name: 'Foco em Arma',
@@ -367,6 +383,18 @@ const combatPowers: Record<string, GeneralPower> = {
       'Escolha uma arma. Você recebe +2 em testes de ataque com essa arma. Você pode escolher este poder outras vezes para armas diferentes.',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PROFICIENCIA, name: 'all' }]],
+    canRepeat: true,
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Foco em Arma' },
+        action: {
+          type: 'selectWeaponSpecialization',
+          bonuses: [{ kind: 'attack', value: 2 }],
+          onlyFromSheet: true,
+          optional: true,
+        },
+      },
+    ],
   },
   GINETE: {
     name: 'Ginete',

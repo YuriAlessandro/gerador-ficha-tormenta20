@@ -23,6 +23,7 @@ import {
   Home as HomeIcon,
   Dangerous as ThreatIcon,
   FolderOpen as FolderOpenIcon,
+  LocalOffer as LocalOfferIcon,
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
@@ -35,9 +36,14 @@ import {
   AbilityRoll,
   ThreatAbility,
   ThreatSpell,
+  ResistanceType,
+  getResistanceSave,
 } from '../../interfaces/ThreatSheet';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
-import { ConditionsBar } from '../../premium/components/Conditions';
+import {
+  ConditionsBar,
+  ConditionChip,
+} from '../../premium/components/Conditions';
 import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getEffectiveThreat } from '../../premium/functions/threatConditions';
 import { saveThreat, deleteThreat } from '../../store/slices/threatStorage';
@@ -49,11 +55,7 @@ import {
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 import { FolderInfo } from './ThreatViewCloudWrapper';
-import {
-  rollD20,
-  rollDamage,
-  rollCriticalDamage,
-} from '../../functions/diceRoller';
+import { rollD20, rollDamage } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
 // Styled components for threat sheet (uses theme accent color)
@@ -94,6 +96,9 @@ interface ThreatResultProps {
   isSavedToCloud?: boolean;
   onSaveToCloud?: () => Promise<void>;
   viewOnly?: boolean;
+  // Quando true, desabilita todas as rolagens de dados (ex.: ficha exibida
+  // no Bestiário — o usuário deve copiar a ameaça para usá-la).
+  rollsDisabled?: boolean;
   folderInfo?: FolderInfo | null;
   /**
    * Optional callback invoked when the threat is mutated from inside (e.g. the
@@ -103,6 +108,14 @@ interface ThreatResultProps {
    * the Redux `threatStorage` slice.
    */
   onThreatUpdate?: (updated: ThreatSheet) => void;
+  // When provided, renders an inline button next to each ability that lets
+  // the GM apply a condition derived from that ability to selected players.
+  // Wired by the virtual-table ThreatViewDialog only.
+  onApplyAbilityCondition?: (ability: ThreatAbility) => void;
+  // Same as above, but for attacks. Renders next to each attack line.
+  onApplyAttackCondition?: (attack: ThreatAttack) => void;
+  // Same as above, but for spells. Renders next to each spell line.
+  onApplySpellCondition?: (spell: ThreatSpell) => void;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
@@ -112,8 +125,12 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   isSavedToCloud = false,
   onSaveToCloud,
   viewOnly = false,
+  rollsDisabled = false,
   folderInfo,
   onThreatUpdate,
+  onApplyAbilityCondition,
+  onApplyAttackCondition,
+  onApplySpellCondition,
 }) => {
   const threat = React.useMemo(
     () => getEffectiveThreat(rawThreat),
@@ -125,7 +142,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { showConfirm, ConfirmDialog } = useConfirm();
   const { isAuthenticated } = useAuth();
-  const { showDiceResult } = useDiceRoll();
+  const { showDiceResult, showAttackRoll } = useDiceRoll();
   const [showExportButton, setExportButton] = React.useState<boolean>();
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
   const [loadingPDF, setLoadingPDF] = React.useState(false);
@@ -179,6 +196,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   };
 
   const handleSkillRoll = (skillName: string, modifier: number) => {
+    if (rollsDisabled) return;
     const roll = rollD20();
     const total = roll + modifier;
     const isCritical = roll === 20;
@@ -205,6 +223,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   };
 
   const handleAbilityRoll = (abilityName: string, roll: AbilityRoll) => {
+    if (rollsDisabled) return;
     // Build damage string with bonus
     const damageString = `${roll.dice}${roll.bonus >= 0 ? '+' : ''}${
       roll.bonus
@@ -234,6 +253,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     abilityName: string,
     rolls: AbilityRoll[]
   ) => {
+    if (rollsDisabled) return;
     if (!rolls || rolls.length === 0) return;
 
     const rollResults = rolls
@@ -261,85 +281,32 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   };
 
   const handleAttackClick = (attack: ThreatAttack) => {
-    const attackRoll = rollD20();
-    const attackTotal = Math.max(1, attackRoll + attack.attackBonus);
-    const criticalThreshold = attack.criticalThreshold || 20;
-    const criticalMultiplier = attack.criticalMultiplier || 2;
-    const isCritical = attackRoll >= criticalThreshold;
-    const isFumble = attackRoll === 1;
+    if (rollsDisabled) return;
 
     // Build damage string with bonus
     const damageString = `${attack.damageDice}${
       attack.bonusDamage >= 0 ? '+' : ''
     }${attack.bonusDamage}`;
 
-    // Rola dano normal para referência (criaturas imunes a crítico)
-    const normalRoll = rollDamage(damageString);
-    if (!normalRoll) {
-      return;
-    }
-
-    const normalDamage = Math.max(1, normalRoll.total);
-
-    // Se crítico, rola dados multiplicados (ex: 3d12 x3 = 9d12)
-    const damageRollResult = isCritical
-      ? rollCriticalDamage(damageString, criticalMultiplier)
-      : normalRoll;
-
-    if (!damageRollResult) {
-      return;
-    }
-
-    const finalDamage = Math.max(1, damageRollResult.total);
-
-    // Format attack dice notation
-    const atkModifierStr =
-      attack.attackBonus >= 0
-        ? `+${attack.attackBonus}`
-        : `${attack.attackBonus}`;
-    const attackDiceNotation = `1d20${atkModifierStr}`;
-
-    // Label mostrando dano normal entre parênteses (para criaturas imunes a crítico)
-    const damageLabel = isCritical
-      ? `Dano x${criticalMultiplier} (normal: ${normalDamage})`
-      : 'Dano';
-
-    const rollGroups = [
-      {
-        label: 'Ataque',
-        diceNotation: attackDiceNotation,
-        rolls: [attackRoll],
-        modifier: attack.attackBonus,
-        total: attackTotal,
-        isCritical,
-        isFumble,
+    // A resolução (d20 vs margem de ameaça, multiplicação apenas dos dados
+    // base em crítico e o dano normal de referência para criaturas imunes)
+    // é do pipeline central — ver src/functions/attackRoll.ts. Dados de dano
+    // bônus NÃO são multiplicados em crítico (regra T20).
+    showAttackRoll({
+      rollLabel: `${threat.name}: ${attack.name}`,
+      characterName: threat.name,
+      attackBonus: attack.attackBonus,
+      crit: {
+        threshold: attack.criticalThreshold || 20,
+        multiplier: attack.criticalMultiplier || 2,
       },
-      {
-        label: damageLabel,
-        diceNotation: damageRollResult.diceString,
-        rolls: damageRollResult.diceRolls,
-        modifier: damageRollResult.modifier,
-        total: finalDamage,
-      },
-    ];
-
-    // Dados de dano bônus NÃO são multiplicados em crítico (regra T20)
-    if (attack.bonusDamageDice && attack.bonusDamageDice.length > 0) {
-      attack.bonusDamageDice.forEach((bd) => {
-        const bonusRoll = rollDamage(bd.dice);
-        if (bonusRoll) {
-          rollGroups.push({
-            label: `Dano de ${bd.damageType}`,
-            diceNotation: bonusRoll.diceString,
-            rolls: bonusRoll.diceRolls,
-            modifier: bonusRoll.modifier,
-            total: Math.max(1, bonusRoll.total),
-          });
-        }
-      });
-    }
-
-    showDiceResult(`${threat.name}: ${attack.name}`, rollGroups, threat.name);
+      damage: { dice: damageString },
+      extras: (attack.bonusDamageDice ?? []).map((bd) => ({
+        kind: 'extra' as const,
+        label: `Dano de ${bd.damageType}`,
+        dice: bd.dice,
+      })),
+    });
   };
 
   const handleSaveToCloud = async () => {
@@ -401,36 +368,27 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     getTierByChallengeLevel(threat.challengeLevel)
   );
 
-  // Get numeric resistance value
-  const getResistanceNumeric = (type: string) => {
-    if (type === 'strong') {
-      return threat.combatStats.strongSave;
-    }
-    if (type === 'medium') {
-      return threat.combatStats.mediumSave;
-    }
-    return threat.combatStats.weakSave;
+  // Fonte de verdade dos saves: a skill correspondente em threat.skills
+  // (já inclui override do usuário via getEffectiveSkillTotal). Fallback para
+  // a tabela de combate em dados antigos onde a skill ainda não foi materializada.
+  const getResistanceTotal = (
+    name: 'Fortitude' | 'Reflexos' | 'Vontade'
+  ): number => {
+    const skill = threat.skills.find((s) => s.name === name);
+    if (skill) return getEffectiveSkillTotal(skill);
+    const type = threat.resistanceAssignments[name];
+    return getResistanceSave(type as ResistanceType, threat.combatStats);
   };
 
-  // Format resistance values
-  const getResistanceValue = (type: string) => {
-    const resistanceValue = getResistanceNumeric(type);
-    return resistanceValue > 0 ? `+${resistanceValue}` : `${resistanceValue}`;
-  };
+  const formatResistance = (value: number) =>
+    value > 0 ? `+${value}` : `${value}`;
 
-  // Get resistance assignments (numeric and formatted)
-  const fortResistNum = getResistanceNumeric(
-    threat.resistanceAssignments.Fortitude
-  );
-  const refResistNum = getResistanceNumeric(
-    threat.resistanceAssignments.Reflexos
-  );
-  const vonResistNum = getResistanceNumeric(
-    threat.resistanceAssignments.Vontade
-  );
-  const fortResist = getResistanceValue(threat.resistanceAssignments.Fortitude);
-  const refResist = getResistanceValue(threat.resistanceAssignments.Reflexos);
-  const wonResist = getResistanceValue(threat.resistanceAssignments.Vontade);
+  const fortResistNum = getResistanceTotal('Fortitude');
+  const refResistNum = getResistanceTotal('Reflexos');
+  const vonResistNum = getResistanceTotal('Vontade');
+  const fortResist = formatResistance(fortResistNum);
+  const refResist = formatResistance(refResistNum);
+  const wonResist = formatResistance(vonResistNum);
 
   // Get initiative and perception values
   const initiativeSkill = threat.skills.find((s) => s.name === 'Iniciativa');
@@ -664,7 +622,11 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               p: 0,
             }}
           />
-          <Box display='inline'>
+          <Box
+            sx={{
+              display: 'inline',
+            }}
+          >
             <Box
               component='span'
               onClick={() => handleSkillRoll('Iniciativa', initiativeValue)}
@@ -805,29 +767,93 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               return (
                 <Box
                   key={getKey(attack.name)}
-                  onClick={() => handleAttackClick(attack)}
                   sx={{
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    transition: 'all 0.2s ease',
-                    borderRadius: 1,
-                    px: 0.5,
-                    mx: -0.5,
-                    '&:hover': {
-                      backgroundColor: theme.palette.action.hover,
-                      color: theme.palette.primary.main,
-                    },
-                    '&:active': {
-                      transform: 'scale(0.99)',
-                    },
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1,
                   }}
-                  title={`Rolar ataque: ${attack.name}`}
                 >
-                  {attack.name} +{attack.attackBonus} ({attack.damageDice}
-                  {attack.bonusDamage > 0 ? `+${attack.bonusDamage}` : ''},{' '}
-                  {attack.criticalThreshold || 20}/x
-                  {attack.criticalMultiplier || 2}
-                  {bonusDiceText})
+                  <Box
+                    component='span'
+                    onClick={() => handleAttackClick(attack)}
+                    sx={{
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      transition: 'all 0.2s ease',
+                      borderRadius: 1,
+                      px: 0.5,
+                      mx: -0.5,
+                      '&:hover': {
+                        backgroundColor: theme.palette.action.hover,
+                        color: theme.palette.primary.main,
+                      },
+                      '&:active': {
+                        transform: 'scale(0.99)',
+                      },
+                    }}
+                    title={`Rolar ataque: ${attack.name}`}
+                  >
+                    {attack.name} +{attack.attackBonus} ({attack.damageDice}
+                    {attack.bonusDamage > 0
+                      ? `+${attack.bonusDamage}`
+                      : ''}, {attack.criticalThreshold || 20}/x
+                    {attack.criticalMultiplier || 2}
+                    {bonusDiceText})
+                  </Box>
+                  {attack.grantsConditions &&
+                    attack.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 0.5,
+                        }}
+                      >
+                        <Box
+                          component='span'
+                          sx={{ fontStyle: 'italic', mr: 0.5 }}
+                        >
+                          Concede:
+                        </Box>
+                        {attack.grantsConditions.map((cid) => (
+                          <ConditionChip
+                            key={cid}
+                            conditionId={cid}
+                            size='small'
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  {onApplyAttackCondition &&
+                    attack.grantsConditions &&
+                    attack.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        onClick={() => onApplyAttackCondition(attack)}
+                        sx={{
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          transition: 'all 0.2s ease',
+                          borderRadius: 1,
+                          px: 0.5,
+                          backgroundColor: theme.palette.warning.light,
+                          color: theme.palette.warning.contrastText,
+                          '&:hover': {
+                            backgroundColor: theme.palette.warning.main,
+                          },
+                        }}
+                        title='Aplicar condição aos jogadores'
+                      >
+                        <LocalOfferIcon sx={{ fontSize: '0.9rem' }} />
+                        Aplicar condição
+                      </Box>
+                    )}
                 </Box>
               );
             })
@@ -948,6 +974,61 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                       ))}
                     </Box>
                   )}
+                  {ability.grantsConditions &&
+                    ability.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 0.5,
+                          ml: 1,
+                        }}
+                      >
+                        <Box
+                          component='span'
+                          sx={{ fontStyle: 'italic', mr: 0.5 }}
+                        >
+                          Concede:
+                        </Box>
+                        {ability.grantsConditions.map((cid) => (
+                          <ConditionChip
+                            key={cid}
+                            conditionId={cid}
+                            size='small'
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  {onApplyAbilityCondition &&
+                    ability.grantsConditions &&
+                    ability.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        onClick={() => onApplyAbilityCondition(ability)}
+                        sx={{
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          transition: 'all 0.2s ease',
+                          borderRadius: 1,
+                          px: 0.5,
+                          ml: 1,
+                          backgroundColor: theme.palette.warning.light,
+                          color: theme.palette.warning.contrastText,
+                          '&:hover': {
+                            backgroundColor: theme.palette.warning.main,
+                          },
+                        }}
+                        title='Aplicar condição aos jogadores'
+                      >
+                        <LocalOfferIcon sx={{ fontSize: '0.9rem' }} />
+                        Aplicar condição
+                      </Box>
+                    )}
                 </div>
               ))}
             </>
@@ -1020,6 +1101,61 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                       ))}
                     </Box>
                   )}
+                  {spell.grantsConditions &&
+                    spell.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 0.5,
+                          ml: 1,
+                        }}
+                      >
+                        <Box
+                          component='span'
+                          sx={{ fontStyle: 'italic', mr: 0.5 }}
+                        >
+                          Concede:
+                        </Box>
+                        {spell.grantsConditions.map((cid) => (
+                          <ConditionChip
+                            key={cid}
+                            conditionId={cid}
+                            size='small'
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  {onApplySpellCondition &&
+                    spell.grantsConditions &&
+                    spell.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        onClick={() => onApplySpellCondition(spell)}
+                        sx={{
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          transition: 'all 0.2s ease',
+                          borderRadius: 1,
+                          px: 0.5,
+                          ml: 1,
+                          backgroundColor: theme.palette.warning.light,
+                          color: theme.palette.warning.contrastText,
+                          '&:hover': {
+                            backgroundColor: theme.palette.warning.main,
+                          },
+                        }}
+                        title='Aplicar condição aos jogadores'
+                      >
+                        <LocalOfferIcon sx={{ fontSize: '0.9rem' }} />
+                        Aplicar condição
+                      </Box>
+                    )}
                 </div>
               ))}
             </>

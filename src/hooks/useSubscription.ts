@@ -51,12 +51,17 @@ export const useSubscription = () => {
   const isPremium =
     tier !== SubscriptionTier.FREE && status === SubscriptionStatus.ACTIVE;
 
-  // Fetch subscription on mount if not loaded (only for authenticated users)
+  // Always revalidate subscription whenever the user becomes authenticated.
+  // We intentionally do NOT short-circuit on `!subscription` because the slice
+  // is persisted to localStorage — relying on persisted state means a user
+  // whose tier changed since the last visit (upgrade, renewal, downgrade)
+  // would keep seeing the old limits until they manually visit the profile.
+  // The cost of one extra request per session is worth always-correct gating.
   useEffect(() => {
-    if (isAuthenticated && !subscription && !loading) {
+    if (isAuthenticated && !loading) {
       dispatch(fetchSubscription());
     }
-  }, [dispatch, subscription, loading, isAuthenticated]);
+  }, [dispatch, isAuthenticated]);
 
   // Actions
   const loadSubscription = useCallback(() => {

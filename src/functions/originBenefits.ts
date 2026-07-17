@@ -230,6 +230,17 @@ export function applyRegionalOriginBenefits(
 
   // NOTE: Items are not added to bag (see note in applyOriginBenefits)
 
+  // Poderes gerais concedidos automaticamente (ex.: origem homebrew "receber
+  // tudo" com poderes gerais no pool).
+  (originBenefits.powers.generalPowers || []).forEach((generalPower) => {
+    if (!updatedSheet.generalPowers.some((p) => p.name === generalPower.name)) {
+      updatedSheet.generalPowers = [
+        ...updatedSheet.generalPowers,
+        generalPower,
+      ];
+    }
+  });
+
   // Set origin with all powers
   updatedSheet.origin = {
     name: origin.name,

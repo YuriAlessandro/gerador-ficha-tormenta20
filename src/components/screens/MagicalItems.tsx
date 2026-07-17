@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -35,7 +35,6 @@ import {
 } from '@mui/icons-material';
 import { TransitionGroup } from 'react-transition-group';
 
-import EQUIPAMENTOS from '../../data/systems/tormenta20/equipamentos';
 import { SEO, getPageSEO } from '../SEO';
 import {
   armorEnchantments,
@@ -53,6 +52,8 @@ import {
   validateEnchantmentCombination,
   validateEnchantmentForItemType,
 } from '../../utils/magicalItemsValidation';
+import { getCategorizedCombatItems } from '../../utils/itemGeneratorEquipment';
+import { useContentSupplements } from '../../hooks/useContentSupplements';
 
 type ItemType = 'weapon' | 'armor' | 'shield';
 
@@ -61,32 +62,6 @@ interface ItemOption {
   value: string;
   equipment: Equipment;
 }
-
-const allWeapons = [
-  ...EQUIPAMENTOS.armasSimples,
-  ...EQUIPAMENTOS.armasMarciais,
-  ...EQUIPAMENTOS.armasExoticas,
-  ...EQUIPAMENTOS.armasDeFogo,
-];
-
-const allArmors = [
-  ...EQUIPAMENTOS.armadurasLeves,
-  ...EQUIPAMENTOS.armaduraPesada,
-];
-
-const weaponsByType = {
-  all: allWeapons,
-  simple: EQUIPAMENTOS.armasSimples,
-  martial: EQUIPAMENTOS.armasMarciais,
-  exotic: EQUIPAMENTOS.armasExoticas,
-  firearm: EQUIPAMENTOS.armasDeFogo,
-};
-
-const armorsByType = {
-  all: allArmors,
-  light: EQUIPAMENTOS.armadurasLeves,
-  heavy: EQUIPAMENTOS.armaduraPesada,
-};
 
 const weaponSubtypes = [
   { value: 'simple', label: 'Simples' },
@@ -101,6 +76,14 @@ const armorSubtypes = [
 ];
 
 const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
+  const userSupplements = useContentSupplements();
+
+  // Base items (core + active supplements) categorized by subtype.
+  const { weaponsByType, armorsByType, shields } = useMemo(
+    () => getCategorizedCombatItems(userSupplements),
+    [userSupplements]
+  );
+
   const [state, setState] = useState<MagicalItemsState>({
     generationMode: 'random',
     selectedItemType: null,
@@ -199,11 +182,22 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
     } else if (itemType === 'armor') {
       items = armorsByType[subType as keyof typeof armorsByType] || [];
     } else if (itemType === 'shield') {
-      items = EQUIPAMENTOS.escudos;
+      items = shields;
     }
 
-    const options: ItemOption[] = items
-      .sort((a, b) => a.nome.localeCompare(b.nome))
+    // Sort by origin (core first, then supplements alphabetically) so the
+    // Autocomplete groupBy renders contiguous group headers, then by name.
+    const options: ItemOption[] = [...items]
+      .sort((a, b) => {
+        const oa = a.supplementName || '';
+        const ob = b.supplementName || '';
+        if (oa !== ob) {
+          if (!oa) return -1;
+          if (!ob) return 1;
+          return oa.localeCompare(ob);
+        }
+        return a.nome.localeCompare(b.nome);
+      })
       .map((item) => ({
         label: item.nome,
         value: item.nome,
@@ -526,6 +520,9 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
               <Autocomplete
                 options={availableItems}
                 getOptionLabel={(option) => option.label}
+                groupBy={(option) =>
+                  option.equipment.supplementName || 'Tormenta 20'
+                }
                 value={
                   availableItems.find(
                     (item) => item.value === state.selectedItem
@@ -533,14 +530,13 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                 }
                 onChange={handleItemChange}
                 renderInput={(params) => {
-                  const { InputLabelProps, InputProps, ...rest } = params;
+                  const { slotProps, ...rest } = params;
                   return (
                     <TextField
                       // eslint-disable-next-line react/jsx-props-no-spreading
                       {...rest}
-                      InputLabelProps={InputLabelProps}
-                      InputProps={InputProps}
                       label='Item Específico'
+                      slotProps={slotProps}
                     />
                   );
                 }}
@@ -600,7 +596,7 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                         placeholder='Selecione os encantamentos'
                       />
                     )}
-                    renderTags={(value, getTagProps) =>
+                    renderValue={(value, getItemProps) =>
                       value.map((option, index) => (
                         <Chip
                           variant='outlined'
@@ -608,7 +604,7 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                             option.double ? ' (2 pts)' : ''
                           }`}
                           // eslint-disable-next-line react/jsx-props-no-spreading
-                          {...getTagProps({ index })}
+                          {...getItemProps({ index })}
                         />
                       ))
                     }
@@ -656,8 +652,11 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                             {option.effect && (
                               <Typography
                                 variant='caption'
-                                color='text.secondary'
-                                sx={{ display: 'block', mb: 0.5 }}
+                                sx={{
+                                  color: 'text.secondary',
+                                  display: 'block',
+                                  mb: 0.5,
+                                }}
                               >
                                 {option.effect}
                               </Typography>
@@ -672,7 +671,12 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
 
                 {state.selectedEnchantments.length > 0 && (
                   <Grid size={12}>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Custo total:{' '}
                       {calculateEnchantmentCost(state.selectedEnchantments)}{' '}
                       pontos
@@ -717,8 +721,10 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                       </Typography>
                       <Typography
                         variant='body2'
-                        color='text.secondary'
                         gutterBottom
+                        sx={{
+                          color: 'text.secondary',
+                        }}
                       >
                         {item.itemType === 'weapon' && 'Arma'}
                         {item.itemType === 'armor' && 'Armadura'}

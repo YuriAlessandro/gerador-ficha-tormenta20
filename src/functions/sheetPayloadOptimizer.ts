@@ -3,6 +3,7 @@ import { ClassDescription } from '../interfaces/Class';
 import Race from '../interfaces/Race';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
+import { stampUsedSupplements } from './contentSources';
 
 /**
  * Marker field to indicate the sheet has been stripped for storage.
@@ -21,7 +22,6 @@ const STRIPPED_MARKER = '__stripped__';
  * - devoto.divindade.poderes: Full catalog of ALL deity powers (~62KB).
  *   The character's CHOSEN deity powers are in `devoto.poderes`.
  *   recalculateSheet only reads `devoto.poderes`, not the catalog.
- * - steps: UI walkthrough data.
  * - sheetActionHistory: CANNOT be stripped - recalculateSheet depends on it
  *   via isActionAlreadyApplied() to skip already-applied power actions.
  *
@@ -32,14 +32,37 @@ const STRIPPED_MARKER = '__stripped__';
  *   Contains sheetBonuses (e.g., Anão +PV, Osteon RD) and sheetActions (e.g., Humano Versátil).
  * - sheetBonuses: The computed total of all bonuses. Cleared and rebuilt by recalculateSheet.
  * - classPowers, generalPowers, spells, bag, origin: All essential gameplay data.
+ * - steps: Feeds the "Passo-a-passo da Criação" UI section. Captures wizard
+ *   decisions (chosen base attributes, market purchases, skill picks) that
+ *   aren't derivable from any other field — once dropped, they're lost forever.
  */
 export function stripSheetForStorage(
   sheet: CharacterSheet
 ): Record<string, unknown> {
+  // Garante que `usedSupplements` reflita os homebrews realmente usados ANTES
+  // de gravar na nuvem — é o que sustenta o bloqueio de desativação de um
+  // homebrew em uso (checkSupplementUsage consulta `sheetData.usedSupplements`).
+  stampUsedSupplements(sheet);
+
   const stripped: Record<string, unknown> = { ...sheet };
+
+  // Drop top-level keys whose value is `undefined`. The spread above preserves
+  // them, but `JSON.stringify` later drops them on the wire — and the delta
+  // would silently lose "user cleared this field" intent. By omitting the key
+  // here, computeSheetDelta's "missing in updated" branch turns it into an
+  // explicit `null`, which the backend interprets as `$unset`.
+  Object.keys(stripped).forEach((key) => {
+    if (stripped[key] === undefined) delete stripped[key];
+  });
 
   // Mark as stripped for rehydration detection
   stripped[STRIPPED_MARKER] = true;
+
+  // Defensivo: nunca persistir o ledger deprecated `conditionAttributePenalties`.
+  // O efeito de condições é puramente temporário e re-derivado a partir de
+  // `activeConditions` no `recalculateSheet`. Mantido aqui como salvaguarda
+  // contra clientes/payloads antigos durante o rollout do fix.
+  delete stripped.conditionAttributePenalties;
 
   // Strip class data: remove the powers CATALOG (all available powers for this class).
   // Keep abilities (needed by recalculateSheet + Result display) and numeric fields.
@@ -122,9 +145,6 @@ export function stripSheetForStorage(
     };
   }
 
-  // Strip steps (purely UI walkthrough data, not needed for display or editing)
-  stripped.steps = [];
-
   // NOTE: sheetActionHistory is NOT stripped - recalculateSheet depends on it
   // via isActionAlreadyApplied() to know which power actions to skip.
 
@@ -176,14 +196,62 @@ export function computeSheetDelta(
  * - Race functions: setup, getSize, getDisplacement, getAttributes (if present in registry)
  * - devoto.divindade.poderes: Full deity powers catalog (needed for DeityPowerEditDrawer)
  */
+/**
+ * Refresh `sheetActions` and `sheetBonuses` on every chosen power from the
+ * current data catalog. Existing sheets serialized before a power gained new
+ * behavior would otherwise stay frozen on the old definition. We preserve
+ * per-instance customizations (rolls, dynamicText) by spreading stored on top.
+ */
+function refreshChosenPowersFromCatalog(
+  sheet: CharacterSheet,
+  supplementIds: SupplementId[]
+) {
+  const allGeneralPowers =
+    dataRegistry.getAllPowersBySupplements(supplementIds);
+  if (sheet.generalPowers && allGeneralPowers.length > 0) {
+    sheet.generalPowers = sheet.generalPowers.map((stored) => {
+      const fresh = allGeneralPowers.find((p) => p.name === stored.name);
+      if (!fresh) return stored;
+      return {
+        ...fresh,
+        ...stored,
+        sheetActions: fresh.sheetActions,
+        sheetBonuses: fresh.sheetBonuses,
+      };
+    });
+  }
+  if (sheet.classPowers && sheet.classe?.name) {
+    const classDef = dataRegistry.getClassByName(
+      sheet.classe.name,
+      supplementIds
+    );
+    const classCatalog = classDef?.powers || sheet.classe.powers;
+    if (classCatalog && classCatalog.length > 0) {
+      sheet.classPowers = sheet.classPowers.map((stored) => {
+        const fresh = classCatalog.find((p) => p.name === stored.name);
+        if (!fresh) return stored;
+        return {
+          ...fresh,
+          ...stored,
+          sheetActions: fresh.sheetActions,
+          sheetBonuses: fresh.sheetBonuses,
+        };
+      });
+    }
+  }
+}
+
 export function rehydrateSheet(
   sheetData: Record<string, unknown>,
   supplementIds: SupplementId[]
 ): CharacterSheet {
   const sheet = sheetData as unknown as CharacterSheet;
 
-  // If not stripped, return as-is (backward compatibility with old sheets)
+  // If not stripped, we still refresh chosen powers from the catalog so that
+  // legacy sheets pick up new sheetActions/sheetBonuses added to a power's
+  // definition (e.g., weapon-specialization on Foco em Arma).
   if (!(STRIPPED_MARKER in sheetData)) {
+    refreshChosenPowersFromCatalog(sheet, supplementIds);
     return sheet;
   }
 
@@ -200,6 +268,9 @@ export function rehydrateSheet(
       sheet.classe = {
         // Start with stored data (has abilities, numeric fields, identity)
         ...sheet.classe,
+        // Fichas antigas podem ter sido gravadas sem `abilities`; sem esse
+        // fallback, restoreSpellPath e recalculateSheet quebram ao iterar/push
+        abilities: sheet.classe.abilities ?? fullClass.abilities,
         // Restore catalog data from registry
         powers: fullClass.powers,
         periciasbasicas: fullClass.periciasbasicas,
@@ -256,6 +327,8 @@ export function rehydrateSheet(
       };
     }
   }
+
+  refreshChosenPowersFromCatalog(sheet, supplementIds);
 
   return sheet;
 }

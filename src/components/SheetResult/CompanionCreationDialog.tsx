@@ -139,10 +139,17 @@ const CompanionCreationDialog: React.FC<CompanionCreationDialogProps> = ({
       <DialogTitle>
         <Stack
           direction='row'
-          alignItems='center'
-          justifyContent='space-between'
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
-          <Typography variant='h6' fontWeight='bold'>
+          <Typography
+            variant='h6'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             Criar Melhor Amigo
           </Typography>
           <IconButton size='small' onClick={handleClose}>

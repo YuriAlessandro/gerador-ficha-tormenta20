@@ -104,12 +104,14 @@ const SheetList = () => {
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Box
-            display='flex'
-            justifyContent='space-between'
-            alignItems='center'
-            flexWrap='wrap'
-            gap={2}
-            mb={2}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 2,
+              mb: 2,
+            }}
           >
             <Box>
               <Typography
@@ -124,9 +126,21 @@ const SheetList = () => {
               >
                 Histórico Local
               </Typography>
-              <Box display='flex' alignItems='center' gap={1} mt={1}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mt: 1,
+                }}
+              >
                 <StorageIcon color='action' fontSize='small' />
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Salvo no navegador
                 </Typography>
                 <Chip
@@ -145,7 +159,13 @@ const SheetList = () => {
           </Box>
 
           {sheets.length > 0 && (
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               {sheets.length}{' '}
               {sheets.length === 1 ? 'personagem' : 'personagens'} salvo
               localmente
@@ -177,7 +197,13 @@ const SheetList = () => {
             >
               Nenhuma ficha salva localmente
             </Typography>
-            <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+            <Typography
+              variant='body1'
+              sx={{
+                color: 'text.secondary',
+                mb: 3,
+              }}
+            >
               As fichas salvas localmente ficam armazenadas apenas neste
               navegador.
             </Typography>
@@ -186,7 +212,15 @@ const SheetList = () => {
             </Button>
           </Box>
         )}
-        <Stack spacing={2} mt={2} direction='row' flexWrap='wrap' useFlexGap>
+        <Stack
+          spacing={2}
+          direction='row'
+          useFlexGap
+          sx={{
+            mt: 2,
+            flexWrap: 'wrap',
+          }}
+        >
           {Object.values(sheets).map((sheet) => (
             <Card sx={{ width: 545 }} key={sheet.id}>
               <CardActionArea onClick={() => onClickEditSheet(sheet)}>
@@ -200,11 +234,18 @@ const SheetList = () => {
                     gutterBottom
                     variant='h5'
                     component='div'
-                    fontFamily='Tfont'
+                    sx={{
+                      fontFamily: 'Tfont',
+                    }}
                   >
                     {sheet.name || 'Nova Ficha'}
                   </Typography>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {getDescription(sheet.sheet)}
                     <div>
                       <small>

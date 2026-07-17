@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardActionArea,
@@ -13,10 +14,12 @@ import {
   Typography,
   Grid,
   Alert,
+  Snackbar,
   CircularProgress,
   TextField,
   InputAdornment,
   Chip,
+  Link as MuiLink,
   MenuItem,
   Select,
   FormControl,
@@ -56,6 +59,7 @@ import {
   Folder as FolderIcon,
   CheckBox as CheckBoxIcon,
   DragIndicator as DragIndicatorIcon,
+  Public as PublishBestiaryIcon,
 } from '@mui/icons-material';
 import { useHistory, useLocation } from 'react-router-dom';
 import {
@@ -68,8 +72,17 @@ import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { useFolders } from '../../hooks/useFolders';
-import { SheetListData } from '../../services/sheets.service';
+import SheetsService, { SheetListData } from '../../services/sheets.service';
 import { Folder } from '../../services/folders.service';
+import CharacterSheet from '../../interfaces/CharacterSheet';
+import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
+import {
+  getChildren,
+  getDescendantIds,
+  getFolderPath,
+  formatFolderPath,
+  wouldCreateCycle,
+} from '../../utils/folderTree';
 import CharacterLimitIndicator from '../CharacterLimitIndicator';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
@@ -80,7 +93,49 @@ import {
   BatchSelectToolbar,
   useBatchThreatExport,
 } from '../../premium/components/BatchThreatExport';
+import { PublishBestiaryModal } from '../../premium';
 import { SupportLevel } from '../../types/subscription.types';
+
+// Post do blog explicando o incidente de swap de fichas (fallback quando não há
+// cópia local recuperável).
+const INCIDENT_BLOG_URL = '/blog/incidente-fichas-mesa-virtual';
+
+interface LocalRecovery {
+  date: string;
+  id: string;
+  sheet: CharacterSheet;
+}
+
+const COPIA_SUFFIX = /\s*\(c[óo]pia\)\s*$/i;
+const normalizeName = (s: string | undefined): string => {
+  let r = (s || '').trim();
+  while (COPIA_SUFFIX.test(r)) r = r.replace(COPIA_SUFFIX, '').trim();
+  return r.toLowerCase();
+};
+
+// Procura no histórico local (fdnHistoric) uma versão da ficha cujo personagem
+// (sheet.nome) bata com o nome original (name top-level, que ficou intacto).
+const findLocalRecovery = (sheet: SheetListData): LocalRecovery | null => {
+  try {
+    const raw = localStorage.getItem('fdnHistoric');
+    if (!raw) return null;
+    const hist = JSON.parse(raw) as LocalRecovery[];
+    const target = normalizeName(sheet.name);
+    if (!target) return null;
+    const matches = hist.filter((h) => {
+      const n = normalizeName(h.sheet?.nome);
+      return (
+        !!n &&
+        (n === target ||
+          (target.length >= 2 && (n.includes(target) || target.includes(n))))
+      );
+    });
+    // Entradas são acrescentadas em ordem cronológica; a última é a mais recente.
+    return matches.length ? matches[matches.length - 1] : null;
+  } catch {
+    return null;
+  }
+};
 
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
@@ -94,6 +149,8 @@ const MyCharactersPage: React.FC = () => {
     error,
     deleteSheet: deleteSheetAction,
     duplicateSheet: duplicateSheetAction,
+    updateSheet: updateSheetAction,
+    fetchSheets,
     clearError,
   } = useSheets();
   const {
@@ -172,6 +229,18 @@ const MyCharactersPage: React.FC = () => {
     null
   );
   const [sheetToMove, setSheetToMove] = useState<SheetListData | null>(null);
+  const [sheetToPublish, setSheetToPublish] = useState<SheetListData | null>(
+    null
+  );
+
+  // Recuperação de fichas atingidas pelo bug de swap de fichas.
+  const [recoverySheet, setRecoverySheet] = useState<SheetListData | null>(
+    null
+  );
+  const [recoveryCandidate, setRecoveryCandidate] =
+    useState<LocalRecovery | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  const [recoverySnackbar, setRecoverySnackbar] = useState<string | null>(null);
 
   // Drag-and-drop state
   const [isDragging, setIsDragging] = useState(false);
@@ -180,6 +249,12 @@ const MyCharactersPage: React.FC = () => {
   const [folderContextAnchor, setFolderContextAnchor] =
     useState<HTMLElement | null>(null);
   const [contextFolder, setContextFolder] = useState<Folder | null>(null);
+
+  // Move folder picker state
+  const [folderMoveAnchor, setFolderMoveAnchor] = useState<HTMLElement | null>(
+    null
+  );
+  const [folderToMove, setFolderToMove] = useState<Folder | null>(null);
 
   // Sync tab/folder with URL on location change (browser back/forward)
   React.useEffect(() => {
@@ -195,6 +270,18 @@ const MyCharactersPage: React.FC = () => {
     }
   }, [location.search]); // Only depend on location.search to avoid loops
 
+  // Fallback: if the open folder id no longer matches an existing folder
+  // (e.g. deleted in another tab, or stale URL), drop back to root.
+  React.useEffect(() => {
+    if (!openFolderId) return;
+    if (!folders.some((f) => f.id === openFolderId)) {
+      setOpenFolderId(null);
+      const params = new URLSearchParams(location.search);
+      params.delete('folder');
+      history.replace(`/meus-personagens?${params.toString()}`);
+    }
+  }, [folders, openFolderId]);
+
   // Separate sheets by type
   const playerSheets = sheets.filter((sheet) => !sheet.sheetData?.isThreat);
   const threatSheets = sheets.filter((sheet) => sheet.sheetData?.isThreat);
@@ -202,27 +289,38 @@ const MyCharactersPage: React.FC = () => {
   // Get current tab sheets
   const currentSheets = activeTab === 0 ? playerSheets : threatSheets;
 
-  // Count sheets per folder (across both tabs for the move menu)
-  const folderCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    sheets.forEach((sheet) => {
+  // Recursive sheet counts per folder (folder + all descendants).
+  const buildRecursiveCounts = (
+    sheetList: SheetListData[]
+  ): Record<string, number> => {
+    const directCounts: Record<string, number> = {};
+    sheetList.forEach((sheet) => {
       if (sheet.folderId) {
-        counts[sheet.folderId] = (counts[sheet.folderId] || 0) + 1;
+        directCounts[sheet.folderId] = (directCounts[sheet.folderId] || 0) + 1;
       }
     });
-    return counts;
-  }, [sheets]);
+    const result: Record<string, number> = {};
+    folders.forEach((folder) => {
+      let total = directCounts[folder.id] || 0;
+      getDescendantIds(folders, folder.id).forEach((descendantId) => {
+        total += directCounts[descendantId] || 0;
+      });
+      result[folder.id] = total;
+    });
+    return result;
+  };
 
-  // Count sheets per folder for current tab
-  const currentTabFolderCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    currentSheets.forEach((sheet) => {
-      if (sheet.folderId) {
-        counts[sheet.folderId] = (counts[sheet.folderId] || 0) + 1;
-      }
-    });
-    return counts;
-  }, [currentSheets]);
+  // Count sheets per folder (across both tabs for the move menu, recursive)
+  const folderCounts = useMemo(
+    () => buildRecursiveCounts(sheets),
+    [sheets, folders]
+  );
+
+  // Count sheets per folder for current tab (recursive)
+  const currentTabFolderCounts = useMemo(
+    () => buildRecursiveCounts(currentSheets),
+    [currentSheets, folders]
+  );
 
   // Get the currently open folder object
   const openFolder = openFolderId
@@ -282,10 +380,14 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const handleCreateNewSheet = () => {
+    // Carry the open folder so the new sheet is created inside it
+    const folderInfo = openFolder
+      ? { folderId: openFolder.id, folderName: openFolder.name }
+      : undefined;
     if (activeTab === 0) {
-      history.push('/criar-ficha');
+      history.push('/criar-ficha', { folderInfo });
     } else {
-      history.push('/gerador-ameacas');
+      history.push('/gerador-ameacas', { folderInfo });
     }
   };
 
@@ -310,7 +412,7 @@ const MyCharactersPage: React.FC = () => {
     updateUrl(activeTab, null);
   };
 
-  const handleViewSheet = (sheet: SheetListData) => {
+  const navigateToSheet = (sheet: SheetListData) => {
     const isThreat = sheet.sheetData?.isThreat;
     const sheetFolder = sheet.folderId
       ? folders.find((f) => f.id === sheet.folderId)
@@ -323,6 +425,65 @@ const MyCharactersPage: React.FC = () => {
     } else {
       history.push(`/ficha/${sheet.id}`, { folderInfo });
     }
+  };
+
+  const handleViewSheet = (sheet: SheetListData) => {
+    // Fichas atingidas pelo bug de swap de fichas: intercepta o clique e oferece
+    // recuperar a cópia local antes de abrir (a ficha na nuvem está corrompida).
+    if (sheet.swapAffected) {
+      setRecoverySheet(sheet);
+      setRecoveryCandidate(findLocalRecovery(sheet));
+      return;
+    }
+    navigateToSheet(sheet);
+  };
+
+  const closeRecovery = () => {
+    if (recovering) return;
+    setRecoverySheet(null);
+    setRecoveryCandidate(null);
+  };
+
+  const handleRestoreRecovery = async () => {
+    if (!recoverySheet || !recoveryCandidate) return;
+    setRecovering(true);
+    try {
+      const local = recoveryCandidate.sheet;
+      const restored = needsMigration(local) ? migrateSheet(local) : local;
+      await updateSheetAction(recoverySheet.id, {
+        sheetData: restored as unknown as Parameters<
+          typeof updateSheetAction
+        >[1]['sheetData'],
+        name: restored.nome,
+      });
+      await SheetsService.clearSwapAffected(recoverySheet.id);
+      await fetchSheets();
+      const target = recoverySheet;
+      setRecoverySheet(null);
+      setRecoveryCandidate(null);
+      setRecoverySnackbar('Ficha recuperada a partir da sua cópia local!');
+      navigateToSheet(target);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao recuperar ficha:', err);
+      setRecoverySnackbar('Não foi possível recuperar a ficha. Tente de novo.');
+    } finally {
+      setRecovering(false);
+    }
+  };
+
+  const handleOpenAffectedAnyway = () => {
+    if (!recoverySheet) return;
+    const target = recoverySheet;
+    setRecoverySheet(null);
+    setRecoveryCandidate(null);
+    navigateToSheet(target);
+  };
+
+  const handleSeeIncident = () => {
+    setRecoverySheet(null);
+    setRecoveryCandidate(null);
+    history.push(INCIDENT_BLOG_URL);
   };
 
   const handleEditSheet = (sheet: SheetListData) => {
@@ -354,10 +515,38 @@ const MyCharactersPage: React.FC = () => {
 
     const targetId = destination.droppableId;
 
+    // Folder being dragged → reparent
+    if (draggableId.startsWith('folderdrag-')) {
+      const draggedId = draggableId.replace('folderdrag-', '');
+      const draggedFolder = folders.find((f) => f.id === draggedId);
+      if (!draggedFolder) return;
+
+      let newParentId: string | null;
+      if (targetId === 'root-drop-zone') {
+        newParentId = null;
+      } else if (targetId.startsWith('folder-')) {
+        newParentId = targetId.replace('folder-', '');
+      } else {
+        return;
+      }
+
+      if ((draggedFolder.parentId ?? null) === newParentId) return;
+      if (wouldCreateCycle(folders, draggedId, newParentId)) return;
+
+      await updateFolderAction(draggedId, { parentId: newParentId });
+      return;
+    }
+
+    // Sheet being dragged → move into folder or back to parent/root
     if (targetId === 'root-drop-zone') {
       const sheet = currentSheets.find((s) => s.id === draggableId);
-      if (sheet?.folderId) {
-        await moveSheetToFolderAction(draggableId, null);
+      // "Remove from folder" = move up to the open folder's parent (or root).
+      const currentOpen = openFolderId
+        ? folders.find((f) => f.id === openFolderId)
+        : null;
+      const targetParent = currentOpen?.parentId ?? null;
+      if ((sheet?.folderId ?? null) !== targetParent) {
+        await moveSheetToFolderAction(draggableId, targetParent);
       }
     } else if (targetId.startsWith('folder-')) {
       const folderId = targetId.replace('folder-', '');
@@ -428,9 +617,10 @@ const MyCharactersPage: React.FC = () => {
 
     try {
       if (folderDialogMode === 'create') {
-        await createFolderAction(trimmed);
+        // New folders are created under the currently open folder (or root).
+        await createFolderAction(trimmed, openFolderId);
       } else if (editingFolder) {
-        await updateFolderAction(editingFolder.id, trimmed);
+        await updateFolderAction(editingFolder.id, { name: trimmed });
       }
       setFolderDialogOpen(false);
       setFolderName('');
@@ -456,9 +646,17 @@ const MyCharactersPage: React.FC = () => {
   const handleDeleteFolderConfirm = async () => {
     if (!folderToDelete) return;
     try {
-      await deleteFolderAction(folderToDelete.id);
+      // Children (subfolders + sheets) are promoted to this folder's parent.
+      const newParentId = folderToDelete.parentId ?? null;
+      await deleteFolderAction(folderToDelete.id, newParentId);
       if (openFolderId === folderToDelete.id) {
-        handleCloseFolder();
+        // Move the user into the parent (or root) instead of jumping all the way out.
+        if (newParentId) {
+          setOpenFolderId(newParentId);
+          updateUrl(activeTab, newParentId);
+        } else {
+          handleCloseFolder();
+        }
       }
       setDeleteFolderConfirmOpen(false);
       setFolderToDelete(null);
@@ -506,6 +704,37 @@ const MyCharactersPage: React.FC = () => {
     event.stopPropagation();
     setFolderContextAnchor(event.currentTarget);
     setContextFolder(folder);
+  };
+
+  // --- Move folder picker ---
+  const handleOpenMoveFolder = (folder: Folder) => {
+    setFolderToMove(folder);
+    setFolderMoveAnchor(folderContextAnchor);
+    setFolderContextAnchor(null);
+    setContextFolder(null);
+  };
+
+  const handleCloseMoveFolder = () => {
+    setFolderMoveAnchor(null);
+    setFolderToMove(null);
+  };
+
+  const handleMoveFolderTo = async (newParentId: string | null) => {
+    if (!folderToMove) return;
+    if ((folderToMove.parentId ?? null) === newParentId) {
+      handleCloseMoveFolder();
+      return;
+    }
+    if (wouldCreateCycle(folders, folderToMove.id, newParentId)) {
+      handleCloseMoveFolder();
+      return;
+    }
+    try {
+      await updateFolderAction(folderToMove.id, { parentId: newParentId });
+    } catch {
+      // Silently fail
+    }
+    handleCloseMoveFolder();
   };
 
   const handleCloseFolderContext = () => {
@@ -612,8 +841,12 @@ const MyCharactersPage: React.FC = () => {
         </Typography>
         <Typography
           variant='body1'
-          color='text.secondary'
-          sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}
+          sx={{
+            color: 'text.secondary',
+            mb: 4,
+            maxWidth: 600,
+            mx: 'auto',
+          }}
         >
           {description}
         </Typography>
@@ -635,115 +868,147 @@ const MyCharactersPage: React.FC = () => {
     );
   };
 
-  // Render a folder card (droppable target for drag-and-drop)
-  const renderFolderCard = (folder: Folder) => {
+  // Render a folder card (both Draggable and Droppable for nested folders).
+  // `index` is used by react-beautiful-dnd for the draggable order within its parent list.
+  const renderFolderCard = (folder: Folder, index: number) => {
     const count = currentTabFolderCounts[folder.id] || 0;
     const tabLabel = activeTab === 0 ? 'personagem' : 'ameaça';
     const countLabel = count === 1 ? `1 ${tabLabel}` : `${count} ${tabLabel}s`;
+    const subfolderCount = getChildren(folders, folder.id).length;
 
     return (
-      <Droppable droppableId={`folder-${folder.id}`} key={folder.id}>
-        {(droppableProvided, droppableSnapshot) => (
+      <Draggable
+        draggableId={`folderdrag-${folder.id}`}
+        index={index}
+        key={folder.id}
+      >
+        {(dragProvided, dragSnapshot) => (
           <Grid
             size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
-            ref={droppableProvided.innerRef}
-            {...droppableProvided.droppableProps}
+            ref={dragProvided.innerRef}
+            {...dragProvided.draggableProps}
+            {...dragProvided.dragHandleProps}
           >
-            <Card
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'all 0.3s ease',
-                border: droppableSnapshot.isDraggingOver
-                  ? '2px solid'
-                  : '1px solid',
-                borderColor: droppableSnapshot.isDraggingOver
-                  ? 'primary.main'
-                  : 'divider',
-                backgroundColor: droppableSnapshot.isDraggingOver
-                  ? 'action.hover'
-                  : undefined,
-                transform: droppableSnapshot.isDraggingOver
-                  ? 'scale(1.03)'
-                  : undefined,
-                '&:hover': {
-                  transform: droppableSnapshot.isDraggingOver
-                    ? 'scale(1.03)'
-                    : 'translateY(-4px)',
-                  boxShadow: theme.shadows[8],
-                  borderColor: 'primary.main',
-                },
-              }}
-            >
-              <CardActionArea
-                onClick={() => handleOpenFolder(folder.id)}
-                onContextMenu={(e) => handleFolderCardContext(e, folder)}
-                sx={{ flexGrow: 1 }}
-              >
-                <Box
+            <Droppable droppableId={`folder-${folder.id}`}>
+              {(droppableProvided, droppableSnapshot) => (
+                <Card
+                  ref={droppableProvided.innerRef}
+                  {...droppableProvided.droppableProps}
                   sx={{
+                    height: '100%',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    pt: 3,
-                    pb: 1,
+                    flexDirection: 'column',
+                    transition: dragSnapshot.isDragging
+                      ? 'none'
+                      : 'all 0.3s ease',
+                    border: droppableSnapshot.isDraggingOver
+                      ? '2px solid'
+                      : '1px solid',
+                    borderColor: droppableSnapshot.isDraggingOver
+                      ? 'primary.main'
+                      : 'divider',
+                    backgroundColor: droppableSnapshot.isDraggingOver
+                      ? 'action.hover'
+                      : undefined,
+                    transform: droppableSnapshot.isDraggingOver
+                      ? 'scale(1.03)'
+                      : undefined,
+                    ...(dragSnapshot.isDragging && {
+                      boxShadow: theme.shadows[16],
+                      opacity: 0.9,
+                      transform: 'rotate(2deg)',
+                    }),
+                    '&:hover': {
+                      transform: (() => {
+                        if (dragSnapshot.isDragging) return 'rotate(2deg)';
+                        if (droppableSnapshot.isDraggingOver)
+                          return 'scale(1.03)';
+                        return 'translateY(-4px)';
+                      })(),
+                      boxShadow: theme.shadows[8],
+                      borderColor: 'primary.main',
+                    },
                   }}
                 >
-                  <FolderIcon
-                    sx={{
-                      fontSize: 64,
-                      color: 'primary.main',
-                      opacity: 0.85,
-                    }}
-                  />
-                </Box>
-                <CardContent sx={{ textAlign: 'center', pt: 0 }}>
-                  <Typography
-                    variant='h6'
-                    component='h3'
-                    sx={{
-                      fontFamily: 'Tfont',
-                      fontWeight: 'bold',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
+                  <CardActionArea
+                    onClick={() => handleOpenFolder(folder.id)}
+                    onContextMenu={(e) => handleFolderCardContext(e, folder)}
+                    sx={{ flexGrow: 1 }}
                   >
-                    {folder.name}
-                  </Typography>
-                  <Typography variant='body2' color='text.secondary'>
-                    {countLabel}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-              <CardActions sx={{ justifyContent: 'center', px: 2 }}>
-                <Tooltip title='Renomear'>
-                  <IconButton
-                    size='small'
-                    onClick={() => handleOpenRenameFolder(folder)}
-                  >
-                    <EditIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title='Excluir pasta'>
-                  <IconButton
-                    size='small'
-                    color='error'
-                    onClick={() => handleOpenDeleteFolder(folder)}
-                  >
-                    <DeleteIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-              </CardActions>
-            </Card>
-            <div style={{ display: 'none' }}>
-              {droppableProvided.placeholder}
-            </div>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pt: 3,
+                        pb: 1,
+                      }}
+                    >
+                      <FolderIcon
+                        sx={{
+                          fontSize: 64,
+                          color: 'primary.main',
+                          opacity: 0.85,
+                        }}
+                      />
+                    </Box>
+                    <CardContent sx={{ textAlign: 'center', pt: 0 }}>
+                      <Typography
+                        variant='h6'
+                        component='h3'
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontWeight: 'bold',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {folder.name}
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
+                        {countLabel}
+                        {subfolderCount > 0 &&
+                          ` • ${subfolderCount} ${
+                            subfolderCount === 1 ? 'subpasta' : 'subpastas'
+                          }`}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
+                  <CardActions sx={{ justifyContent: 'center', px: 2 }}>
+                    <Tooltip title='Renomear'>
+                      <IconButton
+                        size='small'
+                        onClick={() => handleOpenRenameFolder(folder)}
+                      >
+                        <EditIcon fontSize='small' />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title='Excluir pasta'>
+                      <IconButton
+                        size='small'
+                        color='error'
+                        onClick={() => handleOpenDeleteFolder(folder)}
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </IconButton>
+                    </Tooltip>
+                  </CardActions>
+                  <div style={{ display: 'none' }}>
+                    {droppableProvided.placeholder}
+                  </div>
+                </Card>
+              )}
+            </Droppable>
           </Grid>
         )}
-      </Droppable>
+      </Draggable>
     );
   };
 
@@ -781,7 +1046,12 @@ const MyCharactersPage: React.FC = () => {
               mb: 1,
             }}
           />
-          <Typography variant='body1' color='text.secondary'>
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Nova Pasta
           </Typography>
         </CardActionArea>
@@ -949,8 +1219,8 @@ const MyCharactersPage: React.FC = () => {
 
                   <Typography
                     variant='body2'
-                    color='text.secondary'
                     sx={{
+                      color: 'text.secondary',
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
@@ -964,9 +1234,11 @@ const MyCharactersPage: React.FC = () => {
                   <Stack
                     direction='row'
                     spacing={1}
-                    alignItems='center'
-                    flexWrap='wrap'
                     useFlexGap
+                    sx={{
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                    }}
                   >
                     <Chip
                       label={`Nível ${getLevel(sheet)}`}
@@ -1015,8 +1287,11 @@ const MyCharactersPage: React.FC = () => {
 
                   <Typography
                     variant='caption'
-                    color='text.secondary'
-                    sx={{ mt: 1, display: 'block' }}
+                    sx={{
+                      color: 'text.secondary',
+                      mt: 1,
+                      display: 'block',
+                    }}
                   >
                     Editado em{' '}
                     {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
@@ -1025,7 +1300,12 @@ const MyCharactersPage: React.FC = () => {
               </CardActionArea>
 
               <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-                <Box display='flex' alignItems='center'>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
                   <Tooltip title='Arrastar para mover'>
                     <IconButton
                       size='small'
@@ -1064,6 +1344,17 @@ const MyCharactersPage: React.FC = () => {
                       <MoveIcon />
                     </IconButton>
                   </Tooltip>
+                  {sheet.sheetData?.isThreat && (
+                    <Tooltip title='Publicar no Bestiário'>
+                      <IconButton
+                        size='small'
+                        color='secondary'
+                        onClick={() => setSheetToPublish(sheet)}
+                      >
+                        <PublishBestiaryIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </Box>
                 <Tooltip title='Excluir'>
                   <IconButton
@@ -1086,10 +1377,12 @@ const MyCharactersPage: React.FC = () => {
     return (
       <Container maxWidth='lg' sx={{ py: 4 }}>
         <Box
-          display='flex'
-          justifyContent='center'
-          alignItems='center'
-          minHeight='50vh'
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '50vh',
+          }}
         >
           <CircularProgress size={60} />
         </Box>
@@ -1104,12 +1397,14 @@ const MyCharactersPage: React.FC = () => {
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Box
-          display='flex'
-          justifyContent='space-between'
-          alignItems='flex-start'
-          flexWrap='wrap'
-          gap={2}
-          mb={3}
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 3,
+          }}
         >
           <Box>
             <Typography
@@ -1124,19 +1419,33 @@ const MyCharactersPage: React.FC = () => {
             >
               Meus Personagens
             </Typography>
-            <Box display='flex' alignItems='center' gap={1} mt={1}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mt: 1,
+              }}
+            >
               <CloudIcon color='success' fontSize='small' />
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Sincronizado com a nuvem
               </Typography>
             </Box>
           </Box>
 
           <Box
-            display='flex'
-            flexDirection='column'
-            alignItems='flex-end'
-            gap={1}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: 1,
+            }}
           >
             <Button
               variant='contained'
@@ -1159,8 +1468,10 @@ const MyCharactersPage: React.FC = () => {
             <Stack
               direction='row'
               spacing={2}
-              alignItems='center'
-              flexWrap='wrap'
+              sx={{
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
             >
               <SupporterBadge
                 level={supportLevel}
@@ -1168,7 +1479,13 @@ const MyCharactersPage: React.FC = () => {
                 showTooltip={false}
               />
               {activeTab === 0 && !isCharacterLimitUnlimited && (
-                <Stack direction='row' spacing={1} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <CharacterLimitIndicator
                     current={playerSheets.length}
                     max={maxSheets}
@@ -1178,14 +1495,22 @@ const MyCharactersPage: React.FC = () => {
                     color={
                       isNearCharacterLimit ? 'warning.main' : 'text.secondary'
                     }
-                    fontWeight={isNearCharacterLimit ? 'bold' : 'normal'}
+                    sx={{
+                      fontWeight: isNearCharacterLimit ? 'bold' : 'normal',
+                    }}
                   >
                     {playerSheets.length} de {maxSheets} fichas de personagem
                   </Typography>
                 </Stack>
               )}
               {activeTab === 1 && !isMenaceLimitUnlimited && (
-                <Stack direction='row' spacing={1} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <CharacterLimitIndicator
                     current={threatSheets.length}
                     max={maxMenaceSheets}
@@ -1195,7 +1520,9 @@ const MyCharactersPage: React.FC = () => {
                     color={
                       isNearMenaceLimit ? 'warning.main' : 'text.secondary'
                     }
-                    fontWeight={isNearMenaceLimit ? 'bold' : 'normal'}
+                    sx={{
+                      fontWeight: isNearMenaceLimit ? 'bold' : 'normal',
+                    }}
                   >
                     {threatSheets.length} de {maxMenaceSheets} fichas de ameaças
                   </Typography>
@@ -1268,14 +1595,15 @@ const MyCharactersPage: React.FC = () => {
           </Tabs>
         </Box>
 
-        {/* Folder navigation bar (when inside a folder) */}
+        {/* Folder navigation bar (breadcrumb when inside a folder) */}
         {isInsideFolder && openFolder && (
           <Box
-            display='flex'
-            alignItems='center'
-            gap={1}
-            mb={2}
             sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              mb: 2,
+              flexWrap: 'wrap',
               py: 1,
               px: 2,
               borderRadius: 1,
@@ -1286,10 +1614,64 @@ const MyCharactersPage: React.FC = () => {
               <ArrowBackIcon />
             </IconButton>
             <FolderOpenIcon color='primary' />
-            <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
-              {openFolder.name}
-            </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ ml: 1 }}>
+            <Breadcrumbs
+              aria-label='breadcrumb'
+              sx={{
+                flexGrow: 1,
+                '& .MuiBreadcrumbs-ol': { flexWrap: 'wrap' },
+              }}
+            >
+              <MuiLink
+                component='button'
+                underline='hover'
+                color='inherit'
+                onClick={handleCloseFolder}
+                sx={{
+                  fontFamily: 'Tfont',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Raiz
+              </MuiLink>
+              {getFolderPath(folders, openFolderId).map((segment, idx, arr) => {
+                const isLast = idx === arr.length - 1;
+                return isLast ? (
+                  <Typography
+                    key={segment.id}
+                    sx={{
+                      color: 'text.primary',
+                      fontFamily: 'Tfont',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {segment.name}
+                  </Typography>
+                ) : (
+                  <MuiLink
+                    key={segment.id}
+                    component='button'
+                    underline='hover'
+                    color='inherit'
+                    onClick={() => handleOpenFolder(segment.id)}
+                    sx={{
+                      fontFamily: 'Tfont',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {segment.name}
+                  </MuiLink>
+                );
+              })}
+            </Breadcrumbs>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                ml: 1,
+              }}
+            >
               ({filteredSheets.length}{' '}
               {activeTab === 0 ? 'personagens' : 'ameaças'})
             </Typography>
@@ -1299,11 +1681,13 @@ const MyCharactersPage: React.FC = () => {
         {/* Filters and Search */}
         {currentSheets.length > 0 && (
           <Box
-            display='flex'
-            gap={2}
-            flexWrap='wrap'
-            alignItems='center'
-            mb={3}
+            sx={{
+              display: 'flex',
+              gap: 2,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              mb: 3,
+            }}
           >
             <TextField
               placeholder={
@@ -1313,12 +1697,14 @@ const MyCharactersPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               size='small'
               sx={{ minWidth: 250, flexGrow: 1 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -1353,23 +1739,28 @@ const MyCharactersPage: React.FC = () => {
 
         {/* Summary (only at root when not searching) */}
         {!isInsideFolder && currentSheets.length > 0 && (
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {currentSheets.length} {activeTab === 0 ? 'personagens' : 'ameaças'}{' '}
             no total
           </Typography>
         )}
       </Box>
-
       {/* Error */}
       {error && (
         <Alert severity='error' onClose={clearError} sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
-
-      {/* Empty State */}
-      {!loading && currentSheets.length === 0 && <EmptyState />}
-
+      {/* Empty State (only when no sheets and no folders) */}
+      {!loading &&
+        currentSheets.length === 0 &&
+        folders.length === 0 &&
+        !isInsideFolder && <EmptyState />}
       {/* Grid: folders + sheets (with drag-and-drop) */}
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* "Remove from folder" drop zone (when inside a folder) */}
@@ -1412,49 +1803,61 @@ const MyCharactersPage: React.FC = () => {
           </Droppable>
         )}
 
-        {currentSheets.length > 0 && (
-          <Droppable droppableId='sheets-list' isDropDisabled>
-            {(sheetsProvided) => (
-              <Grid
-                container
-                spacing={3}
-                ref={sheetsProvided.innerRef}
-                {...sheetsProvided.droppableProps}
-              >
-                {/* Folder cards (only at root level) */}
-                {!isInsideFolder &&
-                  folders.map((folder) => renderFolderCard(folder))}
+        <Droppable droppableId='sheets-list' isDropDisabled>
+          {(sheetsProvided) => (
+            <Grid
+              container
+              spacing={3}
+              ref={sheetsProvided.innerRef}
+              {...sheetsProvided.droppableProps}
+            >
+              {/* Sheet cards */}
+              {filteredSheets.map((sheet, index) =>
+                renderSheetCard(sheet, index)
+              )}
 
-                {/* New folder card (only at root level, when sheets exist) */}
-                {!isInsideFolder && renderNewFolderCard()}
+              {/* Folder cards (subfolders of the currently open folder, or
+                  top-level folders at root) */}
+              {getChildren(folders, openFolderId).map((folder, idx) =>
+                renderFolderCard(folder, idx)
+              )}
 
-                {/* Sheet cards */}
-                {filteredSheets.map((sheet, index) =>
-                  renderSheetCard(sheet, index)
-                )}
-                {sheetsProvided.placeholder}
-              </Grid>
-            )}
-          </Droppable>
-        )}
+              {/* New folder card (always available, creates inside current view) */}
+              {renderNewFolderCard()}
+              {sheetsProvided.placeholder}
+            </Grid>
+          )}
+        </Droppable>
       </DragDropContext>
-
-      {/* Empty folder state */}
-      {isInsideFolder && filteredSheets.length === 0 && !searchTerm && (
-        <Box sx={{ textAlign: 'center', py: 6, px: 2 }}>
-          <FolderOpenIcon
-            sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }}
-          />
-          <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
-            Pasta vazia
-          </Typography>
-          <Typography variant='body2' color='text.secondary'>
-            Mova fichas para esta pasta usando o botão de mover ou arrastando os
-            cards.
-          </Typography>
-        </Box>
-      )}
-
+      {/* Empty folder state (no sheets AND no subfolders) */}
+      {isInsideFolder &&
+        filteredSheets.length === 0 &&
+        getChildren(folders, openFolderId).length === 0 &&
+        !searchTerm && (
+          <Box sx={{ textAlign: 'center', py: 6, px: 2 }}>
+            <FolderOpenIcon
+              sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }}
+            />
+            <Typography
+              variant='h6'
+              sx={{
+                color: 'text.secondary',
+                mb: 1,
+              }}
+            >
+              Pasta vazia
+            </Typography>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              Crie subpastas, mova fichas para esta pasta usando o botão de
+              mover ou arrastando os cards.
+            </Typography>
+          </Box>
+        )}
       {/* Folder card context menu */}
       <Menu
         anchorEl={folderContextAnchor}
@@ -1473,6 +1876,16 @@ const MyCharactersPage: React.FC = () => {
         </MenuItem>
         <MenuItem
           onClick={() => {
+            if (contextFolder) handleOpenMoveFolder(contextFolder);
+          }}
+        >
+          <ListItemIcon>
+            <MoveIcon fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>Mover para...</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
             if (contextFolder) handleOpenDeleteFolder(contextFolder);
           }}
         >
@@ -1482,8 +1895,7 @@ const MyCharactersPage: React.FC = () => {
           <ListItemText sx={{ color: 'error.main' }}>Excluir</ListItemText>
         </MenuItem>
       </Menu>
-
-      {/* Move to Folder Menu */}
+      {/* Move sheet to Folder Menu */}
       <Menu
         anchorEl={moveMenuAnchor}
         open={Boolean(moveMenuAnchor)}
@@ -1507,14 +1919,56 @@ const MyCharactersPage: React.FC = () => {
             <ListItemIcon>
               <FolderOpenIcon fontSize='small' />
             </ListItemIcon>
-            <ListItemText>{folder.name}</ListItemText>
-            <Typography variant='caption' color='text.secondary' sx={{ ml: 1 }}>
+            <ListItemText>{formatFolderPath(folders, folder.id)}</ListItemText>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+                ml: 1,
+              }}
+            >
               {folderCounts[folder.id] || 0}
             </Typography>
           </MenuItem>
         ))}
       </Menu>
-
+      {/* Move folder picker — excludes self and descendants to prevent cycles */}
+      <Menu
+        anchorEl={folderMoveAnchor}
+        open={Boolean(folderMoveAnchor)}
+        onClose={handleCloseMoveFolder}
+      >
+        <MenuItem
+          onClick={() => handleMoveFolderTo(null)}
+          selected={!folderToMove?.parentId}
+        >
+          <ListItemIcon>
+            <FolderOffIcon fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>Raiz</ListItemText>
+        </MenuItem>
+        {folderToMove &&
+          folders
+            .filter((f) => {
+              if (f.id === folderToMove.id) return false;
+              const descendants = getDescendantIds(folders, folderToMove.id);
+              return !descendants.has(f.id);
+            })
+            .map((folder) => (
+              <MenuItem
+                key={folder.id}
+                onClick={() => handleMoveFolderTo(folder.id)}
+                selected={folderToMove.parentId === folder.id}
+              >
+                <ListItemIcon>
+                  <FolderOpenIcon fontSize='small' />
+                </ListItemIcon>
+                <ListItemText>
+                  {formatFolderPath(folders, folder.id)}
+                </ListItemText>
+              </MenuItem>
+            ))}
+      </Menu>
       {/* Delete Sheet Confirmation Dialog */}
       <Dialog
         open={deleteConfirmOpen}
@@ -1541,7 +1995,6 @@ const MyCharactersPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Folder Create/Rename Dialog */}
       <Dialog
         open={folderDialogOpen}
@@ -1550,7 +2003,13 @@ const MyCharactersPage: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          {folderDialogMode === 'create' ? 'Nova Pasta' : 'Renomear Pasta'}
+          {(() => {
+            if (folderDialogMode !== 'create') return 'Renomear Pasta';
+            if (!openFolderId) return 'Nova Pasta';
+            const parentName =
+              folders.find((f) => f.id === openFolderId)?.name ?? '';
+            return `Nova subpasta em "${parentName}"`;
+          })()}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -1559,13 +2018,15 @@ const MyCharactersPage: React.FC = () => {
             label='Nome da pasta'
             value={folderName}
             onChange={(e) => setFolderName(e.target.value)}
-            inputProps={{ maxLength: 50 }}
             helperText={`${folderName.length}/50 caracteres`}
             sx={{ mt: 1 }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && folderName.trim()) {
                 handleFolderDialogConfirm();
               }
+            }}
+            slotProps={{
+              htmlInput: { maxLength: 50 },
             }}
           />
         </DialogContent>
@@ -1580,7 +2041,6 @@ const MyCharactersPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Delete Folder Confirmation Dialog */}
       <Dialog
         open={deleteFolderConfirmOpen}
@@ -1594,9 +2054,18 @@ const MyCharactersPage: React.FC = () => {
             Tem certeza que deseja excluir a pasta{' '}
             <strong>&ldquo;{folderToDelete?.name}&rdquo;</strong>?
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
-            As fichas dentro desta pasta não serão excluídas, apenas
-            desassociadas.
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mt: 1,
+            }}
+          >
+            Subpastas e fichas dentro desta pasta serão movidas para{' '}
+            {folderToDelete?.parentId
+              ? `"${formatFolderPath(folders, folderToDelete.parentId)}"`
+              : 'a raiz'}
+            . Nada é excluído.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -1610,7 +2079,6 @@ const MyCharactersPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Batch Threat Export */}
       {isSelectMode && activeTab === 1 && (
         <>
@@ -1634,6 +2102,80 @@ const MyCharactersPage: React.FC = () => {
           <Box sx={{ height: 80 }} />
         </>
       )}
+      {/* Publicar ameaça no Bestiário da Comunidade */}
+      {sheetToPublish && (
+        <PublishBestiaryModal
+          open={Boolean(sheetToPublish)}
+          presetSheetId={sheetToPublish.id}
+          presetName={sheetToPublish.sheetData?.name || sheetToPublish.name}
+          onClose={() => setSheetToPublish(null)}
+          onSuccess={(pub) => {
+            setSheetToPublish(null);
+            history.push(`/bestiario/${pub.id}`);
+          }}
+        />
+      )}
+      {/* Recuperação de ficha atingida pelo bug de swap de fichas */}
+      <Dialog
+        open={Boolean(recoverySheet)}
+        onClose={closeRecovery}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Recuperar ficha</DialogTitle>
+        <DialogContent>
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            Identificamos um problema que afetou esta ficha durante o uso da
+            Mesa Virtual: os dados salvos na nuvem foram sobrescritos. Pedimos
+            desculpas pelo ocorrido.
+          </Alert>
+          {recoveryCandidate ? (
+            <Typography variant='body2'>
+              Encontramos uma <strong>cópia local</strong> de{' '}
+              <strong>&ldquo;{recoveryCandidate.sheet.nome}&rdquo;</strong>{' '}
+              salva em <strong>{recoveryCandidate.date}</strong> neste
+              navegador. Deseja restaurá-la? Os dados atuais (incorretos) serão
+              substituídos pela sua cópia local.
+            </Typography>
+          ) : (
+            <Typography variant='body2'>
+              Não encontramos uma cópia local desta ficha neste navegador, então
+              não conseguimos recuperá-la automaticamente. Entenda o que
+              aconteceu e os próximos passos na página do incidente.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeRecovery} disabled={recovering}>
+            Cancelar
+          </Button>
+          <Button onClick={handleOpenAffectedAnyway} disabled={recovering}>
+            Abrir mesmo assim
+          </Button>
+          {recoveryCandidate ? (
+            <Button
+              variant='contained'
+              onClick={handleRestoreRecovery}
+              disabled={recovering}
+              startIcon={
+                recovering ? <CircularProgress size={18} /> : undefined
+              }
+            >
+              {recovering ? 'Restaurando...' : 'Restaurar cópia local'}
+            </Button>
+          ) : (
+            <Button variant='contained' onClick={handleSeeIncident}>
+              Ver explicação do incidente
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+      <Snackbar
+        open={Boolean(recoverySnackbar)}
+        autoHideDuration={5000}
+        onClose={() => setRecoverySnackbar(null)}
+        message={recoverySnackbar || ''}
+      />
     </Container>
   );
 };

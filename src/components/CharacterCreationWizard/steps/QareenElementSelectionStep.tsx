@@ -68,11 +68,15 @@ const QareenElementSelectionStep: React.FC<QareenElementSelectionStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Conforme sua ascendência, escolha o elemento do seu Qareen. Você
         receberá resistência 10 ao tipo de dano correspondente.
       </Typography>
-
       <RadioGroup value={selectedElement || ''} onChange={handleChange}>
         {QAREEN_ELEMENTS.map((element) => (
           <Paper key={element.damageType} sx={{ p: 2, mb: 1 }}>
@@ -81,10 +85,20 @@ const QareenElementSelectionStep: React.FC<QareenElementSelectionStepProps> = ({
               control={<Radio />}
               label={
                 <Box>
-                  <Typography variant='subtitle1' fontWeight='bold'>
+                  <Typography
+                    variant='subtitle1'
+                    sx={{
+                      fontWeight: 'bold',
+                    }}
+                  >
                     {element.name}
                   </Typography>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {element.description}
                   </Typography>
                 </Box>
@@ -93,7 +107,6 @@ const QareenElementSelectionStep: React.FC<QareenElementSelectionStepProps> = ({
           </Paper>
         ))}
       </RadioGroup>
-
       {selectedQareen && (
         <Alert severity='info'>
           Você escolheu {selectedQareen.name}. Receberá RD de{' '}

@@ -30,7 +30,7 @@ import {
 } from '@/data/systems/tormenta20/magias/divine';
 import { SupplementId } from '@/types/supplement.types';
 import { getAttributeIncreasesInSamePlateau } from './general';
-import { isPowerAvailable } from '../powers';
+import { getFuturaLendaClassPowers, isPowerAvailable } from '../powers';
 
 /**
  * Helper to determine if a spell list represents "all arcane spells of circle X"
@@ -214,8 +214,11 @@ export function getPowerSelectionRequirements(
         requirements.push({
           type: 'selectWeaponSpecialization',
           availableOptions: action.availableWeapons || [], // Will be populated dynamically if empty
-          pick: 1, // Always pick 1 weapon
+          pick: 1, // Always pick 1 weapon (per instance)
           label: 'Selecione 1 arma para especialização',
+          onlyFromSheet: action.onlyFromSheet,
+          optional: action.optional,
+          bonuses: action.bonuses,
         });
       }
 
@@ -247,11 +250,12 @@ export function getPowerSelectionRequirements(
       }
 
       if (action.type === 'chooseFromOptions' && !action.linkedTo) {
+        const pick = action.pick ?? 1;
         requirements.push({
           type: 'chooseFromOptions',
           availableOptions: action.options,
-          pick: 1,
-          label: `Selecione uma opção`,
+          pick,
+          label: pick > 1 ? `Selecione ${pick} opções` : `Selecione uma opção`,
           metadata: {
             optionKey: action.optionKey,
           },
@@ -298,6 +302,19 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      // Handle Natureza Orgânica special action for Yidishan
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'yidishanNaturezaOrganica'
+      ) {
+        requirements.push({
+          type: 'yidishanNaturezaOrganica',
+          availableOptions: [], // Populated dynamically by the component
+          pick: 1, // 1 skill OR 1 power OR 1 race ability (when oldRace !== Humano)
+          label: 'Selecione o benefício da Natureza Orgânica',
+        });
+      }
+
       // Handle Mashin Chassi special action
       if (
         action.type === 'special' &&
@@ -321,6 +338,21 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Populated dynamically by the component
           pick: 1, // 1 class + 1 power
           label: 'Selecione uma classe e um poder dessa classe',
+        });
+      }
+
+      // Escolher um poder de classe (ex.: origem "Futura Lenda")
+      if (action.type === 'getClassPower') {
+        requirements.push({
+          type: 'getClassPower',
+          availableOptions: [], // Populated dynamically in getFilteredAvailableOptions
+          pick: 1,
+          label: 'Selecione um poder de classe',
+          metadata: {
+            minLevel: action.minLevel ?? 2,
+            ignoreOnlyLevelRequirement:
+              action.ignoreOnlyLevelRequirement ?? true,
+          },
         });
       }
     });
@@ -599,6 +631,16 @@ export function getFilteredAvailableOptions(
     }
 
     case 'selectWeaponSpecialization': {
+      // When the action is configured to list only weapons in the sheet
+      if (requirement.onlyFromSheet) {
+        const sheetWeaponNames = Array.from(
+          new Set(
+            (sheet.bag?.equipments?.Arma || []).map((weapon) => weapon.nome)
+          )
+        );
+        return sheetWeaponNames.sort((a, b) => a.localeCompare(b));
+      }
+
       // If specific weapons were provided, use those
       if (availableOptions && availableOptions.length > 0) {
         return (availableOptions as string[]).sort((a, b) =>
@@ -701,6 +743,32 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.localeCompare(b));
     }
 
+    case 'yidishanNaturezaOrganica': {
+      // Options are handled dynamically by YidishanNaturezaOrganicaSelectionField
+      // Return all skills as a fallback for filtering purposes
+      const allYidishanSkills = Object.values(Skill);
+      return allYidishanSkills
+        .filter((skill) => {
+          if (sheet.skills.includes(skill)) {
+            return false;
+          }
+          if (sheet.completeSkills) {
+            const existingSkill = sheet.completeSkills.find(
+              (cs) => cs.name === skill
+            );
+            if (
+              existingSkill &&
+              existingSkill.training &&
+              existingSkill.training > 0
+            ) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .sort((a, b) => a.localeCompare(b));
+    }
+
     case 'mashinChassi': {
       // Return all skills that the character doesn't already have
       const allMashinSkills = Object.values(Skill);
@@ -736,6 +804,16 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.localeCompare(b, 'pt-BR'));
     }
 
+    case 'getClassPower': {
+      // Poderes de classe elegíveis (ex.: origem "Futura Lenda"), filtrados por
+      // nível mínimo e disponibilidade. Mesma lógica usada pelo gerador.
+      return getFuturaLendaClassPowers(
+        sheet,
+        requirement.metadata?.minLevel ?? 2,
+        requirement.metadata?.ignoreOnlyLevelRequirement ?? true
+      ).sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     default:
       return availableOptions;
   }
@@ -747,7 +825,8 @@ export function getFilteredAvailableOptions(
 export function validateSelections(
   requirements: PowerSelectionRequirements,
   selections: SelectionOptions,
-  sheet: CharacterSheet
+  sheet: CharacterSheet,
+  supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE]
 ): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -770,6 +849,7 @@ export function validateSelections(
         break;
 
       case 'getGeneralPower':
+      case 'getClassPower':
         selectedItems = selections.powers || [];
         selectedCount = selectedItems.length;
         break;
@@ -831,6 +911,17 @@ export function validateSelections(
         break;
       }
 
+      case 'yidishanNaturezaOrganica': {
+        // 1 skill OR 1 power OR 1 race ability
+        const ynoSkills = selections.skills || [];
+        const ynoPowers = selections.powers || [];
+        const ynoAbilities = selections.raceAbilities || [];
+        selectedCount =
+          ynoSkills.length + ynoPowers.length + ynoAbilities.length > 0 ? 1 : 0;
+        selectedItems = [...ynoSkills, ...ynoPowers, ...ynoAbilities];
+        break;
+      }
+
       case 'almaLivreSelectClass': {
         // 1 class + 1 power
         const hasClass = selections.almaLivreClass ? 1 : 0;
@@ -848,14 +939,19 @@ export function validateSelections(
         break;
     }
 
-    if (selectedCount !== pick) {
+    const isOptional = requirement.optional === true;
+    if (!isOptional && selectedCount !== pick) {
       errors.push(
         `${requirement.label}: esperado ${pick}, selecionado ${selectedCount}`
       );
     }
 
     // Check if selections are available
-    const availableOptions = getFilteredAvailableOptions(requirement, sheet);
+    const availableOptions = getFilteredAvailableOptions(
+      requirement,
+      sheet,
+      supplements
+    );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const getName = (item: any): string => {
       if (typeof item === 'string') return item;
@@ -866,6 +962,10 @@ export function validateSelections(
 
     selectedItems.forEach((item) => {
       const itemName = getName(item);
+      // Empty strings represent "no choice" placeholders for optional requirements
+      if (isOptional && itemName === '') {
+        return;
+      }
       if (
         !availableOptions.some((available) => getName(available) === itemName)
       ) {

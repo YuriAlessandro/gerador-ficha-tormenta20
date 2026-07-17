@@ -3,7 +3,7 @@ import Skill from '../../../../../interfaces/Skills';
 import BARBARO from '../../classes/barbaro';
 import PROFICIENCIAS from '../../proficiencias';
 
-const furia = BARBARO.abilities.find((a) => a.name === 'Furia')!;
+const furia = BARBARO.abilities.find((a) => a.name === 'Fúria')!;
 const instintoSelvagem = BARBARO.abilities.find(
   (a) => a.name === 'Instinto Selvagem'
 )!;
@@ -50,6 +50,17 @@ const MACHADO_DE_PEDRA: VariantClassOverrides = {
       name: 'Resiliência Primal',
       text: 'A partir do 5º nível, graças a seu vigor e força de vontade, você ignora parte de seus ferimentos. Você recebe redução de dano 3. A cada três níveis, sua RD aumenta em 3, até um máximo de RD 15 no 17º nível.',
       nivel: 5,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Resiliência Primal' },
+          target: { type: 'DamageReduction', damageType: 'Geral' },
+          modifier: {
+            type: 'LevelCalc',
+            formula:
+              '{classLevel} >= 5 ? Math.min(15, 3 + 3 * Math.floor(({classLevel} - 5) / 3)) : 0',
+          },
+        },
+      ],
     },
     {
       name: 'Fúria Rústica',

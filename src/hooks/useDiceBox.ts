@@ -29,6 +29,7 @@ export interface UseDiceBoxReturn {
   roll: (notation: string) => Promise<DiceRollResult[]>;
   add: (notation: string) => Promise<DiceRollResult[]>;
   rollMultiple: (notations: string[]) => Promise<DiceRollResult[]>;
+  addMultiple: (notations: string[]) => Promise<DiceRollResult[]>;
   clear: () => void;
   reinitialize: () => Promise<void>;
   resizeWorld: () => void;
@@ -228,6 +229,45 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
     [isReady]
   );
 
+  // Add more dice to the roll currently on screen (all at once), without
+  // clearing the scene. Resolves when every die has settled.
+  // Guarded by diceBoxRef (always fresh) instead of the isReady state to
+  // avoid stale closures right after a reinitialize().
+  const addMultiple = useCallback(
+    async (notations: string[]): Promise<DiceRollResult[]> => {
+      if (!diceBoxRef.current) {
+        throw new Error('DiceBox not initialized');
+      }
+
+      if (notations.length === 0) {
+        return [];
+      }
+
+      return new Promise((resolve, reject) => {
+        try {
+          // Store the original callback
+          const originalCallback = diceBoxRef.current.onRollComplete;
+
+          // Override callback - fires once ALL dice (existing + added) settle
+          diceBoxRef.current.onRollComplete = (results: DiceRollResult[]) => {
+            // Restore original callback
+            if (diceBoxRef.current) {
+              diceBoxRef.current.onRollComplete = originalCallback;
+            }
+            resolve(results);
+          };
+
+          notations.forEach((notation) => {
+            diceBoxRef.current.add(notation);
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+    },
+    []
+  );
+
   // Clear dice from the screen
   const clear = useCallback(() => {
     if (diceBoxRef.current) {
@@ -337,6 +377,7 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
     roll,
     add,
     rollMultiple,
+    addMultiple,
     clear,
     reinitialize,
     resizeWorld,

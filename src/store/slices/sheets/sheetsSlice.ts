@@ -5,7 +5,7 @@ import sheetsService, {
   CreateSheetRequest,
   UpdateSheetRequest,
 } from '../../../services/sheets.service';
-import { moveSheetToFolder } from '../folders/foldersSlice';
+import { moveSheetToFolder, deleteFolder } from '../folders/foldersSlice';
 
 export interface SheetsState {
   sheets: SheetListData[];
@@ -217,6 +217,16 @@ const sheetsSlice = createSlice({
       if (sheet) {
         sheet.folderId = folderId;
       }
+    });
+
+    // Promote sheets to the deleted folder's parent when a folder is deleted.
+    builder.addCase(deleteFolder.fulfilled, (state, action) => {
+      const { id: deletedId, newParentId } = action.payload;
+      state.sheets.forEach((sheet) => {
+        if (sheet.folderId === deletedId) {
+          sheet.folderId = newParentId;
+        }
+      });
     });
   },
 });

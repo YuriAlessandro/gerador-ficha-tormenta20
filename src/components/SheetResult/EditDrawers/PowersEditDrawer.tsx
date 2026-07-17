@@ -47,12 +47,14 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
+import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
 import { isClassOrVariantOf } from '@/functions/general';
 import {
   isMulticlass,
   getClassLevelsMap,
   findClassDescription,
+  getClassLevel,
 } from '@/functions/multiclass';
 import { normalizeSearch } from '@/functions/stringUtils';
 import Skill, {
@@ -63,6 +65,7 @@ import { CustomPower } from '@/interfaces/CustomPower';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
 import CustomPowerDialog from './CustomPowerDialog';
+import EnsinarTruqueDialog, { EnsinarTruquePick } from './EnsinarTruqueDialog';
 
 interface PowersEditDrawerProps {
   open: boolean;
@@ -83,6 +86,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   sheet,
   onSave,
 }) => {
+  const supplements = useContentSupplements();
   const [selectedPowers, setSelectedPowers] = useState<GeneralPower[]>([]);
   const [selectedClassPowers, setSelectedClassPowers] = useState<ClassPower[]>(
     []
@@ -138,6 +142,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     powerToEdit?: CustomPower;
   }>({ open: false });
 
+  // State for Ensinar Truque dialog flow (Treinador)
+  const [ensinarTruqueDialog, setEnsinarTruqueDialog] = useState<{
+    open: boolean;
+    pendingCount: number;
+  }>({ open: false, pendingCount: 0 });
+
   useEffect(() => {
     if (open) {
       if (sheet.generalPowers) {
@@ -164,8 +174,32 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       } else {
         setSelectedCustomGrantedPowers([]);
       }
-      // Reset manual selections when opening
-      setManualSelections({});
+      // Pre-fill manual selections from history so the drawer reflects
+      // the previously-recorded familiar/weapon/totem choices.
+      const initialManualSelections: ManualPowerSelections = {};
+      sheet.sheetActionHistory?.forEach((entry) => {
+        const { powerName } = entry;
+        if (!powerName) return;
+        entry.changes.forEach((change) => {
+          if (change.type === 'FamiliarSelected') {
+            if (!initialManualSelections[powerName]) {
+              initialManualSelections[powerName] = {};
+            }
+            initialManualSelections[powerName].familiars = [change.familiarKey];
+          } else if (change.type === 'WeaponSpecializationSelected') {
+            if (!initialManualSelections[powerName]) {
+              initialManualSelections[powerName] = {};
+            }
+            initialManualSelections[powerName].weapons = [change.weaponName];
+          } else if (change.type === 'AnimalTotemSelected') {
+            if (!initialManualSelections[powerName]) {
+              initialManualSelections[powerName] = {};
+            }
+            initialManualSelections[powerName].animalTotems = [change.totemKey];
+          }
+        });
+      });
+      setManualSelections(initialManualSelections);
     }
   }, [
     sheet.generalPowers,
@@ -222,6 +256,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     SupplementId.TORMENTA20_AMEACAS_ARTON,
     SupplementId.TORMENTA20_DEUSES_ARTON,
     SupplementId.TORMENTA20_HEROIS_ARTON,
+    // Suplementos runtime ativados (ex.: Pacotes de Poderes homebrew).
+    ...(dataRegistry.getRuntimeSupplementIds() as unknown as SupplementId[]),
   ];
   const allPowersByCategory =
     dataRegistry.getPowersBySupplements(allSupplements);
@@ -412,7 +448,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     if (requirements) {
       // Check if any requirement actually has multiple options to choose from
       const requiresUserInput = requirements.requirements.some((req) => {
-        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        const availableOptions = getFilteredAvailableOptions(
+          req,
+          sheet,
+          supplements
+        );
         return (
           availableOptions.length > 1 && req.pick < availableOptions.length
         );
@@ -430,7 +470,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         // Auto-select when there's only one option or all options must be picked
         const autoSelections: SelectionOptions = {};
         requirements.requirements.forEach((req) => {
-          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            sheet,
+            supplements
+          );
           if (
             availableOptions.length === req.pick ||
             availableOptions.length === 1
@@ -524,7 +568,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
     if (requirements) {
       const requiresUserInput = requirements.requirements.some((req) => {
-        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        const availableOptions = getFilteredAvailableOptions(
+          req,
+          sheet,
+          supplements
+        );
         return (
           availableOptions.length > 1 && req.pick < availableOptions.length
         );
@@ -540,7 +588,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       } else {
         const autoSelections: SelectionOptions = {};
         requirements.requirements.forEach((req) => {
-          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            sheet,
+            supplements
+          );
           if (
             availableOptions.length === req.pick ||
             availableOptions.length === 1
@@ -624,8 +676,24 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         prev.filter((p) => p.name !== powerToRemove.name)
       );
       setManualSelections((prev) => {
-        const updated = { ...prev };
-        delete updated[powerToRemove.name];
+        const updated: typeof prev = {};
+        // Drop the power's own entry, and also scrub it from any other
+        // ability's `.powers` selection (e.g. the ability that granted it,
+        // like "Linhagem Rubra" or "Memória Póstuma"). Otherwise the granting
+        // ability would re-pick the removed power on the next recalculation.
+        Object.entries(prev).forEach(([key, selection]) => {
+          if (key === powerToRemove.name) return;
+          if (selection.powers?.some((p) => p.name === powerToRemove.name)) {
+            updated[key] = {
+              ...selection,
+              powers: selection.powers.filter(
+                (p) => p.name !== powerToRemove.name
+              ),
+            };
+          } else {
+            updated[key] = selection;
+          }
+        });
         return updated;
       });
     } else {
@@ -676,7 +744,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     if (requirements) {
       // Check if any requirement actually has multiple options to choose from
       const requiresUserInput = requirements.requirements.some((req) => {
-        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        const availableOptions = getFilteredAvailableOptions(
+          req,
+          sheet,
+          supplements
+        );
         return (
           availableOptions.length > 1 && req.pick < availableOptions.length
         );
@@ -694,7 +766,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         // Auto-select when there's only one option or all options must be picked
         const autoSelections: SelectionOptions = {};
         requirements.requirements.forEach((req) => {
-          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            sheet,
+            supplements
+          );
           if (
             availableOptions.length === req.pick ||
             availableOptions.length === 1
@@ -834,7 +910,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
     if (requirements) {
       const requiresUserInput = requirements.requirements.some((req) => {
-        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        const availableOptions = getFilteredAvailableOptions(
+          req,
+          sheet,
+          supplements
+        );
         return (
           availableOptions.length > 1 && req.pick < availableOptions.length
         );
@@ -850,7 +930,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       } else {
         const autoSelections: SelectionOptions = {};
         requirements.requirements.forEach((req) => {
-          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            sheet,
+            supplements
+          );
           if (
             availableOptions.length === req.pick ||
             availableOptions.length === 1
@@ -1044,6 +1128,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     selectedClassPowers.some((p) => p.name === power.name);
 
   const checkRequirements = (power: GeneralPower): boolean => {
+    // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
+    // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+    const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
+      a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
+    );
+    if (raceBypass) return true;
+
     if (!power.requirements || power.requirements.length === 0) {
       return true; // No requirements means always available
     }
@@ -1067,6 +1158,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               selectedPowers.some((p) => p.name === req.name) ||
               sheet.generalPowers?.some((p) => p.name === req.name) ||
               sheet.classPowers?.some((p) => p.name === req.name) ||
+              // Habilidades raciais que contam como possuir um poder
+              // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+              (sheet.raca.abilities ?? []).some((a) =>
+                a.grantsPowerRequirements?.includes(req.name ?? '')
+              ) ||
               sheet.sheetActionHistory?.some((entry) =>
                 entry.changes.some(
                   (change) =>
@@ -1092,7 +1188,25 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             const skill = sheet.completeSkills?.find(
               (s) => s.name === req.name
             );
-            return skill && (skill.training || 0) > 0;
+            if (skill && (skill.training || 0) > 0) return true;
+
+            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro
+            // Ofício específico para fins de pré-requisito.
+            if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
+              const hasArtesaoCriativo =
+                selectedPowers.some((p) => p.name === 'Artesão Criativo') ||
+                sheet.generalPowers?.some(
+                  (p) => p.name === 'Artesão Criativo'
+                ) ||
+                sheet.classPowers?.some((p) => p.name === 'Artesão Criativo');
+              const hasArtesanato = sheet.completeSkills?.some(
+                (s) =>
+                  s.name === Skill.OFICIO_ARTESANATO && (s.training || 0) > 0
+              );
+              if (hasArtesaoCriativo && hasArtesanato) return true;
+            }
+
+            return false;
           }
 
           case RequirementType.PROFICIENCIA: {
@@ -1156,6 +1270,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   };
 
   const checkClassPowerRequirements = (power: ClassPower): boolean => {
+    // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
+    // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+    const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
+      a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
+    );
+    if (raceBypass) return true;
+
     if (!power.requirements || power.requirements.length === 0) {
       return true;
     }
@@ -1176,6 +1297,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               selectedClassPowers.some((p) => p.name === req.name) ||
               sheet.generalPowers?.some((p) => p.name === req.name) ||
               sheet.classPowers?.some((p) => p.name === req.name) ||
+              // Habilidades raciais que contam como possuir um poder
+              // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+              (sheet.raca.abilities ?? []).some((a) =>
+                a.grantsPowerRequirements?.includes(req.name ?? '')
+              ) ||
               sheet.sheetActionHistory?.some((entry) =>
                 entry.changes.some(
                   (change) =>
@@ -1199,7 +1325,28 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             const skill = sheet.completeSkills?.find(
               (s) => s.name === req.name
             );
-            return skill && (skill.training || 0) > 0;
+            if (skill && (skill.training || 0) > 0) return true;
+
+            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro
+            // Ofício específico para fins de pré-requisito.
+            if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
+              const hasArtesaoCriativo =
+                selectedPowers.some((p) => p.name === 'Artesão Criativo') ||
+                selectedClassPowers.some(
+                  (p) => p.name === 'Artesão Criativo'
+                ) ||
+                sheet.generalPowers?.some(
+                  (p) => p.name === 'Artesão Criativo'
+                ) ||
+                sheet.classPowers?.some((p) => p.name === 'Artesão Criativo');
+              const hasArtesanato = sheet.completeSkills?.some(
+                (s) =>
+                  s.name === Skill.OFICIO_ARTESANATO && (s.training || 0) > 0
+              );
+              if (hasArtesaoCriativo && hasArtesanato) return true;
+            }
+
+            return false;
           }
           case RequirementType.PROFICIENCIA:
             return sheet.classe.proficiencias.includes(req.name as string);
@@ -1421,7 +1568,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     });
   };
 
-  const handleSave = () => {
+  const commitSave = (ensinarTruquePicks: EnsinarTruquePick[]) => {
     // Track general power changes
     const originalPowerNames = sheet.generalPowers?.map((p) => p.name) || [];
     const newPowerNames = selectedPowers.map((p) => p.name);
@@ -1432,7 +1579,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     const removedPowers =
       sheet.generalPowers?.filter((p) => !newPowerNames.includes(p.name)) || [];
 
-    // Track class power changes
     const originalClassPowerNames = sheet.classPowers?.map((p) => p.name) || [];
     const newClassPowerNames = selectedClassPowers.map((p) => p.name);
 
@@ -1677,6 +1823,49 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       }
     }
 
+    // Treinador: aplicar truques extras escolhidos no dialog "Ensinar Truque"
+    let updatedCompanions = sheet.companions;
+    if (ensinarTruquePicks.length > 0 && sheet.companions?.length) {
+      updatedCompanions = sheet.companions.map((companion, idx) => {
+        const picksForThis = ensinarTruquePicks.filter(
+          (p) => p.companionIndex === idx
+        );
+        if (picksForThis.length === 0) return companion;
+        const newTricks = picksForThis.map((p) => p.trick);
+        const newSpells = picksForThis
+          .filter((p) => p.spell)
+          .map((p) => ({
+            ...p.spell!,
+            customKeyAttr: Atributo.CARISMA,
+          }));
+        return {
+          ...companion,
+          tricks: [...companion.tricks, ...newTricks],
+          spells: [...(companion.spells || []), ...newSpells],
+        };
+      });
+
+      ensinarTruquePicks.forEach((pick) => {
+        newHistoryEntries.push({
+          source: {
+            type: 'power',
+            name: 'Ensinar Truque',
+            className: 'Treinador',
+          },
+          powerName: 'Ensinar Truque',
+          changes: [
+            {
+              type: 'CompanionTrickLearned',
+              companionIndex: pick.companionIndex,
+              trickName: pick.trick.name,
+              choices: pick.trick.choices,
+              spellName: pick.spell?.nome,
+            },
+          ],
+        });
+      });
+    }
+
     // Update the sheet with new powers and steps, then recalculate everything
     const updatedSheet = {
       ...sheet,
@@ -1684,6 +1873,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       classPowers: selectedClassPowers,
       customPowers: selectedCustomPowers,
       customGrantedPowers: selectedCustomGrantedPowers,
+      companions: updatedCompanions,
       // Clear Meio-Elfo Ambição Herdada when the granted power was removed
       ...(shouldClearMeioElfoAmbicao
         ? {
@@ -1726,6 +1916,32 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     onClose();
   };
 
+  const handleSave = () => {
+    // Treinador: se "Ensinar Truque" foi adicionado e há companheiros, abrir
+    // dialog para escolher o(s) truque(s) extra(s) antes de finalizar o save.
+    const originalClassPowerNames = sheet.classPowers?.map((p) => p.name) || [];
+    const ensinarTruqueAddedCount = selectedClassPowers.filter(
+      (p) =>
+        p.name === 'Ensinar Truque' && !originalClassPowerNames.includes(p.name)
+    ).length;
+    // Considera múltiplas instâncias adicionadas: count de adicionados pelo nome
+    const totalEnsinarAdded = selectedClassPowers.filter(
+      (p) => p.name === 'Ensinar Truque'
+    ).length;
+    const originalEnsinarCount = (sheet.classPowers || []).filter(
+      (p) => p.name === 'Ensinar Truque'
+    ).length;
+    const pendingCount = Math.max(
+      ensinarTruqueAddedCount,
+      totalEnsinarAdded - originalEnsinarCount
+    );
+    if (pendingCount > 0 && sheet.companions && sheet.companions.length > 0) {
+      setEnsinarTruqueDialog({ open: true, pendingCount });
+      return;
+    }
+    commitSave([]);
+  };
+
   const handleCancel = () => {
     if (sheet.generalPowers) {
       setSelectedPowers([...sheet.generalPowers]);
@@ -1761,16 +1977,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 700 } },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 700 } },
+        },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Editar Poderes e Habilidades</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -1794,13 +2014,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           placeholder='Buscar poderes...'
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-            ),
-          }}
           sx={{ mb: 3 }}
           size='small'
+          slotProps={{
+            input: {
+              startAdornment: (
+                <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+              ),
+            },
+          }}
         />
 
         {/* Selected Powers Summary */}
@@ -1828,8 +2050,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {/* Show unique powers with counts */}
                   {Array.from(new Set(selectedPowers.map((p) => p.name))).map(
@@ -1865,8 +2089,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {selectedOriginPowers.map((power) => (
                     <Chip
@@ -1889,8 +2115,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {selectedDeityPowers.map((power) => (
                     <Chip
@@ -1913,8 +2141,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {selectedCustomGrantedPowers.map((power) => (
                     <Chip
@@ -1936,8 +2166,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {selectedCustomPowers.map((power) => (
                     <Chip
@@ -1959,8 +2191,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Stack
                   direction='row'
                   spacing={1}
-                  flexWrap='wrap'
-                  sx={{ mb: 2 }}
+                  sx={{
+                    flexWrap: 'wrap',
+                    mb: 2,
+                  }}
                 >
                   {/* Show unique class powers with counts */}
                   {Array.from(
@@ -2009,8 +2243,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                     <Stack
                       direction='row'
                       spacing={1}
-                      flexWrap='wrap'
-                      sx={{ mb: 2 }}
+                      sx={{
+                        flexWrap: 'wrap',
+                        mb: 2,
+                      }}
                     >
                       {classAbilitySets.flatMap(
                         ({ className: clsName, abilities }) =>
@@ -2036,7 +2272,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Typography variant='subtitle2' sx={{ mb: 1 }}>
                   Habilidades de Raça ({sheet.raca.abilities.length}):
                 </Typography>
-                <Stack direction='row' spacing={1} flexWrap='wrap'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {sheet.raca.abilities.map((ability) => (
                     <Chip
                       key={`race-${
@@ -2078,10 +2320,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                         backgroundColor: 'warning.50',
                       }}
                     >
-                      <Typography variant='body1' fontWeight='bold'>
+                      <Typography
+                        variant='body1'
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         {ability.name}
                       </Typography>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {ability.description}
                       </Typography>
                     </Box>
@@ -2115,10 +2367,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                           backgroundColor: 'info.50',
                         }}
                       >
-                        <Typography variant='body1' fontWeight='bold'>
+                        <Typography
+                          variant='body1'
+                          sx={{
+                            fontWeight: 'bold',
+                          }}
+                        >
                           {ability.name} (Nível {ability.nivel})
                         </Typography>
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {ability.text}
                         </Typography>
                       </Box>
@@ -2194,18 +2456,22 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                 <Box sx={{ width: '100%' }}>
                                   <Stack
                                     direction='row'
-                                    alignItems='center'
                                     spacing={1}
-                                    flexWrap='wrap'
+                                    sx={{
+                                      alignItems: 'center',
+                                      flexWrap: 'wrap',
+                                    }}
                                   >
                                     <Typography
                                       variant='body1'
-                                      fontWeight='bold'
                                       color={
                                         meetsRequirements
                                           ? 'text.primary'
                                           : 'error.main'
                                       }
+                                      sx={{
+                                        fontWeight: 'bold',
+                                      }}
                                     >
                                       {power.name}
                                     </Typography>
@@ -2255,8 +2521,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   </Stack>
                                   <Typography
                                     variant='body2'
-                                    color='text.secondary'
-                                    sx={{ mb: 1 }}
+                                    sx={{
+                                      color: 'text.secondary',
+                                      mb: 1,
+                                    }}
                                   >
                                     {power.text}
                                   </Typography>
@@ -2264,8 +2532,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                     power.requirements.length > 0 && (
                                       <Typography
                                         variant='caption'
-                                        color='text.secondary'
                                         sx={{
+                                          color: 'text.secondary',
                                           display: 'block',
                                           fontStyle: 'italic',
                                         }}
@@ -2456,18 +2724,22 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                 <Box sx={{ width: '100%' }}>
                                   <Stack
                                     direction='row'
-                                    alignItems='center'
                                     spacing={1}
-                                    flexWrap='wrap'
+                                    sx={{
+                                      alignItems: 'center',
+                                      flexWrap: 'wrap',
+                                    }}
                                   >
                                     <Typography
                                       variant='body1'
-                                      fontWeight='bold'
                                       color={
                                         meetsRequirements
                                           ? 'text.primary'
                                           : 'error.main'
                                       }
+                                      sx={{
+                                        fontWeight: 'bold',
+                                      }}
                                     >
                                       {power.name}
                                     </Typography>
@@ -2511,8 +2783,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   </Stack>
                                   <Typography
                                     variant='body2'
-                                    color='text.secondary'
-                                    sx={{ mb: 1 }}
+                                    sx={{
+                                      color: 'text.secondary',
+                                      mb: 1,
+                                    }}
                                   >
                                     {power.description}
                                   </Typography>
@@ -2520,8 +2794,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                     (power as GeneralPower).requirements) && (
                                     <Typography
                                       variant='caption'
-                                      color='text.secondary'
                                       sx={{
+                                        color: 'text.secondary',
                                         display: 'block',
                                         fontStyle: 'italic',
                                       }}
@@ -2580,8 +2854,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                         </Typography>
                         <Typography
                           variant='body2'
-                          color='text.secondary'
-                          sx={{ mb: 1 }}
+                          sx={{
+                            color: 'text.secondary',
+                            mb: 1,
+                          }}
                         >
                           Adicione poderes concedidos de outras fontes
                           (multiclasse, itens, decisões do mestre, etc.)
@@ -2612,20 +2888,26 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                               >
                                 <Stack
                                   direction='row'
-                                  justifyContent='space-between'
-                                  alignItems='flex-start'
+                                  sx={{
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                  }}
                                 >
                                   <Box sx={{ flex: 1 }}>
                                     <Typography
                                       variant='body2'
-                                      fontWeight='bold'
+                                      sx={{
+                                        fontWeight: 'bold',
+                                      }}
                                     >
                                       {power.name}
                                     </Typography>
                                     <Typography
                                       variant='caption'
-                                      color='text.secondary'
-                                      sx={{ whiteSpace: 'pre-wrap' }}
+                                      sx={{
+                                        color: 'text.secondary',
+                                        whiteSpace: 'pre-wrap',
+                                      }}
                                     >
                                       {power.description}
                                     </Typography>
@@ -2673,7 +2955,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 Adicione poderes homebrew ou concedidos pelo mestre durante a
                 aventura.
               </Typography>
@@ -2701,25 +2989,37 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                     >
                       <Stack
                         direction='row'
-                        justifyContent='space-between'
-                        alignItems='flex-start'
+                        sx={{
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                        }}
                       >
                         <Box sx={{ flex: 1 }}>
-                          <Typography variant='body1' fontWeight='bold'>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {power.name}
                           </Typography>
                           <Typography
                             variant='body2'
-                            color='text.secondary'
-                            sx={{ whiteSpace: 'pre-wrap' }}
+                            sx={{
+                              color: 'text.secondary',
+                              whiteSpace: 'pre-wrap',
+                            }}
                           >
                             {power.description}
                           </Typography>
                           {power.rolls && power.rolls.length > 0 && (
                             <Typography
                               variant='caption'
-                              color='text.secondary'
-                              sx={{ display: 'block', mt: 1 }}
+                              sx={{
+                                color: 'text.secondary',
+                                display: 'block',
+                                mt: 1,
+                              }}
                             >
                               <strong>Rolagens:</strong>{' '}
                               {power.rolls.map((r) => r.label).join(', ')}
@@ -2764,7 +3064,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           </Button>
         </Stack>
       </Box>
-
       {/* Power Selection Dialog */}
       {selectionDialog.open && selectionDialog.requirements && (
         <PowerSelectionDialog
@@ -2775,7 +3074,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           sheet={sheet}
         />
       )}
-
       {/* Golpe Pessoal Builder Dialog */}
       {golpePessoalDialog.open && golpePessoalDialog.powerToAdd && (
         <GolpePessoalBuilder
@@ -2832,7 +3130,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           }}
         />
       )}
-
       {/* Custom Power Dialog */}
       <CustomPowerDialog
         open={customPowerDialog.open}
@@ -2840,7 +3137,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         onSave={handleSaveCustomPower}
         power={customPowerDialog.powerToEdit}
       />
-
       {/* Custom Granted Power Dialog */}
       <CustomPowerDialog
         open={customGrantedPowerDialog.open}
@@ -2848,6 +3144,22 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         onSave={handleSaveCustomGrantedPower}
         power={customGrantedPowerDialog.powerToEdit}
       />
+      {/* Ensinar Truque Dialog (Treinador) */}
+      {ensinarTruqueDialog.open && sheet.companions?.length ? (
+        <EnsinarTruqueDialog
+          open={ensinarTruqueDialog.open}
+          companions={sheet.companions}
+          trainerLevel={getClassLevel(sheet, 'Treinador') || sheet.nivel}
+          pendingCount={ensinarTruqueDialog.pendingCount}
+          onComplete={(picks) => {
+            setEnsinarTruqueDialog({ open: false, pendingCount: 0 });
+            commitSave(picks);
+          }}
+          onCancel={() =>
+            setEnsinarTruqueDialog({ open: false, pendingCount: 0 })
+          }
+        />
+      ) : null}
     </Drawer>
   );
 };

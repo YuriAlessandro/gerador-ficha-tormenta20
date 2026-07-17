@@ -18,9 +18,12 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  SheetActionHistoryEntry,
+} from '@/interfaces/CharacterSheet';
+import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import RollButton from '../RollButton';
-import RollsEditDialog from '../RollsEditDialog';
+import PowerSettingsDialog from './PowerSettingsDialog';
 
 const getText = (text: string) => <div>{text}</div>;
 
@@ -44,8 +47,15 @@ interface PowerDisplayProps {
     power: ClassPower | RaceAbility | ClassAbility | OriginPower,
     newRolls: DiceRoll[]
   ) => void;
+  onUpdateCustomEffects?: (
+    power: ClassPower | RaceAbility | ClassAbility | OriginPower,
+    newEffects: CustomEffect[]
+  ) => void;
+  sheet?: CharacterSheet;
+  className?: string;
   characterName?: string;
   onCompanionClick?: () => void;
+  headerActionSlot?: React.ReactNode;
 }
 
 const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
@@ -55,13 +65,32 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
     type,
     count,
     onUpdateRolls,
+    onUpdateCustomEffects,
+    sheet,
+    className,
     characterName,
     onCompanionClick,
+    headerActionSlot,
   }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
-    const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
+    const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
     const theme = useTheme();
     const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+
+    const selectedWeapons = useMemo(
+      () =>
+        sheetHistory
+          .filter((entry) => entry.powerName === power.name)
+          .flatMap((entry) =>
+            entry.changes
+              .filter((c) => c.type === 'WeaponSpecializationSelected')
+              .map((c) =>
+                c.type === 'WeaponSpecializationSelected' ? c.weaponName : ''
+              )
+          )
+          .filter(Boolean),
+      [sheetHistory, power.name]
+    );
 
     const historySources = useMemo(
       () =>
@@ -105,13 +134,13 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
       setIsExpanded((prev) => !prev);
     }, []);
 
-    const handleOpenRollsDialog = useCallback((e: React.MouseEvent) => {
+    const handleOpenSettingsDialog = useCallback((e: React.MouseEvent) => {
       e.stopPropagation();
-      setRollsDialogOpen(true);
+      setSettingsDialogOpen(true);
     }, []);
 
-    const handleCloseRollsDialog = useCallback(() => {
-      setRollsDialogOpen(false);
+    const handleCloseSettingsDialog = useCallback(() => {
+      setSettingsDialogOpen(false);
     }, []);
 
     const handleSaveRolls = useCallback(
@@ -121,6 +150,15 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
         }
       },
       [power, onUpdateRolls]
+    );
+
+    const handleSaveCustomEffects = useCallback(
+      (newEffects: CustomEffect[]) => {
+        if (onUpdateCustomEffects) {
+          onUpdateCustomEffects(power, newEffects);
+        }
+      },
+      [power, onUpdateCustomEffects]
     );
 
     // Check if this is a general power that was added manually
@@ -134,6 +172,14 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
     // Get rolls from power if it has them
     const powerRolls =
       'rolls' in power && power.rolls ? power.rolls : ([] as DiceRoll[]);
+
+    // Get custom effects from power if it has them
+    const powerCustomEffects =
+      'customEffects' in power && power.customEffects
+        ? power.customEffects
+        : ([] as CustomEffect[]);
+
+    const settingsBadgeCount = powerRolls.length + powerCustomEffects.length;
 
     return (
       <Accordion expanded={isExpanded} onChange={handleToggle}>
@@ -150,7 +196,13 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
             },
           }}
         >
-          <Stack direction='row' alignItems='center' spacing={0.5}>
+          <Stack
+            direction='row'
+            spacing={0.5}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             {powerRolls.length > 0 ? (
               <Box onClick={(e) => e.stopPropagation()}>
                 <RollButton
@@ -186,6 +238,9 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
                 </IconButton>
               </Box>
             )}
+            {headerActionSlot && (
+              <Box onClick={(e) => e.stopPropagation()}>{headerActionSlot}</Box>
+            )}
           </Stack>
           <Typography sx={{ color: 'text.secondary' }}>{type}</Typography>
         </AccordionSummary>
@@ -194,34 +249,56 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
               <IconButton
                 size='small'
-                onClick={handleOpenRollsDialog}
-                title='Configurar rolagens'
+                onClick={handleOpenSettingsDialog}
+                title='Configurar rolagens e efeitos'
               >
                 <Badge
-                  badgeContent={powerRolls.length}
+                  badgeContent={settingsBadgeCount}
                   color='primary'
-                  invisible={powerRolls.length === 0}
+                  invisible={settingsBadgeCount === 0}
                 >
                   <SettingsIcon fontSize='small' />
                 </Badge>
               </IconButton>
             </Box>
           )}
+          {selectedWeapons.length > 0 && (
+            <Typography
+              variant='caption'
+              color='primary'
+              sx={{ display: 'block', mb: 1, fontWeight: 'bold' }}
+            >
+              {selectedWeapons.length > 1
+                ? 'Armas escolhidas: '
+                : 'Arma escolhida: '}
+              {selectedWeapons.join(', ')}
+            </Typography>
+          )}
           {generateClassPowerDiv(power as ClassPower)}
           {generateGeneralPowerDiv(power as RaceAbility)}
           <div style={{ paddingTop: '16px' }}>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Vindo de: {powerSources || 'Origem não identificada'}
             </Typography>
           </div>
         </AccordionDetails>
-        {onUpdateRolls && (
-          <RollsEditDialog
-            open={rollsDialogOpen}
-            onClose={handleCloseRollsDialog}
+        {onUpdateRolls && sheet && (
+          <PowerSettingsDialog
+            open={settingsDialogOpen}
+            onClose={handleCloseSettingsDialog}
+            title={`Configurações: ${power.name}`}
+            powerName={power.name}
+            className={className}
             rolls={powerRolls}
-            onSave={handleSaveRolls}
-            title={`Rolagens: ${power.name}`}
+            customEffects={powerCustomEffects}
+            sheet={sheet}
+            onRollsChange={handleSaveRolls}
+            onCustomEffectsChange={handleSaveCustomEffects}
           />
         )}
       </Accordion>

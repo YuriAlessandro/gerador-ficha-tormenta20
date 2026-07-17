@@ -19,8 +19,11 @@ const SupplementFilter: React.FC<SupplementFilterProps> = ({
   <Box sx={{ mb: 3, textAlign: 'center' }}>
     <Typography
       variant='body2'
-      color='text.secondary'
-      sx={{ mb: 1, fontFamily: 'Tfont, serif' }}
+      sx={{
+        color: 'text.secondary',
+        mb: 1,
+        fontFamily: 'Tfont, serif',
+      }}
     >
       Filtrar por Suplemento:
     </Typography>

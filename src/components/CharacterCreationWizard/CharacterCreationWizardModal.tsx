@@ -18,7 +18,7 @@ import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race, { AttributeVariant } from '@/interfaces/Race';
 import { ClassDescription, SpellPath } from '@/interfaces/Class';
-import { allSpellSchools } from '@/interfaces/Spells';
+import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
 import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
@@ -29,14 +29,23 @@ import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/r
 
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
-import { getInitialMoneyWithDetails } from '@/functions/general';
+import {
+  buildClassEquipmentsFromChoices,
+  convertOriginItemsToBagEquipments,
+  getEffectiveRaceAttrs,
+  getInitialMoneyWithDetails,
+  isClassOrVariantOf,
+  raceHasSexDimorphism,
+  resolveSexForAttributes,
+} from '@/functions/general';
+import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
+import { rollAttributePool } from '@/functions/attributeMethods';
 import {
   getClassBaseSkillsWithChoices,
   expandOficioInBasicas,
 } from '@/data/systems/tormenta20/pericias';
 import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
-import { BagEquipments, DefenseEquipment } from '@/interfaces/Equipment';
-import { Armaduras, Escudos } from '@/data/systems/tormenta20/equipamentos';
+import Equipment, { BagEquipments } from '@/interfaces/Equipment';
 import { alchemyItems as coreAlchemyItems } from '@/data/systems/tormenta20/equipamentos-gerais';
 import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
@@ -56,7 +65,9 @@ import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelection
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
 import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
+import ClassEquipmentStep from './steps/ClassEquipmentStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
+import MoreauSapienciaSpellStep from './steps/MoreauSapienciaSpellStep';
 import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
 import PropositoCriacaoStep from './steps/PropositoCriacaoStep';
 import CompanionCreationStep from './steps/CompanionCreationStep';
@@ -116,6 +127,10 @@ const CharacterCreationWizardModal: React.FC<
   // Extract old race name for Osteon/Soterrado Memória Póstuma (used as dependency)
   const memoriaPostumaOldRace =
     selections.powerEffectSelections?.['Memória Póstuma']?.osteonOldRace;
+
+  // Extract old race name for Yidishan Natureza Orgânica (used as dependency)
+  const yidishanNaturezaOldRace =
+    selections.powerEffectSelections?.['Natureza Orgânica']?.yidishanOldRace;
 
   // Get race and apply customization if provided
   const race: Race | undefined = useMemo(() => {
@@ -187,12 +202,24 @@ const CharacterCreationWizardModal: React.FC<
       }
     }
 
+    // Apply Yidishan old race from Natureza Orgânica selections
+    if (yidishanNaturezaOldRace && baseRace.name === 'Yidishan') {
+      const allRaces = dataRegistry.getRacesBySupplements(supplements);
+      const oldRaceObj = allRaces.find(
+        (r) => r.name === yidishanNaturezaOldRace
+      );
+      if (oldRaceObj) {
+        baseRace = { ...baseRace, oldRace: { ...oldRaceObj } };
+      }
+    }
+
     return baseRace;
   }, [
     selectedOptions.raca,
     supplements,
     raceCustomization,
     memoriaPostumaOldRace,
+    yidishanNaturezaOldRace,
   ]);
 
   // Memoize classe to prevent infinite re-renders (used as useEffect dependency)
@@ -224,7 +251,15 @@ const CharacterCreationWizardModal: React.FC<
         selectedOptions.devocao.value as keyof typeof DivindadeEnum
       ];
 
-    if (!baseDeity) return null;
+    if (!baseDeity) {
+      // Divindade homebrew: o value é o NOME (não há chave no enum).
+      return (
+        dataRegistry.getDeityByName(
+          selectedOptions.devocao.value,
+          supplements
+        ) || null
+      );
+    }
 
     // Get the deity with supplement powers from registry
     const deityWithPowers = dataRegistry.getDeityByName(
@@ -235,6 +270,12 @@ const CharacterCreationWizardModal: React.FC<
     return deityWithPowers || baseDeity;
   }, [selectedOptions.devocao?.value, supplements]);
 
+  // Sexo efetivo para atributos raciais (dimorfismo sexual, ex: Nagah)
+  const sexForAttributes = resolveSexForAttributes(
+    selections.characterGender,
+    selections.dimorphismChoice
+  );
+
   // Helper to calculate intelligence modifier (including racial modifiers)
   const getIntelligenceModifier = (): number => {
     if (!selections.baseAttributes || !race) return 0;
@@ -243,9 +284,10 @@ const CharacterCreationWizardModal: React.FC<
 
     // Add racial modifier for Intelligence
     let racialModifier = 0;
+    const raceAttrs = getEffectiveRaceAttrs(race, sexForAttributes);
 
     // Count fixed modifiers for INT
-    race.attributes.attrs.forEach((attr) => {
+    raceAttrs.forEach((attr) => {
       if (attr.attr === Atributo.INTELIGENCIA) {
         racialModifier += attr.mod;
       }
@@ -254,7 +296,7 @@ const CharacterCreationWizardModal: React.FC<
     // For 'any' attributes: add the bonus only if INT was selected
     // and only once (using the mod from the first 'any' found)
     if (selections.raceAttributes?.includes(Atributo.INTELIGENCIA)) {
-      const anyAttr = race.attributes.attrs.find((attr) => attr.attr === 'any');
+      const anyAttr = raceAttrs.find((attr) => attr.attr === 'any');
       if (anyAttr) {
         racialModifier += anyAttr.mod;
       }
@@ -280,7 +322,9 @@ const CharacterCreationWizardModal: React.FC<
   const needsRaceAttributes = (): boolean => {
     if (!race) return false;
     // If variant is selected, use variant's attrs, otherwise use race's attrs
-    const attrs = selections.attributeVariant?.attrs || race.attributes.attrs;
+    const attrs =
+      selections.attributeVariant?.attrs ||
+      getEffectiveRaceAttrs(race, sexForAttributes);
     return attrs.some((attr) => attr.attr === 'any');
   };
 
@@ -361,7 +405,27 @@ const CharacterCreationWizardModal: React.FC<
     if (!classe) return false;
     // Bardo e Druida precisam escolher 3 escolas de magia
     // Eles têm setup() que randomiza as escolas, mas no wizard queremos escolha manual
-    return classe.name === 'Bardo' || classe.name === 'Druida';
+    // Ciente de variantes: Magimarcialista (variante de Bardo) etc. herdam o comportamento
+    // Classes homebrew declaram a escolha via spellPath.schoolChoice
+    return (
+      isClassOrVariantOf(classe, 'Bardo') ||
+      isClassOrVariantOf(classe, 'Druida') ||
+      !!classe.spellPath?.schoolChoice
+    );
+  };
+
+  // Configuração da escolha de escolas: declarada no spellPath (homebrew) ou
+  // o padrão de Bardo/Druida (3 escolas dentre todas)
+  const getSchoolChoiceConfig = (): {
+    count: number;
+    available: SpellSchool[];
+  } => {
+    const choice = classe?.spellPath?.schoolChoice;
+    if (choice) {
+      const available = choice.available ?? allSpellSchools;
+      return { count: Math.min(choice.count, available.length), available };
+    }
+    return { count: 3, available: allSpellSchools };
   };
 
   const needsInitialSpellSelection = (): boolean => {
@@ -370,13 +434,13 @@ const CharacterCreationWizardModal: React.FC<
     if (classe.spellPath) {
       return classe.spellPath.initialSpells > 0;
     }
-    // Classes que lançam magias sem spellPath explícito
+    // Classes que lançam magias sem spellPath explícito (ciente de variantes)
     return (
-      classe.name === 'Arcanista' ||
-      classe.name === 'Bardo' ||
-      classe.name === 'Druida' ||
-      classe.name === 'Clérigo' ||
-      classe.name === 'Frade'
+      isClassOrVariantOf(classe, 'Arcanista') ||
+      isClassOrVariantOf(classe, 'Bardo') ||
+      isClassOrVariantOf(classe, 'Druida') ||
+      isClassOrVariantOf(classe, 'Clérigo') ||
+      isClassOrVariantOf(classe, 'Frade')
     );
   };
 
@@ -398,6 +462,13 @@ const CharacterCreationWizardModal: React.FC<
   const needsQareenElementSelection = (): boolean => {
     if (!race) return false;
     return race.name === 'Qareen';
+  };
+
+  const needsMoreauSapienciaSelection = (): boolean => {
+    if (!race) return false;
+    return (
+      race.name === 'Moreau' && raceCustomization?.moreauHeritage === 'Coruja'
+    );
   };
 
   // Check if the class has an addAlchemyItems action at level 1
@@ -472,25 +543,29 @@ const CharacterCreationWizardModal: React.FC<
         Feiticeiro: 3,
       };
 
-      // Linhagem Abençoada: include divine spells from all schools
-      const includeDivineSchools =
+      // Linhagem Abençoada: include divine spells from all schools and grant
+      // one extra spell (the divine spell), for a total of 4 at level 1.
+      const isFeiticeiroAbencoado =
         selections.arcanistaSubtype === 'Feiticeiro' &&
-        selections.feiticeiroLinhagem === 'Linhagem Abençoada'
-          ? allSpellSchools
-          : undefined;
+        selections.feiticeiroLinhagem === 'Linhagem Abençoada';
+      const includeDivineSchools = isFeiticeiroAbencoado
+        ? allSpellSchools
+        : undefined;
 
       result = {
         spellType: 'Arcane',
-        initialSpells: initialSpellsBySubtype[selections.arcanistaSubtype],
+        initialSpells: isFeiticeiroAbencoado
+          ? 4
+          : initialSpellsBySubtype[selections.arcanistaSubtype],
         includeDivineSchools,
       };
-    } else if (classe.name === 'Bardo') {
+    } else if (isClassOrVariantOf(classe, 'Bardo')) {
       result = { spellType: 'Arcane', initialSpells: 2 };
-    } else if (classe.name === 'Druida') {
+    } else if (isClassOrVariantOf(classe, 'Druida')) {
       result = { spellType: 'Divine', initialSpells: 2 };
-    } else if (classe.name === 'Clérigo') {
+    } else if (isClassOrVariantOf(classe, 'Clérigo')) {
       result = { spellType: 'Divine', initialSpells: 3 };
-    } else if (classe.name === 'Frade') {
+    } else if (isClassOrVariantOf(classe, 'Frade')) {
       result = { spellType: 'Divine', initialSpells: 3 };
     }
 
@@ -517,6 +592,7 @@ const CharacterCreationWizardModal: React.FC<
     stepsArray.push('Valores dos Atributos');
     if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
     if (needsQareenElementSelection()) stepsArray.push('Elemento do Qareen');
+    if (needsMoreauSapienciaSelection()) stepsArray.push('Magia da Sapiência');
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
     if (needsAlchemyItemSelection()) stepsArray.push('Itens Alquímicos');
@@ -534,6 +610,7 @@ const CharacterCreationWizardModal: React.FC<
     if (needsClassPowers()) stepsArray.push('Poderes da Classe');
     if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
     if (needsCompanionCreation()) stepsArray.push('Melhor Amigo');
+    if (classe) stepsArray.push('Equipamento Inicial');
     stepsArray.push('Mercado'); // Always show as final step
     return stepsArray;
   };
@@ -601,6 +678,18 @@ const CharacterCreationWizardModal: React.FC<
     }
   }, [origin?.name]);
 
+  // Clear class equipment and market selections when class changes
+  // (avoids stale equipment from the previous class)
+  useEffect(() => {
+    if (selections.classEquipment || selections.marketSelections) {
+      setSelections((prev) => ({
+        ...prev,
+        classEquipment: undefined,
+        marketSelections: undefined,
+      }));
+    }
+  }, [classe?.name]);
+
   // Helper function to get all skills already selected in previous steps
   const getAllUsedSkills = (): Skill[] => {
     const skills: Skill[] = [];
@@ -646,41 +735,19 @@ const CharacterCreationWizardModal: React.FC<
       Serviço: [],
     };
 
-    // Add origin items (for regional origins)
-    if (currentOrigin?.isRegional) {
-      const originItems = currentOrigin.getItems();
-      originItems?.forEach((equip) => {
-        if (typeof equip.equipment === 'string') {
-          bag['Item Geral'].push({
-            nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-            group: 'Item Geral',
-          });
-        } else if (equip.equipment) {
-          const equipValue = equip.equipment;
-          // Check if it's an armor
-          if (
-            Object.values(Armaduras).find(
-              (armor) => armor.nome === equipValue.nome
-            )
-          ) {
-            bag.Armadura.push(equipValue as DefenseEquipment);
-          }
-          // Check if it's a shield
-          else if (
-            Object.values(Escudos).find(
-              (shield) => shield.nome === equipValue.nome
-            )
-          ) {
-            bag.Escudo.push(equipValue as DefenseEquipment);
-          }
-          // Otherwise it's a weapon or general item
-          else if (equipValue.group === 'Arma') {
-            bag.Arma.push(equipValue);
-          } else {
-            bag['Item Geral'].push(equipValue);
-          }
+    const mergeIntoBag = (partial: Partial<BagEquipments>) => {
+      Object.entries(partial).forEach(([group, items]) => {
+        if (items) {
+          (bag[group as keyof BagEquipments] as Equipment[]).push(
+            ...(items as Equipment[])
+          );
         }
       });
+    };
+
+    // Add origin items (for regional origins)
+    if (currentOrigin?.isRegional) {
+      mergeIntoBag(convertOriginItemsToBagEquipments(currentOrigin.getItems()));
     }
 
     // Add items from non-regional origin benefits if selected as 'item' type
@@ -699,16 +766,23 @@ const CharacterCreationWizardModal: React.FC<
             return itemName === benefit.name;
           });
           if (item) {
-            if (typeof item.equipment === 'string') {
-              bag['Item Geral'].push({
-                nome: `${item.qtd ? `${item.qtd}x ` : ''}${item.equipment}`,
-                group: 'Item Geral',
-              });
-            } else {
-              bag['Item Geral'].push(item.equipment);
-            }
+            mergeIntoBag(convertOriginItemsToBagEquipments([item]));
           }
         });
+    }
+
+    // Add class starting equipment chosen in the "Equipamento Inicial" step
+    if (classe && currentSelections.classEquipment) {
+      const classEquipments = buildClassEquipmentsFromChoices(
+        classe,
+        currentSelections.classEquipment
+      );
+      mergeIntoBag({
+        ...classEquipments,
+        // Se a origem já concedeu armadura, não adicionar outra (mesmo dedup
+        // de getArmors no fluxo aleatório)
+        Armadura: bag.Armadura.length > 0 ? [] : classEquipments.Armadura,
+      });
     }
 
     // Add alchemy items from Laboratório Pessoal if selected
@@ -743,6 +817,7 @@ const CharacterCreationWizardModal: React.FC<
               name: selections.characterName,
               gender: selections.characterGender,
               imageUrl: selections.characterImageUrl,
+              dimorphismChoice: selections.dimorphismChoice,
             }}
             onChange={(info) =>
               setSelections({
@@ -750,32 +825,70 @@ const CharacterCreationWizardModal: React.FC<
                 characterName: info.name,
                 characterGender: info.gender,
                 characterImageUrl: info.imageUrl,
+                dimorphismChoice: info.dimorphismChoice,
               })
             }
             raceName={selectedOptions.raca}
+            race={race}
             supplements={supplements}
           />
         );
 
       case 'Valores dos Atributos': {
         if (!race) return null;
+        const zeroedAttributes: Record<Atributo, number> = {
+          [Atributo.FORCA]: 0,
+          [Atributo.DESTREZA]: 0,
+          [Atributo.CONSTITUICAO]: 0,
+          [Atributo.INTELIGENCIA]: 0,
+          [Atributo.SABEDORIA]: 0,
+          [Atributo.CARISMA]: 0,
+        };
+        const attributeOrder = Object.values(Atributo);
         return (
           <AttributeBaseValuesStep
             race={race}
-            baseAttributes={
-              selections.baseAttributes || {
-                [Atributo.FORCA]: 0,
-                [Atributo.DESTREZA]: 0,
-                [Atributo.CONSTITUICAO]: 0,
-                [Atributo.INTELIGENCIA]: 0,
-                [Atributo.SABEDORIA]: 0,
-                [Atributo.CARISMA]: 0,
-              }
-            }
+            sexForAttributes={sexForAttributes}
+            baseAttributes={selections.baseAttributes || zeroedAttributes}
             raceAttributeChoices={selections.raceAttributes}
+            method={selections.attributeMethod || 'free'}
+            dicePool={selections.attributeDicePool}
+            diceAssignment={selections.attributeDiceAssignment}
             onChange={(attrs) =>
               setSelections({ ...selections, baseAttributes: attrs })
             }
+            onMethodChange={(method) =>
+              setSelections({
+                ...selections,
+                attributeMethod: method,
+                baseAttributes: { ...zeroedAttributes },
+                attributeDicePool: undefined,
+                attributeDiceAssignment: undefined,
+              })
+            }
+            onRoll={() =>
+              setSelections({
+                ...selections,
+                attributeDicePool: rollAttributePool(),
+                attributeDiceAssignment: attributeOrder.map(() => null),
+                baseAttributes: { ...zeroedAttributes },
+              })
+            }
+            onDiceAssignmentChange={(assignment) => {
+              const newBase: Record<Atributo, number> = { ...zeroedAttributes };
+              attributeOrder.forEach((attr, i) => {
+                const poolIndex = assignment[i];
+                newBase[attr] =
+                  poolIndex !== null && poolIndex !== undefined
+                    ? selections.attributeDicePool?.[poolIndex] ?? 0
+                    : 0;
+              });
+              setSelections({
+                ...selections,
+                attributeDiceAssignment: assignment,
+                baseAttributes: newBase,
+              });
+            }}
           />
         );
       }
@@ -834,6 +947,16 @@ const CharacterCreationWizardModal: React.FC<
             selectedElement={selections.qareenElement}
             onChange={(element) =>
               setSelections({ ...selections, qareenElement: element })
+            }
+          />
+        );
+
+      case 'Magia da Sapiência':
+        return (
+          <MoreauSapienciaSpellStep
+            selectedSpell={selections.moreauSapienciaSpell}
+            onChange={(spellName) =>
+              setSelections({ ...selections, moreauSapienciaSpell: spellName })
             }
           />
         );
@@ -937,6 +1060,7 @@ const CharacterCreationWizardModal: React.FC<
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
             race={race}
+            sexForAttributes={sexForAttributes}
             classe={classe}
           />
         );
@@ -951,6 +1075,7 @@ const CharacterCreationWizardModal: React.FC<
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
             race={race}
+            sexForAttributes={sexForAttributes}
             classe={classe}
             usedSkills={getAllUsedSkills()}
             supplements={supplements}
@@ -1051,13 +1176,15 @@ const CharacterCreationWizardModal: React.FC<
       case 'Escolas de Magia': {
         const spellInfo = getSpellInfo();
         if (!spellInfo) return null;
+        const schoolConfig = getSchoolChoiceConfig();
         return (
           <SpellSchoolSelectionStep
             selectedSchools={selections.spellSchools || []}
             onChange={(schools) =>
               setSelections({ ...selections, spellSchools: schools })
             }
-            requiredCount={3}
+            requiredCount={schoolConfig.count}
+            availableSchools={schoolConfig.available}
             className={classe?.name || ''}
             spellType={spellInfo.spellType}
           />
@@ -1154,6 +1281,18 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
+      case 'Equipamento Inicial':
+        if (!classe) return null;
+        return (
+          <ClassEquipmentStep
+            classe={classe}
+            selections={selections.classEquipment}
+            onChange={(classEquipment) =>
+              setSelections((prev) => ({ ...prev, classEquipment }))
+            }
+          />
+        );
+
       case 'Mercado': {
         // Calculate initial money
         const moneyInfo = getInitialMoneyWithDetails(
@@ -1203,14 +1342,26 @@ const CharacterCreationWizardModal: React.FC<
 
     switch (stepName) {
       case 'Informações Básicas':
-        // Require at least a name
+        // Require at least a name (and the racial attribute set choice for
+        // sex-dimorphic races when gender is 'Outro')
         return (
           !!selections.characterName &&
-          selections.characterName.trim().length > 0
+          selections.characterName.trim().length > 0 &&
+          (!race ||
+            !raceHasSexDimorphism(race) ||
+            selections.characterGender !== 'Outro' ||
+            !!selections.dimorphismChoice)
         );
 
       case 'Valores dos Atributos':
-        // Always allow - player can set any values
+        // Método 'dice' exige que todos os 6 valores rolados sejam distribuídos.
+        // 'free' e 'points' liberam o avanço sempre (a UI de pontos impede saldo negativo).
+        if (selections.attributeMethod === 'dice') {
+          const assignment = selections.attributeDiceAssignment;
+          const pool = selections.attributeDicePool;
+          if (!pool || pool.length === 0 || !assignment) return false;
+          return assignment.every((idx) => idx !== null && idx !== undefined);
+        }
         return true;
 
       case 'Variante de Atributos':
@@ -1221,7 +1372,8 @@ const CharacterCreationWizardModal: React.FC<
         if (!race) return false;
         // Use variant's attrs if selected, otherwise use race's default attrs
         const attrs =
-          selections.attributeVariant?.attrs || race.attributes.attrs;
+          selections.attributeVariant?.attrs ||
+          getEffectiveRaceAttrs(race, sexForAttributes);
         const attrCount = attrs.filter((a) => a.attr === 'any').length;
         return (
           selections.raceAttributes?.length === attrCount &&
@@ -1235,6 +1387,9 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Elemento do Qareen':
         return selections.qareenElement !== undefined;
+
+      case 'Magia da Sapiência':
+        return !!selections.moreauSapienciaSpell;
 
       case 'Perícias da Classe': {
         if (!classe) return false;
@@ -1308,7 +1463,9 @@ const CharacterCreationWizardModal: React.FC<
         return selections.feiticeiroLinhagem !== undefined;
 
       case 'Escolas de Magia':
-        return selections.spellSchools?.length === 3;
+        return (
+          selections.spellSchools?.length === getSchoolChoiceConfig().count
+        );
 
       case 'Magias Iniciais': {
         const spellInfo = getSpellInfo();
@@ -1399,6 +1556,7 @@ const CharacterCreationWizardModal: React.FC<
             case 'addProficiency':
               return powerSelections.proficiencies?.length || 0;
             case 'getGeneralPower':
+            case 'getClassPower':
               return powerSelections.powers?.length || 0;
             case 'learnSpell':
             case 'learnAnySpellFromHighestCircle':
@@ -1442,6 +1600,20 @@ const CharacterCreationWizardModal: React.FC<
               const mpPowerCount = powerSelections.powers?.length || 0;
               const mpAbilityCount = powerSelections.raceAbilities?.length || 0;
               if (mpSkillCount >= 1 || mpPowerCount >= 1 || mpAbilityCount >= 1)
+                return 1;
+              return 0;
+            }
+            case 'yidishanNaturezaOrganica': {
+              // For Natureza Orgânica: need 1 skill OR 1 power OR 1 race ability
+              const ynoSkillCount = powerSelections.skills?.length || 0;
+              const ynoPowerCount = powerSelections.powers?.length || 0;
+              const ynoAbilityCount =
+                powerSelections.raceAbilities?.length || 0;
+              if (
+                ynoSkillCount >= 1 ||
+                ynoPowerCount >= 1 ||
+                ynoAbilityCount >= 1
+              )
                 return 1;
               return 0;
             }
@@ -1509,6 +1681,24 @@ const CharacterCreationWizardModal: React.FC<
           hasTricks &&
           hasSpiritEnergy
         );
+      }
+
+      case 'Equipamento Inicial': {
+        if (!classe) return true;
+        const eq = selections.classEquipment;
+        if (!eq?.simpleWeapon) return false;
+        if (
+          classe.proficiencias.includes(PROFICIENCIAS.MARCIAIS) &&
+          !eq.martialWeapon
+        ) {
+          return false;
+        }
+        const needsLightArmor =
+          !classe.proficiencias.includes(PROFICIENCIAS.PESADAS) &&
+          classe.name !== 'Arcanista';
+        if (needsLightArmor && !eq.armor) return false;
+        if (isClassOrVariantOf(classe, 'Bardo') && !eq.instrument) return false;
+        return true;
       }
 
       case 'Mercado':
@@ -1592,15 +1782,23 @@ const CharacterCreationWizardModal: React.FC<
         onClose={handleCloseAttempt}
         maxWidth='md'
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minHeight: '500px',
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2,
+              minHeight: '500px',
+            },
           },
         }}
       >
         <DialogTitle>
-          <Typography variant='h5' component='div' fontWeight='bold'>
+          <Typography
+            variant='h5'
+            component='div'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             Criação Manual de Personagem
           </Typography>
         </DialogTitle>
@@ -1664,7 +1862,6 @@ const CharacterCreationWizardModal: React.FC<
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Confirmation Dialog */}
       <Dialog
         open={confirmCloseOpen}

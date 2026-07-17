@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            20/04/2026.
+            12/07/2026 (v4.25.1).
           </p>
 
           <p>
@@ -64,11 +64,3139 @@ const Changelog: React.FC = () => {
                 '& .MuiSvgIcon-root': { color: 'primary.contrastText' },
               }}
             >
-              <Typography variant='h6' fontWeight='bold'>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 Versão 4 (Atual)
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.25.1</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> O editor de item da Mochila ganhou o
+                  campo <strong>Categoria de proficiência</strong> (aba
+                  Estatísticas): dá para mudar a categoria de qualquer arma —
+                  ex.: tornar um Tridente &quot;Simples&quot; para o seu
+                  personagem — e a opção &quot;Padrão&quot; mostra e restaura a
+                  categoria original do catálogo.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Proficiência em arma específica</strong>: adicionar o
+                  nome exato de uma arma no editor de proficiências (ex.:
+                  &quot;Katana&quot;) agora concede proficiência apenas com ela,
+                  sem precisar da categoria inteira — o –5 não é aplicado. O
+                  editor mostra uma dica explicando o recurso.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes e habilidades que tornam
+                  armas específicas <strong>armas simples para você</strong>{' '}
+                  agora concedem as proficiências correspondentes (nada de –5
+                  indevido): <strong>Mestre do Tridente</strong> (Sereia),{' '}
+                  <strong>Tradição de Heredrimm</strong> (Anão),{' '}
+                  <strong>Arquearia Élfica</strong>,{' '}
+                  <strong>Tradição de Lin-Wu</strong> e{' '}
+                  <strong>Pirata Oceânico</strong>. As proficiências aparecem
+                  como chips na ficha e podem ser removidas manualmente. O{' '}
+                  <strong>Arsenal Oceano</strong> (Elfo-do-Mar), que já concedia
+                  proficiência em arpão, rede e tridente, agora é reconhecido
+                  pela checagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O +2 em ataques da{' '}
+                  <strong>Tradição de Heredrimm</strong> agora cobre a{' '}
+                  <strong>Marreta</strong> e os martelos/machados do Heróis de
+                  Arton (Martelo leve, Martelo longo, Malho, Bico de corvo,
+                  Marrão e Machado de haste) — a marcação de arma anã faltava
+                  nesses itens.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O +2 nas rolagens de dano com arcos
+                  da <strong>Arquearia Élfica</strong> agora é aplicado
+                  automaticamente (antes o poder era apenas descritivo).
+                </li>
+              </ul>
+              <h3>4.25</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Classes conjuradoras de{' '}
+                  <strong>homebrew</strong> agora podem configurar o{' '}
+                  <strong>acesso às escolas de magia</strong>. No editor de
+                  classe, escolha entre três modos: <strong>todas</strong> as
+                  escolas, um conjunto de <strong>escolas fixas</strong>, ou{' '}
+                  <strong>escolha do jogador</strong> (como o Bardo) — definindo
+                  quantas escolas podem ser escolhidas e quais estão
+                  disponíveis. A escolha aparece no assistente de criação de
+                  ficha e ao multiclassear na evolução de nível; fichas geradas
+                  aleatoriamente sorteiam as escolas automaticamente.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Rotas no Mapa de Arton</strong>
+                  , para todo mundo: trace rotas entre cidades, locais
+                  customizados e a posição do grupo, com distância em km e{' '}
+                  <strong>tempo de viagem</strong> calculado pela tabela de
+                  deslocamento do Tormenta 20 (escolhendo o deslocamento do
+                  membro mais lento do grupo, levando montarias em conta).
+                  Disponível na página pública do mapa e na mesa virtual, para
+                  Mestres e jogadores.
+                </li>
+                <li>
+                  <strong>Novo:</strong> As rotas oferecem{' '}
+                  <strong>caminhos alternativos</strong> — incluindo, quando
+                  possível, uma opção <strong>pelo mar</strong> para grupos que
+                  preferem navegar — sempre indicando se o trajeto é todo por
+                  terra ou inclui embarcação (Barcaça, Biga de Guerra, Jangada
+                  ou Veleiro, cada uma com sua velocidade).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Estradas podem ter{' '}
+                  <strong>condições especiais</strong>, destacadas na rota e
+                  explicadas no painel: <strong>terreno difícil</strong>{' '}
+                  (amarelo, metade da distância por dia),{' '}
+                  <strong>zona de Tormenta</strong> (vermelho) e{' '}
+                  <strong>estrada em guerra</strong> (laranja).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Ajustes do Mestre em tempo real na
+                  rota: ative <strong>terreno difícil/clima hostil</strong> para
+                  a viagem inteira ou marque trechos específicos clicando sobre
+                  a rota (inclusive os trechos fora das estradas), reduzindo a
+                  distância diária pela metade nos pedaços afetados.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Botão <strong>Rotas</strong> na busca
+                  de cidades e nos cards dos locais do Mapa de Arton, e{' '}
+                  <strong>Rotas daqui</strong> na posição do grupo e nos
+                  pins/marcadores customizados.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Passo{' '}
+                  <strong>Equipamento Inicial</strong> na criação customizada de
+                  ficha: escolha a arma simples, a arma marcial (se a classe for
+                  proficiente), a armadura leve e o instrumento do Bardo, em vez
+                  de partir de uma mochila vazia. Itens automáticos (como Brunea
+                  e Escudo Leve) são exibidos no passo.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Penalidade por não proficiência</strong> em armas:
+                  atacar com uma arma marcial, exótica ou de fogo sem a
+                  proficiência correspondente agora aplica automaticamente o{' '}
+                  <strong>–5 nos testes de ataque</strong> (regra do livro
+                  básico) — no bônus exibido na ficha, nas rolagens, no preview
+                  dos modos de ataque e no PDF exportado. A arma fica{' '}
+                  <strong>destacada em âmbar</strong> na ficha, com uma legenda
+                  explicando a penalidade. Armas simples nunca penalizam, e{' '}
+                  <strong>Armas Marciais de Distância</strong> cobre as marciais
+                  com alcance ou arremesso. Itens customizados podem definir a
+                  categoria de proficiência no formulário (sem categoria, não há
+                  penalidade).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Vestir uma <strong>armadura</strong> ou
+                  empunhar um <strong>escudo</strong> sem proficiência agora
+                  estende a <strong>penalidade de armadura</strong> a todas as
+                  perícias baseadas em <strong>Força e Destreza</strong>{' '}
+                  (incluindo Luta e Pontaria), como manda a regra — o item fica{' '}
+                  <strong>destacado em âmbar</strong> na ficha, com uma legenda
+                  explicando a penalidade. Editar as proficiências da ficha
+                  atualiza as penalidades na hora.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Materiais especiais</strong> do
+                  Bazar Monstruoso (<strong>Ameaças de Arton</strong>, cap. 3)
+                  no editor de modificações de itens — como casco de monstro e
+                  couraça de kaiju — além da melhoria de arma{' '}
+                  <strong>Penetrante</strong>. Disponíveis com o suplemento
+                  ativo; efeitos numéricos são aplicados automaticamente na
+                  ficha.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Nos encontros da mesa virtual, ameaças
+                  agora podem ter <strong>PV e PM temporários</strong> acima do
+                  total, como as fichas de jogadores: o mestre edita os valores
+                  pelo novo botão de lápis no card do combatente, e o dano
+                  consome os pontos temporários primeiro. O valor aparece em
+                  laranja (<strong>+N</strong>) ao lado do PV/PM, sem inflar a
+                  barra — e uma ameaça com 0 PV mas com PV temporário continua
+                  em combate.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A busca de cidades do Mapa de Arton
+                  foi reposicionada para o canto superior esquerdo, ao lado do
+                  seletor de mapa, com um card do local selecionado.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Tempos de viagem longos são
+                  exibidos em <strong>meses e dias</strong> (a partir de 60
+                  dias).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A camada de reinos é ocultada
+                  automaticamente ao traçar rotas no Mapa de Arton, voltando ao
+                  normal ao fechar a rota.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A seleção de{' '}
+                  <strong>truques do melhor amigo</strong> do{' '}
+                  <strong>Treinador</strong> agora mostra a lista completa de
+                  truques: os que não atendem aos pré-requisitos aparecem
+                  desabilitados com o motivo indicado (ex.:{' '}
+                  <strong>Amigão</strong> exige melhor amigo Grande e Treinador
+                  nível 7), em vez de ficarem ocultos como se não existissem.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao escolher{' '}
+                  <strong>Conquistar pelos Números</strong> no 5º nível de
+                  Treinador, o assistente de evolução agora abre o passo{' '}
+                  <strong>Segundo Melhor Amigo</strong> para você personalizar o
+                  novo parceiro (nome, tipo, tamanho, perícias e truques), como
+                  manda a regra — antes ele era gerado aleatoriamente. Truques
+                  de nível 5 (como Amigo Veterano) já podem ser escolhidos como
+                  iniciais do novo amigo.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao escolher{' '}
+                  <strong>Treino Intensivo</strong> no 5º nível de Treinador, os
+                  truques bônus dos níveis 5 e 11 agora aparecem na própria
+                  sessão de evolução — antes só apareciam evoluindo os níveis
+                  separadamente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Acertos críticos ficaram mais
+                  visíveis: o <strong>histórico de rolagens</strong> da mesa
+                  agora mostra um selo <strong>CRÍTICO</strong> (ou{' '}
+                  <strong>FALHA</strong>) em cada rolagem — inclusive nas
+                  rolagens dos outros jogadores — e, na tela de resultado, o
+                  dado que critou dentro da margem de ameaça (ex.: um 19 com
+                  Espada Longa) fica destacado em verde, não apenas o 20
+                  natural.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Com <strong>dados 3D</strong>{' '}
+                  ativados, ao sair um crítico os dados de dano adicionais agora{' '}
+                  <strong>caem na mesa</strong> em seguida, e o resultado é
+                  sempre calculado com os valores dos dados que você viu rolar.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os poderes{' '}
+                  <strong>Arqueiro</strong>, <strong>Esgrimista</strong> e{' '}
+                  <strong>Estilo de Disparo</strong> agora somam o atributo no{' '}
+                  <strong>dano</strong> automaticamente na ficha e nas rolagens:
+                  Arqueiro soma <strong>Sabedoria</strong> com armas à
+                  distância, Esgrimista soma <strong>Inteligência</strong> com
+                  armas corpo a corpo leves ou ágeis (ambos limitados pelo seu
+                  nível), e Estilo de Disparo soma <strong>Destreza</strong> com
+                  armas de disparo. Em armas de arremesso (como a adaga), o
+                  bônus é aplicado no modo correto — Arqueiro ao arremessar,
+                  Esgrimista no corpo a corpo. Fichas existentes recebem a
+                  automação ao serem carregadas.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os{' '}
+                  <strong>PV/PM temporários dos personagens</strong> agora
+                  aparecem no rastreador de combate da mesa virtual (em laranja,
+                  ao lado do valor atual), para o mestre e para os jogadores —
+                  respeitando as configurações de exibição de PV/PM da mesa.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Armas da Ambição</strong> (Valkaria) agora exibe o +1
+                  em testes de ataque nas perícias <strong>Luta</strong> e{' '}
+                  <strong>Pontaria</strong> — antes o bônus era somado
+                  silenciosamente ao ataque de cada arma, sem indicação de
+                  origem. O +1 na margem de ameaça continua aplicado nas armas e
+                  agora aparece no ícone de efeitos ao lado da arma. Fichas
+                  existentes são corrigidas automaticamente ao serem carregadas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A escolha de{' '}
+                  <strong>Treino Especializado</strong> (5º nível de Treinador)
+                  não pode mais ser pulada sem querer no assistente de evolução
+                  — antes, avançar sem escolher sorteava silenciosamente entre
+                  Conquistar pelos Números e Treino Intensivo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Truques do melhor amigo que só
+                  podem ser escolhidos uma vez não podem mais ser{' '}
+                  <strong>repetidos</strong> na evolução de nível — nem ao subir
+                  vários níveis de uma vez, nem ao combinar o truque automático
+                  do nível com o poder <strong>Ensinar Truque</strong>. Fichas
+                  já afetadas são corrigidas automaticamente ao serem
+                  carregadas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O truque <strong>Bote</strong> não
+                  fica mais indevidamente bloqueado para parceiros com duas ou
+                  mais armas naturais (como Monstros) na edição do melhor amigo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Com{' '}
+                  <strong>Conquistar pelos Números</strong>, o seletor de
+                  companheiro na escolha de truques não volta mais sozinho para
+                  o primeiro melhor amigo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao multiclassear para uma classe
+                  conjuradora de <strong>homebrew</strong> na evolução de nível,
+                  a conjuração da classe secundária agora é salva e restaurada
+                  corretamente ao recarregar a ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As sugestões de preenchimento
+                  automático do navegador não aparecem mais por cima da busca de
+                  cidades e dos campos de origem/destino do Mapa de Arton.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas criadas pela{' '}
+                  <strong>criação customizada</strong> agora recebem o{' '}
+                  <strong>equipamento inicial da classe</strong> e os{' '}
+                  <strong>itens e dinheiro extra da origem</strong> (incluindo
+                  origens regionais e o benefício de item das origens do
+                  básico), mesmo quando o passo do Mercado é atravessado sem
+                  nenhuma compra.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Agora é possível criar um{' '}
+                  <strong>Osteon</strong> (ou <strong>Yidishan</strong>) com{' '}
+                  <strong>Moreau</strong> como raça anterior: a escolha da
+                  habilidade de Memória Póstuma / Natureza Orgânica lista as
+                  habilidades de todas as heranças do Moreau identificadas pelo
+                  animal (ex.: <strong>Faro (Lobo)</strong>), em vez de travar o
+                  assistente com uma lista vazia. A geração aleatória também não
+                  quebra mais quando Moreau é sorteado como vida passada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os atributos raciais de{' '}
+                  <strong>dimorfismo sexual</strong> da <strong>Nagah</strong>{' '}
+                  agora respeitam o gênero escolhido na criação customizada:
+                  fichas femininas recebem Inteligência, Sabedoria e Carisma +1
+                  (antes sempre recebiam o conjunto masculino de Força, Destreza
+                  e Constituição). O gênero <strong>Outro</strong> agora permite
+                  escolher qual dos dois conjuntos usar, e as pré-visualizações
+                  de bônus e requisitos do assistente refletem o conjunto
+                  correto.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes concedidos por escolhas de
+                  habilidades raciais — <strong>Natureza Orgânica</strong>{' '}
+                  (Yidishan), <strong>Deformidade</strong> (Lefou),{' '}
+                  <strong>Memória Póstuma</strong> (Osteon) e{' '}
+                  <strong>Chassi</strong> (Mashin) — agora podem ser removidos
+                  da ficha pelo editor de poderes. Antes, a escolha armazenada
+                  era reaplicada a cada salvamento e o poder &quot;voltava&quot;
+                  sozinho (ex.: Membros Estendidos recebido via Natureza
+                  Orgânica). As perícias e demais benefícios da habilidade são
+                  preservados ao remover apenas o poder.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Bônus de poderes que{' '}
+                  <strong>exigem proficiência</strong> com a arma agora só se
+                  aplicam quando o personagem realmente sabe usá-la, e bônus com
+                  escopo por <strong>categoria de arma</strong> (ex.: de
+                  homebrews) passam a valer também para as armas do livro básico
+                  em fichas salvas antigas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Acertos críticos</strong>{' '}
+                  nas rolagens da plataforma voltaram a funcionar corretamente,
+                  para fichas de jogadores, ameaças e aliados. Com dados 3D
+                  ativados, armas com margem de ameaça ampliada (ex.: 19 ou 18)
+                  nunca exibiam o crítico, e o d20 mostrado na tela podia
+                  discordar do dano multiplicado (dano dobrado sem crítico
+                  aparente, ou um 20 natural sem dano dobrado). Agora o crítico
+                  é decidido pelo dado que aparece na tela, respeitando a margem
+                  de ameaça e o multiplicador da arma — e apenas os dados de
+                  dano da arma são multiplicados, nunca os bônus numéricos e
+                  dados extras (como manda a regra).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Armas sem valor de crítico
+                  cadastrado (ex.: itens customizados) agora acertam crítico no{' '}
+                  <strong>20 natural</strong> (20/x2), em vez de nunca critarem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A modificação{' '}
+                  <strong>Reforçada</strong> aplicava <strong>+2</strong> na
+                  Defesa e <strong>+2</strong> na penalidade de armadura na
+                  primeira vez em que era adicionada a um item; agora aplica
+                  corretamente <strong>+1 / +1</strong>. O mesmo problema
+                  afetava outras modificações numéricas de arma (como Certeira)
+                  na primeira aplicação.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A modificação{' '}
+                  <strong>Cravejada de gemas</strong> agora concede o{' '}
+                  <strong>+2 em Enganação</strong> na ficha ao ser aplicada a
+                  uma arma ou armadura pela mochila — antes o bônus era
+                  calculado mas não aparecia nas perícias até um recálculo
+                  posterior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Adicionar ou remover o encantamento{' '}
+                  <strong>Conjuradora</strong> por um item da mochila agora
+                  salva imediatamente a magia concedida na ficha.
+                </li>
+              </ul>
+              <h3>4.24</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Adicionada a modificação{' '}
+                  <strong>Macabro</strong> (+2 em Intimidação, -2 em Diplomacia)
+                  para itens superiores. Agora ela pode ser aplicada a armas,
+                  armaduras e escudos.
+                </li>
+                <li>
+                  <strong>Novo:</strong> No <strong>Escudo do Mestre</strong> da
+                  mesa virtual, agora é possível{' '}
+                  <strong>arrastar e soltar</strong> os painéis para
+                  reorganizá-los (no computador): arraste pela alça no cabeçalho
+                  do painel e solte em um espaço vazio para movê-lo, ou solte
+                  sobre outro painel para trocar os conteúdos de lugar — cada
+                  espaço mantém seu tamanho. Antes era preciso remover e recriar
+                  o painel para mudá-lo de posição.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Em{' '}
+                  <strong>Meus Personagens</strong>, criar uma nova ficha ou
+                  ameaça estando dentro de uma <strong>pasta</strong> agora
+                  salva a criação automaticamente nessa pasta — antes ela sempre
+                  ia para a raiz. Um aviso <strong>Salvando em</strong> indica a
+                  pasta de destino durante a criação.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao evoluir de nível, o poder{' '}
+                  <strong>Golpe Pessoal</strong> agora abre o construtor para
+                  você escolher a arma e os efeitos do ataque, em vez de gerar
+                  uma combinação aleatória automaticamente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As páginas do{' '}
+                  <strong>fórum</strong> agora têm SEO próprio: ao abrir um
+                  tópico, a aba do navegador mostra o título do tópico e os
+                  links compartilhados exibem título, descrição e imagem
+                  adequados, melhorando também a indexação em buscadores.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No <strong>Golpe Pessoal</strong>,
+                  o custo em PM do efeito <strong>Conjurador</strong> agora
+                  reflete o círculo da magia escolhida (2 PM para 1º círculo e 4
+                  PM para 2º círculo).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A página de{' '}
+                  <strong>Criar Nova Ficha</strong> foi redesenhada: os dois
+                  modos, <strong>Nova Ficha</strong> (passo a passo) e{' '}
+                  <strong>Ficha Aleatória</strong>, agora têm identidade visual
+                  própria, com um resumo do que esperar de cada um, e as
+                  transições ao escolher um modo ficaram mais suaves.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os{' '}
+                  <strong>suplementos ativos</strong> e os{' '}
+                  <strong>homebrews ativos</strong> agora ficam reunidos em um
+                  único painel recolhível de <strong>Conteúdo ativo</strong> no
+                  topo da criação de ficha, em vez de espalhados pela tela, com
+                  layout ajustado para telas de celular.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas recém-geradas agora já saem
+                  com a <strong>arma e o escudo empunhados</strong> e a armadura
+                  vestida. Antes as mãos ficavam vazias, e o{' '}
+                  <strong>bônus de Defesa do escudo</strong> só era somado
+                  depois que você abria a mochila e o empunhava manualmente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os poderes de origem{' '}
+                  <strong>Legionário</strong> e{' '}
+                  <strong>Desertor da Supremacia</strong> agora aplicam seus
+                  bônus condicionais de combate. Empunhando{' '}
+                  <strong>Gládio + Escudo Pesado</strong>, o Legionário recebe
+                  +1 na margem de ameaça do gládio e +1 na Defesa; empunhando{' '}
+                  <strong>Espada Bastarda + Escudo Pesado</strong>, o Desertor
+                  recebe +2 nos ataques com a espada bastarda. Antes o efeito
+                  não ativava mesmo com o equipamento correto.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A classe{' '}
+                  <strong>Magimarcialista</strong> (variante do Bardo) agora
+                  permite escolher as <strong>escolas de magia</strong> na
+                  criação de personagem, na evolução de nível e na multiclasse,
+                  assim como o Bardo — antes o passo de escolha das escolas não
+                  aparecia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Futura Lenda</strong> agora deixa você{' '}
+                  <strong>escolher</strong> qual poder de classe deseja receber,
+                  em vez de atribuir um poder aleatório automaticamente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas da raça{' '}
+                  <strong>Duende</strong> voltaram a ser editáveis: em{' '}
+                  <strong>Editar informações da ficha</strong>, o botão{' '}
+                  <strong>Salvar</strong> não fica mais permanentemente
+                  desabilitado (cinza), permitindo alterar atributos, raça,
+                  classe e demais informações normalmente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A lista de magias do efeito{' '}
+                  <strong>Conjurador</strong> do Golpe Pessoal agora mostra as
+                  magias corretas de 1º e 2º círculo (a{' '}
+                  <strong>Bola de Fogo</strong> voltou a aparecer), sem opções
+                  sem sentido, e com nomes que correspondem às magias reais do
+                  jogo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O construtor de Golpe Pessoal não
+                  fica mais travado quando o personagem ainda não tem armas no
+                  inventário (por exemplo, durante a criação): a lista de armas
+                  fica disponível e o botão de confirmar habilita normalmente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Efeitos de Golpe Pessoal vindos de
+                  suplementos (como <strong>Sequencial</strong> e{' '}
+                  <strong>Sifão</strong>, de Heróis de Arton) não são mais
+                  considerados inválidos ao montar o golpe.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido um erro que impedia
+                  salvar conteúdos <strong>homebrew</strong> (como raças) com
+                  habilidades que treinam perícias — a criação falhava com o
+                  erro <em>Request failed with status code 400</em>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os <strong>poderes de raça</strong>{' '}
+                  (como <strong>Glamour</strong>) agora aparecem na lista de
+                  Poderes Gerais ao subir de nível, para personagens que atendem
+                  ao requisito de raça (por exemplo, um Eiradaan, Duende ou
+                  Sílfide). Antes eles eram omitidos do assistente de evolução.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>perícias treinadas do melhor amigo</strong> do{' '}
+                  <strong>Treinador</strong> agora somam o bônus de treinamento
+                  (+2, +4 ou +6 conforme o nível), que antes ficava de fora — o
+                  parceiro exibia um total menor do que o correto.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao baixar a ficha em{' '}
+                  <strong>PDF</strong>, o <strong>dano</strong> das armas corpo
+                  a corpo agora inclui o modificador de atributo (por exemplo,{' '}
+                  <strong>2d6+4</strong>), exatamente como aparece na tela.
+                  Antes o PDF mostrava apenas os dados de dano sem o bônus (por
+                  exemplo, <strong>2d6</strong>).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em{' '}
+                  <strong>Meus Personagens</strong>, ao criar uma ficha ou
+                  ameaça estando dentro de uma pasta, a criação agora aparece na
+                  pasta imediatamente — antes era preciso recarregar a página
+                  para vê-la.
+                </li>
+              </ul>
+              <h3>4.23</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> A página de um homebrew que faz parte
+                  de uma <strong>coleção</strong> agora exibe um aviso com o
+                  nome da coleção e um link para abri-la inteira.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A criação de homebrews ganhou a ação{' '}
+                  <strong>Conceder poder</strong> em habilidades e poderes:
+                  conceda um ou mais poderes específicos, ou defina uma lista da
+                  qual o jogador escolhe (poderes gerais, de classe ou de outros
+                  homebrews ativos).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Os <strong>poderes</strong> de homebrew
+                  (de classe e de Pacote de Poderes) agora também oferecem{' '}
+                  <strong>Opções de escolha (pick)</strong>, e o{' '}
+                  <strong>Pacote de Poderes</strong> ganhou o editor{' '}
+                  <strong>Avançado</strong> (alternância Básico/Avançado), como
+                  Raças e Classes.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Novo tipo de bônus{' '}
+                  <strong>Treinar perícia</strong> em habilidades e poderes de
+                  homebrew: treina uma ou mais perícias específicas, ou uma
+                  lista da qual o jogador escolhe quantas você definir.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A listagem de Homebrews ganhou um
+                  filtro rápido <strong>Coleções</strong>, para encontrar apenas
+                  coleções publicadas pela comunidade.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Integração com o{' '}
+                  <strong>Owlbear Rodeo</strong> — agora é possível conectar
+                  suas fichas e ameaças à extensão do Owlbear Rodeo, com uma
+                  nova página de login (<strong>/owlbear-auth</strong>) para
+                  autorizar a extensão.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Mesa Virtual — novo formato de exibição
+                  de PV das ameaças: <strong>&quot;Status de vida&quot;</strong>
+                  . Em vez de barra ou números, o mestre mostra um rótulo
+                  qualitativo colorido (ex.: Saudável, Ferido, Quase morto). As
+                  faixas de porcentagem, os rótulos e as cores são totalmente
+                  configuráveis nas Configurações da Mesa.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Mesa Virtual — o tracker de combate
+                  agora exibe <strong>avatares</strong> de todos os jogadores e
+                  ameaças (foto da ficha/ameaça ou, na ausência dela, as
+                  iniciais do nome). A borda do avatar reflete o status de vida
+                  da ameaça (no desktop, o rótulo aparece ao passar o mouse; no
+                  celular, fica sempre visível abaixo da foto).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Poder concedido{' '}
+                  <strong>Poder Oculto</strong> agora pode ser ativado como
+                  efeito de cena (2 PM para +2 em Força, Destreza ou
+                  Constituição).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Cada opção de uma escolha (pick)
+                  virou um <strong>&quot;sub-poder&quot; completo</strong>, com
+                  os mesmos campos do item pai: custo de PM, bônus, efeitos
+                  ativos, rolagens, conceder magias e conceder poder.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na listagem de{' '}
+                  <strong>Homebrews</strong>, os cards agora são links — dá para{' '}
+                  <strong>abrir em nova aba</strong> (clique do meio ou
+                  Ctrl/Cmd+clique), mantendo a navegação normal no clique
+                  simples.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As telas de criação de homebrew
+                  passaram a exibir um aviso recomendando a leitura dos{' '}
+                  <strong>tutoriais de homebrew</strong> antes de criar o
+                  primeiro conteúdo.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>Gerador de Ameaças</strong> foi reorganizado e
+                  modernizado. O fluxo agora segue a ordem em que você costuma
+                  montar uma ameaça a partir de uma ficha:{' '}
+                  <strong>Informações Gerais</strong> (nome, imagem, tipo,
+                  tamanho, papel e ND) → <strong>Atributos e Perícias</strong> →{' '}
+                  <strong>Ataques</strong> → <strong>Habilidades</strong> →{' '}
+                  <strong>Magias</strong> →{' '}
+                  <strong>Tesouro e Equipamentos</strong> →{' '}
+                  <strong>Resumo</strong>. As estatísticas de combate (Defesa,
+                  PV, PM e qualidades especiais) agora podem ser editadas
+                  diretamente na etapa de atributos, e a tabela de perícias
+                  passa a mostrar Iniciativa, Percepção e as resistências no
+                  topo. As telas ganharam ícones, cartões organizados por seção
+                  e transições mais suaves.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No resultado da ficha, os campos de
+                  dano/cura de <strong>PV e PM</strong> agora vêm com o valor{' '}
+                  <strong>1</strong> como padrão — basta clicar em Dano ou Curar
+                  para aplicar rapidamente. Ao clicar no campo, o valor padrão
+                  some para você digitar outro, e ele volta para 1 depois de
+                  aplicar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os itens padrão da mochila (
+                  <strong>Mochila</strong>, <strong>Saco de dormir</strong> e{' '}
+                  <strong>Traje de viajante</strong>) não voltam mais sozinhos
+                  ao inventário. Antes, se você os apagasse, eles reapareciam
+                  toda vez que a ficha era salva e a página recarregada — agora
+                  a remoção é respeitada ao recarregar a ficha, inclusive em
+                  fichas na nuvem e na Mesa Virtual.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A listagem pública de{' '}
+                  <strong>Homebrews</strong> (/homebrews) agora carrega{' '}
+                  <strong>todos os itens</strong> conforme você rola a página
+                  (antes mostrava apenas os primeiros) e os exibe sempre dos{' '}
+                  <strong>mais recentes</strong> para os mais antigos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Mesa Virtual — a{' '}
+                  <strong>Defesa</strong> (e os atributos e perícias) dos
+                  jogadores no tracker de iniciativa do mestre agora atualizam{' '}
+                  <strong>em tempo real</strong>. Antes, esses valores ficavam
+                  congelados no que foi capturado ao iniciar o combate; quando
+                  um efeito ativo, parceiro ou edição alterava a Defesa de um
+                  jogador, o mestre continuava vendo o valor antigo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Efeitos ativos que{' '}
+                  <strong>aumentam um atributo</strong> agora de fato aplicam o
+                  bônus — nas perícias do atributo, no dano de armas corpo a
+                  corpo (Força) e na Defesa (Destreza). Antes o efeito era
+                  registrado mas não alterava nada na ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Efeitos ativos de{' '}
+                  <strong>ataque e dano</strong> agora aplicam também o dano em{' '}
+                  <strong>armas mágicas ou aprimoradas</strong>. Antes, nessas
+                  armas, só o bônus de ataque era aplicado e o de dano se
+                  perdia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Mesa Virtual — magias{' '}
+                  <strong>homebrew</strong> com efeito ativo configurado agora
+                  oferecem a ativação do efeito ao serem lançadas (para você e
+                  para os outros jogadores da mesa), igual às magias oficiais.
+                </li>
+              </ul>
+
+              <h3>4.22</h3>
+              <p>
+                Esta atualização traz a maior novidade do projeto até hoje — os{' '}
+                <strong>Homebrews</strong> — e, junto, o{' '}
+                <strong>Mapa de Arton</strong>. Duas{' '}
+                <strong>super features</strong> num ciclo só.
+              </p>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  Homebrews — crie o seu próprio conteúdo
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Usuários agora podem criar <strong>conteúdo próprio</strong>{' '}
+                  de jogo por meio de um editor visual, sem programar:{' '}
+                  <strong>Raças</strong>, <strong>Classes</strong>,{' '}
+                  <strong>Pacotes de Magias</strong>,{' '}
+                  <strong>Pacotes de Poderes</strong> e{' '}
+                  <strong>Coleções</strong>. O que você cria entra na ficha como
+                  se fosse oficial — calcula os números, aparece nas rolagens e
+                  na geração de personagens.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
+                  <strong>Editor Básico e Avançado:</strong> bônus passivos
+                  cobrindo atributos, perícias, PV/PM, defesa, deslocamento,
+                  redução de dano, <strong>dano de armas</strong>,{' '}
+                  <strong>margem de ameaça</strong>,{' '}
+                  <strong>multiplicador de crítico</strong>, proficiências e até
+                  escolhas feitas pelo próprio jogador. No modo Avançado, entram
+                  bônus por <strong>fórmula</strong>, bônus condicionais, opções
+                  de escolha e concessão de magias.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
+                  <strong>Classes completas:</strong> PV/PM, perícias,
+                  habilidades automáticas por nível, poderes de classe com
+                  pré-requisitos, conjuração (círculos plenos ou personalizados)
+                  e <strong>importação de poderes</strong> de classes existentes
+                  para montar variantes sem reescrever nada. Magias e poderes
+                  também podem ser publicados em pacotes, com aprimoramentos,
+                  rolagens de dados e efeitos ativos.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
+                  <strong>Teste antes de publicar:</strong> a{' '}
+                  <strong>ficha de teste</strong> gera um personagem aleatório
+                  efêmero (que não é salvo) forçando o seu homebrew, para você
+                  conferir os números na prática. Cada homebrew publicado tem{' '}
+                  <strong>fórum próprio</strong> e{' '}
+                  <strong>histórico de versões</strong>.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
+                  <strong>Criar é grátis para qualquer pessoa</strong> com
+                  conta: monte, teste e publique seus homebrews sem custo. O{' '}
+                  <strong>nível de apoio</strong> define apenas{' '}
+                  <strong>quantos você mantém ativos ao mesmo tempo</strong>{' '}
+                  (grátis: 3; Nível 1: 5; Nível 2: 10; Nível 3: ilimitado). Uma{' '}
+                  <strong>série completa de tutoriais</strong> no blog ensina,
+                  passo a passo, a criar cada tipo — e lembre-se: você é
+                  responsável pelo suporte e manutenção do conteúdo que publica.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  Mapa de Arton
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Um <strong>mapa interativo de Arton</strong> chegou ao
+                  sistema. Há uma página pública (
+                  <Link to='/mapadearton'>/mapadearton</Link>) para explorar o
+                  continente, e cada <strong>mesa virtual</strong> ganha o seu
+                  próprio mapa.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
+                  Na mesa, mestre e jogadores podem marcar{' '}
+                  <strong>pontos de interesse</strong> no mapa, com controle de
+                  visibilidade — pins visíveis a <strong>todos</strong> ou{' '}
+                  <strong>apenas ao mestre</strong> —, além de menus de contexto
+                  e marcação rápida de locais.
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>Novo:</strong> nos <strong>posts do blog</strong>, o
+                  nome do <strong>autor</strong> agora é{' '}
+                  <strong>clicável</strong> — tanto nos cards da listagem quanto
+                  no topo do post — e leva direto ao{' '}
+                  <strong>perfil do autor</strong>.
+                </li>
+                <li>
+                  <strong>Novo:</strong> agora você pode{' '}
+                  <strong>ativar qualquer efeito manualmente</strong> na ficha,
+                  a qualquer momento. Na janela de{' '}
+                  <strong>Efeitos Ativos</strong>, a aba{' '}
+                  <strong>Adicionar</strong> deixa aplicar qualquer poder ou
+                  magia <strong>independentemente dos pré-requisitos</strong>{' '}
+                  (classe, nível, poder ou atributo) — útil quando o mestre cria
+                  uma situação de jogo que obriga o efeito a existir. Efeitos de
+                  outras classes oferecem a <strong>faixa completa</strong> de
+                  intensidades. As sugestões automáticas (botão ✨) continuam
+                  mostrando apenas o que o personagem realmente possui.
+                </li>
+                <li>
+                  <strong>Novo:</strong> o poder{' '}
+                  <strong>Estilo de Duas Mãos</strong> agora pode ser
+                  ligado/desligado como efeito de combate, concedendo{' '}
+                  <strong>+5 no dano</strong> com armas corpo a corpo empunhadas
+                  com as duas mãos (não se aplica a armas leves).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> na página de um{' '}
+                  <strong>Homebrew</strong>, os{' '}
+                  <strong>poderes de classe e os pacotes de poderes</strong>{' '}
+                  agora exibem seus <strong>pré-requisitos</strong> em linguagem
+                  natural (nível, atributo, perícia, proficiência ou outro
+                  poder), facilitando entender o que é preciso para usá-los.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> na página inicial, os{' '}
+                  <strong>tópicos do fórum</strong> agora aparecem sempre em{' '}
+                  <strong>ordem do mais recente para o mais antigo</strong>, sem
+                  os três primeiros lugares reservados para apoiadores. O
+                  destaque visual dos apoiadores continua.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o modal de{' '}
+                  <strong>aplicar condições</strong> na ficha ficou mais limpo:
+                  agora as condições aparecem <strong>uma por linha</strong> e
+                  em <strong>ordem alfabética</strong>, com o nome em destaque e
+                  o efeito resumido mais discreto. Cada condição tem um botão
+                  para <strong>expandir e ler a descrição completa</strong>,
+                  funcionando bem também no celular.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a seção{' '}
+                  <strong>Posts no blog</strong> no perfil deixava os cards{' '}
+                  <strong>cortados na borda direita</strong> quando o título do
+                  post era longo; agora a listagem se ajusta corretamente e os
+                  títulos longos são truncados dentro do card.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao subir de nível um{' '}
+                  <strong>Feiticeiro</strong> com a{' '}
+                  <strong>Linhagem Abençoada</strong>, o{' '}
+                  <strong>poder concedido</strong> da divindade no nível 2 era
+                  adicionado automaticamente <strong>sem você escolher</strong>.
+                  Agora o assistente de evolução pede para você{' '}
+                  <strong>escolher qual poder concedido</strong> receber.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder de combate{' '}
+                  <strong>Finta Aprimorada</strong> não aparece mais como
+                  indisponível ao subir de nível para personagens treinados em{' '}
+                  <strong>Enganação</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> as <strong>magias</strong> dos
+                  suplementos (como <strong>Ameaças de Arton</strong>,{' '}
+                  <strong>Deuses de Arton</strong> e{' '}
+                  <strong>Heróis de Arton</strong>) não apareciam na geração de
+                  personagens. Agora os conjuradores podem aprender as magias
+                  desses livros, conforme os{' '}
+                  <strong>suplementos ativos no seu perfil</strong> — tanto na
+                  ficha aleatória quanto ao editar os poderes da ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> as origens regionais (Atlas de
+                  Arton) <strong>Aristocrata Dai&apos;zenshi (Tamu-ra)</strong>{' '}
+                  e <strong>Bandoleiro da Fortaleza (Khalifor)</strong>{' '}
+                  apareciam com o poder, a perícia e os itens de outra origem.
+                  Agora cada uma concede o{' '}
+                  <strong>benefício e os itens corretos</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na <strong>Mesa Virtual</strong>,
+                  abrir a ficha de um jogador podia, em alguns casos, carregar a
+                  ficha de <strong>outro jogador</strong> da mesma mesa. As
+                  fichas dos membros agora ficam sempre vinculadas corretamente,
+                  mesmo quando vários jogadores alteram suas fichas ao mesmo
+                  tempo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> armas com{' '}
+                  <strong>dano duplo</strong> (como o Bordão) passaram a receber
+                  o bônus de dano em <strong>ambos os modos</strong> — antes o
+                  bônus ficava só em um deles e a rolagem podia sair sem ele.
+                </li>
+                <li>
+                  <strong>Correção:</strong> os <strong>modos de ataque</strong>{' '}
+                  alternativos de algumas armas (por exemplo armas de fogo)
+                  agora incluem o bônus de dano de poderes e encantos tanto na{' '}
+                  <strong>prévia</strong> quanto na <strong>rolagem</strong>,
+                  ficando iguais ao que a ficha exibe.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a{' '}
+                  <strong>Mochila de Aventureiro</strong> agora aumenta de fato
+                  a <strong>capacidade de carga</strong> em 2 espaços. Antes o
+                  limite até subia na ficha e no PDF, mas a verificação de
+                  sobrecarga continuava usando o limite antigo — então o
+                  personagem aparecia <strong>sobrecarregado</strong> e com o{' '}
+                  <strong>deslocamento reduzido</strong> sem motivo, inclusive
+                  no PDF.
+                </li>
+              </ul>
+
+              <h3>4.21</h3>
+
+              <ul>
+                <li>
+                  <strong>
+                    Novo: Automação dos poderes Estilo de Arremesso e Arremesso
+                    Potente.
+                  </strong>{' '}
+                  Com <strong>Estilo de Arremesso</strong>, suas armas de
+                  arremesso recebem <strong>+2 no dano</strong> (apenas no modo
+                  de arremesso, nunca no corpo a corpo). Com{' '}
+                  <strong>Arremesso Potente</strong>, o ataque de arremesso
+                  passa a usar <strong>Força</strong> quando for mais vantajoso
+                  que Destreza. Os bônus aparecem direto na ficha e nas
+                  rolagens.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Familiar Rato usa o atributo-chave na Fortitude.
+                  </strong>{' '}
+                  Quem escolhe o familiar <strong>Rato</strong> passa a usar o{' '}
+                  <strong>atributo-chave</strong> nos testes de{' '}
+                  <strong>Fortitude</strong> no lugar de Constituição, quando
+                  for mais vantajoso.
+                </li>
+                <li>
+                  <strong>
+                    Novo: limites semanais de publicação no Bestiário.
+                  </strong>{' '}
+                  A quantidade de criaturas que cada apoiador pode publicar por
+                  semana no <strong>Bestiário</strong> agora varia conforme o
+                  nível de apoio (Nível 1: 15, Nível 2: 50, Nível 3: ilimitado).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Armas de arremesso agora somam Força ao dano.
+                  </strong>{' '}
+                  Ao atacar arremessando uma arma (Adaga, Lança, Azagaia,
+                  Machadinha, Tridente, Martelo Leve, entre outras), o
+                  modificador de <strong>Força</strong> passa a ser somado à
+                  rolagem de dano, conforme a regra. O modo corpo a corpo dessas
+                  armas continua funcionando normalmente.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Ameaças importadas não trocam mais de ficha na
+                    Mesa Virtual.
+                  </strong>{' '}
+                  Durante o combate, clicar em uma ameaça importada podia abrir
+                  a ficha de outra criatura — problema que aparecia após usar o
+                  botão <strong>Atualizar dados</strong>. A gravação dos dados
+                  das ameaças ficou mais segura, o botão{' '}
+                  <strong>Atualizar dados</strong> agora pede confirmação quando
+                  a ficha de origem tem nome diferente do snapshot, e as
+                  alterações passam a sincronizar entre mestre e jogadores em
+                  tempo real.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Adicionado aprimoramento faltante da magia Dardo
+                    Gélido.
+                  </strong>{' '}
+                  A magia <strong>Dardo Gélido</strong> (Ameaças de Arton) agora
+                  exibe o aprimoramento que aumenta o número de alvos em +1 por
+                  1 PM, conforme o livro.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Feiticeiro com Linhagem Abençoada agora aprende 4
+                    magias no 1º nível.
+                  </strong>{' '}
+                  Pela <strong>Linhagem Abençoada</strong>, o{' '}
+                  <strong>Feiticeiro</strong> aprende magias divinas de 1º
+                  círculo como magias de feiticeiro e ainda recebe uma magia
+                  divina extra — totalizando <strong>4 magias</strong> no 1º
+                  nível. Antes a ficha só permitia escolher 3.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Anão não tem mais o deslocamento reduzido por
+                    armadura pesada ou sobrecarga.
+                  </strong>{' '}
+                  Conforme a habilidade <strong>Devagar e Sempre</strong>, o
+                  deslocamento do <strong>Anão</strong> (e do{' '}
+                  <strong>Trog Anão</strong>) permanece em 6m mesmo usando
+                  armadura pesada ou excesso de carga. Antes a penalidade de -3m
+                  era aplicada indevidamente.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Virtudes Paladinescas agora somam pontos de mana.
+                  </strong>{' '}
+                  Os poderes <strong>Virtude Paladinesca</strong> do{' '}
+                  <strong>Paladino</strong> concedem um bônus progressivo ao
+                  total de <strong>PM</strong> conforme a quantidade que você
+                  possui (+1, +3, +6, +10 e +15 para 1 a 5 Virtudes), como manda
+                  a regra. Antes o total de PM não era ajustado.
+                </li>
+                <li>
+                  <strong>
+                    Correção: multiclasse não infla mais o nível da classe
+                    original.
+                  </strong>{' '}
+                  Ao subir de nível pegando o primeiro nível de uma nova classe
+                  (multiclasse), em alguns casos a{' '}
+                  <strong>classe original</strong> também ganhava um nível
+                  indevido (ex.: Druida 3 → Druida 4 · Guerreiro 1), inflando{' '}
+                  <strong>PV</strong> e <strong>PM</strong>. Agora a
+                  distribuição de níveis entre as classes é mantida
+                  corretamente.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Familiar Sapo agora soma o atributo-chave aos
+                    pontos de vida.
+                  </strong>{' '}
+                  Ao escolher o familiar <strong>Sapo</strong> (poder{' '}
+                  <strong>Familiar</strong> do Arcanista), o seu{' '}
+                  <strong>atributo-chave</strong> não estava sendo somado ao
+                  total de <strong>PV</strong>. Agora o bônus é aplicado
+                  automaticamente na ficha.
+                </li>
+                <li>
+                  <strong>
+                    Correção: rolagem infinita da lista do Bestiário.
+                  </strong>{' '}
+                  A lista do <strong>Bestiário</strong> não carregava mais itens
+                  corretamente ao rolar até o fim. Agora a rolagem infinita
+                  funciona como esperado.
+                </li>
+              </ul>
+
+              <h3>4.20</h3>
+
+              <ul>
+                <li>
+                  <strong>Novo: Escudo do Mestre na mesa virtual.</strong> O
+                  mestre agora tem uma aba própria para montar seu escudo: um{' '}
+                  <strong>grid configurável</strong> (ajuste linhas e colunas, e
+                  faça cada painel ocupar mais de um espaço). Clique em qualquer
+                  célula vazia para adicionar um painel.
+                </li>
+                <ul>
+                  <li>
+                    <strong>Painéis do Escudo do Mestre.</strong> Estão
+                    disponíveis: <strong>bloco de anotações</strong> em
+                    Markdown, <strong>referência de condições</strong> (lista
+                    completa com busca), <strong>ficha de ameaça</strong>{' '}
+                    fixada, <strong>ficha de jogador</strong>,{' '}
+                    <strong>tracker de combate</strong> e{' '}
+                    <strong>lista de iniciativa</strong> (aparecem durante o
+                    combate), <strong>imagem</strong>,{' '}
+                    <strong>vídeo do YouTube</strong>,{' '}
+                    <strong>dados e tabelas aleatórias</strong>,{' '}
+                    <strong>relógio/cronômetro</strong> e{' '}
+                    <strong>links e contadores</strong>.
+                  </li>
+                  <li>
+                    <strong>Projetar imagem para os jogadores.</strong> No
+                    painel de imagem do escudo, o mestre pode{' '}
+                    <strong>exibir a imagem em tela cheia</strong> para toda a
+                    mesa em tempo real — ótimo para revelar mapas, retratos de
+                    NPCs ou pistas — e encerrar a exibição quando quiser.
+                  </li>
+                </ul>
+                <li>
+                  <strong>Novo: perfis de usuário customizáveis.</strong> No
+                  estilo do perfil da Steam, agora você monta sua página de
+                  perfil com <strong>seções</strong>: blocos de texto, imagens
+                  (fan-arts) e <strong>fichas, ameaças e builds fixadas</strong>
+                  . É possível organizar tudo em uma ou em duas colunas
+                  (principal e lateral). Acesse seu perfil e clique em{' '}
+                  <strong>Editar perfil</strong> para começar.
+                </li>
+                <ul>
+                  <li>
+                    <strong>Nível de perfil.</strong> Você acumula pontos por
+                    ações dentro da plataforma — especialmente as que ajudam a
+                    comunidade (publicar builds e ameaças, postar e comentar no
+                    fórum, receber curtidas e avaliações, e apoiar o projeto).
+                    Seu nível aparece num <strong>selo circular</strong> ao lado
+                    do seu nome, que evolui de cor conforme você sobe.
+                  </li>
+                  <li>
+                    <strong>Badges colecionáveis da comunidade.</strong> Os
+                    maiores contribuidores ganham badges por ranking —{' '}
+                    <strong>Voz da Comunidade</strong> (fórum),{' '}
+                    <strong>Mestre das Builds</strong> e{' '}
+                    <strong>Arquiteto de Ameaças</strong> (bestiário) — em tiers
+                    bronze, prata, ouro e diamante. Elas aparecem no seu perfil.
+                  </li>
+                  <li>
+                    <strong>Cartão de usuário ao passar o mouse.</strong> Em
+                    qualquer lugar da plataforma (fórum, comentários, builds,
+                    ameaças), passar o mouse sobre o nome de uma pessoa mostra
+                    um <strong>cartão</strong> com a foto, o nível e as badges
+                    dela — estilizado conforme a personalização do perfil.
+                    Clique para ir ao perfil completo.
+                  </li>
+                  <li>
+                    <strong>Personalização de aparência (apoiadores).</strong>{' '}
+                    Apoiadores podem mudar <strong>cores</strong>,{' '}
+                    <strong>fonte</strong> e o <strong>fundo</strong> do perfil
+                    (cor sólida ou imagem), com{' '}
+                    <strong>pré-visualização ao vivo</strong> enquanto edita.
+                    Também é possível definir a{' '}
+                    <strong>foto de perfil por URL</strong> — preservando a sua
+                    foto do Google como padrão.
+                  </li>
+                </ul>
+                <li>
+                  <strong>Novo: habilidade Arremessador do Hynne.</strong>{' '}
+                  Personagens Hynne agora recebem{' '}
+                  <strong>+1 passo de dano</strong> automaticamente ao atacar à
+                  distância com uma <strong>funda</strong> ou ao{' '}
+                  <strong>arremessar</strong> uma arma de arremesso. O bônus
+                  aparece ao escolher o tipo de ataque (no modal de Arremessar)
+                  e no resultado da rolagem — ataques corpo a corpo e armas como
+                  arcos e bestas não são afetados.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: resultado de rolagem em tela cheia não interrompe
+                    mais todo mundo.
+                  </strong>{' '}
+                  Por padrão, o <strong>resultado em tela cheia</strong> agora
+                  aparece só para quem rolou — as rolagens dos outros continuam
+                  no <strong>histórico</strong>. Quem preferir pode{' '}
+                  <strong>ativar</strong> o recebimento do resultado das
+                  rolagens de todos no botão (sino) da barra superior da mesa.
+                </li>
+                <li>
+                  <strong>Correção: subir de nível com Alquimista.</strong> O
+                  Alquimista (variante do Inventor) agora sobe de nível
+                  normalmente: os poderes concedidos automaticamente nos níveis
+                  2 (Alquimista Iniciado) e 10 (Mestre Alquimista) são aplicados
+                  corretamente, a progressão não cancela mais sem contabilizar o
+                  nível e a lista de poderes de classe não exibe mais opções
+                  duplicadas. Caso algo dê errado ao subir de nível, agora
+                  aparece um aviso em vez de a ficha fechar silenciosamente.
+                </li>
+                <li>
+                  <strong>
+                    Correção: privacidade das rolagens só afeta o mestre.
+                  </strong>{' '}
+                  A configuração <strong>Modo padrão das rolagens</strong> da
+                  mesa virtual deixava as rolagens de <strong>todos</strong>{' '}
+                  privadas quando definida como privada. Agora ela afeta apenas
+                  as rolagens do mestre — as{' '}
+                  <strong>rolagens dos jogadores são sempre públicas</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: origens de combate não concedem mais dois poderes
+                    de combate.
+                  </strong>{' '}
+                  Origens como <strong>Gladiador</strong> e{' '}
+                  <strong>Soldado</strong>, que concedem{' '}
+                  <strong>um único poder de combate</strong> à sua escolha,
+                  permitiam selecionar dois poderes de combate na criação de
+                  personagem. Agora a seleção fica limitada a um (o mesmo vale
+                  para o poder da Tormenta do{' '}
+                  <strong>Assistente de Laboratório</strong>).
+                </li>
+                <li>
+                  <strong>
+                    Correção: habilidades raciais do Centauro liberam Carga de
+                    Cavalaria na criação.
+                  </strong>{' '}
+                  As habilidades <strong>Cascos</strong> e{' '}
+                  <strong>Ginete Natural</strong> do Centauro, que cumprem os
+                  pré-requisitos de <strong>Carga de Cavalaria</strong>, eram
+                  ignoradas no assistente de criação — o poder aparecia
+                  bloqueado, mesmo sendo possível adicioná-lo manualmente
+                  depois. Agora ele fica disponível durante a criação.
+                </li>
+                <li>
+                  <strong>
+                    Correção: perícias trocadas no PDF da ficha editável.
+                  </strong>{' '}
+                  Ao baixar o <strong>PDF editável</strong>, personagens
+                  treinados em <strong>Sobrevivência</strong> e{' '}
+                  <strong>Vontade</strong> apareciam (treino e bônus) nas linhas
+                  de <strong>Reflexos</strong> e <strong>Religião</strong>. As
+                  perícias a partir de <strong>Percepção</strong> ficavam
+                  deslocadas quando o personagem não tinha nenhum{' '}
+                  <strong>Ofício</strong> treinado. Agora cada perícia é
+                  preenchida na linha correta.
+                </li>
+                <li>
+                  <strong>
+                    Correção: poder Artesão Criativo e perícia Ofício (Artesão).
+                  </strong>{' '}
+                  Ter <strong>Ofício (Artesão)</strong> não liberava o poder{' '}
+                  <strong>Artesão Criativo</strong>, porque o nome da perícia
+                  não batia com o pedido pelos poderes. A perícia foi renomeada
+                  para <strong>Ofício (Artesão)</strong> (como no livro) e
+                  agora, tendo o poder, ela{' '}
+                  <strong>substitui qualquer outro Ofício</strong> como
+                  pré-requisito de outros poderes. Também foram corrigidos os
+                  pré-requisitos de <strong>Estilista</strong>,{' '}
+                  <strong>Bombardeiro Furtivo</strong> e{' '}
+                  <strong>Preparar Poção</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Fúria Aterrorizante liberada para quem tem Fúria.
+                  </strong>{' '}
+                  O poder <strong>Fúria Aterrorizante</strong> não ficava
+                  disponível para personagens <strong>Galokk</strong> (e Ogro){' '}
+                  <strong>bárbaros</strong>, mesmo tendo a habilidade{' '}
+                  <strong>Fúria</strong>, por uma divergência no nome da
+                  habilidade. Agora o pré-requisito é reconhecido corretamente
+                  (e a habilidade aparece grafada como <strong>Fúria</strong> na
+                  ficha).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Estilo de Arma e Escudo aumenta a Defesa ao ser
+                    adicionado manualmente.
+                  </strong>{' '}
+                  Ao adicionar o poder <strong>Estilo de Arma e Escudo</strong>{' '}
+                  manualmente (fora do nível), o <strong>+2 na Defesa</strong>{' '}
+                  do escudo empunhado não era aplicado. Agora o bônus é
+                  calculado automaticamente sempre que há um escudo equipado em
+                  uma das mãos.
+                </li>
+              </ul>
+
+              <h3>4.19</h3>
+
+              <ul>
+                <li>
+                  <strong>
+                    Novo: métodos de geração de atributos no assistente de
+                    criação.
+                  </strong>{' '}
+                  Até agora a definição de atributos no assistente era só{' '}
+                  <strong>Livre</strong> (você digitava o modificador de cada
+                  atributo). Agora você escolhe entre{' '}
+                  <strong>três métodos</strong> sugeridos pelo livro:{' '}
+                  <strong>Livre</strong>, <strong>Dados</strong> (role 4d6
+                  descartando o menor seis vezes e <strong>distribua</strong> os
+                  modificadores entre os atributos como quiser — com rerrolagem
+                  automática caso a soma não atinja o mínimo) e{' '}
+                  <strong>Pontos</strong> (compre os atributos gastando 10
+                  pontos, com a tabela de custos do livro e contador de pontos
+                  restantes).
+                </li>
+                <li>
+                  <strong>
+                    Novo: cards de dano e cura no histórico de rolagens também
+                    no celular.
+                  </strong>{' '}
+                  Os botões inline pra aplicar dano (½ / ×2 / valor) e cura
+                  (valor / ×2 / ½) direto da rolagem, que já existiam no
+                  desktop, agora aparecem na visão <strong>mobile</strong> da
+                  Mesa Virtual.
+                </li>
+                <li>
+                  <strong>
+                    Novo: equipe gerencia rascunhos de qualquer pessoa.
+                  </strong>{' '}
+                  No painel administrativo a equipe agora consegue gerenciar os{' '}
+                  <strong>rascunhos de todos os usuários</strong>, e a contagem
+                  de visualizações (<strong>viewCount</strong>) passou a ser
+                  visível apenas para a equipe.
+                </li>
+                <li>
+                  <strong>
+                    Novo: itens de suplementos nos geradores de itens superiores
+                    e mágicos.
+                  </strong>{' '}
+                  Com um suplemento ativo no seu perfil, as{' '}
+                  <strong>armas, armaduras e escudos</strong> de{' '}
+                  <strong>Ameaças de Arton</strong> e{' '}
+                  <strong>Heróis de Arton</strong> agora podem ser usados como{' '}
+                  <strong>item base</strong> ao gerar itens superiores e
+                  mágicos. As opções aparecem agrupadas por suplemento e
+                  classificadas nos filtros de categoria (
+                  <strong>Simples</strong>, <strong>Marciais</strong>,{' '}
+                  <strong>Exóticas</strong>, <strong>De Fogo</strong> e{' '}
+                  <strong>Leves</strong>/<strong>Pesadas</strong>).
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: aviso de suplementos disponíveis na criação de
+                    ficha.
+                  </strong>{' '}
+                  A tela de <strong>criação de ficha</strong> agora mostra quais{' '}
+                  <strong>suplementos</strong> (Ameaças de Arton, Atlas de
+                  Arton, Deuses de Arton, Heróis de Arton) estão{' '}
+                  <strong>disponíveis e desativados</strong>, com um botão que
+                  leva <strong>direto à configuração</strong> (com rolagem
+                  automática até a opção) para quem está logado, ou ao{' '}
+                  <strong>login</strong> para quem ainda não tem conta. O aviso
+                  pode ser <strong>dispensado</strong> e volta a aparecer caso
+                  surjam novos suplementos.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: rolagem infinita no Bestiário da Comunidade.
+                  </strong>{' '}
+                  A página do <strong>Bestiário da Comunidade</strong> agora
+                  carrega novas ameaças automaticamente conforme você{' '}
+                  <strong>rola até o fim</strong>, no lugar dos botões de
+                  páginas. As ameaças aparecem por{' '}
+                  <strong>mais recentes primeiro</strong>, priorizando o
+                  conteúdo — os atalhos de <strong>Melhores de hoje/mês</strong>{' '}
+                  continuam disponíveis, mas só são aplicados quando você clica
+                  neles.
+                </li>
+                <li>
+                  <strong>Melhoria: Caverna do Saber atualizada.</strong> O
+                  banco de dados de conteúdo foi atualizado até a revisão{' '}
+                  <strong>#227</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: habilidades do Centauro não liberavam poderes de
+                    cavalaria na criação.
+                  </strong>{' '}
+                  A habilidade <strong>Ginete Natural</strong> agora conta como
+                  ter o poder <strong>Ginete</strong>, e <strong>Cascos</strong>{' '}
+                  permite escolher poderes de <strong>Carga</strong> ou{' '}
+                  <strong>Investida</strong> sem cumprir os pré-requisitos.
+                  Assim, poderes como <strong>Carga de Cavalaria</strong> passam
+                  a aparecer normalmente durante a{' '}
+                  <strong>criação do personagem</strong> (antes só era possível
+                  adicioná-los manualmente).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Estilo de Uma Arma não aplicava seus bônus.
+                  </strong>{' '}
+                  O poder <strong>Estilo de Uma Arma</strong> agora concede{' '}
+                  <strong>+2 na Defesa</strong> e <strong>+2 no ataque</strong>{' '}
+                  com a arma empunhada quando você está com uma{' '}
+                  <strong>
+                    arma corpo a corpo em uma das mãos e a outra vazia
+                  </strong>
+                  . Os bônus aparecem e somem automaticamente conforme a
+                  empunhadura (não valem para armas de duas mãos, à distância ou
+                  com a outra mão ocupada).
+                </li>
+                <li>
+                  <strong>
+                    Correção: não dava pra escolher o tipo e o tamanho do Melhor
+                    Amigo ao multiclassar Treinador.
+                  </strong>{' '}
+                  Ao pegar <strong>Treinador</strong> como classe ao{' '}
+                  <strong>subir de nível</strong> (multiclasse), os botões de{' '}
+                  <strong>Tipo</strong> e <strong>Tamanho</strong> do parceiro
+                  não respondiam ao clique. Agora a seleção funciona
+                  normalmente.
+                </li>
+                <li>
+                  <strong>
+                    Correção: armaduras pesadas de suplementos não eram tratadas
+                    como pesadas.
+                  </strong>{' '}
+                  A <strong>Armadura de quitina</strong> (Ameaças de Arton) e as
+                  armaduras pesadas de <strong>Heróis de Arton</strong>{' '}
+                  (Brigantina, Armadura de chumbo, de justa, de hussardo alado e
+                  de pedra) passaram a ser reconhecidas como{' '}
+                  <strong>armadura pesada</strong>, aplicando corretamente as
+                  regras que dependem disso.
+                </li>
+                <li>
+                  <strong>
+                    Correção: redução de dano de material especial não aplicava
+                    sozinha.
+                  </strong>{' '}
+                  A <strong>RD</strong> concedida por materiais especiais (como
+                  o <strong>Adamante</strong>) agora é aplicada automaticamente,
+                  sem precisar ajustar na mão.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Defesa contava armadura/escudo que não estavam em
+                    uso.
+                  </strong>{' '}
+                  A <strong>Defesa</strong> deixou de somar o bônus de uma
+                  armadura que você <strong>tirou</strong> ou de um escudo que
+                  você <strong>guardou</strong> — agora só conta o que está
+                  efetivamente equipado.
+                </li>
+                <li>
+                  <strong>
+                    Correção: não dava pra tirar a armadura quando ela era a
+                    única na mochila.
+                  </strong>{' '}
+                  Agora é possível <strong>desequipar a armadura</strong> mesmo
+                  quando ela é o único item desse tipo na mochila.
+                </li>
+              </ul>
+
+              <h3>4.18</h3>
+
+              <ul>
+                <li>
+                  <strong>
+                    Novo: histórico de rolagens persistente na Mesa Virtual.
+                  </strong>{' '}
+                  Até agora o histórico vivia só na memória do navegador:
+                  qualquer <strong>refresh apagava tudo</strong> e quem entrava
+                  no meio da sessão não enxergava o que tinha rolado antes.
+                  Agora cada rolagem é{' '}
+                  <strong>persistida no banco de dados</strong> e sincronizada
+                  entre todos os jogadores em tempo real — o histórico volta
+                  intacto após F5, late-joiners recebem as últimas{' '}
+                  <strong>200 rolagens</strong> ao entrar, e o botão{' '}
+                  <strong>&quot;Limpar histórico&quot;</strong> do mestre agora
+                  zera o histórico de <strong>todos os clientes</strong>{' '}
+                  simultaneamente (antes cada cliente limpava só a própria
+                  tela).
+                </li>
+                <li>
+                  <strong>
+                    Novo: histórico de rolagens em cards com aplicação direta de
+                    PV.
+                  </strong>{' '}
+                  O painel <strong>&quot;Rolagens recentes&quot;</strong> foi
+                  redesenhado: cada rolagem agora é um <strong>card</strong> com
+                  a <strong>imagem da ficha</strong> em círculo e uma{' '}
+                  <strong>faixa lateral colorida</strong> (mesma cor definida
+                  pelo mestre na ordem de turno). Cada valor final rolado tem{' '}
+                  <strong>botões inline</strong> à esquerda pra aplicar dano (½
+                  / ×2 / valor) e à direita pra aplicar cura (valor / ×2 / ½) —
+                  clica e o PV da ficha é alterado na hora, com o dano
+                  consumindo <strong>PV temporário primeiro</strong>. O painel
+                  inteiro também ganhou um botão pra{' '}
+                  <strong>recolher/expandir</strong> (igual à ordem de turno),
+                  com a preferência salva.
+                </li>
+                <li>
+                  <strong>
+                    Novo: rail lateral também na visão do mestre, com seletor de
+                    alvo.
+                  </strong>{' '}
+                  O mestre agora tem o mesmo painel lateral à direita com{' '}
+                  <strong>histórico de rolagens</strong> e{' '}
+                  <strong>rolagem rápida</strong>. Como o mestre opera em nome
+                  de qualquer um, ao clicar nos botões de aplicar dano ou cura
+                  abre um <strong>popover</strong> pra escolher o alvo entre os{' '}
+                  <strong>participantes do encontro</strong> (jogadores e
+                  ameaças), com um atalho de{' '}
+                  <strong>&quot;Recentes&quot;</strong> no topo pra repetir
+                  alvos comuns (útil em ataques em área). Dano em PJ atualiza a
+                  ficha e o encontro juntos; dano em ameaça mexe direto no
+                  participante. O rail se <strong>recolhe sozinho</strong>{' '}
+                  sempre que o mestre troca de aba pra não competir por atenção.
+                </li>
+                <li>
+                  <strong>Novo: Parceiros na Mesa Virtual.</strong> O mestre
+                  agora pode anexar <strong>Parceiros</strong> a jogadores
+                  durante um encontro ativo — guerreiros, curandeiros,
+                  conjuradores e outros, cada um com seu pacote de bônus. A
+                  feature traz uma <strong>biblioteca built-in</strong> com{' '}
+                  <strong>12 arquétipos × 3 tiers</strong> (Iniciante, Veterano,
+                  Mestre): Adepto, Ajudante, Assassino, Atirador, Combatente,
+                  Destruidor, Fortão, Guardião, Magivocador, Médico, Perseguidor
+                  e Vigilante. O mestre também pode criar{' '}
+                  <strong>parceiros customizados</strong> em um editor livre,
+                  combinando bônus passivos, ações ativadas (com PM, limite por
+                  rodada e rolagem de dado) e habilidades narrativas. Ao anexar,
+                  o mestre dá um <strong>nome ao Parceiro</strong> (ex.:
+                  &quot;Sir Galahad&quot;) para narrativa. Jogadores ganham um{' '}
+                  <strong>painel &quot;Parceiros&quot;</strong> na ficha
+                  listando o que está aplicado automaticamente, as ações
+                  disponíveis para usar no turno (com botão{' '}
+                  <strong>Usar</strong>) e os efeitos informativos. Rolagens de
+                  parceiro aparecem com o overlay fullscreen e são broadcast pra
+                  mesa toda, como uma rolagem normal. O dialog &quot;É O SEU
+                  TURNO!&quot; lembra o jogador de que tem parceiros
+                  disponíveis.
+                </li>
+                <li>
+                  <strong>
+                    Novo: botão de <em>subir nível</em> direto no topo da ficha.
+                  </strong>{' '}
+                  Antes era preciso abrir o drawer de edição de informações da
+                  ficha para subir de nível. Agora, ao lado do botão de{' '}
+                  <strong>editar</strong> no card de informações do personagem,
+                  apareceu um novo botão (ícone de seta com linha apontando pra
+                  cima) que abre o <strong>assistente de progressão</strong>{' '}
+                  direto — um clique a menos pra avançar seu personagem. O botão
+                  fica desabilitado quando você já está no{' '}
+                  <strong>nível 20</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Novo: mestre pode abrir a ficha de qualquer jogador direto
+                    da tela da mesa.
+                  </strong>{' '}
+                  Na tela de configurações da <strong>Mesa Virtual</strong>, o
+                  mestre agora pode clicar no <strong>nome do jogador</strong>{' '}
+                  (ou no nome da ficha vinculada logo abaixo) para abrir a ficha
+                  completa em um <strong>modal em tela cheia</strong>, somente
+                  leitura — sem precisar iniciar a sessão. Funciona tanto para
+                  fichas dos jogadores quanto para os personagens do próprio
+                  mestre.
+                </li>
+                <li>
+                  <strong>
+                    Novo: botão <em>@</em> embutido nas caixas de comentário
+                    para mencionar a enciclopédia.
+                  </strong>{' '}
+                  Você sempre pôde digitar <strong>@nome</strong> para mencionar
+                  classes, raças, poderes e outros itens da enciclopédia em
+                  comentários do fórum, mas quase ninguém sabia. Agora um botão{' '}
+                  <strong>@</strong> está embutido na própria caixa de
+                  comentário (estilo Slack) — basta clicar para inserir o{' '}
+                  <strong>@</strong> e começar a procurar o que você quer citar.
+                  Um lembrete discreto abaixo da caixa reforça o atalho.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: notificações agora levam direto ao comentário, com
+                    destaque visual.
+                  </strong>{' '}
+                  Clicar numa notificação de comentário no fórum, blog, build ou
+                  bestiário não abre mais só a página — agora a tela{' '}
+                  <strong>rola automaticamente</strong> até o comentário e ele
+                  ganha um <strong>pulse laranja</strong> de destaque por uns
+                  segundos pra você localizar de imediato. Vale tanto pra
+                  notificações abertas dentro do app quanto pelas{' '}
+                  <strong>push notifications do PWA</strong>. (Funciona pra
+                  notificações novas — as antigas continuam levando só pra
+                  página.)
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: PV e PM repensados pra desktop e mobile.
+                  </strong>{' '}
+                  Antes, pra alterar PV ou PM era preciso passar o mouse por
+                  cima do círculo — o que <strong>não funciona no touch</strong>
+                  , então usuários de celular ficavam sem como editar valores.
+                  Agora cada círculo tem controles{' '}
+                  <strong>sempre visíveis</strong> logo abaixo: um par de{' '}
+                  <strong>− / +</strong> com incremento ajustável (clica e o
+                  valor cai/sobe pelo passo), um campo onde você{' '}
+                  <strong>digita o valor</strong> e aplica como{' '}
+                  <strong>Dano</strong> (que consome temp primeiro, depois PV)
+                  ou <strong>Curar</strong> (não toca em temp). O círculo também
+                  ficou <strong>clicável</strong> e abre um{' '}
+                  <strong>painel de edição completa</strong> — entra pela
+                  direita no desktop e <strong>por baixo no celular</strong>{' '}
+                  (mantendo a ficha visível atrás). Lá dentro você ajusta atual,
+                  temporário, incremento, define um{' '}
+                  <strong>máximo manual</strong> que sobrescreve o cálculo, e
+                  agora tem botões dedicados de <strong>Cura total</strong> (que
+                  zera o temp também, como descanso) e{' '}
+                  <strong>Limpar temp</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: card de PV/PM mais limpo, sem botões duplicados.
+                  </strong>{' '}
+                  Os controles de <strong>− / +</strong> e o campo de{' '}
+                  <strong>incremento</strong> que apareciam no card de PV/PM
+                  ficavam redundantes com tudo que o painel de edição completa
+                  já oferece. Foram removidos do card; pra ajustar valores finos
+                  basta abrir o painel de edição pelo círculo de PV/PM (mesmo
+                  fluxo de antes).
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: bloco de atributos com layout estável e indicador
+                    do que mudou.
+                  </strong>{' '}
+                  No desktop os atributos eram empurrados pra cima com um truque
+                  de margem negativa pra criar aquela faixa decorativa
+                  sobreposta ao card do herói — mas o layout ficava{' '}
+                  <strong>frágil</strong> e quebrava sempre que algo mudava
+                  acima. Agora os atributos têm <strong>seção própria</strong>{' '}
+                  no desktop também (com título{' '}
+                  <strong>&quot;Atributos&quot;</strong>, igual ao mobile), sem
+                  truques de margem. Além disso, quando uma{' '}
+                  <strong>condição ativa</strong> afeta um atributo (ex.:
+                  Esmorecido dá −2 em Carisma), aparece um{' '}
+                  <strong>chip colorido embaixo</strong> da caixa mostrando
+                  exatamente a magnitude da mudança — vermelho pra penalidade,
+                  verde pra bônus — e o tooltip explica{' '}
+                  <strong>Base → Modificado</strong>. Dá pra ver em 1 segundo o
+                  que está afetando o personagem.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: combate inicia com só o combatente da vez
+                    expandido (visão do mestre).
+                  </strong>{' '}
+                  Ao iniciar um encontro, todos os cards de combatente abriam
+                  expandidos, enchendo a tela do mestre de ruído logo de cara.
+                  Agora <strong>apenas o card do combatente atual</strong>{' '}
+                  começa expandido — os demais ficam recolhidos pra você focar
+                  em quem está agindo.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: &quot;Parceiros&quot; agora aparece no menu pra
+                    todos, com CTA de apoio.
+                  </strong>{' '}
+                  O item <strong>Parceiros</strong> ficava escondido pra quem
+                  não era apoiador, então ninguém descobria o recurso. Agora ele
+                  aparece no menu pra todos os usuários: quem não é apoiador vê
+                  um <strong>CTA convidando a apoiar</strong> pra liberar o uso
+                  na mesa virtual.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: aninhamento de comentários do fórum no celular.
+                  </strong>{' '}
+                  No celular, respostas profundas comprimiam tanto o espaço de
+                  leitura que o texto saía da tela. A indentação agora é leve e
+                  com limite de 3 níveis no celular (4 no desktop), e uma linha
+                  vertical sutil à esquerda continua mostrando claramente que o
+                  comentário é uma resposta aninhada — sem comer espaço útil.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: caixas de comentário do fórum crescem com o texto.
+                  </strong>{' '}
+                  Os campos de <strong>comentar</strong>,{' '}
+                  <strong>responder</strong> e <strong>editar</strong> no fórum
+                  começavam pequenos e ficavam apertados em textos longos. Agora
+                  a caixa <strong>se expande automaticamente</strong> conforme
+                  você digita (até 15 linhas) e só depois vira scroll interno.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: home destaca apenas a mesa mais recente.
+                  </strong>{' '}
+                  O bloco <strong>Suas mesas</strong> agora mostra somente{' '}
+                  <strong>1 mesa</strong> (a mais recente da qual você
+                  participa) lado a lado com o botão{' '}
+                  <strong>+ Nova mesa</strong>. Os nomes deixam de aparecer
+                  truncados e a lista completa continua acessível pelo atalho{' '}
+                  <strong>Ver todas</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: abrir o app pela push notification não marcava o
+                    aviso como lido.
+                  </strong>{' '}
+                  Quem usa o app instalado no celular e abria a notificação pela{' '}
+                  <strong>push</strong> chegava à página, mas o ícone do sino
+                  continuava com o número não-lido até clicar na lista —
+                  experiência ruim. Agora a notificação é{' '}
+                  <strong>marcada como lida automaticamente</strong> ao abrir
+                  pela push, sem necessidade de tocar no sino.
+                </li>
+                <li>
+                  <strong>
+                    Correção: notificações de comentário em <em>build</em>{' '}
+                    abriam a listagem em vez da build.
+                  </strong>{' '}
+                  O link interno enviava o usuário pra{' '}
+                  <code>/builds/&lt;id&gt;</code> (rota inexistente — caía na
+                  listagem geral) em vez da página da build em si. Agora vai
+                  direto pra <code>/build/&lt;id&gt;</code>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: botão &quot;Salvar&quot; travado ao criar efeito
+                    customizado com escopo &quot;Qualquer arma&quot;.
+                  </strong>{' '}
+                  Ao criar um <strong>efeito customizado</strong> e escolher{' '}
+                  <strong>Dano de arma</strong> ou{' '}
+                  <strong>Ataque (corpo a corpo / distância)</strong>, o escopo
+                  já aparecia como <strong>Qualquer arma</strong>, mas o botão{' '}
+                  <strong>Salvar</strong> só destravava se você trocasse o
+                  escopo para outra opção e voltasse. Agora o estado inicial do
+                  escopo é sincronizado com a UI — o Salvar fica liberado
+                  imediatamente assim que os campos obrigatórios são
+                  preenchidos.
+                </li>
+                <li>
+                  <strong>
+                    Correção: app forçava modo retrato mesmo com a tela
+                    desbloqueada.
+                  </strong>{' '}
+                  Mesmo com a rotação do celular liberada, o app instalado abria
+                  sempre em <strong>retrato</strong> — péssimo pra quem está
+                  deitado segurando o telefone deitado. Agora o app respeita o{' '}
+                  <strong>lock de orientação</strong> do próprio aparelho: se
+                  você travou em landscape, fica em landscape; se está livre,
+                  gira normalmente.
+                </li>
+                <li>
+                  <strong>
+                    Correção: &quot;Passo-a-passo da Criação&quot; aparecia
+                    vazio em fichas salvas na nuvem.
+                  </strong>{' '}
+                  Fichas geradas pelo Wizard manual (e também aleatórias) que
+                  passavam pela nuvem voltavam com a seção{' '}
+                  <strong>Passo-a-passo da Criação</strong> em branco, mesmo
+                  estando completas. O passo-a-passo era descartado no envio
+                  para o servidor e não tinha como ser reconstruído ao carregar
+                  de volta. Agora ele é preservado integralmente. Fichas novas
+                  (ou re-salvas após esta atualização) voltam a exibir todas as
+                  decisões da criação; fichas antigas que já estavam na nuvem
+                  com o passo-a-passo vazio continuam assim — basta recriá-las
+                  para recuperar o histórico.
+                </li>
+                <li>
+                  <strong>
+                    Correção: bloco &quot;Suas mesas&quot; na home não mostrava
+                    suas mesas no primeiro carregamento.
+                  </strong>{' '}
+                  Mesmo participando de mesas, a home exibia o convite{' '}
+                  <strong>&quot;Crie sua primeira mesa&quot;</strong> e só
+                  passava a listar as mesas depois que você visitava{' '}
+                  <strong>Mesas Virtuais</strong> e voltava. Agora a home busca
+                  suas mesas automaticamente assim que você abre a página.
+                </li>
+              </ul>
+
+              <h3>4.17</h3>
+
+              <ul>
+                <li>
+                  <li>
+                    <strong>
+                      Novo: efeitos customizados em poderes (Apoiador).
+                    </strong>{' '}
+                    Cada poder expandido na sua ficha tem um botão de{' '}
+                    <strong>Configurações</strong> (ícone de engrenagem) que
+                    agora abre um diálogo com duas abas:{' '}
+                    <strong>Rolagens</strong> (como antes) e{' '}
+                    <strong>Efeitos</strong>. Na nova aba você cria{' '}
+                    <strong>efeitos com múltiplos tiers</strong> — cada tier com
+                    seu próprio custo de PM e seus bônus mecânicos. Os bônus
+                    cobrem praticamente tudo: atributos, ataque (geral, corpo a
+                    corpo ou à distância), dano de arma, defesa, deslocamento,
+                    perícias, PV/PM, iniciativa, testes de resistência
+                    (Fortitude/Reflexos/Vontade ou todos), CD de magias, redução
+                    de dano por tipo e margem/multiplicador de crítico. Os
+                    efeitos criados aparecem no gerenciador de{' '}
+                    <strong>Efeitos Ativos</strong> com a etiqueta{' '}
+                    <strong>Customizado</strong> e podem ser
+                    ativados/desativados como qualquer outro efeito. Poderes que
+                    já têm efeito ativo pronto no sistema (como Inspiração do
+                    Bardo) mostram o efeito embutido em modo somente-leitura na
+                    aba.
+                  </li>
+                  <strong>Efeitos de poderes e magias.</strong> Esta versão
+                  trouxe um pacote de novidades e ajustes no motor de efeitos
+                  ativos:
+                  <ul>
+                    <li>
+                      <strong>
+                        Novo: Encouraçado vira efeito ativo togável na ficha.
+                      </strong>{' '}
+                      O poder geral <strong>Encouraçado</strong> agora pode ser
+                      ativado direto pelo cabeçalho, aplicando o bônus na Defesa{' '}
+                      <strong>com escala dinâmica</strong>: +2 de base e +2
+                      adicional para cada poder dependente que você possua
+                      (Inexpugnável, Fanático, Catafractário, Encastelado). Se
+                      você não estiver com armadura pesada equipada, um aviso
+                      discreto aparece no diálogo — sem bloquear a ativação.
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: tier &quot;Customizado&quot; em magias com
+                        aprimoramento escalável.
+                      </strong>{' '}
+                      Magias como <strong>Armadura Arcana</strong> agora
+                      oferecem, além dos valores comuns, um tier{' '}
+                      <strong>Customizado</strong> com botões +/- para você
+                      ajustar o bônus quando aprimorou além do teto modelado
+                      (por exemplo, +13 na Defesa com 8 aprimoramentos).
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: três magias passam a oferecer efeito ativo.
+                      </strong>{' '}
+                      <strong>Aviso</strong> (+5 no próximo teste de Iniciativa
+                      e em Percepção, opção &quot;Alerta&quot;),{' '}
+                      <strong>Maaais Klunc</strong> (+10 em Força com cascata
+                      para perícias de Força e dano corpo a corpo) e{' '}
+                      <strong>Mente Divina</strong> (8 tiers cobrindo a base e
+                      todos os aprimoramentos para +2/+4 em um atributo mental
+                      escolhido ou nos três).
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: aba &quot;Adicionar&quot; no gerenciador de
+                        efeitos ativos.
+                      </strong>{' '}
+                      Agora dá para incluir manualmente qualquer efeito de poder
+                      ou magia do compêndio na sua ficha — sem pagar PM e sem
+                      notificar aliados da mesa. Útil para narrar buffs do
+                      mestre ou para jogo solo. Há uma busca embutida e um aviso
+                      esclarecendo que pré-requisitos não são validados nesse
+                      modo.
+                    </li>
+                    <li>
+                      <strong>
+                        Melhoria: bônus de atributo em efeitos ativos finalmente
+                        aplicam de verdade.
+                      </strong>{' '}
+                      Boosts como o <strong>+2 Força</strong> do Banquete
+                      Selvagem do Druida, o <strong>+4 em atributo</strong> da
+                      Força da Natureza, o <strong>+1/+2 Força</strong> do
+                      Crescimento Feérico (qareen) e o{' '}
+                      <strong>+2 Carisma</strong> da Aparência Perfeita — antes
+                      silenciosamente ignorados pelo motor — agora cascateiam
+                      corretamente para todas as <strong>perícias</strong>{' '}
+                      derivadas do atributo (incluindo Luta/Pontaria, Iniciativa
+                      e resistências). Boosts de Força também somam no dano
+                      corpo a corpo; boosts de Destreza, na Defesa.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Novo: página inicial redesenhada.</strong> A gente
+                  estará continuamente tentando melhorar a qualidade da home
+                  para refletir novas ferramentas, os conteúdos dinâmicos da
+                  comunidade e muito mais. Para isso, vamos tentar algums
+                  soluções um pouco. Nada é permanente, vamos nos adaptando e
+                  melhorando.
+                </li>
+                <li>
+                  <strong>Novo: lembrete dos cosméticos de apoiador.</strong>{' '}
+                  Apoiadores que ainda não experimentaram a{' '}
+                  <strong>cor de destaque personalizada</strong> ou os{' '}
+                  <strong>dados 3D</strong> agora recebem um lembrete discreto,
+                  no máximo uma vez por semana, com um atalho que abre direto a
+                  aba <strong>Sistema</strong> do perfil. Quem já personalizou
+                  tudo nunca vê o aviso, e há um botão{' '}
+                  <strong>&quot;Não mostrar mais&quot;</strong> para desativar
+                  permanentemente.
+                </li>
+                <li>
+                  <strong>
+                    Novo: publicação anônima por padrão no Bestiário da
+                    Comunidade.
+                  </strong>{' '}
+                  Suas ameaças publicadas agora aparecem como{' '}
+                  <strong>&quot;por Anônimo&quot;</strong> para outros usuários,
+                  protegendo mestres que não querem revelar a autoria e spoilear
+                  os próprios jogadores. Quem preferir aparecer pode desativar a
+                  opção em <strong>Perfil → Sistema</strong>, na nova seção{' '}
+                  <strong>Privacidade</strong>. A página de publicação também
+                  avisa quando você está publicando anonimamente, com atalho
+                  para as configurações.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Fortitude, Reflexos e Vontade agora podem ser
+                    editadas no Gerador de Ameaças.
+                  </strong>{' '}
+                  Antes, essas três perícias ficavam travadas com o valor
+                  derivado da atribuição <strong>Forte/Média/Fraca</strong> e
+                  não dava para sobrescrever. Agora elas aparecem na mesma
+                  tabela das demais perícias em{' '}
+                  <strong>Configurar Perícias</strong>, já pré-preenchidas com o
+                  valor calculado da tabela de combate — basta digitar um novo
+                  número no campo <strong>Total</strong> para sobrescrever. O
+                  valor editado se reflete no statblock, na rolagem de dados e
+                  no export para o Foundry VTT. A checkbox{' '}
+                  <strong>Treinada</strong> fica desabilitada nessas três
+                  (treinamento não se aplica a resistências).
+                </li>
+                <li>
+                  <strong>
+                    Correção: aba &quot;Sistema&quot; do Perfil voltava sozinha
+                    para &quot;Perfil&quot;.
+                  </strong>{' '}
+                  Toda vez que você alterava uma configuração na aba{' '}
+                  <strong>Sistema</strong> (tema, cor de destaque, dados 3D,
+                  privacidade do Bestiário, suplementos), a página piscava o
+                  loader de carregamento e voltava para a aba{' '}
+                  <strong>Perfil</strong>. Agora cada alteração salva sem
+                  remontar a página — você fica exatamente onde estava.
+                </li>
+                <li>
+                  <strong>
+                    Correção: resistências infladas de ameaças na mesa virtual.
+                  </strong>{' '}
+                  Em algumas ameaças importadas para a mesa virtual, valores de
+                  Fortitude/Reflexos/Vontade apareciam somados em duplicado.
+                  Cálculo corrigido.
+                </li>
+              </ul>
+
+              <h3>4.16</h3>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  Bestiário da Comunidade
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Um acervo compartilhado de criaturas, alimentado pela
+                  comunidade. Agora você pode{' '}
+                  <strong>publicar suas ameaças</strong> direto de{' '}
+                  <strong>Minhas Ameaças</strong> ou da tela da ameaça (botão{' '}
+                  <strong>Publicar no Bestiário</strong>), escrevendo a
+                  descrição. Há uma seção <strong>Bestiário</strong> no menu
+                  lateral para explorar tudo e uma página{' '}
+                  <strong>Meu Bestiário</strong> com as suas publicações.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
+                  <strong>Copiar para usar:</strong> gostou de uma criatura?
+                  Copie a ameaça para a sua conta com um clique e use nas suas
+                  mesas.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
+                  <strong>Comunidade e curadoria:</strong> avalie e comente as
+                  ameaças.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  Efeitos Ativos de Poderes e Magias
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Um motor de <strong>bônus temporários</strong>: poderes com
+                  efeito contínuo — como a <strong>Inspiração</strong> do Bardo
+                  ou a <strong>Fúria</strong> do Bárbaro — agora podem ser{' '}
+                  <strong>ativados direto pela ficha</strong>, no cabeçalho do
+                  próprio poder. Enquanto ativos, a ficha{' '}
+                  <strong>recalcula sozinha</strong> os valores afetados e
+                  destaca as <strong>perícias</strong> e a{' '}
+                  <strong>Defesa</strong> alteradas, com um painel para
+                  gerenciar tudo que está em uso.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
+                  <strong>Cobertura ampla:</strong> os poderes ativos das{' '}
+                  <strong>13 classes</strong>, além de poderes{' '}
+                  <strong>gerais</strong> (combate, destino, concedidos,
+                  tormenta e magia) e <strong>raciais</strong> (como Camuflagem
+                  Mimética e Coro Sibilante).
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
+                  <strong>Também em magias:</strong> magias que alteram a ficha
+                  temporariamente — como <strong>Armadura Arcana</strong>,{' '}
+                  <strong>Bênção</strong>, <strong>Pele de Pedra</strong> ou a{' '}
+                  <strong>Aura Divina</strong> — passam a oferecer o efeito{' '}
+                  <strong>ao confirmar o lançamento</strong>. A tela de lançar
+                  magia exibe um aviso de <strong>efeito ativo</strong> e, ao
+                  usar a magia, você decide se aplica o bônus na ficha (também{' '}
+                  <strong>ofertado aos aliados</strong> da mesa, como nos
+                  poderes). Cobertura: <strong>33 magias</strong> arcanas e
+                  divinas revisadas, de todos os círculos.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
+                  <strong>Integração com a mesa virtual:</strong> ao ativar um
+                  efeito, ele é <strong>oferecido em tempo real</strong> aos
+                  envolvidos na mesa, e o combate termina com um{' '}
+                  <strong>relatório dos efeitos</strong> usados. O ícone de
+                  efeitos da ficha fica <strong>dourado</strong> com um contador
+                  quando há algo ativo.
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>
+                    Novo: busca unificada na Enciclopédia de Tanah-Toh.
+                  </strong>{' '}
+                  Uma barra de pesquisa única, sempre visível no topo da
+                  Enciclopédia, que vasculha <strong>todo o compêndio</strong>{' '}
+                  de uma vez — raças, classes, <strong>habilidades</strong> e{' '}
+                  <strong>poderes de classe</strong>, origens, divindades,
+                  poderes gerais e magias. Não precisa mais lembrar a qual
+                  classe ou tipo um poder pertence: os resultados são{' '}
+                  <strong>ordenados por relevância</strong> (acerto no nome pesa
+                  mais, mas a busca também encontra pelo texto do efeito), com o
+                  termo destacado, e um clique leva direto à aba certa.
+                </li>
+                <li>
+                  <strong>Novo: filtros avançados de magia</strong> em todos os
+                  lugares onde você escolhe magias — no assistente de criação de
+                  ficha, no assistente de subir de nível e no painel de{' '}
+                  <strong>Editar Magias</strong>. Além da busca por texto, agora
+                  há um botão <strong>Filtros avançados</strong> que permite
+                  filtrar por <strong>escola</strong>, <strong>círculo</strong>,{' '}
+                  <strong>execução</strong> e <strong>tipo</strong>{' '}
+                  (arcanas/divinas), combinando vários critérios ao mesmo tempo.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Enciclopédia (compêndio de regras) dentro da mesa
+                    virtual.
+                  </strong>{' '}
+                  O mestre agora tem um item <strong>Enciclopédia</strong> na
+                  barra lateral da mesa (e uma aba no menu inferior no celular)
+                  para consultar raças, classes, origens, divindades, poderes e
+                  magias <strong>sem sair da sessão</strong>. No computador, ao
+                  passar o mouse para expandir a barra, aparecem atalhos
+                  discretos para cada aba do compêndio.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: cálculo de deslocamento mais robusto.
+                  </strong>{' '}
+                  Bônus de deslocamento vindos de poderes, condições e efeitos
+                  ativos passam a somar corretamente por cima de penalidades de
+                  armadura pesada/sobrecarga e do deslocamento ajustado
+                  manualmente.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: na mesa virtual, ficou muito mais claro de quem é
+                    a vez no combate.
+                  </strong>{' '}
+                  Na tela do mestre, ao passar de turno os cards dos combatentes
+                  recolhem automaticamente e{' '}
+                  <strong>só o do combatente da vez</strong> fica expandido, e
+                  esse card ganha um <strong>destaque pulsante</strong> para
+                  identificar de relance quem está jogando.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o botão{' '}
+                  <strong>Publicar no Bestiário</strong> foi realinhado à
+                  largura do conteúdo da ameaça.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a Biblioteca (compêndio de regras)
+                  pode ser exibida embutida em outros contextos, como dentro da
+                  mesa virtual, sem interferir no título da aba nem exibir
+                  chamadas que não funcionariam ali.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o carrossel de destaques da página
+                  inicial passou a ser configurado pelo servidor, permitindo
+                  atualizar os destaques sem precisar de uma nova versão do app.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao remover um{' '}
+                  <strong>Poder Geral</strong> pelo painel de{' '}
+                  <strong>Editar Poderes</strong> e salvar, o poder não é mais
+                  readicionado à ficha. O problema afetava poderes concedidos
+                  por habilidades (como a <strong>Memória Póstuma</strong> do
+                  Osteon e a <strong>Linhagem Rubra</strong> do Arcanista
+                  Feiticeiro), que voltavam a aparecer na lista de poderes.
+                </li>
+              </ul>
+              <h3>4.15</h3>
+              <ul>
+                <li>
+                  <strong>
+                    Novo: card expansível de combatente no encontro ativo (visão
+                    do mestre).
+                  </strong>{' '}
+                  Antes o mestre via apenas uma linha com nome, PV/PM e
+                  iniciativa de cada combatente. Agora cada combatente aparece
+                  como um <strong>card</strong> que pode ser expandido ou
+                  retraído. Nas configurações da mesa, em{' '}
+                  <em>Card do combatente (visão do mestre)</em>, você escolhe
+                  quais informações da ficha quer ver durante o combate: PV, PM,
+                  Defesa (ligados por padrão), e qualquer combinação de{' '}
+                  <em>atributos</em> (Força, Destreza, Constituição,
+                  Inteligência, Sabedoria, Carisma) e <em>perícias</em> (lista
+                  completa). Uma <strong>pré-visualização ao vivo</strong> na
+                  própria tela de configurações mostra como o card vai ficar
+                  enquanto você mexe. Quando o card está retraído, um resumo
+                  compacto em chips ainda exibe os campos configurados; ao
+                  expandir, PV/PM ganham controles +/- (para ameaças), atributos
+                  e perícias aparecem em chips com bônus. A tela do jogador
+                  continua exatamente como antes.
+                </li>
+                <li>
+                  <strong>
+                    Novo: cor pessoal por participante na mesa virtual.
+                  </strong>{' '}
+                  Cada jogador (e o mestre) pode ter uma cor pessoal que serve
+                  como identificador visual em todos os lugares da mesa. Na
+                  lista de <em>Jogadores</em> da página da mesa, um{' '}
+                  <strong>seletor de cor</strong> (RGB completo) aparece ao lado
+                  de cada membro — o mestre pode mudar a cor de qualquer um,
+                  jogadores só a própria. A cor é aplicada como{' '}
+                  <strong>fundo do card</strong> e faixa lateral do combatente
+                  no encontro ativo do mestre, como{' '}
+                  <strong>bolinha colorida</strong> ao lado do nome na ordem de
+                  turno do jogador e na lista de jogadores conectados, e como{' '}
+                  <strong>borda do avatar</strong> no painel de fichas.
+                  Atualização em tempo real para todos que estão na sessão.
+                </li>
+                <li>
+                  <strong>
+                    Novo: subpastas aninhadas em Meus Personagens e Minhas
+                    Ameaças.
+                  </strong>{' '}
+                  Para quem organiza muitas fichas (campanhas com vários arcos,
+                  NPCs por sessão, ameaças por bioma), agora as pastas podem
+                  conter outras pastas <em>sem limite de profundidade</em>. Ao
+                  entrar em uma pasta, um <strong>caminho navegável</strong>{' '}
+                  (breadcrumb) aparece no topo — clique em qualquer segmento
+                  para voltar àquele nível, ou em <em>Raiz</em> para sair de
+                  tudo. Criar uma pasta enquanto está dentro de outra cria
+                  automaticamente uma <strong>subpasta</strong> ali. Você pode{' '}
+                  <strong>arrastar uma pasta para dentro de outra</strong> para
+                  reorganizar, ou usar a opção <em>Mover para…</em> no menu de
+                  contexto da pasta (clique direito). O menu <em>Mover</em> das
+                  fichas agora mostra o <strong>caminho completo</strong> de
+                  cada destino (ex.: <em>Campanhas › Volume 1 › Sessão 3</em>),
+                  evitando confusão entre pastas de mesmo nome. Ao{' '}
+                  <strong>excluir</strong> uma pasta, as subpastas e fichas
+                  dentro dela <strong>não são apagadas</strong> — sobem
+                  automaticamente para a pasta pai (ou para a raiz, se era de
+                  nível mais alto). A contagem mostrada em cada pasta agora é{' '}
+                  <strong>recursiva</strong> (inclui fichas em todas as
+                  subpastas).
+                </li>
+                <li>
+                  <strong>
+                    Novo: editar manualmente a ficha do Melhor Amigo.
+                  </strong>{' '}
+                  Atendendo a pedidos frequentes de usuários, agora a ficha do
+                  Melhor Amigo (parceiro do Treinador) é totalmente editável.
+                  Abra a ficha do parceiro e clique no ícone de{' '}
+                  <strong>lápis</strong> no topo — um novo modal abre com abas
+                  para <em>Geral</em>, <em>Combate</em>, <em>Armas Naturais</em>
+                  , <em>Perícias</em>, <em>Truques</em>, <em>Magias</em> e{' '}
+                  <em>Outros</em>, permitindo alterar nome, tipo, tamanho,
+                  atributos, PV, Defesa, RD, deslocamento, lista de truques,
+                  perícias, armas naturais, sentidos, imunidades e
+                  proficiências. Edições manuais sobrescrevem os valores
+                  auto-calculados e a ficha exibe um chip{' '}
+                  <em>Editado manualmente</em>. Use o botão{' '}
+                  <strong>Restaurar valores originais</strong> no header do
+                  modal para voltar tudo ao estado auto-gerado — o tracking de
+                  PV de combate (PV atual, temporário e incremento) é
+                  preservado.
+                </li>
+                <li>
+                  <strong>
+                    Novo: reordenar manualmente os poderes na ficha.
+                  </strong>{' '}
+                  Antes os poderes apareciam sempre em ordem alfabética — agora
+                  você pode definir a sua própria ordem (ex.: agrupar poderes de
+                  combate no topo, deixar passivos no fim). Na seção{' '}
+                  <strong>Poderes</strong> da ficha, clique em{' '}
+                  <strong>Reordenar</strong>, arraste os poderes para a posição
+                  desejada e clique em <strong>Concluído</strong>. A ordem fica
+                  salva naquela ficha (incluindo no PDF gerado) e sobrevive a
+                  recarregamentos. Se quiser voltar ao padrão, basta clicar em{' '}
+                  <em>Restaurar ordem alfabética</em>.
+                </li>
+                <li>
+                  <strong>Novo: convite via link para Mesas Virtuais.</strong> O
+                  mestre agora pode gerar{' '}
+                  <strong>um único link de convite</strong> para a mesa e
+                  compartilhar em qualquer canal (Discord, WhatsApp, etc.) —
+                  antes era necessário pedir o email de cada jogador e enviar
+                  convites individuais. O modal de <em>Convidar Jogador</em>{' '}
+                  ganhou uma nova aba <strong>Por link</strong> com botões para
+                  gerar, copiar, revogar e regenerar o link. O link expira em 7
+                  dias e pode ser usado por vários jogadores até atingir o
+                  limite da mesa. Quem clica no link vê um preview da mesa
+                  (nome, mestre, jogadores) antes de confirmar a entrada; se
+                  estiver deslogado, é convidado a fazer login pelo modal usual
+                  antes de prosseguir. O convite por email continua disponível
+                  na outra aba.
+                </li>
+                <li>
+                  <strong>
+                    Novo: materiais especiais agora aplicam efeitos numéricos.
+                  </strong>{' '}
+                  Mitral em arma melhora a margem de ameaça em 1 (ex.: 20/x2 →
+                  19/x2) e em armadura reduz a penalidade em 2. Adamante em arma
+                  aumenta o dado de dano em um passo (1d8 → 1d10) e em armadura
+                  concede RD geral (2 para leves/escudos, 5 para pesadas). Gelo
+                  Eterno em arma adiciona +2 de dano por frio; em armadura
+                  concede RD contra fogo (5/10). Matéria Vermelha em arma
+                  adiciona +1d6 de dano de essência. Aço-rubi e Madeira Tollon
+                  seguem descritivos pois seus efeitos são condicionais.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: sugestões de deslocamento no Gerador de Ameaças.
+                  </strong>{' '}
+                  Antes era preciso digitar o deslocamento manualmente toda vez.
+                  Agora, ao escolher o <em>Tamanho</em> da ameaça, o campo é
+                  preenchido automaticamente com o valor padrão da tabela
+                  oficial (coluna <em>Bípede / Normal</em>: 6m para Pequeno, 9m
+                  para Médio, 12m para Grande, 15m para Enorme/Colossal) e logo
+                  abaixo aparecem <strong>chips</strong> com todas as
+                  combinações aplicáveis (Bípede e Quadrúpede × <em>Lento</em>,{' '}
+                  <em>Normal</em>, <em>Rápido</em>) para clique rápido. Cada
+                  sugestão já vem no formato <em>Nm (Mq)</em>, mostrando também
+                  a quantidade de quadrados equivalentes (cada quadrado = 1,5m)
+                  para uso em mesas de batalha — ex.: <em>9m (6q)</em>. Você
+                  ainda pode digitar um valor customizado se preferir.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Defesa e notas dos combatentes não eram
+                    persistidas no encontro.
+                  </strong>{' '}
+                  Quando o encontro ativo era salvo e recarregado, os valores de
+                  Defesa e as anotações privadas do mestre somem silenciosamente
+                  — o chip de Defesa desaparecia do combatente depois de
+                  qualquer refresh da página. Agora ambos persistem corretamente
+                  entre sessões.
+                </li>
+                <li>
+                  <strong>
+                    Correção: classes conjuradoras não ganhavam magia ao subir
+                    de nível.
+                  </strong>{' '}
+                  Desde a versão que adicionou multiclasse, o passo de escolha
+                  de magia era silenciosamente pulado no level up de Clérigo,
+                  Frade, Bardo, Druida e Arcanista quando jogados como classe
+                  única. O wizard agora oferece corretamente a magia nova a cada
+                  nível (3 magias iniciais no 1º + 1 magia por nível para o
+                  Clérigo, conforme regras oficiais).
+                </li>
+                <li>
+                  <strong>
+                    Correção: opções da raça Yidishan não apareciam no wizard
+                    manual.
+                  </strong>{' '}
+                  Ao criar uma ficha de Yidishan pelo wizard, a habilidade{' '}
+                  <strong>Natureza Orgânica</strong> era resolvida
+                  aleatoriamente sem dar escolha ao jogador. Agora aparece um
+                  novo card no passo <strong>Efeitos de Poderes</strong> onde
+                  você escolhe a <em>raça anterior</em> (padrão Humano, com as
+                  demais raças humanoides do livro disponíveis) e o benefício
+                  entre <em>perícia treinada</em>, <em>poder geral</em> ou (se a
+                  raça anterior não for humano){' '}
+                  <em>uma habilidade dessa raça</em>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Couraça Rúbea e Disforme da raça Kaijin pediam
+                    clique em uma opção única.
+                  </strong>{' '}
+                  Após começarem a contar como poderes da Tormenta na 4.15
+                  anterior, essas habilidades passaram a exibir um radio
+                  obrigatório com apenas a opção pré-determinada. O wizard agora
+                  seleciona automaticamente a única opção disponível quando um
+                  poder oferece uma escolha única — vale também para outras
+                  raças/poderes com a mesma estrutura.
+                </li>
+                <li>
+                  <strong>
+                    Correção: edição manual de Dano, Bônus de Ataque e Crítico
+                    em armas com modificadores.
+                  </strong>{' '}
+                  Quando uma arma já tinha modificações ou encantamentos
+                  aplicados, ajustar manualmente os campos da aba Estatísticas
+                  do editor de item não persistia — o valor digitado voltava
+                  para o cálculo automático após salvar. Agora a edição manual é
+                  preservada e ganha prioridade sobre o recálculo. Para voltar
+                  ao automático, use o botão <strong>Resetar</strong> na própria
+                  aba.
+                </li>
+                <li>
+                  <strong>Correção: layout mobile da Mesa Virtual.</strong> Em
+                  celulares, a página da mesa abria com um zoom estranho e
+                  deixava uma faixa em branco lateral. A barra do topo agora
+                  trunca nomes longos da mesa e agrupa as ações secundárias
+                  (modo privado, histórico de rolagens, jogadores conectados,
+                  encerrar sessão) em um menu de três pontos. Os campos do
+                  painel de combate (PV, PM, iniciativa) também ficaram menores
+                  em telas pequenas para evitar overflow.
+                </li>
+                <li>
+                  <strong>
+                    Correção: perícias destreinadas voltavam a aparecer como
+                    treinadas.
+                  </strong>{' '}
+                  Quando você destreinava uma perícia base da classe/origem,
+                  salvava e em seguida fazia qualquer outra edição na ficha
+                  (defesa, poderes, mochila, condições, etc.), a perícia voltava
+                  automaticamente a ficar treinada — e o estado errado era
+                  persistido. Agora a intenção de destreinar é preservada
+                  através das recalculações subsequentes.
+                </li>
+                <li>
+                  <strong>Correção: abas de Editar Item no mobile.</strong> No
+                  editor de item da mochila, as abas (Geral, Estatísticas,
+                  Modificações, Encantamentos) agora têm scroll horizontal no
+                  mobile, evitando que ficassem cortadas em telas pequenas.
+                </li>
+              </ul>
+
+              <h3>4.14</h3>
+              <ul>
+                <li>
+                  <strong>
+                    Novo: Layouts da Mesa Virtual repensados no desktop.
+                  </strong>{' '}
+                  No desktop e em tablets em landscape, jogador e mestre agora
+                  têm telas dedicadas no lugar do scroll vertical único. O
+                  jogador vê a ficha como conteúdo principal e ganha um rail
+                  direito colapsável com a ordem de turno (quando há combate),
+                  log de rolagens recentes e a Rolagem Rápida no rodapé. O
+                  mestre passa a ter um menu lateral flutuante com os contextos{' '}
+                  <strong>Encontros</strong> (Ativo / Preparados),{' '}
+                  <strong>Fichas</strong> (Jogadores / Ameaças) e{' '}
+                  <strong>Configurações</strong>. O menu mostra só ícones por
+                  padrão e se expande no hover. Mobile portrait segue com a
+                  navegação inferior atual.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Configurações da Mesa Virtual para o mestre.
+                  </strong>{' '}
+                  Nova seção <strong>Configurações da Mesa</strong> na página da
+                  mesa permite ao mestre escolher o{' '}
+                  <strong>modo padrão das rolagens</strong> (público ou privado)
+                  e como <strong>PV e PM</strong> aparecem aos jogadores durante
+                  encontros ativos: aplicar a personagens dos jogadores, ameaças
+                  ou ambos; mostrar apenas PV, apenas PM ou os dois; e exibir só
+                  a barra, só o valor atual, só o total ou tudo junto. As
+                  mudanças refletem em tempo real para todos os clientes
+                  conectados à sessão. Antes essa configuração estava colada no
+                  toggle de rolagens privadas e só dava pra esconder a barra de
+                  inimigos — agora cada coisa é independente.
+                </li>
+                <li>
+                  <strong>
+                    Novo: PV e PM dos personagens dos jogadores no encontro.
+                  </strong>{' '}
+                  Os participantes-jogadores agora carregam um snapshot de PV/PM
+                  tirado da ficha quando o encontro começa, e qualquer mudança
+                  que o jogador fizer na própria ficha (dano, gasto de PM,
+                  edição de PV/PM Máximo Manual) sincroniza automaticamente para
+                  a linha do participante no encontro. Combinado com a nova
+                  configuração de exibição, o mestre escolhe se essa informação
+                  fica visível para os outros jogadores da mesa e em qual nível
+                  de detalhe.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Iniciar / Entrar / Encerrar sessão a partir da página
+                    da mesa.
+                  </strong>{' '}
+                  A página de detalhe da mesa ganhou ações de sessão visíveis
+                  para qualquer membro: <strong>Entrar na Sessão</strong>{' '}
+                  aparece sempre que a sessão está ativa,{' '}
+                  <strong>Iniciar Sessão</strong> e{' '}
+                  <strong>Encerrar Sessão</strong> ficam visíveis para o
+                  Mestre/dono. Antes, ao cair nessa página durante uma sessão
+                  ativa, o jogador não tinha como entrar e o mestre não tinha
+                  como encerrar sem voltar para a sessão.
+                </li>
+                <li>
+                  <strong>Novo: Encantamentos mágicos</strong> em armas,
+                  armaduras e escudos. Nova aba <strong>Encantamentos</strong>{' '}
+                  no editor de item da mochila com seleção múltipla, custo
+                  máximo de 5 pontos, suporte a encantamentos exclusivos de
+                  escudo (Animado, Esmagador) e{' '}
+                  <strong>aplicação automática de bônus numéricos</strong>:
+                  Defensora (+2 Defesa do empunhador), Formidável (+2 atk/+2
+                  dano), Magnífica (+4 atk/+4 dano), Defensor (+2 Defesa),
+                  Guardião (+4 Defesa), Acrobático/Sombrio/Escorregadio (+2
+                  perícia). Encantamentos com efeito descritivo (resistências,
+                  efeitos condicionais, magias guardadas) salvam no item e
+                  aparecem no tooltip mas não modificam stats automaticamente.
+                </li>
+                <li>
+                  <strong>Novo: Tipos de dano e dano extra em armas.</strong>{' '}
+                  Cada arma agora pode ter{' '}
+                  <strong>múltiplos danos extras</strong> tipados (ex.: 1d6
+                  Fogo, 1d4 Luz) que rolam junto com o dano base no ataque. Os
+                  11 tipos disponíveis são{' '}
+                  <strong>
+                    Impacto, Corte, Perfuração, Ácido, Eletricidade, Essência,
+                    Fogo, Frio, Luz, Psíquico
+                  </strong>{' '}
+                  e <strong>Trevas</strong>. Encantamentos elementais{' '}
+                  <strong>
+                    Flamejante, Congelante, Corrosiva, Elétrica e Tumular
+                  </strong>{' '}
+                  agora adicionam automaticamente seus danos extras à arma
+                  quando aplicados. Linhas de dano extra rolam uma vez no acerto
+                  e <strong>não criticam</strong> (regra T20). Edição manual via
+                  seção &quot;Danos extras&quot; na aba Estatísticas.
+                </li>
+                <li>
+                  <strong>Novo: Indicador visual</strong> na linha de cada
+                  ataque para itens com modificação superior ou encantamento,
+                  com tooltip listando os dois grupos. O sufixo do nome do item
+                  na mochila também passa a incluir encantamentos junto às
+                  modificações.
+                </li>
+                <li>
+                  <strong>Novo: Modificações de Heróis de Arton.</strong>{' '}
+                  Catálogo do suplemento Heróis de Arton integrado ao editor de
+                  modificações: Banhada a ouro, Cravejada de gemas, Luxuosa,
+                  Guarda, Farpada, Fósforo, Incendiária, Pressurizada,
+                  Balístico, Deslumbrante, Injetora, Prudente. Suporte a{' '}
+                  <strong>pré-requisitos OR</strong> — modificações como Luxuosa
+                  que requerem &quot;Banhada a ouro <em>ou</em> Cravejada de
+                  gemas&quot;. Modificação Guarda aplica +1 de Defesa
+                  automaticamente via SheetBonus.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: Identificação de suplemento nas melhorias e
+                    encantamentos.
+                  </strong>{' '}
+                  As abas <strong>Melhorias</strong> e{' '}
+                  <strong>Encantamentos</strong> do editor de armas, armaduras e
+                  escudos agora exibem um badge com a abreviação do suplemento
+                  (ex.: <strong>DA</strong>, <strong>HA</strong>) ao lado de
+                  cada opção que não vem do livro básico. Antes, era impossível
+                  saber de qual suplemento uma opção vinha — só o nome aparecia.
+                  A aba de Encantamentos também passou a carregar encantos
+                  específicos de suplementos ativos, em paralelo ao que já
+                  funcionava para Melhorias.
+                </li>
+                <li>
+                  <strong>Melhoria: Conexão da Mesa Virtual.</strong>{' '}
+                  Reidratação completa do estado do encontro ao reconectar
+                  (snapshot canônico vindo do servidor) elimina divergência
+                  entre jogadores depois de qualquer instabilidade de rede.
+                  Detecção de zombie connection via ACK de heartbeat: se o
+                  servidor para de responder, o cliente percebe em ≤16s e
+                  reconecta automaticamente. Novo indicador{' '}
+                  <strong>amarelo</strong> de &quot;Conexão instável&quot; no
+                  ícone de Wi-Fi do topo aparece antes de cair de vez,
+                  permitindo ação preventiva.
+                </li>
+                <li>
+                  <strong>Melhoria: Mochila pré-filtrada por contexto.</strong>{' '}
+                  Ao abrir a Mochila de Aventureiro pelo botão de editar dos
+                  cards de <strong>Ataques</strong> ou <strong>Defesa</strong>,
+                  o filtro de categorias já vem pré-selecionado (<em>Arma</em>{' '}
+                  para Ataques; <em>Armadura</em> e <em>Escudo</em> para
+                  Defesa). O botão de <strong>Equipamentos</strong> segue
+                  abrindo sem filtro. Os chips do toolbar continuam editáveis
+                  para alterar ou limpar a seleção.
+                </li>
+                <li>
+                  <strong>Melhoria: Card de Defesa.</strong> Configurações do
+                  card de Defesa separadas do acesso à mochila, permitindo
+                  ajustar bônus específicos sem abrir a mochila inteira.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Habilidades de Tormenta da raça Kaijin.
+                  </strong>{' '}
+                  As habilidades <strong>Disforme</strong> e{' '}
+                  <strong>Terror Vivo</strong> da raça <strong>Kaijin</strong>{' '}
+                  agora contam corretamente como poderes da Tormenta. Disforme
+                  passa a adicionar automaticamente um poder da Tormenta à ficha
+                  (como já acontecia com Couraça Rúbea), e Terror Vivo abre um
+                  seletor para escolher um poder real da Tormenta entre os
+                  disponíveis. Antes, apenas Couraça Rúbea era contabilizada,
+                  impedindo builds Kaijin de cumprir o pré-requisito de poderes
+                  que exigem 4 outros poderes da Tormenta — como{' '}
+                  <strong>Membros Extras</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Poderes e truques do Treinador (Ensinar Truque e
+                    Magia Inata).
+                  </strong>{' '}
+                  Dois bugs reportados por jogadores foram corrigidos. O poder{' '}
+                  <strong>Ensinar Truque</strong> agora abre, ao ser escolhido
+                  no level up ou no editor de poderes, um passo dedicado para
+                  escolher o truque adicional do melhor amigo — antes o poder
+                  ficava registrado mas não tinha efeito. O truque{' '}
+                  <strong>Magia Inata</strong> (Espíritos) agora tem seletor de
+                  magia: o jogador escolhe uma magia arcana ou divina de 1º
+                  círculo e ela é atribuída ao melhor amigo com{' '}
+                  <strong>Carisma do treinador</strong> como atributo-chave,
+                  exibida em uma nova seção <strong>Magias</strong> na ficha do
+                  parceiro. Treinadores com mais de um melhor amigo (Conquistar
+                  pelos Números) agora podem escolher qual companheiro recebe
+                  cada truque novo, em vez de o sistema sempre alocar no
+                  primeiro.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Limite de Poderes da Divindade no wizard.
+                  </strong>{' '}
+                  No passo <strong>Poderes da Divindade</strong> do wizard de
+                  criação manual, era possível marcar todos os poderes da
+                  divindade sem qualquer limite. Agora a seleção respeita o
+                  campo da classe: Clérigo, Paladino, Druida e Frade escolhem
+                  até <strong>2</strong> poderes, e classes que recebem
+                  divindade via &quot;Devoto&quot; escolhem até{' '}
+                  <strong>1</strong>. Os checkboxes excedentes ficam
+                  desabilitados ao atingir o limite, e o passo continua opcional
+                  (pode-se avançar com 0 selecionados).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Edição de Tabu, Presentes e Dons do Duende.
+                  </strong>{' '}
+                  O editor de ficha agora permite alterar todas as escolhas de
+                  customização do Duende em personagens já criados — antes, só
+                  Natureza e Tamanho ficavam editáveis e o restante congelava
+                  com o valor inicial. Trocar um Presente recalcula corretamente
+                  sentidos e bônus (some o do antigo, entra o do novo); mudar a
+                  perícia do Tabu redireciona o −5; e os Dons podem ser
+                  realocados entre atributos. Habilidades fixas (Aversão a
+                  Ferro/Sinos, Tipo de Criatura) seguem fixas conforme as
+                  regras. Salvar fica bloqueado se os atributos dos Dons forem
+                  iguais ou se não houver exatamente 3 Presentes selecionados.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Iniciativa travada quando o mestre usava fichas
+                    próprias.
+                  </strong>{' '}
+                  Quando o mestre adicionava ao encontro fichas-jogador que ele
+                  mesmo controla, o overlay de rolagem de iniciativa abria mas
+                  nunca conseguia concluir — a rolagem era ignorada e o mestre
+                  ficava preso na tela. Agora o overlay deixa de aparecer para
+                  fichas controladas pelo mestre, e ele rola a iniciativa dessas
+                  fichas pela própria lista do encontro, no mesmo fluxo das
+                  ameaças.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Remoção de jogadores travada na Mesa Virtual.
+                  </strong>{' '}
+                  Em mesas mais antigas, mestres podiam ver um erro ao tentar
+                  remover um jogador da lista de membros — o sistema não
+                  conseguia localizar o registro mesmo com o jogador visível na
+                  tela. A identificação interna dos membros foi normalizada e a
+                  remoção agora funciona em todas as mesas. Quando algum estado
+                  divergente acontecer no futuro, o frontend atualiza a lista
+                  automaticamente e mostra uma mensagem clara em vez do erro
+                  genérico.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Limite de jogadores da mesa para Apoiadores.
+                  </strong>{' '}
+                  Mesas criadas antes do upgrade para{' '}
+                  <strong>Apoiador Nível 2 ou 3</strong> continuavam exibindo o
+                  limite antigo de jogadores na tela de detalhe da mesa, mesmo
+                  com a assinatura ativa garantindo número ilimitado. O limite
+                  agora é calculado em tempo real a partir do nível de apoio
+                  atual do criador da mesa — qualquer mudança de plano (upgrade
+                  ou cancelamento) é refletida imediatamente em todas as mesas
+                  já existentes.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Sincronização de condições entre ficha e encontro.
+                  </strong>{' '}
+                  Condições aplicadas pelo Mestre via gerenciador do
+                  participante agora aparecem imediatamente na ficha do jogador,
+                  e condições adicionadas pelo jogador na própria ficha agora
+                  aparecem imediatamente no badge do participante para o Mestre
+                  e demais jogadores. Antes, cada ponta só via a edição feita no
+                  seu próprio lado. Condições do participante também passam a
+                  ser persistidas — sobrevivem a restart do servidor e
+                  recarregamento da sessão.
+                </li>
+                <li>
+                  <strong>
+                    Correção: PV/PM Máximo Manual ressuscitando após apagar.
+                  </strong>{' '}
+                  Em mesas virtuais, quando o jogador definia um valor de PV ou
+                  PM Máximo Manual e depois apagava o campo, o valor antigo
+                  voltava ao recarregar a página. A sincronização agora envia
+                  explicitamente a deleção do campo para o servidor, e o retorno
+                  ao cálculo automático passa a persistir corretamente entre
+                  sessões.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Nome customizado de armas na aba de Ataques.
+                  </strong>{' '}
+                  Ao renomear uma arma na mochila (campo{' '}
+                  <em>Nome customizado</em> no editor do item), o novo nome
+                  agora aparece imediatamente no card de ataque, no log de
+                  rolagem de dados, no diálogo de modos de ataque e no aviso de
+                  arma não empunhada. Antes, a renomeação só refletia no
+                  inventário — útil, por exemplo, para sinalizar &quot;Adaga
+                  (Marca da Presa)&quot; e lembrar de aplicar o dano extra a
+                  cada acerto.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Aplicar remoção em cascata ao tirar
+                  uma modificação no editor — modificações dependentes são
+                  removidas respeitando pré-requisitos OR (não removem
+                  injustamente quando ainda há outra opção válida).
+                </li>
+              </ul>
+              <h3>4.13</h3>
+              <ul>
+                <li>
+                  <strong>
+                    Novo: Dado percentual (d100) no rolador rápido.
+                  </strong>{' '}
+                  Adicionado ao QuickDiceRoller das mesas de jogo. Mostra
+                  valores 00, 10, 20, …, 90 (faces dezenas), seguindo a
+                  convenção de dado percentual sem ser clampeado para 1.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Mochila de Aventureiro</strong>{' '}
+                  substitui o drawer monolítico de edição de equipamentos por um{' '}
+                  <strong>modal full-screen</strong> com grade visual de cards,
+                  ícones e cores por tipo, contagem de quantidade (xN),{' '}
+                  <strong>reordenamento por drag-and-drop</strong>,{' '}
+                  <strong>busca</strong>, filtros por categoria,{' '}
+                  <strong>toggle de agrupamento por categoria</strong> e edição
+                  completa de itens em abas (Geral / Estatísticas /
+                  Modificações). Itens superiores podem ser aplicados
+                  diretamente em armas, armaduras e escudos da mochila com{' '}
+                  <strong>aplicação automática dos bônus numéricos</strong>{' '}
+                  (Cruel, Atroz, Certeira, Pungente, Maciça, Precisa,
+                  Equilibrada, Discreta, Banhada a ouro, Luxuosa, Ajustada e
+                  outras). Capacidade de carga (10 + 2×Força) é informada — o
+                  jogador <strong>nunca é bloqueado</strong> de adicionar itens,
+                  mas vê banner e cards destacados quando sobrecarregado. Cada
+                  1.000 moedas conta como 1 espaço.
+                </li>
+                <li>
+                  <strong>Novo: Sistema de empunhadura.</strong> O jogador
+                  decide qual item está em cada mão (
+                  <strong>Principal / Secundária</strong>). Apenas o{' '}
+                  <strong>escudo empunhado</strong> aplica bônus de defesa, e{' '}
+                  <strong>armas de duas mãos</strong> ocupam ambos os slots. O
+                  controle aparece tanto na Mochila quanto na lista de Ataques
+                  (troca rápida sem abrir a mochila). Fichas antigas com 1
+                  escudo continuam aplicando bônus automaticamente
+                  (compatibilidade retroativa).
+                </li>
+                <li>
+                  <strong>Novo: Múltiplas armaduras e escudos.</strong> A
+                  mochila pode guardar várias armaduras e escudos
+                  simultaneamente. Apenas a <strong>armadura vestida</strong>{' '}
+                  aplica bônus de defesa, penalidade e flag de armadura pesada.
+                  Banner de aviso aparece quando há ≥2 armaduras sem nenhuma
+                  marcada como vestida.
+                </li>
+                <li>
+                  <strong>Novo: Sistema de munição.</strong> Flechas, Virotes,
+                  Balas, Pedras e Bolas de Ferro são rastreadas individualmente
+                  na ficha. Ao atacar com uma arma à distância, um diálogo
+                  pergunta se o jogador quer{' '}
+                  <strong>rolar consumindo munição</strong> ou rolar sem
+                  consumir; ao confirmar, a contagem é decrementada. Cada arma
+                  com munição mostra uma sub-linha 🎯 com a contagem atual em
+                  Ataques. Adicionar 1 stack de munição soma o pack-size correto
+                  (20 unidades para Flechas/Virotes/Balas/Pedras, 1 unidade para
+                  Bola de Ferro). Pedras (T$ 0) e Bola de Ferro foram
+                  adicionadas ao catálogo. Fichas antigas com Flechas/Virotes/
+                  Balas migram automaticamente.
+                </li>
+                <li>
+                  <strong>Novo: Modos de ataque alternativos.</strong> Armas com
+                  comportamentos diferentes apresentam um{' '}
+                  <strong>diálogo de seleção de modo</strong> antes da rolagem,
+                  com preview de atk/dano/crítico/atributo de cada modo:
+                  <ul>
+                    <li>
+                      <strong>
+                        Adaga, Lança, Machadinha, Tridente, Martelo Leve
+                      </strong>{' '}
+                      — corpo a corpo (Luta) ou arremessar (Pontaria).
+                    </li>
+                    <li>
+                      <strong>Azagaia</strong> — arremessar como padrão; corpo a
+                      corpo com penalidade de -5 no ataque.
+                    </li>
+                    <li>
+                      <strong>Funda</strong> — disparar Pedras (consome munição)
+                      ou pedra improvisada com -1 passo de dano (sem munição
+                      adequada).
+                    </li>
+                    <li>
+                      <strong>Lança de Fogo</strong> e{' '}
+                      <strong>Pistola-Punhal</strong> — corpo a corpo com opção
+                      de <strong>acionar mecanismo</strong> (consome 1 Bala,
+                      +2d8 / +2d6 se acertar) ou tiro à distância.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Novo: Atributo no dano configurável por arma.</strong>{' '}
+                  O jogador pode escolher qualquer um dos 6 atributos (Força,
+                  Destreza, Constituição, Inteligência, Sabedoria, Carisma) ou{' '}
+                  <strong>Nenhum</strong> como atributo somado ao dano, no nível
+                  da arma e por modo de ataque (corpo a corpo vs. arremesso).
+                  Por padrão, armas corpo a corpo somam <strong>Força</strong> e
+                  armas a distância somam <strong>Nenhum</strong>; algumas armas
+                  a distância seguem a regra oficial e somam Força (
+                  <strong>Funda</strong>, <strong>Arco Longo</strong>,{' '}
+                  <strong>Arco de Guerra</strong>, <strong>Balestra</strong>).
+                </li>
+                <li>
+                  <strong>Novo: Aviso ao atacar com arma não empunhada.</strong>{' '}
+                  Se a arma clicada não está em nenhuma mão (e a ficha já usa
+                  rastreamento de empunhadura), um diálogo oferece{' '}
+                  <strong>Empunhar e atacar</strong>,{' '}
+                  <strong>Atacar mesmo assim</strong> ou{' '}
+                  <strong>Cancelar</strong>.
+                </li>
+                <li>
+                  <strong>Melhoria: Card de Defesa com dois botões.</strong> O
+                  botão de <strong>lápis</strong> no card de Defesa agora abre
+                  diretamente a <strong>Mochila de Aventureiro</strong> (igual
+                  aos cards de Ataques e Equipamentos), facilitando a troca de
+                  armadura/escudo empunhado. As configurações finas de defesa
+                  (base, atributo usado, bônus manual) ficaram em um novo botão
+                  de <strong>engrenagem</strong> ao lado.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Requisito do poder Sentidos Aguçados ajustado.
+                  </strong>
+                </li>
+                <li>
+                  <strong>
+                    Correção: Total das rolagens 3D não duplica mais os dados.
+                  </strong>{' '}
+                  Grupos &quot;Total&quot; agregados (que repetiam a notação dos
+                  grupos anteriores) eram contados em dobro ao processar
+                  resultados 3D — agora são identificados como <em>summary</em>{' '}
+                  e recalculados a partir dos grupos individuais.
+                </li>
+              </ul>
+
+              <h3>4.12</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Campo de{' '}
+                  <strong>busca de equipamentos</strong> dentro de cada
+                  categoria do drawer de editar itens (Armas, Armadura, Escudo,
+                  Itens Gerais, Esotéricos, Vestuário, Alquimia, Alimentação e
+                  Animais). A busca filtra por nome com{' '}
+                  <strong>debounce de 300ms</strong>, é insensível a acentos
+                  (digitar &quot;espada&quot; encontra &quot;Espada Longa&quot;
+                  e similares) e esconde subcategorias vazias para evitar
+                  scrolls longos — útil principalmente em mobile, onde a maioria
+                  dos jogadores usa o app na mesa.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Foco em Arma</strong>,{' '}
+                  <strong>Especialização em Arma</strong>,{' '}
+                  <strong>Mestre em Arma</strong> e <strong>Arma Amada</strong>{' '}
+                  agora aplicam seus bônus mecânicos automaticamente na arma
+                  escolhida — +2 em ataque para Foco em Arma, +2 em dano para
+                  Especialização em Arma e Arma Amada, e{' '}
+                  <strong>aumento de um passo no dado de dano</strong> (1d8 →
+                  1d10, 1d12 → 3d6, etc.) para Mestre em Arma. Foco em Arma e
+                  Especialização em Arma podem ser pegos várias vezes para armas
+                  diferentes; cada instância tem sua própria seleção. A escolha
+                  é <strong>opcional</strong> no momento de pegar o poder e pode
+                  ser feita ou trocada <strong>a qualquer momento</strong>{' '}
+                  através do botão de mira no accordion do poder na ficha. Só é
+                  possível escolher armas já presentes na ficha. Armas com bônus
+                  aplicado mostram um ícone com tooltip listando os efeitos
+                  ativos. Fichas antigas recebem a feature automaticamente sem
+                  precisar regerar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao editar uma{' '}
+                  <strong>armadura ou escudo</strong> pela edição de
+                  equipamentos, a <strong>defesa total</strong> deixava cair
+                  silenciosamente o <strong>bônus manual</strong> e os{' '}
+                  <strong>bônus vindos de poderes</strong> (como{' '}
+                  <strong>Carapaça</strong>, <strong>Encouraçado</strong> e{' '}
+                  <strong>Defesa Armada</strong>), passando a mostrar apenas
+                  base + armadura + escudo + atributo. Agora o recálculo após
+                  salvar preserva todos os bônus.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder <strong>Familiar</strong>{' '}
+                  (Arcanista) agora <strong>persiste a escolha</strong> entre
+                  acessos e edições da ficha. Antes, o familiar selecionado era
+                  trocado por outro aleatório a cada edição (aplicar uma
+                  condição, alterar equipamento, defesa etc.), o que também
+                  fazia o <strong>+2 em Furtividade do Gato</strong> sumir
+                  silenciosamente. A mesma correção foi aplicada à{' '}
+                  <strong>Especialização em Arma</strong> (Guerreiro) e ao{' '}
+                  <strong>Animal Totêmico</strong> (Bárbaro), que tinham o mesmo
+                  bug estrutural. Fichas antigas recuperam a escolha
+                  automaticamente a partir do texto do poder.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Estabilidade da{' '}
+                  <strong>Mesa Virtual no iOS Safari</strong> — afrouxado o
+                  ping/pong de WebSocket para tolerar jitter móvel, adicionados
+                  handlers de pageshow/pagehide para restaurar a sessão saindo
+                  do BFCache (bloqueio/troca de app), watchdog para detectar
+                  polling preso e logs com User-Agent para diagnóstico. Agora a
+                  conexão se recupera sozinha quando o jogador volta ao app
+                  depois de bloquear o celular ou trocar de aba.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Várias habilidades passivas de
+                  classe que eram apenas descritivas agora aplicam seus bônus
+                  mecânicos automaticamente na ficha:
+                  <ul>
+                    <li>
+                      <strong>Casca Grossa</strong> (Lutador / Atleta): soma{' '}
+                      <strong>Constituição</strong> (limitada pelo nível da
+                      classe) na Defesa quando sem armadura pesada, com{' '}
+                      <strong>+1 cumulativo</strong> a cada 4 níveis a partir do
+                      7º.
+                    </li>
+                    <li>
+                      <strong>Insolência</strong> (Bucaneiro 1): soma{' '}
+                      <strong>Carisma</strong> (limitado pelo nível de
+                      Bucaneiro) na Defesa.
+                    </li>
+                    <li>
+                      <strong>Braços Calejados</strong> (Lutador, poder): soma{' '}
+                      <strong>Força</strong> (limitada pelo nível de Lutador) na
+                      Defesa.
+                    </li>
+                    <li>
+                      <strong>Defesa Estratégica</strong> (Guerreiro de Heróis
+                      de Arton): soma <strong>Inteligência</strong> (limitada
+                      pelo nível de Guerreiro) na Defesa.
+                    </li>
+                    <li>
+                      <strong>Resistência a Dano</strong> (Bárbaro 5): aplica
+                      Redução de Dano Geral, escalonando até <strong>10</strong>{' '}
+                      no 19º nível.
+                    </li>
+                    <li>
+                      <strong>Pele de Ferro</strong> (poder de Bárbaro): aplica{' '}
+                      <strong>+4 Defesa</strong>.
+                    </li>
+                    <li>
+                      <strong>Discrição Divina</strong> (Usurpador 3): aplica{' '}
+                      <strong>+1</strong> em Furtividade, Fortitude, Reflexos e
+                      Vontade, escalonando com o nível.
+                    </li>
+                    <li>
+                      <strong>Resiliência Primal</strong> (Machado de Pedra 5):
+                      aplica Redução de Dano Geral, escalonando até{' '}
+                      <strong>15</strong>.
+                    </li>
+                    <li>
+                      <strong>Esquiva Sagaz</strong> (Bucaneiro 3) e{' '}
+                      <strong>Instinto Selvagem</strong> (Bárbaro 3) agora
+                      respeitam o <strong>nível da classe</strong> em
+                      multiclasse, em vez do nível total do personagem.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+
+              <h3>4.11.1</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Condições como{' '}
+                  <strong>Esmorecido</strong>, <strong>Frustrado</strong>,{' '}
+                  <strong>Fraco</strong> e <strong>Debilitado</strong> não
+                  alteram mais permanentemente os atributos da ficha. Antes, a
+                  penalidade era gravada no valor base do atributo, o que vazava
+                  para <strong>PM máximo</strong>, <strong>Defesa</strong>,{' '}
+                  <strong>PV</strong> e capacidade de carga, podendo deixar a
+                  ficha corrompida (atributos &quot;dobrando&quot; ao
+                  remover/reaplicar a condição). Agora a penalidade é puramente
+                  temporária: aparece apenas no rótulo do atributo e nas
+                  rolagens (testes de atributo e perícias derivadas),
+                  desaparecendo imediatamente ao remover a condição. Fichas que
+                  já estavam corrompidas são saneadas automaticamente no
+                  primeiro carregamento — atributos manualmente inflados podem
+                  precisar de um ajuste pontual.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigida a descrição do poder{' '}
+                  <strong>Ataque com Escudo</strong>, que estava exibindo o
+                  texto de outro poder (relacionado a armas de arremesso). Agora
+                  mostra o efeito correto do RAW: ataque corpo a corpo extra com
+                  o escudo gastando 1 PM ao usar a ação agredir, sem perder o
+                  bônus de Defesa do escudo.
+                </li>
+              </ul>
+
+              <h3>4.11</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Corrigida a{' '}
+                  <strong>exportação de PDF</strong> que falhava silenciosamente
+                  em fichas com emojis ou caracteres especiais nos textos de
+                  poderes (caso típico: poder <strong>Golpe Pessoal</strong> com
+                  o ícone 💠 no resumo de custo). A geração agora sanitiza o
+                  texto antes de gravar nos campos do PDF, e erros eventuais
+                  passam a ser logados no console do navegador para facilitar o
+                  diagnóstico.
+                </li>
+                <li>
+                  <strong>Novo:</strong> No editor de ameaças, cada{' '}
+                  <strong>habilidade</strong>, <strong>ataque</strong> e{' '}
+                  <strong>magia</strong> agora pode declarar uma ou mais{' '}
+                  <strong>condições concedidas</strong> (abalado, desprevenido,
+                  atordoado, agarrado etc.). A ficha da ameaça mostra as
+                  condições anotadas como chips no fim da linha (&quot;Concede:
+                  ...&quot;), e na <strong>Mesa Virtual</strong> aparece um
+                  botão <strong>&quot;Aplicar condição&quot;</strong> ao lado
+                  apenas dos itens anotados. O mestre clica → abre um modal já
+                  com as condições pré-selecionadas → marca quais jogadores
+                  recebem (ou cancela) → aplica direto na ficha de cada um, com
+                  cascata automática de implicações (ex.: <em>cego</em> também
+                  aplica <em>desprevenido</em> e <em>lento</em>). Disponível
+                  apenas para o mestre durante encontros ativos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Adicionado um botão{' '}
+                  <strong>&quot;Atualizar dados&quot;</strong> no diálogo da
+                  ameaça na <strong>Mesa Virtual</strong>. Ao importar uma
+                  ameaça, a mesa guarda um snapshot estático — edições
+                  posteriores na ameaça original não eram refletidas. O novo
+                  botão re-sincroniza o snapshot com a versão atual da nuvem
+                  (corrigindo também dois bugs no backend: a resposta do
+                  endpoint de update vinha com formato errado e mutações no
+                  campo Mongoose Mixed não eram persistidas sem{' '}
+                  <code>markModified</code>).
+                </li>
+                <li>
+                  <strong>Novo:</strong> O poder <strong>Paródia</strong>{' '}
+                  (Bardo) agora tem um ícone de busca ao lado do nome no
+                  accordion: ao clicar, abre um modal para pesquisar entre todas
+                  as magias do sistema (filtros por círculo e por tipo
+                  arcana/divina), ver os detalhes da magia escolhida e lançá-la
+                  diretamente — com seleção de aprimoramentos e gasto de PM
+                  igual às magias da ficha.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Nas páginas{' '}
+                  <strong>Meus Personagens</strong> e{' '}
+                  <strong>Minhas Ameaças</strong>, os cards de fichas/ameaças
+                  agora aparecem antes das pastas, deixando o acesso aos itens
+                  mais imediato (as pastas e o card &quot;Nova pasta&quot; ficam
+                  logo abaixo).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Adicionado seletor de{' '}
+                  <strong>Perícia de Ataque</strong> no editor de armas. Por
+                  padrão, armas corpo a corpo continuam usando{' '}
+                  <strong>Luta</strong> e armas à distância usam{' '}
+                  <strong>Pontaria</strong>, mas agora é possível escolher
+                  qualquer outra perícia para o teste de ataque de uma arma
+                  específica &mdash; útil para poderes/magias como{' '}
+                  <strong>Esgrima Mágica</strong> (Atuação no lugar de Luta) e
+                  efeitos similares. O bônus de dano continua seguindo a regra
+                  padrão (corpo a corpo soma Força).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Estendida a migração que remove{' '}
+                  <strong>Canalizar Reparos</strong> de fichas antigas de{' '}
+                  <strong>Golem Desperto</strong> (criadas antes do fix do
+                  chassi). Agora, além de limpar a habilidade da raça, também
+                  remove o registro residual no histórico da ficha, evitando que
+                  o poder reapareça em painéis e validações que consultam o
+                  histórico de ações.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o pré-requisito do poder{' '}
+                  <strong>Magia Acelerada</strong>, que aceitava qualquer
+                  conjurador (inclusive de 1º círculo). Agora exige{' '}
+                  <strong>lançar magias de 2º círculo</strong>, conforme a regra
+                  oficial.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o cálculo do bônus de{' '}
+                  <strong>iniciativa de ameaças</strong> na{' '}
+                  <strong>Mesa Virtual</strong>, que estava saindo sempre
+                  negativo (independentemente do modificador da ameaça). Agora o
+                  sistema usa a perícia <strong>Iniciativa</strong> da ficha da
+                  ameaça, considerando treino, bônus customizados e overrides
+                  manuais &mdash; igual ao comportamento das fichas de
+                  jogadores.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Permitido salvar armas com{' '}
+                  <strong>Espaço 0</strong> ao editar pelo drawer de
+                  equipamentos. O valor estava sendo convertido silenciosamente
+                  para 1, impedindo cadastrar itens muito pequenos/leves.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigida a área de{' '}
+                  <strong>Condições</strong> no cabeçalho da ficha: em
+                  personagens com <strong>Divindade</strong>, o botão de
+                  adicionar condição e os chips ativos ficavam atrás dos
+                  atributos e não respondiam aos cliques.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o background do título{' '}
+                  <strong>&quot;Defesa&quot;</strong> na ficha, que aparecia
+                  quebrado/encolhido em telas de baixa resolução (mobile). Agora
+                  o layout segue o mesmo padrão dos demais títulos como
+                  &quot;Ataques&quot; e &quot;Proficiências&quot;.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O título{' '}
+                  <strong>&quot;Condições&quot;</strong> no cabeçalho da ficha
+                  agora usa a mesma fonte e cor dos demais labels (Nível,
+                  Origem, Divindade), integrando-se visualmente ao bloco de
+                  informações do personagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Sapiência</strong> do <strong>Moreau Coruja</strong>{' '}
+                  agora permite escolher a magia de 1º círculo de Adivinhação,
+                  tanto na criação (novo passo no wizard) quanto em fichas já
+                  geradas (seletor adicionado à customização do Moreau e ao
+                  drawer de informações). Antes a magia era sorteada
+                  automaticamente (e voltava sozinha após cada edição). A magia
+                  agora também é tratada como fixa no drawer de magias: não pode
+                  ser removida diretamente — para trocá-la, basta editar a
+                  customização do Moreau.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Seleções manuais em poderes
+                  repetíveis escolhidos durante o <strong>level-up</strong> não
+                  eram salvas na ficha a partir da segunda escolha. Afetava{' '}
+                  <strong>Aumentar Repertório</strong> (Bardo) — as 2 magias
+                  selecionadas eram ignoradas — e{' '}
+                  <strong>Aumento de Atributo</strong> — o atributo escolhido
+                  não recebia o +1. Cada nova escolha agora aplica corretamente
+                  os efeitos.
+                </li>
+              </ul>
+
               <h3>4.10</h3>
               <p>
                 A segunda feature mais votada pelos apoiadores chegou! Como no
@@ -88,9 +3216,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Condições (Status Effects)
                 </Typography>
@@ -106,8 +3236,10 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Cascata inteligente:</strong> condições que
                   &quot;contêm&quot; outras aplicam as derivadas automaticamente
@@ -118,15 +3250,22 @@ const Changelog: React.FC = () => {
                 </Typography>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
                 >
                   <strong>Regra oficial de não-acúmulo:</strong> condições com
                   mesmo efeito não empilham — Desprevenido (−5 Defesa) +
                   Vulnerável (−2 Defesa) resulta em −5, não −7. O sistema aplica
                   automaticamente a penalidade mais severa por alvo.
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   <strong>Integração total com mesa virtual:</strong> o mestre
                   pode aplicar condições em qualquer combatente direto da tela
                   de combate (jogadores, ameaças ou combatentes manuais). Para
@@ -468,9 +3607,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Wyrt
                 </Typography>
@@ -759,9 +3900,11 @@ const Changelog: React.FC = () => {
               >
                 <Typography
                   variant='h5'
-                  fontWeight='bold'
                   gutterBottom
-                  sx={{ color: 'success.dark' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
                 >
                   Multiclasse
                 </Typography>
@@ -772,7 +3915,12 @@ const Changelog: React.FC = () => {
                   pode escolher uma classe diferente para aquele nível,
                   combinando habilidades, poderes e magias de múltiplas classes.
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   O sistema calcula automaticamente PV, PM, perícias e magias
                   para cada classe. Classes conjuradoras como Arcanista, Bardo,
                   Druida e Clérigo possuem configuração completa ao entrar pela

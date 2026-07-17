@@ -24,8 +24,10 @@ export interface DbUser {
   diceColor?: DiceColorId;
   accentColor?: AccentColorId;
   darkMode?: boolean;
+  bestiaryAnonymous?: boolean;
   termsAcceptedVersion?: number;
   isModerator?: boolean;
+  isEditor?: boolean;
 }
 
 export interface AuthState {

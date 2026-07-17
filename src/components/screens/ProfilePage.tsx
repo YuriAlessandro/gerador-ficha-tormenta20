@@ -1,12 +1,13 @@
 /* eslint-disable no-nested-ternary */
-import React, { useEffect, useState } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useParams, useHistory, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
   Box,
   Container,
   Card,
   Avatar,
+  Divider,
   Typography,
   Button,
   Stack,
@@ -44,8 +45,10 @@ import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
   Check as CheckIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import SupporterBadge from '../Premium/SupporterBadge';
+import ProfileLevelChip from '../Premium/ProfileLevelChip';
 import {
   SupportLevel,
   getSupportLevelName,
@@ -58,12 +61,22 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
 import { AccentColorId, getAccentColorsArray } from '../../theme/accentColors';
-import ProfileService, { PublicProfile } from '../../services/profile.service';
+import ProfileService, {
+  FullProfile,
+  ResolvedSection,
+  ProfileTheme,
+} from '../../services/profile.service';
+import ProfileSectionRenderer from '../../premium/components/Profile/ProfileSectionRenderer';
+import ProfileEditor from '../../premium/components/Profile/ProfileEditor';
+import BadgeShowcase from '../../premium/components/Profile/BadgeShowcase';
+import ProfileBlogPosts from '../../premium/components/Profile/ProfileBlogPosts';
+import { resolveProfileFont } from '../../premium/components/Profile/themeStyles';
 import { AppDispatch } from '../../store';
 import {
   updateProfile,
   saveSystemSetup,
   saveDice3DSettings,
+  saveBestiaryAnonymous,
 } from '../../store/slices/auth/authSlice';
 import {
   SupplementId,
@@ -72,7 +85,7 @@ import {
 import { SystemId } from '../../types/system.types';
 import { DiceColorId, getDiceColorsArray } from '../../types/diceColors';
 import { SEO, createProfileSchema } from '../SEO';
-import { PushNotificationToggle } from '../../premium';
+import { PushNotificationToggle, HomebrewActivationPanel } from '../../premium';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -95,9 +108,16 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+function getInitialTabFromHash(hash: string): number {
+  if (hash === '#sistema' || hash === '#suplementos') return 1;
+  if (hash === '#apoio') return 2;
+  return 0;
+}
+
 const ProfilePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const history = useHistory();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch<AppDispatch>();
@@ -123,17 +143,14 @@ const ProfilePage: React.FC = () => {
     loading: preferencesLoading,
   } = useUserPreferences();
 
-  const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [profile, setProfile] = useState<FullProfile | null>(null);
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editForm, setEditForm] = useState({
-    username: '',
-    fullName: '',
-  });
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
-  const [currentTab, setCurrentTab] = useState(0);
+  const [currentTab, setCurrentTab] = useState(() =>
+    getInitialTabFromHash(location.hash)
+  );
+  const supplementsSectionRef = useRef<HTMLDivElement>(null);
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
   >(() => currentUser?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
@@ -155,6 +172,16 @@ const ProfilePage: React.FC = () => {
   const [dice3DLoading, setDice3DLoading] = useState(false);
   const [dice3DError, setDice3DError] = useState<string | null>(null);
   const [dice3DSuccess, setDice3DSuccess] = useState(false);
+  const [bestiaryAnonymous, setBestiaryAnonymousState] = useState(
+    currentUser?.bestiaryAnonymous !== false
+  );
+  const [bestiaryAnonymousLoading, setBestiaryAnonymousLoading] =
+    useState(false);
+  const [bestiaryAnonymousError, setBestiaryAnonymousError] = useState<
+    string | null
+  >(null);
+  const [bestiaryAnonymousSuccess, setBestiaryAnonymousSuccess] =
+    useState(false);
 
   const isOwnProfile =
     isAuthenticated && currentUser?.username === username?.toLowerCase();
@@ -168,6 +195,25 @@ const ProfilePage: React.FC = () => {
       setDiceColor(currentUser.diceColor);
     }
   }, [currentUser?.dice3DEnabled, currentUser?.diceColor]);
+
+  // Sync bestiaryAnonymous state with user data (default: true)
+  useEffect(() => {
+    setBestiaryAnonymousState(currentUser?.bestiaryAnonymous !== false);
+  }, [currentUser?.bestiaryAnonymous]);
+
+  // Scroll to the supplements section when navigated to with #suplementos hash
+  useEffect(() => {
+    if (location.hash === '#suplementos') {
+      const timeoutId = setTimeout(() => {
+        supplementsSectionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 150);
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [location.hash]);
 
   // Load subscription when support tab is selected (tab index 2)
   useEffect(() => {
@@ -200,7 +246,7 @@ const ProfilePage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const profileData = await ProfileService.getProfileByUsername(username);
+        const profileData = await ProfileService.getFullProfile(username);
         setProfile(profileData);
       } catch (err) {
         const fetchError = err as { response?: { status?: number } };
@@ -217,66 +263,31 @@ const ProfilePage: React.FC = () => {
     fetchProfile();
   }, [username]);
 
-  const handleEditClick = () => {
-    if (currentUser) {
-      setEditForm({
-        username: currentUser.username || '',
-        fullName: currentUser.fullName || '',
-      });
-      setEditDialogOpen(true);
-      setEditError(null);
-    }
-  };
-
-  const handleEditClose = () => {
-    setEditDialogOpen(false);
-    setEditError(null);
-  };
-
-  const handleEditSave = async () => {
+  // Account info (username/displayName) is now saved from inside ProfileEditor.
+  // Throws a friendly message so the editor can surface it; redirects on a
+  // username change.
+  const handleSaveAccount = async (updates: {
+    username?: string;
+    fullName?: string;
+  }): Promise<void> => {
+    if (Object.keys(updates).length === 0) return;
     try {
-      setEditLoading(true);
-      setEditError(null);
-
-      const updates: { username?: string; fullName?: string } = {};
-
-      // Apenas apoiadores podem alterar o nome de usuário
-      if (editForm.username !== currentUser?.username && isUserSupporter) {
-        updates.username = editForm.username.toLowerCase();
-      }
-
-      if (editForm.fullName !== currentUser?.fullName) {
-        updates.fullName = editForm.fullName;
-      }
-
-      if (Object.keys(updates).length === 0) {
-        handleEditClose();
-        return;
-      }
-
       await dispatch(updateProfile(updates)).unwrap();
 
-      // If username changed, redirect to new profile URL
       if (updates.username) {
         history.push(`/perfil/${updates.username}`);
       } else {
-        // Refresh profile data
-        const profileData = await ProfileService.getProfileByUsername(
+        const profileData = await ProfileService.getFullProfile(
           currentUser?.username || ''
         );
         setProfile(profileData);
       }
-
-      handleEditClose();
     } catch (err) {
       const updateError = err as { message?: string };
       if (updateError.message?.includes('Username already in use')) {
-        setEditError('Este nome de usuário já está em uso');
-      } else {
-        setEditError('Erro ao atualizar perfil');
+        throw new Error('Este nome de usuário já está em uso');
       }
-    } finally {
-      setEditLoading(false);
+      throw new Error('Erro ao atualizar perfil');
     }
   };
 
@@ -401,6 +412,26 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleToggleBestiaryAnonymous = async (checked: boolean) => {
+    const previous = bestiaryAnonymous;
+    try {
+      setBestiaryAnonymousLoading(true);
+      setBestiaryAnonymousError(null);
+      setBestiaryAnonymousSuccess(false);
+      setBestiaryAnonymousState(checked);
+      await dispatch(saveBestiaryAnonymous(checked)).unwrap();
+      setBestiaryAnonymousSuccess(true);
+      setTimeout(() => setBestiaryAnonymousSuccess(false), 3000);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao salvar configuração';
+      setBestiaryAnonymousError(errorMessage);
+      setBestiaryAnonymousState(previous);
+    } finally {
+      setBestiaryAnonymousLoading(false);
+    }
+  };
+
   const handleChangeDiceColor = async (color: DiceColorId) => {
     const previousColor = diceColor;
     try {
@@ -441,10 +472,12 @@ const ProfilePage: React.FC = () => {
     return (
       <Container maxWidth='md' sx={{ py: 4 }}>
         <Box
-          display='flex'
-          justifyContent='center'
-          alignItems='center'
-          minHeight='60vh'
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '60vh',
+          }}
         >
           <CircularProgress />
         </Box>
@@ -493,7 +526,12 @@ const ProfilePage: React.FC = () => {
       />
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          background: profile.theme?.backgroundImageUrl
+            ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${profile.theme.backgroundImageUrl})`
+            : profile.theme?.backgroundColor ||
+              `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
           pt: { xs: 3, md: 4 },
           pb: { xs: 8, md: 10 },
         }}
@@ -501,9 +539,11 @@ const ProfilePage: React.FC = () => {
         <Container maxWidth='md'>
           <Stack
             direction='column'
-            alignItems='center'
             spacing={2}
-            sx={{ color: 'white' }}
+            sx={{
+              alignItems: 'center',
+              color: profile.theme?.textColor || 'white',
+            }}
           >
             <Avatar
               src={profile.photoURL}
@@ -511,30 +551,44 @@ const ProfilePage: React.FC = () => {
               sx={{
                 width: { xs: 120, md: 160 },
                 height: { xs: 120, md: 160 },
-                border: '4px solid white',
-                boxShadow: 3,
+                border: `4px solid ${profile.theme?.accentColor || 'white'}`,
+                boxShadow: profile.theme?.accentColor
+                  ? `0 0 16px ${profile.theme.accentColor}66`
+                  : 3,
               }}
             >
               <PersonIcon sx={{ fontSize: { xs: 60, md: 80 } }} />
             </Avatar>
 
-            <Box textAlign='center'>
+            <Box
+              sx={{
+                textAlign: 'center',
+              }}
+            >
               <Typography
                 variant={isMobile ? 'h5' : 'h4'}
-                fontWeight='bold'
                 gutterBottom
+                sx={{
+                  fontWeight: 'bold',
+                  fontFamily: resolveProfileFont(profile.theme?.fontFamily),
+                }}
               >
                 {profile.fullName || profile.username}
               </Typography>
               <Stack
                 direction='row'
-                alignItems='center'
-                justifyContent='center'
                 spacing={1}
+                sx={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
                 <Typography
                   variant={isMobile ? 'body1' : 'h6'}
-                  sx={{ opacity: 0.9 }}
+                  sx={{
+                    opacity: 0.9,
+                    fontFamily: resolveProfileFont(profile.theme?.fontFamily),
+                  }}
                 >
                   @{profile.username}
                 </Typography>
@@ -545,8 +599,11 @@ const ProfilePage: React.FC = () => {
                     showTooltip={false}
                   />
                 )}
+                <ProfileLevelChip level={profile.level ?? 1} variant='small' />
               </Stack>
             </Box>
+
+            <BadgeShowcase badges={profile.badges} roles={profile.roles} />
 
             {isOwnProfile && isAuthenticated && currentUser?.email && (
               <Typography
@@ -559,9 +616,82 @@ const ProfilePage: React.FC = () => {
           </Stack>
         </Container>
       </Box>
-
       <Container maxWidth='md' sx={{ mt: -6, pb: 4 }}>
         <Stack spacing={3}>
+          {/* Customizable profile sections (Steam-like) - visible to everyone */}
+          {(profile.sections.length > 0 || isOwnProfile) && (
+            <Card sx={{ p: { xs: 2, md: 3 } }}>
+              <Stack
+                direction='row'
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: profile.sections.length ? 2 : 0,
+                }}
+              >
+                <Typography
+                  variant='h6'
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Perfil
+                </Typography>
+                {isOwnProfile && (
+                  <Button
+                    size='small'
+                    startIcon={<EditIcon />}
+                    onClick={() => setProfileEditorOpen(true)}
+                  >
+                    Editar perfil
+                  </Button>
+                )}
+              </Stack>
+              {/* Responsive grid: each section spans the full row or half
+                  (two side by side on desktop; everything stacks on mobile). */}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                  gap: 3,
+                  alignItems: 'start',
+                }}
+              >
+                {profile.sections.map((section) => (
+                  <Box
+                    key={section.id}
+                    sx={{
+                      gridColumn:
+                        section.width === 'half'
+                          ? { xs: '1 / -1', md: 'span 1' }
+                          : '1 / -1',
+                    }}
+                  >
+                    <ProfileSectionRenderer section={section} />
+                  </Box>
+                ))}
+              </Box>
+              {isOwnProfile && profile.sections.length === 0 && (
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
+                  Seu perfil ainda não tem seções. Clique em Editar perfil para
+                  começar.
+                </Typography>
+              )}
+            </Card>
+          )}
+
+          {/* Blog posts authored by this user (editors/admins) */}
+          {profile.blogPosts && profile.blogPosts.length > 0 && (
+            <Card sx={{ p: { xs: 2, md: 3 } }}>
+              <ProfileBlogPosts posts={profile.blogPosts} />
+            </Card>
+          )}
+
           {/* Settings Card - Only for own profile */}
           {isOwnProfile && (
             <Card>
@@ -593,7 +723,12 @@ const ProfilePage: React.FC = () => {
               <TabPanel value={currentTab} index={0}>
                 <Box sx={{ p: 2 }}>
                   <Stack spacing={2}>
-                    <Typography variant='h6' fontWeight='bold'>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       Informações do Perfil
                     </Typography>
                     <TextField
@@ -617,7 +752,7 @@ const ProfilePage: React.FC = () => {
                     <Button
                       variant='contained'
                       startIcon={<EditIcon />}
-                      onClick={handleEditClick}
+                      onClick={() => setProfileEditorOpen(true)}
                       fullWidth={isMobile}
                     >
                       Editar Perfil
@@ -631,7 +766,13 @@ const ProfilePage: React.FC = () => {
                 <Box sx={{ p: 2 }}>
                   <Stack spacing={3}>
                     <Box>
-                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                      <Typography
+                        variant='h6'
+                        gutterBottom
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Sistema Atual
                       </Typography>
                       <Chip
@@ -643,13 +784,22 @@ const ProfilePage: React.FC = () => {
 
                     {/* Appearance Settings */}
                     <Box>
-                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                      <Typography
+                        variant='h6'
+                        gutterBottom
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Aparência
                       </Typography>
                       <Typography
                         variant='caption'
-                        color='text.secondary'
-                        sx={{ mb: 2, display: 'block' }}
+                        sx={{
+                          color: 'text.secondary',
+                          mb: 2,
+                          display: 'block',
+                        }}
                       >
                         Personalize a aparência do site
                       </Typography>
@@ -667,19 +817,32 @@ const ProfilePage: React.FC = () => {
                           justifyContent: 'space-between',
                         }}
                       >
-                        <Stack direction='row' spacing={2} alignItems='center'>
+                        <Stack
+                          direction='row'
+                          spacing={2}
+                          sx={{
+                            alignItems: 'center',
+                          }}
+                        >
                           {darkMode ? (
                             <DarkModeIcon color='primary' />
                           ) : (
                             <LightModeIcon color='primary' />
                           )}
                           <Box>
-                            <Typography variant='body1' fontWeight='medium'>
+                            <Typography
+                              variant='body1'
+                              sx={{
+                                fontWeight: 'medium',
+                              }}
+                            >
                               Tema Escuro
                             </Typography>
                             <Typography
                               variant='caption'
-                              color='text.secondary'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
                             >
                               {darkMode
                                 ? 'Ativado - cores escuras'
@@ -698,88 +861,60 @@ const ProfilePage: React.FC = () => {
                       <Box>
                         <Typography
                           variant='body1'
-                          fontWeight='medium'
                           gutterBottom
+                          sx={{
+                            fontWeight: 'medium',
+                          }}
                         >
                           Cor de Destaque
                         </Typography>
                         <Typography
                           variant='caption'
-                          color='text.secondary'
-                          sx={{ mb: 2, display: 'block' }}
+                          sx={{
+                            color: 'text.secondary',
+                            mb: 2,
+                            display: 'block',
+                          }}
                         >
                           Escolha a cor principal da interface
                         </Typography>
 
-                        {/* Block for non-supporters */}
-                        {!isUserSupporter ? (
-                          <Box
-                            sx={{
-                              p: 2,
-                              borderRadius: 2,
-                              border: '1px dashed',
-                              borderColor: 'divider',
-                              bgcolor: 'action.hover',
-                              textAlign: 'center',
-                            }}
-                          >
-                            <Stack spacing={2} alignItems='center'>
-                              <Stack
-                                direction='row'
-                                spacing={1}
-                                sx={{ opacity: 0.5 }}
+                        {/*
+                          Seletor unificado de cores. Apoiadores podem escolher
+                          qualquer cor; usuários free só podem escolher os temas
+                          comemorativos (color.free) — os demais ficam bloqueados
+                          com cadeado e levam para a página de apoio.
+                        */}
+                        <Stack
+                          direction='row'
+                          spacing={2}
+                          useFlexGap
+                          sx={{
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          {getAccentColorsArray().map((color) => {
+                            const locked = !isUserSupporter && !color.free;
+                            const isSelected = accentColor === color.id;
+                            return (
+                              <Tooltip
+                                key={color.id}
+                                title={
+                                  locked
+                                    ? `${color.name} — exclusivo para apoiadores`
+                                    : color.name
+                                }
+                                arrow
                               >
-                                {getAccentColorsArray().map((color) => (
-                                  <Box
-                                    key={color.id}
-                                    sx={{
-                                      width: 32,
-                                      height: 32,
-                                      borderRadius: '50%',
-                                      backgroundColor: color.main,
-                                      border:
-                                        accentColor === color.id
-                                          ? '2px solid'
-                                          : '1px solid transparent',
-                                      borderColor:
-                                        accentColor === color.id
-                                          ? 'text.primary'
-                                          : 'transparent',
-                                    }}
-                                  />
-                                ))}
-                              </Stack>
-                              <Typography
-                                variant='body2'
-                                color='text.secondary'
-                              >
-                                Personalize as cores do site tornando-se um
-                                apoiador
-                              </Typography>
-                              <Button
-                                variant='outlined'
-                                size='small'
-                                startIcon={<FavoriteIcon />}
-                                onClick={() => history.push('/apoiar')}
-                              >
-                                Apoiar
-                              </Button>
-                            </Stack>
-                          </Box>
-                        ) : (
-                          <Stack
-                            direction='row'
-                            spacing={2}
-                            flexWrap='wrap'
-                            useFlexGap
-                          >
-                            {getAccentColorsArray().map((color) => (
-                              <Tooltip key={color.id} title={color.name} arrow>
                                 <Box
-                                  onClick={() =>
-                                    !preferencesLoading &&
-                                    setAccentColor(color.id as AccentColorId)
-                                  }
+                                  onClick={() => {
+                                    if (preferencesLoading) return;
+                                    if (locked) {
+                                      history.push('/apoiar');
+                                      return;
+                                    }
+                                    setAccentColor(color.id as AccentColorId);
+                                  }}
                                   sx={{
                                     width: 48,
                                     height: 48,
@@ -788,52 +923,103 @@ const ProfilePage: React.FC = () => {
                                     cursor: preferencesLoading
                                       ? 'not-allowed'
                                       : 'pointer',
-                                    border:
-                                      accentColor === color.id
-                                        ? '3px solid'
-                                        : '2px solid transparent',
-                                    borderColor:
-                                      accentColor === color.id
-                                        ? 'text.primary'
-                                        : 'transparent',
+                                    opacity: locked ? 0.45 : 1,
+                                    filter: locked ? 'grayscale(0.6)' : 'none',
+                                    border: isSelected
+                                      ? '3px solid'
+                                      : '2px solid transparent',
+                                    borderColor: isSelected
+                                      ? 'text.primary'
+                                      : 'transparent',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
                                     boxShadow:
-                                      accentColor === color.id
+                                      isSelected && !locked
                                         ? `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${color.main}`
                                         : 'none',
                                     '&:hover': {
                                       transform: 'scale(1.1)',
-                                      boxShadow: `0 4px 12px ${color.main}50`,
+                                      boxShadow: locked
+                                        ? 'none'
+                                        : `0 4px 12px ${color.main}50`,
                                     },
                                   }}
                                 >
-                                  {accentColor === color.id && (
-                                    <CheckIcon
+                                  {locked ? (
+                                    <LockIcon
                                       sx={{
                                         color: color.contrastText,
-                                        fontSize: 24,
+                                        fontSize: 20,
                                       }}
                                     />
+                                  ) : (
+                                    isSelected && (
+                                      <CheckIcon
+                                        sx={{
+                                          color: color.contrastText,
+                                          fontSize: 24,
+                                        }}
+                                      />
+                                    )
                                   )}
                                 </Box>
                               </Tooltip>
-                            ))}
+                            );
+                          })}
+                        </Stack>
+
+                        {/* CTA de apoio para usuários free (cores bloqueadas) */}
+                        {!isUserSupporter && (
+                          <Stack
+                            spacing={1}
+                            sx={{
+                              alignItems: 'center',
+                              mt: 2,
+                            }}
+                          >
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                              }}
+                            >
+                              As cores comemorativas da Copa 2026 são liberadas
+                              para todos! Desbloqueie as demais cores
+                              tornando-se um apoiador.
+                            </Typography>
+                            <Button
+                              variant='outlined'
+                              size='small'
+                              startIcon={<FavoriteIcon />}
+                              onClick={() => history.push('/apoiar')}
+                            >
+                              Apoiar
+                            </Button>
                           </Stack>
                         )}
                       </Box>
                     </Box>
 
                     <Box>
-                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                      <Typography
+                        variant='h6'
+                        gutterBottom
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Configurações Visuais
                       </Typography>
                       <Typography
                         variant='caption'
-                        color='text.secondary'
-                        sx={{ mb: 2, display: 'block' }}
+                        sx={{
+                          color: 'text.secondary',
+                          mb: 2,
+                          display: 'block',
+                        }}
                       >
                         Personalize sua experiência visual
                       </Typography>
@@ -880,13 +1066,17 @@ const ProfilePage: React.FC = () => {
                                 <Stack spacing={0.5}>
                                   <Typography
                                     variant='body1'
-                                    fontWeight='medium'
+                                    sx={{
+                                      fontWeight: 'medium',
+                                    }}
                                   >
                                     Dados 3D
                                   </Typography>
                                   <Typography
                                     variant='caption'
-                                    color='text.secondary'
+                                    sx={{
+                                      color: 'text.secondary',
+                                    }}
                                   >
                                     Ativa animações 3D ao rolar dados nas mesas
                                     de jogo
@@ -901,16 +1091,20 @@ const ProfilePage: React.FC = () => {
                             <Box sx={{ mt: 2 }}>
                               <Typography
                                 variant='body2'
-                                fontWeight='medium'
                                 gutterBottom
+                                sx={{
+                                  fontWeight: 'medium',
+                                }}
                               >
                                 Cor dos Dados
                               </Typography>
                               <Stack
                                 direction='row'
                                 spacing={1.5}
-                                flexWrap='wrap'
                                 useFlexGap
+                                sx={{
+                                  flexWrap: 'wrap',
+                                }}
                               >
                                 {getDiceColorsArray().map((color) => (
                                   <Tooltip
@@ -982,16 +1176,25 @@ const ProfilePage: React.FC = () => {
                           <Stack
                             direction='row'
                             spacing={1}
-                            alignItems='center'
+                            sx={{
+                              alignItems: 'center',
+                            }}
                           >
                             <Checkbox disabled checked={false} />
                             <Stack spacing={0.5}>
                               <Stack
                                 direction='row'
                                 spacing={1}
-                                alignItems='center'
+                                sx={{
+                                  alignItems: 'center',
+                                }}
                               >
-                                <Typography variant='body1' fontWeight='medium'>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: 'medium',
+                                  }}
+                                >
                                   Dados 3D
                                 </Typography>
                                 <Chip
@@ -1004,7 +1207,9 @@ const ProfilePage: React.FC = () => {
                               </Stack>
                               <Typography
                                 variant='caption'
-                                color='text.secondary'
+                                sx={{
+                                  color: 'text.secondary',
+                                }}
                               >
                                 Recurso exclusivo para apoiadores. Ativa
                                 animações 3D ao rolar dados nas mesas de jogo.
@@ -1016,20 +1221,119 @@ const ProfilePage: React.FC = () => {
                     </Box>
 
                     <Box>
-                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                      <Typography
+                        variant='h6'
+                        gutterBottom
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Notificações
                       </Typography>
                       <PushNotificationToggle variant='full' />
                     </Box>
 
                     <Box>
-                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                      <Typography
+                        variant='h6'
+                        gutterBottom
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        Privacidade
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                          mb: 2,
+                          display: 'block',
+                        }}
+                      >
+                        Controle como você aparece para outros usuários
+                      </Typography>
+
+                      {bestiaryAnonymousError && (
+                        <Alert severity='error' sx={{ mb: 2 }}>
+                          {bestiaryAnonymousError}
+                        </Alert>
+                      )}
+
+                      {bestiaryAnonymousSuccess && (
+                        <Alert severity='success' sx={{ mb: 2 }}>
+                          Configuração salva com sucesso!
+                        </Alert>
+                      )}
+
+                      <Box
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: bestiaryAnonymous
+                            ? 'primary.main'
+                            : 'divider',
+                          backgroundColor: bestiaryAnonymous
+                            ? 'action.selected'
+                            : 'transparent',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={bestiaryAnonymous}
+                              onChange={(e) =>
+                                handleToggleBestiaryAnonymous(e.target.checked)
+                              }
+                              disabled={bestiaryAnonymousLoading}
+                            />
+                          }
+                          label={
+                            <Stack spacing={0.5}>
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: 'medium',
+                                }}
+                              >
+                                Publicar no Bestiário anonimamente
+                              </Typography>
+                              <Typography
+                                variant='caption'
+                                sx={{
+                                  color: 'text.secondary',
+                                }}
+                              >
+                                Quando ativado, seu nome de usuário não será
+                                exibido nas ameaças que você publica no
+                                Bestiário da Comunidade. Útil para mestres que
+                                não querem dar spoilers para seus jogadores.
+                              </Typography>
+                            </Stack>
+                          }
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box ref={supplementsSectionRef}>
+                      <Typography
+                        variant='h6'
+                        gutterBottom
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Suplementos
                       </Typography>
                       <Typography
                         variant='caption'
-                        color='text.secondary'
-                        sx={{ mb: 2, display: 'block' }}
+                        sx={{
+                          color: 'text.secondary',
+                          mb: 2,
+                          display: 'block',
+                        }}
                       >
                         Selecione os suplementos que você possui. Lembre-se que
                         tentar usar regras de suplementos sem possuir os livros
@@ -1088,11 +1392,15 @@ const ProfilePage: React.FC = () => {
                                     <Stack
                                       direction='row'
                                       spacing={1}
-                                      alignItems='center'
+                                      sx={{
+                                        alignItems: 'center',
+                                      }}
                                     >
                                       <Typography
                                         variant='body1'
-                                        fontWeight='medium'
+                                        sx={{
+                                          fontWeight: 'medium',
+                                        }}
                                       >
                                         {supplement.name}
                                       </Typography>
@@ -1107,7 +1415,9 @@ const ProfilePage: React.FC = () => {
                                     </Stack>
                                     <Typography
                                       variant='caption'
-                                      color='text.secondary'
+                                      sx={{
+                                        color: 'text.secondary',
+                                      }}
                                     >
                                       {supplement.description}
                                     </Typography>
@@ -1132,6 +1442,9 @@ const ProfilePage: React.FC = () => {
                           'Salvar Alterações'
                         )}
                       </Button>
+
+                      <Divider sx={{ my: 3 }} />
+                      <HomebrewActivationPanel />
                     </Box>
                   </Stack>
                 </Box>
@@ -1153,7 +1466,13 @@ const ProfilePage: React.FC = () => {
 
                     {/* Current Support Level */}
                     <Box>
-                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                      <Typography
+                        variant='h6'
+                        gutterBottom
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Seu Nível de Apoio
                       </Typography>
                       <Box
@@ -1171,15 +1490,19 @@ const ProfilePage: React.FC = () => {
                       >
                         <Stack
                           direction='row'
-                          alignItems='center'
-                          justifyContent='space-between'
-                          flexWrap='wrap'
-                          gap={2}
+                          sx={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: 2,
+                          }}
                         >
                           <Stack
                             direction='row'
-                            alignItems='center'
                             spacing={2}
+                            sx={{
+                              alignItems: 'center',
+                            }}
                           >
                             {isUserSupporter ? (
                               <SupporterBadge level={supportLevel} />
@@ -1187,12 +1510,19 @@ const ProfilePage: React.FC = () => {
                               <Chip label='Grátis' variant='outlined' />
                             )}
                             <Box>
-                              <Typography variant='body1' fontWeight='medium'>
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: 'medium',
+                                }}
+                              >
                                 {getSupportLevelName(supportLevel)}
                               </Typography>
                               <Typography
                                 variant='caption'
-                                color='text.secondary'
+                                sx={{
+                                  color: 'text.secondary',
+                                }}
                               >
                                 {isUserSupporter
                                   ? `Até ${SUPPORT_LIMITS[supportLevel].maxSheets} fichas salvas`
@@ -1219,8 +1549,10 @@ const ProfilePage: React.FC = () => {
                         <Box>
                           <Typography
                             variant='h6'
-                            fontWeight='bold'
                             gutterBottom
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
                           >
                             Detalhes da Assinatura
                           </Typography>
@@ -1229,13 +1561,17 @@ const ProfilePage: React.FC = () => {
                               <Stack
                                 direction='row'
                                 spacing={1.5}
-                                alignItems='center'
+                                sx={{
+                                  alignItems: 'center',
+                                }}
                               >
                                 <CalendarIcon color='primary' />
                                 <Box>
                                   <Typography
                                     variant='body2'
-                                    color='text.secondary'
+                                    sx={{
+                                      color: 'text.secondary',
+                                    }}
                                   >
                                     {isManualSubscription
                                       ? 'Expira em'
@@ -1243,7 +1579,9 @@ const ProfilePage: React.FC = () => {
                                   </Typography>
                                   <Typography
                                     variant='body1'
-                                    fontWeight='medium'
+                                    sx={{
+                                      fontWeight: 'medium',
+                                    }}
                                   >
                                     {isManualSubscription
                                       ? formatInvoiceDate(
@@ -1262,13 +1600,17 @@ const ProfilePage: React.FC = () => {
                               <Stack
                                 direction='row'
                                 spacing={1.5}
-                                alignItems='center'
+                                sx={{
+                                  alignItems: 'center',
+                                }}
                               >
                                 <CreditCardIcon color='primary' />
                                 <Box>
                                   <Typography
                                     variant='body2'
-                                    color='text.secondary'
+                                    sx={{
+                                      color: 'text.secondary',
+                                    }}
                                   >
                                     Status
                                   </Typography>
@@ -1309,13 +1651,17 @@ const ProfilePage: React.FC = () => {
                           <Box>
                             <Typography
                               variant='h6'
-                              fontWeight='bold'
                               gutterBottom
+                              sx={{
+                                fontWeight: 'bold',
+                              }}
                             >
                               <Stack
                                 direction='row'
-                                alignItems='center'
                                 spacing={1}
+                                sx={{
+                                  alignItems: 'center',
+                                }}
                               >
                                 <ReceiptIcon />
                                 <span>Histórico de Cobranças</span>
@@ -1323,9 +1669,11 @@ const ProfilePage: React.FC = () => {
                             </Typography>
                             {subscriptionLoading && (
                               <Box
-                                display='flex'
-                                justifyContent='center'
-                                py={3}
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  py: 3,
+                                }}
                               >
                                 <CircularProgress size={24} />
                               </Box>
@@ -1352,13 +1700,17 @@ const ProfilePage: React.FC = () => {
                                       <Box>
                                         <Typography
                                           variant='body2'
-                                          fontWeight='medium'
+                                          sx={{
+                                            fontWeight: 'medium',
+                                          }}
                                         >
                                           {formatInvoiceDate(invoice.paidAt)}
                                         </Typography>
                                         <Typography
                                           variant='caption'
-                                          color='text.secondary'
+                                          sx={{
+                                            color: 'text.secondary',
+                                          }}
                                         >
                                           Período:{' '}
                                           {formatInvoiceDate(
@@ -1370,13 +1722,17 @@ const ProfilePage: React.FC = () => {
                                       </Box>
                                       <Stack
                                         direction='row'
-                                        alignItems='center'
                                         spacing={2}
+                                        sx={{
+                                          alignItems: 'center',
+                                        }}
                                       >
                                         <Typography
                                           variant='body1'
-                                          fontWeight='bold'
                                           color='primary'
+                                          sx={{
+                                            fontWeight: 'bold',
+                                          }}
                                         >
                                           {formatCurrency(
                                             invoice.amount,
@@ -1416,8 +1772,10 @@ const ProfilePage: React.FC = () => {
                               (!invoices || invoices.length === 0) && (
                                 <Typography
                                   variant='body2'
-                                  color='text.secondary'
-                                  sx={{ py: 2 }}
+                                  sx={{
+                                    color: 'text.secondary',
+                                    py: 2,
+                                  }}
                                 >
                                   Nenhuma cobrança encontrada.
                                 </Typography>
@@ -1430,8 +1788,10 @@ const ProfilePage: React.FC = () => {
                           <Box>
                             <Typography
                               variant='h6'
-                              fontWeight='bold'
                               gutterBottom
+                              sx={{
+                                fontWeight: 'bold',
+                              }}
                             >
                               Gerenciar Apoio
                             </Typography>
@@ -1518,38 +1878,82 @@ const ProfilePage: React.FC = () => {
 
           {/* Stats Card */}
           <Card sx={{ p: 3 }}>
-            <Typography variant='h6' gutterBottom fontWeight='bold'>
+            <Typography
+              variant='h6'
+              gutterBottom
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
               Estatísticas
             </Typography>
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Stack direction='row' spacing={1.5} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1.5}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <SheetIcon color='primary' />
                   <Box>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Fichas Criadas
                     </Typography>
-                    <Typography variant='h6' fontWeight='bold'>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       {profile.totalSheets}
                     </Typography>
                   </Box>
                 </Stack>
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Stack direction='row' spacing={1.5} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1.5}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <CalendarIcon color='primary' />
                   <Box>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Membro Desde
                     </Typography>
-                    <Typography variant='h6' fontWeight='bold'>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       {formatDate(profile.createdAt)}
                     </Typography>
                   </Box>
                 </Stack>
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Stack direction='row' spacing={1.5} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1.5}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <FavoriteIcon
                     sx={{
                       color: isSupporter(
@@ -1560,10 +1964,20 @@ const ProfilePage: React.FC = () => {
                     }}
                   />
                   <Box>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Status
                     </Typography>
-                    <Typography variant='h6' fontWeight='bold'>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        fontWeight: 'bold',
+                      }}
+                    >
                       {getSupportLevelName(
                         profile.supportLevel || SupportLevel.FREE
                       )}
@@ -1575,63 +1989,6 @@ const ProfilePage: React.FC = () => {
           </Card>
         </Stack>
       </Container>
-
-      {/* Edit Profile Dialog */}
-      <Dialog
-        open={editDialogOpen}
-        onClose={handleEditClose}
-        maxWidth='sm'
-        fullWidth
-        fullScreen={isMobile}
-      >
-        <DialogTitle>Editar Perfil</DialogTitle>
-        <DialogContent>
-          {editError && (
-            <Alert severity='error' sx={{ mb: 2 }}>
-              {editError}
-            </Alert>
-          )}
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label='Nome de Usuário'
-              value={editForm.username}
-              onChange={(e) =>
-                setEditForm({ ...editForm, username: e.target.value })
-              }
-              fullWidth
-              helperText={
-                isUserSupporter
-                  ? 'Somente letras minúsculas, números e underscores'
-                  : 'Apenas apoiadores podem alterar o nome de usuário'
-              }
-              disabled={editLoading || !isUserSupporter}
-            />
-            <TextField
-              label='Nome de Exibição'
-              value={editForm.fullName}
-              onChange={(e) =>
-                setEditForm({ ...editForm, fullName: e.target.value })
-              }
-              fullWidth
-              helperText='Nome exibido publicamente no seu perfil'
-              disabled={editLoading}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditClose} disabled={editLoading}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleEditSave}
-            variant='contained'
-            disabled={editLoading}
-          >
-            {editLoading ? <CircularProgress size={24} /> : 'Salvar'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Cancel Subscription Dialog */}
       <Dialog
         open={cancelDialogOpen}
@@ -1644,14 +2001,25 @@ const ProfilePage: React.FC = () => {
           <Alert severity='warning' sx={{ mb: 2 }}>
             Tem certeza que deseja cancelar seu apoio?
           </Alert>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Seu apoio continuará ativo até o final do período de cobrança atual
             {subscription?.currentPeriodEnd && (
               <> ({formatInvoiceDate(subscription.currentPeriodEnd)})</>
             )}
             . Após essa data, você perderá acesso aos benefícios de apoiador.
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mt: 1,
+            }}
+          >
             Você pode reativar seu apoio a qualquer momento antes do término do
             período.
           </Typography>
@@ -1677,6 +2045,33 @@ const ProfilePage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      {isOwnProfile && (
+        <ProfileEditor
+          open={profileEditorOpen}
+          onClose={() => setProfileEditorOpen(false)}
+          supportLevel={supportLevel}
+          currentPhotoURL={profile.photoURL}
+          customPhotoURL={profile.customPhotoURL}
+          initialSections={profile.sections}
+          initialTheme={profile.theme}
+          initialUsername={currentUser?.username || ''}
+          initialFullName={currentUser?.fullName || ''}
+          canEditUsername={isUserSupporter}
+          previewLevel={profile.level ?? 1}
+          onSaveAccount={handleSaveAccount}
+          onSaved={(sections: ResolvedSection[]) =>
+            setProfile((prev) => (prev ? { ...prev, sections } : prev))
+          }
+          onThemeSaved={(newTheme: ProfileTheme) =>
+            setProfile((prev) => (prev ? { ...prev, theme: newTheme } : prev))
+          }
+          onPhotoSaved={(photoURL?: string, customPhotoURL?: string) =>
+            setProfile((prev) =>
+              prev ? { ...prev, photoURL, customPhotoURL } : prev
+            )
+          }
+        />
+      )}
     </>
   );
 };

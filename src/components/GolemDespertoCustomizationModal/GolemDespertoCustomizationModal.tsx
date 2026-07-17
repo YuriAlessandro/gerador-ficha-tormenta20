@@ -90,21 +90,34 @@ const GolemDespertoCustomizationModal: React.FC<
       onClose={onCancel}
       maxWidth='md'
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+          },
         },
       }}
     >
       <DialogTitle>
-        <Typography variant='h5' component='div' fontWeight='bold'>
+        <Typography
+          variant='h5'
+          component='div'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           Customização do Golem Desperto
         </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mt: 1,
+          }}
+        >
           Escolha o chassi, fonte de energia e tamanho do seu golem
         </Typography>
       </DialogTitle>
-
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
           {/* Chassi Selection */}
@@ -135,7 +148,12 @@ const GolemDespertoCustomizationModal: React.FC<
                   borderRadius: 1,
                 }}
               >
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {chassisConfig.chassiAbility.description}
                 </Typography>
               </Box>
@@ -170,7 +188,12 @@ const GolemDespertoCustomizationModal: React.FC<
                   borderRadius: 1,
                 }}
               >
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {energyConfig.ability.description}
                 </Typography>
               </Box>
@@ -205,7 +228,12 @@ const GolemDespertoCustomizationModal: React.FC<
                   borderRadius: 1,
                 }}
               >
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Modificador de atributo:{' '}
                   {sizeConfig.attributes
                     .map(
@@ -219,7 +247,6 @@ const GolemDespertoCustomizationModal: React.FC<
           </FormControl>
         </Box>
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 3 }}>
         <Button onClick={onCancel} color='inherit'>
           Cancelar

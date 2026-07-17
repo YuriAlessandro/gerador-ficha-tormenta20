@@ -60,6 +60,7 @@ export interface SubscriptionLimits {
   maxMenaceSheets: number; // -1 = unlimited
   maxGameTables: number; // 0 = not available, -1 = unlimited
   maxPlayersPerTable: number; // -1 = unlimited
+  maxWeeklyBestiaryPublications: number; // Bestiary publications per 7-day rolling window, -1 = unlimited
 }
 
 /**
@@ -169,44 +170,138 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxMenaceSheets: 10,
     maxGameTables: 1,
     maxPlayersPerTable: 6,
+    maxWeeklyBestiaryPublications: 1,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 15,
     maxMenaceSheets: 50,
     maxGameTables: 1,
     maxPlayersPerTable: 6,
+    maxWeeklyBestiaryPublications: 15,
   },
   [SupportLevel.NIVEL_1_ANUAL]: {
     maxSheets: 15,
     maxMenaceSheets: 50,
     maxGameTables: 1,
     maxPlayersPerTable: 6,
+    maxWeeklyBestiaryPublications: 15,
   },
   [SupportLevel.NIVEL_2]: {
     maxSheets: 20,
     maxMenaceSheets: 70,
     maxGameTables: 5,
     maxPlayersPerTable: -1,
+    maxWeeklyBestiaryPublications: 50,
   },
   [SupportLevel.NIVEL_3]: {
     maxSheets: -1, // Unlimited
     maxMenaceSheets: -1, // Unlimited
     maxGameTables: -1, // Unlimited
     maxPlayersPerTable: -1, // Unlimited
+    maxWeeklyBestiaryPublications: -1, // Unlimited
   },
   [SupportLevel.NIVEL_2_ANUAL]: {
     maxSheets: 20,
     maxMenaceSheets: 70,
     maxGameTables: 5,
     maxPlayersPerTable: -1,
+    maxWeeklyBestiaryPublications: 50,
   },
   [SupportLevel.NIVEL_3_ANUAL]: {
     maxSheets: -1, // Unlimited
     maxMenaceSheets: -1,
     maxGameTables: -1, // Unlimited
     maxPlayersPerTable: -1, // Unlimited
+    maxWeeklyBestiaryPublications: -1, // Unlimited
   },
 };
+
+/**
+ * Profile customization caps. MUST mirror the backend
+ * (config/profileCustomization.ts) — the server re-validates every write, this
+ * copy only drives enabling/disabling controls in the editor. `-1` = unlimited.
+ *
+ * Sections (any type) are a single total budget:
+ *  - FREE: earned via gamification level — `floor(level / 10)` (lvl 10 → 1,
+ *    lvl 20 → 2, below 10 → 0).
+ *  - NIVEL_1: 3, NIVEL_2: 5, NIVEL_3: unlimited.
+ * Fonts/colors are supporter-only.
+ */
+export interface ProfileCustomizationCaps {
+  maxSections: number;
+  canUsePhotoUrl: boolean;
+  canUseColumns: boolean;
+  canCustomizeColors: boolean;
+  canCustomizeFont: boolean;
+  canCustomizeBackgroundColor: boolean;
+  canCustomizeBackgroundImage: boolean;
+  maxPinnedBadges: number;
+}
+
+/** Free-tier section allowance is earned via gamification level. */
+export function freeMaxSections(profileLevel: number): number {
+  return Math.floor(Math.max(0, profileLevel) / 10);
+}
+
+/**
+ * Resolve the caps for a support level. `profileLevel` (gamification level) only
+ * affects the FREE tier's section allowance; supporters use fixed values.
+ */
+export function getProfileCustomizationCaps(
+  level: SupportLevel,
+  profileLevel = 0
+): ProfileCustomizationCaps {
+  switch (level) {
+    case SupportLevel.NIVEL_1:
+    case SupportLevel.NIVEL_1_ANUAL:
+      return {
+        maxSections: 3,
+        canUsePhotoUrl: true,
+        canUseColumns: false,
+        canCustomizeColors: true,
+        canCustomizeFont: true,
+        canCustomizeBackgroundColor: true,
+        canCustomizeBackgroundImage: false,
+        maxPinnedBadges: 3,
+      };
+    case SupportLevel.NIVEL_2:
+    case SupportLevel.NIVEL_2_ANUAL:
+      return {
+        maxSections: 5,
+        canUsePhotoUrl: true,
+        canUseColumns: true,
+        canCustomizeColors: true,
+        canCustomizeFont: true,
+        canCustomizeBackgroundColor: true,
+        canCustomizeBackgroundImage: false,
+        maxPinnedBadges: 5,
+      };
+    case SupportLevel.NIVEL_3:
+    case SupportLevel.NIVEL_3_ANUAL:
+      return {
+        maxSections: -1,
+        canUsePhotoUrl: true,
+        canUseColumns: true,
+        canCustomizeColors: true,
+        canCustomizeFont: true,
+        canCustomizeBackgroundColor: true,
+        canCustomizeBackgroundImage: true,
+        maxPinnedBadges: 5,
+      };
+    case SupportLevel.FREE:
+    default:
+      return {
+        maxSections: freeMaxSections(profileLevel),
+        canUsePhotoUrl: false,
+        canUseColumns: false,
+        canCustomizeColors: false,
+        canCustomizeFont: false,
+        canCustomizeBackgroundColor: false,
+        canCustomizeBackgroundImage: false,
+        maxPinnedBadges: 1,
+      };
+  }
+}
 
 /**
  * Alias for backward compatibility

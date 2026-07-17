@@ -97,6 +97,12 @@ const subscriptionSlice = createSlice({
         state.limits = getSubscriptionLimits(SubscriptionTier.FREE);
       }
     },
+    clearSubscription: (state) => {
+      state.subscription = null;
+      state.limits = getSubscriptionLimits(SubscriptionTier.FREE);
+      state.invoices = [];
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     // Fetch subscription
@@ -107,17 +113,17 @@ const subscriptionSlice = createSlice({
       })
       .addCase(fetchSubscription.fulfilled, (state, action) => {
         state.loading = false;
-        // Only update subscription if we got actual data from the API
-        // This prevents overwriting persisted subscription with null when
-        // API call happens before Firebase Auth is fully initialized (race condition on mobile)
-        if (action.payload !== null) {
+        // The backend always returns a payload (FREE defaults when no doc exists),
+        // so we treat the response as authoritative. Treating null/undefined as
+        // "keep stale state" silently traps users on the wrong tier when the API
+        // briefly returns nothing — the symptom that broke gating for paid users.
+        if (action.payload) {
           state.subscription = action.payload;
           state.limits = getSubscriptionLimits(action.payload.tier);
-        } else if (!state.subscription) {
-          // Only set to FREE if we don't have any persisted subscription data
+        } else {
+          state.subscription = null;
           state.limits = getSubscriptionLimits(SubscriptionTier.FREE);
         }
-        // If payload is null but we have persisted subscription, keep the persisted data
       })
       .addCase(fetchSubscription.rejected, (state, action) => {
         state.loading = false;
@@ -215,7 +221,7 @@ const subscriptionSlice = createSlice({
   },
 });
 
-export const { clearSubscriptionError, setSubscription } =
+export const { clearSubscriptionError, setSubscription, clearSubscription } =
   subscriptionSlice.actions;
 
 export default subscriptionSlice.reducer;

@@ -17,12 +17,9 @@ import CharacterSheet, {
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
-import { Spell } from '@/interfaces/Spells';
-import {
-  getAllowedClassPowers,
-  isPowerAvailable,
-  getWeightedInventorClassPowers,
-} from '@/functions/powers';
+import { allSpellSchools, Spell } from '@/interfaces/Spells';
+import { CompanionSheet, CompanionTrick } from '@/interfaces/Companion';
+import { getAllowedClassPowers, isPowerAvailable } from '@/functions/powers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
@@ -30,6 +27,7 @@ import {
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
 import { getCurrentPlateau } from '@/functions/powers/general';
+import { isClassOrVariantOf } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
   getClassLevel,
@@ -41,8 +39,10 @@ import {
 } from '@/functions/multiclass';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
-  getAvailableTricks,
+  countNaturalWeapons,
   createCompanion,
+  getCompanionTrickDefinition,
+  getTrickAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
@@ -52,6 +52,9 @@ import ClassSelectionStep from './steps/ClassSelectionStep';
 import ClassSetupStep from './steps/ClassSetupStep';
 import CompanionTrickSelectionStep from './steps/CompanionTrickSelectionStep';
 import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCreationStep';
+import RaceLevelUpPickStep, {
+  RaceLevelUpPick,
+} from './steps/RaceLevelUpPickStep';
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -61,6 +64,18 @@ interface LevelUpWizardModalProps {
   onConfirm: (levelUpSelections: LevelUpSelections[]) => void;
   onCancel: () => void;
 }
+
+// Treinador nível 5: escolha de Treino Especializado
+const TREINO_ESPECIALIZADO = 'Treino Especializado';
+const CONQUISTAR_PELOS_NUMEROS = 'Conquistar pelos Números';
+const TREINO_INTENSIVO = 'Treino Intensivo';
+
+// Escolha (pendente) de Treino Especializado feita no step 'Efeitos de
+// Habilidades' do nível atual
+const getTreinoEspecializadoChoice = (
+  sel: LevelUpSelections
+): string | undefined =>
+  sel.abilityEffectSelections?.[TREINO_ESPECIALIZADO]?.chosenOption?.[0];
 
 const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   open,
@@ -103,6 +118,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Confirmation dialog state for cancel action
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
+  // Índice do companheiro exibido em cada step de truque (auto/power) enquanto
+  // ainda não há truque selecionado (a entry em companionTrickSelections só
+  // existe com um truque escolhido)
+  const [trickStepCompanionIndex, setTrickStepCompanionIndex] = useState<{
+    auto: number;
+    power: number;
+  }>({ auto: 0, power: 0 });
+
   // Simulated sheet at current level (for filtering powers/spells)
   const [simulatedSheet, setSimulatedSheet] =
     useState<CharacterSheet>(initialSheet);
@@ -119,6 +142,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         powerChoice: 'class',
       });
       setActiveStep(0);
+      setTrickStepCompanionIndex({ auto: 0, power: 0 });
       // Initialize classLevels if not present
       const sheetWithClassLevels = initialSheet.classLevels
         ? initialSheet
@@ -159,16 +183,39 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     nivel: currentLevel,
   };
 
+  // Companheiro com os truques pendentes da OUTRA razão (auto/power) deste
+  // nível projetados sobre os truques já refletidos no simulatedSheet — evita
+  // escolher o mesmo truque não-repetível nos dois steps do mesmo nível
+  const getProjectedCompanion = (
+    reason: 'auto' | 'power',
+    companionIndex: number
+  ): CompanionSheet | undefined => {
+    const base = simulatedSheet.companions?.[companionIndex];
+    if (!base) return undefined;
+    const pendingFromOtherStep = (
+      currentLevelSelection.companionTrickSelections || []
+    )
+      .filter((e) => e.reason !== reason && e.companionIndex === companionIndex)
+      .map((e) => e.trick);
+    if (pendingFromOtherStep.length === 0) return base;
+    return { ...base, tricks: [...base.tricks, ...pendingFromOtherStep] };
+  };
+
   // Multiclass: first level in a new class grants no power
   const isFirstLevelInNewClass =
     selectedClassLevel === 1 &&
     selectedClassName !== simulatedSheet.classe.name;
 
-  // Classes that require user choices during first-level setup
-  const CLASSES_NEEDING_USER_SETUP = ['Arcanista', 'Bardo', 'Druida'];
+  // Classes that require user choices during first-level setup (variant-aware:
+  // ex. Magimarcialista, variante de Bardo, herda o setup de escolas)
   const classNeedsUserSetup =
     isFirstLevelInNewClass &&
-    CLASSES_NEEDING_USER_SETUP.includes(selectedClassName);
+    !!selectedClassDesc &&
+    (isClassOrVariantOf(selectedClassDesc, 'Arcanista') ||
+      isClassOrVariantOf(selectedClassDesc, 'Bardo') ||
+      isClassOrVariantOf(selectedClassDesc, 'Druida') ||
+      // Classes homebrew com escolha de escolas (estilo Bardo)
+      !!selectedClassDesc.spellPath?.schoolChoice);
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (): {
@@ -201,16 +248,20 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         }
       : sheetForCurrentLevel;
 
-    // Get class powers using the selected class's powers
-    const classPowers =
-      classNameForPowers === 'Inventor'
-        ? getWeightedInventorClassPowers(sheetForFiltering)
-        : getAllowedClassPowers(sheetForFiltering, {
-            classLevel: selectedClassLevel,
-          });
+    // Get class powers using the selected class's powers.
+    // Sempre usar getAllowedClassPowers na lista manual: a ponderação do
+    // Inventor (getWeightedInventorClassPowers) expande a lista com entradas
+    // duplicadas, o que só faz sentido em sorteio aleatório — numa seleção
+    // manual geraria poderes repetidos. Cobre Inventor e suas variantes
+    // (ex.: Alquimista) via sheetForFiltering.classe.powers.
+    const classPowers = getAllowedClassPowers(sheetForFiltering, {
+      classLevel: selectedClassLevel,
+    });
 
-    // Use dataRegistry to get powers from all active supplements
-    // Only include the 5 general power types (exclude RACA)
+    // Use dataRegistry to get powers from all active supplements.
+    // Inclui os 5 tipos de poderes gerais, mais os poderes de raça (ex.: Glamour)
+    // que o personagem qualifica — poderes de raça só aparecem para quem atende
+    // ao requisito de raça, evitando poluir a lista com poderes de outras raças.
     const allPowers = dataRegistry.getPowersBySupplements(supplements);
     const allGeneralPowers = [
       ...allPowers.COMBATE,
@@ -218,6 +269,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       ...allPowers.DESTINO,
       ...allPowers.MAGIA,
       ...allPowers.TORMENTA,
+      ...allPowers.RACA.filter((power) =>
+        isPowerAvailable(sheetForCurrentLevel, power)
+      ),
     ];
 
     // Track which powers are unavailable (requirements not met)
@@ -286,7 +340,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           supplements
         );
       } else {
-        spellPath = activeClassDesc.spellPath || null;
+        // simulatedSheet.classe.spellPath has setup() applied (at creation and
+        // rehydrated on load); selectedClassDesc from dataRegistry does not.
+        const isLevelingMainClass =
+          activeClassDesc.name === simulatedSheet.classe.name;
+        spellPath = isLevelingMainClass
+          ? simulatedSheet.classe.spellPath || activeClassDesc.spellPath || null
+          : activeClassDesc.spellPath || null;
       }
     }
     if (!spellPath) {
@@ -501,6 +561,39 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     });
   };
 
+  // Habilidades de raça que concedem novas escolhas ("picks") ao subir de nível
+  // (config `levelUp` na ação `chooseFromOptions`). Apenas o caso ADITIVO
+  // (`substitutes === 'none'`) é tratado aqui; a substituição por poder de
+  // classe/geral é tratada no fluxo de escolha de poder.
+  const getRaceLevelUpPicks = (): RaceLevelUpPick[] => {
+    const abilities = simulatedSheet.raca?.abilities || [];
+    const result: RaceLevelUpPick[] = [];
+    abilities.forEach((ability) => {
+      (ability.sheetActions || []).forEach((sheetAction) => {
+        const { action } = sheetAction;
+        if (
+          action.type === 'chooseFromOptions' &&
+          action.levelUp &&
+          action.levelUp.substitutes === 'none' &&
+          action.levelUp.pickPerLevelUp > 0 &&
+          action.options.length > 0
+        ) {
+          result.push({
+            optionKey: action.optionKey,
+            abilityName: ability.name,
+            pickPerLevelUp: action.levelUp.pickPerLevelUp,
+            options: action.options.map((o) => ({
+              name: o.name,
+              text: o.text,
+              repeatable: o.repeatable,
+            })),
+          });
+        }
+      });
+    });
+    return result;
+  };
+
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
@@ -536,15 +629,36 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       steps.push('Efeitos de Habilidades');
     }
 
+    // Treinador 5: Conquistar pelos Números concede um segundo melhor amigo,
+    // que o jogador personaliza como o primeiro
+    const treinoChoice = getTreinoEspecializadoChoice(currentLevelSelection);
+    if (
+      selectedClassName === 'Treinador' &&
+      selectedClassLevel === 5 &&
+      simulatedSheet.companions?.length &&
+      treinoChoice === CONQUISTAR_PELOS_NUMEROS
+    ) {
+      steps.push('Segundo Melhor Amigo');
+    }
+
+    if (getRaceLevelUpPicks().length > 0) {
+      steps.push('Escolhas de Raça');
+    }
+
     const spellInfo = getSpellInfo();
     if (spellInfo && spellInfo.shouldLearnSpells) {
       steps.push('Seleção de Magias');
     }
 
     // Treinador: truque do parceiro nos níveis 4, 7, 10, 13, 16, 19
-    // Treino Intensivo: truque extra nos níveis 5 e 11
+    // Treino Intensivo: truque extra nos níveis 5 e 11 (a escolha pendente do
+    // próprio nível 5 também conta, antes de ser refletida no sheet simulado)
     const COMPANION_TRICK_LEVELS = [4, 7, 10, 13, 16, 19];
-    const hasTreinoIntensivo = simulatedSheet.companions?.[0]?.treinoIntensivo;
+    const hasTreinoIntensivo =
+      simulatedSheet.companions?.[0]?.treinoIntensivo ||
+      (selectedClassName === 'Treinador' &&
+        selectedClassLevel === 5 &&
+        treinoChoice === TREINO_INTENSIVO);
     const allTrickLevels = hasTreinoIntensivo
       ? [...COMPANION_TRICK_LEVELS, 5, 11]
       : COMPANION_TRICK_LEVELS;
@@ -554,6 +668,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       simulatedSheet.companions?.length
     ) {
       steps.push('Truque do Melhor Amigo');
+    }
+
+    // Treinador: poder "Ensinar Truque" concede um truque adicional ao melhor amigo
+    if (
+      currentLevelSelection.powerChoice === 'class' &&
+      currentLevelSelection.selectedClassPower?.name === 'Ensinar Truque' &&
+      simulatedSheet.companions?.length
+    ) {
+      steps.push('Truque do Melhor Amigo (Ensinar Truque)');
     }
 
     return steps;
@@ -589,7 +712,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           }
           return true;
         }
-        if (selectedClassName === 'Bardo' || selectedClassName === 'Druida') {
+        if (selectedClassDesc?.spellPath?.schoolChoice) {
+          // Classes homebrew: quantidade declarada no spellPath (nunca maior
+          // que o pool de escolas disponíveis)
+          const { count, available } = selectedClassDesc.spellPath.schoolChoice;
+          const poolSize = available?.length ?? allSpellSchools.length;
+          return setup.spellSchools?.length === Math.min(count, poolSize);
+        }
+        if (
+          selectedClassDesc &&
+          (isClassOrVariantOf(selectedClassDesc, 'Bardo') ||
+            isClassOrVariantOf(selectedClassDesc, 'Druida'))
+        ) {
           return setup.spellSchools?.length === 3;
         }
         return true;
@@ -646,6 +780,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               return pSelections.almaLivreClass && pSelections.almaLivrePower
                 ? 1
                 : 0;
+            case 'buildGolpePessoal':
+              return pSelections.golpePessoalBuild ? 1 : 0;
             default:
               return 0;
           }
@@ -653,6 +789,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return requirements.requirements.every((req) => {
           const { type, pick } = req;
+
+          // Golpe Pessoal usa um construtor próprio e tem availableOptions vazio
+          // por design — exige que um build tenha sido montado pelo usuário.
+          if (type === 'buildGolpePessoal') {
+            return getSelectionCount(power.name, type) >= 1;
+          }
 
           // Check available options - if none available, consider requirement satisfied
           const availableOptions = getFilteredAvailableOptions(
@@ -694,9 +836,23 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Efeitos de Habilidades': {
-        // For now, assume optional (can skip)
+        // Treinador 5: a escolha de Treino Especializado é obrigatória — sem
+        // ela, o chooseFromOptions sorteia uma opção aleatória no apply
+        if (selectedClassName === 'Treinador' && selectedClassLevel === 5) {
+          return !!getTreinoEspecializadoChoice(currentLevelSelection);
+        }
+        // Demais habilidades: opcional (pode pular)
         // TODO: Implement validation for required ability selections
         return true;
+      }
+
+      case 'Escolhas de Raça': {
+        const picks = getRaceLevelUpPicks();
+        const chosen = currentLevelSelection.levelUpOptionPicks || {};
+        return picks.every(
+          (pick) =>
+            (chosen[pick.optionKey] || []).length === pick.pickPerLevelUp
+        );
       }
 
       case 'Seleção de Magias': {
@@ -707,28 +863,44 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return selectedCount === spellInfo.spellCount;
       }
 
-      case 'Truque do Melhor Amigo': {
-        const trick = currentLevelSelection.companionTrick;
-        if (!trick) return false;
-        // Check sub-choices are complete if needed
-        const trickDef = getAvailableTricks(
+      case 'Truque do Melhor Amigo':
+      case 'Truque do Melhor Amigo (Ensinar Truque)': {
+        const reason: 'auto' | 'power' =
+          stepName === 'Truque do Melhor Amigo (Ensinar Truque)'
+            ? 'power'
+            : 'auto';
+        const entry = currentLevelSelection.companionTrickSelections?.find(
+          (e) => e.reason === reason
+        );
+        if (!entry) return false;
+        const companion = getProjectedCompanion(reason, entry.companionIndex);
+        if (!companion) return false;
+        const trickDef = getCompanionTrickDefinition(entry.trick.name);
+        if (!trickDef) return false;
+        const { available } = getTrickAvailability(
+          trickDef,
           selectedClassLevel,
-          simulatedSheet.companions?.[0]?.companionType || 'Animal',
-          simulatedSheet.companions?.[0]?.size || 'Médio',
-          simulatedSheet.companions?.[0]?.tricks || [],
-          simulatedSheet.companions?.[0]?.naturalWeapons.length || 1,
+          companion.companionType,
+          companion.size,
+          companion.tricks,
+          countNaturalWeapons(companion.companionType, companion.tricks),
           false
-        ).find((t) => t.name === trick.name);
-        if (trickDef?.hasSubChoice) {
+        );
+        if (!available) return false;
+        if (trickDef.hasSubChoice) {
           if (trickDef.subChoiceType === 'attribute')
-            return !!trick.choices?.primary && !!trick.choices?.secondary;
+            return (
+              !!entry.trick.choices?.primary && !!entry.trick.choices?.secondary
+            );
           if (trickDef.subChoiceType === 'movement')
-            return !!trick.choices?.type;
+            return !!entry.trick.choices?.type;
+          if (trickDef.subChoiceType === 'spell') return !!entry.spell;
         }
         return true;
       }
 
-      case 'Melhor Amigo': {
+      case 'Melhor Amigo':
+      case 'Segundo Melhor Amigo': {
         const {
           companionType,
           companionSize,
@@ -743,16 +915,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           return false;
         if (!companionSkills || companionSkills.length !== 3) return false;
         if (!companionTricks || companionTricks.length !== 2) return false;
-        const availableTricks = getAvailableTricks(
-          1,
-          companionType,
-          companionSize,
-          companionTricks,
-          companionType === 'Monstro' ? 2 : 1,
-          true
-        );
         return companionTricks.every((t) => {
-          const def = availableTricks.find((d) => d.name === t.name);
+          const def = getCompanionTrickDefinition(t.name);
           if (!def?.hasSubChoice) return true;
           if (def.subChoiceType === 'attribute')
             return !!t.choices?.primary && !!t.choices?.secondary;
@@ -955,7 +1119,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             <Typography variant='h6' gutterBottom>
               Efeitos de Habilidades de Classe
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Sua classe ganhou novas habilidades neste nível que requerem
               seleções.
             </Typography>
@@ -964,18 +1134,50 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               classe={expandedClass}
               origin={undefined}
               selections={currentLevelSelection.abilityEffectSelections || {}}
-              onChange={(selections) =>
-                setCurrentLevelSelection({
+              onChange={(selections) => {
+                const next: LevelUpSelections = {
                   ...currentLevelSelection,
                   abilityEffectSelections: selections,
-                })
-              }
+                };
+                // Treinador 5: o step de truque deste nível só existe com
+                // Treino Intensivo — trocar a escolha invalida o truque bônus
+                // já selecionado (a entry 'power' do Ensinar Truque fica)
+                if (
+                  selectedClassName === 'Treinador' &&
+                  selectedClassLevel === 5 &&
+                  selections[TREINO_ESPECIALIZADO]?.chosenOption?.[0] !==
+                    TREINO_INTENSIVO
+                ) {
+                  const remaining = (
+                    next.companionTrickSelections || []
+                  ).filter((e) => e.reason !== 'auto');
+                  next.companionTrickSelections = remaining.length
+                    ? remaining
+                    : undefined;
+                }
+                setCurrentLevelSelection(next);
+              }}
               actualSheet={sheetForCurrentLevel}
               skipRaceAbilities
               classAbilityLevel={selectedClassLevel}
               supplements={supplements}
             />
           </Box>
+        );
+      }
+
+      case 'Escolhas de Raça': {
+        return (
+          <RaceLevelUpPickStep
+            picks={getRaceLevelUpPicks()}
+            value={currentLevelSelection.levelUpOptionPicks || {}}
+            onChange={(levelUpOptionPicks) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                levelUpOptionPicks,
+              })
+            }
+          />
         );
       }
 
@@ -1013,27 +1215,78 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         );
       }
 
-      case 'Truque do Melhor Amigo': {
-        const companion = simulatedSheet.companions?.[0];
-        if (!companion) return null;
+      case 'Truque do Melhor Amigo':
+      case 'Truque do Melhor Amigo (Ensinar Truque)': {
+        const companions = simulatedSheet.companions || [];
+        if (!companions.length) return null;
+        const reason: 'auto' | 'power' =
+          stepName === 'Truque do Melhor Amigo (Ensinar Truque)'
+            ? 'power'
+            : 'auto';
+        const selections = currentLevelSelection.companionTrickSelections || [];
+        const existing = selections.find((e) => e.reason === reason);
+        const selectedCompanionIndex =
+          existing?.companionIndex ?? trickStepCompanionIndex[reason];
+        const companion =
+          getProjectedCompanion(reason, selectedCompanionIndex) ||
+          companions[0];
+
+        const upsert = (
+          patch: Partial<{
+            companionIndex: number;
+            trick: CompanionTrick | undefined;
+            spell: Spell | undefined;
+          }>
+        ) => {
+          const others = selections.filter((e) => e.reason !== reason);
+          // Se "patch.trick" for explicitamente undefined (clear), remove a entry
+          if ('trick' in patch && patch.trick === undefined) {
+            setCurrentLevelSelection({
+              ...currentLevelSelection,
+              companionTrickSelections: others.length ? others : undefined,
+            });
+            return;
+          }
+          const baseTrick = patch.trick ?? existing?.trick;
+          if (!baseTrick) return;
+          const updated = {
+            companionIndex: patch.companionIndex ?? selectedCompanionIndex,
+            trick: baseTrick,
+            spell: 'spell' in patch ? patch.spell : existing?.spell,
+            reason,
+          };
+          setCurrentLevelSelection({
+            ...currentLevelSelection,
+            companionTrickSelections: [...others, updated],
+          });
+        };
+
         return (
           <CompanionTrickSelectionStep
             companion={companion}
             trainerLevel={selectedClassLevel}
-            selectedTrick={currentLevelSelection.companionTrick}
-            onSelectTrick={(trick) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
-                companionTrick: trick,
-              })
-            }
+            companions={companions}
+            selectedCompanionIndex={selectedCompanionIndex}
+            onSelectCompanion={(idx) => {
+              setTrickStepCompanionIndex((prev) => ({
+                ...prev,
+                [reason]: idx,
+              }));
+              upsert({ companionIndex: idx });
+            }}
+            selectedTrick={existing?.trick}
+            onSelectTrick={(trick) => upsert({ trick })}
+            selectedSpell={existing?.spell}
+            onSelectSpell={(spell) => upsert({ spell })}
           />
         );
       }
 
       case 'Melhor Amigo':
+      case 'Segundo Melhor Amigo':
         return (
           <CompanionCreationStep
+            trainerLevel={selectedClassLevel}
             companionName={currentLevelSelection.companionName}
             companionType={currentLevelSelection.companionType}
             companionSize={currentLevelSelection.companionSize}
@@ -1046,48 +1299,48 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             companionSkills={currentLevelSelection.companionSkills || []}
             companionTricks={currentLevelSelection.companionTricks || []}
             onNameChange={(name) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionName: name,
-              })
+              }))
             }
             onTypeChange={(type) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionType: type,
                 companionTricks: [],
-              })
+              }))
             }
             onSizeChange={(size) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionSize: size,
                 companionTricks: [],
-              })
+              }))
             }
             onWeaponDamageTypeChange={(damageType) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionWeaponDamageType: damageType,
-              })
+              }))
             }
             onSpiritEnergyTypeChange={(energyType) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionSpiritEnergyType: energyType,
-              })
+              }))
             }
             onSkillsChange={(skills) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionSkills: skills,
-              })
+              }))
             }
             onTricksChange={(tricks) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 companionTricks: tricks,
-              })
+              }))
             }
           />
         );
@@ -1116,6 +1369,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           powerChoice: 'class',
         });
         setActiveStep(0);
+        setTrickStepCompanionIndex({ auto: 0, power: 0 });
 
         // Update simulated sheet with current level selections
         // This ensures powers selected in previous levels are tracked
@@ -1180,6 +1434,52 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           ];
         }
 
+        // Treinador 5: refletir a escolha de Treino Especializado no sheet
+        // simulado, para que os próximos níveis da sessão enxerguem o 2º
+        // companheiro / o truque bônus de Treino Intensivo (níveis 5 e 11)
+        const treinoChoice = getTreinoEspecializadoChoice(
+          currentLevelSelection
+        );
+        if (
+          selectedClassName === 'Treinador' &&
+          selectedClassLevel === 5 &&
+          treinoChoice &&
+          nextSheet.companions?.length
+        ) {
+          if (
+            treinoChoice === CONQUISTAR_PELOS_NUMEROS &&
+            nextSheet.companions.length === 1 &&
+            currentLevelSelection.companionType &&
+            currentLevelSelection.companionSize &&
+            currentLevelSelection.companionWeaponDamageType &&
+            currentLevelSelection.companionSkills &&
+            currentLevelSelection.companionTricks
+          ) {
+            const trainerCharisma =
+              nextSheet.atributos[Atributo.CARISMA]?.value ?? 0;
+            nextSheet.companions = [
+              ...nextSheet.companions,
+              createCompanion({
+                name: currentLevelSelection.companionName,
+                type: currentLevelSelection.companionType,
+                size: currentLevelSelection.companionSize,
+                weaponDamageType:
+                  currentLevelSelection.companionWeaponDamageType,
+                spiritEnergyType:
+                  currentLevelSelection.companionSpiritEnergyType,
+                skills: currentLevelSelection.companionSkills,
+                tricks: currentLevelSelection.companionTricks,
+                trainerLevel: selectedClassLevel,
+                trainerCharisma,
+              }),
+            ];
+          } else if (treinoChoice === TREINO_INTENSIVO) {
+            nextSheet.companions = nextSheet.companions.map((companion, idx) =>
+              idx === 0 ? { ...companion, treinoIntensivo: true } : companion
+            );
+          }
+        }
+
         // Add selected power to the simulated sheet
         if (
           currentLevelSelection.powerChoice === 'class' &&
@@ -1216,6 +1516,37 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             ...(nextSheet.spells || []),
             ...currentLevelSelection.spellsLearned,
           ];
+        }
+
+        // Treinador: refletir truques escolhidos neste nível no sheet simulado,
+        // para que os steps de truque dos próximos níveis da sessão os enxerguem
+        // (dedup de não-repetíveis, cadeias de requiredTricks e Magia Inata)
+        if (
+          currentLevelSelection.companionTrickSelections?.length &&
+          nextSheet.companions?.length
+        ) {
+          currentLevelSelection.companionTrickSelections.forEach((entry) => {
+            const targetIdx = Math.min(
+              entry.companionIndex,
+              (nextSheet.companions?.length || 1) - 1
+            );
+            nextSheet.companions = (nextSheet.companions || []).map(
+              (companion, idx) => {
+                if (idx !== targetIdx) return companion;
+                const next = {
+                  ...companion,
+                  tricks: [...companion.tricks, entry.trick],
+                };
+                if (entry.spell) {
+                  next.spells = [
+                    ...(companion.spells || []),
+                    { ...entry.spell, customKeyAttr: Atributo.CARISMA },
+                  ];
+                }
+                return next;
+              }
+            );
+          });
         }
 
         // Add attribute increases to sheetActionHistory for plateau validation
@@ -1295,6 +1626,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       setCurrentLevelSelection(previousLevelSelection);
       setAllLevelSelections(allLevelSelections.slice(0, -1));
       setActiveStep(0);
+      setTrickStepCompanionIndex({ auto: 0, power: 0 });
 
       // Update simulated sheet - remove powers/spells from the level we're returning to
       // This allows the user to see their previous selection and modify it if desired
@@ -1344,6 +1676,67 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           prevSheet.spells = (prevSheet.spells || []).filter(
             (s) => !spellNamesToRemove.includes(s.nome)
           );
+        }
+
+        // Treinador: reverter truques aplicados ao sheet simulado no nível ao
+        // qual estamos retornando (remove UMA ocorrência de cada — truques
+        // repetíveis podem existir legitimamente mais de uma vez)
+        if (
+          previousLevelSelection.companionTrickSelections?.length &&
+          prevSheet.companions?.length
+        ) {
+          previousLevelSelection.companionTrickSelections.forEach((entry) => {
+            const targetIdx = Math.min(
+              entry.companionIndex,
+              (prevSheet.companions?.length || 1) - 1
+            );
+            prevSheet.companions = (prevSheet.companions || []).map(
+              (companion, idx) => {
+                if (idx !== targetIdx) return companion;
+                const lastTrickIdx = companion.tricks
+                  .map((t) => t.name)
+                  .lastIndexOf(entry.trick.name);
+                const next = {
+                  ...companion,
+                  tricks:
+                    lastTrickIdx >= 0
+                      ? companion.tricks.filter((_, i) => i !== lastTrickIdx)
+                      : companion.tricks,
+                };
+                if (entry.spell && companion.spells?.length) {
+                  const lastSpellIdx = companion.spells
+                    .map((s) => s.nome)
+                    .lastIndexOf(entry.spell.nome);
+                  next.spells =
+                    lastSpellIdx >= 0
+                      ? companion.spells.filter((_, i) => i !== lastSpellIdx)
+                      : companion.spells;
+                }
+                return next;
+              }
+            );
+          });
+        }
+
+        // Treinador 5: reverter a escolha de Treino Especializado aplicada em
+        // handleNext (depois do revert de truques, para o clamp de índice dos
+        // truques ainda enxergar o 2º companheiro)
+        const prevTreinoChoice = getTreinoEspecializadoChoice(
+          previousLevelSelection
+        );
+        if (prevTreinoChoice && prevSheet.companions?.length) {
+          if (
+            prevTreinoChoice === CONQUISTAR_PELOS_NUMEROS &&
+            prevSheet.companions.length > 1
+          ) {
+            prevSheet.companions = prevSheet.companions.slice(0, -1);
+          } else if (prevTreinoChoice === TREINO_INTENSIVO) {
+            prevSheet.companions = prevSheet.companions.map((companion, idx) =>
+              idx === 0
+                ? { ...companion, treinoIntensivo: undefined }
+                : companion
+            );
+          }
         }
 
         // Remove sheetActionHistory entries for attribute increases from the level we're returning to
@@ -1417,9 +1810,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         onClose={handleCloseAttempt}
         maxWidth='md'
         fullWidth
-        PaperProps={{
-          sx: {
-            maxHeight: '90vh',
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: '90vh',
+            },
           },
         }}
       >
@@ -1428,7 +1823,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             <Typography variant='h6'>
               Progressão de Nível - Nível {currentLevel}
             </Typography>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Progresso geral: Nível {currentLevel} de {targetLevel}
             </Typography>
           </Box>
@@ -1471,7 +1871,6 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Confirmation Dialog */}
       <Dialog
         open={confirmCloseOpen}

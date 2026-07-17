@@ -17,6 +17,7 @@ import Equipment, {
 } from '../interfaces/Equipment';
 
 import { rollDice } from './randomUtils';
+import { isPrereqMetByNames } from '../utils/superiorItemsValidation';
 import Bag from '../interfaces/Bag';
 
 /**
@@ -166,7 +167,10 @@ function applyWeaponModifications(
     // Filtrar modificações disponíveis (que não foram usadas e atendem pré-requisitos)
     const availableMods = weaponsModifications.filter((mod) => {
       if (takenMods.includes(mod.mod)) return false;
-      if (mod.prerequisite && !appliedMods.includes(mod.prerequisite))
+      if (
+        mod.prerequisite &&
+        !isPrereqMetByNames(mod.prerequisite, appliedMods)
+      )
         return false;
       return true;
     });
@@ -258,7 +262,10 @@ function applyArmorModifications(
     // Filtrar modificações disponíveis
     const availableMods = armorsModifications.filter((mod) => {
       if (takenMods.includes(mod.mod)) return false;
-      if (mod.prerequisite && !appliedMods.includes(mod.prerequisite))
+      if (
+        mod.prerequisite &&
+        !isPrereqMetByNames(mod.prerequisite, appliedMods)
+      )
         return false;
       return true;
     });
@@ -287,8 +294,9 @@ function applyArmorModifications(
           break;
 
         case 'Reforçada':
-          // +1 na Defesa
+          // +1 na Defesa; +1 na penalidade de armadura
           modifiedArmor.defenseBonus += 1;
+          modifiedArmor.armorPenalty += 1;
           priceMultiplier += 0.6;
           break;
 

@@ -33,7 +33,12 @@ const IntelligenceSkillStep: React.FC<IntelligenceSkillStepProps> = ({
   if (requiredCount <= 0) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Seu modificador de Inteligência é {intelligenceModifier}, portanto
           você não pode selecionar perícias adicionais.
         </Typography>
@@ -44,18 +49,26 @@ const IntelligenceSkillStep: React.FC<IntelligenceSkillStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant='body1' color='text.secondary'>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Com base no seu modificador de Inteligência (+{intelligenceModifier}),
         você pode escolher {requiredCount} perícia
         {requiredCount > 1 ? 's' : ''} adicional
         {requiredCount > 1 ? 'is' : ''} entre todas as perícias disponíveis no
         jogo:
       </Typography>
-
-      <Typography variant='caption' color='text.secondary'>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Selecionadas: {selectedSkills.length} / {requiredCount}
       </Typography>
-
       <Box
         sx={{
           display: 'flex',
@@ -95,14 +108,12 @@ const IntelligenceSkillStep: React.FC<IntelligenceSkillStepProps> = ({
           );
         })}
       </Box>
-
       {selectedSkills.length > requiredCount && (
         <Alert severity='error'>
           Você selecionou {selectedSkills.length} perícias, mas só pode escolher{' '}
           {requiredCount}.
         </Alert>
       )}
-
       {!isComplete() && selectedSkills.length > 0 && (
         <Alert severity='warning'>
           Selecione {requiredCount - selectedSkills.length} perícia
@@ -111,7 +122,6 @@ const IntelligenceSkillStep: React.FC<IntelligenceSkillStepProps> = ({
           continuar.
         </Alert>
       )}
-
       {isComplete() && (
         <Alert severity='success'>
           Perícias selecionadas com sucesso! Você pode continuar para o próximo

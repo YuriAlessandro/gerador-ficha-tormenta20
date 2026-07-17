@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Drawer,
   Box,
   Typography,
-  TextField,
   Select,
   MenuItem,
   FormControl,
@@ -18,11 +17,17 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ShieldIcon from '@mui/icons-material/Shield';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  DamageReduction,
+  DamageType,
+  ALL_DAMAGE_TYPES,
+} from '@/interfaces/CharacterSheet';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { DefenseEquipment } from '@/interfaces/Equipment';
+import { getWornArmor } from '@/components/SheetResult/BackpackModal/wielding';
+import NumberField from '@/components/common/NumberField';
 
 interface DefenseEditDrawerProps {
   open: boolean;
@@ -39,6 +44,19 @@ interface EditedData {
   bonusDefense: number;
 }
 
+const SPECIFIC_DAMAGE_TYPES: DamageType[] = ALL_DAMAGE_TYPES.filter(
+  (t) => t !== 'Geral'
+);
+
+// Auto RD = total computed RD minus the user's manual bonus. Editing the field
+// to a value below the auto RD produces a negative manual bonus (clamped so the
+// final total never goes below 0 in recalculateSheet).
+const getAutoRd = (sheet: CharacterSheet, type: DamageType): number => {
+  const total = sheet.reducaoDeDano?.[type] ?? 0;
+  const manual = sheet.bonusRd?.[type] ?? 0;
+  return Math.max(0, total - manual);
+};
+
 const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
   open,
   onClose,
@@ -53,13 +71,43 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     bonusDefense: sheet.bonusDefense ?? 0,
   });
 
-  // Check if character has heavy armor equipped
-  const hasHeavyArmor = (): boolean => {
-    const equippedArmors = sheet.bag.equipments.Armadura || [];
-    return equippedArmors.some((armor: DefenseEquipment) =>
-      isHeavyArmor(armor)
-    );
-  };
+  // RD editing. State holds the total values (auto + manual), which is what the
+  // user sees and edits. On save we derive `bonusRd` (manual portion only).
+  const [editedRd, setEditedRd] = useState<DamageReduction>(
+    sheet.reducaoDeDano ?? {}
+  );
+
+  // Re-sync local state whenever the drawer is (re)opened, so auto RD reflects
+  // the latest equipment/powers and edits aren't carried over from a cancel.
+  useEffect(() => {
+    if (open) {
+      setEditedData({
+        customDefenseBase: sheet.customDefenseBase,
+        customDefenseAttribute: sheet.customDefenseAttribute,
+        useDefenseAttribute: sheet.useDefenseAttribute ?? true,
+        bonusDefense: sheet.bonusDefense ?? 0,
+      });
+      setEditedRd(sheet.reducaoDeDano ?? {});
+    }
+  }, [open, sheet]);
+
+  // The armor actually worn (respects wornArmorId, incl. the "took it off"
+  // sentinel) and the shields actually wielded in a hand slot. Mirrors the
+  // rules in calcDefense so the preview matches the saved value: only worn
+  // armor and wielded shields contribute to defense.
+  const wornArmor = getWornArmor(
+    (sheet.bag.equipments.Armadura || []) as DefenseEquipment[],
+    sheet.wornArmorId
+  );
+  const wieldedShields = (sheet.bag.equipments.Escudo || []).filter(
+    (shield: DefenseEquipment) =>
+      shield.id !== undefined &&
+      (shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId)
+  );
+
+  // Check if the character has heavy armor WORN (an unequipped heavy armor in
+  // the bag must not suppress the defense attribute modifier).
+  const hasHeavyArmor = (): boolean => !!wornArmor && isHeavyArmor(wornArmor);
 
   // Get default defense attribute based on class
   const getDefaultDefenseAttribute = (): Atributo => {
@@ -111,17 +159,13 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     const base = editedData.customDefenseBase ?? 10;
     let total = base;
 
-    // Add armor bonuses
-    const equippedArmors = sheet.bag.equipments.Armadura || [];
-    equippedArmors.forEach((armor) => {
-      if (armor.defenseBonus) {
-        total += armor.defenseBonus;
-      }
-    });
+    // Add worn armor bonus (only the worn armor counts).
+    if (wornArmor?.defenseBonus) {
+      total += wornArmor.defenseBonus;
+    }
 
-    // Add shield bonuses
-    const equippedShields = sheet.bag.equipments.Escudo || [];
-    equippedShields.forEach((shield) => {
+    // Add wielded shield bonuses (only shields in a hand slot count).
+    wieldedShields.forEach((shield) => {
       if (shield.defenseBonus) {
         total += shield.defenseBonus;
       }
@@ -156,17 +200,13 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
 
     components.push(`${base} (base)`);
 
-    // Armor bonuses
-    const equippedArmors = sheet.bag.equipments.Armadura || [];
-    equippedArmors.forEach((armor) => {
-      if (armor.defenseBonus && armor.defenseBonus > 0) {
-        components.push(`${armor.defenseBonus} (${armor.nome})`);
-      }
-    });
+    // Armor bonus (only the worn armor counts).
+    if (wornArmor?.defenseBonus && wornArmor.defenseBonus > 0) {
+      components.push(`${wornArmor.defenseBonus} (${wornArmor.nome})`);
+    }
 
-    // Shield bonuses
-    const equippedShields = sheet.bag.equipments.Escudo || [];
-    equippedShields.forEach((shield) => {
+    // Shield bonuses (only shields wielded in a hand slot count).
+    wieldedShields.forEach((shield) => {
       if (shield.defenseBonus && shield.defenseBonus > 0) {
         components.push(`${shield.defenseBonus} (${shield.nome})`);
       }
@@ -213,12 +253,32 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     return `${formula} = ${total}`;
   };
 
+  const handleRdChange = (type: DamageType, value: number) => {
+    const clampedValue = Math.max(0, value);
+    setEditedRd((prev) => ({
+      ...prev,
+      [type]: clampedValue,
+    }));
+  };
+
   const handleSave = () => {
+    // Derive manual RD (bonusRd) = edited total - auto RD, per damage type.
+    const newBonusRd: DamageReduction = {};
+    Object.entries(editedRd).forEach(([key, totalValue]) => {
+      const type = key as DamageType;
+      const autoValue = getAutoRd(sheet, type);
+      const manualValue = (totalValue ?? 0) - autoValue;
+      if (manualValue !== 0) {
+        newBonusRd[type] = manualValue;
+      }
+    });
+
     const updates: Partial<CharacterSheet> = {
       customDefenseBase: editedData.customDefenseBase,
       customDefenseAttribute: editedData.customDefenseAttribute,
       useDefenseAttribute: editedData.useDefenseAttribute,
       bonusDefense: editedData.bonusDefense,
+      bonusRd: Object.keys(newBonusRd).length > 0 ? newBonusRd : undefined,
     };
 
     // Create updated sheet with custom defense fields
@@ -239,7 +299,24 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
       useDefenseAttribute: sheet.useDefenseAttribute ?? true,
       bonusDefense: sheet.bonusDefense ?? 0,
     });
+    setEditedRd(sheet.reducaoDeDano ?? {});
     onClose();
+  };
+
+  const renderRdField = (type: DamageType, size: 'small' | 'medium') => {
+    const label = type === 'Geral' ? 'RD Geral' : `RD de ${type}`;
+    return (
+      <NumberField
+        key={type}
+        fullWidth
+        label={label}
+        value={editedRd[type] ?? 0}
+        onValueChange={(v) => handleRdChange(type, v ?? 0)}
+        size={size}
+        min={0}
+        max={99}
+      />
+    );
   };
 
   const heavyArmor = hasHeavyArmor();
@@ -252,16 +329,20 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
       anchor='right'
       open={open}
       onClose={handleCancel}
-      PaperProps={{
-        sx: { width: { xs: '100%', sm: 450 } },
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 450 } },
+        },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Stack
           direction='row'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
         >
           <Typography variant='h6'>Editar Defesa</Typography>
           <IconButton onClick={handleCancel} size='small'>
@@ -273,21 +354,19 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
 
         <Stack spacing={3}>
           {/* Defesa Base */}
-          <TextField
+          <NumberField
             fullWidth
             label='Defesa Base'
-            type='number'
             value={editedData.customDefenseBase ?? 10}
-            onChange={(e) => {
-              const { value } = e.target;
-              const numValue = parseInt(value, 10);
+            onValueChange={(v) => {
               setEditedData({
                 ...editedData,
-                customDefenseBase: numValue === 10 ? undefined : numValue,
+                customDefenseBase: v === null || v === 10 ? undefined : v,
               });
             }}
             helperText='Padrão: 10 (regra base de Tormenta 20)'
-            inputProps={{ min: 0, max: 50 }}
+            min={0}
+            max={50}
           />
 
           {/* Usar Atributo na Defesa */}
@@ -315,7 +394,13 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
               label='Usar Atributo na Defesa'
             />
           </Tooltip>
-          <Typography variant='caption' color='text.secondary' sx={{ mt: -2 }}>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              mt: -2,
+            }}
+          >
             {heavyArmor
               ? 'Armaduras pesadas ignoram o modificador de atributo'
               : 'Desmarque para ignorar modificador de atributo (ex: armaduras pesadas customizadas)'}
@@ -348,7 +433,13 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
                 </MenuItem>
               ))}
             </Select>
-            <Typography variant='caption' color='text.secondary' sx={{ mt: 1 }}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+                mt: 1,
+              }}
+            >
               Modificador atual de {currentAttr}:{' '}
               {currentAttrValue >= 0 ? '+' : ''}
               {currentAttrValue}
@@ -356,21 +447,58 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
           </FormControl>
 
           {/* Bônus Manual */}
-          <TextField
+          <NumberField
             fullWidth
             label='Bônus Manual de Defesa'
-            type='number'
             value={editedData.bonusDefense}
-            onChange={(e) => {
-              const value = parseInt(e.target.value, 10) || 0;
+            onValueChange={(v) => {
               setEditedData({
                 ...editedData,
-                bonusDefense: value,
+                bonusDefense: v ?? 0,
               });
             }}
             helperText='Bônus adicional de fontes não automáticas'
-            inputProps={{ min: -50, max: 50 }}
+            min={-50}
+            max={50}
           />
+
+          {/* Redução de Dano (RD) */}
+          <Divider>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              Redução de Dano
+            </Typography>
+          </Divider>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              mt: -2,
+            }}
+          >
+            Valores totais (automático + manual). Fontes automáticas como
+            materiais (Adamante), raça e poderes já estão somadas — ajuste para
+            adicionar RD de outras fontes.
+          </Typography>
+
+          {renderRdField('Geral', 'medium')}
+
+          <Divider sx={{ my: 0.5 }}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              Por Tipo de Dano
+            </Typography>
+          </Divider>
+
+          {SPECIFIC_DAMAGE_TYPES.map((type) => renderRdField(type, 'small'))}
 
           {/* Botão para Editar Equipamentos de Defesa */}
           <Button

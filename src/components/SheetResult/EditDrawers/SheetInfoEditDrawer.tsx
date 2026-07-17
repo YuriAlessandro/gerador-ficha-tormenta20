@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import _ from 'lodash';
 import {
   Drawer,
   Box,
@@ -9,6 +10,7 @@ import {
   FormControl,
   FormGroup,
   FormControlLabel,
+  FormHelperText,
   InputLabel,
   Button,
   Stack,
@@ -24,6 +26,8 @@ import {
   AccordionDetails,
   Tooltip,
   Alert,
+  OutlinedInput,
+  ListItemText,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -40,13 +44,14 @@ import {
   applyManualLevelUp,
 } from '@/functions/general';
 import getNameSuggestions from '@/functions/nameSuggestions';
-import { useAuth } from '@/hooks/useAuth';
+import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { SupplementId } from '@/types/supplement.types';
 import {
   MOREAU_HERITAGES,
   MoreauHeritageName,
   MOREAU_HERITAGE_NAMES,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import {
   GOLEM_DESPERTO_CHASSIS,
   GOLEM_DESPERTO_CHASSIS_NAMES,
@@ -62,6 +67,9 @@ import {
   DUENDE_SIZE_NAMES,
   DUENDE_NATURES,
   DUENDE_NATURE_NAMES,
+  DUENDE_PRESENTES,
+  DUENDE_PRESENTE_NAMES,
+  DUENDE_TABU_SKILLS,
 } from '@/data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
 import Skill from '@/interfaces/Skills';
@@ -82,7 +90,9 @@ import {
   calculateMulticlassPV,
   calculateMulticlassPM,
   findClassDescription,
+  reconcileClassLevels,
 } from '@/functions/multiclass';
+import NumberField from '@/components/common/NumberField';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
@@ -90,6 +100,53 @@ import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
 // Helper function to normalize deity names for comparison (removes hyphens and spaces)
 const normalizeDeityName = (name: string): string =>
   name.toLowerCase().replace(/[-\s]/g, '');
+
+// Reconstrói (best-effort) os Dons de um Duende legado a partir dos atributos já
+// "assados" na raça, quando o campo dedicado `duendeBonusAttributes` não existe.
+// Usado apenas como fallback cosmético — a segurança do save NÃO depende da
+// precisão desta reconstrução (o mesmo valor é usado como seed, baseline do
+// detector de mudança e baseline do gate, então uma ficha não editada compara
+// igual e nunca dispara a reversão de atributos).
+const reconstructDuendeDonsFromRaca = (sheet: CharacterSheet): Atributo[] => {
+  const residual = new Map<Atributo, number>();
+  (sheet.raca.attributes?.attrs ?? []).forEach((a) => {
+    if (a.attr !== 'any') {
+      residual.set(a.attr, (residual.get(a.attr) ?? 0) + a.mod);
+    }
+  });
+
+  // Remover modificadores de tamanho para isolar os Dons (+ natureza Animal)
+  const sizeMods = sheet.raceSizeCategory
+    ? DUENDE_SIZES[sheet.raceSizeCategory]?.attributeModifiers
+    : undefined;
+  sizeMods?.forEach((m) => {
+    if (m.attr !== 'any') {
+      residual.set(m.attr, (residual.get(m.attr) ?? 0) - m.mod);
+    }
+  });
+
+  const natureId = sheet.duendeNature ?? sheet.raca.nature;
+  const isAnimal = natureId
+    ? Boolean(DUENDE_NATURES[natureId]?.extraAttribute)
+    : false;
+  const maxDons = isAnimal ? 3 : 2;
+
+  return Array.from(residual.entries())
+    .filter(([, mod]) => mod >= 1)
+    .sort((a, b) => b[1] - a[1])
+    .map(([attr]) => attr)
+    .slice(0, maxDons);
+};
+
+// Retorna os Dons do Duende para semear o editor: campo dedicado (fichas novas)
+// ou reconstrução (fichas legadas). O MESMO valor deve ser usado como baseline no
+// detector de mudança e no gate do botão Salvar.
+const getSeedDuendeBonusAttributes = (sheet: CharacterSheet): Atributo[] => {
+  if (sheet.duendeBonusAttributes && sheet.duendeBonusAttributes.length >= 2) {
+    return sheet.duendeBonusAttributes;
+  }
+  return reconstructDuendeDonsFromRaca(sheet);
+};
 
 interface SheetInfoEditDrawerProps {
   open: boolean;
@@ -104,6 +161,7 @@ interface EditedData {
   sexo: string;
   raceName: string;
   raceHeritage: string | undefined; // For races with heritages (like Moreau)
+  moreauSapienciaSpell: string | undefined; // For Moreau Coruja Sapiência ability
   raceChassis: string | undefined; // For Golem Desperto
   raceEnergySource: string | undefined; // For Golem Desperto
   raceSizeCategory: string | undefined; // For Golem Desperto
@@ -111,6 +169,7 @@ interface EditedData {
   duendeNature: string | undefined; // For Duende (animal/vegetal/mineral)
   duendePresentes: string[] | undefined; // For Duende (3 selected powers)
   duendeTabuSkill: string | undefined; // For Duende (skill with -5 penalty)
+  duendeBonusAttributes: Atributo[] | undefined; // For Duende (Dons +1 attrs; 3rd entry only when Animal)
   className: string;
   originName: string;
   deityName: string;
@@ -126,19 +185,38 @@ interface EditedData {
   imageUrl: string;
 }
 
+// Detecta se a configuração do Duende foi de fato editada em relação ao estado
+// semeado. Compara contra os MESMOS baselines usados para semear `editedData`
+// (com fallbacks para `raca.*`), de modo que uma ficha não editada — nova,
+// legada ou gerada aleatoriamente — compare igual e não dispare re-customização
+// nem valide o botão Salvar. Usado tanto no handleSave quanto no gate do botão.
+const isDuendeConfigChanged = (
+  editedData: EditedData,
+  sheet: CharacterSheet
+): boolean =>
+  editedData.raceName === 'Duende' &&
+  (editedData.raceSizeCategory !== sheet.raceSizeCategory ||
+    editedData.duendeNature !== (sheet.duendeNature || sheet.raca.nature) ||
+    editedData.duendeTabuSkill !==
+      (sheet.duendeTabuSkill || sheet.raca.tabuSkill) ||
+    !_.isEqual(
+      editedData.duendePresentes ?? [],
+      sheet.duendePresentes ?? sheet.raca.presentPowers ?? []
+    ) ||
+    !_.isEqual(
+      editedData.duendeBonusAttributes ?? [],
+      getSeedDuendeBonusAttributes(sheet)
+    ));
+
 const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   open,
   onClose,
   sheet,
   onSave,
 }) => {
-  const { user } = useAuth();
   const sheetIsMulticlass = isMulticlass(sheet);
-  // Memoize to prevent creating new array on every render (which would cause infinite reset loop)
-  const userSupplements = useMemo(
-    () => user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
-    [user?.enabledSupplements]
-  );
+  // useContentSupplements já memoiza o array (evita loop de reset por nova referência)
+  const userSupplements = useContentSupplements();
 
   // Get races and classes based on user's enabled supplements (with supplement info for badges)
   const RACAS_WITH_INFO =
@@ -158,6 +236,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     sexo: sheet.sexo || 'Masculino',
     raceName: sheet.raca.name,
     raceHeritage: sheet.raceHeritage,
+    moreauSapienciaSpell: sheet.moreauSapienciaSpell,
     raceChassis: sheet.raceChassis,
     raceEnergySource: sheet.raceEnergySource,
     raceSizeCategory: sheet.raceSizeCategory,
@@ -165,6 +244,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     duendeNature: sheet.duendeNature || sheet.raca.nature,
     duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
     duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
+    duendeBonusAttributes:
+      sheet.raca.name === 'Duende'
+        ? getSeedDuendeBonusAttributes(sheet)
+        : sheet.raceAttributeChoices,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name || '',
@@ -196,6 +279,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const [expandedAccordions, setExpandedAccordions] = useState<string[]>([
     'info-basicas',
   ]);
+
+  // 1st-circle Divination spells available for Moreau Coruja Sapiência
+  const moreauSapienciaSpellOptions = useMemo(
+    () => getSpellsOfCircle(1).filter((spell) => spell.school === 'Adiv'),
+    []
+  );
 
   // State for OriginEditDrawer
   const [originEditDrawerOpen, setOriginEditDrawerOpen] = useState(false);
@@ -231,6 +320,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: sheet.sexo || 'Masculino',
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
+      moreauSapienciaSpell: sheet.moreauSapienciaSpell,
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
@@ -238,6 +328,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       duendeNature: sheet.duendeNature || sheet.raca.nature,
       duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
       duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
+      duendeBonusAttributes:
+        sheet.raca.name === 'Duende'
+          ? getSeedDuendeBonusAttributes(sheet)
+          : sheet.raceAttributeChoices,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
@@ -595,9 +689,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       nivel: editedData.nivel,
       sexo: editedData.sexo,
       atributos: editedData.attributes,
-      raceAttributeChoices: editedData.raceAttributeChoices,
+      raceAttributeChoices:
+        editedData.raceName === 'Duende' && editedData.duendeBonusAttributes
+          ? editedData.duendeBonusAttributes
+          : editedData.raceAttributeChoices,
       selectedAttributeVariant: editedData.selectedAttributeVariant,
       raceHeritage: editedData.raceHeritage,
+      moreauSapienciaSpell: editedData.moreauSapienciaSpell,
       raceChassis: editedData.raceChassis,
       raceEnergySource: editedData.raceEnergySource,
       raceSizeCategory: editedData.raceSizeCategory,
@@ -696,6 +794,29 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         label: 'Edição Manual - Herança',
         type: 'Edição Manual',
         value: [{ name: 'Herança', value: heritageName }],
+      });
+    }
+
+    // Check for Moreau Sapiência spell change
+    const moreauSapienciaSpellChanged =
+      editedData.raceName === 'Moreau' &&
+      editedData.moreauSapienciaSpell !== sheet.moreauSapienciaSpell;
+    if (moreauSapienciaSpellChanged) {
+      // Drop the old spell so the recalc can re-add the new one (or none, if heritage left Coruja)
+      if (sheet.moreauSapienciaSpell) {
+        updates.spells = sheet.spells.filter(
+          (s) => s.nome !== sheet.moreauSapienciaSpell
+        );
+      }
+      newSteps.push({
+        label: 'Edição Manual - Sapiência',
+        type: 'Edição Manual',
+        value: [
+          {
+            name: 'Magia',
+            value: editedData.moreauSapienciaSpell || 'Removida',
+          },
+        ],
       });
     }
 
@@ -958,9 +1079,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           editedData.raceSizeCategory !== sheet.raceSizeCategory)) ||
       (editedData.raceName.startsWith('Suraggel') &&
         editedData.suragelAbility !== sheet.suragelAbility) ||
-      (editedData.raceName === 'Duende' &&
-        (editedData.raceSizeCategory !== sheet.raceSizeCategory ||
-          editedData.duendeNature !== sheet.duendeNature));
+      isDuendeConfigChanged(editedData, sheet);
 
     if (raceOrSexOrHeritageOrGolemOrSuragelChanged) {
       let newRace = RACAS.find((r) => r.name === editedData.raceName);
@@ -1048,7 +1167,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
             newRace,
             editedData.duendeNature,
             editedData.raceSizeCategory,
-            sheet.raceAttributeChoices || [],
+            editedData.duendeBonusAttributes || [],
             editedData.duendePresentes || [],
             (editedData.duendeTabuSkill as Skill) || Skill.DIPLOMACIA
           );
@@ -1244,12 +1363,29 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const deityChanged =
       editedData.deityName !== (sheet.devoto?.divindade.name || '');
     const levelChanged = editedData.nivel !== sheet.nivel;
+    const heritageChanged =
+      editedData.raceName === 'Moreau' &&
+      editedData.raceHeritage !== sheet.raceHeritage;
+    // Mantém classLevels em sincronia com o nível editado (multiclasse).
+    // Sem isso, baixar o nível deixaria entradas a mais, que um level-up futuro
+    // transformaria num nível fantasma da classe primária.
+    if (levelChanged && sheet.classLevels) {
+      updates.classLevels = reconcileClassLevels(
+        sheet.classLevels,
+        editedData.nivel,
+        sheet.classe.name,
+        sheet.classe.subname
+      );
+    }
+
     const shouldUseRecalculateSheet =
       attributesChanged ||
       raceChanged ||
       deityChanged ||
       levelChanged ||
-      manualMaxChanged;
+      manualMaxChanged ||
+      heritageChanged ||
+      moreauSapienciaSpellChanged;
 
     if (shouldUseRecalculateSheet) {
       const updatedSheet = { ...sheet, ...updates };
@@ -1269,6 +1405,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: sheet.sexo || 'Masculino',
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
+      moreauSapienciaSpell: sheet.moreauSapienciaSpell,
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
@@ -1276,6 +1413,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       duendeNature: sheet.duendeNature || sheet.raca.nature,
       duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
       duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
+      duendeBonusAttributes:
+        sheet.raca.name === 'Duende'
+          ? getSeedDuendeBonusAttributes(sheet)
+          : sheet.raceAttributeChoices,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
@@ -1671,16 +1812,20 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         anchor='right'
         open={open}
         onClose={handleCancel}
-        PaperProps={{
-          sx: { width: { xs: '100%', sm: 450 } },
+        slotProps={{
+          paper: {
+            sx: { width: { xs: '100%', sm: 450 } },
+          },
         }}
       >
         <Box sx={{ p: 3 }}>
           <Stack
             direction='row'
-            justifyContent='space-between'
-            alignItems='center'
-            mb={2}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
           >
             <Typography variant='h6'>Editar Informações da Ficha</Typography>
             <IconButton onClick={handleCancel} size='small'>
@@ -1697,7 +1842,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               onChange={() => handleAccordionChange('info-basicas')}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant='subtitle1' fontWeight='medium'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'medium',
+                  }}
+                >
                   Informações Básicas
                 </Typography>
               </AccordionSummary>
@@ -1753,19 +1903,25 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     />
                   )}
 
-                  <Stack direction='row' spacing={1} alignItems='flex-start'>
-                    <TextField
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <NumberField
                       fullWidth
                       label='Nível'
-                      type='number'
                       value={editedData.nivel}
-                      onChange={(e) =>
+                      onValueChange={(v) =>
                         setEditedData({
                           ...editedData,
-                          nivel: parseInt(e.target.value, 10) || 1,
+                          nivel: v ?? 1,
                         })
                       }
-                      inputProps={{ min: 1, max: 20 }}
+                      min={1}
+                      max={20}
                     />
                     <Tooltip
                       title={
@@ -1879,12 +2035,18 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       <Select
                         value={editedData.raceHeritage || ''}
                         label='Herança'
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const newHeritage = e.target.value as string;
                           setEditedData({
                             ...editedData,
-                            raceHeritage: e.target.value as string,
-                          })
-                        }
+                            raceHeritage: newHeritage,
+                            // Clear stale Sapiência spell when leaving Coruja
+                            moreauSapienciaSpell:
+                              newHeritage === 'Coruja'
+                                ? editedData.moreauSapienciaSpell
+                                : undefined,
+                          });
+                        }}
                       >
                         {MOREAU_HERITAGE_NAMES.map((heritageName) => (
                           <MenuItem key={heritageName} value={heritageName}>
@@ -1894,6 +2056,40 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       </Select>
                     </FormControl>
                   )}
+
+                  {/* Moreau Coruja Sapiência: choose 1st-circle Divination spell */}
+                  {editedData.raceName === 'Moreau' &&
+                    editedData.raceHeritage === 'Coruja' && (
+                      <FormControl
+                        fullWidth
+                        error={!editedData.moreauSapienciaSpell}
+                      >
+                        <Autocomplete
+                          options={moreauSapienciaSpellOptions.map(
+                            (s) => s.nome
+                          )}
+                          value={editedData.moreauSapienciaSpell || null}
+                          onChange={(_event, newValue) =>
+                            setEditedData({
+                              ...editedData,
+                              moreauSapienciaSpell: newValue || undefined,
+                            })
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              // eslint-disable-next-line react/jsx-props-no-spreading
+                              {...params}
+                              label='Magia da Sapiência (1º círculo, Adivinhação)'
+                              helperText={
+                                editedData.moreauSapienciaSpell
+                                  ? 'Atributo-chave: Sabedoria. Trocar a magia removerá a anterior da ficha.'
+                                  : 'Escolha uma magia para a habilidade Sapiência.'
+                              }
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    )}
 
                   {/* Golem Desperto Customizations - Only show for Golem Desperto */}
                   {editedData.raceName === 'Golem Desperto' && (
@@ -1998,7 +2194,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                             <Stack
                               direction='row'
                               spacing={1}
-                              alignItems='center'
+                              sx={{
+                                alignItems: 'center',
+                              }}
                             >
                               <span>
                                 {editedData.raceName.includes('Aggelus')
@@ -2017,9 +2215,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                               <Stack
                                 direction='row'
                                 spacing={1}
-                                alignItems='center'
-                                justifyContent='space-between'
-                                width='100%'
+                                sx={{
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  width: '100%',
+                                }}
                               >
                                 <span>{ability.name}</span>
                                 <Stack direction='row' spacing={0.5}>
@@ -2081,6 +2281,197 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           {DUENDE_SIZE_NAMES.map((sizeId) => (
                             <MenuItem key={sizeId} value={sizeId}>
                               {DUENDE_SIZES[sizeId].displayName}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      {/* Dons - Atributos +1 (2 atributos, +1 extra se Animal) */}
+                      {(() => {
+                        const dons = editedData.duendeBonusAttributes || [];
+                        const bonusAttr1 = dons[0] ?? Atributo.FORCA;
+                        const bonusAttr2 = dons[1] ?? Atributo.DESTREZA;
+                        const bonusAttr3 = dons[2] ?? Atributo.CONSTITUICAO;
+                        const isAnimal = editedData.duendeNature === 'animal';
+                        const updateDon = (idx: number, attr: Atributo) => {
+                          const next = [bonusAttr1, bonusAttr2, bonusAttr3];
+                          next[idx] = attr;
+                          const trimmed = isAnimal ? next : next.slice(0, 2);
+                          setEditedData({
+                            ...editedData,
+                            duendeBonusAttributes: trimmed,
+                          });
+                        };
+                        return (
+                          <Box>
+                            <Typography
+                              variant='subtitle2'
+                              sx={{
+                                fontWeight: 'bold',
+                                mb: 1,
+                              }}
+                            >
+                              Dons (+1 em dois atributos diferentes
+                              {isAnimal ? ' + 1 da Natureza Animal' : ''})
+                            </Typography>
+                            <Stack
+                              direction='row'
+                              spacing={2}
+                              useFlexGap
+                              sx={{
+                                flexWrap: 'wrap',
+                              }}
+                            >
+                              <FormControl sx={{ minWidth: 150 }}>
+                                <InputLabel>Atributo 1</InputLabel>
+                                <Select
+                                  value={bonusAttr1}
+                                  label='Atributo 1'
+                                  onChange={(e) =>
+                                    updateDon(0, e.target.value as Atributo)
+                                  }
+                                >
+                                  {Object.values(Atributo).map((attr) => (
+                                    <MenuItem key={attr} value={attr}>
+                                      {attr}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <FormControl
+                                sx={{ minWidth: 150 }}
+                                error={bonusAttr1 === bonusAttr2}
+                              >
+                                <InputLabel>Atributo 2</InputLabel>
+                                <Select
+                                  value={bonusAttr2}
+                                  label='Atributo 2'
+                                  onChange={(e) =>
+                                    updateDon(1, e.target.value as Atributo)
+                                  }
+                                >
+                                  {Object.values(Atributo).map((attr) => (
+                                    <MenuItem key={attr} value={attr}>
+                                      {attr}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {bonusAttr1 === bonusAttr2 && (
+                                  <FormHelperText>
+                                    Deve ser diferente do Atributo 1
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                              {isAnimal && (
+                                <FormControl sx={{ minWidth: 150 }}>
+                                  <InputLabel>Natureza Animal (+1)</InputLabel>
+                                  <Select
+                                    value={bonusAttr3}
+                                    label='Natureza Animal (+1)'
+                                    onChange={(e) =>
+                                      updateDon(2, e.target.value as Atributo)
+                                    }
+                                  >
+                                    {Object.values(Atributo).map((attr) => (
+                                      <MenuItem key={attr} value={attr}>
+                                        {attr}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </FormControl>
+                              )}
+                            </Stack>
+                          </Box>
+                        );
+                      })()}
+
+                      {/* Presentes - escolha 3 dos 14 */}
+                      <FormControl
+                        fullWidth
+                        error={(editedData.duendePresentes || []).length !== 3}
+                      >
+                        <InputLabel>
+                          Presentes de Magia e do Caos (escolha 3)
+                        </InputLabel>
+                        <Select
+                          multiple
+                          value={editedData.duendePresentes || []}
+                          input={
+                            <OutlinedInput label='Presentes de Magia e do Caos (escolha 3)' />
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value as string[];
+                            if (value.length <= 3) {
+                              setEditedData({
+                                ...editedData,
+                                duendePresentes: value,
+                              });
+                            }
+                          }}
+                          renderValue={(selected) => (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 0.5,
+                              }}
+                            >
+                              {(selected as string[]).map((value) => (
+                                <Chip
+                                  key={value}
+                                  label={
+                                    DUENDE_PRESENTES[value]?.ability.name ||
+                                    value
+                                  }
+                                  size='small'
+                                />
+                              ))}
+                            </Box>
+                          )}
+                        >
+                          {DUENDE_PRESENTE_NAMES.map((id) => {
+                            const presente = DUENDE_PRESENTES[id];
+                            const selectedPresentes =
+                              editedData.duendePresentes || [];
+                            return (
+                              <MenuItem
+                                key={id}
+                                value={id}
+                                disabled={
+                                  selectedPresentes.length >= 3 &&
+                                  !selectedPresentes.includes(id)
+                                }
+                              >
+                                <Checkbox
+                                  checked={selectedPresentes.includes(id)}
+                                />
+                                <ListItemText primary={presente.ability.name} />
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+                        <FormHelperText>
+                          {(editedData.duendePresentes || []).length}/3
+                          selecionados
+                        </FormHelperText>
+                      </FormControl>
+
+                      {/* Tabu - perícia com -5 */}
+                      <FormControl fullWidth>
+                        <InputLabel>Tabu (-5 em perícia)</InputLabel>
+                        <Select
+                          value={editedData.duendeTabuSkill || Skill.DIPLOMACIA}
+                          label='Tabu (-5 em perícia)'
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              duendeTabuSkill: e.target.value as string,
+                            })
+                          }
+                        >
+                          {DUENDE_TABU_SKILLS.map((skill) => (
+                            <MenuItem key={skill} value={skill}>
+                              {skill}
                             </MenuItem>
                           ))}
                         </Select>
@@ -2202,7 +2593,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         :
                       </Typography>
                       <FormGroup>
-                        <Stack direction='row' flexWrap='wrap' gap={1}>
+                        <Stack
+                          direction='row'
+                          sx={{
+                            flexWrap: 'wrap',
+                            gap: 1,
+                          }}
+                        >
                           {availableAttributes.map((atributo) => {
                             const isSelected =
                               editedData.raceAttributeChoices.includes(
@@ -2331,9 +2728,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           <Stack
                             direction='row'
                             spacing={1}
-                            alignItems='center'
-                            justifyContent='space-between'
-                            width='100%'
+                            sx={{
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '100%',
+                            }}
                           >
                             <span>{origin.name}</span>
                             {origin.supplementId !==
@@ -2381,7 +2780,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               onChange={() => handleAccordionChange('atributos')}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant='subtitle1' fontWeight='medium'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'medium',
+                  }}
+                >
                   Atributos
                 </Typography>
               </AccordionSummary>
@@ -2396,7 +2800,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       key={atributo}
                       direction='row'
                       spacing={2}
-                      alignItems='center'
+                      sx={{
+                        alignItems: 'center',
+                      }}
                     >
                       <Box sx={{ minWidth: '120px' }}>
                         <Typography variant='body2'>{atributo}:</Typography>
@@ -2421,7 +2827,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               onChange={() => handleAccordionChange('pv-pm')}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant='subtitle1' fontWeight='medium'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'medium',
+                  }}
+                >
                   Pontos de Vida e Mana
                 </Typography>
               </AccordionSummary>
@@ -2434,92 +2845,80 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     Customize os valores de PV e PM por nível. Deixe vazio para
                     usar o padrão da classe.
                   </Typography>
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='PV por Nível (após 1º nível)'
-                    type='number'
-                    value={
-                      editedData.customPVPerLevel !== undefined
-                        ? editedData.customPVPerLevel
-                        : ''
-                    }
+                    value={editedData.customPVPerLevel ?? null}
                     placeholder={
                       CLASSES.find(
                         (c) => c.name === editedData.className
                       )?.addpv?.toString() || '0'
                     }
-                    onChange={(e) => {
-                      const { value } = e.target;
+                    onValueChange={(v) => {
                       setEditedData({
                         ...editedData,
-                        customPVPerLevel:
-                          value === '' ? undefined : parseInt(value, 10),
+                        customPVPerLevel: v === null ? undefined : v,
                       });
                     }}
                     helperText={`Padrão da classe ${editedData.className}: ${
                       CLASSES.find((c) => c.name === editedData.className)
                         ?.addpv || 0
                     }`}
-                    inputProps={{ min: 0, max: 50 }}
+                    min={0}
+                    max={50}
                   />
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='PM por Nível (após 1º nível)'
-                    type='number'
-                    value={
-                      editedData.customPMPerLevel !== undefined
-                        ? editedData.customPMPerLevel
-                        : ''
-                    }
+                    value={editedData.customPMPerLevel ?? null}
                     placeholder={
                       CLASSES.find(
                         (c) => c.name === editedData.className
                       )?.addpm?.toString() || '0'
                     }
-                    onChange={(e) => {
-                      const { value } = e.target;
+                    onValueChange={(v) => {
                       setEditedData({
                         ...editedData,
-                        customPMPerLevel:
-                          value === '' ? undefined : parseInt(value, 10),
+                        customPMPerLevel: v === null ? undefined : v,
                       });
                     }}
                     helperText={`Padrão da classe ${editedData.className}: ${
                       CLASSES.find((c) => c.name === editedData.className)
                         ?.addpm || 0
                     }`}
-                    inputProps={{ min: 0, max: 50 }}
+                    min={0}
+                    max={50}
                   />
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='Bônus de PV'
-                    type='number'
                     value={editedData.bonusPV}
-                    onChange={(e) =>
+                    onValueChange={(v) =>
                       setEditedData({
                         ...editedData,
-                        bonusPV: parseInt(e.target.value, 10) || 0,
+                        bonusPV: v ?? 0,
                       })
                     }
                     helperText='Bônus fixo adicionado ao PV total'
-                    inputProps={{ min: -100, max: 500 }}
+                    min={-100}
+                    max={500}
                   />
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='Bônus de PM'
-                    type='number'
                     value={editedData.bonusPM}
-                    onChange={(e) =>
+                    onValueChange={(v) =>
                       setEditedData({
                         ...editedData,
-                        bonusPM: parseInt(e.target.value, 10) || 0,
+                        bonusPM: v ?? 0,
                       })
                     }
                     helperText='Bônus fixo adicionado ao PM total'
-                    inputProps={{ min: -100, max: 500 }}
+                    min={-100}
+                    max={500}
                   />
 
                   <Divider sx={{ my: 2 }} />
@@ -2532,46 +2931,34 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     para ajustar o valor final exibido na ficha.
                   </Typography>
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='PV Máximo Manual'
-                    type='number'
-                    value={
-                      editedData.manualMaxPV !== undefined
-                        ? editedData.manualMaxPV
-                        : ''
-                    }
-                    onChange={(e) => {
-                      const { value } = e.target;
+                    value={editedData.manualMaxPV ?? null}
+                    onValueChange={(v) => {
                       setEditedData({
                         ...editedData,
-                        manualMaxPV:
-                          value === '' ? undefined : parseInt(value, 10),
+                        manualMaxPV: v === null ? undefined : v,
                       });
                     }}
                     helperText='Se definido, substitui o valor calculado de PV'
-                    inputProps={{ min: 1, max: 9999 }}
+                    min={1}
+                    max={9999}
                   />
 
-                  <TextField
+                  <NumberField
                     fullWidth
                     label='PM Máximo Manual'
-                    type='number'
-                    value={
-                      editedData.manualMaxPM !== undefined
-                        ? editedData.manualMaxPM
-                        : ''
-                    }
-                    onChange={(e) => {
-                      const { value } = e.target;
+                    value={editedData.manualMaxPM ?? null}
+                    onValueChange={(v) => {
                       setEditedData({
                         ...editedData,
-                        manualMaxPM:
-                          value === '' ? undefined : parseInt(value, 10),
+                        manualMaxPM: v === null ? undefined : v,
                       });
                     }}
                     helperText='Se definido, substitui o valor calculado de PM'
-                    inputProps={{ min: 0, max: 9999 }}
+                    min={0}
+                    max={9999}
                   />
 
                   {/* Preview de Cálculo de PV/PM */}
@@ -2634,7 +3021,32 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           </Stack>
 
           <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
-            <Button fullWidth variant='contained' onClick={handleSave}>
+            <Button
+              fullWidth
+              variant='contained'
+              onClick={handleSave}
+              disabled={
+                (editedData.raceName === 'Moreau' &&
+                  editedData.raceHeritage === 'Coruja' &&
+                  !editedData.moreauSapienciaSpell) ||
+                // Só valida a config do Duende quando ela foi de fato editada.
+                // Uma ficha de Duende não editada (inclusive legada, sem os Dons
+                // persistidos) permanece sempre salvável — e, por estar inalterada,
+                // handleSave não re-customiza nem mexe nos atributos.
+                (editedData.raceName === 'Duende' &&
+                  isDuendeConfigChanged(editedData, sheet) &&
+                  (() => {
+                    const dons = editedData.duendeBonusAttributes || [];
+                    const presentes = editedData.duendePresentes || [];
+                    return (
+                      !dons[0] ||
+                      !dons[1] ||
+                      dons[0] === dons[1] ||
+                      presentes.length !== 3
+                    );
+                  })())
+              }
+            >
               Salvar
             </Button>
             <Button fullWidth variant='outlined' onClick={handleCancel}>
@@ -2643,7 +3055,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           </Stack>
         </Box>
       </Drawer>
-
       {/* OriginEditDrawer for benefit selection */}
       {pendingOrigin && (
         <OriginEditDrawer
@@ -2658,7 +3069,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           onSave={handleOriginBenefitsSave}
         />
       )}
-
       {/* DeityPowerEditDrawer for deity power selection */}
       {pendingDeity && (
         <DeityPowerEditDrawer
@@ -2673,7 +3083,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           onSave={handleDeityPowersSave}
         />
       )}
-
       {/* LevelUpWizard for leveling up with manual picks */}
       <LevelUpWizardModal
         open={levelUpWizardOpen}

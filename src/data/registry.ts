@@ -7,7 +7,11 @@
 import _ from 'lodash';
 import { SystemId } from '../types/system.types';
 import { SupplementId, SUPPLEMENT_METADATA } from '../types/supplement.types';
-import { TORMENTA20_SYSTEM, SystemData } from './systems/tormenta20';
+import {
+  TORMENTA20_SYSTEM,
+  SystemData,
+  SupplementData,
+} from './systems/tormenta20';
 import Race from '../interfaces/Race';
 import { ClassDescription, ClassNames, ClassPower } from '../interfaces/Class';
 import {
@@ -113,6 +117,15 @@ class DataRegistry {
   private currentSystem: SystemId = SystemId.TORMENTA20;
 
   /**
+   * Suplementos registrados em runtime, indexados por um id string dinâmico.
+   * Ponto de extensão genérico: permite a outros módulos injetar conteúdo
+   * (compilado para `SupplementData`) que os métodos `*BySupplements` passam a
+   * resolver como um suplemento oficial — sem mudança nos consumidores. São
+   * mesclados em `getResolvedSystemData`.
+   */
+  private runtimeSupplements: Map<string, SupplementData> = new Map();
+
+  /**
    * Define o sistema atual
    */
   setCurrentSystem(systemId: SystemId): void {
@@ -138,6 +151,74 @@ class DataRegistry {
   }
 
   /**
+   * Registra um suplemento em runtime para que os métodos `*BySupplements` o
+   * resolvam como um suplemento oficial. Invalida o cache.
+   *
+   * @param id   id string dinâmico do suplemento runtime
+   * @param data SupplementData a ser exposto sob esse id
+   */
+  registerRuntimeSupplement(id: string, data: SupplementData): void {
+    this.runtimeSupplements.set(id, data);
+    this.clearCache();
+  }
+
+  /**
+   * Remove um suplemento runtime previamente registrado e invalida o cache.
+   */
+  unregisterRuntimeSupplement(id: string): void {
+    if (this.runtimeSupplements.delete(id)) {
+      this.clearCache();
+    }
+  }
+
+  /**
+   * Remove todos os suplementos runtime registrados (ex: logout) e invalida o
+   * cache.
+   */
+  clearRuntimeSupplements(): void {
+    if (this.runtimeSupplements.size > 0) {
+      this.runtimeSupplements.clear();
+      this.clearCache();
+    }
+  }
+
+  /**
+   * Ids dos suplementos atualmente registrados em runtime. Permite a um
+   * consumidor incluí-los no array passado aos métodos `*BySupplements`.
+   */
+  getRuntimeSupplementIds(): string[] {
+    return Array.from(this.runtimeSupplements.keys());
+  }
+
+  /**
+   * Dados de um suplemento registrado em runtime, por id. Permite a um
+   * consumidor ler o conteúdo (ex.: magias) de suplementos runtime sem
+   * acoplar-se ao sistema estático.
+   */
+  getRuntimeSupplement(id: string): SupplementData | undefined {
+    return this.runtimeSupplements.get(id);
+  }
+
+  /**
+   * Retorna os dados do sistema com os suplementos runtime mesclados em
+   * `supplements`. Indexar por um id runtime (string dinâmica) resolve para o
+   * `SupplementData` registrado. Sem suplementos runtime, retorna o sistema
+   * oficial sem cópia.
+   */
+  private getResolvedSystemData(systemId: SystemId): SystemData | undefined {
+    const base = SYSTEMS_MAP[systemId];
+    if (!base || this.runtimeSupplements.size === 0) return base;
+
+    return {
+      ...base,
+      supplements: {
+        ...base.supplements,
+        ...Object.fromEntries(this.runtimeSupplements),
+      } as typeof base.supplements,
+    };
+  }
+
+  /**
    * Retorna raças de todos os suplementos ativos
    */
   getRacesBySupplements(
@@ -152,7 +233,7 @@ class DataRegistry {
       return this.racesCache!.data;
     }
 
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
     if (!systemData) return [];
 
     // Combina raças de todos os suplementos (exclui deprecated)
@@ -173,7 +254,7 @@ class DataRegistry {
     supplementIds: SupplementId[],
     systemId: SystemId = this.currentSystem
   ): RaceWithSupplement[] {
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
     if (!systemData) return [];
 
     // Combina raças com informação de origem
@@ -212,7 +293,7 @@ class DataRegistry {
       return this.classesCache!.data;
     }
 
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
     if (!systemData) return [];
 
     // Coleta todas as classes
@@ -298,7 +379,7 @@ class DataRegistry {
     supplementIds: SupplementId[],
     systemId: SystemId = this.currentSystem
   ): ClassWithSupplement[] {
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
     if (!systemData) return [];
 
     // Coleta todos os poderes de classe adicionais dos suplementos (com informação de origem)
@@ -401,7 +482,7 @@ class DataRegistry {
       return this.powersCache!.data;
     }
 
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
     if (!systemData) {
       return {
         COMBATE: [],
@@ -458,7 +539,7 @@ class DataRegistry {
     supplementIds: SupplementId[],
     systemId: SystemId = this.currentSystem
   ): GeneralPowersWithSupplement {
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
 
     const result: GeneralPowersWithSupplement = {
       COMBATE: [],
@@ -533,7 +614,7 @@ class DataRegistry {
     supplementIds: SupplementId[],
     systemId: SystemId = this.currentSystem
   ): OriginWithSupplement[] {
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
     if (!systemData) return [];
 
     const origins: OriginWithSupplement[] = [];
@@ -597,7 +678,7 @@ class DataRegistry {
     systemId: SystemId = this.currentSystem
   ): Record<string, GolpePessoalEffectWithSupplement> {
     const supplements = this.ensureCore(supplementIds, systemId);
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
 
     // Começa com os efeitos base (sem informação de suplemento - são do livro básico)
     const combinedEffects: Record<string, GolpePessoalEffectWithSupplement> =
@@ -649,7 +730,7 @@ class DataRegistry {
       animals: [],
     };
 
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
     if (!systemData) return result;
 
     // Add core weapons from equipamentos.ts
@@ -788,7 +869,7 @@ class DataRegistry {
     systemId: SystemId = this.currentSystem
   ): { arcane: SpellCircle; divine: SpellCircle } {
     const supplements = this.ensureCore(supplementIds, systemId);
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
 
     // Começa com as magias do core baseado no círculo
     const coreArcane = this.getCoreArcaneSpellsByCircle(circle);
@@ -893,7 +974,7 @@ class DataRegistry {
     systemId: SystemId = this.currentSystem
   ): Divindade[] {
     const supplements = this.ensureCore(supplementIds, systemId);
-    const systemData = SYSTEMS_MAP[systemId];
+    const systemData = this.getResolvedSystemData(systemId);
 
     // Clona as divindades base
     const deitiesWithPowers: Divindade[] = DIVINDADES.map((deity) => ({
@@ -939,7 +1020,38 @@ class DataRegistry {
       });
     });
 
+    // Divindades NOVAS de suplementos (ex.: homebrew) — adicionadas à lista.
+    supplements.forEach((id) => {
+      const supplementDeities = systemData.supplements[id]?.divindades;
+      if (!supplementDeities) return;
+      supplementDeities.forEach((deity) => {
+        if (!deitiesWithPowers.some((d) => d.name === deity.name)) {
+          deitiesWithPowers.push({ ...deity, poderes: [...deity.poderes] });
+        }
+      });
+    });
+
     return deitiesWithPowers;
+  }
+
+  /**
+   * Divindades vindas de suplementos (não-core), ex.: homebrews ativados.
+   * Útil para os formulários listarem opções de devoção além do enum estático.
+   */
+  getSupplementDeities(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Divindade[] {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = this.getResolvedSystemData(systemId);
+    if (!systemData) return [];
+    const result: Divindade[] = [];
+    supplements.forEach((id) => {
+      if (id === SupplementId.TORMENTA20_CORE) return;
+      const supplementDeities = systemData.supplements[id]?.divindades;
+      if (supplementDeities) result.push(...supplementDeities);
+    });
+    return result;
   }
 
   /**

@@ -96,14 +96,25 @@ const SheetBuilderFormStepAttributesDefinitionDice = () => {
 
   return (
     <Box>
-      <Stack spacing={2} justifyContent='center'>
+      <Stack
+        spacing={2}
+        sx={{
+          justifyContent: 'center',
+        }}
+      >
         <p>
           Após gerar os valores, selecione em qual atributo você deseja usá-lo.
         </p>
         <Button variant='outlined' onClick={() => generateRolls()}>
           {rolls.length > 0 ? 'Rolar novamente' : 'Rolar dados'}
         </Button>
-        <Stack direction='row' spacing={2} justifyContent='center'>
+        <Stack
+          direction='row'
+          spacing={2}
+          sx={{
+            justifyContent: 'center',
+          }}
+        >
           {rolls.map(({ roll, attr }, idx) => {
             const options: Option<{
               idx: number;
@@ -134,7 +145,12 @@ const SheetBuilderFormStepAttributesDefinitionDice = () => {
           {attributes.map((attribute) => {
             const attributeValue = storedAttributes[attribute];
             return (
-              <Stack key={attribute} alignItems='center'>
+              <Stack
+                key={attribute}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <h3>{Translator.getAttributeTranslation(attribute)}</h3>
                 <AttributeLabel key={attribute}>
                   {addSign(attributeValue)}

@@ -36,6 +36,7 @@ const CENTAURO: Race = {
       name: 'Cascos',
       description:
         'Você possui uma arma natural de cascos (dano 1d8, crítico x2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode escolher um poder Carga ou Investida mesmo sem cumprir seus pré-requisitos. Entretanto, se pode escolher Carga ou Investida e já tiver, estiver carregando um cavaleiro, sofre –2 em testes (além das penalidades de sobrecarga) se houver penalidades significativas; e se locomover em combates ruins para lançar magias.',
+      bypassPrereqForPowersNamed: ['Carga', 'Investida'],
       sheetActions: [
         {
           source: {
@@ -56,6 +57,7 @@ const CENTAURO: Race = {
       name: 'Ginete Natural',
       description:
         'Você é considerado uma montaria para efeitos de fazer testes e para benefícios das armas que empunha, e pode escolher o poder Ataque em Sela sem cumprir seus pré-requisitos. Entretanto, se pode escolher Ataque em Sela e já tiver, estiver carregando um cavaleiro, sofre –2 em testes (além das penalidades de sobrecarga) se houver penalidades significativas; e se locomover em combates ruins para lançar magias.',
+      grantsPowerRequirements: ['Ginete'],
     },
     {
       name: 'Medo de Altura',

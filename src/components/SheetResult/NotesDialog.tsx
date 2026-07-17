@@ -54,8 +54,10 @@ const NotesDialog: React.FC<NotesDialogProps> = ({
       <DialogTitle>
         <Stack
           direction='row'
-          alignItems='center'
-          justifyContent='space-between'
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
           Anotações
           <IconButton size='small' onClick={handleCancel}>

@@ -70,15 +70,25 @@ const SheetPreviewResistances: React.FC<{
   return (
     <Dialog
       open={open}
-      TransitionComponent={Transition}
       keepMounted
       onClose={onClose}
       aria-describedby='alert-dialog-slide-description'
+      slots={{
+        transition: Transition,
+      }}
     >
       <DialogTitle>Rolagem de {skillName}</DialogTitle>
       <DialogContent>
         Você possui diferentes tipos de resistência. Escolha entre um deles:
-        <Stack spacing={2} direction='row' flexWrap='wrap' useFlexGap mt={2}>
+        <Stack
+          spacing={2}
+          direction='row'
+          useFlexGap
+          sx={{
+            flexWrap: 'wrap',
+            mt: 2,
+          }}
+        >
           <ResistanceOption
             onClick={() => onClickSkill(resistance.skill.total)}
           >

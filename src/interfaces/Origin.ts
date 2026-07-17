@@ -1,5 +1,10 @@
 import Equipment from './Equipment';
-import { OriginPower, GeneralPower, PowerGetter } from './Poderes';
+import {
+  OriginPower,
+  GeneralPower,
+  GeneralPowerType,
+  PowerGetter,
+} from './Poderes';
 import Skill from './Skills';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 
@@ -11,6 +16,9 @@ export interface OriginBenefits {
     generalPowers?: GeneralPower[];
   };
   skills: Skill[];
+  // Tipo de poder que conta como UM único slot (escolha entre muitos).
+  // Ex.: COMBATE para Gladiador/Soldado, TORMENTA para Assistente de Laboratório.
+  limitedPowerType?: GeneralPowerType;
 }
 
 export interface Items {

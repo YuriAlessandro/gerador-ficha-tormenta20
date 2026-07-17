@@ -254,7 +254,13 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em Percepção, não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem, pode rolar mais uma vez o dado da chance de falha.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
+      [
+        { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 },
+        {
+          type: RequirementType.PERICIA,
+          name: 'Percepção',
+        },
+      ],
     ],
     sheetBonuses: [
       {

@@ -106,13 +106,21 @@ const ThreatHistory: React.FC = () => {
       {/* Header */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box
-          display='flex'
-          alignItems='center'
-          justifyContent='space-between'
-          flexWrap='wrap'
-          gap={2}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 2,
+          }}
         >
-          <Box display='flex' alignItems='center' gap={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
             <IconButton onClick={handleBack}>
               <ArrowBackIcon />
             </IconButton>
@@ -127,23 +135,28 @@ const ThreatHistory: React.FC = () => {
           </Button>
         </Box>
 
-        <Box mt={2}>
+        <Box
+          sx={{
+            mt: 2,
+          }}
+        >
           <TextField
             fullWidth
             placeholder='Buscar por nome, tipo ou ND...'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
         </Box>
       </Paper>
-
       {/* Threats List */}
       {filteredThreats.length === 0 ? (
         <Alert severity='info'>
@@ -178,7 +191,14 @@ const ThreatHistory: React.FC = () => {
                       {threat.name}
                     </Typography>
 
-                    <Box display='flex' gap={0.5} flexWrap='wrap' mb={2}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 0.5,
+                        flexWrap: 'wrap',
+                        mb: 2,
+                      }}
+                    >
                       <Chip label={threat.type} size='small' color='primary' />
                       <Chip label={threat.size} size='small' />
                       <Chip
@@ -190,27 +210,38 @@ const ThreatHistory: React.FC = () => {
 
                     <Typography
                       variant='body2'
-                      color='text.secondary'
                       gutterBottom
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       <strong>Papel:</strong> {threat.role}
                     </Typography>
                     <Typography
                       variant='body2'
-                      color='text.secondary'
                       gutterBottom
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       <strong>Patamar:</strong> {threatTier}
                     </Typography>
                     <Typography
                       variant='body2'
-                      color='text.secondary'
                       gutterBottom
+                      sx={{
+                        color: 'text.secondary',
+                      }}
                     >
                       <strong>PV:</strong> {threat.combatStats.hitPoints} |{' '}
                       <strong>Defesa:</strong> {threat.combatStats.defense}
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       <strong>Ataques:</strong> {threat.attacks.length} |{' '}
                       <strong>Habilidades:</strong> {threat.abilities.length}
                     </Typography>
@@ -246,7 +277,6 @@ const ThreatHistory: React.FC = () => {
           })}
         </Grid>
       )}
-
       {/* Sheet Limit Dialog */}
       <SheetLimitDialog
         open={showLimitDialog}
@@ -255,7 +285,6 @@ const ThreatHistory: React.FC = () => {
         maxCount={maxMenaceSheets}
         tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
       />
-
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialog.open}
