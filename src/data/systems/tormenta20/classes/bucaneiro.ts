@@ -56,6 +56,7 @@ const BUCANEIRO: ClassDescription = {
       name: 'Insolência',
       text: 'Você soma seu Carisma na Defesa, limitado pelo seu nível. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
       nivel: 1,
+      // Nota: a condição "imóvel" é estado de combate, não de ficha — não é modelada.
       sheetBonuses: [
         {
           source: { type: 'power', name: 'Insolência' },
@@ -64,6 +65,10 @@ const BUCANEIRO: ClassDescription = {
             type: 'CappedAttribute',
             attribute: Atributo.CARISMA,
             capBy: 'classLevel',
+          },
+          condition: {
+            combinator: 'AND',
+            clauses: [{ kind: 'wearingHeavyArmor', negate: true }],
           },
         },
       ],
@@ -77,7 +82,7 @@ const BUCANEIRO: ClassDescription = {
       name: 'Esquiva Sagaz',
       text: 'Você recebe +1 na Defesa e em Reflexos. Esse bônus aumenta em +1 a cada quatro níveis. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
       nivel: 3,
-      // Nota: condição "armadura pesada/imóvel" do texto não é modelada — bônus aplica sempre.
+      // Nota: a condição "imóvel" é estado de combate, não de ficha — não é modelada.
       sheetBonuses: [
         {
           source: {
@@ -90,6 +95,10 @@ const BUCANEIRO: ClassDescription = {
           modifier: {
             type: 'LevelCalc',
             formula: 'Math.floor(({classLevel} + 3) / 4)',
+          },
+          condition: {
+            combinator: 'AND',
+            clauses: [{ kind: 'wearingHeavyArmor', negate: true }],
           },
         },
         {
@@ -104,6 +113,10 @@ const BUCANEIRO: ClassDescription = {
           modifier: {
             type: 'LevelCalc',
             formula: 'Math.floor(({classLevel} + 3) / 4)',
+          },
+          condition: {
+            combinator: 'AND',
+            clauses: [{ kind: 'wearingHeavyArmor', negate: true }],
           },
         },
       ],

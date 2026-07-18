@@ -1122,13 +1122,13 @@ describe('recalculateSheet', () => {
       expect(result.defesa).toBe(baseline + 3);
     });
 
-    it('nível 3, Con +3, com armadura pesada: Con soma normalmente (regra noHeavy ignorada)', () => {
+    it('nível 3, Con +3, com armadura pesada: Con não soma (condição de armadura pesada)', () => {
       const sheet = buildLutadorSheet(3, 3, true);
       const baseline = getBaselineDefense(3, 3, true);
 
       const result = recalculateSheet(sheet);
 
-      expect(result.defesa).toBe(baseline + 3);
+      expect(result.defesa).toBe(baseline);
     });
 
     it('nível 7, Con +3, sem armadura pesada: Con (+3) + escalonamento (+1) = +4', () => {
@@ -1140,13 +1140,15 @@ describe('recalculateSheet', () => {
       expect(result.defesa).toBe(baseline + 4);
     });
 
-    it('nível 7, Con +3, com armadura pesada: Con (+3) + escalonamento (+1) = +4', () => {
+    it('nível 7, Con +3, com armadura pesada: só o escalonamento (+1), sem Con', () => {
       const sheet = buildLutadorSheet(7, 3, true);
       const baseline = getBaselineDefense(7, 3, true);
 
       const result = recalculateSheet(sheet);
 
-      expect(result.defesa).toBe(baseline + 4);
+      // A restrição de armadura pesada do texto vale apenas para a parte da
+      // Constituição; o bônus progressivo continua valendo.
+      expect(result.defesa).toBe(baseline + 1);
     });
 
     it('nível 11, Con +4, sem armadura: Con (+4) + escalonamento (+2) = +6', () => {

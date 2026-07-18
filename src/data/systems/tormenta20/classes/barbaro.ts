@@ -239,12 +239,15 @@ const BARBARO: ClassDescription = {
       name: 'Pele de Ferro',
       text: 'Você recebe +4 na Defesa, mas apenas se não estiver usando armadura pesada.',
       requirements: [],
-      // Nota: condição "armadura pesada" do texto não é modelada — bônus aplica sempre.
       sheetBonuses: [
         {
           source: { type: 'power', name: 'Pele de Ferro' },
           target: { type: 'Defense' },
           modifier: { type: 'Fixed', value: 4 },
+          condition: {
+            combinator: 'AND',
+            clauses: [{ kind: 'wearingHeavyArmor', negate: true }],
+          },
         },
       ],
     },

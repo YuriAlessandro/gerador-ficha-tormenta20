@@ -36,7 +36,10 @@ import {
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
-import { recalculateSheet } from '@/functions/recalculateSheet';
+import {
+  recalculateSheet,
+  calculateBonusValue,
+} from '@/functions/recalculateSheet';
 import { getSheetProficiencias } from '@/functions/proficiencies';
 import {
   applyManualLevelUp,
@@ -1403,9 +1406,14 @@ const Result: React.FC<ResultProps> = (props) => {
       components.push(`${currentSheet.bonusDefense} (bônus manual)`);
     }
 
-    // SheetBonuses targeting Defense (Fixed modifiers — equipment mods like
-    // Guarda, condition bonuses, etc.). Aggregate by source label so multiple
-    // bonuses from the same source render as a single entry.
+    // SheetBonuses targeting Defense (mods de equipamento como Guarda, poderes
+    // de classe, condições, efeitos ativos...). O valor é resolvido pelo mesmo
+    // `calculateBonusValue` que o recálculo usa, para que a fórmula exibida
+    // feche com o total — modifiers de atributo/nível também entram.
+    // Bônus com `condition` insatisfeita já foram removidos do array pelo
+    // recálculo, então não é preciso reavaliá-los aqui.
+    // Aggregate by source label so multiple bonuses from the same source
+    // render as a single entry.
     const labelForSource = (
       s: (typeof currentSheet.sheetBonuses)[0]['source']
     ) => {
@@ -1417,17 +1425,19 @@ const Result: React.FC<ResultProps> = (props) => {
       if (s.type === 'race') return s.raceName;
       if (s.type === 'class') return s.className;
       if (s.type === 'divinity') return s.divinityName;
+      if (s.type === 'activeEffect') return s.name;
+      if (s.type === 'complication') return s.complicationName;
       return null;
     };
     const defenseBonusBySource = new Map<string, number>();
     currentSheet.sheetBonuses.forEach((b) => {
       if (b.target.type !== 'Defense') return;
-      if (b.modifier.type !== 'Fixed') return;
       const label = labelForSource(b.source);
       if (!label) return;
+      const value = calculateBonusValue(currentSheet, b.modifier, b.source);
       defenseBonusBySource.set(
         label,
-        (defenseBonusBySource.get(label) ?? 0) + b.modifier.value
+        (defenseBonusBySource.get(label) ?? 0) + value
       );
     });
     defenseBonusBySource.forEach((value, label) => {

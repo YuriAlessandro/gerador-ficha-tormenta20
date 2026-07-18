@@ -65,10 +65,16 @@ const LUTADOR: ClassDescription = {
             attribute: Atributo.CONSTITUICAO,
             capBy: 'classLevel',
           },
+          condition: {
+            combinator: 'AND',
+            clauses: [{ kind: 'wearingHeavyArmor', negate: true }],
+          },
         },
         {
           source: { type: 'power', name: 'Casca Grossa' },
           target: { type: 'Defense' },
+          // Sem condição: a restrição de armadura pesada do texto se aplica
+          // apenas à parte da Constituição.
           modifier: {
             type: 'LevelCalc',
             formula:
@@ -128,6 +134,11 @@ const LUTADOR: ClassDescription = {
             type: 'CappedAttribute',
             attribute: Atributo.FORCA,
             capBy: 'classLevel',
+          },
+          // Texto diz "não estiver usando armadura" — qualquer armadura, não só pesada.
+          condition: {
+            combinator: 'AND',
+            clauses: [{ kind: 'wearingArmor', negate: true }],
           },
         },
       ],

@@ -23,7 +23,10 @@ import CharacterSheet, {
   ALL_DAMAGE_TYPES,
 } from '@/interfaces/CharacterSheet';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import { recalculateSheet } from '@/functions/recalculateSheet';
+import {
+  recalculateSheet,
+  calculateBonusValue,
+} from '@/functions/recalculateSheet';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { DefenseEquipment } from '@/interfaces/Equipment';
 import { getWornArmor } from '@/components/SheetResult/BackpackModal/wielding';
@@ -117,43 +120,6 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     return Atributo.DESTREZA;
   };
 
-  // Calculate bonus value from sheet bonuses (mirroring recalculateSheet logic)
-  const calculateBonusValue = (bonus: {
-    type: string;
-    value?: number;
-    attribute?: string;
-    formula?: string;
-  }): number => {
-    if (bonus.type === 'Level') {
-      return sheet.nivel;
-    }
-    if (bonus.type === 'HalfLevel') {
-      return Math.floor(sheet.nivel / 2);
-    }
-    if (bonus.type === 'Attribute') {
-      const attr = bonus.attribute as Atributo;
-      return sheet.atributos[attr]?.value || 0;
-    }
-    if (bonus.type === 'SpecialAttribute') {
-      if (bonus.attribute === 'spellKeyAttr' && sheet.classe.spellPath) {
-        return sheet.atributos[sheet.classe.spellPath.keyAttribute].value;
-      }
-    }
-    if (bonus.type === 'LevelCalc' && bonus.formula) {
-      const formula = bonus.formula.replace(/{level}/g, sheet.nivel.toString());
-      try {
-        // eslint-disable-next-line no-eval
-        return eval(formula);
-      } catch {
-        return 0;
-      }
-    }
-    if (bonus.type === 'Fixed') {
-      return bonus.value || 0;
-    }
-    return 0;
-  };
-
   // Calculate defense preview based on current edits
   const calculateDefensePreview = (): number => {
     const base = editedData.customDefenseBase ?? 10;
@@ -184,7 +150,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
       (bonus) => bonus.target.type === 'Defense'
     );
     defenseBonuses.forEach((bonus) => {
-      total += calculateBonusValue(bonus.modifier);
+      total += calculateBonusValue(sheet, bonus.modifier, bonus.source);
     });
 
     // Add manual bonus
@@ -229,7 +195,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
       (bonus) => bonus.target.type === 'Defense'
     );
     defenseBonuses.forEach((bonus) => {
-      const value = calculateBonusValue(bonus.modifier);
+      const value = calculateBonusValue(sheet, bonus.modifier, bonus.source);
       if (value !== 0) {
         let sourceName = 'Desconhecido';
         if (bonus.source?.type === 'power') {

@@ -199,7 +199,7 @@ const resolveClassLevel = (
 const maxSpellCircleOf = (sheet: CharacterSheet): number =>
   sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ?? 0;
 
-const calculateBonusValue = (
+export const calculateBonusValue = (
   sheet: CharacterSheet,
   bonus: {
     type: string;

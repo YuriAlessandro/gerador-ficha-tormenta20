@@ -1,5 +1,6 @@
 import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
+import { Atributo } from '../../atributos';
 import BARBARO from '../../classes/barbaro';
 import PROFICIENCIAS from '../../proficiencias';
 
@@ -39,6 +40,30 @@ const MACHADO_DE_PEDRA: VariantClassOverrides = {
       name: 'Tanga de Peles',
       text: 'Você não recebe proficiência com armaduras leves. Entretanto, se não estiver usando armadura, você soma sua Constituição na Defesa. Além disso, no 3º nível, e a cada quatro níveis seguintes, você recebe +1 na Defesa.',
       nivel: 1,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Tanga de Peles' },
+          target: { type: 'Defense' },
+          // Sem limite por nível: o texto não impõe cap (diferente de
+          // Casca Grossa/Insolência).
+          modifier: { type: 'Attribute', attribute: Atributo.CONSTITUICAO },
+          condition: {
+            combinator: 'AND',
+            clauses: [{ kind: 'wearingArmor', negate: true }],
+          },
+        },
+        {
+          source: { type: 'power', name: 'Tanga de Peles' },
+          target: { type: 'Defense' },
+          // +1 no 3º nível e a cada quatro níveis seguintes (3, 7, 11, 15, 19).
+          // Sem condição: o texto não repete a restrição de armadura aqui.
+          modifier: {
+            type: 'LevelCalc',
+            formula:
+              '{classLevel} >= 3 ? 1 + Math.floor(({classLevel} - 3) / 4) : 0',
+          },
+        },
+      ],
     },
     {
       name: 'Fúria Primitiva',
