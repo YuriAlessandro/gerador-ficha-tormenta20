@@ -7,9 +7,9 @@ import {
   Divider,
   Card,
   CardActionArea,
-  Stack,
 } from '@mui/material';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
+import ItemStats from '@/components/common/ItemStats';
 import { ClassDescription } from '@/interfaces/Class';
 import { ClassEquipmentSelections } from '@/interfaces/WizardSelections';
 import EQUIPAMENTOS, {
@@ -25,35 +25,6 @@ interface ClassEquipmentStepProps {
   selections: ClassEquipmentSelections | undefined;
   onChange: (selections: ClassEquipmentSelections) => void;
 }
-
-// Helper to check if equipment is DefenseEquipment
-const isDefenseEquipment = (
-  equip: Equipment | DefenseEquipment
-): equip is DefenseEquipment => 'defenseBonus' in equip;
-
-const ItemStats: React.FC<{ item: Equipment | DefenseEquipment }> = ({
-  item,
-}) => (
-  <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
-    {item.dano && (
-      <Chip label={`Dano: ${item.dano}`} size='small' variant='outlined' />
-    )}
-    {item.critico && (
-      <Chip label={`Crit: ${item.critico}`} size='small' variant='outlined' />
-    )}
-    {isDefenseEquipment(item) && (
-      <Chip
-        label={`Def: +${item.defenseBonus}`}
-        size='small'
-        variant='outlined'
-        color='primary'
-      />
-    )}
-    {item.spaces !== undefined && item.spaces > 0 && (
-      <Chip label={`${item.spaces} esp.`} size='small' variant='outlined' />
-    )}
-  </Stack>
-);
 
 const ClassEquipmentStep: React.FC<ClassEquipmentStepProps> = ({
   classe,

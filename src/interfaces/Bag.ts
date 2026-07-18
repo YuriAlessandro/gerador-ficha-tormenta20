@@ -72,20 +72,24 @@ function flattenEquipments(bagEquipments: BagEquipments): Equipment[] {
   return out;
 }
 
+/**
+ * Espaços ocupados por UM item, já considerando quantidade (ou munição, que
+ * usa a regra de unidades por espaço).
+ *
+ * Exportado para que quem exibe espaços por item ou por categoria (a aba de
+ * Equipamentos da ficha, por exemplo) use exatamente a mesma conta do total —
+ * subtotais que divergem do total são um bug difícil de perceber.
+ */
+export function getItemSpaces(equipment: Equipment): number {
+  if (equipment.isAmmo) return calcAmmoSpaces(equipment);
+  return (equipment.spaces || 0) * (equipment.quantity || 1);
+}
+
 function calcBagSpaces(bagEquipments: BagEquipments): number {
-  let spaces = 0;
-
-  flattenEquipments(bagEquipments).forEach((equipment) => {
-    if (equipment.isAmmo) {
-      spaces += calcAmmoSpaces(equipment);
-      return;
-    }
-    const equipamentSpaces = equipment.spaces || 0;
-    const qty = equipment.quantity || 1;
-    spaces += equipamentSpaces * qty;
-  });
-
-  return spaces;
+  return flattenEquipments(bagEquipments).reduce(
+    (spaces, equipment) => spaces + getItemSpaces(equipment),
+    0
+  );
 }
 
 function calcArmorPenalty(equipments: BagEquipments): number {

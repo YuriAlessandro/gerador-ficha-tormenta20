@@ -54,29 +54,7 @@ import {
   isTwoHanded as defaultIsTwoHanded,
   WieldingSlot,
 } from './SheetResult/BackpackModal/wielding';
-
-// Abbreviate damage type for display
-const abbreviateDamageType = (tipo?: string): string | undefined => {
-  if (!tipo || tipo === '-') return undefined;
-  const abbrevMap: Record<string, string> = {
-    Perfuração: 'Perf.',
-    Corte: 'Corte',
-    Impacto: 'Impacto',
-    Contusão: 'Contusão',
-    Fogo: 'Fogo',
-    Frio: 'Frio',
-    Eletricidade: 'Eletr.',
-    Ácido: 'Ácido',
-    Essência: 'Essência',
-    'Energia negativa': 'Negativa',
-    'Energia positiva': 'Positiva',
-    Psíquico: 'Psíquico',
-    Trovão: 'Trovão',
-    Luz: 'Luz',
-    Trevas: 'Trevas',
-  };
-  return abbrevMap[tipo] || tipo;
-};
+import { abbreviateDamageType } from '../functions/equipmentDisplay';
 
 // Extracts the trailing flat damage modifier (e.g. "+5"/"-1") from a damage
 // string. For dual-mode strings ("1d6+5/1d6+5") only the first mode is read —

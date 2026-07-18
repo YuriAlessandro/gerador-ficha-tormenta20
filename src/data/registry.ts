@@ -114,6 +114,8 @@ class DataRegistry {
 
   private powersCache: CacheEntry<GeneralPowers> | null = null;
 
+  private equipmentCache: CacheEntry<MarketEquipment> | null = null;
+
   private currentSystem: SystemId = SystemId.TORMENTA20;
 
   /**
@@ -712,12 +714,23 @@ class DataRegistry {
   /**
    * Retorna equipamentos combinados de todos os suplementos ativos
    * Inclui armas, armaduras, escudos e itens gerais do core e suplementos
+   *
+   * O resultado é cacheado por combinação de suplementos: montá-lo clona ~230
+   * itens de suplemento, e chamá-lo dentro de um render (como o wizard fazia)
+   * refazia esse trabalho a cada tecla digitada.
+   *
+   * IMPORTANTE: o objeto retornado é COMPARTILHADO entre os consumidores. Não
+   * mute os arrays nem os itens. Para colocar um item numa mochila, clone-o
+   * antes — `ensureIds` grava `id` no objeto e contaminaria o catálogo.
    */
-  // eslint-disable-next-line class-methods-use-this
   getEquipmentBySupplements(
     supplementIds: SupplementId[],
     systemId: SystemId = SystemId.TORMENTA20
   ): MarketEquipment {
+    if (this.isCacheValid(this.equipmentCache, supplementIds, systemId)) {
+      return this.equipmentCache!.data;
+    }
+
     const result: MarketEquipment = {
       weapons: [],
       armors: [],
@@ -843,6 +856,11 @@ class DataRegistry {
       }
     });
 
+    this.equipmentCache = {
+      system: systemId,
+      supplements: [...supplementIds],
+      data: result,
+    };
     return result;
   }
 
@@ -1162,6 +1180,7 @@ class DataRegistry {
     this.racesCache = null;
     this.classesCache = null;
     this.powersCache = null;
+    this.equipmentCache = null;
   }
 
   /**

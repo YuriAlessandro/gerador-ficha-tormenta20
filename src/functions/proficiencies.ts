@@ -19,6 +19,14 @@ export const WEAPON_CATEGORY_LABELS: Record<WeaponCategory, string> = {
   firearm: 'Armas de Fogo',
 };
 
+/** Versão curta de `WEAPON_CATEGORY_LABELS`, para colunas e chips densos. */
+export const WEAPON_CATEGORY_SHORT_LABELS: Record<WeaponCategory, string> = {
+  simple: 'Simples',
+  martial: 'Marcial',
+  exotic: 'Exótica',
+  firearm: 'Fogo',
+};
+
 /**
  * Lista efetiva de proficiências da ficha: proficiências da classe (que também
  * acumulam as concedidas por poderes/raças via addProficiency/SheetBonus) mais

@@ -22,4 +22,11 @@ export interface MarketSelections {
   initialMoney: number;
   remainingMoney: number;
   bagEquipments: BagEquipments;
+  /**
+   * Ids das entradas da mochila que foram efetivamente PAGAS (adicionadas com
+   * o desconto automático ligado). Só elas reembolsam ao serem removidas —
+   * itens adicionados de graça e os pré-populados pela origem não devolvem
+   * dinheiro que nunca saiu.
+   */
+  purchasedIds?: string[];
 }

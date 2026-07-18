@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -46,7 +52,9 @@ import {
 } from '@/data/systems/tormenta20/pericias';
 import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
 import Equipment, { BagEquipments } from '@/interfaces/Equipment';
-import { alchemyItems as coreAlchemyItems } from '@/data/systems/tormenta20/equipamentos-gerais';
+import cloneDeep from 'lodash/cloneDeep';
+import { MarketSelections } from '@/interfaces/MarketEquipment';
+import { ensureIds } from '@/interfaces/Bag';
 import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
 import {
   ComplicationSelectionStep,
@@ -240,6 +248,34 @@ const CharacterCreationWizardModal: React.FC<
   const expandedBasicas = useMemo(
     () => (classe ? expandOficioInBasicas(classe.periciasbasicas) : []),
     [classe]
+  );
+
+  // Catálogo do mercado. Montá-lo clona ~230 itens de suplemento, então precisa
+  // de identidade estável — chamá-lo dentro de `getStepContent` refazia o
+  // trabalho a cada render e invalidava a memoização do passo Mercado.
+  const marketEquipment = useMemo(
+    () => dataRegistry.getEquipmentBySupplements(supplements),
+    [supplements]
+  );
+
+  // Proficiências efetivas até aqui: as da classe mais as concedidas por
+  // poderes já escolhidos. Usadas só para avisar (sem bloquear) que o
+  // personagem não sabe usar um item no mercado.
+  const proficiencias = useMemo(
+    () => [
+      ...(classe?.proficiencias ?? []),
+      ...Object.values(selections.powerEffectSelections ?? {}).flatMap(
+        (sel) => sel.proficiencies ?? []
+      ),
+    ],
+    [classe, selections.powerEffectSelections]
+  );
+
+  const handleMarketChange = useCallback(
+    (marketSelections: MarketSelections) => {
+      setSelections((prev) => ({ ...prev, marketSelections }));
+    },
+    []
   );
 
   // Memoize origin to prevent infinite re-renders (used as useEffect dependency)
@@ -822,7 +858,12 @@ const CharacterCreationWizardModal: React.FC<
       });
     }
 
-    return bag;
+    // Vários itens acima vêm por referência de catálogos que são singletons de
+    // módulo (equipamentos.ts, suplementos). `ensureIds` grava `id` no objeto,
+    // então sem o clone duas fichas passariam a compartilhar o mesmo item.
+    const ownedBag = cloneDeep(bag);
+    ensureIds(ownedBag);
+    return ownedBag;
   };
 
   // Get current step content
@@ -1208,10 +1249,10 @@ const CharacterCreationWizardModal: React.FC<
         const alchemyAction = getAlchemyItemsAction();
         if (!alchemyAction) return null;
 
-        // Combine core alchemy items with supplement alchemy items
-        const supplementAlchemy =
-          dataRegistry.getEquipmentBySupplements(supplements).alchemy;
-        const allAlchemyItems = [...coreAlchemyItems, ...supplementAlchemy];
+        // `marketEquipment.alchemy` já traz os alquímicos do core + suplementos
+        // (registry.ts), então não há o que concatenar aqui — fazer isso
+        // duplicava cada item do core na lista.
+        const allAlchemyItems = marketEquipment.alchemy;
 
         // Get current selections from powerEffectSelections
         const currentAlchemySelections =
@@ -1425,18 +1466,15 @@ const CharacterCreationWizardModal: React.FC<
           bagEquipments: prePopulatedBag,
         };
 
-        // Get all available equipment from supplements
-        const availableEquipment =
-          dataRegistry.getEquipmentBySupplements(supplements);
-
         return (
           <MarketStep
             initialMoney={currentMarketSelections.initialMoney}
+            remainingMoney={currentMarketSelections.remainingMoney}
             bagEquipments={currentMarketSelections.bagEquipments}
-            availableEquipment={availableEquipment}
-            onChange={(marketData) =>
-              setSelections({ ...selections, marketSelections: marketData })
-            }
+            purchasedIds={currentMarketSelections.purchasedIds}
+            availableEquipment={marketEquipment}
+            proficiencias={proficiencias}
+            onChange={handleMarketChange}
           />
         );
       }

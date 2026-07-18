@@ -35,20 +35,6 @@ const BESTA_DE_MAO: Equipment = {
   ammoType: 'Virotes',
 };
 
-const VIROTES_BESTA_MAO: Equipment = {
-  nome: 'Virotes (20)',
-  dano: '-',
-  critico: '-',
-  spaces: 1,
-  tipo: '-',
-  alcance: '-',
-  group: 'Arma',
-  preco: 2,
-  isAmmo: true,
-  ammoType: 'Virotes',
-  ammoPackSize: 20,
-};
-
 // ==========================================
 // ARMAS MARCIAIS
 // ==========================================
@@ -325,19 +311,9 @@ const BESTA_DUPLA: Equipment = {
   ammoType: 'Virotes',
 };
 
-const VIROTES: Equipment = {
-  nome: 'Virotes (20)',
-  dano: '-',
-  critico: '-',
-  spaces: 1,
-  tipo: '-',
-  alcance: '-',
-  group: 'Arma',
-  preco: 2,
-  isAmmo: true,
-  ammoType: 'Virotes',
-  ammoPackSize: 20,
-};
+// Nota: 'Virotes (20)' não é redefinido aqui. O item é idêntico ao do livro
+// básico (sempre carregado), e as cópias duplicadas apareciam três vezes na
+// lista do mercado.
 
 // ==========================================
 // ARMAS EXÓTICAS
@@ -620,7 +596,6 @@ export const HEROIS_ARTON_WEAPONS: Record<string, Equipment> = {
   // Armas Simples
   BASTAO_LUDICO,
   BESTA_DE_MAO,
-  VIROTES_BESTA_MAO,
   // Armas Marciais - Leves
   ADAGA_OPOSTA,
   AGULHA_DE_AHLEN,
@@ -645,7 +620,6 @@ export const HEROIS_ARTON_WEAPONS: Record<string, Equipment> = {
   ARCO_MONTADO,
   FLECHAS,
   BESTA_DUPLA,
-  VIROTES,
   // Armas Exóticas - Leves
   KIMBATA,
   // Armas Exóticas - Uma Mão
