@@ -526,6 +526,25 @@ const Changelog: React.FC = () => {
                   mostra todas as parcelas, tanto na ficha quanto na janela de
                   edição de Defesa.
                 </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Instinto Selvagem</strong> (Bárbaro) não somava o
+                  bônus no <strong>dano</strong> das fichas criadas pelo gerador
+                  aleatório — Percepção e Reflexos vinham certos, só o dano
+                  ficava de fora. O problema valia para qualquer bônus de arma
+                  vindo de habilidade ou poder, e não aparecia em fichas feitas
+                  pelo assistente de criação nem depois de subir de nível. Se
+                  você tem uma ficha antiga afetada, o valor se corrige sozinho
+                  na primeira edição.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No detalhe ao lado da arma, o bônus
+                  de <strong>Instinto Selvagem</strong> aparecia como{' '}
+                  <strong>+0 no dano</strong> em vez do valor real. Em
+                  personagens <strong>multiclasse</strong>, o bônus agora usa
+                  corretamente o seu <strong>nível de Bárbaro</strong>, e não o
+                  nível total.
+                </li>
               </ul>
               <h3>4.25.1</h3>
               <ul>
