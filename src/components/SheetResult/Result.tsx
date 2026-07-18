@@ -17,6 +17,7 @@ import {
   Chip,
   Container,
   Stack,
+  Tab,
   Tooltip,
   Typography,
   useTheme,
@@ -28,6 +29,7 @@ import {
   Link,
   Snackbar,
 } from '@mui/material';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
 import styled from '@emotion/styled';
 import {
   MOREAU_HERITAGES,
@@ -198,6 +200,14 @@ interface ResultProps {
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
 }
 
+type SheetTabValue =
+  | 'pericias'
+  | 'ataques'
+  | 'defesa'
+  | 'poderes'
+  | 'magias'
+  | 'equipamentos';
+
 const Result: React.FC<ResultProps> = (props) => {
   const { sheet, isDarkMode, onSheetUpdate } = props;
   const [currentSheet, setCurrentSheet] = useState(sheet);
@@ -220,6 +230,13 @@ const Result: React.FC<ResultProps> = (props) => {
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<SheetTabValue>(() =>
+    window.innerWidth <= 768 ? 'pericias' : 'ataques'
+  );
+
+  const onChangeTab = (_e: React.SyntheticEvent, newValue: SheetTabValue) => {
+    setActiveTab(newValue);
+  };
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
   const [pendingOffer, setPendingOffer] =
     useState<PowerEffectOfferPayload | null>(null);
@@ -1571,6 +1588,10 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const isMobile = useMemo(() => window.innerWidth <= 768, []);
 
+  // No desktop Perícias vive na coluna da direita, não nas abas
+  const activeSheetTab: SheetTabValue =
+    !isMobile && activeTab === 'pericias' ? 'ataques' : activeTab;
+
   const hasAnyRd =
     currentSheet.reducaoDeDano &&
     Object.values(currentSheet.reducaoDeDano).some((v) => v && v > 0);
@@ -1917,7 +1938,7 @@ const Result: React.FC<ResultProps> = (props) => {
               <PartnerSheetPanel />
             </Box>
 
-            {/* Card de Ataques */}
+            {/* Card com abas: Ataques / Defesa / Poderes / Magias / Equip. (+ Perícias no mobile) */}
             <Card
               sx={{
                 p: 3,
@@ -1925,289 +1946,19 @@ const Result: React.FC<ResultProps> = (props) => {
                 position: 'relative',
                 overflow: 'visible',
               }}
-            >
-              {onSheetUpdate && (
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => {
-                    setBackpackInitialFilter(['Arma']);
-                    setBackpackOpen(true);
-                  }}
-                >
-                  <EditIcon />
-                </IconButton>
-              )}
-              <BookTitle>Ataques</BookTitle>
-              {weaponsDiv}
-            </Card>
-
-            {/* Card de Defesa */}
-            <Card
-              sx={{
-                p: 3,
-                mb: 4,
-                position: 'relative',
-                overflow: 'visible',
-              }}
-            >
-              {onSheetUpdate && (
-                <>
-                  <Tooltip title='Configurações de defesa' arrow>
-                    <IconButton
-                      size='small'
-                      sx={{
-                        position: 'absolute',
-                        top: -16,
-                        right: 60,
-                        backgroundColor: theme.palette.primary.main,
-                        color: 'white',
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: theme.palette.primary.dark,
-                        },
-                      }}
-                      onClick={() => setDefenseDrawerOpen(true)}
-                    >
-                      <SettingsIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => {
-                      setBackpackInitialFilter(['Armadura', 'Escudo']);
-                      setBackpackOpen(true);
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </>
-              )}
-              <Box sx={{ position: 'relative' }}>
-                {((markersEnabled && conditionHighlights.defense.length > 0) ||
-                  activeEffectHighlights.defense.length > 0) && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: 8,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      zIndex: 1,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {markersEnabled && (
-                      <ConditionMarker
-                        conditions={conditionHighlights.defense}
-                        fontSize='medium'
-                      />
-                    )}
-                    <ActiveEffectMarker
-                      effects={activeEffectHighlights.defense}
-                      fontSize='medium'
-                    />
-                  </Box>
-                )}
-                <Box
-                  sx={
-                    activeEffectHighlights.defense.length > 0
-                      ? getActiveEffectLabelStyle(
-                          activeEffectHighlights.defense
-                        )
-                      : (markersEnabled &&
-                          getConditionLabelStyle(
-                            conditionHighlights.defense
-                          )) ||
-                        undefined
-                  }
-                >
-                  <BookTitle>Defesa</BookTitle>
-                </Box>
-              </Box>
-              <Stack
-                direction={isMobile ? 'column' : 'row'}
-                spacing={2}
-                sx={{
-                  alignItems: 'center',
-                }}
-              >
-                <Box
-                  sx={{
-                    width: isMobile ? '100%' : '20%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    order: isMobile ? 1 : 0,
-                  }}
-                >
-                  <FancyBox>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 0.5,
-                        fontSize: '68px',
-                      }}
-                    >
-                      <StatLabel
-                        theme={theme}
-                        style={
-                          markersEnabled
-                            ? getConditionLabelStyle(
-                                conditionHighlights.defense
-                              )
-                            : undefined
-                        }
-                      >
-                        {defesa}
-                      </StatLabel>
-                      <StatTitle
-                        style={
-                          markersEnabled
-                            ? getConditionLabelStyle(
-                                conditionHighlights.defense
-                              )
-                            : undefined
-                        }
-                      >
-                        Defesa
-                      </StatTitle>
-                    </Box>
-                  </FancyBox>
-                  {(hasAnyRd || onSheetUpdate) && (
-                    <Tooltip
-                      title={
-                        onSheetUpdate
-                          ? 'Clique para editar Defesa e Redução de Dano'
-                          : formatRdLabel(currentSheet.reducaoDeDano)
-                      }
-                      arrow
-                    >
-                      <Typography
-                        onClick={() =>
-                          onSheetUpdate && setDefenseDrawerOpen(true)
-                        }
-                        sx={{
-                          mt: 0.5,
-                          fontSize: '11px',
-                          color: hasAnyRd ? 'text.secondary' : 'text.disabled',
-                          cursor: onSheetUpdate ? 'pointer' : 'default',
-                          textAlign: 'center',
-                          maxWidth: '140px',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          ...(onSheetUpdate
-                            ? {
-                                '&:hover': {
-                                  color: 'primary.main',
-                                  textDecoration: 'underline',
-                                },
-                              }
-                            : {}),
-                        }}
-                      >
-                        {hasAnyRd
-                          ? `RD: ${formatRdLabel(currentSheet.reducaoDeDano)}`
-                          : 'RD: —'}
-                      </Typography>
-                    </Tooltip>
-                  )}
-                </Box>
-                <Box
-                  sx={{
-                    width: defenseInfoWidth,
-                    order: isMobile ? 0 : 1,
-                  }}
-                >
-                  <DefenseEquipments
-                    getKey={getKey}
-                    defenseEquipments={defenseEquipments}
-                    wornArmorId={currentSheet.wornArmorId}
-                    mainHandItemId={currentSheet.mainHandItemId}
-                    offHandItemId={currentSheet.offHandItemId}
-                    onWieldingChange={
-                      onSheetUpdate ? handleQuickWieldChange : undefined
-                    }
-                    getWieldingDisabledSlots={computeWieldingDisabled}
-                    proficiencias={effectiveProficiencias}
-                  />
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-start',
-                      mt: 1,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: 12,
-                        color: 'text.secondary',
-                      }}
-                    >
-                      <strong>Penalidade de Armadura: </strong>
-                      {((() => {
-                        if (bag.getActiveArmorPenalty) {
-                          return bag.getActiveArmorPenalty(
-                            currentSheet.wornArmorId,
-                            currentSheet.mainHandItemId,
-                            currentSheet.offHandItemId
-                          );
-                        }
-                        if (bag.getArmorPenalty) return bag.getArmorPenalty();
-                        return bag.armorPenalty;
-                      })() +
-                        extraArmorPenalty) *
-                        -1}
-                    </Typography>
-                  </Box>
-                  <Typography
-                    sx={{
-                      fontSize: 12,
-                      color: 'text.secondary',
-                      mt: 1,
-                      fontFamily: 'monospace',
-                    }}
-                  >
-                    {defenseFormula}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Card>
-            <Card
-              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
             >
               <Stack
                 direction='row'
                 spacing={1}
-                sx={{ position: 'absolute', top: -16, right: 16 }}
+                sx={{
+                  position: 'absolute',
+                  top: -16,
+                  right: 16,
+                  zIndex: 1,
+                }}
               >
-                {canUseActiveEffects &&
+                {activeSheetTab === 'poderes' &&
+                  canUseActiveEffects &&
                   (() => {
                     const activeCount = currentSheet.activeEffects?.length ?? 0;
                     const hasActive = activeCount > 0;
@@ -2275,6 +2026,24 @@ const Result: React.FC<ResultProps> = (props) => {
                       </IconButton>
                     </Tooltip>
                   )}
+                {activeSheetTab === 'defesa' && onSheetUpdate && (
+                  <Tooltip title='Configurações de defesa' arrow>
+                    <IconButton
+                      size='small'
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                      onClick={() => setDefenseDrawerOpen(true)}
+                    >
+                      <SettingsIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
                 {onSheetUpdate && (
                   <IconButton
                     size='small'
@@ -2286,79 +2055,426 @@ const Result: React.FC<ResultProps> = (props) => {
                         backgroundColor: theme.palette.primary.dark,
                       },
                     }}
-                    onClick={() => setPowersDrawerOpen(true)}
+                    onClick={() => {
+                      if (activeSheetTab === 'pericias') {
+                        setSkillsDrawerOpen(true);
+                      } else if (activeSheetTab === 'ataques') {
+                        setBackpackInitialFilter(['Arma']);
+                        setBackpackOpen(true);
+                      } else if (activeSheetTab === 'defesa') {
+                        setBackpackInitialFilter(['Armadura', 'Escudo']);
+                        setBackpackOpen(true);
+                      } else if (activeSheetTab === 'poderes') {
+                        setPowersDrawerOpen(true);
+                      } else if (activeSheetTab === 'magias') {
+                        setSpellsDrawerOpen(true);
+                      } else {
+                        setBackpackInitialFilter(undefined);
+                        setBackpackOpen(true);
+                      }
+                    }}
                   >
                     <EditIcon />
                   </IconButton>
                 )}
               </Stack>
-              <Box>
-                <BookTitle>Poderes</BookTitle>
-                <PowersDisplay
-                  sheetHistory={currentSheet.sheetActionHistory || []}
-                  classAbilities={classe.abilities}
-                  classPowers={classPowers}
-                  raceAbilities={raca.abilities}
-                  originPowers={origin?.powers || []}
-                  deityPowers={devoto?.poderes || []}
-                  generalPowers={generalPowers}
-                  customPowers={currentSheet.customPowers || []}
-                  customGrantedPowers={currentSheet.customGrantedPowers || []}
-                  className={classe.name}
-                  raceName={raca.name}
-                  deityName={devoto?.divindade?.name}
-                  onUpdateRolls={
-                    onSheetUpdate ? handlePowerRollsUpdate : undefined
-                  }
-                  onUpdateCustomEffects={
-                    onSheetUpdate ? handlePowerCustomEffectsUpdate : undefined
-                  }
-                  characterName={nome}
-                  sheet={currentSheet}
-                  onActivateEffect={
-                    onSheetUpdate && canUseActiveEffects
-                      ? handleActiveEffectActivate
-                      : undefined
-                  }
-                  onSheetUpdate={
-                    onSheetUpdate
-                      ? (updated) => {
-                          setCurrentSheet(updated);
-                          onSheetUpdate(updated);
-                        }
-                      : undefined
-                  }
-                  onCompanionClick={(() => {
-                    const hasCompanion =
-                      (currentSheet.companions?.length || 0) > 0;
-                    const isTreinador =
-                      getClassLevel(currentSheet, 'Treinador') > 0;
-                    if (hasCompanion) {
-                      return () => {
-                        setSelectedCompanionIndex(0);
-                        setCompanionModalOpen(true);
-                      };
-                    }
-                    if (isTreinador && onSheetUpdate) {
-                      return () => setCompanionCreationOpen(true);
-                    }
-                    return undefined;
-                  })()}
-                  parodyButtonSlot={
-                    <Tooltip title='Buscar magia para parodiar' arrow>
-                      <IconButton
-                        size='small'
-                        onClick={() => setParodyDialogOpen(true)}
+              <TabContext value={activeSheetTab}>
+                <TabList
+                  onChange={onChangeTab}
+                  variant='scrollable'
+                  scrollButtons='auto'
+                  allowScrollButtonsMobile
+                  sx={{
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                  }}
+                >
+                  {isMobile && <Tab label='Perícias' value='pericias' />}
+                  <Tab label='Ataques' value='ataques' />
+                  <Tab label='Defesa' value='defesa' />
+                  <Tab label='Poderes' value='poderes' />
+                  <Tab label='Magias' value='magias' />
+                  <Tab label='Equip.' value='equipamentos' />
+                </TabList>
+                {isMobile && (
+                  <TabPanel value='pericias' sx={{ p: 0 }}>
+                    {periciasDiv}
+                  </TabPanel>
+                )}
+                <TabPanel value='ataques' sx={{ p: 2 }}>
+                  <BookTitle>Ataques</BookTitle>
+                  {weaponsDiv}
+                </TabPanel>
+                <TabPanel value='defesa' sx={{ p: 2 }}>
+                  <Box sx={{ position: 'relative' }}>
+                    {((markersEnabled &&
+                      conditionHighlights.defense.length > 0) ||
+                      activeEffectHighlights.defense.length > 0) && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: 8,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          zIndex: 1,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                        }}
                       >
-                        <SearchIcon fontSize='small' color='primary' />
-                      </IconButton>
-                    </Tooltip>
-                  }
-                />
-              </Box>
+                        {markersEnabled && (
+                          <ConditionMarker
+                            conditions={conditionHighlights.defense}
+                            fontSize='medium'
+                          />
+                        )}
+                        <ActiveEffectMarker
+                          effects={activeEffectHighlights.defense}
+                          fontSize='medium'
+                        />
+                      </Box>
+                    )}
+                    <Box
+                      sx={
+                        activeEffectHighlights.defense.length > 0
+                          ? getActiveEffectLabelStyle(
+                              activeEffectHighlights.defense
+                            )
+                          : (markersEnabled &&
+                              getConditionLabelStyle(
+                                conditionHighlights.defense
+                              )) ||
+                            undefined
+                      }
+                    >
+                      <BookTitle>Defesa</BookTitle>
+                    </Box>
+                  </Box>
+                  <Stack
+                    direction={isMobile ? 'column' : 'row'}
+                    spacing={2}
+                    sx={{
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: isMobile ? '100%' : '20%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        order: isMobile ? 1 : 0,
+                      }}
+                    >
+                      <FancyBox>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 0.5,
+                            fontSize: '68px',
+                          }}
+                        >
+                          <StatLabel
+                            theme={theme}
+                            style={
+                              markersEnabled
+                                ? getConditionLabelStyle(
+                                    conditionHighlights.defense
+                                  )
+                                : undefined
+                            }
+                          >
+                            {defesa}
+                          </StatLabel>
+                          <StatTitle
+                            style={
+                              markersEnabled
+                                ? getConditionLabelStyle(
+                                    conditionHighlights.defense
+                                  )
+                                : undefined
+                            }
+                          >
+                            Defesa
+                          </StatTitle>
+                        </Box>
+                      </FancyBox>
+                      {(hasAnyRd || onSheetUpdate) && (
+                        <Tooltip
+                          title={
+                            onSheetUpdate
+                              ? 'Clique para editar Defesa e Redução de Dano'
+                              : formatRdLabel(currentSheet.reducaoDeDano)
+                          }
+                          arrow
+                        >
+                          <Typography
+                            onClick={() =>
+                              onSheetUpdate && setDefenseDrawerOpen(true)
+                            }
+                            sx={{
+                              mt: 0.5,
+                              fontSize: '11px',
+                              color: hasAnyRd
+                                ? 'text.secondary'
+                                : 'text.disabled',
+                              cursor: onSheetUpdate ? 'pointer' : 'default',
+                              textAlign: 'center',
+                              maxWidth: '140px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              ...(onSheetUpdate
+                                ? {
+                                    '&:hover': {
+                                      color: 'primary.main',
+                                      textDecoration: 'underline',
+                                    },
+                                  }
+                                : {}),
+                            }}
+                          >
+                            {hasAnyRd
+                              ? `RD: ${formatRdLabel(
+                                  currentSheet.reducaoDeDano
+                                )}`
+                              : 'RD: —'}
+                          </Typography>
+                        </Tooltip>
+                      )}
+                    </Box>
+                    <Box
+                      sx={{
+                        width: defenseInfoWidth,
+                        order: isMobile ? 0 : 1,
+                      }}
+                    >
+                      <DefenseEquipments
+                        getKey={getKey}
+                        defenseEquipments={defenseEquipments}
+                        wornArmorId={currentSheet.wornArmorId}
+                        mainHandItemId={currentSheet.mainHandItemId}
+                        offHandItemId={currentSheet.offHandItemId}
+                        onWieldingChange={
+                          onSheetUpdate ? handleQuickWieldChange : undefined
+                        }
+                        getWieldingDisabledSlots={computeWieldingDisabled}
+                        proficiencias={effectiveProficiencias}
+                      />
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'flex-start',
+                          mt: 1,
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            color: 'text.secondary',
+                          }}
+                        >
+                          <strong>Penalidade de Armadura: </strong>
+                          {((() => {
+                            if (bag.getActiveArmorPenalty) {
+                              return bag.getActiveArmorPenalty(
+                                currentSheet.wornArmorId,
+                                currentSheet.mainHandItemId,
+                                currentSheet.offHandItemId
+                              );
+                            }
+                            if (bag.getArmorPenalty)
+                              return bag.getArmorPenalty();
+                            return bag.armorPenalty;
+                          })() +
+                            extraArmorPenalty) *
+                            -1}
+                        </Typography>
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontSize: 12,
+                          color: 'text.secondary',
+                          mt: 1,
+                          fontFamily: 'monospace',
+                        }}
+                      >
+                        {defenseFormula}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </TabPanel>
+                <TabPanel value='poderes' sx={{ p: 2 }}>
+                  <Box>
+                    <BookTitle>Poderes</BookTitle>
+                    <PowersDisplay
+                      sheetHistory={currentSheet.sheetActionHistory || []}
+                      classAbilities={classe.abilities}
+                      classPowers={classPowers}
+                      raceAbilities={raca.abilities}
+                      originPowers={origin?.powers || []}
+                      deityPowers={devoto?.poderes || []}
+                      generalPowers={generalPowers}
+                      customPowers={currentSheet.customPowers || []}
+                      customGrantedPowers={
+                        currentSheet.customGrantedPowers || []
+                      }
+                      className={classe.name}
+                      raceName={raca.name}
+                      deityName={devoto?.divindade?.name}
+                      onUpdateRolls={
+                        onSheetUpdate ? handlePowerRollsUpdate : undefined
+                      }
+                      onUpdateCustomEffects={
+                        onSheetUpdate
+                          ? handlePowerCustomEffectsUpdate
+                          : undefined
+                      }
+                      characterName={nome}
+                      sheet={currentSheet}
+                      onActivateEffect={
+                        onSheetUpdate && canUseActiveEffects
+                          ? handleActiveEffectActivate
+                          : undefined
+                      }
+                      onSheetUpdate={
+                        onSheetUpdate
+                          ? (updated) => {
+                              setCurrentSheet(updated);
+                              onSheetUpdate(updated);
+                            }
+                          : undefined
+                      }
+                      onCompanionClick={(() => {
+                        const hasCompanion =
+                          (currentSheet.companions?.length || 0) > 0;
+                        const isTreinador =
+                          getClassLevel(currentSheet, 'Treinador') > 0;
+                        if (hasCompanion) {
+                          return () => {
+                            setSelectedCompanionIndex(0);
+                            setCompanionModalOpen(true);
+                          };
+                        }
+                        if (isTreinador && onSheetUpdate) {
+                          return () => setCompanionCreationOpen(true);
+                        }
+                        return undefined;
+                      })()}
+                      parodyButtonSlot={
+                        <Tooltip title='Buscar magia para parodiar' arrow>
+                          <IconButton
+                            size='small'
+                            onClick={() => setParodyDialogOpen(true)}
+                          >
+                            <SearchIcon fontSize='small' color='primary' />
+                          </IconButton>
+                        </Tooltip>
+                      }
+                    />
+                  </Box>
+                </TabPanel>
+                <TabPanel value='magias' sx={{ p: 2 }}>
+                  <Box>
+                    <BookTitle>Magias</BookTitle>
+                    <Spells
+                      spells={spells}
+                      keyAttr={keyAttr}
+                      selectedKeyAttribute={effectiveKeyAttribute}
+                      nivel={nivel}
+                      onUpdateRolls={
+                        onSheetUpdate ? handleSpellRollsUpdate : undefined
+                      }
+                      characterName={nome}
+                      currentPM={currentSheet.currentPM ?? pm}
+                      maxPM={pm}
+                      tempPM={currentSheet.tempPM ?? 0}
+                      onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
+                      isMago={classe.subname === 'Mago'}
+                      onToggleMemorized={
+                        onSheetUpdate ? handleToggleMemorized : undefined
+                      }
+                      onToggleAlwaysPrepared={
+                        onSheetUpdate ? handleToggleAlwaysPrepared : undefined
+                      }
+                      bonusSpellDC={spellDCBonus}
+                      onKeyAttributeChange={
+                        onSheetUpdate ? handleKeyAttributeChange : undefined
+                      }
+                      getCircleWarning={(circle) =>
+                        getDeitySpellCircleWarning(currentSheet, circle)
+                      }
+                    />
+                  </Box>
+                </TabPanel>
+                <TabPanel value='equipamentos' sx={{ p: 2 }}>
+                  <Box>
+                    <BookTitle>Equipamentos</BookTitle>
+                    <Stack
+                      // spacing={2}
+                      direction='row'
+                      sx={{
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-start',
+                      }}
+                    >
+                      {equipamentosDiv}
+                    </Stack>
+                    <Box
+                      sx={{
+                        mt: 2,
+                      }}
+                    >
+                      <strong>Dinheiro: </strong>
+                      T$ {dinheiro}
+                      {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
+                      {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
+                    </Box>
+                    <Box
+                      sx={{
+                        mt: 1,
+                      }}
+                    >
+                      <strong>Espaços (atual/limite-máximo): </strong>
+                      {bag.getSpaces() +
+                        calculateCurrencySpaces(
+                          dinheiro,
+                          dinheiroTC,
+                          dinheiroTO
+                        )}
+                      /{customMaxSpaces ?? maxSpaces}-
+                      {(customMaxSpaces ?? maxSpaces) * 2}
+                      {calculateCurrencySpaces(
+                        dinheiro,
+                        dinheiroTC,
+                        dinheiroTO
+                      ) > 0 && (
+                        <Typography
+                          variant='caption'
+                          component='span'
+                          sx={{ ml: 0.5 }}
+                        >
+                          (
+                          {calculateCurrencySpaces(
+                            dinheiro,
+                            dinheiroTC,
+                            dinheiroTO
+                          )}{' '}
+                          de moedas)
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </TabPanel>
+              </TabContext>
             </Card>
+
+            {/* Card de Proficiências */}
             <Card
-              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
+              sx={{ p: 2, mb: 4, position: 'relative', overflow: 'visible' }}
             >
               {onSheetUpdate && (
                 <IconButton
@@ -2374,441 +2490,313 @@ const Result: React.FC<ResultProps> = (props) => {
                       backgroundColor: theme.palette.primary.dark,
                     },
                   }}
-                  onClick={() => setSpellsDrawerOpen(true)}
+                  onClick={() => setProficiencyDrawerOpen(true)}
                 >
                   <EditIcon />
                 </IconButton>
               )}
-              <Box>
-                <BookTitle>Magias</BookTitle>
-                <Spells
-                  spells={spells}
-                  keyAttr={keyAttr}
-                  selectedKeyAttribute={effectiveKeyAttribute}
-                  nivel={nivel}
-                  onUpdateRolls={
-                    onSheetUpdate ? handleSpellRollsUpdate : undefined
-                  }
-                  characterName={nome}
-                  currentPM={currentSheet.currentPM ?? pm}
-                  maxPM={pm}
-                  tempPM={currentSheet.tempPM ?? 0}
-                  onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
-                  isMago={classe.subname === 'Mago'}
-                  onToggleMemorized={
-                    onSheetUpdate ? handleToggleMemorized : undefined
-                  }
-                  onToggleAlwaysPrepared={
-                    onSheetUpdate ? handleToggleAlwaysPrepared : undefined
-                  }
-                  bonusSpellDC={spellDCBonus}
-                  onKeyAttributeChange={
-                    onSheetUpdate ? handleKeyAttributeChange : undefined
-                  }
-                  getCircleWarning={(circle) =>
-                    getDeitySpellCircleWarning(currentSheet, circle)
-                  }
-                />
-              </Box>
+              <BookTitle>Proficiências</BookTitle>
+              <Stack
+                direction='row'
+                sx={{
+                  flexWrap: 'wrap',
+                }}
+              >
+                {proficienciasDiv}
+              </Stack>
             </Card>
-          </Box>
-          {/* LADO DIREITO, 40% */}
-          <Box
-            sx={{
-              width: isMobile ? '100%' : '40%',
-            }}
-          >
-            <Stack spacing={4}>
-              <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                {onSheetUpdate && (
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => setSkillsDrawerOpen(true)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                )}
-                {periciasDiv}
-              </Card>
-              <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                {onSheetUpdate && (
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => {
-                      setBackpackInitialFilter(undefined);
-                      setBackpackOpen(true);
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                )}
+
+            {/* Card de Tamanho/Deslocamento */}
+            <Card
+              sx={{ p: 2, mb: 4, position: 'relative', overflow: 'visible' }}
+            >
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setSizeDisplacementDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
+              <Stack
+                spacing={2}
+                direction='row'
+                sx={{
+                  justifyContent: 'center',
+                }}
+              >
                 <Box
                   sx={{
-                    p: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
                   }}
                 >
-                  <BookTitle>Equipamentos</BookTitle>
-                  <Stack
-                    // spacing={2}
-                    direction='row'
-                    sx={{
-                      flexWrap: 'wrap',
-                      justifyContent: 'flex-start',
-                    }}
-                  >
-                    {equipamentosDiv}
-                  </Stack>
-                  <Box
-                    sx={{
-                      mt: 2,
-                    }}
-                  >
-                    <strong>Dinheiro: </strong>
-                    T$ {dinheiro}
-                    {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
-                    {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
-                  </Box>
-                  <Box
-                    sx={{
-                      mt: 1,
-                    }}
-                  >
-                    <strong>Espaços (atual/limite-máximo): </strong>
-                    {bag.getSpaces() +
-                      calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO)}
-                    /{customMaxSpaces ?? maxSpaces}-
-                    {(customMaxSpaces ?? maxSpaces) * 2}
-                    {calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO) >
-                      0 && (
+                  <FancyBox>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.3,
+                      }}
+                    >
                       <Typography
-                        variant='caption'
-                        component='span'
-                        sx={{ ml: 0.5 }}
-                      >
-                        (
-                        {calculateCurrencySpaces(
-                          dinheiro,
-                          dinheiroTC,
-                          dinheiroTO
-                        )}{' '}
-                        de moedas)
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-              </Card>
-              <Card sx={{ p: 2, position: 'relative', overflow: 'visible' }}>
-                {onSheetUpdate && (
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => setProficiencyDrawerOpen(true)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                )}
-                <BookTitle>Proficiências</BookTitle>
-                <Stack
-                  direction='row'
-                  sx={{
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  {proficienciasDiv}
-                </Stack>
-              </Card>
-              <Card sx={{ p: 2, position: 'relative', overflow: 'visible' }}>
-                {onSheetUpdate && (
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => setSizeDisplacementDrawerOpen(true)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                )}
-                <Stack
-                  spacing={2}
-                  direction='row'
-                  sx={{
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <FancyBox>
-                      <Box
                         sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 0.3,
+                          fontFamily: 'Tfont',
+                          fontSize: '35px',
+                          color: theme.palette.primary.main,
+                          textAlign: 'center',
+                          lineHeight: 1,
+                          margin: 0,
+                          ...(markersEnabled
+                            ? getConditionLabelStyle(
+                                conditionHighlights.displacement
+                              )
+                            : {}),
                         }}
                       >
-                        <Typography
-                          sx={{
-                            fontFamily: 'Tfont',
-                            fontSize: '35px',
-                            color: theme.palette.primary.main,
-                            textAlign: 'center',
-                            lineHeight: 1,
-                            margin: 0,
-                            ...(markersEnabled
+                        {displacement}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontSize: '16px',
+                          color: theme.palette.text.secondary,
+                          textAlign: 'center',
+                          margin: 0,
+                        }}
+                      >
+                        ({Math.floor(displacement / 1.5)}q)
+                      </Typography>
+                      <Stack
+                        direction='row'
+                        spacing={0.5}
+                        sx={{
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {markersEnabled && (
+                          <ConditionMarker
+                            conditions={conditionHighlights.displacement}
+                            fontSize='small'
+                          />
+                        )}
+                        <StatTitle
+                          style={
+                            markersEnabled
                               ? getConditionLabelStyle(
                                   conditionHighlights.displacement
                                 )
-                              : {}),
-                          }}
+                              : undefined
+                          }
                         >
-                          {displacement}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontFamily: 'Tfont',
-                            fontSize: '16px',
-                            color: theme.palette.text.secondary,
-                            textAlign: 'center',
-                            margin: 0,
-                          }}
-                        >
-                          ({Math.floor(displacement / 1.5)}q)
-                        </Typography>
-                        <Stack
-                          direction='row'
-                          spacing={0.5}
-                          sx={{
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          {markersEnabled && (
-                            <ConditionMarker
-                              conditions={conditionHighlights.displacement}
-                              fontSize='small'
-                            />
-                          )}
-                          <StatTitle
-                            style={
-                              markersEnabled
-                                ? getConditionLabelStyle(
-                                    conditionHighlights.displacement
-                                  )
-                                : undefined
-                            }
-                          >
-                            Desl.
-                          </StatTitle>
-                        </Stack>
-                      </Box>
-                    </FancyBox>
-                    {currentSheet.customDisplacement !== undefined && (
-                      <Tooltip title='Valor definido manualmente'>
-                        <Chip
-                          size='small'
-                          label='Manual'
-                          color='warning'
-                          sx={{ mt: 1, fontSize: '0.7rem' }}
-                        />
-                      </Tooltip>
-                    )}
-                    {(() => {
-                      const effectiveMaxSpaces = customMaxSpaces ?? maxSpaces;
-                      const totalUsedSpaces =
-                        bag.getSpaces() +
-                        calculateCurrencySpaces(
-                          dinheiro,
-                          dinheiroTC,
-                          dinheiroTO
-                        );
-                      if (totalUsedSpaces > effectiveMaxSpaces) {
-                        return (
-                          <Tooltip
-                            title={`Sobrecarga: ${totalUsedSpaces.toFixed(
-                              1
-                            )}/${effectiveMaxSpaces} espaços (-3m)`}
-                          >
-                            <Chip
-                              size='small'
-                              label='Sobrecarga'
-                              color='error'
-                              sx={{ mt: 1, fontSize: '0.7rem' }}
-                            />
-                          </Tooltip>
-                        );
-                      }
-                      return null;
-                    })()}
-                    {currentSheet.movementTypes && (
-                      <Stack spacing={0} sx={{ mt: 0.5 }}>
-                        {currentSheet.movementTypes.escalada &&
-                          currentSheet.movementTypes.escalada > 0 && (
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: 'text.secondary',
-                                textAlign: 'center',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Escalada: {currentSheet.movementTypes.escalada}m (
-                              {Math.floor(
-                                currentSheet.movementTypes.escalada / 1.5
-                              )}
-                              q)
-                            </Typography>
-                          )}
-                        {currentSheet.movementTypes.escavar &&
-                          currentSheet.movementTypes.escavar > 0 && (
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: 'text.secondary',
-                                textAlign: 'center',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Escavar: {currentSheet.movementTypes.escavar}m (
-                              {Math.floor(
-                                currentSheet.movementTypes.escavar / 1.5
-                              )}
-                              q)
-                            </Typography>
-                          )}
-                        {currentSheet.movementTypes.natacao &&
-                          currentSheet.movementTypes.natacao > 0 && (
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: 'text.secondary',
-                                textAlign: 'center',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Natação: {currentSheet.movementTypes.natacao}m (
-                              {Math.floor(
-                                currentSheet.movementTypes.natacao / 1.5
-                              )}
-                              q)
-                            </Typography>
-                          )}
-                        {currentSheet.movementTypes.voo &&
-                          currentSheet.movementTypes.voo > 0 && (
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: 'text.secondary',
-                                textAlign: 'center',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Voo: {currentSheet.movementTypes.voo}m (
-                              {Math.floor(currentSheet.movementTypes.voo / 1.5)}
-                              q)
-                              {currentSheet.movementTypes.pairar
-                                ? ' (Pairar)'
-                                : ''}
-                            </Typography>
-                          )}
+                          Desl.
+                        </StatTitle>
                       </Stack>
-                    )}
-                  </Box>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <FancyBox>
-                      <Box
+                    </Box>
+                  </FancyBox>
+                  {currentSheet.customDisplacement !== undefined && (
+                    <Tooltip title='Valor definido manualmente'>
+                      <Chip
+                        size='small'
+                        label='Manual'
+                        color='warning'
+                        sx={{ mt: 1, fontSize: '0.7rem' }}
+                      />
+                    </Tooltip>
+                  )}
+                  {(() => {
+                    const effectiveMaxSpaces = customMaxSpaces ?? maxSpaces;
+                    const totalUsedSpaces =
+                      bag.getSpaces() +
+                      calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
+                    if (totalUsedSpaces > effectiveMaxSpaces) {
+                      return (
+                        <Tooltip
+                          title={`Sobrecarga: ${totalUsedSpaces.toFixed(
+                            1
+                          )}/${effectiveMaxSpaces} espaços (-3m)`}
+                        >
+                          <Chip
+                            size='small'
+                            label='Sobrecarga'
+                            color='error'
+                            sx={{ mt: 1, fontSize: '0.7rem' }}
+                          />
+                        </Tooltip>
+                      );
+                    }
+                    return null;
+                  })()}
+                  {currentSheet.movementTypes && (
+                    <Stack spacing={0} sx={{ mt: 0.5 }}>
+                      {currentSheet.movementTypes.escalada &&
+                        currentSheet.movementTypes.escalada > 0 && (
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                              textAlign: 'center',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            Escalada: {currentSheet.movementTypes.escalada}m (
+                            {Math.floor(
+                              currentSheet.movementTypes.escalada / 1.5
+                            )}
+                            q)
+                          </Typography>
+                        )}
+                      {currentSheet.movementTypes.escavar &&
+                        currentSheet.movementTypes.escavar > 0 && (
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                              textAlign: 'center',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            Escavar: {currentSheet.movementTypes.escavar}m (
+                            {Math.floor(
+                              currentSheet.movementTypes.escavar / 1.5
+                            )}
+                            q)
+                          </Typography>
+                        )}
+                      {currentSheet.movementTypes.natacao &&
+                        currentSheet.movementTypes.natacao > 0 && (
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                              textAlign: 'center',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            Natação: {currentSheet.movementTypes.natacao}m (
+                            {Math.floor(
+                              currentSheet.movementTypes.natacao / 1.5
+                            )}
+                            q)
+                          </Typography>
+                        )}
+                      {currentSheet.movementTypes.voo &&
+                        currentSheet.movementTypes.voo > 0 && (
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                              textAlign: 'center',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            Voo: {currentSheet.movementTypes.voo}m (
+                            {Math.floor(currentSheet.movementTypes.voo / 1.5)}
+                            q)
+                            {currentSheet.movementTypes.pairar
+                              ? ' (Pairar)'
+                              : ''}
+                          </Typography>
+                        )}
+                    </Stack>
+                  )}
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <FancyBox>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.5,
+                      }}
+                    >
+                      <Typography
                         sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 0.5,
+                          fontFamily: 'Tfont',
+                          fontSize: '58px',
+                          color: theme.palette.primary.main,
+                          textAlign: 'center',
+                          textTransform: 'uppercase',
+                          lineHeight: 1,
+                          margin: 0,
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        <Typography
-                          sx={{
-                            fontFamily: 'Tfont',
-                            fontSize: '58px',
-                            color: theme.palette.primary.main,
-                            textAlign: 'center',
-                            textTransform: 'uppercase',
-                            lineHeight: 1,
-                            margin: 0,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {size.name.charAt(0)}
-                        </Typography>
-                        <StatTitle>Tamanho</StatTitle>
-                      </Box>
-                    </FancyBox>
-                    {currentSheet.customSize !== undefined && (
-                      <Tooltip title='Tamanho definido manualmente'>
-                        <Chip
-                          size='small'
-                          label='Manual'
-                          color='warning'
-                          sx={{ mt: 1, fontSize: '0.7rem' }}
-                        />
-                      </Tooltip>
-                    )}
-                  </Box>
-                </Stack>
-              </Card>
-            </Stack>
+                        {size.name.charAt(0)}
+                      </Typography>
+                      <StatTitle>Tamanho</StatTitle>
+                    </Box>
+                  </FancyBox>
+                  {currentSheet.customSize !== undefined && (
+                    <Tooltip title='Tamanho definido manualmente'>
+                      <Chip
+                        size='small'
+                        label='Manual'
+                        color='warning'
+                        sx={{ mt: 1, fontSize: '0.7rem' }}
+                      />
+                    </Tooltip>
+                  )}
+                </Box>
+              </Stack>
+            </Card>
           </Box>
+          {/* LADO DIREITO, 40% — apenas Perícias (no mobile vira aba) */}
+          {!isMobile && (
+            <Box
+              sx={{
+                width: '40%',
+              }}
+            >
+              <Stack spacing={4}>
+                <Card sx={{ position: 'relative', overflow: 'visible' }}>
+                  {onSheetUpdate && (
+                    <IconButton
+                      size='small'
+                      sx={{
+                        position: 'absolute',
+                        top: -16,
+                        right: 16,
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                      onClick={() => setSkillsDrawerOpen(true)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  )}
+                  {periciasDiv}
+                </Card>
+              </Stack>
+            </Box>
+          )}
         </Stack>
 
         <Box sx={{ mt: 2, width: '100%' }}>
