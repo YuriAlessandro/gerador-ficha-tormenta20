@@ -173,6 +173,17 @@ const Changelog: React.FC = () => {
                   de poderes, ficando mais fácil de identificar.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> Os poderes{' '}
+                  <strong>Tradição Perdida</strong> e{' '}
+                  <strong>Tradição Perdida Aprimorada</strong> (Heróis de Arton)
+                  agora perguntam o <strong>atributo-chave</strong> no momento
+                  em que você seleciona o poder — a escolha é aplicada
+                  automaticamente ao <strong>total de PM</strong> (Tradição
+                  Perdida) e à <strong>CD das magias</strong> (Tradição Perdida
+                  Aprimorada). Você ainda pode ajustar depois pelo editor da
+                  ficha.
+                </li>
+                <li>
                   <strong>Correção:</strong> Corrigida a{' '}
                   <strong>multiclasse com Necromante</strong>: ao escolher a
                   variante no assistente de subir de nível, o passo
