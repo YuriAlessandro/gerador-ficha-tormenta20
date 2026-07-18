@@ -13,6 +13,7 @@ import {
   Box,
   Typography,
   Divider,
+  Chip,
   useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -22,8 +23,9 @@ import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
-import { DIVINDADES } from '../../data/systems/tormenta20/divindades';
 import Divindade from '../../interfaces/Divindade';
+import { dataRegistry } from '../../data/registry';
+import { useContentSupplements } from '../../hooks/useContentSupplements';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 
@@ -83,6 +85,14 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
               >
                 {divindade.name}
               </Typography>
+              {divindade.statusDivino !== undefined && (
+                <Chip
+                  label={`Status Divino ${divindade.statusDivino}`}
+                  size='small'
+                  variant='outlined'
+                  color='primary'
+                />
+              )}
             </Box>
             <CopyUrlButton
               itemName={divindade.name}
@@ -166,14 +176,21 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
 const DivindadesTable: React.FC = () => {
   const theme = useTheme();
   const [value, setValue] = useState('');
-  const [divindades, setDivindades] = useState<Divindade[]>(DIVINDADES);
+  const supplements = useContentSupplements();
+  // Os 20 deuses maiores mais as divindades dos suplementos ativos (ex.: os 63
+  // deuses menores do Guia de Deuses Menores).
+  const allDivindades = React.useMemo(
+    () => dataRegistry.getDeitiesWithSupplementPowers(supplements),
+    [supplements]
+  );
+  const [divindades, setDivindades] = useState<Divindade[]>(allDivindades);
   const { params } = useRouteMatch<{ selectedGod?: string }>();
   const history = useHistory();
 
   const filter = (searchValue: string) => {
     const search = searchValue.toLocaleLowerCase();
     if (search.length > 0) {
-      const filteredGods = DIVINDADES.filter((divindade) =>
+      const filteredGods = allDivindades.filter((divindade) =>
         divindade.name.toLocaleLowerCase().includes(search)
       );
 
@@ -181,9 +198,15 @@ const DivindadesTable: React.FC = () => {
 
       setDivindades(filteredGods);
     } else {
-      setDivindades(DIVINDADES);
+      setDivindades(allDivindades);
     }
   };
+
+  // Reaplica a busca quando o conjunto de suplementos ativos muda, para a
+  // lista não ficar presa ao snapshot do primeiro render.
+  useEffect(() => {
+    filter(value);
+  }, [allDivindades]);
 
   useEffect(() => {
     const { selectedGod } = params;

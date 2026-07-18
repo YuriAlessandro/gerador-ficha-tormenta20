@@ -82,6 +82,11 @@ export default interface Divindade {
   allowedRaces?: string[];
   allowedClasses?: string[];
   obligations?: string;
+  /**
+   * Status divino (1 a 5) — exclusivo dos deuses menores do Guia de Deuses
+   * Menores. Os 20 deuses maiores não têm esse conceito e omitem o campo.
+   */
+  statusDivino?: number;
 }
 
 export type FaithProbability = {

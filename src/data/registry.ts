@@ -1001,10 +1001,13 @@ class DataRegistry {
           reqGroup.forEach((req) => {
             if (req.type === RequirementType.DEVOTO && req.name) {
               const deityName = req.name;
-              // Encontra a divindade correspondente
-              const deity = deitiesWithPowers.find(
-                (d) => d.name === deityName || d.name.includes(deityName)
-              );
+              // Encontra a divindade correspondente. O match exato tem
+              // precedência sobre o parcial em TODA a lista: nomes curtos são
+              // substring de nomes maiores (ex.: 'Ur' em 'O Deus Cristal de
+              // Urielka') e o parcial anexaria o poder ao deus errado.
+              const deity =
+                deitiesWithPowers.find((d) => d.name === deityName) ??
+                deitiesWithPowers.find((d) => d.name.includes(deityName));
               if (deity) {
                 // Verifica se o poder já não está na lista
                 const alreadyHas = deity.poderes.some(

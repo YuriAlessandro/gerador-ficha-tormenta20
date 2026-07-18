@@ -40,3 +40,6 @@ yarn-error.log*
 
 # Livros oficiais de referência (material de consulta, não versionado)
 /livros
+
+# Extrações de conteúdo de livros usadas para gerar dados (mesmo motivo de /livros)
+/deuses_menores.csv

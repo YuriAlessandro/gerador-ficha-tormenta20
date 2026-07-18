@@ -35,7 +35,6 @@ import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import { AttributeVariant } from '@/interfaces/Race';
 import { dataRegistry } from '@/data/registry';
 import Divindade from '@/interfaces/Divindade';
-import DIVINDADES_DATA from '@/data/systems/tormenta20/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
@@ -270,6 +269,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const CLASSES = dataRegistry.getClassesBySupplements(userSupplements);
   const ORIGINS_WITH_INFO =
     dataRegistry.getOriginsBySupplements(userSupplements);
+  // Os 20 deuses maiores mais as divindades dos suplementos ativos. Precisa ser
+  // a MESMA lista usada pelo <Select> e pelas buscas por nome abaixo: oferecer
+  // no dropdown um deus que a busca não resolve dispara o aviso de "Divindade
+  // não encontrada" e a edição é silenciosamente descartada.
+  const DIVINDADES_DISPONIVEIS =
+    dataRegistry.getDeitiesWithSupplementPowers(userSupplements);
 
   const [editedData, setEditedData] = useState<EditedData>({
     nome: sheet.nome,
@@ -1342,7 +1347,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
             editedData.deityName !== sheet.devoto?.divindade.name
           ) {
             const normalizedSearch = normalizeDeityName(editedData.deityName);
-            const foundDeity = DIVINDADES_DATA.find(
+            const foundDeity = DIVINDADES_DISPONIVEIS.find(
               (d) => normalizeDeityName(d.name) === normalizedSearch
             );
             if (foundDeity) {
@@ -1373,7 +1378,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.deityName !== sheet.devoto?.divindade.name
     ) {
       const normalizedSearch = normalizeDeityName(editedData.deityName);
-      const newDeity = DIVINDADES_DATA.find(
+      const newDeity = DIVINDADES_DISPONIVEIS.find(
         (d) => normalizeDeityName(d.name) === normalizedSearch
       );
       if (newDeity) {
@@ -1398,7 +1403,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         console.warn('⚠️ Divindade não encontrada (edit):', {
           searchName: editedData.deityName,
           normalized: normalizedSearch,
-          availableDeities: DIVINDADES_DATA.map((d) => ({
+          availableDeities: DIVINDADES_DISPONIVEIS.map((d) => ({
             name: d.name,
             normalized: normalizeDeityName(d.name),
           })),
@@ -2831,7 +2836,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       }
                     >
                       <MenuItem value=''>Nenhuma</MenuItem>
-                      {DIVINDADES_DATA.map((deity: Divindade) => (
+                      {DIVINDADES_DISPONIVEIS.map((deity: Divindade) => (
                         <MenuItem key={deity.name} value={deity.name}>
                           {deity.name}
                         </MenuItem>

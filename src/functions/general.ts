@@ -1206,6 +1206,10 @@ function getPoderesConcedidos(
   return [getRandomItemFromArray(divindade.poderes)];
 }
 
+// Chance de uma ficha aleatória devota cultuar uma divindade de suplemento
+// (deus menor ou homebrew) em vez de um dos 20 deuses maiores.
+const SUPPLEMENT_DEITY_RANDOM_CHANCE = 0.15;
+
 // Retorna se é devoto e qual a divindade
 function getReligiosidade(
   classe: ClassDescription,
@@ -1224,22 +1228,36 @@ function getReligiosidade(
 
   let divindade;
   if (!selectedOption || selectedOption === '**') {
-    const classFaithProbability =
-      classe.faithProbability || standardFaithProbability;
-    const raceFaithProbability =
-      race.faithProbability || standardFaithProbability;
+    // Divindades de suplemento (deuses menores, homebrew) não cabem em
+    // `FaithProbability`, que é tipada pelas chaves dos 20 deuses maiores.
+    // Em vez de alargar esse tipo — presente em ~50 arquivos de raça/classe —
+    // damos a elas uma chance própria e pequena, condizente com o livro, que
+    // as descreve como cultos locais de nicho.
+    const supplementDeities = dataRegistry.getSupplementDeities(supplements);
+    const pickSupplementDeity =
+      supplementDeities.length > 0 &&
+      Math.random() < SUPPLEMENT_DEITY_RANDOM_CHANCE;
 
-    const faithProbability = mergeFaithProbabilities(
-      classFaithProbability,
-      raceFaithProbability
-    );
+    if (pickSupplementDeity) {
+      divindade = getRandomItemFromArray(supplementDeities);
+    } else {
+      const classFaithProbability =
+        classe.faithProbability || standardFaithProbability;
+      const raceFaithProbability =
+        race.faithProbability || standardFaithProbability;
 
-    const divindadeName = pickFaith(faithProbability);
-    divindade =
-      dataRegistry.getDeityByName(
-        DivindadeEnum[divindadeName].name,
-        supplements
-      ) || DivindadeEnum[divindadeName];
+      const faithProbability = mergeFaithProbabilities(
+        classFaithProbability,
+        raceFaithProbability
+      );
+
+      const divindadeName = pickFaith(faithProbability);
+      divindade =
+        dataRegistry.getDeityByName(
+          DivindadeEnum[divindadeName].name,
+          supplements
+        ) || DivindadeEnum[divindadeName];
+    }
   } else {
     const staticDeity = DivindadeEnum[selectedOption as DivindadeNames];
     if (staticDeity) {

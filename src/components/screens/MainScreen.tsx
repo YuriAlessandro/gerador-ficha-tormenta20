@@ -1048,25 +1048,27 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     [userSupplements]
   );
 
-  const divindades = React.useMemo(
-    () =>
-      allDivindadeNames
-        .filter((dv) => {
-          if (selectedOptions.classe) {
-            const classe = CLASSES.find(
-              (c) => c.name === selectedOptions.classe
-            );
-            if (classe) return classe?.faithProbability?.[dv] !== 0;
-            return true;
-          }
+  const divindades = React.useMemo(() => {
+    const staticOptions = allDivindadeNames
+      .filter((dv) => {
+        if (selectedOptions.classe) {
+          const classe = CLASSES.find((c) => c.name === selectedOptions.classe);
+          if (classe) return classe?.faithProbability?.[dv] !== 0;
           return true;
-        })
-        .map((sdv) => ({
-          value: sdv,
-          label: divindadeDisplayNames[sdv],
-        })),
-    [selectedOptions.classe, CLASSES]
-  );
+        }
+        return true;
+      })
+      .map((sdv) => ({
+        value: sdv as string,
+        label: divindadeDisplayNames[sdv],
+      }));
+    // Divindades de suplementos ativos (deuses menores, homebrew) — `value` é o
+    // nome, pois não existe chave correspondente no enum estático.
+    const supplementOptions = dataRegistry
+      .getSupplementDeities(userSupplements)
+      .map((d) => ({ value: d.name, label: d.name }));
+    return [...staticOptions, ...supplementOptions];
+  }, [selectedOptions.classe, CLASSES, userSupplements]);
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')

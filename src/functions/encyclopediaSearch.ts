@@ -71,6 +71,7 @@ export const DEFAULT_ENCYCLOPEDIA_SUPPLEMENTS: SupplementId[] = [
   SupplementId.TORMENTA20_AMEACAS_ARTON,
   SupplementId.TORMENTA20_DEUSES_ARTON,
   SupplementId.TORMENTA20_HEROIS_ARTON,
+  SupplementId.TORMENTA20_DEUSES_MENORES,
 ];
 
 const POWER_TYPE_LABEL: Record<GeneralPowerType, string> = {

@@ -216,26 +216,29 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
 
   // NO "Aleatorio" in divindades - only actual deities and "Nao devoto"
   // Sorted alphabetically by display name
-  const divindades = React.useMemo(
-    () =>
-      allDivindadeNames
-        .filter((dv) => {
-          if (selectedOptions.classe) {
-            const classe = CLASSES.find(
-              (c) => c.name === selectedOptions.classe
-            );
-            if (classe) return classe?.faithProbability?.[dv] !== 0;
-            return true;
-          }
+  const divindades = React.useMemo(() => {
+    const staticOptions = allDivindadeNames
+      .filter((dv) => {
+        if (selectedOptions.classe) {
+          const classe = CLASSES.find((c) => c.name === selectedOptions.classe);
+          if (classe) return classe?.faithProbability?.[dv] !== 0;
           return true;
-        })
-        .map((sdv) => ({
-          value: sdv,
-          label: divindadeDisplayNames[sdv],
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR')),
-    [selectedOptions.classe, CLASSES]
-  );
+        }
+        return true;
+      })
+      .map((sdv) => ({
+        value: sdv as string,
+        label: divindadeDisplayNames[sdv],
+      }));
+    // Divindades vindas de suplementos ativos (ex.: Guia de Deuses Menores) e
+    // de homebrew — o `value` é o NOME, pois não há chave no enum estático.
+    const supplementOptions = dataRegistry
+      .getSupplementDeities(userSupplements)
+      .map((d) => ({ value: d.name, label: d.name }));
+    return [...staticOptions, ...supplementOptions].sort((a, b) =>
+      a.label.localeCompare(b.label, 'pt-BR')
+    );
+  }, [selectedOptions.classe, CLASSES, userSupplements]);
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
