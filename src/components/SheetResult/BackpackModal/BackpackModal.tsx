@@ -457,6 +457,15 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     />
   );
 
+  // Com um filtro de categoria ativo, "Adicionar item" já abre na aba
+  // correspondente — o usuário que filtrou por Armadura quer adicionar uma
+  // armadura. Com mais de um filtro, usa o primeiro na ordem em que os chips
+  // são exibidos (CATEGORY_ORDER), não a ordem de clique, para ser previsível.
+  const addDialogCategory: equipGroup | undefined = useMemo(() => {
+    if (filters.selectedCategories.size === 0) return undefined;
+    return CATEGORY_ORDER.find((cat) => filters.selectedCategories.has(cat));
+  }, [filters.selectedCategories]);
+
   // Group items by category for the grouped layout, preserving the manual
   // displayOrder within each group via filteredItems already being ordered.
   const groupsForRender: { group: equipGroup; items: Equipment[] }[] =
@@ -1003,6 +1012,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         availableTibares={staged.money.dinheiro}
         autoDeductMoney={staged.autoDeductMoney}
         onToggleAutoDeductMoney={setAutoDeductMoney}
+        defaultCategory={addDialogCategory}
       />
       <ItemEditorDialog
         open={editorOpen}
