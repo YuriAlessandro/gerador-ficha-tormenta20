@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            16/07/2026 (v4.26).
+            18/07/2026 (v4.26).
           </p>
 
           <p>
@@ -75,6 +75,60 @@ const Changelog: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <h3>4.26</h3>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  Complicações — regra opcional de Heróis de Arton
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Chegou a primeira das{' '}
+                  <strong>regras opcionais de Heróis de Arton</strong>: as{' '}
+                  <strong>Complicações</strong>. Na criação de personagem (com o
+                  suplemento Heróis de Arton ativo), você pode escolher{' '}
+                  <strong>uma complicação</strong> para o seu herói — uma
+                  restrição ou penalidade que faz parte da história dele — e, em
+                  troca, ganha um <strong>poder geral adicional</strong>{' '}
+                  (respeitando os pré-requisitos).
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  São <strong>54 complicações oficiais</strong> (gerais e
+                  específicas de classe). As penalidades numéricas — em
+                  perícias, Defesa, PV, PM e deslocamento — são{' '}
+                  <strong>aplicadas automaticamente na ficha</strong>; as de
+                  interpretação ficam descritas para você e seu mestre
+                  conduzirem em jogo.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Complicações de classe têm uma regra extra: você só usa o
+                  poder concedido enquanto{' '}
+                  <strong>metade dos seus níveis</strong> forem daquela classe —
+                  se deixar de cumprir isso (em uma multiclasse, por exemplo), o
+                  poder aparece <strong>marcado como indisponível</strong> na
+                  ficha, com um aviso, mas nunca é removido. Você pode{' '}
+                  <strong>adicionar, trocar ou remover</strong> a complicação
+                  depois, direto pela ficha.
+                </Typography>
+              </Alert>
+
               <ul>
                 <li>
                   <strong>Novo:</strong>{' '}
@@ -83,6 +137,27 @@ const Changelog: React.FC = () => {
                   ao abrir ou editar em &quot;Meus Personagens&quot;, com a
                   opção de restaurar a cópia local salva no seu navegador — o
                   mesmo mecanismo usado no incidente da Mesa Virtual.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>
+                    Aprimoramentos de magia conectados às rolagens
+                  </strong>
+                  : ao lançar uma magia e ativar um aprimoramento que aumenta o
+                  dano, a rolagem de dados agora{' '}
+                  <strong>cresce automaticamente</strong>. Antes de rolar, uma
+                  tela de confirmação mostra o dano que será jogado — e você
+                  ainda pode ajustá-lo manualmente naquele lançamento. Recurso
+                  disponível para todos.
+                </li>
+                <li>
+                  <strong>Novo:</strong> suporte à{' '}
+                  <strong>Tradição Perdida</strong> (Heróis de Arton): no editor
+                  da ficha, conjuradores agora podem escolher o{' '}
+                  <strong>atributo-chave</strong> usado tanto na{' '}
+                  <strong>CD das magias</strong> (qualquer um dos seis
+                  atributos) quanto no cálculo dos <strong>PM</strong> — este
+                  com o limite por patamar previsto na regra.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> O <strong>Mapa de Arton</strong>{' '}
@@ -123,6 +198,13 @@ const Changelog: React.FC = () => {
                   mostrava &quot;Ficha atualizada com sucesso!&quot; mesmo
                   quando o salvamento na nuvem falhava; agora o erro é informado
                   corretamente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na <strong>Mesa Virtual</strong>, a
+                  sincronização automática dos <strong>parceiros</strong>{' '}
+                  (Melhor Amigo) podia disparar o salvamento da ficha inteira;
+                  agora ela envia apenas os <strong>efeitos ativos</strong>,
+                  evitando sobrescritas indevidas.
                 </li>
               </ul>
               <h3>4.25.1</h3>
