@@ -167,6 +167,12 @@ const Changelog: React.FC = () => {
                   abre o Fichas de Nimb em uma nova aba.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> O card da{' '}
+                  <strong>Complicação</strong> na ficha agora segue o mesmo
+                  estilo visual dos demais poderes e aparece ao final da lista
+                  de poderes, ficando mais fácil de identificar.
+                </li>
+                <li>
                   <strong>Correção:</strong> Corrigida a{' '}
                   <strong>multiclasse com Necromante</strong>: ao escolher a
                   variante no assistente de subir de nível, o passo
@@ -205,6 +211,12 @@ const Changelog: React.FC = () => {
                   (Melhor Amigo) podia disparar o salvamento da ficha inteira;
                   agora ela envia apenas os <strong>efeitos ativos</strong>,
                   evitando sobrescritas indevidas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder geral concedido pela{' '}
+                  <strong>Complicação</strong> agora mostra corretamente a
+                  complicação como origem no rótulo &quot;Vindo de&quot; da
+                  ficha.
                 </li>
               </ul>
               <h3>4.25.1</h3>
