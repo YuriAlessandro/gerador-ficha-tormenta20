@@ -127,6 +127,12 @@ const Changelog: React.FC = () => {
                   <strong>adicionar, trocar ou remover</strong> a complicação
                   depois, direto pela ficha.
                 </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Escolher uma complicação é um{' '}
+                  <strong>recurso para apoiadores</strong>. Se você já tinha uma
+                  complicação na ficha, ela continua visível e você pode
+                  gerenciá-la normalmente.
+                </Typography>
               </Alert>
 
               <ul>
@@ -184,6 +190,15 @@ const Changelog: React.FC = () => {
                   ficha.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> As <strong>Complicações</strong>{' '}
+                  passam a ser um <strong>recurso para apoiadores</strong>: a
+                  etapa no assistente de criação e o botão de edição na ficha
+                  ficam disponíveis para quem apoia o projeto. Fichas que já têm
+                  uma complicação continuam mostrando tudo normalmente —
+                  inclusive a opção de trocar ou remover — e as penalidades
+                  seguem sendo aplicadas em qualquer caso.
+                </li>
+                <li>
                   <strong>Correção:</strong> Corrigida a{' '}
                   <strong>multiclasse com Necromante</strong>: ao escolher a
                   variante no assistente de subir de nível, o passo
@@ -228,6 +243,13 @@ const Changelog: React.FC = () => {
                   <strong>Complicação</strong> agora mostra corretamente a
                   complicação como origem no rótulo &quot;Vindo de&quot; da
                   ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na <strong>Mesa Virtual</strong>,{' '}
+                  <strong>editar um parceiro personalizado</strong> falhava com
+                  erro de servidor e as mudanças não eram salvas — ao adicionar
+                  um módulo, renomear ou trocar a cor. Agora a edição funciona e
+                  o parceiro mantém seus dados originais.
                 </li>
               </ul>
               <h3>4.25.1</h3>
