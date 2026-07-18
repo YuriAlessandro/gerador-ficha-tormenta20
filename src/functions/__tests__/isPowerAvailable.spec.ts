@@ -81,3 +81,43 @@ describe('Artesão Criativo e Ofício (Artesão)', () => {
     expect(isPowerAvailable(sheet, genericOficioPower)).toBe(true);
   });
 });
+
+describe('Requisito RequirementType.CLASSE (o nome fica em rule.name)', () => {
+  const guerreiroPower: ClassPower = {
+    name: 'Poder de Teste (exige Guerreiro)',
+    text: 'Requer classe Guerreiro.',
+    requirements: [[{ type: RequirementType.CLASSE, name: 'Guerreiro' }]],
+  };
+
+  it('disponível quando a classe do personagem bate com o requisito', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.classe = { ...sheet.classe, name: 'Guerreiro' };
+
+    expect(isPowerAvailable(sheet, guerreiroPower)).toBe(true);
+  });
+
+  it('indisponível quando a classe do personagem não bate', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.classe = { ...sheet.classe, name: 'Arcanista' };
+
+    expect(isPowerAvailable(sheet, guerreiroPower)).toBe(false);
+  });
+
+  it('disponível para variante da classe exigida (isClassOrVariantOf)', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.classe = {
+      ...sheet.classe,
+      name: 'Bárbaro Selvagem',
+      isVariant: true,
+      baseClassName: 'Bárbaro',
+    };
+
+    const barbaroPower: ClassPower = {
+      name: 'Poder de Teste (exige Bárbaro)',
+      text: 'Requer classe Bárbaro.',
+      requirements: [[{ type: RequirementType.CLASSE, name: 'Bárbaro' }]],
+    };
+
+    expect(isPowerAvailable(sheet, barbaroPower)).toBe(true);
+  });
+});

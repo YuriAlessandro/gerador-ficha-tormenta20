@@ -16,6 +16,7 @@ import {
   NaturalWeaponDamageType,
   SpiritEnergyType,
 } from './Companion';
+import type { Complication } from '../premium/interfaces/Complication';
 
 export interface ClassEquipmentSelections {
   simpleWeapon?: Equipment;
@@ -184,6 +185,11 @@ export interface WizardSelections {
 
   // Propósito de Criação (for Golem races that don't have origins)
   propositoCriacaoPower?: GeneralPower;
+
+  // Complicação (Heróis de Arton): objeto escolhido ou 'declined' (recusa explícita)
+  complication?: Complication | 'declined';
+  // Poder geral adicional concedido pela complicação
+  complicationPower?: GeneralPower;
 
   // Equipamento inicial da classe escolhido no step "Equipamento Inicial"
   classEquipment?: ClassEquipmentSelections;

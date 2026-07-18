@@ -13,6 +13,7 @@ import { CompanionSheet } from './Companion';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
+import type { SheetComplication } from '../premium/interfaces/Complication';
 import type { DiceRoll } from './DiceRoll';
 
 export type SheetChangeSource =
@@ -50,6 +51,10 @@ export type SheetChangeSource =
       type: 'activeEffect';
       powerKey: string;
       name: string;
+    }
+  | {
+      type: 'complication';
+      complicationName: string;
     };
 
 export type SheetAction = {
@@ -751,7 +756,9 @@ export default interface CharacterSheet {
   notes?: string; // Anotações livres do jogador
   imageUrl?: string; // URL de imagem do personagem
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
+  complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
+  tradicaoPerdidaPmAttribute?: Atributo; // Poder Tradição Perdida: atributo que entra no total de PM no lugar do atributo da classe (cap 6 +2/patamar). undefined = usa o atributo da classe.
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador

@@ -16,7 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { v4 as uuid } from 'uuid';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { isValidDiceString } from '@/utils/diceRoller';
+import { isValidDamageString } from '@/utils/diceRoller';
 
 interface RollsEditorPanelProps {
   rolls: DiceRoll[];
@@ -70,8 +70,10 @@ const RollsEditorPanel: React.FC<RollsEditorPanelProps> = ({
     } else {
       setLabelError('');
     }
-    if (!isValidDiceString(dice)) {
-      setDiceError('Formato inválido. Use: XdY, XdY+Z ou XdY-Z (ex: 3d6+2)');
+    if (!isValidDamageString(dice)) {
+      setDiceError(
+        'Formato inválido. Use: XdY, XdY+Z ou combine grupos (ex: 6d6+1d8+2)'
+      );
       isValid = false;
     } else {
       setDiceError('');
@@ -196,7 +198,7 @@ const RollsEditorPanel: React.FC<RollsEditorPanelProps> = ({
             fullWidth
             required
             error={!!diceError}
-            helperText={diceError || 'Ex: "3d6", "1d20+5", "2d10-2"'}
+            helperText={diceError || 'Ex: "3d6", "1d20+5", "6d6+1d8+2"'}
           />
           <TextField
             label='Descrição (Opcional)'

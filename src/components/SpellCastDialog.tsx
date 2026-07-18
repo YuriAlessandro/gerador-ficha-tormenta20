@@ -23,11 +23,18 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CasinoIcon from '@mui/icons-material/Casino';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { getActiveEffectForSpell } from '@/premium/data/activePowers';
 import { ACTIVE_EFFECT_COLOR } from '@/premium/functions/activeEffectHighlights';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { executeMultipleDiceRolls } from '@/utils/diceRoller';
+import { executeMultipleDamageRolls } from '@/utils/diceRoller';
+import {
+  augmentSpellRolls,
+  AprimoramentoSelection,
+  AugmentedRoll,
+} from '@/functions/spellRollAugmentation';
 import { Spell, Aprimoramento } from '../interfaces/Spells';
 import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
@@ -51,6 +58,15 @@ const isStackable = (aprimoramento: Aprimoramento): boolean =>
 
 const isTruque = (aprimoramento: Aprimoramento): boolean =>
   aprimoramento.trick === true;
+
+// Remove os campos derivados do augment antes de semear o editor / persistir.
+const toPlainRoll = (roll: DiceRoll): DiceRoll => ({
+  id: roll.id,
+  label: roll.label,
+  dice: roll.dice,
+  description: roll.description,
+  damageType: roll.damageType,
+});
 
 const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   open,
@@ -79,8 +95,14 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
 
   const [selections, setSelections] = useState<Map<number, number>>(new Map());
   const [shouldSpendPM, setShouldSpendPM] = useState(true);
-  const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
+  const [baseRollsDialogOpen, setBaseRollsDialogOpen] = useState(false);
+  const [overrideRollsDialogOpen, setOverrideRollsDialogOpen] = useState(false);
   const [localRolls, setLocalRolls] = useState<DiceRoll[]>([]);
+  // Edição manual efêmera desta janela de lançamento. Quando definida,
+  // sobrepõe as rolagens aumentadas automaticamente e NUNCA é persistida.
+  const [overriddenRolls, setOverriddenRolls] = useState<DiceRoll[] | null>(
+    null
+  );
   const [selectedRollIds, setSelectedRollIds] = useState<Set<string>>(
     new Set()
   );
@@ -140,10 +162,49 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   const effectivePM = currentPM + (tempPM ?? 0);
   const insufficientPM = effectivePM < totalPMCost;
 
+  // Aprimoramentos ativos, no formato consumido pelo motor de aumento.
+  const activeSelections = useMemo<AprimoramentoSelection[]>(() => {
+    const result: AprimoramentoSelection[] = [];
+    selections.forEach((count, index) => {
+      const aprimoramento = spell.aprimoramentos?.[index];
+      if (aprimoramento && count > 0) {
+        result.push({ aprimoramento, count });
+      }
+    });
+    return result;
+  }, [selections, spell.aprimoramentos]);
+
+  // Rolagens aumentadas automaticamente pelos aprimoramentos ativos.
+  const effectiveRolls = useMemo(
+    () => augmentSpellRolls(localRolls, activeSelections),
+    [localRolls, activeSelections]
+  );
+
+  // Rolagens exibidas/executadas: edição manual quando houver, senão o
+  // aumento automático. Normalizadas para AugmentedRoll para simplificar o
+  // render (a edição manual não é considerada "aumentada").
+  const displayedRolls: AugmentedRoll[] = useMemo(
+    () =>
+      overriddenRolls
+        ? overriddenRolls.map((roll) => ({
+            ...roll,
+            baseDice: roll.dice,
+            isAugmented: false,
+          }))
+        : effectiveRolls,
+    [overriddenRolls, effectiveRolls]
+  );
+
+  const hasDamageAugment = useMemo(
+    () => effectiveRolls.some((roll) => roll.isAugmented),
+    [effectiveRolls]
+  );
+
   useEffect(() => {
     if (open) {
       setSelections(new Map());
       setShouldSpendPM(true);
+      setOverriddenRolls(null);
       // Ensure all rolls have IDs
       const rollsWithIds = (spell.rolls || []).map((roll) => ({
         ...roll,
@@ -190,14 +251,6 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     });
   }, []);
 
-  const handleOpenRollsDialog = useCallback(() => {
-    setRollsDialogOpen(true);
-  }, []);
-
-  const handleCloseRollsDialog = useCallback(() => {
-    setRollsDialogOpen(false);
-  }, []);
-
   const handleToggleRoll = useCallback((rollId: string) => {
     setSelectedRollIds((prev) => {
       const newSet = new Set(prev);
@@ -211,22 +264,23 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   }, []);
 
   const handleToggleAllRolls = useCallback(() => {
-    if (selectedRollIds.size === localRolls.length) {
-      setSelectedRollIds(new Set());
-    } else {
-      setSelectedRollIds(new Set(localRolls.map((r) => r.id as string)));
-    }
-  }, [selectedRollIds.size, localRolls]);
+    const allIds = displayedRolls.map((r) => r.id as string).filter(Boolean);
+    setSelectedRollIds((prev) =>
+      prev.size === allIds.length ? new Set() : new Set(allIds)
+    );
+  }, [displayedRolls]);
 
-  const handleSaveRolls = useCallback(
+  // Persiste a rolagem BASE da magia (via onUpdateRolls). Não confundir com a
+  // edição manual efêmera.
+  const handleSaveBaseRolls = useCallback(
     (newRolls: DiceRoll[]) => {
-      // Ensure all rolls have IDs
       const rollsWithIds = newRolls.map((roll) => ({
         ...roll,
         id: roll.id || uuid(),
       }));
       setLocalRolls(rollsWithIds);
-      // Select all new rolls by default
+      // Voltar ao automático: a rolagem base mudou, então descarta override.
+      setOverriddenRolls(null);
       setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
       if (onUpdateRolls) {
         onUpdateRolls(spell, rollsWithIds);
@@ -235,20 +289,42 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     [onUpdateRolls, spell]
   );
 
-  const handleCast = useCallback(() => {
-    // Only execute selected rolls
-    const selectedRolls = localRolls.filter(
-      (roll) => roll.id && selectedRollIds.has(roll.id)
-    );
+  // Edição manual APENAS deste lançamento — não persiste na ficha.
+  const handleSaveOverride = useCallback((newRolls: DiceRoll[]) => {
+    const rollsWithIds = newRolls.map((roll) => ({
+      ...roll,
+      id: roll.id || uuid(),
+    }));
+    setOverriddenRolls(rollsWithIds);
+    setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
+  }, []);
 
-    if (selectedRolls.length > 0) {
-      const rollResults = executeMultipleDiceRolls(selectedRolls);
+  const handleResetOverride = useCallback(() => {
+    setOverriddenRolls(null);
+    setSelectedRollIds(
+      new Set(effectiveRolls.map((r) => r.id as string).filter(Boolean))
+    );
+  }, [effectiveRolls]);
+
+  const handleCast = useCallback(() => {
+    // Executa somente as rolagens selecionadas (edição manual quando houver,
+    // senão o aumento automático), suportando notação multi-grupo.
+    const rollsToExecute = displayedRolls
+      .filter((roll) => roll.id && selectedRollIds.has(roll.id))
+      .map(toPlainRoll);
+
+    if (rollsToExecute.length > 0) {
+      const damageTypeById = new Map(
+        rollsToExecute.map((roll) => [roll.id, roll.damageType])
+      );
+      const rollResults = executeMultipleDamageRolls(rollsToExecute);
       const rollGroups: RollGroup[] = rollResults.map((result) => ({
         label: result.label,
         diceNotation: result.dice,
         rolls: result.rolls,
         modifier: result.modifier,
         total: Math.max(1, result.total),
+        damageType: damageTypeById.get(result.rollId),
       }));
       showDiceResult(spell.nome, rollGroups, characterName);
     }
@@ -259,7 +335,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
 
     onClose();
   }, [
-    localRolls,
+    displayedRolls,
     selectedRollIds,
     shouldSpendPM,
     totalPMCost,
@@ -533,10 +609,6 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   >
                     Aprimoramentos
                   </Typography>
-                  <Alert severity='info' variant='outlined' sx={{ mb: 2 }}>
-                    Os aprimoramentos não modificam automaticamente as rolagens.
-                    Configure suas rolagens manualmente.
-                  </Alert>
                   {spell.aprimoramentos.map((apr, idx) =>
                     renderAprimoramento(apr, idx)
                   )}
@@ -561,30 +633,63 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                     fontWeight: 'bold',
                   }}
                 >
-                  Rolagens
+                  Dano a rolar
                 </Typography>
                 <Stack direction='row' spacing={1}>
-                  {localRolls.length > 1 && (
+                  {displayedRolls.length > 1 && (
                     <Button size='small' onClick={handleToggleAllRolls}>
-                      {selectedRollIds.size === localRolls.length
+                      {selectedRollIds.size === displayedRolls.length
                         ? 'Desmarcar todas'
                         : 'Selecionar todas'}
                     </Button>
                   )}
-                  {onUpdateRolls && (
+                  {displayedRolls.length > 0 && (
                     <Button
                       size='small'
-                      startIcon={<SettingsIcon />}
-                      onClick={handleOpenRollsDialog}
+                      startIcon={<AutoFixHighIcon />}
+                      onClick={() => setOverrideRollsDialogOpen(true)}
                     >
-                      Configurar
+                      Ajustar
                     </Button>
                   )}
                 </Stack>
               </Stack>
-              {localRolls.length > 0 ? (
+
+              {overriddenRolls && (
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{ alignItems: 'center', mb: 1, flexWrap: 'wrap' }}
+                >
+                  <Chip
+                    icon={<AutoFixHighIcon />}
+                    label='Edição manual'
+                    size='small'
+                    color='warning'
+                    variant='outlined'
+                  />
+                  <Button
+                    size='small'
+                    startIcon={<RestartAltIcon />}
+                    onClick={handleResetOverride}
+                  >
+                    Voltar ao automático
+                  </Button>
+                </Stack>
+              )}
+
+              {overriddenRolls && hasDamageAugment && (
+                <Typography
+                  variant='caption'
+                  sx={{ display: 'block', color: 'text.secondary', mb: 1 }}
+                >
+                  Aprimoramentos não aplicados à rolagem (edição manual ativa).
+                </Typography>
+              )}
+
+              {displayedRolls.length > 0 ? (
                 <Stack spacing={0.5}>
-                  {localRolls.map((roll) => (
+                  {displayedRolls.map((roll) => (
                     <Box
                       key={roll.id}
                       sx={{
@@ -605,9 +710,34 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                         sx={{ p: 0, mr: 1 }}
                       />
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant='body2'>
-                          <strong>{roll.label}:</strong> {roll.dice}
-                        </Typography>
+                        <Stack
+                          direction='row'
+                          spacing={1}
+                          sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+                        >
+                          <Typography variant='body2'>
+                            <strong>{roll.label}:</strong>{' '}
+                            <strong
+                              style={{
+                                color: roll.isAugmented
+                                  ? theme.palette.primary.main
+                                  : undefined,
+                              }}
+                            >
+                              {roll.dice}
+                            </strong>
+                          </Typography>
+                          {roll.isAugmented && (
+                            <Chip
+                              label={`${roll.baseDice} ${
+                                roll.addedSummary ?? ''
+                              }`.trim()}
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                        </Stack>
                         {roll.description && (
                           <Typography
                             variant='caption'
@@ -632,10 +762,22 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   Nenhuma rolagem configurada
                 </Typography>
               )}
-              {localRolls.length > 0 && selectedRollIds.size === 0 && (
+
+              {displayedRolls.length > 0 && selectedRollIds.size === 0 && (
                 <Alert severity='warning' sx={{ mt: 1 }}>
                   Selecione pelo menos uma rolagem para executar
                 </Alert>
+              )}
+
+              {onUpdateRolls && (
+                <Button
+                  size='small'
+                  startIcon={<SettingsIcon />}
+                  onClick={() => setBaseRollsDialogOpen(true)}
+                  sx={{ mt: 1 }}
+                >
+                  Configurar rolagens base
+                </Button>
               )}
             </Box>
 
@@ -673,13 +815,24 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Edição manual efêmera (apenas deste lançamento) */}
+      <RollsEditDialog
+        open={overrideRollsDialogOpen}
+        onClose={() => setOverrideRollsDialogOpen(false)}
+        rolls={displayedRolls.map(toPlainRoll)}
+        onSave={handleSaveOverride}
+        title={`Ajustar rolagem: ${spell.nome}`}
+      />
+
+      {/* Edição persistente da rolagem base da magia */}
       {onUpdateRolls && (
         <RollsEditDialog
-          open={rollsDialogOpen}
-          onClose={handleCloseRollsDialog}
+          open={baseRollsDialogOpen}
+          onClose={() => setBaseRollsDialogOpen(false)}
           rolls={localRolls}
-          onSave={handleSaveRolls}
-          title={`Rolagens: ${spell.nome}`}
+          onSave={handleSaveBaseRolls}
+          title={`Rolagens base: ${spell.nome}`}
         />
       )}
     </>

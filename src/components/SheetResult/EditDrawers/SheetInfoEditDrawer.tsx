@@ -43,6 +43,7 @@ import {
   modifyAttributesBasedOnRace,
   applyManualLevelUp,
 } from '@/functions/general';
+import { getTradicaoPerdidaPmCap } from '@/functions/powers/general';
 import getNameSuggestions from '@/functions/nameSuggestions';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { SupplementId } from '@/types/supplement.types';
@@ -182,6 +183,7 @@ interface EditedData {
   bonusPM: number; // Bonus PM
   manualMaxPV: number | undefined; // Manual max PV override
   manualMaxPM: number | undefined; // Manual max PM override
+  tradicaoPerdidaPmAttribute: Atributo | undefined; // Tradição Perdida: atributo do PM (undefined = atributo da classe)
   imageUrl: string;
 }
 
@@ -208,6 +210,32 @@ const isDuendeConfigChanged = (
       getSeedDuendeBonusAttributes(sheet)
     ));
 
+// Override de PM da Tradição Perdida para os previews/breakdown do drawer: quando
+// o bônus é a contribuição do atributo-chave da classe (spellKeyAttr) e há um
+// atributo de PM escolhido, troca o valor pelo atributo escolhido (limitado por
+// patamar). Espelha a lógica do motor (getTradicaoPerdidaPmValue), mas recebe
+// nível/atributos explícitos para refletir edições ao vivo. Só se aplica ao alvo
+// PM (chamado apenas nos cálculos de PM), preservando o uso de spellKeyAttr em PV.
+const applyTradicaoPerdidaPmOverride = (
+  modifier: { type: string; attribute?: string },
+  level: number,
+  attributes: CharacterAttributes,
+  pmAttribute: Atributo | undefined,
+  fallback: number
+): number => {
+  if (
+    modifier.type === 'SpecialAttribute' &&
+    modifier.attribute === 'spellKeyAttr' &&
+    pmAttribute
+  ) {
+    return Math.min(
+      attributes[pmAttribute]?.value ?? 0,
+      getTradicaoPerdidaPmCap(level)
+    );
+  }
+  return fallback;
+};
+
 const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   open,
   onClose,
@@ -215,6 +243,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   onSave,
 }) => {
   const sheetIsMulticlass = isMulticlass(sheet);
+
+  // A Tradição Perdida só faz sentido para conjuradores (a contribuição de PM do
+  // atributo-chave vem da habilidade "Magias"). Mostra o seletor só quando a
+  // ficha tem magias/atributo-chave definido.
+  const canEditTradicaoPerdidaPm =
+    !!sheet.classe.spellPath ||
+    !!sheet.overrideKeyAttribute ||
+    sheet.sheetBonuses.some(
+      (b) =>
+        b.target.type === 'PM' &&
+        b.modifier.type === 'SpecialAttribute' &&
+        b.modifier.attribute === 'spellKeyAttr'
+    );
   // useContentSupplements já memoiza o array (evita loop de reset por nova referência)
   const userSupplements = useContentSupplements();
 
@@ -260,6 +301,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     bonusPM: sheet.bonusPM || 0,
     manualMaxPV: sheet.manualMaxPV,
     manualMaxPM: sheet.manualMaxPM,
+    tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
     imageUrl: sheet.imageUrl || '',
   });
 
@@ -344,6 +386,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       bonusPM: sheet.bonusPM || 0,
       manualMaxPV: sheet.manualMaxPV,
       manualMaxPM: sheet.manualMaxPM,
+      tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
     });
     setImagePreviewError(false);
@@ -630,7 +673,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         attributes,
         spellPath?.keyAttribute
       );
-      total += bonusValue;
+      total += applyTradicaoPerdidaPmOverride(
+        bonus.modifier,
+        level,
+        attributes,
+        editedData.tradicaoPerdidaPmAttribute,
+        bonusValue
+      );
     });
 
     // Add manual PM edit (e.g., from manual adjustments)
@@ -709,6 +758,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       bonusPM: editedData.bonusPM,
       manualMaxPV: editedData.manualMaxPV,
       manualMaxPM: editedData.manualMaxPM,
+      tradicaoPerdidaPmAttribute: editedData.tradicaoPerdidaPmAttribute,
       imageUrl: editedData.imageUrl || undefined,
     };
 
@@ -1378,6 +1428,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       );
     }
 
+    const tradicaoPerdidaPmChanged =
+      editedData.tradicaoPerdidaPmAttribute !==
+      sheet.tradicaoPerdidaPmAttribute;
+
     const shouldUseRecalculateSheet =
       attributesChanged ||
       raceChanged ||
@@ -1385,7 +1439,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       levelChanged ||
       manualMaxChanged ||
       heritageChanged ||
-      moreauSapienciaSpellChanged;
+      moreauSapienciaSpellChanged ||
+      tradicaoPerdidaPmChanged;
 
     if (shouldUseRecalculateSheet) {
       const updatedSheet = { ...sheet, ...updates };
@@ -1429,6 +1484,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       bonusPM: sheet.bonusPM || 0,
       manualMaxPV: sheet.manualMaxPV,
       manualMaxPM: sheet.manualMaxPM,
+      tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
     });
     setImagePreviewError(false);
@@ -1707,11 +1763,17 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         (b) => b.target.type === 'PM'
       );
       pmBonuses.forEach((b) => {
-        const value = calculateBonusValue(
+        const value = applyTradicaoPerdidaPmOverride(
           b.modifier,
           sheet.nivel,
           sheet.atributos,
-          spellPath?.keyAttribute
+          sheet.tradicaoPerdidaPmAttribute,
+          calculateBonusValue(
+            b.modifier,
+            sheet.nivel,
+            sheet.atributos,
+            spellPath?.keyAttribute
+          )
         );
         if (value !== 0) {
           let sourceName = 'Desconhecido';
@@ -1757,11 +1819,17 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     // Calculate power bonuses (this is where key attribute bonus comes from)
     const pmBonuses = sheet.sheetBonuses.filter((b) => b.target.type === 'PM');
     const powerBonusDetails = pmBonuses.map((b) => {
-      const value = calculateBonusValue(
+      const value = applyTradicaoPerdidaPmOverride(
         b.modifier,
         editedData.nivel,
         editedData.attributes,
-        spellPath?.keyAttribute
+        editedData.tradicaoPerdidaPmAttribute,
+        calculateBonusValue(
+          b.modifier,
+          editedData.nivel,
+          editedData.attributes,
+          spellPath?.keyAttribute
+        )
       );
       let sourceName = 'Desconhecido';
       if (b.source?.type === 'power') {
@@ -2920,6 +2988,41 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     min={-100}
                     max={500}
                   />
+
+                  {canEditTradicaoPerdidaPm && (
+                    <FormControl fullWidth>
+                      <InputLabel id='tradicao-perdida-pm-label'>
+                        Atributo de PM (Tradição Perdida)
+                      </InputLabel>
+                      <Select
+                        labelId='tradicao-perdida-pm-label'
+                        label='Atributo de PM (Tradição Perdida)'
+                        value={editedData.tradicaoPerdidaPmAttribute ?? ''}
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            tradicaoPerdidaPmAttribute:
+                              (e.target.value as Atributo) || undefined,
+                          })
+                        }
+                      >
+                        <MenuItem value=''>
+                          <em>Padrão (atributo da classe)</em>
+                        </MenuItem>
+                        {Object.values(Atributo).map((attr) => (
+                          <MenuItem key={attr} value={attr}>
+                            {attr}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <FormHelperText>
+                        Poder Tradição Perdida: soma este atributo no total de
+                        PM (limite de 6 +2/patamar), no lugar do atributo da
+                        classe. Ignorado se &quot;PM Máximo Manual&quot; estiver
+                        definido.
+                      </FormHelperText>
+                    </FormControl>
+                  )}
 
                   <Divider sx={{ my: 2 }} />
 

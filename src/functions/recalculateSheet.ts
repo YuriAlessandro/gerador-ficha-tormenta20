@@ -51,6 +51,7 @@ import {
   weaponMatchesScope,
   WeaponBonusScope,
 } from './weaponBonusScope';
+import { getTradicaoPerdidaPmValue } from './powers/general';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
@@ -999,6 +1000,26 @@ function applyOriginPowers(
 }
 
 /**
+ * Aplica a complicação (Heróis de Arton) embutida na ficha. As penalidades
+ * (sheetBonuses) precisam ser reaplicadas a cada recalc porque o Step 1 zera
+ * sheetBonuses; sheetActions são idempotentes via sheetActionHistory.
+ */
+function applyComplication(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
+  if (!sheet.complication) return sheet;
+
+  const complicationSelections = manualSelections?.[sheet.complication.name];
+  const [newSheet] = applyPower(
+    _.cloneDeep(sheet),
+    sheet.complication,
+    complicationSelections
+  );
+  return newSheet;
+}
+
+/**
  * Checks if the character has a specific class ability
  */
 function hasClassAbility(sheet: CharacterSheet, abilityName: string): boolean {
@@ -1546,6 +1567,15 @@ export function recalculateSheet(
       ...removedOriginPowers,
     ];
 
+    // Complicação (Heróis de Arton) removida ou trocada: reverte as
+    // sheetActions da complicação antiga como se fosse um poder removido
+    if (
+      originalSheet.complication &&
+      originalSheet.complication.name !== updatedSheet.complication?.name
+    ) {
+      removedPowerNames.push(originalSheet.complication.name);
+    }
+
     // Only reverse sheet actions (not bonuses) since bonuses will be cleared anyway
     removedPowerNames.forEach((powerName) => {
       reverseSheetActionsForPower(updatedSheet, powerName);
@@ -1619,6 +1649,9 @@ export function recalculateSheet(
 
   // Step 7: Apply origin powers
   updatedSheet = applyOriginPowers(updatedSheet, manualSelections);
+
+  // Step 7.2: Apply complication (Heróis de Arton)
+  updatedSheet = applyComplication(updatedSheet, manualSelections);
 
   // Step 7.3: Apply equipment bonuses
   updatedSheet = applyEquipmentBonuses(updatedSheet);
@@ -1812,8 +1845,18 @@ export function recalculateSheet(
         !options?.skipPMRecalc &&
         !hasManualMaxPM
       ) {
+        // Tradição Perdida: substitui a contribuição do atributo-chave da
+        // classe (spellKeyAttr) no total de PM pelo atributo escolhido no poder
+        // (limitado por patamar). Fora desse caso, usa o valor normal.
+        const tradicaoPerdidaPm =
+          bonus.modifier.type === 'SpecialAttribute' &&
+          bonus.modifier.attribute === 'spellKeyAttr'
+            ? getTradicaoPerdidaPmValue(updatedSheet)
+            : null;
+        const pmValue = tradicaoPerdidaPm ?? bonusValue;
+
         const pmBefore = updatedSheet.pm;
-        updatedSheet.pm += bonusValue;
+        updatedSheet.pm += pmValue;
         const pmAfter = updatedSheet.pm;
 
         // Track PM bonus details
@@ -1831,7 +1874,7 @@ export function recalculateSheet(
           bonusType: bonus.modifier.type,
           formula:
             'formula' in bonus.modifier ? bonus.modifier.formula : undefined,
-          calculatedValue: bonusValue,
+          calculatedValue: pmValue,
           pmBefore,
           pmAfter,
         });

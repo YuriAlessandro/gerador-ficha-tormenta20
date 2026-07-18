@@ -1,10 +1,22 @@
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
-import { Box, IconButton, Stack, Tooltip } from '@mui/material';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Chip,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import CheckIcon from '@mui/icons-material/Check';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import {
   DragDropContext,
   Draggable,
@@ -20,6 +32,7 @@ import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-s
 import { CustomPower } from '@/interfaces/CustomPower';
 import { applyPowersOrder } from '@/functions/powers/applyPowersOrder';
 import { getActivePowerForSheetEntry } from '@/premium/data/activePowers';
+import { getComplicationPowerWarning } from '@/premium/functions/complications';
 import type {
   ActivePowerDefinition,
   ActiveEffectUsageOption,
@@ -216,7 +229,7 @@ const PowersDisplay: React.FC<{
     );
   };
 
-  const buildHeaderActionSlot = (
+  const buildBaseHeaderActionSlot = (
     pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
   ): React.ReactNode => {
     if (pw.name === 'Paródia') return parodyButtonSlot;
@@ -255,6 +268,41 @@ const PowersDisplay: React.FC<{
       }
     }
     return undefined;
+  };
+
+  const buildHeaderActionSlot = (
+    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
+  ): React.ReactNode => {
+    const base = buildBaseHeaderActionSlot(pw);
+
+    // Poder concedido por complicação de classe (Heróis de Arton): marca como
+    // indisponível quando menos da metade dos níveis são da classe exigida.
+    // Sempre computado no render — nunca persistido.
+    const complicationWarning =
+      sheet?.complication && pw.name === sheet.complication.grantedPowerName
+        ? getComplicationPowerWarning(sheet)
+        : null;
+
+    if (!complicationWarning) return base;
+
+    const warningChip = (
+      <Tooltip title={complicationWarning}>
+        <Chip
+          size='small'
+          color='warning'
+          icon={<WarningAmberIcon />}
+          label='Indisponível'
+        />
+      </Tooltip>
+    );
+
+    if (!base) return warningChip;
+    return (
+      <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
+        {warningChip}
+        {base}
+      </Stack>
+    );
   };
 
   const renderPower = (
@@ -311,6 +359,57 @@ const PowersDisplay: React.FC<{
             </IconButton>
           </Tooltip>
         </Stack>
+      )}
+
+      {sheet?.complication && (
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              '& .MuiAccordionSummary-content': {
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              },
+            }}
+          >
+            <Typography sx={{ fontWeight: 600 }}>
+              {sheet.complication.name}
+            </Typography>
+            <Chip
+              size='small'
+              label='Complicação'
+              sx={{ mr: 1 }}
+              color='secondary'
+              variant='outlined'
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            {sheet.complication.className && (
+              <Typography
+                variant='caption'
+                sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
+              >
+                Complicação de {sheet.complication.className}
+              </Typography>
+            )}
+            {sheet.complication.behavioral && (
+              <Typography
+                variant='caption'
+                sx={{ display: 'block', color: 'warning.main', mb: 0.5 }}
+              >
+                † Comportamental — se violar, perde todos os PM (recupera a
+                partir do próximo dia).
+              </Typography>
+            )}
+            <Typography variant='body2'>
+              {sheet.complication.description}
+            </Typography>
+            <Typography variant='caption' sx={{ display: 'block', mt: 1 }}>
+              Poder adicional:{' '}
+              <strong>{sheet.complication.grantedPowerName}</strong>
+            </Typography>
+          </AccordionDetails>
+        </Accordion>
       )}
 
       {reorderMode ? (

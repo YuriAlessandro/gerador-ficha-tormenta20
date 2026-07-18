@@ -168,6 +168,7 @@ import { applyMoreauCustomization } from '../data/systems/tormenta20/ameacas-de-
 import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
+  getTradicaoPerdidaPmValue,
 } from './powers/general';
 import {
   feiticeiroPaths,
@@ -4624,10 +4625,18 @@ const applyStatModifiers = (
         value: `${bonusValue}`,
       });
     } else if (bonus.target.type === 'PM') {
-      sheet.pm += bonusValue;
+      // Tradição Perdida: substitui a contribuição do atributo-chave da classe
+      // (spellKeyAttr) no total de PM pelo atributo escolhido no poder (com cap).
+      const tradicaoPerdidaPm =
+        bonus.modifier.type === 'SpecialAttribute' &&
+        bonus.modifier.attribute === 'spellKeyAttr'
+          ? getTradicaoPerdidaPmValue(sheet)
+          : null;
+      const pmValue = tradicaoPerdidaPm ?? bonusValue;
+      sheet.pm += pmValue;
       pmSubSteps.push({
         name: subStepName,
-        value: `${bonusValue}`,
+        value: `${pmValue}`,
       });
     } else if (bonus.target.type === 'Defense') {
       sheet.defesa += bonusValue;
@@ -6525,6 +6534,33 @@ export function generateEmptySheet(
     });
   }
 
+  // Complicação (Heróis de Arton) — regra opcional
+  if (
+    wizardSelections?.complication &&
+    wizardSelections.complication !== 'declined' &&
+    wizardSelections.complicationPower
+  ) {
+    const { complication, complicationPower } = wizardSelections;
+    emptySheet.complication = {
+      ...complication,
+      grantedPowerName: complicationPower.name,
+    };
+    if (
+      !emptySheet.generalPowers.some((p) => p.name === complicationPower.name)
+    ) {
+      emptySheet.generalPowers.push(complicationPower);
+    }
+
+    emptySheet.steps.push({
+      label: 'Complicação',
+      type: 'Poderes',
+      value: [
+        { name: 'Complicação', value: complication.name },
+        { name: 'Poder Geral', value: complicationPower.name },
+      ],
+    });
+  }
+
   // Process deity if selected
   if (selectedOptions.devocao && selectedOptions.devocao.value) {
     const normalizedSearch = normalizeDeityName(selectedOptions.devocao.value);
@@ -6629,7 +6665,14 @@ export function generateEmptySheet(
     if (bonus.target.type === 'PV') {
       pvSubSteps.push({ name: subStepName, value: `${bonusValue}` });
     } else if (bonus.target.type === 'PM') {
-      pmSubSteps.push({ name: subStepName, value: `${bonusValue}` });
+      // Tradição Perdida: mesmo override do total de PM, para o passo-a-passo bater.
+      const tradicaoPerdidaPm =
+        bonus.modifier.type === 'SpecialAttribute' &&
+        bonus.modifier.attribute === 'spellKeyAttr'
+          ? getTradicaoPerdidaPmValue(emptySheet)
+          : null;
+      const pmValue = tradicaoPerdidaPm ?? bonusValue;
+      pmSubSteps.push({ name: subStepName, value: `${pmValue}` });
     } else if (bonus.target.type === 'Defense') {
       defSubSteps.push({ name: subStepName, value: `${bonusValue}` });
     } else if (bonus.target.type === 'Skill') {

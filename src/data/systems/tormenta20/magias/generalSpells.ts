@@ -307,6 +307,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6.',
+        damageBonus: [{ dicePerActivation: '1d6' }],
       },
     ],
     rolls: [
@@ -431,6 +432,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano causado pela arma em +1d6 (bônus máximo limitado pelo círculo máximo de magia que você pode lançar).',
+        damageBonus: [{ dicePerActivation: '1d6' }],
       },
       {
         addPm: 5,
@@ -829,6 +831,11 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
         label: 'Dano de Impacto (aprimoramento)',
         dice: '2d4',
       },
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '1d6',
+      },
     ],
     aprimoramentos: [
       {
@@ -842,6 +849,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 1,
         text: 'se escolheu fogo, aumenta o dano inicial de cada chama em +1d6.',
+        damageBonus: [{ targetRollLabel: 'fogo', dicePerActivation: '1d6' }],
       },
     ],
   },
@@ -922,6 +930,9 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 1,
         text: 'aumenta a cura em +1d8+1.',
+        damageBonus: [
+          { targetRollLabel: 'recuperar', dicePerActivation: '1d8+1' },
+        ],
       },
       {
         addPm: 2,
@@ -959,6 +970,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d8+2.',
+        damageBonus: [{ dicePerActivation: '1d8+2' }],
       },
       {
         addPm: 2,
@@ -1158,6 +1170,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 1,
         text: 'aumenta o dano em +1d6.',
+        damageBonus: [{ dicePerActivation: '1d6' }],
       },
       {
         addPm: 1,
@@ -1251,6 +1264,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em 1d8+1.',
+        damageBonus: [{ dicePerActivation: '1d8+1' }],
       },
       {
         addPm: 2,
@@ -1367,6 +1381,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 3,
         text: 'aumenta o dano de ácido em +2d4.',
+        damageBonus: [{ dicePerActivation: '2d4' }],
       },
       {
         addPm: 5,
@@ -1740,6 +1755,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 1,
         text: 'aumenta o dano em 1d8+1.',
+        damageBonus: [{ dicePerActivation: '1d8+1' }],
       },
       {
         addPm: 2,
@@ -1880,10 +1896,18 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Necro',
     description:
       'Você suga energia vital da terra, recebendo 2d10 pontos de vida temporários. Os PV temporários desaparecem ao final da cena.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'PV Temporários',
+        dice: '2d10',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: ' aumenta os PV temporários recebidos em +1d10. Caso a magia cause dano, em vez disso aumenta o dano causado em +1d10.',
+        damageBonus: [{ dicePerActivation: '1d10' }],
       },
       {
         addPm: 5,
@@ -2039,10 +2063,18 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Abjur',
     description:
       'Você escreve uma runa pessoal em uma superfície fixa, como uma parede ou o chão, que protege uma pequena área ao redor. Quando uma criatura entra na área afetada a runa explode, causando 6d6 pontos de dano em todos os alvos a até 6m. A criatura que ativa a runa não tem direito a teste de resistência; outras criaturas na área têm direito a um teste de Reflexos para reduzir o dano à metade. Quando lança a magia, você escolhe o tipo de dano, entre ácido, eletricidade, fogo, frio, luz ou trevas. Você pode determinar que a runa se ative apenas em condições específicas — por exemplo, apenas por goblins ou apenas por mortos-vivos. Você também pode criar uma palavra mágica que impeça a runa de se ativar. Um personagem pode encontrar a runa com um teste de Investigação e desarmá-la com um teste de Ladinagem. Componente material: pó de diamante no valor de T$ 200, com o qual o conjurador desenha a runa, que brilha por alguns instantes e depois se torna praticamente invisível.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
         text: 'aumenta o dano em +2d6.',
+        damageBonus: [{ dicePerActivation: '2d6' }],
       },
       {
         addPm: 1,
@@ -2289,6 +2321,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +2d6.',
+        damageBonus: [{ dicePerActivation: '2d6' }],
       },
       {
         addPm: 2,
@@ -2335,6 +2368,10 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano inicial e o dano por rodada em +1d6.',
+        damageBonus: [
+          { targetRollLabel: 'inicial', dicePerActivation: '1d6' },
+          { targetRollLabel: 'por rodada', dicePerActivation: '1d6' },
+        ],
       },
     ],
   },
@@ -2360,6 +2397,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +2d6.',
+        damageBonus: [{ dicePerActivation: '2d6' }],
       },
       {
         addPm: 3,
@@ -2394,6 +2432,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano de frio em +2d6.',
+        damageBonus: [{ targetRollLabel: 'frio', dicePerActivation: '2d6' }],
       },
       {
         addPm: 3,
@@ -2533,6 +2572,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d8+1.',
+        damageBonus: [{ dicePerActivation: '1d8+1' }],
       },
       {
         addPm: 2,
@@ -2566,6 +2606,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +2d6.',
+        damageBonus: [{ dicePerActivation: '2d6' }],
       },
       {
         addPm: 2,
@@ -2830,10 +2871,18 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Conv',
     description:
       'Você conjura um enxame de criaturas a sua escolha, como besouros, gafanhotos, ratos, morcegos ou serpentes. O enxame pode passar pelo espaço de outras criaturas e não impede que outras criaturas entrem no espaço dele. No final de seus turnos, o enxame causa 2d12 pontos de dano de corte a qualquer criatura em seu espaço (Fortitude reduz à metade). Você pode gastar uma ação de movimento para mover o enxame 12m.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Corte',
+        dice: '2d12',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano em +1d12.',
+        damageBonus: [{ dicePerActivation: '1d12' }],
       },
       {
         addPm: 3,
@@ -2860,6 +2909,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Conv',
     description:
       'Ninguém sabe se Mestre Arsenal foi realmente o criador desta magia — mas ele foi o primeiro a utilizá-la. Você fecha o punho e gesticula como se estivesse golpeando o alvo, causando dano de impacto igual a 4d6 + sua Força. A vítima é empurrada 3m na direção oposta à sua. Passar no teste de resistência reduz o dano à metade e evita o empurrão.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Impacto',
+        dice: '4d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -2868,6 +2924,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6.',
+        damageBonus: [{ dicePerActivation: '1d6' }],
       },
       {
         addPm: 4,
@@ -2943,6 +3000,18 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Evoc',
     description:
       'Você pode criar, moldar, mover ou extinguir chamas e emanações de calor. Ao lançar a magia, escolha um dos efeitos. Chamejar: o alvo é armas escolhidas. Elas causam +1d6 de dano de fogo. Também afeta armas naturais e ataques desarmados. Esquentar: o alvo é 1 objeto, que começa a esquentar. Ele sofre 1d6 pontos de dano de fogo por rodada e causa o mesmo dano a qualquer criatura que o esteja segurando ou vestindo. A critério do mestre, o objeto ou a criatura vestindo-o também podem ficar em chamas. Uma criatura pode gastar uma ação completa para resfriar o objeto (jogando areia ou se jogando numa fonte de água próxima, por exemplo) e cancelar o efeito da magia. Extinguir: o alvo é 1 chama de tamanho Grande ou menor, que é apagada. Isso cria uma nuvem de fumaça que ocupa uma esfera com 3m de raio centrada onde estava a chama. Dentro da fumaça, criaturas têm camuflagem leve. Modelar: o alvo é 1 chama de tamanho Grande ou menor. A cada rodada, você pode gastar uma ação livre para movimentá-la 9m em qualquer direção. Se atravessar o espaço ocupado por uma criatura, causa 2d6 pontos de dano de fogo. Uma criatura só pode receber dano dessa maneira uma vez por rodada.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo (esquentar)',
+        dice: '1d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Fogo (modelar)',
+        dice: '2d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -2951,6 +3020,10 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6 (exceto do efeito chamejar).',
+        damageBonus: [
+          { targetRollLabel: 'esquentar', dicePerActivation: '1d6' },
+          { targetRollLabel: 'modelar', dicePerActivation: '1d6' },
+        ],
       },
       {
         addPm: 3,
@@ -2999,6 +3072,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Evoc',
     description:
       'Você canaliza uma poderosa rajada de energia positiva que ilumina o campo de batalha. Criaturas na área sofrem 4d8 pontos de dano de luz (ou 4d12, se forem mortos-vivos) e ficam ofuscadas por uma rodada. Se passarem na resistência, sofrem metade do dano e não ficam ofuscadas.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Luz',
+        dice: '4d8',
+      },
+    ],
     aprimoramentos: [
       {
         trick: true,
@@ -3008,6 +3088,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano ou cura em +1d8 (ou +1d12 em mortos-vivos).',
+        damageBonus: [{ dicePerActivation: '1d8' }],
       },
       {
         addPm: 3,
@@ -3105,6 +3186,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6.',
+        damageBonus: [{ dicePerActivation: '1d6' }],
       },
       {
         addPm: 3,
@@ -3376,6 +3458,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d12.',
+        damageBonus: [{ dicePerActivation: '1d12' }],
       },
       {
         addPm: 2,
@@ -3475,10 +3558,26 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Evoc',
     description:
       'Estacas de gelo irrompem do chão. Criaturas na área sofrem 4d6 de dano de corte, 4d6 de dano de frio e ficam caídas. Passar no teste de Reflexos evita o dano de corte e a queda. As estacas duram pela cena, o que torna a área afetada terreno difícil, e concedem cobertura leve para criaturas dentro da área ou atrás dela. As estacas são destruídas caso sofram qualquer quantidade de dano por fogo mágico.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Corte',
+        dice: '4d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Frio',
+        dice: '4d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 3,
         text: 'aumenta o dano de frio em +2d6 e o dano de corte em +2d6.',
+        damageBonus: [
+          { targetRollLabel: 'frio', dicePerActivation: '2d6' },
+          { targetRollLabel: 'corte', dicePerActivation: '2d6' },
+        ],
       },
       {
         addPm: 4,
@@ -3497,10 +3596,31 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Evoc',
     description:
       'Esta magia foi desenvolvida pelo mago imortal Aleph Olhos Vermelhos, um entusiasta dos estudos vulcânicos. Ela dispara um projétil de magma contra o alvo, que sofre 4d6 pontos de dano de fogo e 4d6 pontos de dano de perfuração e fica em chamas. As chamas causam 2d6 pontos de dano por rodada, em vez do dano normal. Se passar no teste de resistência, o alvo sofre metade do dano e não fica em chamas. Respingos de rocha incandescente se espalham com a explosão, atingindo todas as criaturas adjacentes ao alvo, que devem fazer um teste de Reflexos. Se falharem, ficam em chamas, como descrito acima.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo inicial',
+        dice: '4d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Perfuração inicial',
+        dice: '4d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Fogo por Rodada (em chamas)',
+        dice: '2d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 3,
         text: 'aumenta o dano inicial em +2d6 e o dano do efeito em chamas em +1d6.',
+        damageBonus: [
+          { targetRollLabel: 'fogo inicial', dicePerActivation: '2d6' },
+          { targetRollLabel: 'em chamas', dicePerActivation: '1d6' },
+        ],
       },
       {
         addPm: 4,
@@ -3519,10 +3639,26 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Evoc',
     description:
       'Uma muralha de um elemento a sua escolha se eleva da terra. Ela pode ser um muro de até 30m de comprimento e 3m de altura (ou o contrário) ou uma cúpula de 3m de raio. Os efeitos variam conforme o elemento escolhido. Fogo. A muralha é opaca e composta de chamas crepitantes. Qualquer criatura que atravessá-la ou iniciar seu turno nela sofre 6d6 pontos de dano de fogo. Gelo. A muralha é composta de gelo branco-azulado. Ela possui Defesa 10, 30 PV por trecho de 3m de comprimento, redução de fogo 0 e é imune a frio, trevas e essência. Qualquer criatura que atravessá-la ou iniciar seu turno nela sofre 6d6 pontos de dano de frio.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '6d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Frio',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano por atravessar a muralha em +2d6.',
+        damageBonus: [
+          { targetRollLabel: 'fogo', dicePerActivation: '2d6' },
+          { targetRollLabel: 'frio', dicePerActivation: '2d6' },
+        ],
       },
       {
         addPm: 2,
@@ -3545,10 +3681,18 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Ilusão',
     description:
       'Você cria uma ilusão de algum perigo mortal. Quando a magia é lançada, criaturas na área devem fazer um teste de Vontade; uma falha significa que a criatura acredita que a ilusão é real e sofre 3d6 pontos de dano psíquico não letal. Sempre que uma criatura iniciar seu turno dentro da área, deve repetir o teste de Vontade. Se falhar, sofre o dano novamente. Somente criaturas que falham veem a ilusão, e racionalizam o efeito sempre que falham no teste (por exemplo, acredita que o mesmo teto pode cair sobre ela várias vezes).',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Psíquico',
+        dice: '3d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 3,
         text: 'aumenta o dano em +2d6.',
+        damageBonus: [{ dicePerActivation: '2d6' }],
       },
       {
         addPm: 4,
@@ -3606,10 +3750,25 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Necro',
     description:
       'O sangue do alvo aquece até entrar em ebulição. Quando a magia é lançada, e no início de cada um de seus turnos, o alvo sofre 4d8 pontos de dano de fogo e fica enjoado por uma rodada (Fortitude reduz o dano à metade e evita a condição). Se o alvo passar em dois testes de Fortitude seguidos, dissipa a magia. Se o alvo for reduzido a 0 PV pelo dano desta magia, seu corpo explode, matando-o e causando 6d6 pontos de dano de fogo em todas as criaturas a até 3m (Reflexos reduz à metade). Essa magia não afeta criaturas sem sangue, como construtos ou mortos-vivos.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo por Rodada',
+        dice: '4d8',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Fogo da Explosão',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano em +1d8.',
+        damageBonus: [
+          { targetRollLabel: 'por rodada', dicePerActivation: '1d8' },
+        ],
       },
       {
         addPm: 9,
@@ -3628,6 +3787,13 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Necro',
     description:
       'Um círculo de energias sombrias se abre no chão, de onde surgem tentáculos feitos de treva viscosa. Ao lançar a magia e no início de cada um de seus turnos, você faz um teste da manobra agarrar (usando seu bônus de Misticismo) contra cada criatura na área. Se você passar, a criatura é agarrada; se a vítima já está agarrada, é esmagada, sofrendo 4d6 pontos de dano de trevas. A área conta como terreno difícil. Os tentáculos são imunes a dano.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas',
+        dice: '4d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -3636,6 +3802,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano dos tentáculos em +2d6.',
+        damageBonus: [{ dicePerActivation: '2d6' }],
       },
     ],
   },
@@ -3918,14 +4085,28 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Evoc',
     description:
       'Um pilar de fogo sagrado desce dos céus, causando 6d6 pontos de dano de fogo mais 6d6 pontos de dano de luz nas criaturas e objetos livres na área.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '6d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Luz',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
         text: 'aumenta o dano de fogo em +1d6.',
+        damageBonus: [{ targetRollLabel: 'fogo', dicePerActivation: '1d6' }],
       },
       {
         addPm: 1,
         text: 'aumenta o dano de luz em +1d6.',
+        damageBonus: [{ targetRollLabel: 'luz', dicePerActivation: '1d6' }],
       },
     ],
   },
@@ -3969,10 +4150,18 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Evoc',
     description:
       'Você enche seus pulmões de luz e energia positiva e sopra um cone de poeira reluzente. O sopro afeta apenas seus aliados na área, curando 2d8+4 pontos de vida e removendo uma das seguintes condições de todos os alvos: abalado, atordoado, apavorado, alquebrado, cego, confuso, debilitado, enfeitiçado, enjoado, esmorecido, exausto, fascinado, fatigado, fraco, frustrado, lento, paralisado, pasmo e surdo.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Cura',
+        dice: '2d8+4',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta a cura em +1d8+2.',
+        damageBonus: [{ dicePerActivation: '1d8+2' }],
       },
       {
         addPm: 4,
@@ -4020,10 +4209,18 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Necro',
     description:
       'Você manifesta uma nuvem de poeira carregada de energia negativa, que apodrece lentamente as criaturas na área. Ao lançar a magia, e no início de seus turnos, criaturas na área sofrem 2d8+8 pontos de dano de trevas (Fortitude reduz à metade). Alvos que falharem no teste não podem recuperar PV por uma rodada.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas',
+        dice: '2d8+8',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano em 1d8+4.',
+        damageBonus: [{ dicePerActivation: '1d8+4' }],
       },
     ],
   },
@@ -4063,10 +4260,18 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Trans',
     description:
       "Você controla os movimentos e comportamentos da água. Ao lançar a magia, escolha um dos efeitos abaixo. Congelar: toda a água mundana na área é congelada. Criaturas nadando na área ficam imóveis; escapar exige gastar uma ação padrão e passar num teste de Atletismo ou Acrobacia. Derreter: gelo mundano na área vira água e a magia termina. A critério do mestre, isso pode criar terreno difícil. Enchente: eleva o nível da água mundana na área em até 4,5m. A sua escolha, muda área para alvo: uma embarcação. O alvo recebe +3m em seu deslocamento pela duração do efeito. Evaporar: toda a água e gelo mundano na área evaporam instantaneamente e a magia termina. Elementais da água, plantas monstruosas e criaturas com imunidade a frio na área sofrem 10d8 pontos de dano de fogo; outras criaturas vivas recebem metade desse dano (Fortitude reduz à metade). Partir: diminui o nível de toda água mundana na área em até 4,5m. Em um corpo d'água raso, isso abre um caminho seco, que pode ser atravessado a pé. Em um corpo d'água profundo, cria um redemoinho que pode prender barcos (um teste de Pilotagem permite ao piloto livrar a embarcação). Elementais da água na área ficam lentos.",
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '10d8',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano em +2d8.',
+        damageBonus: [{ dicePerActivation: '2d8' }],
       },
     ],
   },
@@ -4081,6 +4286,13 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Trans',
     description:
       'Você manipula a densidade e a forma de toda terra, pedra, lama, argila ou areia na área. Ao lançar a magia, escolha. Amolecer: se afetar o teto, uma coluna ou suporte, provoca um desabamento que causa 10d6 pontos de dano de impacto às criaturas na área (Reflexos reduz à metade). Se afetar um piso de terra ou pedra, cria terreno difícil de areia ou argila, respectivamente. Modelar: pode usar pedra ou argila para criar um ou mais objetos simples de tamanho Enorme ou menor (sem mecanismos ou partes móveis). Por exemplo, pode transformar um tijolo em uma maça, criar uma passagem onde antes havia apenas uma parede ou levantar uma ou mais paredes que oferecem cobertura total (RD 8 e 50 PV para cada 3m). Solidificar: transforma lama ou areia em terra ou pedra. Criaturas com os pés na superfície ficam agarradas. Elas podem se soltar com uma ação padrão e um teste de Acrobacia ou Atletismo.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Impacto',
+        dice: '10d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -4247,10 +4459,18 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Conv',
     description:
       'Esta magia cria uma mão flutuante Grande que sempre se posiciona entre você e um oponente a sua escolha. A mão fornece cobertura leve (+5 na Defesa) contra esse oponente. Nada é capaz de enganar a mão — coisas como escuridão, invisibilidade, metamorfose e disfarces mundanos não a impedem de protegê-lo. A mão tem Defesa 20 e PV e resistências iguais aos seus. Com uma ação de movimento, você pode comandar a mão para que o proteja de outro oponente ou para que realize uma das ações a seguir. Agarrar: a mão usa uma manobra agarrar contra o oponente, usando o seu Misticismo com um bônus adicional de +10. A mão mantém o oponente agarrado, mas não causa dano. Esmagar: a mão esmaga um oponente agarrado, causando 2d6+10 pontos de dano de impacto. Empurrar: a mão afasta o oponente (manobra empurrar usando o seu Misticismo com um bônus adicional de +10). A mão acompanha o oponente para empurrá-lo o máximo que conseguir, dentro do alcance da magia.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Impacto (esmagar)',
+        dice: '2d6+10',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6+5.',
+        damageBonus: [{ dicePerActivation: '1d6+5' }],
       },
       {
         addPm: 5,
@@ -4322,10 +4542,18 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Evoc',
     description:
       'Você dispara um raio azul esbranquiçado de gelo e ar congelante. O alvo sofre 10d8 pontos de dano de frio e fica preso em um bloco de gelo (paralisado). Se passar no teste de resistência, sofre metade do dano e, em vez de paralisado, fica lento por uma rodada. É possível quebrar o gelo para libertar uma criatura presa: o bloco tem 20 PV, RD 10 e é vulnerável a fogo. Uma criatura presa pode gastar uma ação completa para fazer um teste de Atletismo e se libertar do gelo; cada vez que passar no teste causa 10 pontos de dano ao bloco, ignorando a RD.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Frio',
+        dice: '10d8',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 3,
         text: 'aumenta o dano em +2d8.',
+        damageBonus: [{ dicePerActivation: '2d8' }],
       },
       {
         addPm: 5,
@@ -4344,10 +4572,32 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Evoc',
     description:
       'Esta é uma magia poderosa, desenvolvida pelo metódico e impassível arquimago Reynard. Você invoca as energias elementais do fogo e do relâmpago, fazendo com que uma de suas mãos fique em chamas e a outra mão eletrificada. Pela duração da magia, você pode gastar uma ação de movimento para disparar uma bola de fogo (10d6 pontos de dano de fogo numa esfera com 6m de raio) ou um relâmpago (10d6 pontos de dano de eletricidade numa linha). Você também pode, como uma ação padrão, usar as duas mãos num ataque de energia mista (20d12 pontos de dano, metade de fogo e metade de eletricidade, numa esfera com 9m de raio). Você precisa estar com as duas mãos livres para invocar o efeito misto e isso consome toda a energia da magia, terminando-a imediatamente. Por se tratar de um ritual complexo, o tempo de execução dessa magia não pode ser reduzido.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo (bola de fogo)',
+        dice: '10d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Eletricidade (relâmpago)',
+        dice: '10d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano Misto (fogo/eletricidade)',
+        dice: '20d12',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano das rajadas em +1d6 e o dano da rajada mista em +2d12.',
+        damageBonus: [
+          { targetRollLabel: 'bola de fogo', dicePerActivation: '1d6' },
+          { targetRollLabel: 'relâmpago', dicePerActivation: '1d6' },
+          { targetRollLabel: 'misto', dicePerActivation: '2d12' },
+        ],
       },
     ],
   },
@@ -4362,10 +4612,18 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Evoc',
     description:
       'Esta magia cruel foi desenvolvida pelo mago de combate Edauros, quando ainda era um bípede. Você faz um gesto rápido e dispara uma lâmina de ar em alta velocidade. Criaturas na área sofrem 10d8 pontos de dano de corte e ficam sangrando. Alvos que passem no teste de resistência sofrem metade do dano e não ficam sangrando.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Corte',
+        dice: '10d8',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano em +2d8.',
+        damageBonus: [{ dicePerActivation: '2d8' }],
       },
       {
         addPm: 2,
@@ -4414,6 +4672,13 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Necro',
     description:
       'Usando os medos subconscientes do alvo, você cria uma imagem daquilo que ele mais teme. Apenas a própria vítima pode ver o Assassino Fantasmagórico com nitidez; outras criaturas presentes (incluindo o conjurador) enxergam apenas um espectro sombrio. Quando você lança a magia, o espectro surge adjacente a você e a vítima faz um teste de Vontade. Se ela passar, percebe que o espectro é uma ilusão e a magia é dissipada. Se falhar, acredita na existência do espectro, que então flutua 18m por rodada em direção à vítima, sempre no fim do seu turno. Ele é incorpóreo e imune a magias (exceto magias que dissipam outras). Se o espectro terminar seu turno adjacente à vítima, ela deve fazer um teste de Fortitude. Se passar, sofre 6d6 pontos de dano de trevas (este dano não pode reduzir o alvo a menos de 0 PV e não o deixa sangrando). Se falhar, sofre um colapso, ficando imediatamente com –1 PV e sangrando. O espectro persegue o alvo implacavelmente. Ele desaparece se o alvo ficar inconsciente ou se afastar além de alcance longo dele, ou se for dissipado.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [],
   },
   [spellsCircle4Names.muralhaDeOssos]: {
@@ -4426,6 +4691,13 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Necro',
     description:
       'Uma parede de ossos se eleva da terra. A parede tem 15m de comprimento, 9m de altura e 1,5m de espessura. Ela pode ter qualquer forma — não precisa ser uma linha reta —, mas sua base precisa estar sempre tocando o solo. Quando a parede surge, criaturas na área ocupada ou adjacentes sofrem 4d8 pontos de dano de corte e precisam fazer um teste de Reflexos para não ficarem presas no emaranhado de ossos. Uma criatura presa dessa maneira fica agarrada, e pode gastar uma ação padrão para fazer um teste de Atletismo para se soltar. Se passar no teste, sai da muralha para um dos lados adjacentes. Se falhar, sofre 4d8 pontos de dano de corte. É possível destruir o muro para atravessá-lo ou libertar uma criatura agarrada. Cada trecho de 3m do muro tem Defesa 8, 40 PV e redução de corte, frio e perfuração 10. Também é possível escalar a parede. Isso exige um teste de Atletismo e causa 4d8 pontos de dano de corte para cada 3m escalados.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Corte',
+        dice: '4d8',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 3,
@@ -4477,10 +4749,26 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Trans',
     description:
       'Você dispara um raio fino e esverdeado que causa 10d12 pontos de dano de essência. Se o alvo passar no teste de resistência, em vez disso sofre 2d12 pontos de dano. Independentemente do resultado do teste de Fortitude, se os PV do alvo forem reduzidos a 0 ou menos, ele será completamente desintegrado, restando apenas pó.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Essência total',
+        dice: '10d12',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Essência mínimo',
+        dice: '2d12',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 4,
         text: 'aumenta o dano total em +2d12 e o dano mínimo em +1d12.',
+        damageBonus: [
+          { targetRollLabel: 'total', dicePerActivation: '2d12' },
+          { targetRollLabel: 'mínimo', dicePerActivation: '1d12' },
+        ],
       },
     ],
   },
@@ -4600,10 +4888,18 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Evoc',
     description:
       'Você cria um fulgor dourado e intenso. Criaturas na área ficam cegas por 1d4 rodadas e em chamas, e sofrem 10d6 pontos de dano de fogo (mortos-vivos sofrem 10d8 pontos de dano). Uma criatura que passe no teste de resistência não fica cega nem em chamas e sofre metade do dano.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '10d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano em +2d6 (+2d8 contra mortos-vivos).',
+        damageBonus: [{ dicePerActivation: '2d6' }],
       },
       {
         addPm: 2,
@@ -4625,6 +4921,18 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Evoc',
     description:
       'Você invoca o poder de sua divindade na forma de um manto de energia que reveste seu corpo. Esta magia tem duas versões. Você escolhe qual versão pode lançar quando aprende esta magia. Ela não pode ser mudada. Manto de Luz: um manto dourado e luminoso. No início de cada um de seus turnos, você e todos os seus aliados em alcance curto recuperam 2d8 PV. Você recebe imunidade a dano de trevas e seus ataques corpo a corpo causam +2d8 pontos de dano de luz. Manto de Trevas: um manto negro como a noite. No início de cada um de seus turnos, todos os inimigos em alcance curto sofrem 4d8 pontos de dano de trevas. Você cura metade de todo o dano causado pela magia.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Cura (Manto de Luz)',
+        dice: '2d8',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Trevas (Manto de Trevas)',
+        dice: '4d8',
+      },
+    ],
     aprimoramentos: [],
   },
   [spellsCircle4Names.terremoto]: {
@@ -4638,6 +4946,18 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     school: 'Evoc',
     description:
       'Esta magia cria um tremor de terra que rasga o solo. O terremoto dura uma rodada, durante a qual criaturas sobre o solo ficam atordoadas (apenas uma vez por cena). Barreiras físicas não interrompem a área de Terremoto. O efeito exato depende do terreno. Caverna ou subterrâneo: a magia derruba o teto, causando 12d6 pontos de dano de impacto e agarrando todas as criaturas na área. Um teste de Reflexos reduz o dano à metade e evita a condição. Construção: todas as estruturas na área sofrem 200 pontos de dano de impacto, o suficiente para derrubar construções de madeira ou alvenaria simples, mas não de alvenaria reforçada. Criaturas em uma construção que desmorone sofrem o mesmo efeito de criaturas em uma caverna (veja acima). Espaço aberto: fendas se abrem no chão. Cada criatura na área precisa rolar um dado; em um resultado ímpar, uma fenda se abre sob ela e ela precisa fazer um teste de Reflexos; se falhar, cai na fenda. A criatura pode escapar gastando uma ação completa e passando em um teste de Atletismo. No início do seu próximo turno as fendas se fecham, matando todos que estejam dentro delas. Penhasco: o penhasco racha, criando um desmoronamento que percorre uma distância horizontal igual à distância da queda. Por exemplo, um penhasco com 30m de altura desmorona em uma área de 30m de comprimento além da base. Qualquer criatura no caminho sofre 12d6 pontos de dano de impacto e fica agarrada. Um teste de Reflexos reduz o dano à metade e evita ficar agarrado. Rio, lago ou pântano: fissuras se abrem sob a água, drenando-a e formando um lamaçal. Criaturas na área precisam fazer um teste de Reflexos para não afundarem na lama e ficarem agarradas. No início do seu próximo turno as fissuras se fecham, possivelmente afogando as criaturas que ficaram agarradas. Criaturas agarradas (efeito possível de caverna, construção, penhasco e rio, lago ou pântano) sofrem 1d6 pontos de dano por rodada até serem libertadas, o que exige uma ação completa e um teste de Atletismo (por parte da própria criatura ou de um aliado adjacente).',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Impacto',
+        dice: '12d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano por Rodada (preso)',
+        dice: '1d6',
+      },
+    ],
     aprimoramentos: [],
   },
   [spellsCircle4Names.ligacaoSombria]: {
@@ -4795,6 +5115,13 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     school: 'Encan',
     description:
       'Você pronuncia uma palavra do idioma primordial da Criação, que causa um dos efeitos abaixo, a sua escolha. Atordoar: a criatura fica atordoada por 1d4+1 rodadas (apenas uma vez por cena). Se passar no teste de resistência, ou se já foi atordoada por esta magia, fica desprevenida por 1d4 rodadas. Cegar: a criatura fica cega. Se passar no teste de resistência, fica ofuscada por 1d4 rodadas. Matar: a criatura morre. Além do teste de Vontade, a criatura tem direito a um teste de Fortitude se tiver mais da metade de seus PV. Se passar em qualquer um deles, em vez de morrer perde 10d8 pontos de vida e fica sangrando.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano (Matar)',
+        dice: '10d8',
+      },
+    ],
   },
   [spellsCircle5Names.furiaDoPanteao]: {
     spellCircle: spellsCircles.c5,
@@ -4807,6 +5134,28 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     school: 'Evoc',
     description:
       'Você cria uma nuvem de tempestade violenta. Os ventos tornam ataques à distância impossíveis e fazem a área contar como condição terrível para lançar magia. Além disso, inimigos na área têm a visibilidade reduzida (como a magia Névoa). Uma vez por turno, você pode gastar uma ação de movimento para gerar um dos efeitos a seguir. Nevasca. Inimigos na área sofrem 10d6 pontos de dano de frio (Fortitude reduz à metade). A área fica coberta de neve, virando terreno difícil até o fim da cena ou até você usar siroco. Raios. Até 6 inimigos a sua escolha na área sofrem 10d8 pontos de dano de eletricidade (Reflexos reduz à metade). Siroco. Transforma a chuva em uma tempestade de areia escaldante. Inimigos na área sofrem 10d6 pontos de dano (metade corte, metade fogo) e ficam sangrando (Fortitude reduz o dano à metade e evita a condição). Trovões. Inimigos sofrem 10d6 pontos de dano de impacto e ficam desprevenidos por uma rodada (Fortitude reduz o dano à metade e evita a condição).',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Frio (Nevasca)',
+        dice: '10d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Eletricidade (Raios)',
+        dice: '10d8',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Corte/Fogo (Siroco)',
+        dice: '10d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Impacto (Trovões)',
+        dice: '10d6',
+      },
+    ],
   },
   [spellsCircle5Names.segundaChance]: {
     spellCircle: spellsCircles.c5,
@@ -4879,6 +5228,13 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     school: 'Necro',
     description:
       'Sua mão exala energias letais. A criatura sofre 10d8+10 pontos de dano de trevas. Se estiver com menos da metade de seus PV, em vez disso deve fazer um teste de Fortitude. Se passar, sofre o dano normal. Se falhar, seus PV são reduzidos a –10.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas',
+        dice: '10d8+10',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -4947,10 +5303,26 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     school: 'Conv',
     description:
       'Meteoros caem dos céus, devastando a área afetada. Criaturas na área sofrem 15d6 pontos de dano de impacto, 15d6 pontos de dano de fogo e ficam caídas e presas sob os escombros (agarradas). Uma criatura que passe no teste de resistência sofre metade do dano total e não fica caída e agarrada. Uma criatura agarrada pode escapar gastando uma ação padrão e passando em um teste de Atletismo. Toda a área afetada fica coberta de escombros, sendo considerada terreno difícil, e imersa numa nuvem de poeira (camuflagem leve). Esta magia só pode ser utilizada a céu aberto.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Impacto',
+        dice: '15d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '15d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o número de meteoros que atingem a área, o que aumenta o dano em +2d6 de impacto e +2d6 de fogo.',
+        damageBonus: [
+          { targetRollLabel: 'impacto', dicePerActivation: '2d6' },
+          { targetRollLabel: 'fogo', dicePerActivation: '2d6' },
+        ],
       },
     ],
   },
@@ -5030,10 +5402,38 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     school: 'Evoc',
     description:
       'Criada pelo arquimago Vectorius, esta magia produz quatro esferas, de ácido, eletricidade, fogo e frio, que voam até um ponto a sua escolha. Quando atingem o ponto escolhido, explodem causando 6d6 pontos de dano de seu respectivo tipo numa área com 12m de raio. Um teste de Reflexos reduz o dano à metade. Você pode mirar cada esfera em uma criatura ou ponto diferente. Uma criatura ao alcance da explosão de mais de uma esfera deve fazer um teste de resistência para cada uma. Além disso, as esferas causam os seguintes efeitos em criaturas que falharem em seus testes de resistência: Ácido: vulnerável até o fim da cena. Elétrica: atordoado por 1 rodada (apenas uma vez por cena). Fogo: em chamas. Frio: lento até o fim da cena.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Ácido',
+        dice: '6d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Eletricidade',
+        dice: '6d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '6d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Frio',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 5,
         text: 'aumenta o dano de cada esfera em +2d6.',
+        damageBonus: [
+          { targetRollLabel: 'ácido', dicePerActivation: '2d6' },
+          { targetRollLabel: 'eletricidade', dicePerActivation: '2d6' },
+          { targetRollLabel: 'fogo', dicePerActivation: '2d6' },
+          { targetRollLabel: 'frio', dicePerActivation: '2d6' },
+        ],
       },
       {
         addPm: 5,
@@ -5074,10 +5474,18 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     school: 'Evoc',
     description:
       'Esta é uma das mais poderosas magias de destruição existentes. Após entoar longos cânticos, o conjurador dispara uma carga de energia que varre uma enorme área à sua frente, causando 20d12 pontos de dano de essência em todas as criaturas, construções e objetos livres atingidos. Sempre que rola um resultado 12 em um dado de dano, a magia causa +1d12 pontos de dano. Apesar de seu poder destrutivo, esta magia é lenta, tornando seu uso difícil em combate.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Essência',
+        dice: '20d12',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
         text: 'aumenta o dano em 1d12.',
+        damageBonus: [{ dicePerActivation: '1d12' }],
       },
     ],
   },

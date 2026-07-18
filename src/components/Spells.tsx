@@ -15,11 +15,10 @@ import { CharacterAttribute } from '../interfaces/Character';
 import { Spell, spellsCircles } from '../interfaces/Spells';
 import SpellRow from './SpellRow';
 
-const SPELL_KEY_ATTRIBUTES = [
-  Atributo.INTELIGENCIA,
-  Atributo.SABEDORIA,
-  Atributo.CARISMA,
-];
+// Todos os 6 atributos podem ser atributo-chave de magia: além dos mentais
+// (Int/Sab/Car) usados pelas classes padrão, poderes como Tradição Perdida
+// Aprimorada permitem escolher Força, Destreza ou Constituição.
+const SPELL_KEY_ATTRIBUTES = Object.values(Atributo);
 
 interface SpellsProp {
   spells: Spell[];

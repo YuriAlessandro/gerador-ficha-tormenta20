@@ -1,4 +1,5 @@
 import { DiceRoll, RollResult } from '@/interfaces/DiceRoll';
+import { parseDamage, rollDamage } from '@/functions/diceRoller';
 
 /**
  * Parse a dice string like "3d6+2" or "1d20-1"
@@ -79,10 +80,49 @@ export function executeMultipleDiceRolls(diceRolls: DiceRoll[]): RollResult[] {
 }
 
 /**
- * Validate a dice string format
+ * Validate a dice string format (single dice group only)
  */
 export function isValidDiceString(dice: string): boolean {
   return parseDiceString(dice) !== null;
+}
+
+/**
+ * Validate a dice string allowing MULTIPLE dice groups (ex.: "6d6+1d8+2").
+ * Usado para rolagens de magia aumentadas por aprimoramentos, que podem
+ * mesclar dados de lados diferentes.
+ */
+export function isValidDamageString(dice: string): boolean {
+  return parseDamage(dice) !== null;
+}
+
+/**
+ * Execute a dice roll supporting multiple dice groups (ex.: "6d6+1d8+2").
+ * Diferente de `executeDiceRoll`, que usa o parser de grupo único e
+ * descartaria silenciosamente notações mescladas.
+ */
+export function executeDamageRoll(diceRoll: DiceRoll): RollResult | null {
+  const result = rollDamage(diceRoll.dice);
+  if (!result) return null;
+
+  return {
+    rollId: diceRoll.id,
+    label: diceRoll.label,
+    dice: diceRoll.dice,
+    rolls: result.diceRolls,
+    modifier: result.modifier,
+    total: result.total,
+  };
+}
+
+/**
+ * Execute multiple multi-group dice rolls, descartando as inválidas.
+ */
+export function executeMultipleDamageRolls(
+  diceRolls: DiceRoll[]
+): RollResult[] {
+  return diceRolls
+    .map((roll) => executeDamageRoll(roll))
+    .filter((result): result is RollResult => result !== null);
 }
 
 /**

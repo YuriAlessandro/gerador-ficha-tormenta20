@@ -77,6 +77,9 @@ import {
   ActiveEffectsManagerModal,
   ActivePowerUseDialog,
 } from '@/premium/components/ActiveEffects';
+import { ComplicationEditDrawer } from '@/premium/components/Complications';
+import { SupplementId } from '@/types/supplement.types';
+import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
 import socketService, {
   type PowerEffectOfferPayload,
   type PowerEffectBonusPayload,
@@ -204,6 +207,7 @@ const Result: React.FC<ResultProps> = (props) => {
     equipGroup[] | undefined
   >(undefined);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
+  const [complicationDrawerOpen, setComplicationDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
@@ -2244,6 +2248,28 @@ const Result: React.FC<ResultProps> = (props) => {
                       </Tooltip>
                     );
                   })()}
+                {onSheetUpdate &&
+                  (userSupplements.includes(
+                    SupplementId.TORMENTA20_HEROIS_ARTON
+                  ) ||
+                    !!currentSheet.complication) && (
+                    <Tooltip title='Complicação (Heróis de Arton)'>
+                      <IconButton
+                        size='small'
+                        sx={{
+                          backgroundColor: theme.palette.primary.main,
+                          color: 'white',
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                        }}
+                        onClick={() => setComplicationDrawerOpen(true)}
+                      >
+                        <TheaterComedyIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 {onSheetUpdate && (
                   <IconButton
                     size='small'
@@ -2894,6 +2920,16 @@ const Result: React.FC<ResultProps> = (props) => {
           sheet={currentSheet}
           onSave={handlePowersUpdate}
         />
+
+        {onSheetUpdate && (
+          <ComplicationEditDrawer
+            open={complicationDrawerOpen}
+            onClose={() => setComplicationDrawerOpen(false)}
+            sheet={currentSheet}
+            supplements={userSupplements}
+            onSave={handlePowersUpdate}
+          />
+        )}
 
         <SpellsEditDrawer
           open={spellsDrawerOpen}

@@ -171,8 +171,9 @@ export function isPowerAvailable(
             return sheet.nivel >= nivel;
           }
           case RequirementType.CLASSE: {
-            const className = rule.value as unknown as string;
-            return rule.name && isClassOrVariantOf(sheet.classe, className);
+            // O nome da classe fica em rule.name nos dados (não em rule.value)
+            const className = rule.name as string;
+            return !!className && isClassOrVariantOf(sheet.classe, className);
           }
           case RequirementType.TIPO_ARCANISTA: {
             const classSubName = rule.name;

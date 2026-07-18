@@ -3,6 +3,7 @@ export interface DiceRoll {
   label: string; // Ex: "Dano", "Cura", "Teste de Resistência"
   dice: string; // Ex: "1d20", "3d6", "2d10+5"
   description?: string; // Descrição opcional do que é rolado
+  damageType?: string; // Tipo de dano opcional (ex.: "fogo", "ácido") p/ exibição
 }
 
 export interface RollResult {

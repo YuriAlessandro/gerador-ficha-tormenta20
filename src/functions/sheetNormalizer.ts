@@ -6,6 +6,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
+import { getComplicationByName } from '../premium/data/complications';
 import {
   ARQUEIRO_SHEET_BONUSES,
   ESGRIMISTA_SHEET_BONUSES,
@@ -116,6 +117,25 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     sheet.origin.powers = Array.isArray(sheet.origin.powers)
       ? sheet.origin.powers.filter((p) => p && typeof p.name === 'string')
       : [];
+  }
+
+  if (sheet.complication) {
+    // Mesmo princípio do refresh de poderes concedidos acima: a ficha embute
+    // a cópia da complicação da época da escolha; refrescar pelo dado atual
+    // para que correções alcancem fichas antigas (sheetActions ficam como
+    // estão — histórico já aplicado).
+    const current = getComplicationByName(sheet.complication.name);
+    if (current) {
+      sheet.complication = {
+        ...sheet.complication,
+        description: current.description,
+        type: current.type,
+        className: current.className,
+        behavioral: current.behavioral,
+        prerequisite: current.prerequisite,
+        sheetBonuses: current.sheetBonuses,
+      };
+    }
   }
 
   // Result renderiza `step.value.map` e o recalculateSheet lê `step.label`.
@@ -249,6 +269,16 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   }
   if (sheet.raca && !Array.isArray(sheet.raca.attributes?.attrs)) {
     sheet.raca.attributes = { attrs: [] };
+  }
+
+  // Complicação malformada (sem nome ou sem o poder concedido) não tem como
+  // ser reaplicada nem exibida; descarta.
+  if (
+    sheet.complication &&
+    (typeof sheet.complication.name !== 'string' ||
+      typeof sheet.complication.grantedPowerName !== 'string')
+  ) {
+    delete sheet.complication;
   }
 
   // Devoto parcial (sem divindade) quebra o Result (`devoto.divindade.name`);

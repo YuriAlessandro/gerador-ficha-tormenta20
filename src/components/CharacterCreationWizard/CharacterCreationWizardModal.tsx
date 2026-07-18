@@ -48,6 +48,12 @@ import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
 import Equipment, { BagEquipments } from '@/interfaces/Equipment';
 import { alchemyItems as coreAlchemyItems } from '@/data/systems/tormenta20/equipamentos-gerais';
 import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
+import {
+  ComplicationSelectionStep,
+  ComplicationPowerStep,
+} from '@/premium/components/Complications';
+import { isComplicationPowerSelectionComplete } from '@/premium/functions/complications';
+import type { GeneralPower } from '@/interfaces/Poderes';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
 import RaceAttributeStep from './steps/RaceAttributeStep';
@@ -459,6 +465,14 @@ const CharacterCreationWizardModal: React.FC<
     return isSuragel && hasDeusesArton;
   };
 
+  const needsComplicationSelection = (): boolean =>
+    !!classe && supplements.includes(SupplementId.TORMENTA20_HEROIS_ARTON);
+
+  const needsComplicationPower = (): boolean =>
+    needsComplicationSelection() &&
+    !!selections.complication &&
+    selections.complication !== 'declined';
+
   const needsQareenElementSelection = (): boolean => {
     if (!race) return false;
     return race.name === 'Qareen';
@@ -606,6 +620,8 @@ const CharacterCreationWizardModal: React.FC<
     if (origin) stepsArray.push('Benefícios da Origem');
     else if (race && !raceHasOrigin(race.name))
       stepsArray.push('Propósito de Criação');
+    if (needsComplicationSelection()) stepsArray.push('Complicação');
+    if (needsComplicationPower()) stepsArray.push('Poder da Complicação');
     if (needsPowerEffectSelections()) stepsArray.push('Efeitos de Poderes');
     if (needsClassPowers()) stepsArray.push('Poderes da Classe');
     if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
@@ -1082,6 +1098,96 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
+      case 'Complicação':
+        return (
+          <ComplicationSelectionStep
+            firstClass={classe}
+            value={selections.complication}
+            onChange={(value) => {
+              const next: WizardSelections = {
+                ...selections,
+                complication: value,
+              };
+              if (value === 'declined' || value === undefined) {
+                // Recusa: descarta o poder escolhido e suas seleções
+                if (selections.complicationPower) {
+                  const rest = { ...(selections.powerEffectSelections || {}) };
+                  delete rest[selections.complicationPower.name];
+                  next.powerEffectSelections = rest;
+                }
+                next.complicationPower = undefined;
+              }
+              setSelections(next);
+            }}
+          />
+        );
+
+      case 'Poder da Complicação': {
+        if (!selections.complication || selections.complication === 'declined')
+          return null;
+
+        // Poderes gerais já ganhos (exclusão da lista + requisitos PODER)
+        const allGeneralPowers =
+          dataRegistry.getAllPowersBySupplements(supplements);
+        const knownPowers: GeneralPower[] = [];
+        (selections.originBenefits || []).forEach((benefit) => {
+          if (benefit.type === 'power') {
+            const known = allGeneralPowers.find((p) => p.name === benefit.name);
+            if (known) knownPowers.push(known);
+          }
+        });
+        if (selections.propositoCriacaoPower) {
+          knownPowers.push(selections.propositoCriacaoPower);
+        }
+
+        const complicationPowerName = selections.complicationPower?.name;
+        return (
+          <ComplicationPowerStep
+            complication={selections.complication}
+            selectedPower={selections.complicationPower}
+            onChange={(power) => {
+              const next: WizardSelections = {
+                ...selections,
+                complicationPower: power,
+              };
+              // Escolhas do poder anterior não valem para o novo
+              if (
+                complicationPowerName &&
+                complicationPowerName !== power?.name
+              ) {
+                const rest = { ...(selections.powerEffectSelections || {}) };
+                delete rest[complicationPowerName];
+                next.powerEffectSelections = rest;
+              }
+              setSelections(next);
+            }}
+            pickSelections={
+              complicationPowerName
+                ? selections.powerEffectSelections?.[complicationPowerName]
+                : undefined
+            }
+            onPickChange={(sel) => {
+              if (!complicationPowerName) return;
+              const rest = { ...(selections.powerEffectSelections || {}) };
+              if (sel === undefined) {
+                delete rest[complicationPowerName];
+              } else {
+                rest[complicationPowerName] = sel;
+              }
+              setSelections({ ...selections, powerEffectSelections: rest });
+            }}
+            knownPowers={knownPowers}
+            baseAttributes={selections.baseAttributes}
+            raceAttributes={selections.raceAttributes}
+            race={race}
+            sexForAttributes={sexForAttributes}
+            classe={classe}
+            usedSkills={getAllUsedSkills()}
+            supplements={supplements}
+          />
+        );
+      }
+
       case 'Poderes da Origem':
         if (!origin) return null;
         return (
@@ -1441,6 +1547,21 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Propósito de Criação':
         return !!selections.propositoCriacaoPower;
+
+      case 'Complicação':
+        // Exige decisão explícita: recusar ou escolher uma complicação
+        return selections.complication !== undefined;
+
+      case 'Poder da Complicação':
+        return (
+          !!selections.complicationPower &&
+          isComplicationPowerSelectionComplete(
+            selections.complicationPower,
+            selections.powerEffectSelections?.[
+              selections.complicationPower.name
+            ]
+          )
+        );
 
       case 'Poderes da Origem':
         // For now, always allow (placeholder)

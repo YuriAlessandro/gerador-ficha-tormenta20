@@ -37,3 +37,6 @@ yarn-error.log*
 
 # Saída gerada pela skill /brag (vídeos, composições)
 /brag-output
+
+# Livros oficiais de referência (material de consulta, não versionado)
+/livros
