@@ -7,6 +7,7 @@ import {
   AccordionSummary,
   Box,
   Chip,
+  Divider,
   IconButton,
   Stack,
   Tooltip,
@@ -366,66 +367,6 @@ const PowersDisplay: React.FC<{
         </Stack>
       )}
 
-      {sheet?.complication && (
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            sx={{
-              '& .MuiAccordionSummary-content': {
-                width: '100%',
-                margin: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              },
-            }}
-          >
-            <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
-              {isDesktop && <Box sx={{ width: 28, flexShrink: 0 }} />}
-              <Typography
-                sx={{
-                  flexShrink: 0,
-                  fontWeight: 'bold',
-                  color: theme.palette.primary.main,
-                  fontSize: '0.9rem',
-                }}
-              >
-                {sheet.complication.name}
-              </Typography>
-            </Stack>
-            <Typography sx={{ color: 'text.secondary' }}>
-              Complicação
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            {sheet.complication.className && (
-              <Typography
-                variant='caption'
-                sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
-              >
-                Complicação de {sheet.complication.className}
-              </Typography>
-            )}
-            {sheet.complication.behavioral && (
-              <Typography
-                variant='caption'
-                sx={{ display: 'block', color: 'warning.main', mb: 0.5 }}
-              >
-                † Comportamental — se violar, perde todos os PM (recupera a
-                partir do próximo dia).
-              </Typography>
-            )}
-            <Typography variant='body2'>
-              {sheet.complication.description}
-            </Typography>
-            <Typography variant='caption' sx={{ display: 'block', mt: 1 }}>
-              Poder adicional:{' '}
-              <strong>{sheet.complication.grantedPowerName}</strong>
-            </Typography>
-          </AccordionDetails>
-        </Accordion>
-      )}
-
       {reorderMode ? (
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId='powers-list'>
@@ -475,6 +416,73 @@ const PowersDisplay: React.FC<{
         </DragDropContext>
       ) : (
         uniquePowers.map((power) => renderPower(power))
+      )}
+
+      {sheet?.complication && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                '& .MuiAccordionSummary-content': {
+                  width: '100%',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                },
+              }}
+            >
+              <Stack
+                direction='row'
+                spacing={0.5}
+                sx={{ alignItems: 'center' }}
+              >
+                {isDesktop && <Box sx={{ width: 28, flexShrink: 0 }} />}
+                <Typography
+                  sx={{
+                    flexShrink: 0,
+                    fontWeight: 'bold',
+                    color: theme.palette.primary.main,
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  {sheet.complication.name}
+                </Typography>
+              </Stack>
+              <Typography sx={{ color: 'text.secondary' }}>
+                Complicação
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              {sheet.complication.className && (
+                <Typography
+                  variant='caption'
+                  sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
+                >
+                  Complicação de {sheet.complication.className}
+                </Typography>
+              )}
+              {sheet.complication.behavioral && (
+                <Typography
+                  variant='caption'
+                  sx={{ display: 'block', color: 'warning.main', mb: 0.5 }}
+                >
+                  † Comportamental — se violar, perde todos os PM (recupera a
+                  partir do próximo dia).
+                </Typography>
+              )}
+              <Typography variant='body2'>
+                {sheet.complication.description}
+              </Typography>
+              <Typography variant='caption' sx={{ display: 'block', mt: 1 }}>
+                Poder adicional:{' '}
+                <strong>{sheet.complication.grantedPowerName}</strong>
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+        </>
       )}
     </Box>
   );
