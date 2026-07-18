@@ -118,11 +118,30 @@ const Changelog: React.FC = () => {
                   <strong>fichas aleatórias</strong>, com menos frequência que
                   os vinte deuses maiores.
                 </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  O status divino não é só enfeite — ele vale pontos. Como o
+                  deus menor concede <strong>um único poder</strong>, as classes
+                  divinas que normalmente ganhariam dois (Clérigo, Paladino,
+                  Druida e Frade) recebem, no lugar do segundo,{' '}
+                  <strong>PM adicionais iguais a 1 + o status divino</strong> do
+                  deus, limitados pelo seu nível. Tudo aplicado automaticamente
+                  na ficha, e o valor aparece no passo a passo creditado à
+                  divindade.
+                </Typography>
                 <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                  Por enquanto os deuses trazem{' '}
-                  <strong>nome, status divino e o poder concedido</strong>.
-                  Energia, arma preferida, devotos aceitos e obrigações vêm em
-                  uma próxima leva.
+                  Em compensação, um deus menor só ensina até onde alcança:{' '}
+                  <strong>
+                    conjuradores divinos lançam magias até o círculo igual ao
+                    status divino
+                  </strong>{' '}
+                  do seu deus, mesmo que o nível já permitisse círculos
+                  superiores. Magias fora desse alcance aparecem marcadas como{' '}
+                  <strong>indisponíveis</strong>, com a explicação — nada é
+                  apagado da sua ficha, e o aviso some sozinho se você trocar de
+                  divindade.
                 </Typography>
               </Alert>
 
@@ -225,6 +244,16 @@ const Changelog: React.FC = () => {
                   <strong>CD das magias</strong> (qualquer um dos seis
                   atributos) quanto no cálculo dos <strong>PM</strong> — este
                   com o limite por patamar previsto na regra.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>seletor de divindade</strong> ficou mais fácil de
+                  navegar agora que são 83 deuses: os{' '}
+                  <strong>vinte deuses maiores vêm primeiro</strong>, seguidos
+                  das divindades menores, cada grupo em ordem alfabética. Os
+                  deuses menores aparecem com uma etiqueta mostrando seu{' '}
+                  <strong>status divino</strong>, para você saber de cara o que
+                  aquela devoção concede.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> O <strong>Mapa de Arton</strong>{' '}
