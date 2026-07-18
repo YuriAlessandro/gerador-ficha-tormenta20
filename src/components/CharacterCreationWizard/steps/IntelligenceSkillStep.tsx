@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Typography, Alert, Chip } from '@mui/material';
+import { Box, Typography, Alert } from '@mui/material';
 import Skill from '@/interfaces/Skills';
+import SkillChipSelector from '@/components/common/SkillChipSelector';
 
 interface IntelligenceSkillStepProps {
   availableSkills: Skill[];
@@ -69,45 +70,12 @@ const IntelligenceSkillStep: React.FC<IntelligenceSkillStepProps> = ({
       >
         Selecionadas: {selectedSkills.length} / {requiredCount}
       </Typography>
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 1,
-          flexWrap: 'wrap',
-        }}
-      >
-        {availableSkills.map((skill) => {
-          const isSelected = selectedSkills.includes(skill);
-          const isDisabled =
-            !isSelected && selectedSkills.length >= requiredCount;
-
-          // Determine hover background color without nested ternary
-          let hoverBgColor: string | undefined;
-          if (isSelected) {
-            hoverBgColor = 'primary.dark';
-          } else if (!isDisabled) {
-            hoverBgColor = 'rgba(209, 50, 53, 0.08)';
-          }
-
-          return (
-            <Chip
-              key={skill}
-              label={skill}
-              size='small'
-              variant={isSelected ? 'filled' : 'outlined'}
-              color={isSelected ? 'primary' : 'default'}
-              onClick={() => handleToggleSkill(skill)}
-              disabled={isDisabled}
-              sx={{
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                '&:hover': {
-                  backgroundColor: hoverBgColor,
-                },
-              }}
-            />
-          );
-        })}
-      </Box>
+      <SkillChipSelector
+        availableSkills={availableSkills}
+        selectedSkills={selectedSkills}
+        onToggle={handleToggleSkill}
+        maxReached={selectedSkills.length >= requiredCount}
+      />
       {selectedSkills.length > requiredCount && (
         <Alert severity='error'>
           Você selecionou {selectedSkills.length} perícias, mas só pode escolher{' '}
