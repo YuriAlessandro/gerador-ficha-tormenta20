@@ -94,6 +94,56 @@ const Changelog: React.FC = () => {
                     color: 'success.dark',
                   }}
                 >
+                  Guia de Deuses Menores — novo suplemento
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Chegou o <strong>Guia de Deuses Menores</strong>, com{' '}
+                  <strong>63 novas divindades</strong> para o seu personagem
+                  cultuar. Cada deus menor concede{' '}
+                  <strong>um poder concedido</strong> e tem um{' '}
+                  <strong>status divino de 1 a 5</strong>, que mostra o quanto
+                  ele já se firmou entre os fiéis de Arton.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Como todo suplemento, é preciso{' '}
+                  <strong>ativá-lo no seu perfil</strong> para que os deuses
+                  apareçam. Depois disso eles entram na{' '}
+                  <strong>escolha de devoção</strong> na criação de personagem,
+                  no <strong>editor da ficha</strong>, na{' '}
+                  <strong>tabela de Divindades</strong> e na busca da
+                  enciclopédia — e também podem sair em{' '}
+                  <strong>fichas aleatórias</strong>, com menos frequência que
+                  os vinte deuses maiores.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Por enquanto os deuses trazem{' '}
+                  <strong>nome, status divino e o poder concedido</strong>.
+                  Energia, arma preferida, devotos aceitos e obrigações vêm em
+                  uma próxima leva.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
                   Complicações — regra opcional de Heróis de Arton
                 </Typography>
                 <Typography variant='body1' sx={{ mb: 1 }}>
@@ -136,6 +186,17 @@ const Changelog: React.FC = () => {
               </Alert>
 
               <ul>
+                <li>
+                  <strong>Novo:</strong> O plano gratuito passa a permitir até{' '}
+                  <strong>4 suplementos ativos ao mesmo tempo</strong>, além do
+                  livro básico — que continua sempre disponível e não conta no
+                  limite. Para ativar um quinto, basta{' '}
+                  <strong>desativar outro</strong> a qualquer momento pelo
+                  perfil; quem <Link to='/apoiar'>apoia o projeto</Link> ativa
+                  todos sem limite. Se você já tinha mais suplementos ligados do
+                  que isso, <strong>nada foi desativado</strong>: eles seguem
+                  como estavam.
+                </li>
                 <li>
                   <strong>Novo:</strong>{' '}
                   <strong>Recuperação de fichas afetadas</strong>: fichas
