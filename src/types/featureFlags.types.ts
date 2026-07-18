@@ -9,6 +9,7 @@ export interface FeatureFlags {
   activeEffects: FeatureFlag;
   bestiary: FeatureFlag;
   partners: FeatureFlag;
+  complications: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -21,4 +22,6 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // Parceiros: NPCs auxiliares anexados a jogadores na mesa virtual.
   // Default off — admin habilita quando estiver pronto pra rollout.
   partners: { enabled: false, supporterOnly: true },
+  // Complicações (regra opcional de Heróis de Arton) na criação de ficha.
+  complications: { enabled: true, supporterOnly: true },
 };

@@ -53,6 +53,7 @@ import {
   ComplicationPowerStep,
 } from '@/premium/components/Complications';
 import { isComplicationPowerSelectionComplete } from '@/premium/functions/complications';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import type { GeneralPower } from '@/interfaces/Poderes';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
@@ -105,6 +106,7 @@ interface CharacterCreationWizardModalProps {
 const CharacterCreationWizardModal: React.FC<
   CharacterCreationWizardModalProps
 > = ({ open, onClose, onConfirm, selectedOptions, raceCustomization }) => {
+  const complicationsFeature = useFeatureAccess('complications');
   const [activeStep, setActiveStep] = useState(0);
   const [steps, setSteps] = useState<string[]>([]);
   const [stepsInitialized, setStepsInitialized] = useState(false);
@@ -466,7 +468,9 @@ const CharacterCreationWizardModal: React.FC<
   };
 
   const needsComplicationSelection = (): boolean =>
-    !!classe && supplements.includes(SupplementId.TORMENTA20_HEROIS_ARTON);
+    complicationsFeature.hasAccess &&
+    !!classe &&
+    supplements.includes(SupplementId.TORMENTA20_HEROIS_ARTON);
 
   const needsComplicationPower = (): boolean =>
     needsComplicationSelection() &&

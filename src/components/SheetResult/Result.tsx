@@ -235,6 +235,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const { isSupporter } = useSubscription();
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
+  const complicationsFeature = useFeatureAccess('complications');
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
@@ -2249,10 +2250,13 @@ const Result: React.FC<ResultProps> = (props) => {
                     );
                   })()}
                 {onSheetUpdate &&
-                  (userSupplements.includes(
-                    SupplementId.TORMENTA20_HEROIS_ARTON
-                  ) ||
-                    !!currentSheet.complication) && (
+                  // Já tem complicação → sempre gerenciável (inclusive para
+                  // remover). Sem complicação → exige a feature liberada.
+                  (!!currentSheet.complication ||
+                    (complicationsFeature.hasAccess &&
+                      userSupplements.includes(
+                        SupplementId.TORMENTA20_HEROIS_ARTON
+                      ))) && (
                     <Tooltip title='Complicação (Heróis de Arton)'>
                       <IconButton
                         size='small'
