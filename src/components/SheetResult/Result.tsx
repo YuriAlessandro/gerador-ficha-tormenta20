@@ -6,7 +6,6 @@ import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import SearchIcon from '@mui/icons-material/Search';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -125,13 +124,14 @@ import PowersDisplay from './PowersDisplay';
 import CompanionSheetModal from './CompanionSheetModal';
 import CompanionCreationDialog from './CompanionCreationDialog';
 import CompanionEditDialog from './CompanionEditDialog';
-import RollButton from '../RollButton';
+import EquipmentTable from './EquipmentTable';
+import CarryLoadSummary from './CarryLoadSummary';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
 import { applyWielding, WieldingSlot } from './BackpackModal/wielding';
 import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
-import { calcAmmoSpaces, findAmmoStack } from './BackpackModal/ammo';
+import { findAmmoStack } from './BackpackModal/ammo';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
@@ -1140,56 +1140,6 @@ const Result: React.FC<ResultProps> = (props) => {
     () => getOrderedItemsByGroup(bag, () => true),
     [bag]
   );
-
-  const equipamentosDiv = equipamentosOrdered.map((equip) => {
-    let chipLabel: string;
-    if (equip.isAmmo) {
-      const units = equip.unitsRemaining ?? 0;
-      const ammoSpaces = calcAmmoSpaces(equip);
-      chipLabel = `${equip.nome}: ${units}${
-        ammoSpaces > 0 ? ` [${ammoSpaces} espaço(s)]` : ''
-      }`;
-    } else {
-      const qty =
-        equip.quantity && equip.quantity > 1 ? `${equip.quantity}x ` : '';
-      const spaceText =
-        equip.spaces && equip.spaces > 0
-          ? `[${equip.spaces * (equip.quantity || 1)} espaço(s)]`
-          : '';
-      chipLabel = `${qty}${equip.nome} ${spaceText}`;
-    }
-    return (
-      <Box
-        key={equip.nome}
-        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
-      >
-        <Chip
-          sx={{ marginRight: equip.rolls && equip.rolls.length > 0 ? 0 : 0 }}
-          label={chipLabel}
-        />
-        {equip.descricao && (
-          <Tooltip title={equip.descricao} arrow>
-            <InfoOutlinedIcon
-              sx={{
-                fontSize: 16,
-                ml: 0.5,
-                color: 'text.secondary',
-                cursor: 'help',
-              }}
-            />
-          </Tooltip>
-        )}
-        {equip.rolls && equip.rolls.length > 0 && (
-          <RollButton
-            rolls={equip.rolls}
-            iconOnly
-            size='small'
-            characterName={nome}
-          />
-        )}
-      </Box>
-    );
-  });
 
   // Note: weapons, armors and shields are already included in
   // `equipamentosOrdered` via the displayOrder traversal — no extra pushes
@@ -2413,16 +2363,10 @@ const Result: React.FC<ResultProps> = (props) => {
                 <TabPanel value='equipamentos' sx={{ p: 2 }}>
                   <Box>
                     <BookTitle>Equipamentos</BookTitle>
-                    <Stack
-                      // spacing={2}
-                      direction='row'
-                      sx={{
-                        flexWrap: 'wrap',
-                        justifyContent: 'flex-start',
-                      }}
-                    >
-                      {equipamentosDiv}
-                    </Stack>
+                    <EquipmentTable
+                      items={equipamentosOrdered}
+                      characterName={nome}
+                    />
                     <Box
                       sx={{
                         mt: 2,
@@ -2433,40 +2377,22 @@ const Result: React.FC<ResultProps> = (props) => {
                       {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
                       {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
                     </Box>
-                    <Box
-                      sx={{
-                        mt: 1,
-                      }}
-                    >
-                      <strong>Espaços (atual/limite-máximo): </strong>
-                      {bag.getSpaces() +
+                    <CarryLoadSummary
+                      usedSpaces={
+                        bag.getSpaces() +
                         calculateCurrencySpaces(
                           dinheiro,
                           dinheiroTC,
                           dinheiroTO
-                        )}
-                      /{customMaxSpaces ?? maxSpaces}-
-                      {(customMaxSpaces ?? maxSpaces) * 2}
-                      {calculateCurrencySpaces(
+                        )
+                      }
+                      currencySpaces={calculateCurrencySpaces(
                         dinheiro,
                         dinheiroTC,
                         dinheiroTO
-                      ) > 0 && (
-                        <Typography
-                          variant='caption'
-                          component='span'
-                          sx={{ ml: 0.5 }}
-                        >
-                          (
-                          {calculateCurrencySpaces(
-                            dinheiro,
-                            dinheiroTC,
-                            dinheiroTO
-                          )}{' '}
-                          de moedas)
-                        </Typography>
                       )}
-                    </Box>
+                      maxSpaces={customMaxSpaces ?? maxSpaces}
+                    />
                   </Box>
                 </TabPanel>
               </TabContext>
