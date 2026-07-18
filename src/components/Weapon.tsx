@@ -74,6 +74,10 @@ interface WeaponProps {
   /** Nível total do personagem — usado pelos bônus de dano por modo baseados
    * em atributo limitado pelo nível (Arqueiro, Esgrimista). */
   nivel?: number;
+  /** Map<className, classLevel> — resolve `{classLevel}` nos bônus `LevelCalc`
+   * de fichas multiclasse (ex.: Instinto Selvagem usa o nível de Bárbaro, não o
+   * total). Ausente = mono-classe, cai no nível total. */
+  classLevels?: Map<string, number>;
   characterName?: string;
   attackConditions?: ActiveCondition[];
   sheetBonuses?: SheetBonus[];
@@ -120,6 +124,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     atributos,
     modDano,
     nivel,
+    classLevels,
     characterName,
     attackConditions,
     sheetBonuses,
@@ -205,10 +210,16 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           ? !!scope.thrownOnly || !!scope.rangedOnly
           : !!scope.meleeOnly;
         if (!appliesInMode) return sum;
-        return sum + evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1);
+        return (
+          sum +
+          evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1, {
+            classLevels,
+            source: b.source,
+          })
+        );
       }, 0);
     },
-    [sheetBonuses, equipment, isThrownAction, atributos, nivel]
+    [sheetBonuses, equipment, isThrownAction, atributos, nivel, classLevels]
   );
 
   const modeDamageBonus = useCallback(
@@ -353,7 +364,10 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       if (!weaponMatchesScope(equipment, scope)) {
         return;
       }
-      const value = evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1);
+      const value = evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1, {
+        classLevels,
+        source: b.source,
+      });
       // Sufixo de modo para armas híbridas de arremesso (o bônus vale só num dos
       // modos). Armas puras não recebem sufixo (o modo é único).
       let suffix = '';
@@ -381,7 +395,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       }
     });
     return effects;
-  }, [sheetBonuses, equipment, atributos, nivel]);
+  }, [sheetBonuses, equipment, atributos, nivel, classLevels]);
 
   const damage = getWeaponDisplayDamage(equipment, atributos);
 

@@ -1,9 +1,10 @@
 import Equipment, { WeaponCategory } from '../interfaces/Equipment';
-import { StatModifier } from '../interfaces/CharacterSheet';
+import { SheetChangeSource, StatModifier } from '../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../interfaces/Character';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { getEffectiveWeaponCategory } from './proficiencies';
 import { isFiringWeapon, isLightOrAgileMeleeWeapon } from './weaponTraits';
+import { evaluateFormula } from '../premium/functions/safeFormulaEval';
 
 /**
  * Filtros de escopo de um bônus de arma (subconjunto dos alvos WeaponDamage /
@@ -123,17 +124,49 @@ export function isModeScopedForWeapon(
 }
 
 /**
- * Avaliador leve de modificador para o cálculo por modo em Weapon.tsx, onde não
- * há acesso à resolução completa de fonte/nível de classe do recalculateSheet.
- * Suporta `Fixed`, `Attribute` e `CappedAttribute` (os tipos usados pelos bônus
- * de arma por modo). `capBy: 'classLevel'` recai no nível total (`nivel`) — os
- * poderes que usam esse avaliador cap por nível total, então não há perda.
- * Outros tipos retornam 0 (são bakeados no servidor pelo recalculateSheet).
+ * Contexto opcional para resolver `{classLevel}` / `capBy: 'classLevel'` fora do
+ * recalculateSheet. Sem ele, o nível de classe recai no nível total (`nivel`),
+ * que é o comportamento correto para ficha mono-classe.
+ */
+export interface SimpleModifierContext {
+  /** Map<className, classLevel> — use `getClassLevelsMap` (multiclass.ts). */
+  classLevels?: Map<string, number>;
+  /** `bonus.source`; só o `className` (fontes do tipo `power`) é lido. */
+  source?: SheetChangeSource;
+}
+
+/**
+ * Nível de classe da fonte do bônus. Espelha `resolveClassLevel` em
+ * recalculateSheet.ts — os dois avaliadores precisam concordar.
+ */
+const resolveClassLevel = (
+  nivel: number,
+  ctx?: SimpleModifierContext
+): number => {
+  const className =
+    ctx?.source?.type === 'power' ? ctx.source.className : undefined;
+  if (!className || !ctx?.classLevels) return nivel;
+  return ctx.classLevels.get(className) ?? nivel;
+};
+
+/**
+ * Avaliador leve de modificador para o cálculo por modo e para o texto de
+ * efeitos em Weapon.tsx, onde não há acesso à resolução completa de fonte/nível
+ * de classe do recalculateSheet. Suporta `Fixed`, `Attribute`, `CappedAttribute`
+ * e `LevelCalc`.
+ *
+ * `LevelCalc` usa `evaluateFormula` (parser próprio, sem `eval`) porque este
+ * módulo é importado por componentes que renderizam conteúdo homebrew. Fórmulas
+ * fora da whitelist — inclusive oficiais, como o ternário de "Resistência a
+ * Dano" — retornam 0 em vez de lançar.
+ *
+ * Outros tipos retornam 0 (são bakeados no `dano` pelo recalculateSheet).
  */
 export function evaluateSimpleModifier(
   modifier: StatModifier,
   atributos: CharacterAttributes,
-  nivel: number
+  nivel: number,
+  ctx?: SimpleModifierContext
 ): number {
   if (modifier.type === 'Fixed') {
     return modifier.value || 0;
@@ -143,7 +176,20 @@ export function evaluateSimpleModifier(
   }
   if (modifier.type === 'CappedAttribute') {
     const attrValue = atributos[modifier.attribute as Atributo]?.value ?? 0;
-    return Math.max(0, Math.min(attrValue, nivel));
+    const cap =
+      modifier.capBy === 'classLevel' ? resolveClassLevel(nivel, ctx) : nivel;
+    return Math.max(0, Math.min(attrValue, cap));
+  }
+  if (modifier.type === 'LevelCalc' && modifier.formula) {
+    try {
+      return evaluateFormula(modifier.formula, {
+        level: nivel,
+        classLevel: resolveClassLevel(nivel, ctx),
+      });
+    } catch {
+      // Fórmula reprovada pela whitelist (ternários oficiais, homebrew inválido).
+      return 0;
+    }
   }
   return 0;
 }

@@ -1294,6 +1294,13 @@ const Result: React.FC<ResultProps> = (props) => {
     bagEquipments['Item Geral'],
   ]);
 
+  // Níveis por classe — resolvem `{classLevel}` nos bônus de arma `LevelCalc`
+  // (ex.: Instinto Selvagem escala com o nível de Bárbaro, não com o total).
+  const classLevels = useMemo(
+    () => getClassLevelsMap(currentSheet),
+    [currentSheet]
+  );
+
   const weaponsDiv = useMemo(() => {
     const wieldingTrackingActive =
       currentSheet.mainHandItemId !== undefined ||
@@ -1312,6 +1319,7 @@ const Result: React.FC<ResultProps> = (props) => {
         atributos={atributos}
         modFor={modFor}
         nivel={currentSheet.nivel}
+        classLevels={classLevels}
         characterName={nome}
         attackConditions={
           markersEnabled ? conditionHighlights.attack : undefined
@@ -1337,6 +1345,8 @@ const Result: React.FC<ResultProps> = (props) => {
     nome,
     markersEnabled,
     conditionHighlights.attack,
+    currentSheet.nivel,
+    classLevels,
     currentSheet.sheetBonuses,
     currentSheet.mainHandItemId,
     currentSheet.offHandItemId,

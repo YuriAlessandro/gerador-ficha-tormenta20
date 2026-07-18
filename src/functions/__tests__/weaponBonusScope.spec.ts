@@ -172,12 +172,126 @@ describe('evaluateSimpleModifier', () => {
     ).toBe(3);
   });
 
+  it('CappedAttribute com capBy classLevel limita pelo nível de classe', () => {
+    expect(
+      evaluateSimpleModifier(
+        {
+          type: 'CappedAttribute',
+          attribute: Atributo.SABEDORIA,
+          capBy: 'classLevel',
+        },
+        atributos,
+        6,
+        {
+          classLevels: new Map([
+            ['Bárbaro', 2],
+            ['Guerreiro', 4],
+          ]),
+          source: { type: 'power', name: 'X', className: 'Bárbaro' },
+        }
+      )
+    ).toBe(2);
+  });
+
   it('modificadores não suportados retornam 0', () => {
+    expect(
+      evaluateSimpleModifier(
+        {
+          type: 'LevelBreakpoints',
+          breakpoints: [{ fromLevel: 1, value: 3 }],
+        },
+        atributos,
+        5
+      )
+    ).toBe(0);
+  });
+});
+
+describe('evaluateSimpleModifier — LevelCalc', () => {
+  const atributos: CharacterAttributes = {
+    [Atributo.FORCA]: { name: Atributo.FORCA, value: 2 },
+    [Atributo.DESTREZA]: { name: Atributo.DESTREZA, value: 4 },
+    [Atributo.CONSTITUICAO]: { name: Atributo.CONSTITUICAO, value: 1 },
+    [Atributo.INTELIGENCIA]: { name: Atributo.INTELIGENCIA, value: 3 },
+    [Atributo.SABEDORIA]: { name: Atributo.SABEDORIA, value: 3 },
+    [Atributo.CARISMA]: { name: Atributo.CARISMA, value: 0 },
+  };
+
+  // Instinto Selvagem (Bárbaro): +1 no 3º, +2 no 9º, +3 no 15º.
+  const INSTINTO = 'Math.floor(({classLevel} + 3) / 6)';
+
+  it('usa o nível total quando não há contexto', () => {
     expect(
       evaluateSimpleModifier(
         { type: 'LevelCalc', formula: '{level}' },
         atributos,
         5
+      )
+    ).toBe(5);
+    expect(
+      evaluateSimpleModifier(
+        { type: 'LevelCalc', formula: INSTINTO },
+        atributos,
+        9
+      )
+    ).toBe(2);
+  });
+
+  // Bárbaro 3 + Guerreiro 6 = nível 9: pelo nível de classe vale +1, pelo total
+  // valeria +2. Os números são escolhidos para discriminar os dois caminhos.
+  const multiclasse = new Map([
+    ['Bárbaro', 3],
+    ['Guerreiro', 6],
+  ]);
+
+  it('multiclasse: usa o nível da CLASSE da fonte, não o total', () => {
+    expect(
+      evaluateSimpleModifier(
+        { type: 'LevelCalc', formula: INSTINTO },
+        atributos,
+        9,
+        {
+          classLevels: multiclasse,
+          source: {
+            type: 'power',
+            name: 'Instinto Selvagem',
+            className: 'Bárbaro',
+          },
+        }
+      )
+    ).toBe(1);
+  });
+
+  it('fonte sem className cai no nível total', () => {
+    expect(
+      evaluateSimpleModifier(
+        { type: 'LevelCalc', formula: INSTINTO },
+        atributos,
+        9,
+        {
+          classLevels: multiclasse,
+          source: { type: 'power', name: 'Instinto Selvagem' },
+        }
+      )
+    ).toBe(2);
+  });
+
+  it('fórmula reprovada pela whitelist retorna 0 sem lançar', () => {
+    // Ternário oficial de "Resistência a Dano" (Bárbaro) — fora da whitelist.
+    const resistenciaDano =
+      '{classLevel} >= 5 ? Math.min(10, 2 + 2 * Math.floor(({classLevel} - 5) / 3)) : 0';
+    expect(() =>
+      evaluateSimpleModifier(
+        { type: 'LevelCalc', formula: resistenciaDano },
+        atributos,
+        10
+      )
+    ).not.toThrow();
+    expect(
+      evaluateSimpleModifier(
+        { type: 'LevelCalc', formula: resistenciaDano },
+        atributos,
+        10
       )
     ).toBe(0);
   });

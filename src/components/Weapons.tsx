@@ -22,6 +22,10 @@ interface WeaponsProps {
   /** Nível total do personagem — repassado a cada Weapon para os bônus de dano
    * por modo baseados em atributo limitado pelo nível (Arqueiro, Esgrimista). */
   nivel?: number;
+  /** Map<className, classLevel> — resolve `{classLevel}` nos bônus `LevelCalc`
+   * de fichas multiclasse (ex.: Instinto Selvagem usa o nível de Bárbaro, não o
+   * total). Ausente = mono-classe, cai no nível total. */
+  classLevels?: Map<string, number>;
   characterName?: string;
   attackConditions?: ActiveCondition[];
   sheetBonuses?: SheetBonus[];
@@ -64,6 +68,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     atributos,
     modFor,
     nivel,
+    classLevels,
     characterName,
     attackConditions,
     sheetBonuses,
@@ -110,6 +115,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         atributos={atributos}
         modDano={modFor}
         nivel={nivel}
+        classLevels={classLevels}
         characterName={characterName}
         attackConditions={attackConditions}
         sheetBonuses={sheetBonuses}
