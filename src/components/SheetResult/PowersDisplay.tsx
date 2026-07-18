@@ -11,6 +11,8 @@ import {
   Stack,
   Tooltip,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
@@ -171,6 +173,9 @@ const PowersDisplay: React.FC<{
 
   const [reorderMode, setReorderMode] = useState(false);
   const canReorder = !!sheet && !!onSheetUpdate && uniquePowers.length > 1;
+
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
 
   const handleDragEnd = (result: DropResult) => {
     if (!sheet || !onSheetUpdate) return;
@@ -367,21 +372,30 @@ const PowersDisplay: React.FC<{
             expandIcon={<ExpandMoreIcon />}
             sx={{
               '& .MuiAccordionSummary-content': {
+                width: '100%',
+                margin: 0,
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               },
             }}
           >
-            <Typography sx={{ fontWeight: 600 }}>
-              {sheet.complication.name}
+            <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
+              {isDesktop && <Box sx={{ width: 28, flexShrink: 0 }} />}
+              <Typography
+                sx={{
+                  flexShrink: 0,
+                  fontWeight: 'bold',
+                  color: theme.palette.primary.main,
+                  fontSize: '0.9rem',
+                }}
+              >
+                {sheet.complication.name}
+              </Typography>
+            </Stack>
+            <Typography sx={{ color: 'text.secondary' }}>
+              Complicação
             </Typography>
-            <Chip
-              size='small'
-              label='Complicação'
-              sx={{ mr: 1 }}
-              color='secondary'
-              variant='outlined'
-            />
           </AccordionSummary>
           <AccordionDetails>
             {sheet.complication.className && (
