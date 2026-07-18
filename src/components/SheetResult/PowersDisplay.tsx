@@ -2,12 +2,9 @@ import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
+  Button,
   Chip,
-  Divider,
   IconButton,
   Stack,
   Tooltip,
@@ -16,9 +13,7 @@ import {
   useTheme,
 } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import CheckIcon from '@mui/icons-material/Check';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PetsIcon from '@mui/icons-material/Pets';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import {
   DragDropContext,
@@ -26,7 +21,7 @@ import {
   Droppable,
   DropResult,
 } from 'react-beautiful-dnd';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import CharacterSheet, {
   SheetActionHistoryEntry,
@@ -34,6 +29,17 @@ import CharacterSheet, {
 import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-special';
 import { CustomPower } from '@/interfaces/CustomPower';
 import { applyPowersOrder } from '@/functions/powers/applyPowersOrder';
+import {
+  classifyPowers,
+  groupPowersByOrigin,
+  originGroupKey,
+  originLabel,
+  PowerOrigin,
+  POWER_ORIGINS,
+  SheetPower,
+} from '@/functions/powers/powerOrigins';
+import { getPowerText } from '@/functions/powers/powerText';
+import { normalizeSearch } from '@/functions/stringUtils';
 import { getActivePowerForSheetEntry } from '@/premium/data/activePowers';
 import { getComplicationPowerWarning } from '@/premium/functions/complications';
 import type {
@@ -41,10 +47,19 @@ import type {
   ActiveEffectUsageOption,
 } from '@/premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
-import PowerDisplay from './PowerDisplay';
+import RollButton from '../RollButton';
 import PowerWeaponSelectionAction from './PowerWeaponSelectionAction';
 import PowerActiveEffectAction from './PowerActiveEffectAction';
 import PowerCustomEffectsAction from './PowerCustomEffectsAction';
+import PowerRow from './PowersTab/PowerRow';
+import PowerDetailSheet from './PowersTab/PowerDetailSheet';
+import PowersToolbar, { OriginFilterOption } from './PowersTab/PowersToolbar';
+import {
+  EMPTY_SX,
+  GROUP_COUNT_SX,
+  GROUP_HEADER_SX,
+  GROUP_TITLE_SX,
+} from './PowersTab/powersTabStyles';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -54,6 +69,8 @@ function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
     return true;
   });
 }
+
+const COMPLICATION_ORIGIN: PowerOrigin = { kind: 'complication' };
 
 const PowersDisplay: React.FC<{
   sheetHistory: SheetActionHistoryEntry[];
@@ -68,24 +85,9 @@ const PowersDisplay: React.FC<{
   className: string;
   raceName: string;
   deityName?: string;
-  onUpdateRolls?: (
-    power:
-      | ClassPower
-      | RaceAbility
-      | ClassAbility
-      | OriginPower
-      | GeneralPower
-      | CustomPower,
-    newRolls: DiceRoll[]
-  ) => void;
+  onUpdateRolls?: (power: SheetPower, newRolls: DiceRoll[]) => void;
   onUpdateCustomEffects?: (
-    power:
-      | ClassPower
-      | RaceAbility
-      | ClassAbility
-      | OriginPower
-      | GeneralPower
-      | CustomPower,
+    power: SheetPower,
     newEffects: CustomEffect[]
   ) => void;
   characterName?: string;
@@ -119,6 +121,16 @@ const PowersDisplay: React.FC<{
   onSheetUpdate,
   onActivateEffect,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [reorderMode, setReorderMode] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeOrigins, setActiveOrigins] = useState<Set<string>>(new Set());
+  const [selectedPowerName, setSelectedPowerName] = useState<string | null>(
+    null
+  );
+
   // Aplica texto dinâmico para poderes que dependem da divindade
   const processedClassPowers = useMemo(
     () =>
@@ -133,6 +145,7 @@ const PowersDisplay: React.FC<{
       }),
     [classPowers, deityName]
   );
+
   // Filtra habilidades de classe cujo nome já exista como poder de classe
   // (ex: habilidade "Alquimista Iniciado" que auto-concede o poder de mesmo nome)
   const classPowerNames = new Set(processedClassPowers.map((p) => p.name));
@@ -172,11 +185,82 @@ const PowersDisplay: React.FC<{
     sheet?.powersOrder
   );
 
-  const [reorderMode, setReorderMode] = useState(false);
   const canReorder = !!sheet && !!onSheetUpdate && uniquePowers.length > 1;
 
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  const origins = useMemo(
+    () =>
+      classifyPowers({
+        classPowers: processedClassPowers,
+        raceAbilities,
+        classAbilities: filteredClassAbilities,
+        originPowers,
+        deityPowers,
+        generalPowers,
+        customPowers,
+        customGrantedPowers,
+        className,
+        raceName,
+      }),
+    [
+      processedClassPowers,
+      raceAbilities,
+      filteredClassAbilities,
+      originPowers,
+      deityPowers,
+      generalPowers,
+      customPowers,
+      customGrantedPowers,
+      className,
+      raceName,
+    ]
+  );
+
+  // Texto normalizado por poder, memoizado: sem isso cada tecla digitada
+  // re-normalizaria dezenas de descrições de 1-2KB.
+  const haystack = useMemo(() => {
+    const map = new Map<string, string>();
+    uniquePowers.forEach((power) => {
+      map.set(
+        power.name,
+        normalizeSearch(`${power.name} ${getPowerText(power)}`)
+      );
+    });
+    return map;
+  }, [uniquePowers]);
+
+  const searched = useMemo(() => {
+    const term = normalizeSearch(searchTerm.trim());
+    if (!term) return uniquePowers;
+    return uniquePowers.filter((power) =>
+      (haystack.get(power.name) || '').includes(term)
+    );
+  }, [uniquePowers, haystack, searchTerm]);
+
+  // Contagens dos chips saem da lista filtrada pela BUSCA mas não pela origem —
+  // assim os números mostram onde o termo bateu, em vez de ficarem congelados.
+  const originOptions: OriginFilterOption[] = useMemo(
+    () =>
+      groupPowersByOrigin(searched, origins).map((group) => ({
+        key: group.key,
+        label: group.label,
+        count: group.powers.length,
+        descriptor: group.descriptor,
+      })),
+    [searched, origins]
+  );
+
+  const visible = useMemo(() => {
+    if (activeOrigins.size === 0) return searched;
+    return searched.filter((power) => {
+      const origin = origins.get(power.name);
+      return !!origin && activeOrigins.has(originGroupKey(origin));
+    });
+  }, [searched, origins, activeOrigins]);
+
+  const groups = useMemo(
+    () => groupPowersByOrigin(visible, origins),
+    [visible, origins]
+  );
 
   const handleDragEnd = (result: DropResult) => {
     if (!sheet || !onSheetUpdate) return;
@@ -195,37 +279,33 @@ const PowersDisplay: React.FC<{
     onSheetUpdate({ ...sheet, powersOrder: undefined });
   };
 
-  const getPowerOrigin = (
-    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
-  ) => {
-    if (processedClassPowers.some((p) => p.name === pw.name)) {
-      return `Poder de ${className}`;
-    }
-    if (raceAbilities.includes(pw as RaceAbility)) {
-      return `Habilidade de ${raceName}`;
-    }
-    if (filteredClassAbilities.includes(pw as ClassAbility)) {
-      const ability = pw as ClassAbility;
-      return `Habilidade de ${ability.sourceClassName || className}`;
-    }
-    if (originPowers.includes(pw as OriginPower)) {
-      return 'Poder de Origem';
-    }
-    if (deityPowers.includes(pw as GeneralPower)) {
-      return 'Poder Divino';
-    }
-    if (customGrantedPowers?.some((p) => p.name === pw.name)) {
-      return 'Poder Concedido Personalizado';
-    }
-    if (customPowers?.some((p) => p.name === pw.name)) {
-      return 'Poder Personalizado';
-    }
-    return 'Poder Geral';
-  };
+  const handleToggleOrigin = useCallback((key: string) => {
+    setActiveOrigins((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
 
-  const hasWeaponSpecAction = (
-    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
-  ): boolean => {
+  const handleResetOrigins = useCallback(() => {
+    setActiveOrigins(new Set());
+  }, []);
+
+  // Entrar em reordenar achata a lista: `powersOrder` é plano, então o
+  // Droppable PRECISA receber `uniquePowers` inteiro. Arrastar dentro de um
+  // subconjunto filtrado faria `result.source.index` virar índice local e
+  // corromperia a ordem salva em silêncio.
+  const handleReorderModeChange = useCallback((value: boolean) => {
+    setReorderMode(value);
+    if (value) {
+      setSearchTerm('');
+      setActiveOrigins(new Set());
+      setSelectedPowerName(null);
+    }
+  }, []);
+
+  const hasWeaponSpecAction = (pw: SheetPower): boolean => {
     const actions =
       'sheetActions' in pw && Array.isArray(pw.sheetActions)
         ? pw.sheetActions
@@ -235,9 +315,7 @@ const PowersDisplay: React.FC<{
     );
   };
 
-  const buildBaseHeaderActionSlot = (
-    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
-  ): React.ReactNode => {
+  const buildBaseHeaderActionSlot = (pw: SheetPower): React.ReactNode => {
     if (pw.name === 'Paródia') return parodyButtonSlot;
     if (sheet && onSheetUpdate && hasWeaponSpecAction(pw)) {
       return (
@@ -276,9 +354,7 @@ const PowersDisplay: React.FC<{
     return undefined;
   };
 
-  const buildHeaderActionSlot = (
-    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
-  ): React.ReactNode => {
+  const buildHeaderActionSlot = (pw: SheetPower): React.ReactNode => {
     const base = buildBaseHeaderActionSlot(pw);
 
     // Poder concedido por complicação de classe (Heróis de Arton): marca como
@@ -289,83 +365,164 @@ const PowersDisplay: React.FC<{
         ? getComplicationPowerWarning(sheet)
         : null;
 
-    if (!complicationWarning) return base;
-
-    const warningChip = (
-      <Tooltip title={complicationWarning}>
-        <Chip
+    const companionSlot =
+      onCompanionClick && pw.name === 'Melhor Amigo' ? (
+        <IconButton
           size='small'
-          color='warning'
-          icon={<WarningAmberIcon />}
-          label='Indisponível'
-        />
-      </Tooltip>
-    );
+          onClick={onCompanionClick}
+          title='Ver ficha do Melhor Amigo'
+        >
+          <PetsIcon fontSize='small' color='primary' />
+        </IconButton>
+      ) : null;
 
-    if (!base) return warningChip;
+    // O botão de rolagem vive no rail, junto das outras ações — antes ele
+    // ficava ANTES do nome, e era ele que deixava a borda esquerda irregular
+    // (linhas sem rolagem precisavam de um espaçador de 28px para compensar).
+    const powerRolls = 'rolls' in pw && pw.rolls ? pw.rolls : [];
+    const rollSlot =
+      powerRolls.length > 0 ? (
+        <RollButton
+          rolls={powerRolls}
+          iconOnly
+          size='small'
+          characterName={characterName}
+        />
+      ) : null;
+
+    if (!complicationWarning && !companionSlot && !rollSlot) return base;
+
+    // No mobile o chip com texto compete por largura com dados e efeitos;
+    // o rótulo completo continua no bottom sheet.
+    const warningChip = complicationWarning ? (
+      <Tooltip title={complicationWarning}>
+        {isMobile ? (
+          <WarningAmberIcon fontSize='small' color='warning' />
+        ) : (
+          <Chip
+            size='small'
+            color='warning'
+            icon={<WarningAmberIcon />}
+            label='Indisponível'
+          />
+        )}
+      </Tooltip>
+    ) : null;
+
     return (
       <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
         {warningChip}
+        {rollSlot}
+        {companionSlot}
         {base}
       </Stack>
     );
   };
 
-  const renderPower = (
-    power: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
-  ) => (
-    <PowerDisplay
-      sheetHistory={sheetHistory}
-      key={power.name}
-      power={power}
-      type={getPowerOrigin(power)}
-      count={powerCount[power.name]}
-      onUpdateRolls={reorderMode ? undefined : onUpdateRolls}
-      onUpdateCustomEffects={reorderMode ? undefined : onUpdateCustomEffects}
-      sheet={sheet}
-      className={className}
-      characterName={characterName}
-      onCompanionClick={
-        !reorderMode && power.name === 'Melhor Amigo'
-          ? onCompanionClick
-          : undefined
+  const complicationExtra = sheet?.complication ? (
+    <>
+      {sheet.complication.className && (
+        <Typography
+          variant='caption'
+          sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
+        >
+          Complicação de {sheet.complication.className}
+        </Typography>
+      )}
+      {sheet.complication.behavioral && (
+        <Typography
+          variant='caption'
+          sx={{ display: 'block', color: 'warning.main', mb: 0.5 }}
+        >
+          † Comportamental — se violar, perde todos os PM (recupera a partir do
+          próximo dia).
+        </Typography>
+      )}
+      <Typography variant='caption' sx={{ display: 'block', mb: 1 }}>
+        Poder adicional: <strong>{sheet.complication.grantedPowerName}</strong>
+      </Typography>
+    </>
+  ) : null;
+
+  // A Complicação vira um pseudo-poder no seu próprio grupo: fica FORA de
+  // `uniquePowers`, portanto fora do drag-and-drop e de `powersOrder` — igual
+  // ao comportamento anterior, só que sem accordion duplicado à mão.
+  const complicationPower: SheetPower | null = sheet?.complication
+    ? {
+        name: sheet.complication.name,
+        description: sheet.complication.description,
       }
-      headerActionSlot={reorderMode ? undefined : buildHeaderActionSlot(power)}
-    />
+    : null;
+
+  const selectedPower: SheetPower | null = useMemo(() => {
+    if (!selectedPowerName) return null;
+    if (complicationPower && complicationPower.name === selectedPowerName) {
+      return complicationPower;
+    }
+    return uniquePowers.find((p) => p.name === selectedPowerName) || null;
+  }, [selectedPowerName, uniquePowers, complicationPower]);
+
+  const selectedOrigin: PowerOrigin =
+    (selectedPowerName && origins.get(selectedPowerName)) ||
+    COMPLICATION_ORIGIN;
+
+  const isComplicationSelected =
+    !!complicationPower && complicationPower.name === selectedPowerName;
+
+  const renderRow = (power: SheetPower, extra?: React.ReactNode) => {
+    const origin = origins.get(power.name) || COMPLICATION_ORIGIN;
+    return (
+      <PowerRow
+        key={power.name}
+        power={power}
+        originKind={origin.kind}
+        count={powerCount[power.name] || 1}
+        compact={isMobile}
+        actionSlot={buildHeaderActionSlot(power)}
+        onOpenDetail={() => setSelectedPowerName(power.name)}
+        sheetHistory={sheetHistory}
+        sheet={sheet}
+        className={className}
+        onUpdateRolls={onUpdateRolls}
+        onUpdateCustomEffects={onUpdateCustomEffects}
+        detailExtra={extra}
+      />
+    );
+  };
+
+  const renderGroupHeader = (
+    key: string,
+    label: string,
+    color: string,
+    Icon: React.ElementType,
+    count: number
+  ) => (
+    <Box sx={GROUP_HEADER_SX} key={`${key}-header`}>
+      <Icon sx={{ fontSize: 18 }} style={{ color }} aria-hidden />
+      <Typography variant='body2' sx={GROUP_TITLE_SX}>
+        {label}
+      </Typography>
+      <Typography variant='caption' sx={GROUP_COUNT_SX}>
+        {count}
+      </Typography>
+    </Box>
   );
 
   return (
     <Box>
-      {canReorder && (
-        <Stack
-          direction='row'
-          spacing={0.5}
-          sx={{ mb: 1, justifyContent: 'flex-end' }}
-        >
-          {reorderMode && sheet?.powersOrder && (
-            <Tooltip title='Restaurar ordem alfabética'>
-              <IconButton size='small' onClick={handleResetOrder}>
-                <RestartAltIcon fontSize='small' />
-              </IconButton>
-            </Tooltip>
-          )}
-          <Tooltip
-            title={reorderMode ? 'Concluir reordenação' : 'Reordenar poderes'}
-          >
-            <IconButton
-              size='small'
-              color={reorderMode ? 'primary' : 'default'}
-              onClick={() => setReorderMode((prev) => !prev)}
-            >
-              {reorderMode ? (
-                <CheckIcon fontSize='small' />
-              ) : (
-                <DragIndicatorIcon fontSize='small' />
-              )}
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      )}
+      <PowersToolbar
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        originOptions={originOptions}
+        activeOrigins={activeOrigins}
+        onToggleOrigin={handleToggleOrigin}
+        onResetOrigins={handleResetOrigins}
+        canReorder={canReorder}
+        reorderMode={reorderMode}
+        onReorderModeChange={handleReorderModeChange}
+        hasCustomOrder={!!sheet?.powersOrder}
+        onResetOrder={handleResetOrder}
+      />
 
       {reorderMode ? (
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -392,19 +549,28 @@ const PowersDisplay: React.FC<{
                         sx={{
                           opacity: snapshot.isDragging ? 0.85 : 1,
                           cursor: 'grab',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
                           '&:active': { cursor: 'grabbing' },
                         }}
                       >
-                        <DragIndicatorIcon
-                          fontSize='small'
-                          sx={{ color: 'text.secondary', flexShrink: 0 }}
+                        <PowerRow
+                          power={power}
+                          originKind={
+                            (origins.get(power.name) || COMPLICATION_ORIGIN)
+                              .kind
+                          }
+                          count={powerCount[power.name] || 1}
+                          compact={isMobile}
+                          interactive={false}
+                          dragHandleSlot={
+                            <DragIndicatorIcon
+                              fontSize='small'
+                              sx={{ color: 'text.secondary', flexShrink: 0 }}
+                            />
+                          }
+                          sheetHistory={sheetHistory}
+                          sheet={sheet}
+                          className={className}
                         />
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          {renderPower(power)}
-                        </Box>
                       </Box>
                     )}
                   </Draggable>
@@ -415,76 +581,62 @@ const PowersDisplay: React.FC<{
           </Droppable>
         </DragDropContext>
       ) : (
-        uniquePowers.map((power) => renderPower(power))
-      )}
-
-      {sheet?.complication && (
         <>
-          <Divider sx={{ my: 2 }} />
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              sx={{
-                '& .MuiAccordionSummary-content': {
-                  width: '100%',
-                  margin: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                },
-              }}
-            >
-              <Stack
-                direction='row'
-                spacing={0.5}
-                sx={{ alignItems: 'center' }}
-              >
-                {isDesktop && <Box sx={{ width: 28, flexShrink: 0 }} />}
-                <Typography
-                  sx={{
-                    flexShrink: 0,
-                    fontWeight: 'bold',
-                    color: theme.palette.primary.main,
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  {sheet.complication.name}
-                </Typography>
-              </Stack>
-              <Typography sx={{ color: 'text.secondary' }}>
-                Complicação
+          {groups.length === 0 && (
+            <Box sx={EMPTY_SX}>
+              <Typography variant='body2' sx={{ mb: 1 }}>
+                Nenhum poder encontrado.
               </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              {sheet.complication.className && (
-                <Typography
-                  variant='caption'
-                  sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
-                >
-                  Complicação de {sheet.complication.className}
-                </Typography>
+              <Button size='small' onClick={() => setSearchTerm('')}>
+                Limpar busca
+              </Button>
+            </Box>
+          )}
+
+          {groups.map((group) => (
+            <Box key={group.key}>
+              {renderGroupHeader(
+                group.key,
+                group.label,
+                group.descriptor.color,
+                group.descriptor.icon,
+                group.powers.length
               )}
-              {sheet.complication.behavioral && (
-                <Typography
-                  variant='caption'
-                  sx={{ display: 'block', color: 'warning.main', mb: 0.5 }}
-                >
-                  † Comportamental — se violar, perde todos os PM (recupera a
-                  partir do próximo dia).
-                </Typography>
+              {group.powers.map((power) => renderRow(power))}
+            </Box>
+          ))}
+
+          {complicationPower && (
+            <Box>
+              {renderGroupHeader(
+                'complication',
+                POWER_ORIGINS.complication.label(),
+                POWER_ORIGINS.complication.color,
+                POWER_ORIGINS.complication.icon,
+                1
               )}
-              <Typography variant='body2'>
-                {sheet.complication.description}
-              </Typography>
-              <Typography variant='caption' sx={{ display: 'block', mt: 1 }}>
-                Poder adicional:{' '}
-                <strong>{sheet.complication.grantedPowerName}</strong>
-              </Typography>
-            </AccordionDetails>
-          </Accordion>
+              {renderRow(complicationPower, complicationExtra)}
+            </Box>
+          )}
         </>
       )}
+
+      <PowerDetailSheet
+        open={!!selectedPower}
+        onClose={() => setSelectedPowerName(null)}
+        isMobile={isMobile}
+        power={selectedPower}
+        originKind={selectedOrigin.kind}
+        originLabel={originLabel(selectedOrigin)}
+        sheetHistory={sheetHistory}
+        sheet={sheet}
+        className={className}
+        onUpdateRolls={onUpdateRolls}
+        onUpdateCustomEffects={onUpdateCustomEffects}
+        detailExtra={isComplicationSelected ? complicationExtra : undefined}
+      />
     </Box>
   );
 };
+
 export default PowersDisplay;
