@@ -32,6 +32,8 @@ type SelectedOption = {
   supplementId?: SupplementId;
   supplementName?: string;
   isVariant?: boolean;
+  /** Status divino (1-5) — presente apenas nas divindades menores. */
+  statusDivino?: number;
 };
 
 interface NewSheetFormProps {
@@ -53,6 +55,18 @@ interface NewSheetFormProps {
 const formatOptionLabel = (option: SelectedOption) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
     <span>{option.label}</span>
+    {option.statusDivino !== undefined && (
+      <Chip
+        label={`Deus menor · Status ${option.statusDivino}`}
+        size='small'
+        sx={{
+          height: '20px',
+          fontSize: '0.75rem',
+          backgroundColor: 'secondary.main',
+          color: 'secondary.contrastText',
+        }}
+      />
+    )}
     {option.isVariant && (
       <Chip
         label='Variante'
@@ -234,7 +248,11 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     // de homebrew — o `value` é o NOME, pois não há chave no enum estático.
     const supplementOptions = dataRegistry
       .getSupplementDeities(userSupplements)
-      .map((d) => ({ value: d.name, label: d.name }));
+      .map((d) => ({
+        value: d.name,
+        label: d.name,
+        statusDivino: d.statusDivino,
+      }));
     return [...staticOptions, ...supplementOptions].sort((a, b) =>
       a.label.localeCompare(b.label, 'pt-BR')
     );
@@ -393,6 +411,7 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
           <Select
             placeholder='Selecione...'
             options={[{ value: '--', label: 'Não devoto' }, ...divindades]}
+            formatOptionLabel={formatOptionLabel}
             isSearchable
             value={selectedOptions.devocao}
             onChange={inSelectDivindade}

@@ -132,6 +132,8 @@ type SelectedOption = {
   label: string;
   supplementId?: SupplementId;
   supplementName?: string;
+  /** Status divino (1-5) — presente apenas nas divindades menores. */
+  statusDivino?: number;
 };
 
 type MainScreenProps = {
@@ -144,6 +146,18 @@ type MainScreenProps = {
 const formatOptionLabel = (option: SelectedOption) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
     <span>{option.label}</span>
+    {option.statusDivino !== undefined && (
+      <Chip
+        label={`Deus menor · Status ${option.statusDivino}`}
+        size='small'
+        sx={{
+          height: '20px',
+          fontSize: '0.75rem',
+          backgroundColor: 'secondary.main',
+          color: 'secondary.contrastText',
+        }}
+      />
+    )}
     {option.supplementId &&
       option.supplementId !== SupplementId.TORMENTA20_CORE && (
         <Chip
@@ -1066,7 +1080,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     // nome, pois não existe chave correspondente no enum estático.
     const supplementOptions = dataRegistry
       .getSupplementDeities(userSupplements)
-      .map((d) => ({ value: d.name, label: d.name }));
+      .map((d) => ({
+        value: d.name,
+        label: d.name,
+        statusDivino: d.statusDivino,
+      }));
     return [...staticOptions, ...supplementOptions];
   }, [selectedOptions.classe, CLASSES, userSupplements]);
 

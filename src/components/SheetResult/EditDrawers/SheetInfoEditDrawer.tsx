@@ -2838,7 +2838,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       <MenuItem value=''>Nenhuma</MenuItem>
                       {DIVINDADES_DISPONIVEIS.map((deity: Divindade) => (
                         <MenuItem key={deity.name} value={deity.name}>
-                          {deity.name}
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{ alignItems: 'center' }}
+                          >
+                            <span>{deity.name}</span>
+                            {deity.statusDivino !== undefined && (
+                              <Chip
+                                label={`Deus menor · Status ${deity.statusDivino}`}
+                                size='small'
+                                color='secondary'
+                                sx={{ height: 20, fontSize: '0.75rem' }}
+                              />
+                            )}
+                          </Stack>
                         </MenuItem>
                       ))}
                     </Select>

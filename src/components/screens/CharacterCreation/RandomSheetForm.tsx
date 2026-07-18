@@ -39,6 +39,8 @@ type SelectedOption = {
   supplementId?: SupplementId;
   supplementName?: string;
   isVariant?: boolean;
+  /** Status divino (1-5) — presente apenas nas divindades menores. */
+  statusDivino?: number;
 };
 
 interface RandomSheetFormProps {
@@ -66,6 +68,18 @@ interface RandomSheetFormProps {
 const formatOptionLabel = (option: SelectedOption) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
     <span>{option.label}</span>
+    {option.statusDivino !== undefined && (
+      <Chip
+        label={`Deus menor · Status ${option.statusDivino}`}
+        size='small'
+        sx={{
+          height: '20px',
+          fontSize: '0.75rem',
+          backgroundColor: 'secondary.main',
+          color: 'secondary.contrastText',
+        }}
+      />
+    )}
     {option.isVariant && (
       <Chip
         label='Variante'
@@ -273,7 +287,11 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
     // Divindades homebrew ativas (suplementos runtime) — value = nome.
     const homebrewOptions = dataRegistry
       .getSupplementDeities(userSupplements)
-      .map((d) => ({ value: d.name, label: d.name }));
+      .map((d) => ({
+        value: d.name,
+        label: d.name,
+        statusDivino: d.statusDivino,
+      }));
     return [...staticOptions, ...homebrewOptions];
   }, [selectedOptions.classe, CLASSES, userSupplements]);
 
@@ -523,6 +541,7 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
                 options: divindades,
               },
             ]}
+            formatOptionLabel={formatOptionLabel}
             isSearchable
             value={selectedOptions.devocao}
             onChange={inSelectDivindade}
