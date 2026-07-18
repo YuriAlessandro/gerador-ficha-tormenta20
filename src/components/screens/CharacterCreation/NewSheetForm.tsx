@@ -52,6 +52,11 @@ interface NewSheetFormProps {
   /* eslint-enable react/no-unused-prop-types */
 }
 
+// Deuses maiores primeiro, depois os de suplemento — cada grupo em ordem
+// alfabética. Ordenar a lista inteira junta misturaria os dois.
+const byLabel = (a: { label: string }, b: { label: string }) =>
+  a.label.localeCompare(b.label, 'pt-BR');
+
 const formatOptionLabel = (option: SelectedOption) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
     <span>{option.label}</span>
@@ -229,7 +234,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
   );
 
   // NO "Aleatorio" in divindades - only actual deities and "Nao devoto"
-  // Sorted alphabetically by display name
   const divindades = React.useMemo(() => {
     const staticOptions = allDivindadeNames
       .filter((dv) => {
@@ -253,9 +257,7 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
         label: d.name,
         statusDivino: d.statusDivino,
       }));
-    return [...staticOptions, ...supplementOptions].sort((a, b) =>
-      a.label.localeCompare(b.label, 'pt-BR')
-    );
+    return [...staticOptions.sort(byLabel), ...supplementOptions.sort(byLabel)];
   }, [selectedOptions.classe, CLASSES, userSupplements]);
 
   const formThemeColors = isDarkMode

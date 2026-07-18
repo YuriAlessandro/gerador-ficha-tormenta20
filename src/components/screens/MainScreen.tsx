@@ -143,6 +143,11 @@ type MainScreenProps = {
 /**
  * Componente customizado para renderizar opções do select com badge de suplemento
  */
+// Deuses maiores primeiro, depois os de suplemento — cada grupo em ordem
+// alfabética.
+const byLabel = (a: { label: string }, b: { label: string }) =>
+  a.label.localeCompare(b.label, 'pt-BR');
+
 const formatOptionLabel = (option: SelectedOption) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
     <span>{option.label}</span>
@@ -1085,7 +1090,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         label: d.name,
         statusDivino: d.statusDivino,
       }));
-    return [...staticOptions, ...supplementOptions];
+    return [...staticOptions.sort(byLabel), ...supplementOptions.sort(byLabel)];
   }, [selectedOptions.classe, CLASSES, userSupplements]);
 
   const formThemeColors = isDarkMode

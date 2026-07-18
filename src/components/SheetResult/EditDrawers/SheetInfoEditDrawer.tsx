@@ -35,6 +35,7 @@ import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import { AttributeVariant } from '@/interfaces/Race';
 import { dataRegistry } from '@/data/registry';
 import Divindade from '@/interfaces/Divindade';
+import { DIVINDADES as DIVINDADES_CORE } from '@/data/systems/tormenta20/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
@@ -273,8 +274,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   // a MESMA lista usada pelo <Select> e pelas buscas por nome abaixo: oferecer
   // no dropdown um deus que a busca não resolve dispara o aviso de "Divindade
   // não encontrada" e a edição é silenciosamente descartada.
-  const DIVINDADES_DISPONIVEIS =
-    dataRegistry.getDeitiesWithSupplementPowers(userSupplements);
+  const DIVINDADES_DISPONIVEIS = React.useMemo(() => {
+    const todas = dataRegistry.getDeitiesWithSupplementPowers(userSupplements);
+    // Os 20 deuses maiores no topo, depois os de suplemento (deuses menores e
+    // homebrew) — cada grupo em ordem alfabética. `getDeitiesWithSupplementPowers`
+    // devolve os maiores primeiro, mas sem ordenação e com os demais anexados.
+    const nomesCore = new Set(DIVINDADES_CORE.map((d) => d.name));
+    const porNome = (a: Divindade, b: Divindade) =>
+      a.name.localeCompare(b.name, 'pt-BR');
+    return [
+      ...todas.filter((d) => nomesCore.has(d.name)).sort(porNome),
+      ...todas.filter((d) => !nomesCore.has(d.name)).sort(porNome),
+    ];
+  }, [userSupplements]);
 
   const [editedData, setEditedData] = useState<EditedData>({
     nome: sheet.nome,
