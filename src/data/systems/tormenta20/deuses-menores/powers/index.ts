@@ -190,7 +190,7 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
       description:
         'Enquanto está montado sobre um cavalo, você recebe +2 em testes de ataque e em Cavalgar. Além disso, você passa automaticamente em testes de Cavalgar para não cair do cavalo quando sofre dano e não sofre penalidades para atacar à distância ou lançar magias quando montado em cavalos. Este poder conta como o poder Ginete para efeitos de pré-requisitos de outras habilidades. Se você é um centauro, os benefícios deste poder mudam para: você pode fazer investidas em terreno difícil e não sofre a penalidade de –2 na Defesa por fazer uma investida. Por fim, recebe +2 nas rolagens de dano com armas em investidas.',
       type: GeneralPowerType.CONCEDIDOS,
-      requirements: [[{ type: RequirementType.DEVOTO, name: 'Hippinos' }]],
+      requirements: [[{ type: RequirementType.DEVOTO, name: 'Hippion' }]],
     },
     {
       name: 'Guardei para Você',
@@ -297,7 +297,7 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
       description:
         'Sempre que fizer um teste de Vontade para resistir a uma habilidade de uma criatura inteligente (Int –3 ou maior), você pode gastar 2 PM para propor uma charada a ela. Faça um teste de Enganação, oposto pelo Conhecimento ou Intuição da criatura. Se você vencer o teste, passa automaticamente no teste de Vontade. Caso contrário, faça o teste de Vontade normalmente.',
       type: GeneralPowerType.CONCEDIDOS,
-      requirements: [[{ type: RequirementType.DEVOTO, name: 'Garanaan' }]],
+      requirements: [[{ type: RequirementType.DEVOTO, name: 'Garanaam' }]],
     },
     {
       name: 'Natureza Gloriosa',
@@ -360,7 +360,7 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
       description:
         'Você recebe proficiência com armas de fogo. Além disso, pode gastar 1 PM para abençoar até 10 balas. Até o fim da cena, estas balas fornecem +1 na margem de ameaça e +2 nas rolagens de dano (cumulativo com outros bônus de itens).',
       type: GeneralPowerType.CONCEDIDOS,
-      requirements: [[{ type: RequirementType.DEVOTO, name: 'Gath' }]],
+      requirements: [[{ type: RequirementType.DEVOTO, name: 'Garth' }]],
     },
     {
       name: 'Revoada de Texugos',

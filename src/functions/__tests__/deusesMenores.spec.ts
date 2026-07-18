@@ -26,6 +26,40 @@ describe('Guia de Deuses Menores', () => {
     });
   });
 
+  /**
+   * A extração do PDF errou o nome de 3 deuses e o status divino de 6. Os
+   * valores abaixo foram conferidos no livro e travados aqui porque o CSV de
+   * origem não é versionado: sem esta guarda, uma regeração reintroduziria os
+   * erros silenciosamente — e o status alimenta o bônus de PM e o círculo
+   * máximo de magia.
+   */
+  it('mantém as correções feitas sobre a extração do PDF', () => {
+    const byName = new Map(
+      DEUSES_MENORES_DIVINDADES.map((d) => [d.name, d.statusDivino])
+    );
+
+    // Nomes corrigidos — as grafias antigas não podem voltar.
+    expect(byName.has('Garanaam')).toBe(true);
+    expect(byName.has('Garth')).toBe(true);
+    expect(byName.has('Hippion')).toBe(true);
+    ['Garanaan', 'Gath', 'Hippinos'].forEach((wrong) => {
+      expect(byName.has(wrong)).toBe(false);
+    });
+
+    // Status corrigidos — todos vieram como 4 na extração.
+    expect(byName.get('Beluhga')).toBe(3);
+    expect(byName.get('Goharom')).toBe(2);
+    expect(byName.get('Granto')).toBe(2);
+    expect(byName.get('Klangor')).toBe(2);
+    expect(byName.get('Zakharov')).toBe(2);
+    expect(byName.get('Hippion')).toBe(3);
+
+    // Os três vindos do Deuses de Arton seguem no suplemento.
+    expect(byName.get('Gwendolynn')).toBe(3);
+    expect(byName.get('Mauziell')).toBe(4);
+    expect(byName.get('Tibar')).toBe(5);
+  });
+
   it('cada poder exige DEVOTO do próprio deus', () => {
     DEUSES_MENORES_DIVINDADES.forEach((deity) => {
       const [power] = deity.poderes;
