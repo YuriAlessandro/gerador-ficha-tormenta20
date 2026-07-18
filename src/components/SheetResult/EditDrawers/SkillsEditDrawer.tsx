@@ -18,15 +18,18 @@ import {
   Paper,
   Select,
   MenuItem,
-  FormControl,
-  InputLabel,
   InputAdornment,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
-import Skill, { CompleteSkill, SkillsAttrs } from '@/interfaces/Skills';
+import Skill, {
+  ALL_SPECIFIC_OFICIOS,
+  CompleteSkill,
+  SkillsAttrs,
+  isOficioSkill,
+} from '@/interfaces/Skills';
+import OficioPicker from '@/components/common/OficioPicker';
 
 import {
   Atributo,
@@ -49,26 +52,6 @@ interface EditedSkill {
   modAttr: Atributo;
 }
 
-// Available Oficio options based on the Skills enum
-const AVAILABLE_OFICIOS = [
-  'Ofício (Armeiro)',
-  'Ofício (Artesão)',
-  'Ofício (Alquímia)',
-  'Ofício (Culinária)',
-  'Ofício (Alfaiate)',
-  'Ofício (Alvenaria)',
-  'Ofício (Carpinteiro)',
-  'Ofício (Joalheiro)',
-  'Ofício (Fazendeiro)',
-  'Ofício (Pescador)',
-  'Ofício (Estalajadeiro)',
-  'Ofício (Escriba)',
-  'Ofício (Escultor)',
-  'Ofício (Engenhoqueiro)',
-  'Ofício (Pintor)',
-  'Ofício (Minerador)',
-];
-
 const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
   open,
   onClose,
@@ -76,7 +59,6 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
   onSave,
 }) => {
   const [editedSkills, setEditedSkills] = useState<EditedSkill[]>([]);
-  const [selectedOficio, setSelectedOficio] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
@@ -98,7 +80,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 
   const handleSkillTrainingChange = (skillName: string, trained: boolean) => {
     setEditedSkills((prev) => {
-      if (!trained && skillName.startsWith('Ofício')) {
+      if (!trained && isOficioSkill(skillName)) {
         // Remove Oficio skills when unchecked
         return prev.filter((skill) => skill.name !== skillName);
       }
@@ -140,28 +122,19 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     return halfLevel + attrBonus + training + skill.others;
   };
 
-  const getAvailableOficios = (): string[] => {
-    const existingOficios = editedSkills
-      .filter((skill) => skill.name.startsWith('Ofício'))
-      .map((skill) => skill.name);
+  const existingOficios = editedSkills
+    .filter((skill) => isOficioSkill(skill.name))
+    .map((skill) => skill.name as Skill);
 
-    return AVAILABLE_OFICIOS.filter(
-      (oficio) => !existingOficios.includes(oficio)
-    );
-  };
-
-  const handleAddOficio = () => {
-    if (!selectedOficio) return;
-
+  const handleAddOficio = (oficio: Skill) => {
     const newSkill: EditedSkill = {
-      name: selectedOficio,
+      name: oficio,
       trained: false,
       others: 0,
       modAttr: Atributo.INTELIGENCIA,
     };
 
     setEditedSkills((prev) => [...prev, newSkill]);
-    setSelectedOficio('');
   };
 
   const handleSave = () => {
@@ -179,7 +152,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     const updatedSkills: CompleteSkill[] = sheet.completeSkills
       .filter((originalSkill) => {
         // If it's an Oficio and not in editedSkills, it was removed
-        if (originalSkill.name.startsWith('Ofício')) {
+        if (isOficioSkill(originalSkill.name)) {
           return editedSkills.some((s) => s.name === originalSkill.name);
         }
         return true; // Keep all non-Oficio skills
@@ -211,7 +184,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     const newOficios: CompleteSkill[] = editedSkills
       .filter(
         (editedSkill) =>
-          editedSkill.name.startsWith('Ofício') &&
+          isOficioSkill(editedSkill.name) &&
           !sheet.completeSkills?.some((s) => s.name === editedSkill.name)
       )
       .map((editedSkill) => ({
@@ -543,53 +516,29 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           </Table>
         </TableContainer>
 
-        {getAvailableOficios().length > 0 && (
-          <Box
-            sx={{
-              mt: 3,
-              p: 2,
-              backgroundColor: 'action.hover',
-              borderRadius: 1,
-              flexShrink: 0,
-            }}
-          >
-            <Typography variant='subtitle2' sx={{ mb: 2 }}>
-              Adicionar Novo Ofício
-            </Typography>
-            <Stack
-              direction='row'
-              spacing={2}
-              sx={{
-                alignItems: 'center',
-              }}
-            >
-              <FormControl sx={{ minWidth: 200, flexGrow: 1 }}>
-                <InputLabel>Selecione um Ofício</InputLabel>
-                <Select
-                  value={selectedOficio}
-                  label='Selecione um Ofício'
-                  onChange={(e) => setSelectedOficio(e.target.value)}
-                  size='small'
-                >
-                  {getAvailableOficios().map((oficio) => (
-                    <MenuItem key={oficio} value={oficio}>
-                      {oficio}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Button
-                variant='contained'
-                onClick={handleAddOficio}
-                disabled={!selectedOficio}
-                startIcon={<AddIcon />}
-                size='small'
-              >
-                Adicionar
-              </Button>
-            </Stack>
+        <Box
+          sx={{
+            mt: 3,
+            p: 2,
+            backgroundColor: 'action.hover',
+            borderRadius: 1,
+            flexShrink: 0,
+          }}
+        >
+          <Typography variant='subtitle2' sx={{ mb: 2 }}>
+            Adicionar Novo Ofício
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <OficioPicker
+              selected={[]}
+              options={ALL_SPECIFIC_OFICIOS}
+              unavailable={existingOficios}
+              allowCustom
+              showSelectedChips={false}
+              onSelect={handleAddOficio}
+            />
           </Box>
-        )}
+        </Box>
 
         <Stack direction='row' spacing={2} sx={{ mt: 4, flexShrink: 0 }}>
           <Button

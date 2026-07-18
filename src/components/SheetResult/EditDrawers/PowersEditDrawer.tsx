@@ -60,6 +60,7 @@ import { normalizeSearch } from '@/functions/stringUtils';
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
   isGenericOficio,
+  isOficioSkill,
 } from '@/interfaces/Skills';
 import { CustomPower } from '@/interfaces/CustomPower';
 import PowerSelectionDialog from './PowerSelectionDialog';
@@ -1178,10 +1179,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             if (isGenericOficio(req.name)) {
               return (
                 sheet.completeSkills?.some(
-                  (s) =>
-                    (s.name === Skill.OFICIO ||
-                      ALL_SPECIFIC_OFICIOS.includes(s.name)) &&
-                    (s.training || 0) > 0
+                  (s) => isOficioSkill(s.name) && (s.training || 0) > 0
                 ) || false
               );
             }
@@ -1315,10 +1313,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             if (isGenericOficio(req.name)) {
               return (
                 sheet.completeSkills?.some(
-                  (s) =>
-                    (s.name === Skill.OFICIO ||
-                      ALL_SPECIFIC_OFICIOS.includes(s.name)) &&
-                    (s.training || 0) > 0
+                  (s) => isOficioSkill(s.name) && (s.training || 0) > 0
                 ) || false
               );
             }

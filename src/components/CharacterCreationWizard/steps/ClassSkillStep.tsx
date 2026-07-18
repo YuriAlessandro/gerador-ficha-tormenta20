@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Typography, Alert, Chip, Divider } from '@mui/material';
-import Skill from '@/interfaces/Skills';
+import Skill, { isOficioSkill } from '@/interfaces/Skills';
 import { BasicExpertise } from '@/interfaces/Class';
 import SkillChipSelector from '@/components/common/SkillChipSelector';
+import OficioPicker from '@/components/common/OficioPicker';
 
 interface ClassSkillStepProps {
   // Base skills data
@@ -99,6 +100,11 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
           const currentOrIndex = orIndex;
           orIndex += 1;
           const chosenSkill = baseSkillChoices[currentOrIndex];
+          // Grupos vindos de `expandOficioInBasicas` trazem os 16 Ofícios;
+          // eles colapsam num chip único, igual ao seletor da seção 2.
+          const oficioOptions = be.list.filter(isOficioSkill);
+          const plainOptions = be.list.filter((skill) => !isOficioSkill(skill));
+          const chosenOficio = isOficioSkill(chosenSkill) ? chosenSkill : null;
 
           return (
             <Box key={`or-${be.list.join('-')}`}>
@@ -112,7 +118,7 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
                 Escolha uma:
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
-                {be.list.map((skill) => {
+                {plainOptions.map((skill) => {
                   const isSelected = chosenSkill === skill;
                   return (
                     <Chip
@@ -133,6 +139,18 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
                     />
                   );
                 })}
+                {oficioOptions.length > 0 && (
+                  <OficioPicker
+                    selected={chosenOficio ? [chosenOficio] : []}
+                    options={oficioOptions}
+                    multiple={false}
+                    allowCustom
+                    onSelect={(skill) => handleOrChoice(currentOrIndex, skill)}
+                    onDeselect={(skill) =>
+                      handleOrChoice(currentOrIndex, skill)
+                    }
+                  />
+                )}
               </Box>
             </Box>
           );
@@ -174,6 +192,8 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
             selectedSkills={selectedSkills}
             onToggle={handleToggleSkill}
             maxReached={selectedSkills.length >= requiredCount}
+            allowCustomOficio
+            unavailableOficios={baseSkillChoices.filter(isOficioSkill)}
           />
 
           {selectedSkills.length > requiredCount && (

@@ -50,7 +50,10 @@ import {
   getClassBaseSkillsWithChoices,
   expandOficioInBasicas,
 } from '@/data/systems/tormenta20/pericias';
-import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
+import Skill, {
+  ALL_SPECIFIC_OFICIOS,
+  isOficioSkill,
+} from '@/interfaces/Skills';
 import Equipment, { BagEquipments } from '@/interfaces/Equipment';
 import cloneDeep from 'lodash/cloneDeep';
 import { MarketSelections } from '@/interfaces/MarketEquipment';
@@ -1091,6 +1094,10 @@ const CharacterCreationWizardModal: React.FC<
             }
             requiredCount={getIntelligenceSkillsCount()}
             intelligenceModifier={getIntelligenceModifier()}
+            // Ofícios customizados criados nos passos anteriores não estão em
+            // `availableSkills` (derivado do enum): sem isto o usuário poderia
+            // recriar aqui o mesmo Ofício que já escolheu na classe.
+            unavailableOficios={usedSkillsForInt.filter(isOficioSkill)}
           />
         );
       }

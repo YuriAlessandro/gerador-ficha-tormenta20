@@ -22,7 +22,7 @@ import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Skill, {
   CompleteSkill,
-  TrainedOnlySkills,
+  isTrainedOnlySkill,
 } from '../../interfaces/Skills';
 import { ATTR_ABBREVIATIONS } from '../../data/systems/tormenta20/atributos';
 import BookTitle from './common/BookTitle';
@@ -295,7 +295,7 @@ const SkillTable: React.FC<IProps> = ({
 
               const isTrained = (skill.training ?? 0) > 0;
               const attrName = skill.modAttr ?? '';
-              const isTrainedOnly = TrainedOnlySkills.includes(skill.name);
+              const isTrainedOnly = isTrainedOnlySkill(skill.name);
               const attrAbbr = skill.modAttr
                 ? ATTR_ABBREVIATIONS[skill.modAttr]
                 : '';

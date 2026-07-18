@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
-import Skill from '@/interfaces/Skills';
+import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
 import SkillChipSelector from '../SkillChipSelector';
 
 const manySkills = [
@@ -143,5 +143,120 @@ describe('SkillChipSelector', () => {
     fireEvent.click(screen.getByLabelText('Limpar busca'));
     expect(input.value).toBe('');
     expect(screen.getByText(Skill.ACROBACIA)).toBeInTheDocument();
+  });
+
+  describe('agrupamento de Ofício', () => {
+    const withOficios = [Skill.CURA, Skill.LUTA, ...ALL_SPECIFIC_OFICIOS];
+
+    it('colapsa os ofícios num chip único', () => {
+      render(
+        <SkillChipSelector
+          availableSkills={withOficios}
+          selectedSkills={[]}
+          onToggle={() => undefined}
+          maxReached={false}
+        />
+      );
+      expect(screen.getByText('Ofício')).toBeInTheDocument();
+      ALL_SPECIFIC_OFICIOS.forEach((oficio) => {
+        expect(screen.queryByText(oficio)).not.toBeInTheDocument();
+      });
+    });
+
+    it('não exibe busca: 2 perícias + o grupo de ofícios ficam abaixo do limite', () => {
+      render(
+        <SkillChipSelector
+          availableSkills={withOficios}
+          selectedSkills={[]}
+          onToggle={() => undefined}
+          maxReached={false}
+        />
+      );
+      expect(
+        screen.queryByPlaceholderText('Buscar perícia...')
+      ).not.toBeInTheDocument();
+    });
+
+    it('seleciona um ofício pelo menu', () => {
+      const toggled: Skill[] = [];
+      render(
+        <SkillChipSelector
+          availableSkills={withOficios}
+          selectedSkills={[]}
+          onToggle={(skill) => toggled.push(skill)}
+          maxReached={false}
+        />
+      );
+      fireEvent.click(screen.getByText('Ofício'));
+      fireEvent.click(screen.getByText(Skill.OFICIO_ESCRIBA));
+      expect(toggled).toEqual([Skill.OFICIO_ESCRIBA]);
+    });
+
+    it('cria ofício customizado só com allowCustomOficio', () => {
+      const toggled: Skill[] = [];
+      const { rerender } = render(
+        <SkillChipSelector
+          availableSkills={withOficios}
+          selectedSkills={[]}
+          onToggle={(skill) => toggled.push(skill)}
+          maxReached={false}
+        />
+      );
+      fireEvent.click(screen.getByText('Ofício'));
+      expect(
+        screen.queryByPlaceholderText('Buscar ou criar ofício...')
+      ).not.toBeInTheDocument();
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+
+      rerender(
+        <SkillChipSelector
+          availableSkills={withOficios}
+          selectedSkills={[]}
+          onToggle={(skill) => toggled.push(skill)}
+          maxReached={false}
+          allowCustomOficio
+        />
+      );
+      fireEvent.click(screen.getByText('Ofício'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Buscar ou criar ofício...'),
+        { target: { value: 'Ferreiro anão' } }
+      );
+      fireEvent.click(screen.getByText('Criar "Ofício (Ferreiro anão)"'));
+      expect(toggled).toEqual(['Ofício (Ferreiro anão)']);
+    });
+
+    it('mantém visível o ofício customizado selecionado, fora de availableSkills', () => {
+      const custom = 'Ofício (Ferreiro anão)' as Skill;
+      render(
+        <SkillChipSelector
+          availableSkills={withOficios}
+          selectedSkills={[custom]}
+          onToggle={() => undefined}
+          maxReached={false}
+          allowCustomOficio
+        />
+      );
+      expect(screen.getByText(custom)).toBeInTheDocument();
+      expect(screen.getByText('Ofício (1)')).toBeInTheDocument();
+    });
+
+    it('esconde o grupo de ofícios quando a busca não casa', () => {
+      render(
+        <SkillChipSelector
+          availableSkills={[...manySkills, ...ALL_SPECIFIC_OFICIOS]}
+          selectedSkills={[]}
+          onToggle={() => undefined}
+          maxReached={false}
+        />
+      );
+      const input = screen.getByPlaceholderText('Buscar perícia...');
+
+      fireEvent.change(input, { target: { value: 'escriba' } });
+      expect(screen.getByText('Ofício')).toBeInTheDocument();
+
+      fireEvent.change(input, { target: { value: 'cura' } });
+      expect(screen.queryByText('Ofício')).not.toBeInTheDocument();
+    });
   });
 });

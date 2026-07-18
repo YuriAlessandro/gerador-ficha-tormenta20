@@ -9,6 +9,8 @@ interface IntelligenceSkillStepProps {
   onChange: (skills: Skill[]) => void;
   requiredCount: number;
   intelligenceModifier: number;
+  /** Ofícios já escolhidos nos passos anteriores (inclui customizados). */
+  unavailableOficios?: Skill[];
 }
 
 const IntelligenceSkillStep: React.FC<IntelligenceSkillStepProps> = ({
@@ -17,6 +19,7 @@ const IntelligenceSkillStep: React.FC<IntelligenceSkillStepProps> = ({
   onChange,
   requiredCount,
   intelligenceModifier,
+  unavailableOficios = [],
 }) => {
   const handleToggleSkill = (skill: Skill) => {
     if (selectedSkills.includes(skill)) {
@@ -75,6 +78,8 @@ const IntelligenceSkillStep: React.FC<IntelligenceSkillStepProps> = ({
         selectedSkills={selectedSkills}
         onToggle={handleToggleSkill}
         maxReached={selectedSkills.length >= requiredCount}
+        allowCustomOficio
+        unavailableOficios={unavailableOficios}
       />
       {selectedSkills.length > requiredCount && (
         <Alert severity='error'>

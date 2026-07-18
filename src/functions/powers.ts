@@ -11,6 +11,7 @@ import {
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
   isGenericOficio,
+  isOficioSkill,
 } from '../interfaces/Skills';
 import {
   INVENTOR_SPECIALIZATIONS,
@@ -107,9 +108,9 @@ export function isPowerAvailable(
           }
           case RequirementType.PERICIA: {
             if (isGenericOficio(rule.name)) {
-              return sheet.skills.some(
-                (s) => s === Skill.OFICIO || ALL_SPECIFIC_OFICIOS.includes(s)
-              );
+              // isOficioSkill (e não a lista fechada) para que um Ofício
+              // customizado também satisfaça o pré-requisito genérico
+              return sheet.skills.some(isOficioSkill);
             }
 
             const pericia = rule.name as Skill;

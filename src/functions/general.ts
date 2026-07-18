@@ -118,8 +118,10 @@ import {
 } from './multiclass';
 import { resolveSchoolChoice } from './spellPathUtils';
 import Skill, {
-  SkillsAttrs,
   SkillsWithArmorPenalty,
+  getSheetSkillNames,
+  getSkillAttr,
+  isOficioSkill,
 } from '../interfaces/Skills';
 import Bag from '../interfaces/Bag';
 import roles from '../data/systems/tormenta20/roles';
@@ -5447,10 +5449,13 @@ export default function generateRandomSheet(
   // com penalidade de armadura padrão já levam a penalidade cheia e não
   // acumulam com esta parcela).
   const nonProficientArmorPenalty = getNonProficientArmorPenalty(charSheet);
-  charSheet.completeSkills = Object.values(Skill)
+  charSheet.completeSkills = getSheetSkillNames(charSheet.skills)
     .map((skill) => {
-      const skillAttr = SkillsAttrs[skill];
-      const attr = atributos[skillAttr as unknown as Atributo];
+      // getSkillAttr (e não SkillsAttrs direto) para não perder Ofícios
+      // customizados, que não existem no catálogo
+      const skillAttr = getSkillAttr(skill);
+      if (!skillAttr) return null;
+      const attr = atributos[skillAttr];
 
       let armorPenalty = 0;
       if (SkillsWithArmorPenalty.includes(skill)) {
@@ -5478,9 +5483,8 @@ export default function generateRandomSheet(
       };
     })
     .filter(
-      (skill) =>
-        !skill.name.startsWith('Of') ||
-        (skill.name.startsWith('Of') && skill.training > 0)
+      (skill): skill is NonNullable<typeof skill> =>
+        !!skill && (!isOficioSkill(skill.name) || skill.training > 0)
     );
 
   // Passo 12:
@@ -6691,22 +6695,23 @@ export function generateEmptySheet(
   }
 
   // Generate complete skills table with base values of 0
-  emptySheet.completeSkills = Object.values(Skill)
+  // Inclui os Ofícios customizados escolhidos no wizard (fora do enum)
+  emptySheet.completeSkills = getSheetSkillNames(emptySheet.skills)
     .map((skill) => {
-      const skillAttr = SkillsAttrs[skill];
+      const skillAttr = getSkillAttr(skill);
+      if (!skillAttr) return null;
 
       return {
         name: skill,
         halfLevel: Math.floor(emptySheet.nivel / 2),
         training: emptySheet.skills.includes(skill) ? 2 : 0,
-        modAttr: skillAttr as unknown as Atributo,
+        modAttr: skillAttr,
         others: 0, // Base value of 0 for empty sheet
       };
     })
     .filter(
-      (skill) =>
-        !skill.name.startsWith('Of') ||
-        (skill.name.startsWith('Of') && skill.training > 0)
+      (skill): skill is NonNullable<typeof skill> =>
+        !!skill && (!isOficioSkill(skill.name) || skill.training > 0)
     );
 
   // Recalculate sheet to apply all bonuses (attributes, PV/PM, defense, skills)

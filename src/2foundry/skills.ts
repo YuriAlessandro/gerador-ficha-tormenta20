@@ -19,7 +19,10 @@ export interface FoundryCharSkill {
   mais?: {
     [key: string]: {
       treinado: number;
-      treino: number;
+      // `setOficio` nunca escreve `treino` e sempre escreve `label` (o nome do
+      // Ofício); o tipo estava descrevendo o contrário do que o código emite.
+      treino?: number;
+      label: string;
       atributo: FoundrySkillAttribute;
       outros: number;
     };

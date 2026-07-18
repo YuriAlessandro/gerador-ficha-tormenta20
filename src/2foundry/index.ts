@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import CharacterSheet from '../interfaces/CharacterSheet';
-import Skill from '../interfaces/Skills';
+import Skill, { isOficioSkill } from '../interfaces/Skills';
 import { DEFAULT_SKILLS, FoundryCharSkill, FOUNDRY_SKILLS } from './skills';
 
 interface FoundryCharAttribute {
@@ -141,13 +141,15 @@ function setOficio(acc: Record<string, FoundryCharSkill>, skill: Skill) {
 
 function getSkills(sheet: CharacterSheet): Record<string, FoundryCharSkill> {
   return sheet.skills.reduce((acc, skill) => {
-    if (FOUNDRY_SKILLS[skill]) {
-      if (skill.startsWith('Of')) {
-        setOficio(acc, skill);
-        return acc;
-      }
+    // Ofício é tratado ANTES do lookup em FOUNDRY_SKILLS: os customizados não
+    // são chave do mapa e, dentro do lookup, eram descartados silenciosamente.
+    if (isOficioSkill(skill)) {
+      setOficio(acc, skill);
+      return acc;
+    }
 
-      const skillKey = FOUNDRY_SKILLS[skill];
+    const skillKey = FOUNDRY_SKILLS[skill];
+    if (skillKey) {
       acc[skillKey].treinado = true;
     }
 

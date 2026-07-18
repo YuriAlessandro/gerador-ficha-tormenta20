@@ -9,22 +9,26 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
-import Skill from '@/interfaces/Skills';
+import Skill, { isOficioSkill } from '@/interfaces/Skills';
+import { normalizeSearch } from '@/functions/stringUtils';
+import OficioPicker from './OficioPicker';
 
 // Busca só aparece quando a lista é grande o suficiente para valer a pena
 const SEARCH_THRESHOLD = 10;
-
-const normalize = (text: string): string =>
-  text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
 
 interface SkillChipSelectorProps {
   availableSkills: Skill[];
   selectedSkills: Skill[];
   onToggle: (skill: Skill) => void;
   maxReached: boolean;
+  /**
+   * Libera a criação de Ofícios customizados no menu. Explícito (e não
+   * inferido) porque criar um `Skill` fora do enum não deve ser um efeito
+   * colateral silencioso de um componente genérico.
+   */
+  allowCustomOficio?: boolean;
+  /** Ofícios já usados em outro passo: desabilitados e bloqueados para custom. */
+  unavailableOficios?: Skill[];
 }
 
 const SkillChipSelector: React.FC<SkillChipSelectorProps> = ({
@@ -32,20 +36,58 @@ const SkillChipSelector: React.FC<SkillChipSelectorProps> = ({
   selectedSkills,
   onToggle,
   maxReached,
+  allowCustomOficio = false,
+  unavailableOficios = [],
 }) => {
   const [search, setSearch] = useState('');
-  const showSearch = availableSkills.length > SEARCH_THRESHOLD;
+
+  // Os Ofícios colapsam num chip único com menu — sem isso a lista ganha 16
+  // chips que a maioria dos usuários não usa.
+  const oficioOptions = useMemo(
+    () => availableSkills.filter(isOficioSkill),
+    [availableSkills]
+  );
+  const plainSkills = useMemo(
+    () => availableSkills.filter((skill) => !isOficioSkill(skill)),
+    [availableSkills]
+  );
+  // Vem de selectedSkills, NÃO da interseção com availableSkills: um Ofício
+  // customizado nunca está em availableSkills (derivado do enum) e sumiria da
+  // tela logo após ser criado.
+  const selectedOficios = useMemo(
+    () => selectedSkills.filter(isOficioSkill),
+    [selectedSkills]
+  );
+
+  const hasOficioGroup = oficioOptions.length > 0 || selectedOficios.length > 0;
+  // O grupo de Ofícios conta como 1 para o threshold, já que ocupa 1 chip
+  const showSearch =
+    plainSkills.length + (hasOficioGroup ? 1 : 0) > SEARCH_THRESHOLD;
+
+  const query = normalizeSearch(search.trim());
 
   // Perícias selecionadas permanecem visíveis mesmo fora do filtro, para a
   // seleção atual nunca "sumir" durante a busca
   const visibleSkills = useMemo(() => {
-    if (!showSearch || !search.trim()) return availableSkills;
-    const query = normalize(search.trim());
-    return availableSkills.filter(
+    if (!showSearch || !query) return plainSkills;
+    return plainSkills.filter(
       (skill) =>
-        selectedSkills.includes(skill) || normalize(skill).includes(query)
+        selectedSkills.includes(skill) || normalizeSearch(skill).includes(query)
     );
-  }, [availableSkills, selectedSkills, search, showSearch]);
+  }, [plainSkills, selectedSkills, query, showSearch]);
+
+  // O chip de Ofício some da busca só quando nem o rótulo nem nenhum ofício
+  // (do catálogo ou já escolhido) casam com a query
+  const showOficioGroup =
+    hasOficioGroup &&
+    (!showSearch ||
+      !query ||
+      normalizeSearch('Ofício').includes(query) ||
+      [...oficioOptions, ...selectedOficios].some((oficio) =>
+        normalizeSearch(oficio).includes(query)
+      ));
+
+  const isEmpty = visibleSkills.length === 0 && !showOficioGroup;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -108,7 +150,18 @@ const SkillChipSelector: React.FC<SkillChipSelectorProps> = ({
             />
           );
         })}
-        {visibleSkills.length === 0 && (
+        {showOficioGroup && (
+          <OficioPicker
+            selected={selectedOficios}
+            options={oficioOptions}
+            unavailable={unavailableOficios}
+            maxReached={maxReached}
+            allowCustom={allowCustomOficio}
+            onSelect={onToggle}
+            onDeselect={onToggle}
+          />
+        )}
+        {isEmpty && (
           <Typography
             variant='body2'
             sx={{

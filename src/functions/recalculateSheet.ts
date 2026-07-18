@@ -14,8 +14,10 @@ import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import { RequirementType } from '@/interfaces/Poderes';
 import Skill, {
-  SkillsAttrs,
   SkillsWithArmorPenalty,
+  getSheetSkillNames,
+  getSkillAttr,
+  isOficioSkill,
 } from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
@@ -840,7 +842,7 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
       // The sheetBonuses (from race abilities, powers, etc.) will be reapplied
       // after this function is called
       const isAffectedByArmor = SkillsWithArmorPenalty.includes(skill.name);
-      const skillAttr = skill.modAttr ?? SkillsAttrs[skill.name];
+      const skillAttr = skill.modAttr ?? getSkillAttr(skill.name);
       const isStrDexSkill =
         skillAttr === Atributo.FORCA || skillAttr === Atributo.DESTREZA;
       let basePenalty = 0;
@@ -857,11 +859,39 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
         manuallyUntrained: skill.manuallyUntrained,
       };
     });
+
+    // Rede de segurança: o map acima só atualiza linhas que JÁ existem. Um
+    // Ofício customizado que entrou em `skills` sem linha correspondente (ficha
+    // salva antes deste recálculo, import, edição manual) sumiria da tabela.
+    // Restrito a Ofício de propósito: reconciliar qualquer perícia faltante
+    // ressuscitaria linhas que o SkillsEditDrawer remove ao destreinar.
+    const presentSkills = new Set(
+      updatedSheet.completeSkills.map((skill) => skill.name)
+    );
+    const missingOficios = updatedSheet.skills
+      .filter((name) => isOficioSkill(name) && !presentSkills.has(name))
+      .map((name) => ({
+        name,
+        halfLevel: Math.floor(updatedSheet.nivel / 2),
+        training: skillTrainingMod(true, updatedSheet.nivel),
+        modAttr: Atributo.INTELIGENCIA,
+        others: 0,
+      }));
+
+    if (missingOficios.length > 0) {
+      updatedSheet.completeSkills = [
+        ...updatedSheet.completeSkills,
+        ...missingOficios,
+      ];
+    }
   } else {
-    // Create completeSkills from SkillsAttrs if it doesn't exist
-    updatedSheet.completeSkills = Object.entries(SkillsAttrs)
-      .map(([skillName, attr]) => {
-        const skill = skillName as Skill;
+    // Create completeSkills from scratch if it doesn't exist.
+    // Inclui os Ofícios customizados de `skills`, que não existem em SkillsAttrs.
+    updatedSheet.completeSkills = getSheetSkillNames(updatedSheet.skills)
+      .map((skill) => {
+        const attr = getSkillAttr(skill);
+        if (!attr) return null;
+
         const isAffectedByArmor = SkillsWithArmorPenalty.includes(skill);
         const isStrDexSkill =
           attr === Atributo.FORCA || attr === Atributo.DESTREZA;
@@ -876,14 +906,13 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
             Object.values(updatedSheet.skills).includes(skill),
             updatedSheet.nivel
           ),
-          modAttr: attr as unknown as Atributo,
+          modAttr: attr,
           others: basePenalty > 0 ? basePenalty * -1 : 0,
         };
       })
       .filter(
-        (skill) =>
-          !skill.name.startsWith('Of') ||
-          (skill.name.startsWith('Of') && skill.training > 0)
+        (skill): skill is NonNullable<typeof skill> =>
+          !!skill && (!isOficioSkill(skill.name) || skill.training > 0)
       );
   }
 

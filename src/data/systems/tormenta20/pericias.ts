@@ -3,7 +3,10 @@ import {
   pickFromArray,
 } from '../../../functions/randomUtils';
 import { ClassDescription, BasicExpertise } from '../../../interfaces/Class';
-import Skill, { ALL_SPECIFIC_OFICIOS } from '../../../interfaces/Skills';
+import Skill, {
+  ALL_SPECIFIC_OFICIOS,
+  isOficioSkill,
+} from '../../../interfaces/Skills';
 
 // Skills without "Ofício (Qualquer)" - used for random/manual selections
 // This avoids the generic "Ofício (Qualquer)" appearing in skill picks,
@@ -107,7 +110,14 @@ export function getClassBaseSkillsWithChoices(
     if (basicExpertise.type === 'or') {
       const choice = orChoices[orIndex];
       orIndex += 1;
-      if (choice && basicExpertise.list.includes(choice)) {
+      // Um Ofício customizado não está na `list` (que vem do enum), mas é uma
+      // escolha legítima em grupo que JÁ era de Ofícios — os dois lados da
+      // conjunção são necessários: sem o `some`, o custom vazaria para grupos
+      // como "Luta ou Pontaria".
+      const isValidChoice =
+        basicExpertise.list.includes(choice) ||
+        (isOficioSkill(choice) && basicExpertise.list.some(isOficioSkill));
+      if (choice && isValidChoice) {
         return [...result, choice];
       }
     }
