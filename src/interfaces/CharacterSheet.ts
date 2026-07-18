@@ -227,6 +227,13 @@ export type SheetActionStep =
         substitutes: 'none' | 'classPower' | 'generalPower';
       };
       linkedTo?: string; // If set, auto-select the option matching a previous choice stored under this key
+      // Quando presente, o NOME da opção escolhida deve ser um `Atributo` e é
+      // gravado no campo escalar correspondente da ficha (Tradição Perdida):
+      // 'pm' → `tradicaoPerdidaPmAttribute`; 'cd' → `spellPath.keyAttribute`
+      // (ou `overrideKeyAttribute`). Só é aplicado no apply "fresco" (escolha
+      // ativa do jogador), nunca no replay do recálculo — assim edições manuais
+      // posteriores no editor prevalecem. Sem sorteio aleatório de fallback.
+      applyChosenAttributeTo?: 'pm' | 'cd';
     }
   | {
       type: 'trainSkillOrBonus';

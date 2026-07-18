@@ -2992,11 +2992,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                   {canEditTradicaoPerdidaPm && (
                     <FormControl fullWidth>
                       <InputLabel id='tradicao-perdida-pm-label'>
-                        Atributo de PM (Tradição Perdida)
+                        Atributo de PM
                       </InputLabel>
                       <Select
                         labelId='tradicao-perdida-pm-label'
-                        label='Atributo de PM (Tradição Perdida)'
+                        label='Atributo de PM'
                         value={editedData.tradicaoPerdidaPmAttribute ?? ''}
                         onChange={(e) =>
                           setEditedData({
@@ -3016,9 +3016,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         ))}
                       </Select>
                       <FormHelperText>
-                        Poder Tradição Perdida: soma este atributo no total de
-                        PM (limite de 6 +2/patamar), no lugar do atributo da
-                        classe. Ignorado se &quot;PM Máximo Manual&quot; estiver
+                        Substitui o atributo da classe no cálculo do total de
+                        PM. Ignorado se &quot;PM Máximo Manual&quot; estiver
                         definido.
                       </FormHelperText>
                     </FormControl>

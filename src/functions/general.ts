@@ -2907,7 +2907,8 @@ export const applyPower = (
           });
         }
       } else if (sheetAction.action.type === 'chooseFromOptions') {
-        const { optionKey, options, linkedTo } = sheetAction.action;
+        const { optionKey, options, linkedTo, applyChosenAttributeTo } =
+          sheetAction.action;
         const pick = sheetAction.action.pick ?? 1;
 
         // Resolve os nomes escolhidos (com repetição quando permitido). Suporta
@@ -2947,7 +2948,15 @@ export const applyPower = (
             chosenNames = [previousChoice.chosenName];
           }
         }
-        if (chosenNames.length === 0 && options.length > 0) {
+        // Picks de atributo (Tradição Perdida) NÃO sorteiam: se o jogador não
+        // escolheu ativamente (nem há escolha persistida), a ação fica inerte —
+        // assim fichas antigas com o poder e geração aleatória nunca recebem um
+        // atributo aleatório silencioso.
+        if (
+          chosenNames.length === 0 &&
+          options.length > 0 &&
+          !applyChosenAttributeTo
+        ) {
           // Fallback aleatório respeitando `repeatable` e a quantidade `pick`.
           const pool = [...options];
           while (chosenNames.length < pick && pool.length > 0) {
@@ -2966,6 +2975,25 @@ export const applyPower = (
             ...(sheet.optionChoices || {}),
             [optionKey]: chosenNames,
           };
+        }
+
+        // Tradição Perdida: grava o atributo escolhido no campo escalar da ficha.
+        // Só no apply "fresco" (este bloco) — o replay do recálculo não reescreve,
+        // então uma edição manual posterior no editor prevalece.
+        if (applyChosenAttributeTo && chosenNames.length > 0) {
+          const chosenAttr = chosenNames[0] as Atributo;
+          if ((Object.values(Atributo) as string[]).includes(chosenAttr)) {
+            if (applyChosenAttributeTo === 'pm') {
+              sheet.tradicaoPerdidaPmAttribute = chosenAttr;
+            } else if (sheet.classe.spellPath) {
+              sheet.classe.spellPath = {
+                ...sheet.classe.spellPath,
+                keyAttribute: chosenAttr,
+              };
+            } else {
+              sheet.overrideKeyAttribute = chosenAttr;
+            }
+          }
         }
 
         const chosenOptions = chosenNames

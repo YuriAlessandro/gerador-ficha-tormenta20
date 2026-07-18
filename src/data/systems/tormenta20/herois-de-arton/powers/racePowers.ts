@@ -4,10 +4,19 @@ import {
   RequirementType,
 } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
+import { Atributo } from '../../atributos';
 
 /**
  * Poderes de Raça do suplemento Heróis de Arton
  */
+
+// Opções (os 6 atributos) para os picks de atributo-chave da Tradição Perdida.
+// O NOME de cada opção é o próprio `Atributo`, lido em `applyChosenAttributeTo`.
+const tradicaoPerdidaAttributeOptions = (text: string) =>
+  (Object.values(Atributo) as Atributo[]).map((attr) => ({
+    name: attr,
+    text,
+  }));
 const racePowers: Record<string, GeneralPower> = {
   AJUDANTE_NATO: {
     name: 'Ajudante Nato',
@@ -1069,6 +1078,19 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.HABILIDADE, name: 'Magias' },
       ],
     ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Tradição Perdida' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: 'tradicaoPerdidaPm',
+          applyChosenAttributeTo: 'pm',
+          options: tradicaoPerdidaAttributeOptions(
+            'Passa a somar no seu total de PM (no lugar do atributo da classe), até o limite por patamar.'
+          ),
+        },
+      },
+    ],
   },
   TRADICAO_PERDIDA_APRIMORADA: {
     name: 'Tradição Perdida Aprimorada',
@@ -1076,6 +1098,19 @@ const racePowers: Record<string, GeneralPower> = {
       'Seu atributo-chave para lançar magias para a classe escolhida para Tradição Perdida passa a ser o atributo escolhido para esse poder (sujeito aos mesmos limites desse poder).',
     type: GeneralPowerType.RACA,
     requirements: [[{ type: RequirementType.PODER, name: 'Tradição Perdida' }]],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Tradição Perdida Aprimorada' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: 'tradicaoPerdidaCd',
+          applyChosenAttributeTo: 'cd',
+          options: tradicaoPerdidaAttributeOptions(
+            'Passa a ser seu atributo-chave para a CD (Teste de Resistência) das magias.'
+          ),
+        },
+      },
+    ],
   },
   VENENO_APRIMORADO: {
     name: 'Veneno Aprimorado',

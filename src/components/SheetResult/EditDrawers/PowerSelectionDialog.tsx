@@ -193,6 +193,27 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
     });
   };
 
+  const handleOptionSelection = (
+    optionName: string,
+    checked: boolean,
+    pick: number
+  ) => {
+    setSelections((prev) => {
+      const current = prev.chosenOption || [];
+      let next: string[];
+
+      if (pick === 1) {
+        next = checked ? [optionName] : [];
+      } else if (checked) {
+        next = current.length < pick ? [...current, optionName] : current;
+      } else {
+        next = current.filter((o) => o !== optionName);
+      }
+
+      return { ...prev, chosenOption: next };
+    });
+  };
+
   const handleWeaponSelection = (weapon: string, instanceIndex: number) => {
     setSelections((prev) => {
       const currentWeapons = [...(prev.weapons || [])];
@@ -636,6 +657,67 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                   />
                 ))}
               </RadioGroup>
+            </FormControl>
+          </Box>
+        );
+      }
+
+      case 'chooseFromOptions': {
+        const selectedOptions = selections.chosenOption || [];
+        const optionObjs = availableOptions as unknown as {
+          name: string;
+          text?: string;
+        }[];
+
+        return (
+          <Box
+            key={index}
+            sx={{
+              mb: 2,
+            }}
+          >
+            <Typography variant='h6' gutterBottom>
+              {label}
+            </Typography>
+            <FormControl component='fieldset'>
+              {isSingleSelection ? (
+                <RadioGroup
+                  value={selectedOptions[0] || ''}
+                  onChange={(e) =>
+                    handleOptionSelection(e.target.value, true, pick)
+                  }
+                >
+                  {optionObjs.map((opt) => (
+                    <FormControlLabel
+                      key={opt.name}
+                      value={opt.name}
+                      control={<Radio />}
+                      label={opt.text ? `${opt.name} — ${opt.text}` : opt.name}
+                    />
+                  ))}
+                </RadioGroup>
+              ) : (
+                <FormGroup>
+                  {optionObjs.map((opt) => (
+                    <FormControlLabel
+                      key={opt.name}
+                      control={
+                        <Checkbox
+                          checked={selectedOptions.includes(opt.name)}
+                          onChange={(e) =>
+                            handleOptionSelection(
+                              opt.name,
+                              e.target.checked,
+                              pick
+                            )
+                          }
+                        />
+                      }
+                      label={opt.text ? `${opt.name} — ${opt.text}` : opt.name}
+                    />
+                  ))}
+                </FormGroup>
+              )}
             </FormControl>
           </Box>
         );

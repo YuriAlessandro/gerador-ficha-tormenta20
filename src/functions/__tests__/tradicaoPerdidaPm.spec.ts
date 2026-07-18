@@ -8,6 +8,9 @@ import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { GeneralPower, GeneralPowerType } from '../../interfaces/Poderes';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import racePowers from '../../data/systems/tormenta20/herois-de-arton/powers/racePowers';
+
+const { TRADICAO_PERDIDA, TRADICAO_PERDIDA_APRIMORADA } = racePowers;
 
 // Poder de teste que reproduz a habilidade "Magias": soma o atributo-chave
 // (spellKeyAttr) ao total de PM.
@@ -177,5 +180,75 @@ describe('Tradição Perdida - total de PM (recalculateSheet)', () => {
     // O PV (via spellKeyAttr) continua usando Inteligência; a Tradição Perdida
     // só mexe no PM. Então o PV não muda.
     expect(comTradicao.pv).toBe(semTradicao.pv);
+  });
+});
+
+describe('Tradição Perdida - pick action (prompt ao selecionar o poder)', () => {
+  it('os poderes têm sheetAction de pick de atributo (PM e CD)', () => {
+    const pmAction = TRADICAO_PERDIDA.sheetActions?.[0].action;
+    expect(pmAction?.type).toBe('chooseFromOptions');
+    if (pmAction?.type === 'chooseFromOptions') {
+      expect(pmAction.applyChosenAttributeTo).toBe('pm');
+      expect(pmAction.options).toHaveLength(6);
+    }
+    const cdAction = TRADICAO_PERDIDA_APRIMORADA.sheetActions?.[0].action;
+    expect(cdAction?.type).toBe('chooseFromOptions');
+    if (cdAction?.type === 'chooseFromOptions') {
+      expect(cdAction.applyChosenAttributeTo).toBe('cd');
+      expect(cdAction.options).toHaveLength(6);
+    }
+  });
+
+  it('escolher o poder base grava o atributo escolhido no PM', () => {
+    const sheet = makeCasterSheet();
+    sheet.generalPowers = [MAGIAS_PM_POWER, TRADICAO_PERDIDA];
+    sheet.atributos[Atributo.INTELIGENCIA].value = 0;
+    sheet.atributos[Atributo.CONSTITUICAO].value = 3;
+
+    const base = recalculateSheet(makeCasterSheet());
+    const result = recalculateSheet(sheet, sheet, {
+      [TRADICAO_PERDIDA.name]: { chosenOption: [Atributo.CONSTITUICAO] },
+    });
+
+    expect(result.tradicaoPerdidaPmAttribute).toBe(Atributo.CONSTITUICAO);
+    // PM reflete Constituição (3) no lugar de Inteligência (0) = +3.
+    expect(result.pm).toBe(base.pm + 3);
+  });
+
+  it('escolher o poder Aprimorada grava o atributo-chave da CD (spellPath)', () => {
+    const sheet = makeCasterSheet();
+    sheet.generalPowers = [MAGIAS_PM_POWER, TRADICAO_PERDIDA_APRIMORADA];
+
+    const result = recalculateSheet(sheet, sheet, {
+      [TRADICAO_PERDIDA_APRIMORADA.name]: { chosenOption: [Atributo.FORCA] },
+    });
+
+    expect(result.classe.spellPath?.keyAttribute).toBe(Atributo.FORCA);
+  });
+
+  it('sem escolha ativa (ficha existente/recalc) NÃO sorteia atributo', () => {
+    const sheet = makeCasterSheet();
+    sheet.generalPowers = [MAGIAS_PM_POWER, TRADICAO_PERDIDA];
+    // Recalc sem manualSelections (ex.: recálculo de ficha antiga com o poder).
+    const result = recalculateSheet(sheet);
+    expect(result.tradicaoPerdidaPmAttribute).toBeUndefined();
+  });
+
+  it('edição manual posterior sobrescreve o pick e sobrevive ao recálculo', () => {
+    const sheet = makeCasterSheet();
+    sheet.generalPowers = [MAGIAS_PM_POWER, TRADICAO_PERDIDA];
+
+    // 1) Pick inicial: Constituição.
+    const afterPick = recalculateSheet(sheet, sheet, {
+      [TRADICAO_PERDIDA.name]: { chosenOption: [Atributo.CONSTITUICAO] },
+    });
+    expect(afterPick.tradicaoPerdidaPmAttribute).toBe(Atributo.CONSTITUICAO);
+
+    // 2) Edição manual troca para Força e recalcula (sem manualSelections).
+    const edited = { ...afterPick, tradicaoPerdidaPmAttribute: Atributo.FORCA };
+    const afterEdit = recalculateSheet(edited);
+
+    // O replay do recálculo NÃO reescreve o pick — a edição manual prevalece.
+    expect(afterEdit.tradicaoPerdidaPmAttribute).toBe(Atributo.FORCA);
   });
 });
