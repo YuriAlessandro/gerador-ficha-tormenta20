@@ -376,6 +376,33 @@ const Changelog: React.FC = () => {
                   no <strong>editor de perícias da ficha</strong>.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> A{' '}
+                  <strong>aba de Poderes da ficha foi repensada</strong>,
+                  principalmente no celular. Os poderes agora aparecem{' '}
+                  <strong>agrupados pela origem</strong> — poderes de classe,
+                  habilidades de raça, poderes de origem, divinos e gerais —,
+                  cada grupo com seu cabeçalho e a quantidade de poderes. Assim
+                  a origem é dita <strong>uma vez por grupo</strong>, em vez de
+                  repetida em toda linha espremendo o nome do poder. No celular,
+                  tocar num poder abre o texto num{' '}
+                  <strong>painel que sobe pela base da tela</strong>, então a
+                  lista não muda de altura embaixo do seu dedo; no computador os
+                  poderes continuam abrindo no lugar, e você pode deixar vários
+                  abertos ao mesmo tempo para comparar.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A aba de Poderes ganhou{' '}
+                  <strong>busca e filtros</strong>. A busca considera o nome{' '}
+                  <strong>e a descrição</strong> do poder — dá para procurar
+                  &quot;fogo&quot; e achar todos os seus poderes que falam de
+                  fogo — e ignora acentos e maiúsculas. Ao lado dela, chips
+                  filtram por origem mostrando quantos poderes existem em cada
+                  uma. Os <strong>poderes gerais</strong> também passaram a
+                  aparecer separados por tipo (Combate, Destino, Magia, Tormenta
+                  e Raça). Reordenar os poderes manualmente continua funcionando
+                  como antes.
+                </li>
+                <li>
                   <strong>Correção:</strong> O dano desarmado da habilidade{' '}
                   <strong>Briga</strong> (Lutador) ficava fixo em{' '}
                   <strong>1d6</strong> em qualquer nível. Agora ele sobe
