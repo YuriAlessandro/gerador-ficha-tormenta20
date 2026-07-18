@@ -17,6 +17,8 @@ export enum SupplementId {
   TORMENTA20_DEUSES_ARTON = 'tormenta20-deuses-de-arton',
   /** Suplemento: Heróis de Arton */
   TORMENTA20_HEROIS_ARTON = 'tormenta20-herois-de-arton',
+  /** Suplemento: Guia de Deuses Menores */
+  TORMENTA20_DEUSES_MENORES = 'tormenta20-guia-de-deuses-menores',
 
   // Future systems supplements can be added here:
   // DND5E_CORE = 'dnd5e-core',
@@ -105,6 +107,15 @@ export const SUPPLEMENT_METADATA: Partial<
     releaseDate: '2025',
     requiresPremium: false,
   },
+  [SupplementId.TORMENTA20_DEUSES_MENORES]: {
+    id: SupplementId.TORMENTA20_DEUSES_MENORES,
+    systemId: SystemId.TORMENTA20,
+    name: 'Guia de Deuses Menores',
+    abbreviation: 'GDM',
+    description: '63 divindades menores; 63 poderes concedidos',
+    releaseDate: '2025',
+    requiresPremium: false,
+  },
 };
 
 /**
@@ -115,6 +126,15 @@ export function getSupplementsList(enabledIds: SupplementId[]): Supplement[] {
     ...meta,
     enabled: enabledIds.includes(meta.id),
   }));
+}
+
+/**
+ * Conta os suplementos que contam para o limite do nível de apoio: o livro
+ * básico é obrigatório e por isso nunca é cobrado.
+ */
+export function countNonCore(supplementIds: string[]): number {
+  return supplementIds.filter((id) => id !== SupplementId.TORMENTA20_CORE)
+    .length;
 }
 
 /**

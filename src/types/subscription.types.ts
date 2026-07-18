@@ -61,6 +61,7 @@ export interface SubscriptionLimits {
   maxGameTables: number; // 0 = not available, -1 = unlimited
   maxPlayersPerTable: number; // -1 = unlimited
   maxWeeklyBestiaryPublications: number; // Bestiary publications per 7-day rolling window, -1 = unlimited
+  maxSupplements: number; // Suplementos oficiais ativos além do livro básico, -1 = unlimited
 }
 
 /**
@@ -171,6 +172,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxGameTables: 1,
     maxPlayersPerTable: 6,
     maxWeeklyBestiaryPublications: 1,
+    maxSupplements: 4,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 15,
@@ -178,6 +180,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxGameTables: 1,
     maxPlayersPerTable: 6,
     maxWeeklyBestiaryPublications: 15,
+    maxSupplements: -1, // Unlimited
   },
   [SupportLevel.NIVEL_1_ANUAL]: {
     maxSheets: 15,
@@ -185,6 +188,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxGameTables: 1,
     maxPlayersPerTable: 6,
     maxWeeklyBestiaryPublications: 15,
+    maxSupplements: -1, // Unlimited
   },
   [SupportLevel.NIVEL_2]: {
     maxSheets: 20,
@@ -192,6 +196,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxGameTables: 5,
     maxPlayersPerTable: -1,
     maxWeeklyBestiaryPublications: 50,
+    maxSupplements: -1, // Unlimited
   },
   [SupportLevel.NIVEL_3]: {
     maxSheets: -1, // Unlimited
@@ -199,6 +204,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxGameTables: -1, // Unlimited
     maxPlayersPerTable: -1, // Unlimited
     maxWeeklyBestiaryPublications: -1, // Unlimited
+    maxSupplements: -1, // Unlimited
   },
   [SupportLevel.NIVEL_2_ANUAL]: {
     maxSheets: 20,
@@ -206,6 +212,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxGameTables: 5,
     maxPlayersPerTable: -1,
     maxWeeklyBestiaryPublications: 50,
+    maxSupplements: -1, // Unlimited
   },
   [SupportLevel.NIVEL_3_ANUAL]: {
     maxSheets: -1, // Unlimited
@@ -213,6 +220,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxGameTables: -1, // Unlimited
     maxPlayersPerTable: -1, // Unlimited
     maxWeeklyBestiaryPublications: -1, // Unlimited
+    maxSupplements: -1, // Unlimited
   },
 };
 
@@ -370,6 +378,29 @@ export function hasReachedLimit(
  */
 export function isSupporter(level: SupportLevel): boolean {
   return level !== SupportLevel.FREE;
+}
+
+/**
+ * Máximo de suplementos oficiais ativos ALÉM do livro básico (que é obrigatório
+ * e não conta). `null` = ilimitado. Espelha `getMaxSupplements` do backend, que
+ * revalida toda escrita — manter os dois em sincronia.
+ */
+export function getMaxSupplements(level: SupportLevel): number | null {
+  const limits = getSupportLimits(level);
+  return limits.maxSupplements === -1 ? null : limits.maxSupplements;
+}
+
+/**
+ * Teto efetivo de suplementos para um usuário. Quem já está acima do limite
+ * (ex.: apoiador cuja assinatura terminou) não é forçado a desativar nada —
+ * apenas não pode aumentar a quantidade. Mesma política do backend.
+ */
+export function getSupplementCeiling(
+  level: SupportLevel,
+  currentCount: number
+): number | null {
+  const max = getMaxSupplements(level);
+  return max === null ? null : Math.max(max, currentCount);
 }
 
 /**

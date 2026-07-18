@@ -17,9 +17,18 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Check as CheckIcon } from '@mui/icons-material';
-import { SupplementId, SUPPLEMENT_METADATA } from '../types/supplement.types';
+import { Check as CheckIcon, Lock as LockIcon } from '@mui/icons-material';
+import {
+  SupplementId,
+  SUPPLEMENT_METADATA,
+  countNonCore,
+} from '../types/supplement.types';
 import { SystemId } from '../types/system.types';
+import {
+  getMaxSupplements,
+  getSupplementCeiling,
+} from '../types/subscription.types';
+import { useSubscription } from '../hooks/useSubscription';
 
 interface SystemSetupDialogProps {
   open: boolean;
@@ -38,6 +47,17 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
     useState<SupplementId[]>(currentSupplements);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { supportLevel } = useSubscription();
+  // Mesmo teto do perfil. O grandfathering usa o que já veio salvo, para não
+  // travar quem chega aqui já acima do limite.
+  const maxSupplements = getMaxSupplements(supportLevel);
+  const supplementCeiling = getSupplementCeiling(
+    supportLevel,
+    countNonCore(currentSupplements)
+  );
+  const selectedNonCoreCount = countNonCore(selectedSupplements);
+  const supplementLimitReached =
+    supplementCeiling !== null && selectedNonCoreCount >= supplementCeiling;
 
   // Filtra apenas suplementos do Tormenta 20
   const tormenta20Supplements = Object.values(SUPPLEMENT_METADATA).filter(
@@ -53,6 +73,13 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
     setSelectedSupplements((prev) => {
       if (prev.includes(supplementId)) {
         return prev.filter((id) => id !== supplementId);
+      }
+      // Desativar sempre pode; ativar respeita o teto do nível de apoio.
+      if (
+        supplementCeiling !== null &&
+        countNonCore(prev) >= supplementCeiling
+      ) {
+        return prev;
       }
       return [...prev, supplementId];
     });
@@ -163,10 +190,22 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
             perfil.
           </Typography>
 
+          {maxSupplements !== null && (
+            <Alert severity='info' icon={<LockIcon />} sx={{ mb: 2 }}>
+              Você pode ativar até {maxSupplements} suplementos além do livro
+              básico ({selectedNonCoreCount} de {maxSupplements} em uso). Dá
+              para trocar quando quiser no perfil — e quem apoia o projeto
+              libera todos.
+            </Alert>
+          )}
+
           <FormGroup>
             {tormenta20Supplements.map((supplement) => {
               const isCore = supplement.id === SupplementId.TORMENTA20_CORE;
               const isSelected = selectedSupplements.includes(supplement.id);
+              // Bloqueado só para LIGAR: desmarcar sempre pode.
+              const isLockedByLimit =
+                !isCore && !isSelected && supplementLimitReached;
 
               return (
                 <Box
@@ -188,7 +227,7 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
                       <Checkbox
                         checked={isSelected}
                         onChange={() => handleToggleSupplement(supplement.id)}
-                        disabled={isCore || loading}
+                        disabled={isCore || loading || isLockedByLimit}
                       />
                     }
                     label={
@@ -208,6 +247,15 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
                           >
                             {supplement.name}
                           </Typography>
+                          {isLockedByLimit && (
+                            <Chip
+                              label='Limite atingido'
+                              size='small'
+                              variant='outlined'
+                              icon={<LockIcon sx={{ fontSize: '0.8rem' }} />}
+                              sx={{ height: 20 }}
+                            />
+                          )}
                           {isCore && (
                             <Chip
                               label='Obrigatório'

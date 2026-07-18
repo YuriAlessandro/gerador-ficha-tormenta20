@@ -56,6 +56,8 @@ import {
   SubscriptionStatus,
   Invoice,
   SUPPORT_LIMITS,
+  getMaxSupplements,
+  getSupplementCeiling,
 } from '../../types/subscription.types';
 import { useAuth } from '../../hooks/useAuth';
 import { useSubscription } from '../../hooks/useSubscription';
@@ -81,6 +83,7 @@ import {
 import {
   SupplementId,
   SUPPLEMENT_METADATA,
+  countNonCore,
 } from '../../types/supplement.types';
 import { SystemId } from '../../types/system.types';
 import { DiceColorId, getDiceColorsArray } from '../../types/diceColors';
@@ -157,6 +160,17 @@ const ProfilePage: React.FC = () => {
   const [supplementsLoading, setSupplementsLoading] = useState(false);
   const [supplementsError, setSupplementsError] = useState<string | null>(null);
   const [supplementsSuccess, setSupplementsSuccess] = useState(false);
+  // Teto de suplementos do nível de apoio (o livro básico não conta). Calculado
+  // sobre o que está SALVO, não sobre a seleção em edição: é o que dá o
+  // grandfathering a quem já estava acima do limite.
+  const maxSupplements = getMaxSupplements(supportLevel);
+  const supplementCeiling = getSupplementCeiling(
+    supportLevel,
+    countNonCore(currentUser?.enabledSupplements || [])
+  );
+  const selectedNonCoreCount = countNonCore(selectedSupplements);
+  const supplementLimitReached =
+    supplementCeiling !== null && selectedNonCoreCount >= supplementCeiling;
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [reactivateLoading, setReactivateLoading] = useState(false);
@@ -300,6 +314,13 @@ const ProfilePage: React.FC = () => {
     setSelectedSupplements((prev) => {
       if (prev.includes(supplementId)) {
         return prev.filter((id) => id !== supplementId);
+      }
+      // Desativar sempre pode; ativar respeita o teto do nível de apoio.
+      if (
+        supplementCeiling !== null &&
+        countNonCore(prev) >= supplementCeiling
+      ) {
+        return prev;
       }
       return [...prev, supplementId];
     });
@@ -1352,6 +1373,28 @@ const ProfilePage: React.FC = () => {
                         </Alert>
                       )}
 
+                      {maxSupplements !== null && (
+                        <Alert
+                          severity={supplementLimitReached ? 'warning' : 'info'}
+                          icon={<LockIcon />}
+                          sx={{ mb: 2 }}
+                          action={
+                            <Button
+                              color='inherit'
+                              size='small'
+                              href='/apoiar'
+                              target='_blank'
+                            >
+                              Apoiar o projeto
+                            </Button>
+                          }
+                        >
+                          {supplementLimitReached
+                            ? `Você atingiu o limite de ${maxSupplements} suplementos além do livro básico. Desative um para ativar outro, ou apoie o projeto para liberar todos.`
+                            : `Seu nível permite ${maxSupplements} suplementos além do livro básico (${selectedNonCoreCount} de ${maxSupplements} em uso). Apoiadores liberam todos.`}
+                        </Alert>
+                      )}
+
                       <FormGroup>
                         {tormenta20Supplements.map((supplement) => {
                           const isCore =
@@ -1359,6 +1402,10 @@ const ProfilePage: React.FC = () => {
                           const isSelected = selectedSupplements.includes(
                             supplement.id
                           );
+                          // Bloqueado só para LIGAR: desmarcar sempre pode, é
+                          // justamente como se abre espaço para outro.
+                          const isLockedByLimit =
+                            !isCore && !isSelected && supplementLimitReached;
 
                           return (
                             <Box
@@ -1384,7 +1431,11 @@ const ProfilePage: React.FC = () => {
                                     onChange={() =>
                                       handleToggleSupplement(supplement.id)
                                     }
-                                    disabled={isCore || supplementsLoading}
+                                    disabled={
+                                      isCore ||
+                                      supplementsLoading ||
+                                      isLockedByLimit
+                                    }
                                   />
                                 }
                                 label={
@@ -1409,6 +1460,19 @@ const ProfilePage: React.FC = () => {
                                           label='Obrigatório'
                                           size='small'
                                           color='primary'
+                                          sx={{ height: 20 }}
+                                        />
+                                      )}
+                                      {isLockedByLimit && (
+                                        <Chip
+                                          label='Limite atingido'
+                                          size='small'
+                                          variant='outlined'
+                                          icon={
+                                            <LockIcon
+                                              sx={{ fontSize: '0.8rem' }}
+                                            />
+                                          }
                                           sx={{ height: 20 }}
                                         />
                                       )}
