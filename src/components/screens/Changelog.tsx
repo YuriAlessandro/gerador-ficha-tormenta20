@@ -255,6 +255,17 @@ const Changelog: React.FC = () => {
                   &quot;×20&quot; em vez de vinte linhas repetidas.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Agora dá para criar um{' '}
+                  <strong>Ofício personalizado</strong>. Se a profissão do seu
+                  herói não está entre as dezesseis do livro, basta digitar o
+                  nome dela — Ofício (Ferreiro anão), Ofício (Cervejeiro) — e
+                  ela vira uma perícia normal da ficha: aparece na tabela com
+                  Inteligência, conta como treinada, acompanha o seu nível, sai
+                  no <strong>PDF</strong> e na{' '}
+                  <strong>exportação para o Foundry</strong>, e satisfaz
+                  pré-requisitos de poderes que pedem Ofício (Qualquer).
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O{' '}
                   <strong>seletor de divindade</strong> ficou mais fácil de
                   navegar agora que são 83 deuses: os{' '}
@@ -351,6 +362,18 @@ const Changelog: React.FC = () => {
                   <strong>campo de busca</strong> — digitar &quot;Ofício&quot;
                   ou &quot;Atletismo&quot; filtra a lista na hora, em vez de
                   você procurar entre dezenas de opções.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ainda nos passos de perícia, os{' '}
+                  <strong>
+                    dezesseis Ofícios deixaram de ocupar um chip cada
+                  </strong>
+                  : agora existe um único chip <strong>Ofício</strong>, que abre
+                  uma lista com busca. Para quem não usa Ofício — a maioria — a
+                  lista de perícias encolheu bastante; para quem usa, os ofícios
+                  escolhidos aparecem como chips próprios ao lado, com um × para
+                  remover. O mesmo seletor substituiu o antigo campo de seleção
+                  no <strong>editor de perícias da ficha</strong>.
                 </li>
                 <li>
                   <strong>Correção:</strong> O dano desarmado da habilidade{' '}
