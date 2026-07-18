@@ -3027,7 +3027,7 @@ export const applyPower = (
 
         const chosenOptions = chosenNames
           .map((n) => options.find((o) => o.name === n))
-          .filter((o): o is typeof options[number] => Boolean(o));
+          .filter((o): o is (typeof options)[number] => Boolean(o));
 
         // Atualiza o texto da habilidade de classe (quando houver) com as escolhas.
         const abilityIndex = sheet.classe.abilities.findIndex(
