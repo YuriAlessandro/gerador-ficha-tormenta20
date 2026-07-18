@@ -156,6 +156,7 @@ import {
   MoreauHeritageName,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
+import { updateBrigaRolls } from './powers/lutador-special';
 import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { addOtherBonusToSkill } from './skills/general';
 import { applyGolemDespertoCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
@@ -3026,7 +3027,7 @@ export const applyPower = (
 
         const chosenOptions = chosenNames
           .map((n) => options.find((o) => o.name === n))
-          .filter((o): o is (typeof options)[number] => Boolean(o));
+          .filter((o): o is typeof options[number] => Boolean(o));
 
         // Atualiza o texto da habilidade de classe (quando houver) com as escolhas.
         const abilityIndex = sheet.classe.abilities.findIndex(
@@ -3561,6 +3562,9 @@ function applyClassAbilities(
     (ability) => ability.nivel <= sheet.nivel
   );
 
+  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
+  updateBrigaRolls(sheetClone);
+
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(sheetClone);
 
@@ -3950,6 +3954,16 @@ function levelUp(
 
     // Apply text modifications from chooseFromOptions history
     applyOptionChosenTexts(updatedSheet);
+  }
+
+  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
+  const newBrigaDice = updateBrigaRolls(updatedSheet);
+  if (newBrigaDice) {
+    updatedSheet.steps.push({
+      type: 'Poderes',
+      label: 'Briga',
+      value: [{ name: 'Dano desarmado aumenta', value: newBrigaDice }],
+    });
   }
 
   return updatedSheet;

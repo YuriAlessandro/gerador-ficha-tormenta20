@@ -37,6 +37,7 @@ import {
   findClassDescription,
 } from './multiclass';
 import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
+import { updateBrigaRolls } from './powers/lutador-special';
 import { expandAttributeBonus } from './attributeExpansion';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
@@ -955,6 +956,9 @@ function applyClassAbilities(
   }
 
   sheetClone.classe.abilities = allAbilities;
+
+  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
+  updateBrigaRolls(sheetClone);
 
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(sheetClone);
