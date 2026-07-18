@@ -161,13 +161,28 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
       [power, onUpdateCustomEffects]
     );
 
+    // Poder geral concedido por uma complicação (Heróis de Arton)
+    const isComplicationPower =
+      !!sheet?.complication &&
+      sheet.complication.grantedPowerName === power.name;
+
     // Check if this is a general power that was added manually
     const isManuallyAdded =
-      type === 'Poder Geral' && historySources.length === 0;
+      type === 'Poder Geral' &&
+      historySources.length === 0 &&
+      !isComplicationPower;
 
-    const powerSources = isManuallyAdded
+    let powerSources = isManuallyAdded
       ? 'Adicionado manualmente'
       : historySources.join(', ');
+
+    if (
+      isComplicationPower &&
+      historySources.length === 0 &&
+      sheet?.complication
+    ) {
+      powerSources = `Complicação - ${sheet.complication.name}`;
+    }
 
     // Get rolls from power if it has them
     const powerRolls =
