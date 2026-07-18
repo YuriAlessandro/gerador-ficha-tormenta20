@@ -169,6 +169,7 @@ import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
   getTradicaoPerdidaPmValue,
+  getDeusMenorPmBonus,
 } from './powers/general';
 import {
   feiticeiroPaths,
@@ -4642,6 +4643,20 @@ const applyStatModifiers = (
     isBonusActive(sheet, bonus)
   );
 
+  // PM extras de deus menor: entram como bônus para que o total e o
+  // passo-a-passo da ficha saiam da mesma fonte. Ver `getDeusMenorPmBonus`.
+  const deusMenorPm = getDeusMenorPmBonus(sheet);
+  if (deusMenorPm > 0) {
+    sheet.sheetBonuses.push({
+      source: {
+        type: 'divinity',
+        divinityName: sheet.devoto?.divindade.name ?? '',
+      },
+      target: { type: 'PM' },
+      modifier: { type: 'Fixed', value: deusMenorPm },
+    });
+  }
+
   const pvSubSteps: SubStep[] = [];
   const pmSubSteps: SubStep[] = [];
   const defSubSteps: SubStep[] = [];
@@ -6699,6 +6714,19 @@ export function generateEmptySheet(
     if (source.type === 'levelUp') return `Nível ${source.level}:`;
     return '';
   };
+
+  // Mesmo bônus de deus menor do outro caminho, para o passo-a-passo bater.
+  const deusMenorPmBonus = getDeusMenorPmBonus(emptySheet);
+  if (deusMenorPmBonus > 0) {
+    emptySheet.sheetBonuses.push({
+      source: {
+        type: 'divinity',
+        divinityName: emptySheet.devoto?.divindade.name ?? '',
+      },
+      target: { type: 'PM' },
+      modifier: { type: 'Fixed', value: deusMenorPmBonus },
+    });
+  }
 
   emptySheet.sheetBonuses.forEach((bonus) => {
     const bonusValue = calculateBonusValue(

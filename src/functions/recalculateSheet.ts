@@ -51,7 +51,10 @@ import {
   weaponMatchesScope,
   WeaponBonusScope,
 } from './weaponBonusScope';
-import { getTradicaoPerdidaPmValue } from './powers/general';
+import {
+  getTradicaoPerdidaPmValue,
+  getDeusMenorPmBonus,
+} from './powers/general';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
@@ -628,6 +631,31 @@ const applyDefenseBonuses = (sheet: CharacterSheet): CharacterSheet => {
  * zera `sheetBonuses` no Step 1, a injeção é idempotente: aparece/some
  * conforme a empunhadura muda.
  */
+/**
+ * Deuses menores concedem um poder só; para as classes divinas que receberiam
+ * dois, a regra troca o segundo poder por PM extras (ver `getDeusMenorPmBonus`).
+ * O valor depende do deus e do nível, então não cabe como `sheetBonuses`
+ * estático no dado — é injetado aqui, ANTES do Step 8 (que soma os bônus de
+ * PM). Como o Step 1 zera `sheetBonuses`, a injeção é idempotente: some sozinha
+ * se o jogador trocar de divindade ou de classe.
+ */
+const injectDeusMenorPmBonus = (sheet: CharacterSheet): CharacterSheet => {
+  const bonus = getDeusMenorPmBonus(sheet);
+  if (bonus <= 0) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push({
+    source: {
+      type: 'divinity',
+      divinityName: sheet.devoto?.divindade.name ?? '',
+    },
+    target: { type: 'PM' },
+    modifier: { type: 'Fixed', value: bonus },
+  });
+
+  return updatedSheet;
+};
+
 const injectEstiloDeUmaArmaBonuses = (
   sheet: CharacterSheet
 ): CharacterSheet => {
@@ -1781,6 +1809,11 @@ export function recalculateSheet(
 
   // Step 7.7: Recalculate skills (resets others to 0)
   updatedSheet = recalculateCompleteSkills(updatedSheet);
+
+  // Step 7.8: PM extras de deus menor (depende da divindade e do nível, por
+  // isso é injetado aqui e não vem estático do dado). Precisa vir antes do
+  // Step 8, que é quem soma os bônus de PM.
+  updatedSheet = injectDeusMenorPmBonus(updatedSheet);
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   // Antes de aplicar, remove bônus cuja condição (opcional) não é satisfeita.

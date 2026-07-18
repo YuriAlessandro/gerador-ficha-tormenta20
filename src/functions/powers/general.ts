@@ -43,6 +43,26 @@ export function getTradicaoPerdidaPmValue(
   return Math.min(attrValue, getTradicaoPerdidaPmCap(sheet.nivel));
 }
 
+/**
+ * PM extras concedidos por um deus menor (Guia de Deuses Menores).
+ *
+ * Regra do livro: "Cada deus menor oferece um único poder concedido. Para
+ * devotos de classes divinas (que normalmente teriam acesso a dois poderes
+ * concedidos), em vez de um segundo poder, o devoto recebe uma quantidade de PM
+ * adicionais igual a 1 + o status divino do deus, limitada por seu nível."
+ *
+ * Só os deuses menores têm `statusDivino`, então ele é o próprio marcador da
+ * regra. Retorna 0 quando não se aplica.
+ */
+export function getDeusMenorPmBonus(sheet: CharacterSheet): number {
+  const statusDivino = sheet.devoto?.divindade?.statusDivino;
+  if (statusDivino === undefined) return 0;
+  // A compensação existe porque a classe perde o segundo poder concedido;
+  // classes que já recebiam um só (ou todos) não perdem nada e não compensam.
+  if (sheet.classe?.qtdPoderesConcedidos !== 2) return 0;
+  return Math.min(1 + statusDivino, sheet.nivel);
+}
+
 export function getAttributeIncreasesInSamePlateau(
   sheet: CharacterSheet
 ): Atributo[] {
