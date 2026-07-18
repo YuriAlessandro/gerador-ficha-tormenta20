@@ -7,7 +7,10 @@ import {
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
-import { recalculateSheet } from './recalculateSheet';
+import {
+  recalculateSheet,
+  reapplyEnhancementsAndWeaponBonuses,
+} from './recalculateSheet';
 import { normalizeSheet } from './sheetNormalizer';
 import { isBonusActive } from './bonusConditions';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
@@ -5545,6 +5548,15 @@ export default function generateRandomSheet(
 
   // Passo 14: Aplicar modificadores de atributos
   charSheet = applyStatModifiers(charSheet);
+
+  // Passo 15: Bakear os bônus de arma (ataque/dano/margem/crítico) vindos de
+  // habilidades e poderes — o mesmo que `recalculateSheet` faz nos Steps 17/17.5.
+  // `applyStatModifiers` não tem ramo para alvos de arma, então sem isto um
+  // Bárbaro 3+ gerado aleatoriamente nunca recebia o +1 de Instinto Selvagem no
+  // dano (as perícias vinham certas, só o dano não). Roda DEPOIS do passo 14,
+  // que é quem filtra `sheetBonuses` por `isBonusActive` — bakear antes
+  // aplicaria bônus condicionalmente inativos.
+  charSheet = reapplyEnhancementsAndWeaponBonuses(charSheet);
 
   return charSheet;
 }

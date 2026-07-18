@@ -592,6 +592,56 @@ const applyWeaponBonuses = (
   return updatedSheet;
 };
 
+/**
+ * Reaplica os aprimoramentos de item (modificações de item superior e
+ * encantamentos mágicos) a partir dos snapshots `base*` e, POR CIMA, bakeia os
+ * bônus de arma (ataque/dano/passos de dano/margem/multiplicador de crítico)
+ * vindos de `sheetBonuses`.
+ *
+ * Os dois passos são INSEPARÁVEIS e a ordem importa: `resetWeaponToBase` NÃO
+ * reseta armas com `modifications`/`enchantments` — ele confia que a
+ * reaplicação acabou de recomputá-las a partir da base. Chamar o baking sozinho
+ * numa ficha já bakeada dobraria o bônus nessas armas. Por isso só o par é
+ * exportado: os caminhos fora do recálculo completo (geração aleatória) não
+ * conseguem usar a metade errada.
+ *
+ * Puro e idempotente (lê os campos `base*`, não os valores correntes), então
+ * pode ser chamado N vezes sobre a mesma ficha.
+ */
+export function reapplyEnhancementsAndWeaponBonuses(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
+  let updatedSheet = sheet;
+
+  // Roda ANTES do baking de bônus de arma para que os bônus de efeito ativo
+  // sejam aplicados por cima do valor com aprimoramento — antes, o passo de
+  // armas rodava primeiro e tinha seu dano/atk sobrescrito aqui, perdendo o
+  // bônus de dano de efeitos ativos em armas mágicas.
+  if (updatedSheet.bag?.equipments) {
+    const reapplied = _.cloneDeep(updatedSheet.bag.equipments);
+    (Object.keys(reapplied) as (keyof typeof reapplied)[]).forEach((cat) => {
+      const list = reapplied[cat] as Equipment[] | undefined;
+      if (!Array.isArray(list)) return;
+      list.forEach((item, idx) => {
+        if (!item) return;
+        // applyItemEnhancements short-circuits items without any enhancement
+        // or prior base capture, so calling it unconditionally is cheap and
+        // ensures stale derived state (e.g. specialActions left behind by a
+        // removed Arremesso enchantment) gets cleaned up.
+        // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+        (list as any)[idx] = applyItemEnhancements(item);
+      });
+    });
+    updatedSheet = {
+      ...updatedSheet,
+      bag: new Bag(reapplied, true, updatedSheet.bag.displayOrder),
+    };
+  }
+
+  return applyWeaponBonuses(updatedSheet, manualSelections);
+}
+
 // Helper function to add bonus to skill
 const addOtherBonusToSkill = (
   sheet: CharacterSheet,
@@ -2272,37 +2322,11 @@ export function recalculateSheet(
   );
   updatedSheet.steps = deduplicateSteps(updatedSheet.steps);
 
-  // Step 17: Reapply item enhancements (superior-item modifications and magical
-  // enchantments). Items with `modifications` and/or `enchantments` are
-  // recomputed from their `base*` snapshots; items without enhancements are
-  // passed through unchanged. Reads `base*` fields (not current values), então é
-  // puro/idempotente. Roda ANTES do baking de bônus de arma (Step 17.5) para que
-  // os bônus de efeito ativo sejam aplicados por cima do valor com aprimoramento
-  // — antes, o Step de armas rodava primeiro e tinha seu dano/atk sobrescrito
-  // aqui, perdendo o bônus de dano de efeitos ativos em armas mágicas.
-  if (updatedSheet.bag?.equipments) {
-    const reapplied = _.cloneDeep(updatedSheet.bag.equipments);
-    (Object.keys(reapplied) as (keyof typeof reapplied)[]).forEach((cat) => {
-      const list = reapplied[cat] as Equipment[] | undefined;
-      if (!Array.isArray(list)) return;
-      list.forEach((item, idx) => {
-        if (!item) return;
-        // applyItemEnhancements short-circuits items without any enhancement
-        // or prior base capture, so calling it unconditionally is cheap and
-        // ensures stale derived state (e.g. specialActions left behind by a
-        // removed Arremesso enchantment) gets cleaned up.
-        // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
-        (list as any)[idx] = applyItemEnhancements(item);
-      });
-    });
-    updatedSheet.bag = new Bag(reapplied, true, updatedSheet.bag.displayOrder);
-  }
-
-  // Step 17.5: Apply weapon bonuses (atk/dano/margem/crít de poderes e efeitos
-  // ativos). Roda DEPOIS da reaplicação de aprimoramentos (Step 17) para que o
-  // baking seja somado por cima do dano/atk com aprimoramento e não seja
-  // sobrescrito por ele.
-  updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
+  // Steps 17 e 17.5: reaplicar aprimoramentos de item e bakear os bônus de arma.
+  updatedSheet = reapplyEnhancementsAndWeaponBonuses(
+    updatedSheet,
+    manualSelections
+  );
 
   // Step 18: Inject spells granted by the Conjuradora enchantment into
   // `sheet.spells`. Spells previously injected (tagged via `equipmentSource`)
