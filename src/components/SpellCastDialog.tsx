@@ -27,6 +27,7 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { getActiveEffectForSpell } from '@/premium/data/activePowers';
 import { ACTIVE_EFFECT_COLOR } from '@/premium/functions/activeEffectHighlights';
+import SpellAreaGuideSection from '@/premium/components/SpellAreaGuide/SpellAreaGuideSection';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { executeMultipleDamageRolls } from '@/utils/diceRoller';
@@ -595,6 +596,8 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                 {spell.description}
               </Typography>
             </Box>
+
+            <SpellAreaGuideSection spell={spell} isMobile={isMobile} />
 
             {spell.aprimoramentos && spell.aprimoramentos.length > 0 && (
               <>

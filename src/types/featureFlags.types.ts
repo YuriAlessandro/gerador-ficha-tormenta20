@@ -10,6 +10,7 @@ export interface FeatureFlags {
   bestiary: FeatureFlag;
   partners: FeatureFlag;
   complications: FeatureFlag;
+  spellAreaGuide: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -24,4 +25,6 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   partners: { enabled: false, supporterOnly: true },
   // Complicações (regra opcional de Heróis de Arton) na criação de ficha.
   complications: { enabled: true, supporterOnly: true },
+  // Guia de acerto: prévia em grid de batalha da área de efeito das magias.
+  spellAreaGuide: { enabled: true, supporterOnly: true },
 };
