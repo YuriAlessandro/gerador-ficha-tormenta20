@@ -246,6 +246,15 @@ const Changelog: React.FC = () => {
                   com o limite por patamar previsto na regra.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Na loja da criação de personagem, itens
+                  que fazem sentido comprar aos montes —{' '}
+                  <strong>munição</strong>, <strong>itens alquímicos</strong> e{' '}
+                  <strong>alimentação</strong> — ganharam um{' '}
+                  <strong>seletor de quantidade</strong>. Comprar 20 flechas
+                  virou um clique, e na mochila elas aparecem agrupadas como
+                  &quot;×20&quot; em vez de vinte linhas repetidas.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O{' '}
                   <strong>seletor de divindade</strong> ficou mais fácil de
                   navegar agora que são 83 deuses: os{' '}
@@ -287,6 +296,71 @@ const Changelog: React.FC = () => {
                   uma complicação continuam mostrando tudo normalmente —
                   inclusive a opção de trocar ou remover — e as penalidades
                   seguem sendo aplicadas em qualquer caso.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A{' '}
+                  <strong>loja da criação de personagem</strong> foi refeita.
+                  Ela <strong>travava celulares e computadores</strong> por
+                  carregar todos os quase 400 itens de uma vez; agora abre e
+                  responde na hora. Além disso, a lista virou uma{' '}
+                  <strong>
+                    tabela que muda de colunas conforme a categoria
+                  </strong>{' '}
+                  — armas mostram{' '}
+                  <strong>dano, crítico, tipo de dano, alcance</strong> e se são
+                  simples, marciais, exóticas ou de fogo; armaduras e escudos
+                  mostram <strong>defesa e penalidade</strong>. Itens que seu
+                  personagem <strong>não tem proficiência</strong> para usar vêm
+                  marcados, o <strong>dinheiro e os espaços</strong> ficam
+                  sempre visíveis no topo, e a busca encontra o item{' '}
+                  <strong>em qualquer categoria</strong>, sem você precisar
+                  adivinhar onde ele está.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na <strong>mochila</strong> da
+                  ficha, o botão de <strong>adicionar item</strong> agora abre
+                  direto na aba da categoria que você está filtrando. Se você
+                  filtrou por &quot;Armadura&quot; e clica em &quot;+&quot;, a
+                  janela já abre em Armadura.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A <strong>ficha completa</strong>{' '}
+                  ficou menos poluída: <strong>Defesa</strong>,{' '}
+                  <strong>Ataques</strong>, <strong>Perícias</strong>,{' '}
+                  <strong>Poderes</strong>, <strong>Magias</strong> e{' '}
+                  <strong>Equipamentos</strong> agora ficam organizados em{' '}
+                  <strong>abas</strong>, em vez de um bloco único e comprido. No
+                  celular as abas rolam para o lado; no computador as Perícias
+                  ganham espaço próprio à direita.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os{' '}
+                  <strong>equipamentos na ficha</strong> deixaram de ser uma
+                  lista solta de etiquetas e viraram uma{' '}
+                  <strong>tabela agrupada por categoria</strong>, com as colunas
+                  que importam em cada uma — armas mostram{' '}
+                  <strong>dano e crítico</strong>; armaduras e escudos mostram{' '}
+                  <strong>defesa e penalidade</strong>. Uma{' '}
+                  <strong>barra de carga</strong> indica quantos espaços você
+                  está ocupando e avisa quando o personagem entra em{' '}
+                  <strong>sobrecarga</strong>.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No assistente de criação, os passos
+                  de escolha de <strong>perícias</strong> ganharam um{' '}
+                  <strong>campo de busca</strong> — digitar &quot;Ofício&quot;
+                  ou &quot;Atletismo&quot; filtra a lista na hora, em vez de
+                  você procurar entre dezenas de opções.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O dano desarmado da habilidade{' '}
+                  <strong>Briga</strong> (Lutador) ficava fixo em{' '}
+                  <strong>1d6</strong> em qualquer nível. Agora ele sobe
+                  conforme a tabela oficial da classe — 1d8 no 5º, 1d10 no 9º,
+                  1d12 no 13º, 2d8 no 17º e 2d10 no 20º —, valendo também para a
+                  variante <strong>Atleta</strong>. Em multiclasse, conta o
+                  nível na classe que concede a Briga, não o nível do
+                  personagem.
                 </li>
                 <li>
                   <strong>Correção:</strong> Corrigida a{' '}
@@ -340,6 +414,35 @@ const Changelog: React.FC = () => {
                   erro de servidor e as mudanças não eram salvas — ao adicionar
                   um módulo, renomear ou trocar a cor. Agora a edição funciona e
                   o parceiro mantém seus dados originais.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na loja da criação de personagem,{' '}
+                  <strong>
+                    remover um item devolvia dinheiro que nunca saiu
+                  </strong>
+                  : itens adicionados de graça e os que vêm da sua origem
+                  reembolsavam o preço ao serem removidos, criando dinheiro do
+                  nada. Agora só é devolvido o valor do que foi realmente
+                  comprado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na loja da criação de personagem, o{' '}
+                  <strong>dinheiro já gasto voltava</strong> ao sair e retornar
+                  ao passo do mercado. O saldo agora é preservado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Itens{' '}
+                  <strong>repetidos nas listas</strong>: os itens alquímicos do
+                  livro básico apareciam duas vezes no passo de Itens
+                  Alquímicos, e &quot;Virotes (20)&quot; aparecia três vezes na
+                  lista de armas com Heróis de Arton ativo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Itens comprados na criação de
+                  personagem podiam acabar{' '}
+                  <strong>compartilhados entre fichas diferentes</strong>,
+                  fazendo com que editar o item de um personagem afetasse o de
+                  outro. Cada ficha agora recebe a sua própria cópia.
                 </li>
               </ul>
               <h3>4.25.1</h3>
