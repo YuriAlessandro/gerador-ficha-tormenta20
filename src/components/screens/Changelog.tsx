@@ -206,6 +206,22 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo:</strong> <strong>Guia de acerto</strong>: ao
+                  lançar uma magia com área de efeito, o diálogo de conjuração
+                  passa a mostrar um <strong>grid de batalha</strong> com os
+                  quadrados atingidos pintados e{' '}
+                  <strong>numerados de 1 a N</strong> — é só conferir no celular
+                  contra o grid da mesa para saber exatamente o que a magia
+                  pega. Esferas, cubos, quadrados, cilindros, linhas e cones são
+                  desenhados seguindo as regras de{' '}
+                  <strong>Alvos &amp; Áreas</strong> do livro básico, com{' '}
+                  <strong>1 quadrado = 1,5m</strong>. Cones e linhas podem ser{' '}
+                  <strong>girados nas oito direções</strong>, e magias com mais
+                  de uma opção de área deixam você escolher qual conferir. O
+                  guia vem recolhido e é exclusivo para{' '}
+                  <Link to='/apoiar'>apoiadores</Link>.
+                </li>
+                <li>
                   <strong>Novo:</strong> O plano gratuito passa a permitir até{' '}
                   <strong>4 suplementos ativos ao mesmo tempo</strong>, além do
                   livro básico — que continua sempre disponível e não conta no
