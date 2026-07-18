@@ -26,7 +26,10 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
-import { getCurrentPlateau } from '@/functions/powers/general';
+import {
+  getCurrentPlateau,
+  getDeityMaxSpellCircleFor,
+} from '@/functions/powers/general';
 import { isClassOrVariantOf } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
@@ -364,8 +367,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       return null; // No spells this level
     }
 
-    const spellCircle =
+    // Devoto de deus menor: a divindade limita o círculo, mesmo que o nível já
+    // desse acesso a círculos superiores.
+    const levelCircle =
       spellPath.spellCircleAvailableAtLevel(selectedClassLevel);
+    const deityMaxCircle = getDeityMaxSpellCircleFor(
+      initialSheet.devoto?.divindade?.statusDivino,
+      spellPath.spellType
+    );
+    const spellCircle =
+      deityMaxCircle === null
+        ? levelCircle
+        : Math.min(levelCircle, deityMaxCircle);
     const crossNames = new Set<string>();
 
     // Get spells from all available circles (1 through spellCircle)

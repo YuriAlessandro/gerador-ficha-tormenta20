@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -36,6 +37,10 @@ import {
   applySpellFilters,
 } from '@/components/SpellPicker/spellFilters';
 import NumberField from '@/components/common/NumberField';
+import {
+  getDeityMaxSpellCircle,
+  getDeitySpellCircleWarning,
+} from '@/functions/powers/general';
 import CustomSpellDialog from './CustomSpellDialog';
 
 interface SpellsEditDrawerProps {
@@ -222,8 +227,20 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     const availableCircle = sheet.classe.spellPath.spellCircleAvailableAtLevel(
       sheet.nivel
     );
-    return availableCircle >= circle;
+    // Devoto de deus menor: a divindade limita o círculo mesmo quando o nível
+    // já daria acesso a círculos superiores.
+    const deityMaxCircle = getDeityMaxSpellCircle(sheet);
+    const effectiveCircle =
+      deityMaxCircle === null
+        ? availableCircle
+        : Math.min(availableCircle, deityMaxCircle);
+    return effectiveCircle >= circle;
   };
+
+  // Aviso da limitação por divindade, para explicar POR QUE o círculo está
+  // apagado (sem ele, parece limitação de nível).
+  const deityCircleWarning = (circle: number): string | null =>
+    getDeitySpellCircleWarning(sheet, circle);
 
   // Stable filter options derived from the full spell catalog (all
   // circles/types + supplements), so dropdown choices don't disappear as
@@ -573,18 +590,35 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
               if (filteredSpells.length === 0) return null;
 
               const canCast = canCastCircle(category.circle);
+              const deityWarning = deityCircleWarning(category.circle);
 
               return (
                 <Accordion key={category.name}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography
-                      variant='h6'
-                      sx={{
-                        color: 'text.primary',
-                      }}
+                    <Stack
+                      direction='row'
+                      spacing={1}
+                      sx={{ alignItems: 'center' }}
                     >
-                      {category.name} ({filteredSpells.length})
-                    </Typography>
+                      <Typography
+                        variant='h6'
+                        sx={{
+                          color: 'text.primary',
+                        }}
+                      >
+                        {category.name} ({filteredSpells.length})
+                      </Typography>
+                      {deityWarning && (
+                        <Tooltip title={deityWarning}>
+                          <Chip
+                            size='small'
+                            color='warning'
+                            icon={<WarningAmberIcon />}
+                            label='Além do seu deus'
+                          />
+                        </Tooltip>
+                      )}
+                    </Stack>
                   </AccordionSummary>
                   <AccordionDetails>
                     <Stack spacing={2}>

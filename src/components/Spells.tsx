@@ -7,12 +7,16 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { CharacterAttribute } from '../interfaces/Character';
 import { Spell, spellsCircles } from '../interfaces/Spells';
+import { getCircleNumber } from './SpellPicker/spellFilters';
 import SpellRow from './SpellRow';
 
 // Todos os 6 atributos podem ser atributo-chave de magia: além dos mentais
@@ -36,6 +40,11 @@ interface SpellsProp {
   onToggleAlwaysPrepared?: (spell: Spell) => void;
   onKeyAttributeChange?: (newAttr: Atributo) => void;
   bonusSpellDC?: number;
+  /**
+   * Aviso por círculo quando a divindade limita o alcance do devoto
+   * (deus menor). Computado no render pelo pai — nunca persistido.
+   */
+  getCircleWarning?: (circle: number) => string | null;
 }
 
 const Spells: React.FC<SpellsProp> = (props) => {
@@ -55,6 +64,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
     onToggleAlwaysPrepared,
     onKeyAttributeChange,
     bonusSpellDC,
+    getCircleWarning,
   } = props;
 
   const circleOrder = Object.values(spellsCircles);
@@ -195,37 +205,55 @@ const Spells: React.FC<SpellsProp> = (props) => {
             </Grid>
           )}
           <Box>
-            {spellsByCircle.map((group) => (
-              <Box key={group.circle}>
-                <Typography
-                  variant='subtitle1'
-                  sx={{
-                    fontWeight: 'bold',
-                    mt: 2,
-                    mb: 1,
-                    px: 1,
-                    color: 'text.secondary',
-                  }}
-                >
-                  {group.circle}
-                </Typography>
-                {group.spells.map((spell) => (
-                  <SpellRow
-                    key={spell.nome}
-                    spell={spell}
-                    onUpdateRolls={onUpdateRolls}
-                    characterName={characterName}
-                    currentPM={currentPM}
-                    maxPM={maxPM}
-                    tempPM={tempPM}
-                    onSpellCast={onSpellCast}
-                    isMago={isMago}
-                    onToggleMemorized={onToggleMemorized}
-                    onToggleAlwaysPrepared={onToggleAlwaysPrepared}
-                  />
-                ))}
-              </Box>
-            ))}
+            {spellsByCircle.map((group) => {
+              const circleWarning = getCircleWarning?.(
+                getCircleNumber(group.circle)
+              );
+              return (
+                <Box key={group.circle}>
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{ alignItems: 'center', mt: 2, mb: 1, px: 1 }}
+                  >
+                    <Typography
+                      variant='subtitle1'
+                      sx={{
+                        fontWeight: 'bold',
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {group.circle}
+                    </Typography>
+                    {circleWarning && (
+                      <Tooltip title={circleWarning}>
+                        <Chip
+                          size='small'
+                          color='warning'
+                          icon={<WarningAmberIcon />}
+                          label='Indisponível'
+                        />
+                      </Tooltip>
+                    )}
+                  </Stack>
+                  {group.spells.map((spell) => (
+                    <SpellRow
+                      key={spell.nome}
+                      spell={spell}
+                      onUpdateRolls={onUpdateRolls}
+                      characterName={characterName}
+                      currentPM={currentPM}
+                      maxPM={maxPM}
+                      tempPM={tempPM}
+                      onSpellCast={onSpellCast}
+                      isMago={isMago}
+                      onToggleMemorized={onToggleMemorized}
+                      onToggleAlwaysPrepared={onToggleAlwaysPrepared}
+                    />
+                  ))}
+                </Box>
+              );
+            })}
           </Box>
         </Box>
       )}

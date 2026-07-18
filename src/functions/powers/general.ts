@@ -1,5 +1,6 @@
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import { SpellPath } from '@/interfaces/Class';
 
 export function getPlateauByLevel(nivel: number): number {
   if (nivel <= 4) {
@@ -61,6 +62,59 @@ export function getDeusMenorPmBonus(sheet: CharacterSheet): number {
   // classes que já recebiam um só (ou todos) não perdem nada e não compensam.
   if (sheet.classe?.qtdPoderesConcedidos !== 2) return 0;
   return Math.min(1 + statusDivino, sheet.nivel);
+}
+
+/**
+ * Círculo máximo de magia que a divindade permite ao devoto.
+ *
+ * Regra do livro: "Devotos de deuses menores em classes conjuradoras divinas
+ * (clérigos, druidas, frades...) podem aprender e lançar magias até o círculo
+ * máximo que seu deus oferece, mesmo que o nível do devoto permita acesso a
+ * círculos superiores." Esse círculo é o próprio status divino (escala 1-5,
+ * igual à dos círculos).
+ *
+ * Vale só para conjuradores DIVINOS puros (`spellType: 'Divine'` — Clérigo,
+ * Druida, Frade e a variante Usurpador). O Bardo é `'Both'` e majoritariamente
+ * arcano, então fica de fora: a regra fala de classes conjuradoras divinas.
+ *
+ * Retorna `null` quando não há limite a aplicar.
+ */
+export function getDeityMaxSpellCircleFor(
+  statusDivino: number | undefined,
+  spellType: SpellPath['spellType'] | undefined
+): number | null {
+  if (statusDivino === undefined) return null;
+  if (spellType !== 'Divine') return null;
+  return statusDivino;
+}
+
+export function getDeityMaxSpellCircle(sheet: CharacterSheet): number | null {
+  return getDeityMaxSpellCircleFor(
+    sheet.devoto?.divindade?.statusDivino,
+    sheet.classe?.spellPath?.spellType
+  );
+}
+
+/**
+ * Mensagem explicando por que uma magia está fora do alcance concedido pela
+ * divindade, ou `null` se ela está liberada. Igual ao par
+ * `isComplicationPowerUsable`/`getComplicationPowerWarning`: sempre computado
+ * no render, NUNCA persistido na ficha — trocar de divindade ou de classe faz
+ * o aviso sumir sozinho.
+ */
+export function getDeitySpellCircleWarning(
+  sheet: CharacterSheet,
+  spellCircle: number
+): string | null {
+  const maxCircle = getDeityMaxSpellCircle(sheet);
+  if (maxCircle === null || spellCircle <= maxCircle) return null;
+  const deityName = sheet.devoto?.divindade.name ?? 'sua divindade';
+  return (
+    `${deityName} é um deus menor de status divino ${maxCircle} e concede ` +
+    `magias até o ${maxCircle}º círculo. Pela regra do Guia de Deuses ` +
+    `Menores, você não pode lançar esta magia enquanto for devoto — a menos ` +
+    `que ajude a elevar o status da sua divindade.`
+  );
 }
 
 export function getAttributeIncreasesInSamePlateau(

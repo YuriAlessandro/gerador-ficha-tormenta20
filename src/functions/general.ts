@@ -170,6 +170,7 @@ import {
   getCurrentPlateau,
   getTradicaoPerdidaPmValue,
   getDeusMenorPmBonus,
+  getDeityMaxSpellCircle,
 } from './powers/general';
 import {
   feiticeiroPaths,
@@ -1292,7 +1293,11 @@ function getNewSpells(
   nivel: number,
   classe: ClassDescription,
   usedSpells: Spell[],
-  supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE]
+  supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE],
+  // Devoto de deus menor: a divindade limita o círculo máximo. `null` = sem
+  // limite. Vem de `getDeityMaxSpellCircle`, que já checa se a classe é
+  // conjuradora divina.
+  deityMaxCircle: number | null = null
 ): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return [];
@@ -1309,7 +1314,11 @@ function getNewSpells(
     qtySpellsLearnAtLevel,
   } = spellPath;
 
-  const circle = spellCircleAvailableAtLevel(nivel);
+  const levelCircle = spellCircleAvailableAtLevel(nivel);
+  const circle =
+    deityMaxCircle === null
+      ? levelCircle
+      : Math.min(levelCircle, deityMaxCircle);
   const qtySpellsLearn = qtySpellsLearnAtLevel(nivel);
 
   let spellList: Spell[] = [];
@@ -3780,7 +3789,8 @@ function levelUp(
     updatedSheet.nivel,
     sheet.classe,
     sheet.spells,
-    supplements
+    supplements,
+    getDeityMaxSpellCircle(updatedSheet)
   );
   // Filter out duplicates before adding
   const uniqueNewSpells = newSpells.filter(
@@ -5468,7 +5478,8 @@ export default function generateRandomSheet(
     1,
     charSheet.classe,
     charSheet.spells,
-    supplements
+    supplements,
+    getDeityMaxSpellCircle(charSheet)
   );
   // Filter out duplicates before adding
   const uniqueNewSpells = newSpells.filter(

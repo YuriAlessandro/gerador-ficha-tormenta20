@@ -99,6 +99,7 @@ import type {
   ActiveEffectUsageOption,
   ActiveEffect,
 } from '@/premium/interfaces/ActiveEffect';
+import { getDeitySpellCircleWarning } from '@/functions/powers/general';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import CharacterSheet, {
   DamageReduction,
@@ -2403,6 +2404,9 @@ const Result: React.FC<ResultProps> = (props) => {
                   bonusSpellDC={spellDCBonus}
                   onKeyAttributeChange={
                     onSheetUpdate ? handleKeyAttributeChange : undefined
+                  }
+                  getCircleWarning={(circle) =>
+                    getDeitySpellCircleWarning(currentSheet, circle)
                   }
                 />
               </Box>
