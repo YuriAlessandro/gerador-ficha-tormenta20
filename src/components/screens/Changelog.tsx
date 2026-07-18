@@ -494,6 +494,38 @@ const Changelog: React.FC = () => {
                   fazendo com que editar o item de um personagem afetasse o de
                   outro. Cada ficha agora recebe a sua própria cópia.
                 </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Tanga de Peles</strong> (Bárbaro{' '}
+                  <strong>Machado de Pedra</strong>) não era aplicada
+                  automaticamente — era preciso somar tudo à mão no campo de
+                  bônus manual da Defesa. Agora a{' '}
+                  <strong>Constituição entra na Defesa</strong> enquanto você
+                  não estiver usando armadura, e o{' '}
+                  <strong>+1 do 3º nível</strong> (e a cada quatro níveis
+                  seguintes) é contado sozinho. Assim o campo de bônus manual
+                  volta a servir só para os buffs temporários da sua mesa.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes e habilidades que o livro
+                  condiciona a <strong>não estar usando armadura</strong> agora
+                  respeitam essa restrição na ficha — antes o bônus era aplicado
+                  sempre. Vale para <strong>Pele de Ferro</strong> (Bárbaro),{' '}
+                  <strong>Insolência</strong> e <strong>Esquiva Sagaz</strong>{' '}
+                  (Bucaneiro), <strong>Casca Grossa</strong> e{' '}
+                  <strong>Braços Calejados</strong> (Lutador). Se o seu
+                  personagem usa armadura pesada, a Defesa dele pode diminuir —
+                  é a regra sendo aplicada corretamente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A{' '}
+                  <strong>explicação do cálculo da Defesa</strong> só listava
+                  bônus de valor fixo, então bônus vindos de atributos ou que
+                  crescem com o nível entravam no total sem aparecer na conta —
+                  as parcelas não fechavam com o número exibido. Agora a fórmula
+                  mostra todas as parcelas, tanto na ficha quanto na janela de
+                  edição de Defesa.
+                </li>
               </ul>
               <h3>4.25.1</h3>
               <ul>
