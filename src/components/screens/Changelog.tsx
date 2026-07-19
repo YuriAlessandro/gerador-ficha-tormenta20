@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            18/07/2026 (v4.26).
+            19/07/2026 (v4.26).
           </p>
 
           <p>
@@ -417,6 +417,36 @@ const Changelog: React.FC = () => {
                   aparecer separados por tipo (Combate, Destino, Magia, Tormenta
                   e Raça). Reordenar os poderes manualmente continua funcionando
                   como antes.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>
+                    proficiências concedidas por origens e poderes
+                  </strong>{' '}
+                  sumiam da ficha ao salvar e recarregar. Quem pegava{' '}
+                  <strong>Procurado: Vivo ou Morto</strong>, por exemplo,
+                  recebia a proficiência com <strong>armas de fogo</strong> na
+                  criação, mas ela desaparecia na próxima vez que a ficha era
+                  aberta — e não voltava mais. Agora ela é preservada, e as{' '}
+                  <strong>fichas já afetadas se corrigem sozinhas</strong> ao
+                  serem abertas. Se você tinha removido alguma proficiência de
+                  propósito, ela continua removida.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>armas entregues por origens</strong> entravam na
+                  mochila como item comum e não apareciam na{' '}
+                  <strong>lista de ataques</strong> nem no <strong>PDF</strong>.
+                  Era o caso da <strong>Pistola</strong> de Procurado: Vivo ou
+                  Morto, do <strong>Gládio</strong> do Legionário, da{' '}
+                  <strong>Adaga</strong> do Bandoleiro da Fortaleza, da{' '}
+                  <strong>Clava</strong> do Caçador de Ratos, do{' '}
+                  <strong>Martelo leve</strong> do Ferreiro Militar, do{' '}
+                  <strong>Arco curto</strong> do Náufrago e do{' '}
+                  <strong>Gibão de peles</strong> do Iniciado dos Caça-Monstros.
+                  Agora todas chegam como equipamento de verdade, com dano e
+                  crítico — e as munições vêm rastreadas, então a Pistola já
+                  nasce com suas balas contabilizadas.
                 </li>
                 <li>
                   <strong>Correção:</strong> O dano desarmado da habilidade{' '}
