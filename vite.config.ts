@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
 import path from 'path';
 import { defineConfig, Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
@@ -8,6 +9,59 @@ import viteTsconfigPaths from 'vite-tsconfig-paths';
 
 // Version used for cache naming - changing this invalidates all PWA caches
 const APP_VERSION = '4.26';
+
+const PREMIUM_DIR = path.resolve(__dirname, 'src/premium');
+const PREMIUM_STUB_DIR = path.resolve(__dirname, 'src/premium-stub');
+
+// O submódulo premium é privado. Sem ele (clone sem --recurse-submodules, ou
+// contribuidor sem acesso ao repo), o diretório existe mas fica vazio.
+// VITE_NO_PREMIUM=1 força o mesmo caminho mesmo com o submódulo presente,
+// para conferir se o build público continua de pé.
+const premiumAvailable =
+  process.env.VITE_NO_PREMIUM !== '1' &&
+  fs.existsSync(path.join(PREMIUM_DIR, 'index.ts'));
+
+// Redireciona qualquer import que caia dentro de src/premium para o stub
+// público em src/premium-stub. Trabalha sobre o caminho absoluto já resolvido,
+// então cobre tanto `@/premium/...` quanto os `../premium/...` relativos dos
+// barrels em src/services — nenhum arquivo de src/ precisa ser editado.
+function premiumStubPlugin(): Plugin {
+  return {
+    name: 'premium-stub',
+    enforce: 'pre',
+    async resolveId(source, importer) {
+      // O plugin `vite:alias` roda antes dos plugins `enforce: 'pre'`, então o
+      // alias `@` já chega aqui expandido para caminho absoluto. Por isso as
+      // três formas precisam ser tratadas.
+      const [spec, query = ''] = source.split(/(?=\?)/, 2);
+      let abs: string | null = null;
+      if (spec === '@/premium' || spec.startsWith('@/premium/')) {
+        abs = path.resolve(__dirname, 'src', spec.slice(2));
+      } else if (path.isAbsolute(spec)) {
+        abs = spec;
+      } else if (/^\.{1,2}\//.test(spec) && importer) {
+        abs = path.resolve(path.dirname(importer), spec);
+      }
+      if (!abs) return null;
+      if (abs !== PREMIUM_DIR && !abs.startsWith(PREMIUM_DIR + path.sep))
+        return null;
+
+      const rel = path.relative(PREMIUM_DIR, abs);
+      const target =
+        (rel ? path.join(PREMIUM_STUB_DIR, rel) : PREMIUM_STUB_DIR) + query;
+      const resolved = await this.resolve(target, importer, { skipSelf: true });
+      if (!resolved) {
+        this.error(
+          `[premium-stub] falta stub para "${source}" (esperado em ${path.relative(
+            __dirname,
+            target
+          )}). Adicione o módulo em src/premium-stub/.`
+        );
+      }
+      return resolved;
+    },
+  };
+}
 
 // Plugin to handle SPA routing for paths with dots (e.g., /perfil/user.name)
 // This runs AFTER Vite's middleware to catch 404s on client-side routes
@@ -73,14 +127,22 @@ export default defineConfig({
   base: '/',
   plugins: [
     spaFallbackPlugin(),
+    ...(premiumAvailable ? [] : [premiumStubPlugin()]),
     react(),
-    checker({
-      overlay: { initialIsOpen: false },
-      typescript: true,
-      eslint: {
-        lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
-      },
-    }),
+    // O checker roda tsc e eslint sobre todo o src. Sem o submódulo premium os
+    // 173 imports viram TS2307 e o overlay cobre a tela — o stub resolve em
+    // runtime, mas não no type-check. Desligado nesse modo de propósito.
+    ...(premiumAvailable
+      ? [
+          checker({
+            overlay: { initialIsOpen: false },
+            typescript: true,
+            eslint: {
+              lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
+            },
+          }),
+        ]
+      : []),
     viteTsconfigPaths(),
     VitePWA({
       registerType: 'prompt', // Prompt user to reload when update available

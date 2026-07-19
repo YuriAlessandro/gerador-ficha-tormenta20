@@ -41,6 +41,41 @@ npm start
 # 6. Acesse http://localhost:5173
 ```
 
+### Rodando sem o módulo premium
+
+Parte do projeto vive em submódulos privados (`src/premium` e `backend`). Você
+**não precisa de acesso a eles** para contribuir: ao clonar sem os submódulos, o
+Vite redireciona automaticamente todo import de `src/premium` para
+`src/premium-stub/`, um substituto público com implementações inertes.
+
+Nesse modo funcionam o gerador de fichas (aleatório e passo a passo), o gerador
+de ameaças, a exportação em PDF, as tabelas de dados e a enciclopédia — ou seja,
+praticamente todo o núcleo aberto do projeto. As funcionalidades pagas (nuvem,
+mesas virtuais, condições, efeitos ativos, homebrews) não aparecem, já que sem o
+backend não há como verificar assinatura.
+
+Duas limitações conhecidas:
+
+- **O type-check não funciona** sem o submódulo — o `vite-plugin-checker` fica
+  desligado nesse modo. O app roda, mas o editor vai acusar imports não
+  resolvidos em arquivos que tocam o premium.
+- **Os testes que importam o premium falham** (`src/functions/__tests__/homebrew*.spec.ts`,
+  `complications.spec.ts`, `activeEffectsBugfixes.spec.ts`). Os demais passam.
+
+Se você **tem** acesso ao submódulo e quer conferir se o build público continua
+de pé depois de uma mudança:
+
+```bash
+VITE_NO_PREMIUM=1 npm start
+```
+
+Ao adicionar no código público um import novo vindo do premium, regenere o stub:
+
+```bash
+node scripts/generate-premium-stub.mjs
+npx prettier --write "src/premium-stub/**/*.tsx"
+```
+
 ## 🏗️ Arquitetura do Projeto
 
 O projeto segue uma arquitetura modular e orientada a funcionalidades:
