@@ -4,6 +4,7 @@ import Race from '../interfaces/Race';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 import { stampUsedSupplements } from './contentSources';
+import { getGrantedProficienciasFromHistory } from './proficiencies';
 
 /**
  * Marker field to indicate the sheet has been stripped for storage.
@@ -141,7 +142,7 @@ export function detectCriticalWipe(
  * SAFE to strip (purely static catalog data, never read at runtime):
  * - classe.powers: Full catalog of ALL available class powers (~15KB).
  *   The character's CHOSEN powers are in the separate `classPowers` field.
- * - classe.periciasbasicas, periciasrestantes, proficiencias: Static definitions.
+ * - classe.periciasbasicas, periciasrestantes: Static definitions.
  * - classe.probDevoto, faithProbability, attrPriority: Generation metadata.
  * - devoto.divindade.poderes: Full catalog of ALL deity powers (~62KB).
  *   The character's CHOSEN deity powers are in `devoto.poderes`.
@@ -154,6 +155,8 @@ export function detectCriticalWipe(
  *   Contains sheetBonuses/sheetActions that are pushed to sheet.sheetBonuses during recalculation.
  * - raca.abilities: Read by recalculateSheet Step 4 (applyRaceAbilities) and Result UI.
  *   Contains sheetBonuses (e.g., Anão +PV, Osteon RD) and sheetActions (e.g., Humano Versátil).
+ * - classe.proficiencias: Acumula as proficiências concedidas por origem/poder/raça
+ *   (applyPower `addProficiency` e SheetBonus `Proficiency`), não só as da classe.
  * - sheetBonuses: The computed total of all bonuses. Cleared and rebuilt by recalculateSheet.
  * - classPowers, generalPowers, spells, bag, origin: All essential gameplay data.
  * - steps: Feeds the "Passo-a-passo da Criação" UI section. Captures wizard
@@ -209,7 +212,12 @@ export function stripSheetForStorage(
       // STRIP generation metadata (not needed post-creation)
       periciasbasicas: [],
       periciasrestantes: { qtd: 0, list: [] },
-      proficiencias: [],
+      // PRESERVE proficiencias: NÃO é catálogo estático. `applyPower`
+      // (addProficiency) e o alvo `Proficiency` de SheetBonus escrevem neste
+      // mesmo array, então zerá-lo apagava proficiências concedidas por
+      // origem/poder/raça de forma permanente (o guard de histórico do
+      // applyPower impede a reaplicação depois).
+      proficiencias: sheet.classe.proficiencias,
     };
 
     // Keep spellPath data (without function references which are lost on serialization anyway)
@@ -323,7 +331,10 @@ export function computeSheetDelta(
  *
  * Reconstructs:
  * - classe.powers: Full class powers catalog (needed for PowersEditDrawer to show available powers)
- * - classe.proficiencias, periciasbasicas, periciasrestantes: Static definitions
+ * - classe.periciasbasicas, periciasrestantes: Static definitions
+ * - classe.proficiencias: união da lista da classe com as armazenadas na ficha e
+ *   as registradas no `sheetActionHistory` (cura fichas gravadas quando o strip
+ *   ainda zerava o campo)
  * - spellPath functions: qtySpellsLearnAtLevel, spellCircleAvailableAtLevel
  * - Race functions: setup, getSize, getDisplacement, getAttributes (if present in registry)
  * - devoto.divindade.poderes: Full deity powers catalog (needed for DeityPowerEditDrawer)
@@ -407,7 +418,19 @@ export function rehydrateSheet(
         powers: fullClass.powers,
         periciasbasicas: fullClass.periciasbasicas,
         periciasrestantes: fullClass.periciasrestantes,
-        proficiencias: fullClass.proficiencias,
+        // União: base da classe + o que a ficha já trazia + o que o histórico
+        // registra como concedido. A terceira parcela cura fichas gravadas
+        // enquanto o strip zerava `proficiencias` — nelas o array armazenado
+        // vem vazio e o applyPower não reaplica (guard de histórico).
+        // `removedProficiencias` continua sendo respeitado por
+        // getSheetProficiencias, então remoções manuais não são desfeitas.
+        proficiencias: [
+          ...new Set([
+            ...fullClass.proficiencias,
+            ...(sheet.classe.proficiencias ?? []),
+            ...getGrantedProficienciasFromHistory(sheet),
+          ]),
+        ],
         probDevoto: fullClass.probDevoto,
         faithProbability: fullClass.faithProbability,
         attrPriority: fullClass.attrPriority,

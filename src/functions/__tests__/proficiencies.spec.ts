@@ -7,6 +7,7 @@ import ANAO from '../../data/systems/tormenta20/races/anao';
 import { AMEACAS_ARTON_WEAPONS } from '../../data/systems/tormenta20/ameacas-de-arton/equipment/weapons';
 import {
   getSheetProficiencias,
+  getGrantedProficienciasFromHistory,
   getEffectiveWeaponCategory,
   isProficientWithWeapon,
   getWeaponNonProficiencyPenalty,
@@ -54,6 +55,57 @@ describe('proficiencies', () => {
       sheet.customProficiencias = [PROFICIENCIAS.SIMPLES];
 
       expect(getSheetProficiencias(sheet)).toEqual([PROFICIENCIAS.SIMPLES]);
+    });
+  });
+
+  describe('getGrantedProficienciasFromHistory', () => {
+    it('lê as proficiências concedidas registradas no histórico', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.sheetActionHistory = [
+        {
+          source: {
+            type: 'origin',
+            originName: 'Procurado: Vivo ou Morto (Smokestone)',
+          },
+          powerName: 'Procurado: Vivo ou Morto',
+          changes: [
+            { type: 'ProficiencyAdded', proficiency: PROFICIENCIAS.FOGO },
+          ],
+        },
+        {
+          source: { type: 'race', raceName: 'Anão' },
+          changes: [{ type: 'PowerAdded', powerName: 'Devagar e Sempre' }],
+        },
+      ];
+
+      expect(getGrantedProficienciasFromHistory(sheet)).toEqual([
+        PROFICIENCIAS.FOGO,
+      ]);
+    });
+
+    it('deduplica e devolve vazio quando não há concessões', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.sheetActionHistory = [
+        {
+          source: { type: 'origin', originName: 'A' },
+          changes: [
+            { type: 'ProficiencyAdded', proficiency: PROFICIENCIAS.FOGO },
+          ],
+        },
+        {
+          source: { type: 'origin', originName: 'B' },
+          changes: [
+            { type: 'ProficiencyAdded', proficiency: PROFICIENCIAS.FOGO },
+          ],
+        },
+      ];
+      expect(getGrantedProficienciasFromHistory(sheet)).toEqual([
+        PROFICIENCIAS.FOGO,
+      ]);
+
+      const empty = createMockCharacterSheet();
+      empty.sheetActionHistory = [];
+      expect(getGrantedProficienciasFromHistory(empty)).toEqual([]);
     });
   });
 

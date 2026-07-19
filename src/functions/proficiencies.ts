@@ -43,6 +43,28 @@ export function getSheetProficiencias(sheet: CharacterSheet): string[] {
   return [...base, ...custom];
 }
 
+/**
+ * Proficiências concedidas por `addProficiency` sheetActions, lidas do
+ * `sheetActionHistory`.
+ *
+ * O histórico é a única fonte que sobrevive ao ciclo strip/rehydrate de
+ * armazenamento: fichas gravadas antes do fix tiveram `classe.proficiencias`
+ * zerado, e o guard de idempotência de `applyPower` (baseado justamente neste
+ * histórico) impede que o `addProficiency` seja reaplicado. Reconstruir a
+ * partir daqui é o que cura essas fichas — ver `rehydrateSheet`.
+ */
+export function getGrantedProficienciasFromHistory(
+  sheet: CharacterSheet
+): string[] {
+  const granted = new Set<string>();
+  (sheet.sheetActionHistory ?? []).forEach((entry) => {
+    entry.changes?.forEach((change) => {
+      if (change.type === 'ProficiencyAdded') granted.add(change.proficiency);
+    });
+  });
+  return [...granted];
+}
+
 // Lookup nome→categoria construído dos catálogos (core + suplementos). Cobre
 // cópias de armas embutidas em fichas antigas, que não carregam
 // `weaponCategory`, e resolve a categoria "de catálogo" de uma arma quando o
