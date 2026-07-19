@@ -90,6 +90,10 @@ const SANTO: VariantClassOverrides = {
     },
   ],
   attrPriority: [Atributo.CARISMA, Atributo.SABEDORIA],
+  // O paladino básico usa probDevoto 0.8 para modelar a opção "paladino do bem"
+  // (que não é devoto). Abençoado do Santo remove essa opção, então ele é
+  // sempre devoto de um deus disponível para paladinos.
+  probDevoto: 1,
 };
 
 export default SANTO;

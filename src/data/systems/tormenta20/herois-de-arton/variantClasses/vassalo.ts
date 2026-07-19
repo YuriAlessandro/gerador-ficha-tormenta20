@@ -1,5 +1,6 @@
 import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
+import { Atributo } from '../../atributos';
 import PROFICIENCIAS from '../../proficiencias';
 import CAVALEIRO from '../../classes/cavaleiro';
 
@@ -33,7 +34,7 @@ const VASSALO: VariantClassOverrides = {
     },
     {
       name: 'Suserano',
-      text: 'Escolha um membro da nobreza aprovado pelo mestre. Você serve a esse nobre, sendo oficialmente reconhecido como parte de sua corte. Como regra geral, você recebe +5 em testes de Diplomacia e Intimidação ao lidar com vassalos de seu suserano de nível inferior ao seu e, nas terras dele, pode obter alojamento e alimentação sem custo. Se deixar de servir a seu suserano por qualquer motivo, você perde todos os seus PM e só pode recuperá-los após ser aceito por outro suserano.',
+      text: 'Escolha um membro da nobreza aprovado pelo mestre. Você serve a esse nobre, sendo oficialmente reconhecido como parte de sua corte. Os efeitos de seu status ficam a cargo do mestre mas, como regra geral, você recebe +5 em testes de Diplomacia e Intimidação ao lidar com vassalos de seu suserano de nível inferior ao seu e, nas terras dele, pode obter alojamento e alimentação sem custo. Se deixar de servir a seu suserano por qualquer motivo, você perde todos os seus PM e só pode recuperá-los após ser aceito por outro suserano.',
       nivel: 1,
     },
     {
@@ -60,6 +61,18 @@ const VASSALO: VariantClassOverrides = {
           action: {
             type: 'trainSkillOrBonus',
             skills: [Skill.CAVALGAR],
+          },
+        },
+        {
+          // O vassalo não começa proficiente com armaduras pesadas (suas
+          // proficiências iniciais são apenas armas marciais e escudos), então
+          // esta concessão de 3º nível é sempre efetiva. O caso alternativo do
+          // livro (+2 na Defesa se já for proficiente) não ocorre pela classe.
+          source: { type: 'power', name: 'Escudeiro Aprendiz' },
+          action: {
+            type: 'addProficiency',
+            availableProficiencies: [PROFICIENCIAS.PESADAS],
+            pick: 1,
           },
         },
       ],
@@ -109,7 +122,7 @@ const VASSALO: VariantClassOverrides = {
     },
     {
       name: 'Lorde',
-      text: 'No 9º nível você ascende dentro da nobreza, recebendo um feudo — e muitas responsabilidades. Você recebe o poder Autoridade Feudal. Se já possui esse poder, as pessoas convocadas passam a contar como um parceiro veterano. Além disso, escolha um dos caminhos: Caminho do Soldado (recebe um poder de guerreiro a sua escolha) ou Caminho do Governante (recebe um poder de nobre a sua escolha).',
+      text: 'No 9º nível você ascende dentro da nobreza, recebendo um feudo — e muitas responsabilidades. Você recebe o poder Autoridade Feudal. Se já possui esse poder, as pessoas convocadas passam a contar como um parceiro veterano. Além disso, escolha um dos caminhos a seguir. Caminho do Soldado: você recebe um poder de guerreiro (como um guerreiro de nível igual ao seu) a sua escolha. Caminho do Governante: você recebe um poder de nobre (como um nobre de nível igual ao seu) a sua escolha.',
       nivel: 9,
     },
     {
@@ -156,6 +169,16 @@ const VASSALO: VariantClassOverrides = {
       name: 'Rei',
       text: 'No 18º nível, seu reino já não precisa mais do apoio de seu antigo lorde — mas vocês ainda são aliados. Você recebe +1 em Carisma e um poder de cavaleiro a sua escolha.',
       nivel: 18,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Rei' },
+          action: {
+            type: 'ModifyAttribute',
+            attribute: Atributo.CARISMA,
+            value: 1,
+          },
+        },
+      ],
     },
     {
       name: 'Alto Rei',
@@ -164,7 +187,7 @@ const VASSALO: VariantClassOverrides = {
     },
     {
       name: 'Imperador',
-      text: 'No 20º nível, você chegou ao ápice político de Arton. Você agora é um grande imperador, respeitado e temido por todos. Você recebe +1 em dois atributos diferentes a sua escolha e aprende e pode lançar uma magia divina de até 5º círculo a sua escolha (atributo-chave Carisma).',
+      text: 'No 20º nível, você chegou ao ápice político de Arton. Talvez tenha colonizado um continente desconhecido. Talvez tenha conquistado o Império de Tauron ou o Reinado. De qualquer forma, você agora é um grande imperador, respeitado e temido por todos. Sua fama não tem limites e as pessoas atribuem a você os mais variados poderes. Você recebe +1 em dois atributos diferentes a sua escolha e aprende e pode lançar uma magia divina de até 5º círculo a sua escolha (atributo-chave Carisma).',
       nivel: 20,
     },
   ],

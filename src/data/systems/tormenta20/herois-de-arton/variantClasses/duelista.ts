@@ -37,7 +37,7 @@ const DUELISTA: VariantClassOverrides = {
     insolencia,
     {
       name: 'Escola de Duelo',
-      text: 'No 2º nível, escolha uma escola de duelo. Uma vez feita, essa escolha não pode ser mudada.',
+      text: 'No 2º nível, escolha uma escola de duelo entre as seguintes. Uma vez feita, essa escolha não pode ser mudada.',
       nivel: 2,
       sheetActions: [
         {
@@ -65,44 +65,11 @@ const DUELISTA: VariantClassOverrides = {
     },
     esquivaSagaz,
     {
+      // Todos os seis truques ficam disponíveis simultaneamente (o livro não
+      // pede escolha), então a habilidade é apenas descritiva.
       name: 'Truques de Capa',
-      text: 'A partir do 4º nível, se estiver usando uma capa esvoaçante (ou outro item semelhante aprovado pelo mestre), você pode gastar 2 PM e a ação indicada para gerar um dos efeitos a seguir.',
+      text: 'A partir do 4º nível, se estiver usando uma capa esvoaçante (ou outro item semelhante aprovado pelo mestre), você pode gastar 2 PM e a ação indicada para gerar um dos efeitos a seguir. • Capa Inoportuna (Livre). Reduz a ação necessária para fintar em um passo até o fim do seu turno. • Distração Oportuna (Reação). Quando faz um teste de Reflexos ou Vontade, você recebe +5 nesse teste. • Efeito Dramático (Livre). Você recebe +5 em um teste de perícia baseada em Carisma feito nesse turno. • Impulso (Livre). Você recebe deslocamento +9m e +5 em Acrobacia e Atletismo por 1 rodada. • Paraquedas (Reação). Quando cai, você reduz o dano da queda em 6d6. • Rasgar a Capa (Reação). Quando sofre dano, você reduz esse dano à metade. Fazer isso destrói a capa.',
       nivel: 4,
-      sheetActions: [
-        {
-          source: { type: 'class', className: 'Duelista' },
-          action: {
-            type: 'chooseFromOptions',
-            optionKey: 'truqueDeCapa',
-            options: [
-              {
-                name: 'Capa Inoportuna',
-                text: '(Livre). Reduz a ação necessária para fintar em um passo até o fim do seu turno.',
-              },
-              {
-                name: 'Distração Oportuna',
-                text: '(Reação). Quando faz um teste de Reflexos ou Vontade, você recebe +5 nesse teste.',
-              },
-              {
-                name: 'Efeito Dramático',
-                text: '(Livre). Você recebe +5 em um teste de perícia baseada em Carisma feito nesse turno.',
-              },
-              {
-                name: 'Impulso',
-                text: '(Livre). Você recebe deslocamento +9m e +5 em Acrobacia e Atletismo por 1 rodada.',
-              },
-              {
-                name: 'Paraquedas',
-                text: '(Reação). Quando cai, você reduz o dano da queda em 6d6.',
-              },
-              {
-                name: 'Rasgar a Capa',
-                text: '(Reação). Quando sofre dano, você reduz esse dano à metade. Fazer isso destrói a capa.',
-              },
-            ],
-          },
-        },
-      ],
     },
     {
       name: 'Técnica Avançada',

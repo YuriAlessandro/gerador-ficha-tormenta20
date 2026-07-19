@@ -43,7 +43,7 @@ const VENTANISTA: VariantClassOverrides = {
   abilities: [
     {
       name: 'Charme',
-      text: 'Você soma seu Carisma no seu total de PM. Além disso, pode gastar 1 PM para receber +2 em um teste de perícia baseada em Carisma.',
+      text: 'Você soma seu Carisma em seu total de PM. Quando faz um teste de perícia (exceto testes de ataque), você pode gastar uma quantidade de PM a sua escolha (limitada pelo seu Carisma). Para cada PM que gastar, recebe +2 no teste.',
       nivel: 1,
       sheetBonuses: [
         {
@@ -63,31 +63,31 @@ const VENTANISTA: VariantClassOverrides = {
     },
     {
       name: 'Truques do Ofício',
-      text: 'Você pode lançar magias arcanas das escolas Encantamento e Ilusão de 1º círculo. A cada cinco níveis pode lançar magias de um círculo maior (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com duas magias de 1º círculo e aprende uma nova magia a cada nível par. Seu atributo-chave para lançar magias é Inteligência.',
+      text: 'Você pode lançar magias arcanas de 1º círculo, mas apenas de encantamento e ilusão. Esta não é uma habilidade mágica e provém da sua capacidade de enganar outras pessoas (veja "Magias Simuladas"). À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com duas magias de 1º círculo. A cada nível par (2º, 4º etc.), aprende uma magia de qualquer círculo que possa lançar. Você pode lançar essas magias vestindo armaduras leves sem precisar de testes de Misticismo. Seu atributo-chave para lançar magias é Inteligência.',
       nivel: 1,
     },
     evasao,
     {
       name: 'Disfarce Elaborado',
-      text: 'A partir do 3º nível, você pode gastar 2 PM e uma ação completa para criar um disfarce mágico, mudando sua aparência, voz e até mesmo seu cheiro. Você recebe +10 em testes de Enganação para disfarce e pode se disfarçar de uma raça diferente (mas de tamanho similar). O disfarce dura até o fim da cena.',
+      text: 'No 3º nível, você aprende a simular habilidades práticas úteis para seus disfarces. Sempre que fizer um teste de Enganação para disfarce, você pode escolher um poder (exceto poderes da Tormenta) cujos pré-requisitos cumpra e que esteja relacionado a esse disfarce. Enquanto estiver disfarçado dessa forma, você sofre uma penalidade de –3 PM e pode usar o poder escolhido. A cada seis níveis, você pode assumir uma penalidade adicional de –3 PM ao se disfarçar para escolher um poder adicional (2 poderes no 9º nível e 3 poderes no 15º nível).',
       nivel: 3,
     },
     esquivaSobrenatural,
     {
       name: 'Virar a Casaca',
-      text: 'No 7º nível, quando um inimigo acerta um ataque contra você, você pode gastar 3 PM como reação para tentar seduzi-lo a mudar de lado temporariamente. O alvo deve fazer um teste de Vontade (CD Car). Se falhar, fica fascinado por você até o fim da cena ou até que você ou um aliado o ataque. Enquanto fascinado, o alvo não atacará você nem seus aliados.',
+      text: 'No 7º nível, se estiver disfarçado, você pode gastar 1 PM para remover seu disfarce. Quando faz isso, você pode fazer um teste de esconder-se usando Enganação no lugar de Furtividade, mesmo sem camuflagem ou cobertura disponível.',
       nivel: 7,
     },
     olhosNasCostas,
     evasaoAprimorada,
     {
       name: 'Provocação Ousada',
-      text: 'No 11º nível, você pode gastar 3 PM e uma ação padrão para provocar todos os inimigos em alcance curto. Cada inimigo provocado deve fazer um teste de Vontade (CD Car). Se falhar, fica abalado pelo restante da cena e sofre –2 em testes de ataque contra alvos que não sejam você.',
+      text: 'A partir do 11º nível, em seu primeiro turno em cada cena, você pode gastar uma ação completa para provocar seus inimigos. Você pode deixar um cartão de visitas visível, declarar seu plano ou fazer outra ação que alerte seus inimigos de sua presença e de suas intenções. Até o fim da cena, seus inimigos recebem +2 em testes de Percepção, Sobrevivência e Vontade contra você. Entretanto, no início de seus turnos você recupera 2 PM. Esta habilidade só tem efeito se houver um risco associado a declarar suas ações (a critério do mestre) e recupera um máximo de PM por cena igual ao seu nível.',
       nivel: 11,
     },
     {
       name: 'O Grande Golpe',
-      text: 'No 20º nível, você se torna um mestre da manipulação e da enganação. Uma vez por cena, você pode gastar 10 PM como uma ação completa para tentar convencer todas as criaturas inteligentes em alcance médio de algo absurdo (como que você é um aliado, que a batalha acabou ou que elas devem ir embora). Cada criatura afetada deve fazer um teste de Vontade (CD Car + 5). Se falhar, acredita em você e age de acordo por 1d4+1 rodadas.',
+      text: 'No 20º nível, no início de cada aventura, você pode escolher uma quantidade de magias, arcanas ou divinas, igual à sua Inteligência (você pode escolher a mesma magia mais de uma vez). Para cada escolha feita, defina um tipo de cena entre ação, exploração e interpretação. Até o fim da aventura, para cada vez que uma magia foi escolhida, se estiver em uma cena do tipo definido para ela, você pode lançá-la sem gastar PM (limite de PM 20, atributo-chave Inteligência). Esta não é uma habilidade mágica e provém da sua capacidade de enganar outras pessoas (veja "Magias Simuladas").',
       nivel: 20,
     },
   ],

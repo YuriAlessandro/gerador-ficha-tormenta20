@@ -32,6 +32,11 @@ const MACHADO_DE_PEDRA: VariantClassOverrides = {
   abilities: [
     furia,
     {
+      name: 'Grunhidos',
+      text: 'Você conhece apenas o idioma rústico da pequena comunidade onde viveu e nenhum outro. Você não só é incapaz de compreender outros dialetos como não se importa com isso, comunicando-se com grunhidos e sons simples. Contudo, você conhece uma palavra no idioma valkar (o mais comum de Arton) por nível de machado de pedra.',
+      nivel: 1,
+    },
+    {
       name: 'Machado de Pedra',
       text: 'Você não recebe proficiência com armas simples. Você sabe usar apenas adaga, azagaia, clava, funda, lança, machadinha e tacape. No 9º nível, aprende a usar uma arma simples ou marcial a sua escolha. Entretanto, quando ataca com uma arma natural, um ataque desarmado ou uma dessas armas, você recebe +1 no teste de ataque e na rolagem de dano.',
       nivel: 1,

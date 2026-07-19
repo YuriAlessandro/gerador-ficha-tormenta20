@@ -4,6 +4,45 @@ import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 
 /**
+ * Mascotes do Treinador (quadro "Mascotes", Heróis de Arton).
+ * Cada escolha do poder Mascote concede um mascote diferente.
+ */
+const MASCOTE_OPTIONS = [
+  {
+    name: 'Águia Real',
+    text: 'Uma vez por rodada, fornece +1d6 em uma rolagem de dano com arma.',
+  },
+  {
+    name: 'Bicho Preguiça',
+    text: 'Agarrado às costas (suas ou de seu melhor amigo), este animal ocupa o espaço de um item vestido, mas fornece um ataque natural de garra (dano 1d6, crítico x2, corte). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, você pode gastar 1 PM para fazer um ataque corpo a corpo extra com essa garra.',
+  },
+  {
+    name: 'Camundongo Espiritual',
+    text: 'Aumenta a CD para resistir a habilidades mágicas em +1.',
+  },
+  {
+    name: 'Fada-Borboleta',
+    text: 'Diminui o custo de habilidades mágicas em –1.',
+  },
+  {
+    name: 'Gekko Malhado',
+    text: 'Fornece +2 na Defesa e em Reflexos.',
+  },
+  {
+    name: 'Mico-Leão Dourado',
+    text: 'Permite usar Ladinagem para punga em alcance curto.',
+  },
+  {
+    name: 'Minivaca',
+    text: 'Fornece +1 em testes de ataque. Esse bônus dobra em investidas.',
+  },
+  {
+    name: 'Ossinhos',
+    text: 'O esqueleto de um animal reanimado. Fornece redução de corte, frio e perfuração 2.',
+  },
+];
+
+/**
  * Classe Treinador - Heróis de Arton
  *
  * Especialista em criar laços com criaturas e comandar seu melhor amigo
@@ -54,7 +93,7 @@ const TREINADOR: ClassDescription = {
     },
     {
       name: 'Domar Criatura',
-      text: 'A partir do 2º nível, você pode gastar uma ação de movimento e 1 PM para fazer um teste de Adestramento oposto ao teste de Vontade de uma criatura não inteligente em alcance curto. Se você vencer, causa 2d8 pontos de dano psíquico não letal à criatura. Se perder, causa metade desse dano. Se a criatura for reduzida a 0 ou menos PV, em vez de cair inconsciente, ela se rende. A cada quatro níveis, você pode gastar +1 PM para aumentar o dano em +2d8. A partir do 5º nível, quando rende uma criatura com ND igual ou menor que seu nível, você pode gastar uma quantidade de PM igual ao ND dela para controlá-la até o fim da cena. A partir do 8º nível, se o ND da criatura for igual ou menor que seu nível –3, ela fica com você até o fim do dia. Criaturas que possuam habilidades sem custo de PM e sem limite de uso podem usá-las apenas uma vez por dia. Algumas criaturas são indomáveis (a critério do mestre).',
+      text: 'A partir do 2º nível, você pode gastar uma ação de movimento e 1 PM para fazer um teste de Adestramento oposto ao teste de Vontade de uma criatura não inteligente em alcance curto. Se você vencer, causa 2d8 pontos de dano psíquico não letal à criatura. Se perder, causa metade desse dano. Se a criatura for reduzida a 0 ou menos PV, em vez de cair inconsciente, ela se rende. A cada quatro níveis, você pode gastar +1 PM para aumentar o dano em +2d8. A partir do 5º nível, quando rende uma criatura com ND igual ou menor que seu nível, você pode gastar uma quantidade de pontos de mana igual ao ND dela. Se fizer isso, ela recupera todos os PV perdidos por esta habilidade e, até o fim da cena, você controla as ações dela (ela age durante o seu turno, mas possui as próprias ações). A partir do 8º nível, se o ND da criatura for igual ou menor que seu nível –3, ela fica com você até o fim do dia. Enquanto estiver sendo controlada, a criatura conta em seu limite de parceiros. Criaturas que possuam habilidades que não gastam PM e não possuam limite de uso podem usar essas habilidades apenas uma vez por dia. Além disso, algumas criaturas (a critério do mestre) são indomáveis, sendo imunes a este efeito (nesse caso, você recupera os PM gastos ao tentar comandar a criatura).',
       nivel: 2,
     },
     {
@@ -169,7 +208,9 @@ const TREINADOR: ClassDescription = {
     {
       name: 'Investida Conjunta',
       text: 'Uma vez por rodada, quando um melhor amigo no qual você está montado faz uma investida, você pode gastar 2 PM para fazer um ataque corpo a corpo (que também conta como uma investida).',
-      requirements: [],
+      requirements: [
+        [{ type: RequirementType.TEXT, text: 'Melhor amigo montaria' }],
+      ],
     },
     {
       name: 'Líder da Matilha',
@@ -185,9 +226,19 @@ const TREINADOR: ClassDescription = {
     },
     {
       name: 'Mascote',
-      text: 'Você tem um mascote. Você pode escolher este poder várias vezes para mascotes diferentes.',
+      text: 'Você tem um mascote. Você pode escolher este poder várias vezes para mascotes diferentes. Um mascote é uma criatura com a qual você desenvolveu uma grande afinidade. Em termos de jogo, é um parceiro especial que não conta em seu limite de parceiros e com o qual você pode se comunicar através de gestos em alcance médio. Ele obedece a seus comandos, mas ainda está limitado ao que uma criatura de sua espécie pode fazer. Mascotes fornecem seus benefícios tanto para você quanto para seus melhores amigos. Se perder um de seus mascotes, você pode treinar um novo com uma semana de trabalho e T$ 100.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Mascote' },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: 'mascoteTreinador',
+            options: MASCOTE_OPTIONS,
+          },
+        },
+      ],
     },
     {
       name: 'Petisco Merecido',
@@ -218,6 +269,7 @@ const TREINADOR: ClassDescription = {
   probDevoto: 0.3,
   faithProbability: {
     ALLIHANNA: 1,
+    MEGALOKK: 1,
     OCEANO: 1,
     NIMB: 1,
   },

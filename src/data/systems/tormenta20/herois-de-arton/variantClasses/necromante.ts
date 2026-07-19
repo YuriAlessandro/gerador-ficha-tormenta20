@@ -48,6 +48,26 @@ const NECROMANTE: VariantClassOverrides = {
       name: 'Necrologia',
       text: 'No 3º nível, você recebe +2 em Cura, Fortitude e na CD para resistir às suas magias de necromancia. A cada cinco níveis, esse bônus aumenta em +1.',
       nivel: 3,
+      // +2 no 3º nível, +1 a cada cinco níveis (+3 no 8º, +4 no 13º, +5 no 18º).
+      // O bônus na CD das magias de necromancia não é modelável na ficha.
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Necrologia' },
+          target: { type: 'Skill', name: Skill.CURA },
+          modifier: {
+            type: 'LevelCalc',
+            formula: '2 + Math.floor(({classLevel} - 3) / 5)',
+          },
+        },
+        {
+          source: { type: 'power', name: 'Necrologia' },
+          target: { type: 'Skill', name: Skill.FORTITUDE },
+          modifier: {
+            type: 'LevelCalc',
+            formula: '2 + Math.floor(({classLevel} - 3) / 5)',
+          },
+        },
+      ],
     },
     {
       name: 'Distorção Necrótica',

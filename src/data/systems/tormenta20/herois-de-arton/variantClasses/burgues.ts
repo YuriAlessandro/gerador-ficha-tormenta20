@@ -2,7 +2,9 @@ import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import { spellsCircle1 } from '../../magias/generalSpells';
-import PROFICIENCIAS from '../../proficiencias';
+import NOBRE from '../../classes/nobre';
+
+const orgulho = NOBRE.abilities.find((a) => a.name === 'Orgulho')!;
 
 const BURGUES: VariantClassOverrides = {
   name: 'Burguês',
@@ -39,12 +41,35 @@ const BURGUES: VariantClassOverrides = {
       Skill.PONTARIA,
     ],
   },
-  proficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
+  // "Proficiências. Nenhuma." (Heróis de Arton, variante Burguês)
+  proficiencias: [],
   abilities: [
     {
       name: 'Meios de Produção',
       text: 'No início de cada aventura, você recebe T$ 100 em dinheiro, itens mundanos ou poções a sua escolha. Esse valor aumenta para T$ 300 no patamar veterano, T$ 600 no campeão e T$ 1.000 no lenda.',
       nivel: 1,
+    },
+    orgulho,
+    {
+      name: 'Poder Monetário',
+      text: 'Quando usa uma habilidade com um custo em PM, você pode consumir uma quantidade de tibares de ouro (limitada pelo seu Carisma). Cada TO consumido dessa forma paga 1 PM do custo da habilidade. Você pode consumir um número de TO por dia igual ao seu nível. No 5º nível, este limite aumenta para o dobro do seu nível.',
+      nivel: 1,
+    },
+    {
+      name: 'Desmoralizar',
+      text: 'No 2º nível, você aprende e pode lançar Perdição, e pode usar seus aprimoramentos como se tivesse acesso aos mesmos círculos de magia que um clérigo de seu nível. Entretanto, pode lançá-la apenas em criaturas inteligentes (Int –3 ou maior). Esta não é uma habilidade mágica e provém da sua capacidade de abalar a autoconfiança de outras pessoas. Mental.',
+      nivel: 2,
+      sheetActions: [
+        {
+          source: { type: 'class', className: 'Burguês' },
+          action: {
+            type: 'learnSpell',
+            availableSpells: [spellsCircle1.perdicao],
+            pick: 1,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
     {
       name: 'Negociante Nato',

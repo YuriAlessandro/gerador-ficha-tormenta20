@@ -1,7 +1,6 @@
 import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
 import INVENTOR from '../../classes/inventor';
-import PROFICIENCIAS from '../../proficiencias';
 
 const engenhosidade = INVENTOR.abilities.find(
   (a) => a.name === 'Engenhosidade'
@@ -17,7 +16,8 @@ const ALQUIMISTA: VariantClassOverrides = {
       list: [Skill.OFICIO_ALQUIMIA, Skill.VONTADE],
     },
   ],
-  proficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
+  // "Proficiências. Nenhuma." (Heróis de Arton, variante Alquimista)
+  proficiencias: [],
   abilities: [
     engenhosidade,
     {

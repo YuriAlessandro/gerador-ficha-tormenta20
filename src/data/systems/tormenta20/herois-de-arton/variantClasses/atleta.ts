@@ -3,7 +3,6 @@ import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import { spellsCircle1 } from '../../magias/generalSpells';
 import LUTADOR from '../../classes/lutador';
-import PROFICIENCIAS from '../../proficiencias';
 
 const briga = LUTADOR.abilities.find((a) => a.name === 'Briga')!;
 const cascaGrossa = LUTADOR.abilities.find((a) => a.name === 'Casca Grossa')!;
@@ -35,7 +34,8 @@ const ATLETA: VariantClassOverrides = {
       Skill.REFLEXOS,
     ],
   },
-  proficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
+  // "Proficiências. Nenhuma." (Heróis de Arton, variante Atleta)
+  proficiencias: [],
   abilities: [
     briga,
     {
@@ -94,6 +94,16 @@ const ATLETA: VariantClassOverrides = {
       name: 'Corpo Ideal',
       text: 'No 20º nível, você atinge o ápice físico de um corpo mortal. Você recebe imunidade a cansaço, condições de metabolismo e veneno, redução de dano 10 e seu dano desarmado e com armas de arremesso aumenta para 2d10 (criaturas Médias).',
       nivel: 20,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Corpo Ideal' },
+          target: { type: 'DamageReduction', damageType: 'Geral' },
+          modifier: {
+            type: 'LevelCalc',
+            formula: '{classLevel} >= 20 ? 10 : 0',
+          },
+        },
+      ],
     },
   ],
 };
