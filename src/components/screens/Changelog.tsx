@@ -94,6 +94,59 @@ const Changelog: React.FC = () => {
                     color: 'success.dark',
                   }}
                 >
+                  Complicações — regra opcional de Heróis de Arton
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Chegou a primeira das{' '}
+                  <strong>regras opcionais de Heróis de Arton</strong>: as{' '}
+                  <strong>Complicações</strong>. Na criação de personagem (com o
+                  suplemento Heróis de Arton ativo), você pode escolher{' '}
+                  <strong>uma complicação</strong> para o seu herói — uma
+                  restrição ou penalidade que faz parte da história dele — e, em
+                  troca, ganha um <strong>poder geral adicional</strong>{' '}
+                  (respeitando os pré-requisitos).
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  São <strong>54 complicações oficiais</strong> (gerais e
+                  específicas de classe). As penalidades numéricas — em
+                  perícias, Defesa, PV, PM e deslocamento — são{' '}
+                  <strong>aplicadas automaticamente na ficha</strong>; as de
+                  interpretação ficam descritas para você e seu mestre
+                  conduzirem em jogo.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Complicações de classe têm uma regra extra: você só usa o
+                  poder concedido enquanto{' '}
+                  <strong>metade dos seus níveis</strong> forem daquela classe —
+                  se deixar de cumprir isso (em uma multiclasse, por exemplo), o
+                  poder aparece <strong>marcado como indisponível</strong> na
+                  ficha, com um aviso, mas nunca é removido. Você pode{' '}
+                  <strong>adicionar, trocar ou remover</strong> a complicação
+                  depois, direto pela ficha.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
                   Guia de Deuses Menores — novo suplemento
                 </Typography>
                 <Typography variant='body1' sx={{ mb: 1 }}>
@@ -145,100 +198,20 @@ const Changelog: React.FC = () => {
                 </Typography>
               </Alert>
 
-              <Alert
-                severity='success'
-                sx={{
-                  my: 2,
-                  py: 2,
-                  border: '2px solid',
-                  borderColor: 'success.main',
-                  '& .MuiAlert-message': { width: '100%' },
-                }}
-              >
-                <Typography
-                  variant='h5'
-                  gutterBottom
-                  sx={{
-                    fontWeight: 'bold',
-                    color: 'success.dark',
-                  }}
-                >
-                  Complicações — regra opcional de Heróis de Arton
-                </Typography>
-                <Typography variant='body1' sx={{ mb: 1 }}>
-                  Chegou a primeira das{' '}
-                  <strong>regras opcionais de Heróis de Arton</strong>: as{' '}
-                  <strong>Complicações</strong>. Na criação de personagem (com o
-                  suplemento Heróis de Arton ativo), você pode escolher{' '}
-                  <strong>uma complicação</strong> para o seu herói — uma
-                  restrição ou penalidade que faz parte da história dele — e, em
-                  troca, ganha um <strong>poder geral adicional</strong>{' '}
-                  (respeitando os pré-requisitos).
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ color: 'text.secondary', mb: 1 }}
-                >
-                  São <strong>54 complicações oficiais</strong> (gerais e
-                  específicas de classe). As penalidades numéricas — em
-                  perícias, Defesa, PV, PM e deslocamento — são{' '}
-                  <strong>aplicadas automaticamente na ficha</strong>; as de
-                  interpretação ficam descritas para você e seu mestre
-                  conduzirem em jogo.
-                </Typography>
-                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                  Complicações de classe têm uma regra extra: você só usa o
-                  poder concedido enquanto{' '}
-                  <strong>metade dos seus níveis</strong> forem daquela classe —
-                  se deixar de cumprir isso (em uma multiclasse, por exemplo), o
-                  poder aparece <strong>marcado como indisponível</strong> na
-                  ficha, com um aviso, mas nunca é removido. Você pode{' '}
-                  <strong>adicionar, trocar ou remover</strong> a complicação
-                  depois, direto pela ficha.
-                </Typography>
-                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                  Escolher uma complicação é um{' '}
-                  <strong>recurso para apoiadores</strong>. Se você já tinha uma
-                  complicação na ficha, ela continua visível e você pode
-                  gerenciá-la normalmente.
-                </Typography>
-              </Alert>
-
               <ul>
                 <li>
                   <strong>Novo:</strong> <strong>Guia de acerto</strong>: ao
                   lançar uma magia com área de efeito, o diálogo de conjuração
                   passa a mostrar um <strong>grid de batalha</strong> com os
                   quadrados atingidos pintados e{' '}
-                  <strong>numerados de 1 a N</strong> — é só conferir no celular
-                  contra o grid da mesa para saber exatamente o que a magia
-                  pega. Esferas, cubos, quadrados, cilindros, linhas e cones são
-                  desenhados seguindo as regras de{' '}
+                  <strong>numerados de 1 a N</strong> — é só conferir no
+                  dispositivo contra o grid da mesa para saber exatamente o que
+                  a magia pega. Esferas, cubos, quadrados, cilindros, linhas e
+                  cones são desenhados seguindo as regras de{' '}
                   <strong>Alvos &amp; Áreas</strong> do livro básico, com{' '}
                   <strong>1 quadrado = 1,5m</strong>. Cones e linhas podem ser{' '}
                   <strong>girados nas oito direções</strong>, e magias com mais
-                  de uma opção de área deixam você escolher qual conferir. O
-                  guia vem recolhido e é exclusivo para{' '}
-                  <Link to='/apoiar'>apoiadores</Link>.
-                </li>
-                <li>
-                  <strong>Novo:</strong> O plano gratuito passa a permitir até{' '}
-                  <strong>4 suplementos ativos ao mesmo tempo</strong>, além do
-                  livro básico — que continua sempre disponível e não conta no
-                  limite. Para ativar um quinto, basta{' '}
-                  <strong>desativar outro</strong> a qualquer momento pelo
-                  perfil; quem <Link to='/apoiar'>apoia o projeto</Link> ativa
-                  todos sem limite. Se você já tinha mais suplementos ligados do
-                  que isso, <strong>nada foi desativado</strong>: eles seguem
-                  como estavam.
-                </li>
-                <li>
-                  <strong>Novo:</strong>{' '}
-                  <strong>Recuperação de fichas afetadas</strong>: fichas
-                  atingidas pelo problema de zeramento passam a exibir um aviso
-                  ao abrir ou editar em &quot;Meus Personagens&quot;, com a
-                  opção de restaurar a cópia local salva no seu navegador — o
-                  mesmo mecanismo usado no incidente da Mesa Virtual.
+                  de uma opção de área deixam você escolher qual conferir.
                 </li>
                 <li>
                   <strong>Novo:</strong>{' '}
@@ -249,15 +222,12 @@ const Changelog: React.FC = () => {
                   dano, a rolagem de dados agora{' '}
                   <strong>cresce automaticamente</strong>. Antes de rolar, uma
                   tela de confirmação mostra o dano que será jogado — e você
-                  ainda pode ajustá-lo manualmente naquele lançamento. Recurso
-                  disponível para todos.
+                  ainda pode ajustá-lo manualmente naquele lançamento.
                 </li>
                 <li>
-                  <strong>Novo:</strong> suporte à{' '}
-                  <strong>Tradição Perdida</strong> (Heróis de Arton): no editor
-                  da ficha, conjuradores agora podem escolher o{' '}
-                  <strong>atributo-chave</strong> usado tanto na{' '}
-                  <strong>CD das magias</strong> (qualquer um dos seis
+                  <strong>Novo:</strong> no editor da ficha, conjuradores agora
+                  podem escolher o <strong>atributo-chave</strong> usado tanto
+                  na <strong>CD das magias</strong> (qualquer um dos seis
                   atributos) quanto no cálculo dos <strong>PM</strong> — este
                   com o limite por patamar previsto na regra.
                 </li>
@@ -277,32 +247,8 @@ const Changelog: React.FC = () => {
                   nome dela — Ofício (Ferreiro anão), Ofício (Cervejeiro) — e
                   ela vira uma perícia normal da ficha: aparece na tabela com
                   Inteligência, conta como treinada, acompanha o seu nível, sai
-                  no <strong>PDF</strong> e na{' '}
-                  <strong>exportação para o Foundry</strong>, e satisfaz
-                  pré-requisitos de poderes que pedem Ofício (Qualquer).
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> O{' '}
-                  <strong>seletor de divindade</strong> ficou mais fácil de
-                  navegar agora que são 83 deuses: os{' '}
-                  <strong>vinte deuses maiores vêm primeiro</strong>, seguidos
-                  das divindades menores, cada grupo em ordem alfabética. Os
-                  deuses menores aparecem com uma etiqueta mostrando seu{' '}
-                  <strong>status divino</strong>, para você saber de cara o que
-                  aquela devoção concede.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> O <strong>Mapa de Arton</strong>{' '}
-                  agora funciona embutido em outros sites e aplicativos (iframe
-                  com sandbox): o app passa a lidar com o bloqueio de
-                  armazenamento do navegador nesse modo, e o botão de voltar
-                  abre o Fichas de Nimb em uma nova aba.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> O card da{' '}
-                  <strong>Complicação</strong> na ficha agora segue o mesmo
-                  estilo visual dos demais poderes e aparece ao final da lista
-                  de poderes, ficando mais fácil de identificar.
+                  no <strong>PDF</strong> e satisfaz pré-requisitos de poderes
+                  que pedem Ofício (Qualquer).
                 </li>
                 <li>
                   <strong>Melhoria:</strong> Os poderes{' '}
@@ -314,15 +260,6 @@ const Changelog: React.FC = () => {
                   Perdida) e à <strong>CD das magias</strong> (Tradição Perdida
                   Aprimorada). Você ainda pode ajustar depois pelo editor da
                   ficha.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> As <strong>Complicações</strong>{' '}
-                  passam a ser um <strong>recurso para apoiadores</strong>: a
-                  etapa no assistente de criação e o botão de edição na ficha
-                  ficam disponíveis para quem apoia o projeto. Fichas que já têm
-                  uma complicação continuam mostrando tudo normalmente —
-                  inclusive a opção de trocar ou remover — e as penalidades
-                  seguem sendo aplicadas em qualquer caso.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> A{' '}
@@ -468,11 +405,6 @@ const Changelog: React.FC = () => {
                   agora segue direto para os ganhos do nível.
                 </li>
                 <li>
-                  <strong>Correção:</strong> A página pública do Mapa de Arton
-                  aparecia em buscadores com o título genérico do site; agora
-                  tem título e descrição próprios.
-                </li>
-                <li>
                   <strong>Correção:</strong> Corrigido um problema grave em que{' '}
                   <strong>
                     editar uma ficha por &quot;Meus Personagens&quot; podia
@@ -499,12 +431,6 @@ const Changelog: React.FC = () => {
                   evitando sobrescritas indevidas.
                 </li>
                 <li>
-                  <strong>Correção:</strong> O poder geral concedido pela{' '}
-                  <strong>Complicação</strong> agora mostra corretamente a
-                  complicação como origem no rótulo &quot;Vindo de&quot; da
-                  ficha.
-                </li>
-                <li>
                   <strong>Correção:</strong> na <strong>Mesa Virtual</strong>,{' '}
                   <strong>editar um parceiro personalizado</strong> falhava com
                   erro de servidor e as mudanças não eram salvas — ao adicionar
@@ -525,13 +451,6 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> Na loja da criação de personagem, o{' '}
                   <strong>dinheiro já gasto voltava</strong> ao sair e retornar
                   ao passo do mercado. O saldo agora é preservado.
-                </li>
-                <li>
-                  <strong>Correção:</strong> Itens{' '}
-                  <strong>repetidos nas listas</strong>: os itens alquímicos do
-                  livro básico apareciam duas vezes no passo de Itens
-                  Alquímicos, e &quot;Virotes (20)&quot; aparecia três vezes na
-                  lista de armas com Heróis de Arton ativo.
                 </li>
                 <li>
                   <strong>Correção:</strong> Itens comprados na criação de
@@ -590,67 +509,6 @@ const Changelog: React.FC = () => {
                   personagens <strong>multiclasse</strong>, o bônus agora usa
                   corretamente o seu <strong>nível de Bárbaro</strong>, e não o
                   nível total.
-                </li>
-                <li>
-                  <strong>Correção:</strong> As habilidades do{' '}
-                  <strong>Ventanista</strong> não correspondiam às do livro.{' '}
-                  <strong>Disfarce Elaborado</strong>,{' '}
-                  <strong>Virar a Casaca</strong>,{' '}
-                  <strong>Provocação Ousada</strong> e{' '}
-                  <strong>O Grande Golpe</strong> descreviam efeitos que não
-                  existem em <strong>Heróis de Arton</strong>, e o{' '}
-                  <strong>Charme</strong> limitava o gasto a 1 PM em perícias de
-                  Carisma — quando na verdade você pode gastar quantos PM
-                  quiser, até o seu Carisma, recebendo{' '}
-                  <strong>+2 por PM</strong> em qualquer teste de perícia. Todas
-                  foram reescritas conforme o livro.
-                </li>
-                <li>
-                  <strong>Correção:</strong> O <strong>Burguês</strong> estava
-                  sem três habilidades, incluindo <strong>Desmoralizar</strong>{' '}
-                  — a habilidade de 2º nível que concede a magia{' '}
-                  <strong>Perdição</strong> e é citada pelo Magnata. Também
-                  faltavam <strong>Orgulho</strong> e{' '}
-                  <strong>Poder Monetário</strong>.
-                </li>
-                <li>
-                  <strong>Correção:</strong> O <strong>Machado de Pedra</strong>{' '}
-                  não recebia <strong>Grunhidos</strong>, e o{' '}
-                  <strong>Sítio Sagrado</strong> do <strong>Ermitão</strong>{' '}
-                  trazia um texto que não é o do livro. Ambos corrigidos, com o
-                  Sítio Sagrado agora incluindo as regras completas do quadro.
-                </li>
-                <li>
-                  <strong>Correção:</strong> No <strong>Vassalo</strong>,{' '}
-                  <strong>Escudeiro Aprendiz</strong> não concedia{' '}
-                  <strong>proficiência com armaduras pesadas</strong> e o{' '}
-                  <strong>+1 em Carisma</strong> do título <strong>Rei</strong>{' '}
-                  não era aplicado na ficha. Os textos de Suserano, Lorde e
-                  Imperador também foram completados.
-                </li>
-                <li>
-                  <strong>Correção:</strong> Os <strong>Truques de Capa</strong>{' '}
-                  do <strong>Duelista</strong> obrigavam a escolher apenas um
-                  dos seis truques. Pelo livro você tem acesso a{' '}
-                  <strong>todos os seis</strong>, gastando 2 PM por uso.
-                </li>
-                <li>
-                  <strong>Correção:</strong> <strong>Alquimista</strong>,{' '}
-                  <strong>Atleta</strong> e <strong>Burguês</strong> recebiam
-                  proficiências que não deveriam ter — as três classes não têm{' '}
-                  <strong>nenhuma proficiência</strong> pelo livro. O{' '}
-                  <strong>Santo</strong> às vezes era gerado{' '}
-                  <strong>sem devoção</strong>, o que a classe não permite, e o
-                  bônus de <strong>Necrologia</strong> do{' '}
-                  <strong>Necromante</strong> não aparecia em{' '}
-                  <strong>Cura</strong> e <strong>Fortitude</strong>.
-                </li>
-                <li>
-                  <strong>Correção:</strong> No <strong>Treinador</strong>, a
-                  habilidade <strong>Domar Criatura</strong> omitia três regras
-                  do livro, e o quadro de <strong>Mascotes</strong> não existia
-                  no app — agora dá para escolher entre os{' '}
-                  <strong>8 mascotes</strong> oficiais.
                 </li>
               </ul>
               <h3>4.25.1</h3>
