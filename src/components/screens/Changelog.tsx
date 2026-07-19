@@ -591,6 +591,67 @@ const Changelog: React.FC = () => {
                   corretamente o seu <strong>nível de Bárbaro</strong>, e não o
                   nível total.
                 </li>
+                <li>
+                  <strong>Correção:</strong> As habilidades do{' '}
+                  <strong>Ventanista</strong> não correspondiam às do livro.{' '}
+                  <strong>Disfarce Elaborado</strong>,{' '}
+                  <strong>Virar a Casaca</strong>,{' '}
+                  <strong>Provocação Ousada</strong> e{' '}
+                  <strong>O Grande Golpe</strong> descreviam efeitos que não
+                  existem em <strong>Heróis de Arton</strong>, e o{' '}
+                  <strong>Charme</strong> limitava o gasto a 1 PM em perícias de
+                  Carisma — quando na verdade você pode gastar quantos PM
+                  quiser, até o seu Carisma, recebendo{' '}
+                  <strong>+2 por PM</strong> em qualquer teste de perícia. Todas
+                  foram reescritas conforme o livro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Burguês</strong> estava
+                  sem três habilidades, incluindo <strong>Desmoralizar</strong>{' '}
+                  — a habilidade de 2º nível que concede a magia{' '}
+                  <strong>Perdição</strong> e é citada pelo Magnata. Também
+                  faltavam <strong>Orgulho</strong> e{' '}
+                  <strong>Poder Monetário</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Machado de Pedra</strong>{' '}
+                  não recebia <strong>Grunhidos</strong>, e o{' '}
+                  <strong>Sítio Sagrado</strong> do <strong>Ermitão</strong>{' '}
+                  trazia um texto que não é o do livro. Ambos corrigidos, com o
+                  Sítio Sagrado agora incluindo as regras completas do quadro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No <strong>Vassalo</strong>,{' '}
+                  <strong>Escudeiro Aprendiz</strong> não concedia{' '}
+                  <strong>proficiência com armaduras pesadas</strong> e o{' '}
+                  <strong>+1 em Carisma</strong> do título <strong>Rei</strong>{' '}
+                  não era aplicado na ficha. Os textos de Suserano, Lorde e
+                  Imperador também foram completados.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os <strong>Truques de Capa</strong>{' '}
+                  do <strong>Duelista</strong> obrigavam a escolher apenas um
+                  dos seis truques. Pelo livro você tem acesso a{' '}
+                  <strong>todos os seis</strong>, gastando 2 PM por uso.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Alquimista</strong>,{' '}
+                  <strong>Atleta</strong> e <strong>Burguês</strong> recebiam
+                  proficiências que não deveriam ter — as três classes não têm{' '}
+                  <strong>nenhuma proficiência</strong> pelo livro. O{' '}
+                  <strong>Santo</strong> às vezes era gerado{' '}
+                  <strong>sem devoção</strong>, o que a classe não permite, e o
+                  bônus de <strong>Necrologia</strong> do{' '}
+                  <strong>Necromante</strong> não aparecia em{' '}
+                  <strong>Cura</strong> e <strong>Fortitude</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No <strong>Treinador</strong>, a
+                  habilidade <strong>Domar Criatura</strong> omitia três regras
+                  do livro, e o quadro de <strong>Mascotes</strong> não existia
+                  no app — agora dá para escolher entre os{' '}
+                  <strong>8 mascotes</strong> oficiais.
+                </li>
               </ul>
               <h3>4.25.1</h3>
               <ul>
