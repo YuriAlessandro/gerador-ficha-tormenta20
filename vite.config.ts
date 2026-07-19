@@ -191,7 +191,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,ico,png,svg,json,wasm}'],
         // Don't precache index.html - always fetch fresh
         navigateFallback: null,
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB limit (increased for large bundle)
+        // O chunk principal já passa de 10 MB. Sem folga aqui o build quebra
+        // (vite-plugin-pwa trata o aviso do workbox como erro). Solução de
+        // verdade é code-splitting — ver manualChunks no aviso do rollup.
+        maximumFileSizeToCacheInBytes: 20 * 1024 * 1024, // 20 MB limit
         // Clean up old caches on activation - important to remove stale assets
         cleanupOutdatedCaches: true,
         // DO NOT use skipWaiting with 'prompt' registerType
