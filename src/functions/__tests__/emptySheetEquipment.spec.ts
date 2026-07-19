@@ -239,6 +239,50 @@ describe('convertOriginItemsToBagEquipments', () => {
     expect(result['Item Geral']?.map((i) => i.nome)).toEqual(['Bandeira']);
   });
 
+  it('não muta o objeto do catálogo ao colocá-lo na mochila', () => {
+    const result = convertOriginItemsToBagEquipments([
+      { equipment: Armas.ESPADA_LONGA },
+    ]);
+
+    const naMochila = result.Arma?.[0];
+    expect(naMochila).not.toBe(Armas.ESPADA_LONGA);
+
+    // Escrever na cópia (como faz ensureIds) não pode vazar para o catálogo,
+    // que é um singleton compartilhado entre fichas.
+    const idDoCatalogoAntes = Armas.ESPADA_LONGA.id;
+    if (naMochila) naMochila.id = 'id-de-teste';
+    expect(Armas.ESPADA_LONGA.id).toBe(idDoCatalogoAntes);
+  });
+
+  /**
+   * Regressão do bug reportado: a Pistola concedida pela origem "Procurado:
+   * Vivo ou Morto" ia para "Item Geral" como texto e sumia da lista de
+   * Ataques, que filtra por `group === 'Arma'`.
+   */
+  it('entrega a Pistola da origem Procurado: Vivo ou Morto como Arma', () => {
+    const origem = dataRegistry
+      .getOriginsBySupplements([
+        SupplementId.TORMENTA20_CORE,
+        SupplementId.TORMENTA20_ATLAS_ARTON,
+      ])
+      .find((o) => o.name === 'Procurado: Vivo ou Morto (Smokestone)');
+    expect(origem).toBeDefined();
+
+    const result = convertOriginItemsToBagEquipments(origem?.getItems?.());
+
+    const pistola = result.Arma?.find((i) => i.nome === 'Pistola');
+    expect(pistola).toBeDefined();
+    expect(pistola?.group).toBe('Arma');
+    expect(pistola?.dano).toBe('2d6');
+    expect(pistola?.weaponCategory).toBe('firearm');
+
+    // Munição rastreável, para o sub-item de balas da Pistola na Mochila.
+    const balas = result.Arma?.find((i) => i.isAmmo);
+    expect(balas?.ammoType).toBe('Balas');
+
+    expect(result['Item Geral']).toEqual([]);
+  });
+
   it('retorna apenas Item Geral vazio para lista indefinida', () => {
     const result = convertOriginItemsToBagEquipments(undefined);
     expect(result['Item Geral']).toEqual([]);

@@ -4,6 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
+import { Armas } from '../../equipamentos';
 
 function getAllRegionalBenefits(): OriginBenefits {
   return {
@@ -23,7 +24,7 @@ const BANDOLEIRO_DA_FORTALEZA: Origin = {
   isRegional: true,
   getItems: (): Items[] => [
     {
-      equipment: 'Adaga',
+      equipment: Armas.ADAGA,
     },
     {
       equipment: 'Gazua',

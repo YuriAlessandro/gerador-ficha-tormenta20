@@ -2,6 +2,7 @@ import Origin, {
   Items,
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
+import { Armas } from '../../equipamentos';
 import atlasOriginPowers from '../powers/originPowers';
 
 /**
@@ -24,14 +25,16 @@ const PROCURADO_VIVO_OU_MORTO: Origin = {
   poderes: [atlasOriginPowers.PROCURADO_VIVO_OU_MORTO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
+  // Livro: "Itens. Pistola, balas cruéis (20)." Usamos os objetos do catálogo
+  // (e não strings) para que a Pistola entre na mochila como Arma — string
+  // vira item de texto em "Item Geral" e some da lista de Ataques. As "balas
+  // cruéis" não têm entrada própria; `Armas.BALAS` dá munição rastreável.
   getItems: (): Items[] => [
     {
-      equipment: 'Pistola',
-      qtd: 1,
+      equipment: Armas.PISTOLA,
     },
     {
-      equipment: 'Balas cruéis',
-      qtd: 20,
+      equipment: Armas.BALAS,
     },
   ],
 };

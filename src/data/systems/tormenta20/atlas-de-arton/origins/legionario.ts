@@ -5,6 +5,7 @@ import Origin, {
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armaduras, Escudos } from '../../equipamentos';
+import { AMEACAS_ARTON_WEAPONS } from '../../ameacas-de-arton/equipment/weapons';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -35,8 +36,7 @@ const LEGIONARIO: Origin = {
       equipment: Escudos.ESCUDO_PESADO,
     },
     {
-      equipment: 'Gládio',
-      qtd: 1,
+      equipment: AMEACAS_ARTON_WEAPONS.GLADIO,
       description: 'Arma exótica do Império de Tauron',
     },
     {

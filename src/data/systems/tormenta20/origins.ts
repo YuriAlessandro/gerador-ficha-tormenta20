@@ -798,8 +798,8 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Equipamento de viagem',
       },
       {
-        equipment: 'Flechas',
-        qtd: 20,
+        // `Armas.FLECHAS` já é o pacote de 20, com metadados de munição.
+        equipment: Armas.FLECHAS,
       },
       {
         equipment: Armas.ARCOCURTO,

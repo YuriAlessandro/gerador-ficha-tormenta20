@@ -4,6 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import Skill from '../../../../../interfaces/Skills';
 import heroisArtonOriginPowers from './originPowers';
+import { HEROIS_ARTON_WEAPONS } from '../equipment/weapons';
 
 function getAllRegionalBenefits(): OriginBenefits {
   return {
@@ -26,7 +27,7 @@ const FERREIRO_MILITAR: Origin = {
       equipment: 'Instrumentos de armeiro',
     },
     {
-      equipment: 'Martelo leve',
+      equipment: HEROIS_ARTON_WEAPONS.MARTELO_LEVE,
     },
   ],
 };

@@ -4,6 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import Skill from '../../../../../interfaces/Skills';
 import heroisArtonOriginPowers from './originPowers';
+import { Armas } from '../../equipamentos';
 
 function getAllRegionalBenefits(): OriginBenefits {
   return {
@@ -23,7 +24,7 @@ const CACADOR_DE_RATOS: Origin = {
   isRegional: true,
   getItems: (): Items[] => [
     {
-      equipment: 'Clava',
+      equipment: Armas.CLAVA,
     },
     {
       equipment: 'Um gato (parceiro perseguidor iniciante)',

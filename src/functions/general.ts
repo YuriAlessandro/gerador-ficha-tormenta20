@@ -1121,7 +1121,10 @@ export function convertOriginItemsToBagEquipments(
         group: 'Item Geral',
       });
     } else if (equip.equipment) {
-      const equipValue = equip.equipment;
+      // Clona: os objetos vêm dos catálogos, que são singletons compartilhados
+      // e cacheados. Colocá-los na mochila por referência faz `ensureIds`
+      // gravar o `id` no catálogo e vazar estado entre fichas.
+      const equipValue = { ...equip.equipment };
 
       // Verifica se é uma armadura (comparação por nome)
       if (

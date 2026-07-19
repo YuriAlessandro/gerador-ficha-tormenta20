@@ -3,6 +3,7 @@ import Origin, {
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
 import heroisArtonOriginPowers from './originPowers';
+import { Armas } from '../../equipamentos';
 
 function getAllRegionalBenefits(): OriginBenefits {
   return {
@@ -22,10 +23,11 @@ const NAUFRAGO: Origin = {
   isRegional: true,
   getItems: (): Items[] => [
     {
-      equipment: 'Arco curto',
+      equipment: Armas.ARCOCURTO,
     },
     {
-      equipment: '20 flechas',
+      // `Armas.FLECHAS` já é o pacote de 20, com metadados de munição.
+      equipment: Armas.FLECHAS,
     },
     {
       equipment:

@@ -3,7 +3,7 @@ import Origin, {
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import { Armaduras, Armas } from '../../equipamentos';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 
 /**
@@ -65,8 +65,7 @@ const INICIADO_DOS_CACA_MONSTROS: Origin = {
         equipment: armaSorteada,
       },
       {
-        equipment: 'Gibão de peles',
-        qtd: 1,
+        equipment: Armaduras.GIBAODEPELES,
       },
     ];
   },
