@@ -104,6 +104,15 @@ const Changelog: React.FC = () => {
                   nível ficava travado mesmo depois de você fazer a escolha.
                   Agora a contagem de escolhas é a mesma nos dois assistentes.
                 </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Tradição Perdida</strong> não estava somando os PM do
+                  atributo escolhido para classes conjuradoras que não fossem o
+                  Arcanista (Druida, Clérigo, Frade, Bardo e Usurpador). Agora o
+                  atributo escolhido entra corretamente no total de PM dessas
+                  classes, respeitando o limite por patamar (6, +2 por patamar
+                  acima de iniciante).
+                </li>
               </ul>
 
               <h3>4.26.1</h3>
