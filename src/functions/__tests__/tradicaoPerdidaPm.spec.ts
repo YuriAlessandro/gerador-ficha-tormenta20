@@ -3,6 +3,7 @@ import {
   getPlateauByLevel,
   getTradicaoPerdidaPmCap,
   getTradicaoPerdidaPmValue,
+  isClassSpellcastingPmBonus,
 } from '../powers/general';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
@@ -24,6 +25,40 @@ const MAGIAS_PM_POWER: GeneralPower = {
       source: { type: 'power', name: 'Magias (teste)' },
       target: { type: 'PM' },
       modifier: { type: 'SpecialAttribute', attribute: 'spellKeyAttr' },
+    },
+  ],
+};
+
+// Habilidade "Magias" no estilo Druida/Clérigo/Bardo: soma um atributo FIXO ao
+// PM (`Attribute`), em vez do `SpecialAttribute spellKeyAttr` do Arcanista. A
+// Tradição Perdida precisa reconhecer as duas formas.
+const MAGIAS_FIXED_ATTR_POWER: GeneralPower = {
+  name: 'Magias',
+  description: 'Soma Sabedoria ao total de PM (estilo Druida).',
+  type: GeneralPowerType.COMBATE,
+  requirements: [],
+  sheetBonuses: [
+    {
+      source: { type: 'power', name: 'Magias' },
+      target: { type: 'PM' },
+      modifier: { type: 'Attribute', attribute: Atributo.SABEDORIA },
+    },
+  ],
+};
+
+// Bônus de PM por atributo que NÃO é a habilidade "Magias" (ex.: Totem
+// Espiritual do Bárbaro / Elo com a Natureza do Caçador). A Tradição Perdida
+// não deve tocá-lo.
+const TOTEM_PM_POWER: GeneralPower = {
+  name: 'Totem Espiritual',
+  description: 'Soma Sabedoria ao total de PM, mas não é conjuração.',
+  type: GeneralPowerType.COMBATE,
+  requirements: [],
+  sheetBonuses: [
+    {
+      source: { type: 'power', name: 'Totem Espiritual' },
+      target: { type: 'PM' },
+      modifier: { type: 'Attribute', attribute: Atributo.SABEDORIA },
     },
   ],
 };
@@ -101,6 +136,32 @@ describe('Tradição Perdida - cap por patamar (helpers)', () => {
   });
 });
 
+describe('isClassSpellcastingPmBonus', () => {
+  it('reconhece o PM do Arcanista (SpecialAttribute spellKeyAttr)', () => {
+    expect(isClassSpellcastingPmBonus(MAGIAS_PM_POWER.sheetBonuses![0])).toBe(
+      true
+    );
+  });
+
+  it('reconhece o PM de conjuradores com atributo fixo na habilidade "Magias"', () => {
+    expect(
+      isClassSpellcastingPmBonus(MAGIAS_FIXED_ATTR_POWER.sheetBonuses![0])
+    ).toBe(true);
+  });
+
+  it('ignora bônus de PM por atributo de poderes que não sejam "Magias"', () => {
+    expect(isClassSpellcastingPmBonus(TOTEM_PM_POWER.sheetBonuses![0])).toBe(
+      false
+    );
+  });
+
+  it('ignora bônus de spellKeyAttr em alvos que não sejam PM (PV do Sapo)', () => {
+    expect(isClassSpellcastingPmBonus(SAPO_PV_POWER.sheetBonuses![0])).toBe(
+      false
+    );
+  });
+});
+
 describe('Tradição Perdida - total de PM (recalculateSheet)', () => {
   it('sem o poder, o PM usa o atributo-chave da classe (Inteligência)', () => {
     const sheet = makeCasterSheet();
@@ -155,6 +216,40 @@ describe('Tradição Perdida - total de PM (recalculateSheet)', () => {
     // além do PM normal por nível da classe (addpm).
     const { addpm } = makeCasterSheet().classe;
     expect(veterano.pm - iniciante.pm).toBe(addpm + 2);
+  });
+
+  it('substitui a contribuição de PM de classes com atributo fixo (Druida/Clérigo)', () => {
+    // Regressão: a Tradição Perdida só reconhecia o Arcanista (SpecialAttribute
+    // spellKeyAttr) e ignorava conjuradores que declaram o atributo fixo na
+    // habilidade "Magias" (Druida/Sabedoria) — o +atributo nunca era somado.
+    const build = (withTradicao: boolean): CharacterSheet => {
+      const sheet = makeCasterSheet();
+      sheet.generalPowers = [MAGIAS_FIXED_ATTR_POWER];
+      sheet.nivel = 7; // veterano → cap 8
+      sheet.atributos[Atributo.SABEDORIA].value = 0; // atributo de PM da classe
+      sheet.atributos[Atributo.FORCA].value = 5;
+      if (withTradicao) sheet.tradicaoPerdidaPmAttribute = Atributo.FORCA;
+      return sheet;
+    };
+    const base = recalculateSheet(build(false));
+    const result = recalculateSheet(build(true));
+    // Força (5) entra no lugar de Sabedoria (0) → +5 (dentro do cap 8).
+    expect(result.pm).toBe(base.pm + 5);
+  });
+
+  it('NÃO substitui bônus de PM por atributo fora da habilidade "Magias"', () => {
+    const build = (withTradicao: boolean): CharacterSheet => {
+      const sheet = makeCasterSheet();
+      sheet.generalPowers = [TOTEM_PM_POWER];
+      sheet.atributos[Atributo.SABEDORIA].value = 3;
+      sheet.atributos[Atributo.FORCA].value = 5;
+      if (withTradicao) sheet.tradicaoPerdidaPmAttribute = Atributo.FORCA;
+      return sheet;
+    };
+    const base = recalculateSheet(build(false));
+    const result = recalculateSheet(build(true));
+    // Totem Espiritual não é conjuração: a Tradição Perdida não mexe nele.
+    expect(result.pm).toBe(base.pm);
   });
 
   it('manualMaxPM tem precedência e ignora a Tradição Perdida', () => {

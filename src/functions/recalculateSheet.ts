@@ -56,6 +56,7 @@ import {
 } from './weaponBonusScope';
 import {
   getTradicaoPerdidaPmValue,
+  isClassSpellcastingPmBonus,
   getDeusMenorPmBonus,
 } from './powers/general';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
@@ -1962,13 +1963,11 @@ export function recalculateSheet(
         !hasManualMaxPM
       ) {
         // Tradição Perdida: substitui a contribuição do atributo-chave da
-        // classe (spellKeyAttr) no total de PM pelo atributo escolhido no poder
-        // (limitado por patamar). Fora desse caso, usa o valor normal.
-        const tradicaoPerdidaPm =
-          bonus.modifier.type === 'SpecialAttribute' &&
-          bonus.modifier.attribute === 'spellKeyAttr'
-            ? getTradicaoPerdidaPmValue(updatedSheet)
-            : null;
+        // classe (habilidade "Magias") no total de PM pelo atributo escolhido
+        // no poder (limitado por patamar). Fora desse caso, usa o valor normal.
+        const tradicaoPerdidaPm = isClassSpellcastingPmBonus(bonus)
+          ? getTradicaoPerdidaPmValue(updatedSheet)
+          : null;
         const pmValue = tradicaoPerdidaPm ?? bonusValue;
 
         const pmBefore = updatedSheet.pm;

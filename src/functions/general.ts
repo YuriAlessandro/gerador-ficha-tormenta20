@@ -179,6 +179,7 @@ import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
   getTradicaoPerdidaPmValue,
+  isClassSpellcastingPmBonus,
   getDeusMenorPmBonus,
   getDeityMaxSpellCircle,
 } from './powers/general';
@@ -4734,12 +4735,11 @@ const applyStatModifiers = (
       });
     } else if (bonus.target.type === 'PM') {
       // Tradição Perdida: substitui a contribuição do atributo-chave da classe
-      // (spellKeyAttr) no total de PM pelo atributo escolhido no poder (com cap).
-      const tradicaoPerdidaPm =
-        bonus.modifier.type === 'SpecialAttribute' &&
-        bonus.modifier.attribute === 'spellKeyAttr'
-          ? getTradicaoPerdidaPmValue(sheet)
-          : null;
+      // (habilidade "Magias") no total de PM pelo atributo escolhido no poder
+      // (com cap).
+      const tradicaoPerdidaPm = isClassSpellcastingPmBonus(bonus)
+        ? getTradicaoPerdidaPmValue(sheet)
+        : null;
       const pmValue = tradicaoPerdidaPm ?? bonusValue;
       sheet.pm += pmValue;
       pmSubSteps.push({
@@ -6800,11 +6800,9 @@ export function generateEmptySheet(
       pvSubSteps.push({ name: subStepName, value: `${bonusValue}` });
     } else if (bonus.target.type === 'PM') {
       // Tradição Perdida: mesmo override do total de PM, para o passo-a-passo bater.
-      const tradicaoPerdidaPm =
-        bonus.modifier.type === 'SpecialAttribute' &&
-        bonus.modifier.attribute === 'spellKeyAttr'
-          ? getTradicaoPerdidaPmValue(emptySheet)
-          : null;
+      const tradicaoPerdidaPm = isClassSpellcastingPmBonus(bonus)
+        ? getTradicaoPerdidaPmValue(emptySheet)
+        : null;
       const pmValue = tradicaoPerdidaPm ?? bonusValue;
       pmSubSteps.push({ name: subStepName, value: `${pmValue}` });
     } else if (bonus.target.type === 'Defense') {
