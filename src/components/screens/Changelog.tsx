@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            21/07/2026 (v4.26.1).
+            21/07/2026 (v4.26.2).
           </p>
 
           <p>
@@ -74,6 +74,38 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.26.2</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> As cores verde e amarelo deixam de
+                  ser temas comemorativos da Copa e viram cores normais
+                  (&quot;Verde Esmeralda&quot; e &quot;Amarelo Ouro&quot;),
+                  disponíveis para apoiadores como as demais.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os efeitos do{' '}
+                  <strong>Golpe Pessoal</strong> do guerreiro foram conferidos
+                  um a um com o livro: <em>Implacável</em> agora se chama{' '}
+                  <em>Impactante</em> e <em>Teleguio</em> virou{' '}
+                  <em>Teleguiado</em>; <em>Destruidor</em> e <em>Letal</em>{' '}
+                  custam 2 PM (não 3), <em>Lento</em> reduz 2 PM (não 1) e{' '}
+                  <em>Letal</em> pode ser escolhido no máximo duas vezes (margem
+                  +5). Também corrigimos os textos de <em>Sacrifício</em>,{' '}
+                  <em>Conjurador</em> e dos efeitos de Heróis de Arton (
+                  <em>Carregado</em>, <em>Sequencial</em>, <em>Sifão</em>,{' '}
+                  <em>Truque Secreto</em> e <em>Avanço</em>). Golpes já montados
+                  continuam funcionando e têm o custo recalculado ao serem
+                  reconstruídos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em alguns poderes com escolhas
+                  (como <strong>Tradição Perdida</strong>), o botão
+                  &quot;Próximo&quot; do assistente de criação e do de subir de
+                  nível ficava travado mesmo depois de você fazer a escolha.
+                  Agora a contagem de escolhas é a mesma nos dois assistentes.
+                </li>
+              </ul>
+
               <h3>4.26.1</h3>
               <ul>
                 <li>
