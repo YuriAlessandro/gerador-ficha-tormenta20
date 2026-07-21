@@ -7,6 +7,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  MenuList,
   TextField,
   Typography,
   useMediaQuery,
@@ -235,7 +236,14 @@ const OficioPicker: React.FC<OficioPickerProps> = ({
         }}
       />
       {isMobile ? (
-        <Drawer anchor='bottom' open={open} onClose={close}>
+        <Drawer
+          anchor='bottom'
+          open={open}
+          onClose={close}
+          // O z-index padrão do Drawer (1200) fica abaixo do de modal (1300),
+          // então o picker sumia atrás do modal do wizard de criação de ficha.
+          sx={{ zIndex: theme.zIndex.modal + 1 }}
+        >
           <Box sx={{ pt: 1, pb: 2 }}>
             <Typography
               variant='overline'
@@ -243,7 +251,10 @@ const OficioPicker: React.FC<OficioPickerProps> = ({
             >
               Ofício
             </Typography>
-            {renderContent()}
+            {/* O MenuList é obrigatório: no MUI v9 o MenuItem lê o
+                MenuListContext e lança se não houver Menu/MenuList acima.
+                No desktop quem fornece esse contexto é o próprio <Menu>. */}
+            <MenuList sx={{ pt: 0 }}>{renderContent()}</MenuList>
           </Box>
         </Drawer>
       ) : (

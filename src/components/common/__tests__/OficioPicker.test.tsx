@@ -1,11 +1,38 @@
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
+import { afterEach, vi } from 'vitest';
+import { createTheme } from '@mui/material';
 import Skill from '@/interfaces/Skills';
 import OficioPicker from '../OficioPicker';
 
 const openMenu = () => {
   fireEvent.click(screen.getByText('Ofício'));
 };
+
+/**
+ * O setup global devolve `matches: false` para tudo, então os testes rodam no
+ * caminho desktop (<Menu>). Isto liga o caminho mobile (<Drawer>) fazendo as
+ * media queries de `max-width` casarem — é assim que `useMediaQuery(down('sm'))`
+ * vira true.
+ */
+const originalMatchMedia = window.matchMedia;
+
+const forceMobile = () => {
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: query.includes('max-width'),
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+};
+
+afterEach(() => {
+  window.matchMedia = originalMatchMedia;
+});
 
 describe('OficioPicker', () => {
   it('mostra um gatilho único em vez de um chip por ofício', () => {
@@ -158,5 +185,57 @@ describe('OficioPicker', () => {
     expect(screen.getByText('já escolhida')).toBeInTheDocument();
     fireEvent.click(screen.getByText(Skill.OFICIO_ALQUIMIA));
     expect(picked).toEqual([]);
+  });
+});
+
+// No mobile a lista vai para um <Drawer> em vez do <Menu>. Como o MenuItem do
+// MUI v9 exige MenuListContext, esse caminho quebrava a tela inteira de criação
+// de ficha no celular.
+describe('OficioPicker no mobile', () => {
+  it('abre o drawer e lista os ofícios', () => {
+    forceMobile();
+    render(<OficioPicker selected={[]} onSelect={() => undefined} />);
+    openMenu();
+    expect(screen.getByText(Skill.OFICIO_ALQUIMIA)).toBeInTheDocument();
+    expect(screen.getByText(Skill.OFICIO_MINERADOR)).toBeInTheDocument();
+  });
+
+  it('seleciona um ofício pelo drawer', () => {
+    forceMobile();
+    const picked: Skill[] = [];
+    render(<OficioPicker selected={[]} onSelect={(o) => picked.push(o)} />);
+    openMenu();
+    fireEvent.click(screen.getByText(Skill.OFICIO_ESCRIBA));
+    expect(picked).toEqual([Skill.OFICIO_ESCRIBA]);
+  });
+
+  // O drawer é aberto de dentro do modal do wizard de criação de ficha. Com o
+  // z-index padrão de drawer (1200, abaixo do de modal) ele sumia atrás do
+  // modal.
+  it('fica acima da camada de modal', () => {
+    forceMobile();
+    render(<OficioPicker selected={[]} onSelect={() => undefined} />);
+    openMenu();
+    const drawerRoot = document.querySelector('.MuiDrawer-root') as HTMLElement;
+    const zIndex = Number(window.getComputedStyle(drawerRoot).zIndex);
+    expect(zIndex).toBeGreaterThan(createTheme().zIndex.modal);
+  });
+
+  it('cria um ofício customizado pelo drawer', () => {
+    forceMobile();
+    const picked: Skill[] = [];
+    render(
+      <OficioPicker
+        selected={[]}
+        onSelect={(o) => picked.push(o)}
+        allowCustom
+      />
+    );
+    openMenu();
+    fireEvent.change(screen.getByPlaceholderText('Buscar ou criar ofício...'), {
+      target: { value: 'Ferreiro anão' },
+    });
+    fireEvent.click(screen.getByText('Criar "Ofício (Ferreiro anão)"'));
+    expect(picked).toEqual(['Ofício (Ferreiro anão)']);
   });
 });
