@@ -88,6 +88,12 @@ const Changelog: React.FC = () => {
                   navegador, a página agora volta para a posição de rolagem em
                   que você estava, em vez de recomeçar do topo.
                 </li>
+                <li>
+                  <strong>Correção:</strong> No celular, tocar no chip{' '}
+                  <strong>Ofício</strong> durante a criação de personagem
+                  quebrava a tela e exibia a mensagem de erro do aplicativo.
+                  Agora a lista de ofícios abre normalmente.
+                </li>
               </ul>
 
               <h3>4.26</h3>
