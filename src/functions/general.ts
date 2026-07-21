@@ -82,7 +82,11 @@ import Equipment, {
 import { alchemyItems } from '../data/systems/tormenta20/equipamentos-gerais';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
-import { generateRandomGolpePessoal } from './powers/golpePessoal';
+import {
+  calculateGolpePessoalCost,
+  generateRandomGolpePessoal,
+  resolveGolpePessoalEffectKey,
+} from './powers/golpePessoal';
 import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcane';
 import { Spell, allSpellSchools } from '../interfaces/Spells';
 import { DiceRoll } from '../interfaces/DiceRoll';
@@ -2676,9 +2680,13 @@ export const applyPower = (
           // Create detailed description with effect descriptions
           const effectDescriptions = golpePessoalBuild.effects
             .map((effectData) => {
-              const effect = golpePessoalEffects[effectData.effectName];
-              if (!effect) return '';
+              const effectKey = resolveGolpePessoalEffectKey(
+                effectData.effectName,
+                golpePessoalEffects
+              );
+              if (!effectKey) return '';
 
+              const effect = golpePessoalEffects[effectKey];
               let desc = `• ${effect.name}: ${effect.description}`;
               if (effectData.repeats > 1) {
                 desc += ` (${effectData.repeats}x)`;
@@ -2690,7 +2698,14 @@ export const applyPower = (
             })
             .join('\n');
 
-          golpePessoalPower.text = `${effectDescriptions}\n\n💠 Custo Total: ${golpePessoalBuild.totalCost} PM`;
+          // Recalcula o custo pelos valores atuais dos efeitos, para que builds
+          // salvos com custos antigos sejam corrigidos.
+          const totalCost = calculateGolpePessoalCost(
+            golpePessoalBuild.effects,
+            golpePessoalEffects
+          );
+
+          golpePessoalPower.text = `${effectDescriptions}\n\n💠 Custo Total: ${totalCost} PM`;
         }
 
         subSteps.push({

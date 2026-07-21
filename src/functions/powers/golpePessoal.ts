@@ -1,5 +1,6 @@
 import {
   GOLPE_PESSOAL_EFFECTS,
+  GOLPE_PESSOAL_LEGACY_EFFECT_KEYS,
   GolpePessoalBuild,
   GolpePessoalEffect,
   GolpePessoalEffectInstance,
@@ -69,6 +70,61 @@ export function getConjuradorCost(
   if (!spellName) return 2;
   const spell = options.find((s) => s.nome === spellName);
   return spell?.spellCircle === spellsCircles.c2 ? 4 : 2;
+}
+
+/**
+ * Resolve a chave de um efeito dentro do mapa de efeitos, aceitando chaves
+ * legadas de builds salvos antes da correção dos nomes oficiais (ex.:
+ * 'IMPLACAVEL' → 'IMPACTANTE'). Retorna undefined se o efeito não existir.
+ */
+export function resolveGolpePessoalEffectKey(
+  effectName: string,
+  effectsMap: Record<string, GolpePessoalEffect> = GOLPE_PESSOAL_EFFECTS
+): string | undefined {
+  if (effectsMap[effectName]) return effectName;
+
+  const canonicalKey = GOLPE_PESSOAL_LEGACY_EFFECT_KEYS[effectName];
+  if (canonicalKey && effectsMap[canonicalKey]) return canonicalKey;
+
+  return undefined;
+}
+
+/**
+ * Calcula o custo total em PM de um Golpe Pessoal a partir dos efeitos salvos.
+ * É a única fonte de verdade do custo: builds antigos (salvos com custos
+ * desatualizados) são recalculados pelos valores atuais dos efeitos.
+ */
+export function calculateGolpePessoalCost(
+  effects: GolpePessoalBuild['effects'],
+  effectsMap: Record<string, GolpePessoalEffect> = GOLPE_PESSOAL_EFFECTS,
+  conjuradorOptions?: Spell[]
+): number {
+  // Só monta a lista de magias do Conjurador se algum efeito precisar dela.
+  let lazyConjuradorOptions = conjuradorOptions;
+  const getOptions = (): Spell[] => {
+    if (!lazyConjuradorOptions) {
+      lazyConjuradorOptions = getConjuradorSpellOptions([]);
+    }
+    return lazyConjuradorOptions;
+  };
+
+  return effects.reduce((total, effectData) => {
+    const key = resolveGolpePessoalEffectKey(effectData.effectName, effectsMap);
+    if (!key) return total;
+
+    const effect = effectsMap[key];
+
+    // Custo variável do Conjurador conforme o círculo da magia escolhida.
+    if (effect.variableCost && effect.name === 'Conjurador') {
+      return (
+        total +
+        getConjuradorCost(effectData.choices?.[0], getOptions()) *
+          effectData.repeats
+      );
+    }
+
+    return total + effect.cost * effectData.repeats;
+  }, 0);
 }
 
 /**
@@ -218,26 +274,6 @@ function generateRandomEffects(maxCost: number): GolpePessoalEffectInstance[] {
 }
 
 /**
- * Calculates total cost of all effects
- */
-function calculateTotalCost(effects: GolpePessoalEffectInstance[]): number {
-  const conjuradorOptions = getConjuradorSpellOptions([]);
-
-  return effects.reduce((total, instance) => {
-    let cost = instance.effect.cost * instance.count;
-
-    // Custo variável do Conjurador conforme o círculo da magia escolhida.
-    if (instance.effect.variableCost && instance.effect.name === 'Conjurador') {
-      cost =
-        getConjuradorCost(instance.choices?.[0], conjuradorOptions) *
-        instance.count;
-    }
-
-    return total + cost;
-  }, 0);
-}
-
-/**
  * Generates a description for the Golpe Pessoal
  */
 function generateDescription(
@@ -280,26 +316,28 @@ export function generateRandomGolpePessoal(
   // Generate effects within cost limit
   const effects = generateRandomEffects(maxCost);
 
+  const buildEffects = effects.map((instance) => {
+    // Find the key for this effect in GOLPE_PESSOAL_EFFECTS
+    const effectKey = Object.entries(GOLPE_PESSOAL_EFFECTS).find(
+      ([, effect]) => effect === instance.effect
+    )?.[0];
+
+    return {
+      effectName: effectKey || instance.effect.name, // Use the key if found
+      repeats: instance.count,
+      choices: instance.choices,
+    };
+  });
+
   // Calculate total cost
-  const totalCost = calculateTotalCost(effects);
+  const totalCost = calculateGolpePessoalCost(buildEffects);
 
   // Generate description
   const description = generateDescription(weapon, effects, totalCost);
 
   return {
     weapon,
-    effects: effects.map((instance) => {
-      // Find the key for this effect in GOLPE_PESSOAL_EFFECTS
-      const effectKey = Object.entries(GOLPE_PESSOAL_EFFECTS).find(
-        ([, effect]) => effect === instance.effect
-      )?.[0];
-
-      return {
-        effectName: effectKey || instance.effect.name, // Use the key if found
-        repeats: instance.count,
-        choices: instance.choices,
-      };
-    }),
+    effects: buildEffects,
     totalCost,
     description,
   };
@@ -334,11 +372,16 @@ export function validateGolpePessoalBuild(
 
   // Validate individual effects
   build.effects.forEach((effectData) => {
-    const effect = effectsMap[effectData.effectName];
-    if (!effect) {
+    const effectKey = resolveGolpePessoalEffectKey(
+      effectData.effectName,
+      effectsMap
+    );
+    if (!effectKey) {
       errors.push(`Efeito inválido: ${effectData.effectName}`);
       return;
     }
+
+    const effect = effectsMap[effectKey];
 
     // Check repeats
     if (effect.maxRepeats && effectData.repeats > effect.maxRepeats) {
