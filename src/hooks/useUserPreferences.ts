@@ -1,16 +1,52 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useDispatch } from 'react-redux';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from './useAuth';
 import { saveAppearanceSettings } from '../store/slices/auth/authSlice';
-import { AppDispatch } from '../store';
+import { AppDispatch, RootState } from '../store';
 import {
   AccentColorId,
   DEFAULT_ACCENT_COLOR,
   ACCENT_COLOR_STORAGE_KEY,
   isValidAccentColorId,
+  isAccentColorAllowed,
 } from '../theme/accentColors';
+import { SubscriptionStatus, SupportLevel } from '../types/subscription.types';
 
 const DARK_MODE_STORAGE_KEY = 'dkmFdn';
+
+interface SupporterState {
+  isSupporter: boolean;
+  /**
+   * Falso enquanto o usuário está autenticado mas a assinatura ainda não foi
+   * carregada. Nesse intervalo NÃO podemos tratá-lo como não-apoiador: isso
+   * faria a cor de um apoiador piscar no vermelho (e, pior, seria persistido).
+   */
+  known: boolean;
+}
+
+/**
+ * Supporter status derived straight from the (persisted) subscription slice.
+ *
+ * Lê o estado em vez de usar `useSubscription` de propósito: aquele hook
+ * dispara um fetch a cada montagem, e este roda em todo consumidor de
+ * `useAccentSectionBg`.
+ */
+const useSupporterState = (isAuthenticated: boolean): SupporterState => {
+  const subscription = useSelector(
+    (state: RootState) => state.subscription.subscription
+  );
+
+  return useMemo(() => {
+    if (!isAuthenticated) return { isSupporter: false, known: true };
+    if (!subscription) return { isSupporter: false, known: false };
+    return {
+      isSupporter:
+        subscription.tier !== SupportLevel.FREE &&
+        subscription.status === SubscriptionStatus.ACTIVE,
+      known: true,
+    };
+  }, [isAuthenticated, subscription]);
+};
 
 /**
  * Get initial accent color from localStorage
@@ -60,6 +96,7 @@ export interface UseUserPreferencesReturn {
 export const useUserPreferences = (): UseUserPreferencesReturn => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const supporter = useSupporterState(isAuthenticated);
 
   // Local state initialized from localStorage for immediate response
   const [localAccentColor, setLocalAccentColor] =
@@ -144,13 +181,29 @@ export const useUserPreferences = (): UseUserPreferencesReturn => {
 
   // Compute final values - prefer DB user preferences when authenticated
   const accentColor = useMemo(() => {
+    let current = localAccentColor;
     if (isAuthenticated && user?.accentColor) {
-      return isValidAccentColorId(user.accentColor)
+      current = isValidAccentColorId(user.accentColor)
         ? user.accentColor
         : localAccentColor;
     }
-    return localAccentColor;
-  }, [isAuthenticated, user?.accentColor, localAccentColor]);
+
+    // Cor exclusiva de apoiador em conta que não apoia (assinatura encerrada,
+    // ou tema que deixou de ser gratuito) → volta para a cor padrão.
+    if (
+      supporter.known &&
+      !isAccentColorAllowed(current, supporter.isSupporter)
+    ) {
+      return DEFAULT_ACCENT_COLOR;
+    }
+    return current;
+  }, [
+    isAuthenticated,
+    user?.accentColor,
+    localAccentColor,
+    supporter.known,
+    supporter.isSupporter,
+  ]);
 
   const darkMode = useMemo(() => {
     if (isAuthenticated && user?.darkMode !== undefined) {
@@ -166,6 +219,51 @@ export const useUserPreferences = (): UseUserPreferencesReturn => {
     setDarkMode,
     loading: authLoading || saving,
   };
+};
+
+/**
+ * Persists the fallback applied by `useUserPreferences` when the stored accent
+ * color is no longer available to the user (fim do apoio, ou tema que deixou de
+ * ser gratuito — caso dos antigos temas comemorativos da Copa 2026).
+ *
+ * Deve ser chamado UMA única vez, no topo da aplicação: dispara escrita
+ * (localStorage/backend) e não faz sentido rodar em cada consumidor.
+ */
+export const useEnforceAccentColorAccess = (): void => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const supporter = useSupporterState(isAuthenticated);
+  // Uma correção por sessão: sem isso, um PUT que falhe seria repetido a cada
+  // render em que a dependência mudasse.
+  const enforcedRef = useRef(false);
+
+  useEffect(() => {
+    if (authLoading || !supporter.known || enforcedRef.current) return;
+
+    const stored = isAuthenticated ? user?.accentColor : getStoredAccentColor();
+
+    if (!stored || !isValidAccentColorId(stored)) return;
+    if (isAccentColorAllowed(stored, supporter.isSupporter)) return;
+
+    enforcedRef.current = true;
+
+    try {
+      localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, DEFAULT_ACCENT_COLOR);
+    } catch {
+      // localStorage not available
+    }
+
+    if (isAuthenticated) {
+      dispatch(saveAppearanceSettings({ accentColor: DEFAULT_ACCENT_COLOR }));
+    }
+  }, [
+    authLoading,
+    isAuthenticated,
+    user?.accentColor,
+    supporter.known,
+    supporter.isSupporter,
+    dispatch,
+  ]);
 };
 
 export default useUserPreferences;

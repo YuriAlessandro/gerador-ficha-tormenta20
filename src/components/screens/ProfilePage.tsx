@@ -902,8 +902,8 @@ const ProfilePage: React.FC = () => {
 
                         {/*
                           Seletor unificado de cores. Apoiadores podem escolher
-                          qualquer cor; usuários free só podem escolher os temas
-                          comemorativos (color.free) — os demais ficam bloqueados
+                          qualquer cor; usuários free só podem escolher as cores
+                          gratuitas (color.free) — as demais ficam bloqueadas
                           com cadeado e levam para a página de apoio.
                         */}
                         <Stack
@@ -1007,9 +1007,9 @@ const ProfilePage: React.FC = () => {
                                 textAlign: 'center',
                               }}
                             >
-                              As cores comemorativas da Copa 2026 são liberadas
-                              para todos! Desbloqueie as demais cores
-                              tornando-se um apoiador.
+                              Além da cor padrão, as demais cores de destaque
+                              são exclusivas para apoiadores. Torne-se um
+                              apoiador para desbloquear todas.
                             </Typography>
                             <Button
                               variant='outlined'

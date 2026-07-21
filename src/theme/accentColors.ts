@@ -23,7 +23,7 @@ export interface AccentColorPalette {
   contrastText: string;
   /**
    * When true, this color is available to all users (não exige apoio).
-   * Used by the commemorative themes. Demais cores são exclusivas de apoiadores.
+   * Hoje só a cor padrão é free — as demais são exclusivas de apoiadores.
    */
   free?: boolean;
 }
@@ -75,29 +75,25 @@ export const ACCENT_COLORS: Record<AccentColorId, AccentColorPalette> = {
     light: '#6b67a0',
     contrastText: '#ffffff',
   },
-  // ──────────────────────────────────────────────────────────────────────
-  // TEMAS COMEMORATIVOS TEMPORÁRIOS — Copa do Mundo 2026 🇧🇷
-  // Disponíveis para TODOS os usuários (free: true). Remover após a Copa
-  // (final em 19/07/2026): apagar estas duas entradas, os valores
-  // correspondentes em AccentColorId e o enum do backend (User.ts).
-  // ──────────────────────────────────────────────────────────────────────
+  // Estes dois nasceram como temas comemorativos da Copa 2026 (liberados a
+  // todos). Encerrada a Copa, viraram cores normais exclusivas de apoiadores.
+  // Os ids continuam `brazil-*` porque já estão persistidos no banco e no
+  // localStorage dos usuários — renomeá-los exigiria migração de dados.
   'brazil-green': {
     id: 'brazil-green',
-    name: 'Copa 2026 · Verde 🇧🇷',
+    name: 'Verde Esmeralda',
     main: '#009c3b',
     dark: '#00702a',
     light: '#2bb866',
     contrastText: '#ffffff',
-    free: true,
   },
   'brazil-yellow': {
     id: 'brazil-yellow',
-    name: 'Copa 2026 · Amarelo 🇧🇷',
+    name: 'Amarelo Ouro',
     main: '#e9b50a',
     dark: '#b88c00',
     light: '#ffd84d',
     contrastText: '#3d2e00',
-    free: true,
   },
 };
 
@@ -123,6 +119,18 @@ export const getAccentColor = (id?: AccentColorId | null): AccentColorPalette =>
  */
 export const isValidAccentColorId = (id: string): id is AccentColorId =>
   Object.keys(ACCENT_COLORS).includes(id);
+
+/**
+ * Whether a given accent color can be used by the current user.
+ *
+ * Cores sem `free: true` são exclusivas de apoiadores. Usada tanto para
+ * bloquear a seleção na UI quanto para cair de volta na cor padrão quando um
+ * usuário deixa de ser apoiador (ou quando um tema deixa de ser gratuito).
+ */
+export const isAccentColorAllowed = (
+  id: AccentColorId | null | undefined,
+  isSupporter: boolean
+): boolean => isSupporter || getAccentColor(id).free === true;
 
 /**
  * Get all accent colors as an array (useful for UI rendering)

@@ -56,7 +56,10 @@ import { WyrtScreen } from './premium/components/Wyrt';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SEOProvider } from './components/SEO';
 import { useAuth } from './hooks/useAuth';
-import { useUserPreferences } from './hooks/useUserPreferences';
+import {
+  useUserPreferences,
+  useEnforceAccentColorAccess,
+} from './hooks/useUserPreferences';
 import { saveSystemSetup } from './store/slices/auth/authSlice';
 import store, { persistor, AppDispatch } from './store';
 import { setFeatureFlags } from './store/slices/system/systemSlice';
@@ -230,6 +233,9 @@ function ThemedApp(): JSX.Element {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const { accentColor, darkMode, setDarkMode } = useUserPreferences();
+  // Volta quem não é apoiador para a cor padrão quando a cor salva virou
+  // exclusiva de apoiadores (ex.: fim dos temas comemorativos da Copa 2026).
+  useEnforceAccentColorAccess();
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
