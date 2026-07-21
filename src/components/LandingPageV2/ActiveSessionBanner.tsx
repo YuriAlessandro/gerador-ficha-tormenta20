@@ -2,17 +2,14 @@ import React from 'react';
 import { Box, Typography, Button, Stack, Chip, useTheme } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import { Link as RouterLink } from 'react-router-dom';
 import { GameTable } from '../../premium/services/gameTable.service';
 
 interface ActiveSessionBannerProps {
-  onClickButton: (link: string) => void;
   table: GameTable;
 }
 
-const ActiveSessionBanner: React.FC<ActiveSessionBannerProps> = ({
-  onClickButton,
-  table,
-}) => {
+const ActiveSessionBanner: React.FC<ActiveSessionBannerProps> = ({ table }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -106,7 +103,8 @@ const ActiveSessionBanner: React.FC<ActiveSessionBannerProps> = ({
             color='success'
             size='large'
             startIcon={<PlayArrowIcon />}
-            onClick={() => onClickButton(`/sessao/${table.id}`)}
+            component={RouterLink}
+            to={`/sessao/${table.id}`}
             sx={{
               whiteSpace: 'nowrap',
               fontWeight: 700,
@@ -118,7 +116,8 @@ const ActiveSessionBanner: React.FC<ActiveSessionBannerProps> = ({
           </Button>
           <Button
             variant='outlined'
-            onClick={() => onClickButton(`/mesa/${table.id}`)}
+            component={RouterLink}
+            to={`/mesa/${table.id}`}
           >
             Gerenciar mesa
           </Button>

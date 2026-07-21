@@ -4,18 +4,13 @@ import { BuildData } from '../../premium/services/builds.service';
 import CommunityBanner, { CommunityItem } from './CommunityBanner';
 
 interface BuildsBannerProps {
-  onClickButton: (link: string) => void;
   builds: BuildData[];
   loading?: boolean;
 }
 
 const BUILD_ACCENT = '#7c4dff';
 
-const BuildsBanner: React.FC<BuildsBannerProps> = ({
-  onClickButton,
-  builds,
-  loading,
-}) => {
+const BuildsBanner: React.FC<BuildsBannerProps> = ({ builds, loading }) => {
   const items: CommunityItem[] = builds.map((build) => ({
     id: build.id,
     title: build.name,
@@ -26,7 +21,7 @@ const BuildsBanner: React.FC<BuildsBannerProps> = ({
     rating: build.ratings?.average,
     ratingCount: build.ratings?.count,
     author: build.ownerUsername,
-    onClick: () => onClickButton(`/build/${build.id}`),
+    to: `/build/${build.id}`,
   }));
 
   return (
@@ -37,9 +32,9 @@ const BuildsBanner: React.FC<BuildsBannerProps> = ({
       gradient='linear-gradient(135deg, #2b1a4a 0%, #4a2d6b 50%, #1f1437 100%)'
       shadowColor='rgba(43, 26, 74, 0.45)'
       exploreLabel='Explorar builds'
-      onExplore={() => onClickButton('/builds')}
+      exploreLink='/builds'
       createLabel='Criar build'
-      onCreate={() => onClickButton('/my-builds')}
+      createLink='/my-builds'
       items={items}
       loading={loading}
       emptyText='Ainda não há builds publicadas — compartilhe a primeira!'

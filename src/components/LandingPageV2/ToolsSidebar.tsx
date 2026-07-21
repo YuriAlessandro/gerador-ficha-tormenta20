@@ -14,13 +14,13 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Link as RouterLink } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useAuth } from '../../hooks/useAuth';
 
 const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
 interface ToolsSidebarProps {
-  onClickButton: (link: string) => void;
   isAuthenticated: boolean;
 }
 
@@ -28,7 +28,10 @@ interface ToolItem {
   key: string;
   title: string;
   icon: React.ReactNode;
-  onClick: () => void;
+  /** Rota interna do item — vira href real, permitindo abrir em nova aba. */
+  link: string;
+  /** Exige login: no clique simples abre o modal em vez de navegar. */
+  requiresAuth?: boolean;
   isExternal?: boolean;
   isPrimary?: boolean;
 }
@@ -38,10 +41,7 @@ interface ToolGroup {
   items: ToolItem[];
 }
 
-const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
-  onClickButton,
-  isAuthenticated,
-}) => {
+const ToolsSidebar: React.FC<ToolsSidebarProps> = ({ isAuthenticated }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { openLoginModal } = useAuthContext();
@@ -49,13 +49,16 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
   const isAdmin = user?.email === ADMIN_EMAIL;
   const canCreateBlogPost = isAdmin || isEditor;
 
-  const requireAuth = (action: () => void) => () => {
-    if (isAuthenticated) {
-      action();
-    } else {
+  // O item continua sendo uma âncora de verdade (Ctrl/Cmd/clique do meio abrem
+  // a rota em nova aba); só o clique simples de quem não está logado é
+  // interceptado para abrir o modal de login.
+  const handleItemClick =
+    (requiresAuth?: boolean) => (event: React.MouseEvent) => {
+      if (!requiresAuth || isAuthenticated) return;
+      if (event.ctrlKey || event.metaKey || event.shiftKey) return;
+      event.preventDefault();
       openLoginModal();
-    }
-  };
+    };
 
   const getItemBackground = (isPrimary?: boolean): string => {
     if (isPrimary) {
@@ -84,7 +87,7 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
                 key: 'new-blog-post',
                 title: 'Novo Post',
                 icon: <EditNoteIcon />,
-                onClick: () => onClickButton('/blog/novo'),
+                link: '/blog/novo',
               },
             ],
           },
@@ -97,19 +100,15 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
           key: 'characters',
           title: isAuthenticated ? 'Meus Personagens' : 'Criar Personagem',
           icon: isAuthenticated ? <GroupIcon /> : <PersonAddIcon />,
-          onClick: () =>
-            onClickButton(
-              isAuthenticated ? '/meus-personagens' : '/criar-ficha'
-            ),
+          link: isAuthenticated ? '/meus-personagens' : '/criar-ficha',
           isPrimary: true,
         },
         {
           key: 'my-threats',
           title: 'Minhas Ameaças',
           icon: <PetsIcon />,
-          onClick: requireAuth(() =>
-            onClickButton('/meus-personagens?tab=ameacas')
-          ),
+          link: '/meus-personagens?tab=ameacas',
+          requiresAuth: true,
         },
       ],
     },
@@ -120,19 +119,20 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
           key: 'tables',
           title: 'Mesa Virtual',
           icon: <TableRestaurantIcon />,
-          onClick: requireAuth(() => onClickButton('/mesas')),
+          link: '/mesas',
+          requiresAuth: true,
         },
         {
           key: 'builds',
           title: 'Builds',
           icon: <ConstructionIcon />,
-          onClick: () => onClickButton('/builds'),
+          link: '/builds',
         },
         {
           key: 'bestiary',
           title: 'Bestiário',
           icon: <AutoStoriesIcon />,
-          onClick: () => onClickButton('/bestiario'),
+          link: '/bestiario',
         },
       ],
     },
@@ -143,19 +143,19 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
           key: 'encyclopedia',
           title: 'Enciclopédia',
           icon: <StorageIcon />,
-          onClick: () => onClickButton('/database'),
+          link: '/database',
         },
         {
           key: 'map',
           title: 'Mapa de Arton',
           icon: <MapIcon />,
-          onClick: () => onClickButton('/mapadearton'),
+          link: '/mapadearton',
         },
         {
           key: 'cave',
           title: 'Caverna do Saber',
           icon: <BookIcon />,
-          onClick: () => onClickButton('/caverna-do-saber'),
+          link: '/caverna-do-saber',
         },
       ],
     },
@@ -166,19 +166,19 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
           key: 'rewards',
           title: 'Recompensas',
           icon: <AttachMoneyIcon />,
-          onClick: () => onClickButton('/recompensas'),
+          link: '/recompensas',
         },
         {
           key: 'superior-items',
           title: 'Itens Superiores',
           icon: <ArchitectureIcon />,
-          onClick: () => onClickButton('/itens-superiores'),
+          link: '/itens-superiores',
         },
         {
           key: 'magic-items',
           title: 'Itens Mágicos',
           icon: <AutoFixHighIcon />,
-          onClick: () => onClickButton('/itens-magicos'),
+          link: '/itens-magicos',
         },
       ],
     },
@@ -241,10 +241,13 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
               {group.items.map((item) => (
                 <Box
                   key={item.key}
-                  onClick={item.onClick}
+                  component={RouterLink}
+                  to={item.link}
+                  onClick={handleItemClick(item.requiresAuth)}
                   sx={{
                     background: getItemBackground(item.isPrimary),
                     color: getItemColor(item.isPrimary),
+                    textDecoration: 'none',
                     border: `1px solid ${getItemBorderColor(item.isPrimary)}`,
                     borderRadius: 1.5,
                     p: { xs: 1.5, md: 1 },

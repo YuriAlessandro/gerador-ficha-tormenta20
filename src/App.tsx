@@ -49,6 +49,7 @@ import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloud
 import SheetViewPage from './components/screens/SheetViewPage';
 import OwlbearSheetEmbedPage from './components/screens/OwlbearSheetEmbedPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import ScrollToTop from './components/ScrollToTop';
 import NotificationDeepLinkHandler from './components/Notifications/NotificationDeepLinkHandler';
 import InstallPage from './components/screens/InstallPage';
 import { WyrtScreen } from './premium/components/Wyrt';
@@ -289,8 +290,6 @@ function ThemedApp(): JSX.Element {
   };
 
   const onClickToLink = (link: string) => {
-    // Smooth scroll page to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     // Handle links that already have leading slash
     const path = link.startsWith('/') ? link : `/${link}`;
     history.push(path);
@@ -325,6 +324,7 @@ function ThemedApp(): JSX.Element {
                               data-testid='app-component'
                               style={darkMode ? darkThemeStyles : lightTheme}
                             >
+                              <ScrollToTop />
                               <PWAInstallPrompt />
                               <PushNotificationPrompt />
                               <NotificationDeepLinkHandler />
@@ -658,9 +658,7 @@ function ThemedApp(): JSX.Element {
                 <CreatureSheet isDarkMode={darkMode} />
               </Route> */}
                                     <Route>
-                                      <LandingPageV2
-                                        onClickButton={onClickToLink}
-                                      />
+                                      <LandingPageV2 />
                                     </Route>
                                   </Switch>
                                 </Box>

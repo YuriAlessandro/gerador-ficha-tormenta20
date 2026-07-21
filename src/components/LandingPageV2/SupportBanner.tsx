@@ -8,12 +8,9 @@ import {
   useTheme,
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { Link as RouterLink } from 'react-router-dom';
 
-interface SupportBannerProps {
-  onClickButton: (link: string) => void;
-}
-
-const SupportBanner: React.FC<SupportBannerProps> = ({ onClickButton }) => {
+const SupportBanner: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -52,7 +49,8 @@ const SupportBanner: React.FC<SupportBannerProps> = ({ onClickButton }) => {
           variant='contained'
           size={isMobile ? 'medium' : 'large'}
           startIcon={<FavoriteIcon />}
-          onClick={() => onClickButton('/apoiar')}
+          component={RouterLink}
+          to='/apoiar'
           sx={{
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             color: theme.palette.primary.main,

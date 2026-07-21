@@ -13,14 +13,25 @@ import AddIcon from '@mui/icons-material/Add';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CasinoIcon from '@mui/icons-material/Casino';
+import { Link as RouterLink } from 'react-router-dom';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useSheets } from '../../hooks/useSheets';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { SheetListData } from '../../services/sheets.service';
 
 interface ContinueJourneySectionProps {
-  onClickButton: (link: string) => void;
   isAuthenticated: boolean;
+}
+
+/** CTA da home para visitantes: ou navega (link) ou abre o modal de login. */
+interface AnonCta {
+  key: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  isPrimary: boolean;
+  link?: string;
+  onClick?: () => void;
 }
 
 interface SheetDataContent {
@@ -34,7 +45,6 @@ interface SheetDataContent {
 const MAX_SHEETS = 2;
 
 const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
-  onClickButton,
   isAuthenticated,
 }) => {
   const theme = useTheme();
@@ -78,13 +88,13 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
 
   // ============== Not authenticated ==============
   if (!isAuthenticated) {
-    const ctas = [
+    const ctas: AnonCta[] = [
       {
         key: 'create',
         title: 'Criar Personagem',
         description: 'Gere uma ficha completa em minutos',
         icon: <PersonAddIcon sx={{ fontSize: 32 }} />,
-        onClick: () => onClickButton('/criar-ficha'),
+        link: '/criar-ficha',
         isPrimary: true,
       },
       {
@@ -92,10 +102,11 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
         title: 'Ficha Aleatória',
         description: 'Sem ideia? Gere uma pronta',
         icon: <CasinoIcon sx={{ fontSize: 32 }} />,
-        onClick: () => onClickButton('/ficha-aleatoria'),
+        link: '/ficha-aleatoria',
         isPrimary: false,
       },
       {
+        // Abre o modal de login — não é navegação, então continua sem href.
         key: 'login',
         title: 'Faça Login',
         description: 'Salve fichas e participe',
@@ -125,67 +136,89 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
             gap: 1.5,
           }}
         >
-          {ctas.map((cta, index) => (
-            <Box
-              key={cta.key}
-              onClick={cta.onClick}
-              sx={{
-                animation: `scaleIn 0.4s ease-out ${0.1 * (index + 1)}s both`,
-                background: getCtaBackground(cta.isPrimary),
-                color: cta.isPrimary || isDark ? '#ffffff' : 'inherit',
-                borderRadius: 2,
-                p: 2,
-                cursor: 'pointer',
-                border: `2px solid ${getCtaBorderColor(cta.isPrimary)}`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.5,
-                minHeight: 80,
-                transition: 'all 0.18s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  borderColor: theme.palette.primary.main,
-                  boxShadow: `0 6px 16px ${getCtaHoverShadow(cta.isPrimary)}`,
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  color: cta.isPrimary
-                    ? 'rgba(255,255,255,0.95)'
-                    : theme.palette.primary.main,
-                  display: 'flex',
-                  flexShrink: 0,
-                }}
-              >
-                {cta.icon}
-              </Box>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography
-                  variant='subtitle2'
+          {ctas.map((cta, index) => {
+            const ctaSx = {
+              animation: `scaleIn 0.4s ease-out ${0.1 * (index + 1)}s both`,
+              background: getCtaBackground(cta.isPrimary),
+              color: cta.isPrimary || isDark ? '#ffffff' : 'inherit',
+              textDecoration: 'none',
+              borderRadius: 2,
+              p: 2,
+              cursor: 'pointer',
+              border: `2px solid ${getCtaBorderColor(cta.isPrimary)}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              minHeight: 80,
+              transition: 'all 0.18s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                borderColor: theme.palette.primary.main,
+                boxShadow: `0 6px 16px ${getCtaHoverShadow(cta.isPrimary)}`,
+              },
+            };
+
+            const ctaContent = (
+              <>
+                <Box
                   sx={{
-                    fontFamily: 'Tfont, serif',
-                    fontWeight: 700,
-                    mb: 0.25,
-                    lineHeight: 1.2,
+                    color: cta.isPrimary
+                      ? 'rgba(255,255,255,0.95)'
+                      : theme.palette.primary.main,
+                    display: 'flex',
+                    flexShrink: 0,
                   }}
                 >
-                  {cta.title}
-                </Typography>
-                <Typography
-                  variant='caption'
-                  sx={{
-                    fontSize: '0.75rem',
-                    opacity: cta.isPrimary ? 0.95 : 0.7,
-                    color: cta.isPrimary ? 'rgba(255,255,255,0.9)' : 'inherit',
-                    display: 'block',
-                  }}
+                  {cta.icon}
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    variant='subtitle2'
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      fontWeight: 700,
+                      mb: 0.25,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {cta.title}
+                  </Typography>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      fontSize: '0.75rem',
+                      opacity: cta.isPrimary ? 0.95 : 0.7,
+                      color: cta.isPrimary
+                        ? 'rgba(255,255,255,0.9)'
+                        : 'inherit',
+                      display: 'block',
+                    }}
+                  >
+                    {cta.description}
+                  </Typography>
+                </Box>
+              </>
+            );
+
+            if (cta.link) {
+              return (
+                <Box
+                  key={cta.key}
+                  component={RouterLink}
+                  to={cta.link}
+                  sx={ctaSx}
                 >
-                  {cta.description}
-                </Typography>
+                  {ctaContent}
+                </Box>
+              );
+            }
+
+            return (
+              <Box key={cta.key} onClick={cta.onClick} sx={ctaSx}>
+                {ctaContent}
               </Box>
-            </Box>
-          ))}
+            );
+          })}
         </Box>
       </Box>
     );
@@ -238,10 +271,12 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
   if (recentSheets.length === 0) {
     return (
       <Box
-        onClick={() => onClickButton('/criar-ficha')}
+        component={RouterLink}
+        to='/criar-ficha'
         sx={{
           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           color: '#ffffff',
+          textDecoration: 'none',
           borderRadius: 2,
           p: 2,
           cursor: 'pointer',
@@ -301,7 +336,8 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
         <Button
           size='small'
           endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-          onClick={() => onClickButton('/meus-personagens')}
+          component={RouterLink}
+          to='/meus-personagens'
           sx={{ textTransform: 'none', fontSize: '0.75rem' }}
         >
           Ver todas
@@ -340,8 +376,10 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
           return (
             <Box
               key={sheet.id}
-              onClick={() => onClickButton(`/ficha/${sheet.id}`)}
+              component={RouterLink}
+              to={`/ficha/${sheet.id}`}
               sx={{
+                textDecoration: 'none',
                 animation: `scaleIn 0.4s ease-out ${0.08 * (index + 1)}s both`,
                 background: isDark
                   ? 'rgba(45, 45, 45, 0.85)'
@@ -438,9 +476,11 @@ const ContinueJourneySection: React.FC<ContinueJourneySectionProps> = ({
 
         {/* "New sheet" compact slot */}
         <Box
-          onClick={() => onClickButton('/criar-ficha')}
+          component={RouterLink}
+          to='/criar-ficha'
           sx={{
             background: 'transparent',
+            textDecoration: 'none',
             border: `1.5px dashed ${theme.palette.primary.main}`,
             borderRadius: 2,
             cursor: 'pointer',

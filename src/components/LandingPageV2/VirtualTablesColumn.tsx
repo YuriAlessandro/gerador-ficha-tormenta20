@@ -4,13 +4,13 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AddIcon from '@mui/icons-material/Add';
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   GameTable,
   GameTableStatus,
 } from '../../premium/services/gameTable.service';
 
 interface VirtualTablesColumnProps {
-  onClickButton: (link: string) => void;
   tables: GameTable[];
 }
 
@@ -50,7 +50,6 @@ const formatDate = (dateString?: string): string => {
 };
 
 const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
-  onClickButton,
   tables,
 }) => {
   const theme = useTheme();
@@ -85,10 +84,12 @@ const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
       <Box>
         {sectionHeader()}
         <Box
-          onClick={() => onClickButton('/mesas')}
+          component={RouterLink}
+          to='/mesas'
           sx={{
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: '#ffffff',
+            textDecoration: 'none',
             borderRadius: 2,
             p: 2,
             cursor: 'pointer',
@@ -134,7 +135,8 @@ const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
         <Button
           size='small'
           endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-          onClick={() => onClickButton('/mesas')}
+          component={RouterLink}
+          to='/mesas'
           sx={{ textTransform: 'none', fontSize: '0.75rem' }}
         >
           Ver todas
@@ -154,8 +156,10 @@ const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
         {visibleTables.map((table, index) => (
           <Box
             key={table.id}
-            onClick={() => onClickButton(`/mesa/${table.id}`)}
+            component={RouterLink}
+            to={`/mesa/${table.id}`}
             sx={{
+              textDecoration: 'none',
               animation: `scaleIn 0.4s ease-out ${0.08 * (index + 1)}s both`,
               background: isDark
                 ? 'rgba(45, 45, 45, 0.85)'
@@ -265,9 +269,11 @@ const VirtualTablesColumn: React.FC<VirtualTablesColumnProps> = ({
 
         {/* "New table" compact slot */}
         <Box
-          onClick={() => onClickButton('/mesas')}
+          component={RouterLink}
+          to='/mesas'
           sx={{
             background: 'transparent',
+            textDecoration: 'none',
             border: `1.5px dashed ${theme.palette.primary.main}`,
             borderRadius: 2,
             cursor: 'pointer',

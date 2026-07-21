@@ -5,13 +5,11 @@ import { HOMEBREW_TYPE_META } from '../../premium/components/Homebrew/HomebrewCa
 import CommunityBanner, { CommunityItem } from './CommunityBanner';
 
 interface HomebrewsBannerProps {
-  onClickButton: (link: string) => void;
   homebrews: Homebrew[];
   loading?: boolean;
 }
 
 const HomebrewsBanner: React.FC<HomebrewsBannerProps> = ({
-  onClickButton,
   homebrews,
   loading,
 }) => {
@@ -28,7 +26,7 @@ const HomebrewsBanner: React.FC<HomebrewsBannerProps> = ({
       rating: hb.ratings?.average,
       ratingCount: hb.ratings?.count,
       author: hb.ownerUsername,
-      onClick: () => onClickButton(`/homebrew/${hb.id}`),
+      to: `/homebrew/${hb.id}`,
     };
   });
 
@@ -40,9 +38,9 @@ const HomebrewsBanner: React.FC<HomebrewsBannerProps> = ({
       gradient='linear-gradient(135deg, #0e3a44 0%, #3a1c4a 50%, #0e3a44 100%)'
       shadowColor='rgba(14, 58, 68, 0.45)'
       exploreLabel='Explorar homebrews'
-      onExplore={() => onClickButton('/homebrews')}
+      exploreLink='/homebrews'
       createLabel='Criar homebrew'
-      onCreate={() => onClickButton('/meus-homebrews')}
+      createLink='/meus-homebrews'
       items={items}
       loading={loading}
       emptyText='Ainda não há homebrews publicados — seja o primeiro a criar o seu!'

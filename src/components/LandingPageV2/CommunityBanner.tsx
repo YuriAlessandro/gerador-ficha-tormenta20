@@ -12,6 +12,7 @@ import {
 import StarIcon from '@mui/icons-material/Star';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { Link as RouterLink } from 'react-router-dom';
 
 /** Um item genérico da bandeja, mapeado de homebrew/ameaça/build. */
 export interface CommunityItem {
@@ -24,7 +25,8 @@ export interface CommunityItem {
   rating?: number;
   ratingCount?: number;
   author?: string;
-  onClick: () => void;
+  /** Rota interna do item (vira href real, permitindo abrir em nova aba). */
+  to: string;
 }
 
 interface CommunityBannerProps {
@@ -36,9 +38,9 @@ interface CommunityBannerProps {
   /** Cor base da sombra do banner. */
   shadowColor: string;
   exploreLabel: string;
-  onExplore: () => void;
+  exploreLink: string;
   createLabel: string;
-  onCreate: () => void;
+  createLink: string;
   items: CommunityItem[];
   loading?: boolean;
   emptyText: string;
@@ -48,10 +50,13 @@ const SKELETON_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'];
 
 const CommunityCard: React.FC<{ item: CommunityItem }> = ({ item }) => (
   <Box
-    onClick={item.onClick}
+    component={RouterLink}
+    to={item.to}
     sx={{
+      display: 'block',
       width: '100%',
       cursor: 'pointer',
+      textDecoration: 'none',
       borderRadius: 2,
       overflow: 'hidden',
       bgcolor: 'background.paper',
@@ -161,9 +166,9 @@ const CommunityBanner: React.FC<CommunityBannerProps> = ({
   gradient,
   shadowColor,
   exploreLabel,
-  onExplore,
+  exploreLink,
   createLabel,
-  onCreate,
+  createLink,
   items,
   loading,
   emptyText,
@@ -254,7 +259,8 @@ const CommunityBanner: React.FC<CommunityBannerProps> = ({
             <Button
               variant='contained'
               startIcon={<ArrowForwardIcon />}
-              onClick={onExplore}
+              component={RouterLink}
+              to={exploreLink}
               sx={{
                 backgroundColor: 'rgba(255,255,255,0.95)',
                 color: '#1a1a1a',
@@ -272,7 +278,8 @@ const CommunityBanner: React.FC<CommunityBannerProps> = ({
             <Button
               variant='outlined'
               startIcon={<AddIcon />}
-              onClick={onCreate}
+              component={RouterLink}
+              to={createLink}
               sx={{
                 color: '#fff',
                 borderColor: 'rgba(255,255,255,0.6)',

@@ -13,11 +13,11 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AddIcon from '@mui/icons-material/Add';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import PersonIcon from '@mui/icons-material/Person';
+import { Link as RouterLink } from 'react-router-dom';
 import { ForumThread } from '../../premium/interfaces/forum.types';
 import { getSupporterGlowColor } from '../../types/subscription.types';
 
 interface ForumActivityProps {
-  onClickButton: (link: string) => void;
   threads: ForumThread[];
   loading: boolean;
   isAuthenticated: boolean;
@@ -49,7 +49,6 @@ const formatDate = (dateString?: string): string => {
 };
 
 const ForumActivity: React.FC<ForumActivityProps> = ({
-  onClickButton,
   threads,
   loading,
   isAuthenticated,
@@ -81,7 +80,8 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
         <Button
           size='small'
           startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-          onClick={() => onClickButton('/forum/novo')}
+          component={RouterLink}
+          to='/forum/novo'
           sx={{ textTransform: 'none', fontSize: '0.75rem' }}
         >
           Criar post
@@ -121,8 +121,11 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
           return (
             <Box
               key={thread.id}
-              onClick={() => onClickButton(`/forum/${thread.slug}`)}
+              component={RouterLink}
+              to={`/forum/${thread.slug}`}
               sx={{
+                display: 'block',
+                textDecoration: 'none',
                 animation: `scaleIn 0.4s ease-out ${0.04 * (index + 1)}s both`,
                 background: isDark
                   ? 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)'
@@ -255,7 +258,8 @@ const ForumActivity: React.FC<ForumActivityProps> = ({
         fullWidth
         startIcon={<ForumIcon sx={{ fontSize: 14 }} />}
         endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-        onClick={() => onClickButton('/forum')}
+        component={RouterLink}
+        to='/forum'
         sx={{
           mt: 1.5,
           textTransform: 'none',

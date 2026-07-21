@@ -17,11 +17,7 @@ import ForumActivity from './ForumActivity';
 import ToolsSidebar from './ToolsSidebar';
 import useCommunityHighlights from './hooks/useCommunityHighlights';
 
-interface LandingPageV2Props {
-  onClickButton: (link: string) => void;
-}
-
-const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
+const LandingPageV2: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
   const theme = useTheme();
@@ -114,17 +110,14 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
             <Stack spacing={{ xs: 3, md: 4 }} sx={{ minWidth: 0 }}>
               {/* Hero carousel — shares row with sidebar */}
               <Box className='landing-section'>
-                <HeroCarousel onClickButton={onClickButton} />
+                <HeroCarousel />
               </Box>
 
               {/* Continue jogando + Mesas virtuais — full width.
                   Switches between: anon CTAs / active session highlight /
                   2-column (recent sheets + tables). */}
               <Box className='landing-section'>
-                <ContinueAndTablesSection
-                  onClickButton={onClickButton}
-                  isAuthenticated={isAuthenticated}
-                />
+                <ContinueAndTablesSection isAuthenticated={isAuthenticated} />
               </Box>
 
               {/* Inner grid: desktop = Forum left + Blog right;
@@ -143,7 +136,6 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                 {/* Forum activity */}
                 <Box className='landing-section' sx={{ minWidth: 0 }}>
                   <ForumActivity
-                    onClickButton={onClickButton}
                     threads={forumThreads}
                     loading={highlightsLoading}
                     isAuthenticated={isAuthenticated}
@@ -153,7 +145,6 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                 {/* Blog highlights */}
                 <Box className='landing-section' sx={{ minWidth: 0 }}>
                   <BlogHighlights
-                    onClickButton={onClickButton}
                     posts={blogPosts}
                     loading={highlightsLoading}
                   />
@@ -164,7 +155,6 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                   Homebrews, Bestiário e Builds */}
               <Box className='landing-section'>
                 <HomebrewsBanner
-                  onClickButton={onClickButton}
                   homebrews={homebrews}
                   loading={highlightsLoading}
                 />
@@ -173,7 +163,6 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
               {bestiaryEnabled && (
                 <Box className='landing-section'>
                   <BestiaryBanner
-                    onClickButton={onClickButton}
                     bestiary={bestiary}
                     loading={highlightsLoading}
                   />
@@ -181,16 +170,12 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
               )}
 
               <Box className='landing-section'>
-                <BuildsBanner
-                  onClickButton={onClickButton}
-                  builds={builds}
-                  loading={highlightsLoading}
-                />
+                <BuildsBanner builds={builds} loading={highlightsLoading} />
               </Box>
 
               {/* Support banner */}
               <Box className='landing-section'>
-                <SupportBanner onClickButton={onClickButton} />
+                <SupportBanner />
               </Box>
             </Stack>
 
@@ -202,10 +187,7 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                 minWidth: 0,
               }}
             >
-              <ToolsSidebar
-                onClickButton={onClickButton}
-                isAuthenticated={isAuthenticated}
-              />
+              <ToolsSidebar isAuthenticated={isAuthenticated} />
             </Box>
           </Box>
         </Box>

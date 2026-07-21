@@ -5,13 +5,11 @@ import { getCategoryMeta } from '../../premium/data/bestiaryCategoryMeta';
 import CommunityBanner, { CommunityItem } from './CommunityBanner';
 
 interface BestiaryBannerProps {
-  onClickButton: (link: string) => void;
   bestiary: BestiaryPublicationData[];
   loading?: boolean;
 }
 
 const BestiaryBanner: React.FC<BestiaryBannerProps> = ({
-  onClickButton,
   bestiary,
   loading,
 }) => {
@@ -27,7 +25,7 @@ const BestiaryBanner: React.FC<BestiaryBannerProps> = ({
       rating: pub.ratings?.average,
       ratingCount: pub.ratings?.count,
       author: pub.ownerUsername || undefined,
-      onClick: () => onClickButton(`/bestiario/${pub.id}`),
+      to: `/bestiario/${pub.id}`,
     };
   });
 
@@ -39,9 +37,9 @@ const BestiaryBanner: React.FC<BestiaryBannerProps> = ({
       gradient='linear-gradient(135deg, #2e1437 0%, #4a1d2f 50%, #1f2e22 100%)'
       shadowColor='rgba(74, 29, 47, 0.45)'
       exploreLabel='Explorar Bestiário'
-      onExplore={() => onClickButton('/bestiario')}
+      exploreLink='/bestiario'
       createLabel='Criar ameaça'
-      onCreate={() => onClickButton('/gerador-ameacas')}
+      createLink='/gerador-ameacas'
       items={items}
       loading={loading}
       emptyText='Ainda não há ameaças publicadas — crie a primeira para o Bestiário!'

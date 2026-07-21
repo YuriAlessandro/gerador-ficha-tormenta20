@@ -7,12 +7,10 @@ import VirtualTablesColumn from './VirtualTablesColumn';
 import ActiveSessionBanner from './ActiveSessionBanner';
 
 interface ContinueAndTablesSectionProps {
-  onClickButton: (link: string) => void;
   isAuthenticated: boolean;
 }
 
 const ContinueAndTablesSection: React.FC<ContinueAndTablesSectionProps> = ({
-  onClickButton,
   isAuthenticated,
 }) => {
   // useGameTable always runs (React rules of hooks); we ignore its data
@@ -47,19 +45,12 @@ const ContinueAndTablesSection: React.FC<ContinueAndTablesSectionProps> = ({
 
   // 1. Unauthenticated → start-your-journey CTAs (handled inside ContinueJourneySection)
   if (!isAuthenticated) {
-    return (
-      <ContinueJourneySection
-        onClickButton={onClickButton}
-        isAuthenticated={isAuthenticated}
-      />
-    );
+    return <ContinueJourneySection isAuthenticated={isAuthenticated} />;
   }
 
   // 2. Active table → full-width spotlight
   if (activeTable) {
-    return (
-      <ActiveSessionBanner onClickButton={onClickButton} table={activeTable} />
-    );
+    return <ActiveSessionBanner table={activeTable} />;
   }
 
   // 3. Default → two columns: recent sheets + tables
@@ -72,14 +63,8 @@ const ContinueAndTablesSection: React.FC<ContinueAndTablesSectionProps> = ({
         alignItems: 'start',
       }}
     >
-      <ContinueJourneySection
-        onClickButton={onClickButton}
-        isAuthenticated={isAuthenticated}
-      />
-      <VirtualTablesColumn
-        onClickButton={onClickButton}
-        tables={recentTables}
-      />
+      <ContinueJourneySection isAuthenticated={isAuthenticated} />
+      <VirtualTablesColumn tables={recentTables} />
     </Box>
   );
 };

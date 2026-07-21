@@ -12,10 +12,10 @@ import ArticleIcon from '@mui/icons-material/Article';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PersonIcon from '@mui/icons-material/Person';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import { Link as RouterLink } from 'react-router-dom';
 import { BlogPost } from '../../premium/interfaces/blog.types';
 
 interface BlogHighlightsProps {
-  onClickButton: (link: string) => void;
   posts: BlogPost[];
   loading: boolean;
 }
@@ -28,11 +28,7 @@ const formatDate = (dateString?: string): string => {
   });
 };
 
-const BlogHighlights: React.FC<BlogHighlightsProps> = ({
-  onClickButton,
-  posts,
-  loading,
-}) => {
+const BlogHighlights: React.FC<BlogHighlightsProps> = ({ posts, loading }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -56,7 +52,8 @@ const BlogHighlights: React.FC<BlogHighlightsProps> = ({
       <Button
         size='small'
         endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-        onClick={() => onClickButton('/blog')}
+        component={RouterLink}
+        to='/blog'
         sx={{ textTransform: 'none', fontSize: '0.75rem' }}
       >
         Ver todos
@@ -100,10 +97,12 @@ const BlogHighlights: React.FC<BlogHighlightsProps> = ({
       <Stack spacing={1.25}>
         {/* Featured post — full-width inside column */}
         <Box
-          onClick={() => onClickButton(`/blog/${featured.slug}`)}
+          component={RouterLink}
+          to={`/blog/${featured.slug}`}
           sx={{
             background: cardBg,
             color: isDark ? '#ffffff' : 'inherit',
+            textDecoration: 'none',
             borderRadius: 2,
             cursor: 'pointer',
             border: `1px solid ${cardBorder}`,
@@ -263,11 +262,13 @@ const BlogHighlights: React.FC<BlogHighlightsProps> = ({
         {sidePosts.map((post, index) => (
           <Box
             key={post.id}
-            onClick={() => onClickButton(`/blog/${post.slug}`)}
+            component={RouterLink}
+            to={`/blog/${post.slug}`}
             sx={{
               animation: `scaleIn 0.4s ease-out ${0.08 * (index + 2)}s both`,
               background: cardBg,
               color: isDark ? '#ffffff' : 'inherit',
+              textDecoration: 'none',
               borderRadius: 2,
               cursor: 'pointer',
               border: `1px solid ${cardBorder}`,

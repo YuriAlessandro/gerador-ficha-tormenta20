@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 import {
@@ -139,14 +140,12 @@ export const carouselSlides: CarouselSlide[] = [
 ];
 
 interface HeroCarouselProps {
-  onClickButton: (link: string) => void;
   autoPlayInterval?: number;
 }
 
 const PINNED_BLOG_SLIDE_ID = '__pinned_blog__';
 
 const HeroCarousel: React.FC<HeroCarouselProps> = ({
-  onClickButton,
   autoPlayInterval = 6000,
 }) => {
   const theme = useTheme();
@@ -257,6 +256,17 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
+
+  // O CTA continua sendo uma âncora de verdade (Ctrl/Cmd/clique do meio abrem a
+  // rota em nova aba); só o clique simples de quem não está logado é
+  // interceptado para abrir o modal de login.
+  const handleCtaClick =
+    (requireAuth?: boolean) => (event: React.MouseEvent) => {
+      if (!requireAuth || isAuthenticated) return;
+      if (event.ctrlKey || event.metaKey || event.shiftKey) return;
+      event.preventDefault();
+      openLoginModal();
+    };
 
   // Auto-play functionality
   useEffect(() => {
@@ -425,13 +435,9 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
             <Button
               variant='contained'
               size={isMobile ? 'medium' : 'large'}
-              onClick={() => {
-                if (slide.requireAuth && !isAuthenticated) {
-                  openLoginModal();
-                } else {
-                  onClickButton(slide.ctaLink!);
-                }
-              }}
+              component={RouterLink}
+              to={slide.ctaLink}
+              onClick={handleCtaClick(slide.requireAuth)}
               sx={{
                 backgroundColor: theme.palette.primary.main,
                 fontFamily: 'Tfont, serif',
@@ -451,13 +457,9 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
               <Button
                 variant='outlined'
                 size={isMobile ? 'medium' : 'large'}
-                onClick={() => {
-                  if (slide.secondaryRequireAuth && !isAuthenticated) {
-                    openLoginModal();
-                  } else {
-                    onClickButton(slide.secondaryCtaLink!);
-                  }
-                }}
+                component={RouterLink}
+                to={slide.secondaryCtaLink}
+                onClick={handleCtaClick(slide.secondaryRequireAuth)}
                 sx={{
                   fontFamily: 'Tfont, serif',
                   fontSize: { xs: '0.9rem', md: '1rem' },
