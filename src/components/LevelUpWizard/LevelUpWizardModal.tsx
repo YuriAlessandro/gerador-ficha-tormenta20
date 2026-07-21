@@ -25,6 +25,7 @@ import { SupplementId } from '@/types/supplement.types';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
+  countRequirementSelections,
 } from '@/functions/powers/manualPowerSelection';
 import {
   getCurrentPlateau,
@@ -766,45 +767,16 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           currentLevelSelection.powerEffectSelections || {};
         const effectSelections = allEffectSelections[power.name] || {};
 
-        // Helper to get selection count
-        const getSelectionCount = (powerName: string, type: string): number => {
-          const pSelections = allEffectSelections[powerName] || {};
-          switch (type) {
-            case 'learnSkill':
-              return pSelections.skills?.length || 0;
-            case 'addProficiency':
-              return pSelections.proficiencies?.length || 0;
-            case 'getGeneralPower':
-              return pSelections.powers?.length || 0;
-            case 'learnSpell':
-            case 'learnAnySpellFromHighestCircle':
-              return pSelections.spells?.length || 0;
-            case 'increaseAttribute':
-              return pSelections.attributes?.length || 0;
-            case 'selectWeaponSpecialization':
-              return pSelections.weapons?.length || 0;
-            case 'selectFamiliar':
-              return pSelections.familiars?.length || 0;
-            case 'selectAnimalTotem':
-              return pSelections.animalTotems?.length || 0;
-            case 'almaLivreSelectClass':
-              return pSelections.almaLivreClass && pSelections.almaLivrePower
-                ? 1
-                : 0;
-            case 'buildGolpePessoal':
-              return pSelections.golpePessoalBuild ? 1 : 0;
-            default:
-              return 0;
-          }
-        };
-
         return requirements.requirements.every((req) => {
           const { type, pick } = req;
+
+          // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
+          if (req.optional) return true;
 
           // Golpe Pessoal usa um construtor próprio e tem availableOptions vazio
           // por design — exige que um build tenha sido montado pelo usuário.
           if (type === 'buildGolpePessoal') {
-            return getSelectionCount(power.name, type) >= 1;
+            return !!effectSelections.golpePessoalBuild;
           }
 
           // Check available options - if none available, consider requirement satisfied
@@ -817,7 +789,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           // If fewer options than required, adjust the effective pick count
           const effectivePick = Math.min(pick, availableOptions.length);
 
-          const count = getSelectionCount(power.name, type);
+          const count = countRequirementSelections(req, effectSelections);
+          // Tipo não contável: não bloquear o assistente
+          if (count === null) return true;
 
           // For getGeneralPower, also check if nested power requirements are met
           if (type === 'getGeneralPower' && count >= effectivePick) {
@@ -831,11 +805,16 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 >[0]
               );
               if (nestedReqs) {
+                // As seleções do poder aninhado ficam sob o nome DELE
+                const nestedSelections =
+                  allEffectSelections[selectedPower.name] || {};
                 return nestedReqs.requirements.every((nestedReq) => {
-                  const nestedCount = getSelectionCount(
-                    selectedPower.name!,
-                    nestedReq.type
+                  if (nestedReq.optional) return true;
+                  const nestedCount = countRequirementSelections(
+                    nestedReq,
+                    nestedSelections
                   );
+                  if (nestedCount === null) return true;
                   return nestedCount >= nestedReq.pick;
                 });
               }

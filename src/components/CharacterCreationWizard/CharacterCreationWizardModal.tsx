@@ -34,7 +34,11 @@ import { applyMoreauCustomization } from '@/data/systems/tormenta20/ameacas-de-a
 import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 
 // Import step components
-import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
+import {
+  getPowerSelectionRequirements,
+  countRequirementSelections,
+} from '@/functions/powers/manualPowerSelection';
+import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
 import {
   buildClassEquipmentsFromChoices,
   convertOriginItemsToBagEquipments,
@@ -1650,13 +1654,9 @@ const CharacterCreationWizardModal: React.FC<
 
         // Collect all requirements from race, class, origin, and deity powers
         // Each requirement is tied to its power name for per-power validation
-        const allRequirements: Array<{
-          powerName: string;
-          type: string;
-          pick: number;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          availableOptions?: any[];
-        }> = [];
+        const allRequirements: Array<
+          PowerSelectionRequirement & { powerName: string }
+        > = [];
 
         // Check race abilities
         race.abilities.forEach((ability) => {
@@ -1716,86 +1716,21 @@ const CharacterCreationWizardModal: React.FC<
           });
         }
 
-        // Helper to count selections for a specific power and type
         const effectSelections = selections.powerEffectSelections || {};
-        const getSelectionCount = (powerName: string, type: string): number => {
-          const powerSelections = effectSelections[powerName] || {};
-          switch (type) {
-            case 'learnSkill':
-              return powerSelections.skills?.length || 0;
-            case 'addProficiency':
-              return powerSelections.proficiencies?.length || 0;
-            case 'getGeneralPower':
-            case 'getClassPower':
-              return powerSelections.powers?.length || 0;
-            case 'learnSpell':
-            case 'learnAnySpellFromHighestCircle':
-              return powerSelections.spells?.length || 0;
-            case 'increaseAttribute':
-              return powerSelections.attributes?.length || 0;
-            case 'selectWeaponSpecialization':
-              return powerSelections.weapons?.length || 0;
-            case 'selectFamiliar':
-              return powerSelections.familiars?.length || 0;
-            case 'selectAnimalTotem':
-              return powerSelections.animalTotems?.length || 0;
-            case 'humanoVersatil': {
-              // For Versátil: need 1 skill + (1 skill OR 1 power)
-              const skillCount = powerSelections.skills?.length || 0;
-              const powerCount = powerSelections.powers?.length || 0;
-              // Must have at least 1 skill, and either 2 skills or 1 skill + 1 power
-              if (skillCount >= 2) return 2; // 2 skills selected
-              if (skillCount >= 1 && powerCount >= 1) return 2; // 1 skill + 1 power
-              return skillCount; // Incomplete
-            }
-            case 'lefouDeformidade': {
-              // For Deformidade: need 1 skill + (1 skill OR 1 tormenta power)
-              const deformSkillCount = powerSelections.skills?.length || 0;
-              const deformPowerCount = powerSelections.powers?.length || 0;
-              if (deformSkillCount >= 2) return 2;
-              if (deformSkillCount >= 1 && deformPowerCount >= 1) return 2;
-              return deformSkillCount;
-            }
-            case 'mashinChassi': {
-              // For Mashin: need 1 skill + (1 skill OR 1 mechanical marvel)
-              const mashinSkillCount = powerSelections.skills?.length || 0;
-              const mashinMarvelCount = powerSelections.powers?.length || 0;
-              if (mashinSkillCount >= 2) return 2;
-              if (mashinSkillCount >= 1 && mashinMarvelCount >= 1) return 2;
-              return mashinSkillCount;
-            }
-            case 'osteonMemoriaPostuma': {
-              // For Memória Póstuma: need 1 skill OR 1 power OR 1 race ability
-              const mpSkillCount = powerSelections.skills?.length || 0;
-              const mpPowerCount = powerSelections.powers?.length || 0;
-              const mpAbilityCount = powerSelections.raceAbilities?.length || 0;
-              if (mpSkillCount >= 1 || mpPowerCount >= 1 || mpAbilityCount >= 1)
-                return 1;
-              return 0;
-            }
-            case 'yidishanNaturezaOrganica': {
-              // For Natureza Orgânica: need 1 skill OR 1 power OR 1 race ability
-              const ynoSkillCount = powerSelections.skills?.length || 0;
-              const ynoPowerCount = powerSelections.powers?.length || 0;
-              const ynoAbilityCount =
-                powerSelections.raceAbilities?.length || 0;
-              if (
-                ynoSkillCount >= 1 ||
-                ynoPowerCount >= 1 ||
-                ynoAbilityCount >= 1
-              )
-                return 1;
-              return 0;
-            }
-            default:
-              return 0;
-          }
-        };
 
         // Validate all requirements are met
         return allRequirements.every((req) => {
           const { powerName, type, pick } = req;
-          const count = getSelectionCount(powerName, type);
+
+          // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
+          if (req.optional) return true;
+
+          const count = countRequirementSelections(
+            req,
+            effectSelections[powerName]
+          );
+          // Tipo não contável: não bloquear o assistente
+          if (count === null) return true;
 
           // Adjust pick for proficiencies already owned by the class
           let effectivePick = pick;
@@ -1820,10 +1755,12 @@ const CharacterCreationWizardModal: React.FC<
               );
               if (!nestedReqs) return false;
               return nestedReqs.requirements.some((nestedReq) => {
-                const nestedCount = getSelectionCount(
-                  selPower.name!,
-                  nestedReq.type
+                if (nestedReq.optional) return false;
+                const nestedCount = countRequirementSelections(
+                  nestedReq,
+                  effectSelections[selPower.name!]
                 );
+                if (nestedCount === null) return false;
                 return nestedCount < nestedReq.pick;
               });
             });
