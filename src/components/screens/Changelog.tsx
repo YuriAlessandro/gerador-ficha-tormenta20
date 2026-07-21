@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            19/07/2026 (v4.26).
+            21/07/2026 (v4.26.1).
           </p>
 
           <p>
@@ -74,6 +74,22 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.26.1</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> Todos os links da página inicial e
+                  da lista de posts do blog agora são links de verdade: dá para
+                  abrir qualquer um em uma nova aba (Ctrl/Cmd + clique, clique
+                  com o botão do meio ou &quot;abrir em nova guia&quot;) e ver o
+                  endereço de destino ao passar o mouse.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao usar o botão voltar do
+                  navegador, a página agora volta para a posição de rolagem em
+                  que você estava, em vez de recomeçar do topo.
+                </li>
+              </ul>
+
               <h3>4.26</h3>
 
               <Alert
