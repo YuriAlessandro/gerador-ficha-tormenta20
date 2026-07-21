@@ -85,11 +85,15 @@ a {
   text-decoration: underline;
 }
 
-a:visited {
+/* Estes dois seletores têm especificidade maior que as classes geradas pelo MUI,
+   então precisam ignorar componentes (botões, cards, chips) que só renderizam
+   uma <a> por baixo: eles já têm cor e hover próprios, e não devem ganhar
+   aparência de "link visitado". */
+a:visited:not([class*='Mui']) {
   color: inherit;
 }
 
-a:hover {
+a:hover:not([class*='Mui']) {
   opacity: 0.8;
 }
 
