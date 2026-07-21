@@ -4,6 +4,7 @@ import Bag from '@/interfaces/Bag';
 import CharacterSheet, {
   DamageReduction,
   DamageType,
+  MovementTypes,
   SheetAction,
   SheetActionHistoryEntry,
   SheetChangeSource,
@@ -26,6 +27,7 @@ import {
   isHeavyArmor,
 } from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
+import { RACE_SIZES } from '@/data/systems/tormenta20/races/raceSizes/raceSizes';
 import { ClassAbility, ClassDescription } from '@/interfaces/Class';
 import { CONDITION_TEMPLATES } from '@/premium/data/conditions';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
@@ -2158,6 +2160,50 @@ export function recalculateSheet(
   // Preserve custom size if set
   if (updatedSheet.customSize) {
     updatedSheet.size = updatedSheet.customSize;
+  }
+
+  // Step 11.5: troca de tamanho por bônus (`SizeOverride` — Forma Selvagem).
+  // Autocurável: snapshota o tamanho original em `baseSize` na primeira vez que
+  // um override aparece e restaura (descartando o snapshot) quando ele some.
+  // Só toca em `size` quando há override OU snapshot pendente, então fichas sem
+  // nenhuma troca de forma — ameaças, raças homebrew — ficam intactas.
+  const sizeOverrideBonus = updatedSheet.sheetBonuses.find(
+    (bonus) => bonus.target.type === 'SizeOverride'
+  );
+  if (sizeOverrideBonus && sizeOverrideBonus.target.type === 'SizeOverride') {
+    updatedSheet.baseSize =
+      updatedSheet.customSize ?? updatedSheet.baseSize ?? updatedSheet.size;
+    updatedSheet.size = RACE_SIZES[sizeOverrideBonus.target.size];
+  } else if (updatedSheet.baseSize) {
+    updatedSheet.size = updatedSheet.customSize ?? updatedSheet.baseSize;
+    delete updatedSheet.baseSize;
+  }
+
+  // Step 11.6: deslocamentos secundários derivados. `movementTypes` continua
+  // sendo o campo MANUAL (escrito pelo SizeDisplacementEditDrawer) — os bônus
+  // entram em `computedMovementTypes`, que a UI prefere quando existe.
+  const movementBonuses = updatedSheet.sheetBonuses.filter(
+    (bonus) => bonus.target.type === 'MovementType'
+  );
+  if (movementBonuses.length > 0) {
+    const computedMovement: MovementTypes = { ...updatedSheet.movementTypes };
+    movementBonuses.forEach((bonus) => {
+      if (bonus.target.type !== 'MovementType') return;
+      const { movement, mode } = bonus.target;
+      const value = calculateBonusValue(
+        updatedSheet,
+        bonus.modifier,
+        bonus.source
+      );
+      const current = computedMovement[movement] ?? 0;
+      // 'set' (padrão) mantém o maior — um voo mágico de 18m não deve ser
+      // rebaixado por uma forma que concede 9m, nem vice-versa.
+      computedMovement[movement] =
+        mode === 'add' ? current + value : Math.max(current, value);
+    });
+    updatedSheet.computedMovementTypes = computedMovement;
+  } else if (updatedSheet.computedMovementTypes) {
+    delete updatedSheet.computedMovementTypes;
   }
 
   // Step 12: Apply HP attribute replacement (Dom da Esperança)

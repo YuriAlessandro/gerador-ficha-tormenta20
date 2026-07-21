@@ -13,6 +13,7 @@ import { ConditionMarker } from '../../premium/components/Conditions';
 import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
 import { getConditionAttributeModifier } from '../../premium/functions/conditionAttributeModifier';
+import { getActiveEffectAttributeModifier } from '../../premium/functions/activeEffectHighlights';
 
 type Props = {
   attributes: CharacterAttributes;
@@ -65,19 +66,27 @@ const AttributeDisplay = ({
           attributeName as Atributo
         )
       : 0;
+    // Efeitos ativos (Forma Selvagem, Força da Natureza…) também alteram o
+    // atributo sem mutar `atributos[attr].value`, então entram aqui.
+    const effectBonus = sheet
+      ? getActiveEffectAttributeModifier(
+          sheet.activeEffects,
+          attributeName as Atributo
+        )
+      : 0;
 
-    const effectiveModifier = modifier + conditionPenalty;
+    const effectiveModifier = modifier + conditionPenalty + effectBonus;
     const d20Roll = rollD20();
     const total = Math.max(1, d20Roll + effectiveModifier);
     const isCritical = d20Roll === 20;
     const isFumble = d20Roll === 1;
 
     const baseStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
-    const penaltyStr =
-      conditionPenalty !== 0
-        ? `${conditionPenalty >= 0 ? '+' : ''}${conditionPenalty}`
-        : '';
-    const diceNotation = `1d20${baseStr}${penaltyStr}`;
+    const signed = (value: number) =>
+      value !== 0 ? `${value >= 0 ? '+' : ''}${value}` : '';
+    const diceNotation = `1d20${baseStr}${signed(conditionPenalty)}${signed(
+      effectBonus
+    )}`;
 
     showDiceResult(
       `Teste de ${attributeName}`,
@@ -110,10 +119,10 @@ const AttributeDisplay = ({
         const label = attribute;
         const attrConditions = attributeHighlights?.[attribute as Atributo];
         const labelStyle = getConditionLabelStyle(attrConditions);
-        // Override puramente visual: mostra `valorBase + penalidade` quando há
-        // condição ativa afetando este atributo. NÃO altera o valor persistido
-        // na ficha — `value.value` permanece o base, e a penalidade é re-derivada
-        // de `sheet.activeConditions` em todo render.
+        // Override puramente visual: mostra `valorBase + delta` quando há
+        // condição ou efeito ativo afetando este atributo. NÃO altera o valor
+        // persistido na ficha — `value.value` permanece o base, e o delta é
+        // re-derivado de `activeConditions`/`activeEffects` em todo render.
         const conditionPenalty = sheet
           ? getConditionAttributeModifier(
               sheet.activeConditions,
@@ -121,10 +130,17 @@ const AttributeDisplay = ({
               attribute as Atributo
             )
           : 0;
-        const displayedValue = value.value + conditionPenalty;
-        const hasDelta = conditionPenalty !== 0;
+        const effectBonus = sheet
+          ? getActiveEffectAttributeModifier(
+              sheet.activeEffects,
+              attribute as Atributo
+            )
+          : 0;
+        const totalDelta = conditionPenalty + effectBonus;
+        const displayedValue = value.value + totalDelta;
+        const hasDelta = totalDelta !== 0;
         const deltaColor =
-          conditionPenalty < 0
+          totalDelta < 0
             ? theme.palette.error.main
             : theme.palette.success.main;
         return (
@@ -184,7 +200,7 @@ const AttributeDisplay = ({
                     border: `1px solid ${deltaColor}55`,
                   }}
                 >
-                  {addSign(conditionPenalty)}
+                  {addSign(totalDelta)}
                 </Box>
               </Tooltip>
             )}

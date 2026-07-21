@@ -21,10 +21,16 @@ export function isTwoHanded(item: Equipment): boolean {
  *  - Arma (weapons)
  *  - Escudo (shields)
  *  - Alquimía (alchemical items — most are thrown/applied with a hand)
- * Plus any item explicitly flagged via `canBeUsedAsWeapon` (e.g. Tocha) or the
- * player override `canBeWielded` (custom wands, focuses, etc.).
+ * Plus any item explicitly flagged via `canBeUsedAsWeapon` (e.g. Tocha).
+ *
+ * `canBeWielded` é um override de três estados: `true` força empunhável
+ * (varinhas, catalisadores custom), `false` força NÃO empunhável e `undefined`
+ * cai na regra por grupo. O `false` existe para itens virtuais que não estão na
+ * mochila — armas naturais da Forma Selvagem — cujo id não pode ser gravado em
+ * `mainHandItemId`/`offHandItemId` (ficaria pendurado ao reverter a forma).
  */
 export function isWieldable(item: Equipment): boolean {
+  if (item.canBeWielded === false) return false;
   if (item.canBeWielded === true) return true;
   if (item.canBeUsedAsWeapon === true) return true;
   return (

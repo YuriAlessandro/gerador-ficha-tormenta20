@@ -1,6 +1,6 @@
 import { ClassDescription, ClassPower } from './Class';
 import { GeneralPower, OriginPower } from './Poderes';
-import Race, { AttributeVariant, RaceSize } from './Race';
+import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
 import Bag from './Bag';
 import { Spell, SpellSchool } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
@@ -14,6 +14,7 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
+import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { DiceRoll } from './DiceRoll';
 
 export type SheetChangeSource =
@@ -458,6 +459,23 @@ export type StatModifierTarget =
       type: 'DisplacementOverride';
     }
   | {
+      // Troca a categoria de tamanho da criatura (ex.: Forma Selvagem do
+      // Druida). Os modificadores de Furtividade/manobra saem de graça: a
+      // ficha lê `size.modifiers` no render. O `modifier` do bônus é
+      // irrelevante (a troca é categórica, não numérica).
+      type: 'SizeOverride';
+      size: raceSize;
+    }
+  | {
+      // Concede um deslocamento secundário (voo, escalada, natação, escavação).
+      // `set` (padrão) mantém o MAIOR valor entre o manual e o do bônus; `add`
+      // soma ao que já existe. Alimenta `computedMovementTypes` — nunca escreve
+      // no campo manual `movementTypes`.
+      type: 'MovementType';
+      movement: keyof Omit<MovementTypes, 'pairar'>;
+      mode?: 'set' | 'add';
+    }
+  | {
       type: 'AllAttackBonus';
     }
   | {
@@ -684,7 +702,21 @@ export default interface CharacterSheet {
   customMaxSpaces?: number; // Manual override for max spaces
   customDisplacement?: number; // Manual override for displacement
   customSize?: RaceSize; // Manual override for size
+  /**
+   * Snapshot do tamanho anterior a uma troca por bônus `SizeOverride` (Forma
+   * Selvagem). Só existe ENQUANTO houver um override ativo — o Step 11.5 do
+   * `recalculateSheet` cria na primeira troca e descarta ao restaurar. Não é
+   * um campo editável pelo usuário.
+   */
+  baseSize?: RaceSize;
   movementTypes?: MovementTypes; // Tipos de deslocamento secundários (manual)
+  /**
+   * Deslocamentos secundários DERIVADOS: `movementTypes` (manual) mesclado com
+   * os bônus `MovementType`. Espelha o par `bonusRd` (manual) /
+   * `reducaoDeDano` (computado) da redução de dano. Ausente quando não há
+   * nenhum bônus — nesse caso a UI cai em `movementTypes`.
+   */
+  computedMovementTypes?: MovementTypes;
   generalPowers: GeneralPower[];
   customPowers?: CustomPower[];
   customGrantedPowers?: CustomPower[];
@@ -769,6 +801,7 @@ export default interface CharacterSheet {
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
+  animalCompanions?: SheetAnimalCompanion[]; // Companheiro(s) Animal(is) do Druida
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
   activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
   /**

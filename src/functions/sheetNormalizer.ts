@@ -7,6 +7,7 @@ import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { getComplicationByName } from '../premium/data/complications';
+import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import {
   ARQUEIRO_SHEET_BONUSES,
   ESGRIMISTA_SHEET_BONUSES,
@@ -289,6 +290,35 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     } else if (!Array.isArray(sheet.devoto.poderes)) {
       sheet.devoto.poderes = [];
     }
+  }
+
+  // Companheiros animais sem id ou sem arquétipo não resolvem no catálogo de
+  // parceiros: virariam cards vazios sem bônus nenhum.
+  if (Array.isArray(sheet.animalCompanions)) {
+    sheet.animalCompanions = sheet.animalCompanions.filter(
+      (companion) =>
+        !!companion &&
+        typeof companion.id === 'string' &&
+        typeof companion.archetype === 'string'
+    );
+  } else if (sheet.animalCompanions !== undefined) {
+    delete sheet.animalCompanions;
+  }
+
+  // Campos DERIVADOS da Forma Selvagem que podem ter sido serializados órfãos
+  // (ficha salva no meio de uma transformação e depois editada por outro
+  // caminho). `recalculateSheet` os recria a partir de `activeEffects`; deixar
+  // um `baseSize` órfão travaria o tamanho da ficha para sempre.
+  const inWildShape = (sheet.activeEffects ?? []).some(
+    (effect) => effect?.powerKey === WILD_SHAPE_POWER_KEY
+  );
+  if (!inWildShape) {
+    if (sheet.baseSize) {
+      // O tamanho exibido ainda é o da forma: restaura antes de descartar.
+      sheet.size = sheet.customSize ?? sheet.baseSize;
+      delete sheet.baseSize;
+    }
+    delete sheet.computedMovementTypes;
   }
 
   sanitizeSheetElements(sheet);

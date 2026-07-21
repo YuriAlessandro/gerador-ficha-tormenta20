@@ -91,7 +91,10 @@ const PowersDisplay: React.FC<{
     newEffects: CustomEffect[]
   ) => void;
   characterName?: string;
+  /** Atalho para a ficha do Melhor Amigo (Treinador). */
   onCompanionClick?: () => void;
+  /** Atalho para o painel de Companheiros Animais (Druida). */
+  onAnimalCompanionClick?: () => void;
   parodyButtonSlot?: React.ReactNode;
   sheet?: CharacterSheet;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
@@ -116,6 +119,7 @@ const PowersDisplay: React.FC<{
   onUpdateCustomEffects,
   characterName,
   onCompanionClick,
+  onAnimalCompanionClick,
   parodyButtonSlot,
   sheet,
   onSheetUpdate,
@@ -365,8 +369,12 @@ const PowersDisplay: React.FC<{
         ? getComplicationPowerWarning(sheet)
         : null;
 
-    const companionSlot =
-      onCompanionClick && pw.name === 'Melhor Amigo' ? (
+    // Dois donos possíveis do ícone de patinha: o Melhor Amigo do Treinador
+    // (statblock completo, abre um modal) e o Companheiro Animal do Druida
+    // (parceiro, rola a página até o painel).
+    let companionSlot: React.ReactNode = null;
+    if (onCompanionClick && pw.name === 'Melhor Amigo') {
+      companionSlot = (
         <IconButton
           size='small'
           onClick={onCompanionClick}
@@ -374,7 +382,18 @@ const PowersDisplay: React.FC<{
         >
           <PetsIcon fontSize='small' color='primary' />
         </IconButton>
-      ) : null;
+      );
+    } else if (onAnimalCompanionClick && pw.name === 'Companheiro Animal') {
+      companionSlot = (
+        <IconButton
+          size='small'
+          onClick={onAnimalCompanionClick}
+          title='Ver companheiros animais'
+        >
+          <PetsIcon fontSize='small' color='primary' />
+        </IconButton>
+      );
+    }
 
     // O botão de rolagem vive no rail, junto das outras ações — antes ele
     // ficava ANTES do nome, e era ele que deixava a borda esquerda irregular
