@@ -39,6 +39,7 @@ import {
   findClassDescription,
   buildSpellPathFromSetup,
   serializeSpellPath,
+  applySerializedOverrides,
   getClassSetupAbilities,
   classNeedsFirstLevelSetup,
 } from '@/functions/multiclass';
@@ -352,6 +353,35 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
     }
     if (!spellPath) {
+      return null;
+    }
+
+    // Defesa: uma ficha carregada quando a classe não estava disponível
+    // (suplemento desativado, homebrew ainda não registrado) chega com o
+    // spellPath sem as funções — perdidas na serialização e não restauradas.
+    // Tenta reconstruir pelo registry (todos os suplementos) preservando os
+    // campos gravados na ficha; se não der, pula o passo de magias em vez de
+    // derrubar a tela.
+    if (typeof spellPath.qtySpellsLearnAtLevel !== 'function') {
+      const rebuilt = buildSpellPathFromSetup(
+        selectedClassName,
+        selectedClassSubname,
+        { spellSchools: spellPath.schools },
+        undefined
+      );
+      if (rebuilt) {
+        applySerializedOverrides(
+          rebuilt,
+          serializeSpellPath(spellPath, selectedClassName, selectedClassSubname)
+        );
+      }
+      spellPath = rebuilt;
+    }
+    if (
+      !spellPath ||
+      typeof spellPath.qtySpellsLearnAtLevel !== 'function' ||
+      typeof spellPath.spellCircleAvailableAtLevel !== 'function'
+    ) {
       return null;
     }
 

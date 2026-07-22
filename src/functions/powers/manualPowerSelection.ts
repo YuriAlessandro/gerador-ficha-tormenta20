@@ -554,7 +554,7 @@ export function getFilteredAvailableOptions(
     case 'learnAnySpellFromHighestCircle': {
       // Dynamically determine available spells from ANY circle up to the highest available
       const highestCircle =
-        sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+        sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) || 1;
 
       const allAvailableSpells: Spell[] = [];
       const allowedType = requirement.metadata?.allowedType || 'Both';

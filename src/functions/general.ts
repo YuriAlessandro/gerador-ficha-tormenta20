@@ -1576,7 +1576,7 @@ function applyOptionGrantedSpells(
     customAttribute = action.customAttribute;
   } else {
     const highestCircle =
-      sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+      sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) || 1;
     for (let circle = 1; circle <= highestCircle; circle += 1) {
       if (action.allowedType === 'Arcane') {
         available.push(...getArcaneSpellsOfCircle(circle));
@@ -2261,7 +2261,8 @@ export const applyPower = (
         });
       } else if (sheetAction.action.type === 'learnAnySpellFromHighestCircle') {
         const highestCircle =
-          sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+          sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ||
+          1;
 
         let allSpellsOfCircle: Spell[] = [];
         for (let circle = 1; circle <= highestCircle; circle += 1) {
@@ -6952,6 +6953,24 @@ export function restoreSpellPath(
 
   if (!sheet.classe) return;
 
+  // A classe da ficha pode NÃO estar na lista recebida: `classes` é montada com
+  // os suplementos habilitados de quem está visualizando, e a ficha pode usar um
+  // suplemento oficial que o usuário desativou depois (o limite de suplementos
+  // força trocas) ou um homebrew ainda não registrado quando a ficha carregou.
+  // O spellPath é da ficha, não do catálogo do usuário: sem esse fallback ele
+  // fica sem funções e o assistente de evolução quebra
+  // ("qtySpellsLearnAtLevel is not a function"). `findClassDescription` sem o
+  // 3º argumento procura em todos os suplementos oficiais + runtime.
+  const resolveClassByName = () =>
+    classes.find((c) => c.name === sheet.classe.name) ??
+    findClassDescription(sheet.classe.name, sheet.classe.subname);
+  const resolveClassBySubname = () =>
+    classes.find(
+      (c) =>
+        c.name === sheet.classe.name &&
+        (c.subname || '') === (sheet.classe.subname || '')
+    ) ?? findClassDescription(sheet.classe.name, sheet.classe.subname);
+
   // If spellPath is completely missing, try to create it for known spellcasters
   // (e.g., old sheets or stripped exports where spellPath was never serialized)
   if (!sheet.classe.spellPath) {
@@ -6961,7 +6980,7 @@ export function restoreSpellPath(
         sheet.classe.spellPath = { ...arcanistaSpellPaths[subtype] };
       }
     } else {
-      const baseClass = classes.find((c) => c.name === sheet.classe.name);
+      const baseClass = resolveClassByName();
       if (baseClass?.setup) {
         const setupClass = baseClass.setup(sheet.classe);
         if (setupClass.spellPath) {
@@ -6993,7 +7012,7 @@ export function restoreSpellPath(
       sheet.classe.spellPath = { ...arcanistaSpellPaths[subtype] };
     }
   } else {
-    const baseClass = classes.find((c) => c.name === sheet.classe.name);
+    const baseClass = resolveClassByName();
 
     if (baseClass?.setup) {
       // Classes with setup() (Bardo, Clérigo, Druida, Frade)
@@ -7003,10 +7022,7 @@ export function restoreSpellPath(
       }
     } else {
       // Variant classes or any class with spellPath defined directly
-      const originalClass = classes.find((c) => {
-        if (c.name !== sheet.classe.name) return false;
-        return (c.subname || '') === (sheet.classe.subname || '');
-      });
+      const originalClass = resolveClassBySubname();
       if (originalClass?.spellPath) {
         // Cópia rasa: nunca compartilhar o spellPath do registry com a ficha
         sheet.classe.spellPath = { ...originalClass.spellPath };
