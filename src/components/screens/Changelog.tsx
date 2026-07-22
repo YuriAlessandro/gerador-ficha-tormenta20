@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            21/07/2026 (v4.26.2).
+            22/07/2026 (v4.27).
           </p>
 
           <p>
@@ -74,6 +74,19 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.27</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> O assistente de{' '}
+                  <strong>subir de nível</strong> quebrava (tela de erro) em
+                  fichas cuja classe vinha de um suplemento que você desativou
+                  depois — como <em>Frade</em> (Deuses de Arton) ou{' '}
+                  <em>Necromante</em> (Heróis de Arton) — ou de conteúdo
+                  homebrew. Agora as informações de conjuração da ficha são
+                  recuperadas mesmo com o suplemento desligado.
+                </li>
+              </ul>
+
               <h3>4.26.2</h3>
               <ul>
                 <li>
