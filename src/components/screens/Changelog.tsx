@@ -77,6 +77,40 @@ const Changelog: React.FC = () => {
               <h3>4.27</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> A <strong>Forma Selvagem</strong> do
+                  druida agora funciona de verdade na ficha. Clique na
+                  estrelinha do poder e escolha a forma (Ágil, Feroz,
+                  Resistente, Sorrateira ou Veloz), o grau (básica, aprimorada
+                  ou superior — só aparecem os que você destravou) e{' '}
+                  <strong>em qual animal você se transforma</strong>: cada forma
+                  sugere espécies coerentes com ela, e você pode digitar
+                  qualquer outro bicho. A ficha aplica sozinha atributo, Defesa,
+                  redução de dano, deslocamento,{' '}
+                  <strong>mudança de tamanho</strong> (com os efeitos em
+                  Furtividade e manobras),{' '}
+                  <strong>voo, natação e escalada</strong> e as{' '}
+                  <strong>armas naturais</strong>, que aparecem na aba Ataques
+                  prontas para rolar. O botão &quot;Reverter&quot; desfaz tudo
+                  de uma vez.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Enquanto você está transformado,{' '}
+                  <strong>a própria ficha se transforma junto</strong>: o animal
+                  escolhido aparece em destaque no topo, com o resumo do que
+                  mudou (Força +5, Defesa +4, Grande...), e a tela ganha as
+                  cores e a textura da forma.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Druidas com o poder{' '}
+                  <strong>Companheiro Animal</strong> podem cadastrar seus
+                  companheiros na ficha com nome, espécie, retrato e anotações.
+                  O tipo de parceiro (fortão, guardião, perseguidor, montaria e
+                  companhia) define os bônus, que entram sozinhos na ficha e
+                  sobem de grau com você — veterano no 7º nível e mestre no 15º.
+                  Também dá para marcar o bicho como descansando, para os bônus
+                  saírem sem apagar o companheiro.
+                </li>
+                <li>
                   <strong>Correção:</strong> O assistente de{' '}
                   <strong>subir de nível</strong> quebrava (tela de erro) em
                   fichas cuja classe vinha de um suplemento que você desativou
