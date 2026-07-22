@@ -1,5 +1,5 @@
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, { SheetBonus } from '@/interfaces/CharacterSheet';
 import { SpellPath } from '@/interfaces/Class';
 
 export function getPlateauByLevel(nivel: number): number {
@@ -42,6 +42,33 @@ export function getTradicaoPerdidaPmValue(
   if (!attr) return null;
   const attrValue = sheet.atributos[attr]?.value ?? 0;
   return Math.min(attrValue, getTradicaoPerdidaPmCap(sheet.nivel));
+}
+
+/**
+ * Identifica o bônus de PM que representa a contribuição do atributo-chave de
+ * conjuração da classe (habilidade "Magias") — a parcela que a Tradição Perdida
+ * substitui pelo atributo escolhido.
+ *
+ * O Arcanista declara essa contribuição como `SpecialAttribute spellKeyAttr`;
+ * os demais conjuradores (Druida, Clérigo, Frade, Bardo, Usurpador) declaram o
+ * atributo fixo (`Attribute`) na própria habilidade "Magias". Ancorar no nome
+ * da fonte evita capturar por engano outros bônus de PM baseados em atributo
+ * que não são de conjuração (ex.: Totem Espiritual do Bárbaro, Elo com a
+ * Natureza do Caçador).
+ */
+export function isClassSpellcastingPmBonus(bonus: SheetBonus): boolean {
+  if (bonus.target.type !== 'PM') return false;
+  if (
+    bonus.modifier.type === 'SpecialAttribute' &&
+    bonus.modifier.attribute === 'spellKeyAttr'
+  ) {
+    return true;
+  }
+  return (
+    bonus.modifier.type === 'Attribute' &&
+    bonus.source.type === 'power' &&
+    bonus.source.name === 'Magias'
+  );
 }
 
 /**

@@ -30,7 +30,8 @@ import {
 import {
   validateGolpePessoalBuild,
   getConjuradorSpellOptions,
-  getConjuradorCost,
+  calculateGolpePessoalCost,
+  resolveGolpePessoalEffectKey,
 } from '../../../functions/powers/golpePessoal';
 import {
   dataRegistry,
@@ -97,24 +98,21 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
       .weapons.map((w) => w.nome);
   }, [sheet, activeSupplements]);
 
-  const calculateTotalCost = (): number =>
-    Object.values(selectedEffects).reduce((total, selection) => {
-      let cost = selection.effect.cost * selection.count;
+  // Efeitos no formato do build salvo, usados tanto para o custo quanto para a
+  // confirmação (as chaves aqui já são as canônicas).
+  const buildEffects = Object.entries(selectedEffects).map(
+    ([key, selection]) => ({
+      effectName: key,
+      repeats: selection.count,
+      choices: selection.choices,
+    })
+  );
 
-      // Custo variável do Conjurador conforme o círculo da magia escolhida.
-      if (
-        selection.effect.variableCost &&
-        selection.effect.name === 'Conjurador'
-      ) {
-        cost =
-          getConjuradorCost(selection.choices[0], conjuradorSpells) *
-          selection.count;
-      }
-
-      return total + cost;
-    }, 0);
-
-  const totalCost = calculateTotalCost();
+  const totalCost = calculateGolpePessoalCost(
+    buildEffects,
+    availableEffects,
+    conjuradorSpells
+  );
 
   const generateDescription = (): string => {
     const effectDescriptions = Object.values(selectedEffects).map(
@@ -146,10 +144,16 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
         // Convert build to selections
         const effects: Record<string, EffectSelection> = {};
         initialBuild.effects.forEach((effectData) => {
-          const effect = availableEffects[effectData.effectName];
-          if (effect) {
-            effects[effectData.effectName] = {
-              effect,
+          // Builds antigos podem usar chaves legadas (ex.: 'IMPLACAVEL'); o
+          // estado é regravado já com a chave canônica.
+          const effectKey = resolveGolpePessoalEffectKey(
+            effectData.effectName,
+            availableEffects
+          );
+          if (effectKey) {
+            effects[effectKey] = {
+              effect: availableEffects[effectKey],
+              effectKey,
               count: effectData.repeats,
               choices: effectData.choices || [],
             };
@@ -248,11 +252,7 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
   const handleConfirm = () => {
     const build: GolpePessoalBuild = {
       weapon,
-      effects: Object.entries(selectedEffects).map(([key, selection]) => ({
-        effectName: key, // Use the key (e.g., 'BRUTAL') instead of the name
-        repeats: selection.count,
-        choices: selection.choices,
-      })),
+      effects: buildEffects, // Usa a chave (ex.: 'BRUTAL'), não o nome
       totalCost,
       description: generateDescription(),
     };

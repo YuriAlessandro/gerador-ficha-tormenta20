@@ -38,7 +38,7 @@ export const GOLPE_PESSOAL_EFFECTS: Record<string, GolpePessoalEffect> = {
     name: 'Atordoante',
     cost: 2,
     description:
-      'Uma criatura que sofra dano de ataque fica atordoada por uma rodada (apenas uma vez por cena; Fortitude CD For anula).',
+      'Uma criatura que sofra dano do ataque fica atordoada por uma rodada (apenas uma vez por cena; Fortitude CD For anula).',
     category: 'offensive',
   },
   BRUTAL: {
@@ -51,14 +51,14 @@ export const GOLPE_PESSOAL_EFFECTS: Record<string, GolpePessoalEffect> = {
     name: 'Conjurador',
     cost: 1, // Base cost, actual cost is spell cost + 1
     description:
-      'Escolha uma magia de 1º ou 2º círculos que tenha como alvo uma criatura ou que afete uma área. Se acertar seu golpe, você lança a magia como uma ação livre, tendo como alvo a criatura atingida pelo ataque (atributo-chave e um mental a sua escolha). Considere que a mão da arma está livre para lançar esta magia.',
+      'Escolha uma magia de 1º ou 2º círculos que tenha como alvo uma criatura ou que afete uma área. Se acertar seu golpe, você lança a magia como uma ação livre, tendo como alvo a criatura atingida ou como centro de sua área o ponto atingido pelo ataque (atributo-chave é um mental a sua escolha). Considere que a mão da arma está livre para lançar esta magia.',
     category: 'utility',
     requiresChoice: 'spell',
     variableCost: true,
   },
   DESTRUIDOR: {
     name: 'Destruidor',
-    cost: 3,
+    cost: 2,
     description: 'Aumenta o multiplicador de crítico em +1.',
     category: 'offensive',
   },
@@ -78,8 +78,8 @@ export const GOLPE_PESSOAL_EFFECTS: Record<string, GolpePessoalEffect> = {
     canRepeat: true,
     requiresChoice: 'element',
   },
-  IMPLACAVEL: {
-    name: 'Implacável',
+  IMPACTANTE: {
+    name: 'Impactante',
     cost: 1,
     description:
       'Empurra o alvo 1,5m para cada 10 pontos de dano causado (arredondado para baixo). Por exemplo, 3m para 22 pontos de dano.',
@@ -87,12 +87,12 @@ export const GOLPE_PESSOAL_EFFECTS: Record<string, GolpePessoalEffect> = {
   },
   LETAL: {
     name: 'Letal',
-    cost: 3,
+    cost: 2,
     description:
-      'Aumenta a margem de ameaça em +2. Você pode escolher esse efeito três vezes para aumentar a margem de ameaça em +3.',
+      'Aumenta a margem de ameaça em +2. Você pode escolher esse efeito duas vezes para aumentar a margem de ameaça em +5.',
     category: 'offensive',
     canRepeat: true,
-    maxRepeats: 3,
+    maxRepeats: 2,
   },
   PENETRANTE: {
     name: 'Penetrante',
@@ -120,8 +120,8 @@ export const GOLPE_PESSOAL_EFFECTS: Record<string, GolpePessoalEffect> = {
       'A arma volta para você após o ataque. Só pode ser usado com armas de arremesso.',
     category: 'utility',
   },
-  TELEGUIO: {
-    name: 'Teleguio',
+  TELEGUIADO: {
+    name: 'Teleguiado',
     cost: 1,
     description: 'Ignora penalidades por camuflagem ou cobertura leves.',
     category: 'utility',
@@ -129,7 +129,7 @@ export const GOLPE_PESSOAL_EFFECTS: Record<string, GolpePessoalEffect> = {
   // Limitações (custos negativos)
   LENTO: {
     name: 'Lento',
-    cost: -1,
+    cost: -2,
     description: 'Seu ataque exige uma ação completa para ser usado.',
     category: 'drawback',
   },
@@ -143,10 +143,19 @@ export const GOLPE_PESSOAL_EFFECTS: Record<string, GolpePessoalEffect> = {
   SACRIFICIO: {
     name: 'Sacrifício',
     cost: -2,
-    description:
-      'Sempre que usar seu Golpe Pessoal, você perde 1d10 pontos de vida.',
+    description: 'Sempre que usa seu Golpe Pessoal, você perde 10 PV.',
     category: 'drawback',
   },
+};
+
+/**
+ * Chaves antigas de efeitos que foram renomeadas para corresponder ao nome
+ * oficial do livro. Builds salvos em fichas antigas guardam a chave, então o
+ * mapa abaixo garante que esses efeitos continuem sendo encontrados.
+ */
+export const GOLPE_PESSOAL_LEGACY_EFFECT_KEYS: Record<string, string> = {
+  IMPLACAVEL: 'IMPACTANTE',
+  TELEGUIO: 'TELEGUIADO',
 };
 
 export const ELEMENTAL_DAMAGE_TYPES = [

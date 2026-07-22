@@ -8,7 +8,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 
 // Version used for cache naming - changing this invalidates all PWA caches
-const APP_VERSION = '4.26.1';
+const APP_VERSION = '4.26.2';
 
 const PREMIUM_DIR = path.resolve(__dirname, 'src/premium');
 const PREMIUM_STUB_DIR = path.resolve(__dirname, 'src/premium-stub');

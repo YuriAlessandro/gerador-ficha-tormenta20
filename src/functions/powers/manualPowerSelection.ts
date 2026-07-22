@@ -820,6 +820,75 @@ export function getFilteredAvailableOptions(
 }
 
 /**
+ * Conta quantas escolhas o usuário já fez para uma requisição.
+ *
+ * Fonte única de verdade para os assistentes decidirem se o passo de seleções
+ * está completo (`canProceed`/`isStepComplete`). Antes cada assistente mantinha
+ * seu próprio `switch`, e os que não conheciam `chooseFromOptions` travavam o
+ * botão "Próximo" para sempre (ex.: poder Tradição Perdida).
+ *
+ * Retorna `null` quando o tipo não é contável aqui — o chamador deve tratar
+ * como "não bloquear", para que um tipo novo nunca prenda o assistente.
+ */
+export function countRequirementSelections(
+  requirement: PowerSelectionRequirement,
+  selections?: SelectionOptions
+): number | null {
+  switch (requirement.type) {
+    case 'learnSkill':
+      return selections?.skills?.length ?? 0;
+    case 'addProficiency':
+      return selections?.proficiencies?.length ?? 0;
+    case 'getGeneralPower':
+    case 'getClassPower':
+      return selections?.powers?.length ?? 0;
+    case 'learnSpell':
+    case 'learnAnySpellFromHighestCircle':
+      return selections?.spells?.length ?? 0;
+    case 'increaseAttribute':
+      return selections?.attributes?.length ?? 0;
+    case 'selectWeaponSpecialization':
+      return selections?.weapons?.length ?? 0;
+    case 'selectFamiliar':
+      return selections?.familiars?.length ?? 0;
+    case 'selectAnimalTotem':
+      return selections?.animalTotems?.length ?? 0;
+    case 'chooseFromOptions':
+      return selections?.chosenOption?.length ?? 0;
+    case 'buildGolpePessoal':
+      return selections?.golpePessoalBuild ? 1 : 0;
+    case 'almaLivreSelectClass':
+      return selections?.almaLivreClass && selections?.almaLivrePower ? 1 : 0;
+
+    // Versátil (Humano), Deformidade (Lefou) e Chassi (Mashin): 2 perícias OU
+    // 1 perícia + 1 poder.
+    case 'humanoVersatil':
+    case 'lefouDeformidade':
+    case 'mashinChassi': {
+      const skillCount = selections?.skills?.length ?? 0;
+      const powerCount = selections?.powers?.length ?? 0;
+      if (skillCount >= 2) return 2;
+      if (skillCount >= 1 && powerCount >= 1) return 2;
+      return skillCount;
+    }
+
+    // Memória Póstuma (Osteon/Soterrado) e Natureza Orgânica (Yidishan):
+    // 1 perícia OU 1 poder OU 1 habilidade de raça.
+    case 'osteonMemoriaPostuma':
+    case 'yidishanNaturezaOrganica': {
+      const skillCount = selections?.skills?.length ?? 0;
+      const powerCount = selections?.powers?.length ?? 0;
+      const abilityCount = selections?.raceAbilities?.length ?? 0;
+      return skillCount + powerCount + abilityCount > 0 ? 1 : 0;
+    }
+
+    default:
+      // Tipo não coberto: não bloquear o avanço do assistente
+      return null;
+  }
+}
+
+/**
  * Validate that the user's selections meet the requirements
  */
 export function validateSelections(

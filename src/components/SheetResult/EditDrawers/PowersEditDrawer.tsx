@@ -49,6 +49,10 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
+import {
+  calculateGolpePessoalCost,
+  resolveGolpePessoalEffectKey,
+} from '@/functions/powers/golpePessoal';
 import { isClassOrVariantOf } from '@/functions/general';
 import {
   isMulticlass,
@@ -3092,9 +3096,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             // Create effect descriptions
             const effectDescriptions = build.effects
               .map((effectData) => {
-                const effect = availableEffects[effectData.effectName];
-                if (!effect) return '';
+                const effectKey = resolveGolpePessoalEffectKey(
+                  effectData.effectName,
+                  availableEffects
+                );
+                if (!effectKey) return '';
 
+                const effect = availableEffects[effectKey];
                 let desc = `• ${effect.name}: ${effect.description}`;
                 if (effectData.repeats > 1) {
                   desc += ` (${effectData.repeats}x)`;
@@ -3106,7 +3114,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               })
               .join('\n');
 
-            const fullDescription = `${effectDescriptions}\n\n💠 Custo Total: ${build.totalCost} PM`;
+            // Recalcula o custo pelos valores atuais dos efeitos.
+            const totalCost = calculateGolpePessoalCost(
+              build.effects,
+              availableEffects
+            );
+
+            const fullDescription = `${effectDescriptions}\n\n💠 Custo Total: ${totalCost} PM`;
 
             const modifiedPower = {
               ...powerToAdd,
