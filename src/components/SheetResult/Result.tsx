@@ -278,16 +278,10 @@ const Result: React.FC<ResultProps> = (props) => {
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
   const complicationsFeature = useFeatureAccess('complications');
-  const wildShapeFeature = useFeatureAccess('wildShape');
-  const animalCompanionsFeature = useFeatureAccess('animalCompanions');
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
-  // O re-skin é decoração: basta o kill-switch global. Quem não é apoiador
-  // continua vendo a ficha normal, mas os bônus da forma (que vêm de efeitos
-  // ativos) já respeitam o gate de `activeEffects`.
-  const canUseWildShape = wildShapeFeature.isEnabled;
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
   // forma); este componente precisa ficar transparente para não cobri-lo.
-  const skinPaintsBackground = canUseWildShape && isInWildShape(currentSheet);
+  const skinPaintsBackground = isInWildShape(currentSheet);
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
@@ -299,18 +293,12 @@ const Result: React.FC<ResultProps> = (props) => {
   // com o poder Companheiro Animal, ou qualquer ficha que já tenha um
   // companheiro salvo (não esconder dados existentes se o poder for removido).
   const showAnimalCompanions = useMemo(() => {
-    if (!animalCompanionsFeature.isEnabled) return false;
     if ((currentSheet.animalCompanions?.length ?? 0) > 0) return true;
     if (getClassLevel(currentSheet, 'Druida') <= 0) return false;
     return (currentSheet.classPowers ?? []).some(
       (power) => power.name === 'Companheiro Animal'
     );
-  }, [
-    animalCompanionsFeature.isEnabled,
-    currentSheet.animalCompanions,
-    currentSheet.classPowers,
-    currentSheet,
-  ]);
+  }, [currentSheet.animalCompanions, currentSheet.classPowers, currentSheet]);
 
   // Definições injetadas em runtime no gerenciador de efeitos: efeitos custom
   // do jogador + benefícios ativados dos companheiros animais.
@@ -555,16 +543,10 @@ const Result: React.FC<ResultProps> = (props) => {
   // sincronizado, então o efeito não entra em laço de re-render.
   React.useEffect(() => {
     if (!onSheetUpdate) return;
-    if (!animalCompanionsFeature.isEnabled) return;
     const next = reconcileAnimalCompanionEffects(currentSheet);
     if (!next) return;
     applyRecalculatedSheet({ ...currentSheet, activeEffects: next });
-  }, [
-    currentSheet,
-    onSheetUpdate,
-    animalCompanionsFeature.isEnabled,
-    applyRecalculatedSheet,
-  ]);
+  }, [currentSheet, onSheetUpdate, applyRecalculatedSheet]);
 
   const handleConditionsChange = useCallback(
     (next: ActiveCondition[]) => {
@@ -1670,7 +1652,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const defenseInfoWidth = isMobile ? '100%' : '80%';
 
   return (
-    <WildShapeSkin sheet={currentSheet} enabled={canUseWildShape}>
+    <WildShapeSkin sheet={currentSheet}>
       {/*
        * Este fundo é opaco e cobre tudo que estiver abaixo — era ele que
        * apagava a superfície e a textura pintadas pelo WildShapeSkin, deixando
@@ -1763,7 +1745,6 @@ const Result: React.FC<ResultProps> = (props) => {
                 )}
                 <WildShapeBanner
                   sheet={currentSheet}
-                  enabled={canUseWildShape}
                   onRevert={onSheetUpdate ? handleRevertWildShape : undefined}
                 />
                 <Stack

@@ -11,8 +11,6 @@ export interface FeatureFlags {
   partners: FeatureFlag;
   complications: FeatureFlag;
   spellAreaGuide: FeatureFlag;
-  wildShape: FeatureFlag;
-  animalCompanions: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -29,10 +27,4 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   complications: { enabled: true, supporterOnly: true },
   // Guia de acerto: prévia em grid de batalha da área de efeito das magias.
   spellAreaGuide: { enabled: true, supporterOnly: true },
-  // Druida: Forma Selvagem aplicada na ficha + repaginação visual enquanto
-  // transformado. Flag separada da de companheiros para poder desligar só a
-  // parte visual, que é a mais arriscada.
-  wildShape: { enabled: false, supporterOnly: true },
-  // Druida: companheiros animais persistentes na ficha.
-  animalCompanions: { enabled: false, supporterOnly: true },
 };
