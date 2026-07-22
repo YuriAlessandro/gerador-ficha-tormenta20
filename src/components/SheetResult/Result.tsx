@@ -104,7 +104,10 @@ import type {
   ActiveEffect,
 } from '@/premium/interfaces/ActiveEffect';
 import { WildShapeSkin, WildShapeBanner } from '@/premium/components/WildShape';
-import { getWildShapeNaturalWeapons } from '@/premium/functions/wildShape';
+import {
+  getWildShapeNaturalWeapons,
+  isInWildShape,
+} from '@/premium/functions/wildShape';
 import { WILD_SHAPE_POWER_KEY } from '@/premium/data/wildShapes';
 import { AnimalCompanionsPanel } from '@/premium/components/AnimalCompanions';
 import {
@@ -153,9 +156,14 @@ import NotesDialog from './NotesDialog';
 import StatControl from './StatControl';
 
 // Styled components defined outside to prevent recreation on every render
-const BackgroundBox = styled(Box)<{ isDarkMode: boolean }>`
-  background-color: ${(props) => (props.isDarkMode ? '#212121' : '#f3f2f1')};
-`;
+
+/**
+ * Cor de fundo da tela da ficha. Os mesmos valores de `background.default` do
+ * tema (ver `TORMENTA_GREY` em theme.ts), mas dirigidos pela prop `isDarkMode`
+ * — o embed do Owlbear a deriva da URL, que pode divergir do tema do app.
+ */
+const getSheetBackgroundColor = (isDarkMode: boolean): string =>
+  isDarkMode ? '#212121' : '#f3f2f1';
 
 interface ThemeProp {
   theme: {
@@ -207,6 +215,11 @@ const formatRdLabel = (rd: DamageReduction | undefined): string => {
 
 interface ResultProps {
   sheet: CharacterSheet;
+  /**
+   * Modo escuro do FUNDO da ficha. Não é redundante com `theme.palette.mode`:
+   * o embed do Owlbear não tem ThemeProvider próprio e deriva isto do
+   * parâmetro `?theme=` da URL, que pode divergir da preferência do usuário.
+   */
   isDarkMode: boolean;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
 }
@@ -272,6 +285,9 @@ const Result: React.FC<ResultProps> = (props) => {
   // continua vendo a ficha normal, mas os bônus da forma (que vêm de efeitos
   // ativos) já respeitam o gate de `activeEffects`.
   const canUseWildShape = wildShapeFeature.isEnabled;
+  // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
+  // forma); este componente precisa ficar transparente para não cobri-lo.
+  const skinPaintsBackground = canUseWildShape && isInWildShape(currentSheet);
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
@@ -1655,7 +1671,20 @@ const Result: React.FC<ResultProps> = (props) => {
 
   return (
     <WildShapeSkin sheet={currentSheet} enabled={canUseWildShape}>
-      <BackgroundBox isDarkMode={isDarkMode} sx={{ p: isMobile ? 0 : 2 }}>
+      {/*
+       * Este fundo é opaco e cobre tudo que estiver abaixo — era ele que
+       * apagava a superfície e a textura pintadas pelo WildShapeSkin, deixando
+       * o re-skin praticamente invisível. Em forma selvagem ele sai da frente e
+       * quem pinta o fundo é o skin, que é o único que sabe a cor da forma.
+       */}
+      <Box
+        sx={{
+          bgcolor: skinPaintsBackground
+            ? 'transparent'
+            : getSheetBackgroundColor(isDarkMode),
+          p: isMobile ? 0 : 2,
+        }}
+      >
         <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
           <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
             {/* LADO ESQUERDO, 60% */}
@@ -3144,7 +3173,7 @@ const Result: React.FC<ResultProps> = (props) => {
             />
           )}
         </>
-      </BackgroundBox>
+      </Box>
     </WildShapeSkin>
   );
 };

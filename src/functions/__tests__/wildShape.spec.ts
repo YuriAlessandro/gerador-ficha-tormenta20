@@ -7,9 +7,13 @@ import { RACE_SIZES } from '../../data/systems/tormenta20/races/raceSizes/raceSi
 import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
 import ACTIVE_POWERS_DRUIDA from '../../premium/data/activePowers/druida';
 import {
+  WILD_SHAPE_FALLBACK_EMOJI,
   WILD_SHAPE_FORMS,
   WILD_SHAPE_POWER_KEY,
   buildWildShapeOptionId,
+  describeWildShapeChanges,
+  getWildShapeAnimalEmoji,
+  getWildShapeAnimals,
   getWildShapeLabel,
   resolveWildShapeOptionId,
 } from '../../premium/data/wildShapes';
@@ -98,6 +102,178 @@ describe('catálogo de formas selvagens', () => {
     expect(resolveWildShapeOptionId('wildshape:agil:lendaria')).toBeNull();
     // Variante declarada que não existe naquele grau: não adivinha.
     expect(resolveWildShapeOptionId('wildshape:feroz:basica:voo')).toBeNull();
+  });
+});
+
+describe('animal no optionId', () => {
+  it('vai e volta com o nome intacto', () => {
+    const id = buildWildShapeOptionId('feroz', 'aprimorada', undefined, 'Urso');
+    expect(resolveWildShapeOptionId(id)?.animalName).toBe('Urso');
+  });
+
+  it('sobrevive a acentos, espaços e dois-pontos no nome', () => {
+    // encodeURIComponent escapa `:`, senão o parser cortaria o nome ao meio.
+    const nomes = ['Onça-pintada', 'Lobo das cavernas', 'Bicho: o Terrível'];
+    nomes.forEach((nome) => {
+      const id = buildWildShapeOptionId('agil', 'basica', undefined, nome);
+      expect(resolveWildShapeOptionId(id)?.animalName).toBe(nome);
+    });
+  });
+
+  it('carrega variante e animal juntos', () => {
+    const id = buildWildShapeOptionId('veloz', 'superior', 'voo', 'Águia');
+    const resolved = resolveWildShapeOptionId(id);
+    expect(resolved?.variant?.id).toBe('voo');
+    expect(resolved?.animalName).toBe('Águia');
+  });
+
+  it('usa o slot vazio quando há animal mas não há variante', () => {
+    const id = buildWildShapeOptionId('feroz', 'basica', undefined, 'Javali');
+    expect(id).toBe('wildshape:feroz:basica:-:Javali');
+    const resolved = resolveWildShapeOptionId(id);
+    expect(resolved?.variant).toBeUndefined();
+    expect(resolved?.animalName).toBe('Javali');
+  });
+
+  it('continua resolvendo os ids curtos anteriores ao animal', () => {
+    const semAnimal = resolveWildShapeOptionId('wildshape:feroz:aprimorada');
+    expect(semAnimal?.tier.id).toBe('aprimorada');
+    expect(semAnimal?.animalName).toBeUndefined();
+
+    const comVariante = resolveWildShapeOptionId(
+      'wildshape:veloz:basica:natacao'
+    );
+    expect(comVariante?.variant?.id).toBe('natacao');
+    expect(comVariante?.animalName).toBeUndefined();
+  });
+
+  it('escape inválido perde o animal mas preserva a forma', () => {
+    const resolved = resolveWildShapeOptionId(
+      'wildshape:feroz:basica:-:%E0%A4%A'
+    );
+    expect(resolved?.tier.id).toBe('basica');
+    expect(resolved?.animalName).toBeUndefined();
+  });
+});
+
+describe('emoji do animal', () => {
+  it('casa por nome exato do catálogo', () => {
+    expect(getWildShapeAnimalEmoji('Urso')).toBe('🐻');
+    expect(getWildShapeAnimalEmoji('Golfinho')).toBe('🐬');
+  });
+
+  it('ignora caixa e acento', () => {
+    expect(getWildShapeAnimalEmoji('ONÇA-PINTADA')).toBe('🐆');
+    expect(getWildShapeAnimalEmoji('onca pintada')).toBe('🐆');
+  });
+
+  it('casa um nome digitado que contém o animal do catálogo', () => {
+    expect(getWildShapeAnimalEmoji('Urso das cavernas')).toBe('🐻');
+  });
+
+  it('cai no fallback para bicho desconhecido ou vazio', () => {
+    expect(getWildShapeAnimalEmoji('Gorlogg')).toBe(WILD_SHAPE_FALLBACK_EMOJI);
+    expect(getWildShapeAnimalEmoji('')).toBe(WILD_SHAPE_FALLBACK_EMOJI);
+    expect(getWildShapeAnimalEmoji(undefined)).toBe(WILD_SHAPE_FALLBACK_EMOJI);
+  });
+
+  it('acha o animal mesmo vindo de outra forma', () => {
+    // O jogador pode digitar "lobo" numa Forma Feroz; o 🐺 mora na Veloz.
+    expect(getWildShapeAnimalEmoji('Lobo')).toBe('🐺');
+  });
+});
+
+describe('animais sugeridos por forma/grau/variante', () => {
+  const form = (id: string) => WILD_SHAPE_FORMS.find((f) => f.id === id)!;
+
+  it('todas as formas têm sugestões', () => {
+    WILD_SHAPE_FORMS.forEach((f) => {
+      expect(f.animals.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('bichos Enormes só aparecem no grau superior', () => {
+    const feroz = form('feroz');
+    const nomes = (tier: 'basica' | 'aprimorada' | 'superior') =>
+      getWildShapeAnimals(feroz, tier).map((a) => a.name);
+
+    expect(nomes('basica')).not.toContain('Hipopótamo');
+    expect(nomes('aprimorada')).not.toContain('Hipopótamo');
+    expect(nomes('superior')).toContain('Hipopótamo');
+  });
+
+  it('a coruja só aparece no grau que tem voo', () => {
+    const sorrateira = form('sorrateira');
+    expect(
+      getWildShapeAnimals(sorrateira, 'basica').map((a) => a.name)
+    ).not.toContain('Coruja');
+    expect(
+      getWildShapeAnimals(sorrateira, 'superior').map((a) => a.name)
+    ).toContain('Coruja');
+  });
+
+  it('a Forma Veloz filtra por variante', () => {
+    const veloz = form('veloz');
+    const nomes = (tier: 'basica' | 'superior', variant: string) =>
+      getWildShapeAnimals(veloz, tier, variant).map((a) => a.name);
+
+    expect(nomes('basica', 'natacao')).toEqual([
+      'Golfinho',
+      'Tubarão',
+      'Lontra',
+    ]);
+    expect(nomes('basica', 'deslocamento')).toEqual([
+      'Cervo',
+      'Lobo',
+      'Cavalo',
+    ]);
+    expect(nomes('superior', 'voo')).toEqual(['Águia', 'Falcão', 'Corvo']);
+    // Sem variante escolhida não há sugestão coerente a dar.
+    expect(getWildShapeAnimals(veloz, 'basica')).toEqual([]);
+  });
+});
+
+describe('resumo do que a forma muda', () => {
+  const tierOf = (formId: string, tierId: string) => {
+    const form = WILD_SHAPE_FORMS.find((f) => f.id === formId)!;
+    return form.tiers.find((t) => t.id === tierId)!;
+  };
+
+  it('Forma Feroz Aprimorada', () => {
+    expect(describeWildShapeChanges(tierOf('feroz', 'aprimorada'))).toEqual([
+      'FOR +5',
+      'Defesa +4',
+      'Grande',
+      'Mordida 2d6',
+    ]);
+  });
+
+  it('agrupa armas naturais repetidas', () => {
+    expect(describeWildShapeChanges(tierOf('agil', 'superior'))).toContain(
+      '2× Garra 1d10'
+    );
+  });
+
+  it('Forma Resistente Superior mostra a RD', () => {
+    expect(describeWildShapeChanges(tierOf('resistente', 'superior'))).toEqual(
+      expect.arrayContaining(['RD 10', 'Defesa +10', 'Enorme'])
+    );
+  });
+
+  it('inclui o benefício da variante', () => {
+    const tier = tierOf('veloz', 'superior');
+    const voo = tier.variants!.find((v) => v.id === 'voo');
+    expect(describeWildShapeChanges(tier, voo)).toContain('Voo 24m');
+  });
+
+  it('cobre as 15 combinações sem produzir rótulo vazio', () => {
+    WILD_SHAPE_FORMS.forEach((form) => {
+      form.tiers.forEach((tier) => {
+        const changes = describeWildShapeChanges(tier);
+        expect(changes.length).toBeGreaterThan(0);
+        changes.forEach((c) => expect(c.trim()).not.toBe(''));
+      });
+    });
   });
 });
 

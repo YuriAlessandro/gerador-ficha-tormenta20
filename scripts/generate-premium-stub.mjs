@@ -66,6 +66,14 @@ const OVERRIDES = {
   resolveWildShapeOptionId: { expr: '() => null' },
   WILD_SHAPE_FORMS: { expr: '[]' },
   WILD_SHAPE_POWER_KEY: { expr: "'druida:forma-selvagem'" },
+  // SCREAMING_CASE cairia em `[]`, mas isto é um emoji renderizado como texto
+  WILD_SHAPE_FALLBACK_EMOJI: { expr: "'🐾'" },
+  // camelCase cairia em `noop` (undefined); estes são lidos como string/array
+  getWildShapeAnimalEmoji: { expr: "() => '🐾'" },
+  getWildShapeAnimals: { expr: '() => []' },
+  describeWildShapeChanges: { expr: '() => []' },
+  getWildShapeLabel: { expr: "() => ''" },
+  buildWildShapeOptionId: { expr: "() => ''" },
   // reconciler: null = "já sincronizado, nada a fazer"
   reconcileAnimalCompanionEffects: { expr: '() => null' },
   getAnimalCompanionActivatedPowers: { expr: '() => []' },
