@@ -49,6 +49,7 @@ import {
   getCompanionTrickDefinition,
   getTricksWithAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import { getInnateSpellOptions } from '@/data/systems/tormenta20/herois-de-arton/companion/innateSpells';
 import {
   Atributo,
   ATTR_ABBREVIATIONS,
@@ -1070,6 +1071,8 @@ const TricksTab: React.FC<{
     [trainerLevel, draft.companionType, draft.size, draft.tricks]
   );
 
+  const innateSpellOptions = useMemo(() => getInnateSpellOptions(), []);
+
   const removeTrick = (idx: number) => {
     setDraft((p) => ({
       ...p,
@@ -1079,6 +1082,24 @@ const TricksTab: React.FC<{
 
   const addTrick = (trickName: string) => {
     setDraft((p) => ({ ...p, tricks: [...p.tricks, { name: trickName }] }));
+  };
+
+  // Magia Inata: grava/limpa a magia escolhida no truque do draft.
+  const setTrickChoice = (
+    idx: number,
+    key: string,
+    value: string | undefined
+  ) => {
+    setDraft((p) => ({
+      ...p,
+      tricks: p.tricks.map((t, i) => {
+        if (i !== idx) return t;
+        const newChoices = { ...t.choices };
+        if (value === undefined) delete newChoices[key];
+        else newChoices[key] = value;
+        return { ...t, choices: newChoices };
+      }),
+    }));
   };
 
   return (
@@ -1157,6 +1178,31 @@ const TricksTab: React.FC<{
                     {def.text}
                   </Typography>
                 )}
+                {def?.subChoiceType === 'spell' && (
+                  <Autocomplete
+                    size='small'
+                    options={innateSpellOptions}
+                    getOptionLabel={(o) => o.nome}
+                    value={
+                      innateSpellOptions.find(
+                        (s) => s.nome === trick.choices?.spell
+                      ) || null
+                    }
+                    onChange={(_e, val) =>
+                      setTrickChoice(idx, 'spell', val?.nome)
+                    }
+                    isOptionEqualToValue={(o, v) => o.nome === v.nome}
+                    renderInput={(params) => (
+                      <TextField
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...params}
+                        label='Magia (1º círculo)'
+                        placeholder='Escolher magia...'
+                      />
+                    )}
+                    sx={{ mt: 1, maxWidth: 360 }}
+                  />
+                )}
               </Box>
               <IconButton
                 size='small'
@@ -1202,8 +1248,9 @@ const TricksTab: React.FC<{
           color: 'text.secondary',
         }}
       >
-        Truques com sub-escolhas (atributo, movimento, etc.) são adicionados sem
-        escolha — edite manualmente após adicionar se necessário.
+        Ao adicionar Magia Inata, escolha a magia no seletor que aparece no
+        truque acima. Outras sub-escolhas (atributo, movimento) são adicionadas
+        sem escolha — ajuste recriando o parceiro se necessário.
       </Typography>
     </Stack>
   );
@@ -1224,8 +1271,8 @@ const SpellsTab: React.FC<{
           color: 'text.secondary',
         }}
       >
-        Magias do parceiro são gerenciadas pelo fluxo de Ensinar Truque com sub
-        escolha de magia. Aqui você pode visualizá-las.
+        As magias do parceiro derivam dos truques Magia Inata (escolha a magia
+        na aba Truques). Aqui você pode visualizá-las.
       </Typography>
       {spells.length === 0 && (
         <Typography
