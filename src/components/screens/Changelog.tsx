@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            21/07/2026 (v4.26.2).
+            24/07/2026 (v4.26.3).
           </p>
 
           <p>
@@ -74,6 +74,20 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.26.3</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Corrigido um erro que podia
+                  derrubar a tela do mestre nas <strong>Mesas</strong> ao abrir
+                  a ficha de um jogador (e também o download de PDF e a edição
+                  de algumas fichas). O problema acontecia em personagens que
+                  ganhavam proficiências repetidas de poderes como{' '}
+                  <em>Couraceiro</em> e <em>Pistoleiro</em> (quando todas as
+                  opções já eram conhecidas). Fichas afetadas voltam a abrir
+                  normalmente e se corrigem sozinhas ao serem carregadas.
+                </li>
+              </ul>
+
               <h3>4.26.2</h3>
               <ul>
                 <li>
