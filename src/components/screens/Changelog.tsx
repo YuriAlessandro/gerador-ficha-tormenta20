@@ -163,6 +163,19 @@ const Changelog: React.FC = () => {
                   subir de nível ou de editar a ficha. Fichas já salvas se
                   corrigem sozinhas.
                 </li>
+                <li>
+                  <strong>Correção:</strong> No <strong>Treinador</strong>{' '}
+                  (Heróis de Arton), o truque <strong>Magia Inata</strong> do
+                  melhor amigo não deixava escolher a magia: a lista
+                  simplesmente não aparecia ao criar o parceiro, dando a
+                  impressão de que &quot;faltavam magias&quot;. Agora dá para
+                  escolher a magia de 1º círculo (arcana ou divina) na criação
+                  do melhor amigo, ao recriá-lo, na geração de personagem
+                  aleatório e também pela <strong>edição do parceiro</strong>{' '}
+                  (aba Truques) — o que permite acertar amigos que já tinham o
+                  truque em branco. A magia entra na ficha do parceiro usando o
+                  Carisma do treinador.
+                </li>
               </ul>
 
               <h3>4.26.2</h3>
