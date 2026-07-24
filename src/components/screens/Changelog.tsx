@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            22/07/2026 (v4.27).
+            24/07/2026 (v4.27).
           </p>
 
           <p>
@@ -111,6 +111,15 @@ const Changelog: React.FC = () => {
                   saírem sem apagar o companheiro.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Chegou o{' '}
+                  <strong>Calendário Artoniano</strong> ao app. Qualquer pessoa
+                  pode consultar o calendário oficial de Arton (ano 1420, da
+                  chegada dos elfos) direto na página do{' '}
+                  <strong>Mapa de Arton</strong>, inclusive em tela cheia. Nas{' '}
+                  <strong>mesas de apoiadores</strong>, cada mesa ganha o seu
+                  próprio calendário, com os <em>Dias de Nimb</em> marcados.
+                </li>
+                <li>
                   <strong>Correção:</strong> O assistente de{' '}
                   <strong>subir de nível</strong> quebrava (tela de erro) em
                   fichas cuja classe vinha de um suplemento que você desativou
@@ -118,6 +127,14 @@ const Changelog: React.FC = () => {
                   <em>Necromante</em> (Heróis de Arton) — ou de conteúdo
                   homebrew. Agora as informações de conjuração da ficha são
                   recuperadas mesmo com o suplemento desligado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Acabamos com a{' '}
+                  <strong>rolagem horizontal</strong> indesejada que fazia a
+                  página deslizar de leve para os lados em alguns aparelhos, e
+                  com a <strong>faixa branca</strong> que aparecia nas bordas
+                  (no modo escuro, ao esticar a rolagem no celular ou quando a
+                  barra de endereço do navegador recolhe).
                 </li>
               </ul>
 
