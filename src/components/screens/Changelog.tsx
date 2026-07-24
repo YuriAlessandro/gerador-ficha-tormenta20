@@ -136,6 +136,21 @@ const Changelog: React.FC = () => {
                   (no modo escuro, ao esticar a rolagem no celular ou quando a
                   barra de endereço do navegador recolhe).
                 </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Teurgista Místico</strong> (devotos de Wynna) permite
+                  aprender{' '}
+                  <strong>uma magia da tradição oposta por círculo</strong> —
+                  uma magia arcana por círculo, se você for um conjurador
+                  divino, ou uma divina, se for arcano. O assistente de{' '}
+                  <strong>subir de nível</strong> estava travando isso: depois
+                  de escolher a primeira magia da outra tradição, ele parava de
+                  oferecer novas ao abrir os círculos seguintes — por exemplo,
+                  um clérigo que pegou uma magia arcana de 1º círculo não
+                  recebia a opção de escolher uma arcana de 2º círculo ao chegar
+                  no 5º nível. Agora o limite é contado corretamente{' '}
+                  <strong>círculo a círculo</strong>.
+                </li>
               </ul>
 
               <h3>4.26.2</h3>
