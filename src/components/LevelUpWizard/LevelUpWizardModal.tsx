@@ -43,6 +43,7 @@ import {
   getClassSetupAbilities,
   classNeedsFirstLevelSetup,
 } from '@/functions/multiclass';
+import { partitionCrossTraditionByCircle } from '@/functions/spellPathUtils';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
   countNaturalWeapons,
@@ -410,7 +411,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       deityMaxCircle === null
         ? levelCircle
         : Math.min(levelCircle, deityMaxCircle);
-    const crossNames = new Set<string>();
+    // Teurgista Místico: o limite de magias da tradição oposta é POR CÍRCULO,
+    // então rastreamos os nomes cross agrupados pelo círculo numérico (que já
+    // conhecemos dentro dos loops abaixo).
+    const crossNamesByCircle = new Map<number, Set<string>>();
+    const addCross = (circle: number, spells: Spell[]) => {
+      let set = crossNamesByCircle.get(circle);
+      if (!set) {
+        set = new Set<string>();
+        crossNamesByCircle.set(circle, set);
+      }
+      spells.forEach((s) => set!.add(s.nome));
+    };
 
     // Get spells from all available circles (1 through spellCircle)
     let allSpellsOfCircle: Spell[] = [];
@@ -438,7 +450,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             spellPath.includeDivineSchools!.includes(spell.school)
           );
           if (spellPath.crossTraditionLimit) {
-            extraDivineSpells.forEach((s) => crossNames.add(s.nome));
+            addCross(circle, extraDivineSpells);
           }
           allSpellsOfCircle = [...allSpellsOfCircle, ...extraDivineSpells];
         }
@@ -467,7 +479,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             spellPath.includeArcaneSchools!.includes(spell.school)
           );
           if (spellPath.crossTraditionLimit) {
-            extraArcaneSpells.forEach((s) => crossNames.add(s.nome));
+            addCross(circle, extraArcaneSpells);
           }
           allSpellsOfCircle = [...allSpellsOfCircle, ...extraArcaneSpells];
         }
@@ -516,18 +528,23 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       );
     }
 
-    // Check if character already has a cross-tradition spell for this circle
-    if (spellPath.crossTraditionLimit && crossNames.size > 0) {
-      const existingCrossTraditionCount = simulatedSheet.spells.filter((s) =>
-        crossNames.has(s.nome)
-      ).length;
-      if (existingCrossTraditionCount >= spellPath.crossTraditionLimit) {
-        // Already at limit: remove cross-tradition spells from pool
+    // Teurgista Místico: aplica o limite POR CÍRCULO. Círculos onde o
+    // personagem já atingiu o limite têm suas magias cross removidas do pool;
+    // círculos ainda abertos continuam ofertando. `crossNames` passa a conter
+    // apenas os nomes dos círculos ainda abertos.
+    let crossNames = new Set<string>();
+    if (spellPath.crossTraditionLimit && crossNamesByCircle.size > 0) {
+      const { removeNames, keepNames } = partitionCrossTraditionByCircle(
+        crossNamesByCircle,
+        simulatedSheet.spells.map((s) => s.nome),
+        spellPath.crossTraditionLimit
+      );
+      if (removeNames.size > 0) {
         allSpellsOfCircle = allSpellsOfCircle.filter(
-          (s) => !crossNames.has(s.nome)
+          (s) => !removeNames.has(s.nome)
         );
-        crossNames.clear();
       }
+      crossNames = keepNames;
     }
 
     // Filter out spells already known

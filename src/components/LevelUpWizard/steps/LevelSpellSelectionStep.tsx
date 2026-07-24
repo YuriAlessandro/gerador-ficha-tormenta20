@@ -50,16 +50,25 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
 
   const isComplete = selectedSpells.length === requiredCount;
 
-  const selectedCrossTraditionCount = useMemo(() => {
+  // Teurgista Místico: o limite de magias cross é POR CÍRCULO. Contamos as
+  // magias cross já selecionadas agrupadas pelo círculo da magia.
+  const selectedCrossByCircle = useMemo(() => {
+    const map = new Map<string, number>();
     if (!crossTraditionSpellNames || crossTraditionSpellNames.size === 0)
-      return 0;
-    return selectedSpells.filter((s) => crossTraditionSpellNames.has(s.nome))
-      .length;
+      return map;
+    selectedSpells.forEach((s) => {
+      if (crossTraditionSpellNames.has(s.nome)) {
+        map.set(s.spellCircle, (map.get(s.spellCircle) || 0) + 1);
+      }
+    });
+    return map;
   }, [selectedSpells, crossTraditionSpellNames]);
 
-  const isCrossTraditionLimitReached =
+  const isAnyCrossCircleAtLimit =
     crossTraditionLimit !== undefined &&
-    selectedCrossTraditionCount >= crossTraditionLimit;
+    Array.from(selectedCrossByCircle.values()).some(
+      (count) => count >= crossTraditionLimit
+    );
 
   const filteredSpells = useMemo(
     () => applySpellFilters(availableSpells, filters),
@@ -154,7 +163,7 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
           <Alert severity='info' sx={{ mb: 2 }}>
             Teurgista Místico: até {crossTraditionLimit} magia
             {crossTraditionLimit > 1 ? 's' : ''} da tradição oposta por círculo.
-            {isCrossTraditionLimitReached && ' (Limite atingido)'}
+            {isAnyCrossCircleAtLimit && ' (Limite do círculo atingido)'}
           </Alert>
         )}
       <Grid container spacing={2}>
@@ -162,10 +171,14 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
           const selected = isSpellSelected(spell);
           const isCrossTradition =
             crossTraditionSpellNames?.has(spell.nome) ?? false;
+          const circleAtLimit =
+            crossTraditionLimit !== undefined &&
+            (selectedCrossByCircle.get(spell.spellCircle) || 0) >=
+              crossTraditionLimit;
           const canSelect =
             !selected &&
             selectedSpells.length < requiredCount &&
-            !(isCrossTradition && isCrossTraditionLimitReached);
+            !(isCrossTradition && circleAtLimit);
 
           return (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={spell.nome}>
