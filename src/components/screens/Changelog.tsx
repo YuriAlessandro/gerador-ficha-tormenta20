@@ -151,6 +151,18 @@ const Changelog: React.FC = () => {
                   no 5º nível. Agora o limite é contado corretamente{' '}
                   <strong>círculo a círculo</strong>.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Os{' '}
+                  <strong>efeitos ativos customizados</strong> que você cria em
+                  poderes de <strong>classe</strong> (pela engrenagem de
+                  configurações do poder) sumiam assim que eram usados,
+                  obrigando a recriá-los a cada ativação — acontecia, por
+                  exemplo, com a <em>Égide Sagrada</em> do paladino e o{' '}
+                  <em>Duelo</em> do duelista. Agora o efeito (e qualquer rolagem
+                  customizada) permanece no poder depois de ser ativado, de
+                  subir de nível ou de editar a ficha. Fichas já salvas se
+                  corrigem sozinhas.
+                </li>
               </ul>
 
               <h3>4.26.2</h3>
