@@ -86,6 +86,27 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     sheet.classe.powers = sheet.classe.powers.filter(
       (p) => p && typeof p.name === 'string'
     );
+    // Proficiência inválida (`null`/`undefined`) quebra tudo que compara nomes:
+    // o aviso de não proficiência no Result, o PDF e o editor de proficiências.
+    // Fichas antigas têm essas entradas porque o sorteio completava com
+    // `undefined` quando as opções acabavam (ver pickFromArray).
+    sheet.classe.proficiencias = sheet.classe.proficiencias.filter(
+      (p) => typeof p === 'string' && p.length > 0
+    );
+  }
+  if (sheet.customProficiencias !== undefined) {
+    sheet.customProficiencias = Array.isArray(sheet.customProficiencias)
+      ? sheet.customProficiencias.filter(
+          (p) => typeof p === 'string' && p.length > 0
+        )
+      : undefined;
+  }
+  if (sheet.removedProficiencias !== undefined) {
+    sheet.removedProficiencias = Array.isArray(sheet.removedProficiencias)
+      ? sheet.removedProficiencias.filter(
+          (p) => typeof p === 'string' && p.length > 0
+        )
+      : undefined;
   }
 
   if (sheet.raca) {

@@ -34,11 +34,16 @@ export const WEAPON_CATEGORY_SHORT_LABELS: Record<WeaponCategory, string> = {
  */
 export function getSheetProficiencias(sheet: CharacterSheet): string[] {
   const removed = sheet.removedProficiencias ?? [];
+  // Entradas inválidas (null/undefined vindos de fichas corrompidas) são
+  // descartadas aqui: este é o chokepoint da UI, do PDF e do recálculo, e
+  // qualquer consumidor que faça `.toLowerCase()`/`.normalize()` quebraria.
+  const isValid = (p: unknown): p is string =>
+    typeof p === 'string' && p.length > 0;
   const base = (sheet.classe?.proficiencias ?? []).filter(
-    (p) => !removed.includes(p)
+    (p) => isValid(p) && !removed.includes(p)
   );
   const custom = (sheet.customProficiencias ?? []).filter(
-    (p) => !base.includes(p)
+    (p) => isValid(p) && !base.includes(p)
   );
   return [...base, ...custom];
 }
@@ -59,7 +64,13 @@ export function getGrantedProficienciasFromHistory(
   const granted = new Set<string>();
   (sheet.sheetActionHistory ?? []).forEach((entry) => {
     entry.changes?.forEach((change) => {
-      if (change.type === 'ProficiencyAdded') granted.add(change.proficiency);
+      // `proficiency` ausente existe em fichas gravadas quando o sorteio ficava
+      // sem opções (ver pickFromArray): a chave sumia no JSON e voltava como
+      // undefined. Sem este filtro, o undefined era reinjetado em
+      // `classe.proficiencias` pelo rehydrateSheet e quebrava o render.
+      if (change.type === 'ProficiencyAdded' && change.proficiency) {
+        granted.add(change.proficiency);
+      }
     });
   });
   return [...granted];
@@ -110,13 +121,16 @@ export function getEffectiveWeaponCategory(
 }
 
 // Normaliza para comparação de proficiências nomeadas: sem acentos, sem
-// espaços nas pontas e caixa baixa ('Arpao' casa 'Arpão').
-const normalizeProficiencyName = (value: string): string =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase();
+// espaços nas pontas e caixa baixa ('Arpao' casa 'Arpão'). Total por
+// definição: entrada não-string (ficha corrompida) vira '' em vez de quebrar.
+const normalizeProficiencyName = (value: unknown): string =>
+  typeof value !== 'string'
+    ? ''
+    : value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .toLowerCase();
 
 /**
  * Verifica se uma lista de proficiências cobre a arma.
@@ -138,8 +152,13 @@ export function isProficientWithWeapon(
   weapon: Equipment,
   proficiencias: string[]
 ): boolean {
+  // Arma sem nome (item corrompido) não pode casar com proficiência nomeada:
+  // sem o guard, ela casaria com qualquer entrada inválida da lista.
   const weaponName = normalizeProficiencyName(weapon.nome);
-  if (proficiencias.some((p) => normalizeProficiencyName(p) === weaponName)) {
+  if (
+    weaponName &&
+    proficiencias.some((p) => normalizeProficiencyName(p) === weaponName)
+  ) {
     return true;
   }
 

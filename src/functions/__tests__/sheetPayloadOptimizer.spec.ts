@@ -118,6 +118,31 @@ describe('rehydrateSheet — proficiências', () => {
     expect(rehydrated.classe.proficiencias).toContain(PROFICIENCIAS.FOGO);
   });
 
+  // Regressão do crash no painel de fichas da mesa: o histórico dessas fichas
+  // tem `{ type: 'ProficiencyAdded' }` sem a chave `proficiency` (o sorteio
+  // completava com `undefined` e o JSON descartava a chave). O rehydrate
+  // reinjetava esse `undefined` em `classe.proficiencias` e o Weapons quebrava.
+  it('não reinjeta undefined vindo de ProficiencyAdded sem proficiência', () => {
+    const sheet = guerreiroSheet();
+    sheet.sheetActionHistory = [
+      {
+        source: { type: 'power', name: 'Couraceiro' },
+        powerName: 'Couraceiro',
+        changes: [
+          { type: 'ProficiencyAdded', proficiency: PROFICIENCIAS.PESADAS },
+          { type: 'ProficiencyAdded' },
+        ],
+      },
+    ] as unknown as CharacterSheet['sheetActionHistory'];
+
+    const rehydrated = rehydrateSheet(stripSheetForStorage(sheet), SUPPLEMENTS);
+
+    expect(rehydrated.classe.proficiencias).toContain(PROFICIENCIAS.PESADAS);
+    rehydrated.classe.proficiencias.forEach((p) =>
+      expect(typeof p).toBe('string')
+    );
+  });
+
   it('não duplica proficiência presente na classe e no histórico', () => {
     const sheet = guerreiroSheet();
     sheet.sheetActionHistory = [

@@ -71,7 +71,15 @@ export function pickFaith(faithP: FaithProbability): DivindadeNames {
   return probabilitySumArray[probabilitySumArray.length - 1].divindade;
 }
 
-// Returns an array with N selected from array
+/**
+ * Sorteia até `qtd` elementos DISTINTOS de `array`.
+ *
+ * Pode devolver MENOS que `qtd`: quando as opções acabam (pool menor que o
+ * pedido), a função para em vez de completar com `undefined`. Sem esse corte,
+ * os buracos vazavam para dentro da ficha (proficiências, perícias, poderes
+ * concedidos) e explodiam depois, longe da origem — ex.: `Couraceiro`
+ * (2 proficiências de uma lista de 2) num personagem que já tinha uma delas.
+ */
 export function pickFromArray<ElementType>(
   array: ElementType[],
   qtd: number
@@ -79,6 +87,7 @@ export function pickFromArray<ElementType>(
   const picked: ElementType[] = [];
   for (let index = 0; index < qtd; index += 1) {
     const filtered = array.filter((element) => !picked.includes(element));
+    if (filtered.length === 0) break;
     picked.push(getRandomItemFromArray(filtered));
   }
 

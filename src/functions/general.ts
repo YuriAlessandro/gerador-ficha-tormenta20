@@ -2100,14 +2100,20 @@ export const applyPower = (
 
         sheet.classe.proficiencias.push(...pickedProficiencies);
 
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: pickedProficiencies.map((prof) => ({
-            type: 'ProficiencyAdded',
-            proficiency: prof,
-          })),
-        });
+        // Sem nada escolhido (todas as opções já eram do personagem), não
+        // grava histórico: uma entrada com `changes: []` não satisfaz o guard
+        // `isActionAlreadyApplied` (que casa por TIPO de change) e faria a ação
+        // ser reaplicada — empilhando uma entrada vazia a cada recálculo.
+        if (pickedProficiencies.length > 0) {
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: pickedProficiencies.map((prof) => ({
+              type: 'ProficiencyAdded',
+              proficiency: prof,
+            })),
+          });
+        }
 
         pickedProficiencies.forEach((prof) => {
           subSteps.push({
@@ -2184,14 +2190,18 @@ export const applyPower = (
 
         sheet.generalPowers.push(...pickedPowers);
 
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: pickedPowers.map((power) => ({
-            type: 'PowerAdded',
-            powerName: power.name,
-          })),
-        });
+        // Mesmo motivo do `addProficiency` acima: histórico sem changes não
+        // segura o guard de idempotência e cresceria a cada recálculo.
+        if (pickedPowers.length > 0) {
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: pickedPowers.map((power) => ({
+              type: 'PowerAdded',
+              powerName: power.name,
+            })),
+          });
+        }
 
         pickedPowers.forEach((power) => {
           subSteps.push({

@@ -1,7 +1,10 @@
 import _ from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
-import { applyRaceAbilities } from '../general';
+import { applyPower, applyRaceAbilities } from '../general';
 import { inventor } from '../../__mocks__/classes/inventor';
+import INVENTOR from '../../data/systems/tormenta20/classes/inventor';
+import { ClassPower } from '../../interfaces/Class';
+import { normalizeSheet } from '../sheetNormalizer';
 import SEREIA from '../../data/systems/tormenta20/races/sereia';
 import ANAO from '../../data/systems/tormenta20/races/anao';
 import { AMEACAS_ARTON_WEAPONS } from '../../data/systems/tormenta20/ameacas-de-arton/equipment/weapons';
@@ -56,6 +59,25 @@ describe('proficiencies', () => {
 
       expect(getSheetProficiencias(sheet)).toEqual([PROFICIENCIAS.SIMPLES]);
     });
+
+    it('descarta entradas inválidas de fichas corrompidas', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe.proficiencias = [
+        PROFICIENCIAS.SIMPLES,
+        undefined,
+        null,
+        '',
+      ] as unknown as string[];
+      sheet.customProficiencias = [
+        undefined,
+        PROFICIENCIAS.FOGO,
+      ] as unknown as string[];
+
+      expect(getSheetProficiencias(sheet)).toEqual([
+        PROFICIENCIAS.SIMPLES,
+        PROFICIENCIAS.FOGO,
+      ]);
+    });
   });
 
   describe('getGrantedProficienciasFromHistory', () => {
@@ -106,6 +128,27 @@ describe('proficiencies', () => {
       const empty = createMockCharacterSheet();
       empty.sheetActionHistory = [];
       expect(getGrantedProficienciasFromHistory(empty)).toEqual([]);
+    });
+
+    // Fichas gravadas quando o sorteio ficava sem opções têm changes sem a
+    // chave `proficiency` (JSON.stringify descarta `undefined`). Reinjetá-las
+    // em `classe.proficiencias` pelo rehydrate era o que quebrava o render.
+    it('ignora ProficiencyAdded sem a proficiência gravada', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.sheetActionHistory = [
+        {
+          source: { type: 'power', name: 'Couraceiro' },
+          powerName: 'Couraceiro',
+          changes: [
+            { type: 'ProficiencyAdded', proficiency: PROFICIENCIAS.PESADAS },
+            { type: 'ProficiencyAdded' },
+          ],
+        },
+      ] as unknown as CharacterSheet['sheetActionHistory'];
+
+      expect(getGrantedProficienciasFromHistory(sheet)).toEqual([
+        PROFICIENCIAS.PESADAS,
+      ]);
     });
   });
 
@@ -194,6 +237,36 @@ describe('proficiencies', () => {
         isCustom: true,
       };
       expect(getWeaponNonProficiencyPenalty(custom, [])).toBe(0);
+    });
+
+    // Regressão: ficha corrompida derrubava a tela inteira do mestre (crash
+    // "Cannot read properties of undefined (reading 'normalize')" no Weapons).
+    it('ignora entradas inválidas na lista de proficiências', () => {
+      const listaCorrompida = [
+        undefined,
+        null,
+        PROFICIENCIAS.MARCIAIS,
+      ] as unknown as string[];
+
+      expect(
+        getWeaponNonProficiencyPenalty(Armas.ESPADA_LONGA, listaCorrompida)
+      ).toBe(0);
+      expect(
+        getWeaponNonProficiencyPenalty(Armas.KATANA, listaCorrompida)
+      ).toBe(WEAPON_NON_PROFICIENCY_PENALTY);
+    });
+
+    it('arma sem nome não casa com entrada inválida da lista', () => {
+      const semNome = {
+        group: 'Arma',
+        weaponCategory: 'exotic',
+      } as unknown as Equipment;
+
+      expect(
+        getWeaponNonProficiencyPenalty(semNome, [
+          undefined,
+        ] as unknown as string[])
+      ).toBe(WEAPON_NON_PROFICIENCY_PENALTY);
     });
   });
 
@@ -447,6 +520,81 @@ describe('proficiencies', () => {
     it('fallback por nome resolve categoria de arma de suplemento', () => {
       const legacyArpao: Equipment = { nome: 'Arpão', group: 'Arma' };
       expect(getEffectiveWeaponCategory(legacyArpao)).toBe('exotic');
+    });
+  });
+
+  // Cura das fichas que já foram salvas corrompidas: o normalizeSheet roda em
+  // todo caminho de carga (via restoreSpellPath), depois do rehydrate.
+  describe('normalizeSheet — proficiências corrompidas', () => {
+    it('limpa entradas inválidas de classe, custom e removidas', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = {
+        ...sheet.classe,
+        proficiencias: [
+          PROFICIENCIAS.SIMPLES,
+          undefined,
+          null,
+        ] as unknown as string[],
+      };
+      sheet.customProficiencias = [null, 'Tridente'] as unknown as string[];
+      sheet.removedProficiencias = [undefined] as unknown as string[];
+
+      normalizeSheet(sheet);
+
+      expect(sheet.classe.proficiencias).toEqual([PROFICIENCIAS.SIMPLES]);
+      expect(sheet.customProficiencias).toEqual(['Tridente']);
+      expect(sheet.removedProficiencias).toEqual([]);
+    });
+  });
+
+  /**
+   * Origem do crash em produção: `Couraceiro` concede 2 proficiências de uma
+   * lista de 2, então um personagem que já tinha uma delas esgotava o sorteio —
+   * que completava o pedido com `undefined` na ficha e no histórico.
+   */
+  describe('addProficiency com pool esgotado (Couraceiro)', () => {
+    const couraceiro = INVENTOR.powers.find(
+      (p) => p.name === 'Couraceiro'
+    ) as ClassPower;
+
+    function inventorComEscudos(): CharacterSheet {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = {
+        ...sheet.classe,
+        proficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
+      };
+      sheet.sheetActionHistory = [];
+      return sheet;
+    }
+
+    it('concede só o que sobrou, sem entradas inválidas', () => {
+      const sheet = inventorComEscudos();
+      sheet.classe.proficiencias.push(PROFICIENCIAS.ESCUDOS);
+
+      const [result] = applyPower(sheet, couraceiro);
+
+      expect(result.classe.proficiencias).toContain(PROFICIENCIAS.PESADAS);
+      result.classe.proficiencias.forEach((p) =>
+        expect(typeof p).toBe('string')
+      );
+      expect(getSheetProficiencias(result)).not.toContain(undefined);
+    });
+
+    it('não grava histórico vazio quando nada pode ser concedido', () => {
+      const sheet = inventorComEscudos();
+      sheet.classe.proficiencias.push(
+        PROFICIENCIAS.ESCUDOS,
+        PROFICIENCIAS.PESADAS
+      );
+
+      const [result] = applyPower(sheet, couraceiro);
+
+      expect(result.classe.proficiencias).not.toContain(undefined);
+      // Entrada com `changes: []` não segura o guard de idempotência e voltaria
+      // a ser empilhada a cada recálculo.
+      expect(
+        result.sheetActionHistory.filter((e) => e.changes.length === 0)
+      ).toHaveLength(0);
     });
   });
 
