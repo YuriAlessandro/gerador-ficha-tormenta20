@@ -247,6 +247,48 @@ describe('recalculateSheet - Attribute and PM Preservation', () => {
     expect(atletismo?.manuallyUntrained).toBeUndefined();
   });
 
+  it('should preserve user customEffects and rolls on class abilities across recalculation', () => {
+    // Bug: efeitos ativos customizados (e rolagens) definidos pelo usuário em
+    // habilidades de CLASSE somiam ao ativar/recalcular, porque
+    // applyClassAbilities reconstrói classe.abilities a partir de
+    // originalAbilities (que não carrega esses campos do usuário).
+    const sheet = createBaseBardSheet();
+    const base = recalculateSheet(sheet);
+
+    const targetAbility = base.classe.abilities[0];
+    expect(targetAbility).toBeDefined();
+
+    const withUserFields: CharacterSheet = {
+      ...base,
+      classe: {
+        ...base.classe,
+        abilities: base.classe.abilities.map((a, i) =>
+          i === 0
+            ? {
+                ...a,
+                customEffects: [
+                  {
+                    id: 'ce-1',
+                    name: 'Efeito de Teste',
+                    tiers: [{ id: 't-1', label: 'Ativo', bonuses: [] }],
+                  },
+                ],
+                rolls: [{ id: 'r-1', label: 'Dano', dice: '1d6' }],
+              }
+            : a
+        ),
+      },
+    };
+
+    const recalculated = recalculateSheet(withUserFields);
+    const preserved = recalculated.classe.abilities.find(
+      (a) => a.name === targetAbility.name
+    );
+
+    expect(preserved?.customEffects?.[0].name).toBe('Efeito de Teste');
+    expect(preserved?.rolls?.[0].dice).toBe('1d6');
+  });
+
   it('should correctly use shouldRecalculatePM to avoid unnecessary PM recalculation', () => {
     const sheet = createBaseBardSheet();
     let current = recalculateSheet(sheet);

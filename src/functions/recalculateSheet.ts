@@ -995,6 +995,24 @@ function applyClassAbilities(
 ): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
+  // Campos definidos pelo usuário (efeitos e rolagens customizadas) vivem em
+  // `classe.abilities`, mas NÃO em `originalAbilities`. A reconstrução abaixo
+  // recria `classe.abilities` a partir de `originalAbilities`/definição da
+  // classe, então sem preservá-los eles somem a cada recálculo — ativar um
+  // efeito customizado o apagava do poder. Capturado ANTES de qualquer rebuild.
+  const userAbilityFields = new Map<
+    string,
+    Pick<ClassAbility, 'customEffects' | 'rolls'>
+  >();
+  (sheetClone.classe.abilities || []).forEach((ability) => {
+    if (ability.customEffects?.length || ability.rolls?.length) {
+      userAbilityFields.set(ability.name, {
+        customEffects: ability.customEffects,
+        rolls: ability.rolls,
+      });
+    }
+  });
+
   // Get the full list of class abilities
   // Priority: originalAbilities > class definition lookup > current abilities
   let { originalAbilities } = sheetClone.classe;
@@ -1036,6 +1054,20 @@ function applyClassAbilities(
     );
     allAbilities = [...availableAbilities, ...secondaryAbilities];
   }
+
+  // Reaplica os campos do usuário preservados sobre a lista reconstruída
+  // (cobre habilidades primárias e secundárias de multiclasse).
+  allAbilities = allAbilities.map((ability) => {
+    const preserved = userAbilityFields.get(ability.name);
+    if (!preserved) return ability;
+    return {
+      ...ability,
+      ...(preserved.customEffects
+        ? { customEffects: preserved.customEffects }
+        : {}),
+      ...(preserved.rolls ? { rolls: preserved.rolls } : {}),
+    };
+  });
 
   sheetClone.classe.abilities = allAbilities;
 
