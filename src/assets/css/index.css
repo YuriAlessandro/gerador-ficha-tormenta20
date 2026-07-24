@@ -11,12 +11,23 @@
     url('../fonts/Tormenta20x.ttf') format('truetype');
 }
 
+/* Pinta a tela do documento (html/body) com o fundo do tema. Sem isso, só a
+   `.App` fica pintada e o resto do canvas do navegador é branco — o que aparece
+   no escuro como uma faixa branca sempre que a área visível ultrapassa a `.App`:
+   overscroll (rubber-band no mobile), a barra de endereço recolhendo, ou um pan
+   horizontal causado por overflow. `--mode-aware-bg` é setado pelo
+   CssVarsProvider (#212121 no escuro, #f3f2f1 no claro); o fallback cobre o
+   primeiro paint antes do React montar. */
+html,
+body {
+  background-color: var(--mode-aware-bg, #f3f2f1);
+}
+
 body {
   margin: 0;
   font-family: 'Alegreya Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* background-color: #; */
 }
 
 /* Pulse used by useHighlightFromUrl when a notification deep-links to a comment */

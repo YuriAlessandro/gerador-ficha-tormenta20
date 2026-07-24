@@ -78,7 +78,9 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
             position: 'fixed',
             top: 0,
             left: 0,
-            width: '100vw',
+            // `right: 0` em vez de `width: 100vw` para não estourar a página com
+            // a largura da barra de rolagem (ver FullScreenDiceCanvas/index.css).
+            right: 0,
             height: '100vh',
             backgroundColor: 'rgba(0, 0, 0, 0.75)',
             zIndex: 9998,
