@@ -167,6 +167,10 @@ import {
 } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
 import { updateBrigaRolls } from './powers/lutador-special';
+import {
+  captureUserAbilityFields,
+  restoreUserAbilityFields,
+} from './powers/preserveUserAbilityFields';
 import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { addOtherBonusToSkill } from './skills/general';
 import { applyGolemDespertoCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
@@ -3987,11 +3991,20 @@ function levelUp(
       })),
     });
 
-    // Update displayed abilities to include newly available ones
+    // Update displayed abilities to include newly available ones.
+    // A lista é reconstruída a partir de `originalAbilities` (snapshot do
+    // catálogo), então os campos do usuário precisam ser capturados ANTES e
+    // reaplicados — senão rolagens/efeitos/nome custom somem ao subir de nível.
+    const userAbilityFields = captureUserAbilityFields(
+      updatedSheet.classe.abilities
+    );
     const allAvailableAbilities = originalAbilities.filter(
       (ability) => ability.nivel <= updatedSheet.nivel
     );
-    updatedSheet.classe.abilities = allAvailableAbilities;
+    updatedSheet.classe.abilities = restoreUserAbilityFields(
+      allAvailableAbilities,
+      userAbilityFields
+    );
 
     // Apply text modifications from chooseFromOptions history
     applyOptionChosenTexts(updatedSheet);
@@ -4488,7 +4501,11 @@ export function applyManualLevelUp(
     });
   }
 
-  // Update displayed abilities for primary class (always reflect current character level)
+  // Update displayed abilities for primary class (always reflect current character level).
+  // Mesmo cuidado do `levelUp`: capturar os campos do usuário antes do rebuild.
+  const userAbilityFields = captureUserAbilityFields(
+    updatedSheet.classe.abilities
+  );
   const primaryOriginalAbilities =
     updatedSheet.classe.originalAbilities || updatedSheet.classe.abilities;
   const primaryClassLevel = getClassLevel(
@@ -4507,7 +4524,10 @@ export function applyManualLevelUp(
     allAvailableAbilities.push(...newlyAvailableAbilities);
   }
 
-  updatedSheet.classe.abilities = allAvailableAbilities;
+  updatedSheet.classe.abilities = restoreUserAbilityFields(
+    allAvailableAbilities,
+    userAbilityFields
+  );
 
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(updatedSheet);

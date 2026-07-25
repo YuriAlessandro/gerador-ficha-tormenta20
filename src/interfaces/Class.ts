@@ -61,6 +61,11 @@ export type ClassAbility = {
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
+  // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
+  // na exibição — a identidade continua sendo `name`.
+  customName?: string;
+  // Texto definido pelo usuário. Quando presente, substitui o texto do livro.
+  customDescription?: string;
 };
 
 export type ClassPower = {
@@ -73,6 +78,11 @@ export type ClassPower = {
   canRepeat?: boolean;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
+  // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
+  // na exibição — a identidade continua sendo `name`.
+  customName?: string;
+  // Texto definido pelo usuário. Quando presente, substitui o texto do livro.
+  customDescription?: string;
   supplementId?: SupplementId; // Suplemento de origem do poder
   supplementName?: string; // Nome do suplemento de origem
   className?: string; // Multiclasse: qual classe concedeu este poder

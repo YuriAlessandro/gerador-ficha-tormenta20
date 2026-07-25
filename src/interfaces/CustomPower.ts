@@ -7,4 +7,9 @@ export interface CustomPower {
   description: string; // Descrição do poder
   rolls?: DiceRoll[]; // Rolagens opcionais (ex: "Dano" - "2d6+3")
   customEffects?: CustomEffect[]; // Efeitos customizados (definidos pelo usuário)
+  // Override de exibição vindo da aba "Exibição" do poder na ficha. O
+  // `CustomPowerDialog` edita `name`/`description` (a identidade do poder);
+  // estes campos existem só para o leitor ser único em toda a aba de Poderes.
+  customName?: string;
+  customDescription?: string;
 }
