@@ -176,6 +176,23 @@ const Changelog: React.FC = () => {
                   truque em branco. A magia entra na ficha do parceiro usando o
                   Carisma do treinador.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Ainda no seletor de{' '}
+                  <strong>Magia Inata</strong> do melhor amigo, em algumas telas
+                  os cards das magias encolhiam e ficavam{' '}
+                  <strong>em branco</strong>, sem mostrar o nome nem a
+                  descrição. Agora os cards aparecem sempre completos, tanto na
+                  criação do parceiro quanto ao subir de nível.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao escolher uma{' '}
+                  <strong>Complicação</strong> (regra opcional de Heróis de
+                  Arton), o seletor do poder adicional não listava os{' '}
+                  <strong>poderes de raça</strong> — que também são poderes
+                  gerais e vêm dos suplementos ativos. Agora eles aparecem no
+                  seletor, mostrando apenas os poderes da raça do seu
+                  personagem.
+                </li>
               </ul>
 
               <h3>4.26.2</h3>
