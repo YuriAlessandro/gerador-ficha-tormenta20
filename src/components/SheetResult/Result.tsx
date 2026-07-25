@@ -166,6 +166,7 @@ import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
 import NotesDialog from './NotesDialog';
 import StatControl from './StatControl';
+import ManualValueMarker from './ManualValueMarker';
 
 // Styled components defined outside to prevent recreation on every render
 
@@ -1614,7 +1615,7 @@ const Result: React.FC<ResultProps> = (props) => {
               {/* PARTE DE CIMA: Informações da ficha */}
               <Card
                 sx={{
-                  p: 3,
+                  p: isMobile ? 2 : 3,
                   mb: 4,
                   minHeight: isMobile ? 'inherit' : '180px',
                   position: 'relative',
@@ -1814,74 +1815,50 @@ const Result: React.FC<ResultProps> = (props) => {
                       />
                     )}
                   </Box>
+                  {/*
+                   * useFlexGap + flexWrap: em larguras intermediárias (a coluna
+                   * estreita do jogador na mesa virtual, por exemplo) os dois
+                   * stats quebram para linhas separadas em vez de transbordar.
+                   * Sem useFlexGap a Stack espaça por margin e a quebra sai
+                   * torta.
+                   */}
                   <Stack
                     direction='row'
-                    spacing={3}
+                    spacing={isMobile ? 1.5 : 3}
+                    useFlexGap
                     sx={{
                       justifyContent: 'space-around',
-                      alignItems: 'center',
+                      alignItems: 'flex-start',
+                      flexWrap: 'wrap',
+                      minWidth: 0,
                     }}
                   >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <StatControl
-                        type='PV'
-                        current={currentSheet.currentPV ?? pv}
-                        max={pv}
-                        calculatedMax={pv}
-                        temp={currentSheet.tempPV ?? 0}
-                        onDecrement={handlePVDecrement}
-                        onHeal={handlePVHeal}
-                        onOpenDrawer={() => setStatDrawerOpen(true)}
-                        disabled={!onSheetUpdate}
-                      />
-                      {currentSheet.manualMaxPV !== undefined &&
-                        currentSheet.manualMaxPV > 0 && (
-                          <Tooltip title='Cálculo automático desativado. Edite nas configurações para alterar.'>
-                            <Chip
-                              size='small'
-                              label='Manual'
-                              color='warning'
-                              sx={{ mt: 1, fontSize: '0.7rem' }}
-                            />
-                          </Tooltip>
-                        )}
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <StatControl
-                        type='PM'
-                        current={currentSheet.currentPM ?? pm}
-                        max={pm}
-                        calculatedMax={pm}
-                        temp={currentSheet.tempPM ?? 0}
-                        onDecrement={handlePMDecrement}
-                        onHeal={handlePMHeal}
-                        onOpenDrawer={() => setStatDrawerOpen(true)}
-                        disabled={!onSheetUpdate}
-                      />
-                      {currentSheet.manualMaxPM !== undefined &&
-                        currentSheet.manualMaxPM > 0 && (
-                          <Tooltip title='Cálculo automático desativado. Edite nas configurações para alterar.'>
-                            <Chip
-                              size='small'
-                              label='Manual'
-                              color='warning'
-                              sx={{ mt: 1, fontSize: '0.7rem' }}
-                            />
-                          </Tooltip>
-                        )}
-                    </Box>
+                    <StatControl
+                      type='PV'
+                      current={currentSheet.currentPV ?? pv}
+                      max={pv}
+                      calculatedMax={pv}
+                      temp={currentSheet.tempPV ?? 0}
+                      onDecrement={handlePVDecrement}
+                      onHeal={handlePVHeal}
+                      onOpenDrawer={() => setStatDrawerOpen(true)}
+                      disabled={!onSheetUpdate}
+                      compact={isMobile}
+                      isManualMax={(currentSheet.manualMaxPV ?? 0) > 0}
+                    />
+                    <StatControl
+                      type='PM'
+                      current={currentSheet.currentPM ?? pm}
+                      max={pm}
+                      calculatedMax={pm}
+                      temp={currentSheet.tempPM ?? 0}
+                      onDecrement={handlePMDecrement}
+                      onHeal={handlePMHeal}
+                      onOpenDrawer={() => setStatDrawerOpen(true)}
+                      disabled={!onSheetUpdate}
+                      compact={isMobile}
+                      isManualMax={(currentSheet.manualMaxPM ?? 0) > 0}
+                    />
                   </Stack>
                 </Stack>
               </Card>
@@ -2612,19 +2589,12 @@ const Result: React.FC<ResultProps> = (props) => {
                           >
                             Desl.
                           </StatTitle>
+                          {currentSheet.customDisplacement !== undefined && (
+                            <ManualValueMarker title='Deslocamento definido manualmente' />
+                          )}
                         </Stack>
                       </Box>
                     </FancyBox>
-                    {currentSheet.customDisplacement !== undefined && (
-                      <Tooltip title='Valor definido manualmente'>
-                        <Chip
-                          size='small'
-                          label='Manual'
-                          color='warning'
-                          sx={{ mt: 1, fontSize: '0.7rem' }}
-                        />
-                      </Tooltip>
-                    )}
                     {(() => {
                       const effectiveMaxSpaces = customMaxSpaces ?? maxSpaces;
                       const totalUsedSpaces =
@@ -2751,19 +2721,21 @@ const Result: React.FC<ResultProps> = (props) => {
                         >
                           {size.name.charAt(0)}
                         </Typography>
-                        <StatTitle>Tamanho</StatTitle>
+                        <Stack
+                          direction='row'
+                          spacing={0.5}
+                          sx={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <StatTitle>Tamanho</StatTitle>
+                          {currentSheet.customSize !== undefined && (
+                            <ManualValueMarker title='Tamanho definido manualmente' />
+                          )}
+                        </Stack>
                       </Box>
                     </FancyBox>
-                    {currentSheet.customSize !== undefined && (
-                      <Tooltip title='Tamanho definido manualmente'>
-                        <Chip
-                          size='small'
-                          label='Manual'
-                          color='warning'
-                          sx={{ mt: 1, fontSize: '0.7rem' }}
-                        />
-                      </Tooltip>
-                    )}
                   </Box>
                 </Stack>
               </Card>
