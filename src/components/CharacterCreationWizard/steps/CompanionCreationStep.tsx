@@ -613,6 +613,10 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
                                   variant='outlined'
                                   sx={{
                                     cursor: 'pointer',
+                                    // MUI Card tem overflow:hidden, o que zera o
+                                    // min-height do flex item — sem isto os cards
+                                    // encolhem e somem dentro do container flex.
+                                    flexShrink: 0,
                                     borderColor: isSpellSelected
                                       ? 'primary.main'
                                       : 'divider',
