@@ -56,11 +56,7 @@ import {
 } from '@/functions/multiclass';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
-import { ClassAbility, ClassPower } from '@/interfaces/Class';
-import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
-import { RaceAbility } from '@/interfaces/Race';
 import { CompanionSheet } from '@/interfaces/Companion';
-import { CustomPower } from '@/interfaces/CustomPower';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
@@ -116,6 +112,11 @@ import {
   reconcileAnimalCompanionEffects,
 } from '@/premium/functions/animalCompanionEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
+import { SheetPower } from '@/functions/powers/powerOrigins';
+import {
+  updatePowerAcrossSheet,
+  PowerUserPatch,
+} from '@/functions/powers/updatePowerAcrossSheet';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import CharacterSheet, {
   DamageReduction,
@@ -780,63 +781,11 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
-  const handlePowerRollsUpdate = useCallback(
-    (
-      power:
-        | ClassPower
-        | RaceAbility
-        | ClassAbility
-        | OriginPower
-        | GeneralPower
-        | CustomPower,
-      newRolls: DiceRoll[]
-    ) => {
-      // Update in all possible power arrays
-      const updatedGeneralPowers = currentSheet.generalPowers?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-      const updatedClassPowers = currentSheet.classPowers?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-      const updatedOriginPowers = currentSheet.origin?.powers?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-      const updatedRaceAbilities = currentSheet.raca?.abilities?.map((a) =>
-        a.name === power.name ? { ...a, rolls: newRolls } : a
-      );
-      const updatedClassAbilities = currentSheet.classe?.abilities?.map((a) =>
-        a.name === power.name ? { ...a, rolls: newRolls } : a
-      );
-      const updatedDeityPowers = currentSheet.devoto?.poderes?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-      const updatedCustomPowers = currentSheet.customPowers?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-
-      const updatedSheet = {
-        ...currentSheet,
-        generalPowers: updatedGeneralPowers,
-        classPowers: updatedClassPowers,
-        customPowers: updatedCustomPowers,
-        origin:
-          currentSheet.origin && updatedOriginPowers
-            ? { ...currentSheet.origin, powers: updatedOriginPowers }
-            : currentSheet.origin,
-        raca:
-          currentSheet.raca && updatedRaceAbilities
-            ? { ...currentSheet.raca, abilities: updatedRaceAbilities }
-            : currentSheet.raca,
-        classe:
-          currentSheet.classe && updatedClassAbilities
-            ? { ...currentSheet.classe, abilities: updatedClassAbilities }
-            : currentSheet.classe,
-        devoto:
-          currentSheet.devoto && updatedDeityPowers
-            ? { ...currentSheet.devoto, poderes: updatedDeityPowers }
-            : currentSheet.devoto,
-      };
-
+  // Campos por-instância do poder (rolagens, efeitos, nome/texto customizados)
+  // são cosméticos: gravam direto na ficha, sem `recalculateSheet`.
+  const applyPowerPatch = useCallback(
+    (power: SheetPower, patch: PowerUserPatch) => {
+      const updatedSheet = updatePowerAcrossSheet(currentSheet, power, patch);
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -845,72 +794,25 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
-  const handlePowerCustomEffectsUpdate = useCallback(
-    (
-      power:
-        | ClassPower
-        | RaceAbility
-        | ClassAbility
-        | OriginPower
-        | GeneralPower
-        | CustomPower,
-      newEffects: CustomEffect[]
-    ) => {
-      const updatedGeneralPowers = currentSheet.generalPowers?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedClassPowers = currentSheet.classPowers?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedOriginPowers = currentSheet.origin?.powers?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedRaceAbilities = currentSheet.raca?.abilities?.map((a) =>
-        a.name === power.name ? { ...a, customEffects: newEffects } : a
-      );
-      const updatedClassAbilities = currentSheet.classe?.abilities?.map((a) =>
-        a.name === power.name ? { ...a, customEffects: newEffects } : a
-      );
-      const updatedDeityPowers = currentSheet.devoto?.poderes?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedCustomPowers = currentSheet.customPowers?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedCustomGrantedPowers = currentSheet.customGrantedPowers?.map(
-        (p) => (p.name === power.name ? { ...p, customEffects: newEffects } : p)
-      );
-
-      const updatedSheet = {
-        ...currentSheet,
-        generalPowers: updatedGeneralPowers,
-        classPowers: updatedClassPowers,
-        customPowers: updatedCustomPowers,
-        customGrantedPowers: updatedCustomGrantedPowers,
-        origin:
-          currentSheet.origin && updatedOriginPowers
-            ? { ...currentSheet.origin, powers: updatedOriginPowers }
-            : currentSheet.origin,
-        raca:
-          currentSheet.raca && updatedRaceAbilities
-            ? { ...currentSheet.raca, abilities: updatedRaceAbilities }
-            : currentSheet.raca,
-        classe:
-          currentSheet.classe && updatedClassAbilities
-            ? { ...currentSheet.classe, abilities: updatedClassAbilities }
-            : currentSheet.classe,
-        devoto:
-          currentSheet.devoto && updatedDeityPowers
-            ? { ...currentSheet.devoto, poderes: updatedDeityPowers }
-            : currentSheet.devoto,
-      };
-
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
-      }
+  const handlePowerRollsUpdate = useCallback(
+    (power: SheetPower, newRolls: DiceRoll[]) => {
+      applyPowerPatch(power, { rolls: newRolls });
     },
-    [currentSheet, onSheetUpdate]
+    [applyPowerPatch]
+  );
+
+  const handlePowerCustomEffectsUpdate = useCallback(
+    (power: SheetPower, newEffects: CustomEffect[]) => {
+      applyPowerPatch(power, { customEffects: newEffects });
+    },
+    [applyPowerPatch]
+  );
+
+  const handlePowerDisplayUpdate = useCallback(
+    (power: SheetPower, customName?: string, customDescription?: string) => {
+      applyPowerPatch(power, { customName, customDescription });
+    },
+    [applyPowerPatch]
   );
 
   const handlePVDecrement = useCallback(
@@ -2439,6 +2341,9 @@ const Result: React.FC<ResultProps> = (props) => {
                           onSheetUpdate
                             ? handlePowerCustomEffectsUpdate
                             : undefined
+                        }
+                        onUpdateDisplay={
+                          onSheetUpdate ? handlePowerDisplayUpdate : undefined
                         }
                         characterName={nome}
                         sheet={currentSheet}

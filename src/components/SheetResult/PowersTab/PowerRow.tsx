@@ -15,6 +15,7 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { PowerOriginKind, SheetPower } from '@/functions/powers/powerOrigins';
+import { getPowerDisplayName } from '@/functions/powers/powerText';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import PowerDetailBody from './PowerDetailBody';
 import {
@@ -46,6 +47,11 @@ export interface PowerRowProps {
     power: SheetPower,
     newEffects: CustomEffect[]
   ) => void;
+  onUpdateDisplay?: (
+    power: SheetPower,
+    customName?: string,
+    customDescription?: string
+  ) => void;
   detailExtra?: React.ReactNode;
 }
 
@@ -74,11 +80,12 @@ const PowerRow: React.FC<PowerRowProps> = ({
   className,
   onUpdateRolls,
   onUpdateCustomEffects,
+  onUpdateDisplay,
   detailExtra,
 }) => {
   const nameCell = (
     <>
-      <Typography sx={NAME_SX}>{power.name}</Typography>
+      <Typography sx={NAME_SX}>{getPowerDisplayName(power)}</Typography>
       {count > 1 && (
         <Chip label={`×${count}`} size='small' sx={COUNT_CHIP_SX} />
       )}
@@ -151,6 +158,7 @@ const PowerRow: React.FC<PowerRowProps> = ({
           className={className}
           onUpdateRolls={onUpdateRolls}
           onUpdateCustomEffects={onUpdateCustomEffects}
+          onUpdateDisplay={onUpdateDisplay}
           extra={detailExtra}
         />
       </AccordionDetails>

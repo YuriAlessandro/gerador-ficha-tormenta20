@@ -13,6 +13,7 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { PowerOriginKind, SheetPower } from '@/functions/powers/powerOrigins';
+import { getPowerDisplayName } from '@/functions/powers/powerText';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import PowerDetailBody from './PowerDetailBody';
 
@@ -30,6 +31,11 @@ export interface PowerDetailSheetProps {
   onUpdateCustomEffects?: (
     power: SheetPower,
     newEffects: CustomEffect[]
+  ) => void;
+  onUpdateDisplay?: (
+    power: SheetPower,
+    customName?: string,
+    customDescription?: string
   ) => void;
   detailExtra?: React.ReactNode;
 }
@@ -55,6 +61,7 @@ const PowerDetailSheet: React.FC<PowerDetailSheetProps> = ({
   className,
   onUpdateRolls,
   onUpdateCustomEffects,
+  onUpdateDisplay,
   detailExtra,
 }) => (
   <Drawer
@@ -85,7 +92,7 @@ const PowerDetailSheet: React.FC<PowerDetailSheetProps> = ({
         >
           <Box sx={{ minWidth: 0 }}>
             <Typography variant='h6' sx={{ overflowWrap: 'anywhere' }}>
-              {power.name}
+              {getPowerDisplayName(power)}
             </Typography>
             <Typography variant='caption' sx={{ color: 'text.secondary' }}>
               {originLabel}
@@ -106,6 +113,7 @@ const PowerDetailSheet: React.FC<PowerDetailSheetProps> = ({
           className={className}
           onUpdateRolls={onUpdateRolls}
           onUpdateCustomEffects={onUpdateCustomEffects}
+          onUpdateDisplay={onUpdateDisplay}
           extra={detailExtra}
         />
       </Box>
