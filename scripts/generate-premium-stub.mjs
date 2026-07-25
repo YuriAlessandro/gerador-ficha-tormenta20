@@ -121,7 +121,7 @@ const OVERRIDES = {
   resolveProfileFont: { expr: "() => 'inherit'" },
   // hooks: as chaves abaixo são as que o público desestrutura
   useDiceRoll: {
-    expr: '() => ({ showDiceResult: async () => {}, showAttackRoll: async () => {} })',
+    expr: '() => ({ showDiceResult: async () => {}, showAttackRoll: async () => {}, logExternalRoll: noop })',
   },
   useGameTable: {
     expr: '() => ({ tables: [], loading: false, fetchUserTables: async () => {} })',

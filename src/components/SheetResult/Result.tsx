@@ -73,7 +73,6 @@ import { useOptionalEncounter } from '@/premium/hooks/useOptionalEncounter';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ActiveEffectMarker,
-  PowerEffectOfferModal,
   ActiveEffectsCleanupModal,
   ActiveEffectsManagerModal,
   ActivePowerUseDialog,
@@ -82,8 +81,8 @@ import { ComplicationEditDrawer } from '@/premium/components/Complications';
 import { SupplementId } from '@/types/supplement.types';
 import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
 import socketService, {
-  type PowerEffectOfferPayload,
   type PowerEffectBonusPayload,
+  type RollAbilityMeta,
 } from '@/premium/services/socket.service';
 import {
   getActiveEffectHighlights,
@@ -112,6 +111,12 @@ import {
   reconcileAnimalCompanionEffects,
 } from '@/premium/functions/animalCompanionEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
+import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
+import {
+  buildEffectOffer,
+  buildSpellAbilityMeta,
+  truncateAbilityDescription,
+} from '@/functions/rollAbilityMeta';
 import { SheetPower } from '@/functions/powers/powerOrigins';
 import {
   updatePowerAcrossSheet,
@@ -266,10 +271,14 @@ const Result: React.FC<ResultProps> = (props) => {
     setActiveTab(newValue);
   };
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
-  const [pendingOffer, setPendingOffer] =
-    useState<PowerEffectOfferPayload | null>(null);
   const [spellEffectDef, setSpellEffectDef] =
     useState<ActivePowerDefinition | null>(null);
+  // Metadados da magia recém-lançada, guardados enquanto o diálogo de efeito
+  // ativo está aberto — o card do histórico só é publicado ao confirmar (ou
+  // ao fechar sem confirmar), já com a opção de uso escolhida.
+  const [pendingSpellAbility, setPendingSpellAbility] =
+    useState<RollAbilityMeta | null>(null);
+  const [pendingSpellCastLogged, setPendingSpellCastLogged] = useState(false);
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [effectsModalOpen, setEffectsModalOpen] = useState(false);
   const [levelUpWizardOpen, setLevelUpWizardOpen] = useState(false);
@@ -278,6 +287,7 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const theme = useTheme();
   const userSupplements = useContentSupplements();
+  const { logExternalRoll } = useDiceRoll();
   const { isSupporter } = useSubscription();
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
@@ -331,7 +341,14 @@ const Result: React.FC<ResultProps> = (props) => {
     (
       definition: ActivePowerDefinition,
       option: ActiveEffectUsageOption,
-      opts?: { skipPmCost?: boolean; skipBroadcast?: boolean }
+      opts?: {
+        skipPmCost?: boolean;
+        skipBroadcast?: boolean;
+        // Metadados prontos da habilidade (usado pelas magias, que já têm
+        // círculo/escola/PM apurados no lançamento). Sem isso, os dados saem
+        // da própria definição do poder.
+        abilityBase?: RollAbilityMeta;
+      }
     ) => {
       const effect: ActiveEffect = {
         instanceId: uuidv4(),
@@ -392,8 +409,27 @@ const Result: React.FC<ResultProps> = (props) => {
           characterName: currentSheet.nome,
         });
       }
+
+      // Card no histórico da mesa. É a segunda chance de quem perdeu o
+      // alerta: quem estava na aba do encontro, com a tela apagada ou longe
+      // do celular consegue ativar o efeito depois. Sem dados envolvidos, daí
+      // `logExternalRoll` (sem overlay 3D nem dialog de resultado).
+      // `skipPmCost` = adição manual pelo gerenciador de efeitos e
+      // `skipBroadcast` = recepção; nenhum dos dois é "uso" na mesa.
+      if (!opts?.skipPmCost && !opts?.skipBroadcast) {
+        logExternalRoll(definition.name, [], currentSheet.nome, {
+          ...(opts?.abilityBase ?? {
+            kind: 'power',
+            name: definition.name,
+            sourceLabel: definition.sourceLabel,
+            ...truncateAbilityDescription(definition.description),
+          }),
+          pmCost: option.pmCost > 0 ? option.pmCost : opts?.abilityBase?.pmCost,
+          effectOffer: buildEffectOffer(definition, option),
+        });
+      }
     },
-    [currentSheet, applyRecalculatedSheet]
+    [currentSheet, applyRecalculatedSheet, logExternalRoll]
   );
 
   const handleActiveEffectRemove = useCallback(
@@ -440,57 +476,10 @@ const Result: React.FC<ResultProps> = (props) => {
     if (effect) handleActiveEffectRemove(effect.instanceId);
   }, [currentSheet.activeEffects, handleActiveEffectRemove]);
 
-  const handleAcceptOffer = useCallback(() => {
-    if (!pendingOffer || !canUseActiveEffects) return;
-    const p = pendingOffer;
-    const effect: ActiveEffect = {
-      instanceId: uuidv4(),
-      powerKey: p.powerKey,
-      name: p.name,
-      sourceLabel: p.sourceLabel,
-      optionId: p.optionId,
-      optionLabel: p.optionLabel,
-      bonuses: p.bonuses as unknown as ActiveEffect['bonuses'],
-      grantsTempPM: p.grantsTempPM,
-      grantsTempPV: p.grantsTempPV,
-      appliedAt: new Date().toISOString(),
-      appliedBy: {
-        playerName: p.sourcePlayerName,
-        characterName: p.characterName,
-      },
-      fromTable: true,
-    };
-    const previous = (currentSheet.activeEffects ?? []).filter(
-      (e) => e.powerKey !== p.powerKey
-    );
-    const removedTempPM = (currentSheet.activeEffects ?? [])
-      .filter((e) => e.powerKey === p.powerKey)
-      .reduce((sum, e) => sum + (e.grantsTempPM ?? 0), 0);
-    const removedTempPV = (currentSheet.activeEffects ?? [])
-      .filter((e) => e.powerKey === p.powerKey)
-      .reduce((sum, e) => sum + (e.grantsTempPV ?? 0), 0);
-    // Aliado que aceita não paga PM
-    applyRecalculatedSheet({
-      ...currentSheet,
-      activeEffects: [...previous, effect],
-      tempPM: Math.max(
-        0,
-        (currentSheet.tempPM ?? 0) - removedTempPM + (p.grantsTempPM ?? 0)
-      ),
-      tempPV: Math.max(
-        0,
-        (currentSheet.tempPV ?? 0) - removedTempPV + (p.grantsTempPV ?? 0)
-      ),
-    });
-    setPendingOffer(null);
-  }, [pendingOffer, currentSheet, applyRecalculatedSheet, canUseActiveEffects]);
-
-  React.useEffect(() => {
-    const unsub = socketService.onPowerEffectOffered((payload) => {
-      setPendingOffer(payload);
-    });
-    return unsub;
-  }, []);
+  // As ofertas de efeito ativo recebidas da mesa NÃO são tratadas aqui: o
+  // listener e o modal vivem em `PowerEffectOfferAlerts`, montado uma única
+  // vez pelo `GameSessionPage`. Dentro da ficha eles morriam junto com ela
+  // quando o jogador ia pra aba "Encontro" no mobile.
 
   const handleCleanupRemove = useCallback(
     (ids: string[]) => {
@@ -881,7 +870,7 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const handleSpellCast = useCallback(
-    (pmSpent: number, spell: Spell) => {
+    (pmSpent: number, spell: Spell, castLogged?: boolean) => {
       const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
       const tempConsumed = Math.min(currentTemp, pmSpent);
@@ -917,11 +906,37 @@ const Result: React.FC<ResultProps> = (props) => {
             : undefined);
         if (def) {
           setSpellEffectDef(def);
+          // Guardado para enriquecer o card da ativação (círculo, escola, PM).
+          // `castLogged` diz se o diálogo de lançamento já publicou um card —
+          // se publicou, descartar o efeito não deve publicar outro igual.
+          setPendingSpellAbility(buildSpellAbilityMeta(spell, pmSpent));
+          setPendingSpellCastLogged(Boolean(castLogged));
         }
       }
     },
     [currentSheet, onSheetUpdate, canUseActiveEffects]
   );
+
+  // Fechar o diálogo de efeito sem confirmar não pode engolir o lançamento:
+  // publica o card da magia sem a oferta de efeito — a menos que o diálogo de
+  // lançamento já tenha publicado um (magia com dano).
+  const handleSpellEffectDismiss = useCallback(() => {
+    if (pendingSpellAbility && !pendingSpellCastLogged) {
+      logExternalRoll(
+        pendingSpellAbility.name,
+        [],
+        currentSheet.nome,
+        pendingSpellAbility
+      );
+    }
+    setSpellEffectDef(null);
+    setPendingSpellAbility(null);
+  }, [
+    pendingSpellAbility,
+    pendingSpellCastLogged,
+    currentSheet.nome,
+    logExternalRoll,
+  ]);
 
   const handleKeyAttributeChange = useCallback(
     (newAttr: Atributo) => {
@@ -1871,23 +1886,19 @@ const Result: React.FC<ResultProps> = (props) => {
                 </Stack>
               </Card>
 
-              <PowerEffectOfferModal
-                open={pendingOffer !== null && canUseActiveEffects}
-                payload={pendingOffer}
-                onAccept={handleAcceptOffer}
-                onDecline={() => setPendingOffer(null)}
-              />
-
               <ActivePowerUseDialog
                 open={spellEffectDef !== null && canUseActiveEffects}
                 definition={spellEffectDef}
                 sheet={currentSheet}
-                onClose={() => setSpellEffectDef(null)}
+                onClose={handleSpellEffectDismiss}
                 onConfirm={(option) => {
                   if (spellEffectDef) {
-                    handleActiveEffectActivate(spellEffectDef, option);
+                    handleActiveEffectActivate(spellEffectDef, option, {
+                      abilityBase: pendingSpellAbility ?? undefined,
+                    });
                   }
                   setSpellEffectDef(null);
+                  setPendingSpellAbility(null);
                 }}
               />
 

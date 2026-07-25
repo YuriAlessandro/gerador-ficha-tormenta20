@@ -4,7 +4,7 @@ import CasinoIcon from '@mui/icons-material/Casino';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { executeMultipleDiceRolls } from '@/utils/diceRoller';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
-import { RollGroup } from '../premium/services/socket.service';
+import { RollAbilityMeta, RollGroup } from '../premium/services/socket.service';
 
 interface RollButtonProps {
   rolls: DiceRoll[];
@@ -14,6 +14,12 @@ interface RollButtonProps {
   size?: 'small' | 'medium' | 'large';
   onRollComplete?: (results: RollGroup[]) => void;
   characterName?: string;
+  /**
+   * Poder/magia dono da rolagem. Vira o título do card no histórico da mesa
+   * (antes ele saía como "Dano" ou "Rolagem de Poder") e leva a descrição
+   * junto, para quem só vê o histórico entender o que aconteceu.
+   */
+  ability?: RollAbilityMeta;
 }
 
 const RollButton: React.FC<RollButtonProps> = ({
@@ -24,6 +30,7 @@ const RollButton: React.FC<RollButtonProps> = ({
   size = 'small',
   onRollComplete,
   characterName,
+  ability,
 }) => {
   const { showDiceResult } = useDiceRoll();
 
@@ -41,9 +48,10 @@ const RollButton: React.FC<RollButtonProps> = ({
 
     // Determine overall label
     const overallLabel =
-      rolls.length === 1 ? rolls[0].label : 'Rolagem de Poder';
+      ability?.name ??
+      (rolls.length === 1 ? rolls[0].label : 'Rolagem de Poder');
 
-    showDiceResult(overallLabel, rollGroups, characterName);
+    showDiceResult(overallLabel, rollGroups, characterName, ability);
 
     if (onRollComplete) {
       onRollComplete(rollGroups);

@@ -3,3 +3,4 @@
 
 export const getActiveWildShape = () => null;
 export const getWildShapeNaturalWeapons = () => [];
+export const isInWildShape = () => false;

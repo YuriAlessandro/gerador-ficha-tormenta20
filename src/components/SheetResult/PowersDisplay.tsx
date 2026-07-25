@@ -43,6 +43,7 @@ import {
   getPowerDisplayText,
   getPowerText,
 } from '@/functions/powers/powerText';
+import { buildPowerAbilityMeta } from '@/functions/rollAbilityMeta';
 import { reorderPowersWithinGroup } from '@/functions/powers/reorderPowersWithinGroup';
 import { normalizeSearch } from '@/functions/stringUtils';
 import { getActivePowerForSheetEntry } from '@/premium/data/activePowers';
@@ -435,6 +436,7 @@ const PowersDisplay: React.FC<{
     // ficava ANTES do nome, e era ele que deixava a borda esquerda irregular
     // (linhas sem rolagem precisavam de um espaçador de 28px para compensar).
     const powerRolls = 'rolls' in pw && pw.rolls ? pw.rolls : [];
+    const powerOrigin = origins.get(pw.name);
     const rollSlot =
       powerRolls.length > 0 ? (
         <RollButton
@@ -442,6 +444,10 @@ const PowersDisplay: React.FC<{
           iconOnly
           size='small'
           characterName={characterName}
+          ability={buildPowerAbilityMeta(
+            pw,
+            powerOrigin ? originLabel(powerOrigin) : undefined
+          )}
         />
       ) : null;
 
