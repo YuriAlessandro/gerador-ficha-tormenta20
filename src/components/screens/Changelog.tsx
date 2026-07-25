@@ -137,12 +137,15 @@ const Changelog: React.FC = () => {
                   <strong>Novo:</strong> Nas mesas, todo{' '}
                   <strong>uso de poder e lançamento de magia</strong> agora
                   entra no <strong>histórico de rolagens</strong> com o{' '}
-                  <strong>nome e a descrição</strong> — e não só os números. Se
-                  o poder ou a magia tiver um efeito ativo que beneficia
-                  aliados, o card traz um botão{' '}
-                  <strong>&quot;Ativar na minha ficha&quot;</strong>: quem
-                  estava na aba do encontro, com o celular bloqueado ou longe da
-                  mesa pode ativar o efeito depois, no seu tempo. Quando o
+                  <strong>nome e a descrição</strong> — e não só os números.
+                  Quando o poder ou a magia tem <strong>efeito ativo</strong>, o
+                  card traz um botão{' '}
+                  <strong>&quot;Ativar na minha ficha&quot;</strong>: dá para{' '}
+                  <strong>reativar o seu próprio efeito</strong> direto do
+                  histórico, sem caçar o poder na ficha, e para{' '}
+                  <strong>pegar o efeito que um colega usou</strong> quando ele
+                  beneficia aliados — mesmo que você estivesse na aba do
+                  encontro, com o celular bloqueado ou longe da mesa. Quando o
                   efeito já está na sua ficha, o card mostra{' '}
                   <strong>&quot;Ativo&quot;</strong> no lugar do botão. Magias
                   sem dano, que antes não apareciam em lugar nenhum apesar de
