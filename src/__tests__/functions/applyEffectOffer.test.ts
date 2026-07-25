@@ -83,8 +83,20 @@ describe('applyEffectOfferToSheet', () => {
     expect(applied[0].powerKey).toBe('bardo:inspiracao');
     expect(applied[0].instanceId).toBe('instance-1');
     expect(applied[0].fromTable).toBe(true);
+    expect(applied[0].appliedManually).toBeUndefined();
     expect(applied[0].appliedBy?.characterName).toBe('Lyra');
     // Quem paga o PM é quem usou o poder.
+    expect(result.currentPM).toBe(sheet.currentPM);
+  });
+
+  it('reativar pelo próprio card marca como manual, não como vindo da mesa', () => {
+    const sheet = createSheet();
+    const result = applyEffectOfferToSheet(sheet, offer, 'instance-1', 'self');
+
+    const applied = result.activeEffects ?? [];
+    expect(applied[0].appliedManually).toBe(true);
+    expect(applied[0].fromTable).toBeUndefined();
+    // O PM já saiu na ativação original.
     expect(result.currentPM).toBe(sheet.currentPM);
   });
 
