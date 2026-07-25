@@ -120,6 +120,32 @@ const Changelog: React.FC = () => {
                   próprio calendário, com os <em>Dias de Nimb</em> marcados.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>rastreador de combate</strong> das mesas ganhou um
+                  visual novo: cada combatente mostra a{' '}
+                  <strong>iniciativa numa faixa lateral</strong>, com o{' '}
+                  <strong>turno atual</strong> em destaque e a cor do jogador ao
+                  lado, além de <strong>botões rápidos de dano e cura</strong>{' '}
+                  no próprio card. E quando o Mestre ajusta o{' '}
+                  <strong>PV ou PM de um jogador</strong> pelo rastreador, o
+                  valor agora é <strong>salvo na ficha</strong> dele (antes
+                  podia voltar sozinho ao valor anterior).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na mesa virtual (no computador), o{' '}
+                  <strong>Mestre</strong> agora abre o <strong>Mapa</strong> e o{' '}
+                  <strong>Calendário de Arton</strong> pelo{' '}
+                  <strong>menu lateral da esquerda</strong>, junto das outras
+                  ferramentas do Mestre, deixando o topo da tela mais limpo. Os
+                  jogadores continuam com os botões no canto superior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No <strong>Calendário</strong> da
+                  mesa, a animação de sorteio dos <strong>Dias de Nimb</strong>{' '}
+                  repetia toda vez que você abria o calendário. Agora ela
+                  aparece só uma vez, quando o Mestre inicia o calendário.
+                </li>
+                <li>
                   <strong>Correção:</strong> O assistente de{' '}
                   <strong>subir de nível</strong> quebrava (tela de erro) em
                   fichas cuja classe vinha de um suplemento que você desativou
