@@ -181,6 +181,21 @@ const Changelog: React.FC = () => {
                   jogadores continuam com os botões no canto superior.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> Nas{' '}
+                  <strong>Configurações da Mesa</strong>, ficou claro o que os
+                  jogadores veem e o que só o Mestre vê. As opções agora estão
+                  separadas em dois blocos —{' '}
+                  <strong>“O que os jogadores veem”</strong> e{' '}
+                  <strong>“Só você (mestre) vê”</strong> — e a configuração de
+                  PV e PM ganhou uma <strong>prévia ao vivo</strong>, que mostra
+                  na hora como cada combatente aparece para os jogadores, tanto
+                  na lista de combate do celular quanto no painel de ordem de
+                  turno do computador (que são telas diferentes). Tem também o
+                  botão <strong>“Ver como jogador”</strong>, que abre uma
+                  simulação da tela do jogador com combatentes de exemplo, para
+                  você conferir tudo antes de salvar.
+                </li>
+                <li>
                   <strong>Correção:</strong> No celular, quando um colega de
                   mesa usava um poder com{' '}
                   <strong>efeito ativo que beneficia aliados</strong>, o convite
@@ -302,6 +317,17 @@ const Changelog: React.FC = () => {
                   <strong>se reorganizar na hora</strong> ao girar o aparelho —
                   antes, fora da mesa virtual, ela continuava com o formato da
                   posição anterior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na configuração de{' '}
+                  <strong>exibição de PV e PM aos jogadores</strong>, o texto
+                  dizia o contrário do que o sistema fazia: avisava que, sem
+                  nenhuma opção marcada, os jogadores veriam tudo normalmente —
+                  quando, na verdade, eles não veem PV nem PM de{' '}
+                  <strong>ninguém</strong> (nem dos próprios personagens). Os
+                  rótulos e avisos foram corrigidos — agora o campo se chama{' '}
+                  <strong>“Mostrar PV/PM de”</strong> —, sem alterar o
+                  comportamento das mesas já configuradas.
                 </li>
               </ul>
 
