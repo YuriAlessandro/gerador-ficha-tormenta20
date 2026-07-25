@@ -196,6 +196,29 @@ const Changelog: React.FC = () => {
                   você conferir tudo antes de salvar.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> A marca de{' '}
+                  <strong>valor definido manualmente</strong> — que aparece
+                  quando você edita o PV/PM máximo, o Deslocamento ou o Tamanho
+                  na mão — deixou de ser uma etiqueta laranja grande e virou um{' '}
+                  <strong>ícone discreto ao lado do próprio valor</strong>.
+                  Continua claro que aquele número foi você quem escolheu (é só
+                  passar o mouse ou segurar o dedo em cima para ver a
+                  explicação), mas sem roubar a atenção da ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, os controles de{' '}
+                  <strong>PV e PM</strong> ficavam{' '}
+                  <strong>cortados pelas bordas da tela</strong>: o campo de
+                  valor do PV sumia para fora à esquerda (sem nem dar para rolar
+                  até ele) e o botão <strong>Curar</strong> do PM ficava pela
+                  metade à direita. Os dois controles foram reorganizados: o
+                  círculo ficou um pouco menor, o campo de valor subiu para cima
+                  dos botões <strong>Dano</strong> e <strong>Curar</strong>, e o
+                  lápis de edição foi para o lado do <strong>“PV 24/30”</strong>
+                  . Agora tudo cabe na tela, mesmo nos celulares mais estreitos.
+                  No computador nada muda.
+                </li>
+                <li>
                   <strong>Correção:</strong> No celular, quando um colega de
                   mesa usava um poder com{' '}
                   <strong>efeito ativo que beneficia aliados</strong>, o convite
