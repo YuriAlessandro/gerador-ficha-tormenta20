@@ -134,6 +134,21 @@ const Changelog: React.FC = () => {
                   simplificada e no PDF.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Nas mesas, todo{' '}
+                  <strong>uso de poder e lançamento de magia</strong> agora
+                  entra no <strong>histórico de rolagens</strong> com o{' '}
+                  <strong>nome e a descrição</strong> — e não só os números. Se
+                  o poder ou a magia tiver um efeito ativo que beneficia
+                  aliados, o card traz um botão{' '}
+                  <strong>&quot;Ativar na minha ficha&quot;</strong>: quem
+                  estava na aba do encontro, com o celular bloqueado ou longe da
+                  mesa pode ativar o efeito depois, no seu tempo. Quando o
+                  efeito já está na sua ficha, o card mostra{' '}
+                  <strong>&quot;Ativo&quot;</strong> no lugar do botão. Magias
+                  sem dano, que antes não apareciam em lugar nenhum apesar de
+                  custar PM, agora também deixam registro.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> A{' '}
                   <strong>reordenação de poderes</strong> voltou a funcionar
                   depois que a aba passou a agrupar os poderes por origem: agora
@@ -161,6 +176,18 @@ const Changelog: React.FC = () => {
                   <strong>menu lateral da esquerda</strong>, junto das outras
                   ferramentas do Mestre, deixando o topo da tela mais limpo. Os
                   jogadores continuam com os botões no canto superior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, quando um colega de
+                  mesa usava um poder com{' '}
+                  <strong>efeito ativo que beneficia aliados</strong>, o convite
+                  para ativar o efeito <strong>não chegava</strong> a quem
+                  estava na aba <strong>Encontro</strong> — e não era só uma
+                  questão de estar escondido: o convite se perdia, e nem
+                  voltando para a ficha ele aparecia. O mesmo acontecia com o
+                  Mestre quando ele não estava na aba de fichas. Agora o convite
+                  chega em qualquer aba, e vários convites seguidos entram em
+                  fila em vez de um apagar o outro.
                 </li>
                 <li>
                   <strong>Correção:</strong> As{' '}
