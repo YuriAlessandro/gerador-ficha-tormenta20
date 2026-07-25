@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            24/07/2026 (v4.27).
+            25/07/2026 (v4.27).
           </p>
 
           <p>
@@ -218,6 +218,30 @@ const Changelog: React.FC = () => {
                   gerais e vêm dos suplementos ativos. Agora eles aparecem no
                   seletor, mostrando apenas os poderes da raça do seu
                   personagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na ficha, a aba{' '}
+                  <strong>Equipamentos</strong> vazava para fora do quadro em
+                  telas mais estreitas — num tablet em pé, por exemplo, as
+                  colunas das armas (dano, crítico, tipo, alcance) escapavam por
+                  baixo da lista de perícias ao lado. Agora, quando o espaço não
+                  dá para a tabela inteira, os itens aparecem em{' '}
+                  <strong>cartões</strong>, com os dados em etiquetas embaixo do
+                  nome — o mesmo formato já usado no celular. A escolha passou a
+                  levar em conta o espaço real disponível, e não só o tamanho da
+                  tela, então também vale para a ficha dentro da mesa virtual e
+                  na tela do Mestre.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao{' '}
+                  <strong>girar o tablet ou o celular</strong>, a ficha voltava
+                  sozinha para a primeira aba: se você estava em Equipamentos ou
+                  Magias, caía em Ataques e precisava se achar de novo. Agora a{' '}
+                  <strong>aba aberta é mantida</strong> ao virar a tela. De
+                  quebra, a ficha passou a{' '}
+                  <strong>se reorganizar na hora</strong> ao girar o aparelho —
+                  antes, fora da mesa virtual, ela continuava com o formato da
+                  posição anterior.
                 </li>
               </ul>
 
