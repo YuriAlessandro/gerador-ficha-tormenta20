@@ -19,6 +19,7 @@ import {
   Tab,
   Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
   IconButton,
   Accordion,
@@ -140,6 +141,11 @@ import CompanionCreationDialog from './CompanionCreationDialog';
 import CompanionEditDialog from './CompanionEditDialog';
 import EquipmentTable from './EquipmentTable';
 import CarryLoadSummary from './CarryLoadSummary';
+import {
+  SheetTabValue,
+  getRememberedSheetTab,
+  rememberSheetTab,
+} from './sheetTabMemory';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
@@ -224,13 +230,8 @@ interface ResultProps {
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
 }
 
-type SheetTabValue =
-  | 'pericias'
-  | 'ataques'
-  | 'defesa'
-  | 'poderes'
-  | 'magias'
-  | 'equipamentos';
+/** Mesmo corte de sempre (768px), só que consultado ao vivo. */
+const MOBILE_MEDIA_QUERY = '(max-width:768px)';
 
 const Result: React.FC<ResultProps> = (props) => {
   const { sheet, isDarkMode, onSheetUpdate } = props;
@@ -254,8 +255,10 @@ const Result: React.FC<ResultProps> = (props) => {
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState<SheetTabValue>(() =>
-    window.innerWidth <= 768 ? 'pericias' : 'ataques'
+  const [activeTab, setActiveTab] = useState<SheetTabValue>(
+    () =>
+      getRememberedSheetTab(sheet.id) ??
+      (window.innerWidth <= 768 ? 'pericias' : 'ataques')
   );
 
   const onChangeTab = (_e: React.SyntheticEvent, newValue: SheetTabValue) => {
@@ -583,6 +586,14 @@ const Result: React.FC<ResultProps> = (props) => {
   React.useEffect(() => {
     setCurrentSheet(sheet);
   }, [sheet]);
+
+  // A aba visível é gravada aqui, e não no onChange, para cobrir também a troca
+  // de ficha NO LUGAR (o mestre alternando entre jogadores): o valor que está
+  // na tela passa a valer para a ficha nova, então um giro depois disso
+  // restaura o que o usuário estava vendo, não uma entrada antiga.
+  React.useEffect(() => {
+    rememberSheetTab(currentSheet.id, activeTab);
+  }, [currentSheet.id, activeTab]);
 
   // Close all edit drawers when editing capability is lost (e.g. socket disconnect)
   React.useEffect(() => {
@@ -1634,7 +1645,10 @@ const Result: React.FC<ResultProps> = (props) => {
     );
   });
 
-  const isMobile = useMemo(() => window.innerWidth <= 768, []);
+  // Ao vivo, não congelado no mount: a mesa virtual só parecia responsiva
+  // porque o pai remontava o Result ao girar o tablet. Onde não há remount
+  // (SheetViewPage, MainScreen) a ficha ficava presa no layout antigo.
+  const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY, { noSsr: true });
 
   // No desktop Perícias vive na coluna da direita, não nas abas
   const activeSheetTab: SheetTabValue =
@@ -1673,6 +1687,11 @@ const Result: React.FC<ResultProps> = (props) => {
             <Box
               sx={{
                 width: isMobile ? '100%' : '60%',
+                // Item de flex tem `min-width: auto`: sem isto a coluna se
+                // recusa a encolher abaixo do min-content e conteúdo largo
+                // (a tabela de equipamentos) estoura por cima da coluna ao
+                // lado em vez de se conter.
+                minWidth: 0,
               }}
             >
               {/* PARTE DE CIMA: Informações da ficha */}
@@ -2838,6 +2857,7 @@ const Result: React.FC<ResultProps> = (props) => {
               <Box
                 sx={{
                   width: '40%',
+                  minWidth: 0,
                 }}
               >
                 <Stack spacing={4}>

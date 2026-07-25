@@ -1,16 +1,14 @@
 import React, { useMemo } from 'react';
-import {
-  Box,
-  Typography,
-  Chip,
-  Tooltip,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, Typography, Chip, Tooltip } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Equipment, { equipGroup } from '@/interfaces/Equipment';
 import { getItemSpaces } from '@/interfaces/Bag';
-import { getStatsForGroup } from '@/functions/equipmentStats';
+import {
+  EquipmentStat,
+  getStatsForGroup,
+  statTrack,
+} from '@/functions/equipmentStats';
+import { useContainerWidth } from '@/hooks/useContainerWidth';
 import { getSupplementInitials } from '@/functions/equipmentDisplay';
 import RollButton from '../RollButton';
 import { CATEGORY_ORDER, itemTypeStyles } from './BackpackModal/itemTypeStyles';
@@ -67,6 +65,27 @@ const NAME_LINE_SX = {
   flexWrap: 'wrap',
   minWidth: 0,
 } as const;
+
+/** Trilhas fixas da tabela: o nome à esquerda e "Esp." à direita. */
+const NAME_COL_MIN = 140;
+const NAME_COL_TRACK = `minmax(${NAME_COL_MIN}px, 2fr)`;
+const SPACES_COL_MIN = 56;
+const SPACES_COL_TRACK = `minmax(${SPACES_COL_MIN}px, 72px)`;
+/** ROW_SX usa `gap: 1` e `px: 1` — 8px por vão, 16px de padding horizontal. */
+const ROW_GAP_PX = 8;
+const ROW_PADDING_PX = 16;
+
+/**
+ * Largura mínima que a tabela deste grupo ocupa. Abaixo disso a linha VAZA do
+ * container, porque trilha `minmax(Npx, ...)` não encolhe abaixo de N — é esse
+ * número que decide entre a tabela e os cards.
+ */
+export const getGroupMinWidth = (stats: EquipmentStat[]): number =>
+  NAME_COL_MIN +
+  stats.reduce((acc, stat) => acc + stat.minWidth, 0) +
+  SPACES_COL_MIN +
+  (stats.length + 1) * ROW_GAP_PX +
+  ROW_PADDING_PX;
 
 const SPACES_CELL_SX = { fontWeight: 700, textAlign: 'right' } as const;
 const MUTED_CELL_SX = { color: 'text.disabled' } as const;
@@ -213,8 +232,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
   items,
   characterName,
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
 
   // A ordem manual da Mochila é preservada DENTRO de cada categoria; as
   // categorias seguem a ordem canônica usada no resto do app.
@@ -236,6 +254,24 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
     });
   }, [items]);
 
+  // O modo é decidido pela largura REAL do container, não pelo viewport: na
+  // ficha esta tabela mora numa coluna de 60%, então um iPad em pé tem ~360px
+  // úteis — largura de celular, viewport de tablet. A decisão é única para a
+  // aba inteira (o maior mínimo entre os grupos) para não misturar tabela e
+  // cards na mesma tela.
+  const requiredWidth = useMemo(
+    () =>
+      groups.reduce(
+        (acc, { group }) =>
+          Math.max(acc, getGroupMinWidth(getStatsForGroup(group))),
+        0
+      ),
+    [groups]
+  );
+  // `0` = ainda não medido; assume a tabela. O layout effect mede antes do
+  // paint, então esse render não chega à tela.
+  const compact = containerWidth > 0 && containerWidth < requiredWidth;
+
   if (groups.length === 0) {
     return (
       <Typography variant='body2' sx={EMPTY_SX}>
@@ -245,15 +281,18 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
   }
 
   return (
-    <Box>
+    // `overflowX` é a barreira de contenção: mesmo num container mais estreito
+    // que os cards, o conteúdo rola aqui dentro em vez de vazar por cima da
+    // coluna vizinha (o Card da ficha é `overflow: visible` de propósito).
+    <Box ref={containerRef} sx={{ minWidth: 0, overflowX: 'auto' }}>
       {groups.map(({ group, items: groupItems, spaces }) => {
         const stats = getStatsForGroup(group);
         const style = itemTypeStyles[group];
         const Icon = style?.icon;
         const gridTemplate = [
-          'minmax(140px, 2fr)',
-          ...stats.map((stat) => stat.width),
-          'minmax(56px, 72px)',
+          NAME_COL_TRACK,
+          ...stats.map(statTrack),
+          SPACES_COL_TRACK,
         ].join(' ');
 
         return (
@@ -274,7 +313,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
               </Typography>
             </Box>
 
-            {!isMobile && (
+            {!compact && (
               <Box
                 sx={{
                   ...ROW_SX,
@@ -310,7 +349,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
                 item={item}
                 stats={stats}
                 gridTemplate={gridTemplate}
-                compact={isMobile}
+                compact={compact}
                 characterName={characterName}
               />
             ))}
