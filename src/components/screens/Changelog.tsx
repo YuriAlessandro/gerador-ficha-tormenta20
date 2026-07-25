@@ -120,6 +120,29 @@ const Changelog: React.FC = () => {
                   próprio calendário, com os <em>Dias de Nimb</em> marcados.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Agora dá para{' '}
+                  <strong>
+                    personalizar o nome e o texto de qualquer poder da ficha
+                  </strong>
+                  . Abra o poder, clique na engrenagem e vá na aba{' '}
+                  <strong>Exibição</strong>: o texto já vem preenchido com o do
+                  livro, e você edita à vontade para anotar em que nível pegou o
+                  poder, um acordo com o mestre ou uma variação da regra. O nome
+                  original continua valendo para pré-requisitos, rolagens e
+                  busca — e o botão <strong>Restaurar padrão</strong> devolve
+                  tudo como era. As suas mudanças aparecem também na ficha
+                  simplificada e no PDF.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A{' '}
+                  <strong>reordenação de poderes</strong> voltou a funcionar
+                  depois que a aba passou a agrupar os poderes por origem: agora
+                  você arrasta <strong>dentro de cada grupo</strong> e a ordem é
+                  respeitada de verdade (antes ela era salva e descartada assim
+                  que você concluía). O modo reordenar mostra os grupos, e o
+                  botão só aparece quando há algo para reordenar.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O{' '}
                   <strong>rastreador de combate</strong> das mesas ganhou um
                   visual novo: cada combatente mostra a{' '}
@@ -138,6 +161,13 @@ const Changelog: React.FC = () => {
                   <strong>menu lateral da esquerda</strong>, junto das outras
                   ferramentas do Mestre, deixando o topo da tela mais limpo. Os
                   jogadores continuam com os botões no canto superior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>rolagens e os efeitos customizados</strong> que você
+                  configurava numa <strong>habilidade de classe</strong> sumiam
+                  ao <strong>subir de nível</strong>. Agora eles sobrevivem ao
+                  level-up, manual ou pelo assistente.
                 </li>
                 <li>
                   <strong>Correção:</strong> No <strong>Calendário</strong> da
