@@ -30,8 +30,7 @@ import {
   getCompanionTrickDefinition,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import { allArcaneSpellsCircle1 } from '@/data/systems/tormenta20/magias/arcane';
-import { allDivineSpellsCircle1 } from '@/data/systems/tormenta20/magias/divine';
+import { getInnateSpellOptions } from '@/data/systems/tormenta20/herois-de-arton/companion/innateSpells';
 
 const COMPANION_ATTRIBUTE_OPTIONS = [
   Atributo.FORCA,
@@ -83,16 +82,11 @@ const CompanionTrickSelectionStep: React.FC<
     [trainerLevel, companion.companionType, companion.size, companion.tricks]
   );
 
-  // Combina arcanas + divinas de 1º círculo, removendo duplicatas (mesmo nome)
-  const innateSpellOptions: Spell[] = useMemo(() => {
-    const byName = new Map<string, Spell>();
-    [...allArcaneSpellsCircle1, ...allDivineSpellsCircle1].forEach((spell) => {
-      if (!byName.has(spell.nome)) byName.set(spell.nome, spell);
-    });
-    return Array.from(byName.values()).sort((a, b) =>
-      a.nome.localeCompare(b.nome)
-    );
-  }, []);
+  // Magias de 1º círculo (arcanas + divinas), fonte compartilhada
+  const innateSpellOptions: Spell[] = useMemo(
+    () => getInnateSpellOptions(),
+    []
+  );
 
   const filteredInnateSpells = useMemo(() => {
     if (!spellSearch) return innateSpellOptions;
@@ -382,6 +376,10 @@ const CompanionTrickSelectionStep: React.FC<
                             variant='outlined'
                             sx={{
                               cursor: 'pointer',
+                              // MUI Card tem overflow:hidden, o que zera o
+                              // min-height do flex item — sem isto os cards
+                              // encolhem e somem dentro do container flex.
+                              flexShrink: 0,
                               borderColor: isSpellSelected
                                 ? 'primary.main'
                                 : 'divider',

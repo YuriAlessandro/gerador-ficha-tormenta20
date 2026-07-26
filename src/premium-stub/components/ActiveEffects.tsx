@@ -6,4 +6,3 @@ export const ActiveEffectMarker = NullComponent;
 export const ActiveEffectsCleanupModal = NullComponent;
 export const ActiveEffectsManagerModal = NullComponent;
 export const ActivePowerUseDialog = NullComponent;
-export const PowerEffectOfferModal = NullComponent;

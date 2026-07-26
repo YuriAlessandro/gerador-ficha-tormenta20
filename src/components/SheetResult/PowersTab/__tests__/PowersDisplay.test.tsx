@@ -211,7 +211,7 @@ describe('PowersDisplay em modo reordenar', () => {
     onSheetUpdate: () => undefined,
   };
 
-  it('achata a lista: some agrupamento, busca e filtros', () => {
+  it('mantém os grupos e esconde busca e filtros', () => {
     renderPowers(reorderProps);
 
     // Com busca ativa e um filtro aplicado...
@@ -222,15 +222,43 @@ describe('PowersDisplay em modo reordenar', () => {
 
     fireEvent.click(screen.getByLabelText('Reordenar poderes'));
 
-    // ...entrar em reordenar devolve a lista inteira e plana. O Droppable
-    // PRECISA receber todos os poderes: `powersOrder` é uma lista plana e
-    // arrastar dentro de um subconjunto corromperia os índices.
+    // ...entrar em reordenar devolve a lista inteira, ainda AGRUPADA: arrastar
+    // é confinado ao grupo, então o usuário precisa ver as fronteiras.
     expect(
       screen.queryByPlaceholderText('Buscar poder...')
     ).not.toBeInTheDocument();
-    expect(screen.queryByText('Poder de Arcanista')).not.toBeInTheDocument();
+    expect(screen.getByText('Poder de Arcanista')).toBeInTheDocument();
     expect(screen.getByText('Abraço Gélido')).toBeInTheDocument();
     expect(screen.getByText('Raio Arcano')).toBeInTheDocument();
+  });
+
+  it('cria um Droppable por grupo, e não um só para a lista toda', () => {
+    renderPowers(reorderProps);
+    fireEvent.click(screen.getByLabelText('Reordenar poderes'));
+
+    const droppableIds = Array.from(
+      document.querySelectorAll('[data-rbd-droppable-id]')
+    ).map((el) => el.getAttribute('data-rbd-droppable-id'));
+
+    // Poderes de classe, habilidades de raça, habilidades de classe e os dois
+    // tipos de poder geral — cada um no seu Droppable.
+    expect(droppableIds).toHaveLength(5);
+    expect(new Set(droppableIds).size).toBe(5);
+    expect(droppableIds).not.toContain('powers-list');
+  });
+
+  it('não oferece reordenar quando todo grupo tem um poder só', () => {
+    renderPowers({
+      ...reorderProps,
+      classPowers: [classPowers[0]],
+      raceAbilities: [raceAbilities[0]],
+      classAbilities,
+      generalPowers: [generalPowers[0]],
+    });
+
+    expect(
+      screen.queryByLabelText('Reordenar poderes')
+    ).not.toBeInTheDocument();
   });
 
   it('volta ao agrupamento ao concluir', () => {
@@ -241,6 +269,38 @@ describe('PowersDisplay em modo reordenar', () => {
 
     expect(screen.getByPlaceholderText('Buscar poder...')).toBeInTheDocument();
     expect(screen.getByText('Poder de Arcanista')).toBeInTheDocument();
+  });
+});
+
+describe('PowersDisplay com nome/texto customizados', () => {
+  it('mostra o nome customizado na linha, mas acha pelo nome do livro', () => {
+    renderPowers({
+      classPowers: [
+        {
+          ...classPowers[0],
+          customName: 'Raio do Mestre',
+          customDescription: 'Ganhei no nível 6, depois da quest do porto.',
+        },
+        classPowers[1],
+      ],
+    });
+
+    expect(screen.getByText('Raio do Mestre')).toBeInTheDocument();
+    expect(screen.queryByText('Raio Arcano')).not.toBeInTheDocument();
+
+    const search = screen.getByPlaceholderText('Buscar poder...');
+
+    // Nome customizado casa...
+    fireEvent.change(search, { target: { value: 'mestre' } });
+    expect(screen.getByText('Raio do Mestre')).toBeInTheDocument();
+
+    // ...e o nome canônico continua casando: quem renomeou não perde o poder.
+    fireEvent.change(search, { target: { value: 'Raio Arcano' } });
+    expect(screen.getByText('Raio do Mestre')).toBeInTheDocument();
+
+    // O texto original também continua na busca.
+    fireEvent.change(search, { target: { value: 'energia arcana' } });
+    expect(screen.getByText('Raio do Mestre')).toBeInTheDocument();
   });
 });
 

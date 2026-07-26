@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import HotelIcon from '@mui/icons-material/Hotel';
 import EditIcon from '@mui/icons-material/Edit';
+import ManualValueMarker from './ManualValueMarker';
 
 interface StatControlProps {
   type: 'PV' | 'PM';
@@ -24,6 +25,15 @@ interface StatControlProps {
   onHeal: (amount: number) => void;
   onOpenDrawer?: () => void;
   disabled?: boolean;
+  /**
+   * Layout enxuto para telas estreitas: círculo menor e os controles em duas
+   * linhas (input em cima, Dano/Curar embaixo). Lado a lado, os dois stats no
+   * layout largo pedem ~408px de min-content — mais que a largura útil de um
+   * celular, e o transbordo de um flex centralizado corta os dois lados.
+   */
+  compact?: boolean;
+  /** Exibe a marca discreta de máximo definido manualmente. */
+  isManualMax?: boolean;
 }
 
 const StatControl: React.FC<StatControlProps> = ({
@@ -36,8 +46,12 @@ const StatControl: React.FC<StatControlProps> = ({
   onHeal,
   onOpenDrawer,
   disabled = false,
+  compact = false,
+  isManualMax = false,
 }) => {
   const theme = useTheme();
+
+  const circleSize = compact ? 84 : 100;
 
   const hasTemp = temp > 0;
 
@@ -196,8 +210,8 @@ const StatControl: React.FC<StatControlProps> = ({
           sx={{
             position: 'relative',
             display: 'inline-flex',
-            width: 100,
-            height: 100,
+            width: circleSize,
+            height: circleSize,
             cursor: disabled || !onOpenDrawer ? 'default' : 'pointer',
             borderRadius: '50%',
             transition: 'transform 120ms ease, box-shadow 120ms ease',
@@ -217,7 +231,7 @@ const StatControl: React.FC<StatControlProps> = ({
           <CircularProgress
             variant='determinate'
             value={100}
-            size={100}
+            size={circleSize}
             thickness={4}
             sx={{
               position: 'absolute',
@@ -227,7 +241,7 @@ const StatControl: React.FC<StatControlProps> = ({
           <CircularProgress
             variant='determinate'
             value={percentage}
-            size={100}
+            size={circleSize}
             thickness={4}
             sx={{
               color,
@@ -257,13 +271,15 @@ const StatControl: React.FC<StatControlProps> = ({
             }}
           >
             {isDead ? (
-              <Typography sx={{ fontSize: '40px', lineHeight: 1 }}>
+              <Typography
+                sx={{ fontSize: compact ? '34px' : '40px', lineHeight: 1 }}
+              >
                 💀
               </Typography>
             ) : (
               <>
                 <Typography
-                  variant='h4'
+                  variant={compact ? 'h5' : 'h4'}
                   component='div'
                   sx={{
                     fontFamily: 'Tfont',
@@ -311,7 +327,26 @@ const StatControl: React.FC<StatControlProps> = ({
           }}
         >
           {type} {current}/{max}
+          {isManualMax && (
+            <ManualValueMarker title='Máximo definido manualmente. Cálculo automático desativado.' />
+          )}
         </Typography>
+        {/*
+         * No compacto o lápis vem para cá: o círculo já abre o drawer ao ser
+         * tocado, e cada botão a menos na linha de controles são ~36px que
+         * faltavam para os dois stats caberem lado a lado no celular.
+         */}
+        {compact && onOpenDrawer && (
+          <IconButton
+            size='small'
+            onClick={onOpenDrawer}
+            disabled={disabled}
+            aria-label={`Abrir edição completa de ${type}`}
+            sx={{ width: 24, height: 24 }}
+          >
+            <EditIcon sx={{ fontSize: 14 }} />
+          </IconButton>
+        )}
       </Stack>
       {/* Status chips */}
       {hasTemp && (
@@ -347,12 +382,17 @@ const StatControl: React.FC<StatControlProps> = ({
           }}
         />
       )}
-      {/* Amount input + Dano/Curar */}
-      <Stack
-        direction='row'
-        spacing={0.5}
+      {/*
+       * Amount input + Dano/Curar. Box com `gap` em vez de Stack porque a Stack
+       * do MUI v9 espaça por `margin-left` (useFlexGap desligado por padrão),
+       * que não sobrevive à troca de direção do compacto.
+       */}
+      <Box
         sx={{
+          display: 'flex',
+          flexDirection: compact ? 'column' : 'row',
           alignItems: 'center',
+          gap: 0.5,
           mt: 0.5,
         }}
       >
@@ -378,63 +418,68 @@ const StatControl: React.FC<StatControlProps> = ({
                 padding: '6px 4px',
                 fontSize: '13px',
                 fontWeight: 600,
-                width: 44,
+                // Largura em px (nunca %): porcentagem vira `auto` no cálculo
+                // intrínseco e o input voltaria ao tamanho padrão (~177px),
+                // esticando a coluna e recriando o transbordo no celular.
+                width: compact ? 64 : 44,
               },
               'aria-label': `Valor de dano ou cura para ${type}`,
             },
           }}
         />
-        <Button
-          size='small'
-          variant='contained'
-          color='error'
-          onClick={handleApplyDamage}
-          disabled={disabled || !isAmountValid}
-          sx={{
-            minWidth: 0,
-            height: 32,
-            px: 1.2,
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            textTransform: 'none',
-          }}
-        >
-          Dano
-        </Button>
-        <Button
-          size='small'
-          variant='contained'
-          onClick={handleApplyHeal}
-          disabled={disabled || !isAmountValid}
-          sx={{
-            minWidth: 0,
-            height: 32,
-            px: 1.2,
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            textTransform: 'none',
-            backgroundColor: color,
-            '&:hover': { backgroundColor: normalDarkColor },
-          }}
-        >
-          Curar
-        </Button>
-        {onOpenDrawer && (
-          <Tooltip title='Editar PV/PM, temp e máximo'>
-            <span>
-              <IconButton
-                size='small'
-                onClick={onOpenDrawer}
-                disabled={disabled}
-                aria-label={`Abrir edição completa de ${type}`}
-                sx={{ width: 32, height: 32 }}
-              >
-                <EditIcon fontSize='small' />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
-      </Stack>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Button
+            size='small'
+            variant='contained'
+            color='error'
+            onClick={handleApplyDamage}
+            disabled={disabled || !isAmountValid}
+            sx={{
+              minWidth: 0,
+              height: 32,
+              px: 1.2,
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              textTransform: 'none',
+            }}
+          >
+            Dano
+          </Button>
+          <Button
+            size='small'
+            variant='contained'
+            onClick={handleApplyHeal}
+            disabled={disabled || !isAmountValid}
+            sx={{
+              minWidth: 0,
+              height: 32,
+              px: 1.2,
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              textTransform: 'none',
+              backgroundColor: color,
+              '&:hover': { backgroundColor: normalDarkColor },
+            }}
+          >
+            Curar
+          </Button>
+          {!compact && onOpenDrawer && (
+            <Tooltip title='Editar PV/PM, temp e máximo'>
+              <span>
+                <IconButton
+                  size='small'
+                  onClick={onOpenDrawer}
+                  disabled={disabled}
+                  aria-label={`Abrir edição completa de ${type}`}
+                  sx={{ width: 32, height: 32 }}
+                >
+                  <EditIcon fontSize='small' />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+        </Box>
+      </Box>
     </Box>
   );
 };

@@ -94,6 +94,7 @@ const CompanionCreationDialog: React.FC<CompanionCreationDialogProps> = ({
       if (def.subChoiceType === 'attribute')
         return !!t.choices?.primary && !!t.choices?.secondary;
       if (def.subChoiceType === 'movement') return !!t.choices?.type;
+      if (def.subChoiceType === 'spell') return !!t.choices?.spell;
       return true;
     });
   }, [

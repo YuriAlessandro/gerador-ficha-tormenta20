@@ -54,6 +54,11 @@ export interface GeneralPower {
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
+  // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
+  // na exibição — a identidade continua sendo `name`.
+  customName?: string;
+  // Texto definido pelo usuário. Quando presente, substitui o texto do livro.
+  customDescription?: string;
 }
 
 export type GeneralPowers = {
@@ -68,6 +73,11 @@ export type OriginPower = {
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
+  // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
+  // na exibição — a identidade continua sendo `name`.
+  customName?: string;
+  // Texto definido pelo usuário. Quando presente, substitui o texto do livro.
+  customDescription?: string;
 };
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;

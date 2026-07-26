@@ -181,7 +181,9 @@ function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
           position: 'fixed',
           top: 0,
           left: 0,
-          width: '100vw',
+          // `right: 0` em vez de `100vw`: evita rolagem horizontal pela calha da
+          // scrollbar enquanto a tela de loading está montada.
+          right: 0,
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',

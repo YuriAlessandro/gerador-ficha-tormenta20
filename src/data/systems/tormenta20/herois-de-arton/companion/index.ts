@@ -20,6 +20,8 @@ import COMPANION_TRICKS, {
   getTrickAvailability,
   getTricksWithAvailability,
 } from './companionTricks';
+import { Spell } from '../../../../../interfaces/Spells';
+import { findInnateSpell, getInnateSpellOptions } from './innateSpells';
 
 export {
   COMPANION_TRICKS,
@@ -398,9 +400,22 @@ export function calculateCompanionStats(
     else rd += 5;
   }
 
+  // Magia Inata: as magias do parceiro são derivadas dos truques (cada truque
+  // com subChoiceType 'spell' guarda choices.spell). A derivação é autoritativa
+  // — substitui companion.spells — então adicionar/remover o truque mantém a
+  // lista de magias em sincronia, em qualquer caminho (criação, level up, edição).
+  const innateSpells: Spell[] = companion.tricks.flatMap((t) => {
+    const def = getCompanionTrickDefinition(t.name);
+    if (def?.subChoiceType !== 'spell' || !t.choices?.spell) return [];
+    const spell = findInnateSpell(t.choices.spell);
+    if (!spell) return [];
+    return [{ ...spell, customKeyAttr: Atributo.CARISMA }];
+  });
+
   // Estado auto-computado puro (sem overrides aplicados)
   const autoComputed: CompanionSheet = {
     ...companion,
+    spells: innateSpells.length > 0 ? innateSpells : undefined,
     attributes: attrs,
     size,
     pv,
@@ -650,6 +665,12 @@ export function generateRandomCompanion(
               ]
             : 'Escalada';
         trickEntry.choices = { type: chosen };
+      } else if (trick.subChoiceType === 'spell') {
+        // Magia Inata: sorteia uma magia de 1º círculo (arcana ou divina)
+        const spellOptions = getInnateSpellOptions();
+        const chosen =
+          spellOptions[Math.floor(Math.random() * spellOptions.length)];
+        if (chosen) trickEntry.choices = { spell: chosen.nome };
       }
     }
 

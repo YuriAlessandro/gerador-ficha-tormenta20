@@ -46,8 +46,8 @@ export interface PowersToolbarProps {
  * Busca + chips de filtro por origem, grudados no topo da aba.
  *
  * Em modo reordenar a toolbar se reduz aos controles de reordenação: filtrar
- * uma lista que você está arrastando não faz sentido, e `powersOrder` é uma
- * lista plana — arrastar dentro de um subconjunto corromperia os índices.
+ * uma lista que você está arrastando não faz sentido, e a aba mostra todos os
+ * grupos para deixar claro que o arrasto é confinado ao grupo do poder.
  */
 const PowersToolbar: React.FC<PowersToolbarProps> = ({
   searchTerm,
@@ -100,7 +100,8 @@ const PowersToolbar: React.FC<PowersToolbarProps> = ({
             variant='caption'
             sx={{ color: 'text.secondary', flex: 1, minWidth: 0 }}
           >
-            Arraste para reordenar. Filtros e busca voltam ao concluir.
+            Arraste para reordenar dentro de cada grupo. Filtros e busca voltam
+            ao concluir.
           </Typography>
           {reorderControls}
         </Stack>

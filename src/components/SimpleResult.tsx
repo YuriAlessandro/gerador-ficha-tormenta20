@@ -2,6 +2,10 @@
 import React from 'react';
 import ReactToPrint from 'react-to-print';
 import { Box, Card, Container } from '@mui/material';
+import {
+  getPowerDisplayName,
+  getPowerDisplayText,
+} from '../functions/powers/powerText';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { SkillsTotals } from '../interfaces/Skills';
@@ -200,24 +204,24 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
         {/* Poderes de Raça */}
         {sheet.raca.abilities?.map((power) => (
           <div key={getKey(power.name)}>
-            <SheetText>{power.name}: </SheetText>
-            {power.description}
+            <SheetText>{getPowerDisplayName(power)}: </SheetText>
+            {getPowerDisplayText(power)}
           </div>
         ))}
         <SheetDivisor />
         {/* Habilidades de Classe */}
         {sheet.classe.abilities?.map((power) => (
           <div key={getKey(power.name)}>
-            <SheetText>{power.name}: </SheetText>
-            {power.text}
+            <SheetText>{getPowerDisplayName(power)}: </SheetText>
+            {getPowerDisplayText(power)}
           </div>
         ))}
         {/* Poderes de Classe */}
         <SheetDivisor />
         {sheet.classPowers?.map((power) => (
           <div key={getKey(power.name)}>
-            <SheetText>{power.name}: </SheetText>
-            {power.text}
+            <SheetText>{getPowerDisplayName(power)}: </SheetText>
+            {getPowerDisplayText(power)}
           </div>
         ))}
         {sheet.origin?.powers && sheet.origin?.powers.length > 0 && (
@@ -226,24 +230,24 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
         {/* Poderes de Origem */}
         {sheet.origin?.powers.map((power) => (
           <div key={getKey(power.name)}>
-            <SheetText>{power.name}: </SheetText>
-            {power.description}
+            <SheetText>{getPowerDisplayName(power)}: </SheetText>
+            {getPowerDisplayText(power)}
           </div>
         ))}
         <SheetDivisor />
         {/* Poderes gerais */}
         {sheet.generalPowers?.map((power) => (
           <div key={getKey(power.name)}>
-            <SheetText>{power.name}: </SheetText>
-            {power.description}
+            <SheetText>{getPowerDisplayName(power)}: </SheetText>
+            {getPowerDisplayText(power)}
           </div>
         ))}
         {/* Poderes concedidos */}
         <SheetDivisor />
         {sheet.devoto?.poderes.map((power) => (
           <div key={getKey(power.name)}>
-            <SheetText>{power.name}: </SheetText>
-            {power.description}
+            <SheetText>{getPowerDisplayName(power)}: </SheetText>
+            {getPowerDisplayText(power)}
           </div>
         ))}
         {/* Mágias */}

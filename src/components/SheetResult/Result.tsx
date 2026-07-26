@@ -19,6 +19,7 @@ import {
   Tab,
   Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
   IconButton,
   Accordion,
@@ -55,11 +56,7 @@ import {
 } from '@/functions/multiclass';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
-import { ClassAbility, ClassPower } from '@/interfaces/Class';
-import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
-import { RaceAbility } from '@/interfaces/Race';
 import { CompanionSheet } from '@/interfaces/Companion';
-import { CustomPower } from '@/interfaces/CustomPower';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
@@ -76,7 +73,6 @@ import { useOptionalEncounter } from '@/premium/hooks/useOptionalEncounter';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ActiveEffectMarker,
-  PowerEffectOfferModal,
   ActiveEffectsCleanupModal,
   ActiveEffectsManagerModal,
   ActivePowerUseDialog,
@@ -85,8 +81,8 @@ import { ComplicationEditDrawer } from '@/premium/components/Complications';
 import { SupplementId } from '@/types/supplement.types';
 import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
 import socketService, {
-  type PowerEffectOfferPayload,
   type PowerEffectBonusPayload,
+  type RollAbilityMeta,
 } from '@/premium/services/socket.service';
 import {
   getActiveEffectHighlights,
@@ -103,7 +99,29 @@ import type {
   ActiveEffectUsageOption,
   ActiveEffect,
 } from '@/premium/interfaces/ActiveEffect';
+import { WildShapeSkin, WildShapeBanner } from '@/premium/components/WildShape';
+import {
+  getWildShapeNaturalWeapons,
+  isInWildShape,
+} from '@/premium/functions/wildShape';
+import { WILD_SHAPE_POWER_KEY } from '@/premium/data/wildShapes';
+import { AnimalCompanionsPanel } from '@/premium/components/AnimalCompanions';
+import {
+  getAnimalCompanionActivatedPowers,
+  reconcileAnimalCompanionEffects,
+} from '@/premium/functions/animalCompanionEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
+import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
+import {
+  buildEffectOffer,
+  buildSpellAbilityMeta,
+  truncateAbilityDescription,
+} from '@/functions/rollAbilityMeta';
+import { SheetPower } from '@/functions/powers/powerOrigins';
+import {
+  updatePowerAcrossSheet,
+  PowerUserPatch,
+} from '@/functions/powers/updatePowerAcrossSheet';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import CharacterSheet, {
   DamageReduction,
@@ -129,6 +147,11 @@ import CompanionCreationDialog from './CompanionCreationDialog';
 import CompanionEditDialog from './CompanionEditDialog';
 import EquipmentTable from './EquipmentTable';
 import CarryLoadSummary from './CarryLoadSummary';
+import {
+  SheetTabValue,
+  getRememberedSheetTab,
+  rememberSheetTab,
+} from './sheetTabMemory';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
@@ -143,11 +166,17 @@ import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
 import NotesDialog from './NotesDialog';
 import StatControl from './StatControl';
+import ManualValueMarker from './ManualValueMarker';
 
 // Styled components defined outside to prevent recreation on every render
-const BackgroundBox = styled(Box)<{ isDarkMode: boolean }>`
-  background-color: ${(props) => (props.isDarkMode ? '#212121' : '#f3f2f1')};
-`;
+
+/**
+ * Cor de fundo da tela da ficha. Os mesmos valores de `background.default` do
+ * tema (ver `TORMENTA_GREY` em theme.ts), mas dirigidos pela prop `isDarkMode`
+ * — o embed do Owlbear a deriva da URL, que pode divergir do tema do app.
+ */
+const getSheetBackgroundColor = (isDarkMode: boolean): string =>
+  isDarkMode ? '#212121' : '#f3f2f1';
 
 interface ThemeProp {
   theme: {
@@ -199,17 +228,17 @@ const formatRdLabel = (rd: DamageReduction | undefined): string => {
 
 interface ResultProps {
   sheet: CharacterSheet;
+  /**
+   * Modo escuro do FUNDO da ficha. Não é redundante com `theme.palette.mode`:
+   * o embed do Owlbear não tem ThemeProvider próprio e deriva isto do
+   * parâmetro `?theme=` da URL, que pode divergir da preferência do usuário.
+   */
   isDarkMode: boolean;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
 }
 
-type SheetTabValue =
-  | 'pericias'
-  | 'ataques'
-  | 'defesa'
-  | 'poderes'
-  | 'magias'
-  | 'equipamentos';
+/** Mesmo corte de sempre (768px), só que consultado ao vivo. */
+const MOBILE_MEDIA_QUERY = '(max-width:768px)';
 
 const Result: React.FC<ResultProps> = (props) => {
   const { sheet, isDarkMode, onSheetUpdate } = props;
@@ -233,18 +262,24 @@ const Result: React.FC<ResultProps> = (props) => {
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState<SheetTabValue>(() =>
-    window.innerWidth <= 768 ? 'pericias' : 'ataques'
+  const [activeTab, setActiveTab] = useState<SheetTabValue>(
+    () =>
+      getRememberedSheetTab(sheet.id) ??
+      (window.innerWidth <= 768 ? 'pericias' : 'ataques')
   );
 
   const onChangeTab = (_e: React.SyntheticEvent, newValue: SheetTabValue) => {
     setActiveTab(newValue);
   };
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
-  const [pendingOffer, setPendingOffer] =
-    useState<PowerEffectOfferPayload | null>(null);
   const [spellEffectDef, setSpellEffectDef] =
     useState<ActivePowerDefinition | null>(null);
+  // Metadados da magia recém-lançada, guardados enquanto o diálogo de efeito
+  // ativo está aberto — o card do histórico só é publicado ao confirmar (ou
+  // ao fechar sem confirmar), já com a opção de uso escolhida.
+  const [pendingSpellAbility, setPendingSpellAbility] =
+    useState<RollAbilityMeta | null>(null);
+  const [pendingSpellCastLogged, setPendingSpellCastLogged] = useState(false);
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [effectsModalOpen, setEffectsModalOpen] = useState(false);
   const [levelUpWizardOpen, setLevelUpWizardOpen] = useState(false);
@@ -253,11 +288,15 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const theme = useTheme();
   const userSupplements = useContentSupplements();
+  const { logExternalRoll } = useDiceRoll();
   const { isSupporter } = useSubscription();
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
   const complicationsFeature = useFeatureAccess('complications');
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
+  // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
+  // forma); este componente precisa ficar transparente para não cobri-lo.
+  const skinPaintsBackground = isInWildShape(currentSheet);
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
@@ -265,8 +304,24 @@ const Result: React.FC<ResultProps> = (props) => {
     () => getActiveEffectHighlights(currentSheet),
     [currentSheet]
   );
+  // O painel de companheiros só aparece para quem tem a ver com ele: druidas
+  // com o poder Companheiro Animal, ou qualquer ficha que já tenha um
+  // companheiro salvo (não esconder dados existentes se o poder for removido).
+  const showAnimalCompanions = useMemo(() => {
+    if ((currentSheet.animalCompanions?.length ?? 0) > 0) return true;
+    if (getClassLevel(currentSheet, 'Druida') <= 0) return false;
+    return (currentSheet.classPowers ?? []).some(
+      (power) => power.name === 'Companheiro Animal'
+    );
+  }, [currentSheet.animalCompanions, currentSheet.classPowers, currentSheet]);
+
+  // Definições injetadas em runtime no gerenciador de efeitos: efeitos custom
+  // do jogador + benefícios ativados dos companheiros animais.
   const virtualCustomEffectDefinitions = useMemo(
-    () => collectVirtualCustomEffectDefinitions(currentSheet),
+    () => [
+      ...collectVirtualCustomEffectDefinitions(currentSheet),
+      ...getAnimalCompanionActivatedPowers(currentSheet),
+    ],
     [currentSheet]
   );
 
@@ -287,7 +342,14 @@ const Result: React.FC<ResultProps> = (props) => {
     (
       definition: ActivePowerDefinition,
       option: ActiveEffectUsageOption,
-      opts?: { skipPmCost?: boolean; skipBroadcast?: boolean }
+      opts?: {
+        skipPmCost?: boolean;
+        skipBroadcast?: boolean;
+        // Metadados prontos da habilidade (usado pelas magias, que já têm
+        // círculo/escola/PM apurados no lançamento). Sem isso, os dados saem
+        // da própria definição do poder.
+        abilityBase?: RollAbilityMeta;
+      }
     ) => {
       const effect: ActiveEffect = {
         instanceId: uuidv4(),
@@ -348,8 +410,27 @@ const Result: React.FC<ResultProps> = (props) => {
           characterName: currentSheet.nome,
         });
       }
+
+      // Card no histórico da mesa. É a segunda chance de quem perdeu o
+      // alerta: quem estava na aba do encontro, com a tela apagada ou longe
+      // do celular consegue ativar o efeito depois. Sem dados envolvidos, daí
+      // `logExternalRoll` (sem overlay 3D nem dialog de resultado).
+      // `skipPmCost` = adição manual pelo gerenciador de efeitos e
+      // `skipBroadcast` = recepção; nenhum dos dois é "uso" na mesa.
+      if (!opts?.skipPmCost && !opts?.skipBroadcast) {
+        logExternalRoll(definition.name, [], currentSheet.nome, {
+          ...(opts?.abilityBase ?? {
+            kind: 'power',
+            name: definition.name,
+            sourceLabel: definition.sourceLabel,
+            ...truncateAbilityDescription(definition.description),
+          }),
+          pmCost: option.pmCost > 0 ? option.pmCost : opts?.abilityBase?.pmCost,
+          effectOffer: buildEffectOffer(definition, option),
+        });
+      }
     },
-    [currentSheet, applyRecalculatedSheet]
+    [currentSheet, applyRecalculatedSheet, logExternalRoll]
   );
 
   const handleActiveEffectRemove = useCallback(
@@ -376,57 +457,30 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, applyRecalculatedSheet]
   );
 
-  const handleAcceptOffer = useCallback(() => {
-    if (!pendingOffer || !canUseActiveEffects) return;
-    const p = pendingOffer;
-    const effect: ActiveEffect = {
-      instanceId: uuidv4(),
-      powerKey: p.powerKey,
-      name: p.name,
-      sourceLabel: p.sourceLabel,
-      optionId: p.optionId,
-      optionLabel: p.optionLabel,
-      bonuses: p.bonuses as unknown as ActiveEffect['bonuses'],
-      grantsTempPM: p.grantsTempPM,
-      grantsTempPV: p.grantsTempPV,
-      appliedAt: new Date().toISOString(),
-      appliedBy: {
-        playerName: p.sourcePlayerName,
-        characterName: p.characterName,
-      },
-      fromTable: true,
-    };
-    const previous = (currentSheet.activeEffects ?? []).filter(
-      (e) => e.powerKey !== p.powerKey
-    );
-    const removedTempPM = (currentSheet.activeEffects ?? [])
-      .filter((e) => e.powerKey === p.powerKey)
-      .reduce((sum, e) => sum + (e.grantsTempPM ?? 0), 0);
-    const removedTempPV = (currentSheet.activeEffects ?? [])
-      .filter((e) => e.powerKey === p.powerKey)
-      .reduce((sum, e) => sum + (e.grantsTempPV ?? 0), 0);
-    // Aliado que aceita não paga PM
-    applyRecalculatedSheet({
-      ...currentSheet,
-      activeEffects: [...previous, effect],
-      tempPM: Math.max(
-        0,
-        (currentSheet.tempPM ?? 0) - removedTempPM + (p.grantsTempPM ?? 0)
-      ),
-      tempPV: Math.max(
-        0,
-        (currentSheet.tempPV ?? 0) - removedTempPV + (p.grantsTempPV ?? 0)
-      ),
+  // O painel de companheiros fica fora da aba Poderes; o ícone de patinha no
+  // poder rola até ele em vez de abrir um modal.
+  const animalCompanionsRef = React.useRef<HTMLDivElement>(null);
+  const scrollToAnimalCompanions = useCallback(() => {
+    animalCompanionsRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
     });
-    setPendingOffer(null);
-  }, [pendingOffer, currentSheet, applyRecalculatedSheet, canUseActiveEffects]);
-
-  React.useEffect(() => {
-    const unsub = socketService.onPowerEffectOffered((payload) => {
-      setPendingOffer(payload);
-    });
-    return unsub;
   }, []);
+
+  // Reverter a Forma Selvagem é só remover o efeito ativo dela: o recálculo
+  // zera `sheetBonuses`, o Step 11.5 restaura o tamanho e as armas naturais
+  // (que são virtuais) desaparecem junto.
+  const handleRevertWildShape = useCallback(() => {
+    const effect = (currentSheet.activeEffects ?? []).find(
+      (e) => e.powerKey === WILD_SHAPE_POWER_KEY
+    );
+    if (effect) handleActiveEffectRemove(effect.instanceId);
+  }, [currentSheet.activeEffects, handleActiveEffectRemove]);
+
+  // As ofertas de efeito ativo recebidas da mesa NÃO são tratadas aqui: o
+  // listener e o modal vivem em `PowerEffectOfferAlerts`, montado uma única
+  // vez pelo `GameSessionPage`. Dentro da ficha eles morriam junto com ela
+  // quando o jogador ia pra aba "Encontro" no mobile.
 
   const handleCleanupRemove = useCallback(
     (ids: string[]) => {
@@ -476,6 +530,18 @@ const Result: React.FC<ResultProps> = (props) => {
     return unsub;
   }, [currentSheet.activeEffects]);
 
+  // Companheiro Animal: mantém os `ActiveEffect`s passivos em dia com
+  // `sheet.animalCompanions`. Roda no load da ficha e sempre que a lista ou o
+  // nível muda (subir de nível troca o grau do parceiro, e com ele os bônus).
+  // `reconcileAnimalCompanionEffects` devolve `null` quando já está
+  // sincronizado, então o efeito não entra em laço de re-render.
+  React.useEffect(() => {
+    if (!onSheetUpdate) return;
+    const next = reconcileAnimalCompanionEffects(currentSheet);
+    if (!next) return;
+    applyRecalculatedSheet({ ...currentSheet, activeEffects: next });
+  }, [currentSheet, onSheetUpdate, applyRecalculatedSheet]);
+
   const handleConditionsChange = useCallback(
     (next: ActiveCondition[]) => {
       // Run recalculateSheet so condition bonuses (penalties in skills,
@@ -511,6 +577,14 @@ const Result: React.FC<ResultProps> = (props) => {
   React.useEffect(() => {
     setCurrentSheet(sheet);
   }, [sheet]);
+
+  // A aba visível é gravada aqui, e não no onChange, para cobrir também a troca
+  // de ficha NO LUGAR (o mestre alternando entre jogadores): o valor que está
+  // na tela passa a valer para a ficha nova, então um giro depois disso
+  // restaura o que o usuário estava vendo, não uma entrada antiga.
+  React.useEffect(() => {
+    rememberSheetTab(currentSheet.id, activeTab);
+  }, [currentSheet.id, activeTab]);
 
   // Close all edit drawers when editing capability is lost (e.g. socket disconnect)
   React.useEffect(() => {
@@ -697,63 +771,11 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
-  const handlePowerRollsUpdate = useCallback(
-    (
-      power:
-        | ClassPower
-        | RaceAbility
-        | ClassAbility
-        | OriginPower
-        | GeneralPower
-        | CustomPower,
-      newRolls: DiceRoll[]
-    ) => {
-      // Update in all possible power arrays
-      const updatedGeneralPowers = currentSheet.generalPowers?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-      const updatedClassPowers = currentSheet.classPowers?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-      const updatedOriginPowers = currentSheet.origin?.powers?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-      const updatedRaceAbilities = currentSheet.raca?.abilities?.map((a) =>
-        a.name === power.name ? { ...a, rolls: newRolls } : a
-      );
-      const updatedClassAbilities = currentSheet.classe?.abilities?.map((a) =>
-        a.name === power.name ? { ...a, rolls: newRolls } : a
-      );
-      const updatedDeityPowers = currentSheet.devoto?.poderes?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-      const updatedCustomPowers = currentSheet.customPowers?.map((p) =>
-        p.name === power.name ? { ...p, rolls: newRolls } : p
-      );
-
-      const updatedSheet = {
-        ...currentSheet,
-        generalPowers: updatedGeneralPowers,
-        classPowers: updatedClassPowers,
-        customPowers: updatedCustomPowers,
-        origin:
-          currentSheet.origin && updatedOriginPowers
-            ? { ...currentSheet.origin, powers: updatedOriginPowers }
-            : currentSheet.origin,
-        raca:
-          currentSheet.raca && updatedRaceAbilities
-            ? { ...currentSheet.raca, abilities: updatedRaceAbilities }
-            : currentSheet.raca,
-        classe:
-          currentSheet.classe && updatedClassAbilities
-            ? { ...currentSheet.classe, abilities: updatedClassAbilities }
-            : currentSheet.classe,
-        devoto:
-          currentSheet.devoto && updatedDeityPowers
-            ? { ...currentSheet.devoto, poderes: updatedDeityPowers }
-            : currentSheet.devoto,
-      };
-
+  // Campos por-instância do poder (rolagens, efeitos, nome/texto customizados)
+  // são cosméticos: gravam direto na ficha, sem `recalculateSheet`.
+  const applyPowerPatch = useCallback(
+    (power: SheetPower, patch: PowerUserPatch) => {
+      const updatedSheet = updatePowerAcrossSheet(currentSheet, power, patch);
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -762,72 +784,25 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
-  const handlePowerCustomEffectsUpdate = useCallback(
-    (
-      power:
-        | ClassPower
-        | RaceAbility
-        | ClassAbility
-        | OriginPower
-        | GeneralPower
-        | CustomPower,
-      newEffects: CustomEffect[]
-    ) => {
-      const updatedGeneralPowers = currentSheet.generalPowers?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedClassPowers = currentSheet.classPowers?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedOriginPowers = currentSheet.origin?.powers?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedRaceAbilities = currentSheet.raca?.abilities?.map((a) =>
-        a.name === power.name ? { ...a, customEffects: newEffects } : a
-      );
-      const updatedClassAbilities = currentSheet.classe?.abilities?.map((a) =>
-        a.name === power.name ? { ...a, customEffects: newEffects } : a
-      );
-      const updatedDeityPowers = currentSheet.devoto?.poderes?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedCustomPowers = currentSheet.customPowers?.map((p) =>
-        p.name === power.name ? { ...p, customEffects: newEffects } : p
-      );
-      const updatedCustomGrantedPowers = currentSheet.customGrantedPowers?.map(
-        (p) => (p.name === power.name ? { ...p, customEffects: newEffects } : p)
-      );
-
-      const updatedSheet = {
-        ...currentSheet,
-        generalPowers: updatedGeneralPowers,
-        classPowers: updatedClassPowers,
-        customPowers: updatedCustomPowers,
-        customGrantedPowers: updatedCustomGrantedPowers,
-        origin:
-          currentSheet.origin && updatedOriginPowers
-            ? { ...currentSheet.origin, powers: updatedOriginPowers }
-            : currentSheet.origin,
-        raca:
-          currentSheet.raca && updatedRaceAbilities
-            ? { ...currentSheet.raca, abilities: updatedRaceAbilities }
-            : currentSheet.raca,
-        classe:
-          currentSheet.classe && updatedClassAbilities
-            ? { ...currentSheet.classe, abilities: updatedClassAbilities }
-            : currentSheet.classe,
-        devoto:
-          currentSheet.devoto && updatedDeityPowers
-            ? { ...currentSheet.devoto, poderes: updatedDeityPowers }
-            : currentSheet.devoto,
-      };
-
-      setCurrentSheet(updatedSheet);
-      if (onSheetUpdate) {
-        onSheetUpdate(updatedSheet);
-      }
+  const handlePowerRollsUpdate = useCallback(
+    (power: SheetPower, newRolls: DiceRoll[]) => {
+      applyPowerPatch(power, { rolls: newRolls });
     },
-    [currentSheet, onSheetUpdate]
+    [applyPowerPatch]
+  );
+
+  const handlePowerCustomEffectsUpdate = useCallback(
+    (power: SheetPower, newEffects: CustomEffect[]) => {
+      applyPowerPatch(power, { customEffects: newEffects });
+    },
+    [applyPowerPatch]
+  );
+
+  const handlePowerDisplayUpdate = useCallback(
+    (power: SheetPower, customName?: string, customDescription?: string) => {
+      applyPowerPatch(power, { customName, customDescription });
+    },
+    [applyPowerPatch]
   );
 
   const handlePVDecrement = useCallback(
@@ -896,7 +871,7 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const handleSpellCast = useCallback(
-    (pmSpent: number, spell: Spell) => {
+    (pmSpent: number, spell: Spell, castLogged?: boolean) => {
       const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
       const tempConsumed = Math.min(currentTemp, pmSpent);
@@ -932,11 +907,37 @@ const Result: React.FC<ResultProps> = (props) => {
             : undefined);
         if (def) {
           setSpellEffectDef(def);
+          // Guardado para enriquecer o card da ativação (círculo, escola, PM).
+          // `castLogged` diz se o diálogo de lançamento já publicou um card —
+          // se publicou, descartar o efeito não deve publicar outro igual.
+          setPendingSpellAbility(buildSpellAbilityMeta(spell, pmSpent));
+          setPendingSpellCastLogged(Boolean(castLogged));
         }
       }
     },
     [currentSheet, onSheetUpdate, canUseActiveEffects]
   );
+
+  // Fechar o diálogo de efeito sem confirmar não pode engolir o lançamento:
+  // publica o card da magia sem a oferta de efeito — a menos que o diálogo de
+  // lançamento já tenha publicado um (magia com dano).
+  const handleSpellEffectDismiss = useCallback(() => {
+    if (pendingSpellAbility && !pendingSpellCastLogged) {
+      logExternalRoll(
+        pendingSpellAbility.name,
+        [],
+        currentSheet.nome,
+        pendingSpellAbility
+      );
+    }
+    setSpellEffectDef(null);
+    setPendingSpellAbility(null);
+  }, [
+    pendingSpellAbility,
+    pendingSpellCastLogged,
+    currentSheet.nome,
+    logExternalRoll,
+  ]);
 
   const handleKeyAttributeChange = useCallback(
     (newAttr: Atributo) => {
@@ -1311,10 +1312,15 @@ const Result: React.FC<ResultProps> = (props) => {
     return (
       <Weapons
         getKey={getKey}
-        weapons={getOrderedItemsByGroup(
-          bag,
-          (it) => it.group === 'Arma' && !it.isAmmo
-        )}
+        // Armas naturais da Forma Selvagem vêm primeiro e são virtuais: não
+        // estão na mochila, então somem sozinhas quando o druida reverte.
+        weapons={[
+          ...getWildShapeNaturalWeapons(currentSheet),
+          ...getOrderedItemsByGroup(
+            bag,
+            (it) => it.group === 'Arma' && !it.isAmmo
+          ),
+        ]}
         completeSkills={completeSkills}
         atributos={atributos}
         modFor={modFor}
@@ -1351,6 +1357,7 @@ const Result: React.FC<ResultProps> = (props) => {
     currentSheet.mainHandItemId,
     currentSheet.offHandItemId,
     currentSheet.raca,
+    currentSheet.activeEffects,
     onSheetUpdate,
     handleQuickWieldChange,
     handleConsumeAmmo,
@@ -1556,7 +1563,10 @@ const Result: React.FC<ResultProps> = (props) => {
     );
   });
 
-  const isMobile = useMemo(() => window.innerWidth <= 768, []);
+  // Ao vivo, não congelado no mount: a mesa virtual só parecia responsiva
+  // porque o pai remontava o Result ao girar o tablet. Onde não há remount
+  // (SheetViewPage, MainScreen) a ficha ficava presa no layout antigo.
+  const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY, { noSsr: true });
 
   // No desktop Perícias vive na coluna da direita, não nas abas
   const activeSheetTab: SheetTabValue =
@@ -1566,49 +1576,95 @@ const Result: React.FC<ResultProps> = (props) => {
     currentSheet.reducaoDeDano &&
     Object.values(currentSheet.reducaoDeDano).some((v) => v && v > 0);
 
+  // `computedMovementTypes` é o manual mesclado com os bônus (ex.: voo da Forma
+  // Sorrateira Superior); só existe quando há algum bônus ativo.
+  const displayedMovementTypes =
+    currentSheet.computedMovementTypes ?? currentSheet.movementTypes;
+
   const defenseInfoWidth = isMobile ? '100%' : '80%';
 
   return (
-    <BackgroundBox isDarkMode={isDarkMode} sx={{ p: isMobile ? 0 : 2 }}>
-      <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
-        <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
-          {/* LADO ESQUERDO, 60% */}
-          <Box
-            sx={{
-              width: isMobile ? '100%' : '60%',
-            }}
-          >
-            {/* PARTE DE CIMA: Informações da ficha */}
-            <Card
+    <WildShapeSkin sheet={currentSheet}>
+      {/*
+       * Este fundo é opaco e cobre tudo que estiver abaixo — era ele que
+       * apagava a superfície e a textura pintadas pelo WildShapeSkin, deixando
+       * o re-skin praticamente invisível. Em forma selvagem ele sai da frente e
+       * quem pinta o fundo é o skin, que é o único que sabe a cor da forma.
+       */}
+      <Box
+        sx={{
+          bgcolor: skinPaintsBackground
+            ? 'transparent'
+            : getSheetBackgroundColor(isDarkMode),
+          p: isMobile ? 0 : 2,
+        }}
+      >
+        <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
+          <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
+            {/* LADO ESQUERDO, 60% */}
+            <Box
               sx={{
-                p: 3,
-                mb: 4,
-                minHeight: isMobile ? 'inherit' : '180px',
-                position: 'relative',
-                overflow: 'visible', // Allow the button to show outside the card
+                width: isMobile ? '100%' : '60%',
+                // Item de flex tem `min-width: auto`: sem isto a coluna se
+                // recusa a encolher abaixo do min-content e conteúdo largo
+                // (a tabela de equipamentos) estoura por cima da coluna ao
+                // lado em vez de se conter.
+                minWidth: 0,
               }}
             >
-              {onSheetUpdate && (
-                <Stack
-                  direction='row'
-                  spacing={1}
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                  }}
-                >
-                  <Tooltip
-                    title={
-                      currentSheet.nivel >= 20
-                        ? 'Nível máximo atingido'
-                        : 'Subir nível'
-                    }
+              {/* PARTE DE CIMA: Informações da ficha */}
+              <Card
+                sx={{
+                  p: isMobile ? 2 : 3,
+                  mb: 4,
+                  minHeight: isMobile ? 'inherit' : '180px',
+                  position: 'relative',
+                  overflow: 'visible', // Allow the button to show outside the card
+                }}
+              >
+                {onSheetUpdate && (
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                    }}
                   >
-                    <span>
+                    <Tooltip
+                      title={
+                        currentSheet.nivel >= 20
+                          ? 'Nível máximo atingido'
+                          : 'Subir nível'
+                      }
+                    >
+                      <span>
+                        <IconButton
+                          size='small'
+                          disabled={currentSheet.nivel >= 20}
+                          sx={{
+                            backgroundColor: theme.palette.primary.main,
+                            color: 'white',
+                            borderRadius: 1,
+                            '&:hover': {
+                              backgroundColor: theme.palette.primary.dark,
+                            },
+                            '&.Mui-disabled': {
+                              backgroundColor:
+                                theme.palette.action.disabledBackground,
+                              color: theme.palette.action.disabled,
+                            },
+                          }}
+                          onClick={() => setLevelUpWizardOpen(true)}
+                        >
+                          <UpgradeIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title='Editar ficha'>
                       <IconButton
                         size='small'
-                        disabled={currentSheet.nivel >= 20}
                         sx={{
                           backgroundColor: theme.palette.primary.main,
                           color: 'white',
@@ -1616,105 +1672,103 @@ const Result: React.FC<ResultProps> = (props) => {
                           '&:hover': {
                             backgroundColor: theme.palette.primary.dark,
                           },
-                          '&.Mui-disabled': {
-                            backgroundColor:
-                              theme.palette.action.disabledBackground,
-                            color: theme.palette.action.disabled,
-                          },
                         }}
-                        onClick={() => setLevelUpWizardOpen(true)}
+                        onClick={() => setSheetInfoDrawerOpen(true)}
                       >
-                        <UpgradeIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title='Editar ficha'>
-                    <IconButton
-                      size='small'
-                      sx={{
-                        backgroundColor: theme.palette.primary.main,
-                        color: 'white',
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: theme.palette.primary.dark,
-                        },
-                      }}
-                      onClick={() => setSheetInfoDrawerOpen(true)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              )}
-              <Stack
-                direction='row'
-                spacing={2}
-                sx={{
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                  gap: isMobile ? 5 : 0,
-                }}
-              >
-                {currentSheet.imageUrl && (
-                  <Box
-                    component='img'
-                    src={currentSheet.imageUrl}
-                    alt={nome}
-                    onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                    sx={{
-                      width: isMobile ? 80 : 100,
-                      height: isMobile ? 80 : 100,
-                      objectFit: 'cover',
-                      borderRadius: 2,
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-                <Box sx={{ flexGrow: 1, position: 'relative', zIndex: 1 }}>
-                  <Stack
-                    direction='row'
-                    spacing={0.5}
-                    sx={{
-                      alignItems: 'center',
-                    }}
-                  >
-                    {markersEnabled && (
-                      <ConditionMarker
-                        conditions={conditionHighlights.name}
-                        fontSize='medium'
-                      />
-                    )}
-                    <Box
-                      sx={
-                        markersEnabled
-                          ? getConditionLabelStyle(conditionHighlights.name)
-                          : undefined
-                      }
-                    >
-                      <LabelDisplay text={nome} size='large' />
-                    </Box>
-                    <Tooltip title='Anotações'>
-                      <IconButton
-                        size='small'
-                        onClick={() => setNotesDialogOpen(true)}
-                        sx={{
-                          color: currentSheet.notes
-                            ? theme.palette.primary.main
-                            : theme.palette.text.secondary,
-                        }}
-                      >
-                        <NoteAltIcon fontSize='small' />
+                        <EditIcon />
                       </IconButton>
                     </Tooltip>
                   </Stack>
-                  <LabelDisplay
-                    text={
-                      multiclassDisplay ? (
-                        <>
-                          {`${raca.name}${
+                )}
+                <WildShapeBanner
+                  sheet={currentSheet}
+                  onRevert={onSheetUpdate ? handleRevertWildShape : undefined}
+                />
+                <Stack
+                  direction='row'
+                  spacing={2}
+                  sx={{
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    gap: isMobile ? 5 : 0,
+                  }}
+                >
+                  {currentSheet.imageUrl && (
+                    <Box
+                      component='img'
+                      src={currentSheet.imageUrl}
+                      alt={nome}
+                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                      sx={{
+                        width: isMobile ? 80 : 100,
+                        height: isMobile ? 80 : 100,
+                        objectFit: 'cover',
+                        borderRadius: 2,
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  <Box sx={{ flexGrow: 1, position: 'relative', zIndex: 1 }}>
+                    <Stack
+                      direction='row'
+                      spacing={0.5}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
+                      {markersEnabled && (
+                        <ConditionMarker
+                          conditions={conditionHighlights.name}
+                          fontSize='medium'
+                        />
+                      )}
+                      <Box
+                        sx={
+                          markersEnabled
+                            ? getConditionLabelStyle(conditionHighlights.name)
+                            : undefined
+                        }
+                      >
+                        <LabelDisplay text={nome} size='large' />
+                      </Box>
+                      <Tooltip title='Anotações'>
+                        <IconButton
+                          size='small'
+                          onClick={() => setNotesDialogOpen(true)}
+                          sx={{
+                            color: currentSheet.notes
+                              ? theme.palette.primary.main
+                              : theme.palette.text.secondary,
+                          }}
+                        >
+                          <NoteAltIcon fontSize='small' />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                    <LabelDisplay
+                      text={
+                        multiclassDisplay ? (
+                          <>
+                            {`${raca.name}${
+                              raca.name === 'Moreau' && raceHeritage
+                                ? ` (${
+                                    MOREAU_HERITAGES[
+                                      raceHeritage as MoreauHeritageName
+                                    ]?.name || raceHeritage
+                                  })`
+                                : ''
+                            }`}
+                            <span style={{ margin: '0 6px', opacity: 0.5 }}>
+                              ·
+                            </span>
+                            {multiclassDisplay}
+                            {sexo ? ` (${sexo})` : ''}
+                          </>
+                        ) : (
+                          `${raca.name}${
                             raca.name === 'Moreau' && raceHeritage
                               ? ` (${
                                   MOREAU_HERITAGES[
@@ -1722,70 +1776,61 @@ const Result: React.FC<ResultProps> = (props) => {
                                   ]?.name || raceHeritage
                                 })`
                               : ''
-                          }`}
-                          <span style={{ margin: '0 6px', opacity: 0.5 }}>
-                            ·
-                          </span>
-                          {multiclassDisplay}
-                          {sexo ? ` (${sexo})` : ''}
-                        </>
-                      ) : (
-                        `${raca.name}${
-                          raca.name === 'Moreau' && raceHeritage
-                            ? ` (${
-                                MOREAU_HERITAGES[
-                                  raceHeritage as MoreauHeritageName
-                                ]?.name || raceHeritage
-                              })`
-                            : ''
-                        } ${className}${sexo ? ` (${sexo})` : ''}`
-                      )
-                    }
-                    size='medium'
-                  />
-                  <LabelDisplay title='Nível' text={`${nivel}`} size='small' />
-                  {origin && (
-                    <LabelDisplay
-                      title='Origem'
-                      text={origin.name || 'Não possui'}
-                      size='small'
-                    />
-                  )}
-                  {devoto && (
-                    <LabelDisplay
-                      title='Divindade'
-                      text={devoto.divindade.name}
-                      size='small'
-                    />
-                  )}
-                  {conditionsFeature.isEnabled && (
-                    <ConditionsBar
-                      activeConditions={currentSheet.activeConditions}
-                      onChange={handleConditionsChange}
-                      readonly={!onSheetUpdate}
-                      lockReason={
-                        !conditionsFeature.hasAccess &&
-                        conditionsFeature.supporterOnly
-                          ? 'supporter'
-                          : undefined
+                          } ${className}${sexo ? ` (${sexo})` : ''}`
+                        )
                       }
-                      dense
+                      size='medium'
                     />
-                  )}
-                </Box>
-                <Stack
-                  direction='row'
-                  spacing={3}
-                  sx={{
-                    justifyContent: 'space-around',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Box
+                    <LabelDisplay
+                      title='Nível'
+                      text={`${nivel}`}
+                      size='small'
+                    />
+                    {origin && (
+                      <LabelDisplay
+                        title='Origem'
+                        text={origin.name || 'Não possui'}
+                        size='small'
+                      />
+                    )}
+                    {devoto && (
+                      <LabelDisplay
+                        title='Divindade'
+                        text={devoto.divindade.name}
+                        size='small'
+                      />
+                    )}
+                    {conditionsFeature.isEnabled && (
+                      <ConditionsBar
+                        activeConditions={currentSheet.activeConditions}
+                        onChange={handleConditionsChange}
+                        readonly={!onSheetUpdate}
+                        lockReason={
+                          !conditionsFeature.hasAccess &&
+                          conditionsFeature.supporterOnly
+                            ? 'supporter'
+                            : undefined
+                        }
+                        dense
+                      />
+                    )}
+                  </Box>
+                  {/*
+                   * useFlexGap + flexWrap: em larguras intermediárias (a coluna
+                   * estreita do jogador na mesa virtual, por exemplo) os dois
+                   * stats quebram para linhas separadas em vez de transbordar.
+                   * Sem useFlexGap a Stack espaça por margin e a quebra sai
+                   * torta.
+                   */}
+                  <Stack
+                    direction='row'
+                    spacing={isMobile ? 1.5 : 3}
+                    useFlexGap
                     sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
+                      justifyContent: 'space-around',
+                      alignItems: 'flex-start',
+                      flexWrap: 'wrap',
+                      minWidth: 0,
                     }}
                   >
                     <StatControl
@@ -1798,26 +1843,9 @@ const Result: React.FC<ResultProps> = (props) => {
                       onHeal={handlePVHeal}
                       onOpenDrawer={() => setStatDrawerOpen(true)}
                       disabled={!onSheetUpdate}
+                      compact={isMobile}
+                      isManualMax={(currentSheet.manualMaxPV ?? 0) > 0}
                     />
-                    {currentSheet.manualMaxPV !== undefined &&
-                      currentSheet.manualMaxPV > 0 && (
-                        <Tooltip title='Cálculo automático desativado. Edite nas configurações para alterar.'>
-                          <Chip
-                            size='small'
-                            label='Manual'
-                            color='warning'
-                            sx={{ mt: 1, fontSize: '0.7rem' }}
-                          />
-                        </Tooltip>
-                      )}
-                  </Box>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
-                  >
                     <StatControl
                       type='PM'
                       current={currentSheet.currentPM ?? pm}
@@ -1828,158 +1856,175 @@ const Result: React.FC<ResultProps> = (props) => {
                       onHeal={handlePMHeal}
                       onOpenDrawer={() => setStatDrawerOpen(true)}
                       disabled={!onSheetUpdate}
+                      compact={isMobile}
+                      isManualMax={(currentSheet.manualMaxPM ?? 0) > 0}
                     />
-                    {currentSheet.manualMaxPM !== undefined &&
-                      currentSheet.manualMaxPM > 0 && (
-                        <Tooltip title='Cálculo automático desativado. Edite nas configurações para alterar.'>
-                          <Chip
-                            size='small'
-                            label='Manual'
-                            color='warning'
-                            sx={{ mt: 1, fontSize: '0.7rem' }}
-                          />
-                        </Tooltip>
-                      )}
-                  </Box>
+                  </Stack>
                 </Stack>
-              </Stack>
-            </Card>
+              </Card>
 
-            <PowerEffectOfferModal
-              open={pendingOffer !== null && canUseActiveEffects}
-              payload={pendingOffer}
-              onAccept={handleAcceptOffer}
-              onDecline={() => setPendingOffer(null)}
-            />
-
-            <ActivePowerUseDialog
-              open={spellEffectDef !== null && canUseActiveEffects}
-              definition={spellEffectDef}
-              sheet={currentSheet}
-              onClose={() => setSpellEffectDef(null)}
-              onConfirm={(option) => {
-                if (spellEffectDef) {
-                  handleActiveEffectActivate(spellEffectDef, option);
-                }
-                setSpellEffectDef(null);
-              }}
-            />
-
-            <ActiveEffectsCleanupModal
-              open={cleanupOpen}
-              effects={currentSheet.activeEffects ?? []}
-              onConfirm={handleCleanupRemove}
-              onClose={() => setCleanupOpen(false)}
-            />
-
-            <ActiveEffectsManagerModal
-              open={effectsModalOpen}
-              effects={currentSheet.activeEffects ?? []}
-              sheet={currentSheet}
-              readonly={!onSheetUpdate || !canUseActiveEffects}
-              customDefinitions={virtualCustomEffectDefinitions}
-              onRemove={handleActiveEffectRemove}
-              onActivate={handleActiveEffectActivate}
-              onClose={() => setEffectsModalOpen(false)}
-            />
-
-            {/* PARTE DO MEIO: Atributos */}
-            <Card
-              sx={{
-                p: 3,
-                mb: 4,
-                position: 'relative',
-                overflow: 'visible',
-              }}
-            >
-              <BookTitle>Atributos</BookTitle>
-              <AttributeDisplay
-                attributes={atributos}
-                characterName={nome}
+              <ActivePowerUseDialog
+                open={spellEffectDef !== null && canUseActiveEffects}
+                definition={spellEffectDef}
                 sheet={currentSheet}
-                attributeHighlights={
-                  markersEnabled ? conditionHighlights.attributes : undefined
-                }
+                onClose={handleSpellEffectDismiss}
+                onConfirm={(option) => {
+                  if (spellEffectDef) {
+                    handleActiveEffectActivate(spellEffectDef, option, {
+                      abilityBase: pendingSpellAbility ?? undefined,
+                    });
+                  }
+                  setSpellEffectDef(null);
+                  setPendingSpellAbility(null);
+                }}
               />
-            </Card>
 
-            {/* Card de Parceiros (apenas durante encontro com partners anexados) */}
-            <Box sx={{ mb: 4 }}>
-              <PartnerSheetPanel />
-            </Box>
+              <ActiveEffectsCleanupModal
+                open={cleanupOpen}
+                effects={currentSheet.activeEffects ?? []}
+                onConfirm={handleCleanupRemove}
+                onClose={() => setCleanupOpen(false)}
+              />
 
-            {/* Card com abas: Ataques / Defesa / Poderes / Magias / Equip. (+ Perícias no mobile) */}
-            <Card
-              sx={{
-                p: 3,
-                mb: 4,
-                position: 'relative',
-                overflow: 'visible',
-              }}
-            >
-              <Stack
-                direction='row'
-                spacing={1}
+              <ActiveEffectsManagerModal
+                open={effectsModalOpen}
+                effects={currentSheet.activeEffects ?? []}
+                sheet={currentSheet}
+                readonly={!onSheetUpdate || !canUseActiveEffects}
+                customDefinitions={virtualCustomEffectDefinitions}
+                onRemove={handleActiveEffectRemove}
+                onActivate={handleActiveEffectActivate}
+                onClose={() => setEffectsModalOpen(false)}
+              />
+
+              {/* PARTE DO MEIO: Atributos */}
+              <Card
                 sx={{
-                  position: 'absolute',
-                  top: -16,
-                  right: 16,
-                  zIndex: 1,
+                  p: 3,
+                  mb: 4,
+                  position: 'relative',
+                  overflow: 'visible',
                 }}
               >
-                {activeSheetTab === 'poderes' &&
-                  canUseActiveEffects &&
-                  (() => {
-                    const activeCount = currentSheet.activeEffects?.length ?? 0;
-                    const hasActive = activeCount > 0;
-                    return (
-                      <Tooltip
-                        title={
-                          hasActive
-                            ? `Efeitos ativos (${activeCount})`
-                            : 'Efeitos ativos'
-                        }
-                      >
-                        <Badge
-                          badgeContent={activeCount}
-                          color='error'
-                          overlap='circular'
-                          invisible={!hasActive}
+                <BookTitle>Atributos</BookTitle>
+                <AttributeDisplay
+                  attributes={atributos}
+                  characterName={nome}
+                  sheet={currentSheet}
+                  attributeHighlights={
+                    markersEnabled ? conditionHighlights.attributes : undefined
+                  }
+                />
+              </Card>
+
+              {/* Card de Parceiros (apenas durante encontro com partners anexados) */}
+              <Box sx={{ mb: 4 }}>
+                <PartnerSheetPanel />
+              </Box>
+
+              {/* Companheiros Animais do Druida (persistentes na ficha) */}
+              {showAnimalCompanions && (
+                <Box sx={{ mb: 4 }} ref={animalCompanionsRef}>
+                  <AnimalCompanionsPanel
+                    sheet={currentSheet}
+                    onSheetUpdate={
+                      onSheetUpdate ? applyRecalculatedSheet : undefined
+                    }
+                  />
+                </Box>
+              )}
+
+              {/* Card com abas: Ataques / Defesa / Poderes / Magias / Equip. (+ Perícias no mobile) */}
+              <Card
+                sx={{
+                  p: 3,
+                  mb: 4,
+                  position: 'relative',
+                  overflow: 'visible',
+                }}
+              >
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    zIndex: 1,
+                  }}
+                >
+                  {activeSheetTab === 'poderes' &&
+                    canUseActiveEffects &&
+                    (() => {
+                      const activeCount =
+                        currentSheet.activeEffects?.length ?? 0;
+                      const hasActive = activeCount > 0;
+                      return (
+                        <Tooltip
+                          title={
+                            hasActive
+                              ? `Efeitos ativos (${activeCount})`
+                              : 'Efeitos ativos'
+                          }
                         >
-                          <IconButton
-                            size='small'
-                            sx={{
-                              backgroundColor: hasActive
-                                ? ACTIVE_EFFECT_COLOR
-                                : theme.palette.primary.main,
-                              color: 'white',
-                              borderRadius: 1,
-                              '&:hover': {
+                          <Badge
+                            badgeContent={activeCount}
+                            color='error'
+                            overlap='circular'
+                            invisible={!hasActive}
+                          >
+                            <IconButton
+                              size='small'
+                              sx={{
                                 backgroundColor: hasActive
                                   ? ACTIVE_EFFECT_COLOR
-                                  : theme.palette.primary.dark,
-                                filter: hasActive
-                                  ? 'brightness(0.92)'
-                                  : undefined,
-                              },
-                            }}
-                            onClick={() => setEffectsModalOpen(true)}
-                          >
-                            <AutoAwesomeIcon />
-                          </IconButton>
-                        </Badge>
+                                  : theme.palette.primary.main,
+                                color: 'white',
+                                borderRadius: 1,
+                                '&:hover': {
+                                  backgroundColor: hasActive
+                                    ? ACTIVE_EFFECT_COLOR
+                                    : theme.palette.primary.dark,
+                                  filter: hasActive
+                                    ? 'brightness(0.92)'
+                                    : undefined,
+                                },
+                              }}
+                              onClick={() => setEffectsModalOpen(true)}
+                            >
+                              <AutoAwesomeIcon />
+                            </IconButton>
+                          </Badge>
+                        </Tooltip>
+                      );
+                    })()}
+                  {onSheetUpdate &&
+                    // Já tem complicação → sempre gerenciável (inclusive para
+                    // remover). Sem complicação → exige a feature liberada.
+                    (!!currentSheet.complication ||
+                      (complicationsFeature.hasAccess &&
+                        userSupplements.includes(
+                          SupplementId.TORMENTA20_HEROIS_ARTON
+                        ))) && (
+                      <Tooltip title='Complicação (Heróis de Arton)'>
+                        <IconButton
+                          size='small'
+                          sx={{
+                            backgroundColor: theme.palette.primary.main,
+                            color: 'white',
+                            borderRadius: 1,
+                            '&:hover': {
+                              backgroundColor: theme.palette.primary.dark,
+                            },
+                          }}
+                          onClick={() => setComplicationDrawerOpen(true)}
+                        >
+                          <TheaterComedyIcon />
+                        </IconButton>
                       </Tooltip>
-                    );
-                  })()}
-                {onSheetUpdate &&
-                  // Já tem complicação → sempre gerenciável (inclusive para
-                  // remover). Sem complicação → exige a feature liberada.
-                  (!!currentSheet.complication ||
-                    (complicationsFeature.hasAccess &&
-                      userSupplements.includes(
-                        SupplementId.TORMENTA20_HEROIS_ARTON
-                      ))) && (
-                    <Tooltip title='Complicação (Heróis de Arton)'>
+                    )}
+                  {activeSheetTab === 'defesa' && onSheetUpdate && (
+                    <Tooltip title='Configurações de defesa' arrow>
                       <IconButton
                         size='small'
                         sx={{
@@ -1990,14 +2035,13 @@ const Result: React.FC<ResultProps> = (props) => {
                             backgroundColor: theme.palette.primary.dark,
                           },
                         }}
-                        onClick={() => setComplicationDrawerOpen(true)}
+                        onClick={() => setDefenseDrawerOpen(true)}
                       >
-                        <TheaterComedyIcon />
+                        <SettingsIcon />
                       </IconButton>
                     </Tooltip>
                   )}
-                {activeSheetTab === 'defesa' && onSheetUpdate && (
-                  <Tooltip title='Configurações de defesa' arrow>
+                  {onSheetUpdate && (
                     <IconButton
                       size='small'
                       sx={{
@@ -2008,16 +2052,420 @@ const Result: React.FC<ResultProps> = (props) => {
                           backgroundColor: theme.palette.primary.dark,
                         },
                       }}
-                      onClick={() => setDefenseDrawerOpen(true)}
+                      onClick={() => {
+                        if (activeSheetTab === 'pericias') {
+                          setSkillsDrawerOpen(true);
+                        } else if (activeSheetTab === 'ataques') {
+                          setBackpackInitialFilter(['Arma']);
+                          setBackpackOpen(true);
+                        } else if (activeSheetTab === 'defesa') {
+                          setBackpackInitialFilter(['Armadura', 'Escudo']);
+                          setBackpackOpen(true);
+                        } else if (activeSheetTab === 'poderes') {
+                          setPowersDrawerOpen(true);
+                        } else if (activeSheetTab === 'magias') {
+                          setSpellsDrawerOpen(true);
+                        } else {
+                          setBackpackInitialFilter(undefined);
+                          setBackpackOpen(true);
+                        }
+                      }}
                     >
-                      <SettingsIcon />
+                      <EditIcon />
                     </IconButton>
-                  </Tooltip>
-                )}
+                  )}
+                </Stack>
+                <TabContext value={activeSheetTab}>
+                  <TabList
+                    onChange={onChangeTab}
+                    variant='scrollable'
+                    scrollButtons='auto'
+                    allowScrollButtonsMobile
+                    sx={{
+                      borderBottom: 1,
+                      borderColor: 'divider',
+                    }}
+                  >
+                    {isMobile && <Tab label='Perícias' value='pericias' />}
+                    <Tab label='Ataques' value='ataques' />
+                    <Tab label='Defesa' value='defesa' />
+                    <Tab label='Poderes' value='poderes' />
+                    <Tab label='Magias' value='magias' />
+                    <Tab label='Equip.' value='equipamentos' />
+                  </TabList>
+                  {isMobile && (
+                    <TabPanel value='pericias' sx={{ p: 0 }}>
+                      {periciasDiv}
+                    </TabPanel>
+                  )}
+                  <TabPanel value='ataques' sx={{ p: 2 }}>
+                    <BookTitle>Ataques</BookTitle>
+                    {weaponsDiv}
+                  </TabPanel>
+                  <TabPanel value='defesa' sx={{ p: 2 }}>
+                    <Box sx={{ position: 'relative' }}>
+                      {((markersEnabled &&
+                        conditionHighlights.defense.length > 0) ||
+                        activeEffectHighlights.defense.length > 0) && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            left: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            zIndex: 1,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          {markersEnabled && (
+                            <ConditionMarker
+                              conditions={conditionHighlights.defense}
+                              fontSize='medium'
+                            />
+                          )}
+                          <ActiveEffectMarker
+                            effects={activeEffectHighlights.defense}
+                            fontSize='medium'
+                          />
+                        </Box>
+                      )}
+                      <Box
+                        sx={
+                          activeEffectHighlights.defense.length > 0
+                            ? getActiveEffectLabelStyle(
+                                activeEffectHighlights.defense
+                              )
+                            : (markersEnabled &&
+                                getConditionLabelStyle(
+                                  conditionHighlights.defense
+                                )) ||
+                              undefined
+                        }
+                      >
+                        <BookTitle>Defesa</BookTitle>
+                      </Box>
+                    </Box>
+                    <Stack
+                      direction={isMobile ? 'column' : 'row'}
+                      spacing={2}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: isMobile ? '100%' : '20%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          order: isMobile ? 1 : 0,
+                        }}
+                      >
+                        <FancyBox>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 0.5,
+                              fontSize: '68px',
+                            }}
+                          >
+                            <StatLabel
+                              theme={theme}
+                              style={
+                                markersEnabled
+                                  ? getConditionLabelStyle(
+                                      conditionHighlights.defense
+                                    )
+                                  : undefined
+                              }
+                            >
+                              {defesa}
+                            </StatLabel>
+                            <StatTitle
+                              style={
+                                markersEnabled
+                                  ? getConditionLabelStyle(
+                                      conditionHighlights.defense
+                                    )
+                                  : undefined
+                              }
+                            >
+                              Defesa
+                            </StatTitle>
+                          </Box>
+                        </FancyBox>
+                        {(hasAnyRd || onSheetUpdate) && (
+                          <Tooltip
+                            title={
+                              onSheetUpdate
+                                ? 'Clique para editar Defesa e Redução de Dano'
+                                : formatRdLabel(currentSheet.reducaoDeDano)
+                            }
+                            arrow
+                          >
+                            <Typography
+                              onClick={() =>
+                                onSheetUpdate && setDefenseDrawerOpen(true)
+                              }
+                              sx={{
+                                mt: 0.5,
+                                fontSize: '11px',
+                                color: hasAnyRd
+                                  ? 'text.secondary'
+                                  : 'text.disabled',
+                                cursor: onSheetUpdate ? 'pointer' : 'default',
+                                textAlign: 'center',
+                                maxWidth: '140px',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                ...(onSheetUpdate
+                                  ? {
+                                      '&:hover': {
+                                        color: 'primary.main',
+                                        textDecoration: 'underline',
+                                      },
+                                    }
+                                  : {}),
+                              }}
+                            >
+                              {hasAnyRd
+                                ? `RD: ${formatRdLabel(
+                                    currentSheet.reducaoDeDano
+                                  )}`
+                                : 'RD: —'}
+                            </Typography>
+                          </Tooltip>
+                        )}
+                      </Box>
+                      <Box
+                        sx={{
+                          width: defenseInfoWidth,
+                          order: isMobile ? 0 : 1,
+                        }}
+                      >
+                        <DefenseEquipments
+                          getKey={getKey}
+                          defenseEquipments={defenseEquipments}
+                          wornArmorId={currentSheet.wornArmorId}
+                          mainHandItemId={currentSheet.mainHandItemId}
+                          offHandItemId={currentSheet.offHandItemId}
+                          onWieldingChange={
+                            onSheetUpdate ? handleQuickWieldChange : undefined
+                          }
+                          getWieldingDisabledSlots={computeWieldingDisabled}
+                          proficiencias={effectiveProficiencias}
+                        />
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                            mt: 1,
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: 12,
+                              color: 'text.secondary',
+                            }}
+                          >
+                            <strong>Penalidade de Armadura: </strong>
+                            {((() => {
+                              if (bag.getActiveArmorPenalty) {
+                                return bag.getActiveArmorPenalty(
+                                  currentSheet.wornArmorId,
+                                  currentSheet.mainHandItemId,
+                                  currentSheet.offHandItemId
+                                );
+                              }
+                              if (bag.getArmorPenalty)
+                                return bag.getArmorPenalty();
+                              return bag.armorPenalty;
+                            })() +
+                              extraArmorPenalty) *
+                              -1}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            color: 'text.secondary',
+                            mt: 1,
+                            fontFamily: 'monospace',
+                          }}
+                        >
+                          {defenseFormula}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </TabPanel>
+                  <TabPanel value='poderes' sx={{ p: 2 }}>
+                    <Box>
+                      <BookTitle>Poderes</BookTitle>
+                      <PowersDisplay
+                        sheetHistory={currentSheet.sheetActionHistory || []}
+                        classAbilities={classe.abilities}
+                        classPowers={classPowers}
+                        raceAbilities={raca.abilities}
+                        originPowers={origin?.powers || []}
+                        deityPowers={devoto?.poderes || []}
+                        generalPowers={generalPowers}
+                        customPowers={currentSheet.customPowers || []}
+                        customGrantedPowers={
+                          currentSheet.customGrantedPowers || []
+                        }
+                        className={classe.name}
+                        raceName={raca.name}
+                        deityName={devoto?.divindade?.name}
+                        onUpdateRolls={
+                          onSheetUpdate ? handlePowerRollsUpdate : undefined
+                        }
+                        onUpdateCustomEffects={
+                          onSheetUpdate
+                            ? handlePowerCustomEffectsUpdate
+                            : undefined
+                        }
+                        onUpdateDisplay={
+                          onSheetUpdate ? handlePowerDisplayUpdate : undefined
+                        }
+                        characterName={nome}
+                        sheet={currentSheet}
+                        onActivateEffect={
+                          onSheetUpdate && canUseActiveEffects
+                            ? handleActiveEffectActivate
+                            : undefined
+                        }
+                        onSheetUpdate={
+                          onSheetUpdate
+                            ? (updated) => {
+                                setCurrentSheet(updated);
+                                onSheetUpdate(updated);
+                              }
+                            : undefined
+                        }
+                        onCompanionClick={(() => {
+                          const hasCompanion =
+                            (currentSheet.companions?.length || 0) > 0;
+                          const isTreinador =
+                            getClassLevel(currentSheet, 'Treinador') > 0;
+                          if (hasCompanion) {
+                            return () => {
+                              setSelectedCompanionIndex(0);
+                              setCompanionModalOpen(true);
+                            };
+                          }
+                          if (isTreinador && onSheetUpdate) {
+                            return () => setCompanionCreationOpen(true);
+                          }
+                          return undefined;
+                        })()}
+                        onAnimalCompanionClick={
+                          showAnimalCompanions
+                            ? scrollToAnimalCompanions
+                            : undefined
+                        }
+                        parodyButtonSlot={
+                          <Tooltip title='Buscar magia para parodiar' arrow>
+                            <IconButton
+                              size='small'
+                              onClick={() => setParodyDialogOpen(true)}
+                            >
+                              <SearchIcon fontSize='small' color='primary' />
+                            </IconButton>
+                          </Tooltip>
+                        }
+                      />
+                    </Box>
+                  </TabPanel>
+                  <TabPanel value='magias' sx={{ p: 2 }}>
+                    <Box>
+                      <BookTitle>Magias</BookTitle>
+                      <Spells
+                        spells={spells}
+                        keyAttr={keyAttr}
+                        selectedKeyAttribute={effectiveKeyAttribute}
+                        nivel={nivel}
+                        onUpdateRolls={
+                          onSheetUpdate ? handleSpellRollsUpdate : undefined
+                        }
+                        characterName={nome}
+                        currentPM={currentSheet.currentPM ?? pm}
+                        maxPM={pm}
+                        tempPM={currentSheet.tempPM ?? 0}
+                        onSpellCast={
+                          onSheetUpdate ? handleSpellCast : undefined
+                        }
+                        isMago={classe.subname === 'Mago'}
+                        onToggleMemorized={
+                          onSheetUpdate ? handleToggleMemorized : undefined
+                        }
+                        onToggleAlwaysPrepared={
+                          onSheetUpdate ? handleToggleAlwaysPrepared : undefined
+                        }
+                        bonusSpellDC={spellDCBonus}
+                        onKeyAttributeChange={
+                          onSheetUpdate ? handleKeyAttributeChange : undefined
+                        }
+                        getCircleWarning={(circle) =>
+                          getDeitySpellCircleWarning(currentSheet, circle)
+                        }
+                      />
+                    </Box>
+                  </TabPanel>
+                  <TabPanel value='equipamentos' sx={{ p: 2 }}>
+                    <Box>
+                      <BookTitle>Equipamentos</BookTitle>
+                      <EquipmentTable
+                        items={equipamentosOrdered}
+                        characterName={nome}
+                      />
+                      <Box
+                        sx={{
+                          mt: 2,
+                        }}
+                      >
+                        <strong>Dinheiro: </strong>
+                        T$ {dinheiro}
+                        {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
+                        {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
+                      </Box>
+                      <CarryLoadSummary
+                        usedSpaces={
+                          bag.getSpaces() +
+                          calculateCurrencySpaces(
+                            dinheiro,
+                            dinheiroTC,
+                            dinheiroTO
+                          )
+                        }
+                        currencySpaces={calculateCurrencySpaces(
+                          dinheiro,
+                          dinheiroTC,
+                          dinheiroTO
+                        )}
+                        maxSpaces={customMaxSpaces ?? maxSpaces}
+                      />
+                    </Box>
+                  </TabPanel>
+                </TabContext>
+              </Card>
+
+              {/* Card de Proficiências */}
+              <Card
+                sx={{ p: 2, mb: 4, position: 'relative', overflow: 'visible' }}
+              >
                 {onSheetUpdate && (
                   <IconButton
                     size='small'
                     sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
                       backgroundColor: theme.palette.primary.main,
                       color: 'white',
                       borderRadius: 1,
@@ -2025,967 +2473,494 @@ const Result: React.FC<ResultProps> = (props) => {
                         backgroundColor: theme.palette.primary.dark,
                       },
                     }}
-                    onClick={() => {
-                      if (activeSheetTab === 'pericias') {
-                        setSkillsDrawerOpen(true);
-                      } else if (activeSheetTab === 'ataques') {
-                        setBackpackInitialFilter(['Arma']);
-                        setBackpackOpen(true);
-                      } else if (activeSheetTab === 'defesa') {
-                        setBackpackInitialFilter(['Armadura', 'Escudo']);
-                        setBackpackOpen(true);
-                      } else if (activeSheetTab === 'poderes') {
-                        setPowersDrawerOpen(true);
-                      } else if (activeSheetTab === 'magias') {
-                        setSpellsDrawerOpen(true);
-                      } else {
-                        setBackpackInitialFilter(undefined);
-                        setBackpackOpen(true);
-                      }
-                    }}
+                    onClick={() => setProficiencyDrawerOpen(true)}
                   >
                     <EditIcon />
                   </IconButton>
                 )}
-              </Stack>
-              <TabContext value={activeSheetTab}>
-                <TabList
-                  onChange={onChangeTab}
-                  variant='scrollable'
-                  scrollButtons='auto'
-                  allowScrollButtonsMobile
+                <BookTitle>Proficiências</BookTitle>
+                <Stack
+                  direction='row'
                   sx={{
-                    borderBottom: 1,
-                    borderColor: 'divider',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  {isMobile && <Tab label='Perícias' value='pericias' />}
-                  <Tab label='Ataques' value='ataques' />
-                  <Tab label='Defesa' value='defesa' />
-                  <Tab label='Poderes' value='poderes' />
-                  <Tab label='Magias' value='magias' />
-                  <Tab label='Equip.' value='equipamentos' />
-                </TabList>
-                {isMobile && (
-                  <TabPanel value='pericias' sx={{ p: 0 }}>
-                    {periciasDiv}
-                  </TabPanel>
-                )}
-                <TabPanel value='ataques' sx={{ p: 2 }}>
-                  <BookTitle>Ataques</BookTitle>
-                  {weaponsDiv}
-                </TabPanel>
-                <TabPanel value='defesa' sx={{ p: 2 }}>
-                  <Box sx={{ position: 'relative' }}>
-                    {((markersEnabled &&
-                      conditionHighlights.defense.length > 0) ||
-                      activeEffectHighlights.defense.length > 0) && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          left: 8,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          zIndex: 1,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                        }}
-                      >
-                        {markersEnabled && (
-                          <ConditionMarker
-                            conditions={conditionHighlights.defense}
-                            fontSize='medium'
-                          />
-                        )}
-                        <ActiveEffectMarker
-                          effects={activeEffectHighlights.defense}
-                          fontSize='medium'
-                        />
-                      </Box>
-                    )}
-                    <Box
-                      sx={
-                        activeEffectHighlights.defense.length > 0
-                          ? getActiveEffectLabelStyle(
-                              activeEffectHighlights.defense
-                            )
-                          : (markersEnabled &&
-                              getConditionLabelStyle(
-                                conditionHighlights.defense
-                              )) ||
-                            undefined
-                      }
-                    >
-                      <BookTitle>Defesa</BookTitle>
-                    </Box>
-                  </Box>
-                  <Stack
-                    direction={isMobile ? 'column' : 'row'}
-                    spacing={2}
+                  {proficienciasDiv}
+                </Stack>
+              </Card>
+
+              {/* Card de Tamanho/Deslocamento */}
+              <Card
+                sx={{ p: 2, mb: 4, position: 'relative', overflow: 'visible' }}
+              >
+                {onSheetUpdate && (
+                  <IconButton
+                    size='small'
                     sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setSizeDisplacementDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
+                <Stack
+                  spacing={2}
+                  direction='row'
+                  sx={{
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                     }}
                   >
-                    <Box
-                      sx={{
-                        width: isMobile ? '100%' : '20%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        order: isMobile ? 1 : 0,
-                      }}
-                    >
-                      <FancyBox>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 0.5,
-                            fontSize: '68px',
-                          }}
-                        >
-                          <StatLabel
-                            theme={theme}
-                            style={
-                              markersEnabled
-                                ? getConditionLabelStyle(
-                                    conditionHighlights.defense
-                                  )
-                                : undefined
-                            }
-                          >
-                            {defesa}
-                          </StatLabel>
-                          <StatTitle
-                            style={
-                              markersEnabled
-                                ? getConditionLabelStyle(
-                                    conditionHighlights.defense
-                                  )
-                                : undefined
-                            }
-                          >
-                            Defesa
-                          </StatTitle>
-                        </Box>
-                      </FancyBox>
-                      {(hasAnyRd || onSheetUpdate) && (
-                        <Tooltip
-                          title={
-                            onSheetUpdate
-                              ? 'Clique para editar Defesa e Redução de Dano'
-                              : formatRdLabel(currentSheet.reducaoDeDano)
-                          }
-                          arrow
-                        >
-                          <Typography
-                            onClick={() =>
-                              onSheetUpdate && setDefenseDrawerOpen(true)
-                            }
-                            sx={{
-                              mt: 0.5,
-                              fontSize: '11px',
-                              color: hasAnyRd
-                                ? 'text.secondary'
-                                : 'text.disabled',
-                              cursor: onSheetUpdate ? 'pointer' : 'default',
-                              textAlign: 'center',
-                              maxWidth: '140px',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              ...(onSheetUpdate
-                                ? {
-                                    '&:hover': {
-                                      color: 'primary.main',
-                                      textDecoration: 'underline',
-                                    },
-                                  }
-                                : {}),
-                            }}
-                          >
-                            {hasAnyRd
-                              ? `RD: ${formatRdLabel(
-                                  currentSheet.reducaoDeDano
-                                )}`
-                              : 'RD: —'}
-                          </Typography>
-                        </Tooltip>
-                      )}
-                    </Box>
-                    <Box
-                      sx={{
-                        width: defenseInfoWidth,
-                        order: isMobile ? 0 : 1,
-                      }}
-                    >
-                      <DefenseEquipments
-                        getKey={getKey}
-                        defenseEquipments={defenseEquipments}
-                        wornArmorId={currentSheet.wornArmorId}
-                        mainHandItemId={currentSheet.mainHandItemId}
-                        offHandItemId={currentSheet.offHandItemId}
-                        onWieldingChange={
-                          onSheetUpdate ? handleQuickWieldChange : undefined
-                        }
-                        getWieldingDisabledSlots={computeWieldingDisabled}
-                        proficiencias={effectiveProficiencias}
-                      />
+                    <FancyBox>
                       <Box
                         sx={{
                           display: 'flex',
-                          justifyContent: 'flex-start',
-                          mt: 1,
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 0.3,
                         }}
                       >
                         <Typography
                           sx={{
-                            fontSize: 12,
-                            color: 'text.secondary',
+                            fontFamily: 'Tfont',
+                            fontSize: '35px',
+                            color: theme.palette.primary.main,
+                            textAlign: 'center',
+                            lineHeight: 1,
+                            margin: 0,
+                            ...(markersEnabled
+                              ? getConditionLabelStyle(
+                                  conditionHighlights.displacement
+                                )
+                              : {}),
                           }}
                         >
-                          <strong>Penalidade de Armadura: </strong>
-                          {((() => {
-                            if (bag.getActiveArmorPenalty) {
-                              return bag.getActiveArmorPenalty(
-                                currentSheet.wornArmorId,
-                                currentSheet.mainHandItemId,
-                                currentSheet.offHandItemId
-                              );
-                            }
-                            if (bag.getArmorPenalty)
-                              return bag.getArmorPenalty();
-                            return bag.armorPenalty;
-                          })() +
-                            extraArmorPenalty) *
-                            -1}
+                          {displacement}
                         </Typography>
-                      </Box>
-                      <Typography
-                        sx={{
-                          fontSize: 12,
-                          color: 'text.secondary',
-                          mt: 1,
-                          fontFamily: 'monospace',
-                        }}
-                      >
-                        {defenseFormula}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </TabPanel>
-                <TabPanel value='poderes' sx={{ p: 2 }}>
-                  <Box>
-                    <BookTitle>Poderes</BookTitle>
-                    <PowersDisplay
-                      sheetHistory={currentSheet.sheetActionHistory || []}
-                      classAbilities={classe.abilities}
-                      classPowers={classPowers}
-                      raceAbilities={raca.abilities}
-                      originPowers={origin?.powers || []}
-                      deityPowers={devoto?.poderes || []}
-                      generalPowers={generalPowers}
-                      customPowers={currentSheet.customPowers || []}
-                      customGrantedPowers={
-                        currentSheet.customGrantedPowers || []
-                      }
-                      className={classe.name}
-                      raceName={raca.name}
-                      deityName={devoto?.divindade?.name}
-                      onUpdateRolls={
-                        onSheetUpdate ? handlePowerRollsUpdate : undefined
-                      }
-                      onUpdateCustomEffects={
-                        onSheetUpdate
-                          ? handlePowerCustomEffectsUpdate
-                          : undefined
-                      }
-                      characterName={nome}
-                      sheet={currentSheet}
-                      onActivateEffect={
-                        onSheetUpdate && canUseActiveEffects
-                          ? handleActiveEffectActivate
-                          : undefined
-                      }
-                      onSheetUpdate={
-                        onSheetUpdate
-                          ? (updated) => {
-                              setCurrentSheet(updated);
-                              onSheetUpdate(updated);
+                        <Typography
+                          sx={{
+                            fontFamily: 'Tfont',
+                            fontSize: '16px',
+                            color: theme.palette.text.secondary,
+                            textAlign: 'center',
+                            margin: 0,
+                          }}
+                        >
+                          ({Math.floor(displacement / 1.5)}q)
+                        </Typography>
+                        <Stack
+                          direction='row'
+                          spacing={0.5}
+                          sx={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {markersEnabled && (
+                            <ConditionMarker
+                              conditions={conditionHighlights.displacement}
+                              fontSize='small'
+                            />
+                          )}
+                          <StatTitle
+                            style={
+                              markersEnabled
+                                ? getConditionLabelStyle(
+                                    conditionHighlights.displacement
+                                  )
+                                : undefined
                             }
-                          : undefined
-                      }
-                      onCompanionClick={(() => {
-                        const hasCompanion =
-                          (currentSheet.companions?.length || 0) > 0;
-                        const isTreinador =
-                          getClassLevel(currentSheet, 'Treinador') > 0;
-                        if (hasCompanion) {
-                          return () => {
-                            setSelectedCompanionIndex(0);
-                            setCompanionModalOpen(true);
-                          };
-                        }
-                        if (isTreinador && onSheetUpdate) {
-                          return () => setCompanionCreationOpen(true);
-                        }
-                        return undefined;
-                      })()}
-                      parodyButtonSlot={
-                        <Tooltip title='Buscar magia para parodiar' arrow>
-                          <IconButton
-                            size='small'
-                            onClick={() => setParodyDialogOpen(true)}
                           >
-                            <SearchIcon fontSize='small' color='primary' />
-                          </IconButton>
-                        </Tooltip>
-                      }
-                    />
-                  </Box>
-                </TabPanel>
-                <TabPanel value='magias' sx={{ p: 2 }}>
-                  <Box>
-                    <BookTitle>Magias</BookTitle>
-                    <Spells
-                      spells={spells}
-                      keyAttr={keyAttr}
-                      selectedKeyAttribute={effectiveKeyAttribute}
-                      nivel={nivel}
-                      onUpdateRolls={
-                        onSheetUpdate ? handleSpellRollsUpdate : undefined
-                      }
-                      characterName={nome}
-                      currentPM={currentSheet.currentPM ?? pm}
-                      maxPM={pm}
-                      tempPM={currentSheet.tempPM ?? 0}
-                      onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
-                      isMago={classe.subname === 'Mago'}
-                      onToggleMemorized={
-                        onSheetUpdate ? handleToggleMemorized : undefined
-                      }
-                      onToggleAlwaysPrepared={
-                        onSheetUpdate ? handleToggleAlwaysPrepared : undefined
-                      }
-                      bonusSpellDC={spellDCBonus}
-                      onKeyAttributeChange={
-                        onSheetUpdate ? handleKeyAttributeChange : undefined
-                      }
-                      getCircleWarning={(circle) =>
-                        getDeitySpellCircleWarning(currentSheet, circle)
-                      }
-                    />
-                  </Box>
-                </TabPanel>
-                <TabPanel value='equipamentos' sx={{ p: 2 }}>
-                  <Box>
-                    <BookTitle>Equipamentos</BookTitle>
-                    <EquipmentTable
-                      items={equipamentosOrdered}
-                      characterName={nome}
-                    />
-                    <Box
-                      sx={{
-                        mt: 2,
-                      }}
-                    >
-                      <strong>Dinheiro: </strong>
-                      T$ {dinheiro}
-                      {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
-                      {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
-                    </Box>
-                    <CarryLoadSummary
-                      usedSpaces={
+                            Desl.
+                          </StatTitle>
+                          {currentSheet.customDisplacement !== undefined && (
+                            <ManualValueMarker title='Deslocamento definido manualmente' />
+                          )}
+                        </Stack>
+                      </Box>
+                    </FancyBox>
+                    {(() => {
+                      const effectiveMaxSpaces = customMaxSpaces ?? maxSpaces;
+                      const totalUsedSpaces =
                         bag.getSpaces() +
                         calculateCurrencySpaces(
                           dinheiro,
                           dinheiroTC,
                           dinheiroTO
-                        )
+                        );
+                      if (totalUsedSpaces > effectiveMaxSpaces) {
+                        return (
+                          <Tooltip
+                            title={`Sobrecarga: ${totalUsedSpaces.toFixed(
+                              1
+                            )}/${effectiveMaxSpaces} espaços (-3m)`}
+                          >
+                            <Chip
+                              size='small'
+                              label='Sobrecarga'
+                              color='error'
+                              sx={{ mt: 1, fontSize: '0.7rem' }}
+                            />
+                          </Tooltip>
+                        );
                       }
-                      currencySpaces={calculateCurrencySpaces(
-                        dinheiro,
-                        dinheiroTC,
-                        dinheiroTO
-                      )}
-                      maxSpaces={customMaxSpaces ?? maxSpaces}
-                    />
+                      return null;
+                    })()}
+                    {displayedMovementTypes && (
+                      <Stack spacing={0} sx={{ mt: 0.5 }}>
+                        {displayedMovementTypes.escalada &&
+                          displayedMovementTypes.escalada > 0 && (
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              Escalada: {displayedMovementTypes.escalada}m (
+                              {Math.floor(
+                                displayedMovementTypes.escalada / 1.5
+                              )}
+                              q)
+                            </Typography>
+                          )}
+                        {displayedMovementTypes.escavar &&
+                          displayedMovementTypes.escavar > 0 && (
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              Escavar: {displayedMovementTypes.escavar}m (
+                              {Math.floor(displayedMovementTypes.escavar / 1.5)}
+                              q)
+                            </Typography>
+                          )}
+                        {displayedMovementTypes.natacao &&
+                          displayedMovementTypes.natacao > 0 && (
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              Natação: {displayedMovementTypes.natacao}m (
+                              {Math.floor(displayedMovementTypes.natacao / 1.5)}
+                              q)
+                            </Typography>
+                          )}
+                        {displayedMovementTypes.voo &&
+                          displayedMovementTypes.voo > 0 && (
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              Voo: {displayedMovementTypes.voo}m (
+                              {Math.floor(displayedMovementTypes.voo / 1.5)}
+                              q)
+                              {displayedMovementTypes.pairar ? ' (Pairar)' : ''}
+                            </Typography>
+                          )}
+                      </Stack>
+                    )}
                   </Box>
-                </TabPanel>
-              </TabContext>
-            </Card>
-
-            {/* Card de Proficiências */}
-            <Card
-              sx={{ p: 2, mb: 4, position: 'relative', overflow: 'visible' }}
-            >
-              {onSheetUpdate && (
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setProficiencyDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-              )}
-              <BookTitle>Proficiências</BookTitle>
-              <Stack
-                direction='row'
-                sx={{
-                  flexWrap: 'wrap',
-                }}
-              >
-                {proficienciasDiv}
-              </Stack>
-            </Card>
-
-            {/* Card de Tamanho/Deslocamento */}
-            <Card
-              sx={{ p: 2, mb: 4, position: 'relative', overflow: 'visible' }}
-            >
-              {onSheetUpdate && (
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setSizeDisplacementDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-              )}
-              <Stack
-                spacing={2}
-                direction='row'
-                sx={{
-                  justifyContent: 'center',
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                  }}
-                >
-                  <FancyBox>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 0.3,
-                      }}
-                    >
-                      <Typography
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <FancyBox>
+                      <Box
                         sx={{
-                          fontFamily: 'Tfont',
-                          fontSize: '35px',
-                          color: theme.palette.primary.main,
-                          textAlign: 'center',
-                          lineHeight: 1,
-                          margin: 0,
-                          ...(markersEnabled
-                            ? getConditionLabelStyle(
-                                conditionHighlights.displacement
-                              )
-                            : {}),
-                        }}
-                      >
-                        {displacement}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Tfont',
-                          fontSize: '16px',
-                          color: theme.palette.text.secondary,
-                          textAlign: 'center',
-                          margin: 0,
-                        }}
-                      >
-                        ({Math.floor(displacement / 1.5)}q)
-                      </Typography>
-                      <Stack
-                        direction='row'
-                        spacing={0.5}
-                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          gap: 0.5,
                         }}
                       >
-                        {markersEnabled && (
-                          <ConditionMarker
-                            conditions={conditionHighlights.displacement}
-                            fontSize='small'
-                          />
-                        )}
-                        <StatTitle
-                          style={
-                            markersEnabled
-                              ? getConditionLabelStyle(
-                                  conditionHighlights.displacement
-                                )
-                              : undefined
-                          }
+                        <Typography
+                          sx={{
+                            fontFamily: 'Tfont',
+                            fontSize: '58px',
+                            color: theme.palette.primary.main,
+                            textAlign: 'center',
+                            textTransform: 'uppercase',
+                            lineHeight: 1,
+                            margin: 0,
+                            whiteSpace: 'nowrap',
+                          }}
                         >
-                          Desl.
-                        </StatTitle>
-                      </Stack>
-                    </Box>
-                  </FancyBox>
-                  {currentSheet.customDisplacement !== undefined && (
-                    <Tooltip title='Valor definido manualmente'>
-                      <Chip
-                        size='small'
-                        label='Manual'
-                        color='warning'
-                        sx={{ mt: 1, fontSize: '0.7rem' }}
-                      />
-                    </Tooltip>
-                  )}
-                  {(() => {
-                    const effectiveMaxSpaces = customMaxSpaces ?? maxSpaces;
-                    const totalUsedSpaces =
-                      bag.getSpaces() +
-                      calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
-                    if (totalUsedSpaces > effectiveMaxSpaces) {
-                      return (
-                        <Tooltip
-                          title={`Sobrecarga: ${totalUsedSpaces.toFixed(
-                            1
-                          )}/${effectiveMaxSpaces} espaços (-3m)`}
+                          {size.name.charAt(0)}
+                        </Typography>
+                        <Stack
+                          direction='row'
+                          spacing={0.5}
+                          sx={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
                         >
-                          <Chip
-                            size='small'
-                            label='Sobrecarga'
-                            color='error'
-                            sx={{ mt: 1, fontSize: '0.7rem' }}
-                          />
-                        </Tooltip>
-                      );
-                    }
-                    return null;
-                  })()}
-                  {currentSheet.movementTypes && (
-                    <Stack spacing={0} sx={{ mt: 0.5 }}>
-                      {currentSheet.movementTypes.escalada &&
-                        currentSheet.movementTypes.escalada > 0 && (
-                          <Typography
-                            variant='caption'
-                            sx={{
-                              color: 'text.secondary',
-                              textAlign: 'center',
-                              lineHeight: 1.3,
-                            }}
-                          >
-                            Escalada: {currentSheet.movementTypes.escalada}m (
-                            {Math.floor(
-                              currentSheet.movementTypes.escalada / 1.5
-                            )}
-                            q)
-                          </Typography>
-                        )}
-                      {currentSheet.movementTypes.escavar &&
-                        currentSheet.movementTypes.escavar > 0 && (
-                          <Typography
-                            variant='caption'
-                            sx={{
-                              color: 'text.secondary',
-                              textAlign: 'center',
-                              lineHeight: 1.3,
-                            }}
-                          >
-                            Escavar: {currentSheet.movementTypes.escavar}m (
-                            {Math.floor(
-                              currentSheet.movementTypes.escavar / 1.5
-                            )}
-                            q)
-                          </Typography>
-                        )}
-                      {currentSheet.movementTypes.natacao &&
-                        currentSheet.movementTypes.natacao > 0 && (
-                          <Typography
-                            variant='caption'
-                            sx={{
-                              color: 'text.secondary',
-                              textAlign: 'center',
-                              lineHeight: 1.3,
-                            }}
-                          >
-                            Natação: {currentSheet.movementTypes.natacao}m (
-                            {Math.floor(
-                              currentSheet.movementTypes.natacao / 1.5
-                            )}
-                            q)
-                          </Typography>
-                        )}
-                      {currentSheet.movementTypes.voo &&
-                        currentSheet.movementTypes.voo > 0 && (
-                          <Typography
-                            variant='caption'
-                            sx={{
-                              color: 'text.secondary',
-                              textAlign: 'center',
-                              lineHeight: 1.3,
-                            }}
-                          >
-                            Voo: {currentSheet.movementTypes.voo}m (
-                            {Math.floor(currentSheet.movementTypes.voo / 1.5)}
-                            q)
-                            {currentSheet.movementTypes.pairar
-                              ? ' (Pairar)'
-                              : ''}
-                          </Typography>
-                        )}
-                    </Stack>
-                  )}
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                  }}
-                >
-                  <FancyBox>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 0.5,
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontFamily: 'Tfont',
-                          fontSize: '58px',
-                          color: theme.palette.primary.main,
-                          textAlign: 'center',
-                          textTransform: 'uppercase',
-                          lineHeight: 1,
-                          margin: 0,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {size.name.charAt(0)}
-                      </Typography>
-                      <StatTitle>Tamanho</StatTitle>
-                    </Box>
-                  </FancyBox>
-                  {currentSheet.customSize !== undefined && (
-                    <Tooltip title='Tamanho definido manualmente'>
-                      <Chip
-                        size='small'
-                        label='Manual'
-                        color='warning'
-                        sx={{ mt: 1, fontSize: '0.7rem' }}
-                      />
-                    </Tooltip>
-                  )}
-                </Box>
-              </Stack>
-            </Card>
-          </Box>
-          {/* LADO DIREITO, 40% — apenas Perícias (no mobile vira aba) */}
-          {!isMobile && (
-            <Box
-              sx={{
-                width: '40%',
-              }}
-            >
-              <Stack spacing={4}>
-                <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                  {onSheetUpdate && (
-                    <IconButton
-                      size='small'
-                      sx={{
-                        position: 'absolute',
-                        top: -16,
-                        right: 16,
-                        backgroundColor: theme.palette.primary.main,
-                        color: 'white',
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: theme.palette.primary.dark,
-                        },
-                      }}
-                      onClick={() => setSkillsDrawerOpen(true)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  )}
-                  {periciasDiv}
-                </Card>
-              </Stack>
+                          <StatTitle>Tamanho</StatTitle>
+                          {currentSheet.customSize !== undefined && (
+                            <ManualValueMarker title='Tamanho definido manualmente' />
+                          )}
+                        </Stack>
+                      </Box>
+                    </FancyBox>
+                  </Box>
+                </Stack>
+              </Card>
             </Box>
-          )}
-        </Stack>
-
-        <Box sx={{ mt: 2, width: '100%' }}>
-          {/* Bug Report Alert */}
-          <Alert severity='info' icon={<BugReportIcon />} sx={{ mb: 2 }}>
-            Encontrou algum problema nessa ficha?{' '}
-            <Link
-              href='https://fichasdenimb.com.br/forum'
-              target=''
-              rel='noopener noreferrer'
-              sx={{ fontWeight: 'bold' }}
-            >
-              Nos avise!
-            </Link>
-          </Alert>
-
-          {/* Support CTA - only for non-supporters */}
-          {!isSupporter && (
-            <Alert
-              severity='success'
-              icon={<FavoriteIcon />}
-              sx={{
-                mb: 2,
-                background: `linear-gradient(135deg, ${
-                  theme.palette.mode === 'dark' ? '#3d3200' : '#fff8e1'
-                } 0%, ${
-                  theme.palette.mode === 'dark' ? '#2d2400' : '#fff3cd'
-                } 100%)`,
-                border: '1px solid',
-                borderColor:
-                  theme.palette.mode === 'dark' ? '#5a4a00' : '#ffe082',
-                '& .MuiAlert-icon': {
-                  color: '#FFA500',
-                },
-              }}
-            >
-              Gostou da ficha? Apoie o Fichas de Nimb e desbloqueie recursos
-              exclusivos!{' '}
-              <Link
-                href='/apoiar'
-                sx={{ fontWeight: 'bold', color: '#FFA500' }}
+            {/* LADO DIREITO, 40% — apenas Perícias (no mobile vira aba) */}
+            {!isMobile && (
+              <Box
+                sx={{
+                  width: '40%',
+                  minWidth: 0,
+                }}
               >
-                Apoiar o projeto
+                <Stack spacing={4}>
+                  <Card sx={{ position: 'relative', overflow: 'visible' }}>
+                    {onSheetUpdate && (
+                      <IconButton
+                        size='small'
+                        sx={{
+                          position: 'absolute',
+                          top: -16,
+                          right: 16,
+                          backgroundColor: theme.palette.primary.main,
+                          color: 'white',
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                        }}
+                        onClick={() => setSkillsDrawerOpen(true)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    )}
+                    {periciasDiv}
+                  </Card>
+                </Stack>
+              </Box>
+            )}
+          </Stack>
+
+          <Box sx={{ mt: 2, width: '100%' }}>
+            {/* Bug Report Alert */}
+            <Alert severity='info' icon={<BugReportIcon />} sx={{ mb: 2 }}>
+              Encontrou algum problema nessa ficha?{' '}
+              <Link
+                href='https://fichasdenimb.com.br/forum'
+                target=''
+                rel='noopener noreferrer'
+                sx={{ fontWeight: 'bold' }}
+              >
+                Nos avise!
               </Link>
             </Alert>
-          )}
 
-          {/* Passo-a-passo Accordion */}
-          <Accordion defaultExpanded={false}>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls='steps-content'
-              id='steps-header'
-            >
-              <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
-                Passo-a-passo da criação
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Box component='ul' sx={{ pl: 2 }}>
-                {changesDiv}
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-        </Box>
-      </Container>
-      <>
-        <SheetInfoEditDrawer
-          open={sheetInfoDrawerOpen}
-          onClose={() => setSheetInfoDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handleSheetInfoUpdate}
-        />
+            {/* Support CTA - only for non-supporters */}
+            {!isSupporter && (
+              <Alert
+                severity='success'
+                icon={<FavoriteIcon />}
+                sx={{
+                  mb: 2,
+                  background: `linear-gradient(135deg, ${
+                    theme.palette.mode === 'dark' ? '#3d3200' : '#fff8e1'
+                  } 0%, ${
+                    theme.palette.mode === 'dark' ? '#2d2400' : '#fff3cd'
+                  } 100%)`,
+                  border: '1px solid',
+                  borderColor:
+                    theme.palette.mode === 'dark' ? '#5a4a00' : '#ffe082',
+                  '& .MuiAlert-icon': {
+                    color: '#FFA500',
+                  },
+                }}
+              >
+                Gostou da ficha? Apoie o Fichas de Nimb e desbloqueie recursos
+                exclusivos!{' '}
+                <Link
+                  href='/apoiar'
+                  sx={{ fontWeight: 'bold', color: '#FFA500' }}
+                >
+                  Apoiar o projeto
+                </Link>
+              </Alert>
+            )}
 
-        <LevelUpWizardModal
-          open={levelUpWizardOpen}
-          initialSheet={currentSheet}
-          targetLevel={currentSheet.nivel + 1}
-          supplements={userSupplements}
-          onConfirm={handleLevelUpConfirm}
-          onCancel={() => setLevelUpWizardOpen(false)}
-        />
-
-        <Snackbar
-          open={levelUpError !== null}
-          autoHideDuration={8000}
-          onClose={() => setLevelUpError(null)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert
-            severity='error'
-            onClose={() => setLevelUpError(null)}
-            sx={{ width: '100%' }}
-          >
-            {levelUpError}
-          </Alert>
-        </Snackbar>
-
-        <SkillsEditDrawer
-          open={skillsDrawerOpen}
-          onClose={() => setSkillsDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handleSkillsUpdate}
-        />
-
-        <BackpackModal
-          open={backpackOpen}
-          onClose={() => setBackpackOpen(false)}
-          sheet={currentSheet}
-          onSave={handleEquipmentUpdate}
-          initialCategoryFilters={backpackInitialFilter}
-        />
-
-        <PowersEditDrawer
-          open={powersDrawerOpen}
-          onClose={() => setPowersDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handlePowersUpdate}
-        />
-
-        {onSheetUpdate && (
-          <ComplicationEditDrawer
-            open={complicationDrawerOpen}
-            onClose={() => setComplicationDrawerOpen(false)}
+            {/* Passo-a-passo Accordion */}
+            <Accordion defaultExpanded={false}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls='steps-content'
+                id='steps-header'
+              >
+                <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
+                  Passo-a-passo da criação
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box component='ul' sx={{ pl: 2 }}>
+                  {changesDiv}
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          </Box>
+        </Container>
+        <>
+          <SheetInfoEditDrawer
+            open={sheetInfoDrawerOpen}
+            onClose={() => setSheetInfoDrawerOpen(false)}
             sheet={currentSheet}
+            onSave={handleSheetInfoUpdate}
+          />
+
+          <LevelUpWizardModal
+            open={levelUpWizardOpen}
+            initialSheet={currentSheet}
+            targetLevel={currentSheet.nivel + 1}
             supplements={userSupplements}
+            onConfirm={handleLevelUpConfirm}
+            onCancel={() => setLevelUpWizardOpen(false)}
+          />
+
+          <Snackbar
+            open={levelUpError !== null}
+            autoHideDuration={8000}
+            onClose={() => setLevelUpError(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert
+              severity='error'
+              onClose={() => setLevelUpError(null)}
+              sx={{ width: '100%' }}
+            >
+              {levelUpError}
+            </Alert>
+          </Snackbar>
+
+          <SkillsEditDrawer
+            open={skillsDrawerOpen}
+            onClose={() => setSkillsDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSkillsUpdate}
+          />
+
+          <BackpackModal
+            open={backpackOpen}
+            onClose={() => setBackpackOpen(false)}
+            sheet={currentSheet}
+            onSave={handleEquipmentUpdate}
+            initialCategoryFilters={backpackInitialFilter}
+          />
+
+          <PowersEditDrawer
+            open={powersDrawerOpen}
+            onClose={() => setPowersDrawerOpen(false)}
+            sheet={currentSheet}
             onSave={handlePowersUpdate}
           />
-        )}
 
-        <SpellsEditDrawer
-          open={spellsDrawerOpen}
-          onClose={() => setSpellsDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handleSpellsUpdate}
-        />
-
-        {onSheetUpdate && (
-          <ParodySpellPickerDialog
-            open={parodyDialogOpen}
-            onClose={() => setParodyDialogOpen(false)}
-            currentPM={currentSheet.currentPM ?? currentSheet.pm}
-            maxPM={currentSheet.pm}
-            tempPM={currentSheet.tempPM ?? 0}
-            onCast={handleSpellCast}
-            characterName={nome}
-          />
-        )}
-
-        <DefenseEditDrawer
-          open={defenseDrawerOpen}
-          onClose={() => setDefenseDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handleSheetInfoUpdate}
-          onOpenEquipmentDrawer={() => {
-            setBackpackInitialFilter(['Armadura', 'Escudo']);
-            setBackpackOpen(true);
-          }}
-        />
-
-        <ProficiencyEditDrawer
-          open={proficiencyDrawerOpen}
-          onClose={() => setProficiencyDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handleProficiencyUpdate}
-        />
-
-        <SizeDisplacementEditDrawer
-          open={sizeDisplacementDrawerOpen}
-          onClose={() => setSizeDisplacementDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handleSheetInfoUpdate}
-        />
-
-        <StatEditDrawer
-          open={statDrawerOpen}
-          onClose={() => setStatDrawerOpen(false)}
-          sheet={currentSheet}
-          onSave={handleSheetInfoUpdate}
-        />
-        <NotesDialog
-          open={notesDialogOpen}
-          onClose={() => setNotesDialogOpen(false)}
-          notes={currentSheet.notes || ''}
-          onSave={handleNotesSave}
-        />
-        {(() => {
-          const companions = currentSheet.companions || [];
-          const safeIndex = Math.min(
-            selectedCompanionIndex,
-            Math.max(0, companions.length - 1)
-          );
-          const currentCompanion = companions[safeIndex];
-          if (!currentCompanion) return null;
-          return (
-            <CompanionSheetModal
-              open={companionModalOpen}
-              onClose={() => setCompanionModalOpen(false)}
-              companion={currentCompanion}
-              trainerLevel={currentSheet.nivel}
-              trainerName={currentSheet.nome}
-              trainerCharismaMod={
-                currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
-              }
-              pendingEnsinarTruqueCount={(() => {
-                const ensinarCount =
-                  currentSheet.classPowers?.filter(
-                    (p) => p.name === 'Ensinar Truque'
-                  ).length ?? 0;
-                if (ensinarCount === 0) return 0;
-                const appliedCount =
-                  currentSheet.sheetActionHistory?.filter(
-                    (entry) =>
-                      entry.powerName === 'Ensinar Truque' &&
-                      entry.changes.some(
-                        (c) => c.type === 'CompanionTrickLearned'
-                      )
-                  ).length ?? 0;
-                return Math.max(0, ensinarCount - appliedCount);
-              })()}
-              onCompanionUpdate={
-                onSheetUpdate ? handleCompanionUpdate : undefined
-              }
-              totalCompanions={companions.length}
-              currentIndex={safeIndex}
-              onIndexChange={setSelectedCompanionIndex}
-              onAdd={
-                onSheetUpdate ? () => setCompanionCreationOpen(true) : undefined
-              }
-              onRemove={onSheetUpdate ? handleCompanionRemove : undefined}
-              onEdit={
-                onSheetUpdate
-                  ? () => {
-                      setCompanionModalOpen(false);
-                      setCompanionEditOpen(true);
-                    }
-                  : undefined
-              }
+          {onSheetUpdate && (
+            <ComplicationEditDrawer
+              open={complicationDrawerOpen}
+              onClose={() => setComplicationDrawerOpen(false)}
+              sheet={currentSheet}
+              supplements={userSupplements}
+              onSave={handlePowersUpdate}
             />
-          );
-        })()}
-        {onSheetUpdate &&
-          (() => {
+          )}
+
+          <SpellsEditDrawer
+            open={spellsDrawerOpen}
+            onClose={() => setSpellsDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSpellsUpdate}
+          />
+
+          {onSheetUpdate && (
+            <ParodySpellPickerDialog
+              open={parodyDialogOpen}
+              onClose={() => setParodyDialogOpen(false)}
+              currentPM={currentSheet.currentPM ?? currentSheet.pm}
+              maxPM={currentSheet.pm}
+              tempPM={currentSheet.tempPM ?? 0}
+              onCast={handleSpellCast}
+              characterName={nome}
+            />
+          )}
+
+          <DefenseEditDrawer
+            open={defenseDrawerOpen}
+            onClose={() => setDefenseDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSheetInfoUpdate}
+            onOpenEquipmentDrawer={() => {
+              setBackpackInitialFilter(['Armadura', 'Escudo']);
+              setBackpackOpen(true);
+            }}
+          />
+
+          <ProficiencyEditDrawer
+            open={proficiencyDrawerOpen}
+            onClose={() => setProficiencyDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleProficiencyUpdate}
+          />
+
+          <SizeDisplacementEditDrawer
+            open={sizeDisplacementDrawerOpen}
+            onClose={() => setSizeDisplacementDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSheetInfoUpdate}
+          />
+
+          <StatEditDrawer
+            open={statDrawerOpen}
+            onClose={() => setStatDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSheetInfoUpdate}
+          />
+          <NotesDialog
+            open={notesDialogOpen}
+            onClose={() => setNotesDialogOpen(false)}
+            notes={currentSheet.notes || ''}
+            onSave={handleNotesSave}
+          />
+          {(() => {
             const companions = currentSheet.companions || [];
             const safeIndex = Math.min(
               selectedCompanionIndex,
@@ -2994,42 +2969,101 @@ const Result: React.FC<ResultProps> = (props) => {
             const currentCompanion = companions[safeIndex];
             if (!currentCompanion) return null;
             return (
-              <CompanionEditDialog
-                open={companionEditOpen}
-                onClose={() => {
-                  setCompanionEditOpen(false);
-                  setCompanionModalOpen(true);
-                }}
+              <CompanionSheetModal
+                open={companionModalOpen}
+                onClose={() => setCompanionModalOpen(false)}
                 companion={currentCompanion}
                 trainerLevel={currentSheet.nivel}
-                trainerCharisma={
+                trainerName={currentSheet.nome}
+                trainerCharismaMod={
                   currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
                 }
-                onSave={(updated) => {
-                  handleCompanionUpdate(updated);
-                  setCompanionEditOpen(false);
-                  setCompanionModalOpen(true);
-                }}
+                pendingEnsinarTruqueCount={(() => {
+                  const ensinarCount =
+                    currentSheet.classPowers?.filter(
+                      (p) => p.name === 'Ensinar Truque'
+                    ).length ?? 0;
+                  if (ensinarCount === 0) return 0;
+                  const appliedCount =
+                    currentSheet.sheetActionHistory?.filter(
+                      (entry) =>
+                        entry.powerName === 'Ensinar Truque' &&
+                        entry.changes.some(
+                          (c) => c.type === 'CompanionTrickLearned'
+                        )
+                    ).length ?? 0;
+                  return Math.max(0, ensinarCount - appliedCount);
+                })()}
+                onCompanionUpdate={
+                  onSheetUpdate ? handleCompanionUpdate : undefined
+                }
+                totalCompanions={companions.length}
+                currentIndex={safeIndex}
+                onIndexChange={setSelectedCompanionIndex}
+                onAdd={
+                  onSheetUpdate
+                    ? () => setCompanionCreationOpen(true)
+                    : undefined
+                }
+                onRemove={onSheetUpdate ? handleCompanionRemove : undefined}
+                onEdit={
+                  onSheetUpdate
+                    ? () => {
+                        setCompanionModalOpen(false);
+                        setCompanionEditOpen(true);
+                      }
+                    : undefined
+                }
               />
             );
           })()}
-        {onSheetUpdate && (
-          <CompanionCreationDialog
-            open={companionCreationOpen}
-            onClose={() => setCompanionCreationOpen(false)}
-            onConfirm={(newCompanion) => {
-              handleCompanionAdd(newCompanion);
-              setCompanionCreationOpen(false);
-              setCompanionModalOpen(true);
-            }}
-            trainerLevel={currentSheet.nivel}
-            trainerCharisma={
-              currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
-            }
-          />
-        )}
-      </>
-    </BackgroundBox>
+          {onSheetUpdate &&
+            (() => {
+              const companions = currentSheet.companions || [];
+              const safeIndex = Math.min(
+                selectedCompanionIndex,
+                Math.max(0, companions.length - 1)
+              );
+              const currentCompanion = companions[safeIndex];
+              if (!currentCompanion) return null;
+              return (
+                <CompanionEditDialog
+                  open={companionEditOpen}
+                  onClose={() => {
+                    setCompanionEditOpen(false);
+                    setCompanionModalOpen(true);
+                  }}
+                  companion={currentCompanion}
+                  trainerLevel={currentSheet.nivel}
+                  trainerCharisma={
+                    currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
+                  }
+                  onSave={(updated) => {
+                    handleCompanionUpdate(updated);
+                    setCompanionEditOpen(false);
+                    setCompanionModalOpen(true);
+                  }}
+                />
+              );
+            })()}
+          {onSheetUpdate && (
+            <CompanionCreationDialog
+              open={companionCreationOpen}
+              onClose={() => setCompanionCreationOpen(false)}
+              onConfirm={(newCompanion) => {
+                handleCompanionAdd(newCompanion);
+                setCompanionCreationOpen(false);
+                setCompanionModalOpen(true);
+              }}
+              trainerLevel={currentSheet.nivel}
+              trainerCharisma={
+                currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
+              }
+            />
+          )}
+        </>
+      </Box>
+    </WildShapeSkin>
   );
 };
 

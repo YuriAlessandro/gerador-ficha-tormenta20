@@ -68,6 +68,11 @@ export type RaceAbility = {
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
+  // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
+  // na exibição — a identidade continua sendo `name`.
+  customName?: string;
+  // Texto definido pelo usuário. Quando presente, substitui o texto do livro.
+  customDescription?: string;
   // Satisfaz um requisito `PODER: <name>` como se o personagem tivesse esses poderes
   grantsPowerRequirements?: string[];
   // Ignora TODOS os pré-requisitos de poderes cujo nome inclua qualquer destes termos

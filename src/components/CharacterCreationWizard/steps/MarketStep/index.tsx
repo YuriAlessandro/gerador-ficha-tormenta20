@@ -28,6 +28,7 @@ import {
 import { calculateCurrencySpaces } from '@/functions/general';
 import { normalizeSearch } from '@/functions/stringUtils';
 import { isDefenseEquipment } from '@/functions/itemEnhancements/core';
+import { statTrack } from '@/functions/equipmentStats';
 import {
   isProficientWithWeapon,
   isProficientWithDefense,
@@ -430,7 +431,7 @@ const MarketStep: React.FC<MarketStepProps> = ({
         {sections.map((section) => {
           const gridTemplate = [
             'minmax(150px, 1.6fr)',
-            ...section.descriptor.stats.map((stat) => stat.width),
+            ...section.descriptor.stats.map(statTrack),
             'minmax(64px, 84px)',
             isMobile ? '0px' : 'minmax(150px, 172px)',
           ].join(' ');

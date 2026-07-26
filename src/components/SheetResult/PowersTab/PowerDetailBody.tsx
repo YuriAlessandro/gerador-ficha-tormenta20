@@ -6,7 +6,11 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { PowerOriginKind, SheetPower } from '@/functions/powers/powerOrigins';
-import { getPowerText } from '@/functions/powers/powerText';
+import {
+  getPowerDisplayName,
+  getPowerDisplayText,
+  getPowerText,
+} from '@/functions/powers/powerText';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import PowerSettingsDialog from '../PowerSettingsDialog';
 
@@ -20,6 +24,11 @@ export interface PowerDetailBodyProps {
   onUpdateCustomEffects?: (
     power: SheetPower,
     newEffects: CustomEffect[]
+  ) => void;
+  onUpdateDisplay?: (
+    power: SheetPower,
+    customName?: string,
+    customDescription?: string
   ) => void;
   /** Blocos extras — a Complicação injeta classe/comportamental/poder concedido. */
   extra?: React.ReactNode;
@@ -42,6 +51,7 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
   className,
   onUpdateRolls,
   onUpdateCustomEffects,
+  onUpdateDisplay,
   extra,
 }) => {
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
@@ -107,6 +117,14 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
       if (onUpdateCustomEffects) onUpdateCustomEffects(power, newEffects);
     },
     [power, onUpdateCustomEffects]
+  );
+
+  const handleSaveDisplay = useCallback(
+    (customName?: string, customDescription?: string) => {
+      if (onUpdateDisplay)
+        onUpdateDisplay(power, customName, customDescription);
+    },
+    [power, onUpdateDisplay]
   );
 
   // Poder geral concedido por uma complicação (Heróis de Arton).
@@ -175,8 +193,17 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
 
       {extra}
 
+      {!!power.customName?.trim() && (
+        <Typography
+          variant='caption'
+          sx={{ display: 'block', color: 'text.secondary', mb: 1 }}
+        >
+          Nome original: {power.name}
+        </Typography>
+      )}
+
       <Typography variant='body2' component='div'>
-        {getPowerText(power)}
+        {getPowerDisplayText(power)}
       </Typography>
 
       <Box sx={{ pt: 2 }}>
@@ -189,14 +216,18 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
         <PowerSettingsDialog
           open={settingsDialogOpen}
           onClose={handleCloseSettingsDialog}
-          title={`Configurações: ${power.name}`}
+          title={`Configurações: ${getPowerDisplayName(power)}`}
           powerName={power.name}
           className={className}
           rolls={powerRolls}
           customEffects={powerCustomEffects}
+          customName={power.customName}
+          customDescription={power.customDescription}
+          defaultText={getPowerText(power)}
           sheet={sheet}
           onRollsChange={handleSaveRolls}
           onCustomEffectsChange={handleSaveCustomEffects}
+          onDisplayChange={onUpdateDisplay ? handleSaveDisplay : undefined}
         />
       )}
     </Box>

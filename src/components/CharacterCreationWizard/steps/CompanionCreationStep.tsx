@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -14,8 +14,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  InputAdornment,
+  Card,
+  CardContent,
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import Skill from '@/interfaces/Skills';
+import { Spell } from '@/interfaces/Spells';
+import { getInnateSpellOptions } from '@/data/systems/tormenta20/herois-de-arton/companion/innateSpells';
 import {
   CompanionType,
   CompanionSize,
@@ -96,6 +102,24 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
     );
   }, [trainerLevel, companionType, companionSize, companionTricks]);
 
+  const [spellSearch, setSpellSearch] = useState('');
+
+  const innateSpellOptions: Spell[] = useMemo(
+    () => getInnateSpellOptions(),
+    []
+  );
+
+  const filteredInnateSpells = useMemo(() => {
+    if (!spellSearch) return innateSpellOptions;
+    const q = spellSearch.toLowerCase();
+    return innateSpellOptions.filter(
+      (s) =>
+        s.nome.toLowerCase().includes(q) ||
+        s.school.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q)
+    );
+  }, [innateSpellOptions, spellSearch]);
+
   const handleToggleSkill = (skill: Skill) => {
     if (companionSkills.includes(skill)) {
       onSkillsChange(companionSkills.filter((s) => s !== skill));
@@ -124,6 +148,22 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           ? { ...t, choices: { ...t.choices, [choiceKey]: value } }
           : t
       )
+    );
+  };
+
+  // Magia Inata: alterna a magia escolhida (clicar na já selecionada limpa)
+  const handleTrickSpellSelect = (trickName: string, spellName: string) => {
+    onTricksChange(
+      companionTricks.map((t) => {
+        if (t.name !== trickName) return t;
+        const newChoices = { ...t.choices };
+        if (newChoices.spell === spellName) {
+          delete newChoices.spell;
+        } else {
+          newChoices.spell = spellName;
+        }
+        return { ...t, choices: newChoices };
+      })
     );
   };
 
@@ -528,6 +568,117 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
                           </RadioGroup>
                         </Box>
                       )}
+                    {isSelected &&
+                      trick.hasSubChoice &&
+                      trick.subChoiceType === 'spell' && (
+                        <Box sx={{ ml: 4, mt: 1 }}>
+                          <Typography variant='body2' sx={{ mb: 1 }}>
+                            Escolha uma magia de 1º círculo (arcana ou divina).
+                            A magia será concedida ao melhor amigo, usando
+                            Carisma do treinador como atributo-chave.
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            size='small'
+                            placeholder='Buscar magia por nome, escola ou descrição...'
+                            value={spellSearch}
+                            onChange={(e) => setSpellSearch(e.target.value)}
+                            sx={{ mb: 1 }}
+                            slotProps={{
+                              input: {
+                                startAdornment: (
+                                  <InputAdornment position='start'>
+                                    <SearchIcon />
+                                  </InputAdornment>
+                                ),
+                              },
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              maxHeight: 320,
+                              overflow: 'auto',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 1,
+                            }}
+                          >
+                            {filteredInnateSpells.map((spell) => {
+                              const isSpellSelected =
+                                selectedTrickData?.choices?.spell ===
+                                spell.nome;
+                              return (
+                                <Card
+                                  key={spell.nome}
+                                  variant='outlined'
+                                  sx={{
+                                    cursor: 'pointer',
+                                    // MUI Card tem overflow:hidden, o que zera o
+                                    // min-height do flex item — sem isto os cards
+                                    // encolhem e somem dentro do container flex.
+                                    flexShrink: 0,
+                                    borderColor: isSpellSelected
+                                      ? 'primary.main'
+                                      : 'divider',
+                                    borderWidth: isSpellSelected ? 2 : 1,
+                                  }}
+                                  onClick={() =>
+                                    handleTrickSpellSelect(
+                                      trick.name,
+                                      spell.nome
+                                    )
+                                  }
+                                >
+                                  <CardContent sx={{ py: 1, px: 2 }}>
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                      }}
+                                    >
+                                      <Typography
+                                        variant='subtitle2'
+                                        sx={{ fontWeight: 'bold' }}
+                                      >
+                                        {spell.nome}
+                                      </Typography>
+                                      <Chip
+                                        label={spell.school}
+                                        size='small'
+                                        variant='outlined'
+                                      />
+                                    </Box>
+                                    <Typography
+                                      variant='caption'
+                                      sx={{
+                                        color: 'text.secondary',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                      }}
+                                    >
+                                      {spell.description}
+                                    </Typography>
+                                  </CardContent>
+                                </Card>
+                              );
+                            })}
+                            {filteredInnateSpells.length === 0 && (
+                              <Typography
+                                variant='caption'
+                                sx={{
+                                  color: 'text.secondary',
+                                }}
+                              >
+                                Nenhuma magia encontrada.
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      )}
                   </Box>
                 );
               }
@@ -553,6 +704,7 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
           if (def.subChoiceType === 'attribute')
             return t.choices?.primary && t.choices?.secondary;
           if (def.subChoiceType === 'movement') return t.choices?.type;
+          if (def.subChoiceType === 'spell') return t.choices?.spell;
           return true;
         }) && (
           <Alert severity='success'>

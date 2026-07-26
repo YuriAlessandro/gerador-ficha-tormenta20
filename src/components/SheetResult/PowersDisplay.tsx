@@ -38,7 +38,13 @@ import {
   POWER_ORIGINS,
   SheetPower,
 } from '@/functions/powers/powerOrigins';
-import { getPowerText } from '@/functions/powers/powerText';
+import {
+  getPowerDisplayName,
+  getPowerDisplayText,
+  getPowerText,
+} from '@/functions/powers/powerText';
+import { buildPowerAbilityMeta } from '@/functions/rollAbilityMeta';
+import { reorderPowersWithinGroup } from '@/functions/powers/reorderPowersWithinGroup';
 import { normalizeSearch } from '@/functions/stringUtils';
 import { getActivePowerForSheetEntry } from '@/premium/data/activePowers';
 import { getComplicationPowerWarning } from '@/premium/functions/complications';
@@ -90,8 +96,16 @@ const PowersDisplay: React.FC<{
     power: SheetPower,
     newEffects: CustomEffect[]
   ) => void;
+  onUpdateDisplay?: (
+    power: SheetPower,
+    customName?: string,
+    customDescription?: string
+  ) => void;
   characterName?: string;
+  /** Atalho para a ficha do Melhor Amigo (Treinador). */
   onCompanionClick?: () => void;
+  /** Atalho para o painel de Companheiros Animais (Druida). */
+  onAnimalCompanionClick?: () => void;
   parodyButtonSlot?: React.ReactNode;
   sheet?: CharacterSheet;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
@@ -114,8 +128,10 @@ const PowersDisplay: React.FC<{
   deityName,
   onUpdateRolls,
   onUpdateCustomEffects,
+  onUpdateDisplay,
   characterName,
   onCompanionClick,
+  onAnimalCompanionClick,
   parodyButtonSlot,
   sheet,
   onSheetUpdate,
@@ -171,21 +187,14 @@ const PowersDisplay: React.FC<{
     powerCount[power.name] = (powerCount[power.name] || 0) + 1;
   });
 
+  // Dedupe SOBRE A LISTA CONCATENADA, não por array: um mesmo nome em dois
+  // arrays (ex: poder concedido que também é poder geral) gerava duas linhas
+  // com a mesma React key e, no modo reordenar, dois `draggableId` iguais
+  // dentro do mesmo Droppable — invariant do react-beautiful-dnd.
   const uniquePowers = applyPowersOrder(
-    [
-      ...filterUniqueByName(processedClassPowers),
-      ...filterUniqueByName(raceAbilities),
-      ...filterUniqueByName(filteredClassAbilities),
-      ...filterUniqueByName(originPowers),
-      ...filterUniqueByName(deityPowers),
-      ...filterUniqueByName(generalPowers),
-      ...filterUniqueByName(customPowers || []),
-      ...filterUniqueByName(customGrantedPowers || []),
-    ],
+    filterUniqueByName<SheetPower>(powers),
     sheet?.powersOrder
   );
-
-  const canReorder = !!sheet && !!onSheetUpdate && uniquePowers.length > 1;
 
   const origins = useMemo(
     () =>
@@ -215,14 +224,31 @@ const PowersDisplay: React.FC<{
     ]
   );
 
+  // Agrupamento da lista COMPLETA (sem busca nem filtro de origem). É o que o
+  // modo reordenar renderiza e o que reconstrói `powersOrder` — usar `groups`,
+  // que sai da lista filtrada, faria a ordem salva perder os poderes escondidos.
+  const allGroups = useMemo(
+    () => groupPowersByOrigin(uniquePowers, origins),
+    [uniquePowers, origins]
+  );
+
   // Texto normalizado por poder, memoizado: sem isso cada tecla digitada
-  // re-normalizaria dezenas de descrições de 1-2KB.
+  // re-normalizaria dezenas de descrições de 1-2KB. Inclui nome e texto
+  // CANÔNICOS além dos customizados — quem renomeou um poder ainda precisa
+  // encontrá-lo pelo nome do livro.
   const haystack = useMemo(() => {
     const map = new Map<string, string>();
     uniquePowers.forEach((power) => {
       map.set(
         power.name,
-        normalizeSearch(`${power.name} ${getPowerText(power)}`)
+        normalizeSearch(
+          [
+            getPowerDisplayName(power),
+            power.name,
+            getPowerDisplayText(power),
+            getPowerText(power),
+          ].join(' ')
+        )
       );
     });
     return map;
@@ -262,16 +288,31 @@ const PowersDisplay: React.FC<{
     [visible, origins]
   );
 
+  // Arrastar só acontece dentro do grupo: com um poder por grupo não há o que
+  // reordenar, e o modo viraria um beco sem saída.
+  const canReorder =
+    !!sheet &&
+    !!onSheetUpdate &&
+    allGroups.some((group) => group.powers.length > 1);
+
   const handleDragEnd = (result: DropResult) => {
     if (!sheet || !onSheetUpdate) return;
-    if (!result.destination) return;
-    if (result.destination.index === result.source.index) return;
+    const { source, destination } = result;
+    if (!destination) return;
+    // Cada grupo é um Droppable de `type` próprio, então o rbd já impede
+    // arrastar entre grupos — a guarda existe por segurança.
+    if (destination.droppableId !== source.droppableId) return;
+    if (destination.index === source.index) return;
 
-    const currentOrder = uniquePowers.map((p) => p.name);
-    const [moved] = currentOrder.splice(result.source.index, 1);
-    currentOrder.splice(result.destination.index, 0, moved);
-
-    onSheetUpdate({ ...sheet, powersOrder: currentOrder });
+    onSheetUpdate({
+      ...sheet,
+      powersOrder: reorderPowersWithinGroup(
+        allGroups,
+        source.droppableId,
+        source.index,
+        destination.index
+      ),
+    });
   };
 
   const handleResetOrder = () => {
@@ -292,10 +333,10 @@ const PowersDisplay: React.FC<{
     setActiveOrigins(new Set());
   }, []);
 
-  // Entrar em reordenar achata a lista: `powersOrder` é plano, então o
-  // Droppable PRECISA receber `uniquePowers` inteiro. Arrastar dentro de um
-  // subconjunto filtrado faria `result.source.index` virar índice local e
-  // corromperia a ordem salva em silêncio.
+  // O modo reordenar renderiza `allGroups` (lista completa), então limpar busca
+  // e filtros é escolha de UX — mostrar o que está sendo reordenado —, não
+  // requisito de correção: a ordem é reconstruída a partir da lista completa
+  // independentemente do que estiver filtrado.
   const handleReorderModeChange = useCallback((value: boolean) => {
     setReorderMode(value);
     if (value) {
@@ -365,8 +406,12 @@ const PowersDisplay: React.FC<{
         ? getComplicationPowerWarning(sheet)
         : null;
 
-    const companionSlot =
-      onCompanionClick && pw.name === 'Melhor Amigo' ? (
+    // Dois donos possíveis do ícone de patinha: o Melhor Amigo do Treinador
+    // (statblock completo, abre um modal) e o Companheiro Animal do Druida
+    // (parceiro, rola a página até o painel).
+    let companionSlot: React.ReactNode = null;
+    if (onCompanionClick && pw.name === 'Melhor Amigo') {
+      companionSlot = (
         <IconButton
           size='small'
           onClick={onCompanionClick}
@@ -374,12 +419,24 @@ const PowersDisplay: React.FC<{
         >
           <PetsIcon fontSize='small' color='primary' />
         </IconButton>
-      ) : null;
+      );
+    } else if (onAnimalCompanionClick && pw.name === 'Companheiro Animal') {
+      companionSlot = (
+        <IconButton
+          size='small'
+          onClick={onAnimalCompanionClick}
+          title='Ver companheiros animais'
+        >
+          <PetsIcon fontSize='small' color='primary' />
+        </IconButton>
+      );
+    }
 
     // O botão de rolagem vive no rail, junto das outras ações — antes ele
     // ficava ANTES do nome, e era ele que deixava a borda esquerda irregular
     // (linhas sem rolagem precisavam de um espaçador de 28px para compensar).
     const powerRolls = 'rolls' in pw && pw.rolls ? pw.rolls : [];
+    const powerOrigin = origins.get(pw.name);
     const rollSlot =
       powerRolls.length > 0 ? (
         <RollButton
@@ -387,6 +444,10 @@ const PowersDisplay: React.FC<{
           iconOnly
           size='small'
           characterName={characterName}
+          ability={buildPowerAbilityMeta(
+            pw,
+            powerOrigin ? originLabel(powerOrigin) : undefined
+          )}
         />
       ) : null;
 
@@ -419,6 +480,16 @@ const PowersDisplay: React.FC<{
     );
   };
 
+  // O poder concedido pela Complicação é referenciado pelo nome canônico; se o
+  // jogador renomeou o poder, a legenda tem que falar a mesma língua da linha.
+  const grantedPowerDisplayName = sheet?.complication?.grantedPowerName
+    ? getPowerDisplayName(
+        uniquePowers.find(
+          (p) => p.name === sheet.complication?.grantedPowerName
+        ) ?? { name: sheet.complication.grantedPowerName }
+      )
+    : '';
+
   const complicationExtra = sheet?.complication ? (
     <>
       {sheet.complication.className && (
@@ -439,7 +510,7 @@ const PowersDisplay: React.FC<{
         </Typography>
       )}
       <Typography variant='caption' sx={{ display: 'block', mb: 1 }}>
-        Poder adicional: <strong>{sheet.complication.grantedPowerName}</strong>
+        Poder adicional: <strong>{grantedPowerDisplayName}</strong>
       </Typography>
     </>
   ) : null;
@@ -471,6 +542,9 @@ const PowersDisplay: React.FC<{
 
   const renderRow = (power: SheetPower, extra?: React.ReactNode) => {
     const origin = origins.get(power.name) || COMPLICATION_ORIGIN;
+    // A Complicação é pseudo-poder: não vive em nenhum array de poderes, então
+    // não há onde gravar um override de exibição.
+    const isComplication = complicationPower?.name === power.name;
     return (
       <PowerRow
         key={power.name}
@@ -485,6 +559,7 @@ const PowersDisplay: React.FC<{
         className={className}
         onUpdateRolls={onUpdateRolls}
         onUpdateCustomEffects={onUpdateCustomEffects}
+        onUpdateDisplay={isComplication ? undefined : onUpdateDisplay}
         detailExtra={extra}
       />
     );
@@ -525,60 +600,84 @@ const PowersDisplay: React.FC<{
       />
 
       {reorderMode ? (
+        // Um Droppable POR GRUPO, cada um com seu próprio `type`: no rbd o
+        // Draggable herda o type do Droppable pai, e a coleta de dimensões
+        // filtra o registry por type no início do arrasto — droppables de
+        // outro tipo nem são medidos, então arrastar entre grupos é impossível.
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId='powers-list'>
-            {(droppableProvided) => (
-              <Box
-                ref={droppableProvided.innerRef}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...droppableProvided.droppableProps}
-              >
-                {uniquePowers.map((power, idx) => (
-                  <Draggable
-                    key={power.name}
-                    draggableId={power.name}
-                    index={idx}
+          {allGroups.map((group) => (
+            <Box key={group.key}>
+              {renderGroupHeader(
+                group.key,
+                group.label,
+                group.descriptor.color,
+                group.descriptor.icon,
+                group.powers.length
+              )}
+              <Droppable droppableId={group.key} type={`powers::${group.key}`}>
+                {(droppableProvided) => (
+                  <Box
+                    ref={droppableProvided.innerRef}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...droppableProvided.droppableProps}
                   >
-                    {(dragProvided, snapshot) => (
-                      <Box
-                        ref={dragProvided.innerRef}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...dragProvided.draggableProps}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...dragProvided.dragHandleProps}
-                        sx={{
-                          opacity: snapshot.isDragging ? 0.85 : 1,
-                          cursor: 'grab',
-                          '&:active': { cursor: 'grabbing' },
-                        }}
+                    {group.powers.map((power, idx) => (
+                      <Draggable
+                        key={power.name}
+                        draggableId={power.name}
+                        index={idx}
+                        isDragDisabled={group.powers.length < 2}
                       >
-                        <PowerRow
-                          power={power}
-                          originKind={
-                            (origins.get(power.name) || COMPLICATION_ORIGIN)
-                              .kind
-                          }
-                          count={powerCount[power.name] || 1}
-                          compact={isMobile}
-                          interactive={false}
-                          dragHandleSlot={
-                            <DragIndicatorIcon
-                              fontSize='small'
-                              sx={{ color: 'text.secondary', flexShrink: 0 }}
+                        {(dragProvided, snapshot) => (
+                          <Box
+                            ref={dragProvided.innerRef}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...dragProvided.draggableProps}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...dragProvided.dragHandleProps}
+                            sx={{
+                              opacity: snapshot.isDragging ? 0.85 : 1,
+                              cursor: group.powers.length > 1 ? 'grab' : 'auto',
+                              '&:active': {
+                                cursor:
+                                  group.powers.length > 1 ? 'grabbing' : 'auto',
+                              },
+                            }}
+                          >
+                            <PowerRow
+                              power={power}
+                              originKind={
+                                (origins.get(power.name) || COMPLICATION_ORIGIN)
+                                  .kind
+                              }
+                              count={powerCount[power.name] || 1}
+                              compact={isMobile}
+                              interactive={false}
+                              dragHandleSlot={
+                                group.powers.length > 1 ? (
+                                  <DragIndicatorIcon
+                                    fontSize='small'
+                                    sx={{
+                                      color: 'text.secondary',
+                                      flexShrink: 0,
+                                    }}
+                                  />
+                                ) : undefined
+                              }
+                              sheetHistory={sheetHistory}
+                              sheet={sheet}
+                              className={className}
                             />
-                          }
-                          sheetHistory={sheetHistory}
-                          sheet={sheet}
-                          className={className}
-                        />
-                      </Box>
-                    )}
-                  </Draggable>
-                ))}
-                {droppableProvided.placeholder}
-              </Box>
-            )}
-          </Droppable>
+                          </Box>
+                        )}
+                      </Draggable>
+                    ))}
+                    {droppableProvided.placeholder}
+                  </Box>
+                )}
+              </Droppable>
+            </Box>
+          ))}
         </DragDropContext>
       ) : (
         <>
@@ -633,6 +732,7 @@ const PowersDisplay: React.FC<{
         className={className}
         onUpdateRolls={onUpdateRolls}
         onUpdateCustomEffects={onUpdateCustomEffects}
+        onUpdateDisplay={isComplicationSelected ? undefined : onUpdateDisplay}
         detailExtra={isComplicationSelected ? complicationExtra : undefined}
       />
     </Box>

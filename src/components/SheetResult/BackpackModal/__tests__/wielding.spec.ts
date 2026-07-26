@@ -72,6 +72,19 @@ describe('isWieldable', () => {
     };
     expect(isWieldable(ration)).toBe(false);
   });
+
+  test('canBeWielded: false overrides the group rule', () => {
+    // Armas naturais virtuais da Forma Selvagem: são do grupo Arma mas não
+    // estão na mochila, então não podem ocupar um slot de mão.
+    const claw: Equipment = {
+      id: 'h',
+      nome: 'Garra (Forma Ágil)',
+      group: 'Arma',
+      dano: '1d6',
+      canBeWielded: false,
+    };
+    expect(isWieldable(claw)).toBe(false);
+  });
 });
 
 describe('getWieldingSlot', () => {

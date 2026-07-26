@@ -107,7 +107,12 @@ export const FullScreenDiceCanvas: React.FC<FullScreenDiceCanvasProps> = ({
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100vw',
+        // `100vw` inclui a calha da barra de rolagem vertical: com scrollbar
+        // clássica (desktop), esta caixa fixa fica ~15px mais larga que a área
+        // útil e força uma rolagem horizontal na página inteira, mesmo estando
+        // sempre montada e invisível. `right: 0` cobre a viewport sem esse
+        // excesso. Ver src/assets/css/index.css sobre a faixa branca resultante.
+        right: 0,
         height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.85)',
         zIndex: visible ? 99999 : -1,

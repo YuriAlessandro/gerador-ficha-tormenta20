@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            24/07/2026 (v4.26.3).
+            25/07/2026 (v4.27).
           </p>
 
           <p>
@@ -74,6 +74,286 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.27</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> A <strong>Forma Selvagem</strong> do
+                  druida agora funciona de verdade na ficha. Clique na
+                  estrelinha do poder e escolha a forma (Ágil, Feroz,
+                  Resistente, Sorrateira ou Veloz), o grau (básica, aprimorada
+                  ou superior — só aparecem os que você destravou) e{' '}
+                  <strong>em qual animal você se transforma</strong>: cada forma
+                  sugere espécies coerentes com ela, e você pode digitar
+                  qualquer outro bicho. A ficha aplica sozinha atributo, Defesa,
+                  redução de dano, deslocamento,{' '}
+                  <strong>mudança de tamanho</strong> (com os efeitos em
+                  Furtividade e manobras),{' '}
+                  <strong>voo, natação e escalada</strong> e as{' '}
+                  <strong>armas naturais</strong>, que aparecem na aba Ataques
+                  prontas para rolar. O botão &quot;Reverter&quot; desfaz tudo
+                  de uma vez.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Enquanto você está transformado,{' '}
+                  <strong>a própria ficha se transforma junto</strong>: o animal
+                  escolhido aparece em destaque no topo, com o resumo do que
+                  mudou (Força +5, Defesa +4, Grande...), e a tela ganha as
+                  cores e a textura da forma.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Druidas com o poder{' '}
+                  <strong>Companheiro Animal</strong> podem cadastrar seus
+                  companheiros na ficha com nome, espécie, retrato e anotações.
+                  O tipo de parceiro (fortão, guardião, perseguidor, montaria e
+                  companhia) define os bônus, que entram sozinhos na ficha e
+                  sobem de grau com você — veterano no 7º nível e mestre no 15º.
+                  Também dá para marcar o bicho como descansando, para os bônus
+                  saírem sem apagar o companheiro.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Chegou o{' '}
+                  <strong>Calendário Artoniano</strong> ao app. Qualquer pessoa
+                  pode consultar o calendário oficial de Arton (ano 1420, da
+                  chegada dos elfos) direto na página do{' '}
+                  <strong>Mapa de Arton</strong>, inclusive em tela cheia. Nas{' '}
+                  <strong>mesas de apoiadores</strong>, cada mesa ganha o seu
+                  próprio calendário, com os <em>Dias de Nimb</em> marcados.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Agora dá para{' '}
+                  <strong>
+                    personalizar o nome e o texto de qualquer poder da ficha
+                  </strong>
+                  . Abra o poder, clique na engrenagem e vá na aba{' '}
+                  <strong>Exibição</strong>: o texto já vem preenchido com o do
+                  livro, e você edita à vontade para anotar em que nível pegou o
+                  poder, um acordo com o mestre ou uma variação da regra. O nome
+                  original continua valendo para pré-requisitos, rolagens e
+                  busca — e o botão <strong>Restaurar padrão</strong> devolve
+                  tudo como era. As suas mudanças aparecem também na ficha
+                  simplificada e no PDF.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Nas mesas, todo{' '}
+                  <strong>uso de poder e lançamento de magia</strong> agora
+                  entra no <strong>histórico de rolagens</strong> com o{' '}
+                  <strong>nome e a descrição</strong> — e não só os números.
+                  Quando o poder ou a magia tem <strong>efeito ativo</strong>, o
+                  card traz um botão{' '}
+                  <strong>&quot;Ativar na minha ficha&quot;</strong>: dá para{' '}
+                  <strong>reativar o seu próprio efeito</strong> direto do
+                  histórico, sem caçar o poder na ficha, e para{' '}
+                  <strong>pegar o efeito que um colega usou</strong> quando ele
+                  beneficia aliados — mesmo que você estivesse na aba do
+                  encontro, com o celular bloqueado ou longe da mesa. Quando o
+                  efeito já está na sua ficha, o card mostra{' '}
+                  <strong>&quot;Ativo&quot;</strong> no lugar do botão. Magias
+                  sem dano, que antes não apareciam em lugar nenhum apesar de
+                  custar PM, agora também deixam registro.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A{' '}
+                  <strong>reordenação de poderes</strong> voltou a funcionar
+                  depois que a aba passou a agrupar os poderes por origem: agora
+                  você arrasta <strong>dentro de cada grupo</strong> e a ordem é
+                  respeitada de verdade (antes ela era salva e descartada assim
+                  que você concluía). O modo reordenar mostra os grupos, e o
+                  botão só aparece quando há algo para reordenar.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>rastreador de combate</strong> das mesas ganhou um
+                  visual novo: cada combatente mostra a{' '}
+                  <strong>iniciativa numa faixa lateral</strong>, com o{' '}
+                  <strong>turno atual</strong> em destaque e a cor do jogador ao
+                  lado, além de <strong>botões rápidos de dano e cura</strong>{' '}
+                  no próprio card. E quando o Mestre ajusta o{' '}
+                  <strong>PV ou PM de um jogador</strong> pelo rastreador, o
+                  valor agora é <strong>salvo na ficha</strong> dele (antes
+                  podia voltar sozinho ao valor anterior).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na mesa virtual (no computador), o{' '}
+                  <strong>Mestre</strong> agora abre o <strong>Mapa</strong> e o{' '}
+                  <strong>Calendário de Arton</strong> pelo{' '}
+                  <strong>menu lateral da esquerda</strong>, junto das outras
+                  ferramentas do Mestre, deixando o topo da tela mais limpo. Os
+                  jogadores continuam com os botões no canto superior.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Nas{' '}
+                  <strong>Configurações da Mesa</strong>, ficou claro o que os
+                  jogadores veem e o que só o Mestre vê. As opções agora estão
+                  separadas em dois blocos —{' '}
+                  <strong>“O que os jogadores veem”</strong> e{' '}
+                  <strong>“Só você (mestre) vê”</strong> — e a configuração de
+                  PV e PM ganhou uma <strong>prévia ao vivo</strong>, que mostra
+                  na hora como cada combatente aparece para os jogadores, tanto
+                  na lista de combate do celular quanto no painel de ordem de
+                  turno do computador (que são telas diferentes). Tem também o
+                  botão <strong>“Ver como jogador”</strong>, que abre uma
+                  simulação da tela do jogador com combatentes de exemplo, para
+                  você conferir tudo antes de salvar.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A marca de{' '}
+                  <strong>valor definido manualmente</strong> — que aparece
+                  quando você edita o PV/PM máximo, o Deslocamento ou o Tamanho
+                  na mão — deixou de ser uma etiqueta laranja grande e virou um{' '}
+                  <strong>ícone discreto ao lado do próprio valor</strong>.
+                  Continua claro que aquele número foi você quem escolheu (é só
+                  passar o mouse ou segurar o dedo em cima para ver a
+                  explicação), mas sem roubar a atenção da ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, os controles de{' '}
+                  <strong>PV e PM</strong> ficavam{' '}
+                  <strong>cortados pelas bordas da tela</strong>: o campo de
+                  valor do PV sumia para fora à esquerda (sem nem dar para rolar
+                  até ele) e o botão <strong>Curar</strong> do PM ficava pela
+                  metade à direita. Os dois controles foram reorganizados: o
+                  círculo ficou um pouco menor, o campo de valor subiu para cima
+                  dos botões <strong>Dano</strong> e <strong>Curar</strong>, e o
+                  lápis de edição foi para o lado do <strong>“PV 24/30”</strong>
+                  . Agora tudo cabe na tela, mesmo nos celulares mais estreitos.
+                  No computador nada muda.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, quando um colega de
+                  mesa usava um poder com{' '}
+                  <strong>efeito ativo que beneficia aliados</strong>, o convite
+                  para ativar o efeito <strong>não chegava</strong> a quem
+                  estava na aba <strong>Encontro</strong> — e não era só uma
+                  questão de estar escondido: o convite se perdia, e nem
+                  voltando para a ficha ele aparecia. O mesmo acontecia com o
+                  Mestre quando ele não estava na aba de fichas. Agora o convite
+                  chega em qualquer aba, e vários convites seguidos entram em
+                  fila em vez de um apagar o outro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>rolagens e os efeitos customizados</strong> que você
+                  configurava numa <strong>habilidade de classe</strong> sumiam
+                  ao <strong>subir de nível</strong>. Agora eles sobrevivem ao
+                  level-up, manual ou pelo assistente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No <strong>Calendário</strong> da
+                  mesa, a animação de sorteio dos <strong>Dias de Nimb</strong>{' '}
+                  repetia toda vez que você abria o calendário. Agora ela
+                  aparece só uma vez, quando o Mestre inicia o calendário.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O assistente de{' '}
+                  <strong>subir de nível</strong> quebrava (tela de erro) em
+                  fichas cuja classe vinha de um suplemento que você desativou
+                  depois — como <em>Frade</em> (Deuses de Arton) ou{' '}
+                  <em>Necromante</em> (Heróis de Arton) — ou de conteúdo
+                  homebrew. Agora as informações de conjuração da ficha são
+                  recuperadas mesmo com o suplemento desligado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Acabamos com a{' '}
+                  <strong>rolagem horizontal</strong> indesejada que fazia a
+                  página deslizar de leve para os lados em alguns aparelhos, e
+                  com a <strong>faixa branca</strong> que aparecia nas bordas
+                  (no modo escuro, ao esticar a rolagem no celular ou quando a
+                  barra de endereço do navegador recolhe).
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Teurgista Místico</strong> (devotos de Wynna) permite
+                  aprender{' '}
+                  <strong>uma magia da tradição oposta por círculo</strong> —
+                  uma magia arcana por círculo, se você for um conjurador
+                  divino, ou uma divina, se for arcano. O assistente de{' '}
+                  <strong>subir de nível</strong> estava travando isso: depois
+                  de escolher a primeira magia da outra tradição, ele parava de
+                  oferecer novas ao abrir os círculos seguintes — por exemplo,
+                  um clérigo que pegou uma magia arcana de 1º círculo não
+                  recebia a opção de escolher uma arcana de 2º círculo ao chegar
+                  no 5º nível. Agora o limite é contado corretamente{' '}
+                  <strong>círculo a círculo</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os{' '}
+                  <strong>efeitos ativos customizados</strong> que você cria em
+                  poderes de <strong>classe</strong> (pela engrenagem de
+                  configurações do poder) sumiam assim que eram usados,
+                  obrigando a recriá-los a cada ativação — acontecia, por
+                  exemplo, com a <em>Égide Sagrada</em> do paladino e o{' '}
+                  <em>Duelo</em> do duelista. Agora o efeito (e qualquer rolagem
+                  customizada) permanece no poder depois de ser ativado, de
+                  subir de nível ou de editar a ficha. Fichas já salvas se
+                  corrigem sozinhas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No <strong>Treinador</strong>{' '}
+                  (Heróis de Arton), o truque <strong>Magia Inata</strong> do
+                  melhor amigo não deixava escolher a magia: a lista
+                  simplesmente não aparecia ao criar o parceiro, dando a
+                  impressão de que &quot;faltavam magias&quot;. Agora dá para
+                  escolher a magia de 1º círculo (arcana ou divina) na criação
+                  do melhor amigo, ao recriá-lo, na geração de personagem
+                  aleatório e também pela <strong>edição do parceiro</strong>{' '}
+                  (aba Truques) — o que permite acertar amigos que já tinham o
+                  truque em branco. A magia entra na ficha do parceiro usando o
+                  Carisma do treinador.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ainda no seletor de{' '}
+                  <strong>Magia Inata</strong> do melhor amigo, em algumas telas
+                  os cards das magias encolhiam e ficavam{' '}
+                  <strong>em branco</strong>, sem mostrar o nome nem a
+                  descrição. Agora os cards aparecem sempre completos, tanto na
+                  criação do parceiro quanto ao subir de nível.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao escolher uma{' '}
+                  <strong>Complicação</strong> (regra opcional de Heróis de
+                  Arton), o seletor do poder adicional não listava os{' '}
+                  <strong>poderes de raça</strong> — que também são poderes
+                  gerais e vêm dos suplementos ativos. Agora eles aparecem no
+                  seletor, mostrando apenas os poderes da raça do seu
+                  personagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na ficha, a aba{' '}
+                  <strong>Equipamentos</strong> vazava para fora do quadro em
+                  telas mais estreitas — num tablet em pé, por exemplo, as
+                  colunas das armas (dano, crítico, tipo, alcance) escapavam por
+                  baixo da lista de perícias ao lado. Agora, quando o espaço não
+                  dá para a tabela inteira, os itens aparecem em{' '}
+                  <strong>cartões</strong>, com os dados em etiquetas embaixo do
+                  nome — o mesmo formato já usado no celular. A escolha passou a
+                  levar em conta o espaço real disponível, e não só o tamanho da
+                  tela, então também vale para a ficha dentro da mesa virtual e
+                  na tela do Mestre.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao{' '}
+                  <strong>girar o tablet ou o celular</strong>, a ficha voltava
+                  sozinha para a primeira aba: se você estava em Equipamentos ou
+                  Magias, caía em Ataques e precisava se achar de novo. Agora a{' '}
+                  <strong>aba aberta é mantida</strong> ao virar a tela. De
+                  quebra, a ficha passou a{' '}
+                  <strong>se reorganizar na hora</strong> ao girar o aparelho —
+                  antes, fora da mesa virtual, ela continuava com o formato da
+                  posição anterior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na configuração de{' '}
+                  <strong>exibição de PV e PM aos jogadores</strong>, o texto
+                  dizia o contrário do que o sistema fazia: avisava que, sem
+                  nenhuma opção marcada, os jogadores veriam tudo normalmente —
+                  quando, na verdade, eles não veem PV nem PM de{' '}
+                  <strong>ninguém</strong> (nem dos próprios personagens). Os
+                  rótulos e avisos foram corrigidos — agora o campo se chama{' '}
+                  <strong>“Mostrar PV/PM de”</strong> —, sem alterar o
+                  comportamento das mesas já configuradas.
+                </li>
+              </ul>
+
               <h3>4.26.3</h3>
               <ul>
                 <li>

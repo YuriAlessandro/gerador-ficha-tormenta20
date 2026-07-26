@@ -1,10 +1,7 @@
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
-import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import Equipment from '@/interfaces/Equipment';
-import { OriginPower } from '@/interfaces/Poderes';
-import { RaceAbility } from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { PDFDocument } from 'pdf-lib';
@@ -20,6 +17,7 @@ import {
   getWeaponNonProficiencyPenalty,
 } from './proficiencies';
 import { applyPowersOrder } from './powers/applyPowersOrder';
+import { getPowerDisplayName, getPowerDisplayText } from './powers/powerText';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
 import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
 
@@ -54,11 +52,6 @@ const sanitizeForWinAnsi = (text: string | undefined | null): string => {
     .filter((char) => (char.codePointAt(0) ?? 0) <= 0xff)
     .join('');
 };
-
-const generateClassPowerText = (power: ClassPower | ClassAbility) =>
-  power.text || '';
-const generateGeneralPowerText = (power: RaceAbility | OriginPower) =>
-  power.description || '';
 
 const getCircleLabel = (circle: string): string => {
   const match = circle.match(/(\d)º/);
@@ -145,17 +138,20 @@ const preparePDF: (
   wisdomField.setText(sheet.atributos.Sabedoria.value.toString());
   charismaField.setText(sheet.atributos.Carisma.value.toString());
   let displacementText = sheet.displacement.toString();
-  if (sheet.movementTypes) {
+  // Prefere os deslocamentos derivados (manual + bônus de efeitos, ex.: o voo
+  // da Forma Sorrateira Superior); cai no manual quando não há bônus ativo.
+  const movementTypes = sheet.computedMovementTypes ?? sheet.movementTypes;
+  if (movementTypes) {
     const parts: string[] = [];
-    if (sheet.movementTypes.escalada && sheet.movementTypes.escalada > 0)
-      parts.push(`Esc ${sheet.movementTypes.escalada}m`);
-    if (sheet.movementTypes.escavar && sheet.movementTypes.escavar > 0)
-      parts.push(`Exc ${sheet.movementTypes.escavar}m`);
-    if (sheet.movementTypes.natacao && sheet.movementTypes.natacao > 0)
-      parts.push(`Nat ${sheet.movementTypes.natacao}m`);
-    if (sheet.movementTypes.voo && sheet.movementTypes.voo > 0) {
-      const hover = sheet.movementTypes.pairar ? ' P' : '';
-      parts.push(`Voo ${sheet.movementTypes.voo}m${hover}`);
+    if (movementTypes.escalada && movementTypes.escalada > 0)
+      parts.push(`Esc ${movementTypes.escalada}m`);
+    if (movementTypes.escavar && movementTypes.escavar > 0)
+      parts.push(`Exc ${movementTypes.escavar}m`);
+    if (movementTypes.natacao && movementTypes.natacao > 0)
+      parts.push(`Nat ${movementTypes.natacao}m`);
+    if (movementTypes.voo && movementTypes.voo > 0) {
+      const hover = movementTypes.pairar ? ' P' : '';
+      parts.push(`Voo ${movementTypes.voo}m${hover}`);
     }
     if (parts.length > 0) {
       displacementText += ` (${parts.join(', ')})`;
@@ -396,9 +392,9 @@ const preparePDF: (
     .map((power) => {
       const count = powerCount[power.name];
       const countSuffix = count > 1 ? ` (x${count})` : '';
-      return `- ${power.name}${countSuffix}: ${generateClassPowerText(
-        power as ClassPower
-      )}${generateGeneralPowerText(power as RaceAbility | OriginPower)}`;
+      return `- ${getPowerDisplayName(
+        power
+      )}${countSuffix}: ${getPowerDisplayText(power)}`;
     })
     .join('\n');
   powersField.setText(sanitizeForWinAnsi(powersText));

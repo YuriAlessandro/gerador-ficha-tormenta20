@@ -254,3 +254,107 @@ describe('normalizeSheet - fichas sem campos obrigatórios', () => {
     expect(foundry.system.atributos.for.base).toBe(0);
   });
 });
+
+/**
+ * Crash de produção (21/07/2026): "qtySpellsLearnAtLevel is not a function" ao
+ * abrir o assistente de evolução. A lista de classes passada para
+ * restoreSpellPath é montada com os suplementos HABILITADOS de quem visualiza;
+ * quando a ficha usa uma classe de um suplemento desativado (ou de um homebrew
+ * ainda não registrado), a classe não era encontrada e o spellPath ficava do
+ * jeito que veio do JSON — sem as funções.
+ */
+describe('restoreSpellPath - classe fora dos suplementos habilitados', () => {
+  // Simula o que chega da nuvem: as funções somem na serialização
+  const serialized = <T>(value: T): T => JSON.parse(JSON.stringify(value));
+
+  it('restaura as funções de um Frade (Deuses de Arton) com só o core habilitado', () => {
+    const sheet = {
+      nivel: 5,
+      classe: serialized({
+        name: 'Frade',
+        abilities: [],
+        spellPath: {
+          initialSpells: 3,
+          spellType: 'Divine',
+          qtySpellsLearnAtLevel: () => 1,
+          spellCircleAvailableAtLevel: () => 1,
+          keyAttribute: Atributo.SABEDORIA,
+        },
+      }),
+    } as unknown as CharacterSheet;
+
+    // Pré-condição: o dado serializado chega sem as funções
+    expect(typeof sheet.classe.spellPath?.qtySpellsLearnAtLevel).toBe(
+      'undefined'
+    );
+
+    restoreSpellPath(sheet, coreClasses);
+
+    expect(typeof sheet.classe.spellPath?.qtySpellsLearnAtLevel).toBe(
+      'function'
+    );
+    expect(typeof sheet.classe.spellPath?.spellCircleAvailableAtLevel).toBe(
+      'function'
+    );
+    expect(sheet.classe.spellPath?.spellType).toBe('Divine');
+  });
+
+  it('restaura as funções de um Necromante (variante de Heróis de Arton) com só o core habilitado', () => {
+    const sheet = {
+      nivel: 5,
+      classe: serialized({
+        name: 'Necromante',
+        abilities: [],
+        spellPath: {
+          initialSpells: 3,
+          spellType: 'Arcane',
+          excludeSchools: ['Encan'],
+          includeDivineSchools: ['Necro'],
+          qtySpellsLearnAtLevel: () => 1,
+          spellCircleAvailableAtLevel: () => 1,
+          keyAttribute: Atributo.INTELIGENCIA,
+        },
+      }),
+    } as unknown as CharacterSheet;
+
+    restoreSpellPath(sheet, coreClasses);
+
+    expect(typeof sheet.classe.spellPath?.qtySpellsLearnAtLevel).toBe(
+      'function'
+    );
+    expect(typeof sheet.classe.spellPath?.spellCircleAvailableAtLevel).toBe(
+      'function'
+    );
+    // 1º nível não aprende magia; 2º aprende 1 (progressão do Necromante)
+    expect(sheet.classe.spellPath?.qtySpellsLearnAtLevel(1)).toBe(0);
+    expect(sheet.classe.spellPath?.qtySpellsLearnAtLevel(2)).toBe(1);
+    expect(sheet.classe.spellPath?.includeDivineSchools).toEqual(['Necro']);
+  });
+
+  it('preserva os campos customizados na ficha ao restaurar pelo fallback', () => {
+    const sheet = {
+      nivel: 5,
+      classe: serialized({
+        name: 'Necromante',
+        abilities: [],
+        spellPath: {
+          initialSpells: 3,
+          spellType: 'Arcane',
+          qtySpellsLearnAtLevel: () => 1,
+          spellCircleAvailableAtLevel: () => 1,
+          // Atributo-chave alterado manualmente pelo jogador
+          keyAttribute: Atributo.CARISMA,
+          schools: ['Necro'],
+        },
+      }),
+    } as unknown as CharacterSheet;
+
+    restoreSpellPath(sheet, coreClasses);
+
+    expect(typeof sheet.classe.spellPath?.qtySpellsLearnAtLevel).toBe(
+      'function'
+    );
+    expect(sheet.classe.spellPath?.keyAttribute).toBe(Atributo.CARISMA);
+    expect(sheet.classe.spellPath?.schools).toEqual(['Necro']);
+  });
+});

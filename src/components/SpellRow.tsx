@@ -29,7 +29,7 @@ interface SpellProps {
   currentPM?: number;
   maxPM?: number;
   tempPM?: number;
-  onSpellCast?: (pmSpent: number, spell: Spell) => void;
+  onSpellCast?: (pmSpent: number, spell: Spell, castLogged?: boolean) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
@@ -69,9 +69,9 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
   }, []);
 
   const handleSpellCast = useCallback(
-    (pmSpent: number, castSpell: Spell) => {
+    (pmSpent: number, castSpell: Spell, castLogged?: boolean) => {
       if (onSpellCast) {
-        onSpellCast(pmSpent, castSpell);
+        onSpellCast(pmSpent, castSpell, castLogged);
       }
     },
     [onSpellCast]

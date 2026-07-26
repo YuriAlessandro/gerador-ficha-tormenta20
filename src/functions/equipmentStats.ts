@@ -22,18 +22,28 @@ export interface EquipmentStat {
   label: string;
   /** Prefixo do chip no mobile, onde não há cabeçalho. */
   shortLabel: string;
-  /** Trilha do CSS grid da coluna. */
-  width: string;
+  /**
+   * Largura mínima da trilha do grid, em px. É ela que decide se a tabela ainda
+   * cabe no container: trilha com mínimo em px nunca encolhe abaixo dele.
+   */
+  minWidth: number;
+  /** Largura máxima da trilha do grid, em px. */
+  maxWidth: number;
   align?: 'left' | 'right';
   /** `undefined` => a célula/chip é omitida para este item. */
   get: (item: Equipment | DefenseEquipment) => string | undefined;
 }
 
+/** Trilha do CSS grid da coluna, derivada dos limites numéricos. */
+export const statTrack = (stat: EquipmentStat): string =>
+  `minmax(${stat.minWidth}px, ${stat.maxWidth}px)`;
+
 export const STAT_DANO: EquipmentStat = {
   key: 'dano',
   label: 'Dano',
   shortLabel: 'Dano',
-  width: 'minmax(64px, 84px)',
+  minWidth: 64,
+  maxWidth: 84,
   get: (item) => item.dano,
 };
 
@@ -41,7 +51,8 @@ export const STAT_CRITICO: EquipmentStat = {
   key: 'critico',
   label: 'Crítico',
   shortLabel: 'Crít',
-  width: 'minmax(56px, 72px)',
+  minWidth: 56,
+  maxWidth: 72,
   get: (item) => item.critico,
 };
 
@@ -49,7 +60,8 @@ export const STAT_TIPO: EquipmentStat = {
   key: 'tipo',
   label: 'Tipo',
   shortLabel: 'Tipo',
-  width: 'minmax(64px, 84px)',
+  minWidth: 64,
+  maxWidth: 84,
   get: (item) => abbreviateDamageType(item.tipo),
 };
 
@@ -57,7 +69,8 @@ export const STAT_ALCANCE: EquipmentStat = {
   key: 'alcance',
   label: 'Alcance',
   shortLabel: 'Alc',
-  width: 'minmax(64px, 88px)',
+  minWidth: 64,
+  maxWidth: 88,
   get: (item) => formatReach(item),
 };
 
@@ -65,7 +78,8 @@ export const STAT_CATEGORIA_ARMA: EquipmentStat = {
   key: 'weaponCategory',
   label: 'Categoria',
   shortLabel: 'Cat',
-  width: 'minmax(64px, 84px)',
+  minWidth: 64,
+  maxWidth: 84,
   get: (item) =>
     item.weaponCategory
       ? WEAPON_CATEGORY_SHORT_LABELS[item.weaponCategory]
@@ -76,7 +90,8 @@ export const STAT_DEFESA: EquipmentStat = {
   key: 'defesa',
   label: 'Defesa',
   shortLabel: 'Def',
-  width: 'minmax(56px, 76px)',
+  minWidth: 56,
+  maxWidth: 76,
   get: (item) =>
     isDefenseEquipment(item) ? `+${item.defenseBonus}` : undefined,
 };
@@ -85,7 +100,8 @@ export const STAT_PENALIDADE: EquipmentStat = {
   key: 'penalidade',
   label: 'Penalidade',
   shortLabel: 'Pen',
-  width: 'minmax(72px, 96px)',
+  minWidth: 72,
+  maxWidth: 96,
   get: (item) =>
     isDefenseEquipment(item) && item.armorPenalty
       ? `${item.armorPenalty}`
@@ -96,7 +112,8 @@ export const STAT_ESPACOS: EquipmentStat = {
   key: 'spaces',
   label: 'Espaços',
   shortLabel: 'Esp',
-  width: 'minmax(56px, 72px)',
+  minWidth: 56,
+  maxWidth: 72,
   align: 'right',
   get: (item) => formatSpaces(item.spaces),
 };

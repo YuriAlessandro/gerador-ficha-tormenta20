@@ -31,6 +31,7 @@ import SpellAreaGuideSection from '@/premium/components/SpellAreaGuide/SpellArea
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { executeMultipleDamageRolls } from '@/utils/diceRoller';
+import { buildSpellAbilityMeta } from '@/functions/rollAbilityMeta';
 import {
   augmentSpellRolls,
   AprimoramentoSelection,
@@ -49,7 +50,9 @@ interface SpellCastDialogProps {
   currentPM: number;
   maxPM: number;
   tempPM?: number;
-  onCast: (pmSpent: number, spell: Spell) => void;
+  // `castLogged` diz se este diálogo já publicou o card do lançamento no
+  // histórico — a ficha usa isso pra não publicar um segundo card igual.
+  onCast: (pmSpent: number, spell: Spell, castLogged?: boolean) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
 }
@@ -81,7 +84,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   characterName,
 }) => {
   const theme = useTheme();
-  const { showDiceResult } = useDiceRoll();
+  const { showDiceResult, logExternalRoll } = useDiceRoll();
   const isMobile = useMemo(() => window.innerWidth < 720, []);
 
   // Indicador de que a magia possui um efeito ativo (será oferecido para
@@ -93,6 +96,11 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     [spell.nome]
   );
   const showActiveEffectHint = canUseActiveEffects && !!activeEffectDef;
+  // Quando a ficha vai oferecer o efeito ativo (registry ou homebrew), o card
+  // do histórico sai de lá — já com a opção de uso escolhida e o botão de
+  // ativar. Registrar aqui também renderia um card duplicado.
+  const willLogViaEffect =
+    canUseActiveEffects && (!!activeEffectDef || !!spell.customEffects?.length);
 
   const [selections, setSelections] = useState<Map<number, number>>(new Map());
   const [shouldSpendPM, setShouldSpendPM] = useState(true);
@@ -314,6 +322,18 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       .filter((roll) => roll.id && selectedRollIds.has(roll.id))
       .map(toPlainRoll);
 
+    // Nome, descrição, círculo e PM acompanham a rolagem no histórico da
+    // mesa — antes o card mostrava só os números do dano.
+    const ability = buildSpellAbilityMeta(
+      spell,
+      shouldSpendPM ? totalPMCost : 0
+    );
+
+    // O card do lançamento sai daqui, EXCETO quando a ficha vai oferecer o
+    // efeito ativo e não há dano a rolar — nesse caso quem publica é a
+    // ativação do efeito, já com o botão de ativar junto.
+    const castLogged = rollsToExecute.length > 0 || !willLogViaEffect;
+
     if (rollsToExecute.length > 0) {
       const damageTypeById = new Map(
         rollsToExecute.map((roll) => [roll.id, roll.damageType])
@@ -327,12 +347,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         total: Math.max(1, result.total),
         damageType: damageTypeById.get(result.rollId),
       }));
-      showDiceResult(spell.nome, rollGroups, characterName);
+      showDiceResult(spell.nome, rollGroups, characterName, ability);
+    } else if (castLogged) {
+      // Magia sem dano (utilitária/buff) e sem efeito ativo: sem isso ela não
+      // aparecia em lugar nenhum do histórico, mesmo tendo custado PM.
+      logExternalRoll(spell.nome, [], characterName, ability);
     }
 
     // Sempre repassa o lançamento (com 0 PM quando o jogador opta por não
     // gastar) para que o efeito ativo da magia, se houver, seja oferecido.
-    onCast(shouldSpendPM ? totalPMCost : 0, spell);
+    onCast(shouldSpendPM ? totalPMCost : 0, spell, castLogged);
 
     onClose();
   }, [
@@ -343,6 +367,8 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     onCast,
     onClose,
     showDiceResult,
+    logExternalRoll,
+    willLogViaEffect,
     spell,
     characterName,
   ]);

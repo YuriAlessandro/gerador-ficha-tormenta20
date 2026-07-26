@@ -51,8 +51,45 @@ const OVERRIDES = {
   ACTIVE_EFFECT_COLOR: { expr: "'inherit'" },
   // consumidos com `.defense.length` — as chaves precisam existir como arrays
   getActiveEffectHighlights: {
-    expr: '() => ({ defense: [], damage: [], skills: {} })',
+    expr: '() => ({ defense: [], damage: [], skills: {}, attributes: {}, size: [], movement: [], damageReduction: [], displacement: [] })',
   },
+  // somado a um atributo no card e na rolagem: undefined viraria NaN
+  getActiveEffectAttributeModifier: { expr: '() => 0' },
+  // ENVOLVE a tela da ficha inteira: NullComponent (o default para
+  // /components) faria a ficha sumir sem o submódulo premium.
+  WildShapeSkin: { expr: 'PassthroughProvider' },
+  // espalhado no array de armas da aba Ataques
+  getWildShapeNaturalWeapons: { expr: '() => []' },
+  getActiveWildShape: { expr: '() => null' },
+  getActiveWildShapeFromEffects: { expr: '() => null' },
+  isInWildShape: { expr: '() => false' },
+  resolveWildShapeOptionId: { expr: '() => null' },
+  WILD_SHAPE_FORMS: { expr: '[]' },
+  WILD_SHAPE_POWER_KEY: { expr: "'druida:forma-selvagem'" },
+  // SCREAMING_CASE cairia em `[]`, mas isto é um emoji renderizado como texto
+  WILD_SHAPE_FALLBACK_EMOJI: { expr: "'🐾'" },
+  // camelCase cairia em `noop` (undefined); estes são lidos como string/array
+  getWildShapeAnimalEmoji: { expr: "() => '🐾'" },
+  getWildShapeAnimals: { expr: '() => []' },
+  describeWildShapeChanges: { expr: '() => []' },
+  getWildShapeLabel: { expr: "() => ''" },
+  buildWildShapeOptionId: { expr: "() => ''" },
+  // reconciler: null = "já sincronizado, nada a fazer"
+  reconcileAnimalCompanionEffects: { expr: '() => null' },
+  getAnimalCompanionActivatedPowers: { expr: '() => []' },
+  buildAnimalCompanionEffect: { expr: '() => null' },
+  isAnimalCompanionPowerKey: { expr: '() => false' },
+  getAnimalCompanionTier: { expr: "() => 'iniciante'" },
+  getDruidaLevelForCompanions: { expr: '() => 0' },
+  // renderizado como texto: `noop` (o default para camelCase) daria undefined
+  getCompanionDisplayName: { expr: "() => 'Companheiro Animal'" },
+  // chamado com um uuid e o retorno vai direto pra ficha — precisa ser válido
+  generateRandomAnimalCompanion: {
+    expr: "(id = '') => ({ id, name: 'Companheiro', archetype: 'fortao' })",
+  },
+  COMPANION_NAME_SUGGESTIONS: { expr: '[]' },
+  COMPANION_SPECIES_SUGGESTIONS: { expr: '{}' },
+  DRUID_COMPANION_ARCHETYPES: { expr: '[]' },
   useConditionHighlights: {
     expr: '() => ({ name: [], defense: [], displacement: [], attack: [], attributes: {}, skills: {} })',
   },
@@ -84,7 +121,7 @@ const OVERRIDES = {
   resolveProfileFont: { expr: "() => 'inherit'" },
   // hooks: as chaves abaixo são as que o público desestrutura
   useDiceRoll: {
-    expr: '() => ({ showDiceResult: async () => {}, showAttackRoll: async () => {} })',
+    expr: '() => ({ showDiceResult: async () => {}, showAttackRoll: async () => {}, logExternalRoll: noop })',
   },
   useGameTable: {
     expr: '() => ({ tables: [], loading: false, fetchUserTables: async () => {} })',

@@ -91,6 +91,7 @@ import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcan
 import { Spell, allSpellSchools } from '../interfaces/Spells';
 import { DiceRoll } from '../interfaces/DiceRoll';
 import { CustomEffect } from '../premium/interfaces/CustomEffect';
+import { generateRandomAnimalCompanion } from '../premium/functions/animalCompanionEffects';
 import {
   getRaceDisplacement,
   getRaceSize,
@@ -166,6 +167,10 @@ import {
 } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
 import { updateBrigaRolls } from './powers/lutador-special';
+import {
+  captureUserAbilityFields,
+  restoreUserAbilityFields,
+} from './powers/preserveUserAbilityFields';
 import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { addOtherBonusToSkill } from './skills/general';
 import { applyGolemDespertoCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
@@ -1575,7 +1580,7 @@ function applyOptionGrantedSpells(
     customAttribute = action.customAttribute;
   } else {
     const highestCircle =
-      sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+      sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) || 1;
     for (let circle = 1; circle <= highestCircle; circle += 1) {
       if (action.allowedType === 'Arcane') {
         available.push(...getArcaneSpellsOfCircle(circle));
@@ -2270,7 +2275,8 @@ export const applyPower = (
         });
       } else if (sheetAction.action.type === 'learnAnySpellFromHighestCircle') {
         const highestCircle =
-          sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+          sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ||
+          1;
 
         let allSpellsOfCircle: Spell[] = [];
         for (let circle = 1; circle <= highestCircle; circle += 1) {
@@ -2808,6 +2814,21 @@ export const applyPower = (
           name: getSourceName(sheetAction.source),
           value: `Poder de classe adquirido: ${selectedPower.name}`,
         });
+
+        // Druida: o poder Companheiro Animal concede um parceiro. Semeia um
+        // com espécie/tipo/nome aleatórios para a ficha já sair jogável — o
+        // jogador renomeia e troca o tipo depois no painel.
+        if (selectedPower.name === 'Companheiro Animal') {
+          const companion = generateRandomAnimalCompanion(uuid());
+          sheet.animalCompanions = [
+            ...(sheet.animalCompanions ?? []),
+            companion,
+          ];
+          subSteps.push({
+            name: 'Companheiro Animal',
+            value: `${companion.name} (${companion.species})`,
+          });
+        }
 
         // Apply the selected power's sheetActions and sheetBonuses
         if (selectedPower.sheetActions || selectedPower.sheetBonuses) {
@@ -3980,11 +4001,20 @@ function levelUp(
       })),
     });
 
-    // Update displayed abilities to include newly available ones
+    // Update displayed abilities to include newly available ones.
+    // A lista é reconstruída a partir de `originalAbilities` (snapshot do
+    // catálogo), então os campos do usuário precisam ser capturados ANTES e
+    // reaplicados — senão rolagens/efeitos/nome custom somem ao subir de nível.
+    const userAbilityFields = captureUserAbilityFields(
+      updatedSheet.classe.abilities
+    );
     const allAvailableAbilities = originalAbilities.filter(
       (ability) => ability.nivel <= updatedSheet.nivel
     );
-    updatedSheet.classe.abilities = allAvailableAbilities;
+    updatedSheet.classe.abilities = restoreUserAbilityFields(
+      allAvailableAbilities,
+      userAbilityFields
+    );
 
     // Apply text modifications from chooseFromOptions history
     applyOptionChosenTexts(updatedSheet);
@@ -4481,7 +4511,11 @@ export function applyManualLevelUp(
     });
   }
 
-  // Update displayed abilities for primary class (always reflect current character level)
+  // Update displayed abilities for primary class (always reflect current character level).
+  // Mesmo cuidado do `levelUp`: capturar os campos do usuário antes do rebuild.
+  const userAbilityFields = captureUserAbilityFields(
+    updatedSheet.classe.abilities
+  );
   const primaryOriginalAbilities =
     updatedSheet.classe.originalAbilities || updatedSheet.classe.abilities;
   const primaryClassLevel = getClassLevel(
@@ -4500,7 +4534,10 @@ export function applyManualLevelUp(
     allAvailableAbilities.push(...newlyAvailableAbilities);
   }
 
-  updatedSheet.classe.abilities = allAvailableAbilities;
+  updatedSheet.classe.abilities = restoreUserAbilityFields(
+    allAvailableAbilities,
+    userAbilityFields
+  );
 
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(updatedSheet);
@@ -6946,6 +6983,24 @@ export function restoreSpellPath(
 
   if (!sheet.classe) return;
 
+  // A classe da ficha pode NÃO estar na lista recebida: `classes` é montada com
+  // os suplementos habilitados de quem está visualizando, e a ficha pode usar um
+  // suplemento oficial que o usuário desativou depois (o limite de suplementos
+  // força trocas) ou um homebrew ainda não registrado quando a ficha carregou.
+  // O spellPath é da ficha, não do catálogo do usuário: sem esse fallback ele
+  // fica sem funções e o assistente de evolução quebra
+  // ("qtySpellsLearnAtLevel is not a function"). `findClassDescription` sem o
+  // 3º argumento procura em todos os suplementos oficiais + runtime.
+  const resolveClassByName = () =>
+    classes.find((c) => c.name === sheet.classe.name) ??
+    findClassDescription(sheet.classe.name, sheet.classe.subname);
+  const resolveClassBySubname = () =>
+    classes.find(
+      (c) =>
+        c.name === sheet.classe.name &&
+        (c.subname || '') === (sheet.classe.subname || '')
+    ) ?? findClassDescription(sheet.classe.name, sheet.classe.subname);
+
   // If spellPath is completely missing, try to create it for known spellcasters
   // (e.g., old sheets or stripped exports where spellPath was never serialized)
   if (!sheet.classe.spellPath) {
@@ -6955,7 +7010,7 @@ export function restoreSpellPath(
         sheet.classe.spellPath = { ...arcanistaSpellPaths[subtype] };
       }
     } else {
-      const baseClass = classes.find((c) => c.name === sheet.classe.name);
+      const baseClass = resolveClassByName();
       if (baseClass?.setup) {
         const setupClass = baseClass.setup(sheet.classe);
         if (setupClass.spellPath) {
@@ -6987,7 +7042,7 @@ export function restoreSpellPath(
       sheet.classe.spellPath = { ...arcanistaSpellPaths[subtype] };
     }
   } else {
-    const baseClass = classes.find((c) => c.name === sheet.classe.name);
+    const baseClass = resolveClassByName();
 
     if (baseClass?.setup) {
       // Classes with setup() (Bardo, Clérigo, Druida, Frade)
@@ -6997,10 +7052,7 @@ export function restoreSpellPath(
       }
     } else {
       // Variant classes or any class with spellPath defined directly
-      const originalClass = classes.find((c) => {
-        if (c.name !== sheet.classe.name) return false;
-        return (c.subname || '') === (sheet.classe.subname || '');
-      });
+      const originalClass = resolveClassBySubname();
       if (originalClass?.spellPath) {
         // Cópia rasa: nunca compartilhar o spellPath do registry com a ficha
         sheet.classe.spellPath = { ...originalClass.spellPath };
