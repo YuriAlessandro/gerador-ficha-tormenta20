@@ -20,6 +20,15 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// O jsdom não implementa rolagem: `Element.scrollTo` existe mas lança
+// "Not implemented". Componentes que rolam sozinhos (ex.: o tracker da Tela do
+// Jogador seguindo o turno atual) quebrariam no teste por um buraco do
+// ambiente, não por um defeito. Vira no-op, como o matchMedia acima.
+Object.defineProperty(Element.prototype, 'scrollTo', {
+  writable: true,
+  value: vitest.fn(),
+});
+
 function toHaveUniqueElements<T>(expected: T[]) {
   const pass =
     Array.isArray(expected) && new Set(expected).size === expected.length;
