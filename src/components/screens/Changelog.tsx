@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            25/07/2026 (v4.27).
+            28/07/2026 (v4.28).
           </p>
 
           <p>
@@ -74,6 +74,102 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.28</h3>
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{ fontWeight: 'bold', color: 'success.dark' }}
+                >
+                  Tela do Jogador — a segunda tela da sua mesa
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Agora o mestre pode abrir uma <strong>tela pública</strong>{' '}
+                  num segundo monitor, numa TV ou num projetor virado para a
+                  mesa, e controlar tudo o que aparece nela sem sair da própria
+                  tela. No Escudo do Mestre há um painel novo,{' '}
+                  <strong>Tela do Jogador</strong>, com o botão para abrir a
+                  janela e a lista do que dá para exibir.
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Monte suas <strong>cenas</strong> antes da sessão: cada uma
+                  guarda uma arte e/ou uma música do YouTube. &quot;Taverna do
+                  Porto&quot;, &quot;Chefe Final&quot;, &quot;Viagem pela
+                  estrada&quot; — durante o jogo é um clique em
+                  &quot;Entrar&quot;.
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  <strong>A música é um canal separado da imagem.</strong> Você
+                  põe a trilha de combate, joga o{' '}
+                  <strong>rastreador de combate</strong> no telão e a música
+                  continua tocando. O rastreador mostra iniciativa, turno atual
+                  e condições respeitando exatamente o que você configurou em
+                  &quot;O que os JOGADORES veem&quot; — nada de PV real de
+                  ameaça vazando. Dá para pausar, trocar e ajustar o volume sem
+                  sair da sua tela.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Tudo fica salvo: se a TV desligar, cair a internet ou alguém
+                  der F5, a tela volta sozinha para o que estava no ar.
+                </Typography>
+              </Alert>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Tela do Jogador</strong> — uma
+                  janela pública (endereço próprio) para monitor secundário,
+                  projetor ou TV, controlada em tempo real pelo painel novo no
+                  Escudo do Mestre.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Cenas preparadas</strong>.
+                  Cadastre imagem e/ou música por cena e dispare com um clique
+                  durante o jogo. Uma cena só mexe no que ela define: se tiver
+                  só trilha, a música troca e a tela fica como está; se tiver só
+                  imagem, a arte troca e a música continua.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Trilha sonora</strong> pelo
+                  YouTube, em canal próprio — música de combate e de ambientação
+                  tocam por cima de qualquer coisa que esteja na tela, com
+                  tocar/pausar, volume e loop no controle do mestre.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Botão de <strong>transmitir</strong> no
+                  cabeçalho dos painéis do escudo — imagem, vídeo, anotações e
+                  tabelas vão para a tela pública com um clique, sem precisar
+                  cadastrar o conteúdo de novo.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Rastreador de combate público</strong> na tela do
+                  jogador, com iniciativa, turno atual, condições e &quot;fora
+                  de combate&quot;. PV e PM seguem as configurações de
+                  visibilidade da mesa; defesa, notas do mestre, atributos e
+                  perícias nunca aparecem.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O que está no ar agora é{' '}
+                  <strong>salvo na mesa</strong>. Antes a projeção de imagem era
+                  passageira e sumia em qualquer reconexão; agora ela sobrevive
+                  a recarregar a página e a quedas de conexão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O conteúdo privado do{' '}
+                  <strong>Escudo do Mestre</strong> (anotações, links de imagem
+                  e vídeo, tabelas) era enviado ao navegador de todos os membros
+                  da mesa, mesmo sem nunca ser exibido. Agora ele só sai do
+                  servidor para o mestre.
+                </li>
+              </ul>
               <h3>4.27</h3>
               <ul>
                 <li>

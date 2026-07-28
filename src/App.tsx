@@ -85,6 +85,7 @@ import {
   GameTablesPage,
   GameTableDetailPage,
   GameSessionPage,
+  PlayerScreenPage,
   JoinTableByLinkPage,
   PartnersProvider,
   HomebrewProvider,
@@ -269,7 +270,12 @@ function ThemedApp(): JSX.Element {
 
   // Ficha embutida na extensão do Owlbear Rodeo: renderização sem chrome.
   const isOwlbearEmbed = location.pathname.startsWith('/owlbear/ficha/');
-  const hideChrome = isGameSession || isMapPage || isOwlbearEmbed;
+
+  // Tela do Jogador: superfície de projeção, sem navbar/footer da plataforma.
+  const isPlayerScreen = location.pathname.startsWith('/tela/');
+
+  const hideChrome =
+    isGameSession || isMapPage || isOwlbearEmbed || isPlayerScreen;
 
   const theme = React.useMemo(
     () => createTormentaTheme(darkMode ? 'dark' : 'light', accentColor),
@@ -561,6 +567,17 @@ function ThemedApp(): JSX.Element {
                                         redirectTo='/'
                                       >
                                         <GameSessionPage />
+                                      </ProtectedRoute>
+                                    </Route>
+                                    {/* Tela do Jogador — segunda tela pública
+                                        que o mestre abre num monitor/projetor
+                                        virado para a mesa. */}
+                                    <Route path='/tela/:tableId'>
+                                      <ProtectedRoute
+                                        requireAuth
+                                        redirectTo='/'
+                                      >
+                                        <PlayerScreenPage />
                                       </ProtectedRoute>
                                     </Route>
                                     <Route path='/sheets'>

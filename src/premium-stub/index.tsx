@@ -52,6 +52,7 @@ export const MyBuildsPage = NullComponent;
 export const MyHomebrewsPage = NullComponent;
 export const OriginHomebrewEditorPage = NullComponent;
 export const PartnersProvider = PassthroughProvider;
+export const PlayerScreenPage = NullComponent;
 export const PowerPackEditorPage = NullComponent;
 export const PublishBestiaryModal = NullComponent;
 export const PushNotificationPrompt = NullComponent;
