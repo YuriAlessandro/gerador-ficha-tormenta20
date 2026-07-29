@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
 import EditIcon from '@mui/icons-material/Edit';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -165,6 +166,11 @@ import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
 import NotesDialog from './NotesDialog';
+import RestDialog, { RestConfirmConfig } from './RestDialog';
+import {
+  calculateRestRecovery,
+  isCompanionImmuneToRestConditions,
+} from '../../functions/restRecovery';
 import StatControl from './StatControl';
 import ManualValueMarker from './ManualValueMarker';
 
@@ -257,6 +263,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [sizeDisplacementDrawerOpen, setSizeDisplacementDrawerOpen] =
     useState(false);
   const [statDrawerOpen, setStatDrawerOpen] = useState(false);
+  const [restDialogOpen, setRestDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
@@ -865,6 +872,139 @@ const Result: React.FC<ResultProps> = (props) => {
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  /**
+   * Aplica uma noite de descanso (Tormenta20, p. 106).
+   *
+   * A ordem importa: limpar efeitos ativos mexe nos máximos de PV/PM (os
+   * efeitos injetam bônus no recálculo), então a recuperação só pode ser
+   * calculada DEPOIS do `recalculateSheet` — do contrário o teto usaria um
+   * máximo velho e a ficha estouraria. Por isso o recálculo é feito inline aqui
+   * em vez de via `applyRecalculatedSheet`, que já despacharia a atualização.
+   */
+  const handleRest = useCallback(
+    (config: RestConfirmConfig) => {
+      const {
+        clearActiveEffects,
+        clearConditions,
+        clearTemp,
+        restingCompanionIndexes,
+        condition,
+        outdoors,
+        selectedOptions,
+      } = config;
+
+      // 1. Limpeza. Efeitos removidos devolvem o PV/PM temporário que
+      // concederam, mesma conta de `handleCleanupRemove`.
+      const removedEffects = clearActiveEffects
+        ? currentSheet.activeEffects ?? []
+        : [];
+      const removedTempPV = removedEffects.reduce(
+        (sum, effect) => sum + (effect.grantsTempPV ?? 0),
+        0
+      );
+      const removedTempPM = removedEffects.reduce(
+        (sum, effect) => sum + (effect.grantsTempPM ?? 0),
+        0
+      );
+
+      const cleaned: CharacterSheet = {
+        ...currentSheet,
+        activeEffects: clearActiveEffects
+          ? []
+          : currentSheet.activeEffects ?? [],
+        activeConditions: clearConditions
+          ? []
+          : currentSheet.activeConditions ?? [],
+        tempPV: clearTemp
+          ? 0
+          : Math.max(0, (currentSheet.tempPV ?? 0) - removedTempPV),
+        tempPM: clearTemp
+          ? 0
+          : Math.max(0, (currentSheet.tempPM ?? 0) - removedTempPM),
+      };
+
+      // 2. Recálculo — máximos novos depois da limpeza.
+      const recalculated = recalculateSheet(cleaned, currentSheet);
+      if (recalculated.bag && !recalculated.bag.getEquipments) {
+        recalculated.bag = Bag.fromStored(recalculated.bag);
+      }
+
+      // 3. Recuperação contra os máximos novos e o estado pós-limpeza.
+      const maxPV = recalculated.pv ?? 0;
+      const maxPM = recalculated.pm ?? 0;
+      const recovery = calculateRestRecovery({
+        level: recalculated.nivel,
+        condition,
+        outdoors,
+        options: selectedOptions,
+        currentPV: recalculated.currentPV ?? maxPV,
+        maxPV,
+        currentPM: recalculated.currentPM ?? maxPM,
+        maxPM,
+      });
+
+      // 4. Aplicação, incluindo o Melhor Amigo do Treinador (só PV, nível do
+      // treinador, construtos e mortos-vivos ignoram condições).
+      //
+      // O companheiro NÃO herda os modificadores pessoais do treinador — o
+      // Rato das Ruas de um goblin é do goblin, não do bicho. Ele recebe só a
+      // condição do descanso e os efeitos situacionais (`manual`), que são os
+      // que descrevem o ambiente e os cuidados que o grupo recebeu.
+      const situationalOptions = selectedOptions.filter(
+        (option) => option.source === 'manual'
+      );
+      const companions = recalculated.companions
+        ? recalculated.companions.map((companion, index) => {
+            if (!restingCompanionIndexes.includes(index)) return companion;
+            const companionMax = companion.pv ?? 0;
+            const companionCurrent = companion.currentPV ?? companionMax;
+            const companionRecovery = calculateRestRecovery({
+              level: recalculated.nivel,
+              condition,
+              outdoors,
+              options: isCompanionImmuneToRestConditions(
+                companion.companionType
+              )
+                ? [
+                    ...situationalOptions,
+                    {
+                      id: 'companion-immune',
+                      label: '',
+                      description: '',
+                      effect: { type: 'ignoreConditions' },
+                      source: 'auto',
+                      defaultChecked: true,
+                    },
+                  ]
+                : situationalOptions,
+              currentPV: companionCurrent,
+              maxPV: companionMax,
+              currentPM: 0,
+              maxPM: 0,
+            });
+            return {
+              ...companion,
+              currentPV: companionCurrent + companionRecovery.pv,
+              tempPV: clearTemp ? 0 : companion.tempPV,
+            };
+          })
+        : undefined;
+
+      const finalSheet: CharacterSheet = {
+        ...recalculated,
+        currentPV: (recalculated.currentPV ?? maxPV) + recovery.pv,
+        currentPM: (recalculated.currentPM ?? maxPM) + recovery.pm,
+        ...(companions ? { companions } : {}),
+      };
+
+      setCurrentSheet(finalSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(finalSheet);
       }
     },
     [currentSheet, onSheetUpdate]
@@ -1661,6 +1801,22 @@ const Result: React.FC<ResultProps> = (props) => {
                           <UpgradeIcon />
                         </IconButton>
                       </span>
+                    </Tooltip>
+                    <Tooltip title='Descansar'>
+                      <IconButton
+                        size='small'
+                        sx={{
+                          backgroundColor: theme.palette.primary.main,
+                          color: 'white',
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                        }}
+                        onClick={() => setRestDialogOpen(true)}
+                      >
+                        <BedtimeIcon />
+                      </IconButton>
                     </Tooltip>
                     <Tooltip title='Editar ficha'>
                       <IconButton
@@ -2953,6 +3109,12 @@ const Result: React.FC<ResultProps> = (props) => {
             onClose={() => setStatDrawerOpen(false)}
             sheet={currentSheet}
             onSave={handleSheetInfoUpdate}
+          />
+          <RestDialog
+            open={restDialogOpen}
+            onClose={() => setRestDialogOpen(false)}
+            sheet={currentSheet}
+            onConfirm={handleRest}
           />
           <NotesDialog
             open={notesDialogOpen}
