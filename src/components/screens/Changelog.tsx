@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            28/07/2026 (v4.28).
+            29/07/2026 (v4.28).
           </p>
 
           <p>
@@ -75,6 +75,57 @@ const Changelog: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <h3>4.28</h3>
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{ fontWeight: 'bold', color: 'success.dark' }}
+                >
+                  Descanso — a ficha faz a conta de PV e PM por você
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Acabou a matemática de fim de sessão. Um botão novo na ficha
+                  abre o <strong>Descanso</strong>: você escolhe a{' '}
+                  <strong>condição</strong> em que o grupo dormiu — ruim,
+                  normal, confortável ou luxuosa — e a ficha aplica a regra do
+                  livro (metade do nível, o nível, o dobro ou o triplo) direto
+                  nas barras de PV e PM.
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  <strong>
+                    E ela já sabe o que o seu personagem tem de especial.
+                  </strong>{' '}
+                  Se você é goblin, o <strong>Rato das Ruas</strong> aparece
+                  sozinho garantindo o nível cheio mesmo dormindo mal. Golens e
+                  osteon ignoram as condições. <strong>Estoico</strong>,{' '}
+                  <strong>Pajem</strong>, <strong>Vida Rústica</strong>,{' '}
+                  <strong>Descanso Natural</strong> e{' '}
+                  <strong>Herança de Vitalia</strong> entram na conta
+                  automaticamente — e as complicações que atrapalham o sono
+                  também, sem escapar.
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O que a ficha não tem como adivinhar fica a um clique:{' '}
+                  <strong>cuidados prolongados</strong> de um aliado treinado em
+                  Cura, o <strong>prato do aventureiro</strong>, a{' '}
+                  <strong>sopa de peixe</strong>, uma noite em Galrasia ou o
+                  azar de descansar em <strong>área de Tormenta</strong>.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  A prévia mostra o resultado e a conta inteira antes de você
+                  confirmar. No mesmo modal dá para limpar efeitos ativos e
+                  condições, e o Melhor Amigo do Treinador descansa junto.
+                </Typography>
+              </Alert>
               <Alert
                 severity='success'
                 sx={{
@@ -141,6 +192,32 @@ const Changelog: React.FC = () => {
                   YouTube, em canal próprio — música de combate e de ambientação
                   tocam por cima de qualquer coisa que esteja na tela, com
                   tocar/pausar, volume e loop no controle do mestre.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Descanso</strong> — botão na
+                  ficha que aplica a regra &quot;Recuperando PV e PM&quot; do
+                  livro automaticamente, a partir da condição de descanso
+                  escolhida.
+                </li>
+                <li>
+                  <strong>Novo:</strong> os modificadores de descanso da sua
+                  ficha são <strong>detectados sozinhos</strong> — habilidades
+                  de raça, poderes de origem, habilidades de classe, poderes
+                  concedidos e complicações.
+                </li>
+                <li>
+                  <strong>Novo:</strong> efeitos situacionais opcionais no modal
+                  de descanso (cuidados prolongados, pratos e sopas, Galrasia e
+                  área de Tormenta).
+                </li>
+                <li>
+                  <strong>Novo:</strong> prévia ao vivo do descanso com o
+                  memorial de cálculo, avisando quando o máximo já foi atingido.
+                </li>
+                <li>
+                  <strong>Novo:</strong> ao descansar dá para limpar efeitos
+                  ativos, condições e pontos temporários, e o Melhor Amigo do
+                  Treinador recupera PV junto.
                 </li>
                 <li>
                   <strong>Novo:</strong> Botão de <strong>transmitir</strong> no
