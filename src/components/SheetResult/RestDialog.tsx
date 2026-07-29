@@ -88,6 +88,19 @@ const RestDialog: React.FC<RestDialogProps> = ({
   const tempTotal = (sheet.tempPV ?? 0) + (sheet.tempPM ?? 0);
   const companions = useMemo(() => sheet.companions ?? [], [sheet.companions]);
 
+  /**
+   * "Ao relento" não é um modificador por si só — pela regra, dormir ao relento
+   * sem acampamento É a condição ruim, que o seletor acima já cobre. O checkbox
+   * só existe para destravar habilidades que citam o relento explicitamente
+   * (Vida Rústica, Descanso Natural). Sem nenhuma delas na ficha ele não muda
+   * número nenhum, então não é exibido — controle morto confunde mais do que
+   * informa.
+   */
+  const outdoorsDependent = useMemo(
+    () => detectedOptions.filter((option) => option.requiresOutdoors),
+    [detectedOptions]
+  );
+
   // Re-semeia o rascunho a cada abertura: a ficha pode ter mudado entre um
   // descanso e outro (subiu de nível, ganhou poder, tomou dano).
   useEffect(() => {
@@ -291,17 +304,33 @@ const RestDialog: React.FC<RestDialogProps> = ({
           {REST_CONDITIONS.find((entry) => entry.id === condition)?.description}
         </Typography>
 
-        <FormControlLabel
-          sx={{ mt: 1 }}
-          control={
-            <Checkbox
-              size='small'
-              checked={outdoors}
-              onChange={(event) => setOutdoors(event.target.checked)}
+        {outdoorsDependent.length > 0 && (
+          <Box sx={{ mt: 1 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  size='small'
+                  checked={outdoors}
+                  onChange={(event) => setOutdoors(event.target.checked)}
+                />
+              }
+              label={
+                <Typography variant='body2'>Dormindo ao relento</Typography>
+              }
             />
-          }
-          label={<Typography variant='body2'>Dormindo ao relento</Typography>}
-        />
+            <Typography
+              variant='caption'
+              color='text.secondary'
+              sx={{ display: 'block', ml: 4, mt: -0.5 }}
+            >
+              Destrava {outdoorsDependent.map((o) => o.label).join(' e ')} —{' '}
+              {outdoorsDependent.length > 1
+                ? 'habilidades suas que só valem'
+                : 'habilidade sua que só vale'}{' '}
+              quando você dorme sem abrigo.
+            </Typography>
+          </Box>
+        )}
 
         {detectedOptions.length > 0 && (
           <>
