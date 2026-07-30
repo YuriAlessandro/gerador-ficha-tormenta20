@@ -19,6 +19,7 @@ import {
   WieldingSlot,
   WORN_ARMOR_NONE,
 } from './wielding';
+import { isStackable } from './stacking';
 
 export interface BackpackMoney {
   dinheiro: number;
@@ -167,34 +168,72 @@ type Action =
   | { type: 'SET_GROUP_BY_CATEGORY'; value: boolean }
   | { type: 'RESET'; snapshot: StagedState };
 
-function ensureId(item: Equipment): Equipment {
-  if (item.id) return item;
+/** Todos os ids já ocupados na mochila, em todas as categorias. */
+function collectIds(equipments: BagEquipments): Set<string> {
+  const ids = new Set<string>();
+  (Object.keys(equipments) as equipGroup[]).forEach((cat) => {
+    const list = equipments[cat];
+    if (!Array.isArray(list)) return;
+    list.forEach((it) => {
+      if (it.id) ids.add(it.id);
+    });
+  });
+  return ids;
+}
+
+/**
+ * Garante que o item entre na mochila com identidade PRÓPRIA.
+ *
+ * Duas armadilhas justificam o clone e o id novo:
+ *
+ * 1. `AddItemDialog` entrega o objeto do catálogo por referência, e o catálogo
+ *    é compartilhado e cacheado (ver aviso em `registry.getEquipmentBySupplements`).
+ *    Guardar essa referência na mochila faz a edição de um item vazar para o
+ *    catálogo — e para toda ficha que adicione o mesmo item depois.
+ * 2. Se o objeto do catálogo já carrega um `id` (contaminado por um `ensureIds`
+ *    anterior), reusá-lo cria DUAS entradas com o mesmo id. Empunhadura, edição
+ *    e remoção resolvem por id, então as duas entradas passam a agir como uma:
+ *    empunhar uma empunha a outra, editar não salva, e a chave React duplicada
+ *    faz uma delas desaparecer da lista enquanto os espaços seguem somando.
+ */
+function ensureUniqueId(item: Equipment, taken: Set<string>): Equipment {
+  if (item.id && !taken.has(item.id)) return { ...item };
   return { ...item, id: uuid() };
 }
 
 /**
  * Adds an item to the proper category bucket. Stacks by name when adding a
- * non-custom catalog item that already exists; otherwise appends. Armor and
+ * non-custom catalog item that already exists AND both sides are
+ * interchangeable (ver `isStackable`); otherwise appends. Armor and
  * shields are no longer single-item — multiple may coexist; only the worn
  * armor and the wielded shield apply their bonuses to the sheet.
  *
  * Returns the id of the item that ended up in the bag (existing stack id when
  * merged, fresh id otherwise) so the caller can auto-wield/auto-wear etc.
+ *
+ * Exportada para teste — o merge é a única via de perda de dados da mochila.
  */
-function addItemToEquipments(
+export function addItemToEquipments(
   equipments: BagEquipments,
   displayOrder: string[],
   itemRaw: Equipment,
   quantity: number
 ): { equipments: BagEquipments; displayOrder: string[]; addedId?: string } {
-  const item = ensureId(itemRaw);
+  const item = ensureUniqueId(itemRaw, collectIds(equipments));
   const next: BagEquipments = { ...equipments };
   const nextOrder = [...displayOrder];
 
   const list = (next[item.group] ?? []) as Equipment[];
-  // Stack by name when a non-custom catalog item is added.
+  // Stack by name when a non-custom catalog item is added. Itens encantados,
+  // modificados, apelidados ou editados à mão nunca empilham — o merge
+  // preserva `existing` e descartaria as diferenças do outro lado.
   const existingIdx = list.findIndex(
-    (it) => it.nome === item.nome && !it.isCustom && !item.isCustom
+    (it) =>
+      it.nome === item.nome &&
+      !it.isCustom &&
+      !item.isCustom &&
+      isStackable(it) &&
+      isStackable(item)
   );
   if (existingIdx >= 0) {
     const existing = list[existingIdx];
