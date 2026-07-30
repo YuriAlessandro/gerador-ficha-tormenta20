@@ -124,6 +124,112 @@ describe('applyItemEnhancements — encantamentos', () => {
     ]);
   });
 
+  // O atributo de dano por modo é escolha do usuário no editor da mochila.
+  // Como `baseSpecialActions` é um snapshot congelado na primeira passagem, o
+  // rebuild da lista apagava essa escolha a cada recálculo — o sintoma era a
+  // troca de Força para Destreza não persistir em armas encantadas.
+  describe('atributo de dano por modo (override do usuário)', () => {
+    const adaga: Equipment = {
+      nome: 'Adaga',
+      group: 'Arma',
+      dano: '1d4',
+      critico: '19',
+      atkBonus: 0,
+      spaces: 1,
+      arremesso: true,
+      specialActions: [
+        { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+        {
+          id: 'arremessar',
+          label: 'Arremessar',
+          skill: 'Pontaria',
+          damageAttribute: 'Força',
+        },
+      ],
+    };
+
+    test('preserva a troca para Destreza num item encantado', () => {
+      // Primeira passagem: congela baseSpecialActions com 'Força'.
+      const encantada = applyItemEnhancements({
+        ...adaga,
+        enchantments: [
+          { enchantment: 'Formidável' },
+          { enchantment: 'Tumular' },
+        ],
+      });
+
+      // O editor grava o override do usuário em `specialActions`.
+      const editada: Equipment = {
+        ...encantada,
+        specialActions: encantada.specialActions!.map((a) => ({
+          ...a,
+          damageAttribute: 'Destreza' as const,
+        })),
+      };
+
+      const result = applyItemEnhancements(editada);
+      const porId = new Map(
+        (result.specialActions ?? []).map((a) => [a.id, a.damageAttribute])
+      );
+      expect(porId.get('corpo-a-corpo')).toBe('Destreza');
+      expect(porId.get('arremessar')).toBe('Destreza');
+    });
+
+    test('sobrevive a recálculos repetidos (idempotente)', () => {
+      const encantada = applyItemEnhancements({
+        ...adaga,
+        enchantments: [{ enchantment: 'Formidável' }],
+      });
+      const editada: Equipment = {
+        ...encantada,
+        specialActions: encantada.specialActions!.map((a) => ({
+          ...a,
+          damageAttribute: 'Destreza' as const,
+        })),
+      };
+
+      const uma = applyItemEnhancements(editada);
+      const duas = applyItemEnhancements(uma);
+      expect(
+        duas.specialActions?.every((a) => a.damageAttribute === 'Destreza')
+      ).toBe(true);
+    });
+
+    test('sem override, o valor do snapshot base continua valendo', () => {
+      const result = applyItemEnhancements({
+        ...adaga,
+        enchantments: [{ enchantment: 'Formidável' }],
+      });
+      const porId = new Map(
+        (result.specialActions ?? []).map((a) => [a.id, a.damageAttribute])
+      );
+      expect(porId.get('arremessar')).toBe('Força');
+      expect(porId.get('corpo-a-corpo')).toBeUndefined();
+    });
+
+    test('override também vale para ações derivadas de encantamento', () => {
+      // O modo de arremesso concedido pelo encantamento nasce com 'Nenhum'.
+      const encantada = applyItemEnhancements({
+        ...baseSword,
+        enchantments: [{ enchantment: 'Arremesso' }],
+      });
+      const editada: Equipment = {
+        ...encantada,
+        specialActions: encantada.specialActions!.map((a) =>
+          a.id === 'ench-arremesso-throw'
+            ? { ...a, damageAttribute: 'Destreza' as const }
+            : a
+        ),
+      };
+
+      const result = applyItemEnhancements(editada);
+      const lancar = result.specialActions?.find(
+        (a) => a.id === 'ench-arremesso-throw'
+      );
+      expect(lancar?.damageAttribute).toBe('Destreza');
+    });
+  });
+
   test('removing Arremesso restores baseArremesso and strips derived actions', () => {
     const item: Equipment = {
       ...baseSword,
