@@ -2890,19 +2890,28 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'grantSpecificClassPower') {
         const { powerName: targetPowerName } = sheetAction.action;
 
-        let targetPower = sheet.classe.powers.find(
-          (p) => p.name === targetPowerName
-        );
+        // Multiclasse: o poder concedido pertence à classe que concedeu a
+        // habilidade (`sourceClassName`), que não é necessariamente a classe
+        // primária da ficha — ex.: Alquimista 2 concede "Alquimista Iniciado"
+        // numa ficha cuja `sheet.classe` é Ladino.
+        const { sourceClassName } = powerOrAbility;
+        const ownerClassName = sourceClassName ?? sheet.classe.name;
+        const isForeignClass = ownerClassName !== sheet.classe.name;
+
+        let targetPower = isForeignClass
+          ? undefined
+          : sheet.classe.powers.find((p) => p.name === targetPowerName);
 
         // Fallback: o catálogo `classe.powers` pode estar vazio em fichas
         // carregadas (stripSheetForStorage zera os poderes e rehydrateSheet só
         // os restaura se a variante for resolvida). Buscar no catálogo completo
         // da classe antes de falhar.
         if (!targetPower) {
-          const fullClass = findClassDescription(
-            sheet.classe.name,
-            sheet.classe.subname
-          );
+          const ownerSubname = isForeignClass
+            ? sheet.classLevels?.find((cl) => cl.className === ownerClassName)
+                ?.classSubname
+            : sheet.classe.subname;
+          const fullClass = findClassDescription(ownerClassName, ownerSubname);
           targetPower = fullClass?.powers.find(
             (p) => p.name === targetPowerName
           );
@@ -2910,7 +2919,7 @@ export const applyPower = (
 
         if (!targetPower) {
           throw new Error(
-            `Poder de classe "${targetPowerName}" não encontrado na classe ${sheet.classe.name}`
+            `Poder de classe "${targetPowerName}" não encontrado na classe ${ownerClassName}`
           );
         }
 
@@ -4515,7 +4524,10 @@ export function applyManualLevelUp(
     newlyAvailableAbilities.forEach((ability) => {
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
-        ability,
+        // Multiclasse: a habilidade pertence à classe escolhida para ESTE
+        // nível, não à classe primária da ficha. Sem isso, ações como
+        // grantSpecificClassPower procuram o poder no catálogo errado.
+        { ...ability, sourceClassName: selectedClassName },
         selections.abilityEffectSelections?.[ability.name]
       );
       // Mesmo guard do branch de poderes: nunca substituir a ficha por um
