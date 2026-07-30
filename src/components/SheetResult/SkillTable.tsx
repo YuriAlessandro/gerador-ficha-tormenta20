@@ -14,6 +14,7 @@ import {
   InputAdornment,
   IconButton,
   Typography,
+  Tooltip,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -36,6 +37,10 @@ import { getConditionLabelStyle } from '../../premium/functions/conditionHighlig
 import { ActiveEffectMarker } from '../../premium/components/ActiveEffects';
 import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
 import { getActiveEffectLabelStyle } from '../../premium/functions/activeEffectHighlights';
+import {
+  getSkillOthersBreakdown,
+  formatBreakdownValue,
+} from '../../functions/skills/skillBonusBreakdown';
 
 interface IProps {
   sheet: CharacterSheet;
@@ -106,6 +111,15 @@ const SkillTable: React.FC<IProps> = ({
   const DefaultTbCell = styled(TableCell)`
     border: none;
     font-size: 12px;
+  `;
+
+  // Dica visual de que o número tem detalhamento por trás (mesmo vocabulário do
+  // sublinhado pontilhado do nome da perícia).
+  const BreakdownValue = styled.span`
+    cursor: help;
+    user-select: none;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
   `;
 
   const ClickableSkillName = styled.span`
@@ -293,6 +307,12 @@ const SkillTable: React.FC<IProps> = ({
                 (skill.training ?? 0) +
                 sizeModifier;
 
+              // "Outros" soma bônus e penalidades no mesmo número, o que
+              // esconde bônus reais (ex.: o +2 de Golpista Divino em Ladinagem
+              // sob a penalidade de armadura). O detalhamento mostra as parcelas.
+              const othersTotal = (skill.others ?? 0) + sizeModifier;
+              const othersBreakdown = getSkillOthersBreakdown(sheet, skill);
+
               const isTrained = (skill.training ?? 0) > 0;
               const attrName = skill.modAttr ?? '';
               const isTrainedOnly = isTrainedOnlySkill(skill.name);
@@ -360,7 +380,37 @@ const SkillTable: React.FC<IProps> = ({
                     )}
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
-                    {(skill.others ?? 0) + sizeModifier}
+                    {othersBreakdown.length > 1 ? (
+                      <Tooltip
+                        arrow
+                        enterTouchDelay={0}
+                        leaveTouchDelay={6000}
+                        title={
+                          <Box sx={{ py: 0.5, minWidth: 150 }}>
+                            {othersBreakdown.map((entry) => (
+                              <Box
+                                key={entry.label}
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  gap: 1.5,
+                                  fontSize: 12,
+                                }}
+                              >
+                                <span>{entry.label}</span>
+                                <strong>
+                                  {formatBreakdownValue(entry.value)}
+                                </strong>
+                              </Box>
+                            ))}
+                          </Box>
+                        }
+                      >
+                        <BreakdownValue>{othersTotal}</BreakdownValue>
+                      </Tooltip>
+                    ) : (
+                      othersTotal
+                    )}
                   </DefaultTbCell>
                 </StyledTableRow>
               );
@@ -386,6 +436,9 @@ const SkillTable: React.FC<IProps> = ({
         skillTotal={selectedSkillTotal}
         attrValue={selectedAttrValue}
         attrName={selectedAttrName}
+        othersBreakdown={
+          selectedSkill ? getSkillOthersBreakdown(sheet, selectedSkill) : []
+        }
         onRoll={handleActionRoll}
       />
     </Box>

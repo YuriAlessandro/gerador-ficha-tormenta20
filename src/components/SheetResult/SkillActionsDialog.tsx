@@ -18,6 +18,10 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CloseIcon from '@mui/icons-material/Close';
 import { CompleteSkill } from '../../interfaces/Skills';
 import { SkillAction, getSkillActions } from '../../data/skillActions';
+import {
+  SkillOthersEntry,
+  formatBreakdownValue,
+} from '../../functions/skills/skillBonusBreakdown';
 
 interface SkillActionsDialogProps {
   open: boolean;
@@ -26,6 +30,8 @@ interface SkillActionsDialogProps {
   skillTotal: number;
   attrValue: number;
   attrName: string;
+  /** Parcelas que formam o "Outros" — detalhadas sob a fórmula do teste. */
+  othersBreakdown?: SkillOthersEntry[];
   onRoll: (actionName: string) => void;
 }
 
@@ -123,6 +129,7 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
   skillTotal,
   attrValue,
   attrName,
+  othersBreakdown = [],
   onRoll,
 }) => {
   const isMobile = useMemo(() => window.innerWidth < 720, []);
@@ -232,6 +239,37 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
                 {attrValue}) + Treino ({skill.training ?? 0}) + ½ Nível (
                 {skill.halfLevel ?? 0}) + Outros ({skill.others ?? 0})
               </Typography>
+              {/* Detalhamento do "Outros": bônus e penalidades caem no mesmo
+                  número, então sem isto um bônus real fica invisível quando há
+                  penalidade na mesma perícia (ex.: Golpista Divino em
+                  Ladinagem sob a penalidade de armadura). */}
+              {othersBreakdown.length > 1 && (
+                <Box sx={{ mt: 0.75, maxWidth: 260 }}>
+                  {othersBreakdown.map((entry) => (
+                    <Box
+                      key={entry.label}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: 1.5,
+                      }}
+                    >
+                      <Typography
+                        variant='caption'
+                        sx={{ color: 'text.secondary' }}
+                      >
+                        {entry.label}
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        sx={{ color: 'text.secondary', fontWeight: 'bold' }}
+                      >
+                        {formatBreakdownValue(entry.value)}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Box>
             <Button
               variant='contained'
