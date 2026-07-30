@@ -39,7 +39,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description:
       'Quando faz um teste de perícia, você pode gastar 1 PM para apostar com Hyninn. Você e o mestre rolam 1d20, mas o mestre mantém o resultado dele em segredo. Você então escolhe entre usar seu próprio resultado ou o resultado oculto do mestre (neste caso, ele revela o resultado).',
     type: GeneralPowerType.CONCEDIDOS,
-    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hyninn' }]],
   },
   ARMAS_DA_AMBICAO: {
     name: 'Armas da Ambição',
@@ -520,7 +520,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description:
       'Você aprende e pode lançar Criar Ilusão. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
-    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hyninn' }]],
     sheetActions: [
       {
         source: { type: 'power', name: 'Farsa do Fingidor' },
@@ -544,7 +544,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description:
       'Você pode gastar uma ação completa e 2 PM para se transformar em um macaco. Você adquire tamanho Minúsculo (o que fornece +5 em Furtividade e –5 em testes de manobra) e recebe deslocamento de escalar 9m. Seu equipamento desaparece (e você perde seus benefícios) até você voltar ao normal, mas suas outras estatísticas não são alteradas. A transformação dura indefinidamente, mas termina caso você faça um ataque, lance uma magia ou sofra dano. ',
     type: GeneralPowerType.CONCEDIDOS,
-    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hyninn' }]],
   },
   FULGOR_SOLAR: {
     name: 'Fulgor Solar',
@@ -576,7 +576,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     name: 'Golpista Divino',
     description: 'Você recebe +2 em Enganação, Jogatina e Ladinagem.',
     type: GeneralPowerType.CONCEDIDOS,
-    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hyninn' }]],
     sheetBonuses: [
       {
         source: { type: 'power', name: 'Golpista Divino' },
