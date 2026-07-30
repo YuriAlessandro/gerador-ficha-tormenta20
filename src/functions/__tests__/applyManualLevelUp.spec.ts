@@ -182,3 +182,50 @@ describe('applyManualLevelUp - Treino Especializado (Treinador 5)', () => {
     expect(result.companions![0].treinoIntensivo).toBe(true);
   });
 });
+
+describe('applyManualLevelUp - grantSpecificClassPower em multiclasse', () => {
+  // Cenário do bug: Ladino 6 / Alquimista 1 subindo para o 2º nível de
+  // Alquimista, que concede o poder "Alquimista Iniciado" via
+  // grantSpecificClassPower. O poder pertence ao catálogo do Inventor (do qual
+  // Alquimista é variante), e não ao da Ladino — a busca precisa usar a classe
+  // do nível, não `sheet.classe`.
+  const buildLadino6Alquimista1 = (): CharacterSheet => {
+    const ladino = findClassDescription('Ladino')!;
+    const sheet = createMockCharacterSheet();
+    sheet.classe = cloneDeep(ladino);
+    sheet.nivel = 7;
+    sheet.classLevels = [
+      ...[1, 2, 3, 4, 5, 6].map((level) => ({ level, className: 'Ladino' })),
+      { level: 7, className: 'Alquimista' },
+    ];
+    return sheet;
+  };
+
+  test('concede o poder da classe secundária sem lançar erro', () => {
+    const sheet = buildLadino6Alquimista1();
+
+    const result = applyManualLevelUp(sheet, {
+      level: 8,
+      selectedClassName: 'Alquimista',
+      powerChoice: 'class',
+    });
+
+    expect(result.nivel).toBe(8);
+    const map = getClassLevelsMap(result);
+    expect(map.get('Ladino')).toBe(6);
+    expect(map.get('Alquimista')).toBe(2);
+    expect(result.classPowers?.map((p) => p.name)).toContain(
+      'Alquimista Iniciado'
+    );
+  });
+
+  test('a classe primária continua sendo Ladino', () => {
+    const sheet = buildLadino6Alquimista1();
+    const result = applyManualLevelUp(sheet, {
+      level: 8,
+      selectedClassName: 'Alquimista',
+      powerChoice: 'class',
+    });
+    expect(result.classe.name).toBe('Ladino');
+  });
+});
