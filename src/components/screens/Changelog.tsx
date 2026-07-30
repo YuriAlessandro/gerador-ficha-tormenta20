@@ -168,6 +168,15 @@ const Changelog: React.FC = () => {
                   ameaça vazando. Dá para pausar, trocar e ajustar o volume sem
                   sair da sua tela.
                 </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O <strong>Mapa de Arton</strong> e o{' '}
+                  <strong>calendário da mesa</strong> também vão para o telão. O
+                  mapa acompanha o seu enquadramento em tempo real: para onde
+                  você arrasta e dá zoom, a mesa vai junto — e os seus pins de
+                  mestre aparecem lá, sem o selo que os denuncia como segredo.
+                  Segure o clique por 3 segundos para dar um{' '}
+                  <strong>ping</strong> e levar o olhar de todos ao ponto.
+                </Typography>
                 <Typography variant='body2' sx={{ color: 'text.secondary' }}>
                   Tudo fica salvo: se a TV desligar, cair a internet ou alguém
                   der F5, a tela volta sozinha para o que estava no ar.
@@ -234,10 +243,43 @@ const Changelog: React.FC = () => {
                   perícias nunca aparecem.
                 </li>
                 <li>
+                  <strong>Novo:</strong> <strong>Mapa de Arton</strong> na tela
+                  do jogador, com o enquadramento acompanhando o mapa do mestre
+                  (arrastar e zoom) e o ping de 3 segundos chamando a atenção da
+                  mesa para um ponto. Os pins do mestre aparecem na projeção;
+                  quem abrir a mesma tela como jogador continua vendo só os
+                  públicos.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Calendário da mesa</strong> na
+                  tela do jogador — antes o conteúdo era aceito mas a tela caía
+                  no estado de espera.
+                </li>
+                <li>
+                  <strong>Novo:</strong> a coluna <strong>Outros</strong> das
+                  perícias agora mostra <strong>de onde vem cada ponto</strong>.
+                  Passe o mouse (ou toque) no número para ver a lista: cada
+                  poder, habilidade de raça, item, condição e ajuste manual em
+                  uma linha, com a penalidade de armadura separada. O mesmo
+                  detalhamento aparece ao tocar no nome da perícia.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O que está no ar agora é{' '}
                   <strong>salvo na mesa</strong>. Antes a projeção de imagem era
                   passageira e sumia em qualquer reconexão; agora ela sobrevive
                   a recarregar a página e a quedas de conexão.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> as <strong>camadas do mapa</strong>{' '}
+                  acompanham a projeção. Esconder reinos, capitais ou
+                  localidades no seu mapa agora esconde no telão também — antes
+                  a projeção desenhava tudo, sempre.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o <strong>aviso</strong> na tela do
+                  jogador agora se ajusta ao tamanho da tela: o texto cresce até
+                  a maior fonte que ainda couber e fica centralizado. Antes saía
+                  minúsculo num projetor.
                 </li>
                 <li>
                   <strong>Correção:</strong> O conteúdo privado do{' '}
@@ -245,6 +287,32 @@ const Changelog: React.FC = () => {
                   e vídeo, tabelas) era enviado ao navegador de todos os membros
                   da mesa, mesmo sem nunca ser exibido. Agora ele só sai do
                   servidor para o mestre.
+                </li>
+                <li>
+                  <strong>Correção:</strong> mestre apoiador não conseguia{' '}
+                  <strong>iniciar o calendário</strong> da mesa: clicava em
+                  &quot;Iniciar&quot; e a tela voltava para a data, sem
+                  explicação. Quem estava em retentativa de pagamento era
+                  barrado, e o painel engolia o erro em silêncio — agora
+                  qualquer tier pago inicia e, quando algo falha, o motivo
+                  aparece na tela.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o checkbox{' '}
+                  <strong>&quot;ao relento&quot;</strong> do descanso só aparece
+                  quando a ficha tem alguma habilidade que cite o relento (Vida
+                  Rústica ou Descanso Natural), e a legenda diz qual. Nas outras
+                  fichas ele era um controle morto: marcar e desmarcar não mexia
+                  na prévia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> os poderes concedidos{' '}
+                  <strong>Aposta de Hyninn</strong>,{' '}
+                  <strong>Farsa do Fingidor</strong>,{' '}
+                  <strong>Forma de Macaco</strong> e{' '}
+                  <strong>Golpista Divino</strong> tinham o nome do deus escrito
+                  errado no pré-requisito, então devoto legítimo de Hyninn
+                  aparecia como não atendendo ao requisito nos quatro.
                 </li>
               </ul>
               <h3>4.27</h3>
