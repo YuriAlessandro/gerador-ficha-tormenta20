@@ -17,6 +17,7 @@ import Origin from '@/interfaces/Origin';
 import Skill from '@/interfaces/Skills';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import { ORIGIN_POWER_TYPE } from '@/data/systems/tormenta20/powers/originPowers';
 
 interface OriginEditDrawerProps {
   open: boolean;
@@ -193,8 +194,11 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
   }
 
   // Regular origins - user must choose 2 benefits
+  // `returnAllOptions = true`: sem isso, origens com getPowersAndSkills
+  // (Gladiador, Soldado, Amnésico...) caem no pickFromArray e o drawer exibe um
+  // subconjunto aleatório de 2 opções, re-sorteado a cada render.
   const originBenefits = origin.getPowersAndSkills
-    ? origin.getPowersAndSkills(usedSkills, origin)
+    ? origin.getPowersAndSkills(usedSkills, origin, true)
     : {
         powers: {
           origin:
@@ -218,12 +222,20 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
       typeof item.equipment === 'string' ? item.equipment : item.equipment.nome,
   }));
 
-  const powerOptions: OriginBenefit[] = originBenefits.powers.origin.map(
-    (power) => ({
-      type: 'power' as const,
-      name: power.name,
-    })
-  );
+  // O fallback acima faz cast de todos os `origin.poderes` (inclusive poderes
+  // gerais, como Comandar) para OriginPower — por isso o gate de repetição
+  // checa o `type` além da flag: um poder geral repetível (Proficiência, Foco
+  // em Perícia) teria a 2ª cópia descartada por applyOriginBenefits.
+  const powerOptions = originBenefits.powers.origin.map((power) => ({
+    benefit: { type: 'power' as const, name: power.name },
+    canPickTwice:
+      power.type === ORIGIN_POWER_TYPE && power.allowSeveralPicks === true,
+  }));
+
+  const countBenefit = (benefit: OriginBenefit) =>
+    selectedBenefits.filter(
+      (b) => b.type === benefit.type && b.name === benefit.name
+    ).length;
 
   const handleToggle = (benefit: OriginBenefit) => {
     const isSelected = selectedBenefits.some(
@@ -240,6 +252,26 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
     } else if (selectedBenefits.length < REQUIRED_SELECTIONS) {
       // Add benefit if under limit
       setSelectedBenefits([...selectedBenefits, benefit]);
+    }
+  };
+
+  // Segunda escolha de um poder repetível: adiciona/remove UMA cópia
+  // (o checkbox principal continua removendo as duas de uma vez).
+  const handleToggleSecondPick = (benefit: OriginBenefit) => {
+    const count = countBenefit(benefit);
+
+    if (count >= 2) {
+      const indexToRemove = selectedBenefits.findIndex(
+        (b) => b.type === benefit.type && b.name === benefit.name
+      );
+      setSelectedBenefits(
+        selectedBenefits.filter((_, index) => index !== indexToRemove)
+      );
+      return;
+    }
+
+    if (count === 1 && selectedBenefits.length < REQUIRED_SELECTIONS) {
+      setSelectedBenefits([...selectedBenefits, { ...benefit }]);
     }
   };
 
@@ -359,25 +391,79 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
               <Typography variant='h6' gutterBottom>
                 Poderes
               </Typography>
-              {powerOptions.map((benefit) => {
-                const isSelected = selectedBenefits.some(
-                  (b) => b.type === benefit.type && b.name === benefit.name
-                );
+              {powerOptions.some((p) => p.canPickTwice) && (
+                <Alert severity='info' sx={{ mb: 2 }}>
+                  Alguns poderes podem ser escolhidos duas vezes. Marcar as duas
+                  vezes usa seus dois benefícios de origem.
+                </Alert>
+              )}
+              {powerOptions.map((powerOpt) => {
+                const { benefit } = powerOpt;
+                const selectedCount = countBenefit(benefit);
+                const isSelected = selectedCount > 0;
                 const isDisabled =
                   !isSelected && selectedBenefits.length >= REQUIRED_SELECTIONS;
+                const isPickedTwice = selectedCount >= 2;
+                const isSecondPickDisabled =
+                  !isPickedTwice &&
+                  selectedBenefits.length >= REQUIRED_SELECTIONS;
 
                 return (
-                  <FormControlLabel
+                  <Box
                     key={`power-${benefit.name}`}
-                    control={
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={() => handleToggle(benefit)}
-                        disabled={isDisabled}
+                    sx={{ display: 'flex', flexDirection: 'column' }}
+                  >
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={() => handleToggle(benefit)}
+                          disabled={isDisabled}
+                        />
+                      }
+                      label={
+                        <Typography component='span'>
+                          {benefit.name}
+                          {isPickedTwice && (
+                            <Typography
+                              component='span'
+                              variant='caption'
+                              sx={{ ml: 1, fontStyle: 'italic' }}
+                            >
+                              (escolhido 2×)
+                            </Typography>
+                          )}
+                        </Typography>
+                      }
+                    />
+                    {powerOpt.canPickTwice && isSelected && (
+                      <FormControlLabel
+                        sx={{ ml: 4 }}
+                        control={
+                          <Checkbox
+                            size='small'
+                            checked={isPickedTwice}
+                            onChange={() => handleToggleSecondPick(benefit)}
+                            disabled={isSecondPickDisabled}
+                          />
+                        }
+                        label={
+                          <Typography component='span' variant='body2'>
+                            Escolher este poder duas vezes
+                            <Typography
+                              component='span'
+                              variant='caption'
+                              sx={{ ml: 1, fontStyle: 'italic' }}
+                            >
+                              {isSecondPickDisabled
+                                ? '(desmarque o outro benefício para escolher duas vezes)'
+                                : '(usa seus 2 benefícios)'}
+                            </Typography>
+                          </Typography>
+                        }
                       />
-                    }
-                    label={benefit.name}
-                  />
+                    )}
+                  </Box>
                 );
               })}
             </Paper>

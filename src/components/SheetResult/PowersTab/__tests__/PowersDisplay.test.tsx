@@ -272,6 +272,23 @@ describe('PowersDisplay em modo reordenar', () => {
   });
 });
 
+describe('PowersDisplay com poder escolhido duas vezes', () => {
+  it('mostra uma linha só, com o contador ×2', () => {
+    // Herança (Herdeiro) pode ser escolhida duas vezes — a ficha guarda duas
+    // entradas em origin.powers e a lista tem que colapsar em uma linha.
+    const heranca = {
+      name: 'Herança',
+      description: 'Você herdou um item de preço de até T$ 1.000.',
+      type: 'ORIGEM',
+    };
+
+    renderPowers({ originPowers: [heranca, { ...heranca }] });
+
+    expect(screen.getAllByText('Herança')).toHaveLength(1);
+    expect(screen.getByText('×2')).toBeInTheDocument();
+  });
+});
+
 describe('PowersDisplay com nome/texto customizados', () => {
   it('mostra o nome customizado na linha, mas acha pelo nome do livro', () => {
     renderPowers({

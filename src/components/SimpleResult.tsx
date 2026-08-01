@@ -227,13 +227,19 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
         {sheet.origin?.powers && sheet.origin?.powers.length > 0 && (
           <SheetDivisor />
         )}
-        {/* Poderes de Origem */}
-        {sheet.origin?.powers.map((power) => (
-          <div key={getKey(power.name)}>
-            <SheetText>{getPowerDisplayName(power)}: </SheetText>
-            {getPowerDisplayText(power)}
-          </div>
-        ))}
+        {/* Poderes de Origem — poderes repetíveis (ex.: Herança) aparecem duas
+            vezes em origin.powers; renderiza uma linha só. */}
+        {sheet.origin?.powers
+          .filter(
+            (power, index, all) =>
+              all.findIndex((p) => p.name === power.name) === index
+          )
+          .map((power) => (
+            <div key={getKey(power.name)}>
+              <SheetText>{getPowerDisplayName(power)}: </SheetText>
+              {getPowerDisplayText(power)}
+            </div>
+          ))}
         <SheetDivisor />
         {/* Poderes gerais */}
         {sheet.generalPowers?.map((power) => (

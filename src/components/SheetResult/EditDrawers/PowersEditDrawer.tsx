@@ -2093,15 +2093,31 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                     mb: 2,
                   }}
                 >
-                  {selectedOriginPowers.map((power) => (
-                    <Chip
-                      key={power.name}
-                      label={power.name}
-                      size='small'
-                      color='warning'
-                      onDelete={() => handleOriginPowerToggle(power)}
-                    />
-                  ))}
+                  {/* Poderes repetíveis (ex.: Herança) aparecem duas vezes em
+                      origin.powers — um chip só, com a contagem, senão a key
+                      duplica e o onDelete some com as duas sem avisar. */}
+                  {selectedOriginPowers
+                    .filter(
+                      (power, index, all) =>
+                        all.findIndex((p) => p.name === power.name) === index
+                    )
+                    .map((power) => {
+                      const count = selectedOriginPowers.filter(
+                        (p) => p.name === power.name
+                      ).length;
+
+                      return (
+                        <Chip
+                          key={power.name}
+                          label={
+                            count > 1 ? `${power.name} ×${count}` : power.name
+                          }
+                          size='small'
+                          color='warning'
+                          onDelete={() => handleOriginPowerToggle(power)}
+                        />
+                      );
+                    })}
                 </Stack>
               </>
             )}

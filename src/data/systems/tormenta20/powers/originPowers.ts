@@ -152,8 +152,9 @@ const originPowers: Record<string, OriginPower> = {
   HERANCA: {
     name: 'Herança',
     description:
-      'Você herdou um de preço de até T$ 1.000. Você pode escolher este poder duas vezes, para um de até T$ 2.000.',
+      'Você herdou um item de preço de até T$ 1.000. Você pode escolher este poder duas vezes, para um item de até T$ 2.000.',
     type: ORIGIN_POWER_TYPE,
+    allowSeveralPicks: true,
   },
   CORACAO_HEROICO: {
     name: 'Coração Heroico',

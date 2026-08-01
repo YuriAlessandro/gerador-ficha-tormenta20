@@ -21,6 +21,19 @@ import {
 } from '@/interfaces/Poderes';
 import { ClassDescription } from '@/interfaces/Class';
 import { getEffectiveRaceAttrs } from '@/functions/general';
+import { ORIGIN_POWER_TYPE } from '@/data/systems/tormenta20/powers/originPowers';
+
+type PowerOption = {
+  type: 'power';
+  name: string;
+  power: OriginPower | GeneralPower;
+  meetsRequirements: boolean;
+  // Poder que pode ocupar os dois slots de benefício (ex.: Herança). Só vale
+  // para poderes DE ORIGEM: um poder geral repetível (ex.: Proficiência, Foco
+  // em Perícia) que apareça no pool da origem teria a 2ª cópia descartada
+  // silenciosamente pelo dedupe por nome de `applyOriginBenefits`.
+  canPickTwice: boolean;
+};
 
 interface OriginSelectionStepProps {
   origin: Origin;
@@ -275,18 +288,21 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
 
   // Include both origin powers and general powers from the origin
   // Also check requirements for each power
-  const powerOptionsWithRequirements = [
+  const powerOptionsWithRequirements: PowerOption[] = [
     ...originBenefits.powers.origin.map((power) => ({
       type: 'power' as const,
       name: power.name,
       power,
       meetsRequirements: checkPowerRequirements(power),
+      canPickTwice:
+        power.type === ORIGIN_POWER_TYPE && power.allowSeveralPicks === true,
     })),
     ...(originBenefits.powers.generalPowers || []).map((power) => ({
       type: 'power' as const,
       name: power.name,
       power,
       meetsRequirements: checkPowerRequirements(power),
+      canPickTwice: false,
     })),
   ];
 
@@ -311,6 +327,12 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
     limitedPowerNames.has(b.name)
   );
 
+  // Quantas vezes o benefício foi escolhido (poderes repetíveis podem valer 2)
+  const countBenefit = (benefit: OriginBenefit) =>
+    selectedBenefits.filter(
+      (b) => b.type === benefit.type && b.name === benefit.name
+    ).length;
+
   const handleToggle = (benefit: OriginBenefit) => {
     const isSelected = selectedBenefits.some(
       (b) => b.type === benefit.type && b.name === benefit.name
@@ -334,6 +356,24 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
     if (selectedBenefits.length < REQUIRED_SELECTIONS) {
       // Add benefit if under limit
       onChange([...selectedBenefits, benefit]);
+    }
+  };
+
+  // Segunda escolha de um poder repetível: adiciona/remove UMA cópia
+  // (o checkbox principal continua removendo as duas de uma vez).
+  const handleToggleSecondPick = (benefit: OriginBenefit) => {
+    const count = countBenefit(benefit);
+
+    if (count >= 2) {
+      const indexToRemove = selectedBenefits.findIndex(
+        (b) => b.type === benefit.type && b.name === benefit.name
+      );
+      onChange(selectedBenefits.filter((_, index) => index !== indexToRemove));
+      return;
+    }
+
+    if (count === 1 && selectedBenefits.length < REQUIRED_SELECTIONS) {
+      onChange([...selectedBenefits, { ...benefit }]);
     }
   };
 
@@ -462,14 +502,19 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
                 : 'Esta origem permite escolher apenas um poder da Tormenta.'}
             </Alert>
           )}
+          {powerOptionsWithRequirements.some((p) => p.canPickTwice) && (
+            <Alert severity='info' sx={{ mb: 2 }}>
+              Alguns poderes podem ser escolhidos duas vezes. Marcar as duas
+              vezes usa seus dois benefícios de origem.
+            </Alert>
+          )}
           {powerOptionsWithRequirements.map((powerOpt) => {
             const benefit: OriginBenefit = {
               type: powerOpt.type,
               name: powerOpt.name,
             };
-            const isSelected = selectedBenefits.some(
-              (b) => b.type === benefit.type && b.name === benefit.name
-            );
+            const selectedCount = countBenefit(benefit);
+            const isSelected = selectedCount > 0;
             const isDisabledByLimit =
               !isSelected && selectedBenefits.length >= REQUIRED_SELECTIONS;
             const isDisabledByRequirements = !powerOpt.meetsRequirements;
@@ -480,39 +525,82 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
               isDisabledByLimit ||
               isDisabledByRequirements ||
               isDisabledByLimitedGroup;
+            const isPickedTwice = selectedCount >= 2;
+            const isSecondPickDisabled =
+              !isPickedTwice && selectedBenefits.length >= REQUIRED_SELECTIONS;
 
             return (
-              <FormControlLabel
+              <Box
                 key={`power-${benefit.name}`}
-                control={
-                  <Checkbox
-                    checked={isSelected}
-                    onChange={() => handleToggle(benefit)}
-                    disabled={isDisabled}
-                  />
-                }
-                label={
-                  <Typography
-                    component='span'
-                    sx={{
-                      color: isDisabledByRequirements
-                        ? 'text.disabled'
-                        : 'inherit',
-                    }}
-                  >
-                    {benefit.name}
-                    {isDisabledByRequirements && (
-                      <Typography
-                        component='span'
-                        variant='caption'
-                        sx={{ ml: 1, fontStyle: 'italic' }}
-                      >
-                        (pré-requisitos não atendidos)
+                sx={{ display: 'flex', flexDirection: 'column' }}
+              >
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={isSelected}
+                      onChange={() => handleToggle(benefit)}
+                      disabled={isDisabled}
+                    />
+                  }
+                  label={
+                    <Typography
+                      component='span'
+                      sx={{
+                        color: isDisabledByRequirements
+                          ? 'text.disabled'
+                          : 'inherit',
+                      }}
+                    >
+                      {benefit.name}
+                      {isDisabledByRequirements && (
+                        <Typography
+                          component='span'
+                          variant='caption'
+                          sx={{ ml: 1, fontStyle: 'italic' }}
+                        >
+                          (pré-requisitos não atendidos)
+                        </Typography>
+                      )}
+                      {isPickedTwice && (
+                        <Typography
+                          component='span'
+                          variant='caption'
+                          sx={{ ml: 1, fontStyle: 'italic' }}
+                        >
+                          (escolhido 2×)
+                        </Typography>
+                      )}
+                    </Typography>
+                  }
+                />
+                {powerOpt.canPickTwice && isSelected && (
+                  <FormControlLabel
+                    sx={{ ml: 4 }}
+                    control={
+                      <Checkbox
+                        size='small'
+                        checked={isPickedTwice}
+                        onChange={() => handleToggleSecondPick(benefit)}
+                        disabled={isSecondPickDisabled}
+                      />
+                    }
+                    label={
+                      <Typography component='span' variant='body2'>
+                        Escolher este poder duas vezes
+                        <Typography
+                          component='span'
+                          variant='caption'
+                          sx={{ ml: 1, fontStyle: 'italic' }}
+                        >
+                          {isSecondPickDisabled
+                            ? '(desmarque o outro benefício para escolher duas vezes)'
+                            : '(usa seus 2 benefícios)'}
+                        </Typography>
                       </Typography>
-                    )}
-                  </Typography>
-                }
-              />
+                    }
+                  />
+                )}
+              </Box>
             );
           })}
         </Paper>

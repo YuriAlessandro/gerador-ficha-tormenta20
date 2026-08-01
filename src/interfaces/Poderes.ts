@@ -69,6 +69,14 @@ export type OriginPower = {
   name: string;
   description: string;
   type: string;
+  // Poder que pode ocupar os DOIS slots de benefício da origem (ex.: Herança,
+  // do Herdeiro). A escolha dupla é representada por duas entradas iguais em
+  // `origin.powers`/`selectedBenefits`.
+  //
+  // SÓ use em poderes inertes (sem `sheetActions` e sem `sheetBonuses`):
+  // `applyPower` deduplica sheetActions pelo `sheetActionHistory`, mas
+  // empilharia os `sheetBonuses` duas vezes.
+  allowSeveralPicks?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
