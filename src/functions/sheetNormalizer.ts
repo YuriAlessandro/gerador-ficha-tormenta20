@@ -40,6 +40,67 @@ function refreshWeaponDamagePower<
   return { ...power, sheetBonuses: bonuses };
 }
 
+// Poderes de ORIGEM cujos `sheetBonuses` DEIXARAM de valer sempre. Ao contrário
+// dos refreshes acima (que só ligam automação nova), aqui é preciso também
+// DESFAZER o que já foi aplicado: abrir uma ficha não dispara recálculo, então
+// `sheetBonuses` e `completeSkills[].others` persistidos manteriam o bônus para
+// sempre em quem já tinha a origem.
+//
+// Procurado: Vivo ou Morto — o +5 em Intimidação e o –5 em Diplomacia só valem
+// contra quem, a critério do mestre, reconhece o personagem; viraram efeito
+// ativo (`origin:procurado-vivo-ou-morto`). Allowlist em vez de refresh
+// genérico das origens: homebrew e ajustes do usuário ficam intocados.
+const ORIGIN_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
+  ['Procurado: Vivo ou Morto', []],
+]);
+
+/**
+ * Desfaz um `sheetBonus` de perícia que já estava aplicado e persistido na
+ * ficha: remove a entrada de `sheetBonuses` (some do detalhamento do "Outros")
+ * e devolve o valor a `completeSkills[].others` (some do número exibido).
+ *
+ * Só trata `Skill` + `Fixed`, que é o que os poderes desta allowlist aplicavam;
+ * qualquer outra forma sai de `sheetBonuses` e o valor derivado se acerta no
+ * próximo recálculo. `manualOthers` não é tocado.
+ */
+function undoPersistedSkillBonus(
+  sheet: CharacterSheet,
+  stale: SheetBonus
+): void {
+  const index = sheet.sheetBonuses.findIndex((bonus) =>
+    _.isEqual(bonus, stale)
+  );
+  if (index === -1) return;
+  sheet.sheetBonuses.splice(index, 1);
+
+  const { target, modifier } = stale;
+  if (target.type !== 'Skill' || modifier.type !== 'Fixed') return;
+
+  const skill = sheet.completeSkills?.find((sk) => sk?.name === target.name);
+  if (!skill || typeof skill.others !== 'number') return;
+  skill.others -= modifier.value;
+}
+
+/**
+ * Refresca a cópia embutida de um poder de origem pelo dado atual, desfazendo
+ * os bônus que deixaram de existir. Idempotente: na segunda passada a cópia
+ * embutida já está atualizada, então não sobra nada para desfazer.
+ */
+function refreshOriginPower<
+  T extends { name: string; sheetBonuses?: SheetBonus[] }
+>(sheet: CharacterSheet, power: T): T {
+  const current = ORIGIN_POWER_BONUSES_BY_NAME.get(power.name);
+  if (!current) return power;
+
+  (power.sheetBonuses ?? [])
+    .filter((stale) => !current.some((bonus) => _.isEqual(bonus, stale)))
+    .forEach((stale) => undoPersistedSkillBonus(sheet, stale));
+
+  // Cópia: o array do mapa é do módulo e seria compartilhado por todas as
+  // fichas normalizadas na sessão.
+  return { ...power, sheetBonuses: _.cloneDeep(current) };
+}
+
 /**
  * Saneia os ELEMENTOS dos arrays da ficha. Garantir que os arrays existem não
  * basta: entradas nulas ou sem campos obrigatórios (magia sem `nome`, poder
@@ -137,7 +198,9 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
 
   if (sheet.origin) {
     sheet.origin.powers = Array.isArray(sheet.origin.powers)
-      ? sheet.origin.powers.filter((p) => p && typeof p.name === 'string')
+      ? sheet.origin.powers
+          .filter((p) => p && typeof p.name === 'string')
+          .map((p) => refreshOriginPower(sheet, p))
       : [];
   }
 

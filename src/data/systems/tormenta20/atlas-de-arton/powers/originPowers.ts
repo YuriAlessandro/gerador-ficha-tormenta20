@@ -1154,36 +1154,15 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         },
       },
     ],
-    sheetBonuses: [
-      {
-        source: {
-          type: 'origin',
-          originName: 'Procurado: Vivo ou Morto (Smokestone)',
-        },
-        target: {
-          type: 'Skill',
-          name: Skill.INTIMIDACAO,
-        },
-        modifier: {
-          type: 'Fixed',
-          value: 5,
-        },
-      },
-      {
-        source: {
-          type: 'origin',
-          originName: 'Procurado: Vivo ou Morto (Smokestone)',
-        },
-        target: {
-          type: 'Skill',
-          name: Skill.DIPLOMACIA,
-        },
-        modifier: {
-          type: 'Fixed',
-          value: -5,
-        },
-      },
-    ],
+    // O +5 em Intimidação e o –5 em Diplomacia valem apenas "contra qualquer um
+    // que, a critério do mestre, o reconheça e saiba de sua fama" — a cláusula
+    // cobre as DUAS metades. Aplicá-los na ficha inteira grudava uma penalidade
+    // permanente que o personagem não deveria ter (feedback de usuário,
+    // ago/2026). Mesmo tratamento de Aprendiz de Dragoeiro, que só registra a
+    // parte incondicional. O par vive no registry de efeitos ativos
+    // (`origin:procurado-vivo-ou-morto`), para ser ligado na cena em que ele é
+    // reconhecido. A proficiência acima é incondicional e continua aqui.
+    sheetBonuses: [],
   },
   PROFETA_DO_AKZATH: {
     name: 'Profeta do Akzath',
