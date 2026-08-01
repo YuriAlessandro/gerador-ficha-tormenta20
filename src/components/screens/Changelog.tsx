@@ -390,6 +390,30 @@ const Changelog: React.FC = () => {
                   serem abertas. A proficiência com armas de fogo e a Pistola
                   continuam como estavam.
                 </li>
+                <li>
+                  <strong>Correção:</strong> na origem <strong>Herdeiro</strong>
+                  , o poder <strong>Herança</strong> não podia ser escolhido{' '}
+                  <strong>duas vezes</strong>, apesar de a própria descrição
+                  dizer que sim (&quot;você pode escolher este poder duas vezes,
+                  para um item de até T$ 2.000&quot;). Agora, ao marcar Herança,
+                  aparece a opção{' '}
+                  <strong>&quot;Escolher este poder duas vezes&quot;</strong>,
+                  que usa os seus dois benefícios de origem — tanto na criação
+                  da ficha quanto ao trocar a origem depois. O poder aparece na
+                  ficha com o contador <strong>×2</strong>. O texto do poder
+                  também estava faltando a palavra &quot;item&quot; e foi
+                  corrigido.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao trocar a origem de uma ficha
+                  pronta, origens que oferecem{' '}
+                  <strong>&quot;um poder à sua escolha&quot;</strong>{' '}
+                  (Gladiador, Soldado, Guarda, Capanga, Assistente de
+                  Laboratório e Amnésico) mostravam só{' '}
+                  <strong>duas opções sorteadas</strong> — e o sorteio mudava
+                  sozinho enquanto a tela estava aberta. Agora a lista completa
+                  de benefícios aparece e fica estável.
+                </li>
               </ul>
               <h3>4.27</h3>
               <ul>
