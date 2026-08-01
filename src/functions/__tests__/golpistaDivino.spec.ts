@@ -2,12 +2,14 @@ import _ from 'lodash';
 import generateRandomSheet from '../general';
 import { recalculateSheet } from '../recalculateSheet';
 import { getSkillOthersBreakdown } from '../skills/skillBonusBreakdown';
+import { getPowerAppliedBonuses } from '../sheetBonuses/appliedBonuses';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Bag from '../../interfaces/Bag';
 import Skill from '../../interfaces/Skills';
 import GRANTED_POWERS from '../../data/systems/tormenta20/powers/grantedPowers';
 import HYNINN from '../../data/systems/tormenta20/divindades/hyninn';
+import TANNA_TOH from '../../data/systems/tormenta20/divindades/tanna-toh';
 import { Armaduras } from '../../data/systems/tormenta20/equipamentos';
 import { SupplementId } from '../../types/supplement.types';
 
@@ -161,6 +163,113 @@ describe('Golpista Divino', () => {
           expect.arrayContaining([{ label: 'Golpista Divino', value: 2 }])
         );
       });
+    });
+  });
+
+  describe('passo-a-passo e histórico do recálculo', () => {
+    const grantEntriesOf = (sheet: CharacterSheet) =>
+      sheet.sheetActionHistory.filter(
+        (entry) => entry.source.type === 'divinity' && !entry.powerName
+      );
+
+    const grantedStepsOf = (sheet: CharacterSheet) =>
+      sheet.steps.filter((step) => step.label === 'Poderes Concedidos');
+
+    it('registra PowerAdded para o poder divino (o "Vindo de" do card)', () => {
+      const recalculated = recalculateSheet(mkDevotoSheet());
+      const [entry] = grantEntriesOf(recalculated);
+
+      expect(entry).toBeDefined();
+      expect(entry.source).toMatchObject({
+        type: 'divinity',
+        divinityName: 'Hyninn',
+      });
+      expect(entry.changes).toContainEqual({
+        type: 'PowerAdded',
+        powerName: 'Golpista Divino',
+      });
+    });
+
+    it('lista os bônus de perícia no step "Poderes Concedidos"', () => {
+      const recalculated = recalculateSheet(mkDevotoSheet());
+      const [step] = grantedStepsOf(recalculated);
+
+      expect(step).toBeDefined();
+      const values = step.value.map((sub) => sub.value);
+      expect(values).toContain('+2 em Ladinagem');
+      expect(values).toContain('+2 em Enganação');
+      expect(values).toContain('+2 em Jogatina');
+      expect(step.value.every((sub) => sub.name === 'Golpista Divino')).toBe(
+        true
+      );
+    });
+
+    it('não acumula entrada nem step em recálculos sucessivos', () => {
+      const once = recalculateSheet(mkDevotoSheet());
+      const thrice = recalculateSheet(recalculateSheet(once));
+
+      expect(grantEntriesOf(thrice)).toHaveLength(1);
+      expect(grantedStepsOf(thrice)).toHaveLength(1);
+      expect(grantedStepsOf(thrice)[0].value).toHaveLength(
+        grantedStepsOf(once)[0].value.length
+      );
+    });
+
+    it('trocar de divindade não deixa a concessão antiga para trás', () => {
+      const hyninn = recalculateSheet(mkDevotoSheet());
+
+      const swapped = _.cloneDeep(hyninn);
+      swapped.devoto = {
+        divindade: _.cloneDeep(TANNA_TOH),
+        poderes: [_.cloneDeep(GRANTED_POWERS.MENTE_ANALITICA)],
+      };
+      const recalculated = recalculateSheet(swapped);
+
+      const entries = grantEntriesOf(recalculated);
+      expect(entries).toHaveLength(1);
+      expect(entries[0].source).toMatchObject({ divinityName: 'Tanna-Toh' });
+      expect(entries[0].changes).not.toContainEqual({
+        type: 'PowerAdded',
+        powerName: 'Golpista Divino',
+      });
+    });
+
+    it('deixar de ser devoto limpa a concessão e o step', () => {
+      const devoto = recalculateSheet(mkDevotoSheet());
+
+      const semDevoto = _.cloneDeep(devoto);
+      semDevoto.devoto = undefined;
+      const recalculated = recalculateSheet(semDevoto);
+
+      expect(grantEntriesOf(recalculated)).toHaveLength(0);
+      expect(grantedStepsOf(recalculated)).toHaveLength(0);
+    });
+  });
+
+  describe('bônus aplicados no card do poder', () => {
+    it('mostra +2 nas três perícias mesmo sob penalidade de armadura', () => {
+      const recalculated = recalculateSheet(wearCouroBatido(mkDevotoSheet()));
+      const applied = getPowerAppliedBonuses(
+        recalculated,
+        GRANTED_POWERS.GOLPISTA_DIVINO
+      );
+
+      // A tabela de perícias exibe "+1" em Ladinagem (o +2 líquido da
+      // penalidade). O card mostra o valor DO PODER.
+      expect(applied).toEqual([
+        { key: 'Enganação', label: 'Enganação', value: '+2' },
+        { key: 'Jogatina', label: 'Jogatina', value: '+2' },
+        { key: 'Ladinagem', label: 'Ladinagem', value: '+2' },
+      ]);
+    });
+
+    it('devolve vazio quando o poder não está na ficha', () => {
+      const semPoder = createMockCharacterSheet();
+      semPoder.sheetBonuses = [];
+
+      expect(
+        getPowerAppliedBonuses(semPoder, GRANTED_POWERS.GOLPISTA_DIVINO)
+      ).toEqual([]);
     });
   });
 

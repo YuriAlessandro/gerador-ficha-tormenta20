@@ -9,6 +9,7 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
   SheetChangeSource,
   Step,
+  SubStep,
 } from '@/interfaces/CharacterSheet';
 import { calculateCompanionStats } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import Equipment from '@/interfaces/Equipment';
@@ -76,6 +77,7 @@ import {
   applyOptionChosenTexts,
   calculateMaxSpaces,
   calculateCurrencySpaces,
+  GRANTED_POWERS_STEP_LABEL,
 } from './general';
 import {
   countTormentaPowers,
@@ -133,6 +135,13 @@ function deduplicateHistory(
     if (action.powerName) {
       key += `-pn:${action.powerName}`;
     }
+
+    // Nota: `divinity` não tem ramo próprio de propósito. Acrescentar
+    // `-${divinityName}` à chave faria a entrada de concessão da divindade
+    // ANTIGA sobreviver ao lado da nova numa troca de deus. O
+    // `applyDivinePowers` já remove a entrada anterior antes de reescrever, então
+    // nunca há duas para colidir aqui. Entradas `divinity` com `powerName`
+    // (homebrew) já se diferenciam pelo `-pn:` acima.
 
     // Only keep the first occurrence
     if (!seen.has(key)) {
@@ -976,19 +985,87 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
   return updatedSheet;
 }
 
+/**
+ * A entrada de CONCESSÃO dos poderes divinos é a única entrada `divinity` sem
+ * `powerName`, e só contém `PowerAdded`.
+ *
+ * As entradas `divinity` COM `powerName` vêm dos `sheetActions` de poderes de
+ * divindade homebrew (`compileDeity.ts`, que usa a divindade como origem) e são
+ * exatamente o que faz `isActionAlreadyApplied` barrar a reaplicação — apagá-las
+ * faria magias e proficiências se reaplicarem a cada edição da ficha.
+ */
+const isGrantedPowersGrantEntry = (entry: SheetActionHistoryEntry): boolean =>
+  entry.source.type === 'divinity' &&
+  !entry.powerName &&
+  entry.changes.every((change) => change.type === 'PowerAdded');
+
 function applyDivinePowers(
   sheet: CharacterSheet,
   manualSelections?: ManualPowerSelections
 ): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
-  if (!sheetClone.devoto?.poderes) return sheetClone;
+  // Paridade com o `applyDivinePowers` da geração aleatória (`general.ts`), que
+  // registra histórico e step. Sem isso, ficha do wizard (que termina em
+  // `recalculateSheet`) não tem `PowerAdded` para poder divino nenhum, e o card
+  // do poder exibe "Vindo de: Origem não identificada".
+  //
+  // Auto-limpeza antes de reescrever em vez de confiar no `deduplicateHistory`:
+  // este recálculo roda a CADA edição, e a chave dele para `divinity` é só
+  // "divinity" (sem o nome do deus), então ele manteria a PRIMEIRA entrada —
+  // congelando a lista numa troca de divindade ou numa edição de poderes.
+  sheetClone.sheetActionHistory = sheetClone.sheetActionHistory.filter(
+    (entry) => !isGrantedPowersGrantEntry(entry)
+  );
 
-  sheetClone = (sheetClone.devoto.poderes || []).reduce((acc, power) => {
+  // Guarda a posição do step antigo para reinserir no mesmo lugar: em ficha
+  // gerada aleatoriamente ele já existe (veio do `general.ts`) e removê-lo do
+  // meio para empurrar no fim reordenaria o passo-a-passo.
+  const previousStepIndex = sheetClone.steps.findIndex(
+    (step) =>
+      step.type === 'Poderes' && step.label === GRANTED_POWERS_STEP_LABEL
+  );
+  sheetClone.steps = sheetClone.steps.filter(
+    (step) =>
+      !(step.type === 'Poderes' && step.label === GRANTED_POWERS_STEP_LABEL)
+  );
+
+  // Capturar antes do reduce: `sheetClone` é reatribuído lá dentro e o
+  // narrowing de `devoto?` se perde.
+  const poderes = sheetClone.devoto?.poderes;
+  if (!poderes?.length) return sheetClone; // a limpeza acima já rodou
+
+  sheetClone.sheetActionHistory.push({
+    source: {
+      type: 'divinity',
+      divinityName: sheetClone.devoto?.divindade.name || 'Divindade',
+    },
+    changes: poderes.map((power) => ({
+      type: 'PowerAdded' as const,
+      powerName: power.name,
+    })),
+  });
+
+  const subSteps: SubStep[] = [];
+  sheetClone = poderes.reduce((acc, power) => {
     const powerSelections = manualSelections?.[power.name];
-    const [newAcc] = applyPower(acc, power, powerSelections);
+    const [newAcc, newSubSteps] = applyPower(acc, power, powerSelections);
+    subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
+
+  if (subSteps.length) {
+    const step: Step = {
+      type: 'Poderes',
+      label: GRANTED_POWERS_STEP_LABEL,
+      value: subSteps,
+    };
+    if (previousStepIndex >= 0) {
+      sheetClone.steps.splice(previousStepIndex, 0, step);
+    } else {
+      sheetClone.steps.push(step);
+    }
+  }
 
   return sheetClone;
 }

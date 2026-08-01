@@ -1,4 +1,6 @@
 import generateRandomSheet from '../general';
+import { recalculateSheet } from '../recalculateSheet';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import { dataRegistry } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
 import { GeneralPowerType, RequirementType } from '../../interfaces/Poderes';
@@ -90,5 +92,96 @@ describe('homebrew deity', () => {
     expect(
       (sheet.devoto?.poderes || []).every((p) => p.name === 'Bênção do Teste')
     ).toBe(true);
+  });
+
+  /**
+   * `applyDivinePowers` do recálculo limpa a entrada de CONCESSÃO antes de
+   * reescrevê-la, para o passo-a-passo não duplicar a cada edição. Poder
+   * concedido de divindade homebrew usa a MESMA origem (`divinity`) nas
+   * entradas dos seus `sheetActions`, e são elas que fazem
+   * `isActionAlreadyApplied` barrar a reaplicação.
+   *
+   * Se a limpeza deixar de distinguir as duas (o discriminante é o `powerName`),
+   * magia concedida por divindade homebrew se reaplica a cada recálculo.
+   */
+  describe('poder concedido com sheetActions sobrevive a recálculos', () => {
+    const ATTR_SOURCE_ID = 'homebrew:test-deity-attr';
+    const ATTR_DEITY = 'Vexpo, o Fortalecedor';
+    const ATTR_POWER = 'Dádiva do Teste';
+
+    // `increaseAttribute` SOMA no atributo e é barrado apenas por
+    // `isActionAlreadyApplied`, que consulta o histórico. É a ação certa para
+    // este teste: `learnSpell` e `addProficiency` são idempotentes por nome e
+    // sobreviveriam mesmo com o histórico apagado, escondendo a regressão.
+    const attrContent: HomebrewDeityContent = {
+      energy: 'positiva',
+      beliefs: 'Testar antes de publicar.',
+      allowedRaces: ['Humano'],
+      allowedClasses: ['Clérigo'],
+      grantedPowers: [
+        {
+          name: ATTR_POWER,
+          description: '+1 em um atributo à escolha.',
+          sheetBonuses: [
+            {
+              source: { type: 'divinity', divinityName: ATTR_DEITY },
+              target: { type: 'PickAttribute', pick: 1 },
+              modifier: { type: 'Fixed', value: 1 },
+            },
+          ],
+        },
+      ],
+    };
+
+    beforeAll(() => {
+      dataRegistry.registerRuntimeSupplement(
+        ATTR_SOURCE_ID,
+        compileDeityHomebrew(attrContent, ATTR_DEITY, ATTR_SOURCE_ID)
+      );
+    });
+
+    afterAll(() => {
+      dataRegistry.unregisterRuntimeSupplement(ATTR_SOURCE_ID);
+    });
+
+    it('não reaplica a ação nem perde o histórico do poder', () => {
+      const sheet = generateRandomSheet({
+        nivel: 1,
+        raca: 'Humano',
+        classe: 'Clérigo',
+        origin: '',
+        devocao: { label: ATTR_DEITY, value: ATTR_DEITY },
+        supplements: [
+          SupplementId.TORMENTA20_CORE,
+          ATTR_SOURCE_ID as SupplementId,
+        ],
+      });
+
+      const totalAttrs = (s: CharacterSheet) =>
+        Object.values(s.atributos).reduce((acc, attr) => acc + attr.value, 0);
+
+      const before = totalAttrs(sheet);
+      const recalculated = recalculateSheet(
+        recalculateSheet(recalculateSheet(sheet))
+      );
+
+      expect(totalAttrs(recalculated)).toBe(before);
+
+      // A entrada `divinity` COM `powerName` é o que barra a reaplicação —
+      // a limpeza da concessão não pode tocá-la.
+      expect(
+        recalculated.sheetActionHistory.some(
+          (entry) =>
+            entry.source.type === 'divinity' && entry.powerName === ATTR_POWER
+        )
+      ).toBe(true);
+
+      // E a entrada de concessão (sem `powerName`) continua única.
+      expect(
+        recalculated.sheetActionHistory.filter(
+          (entry) => entry.source.type === 'divinity' && !entry.powerName
+        )
+      ).toHaveLength(1);
+    });
   });
 });

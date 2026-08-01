@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { Badge, Box, IconButton, Typography } from '@mui/material';
+import { Badge, Box, Chip, IconButton, Typography } from '@mui/material';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import CharacterSheet, {
   SheetActionHistoryEntry,
@@ -12,6 +12,7 @@ import {
   getPowerText,
 } from '@/functions/powers/powerText';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
+import { getPowerAppliedBonuses } from '@/functions/sheetBonuses/appliedBonuses';
 import PowerSettingsDialog from '../PowerSettingsDialog';
 
 export interface PowerDetailBodyProps {
@@ -95,6 +96,20 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
         .filter((source) => source !== ''),
     [sheetHistory, power.name]
   );
+
+  // O que este poder DE FATO aplicou na ficha. A tabela de perícias soma bônus
+  // e penalidades na mesma coluna "Outros", então o +2 de Golpista Divino em
+  // Ladinagem aparece lá como "+1" sob a penalidade de armadura e o poder
+  // parece inerte. Aqui o valor é o do poder, isolado.
+  const appliedBonuses = useMemo(() => {
+    if (!sheet) return [];
+    // `CustomPower` não tem `sheetBonuses` — mesmo padrão usado para `rolls`.
+    const declared = 'sheetBonuses' in power ? power.sheetBonuses : undefined;
+    return getPowerAppliedBonuses(sheet, {
+      name: power.name,
+      sheetBonuses: declared,
+    });
+  }, [sheet, power]);
 
   const handleOpenSettingsDialog = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -205,6 +220,31 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
       <Typography variant='body2' component='div'>
         {getPowerDisplayText(power)}
       </Typography>
+
+      {appliedBonuses.length > 0 && (
+        <Box sx={{ pt: 2 }}>
+          <Typography
+            variant='caption'
+            sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+          >
+            Aplicado na ficha
+          </Typography>
+          {/* Chips com wrap em vez de uma string única: no bottom sheet do
+              mobile um poder com vários bônus estouraria a largura. */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            {appliedBonuses.map((bonus) => (
+              <Chip
+                key={bonus.key}
+                size='small'
+                variant='outlined'
+                label={
+                  bonus.value ? `${bonus.label} ${bonus.value}` : bonus.label
+                }
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
 
       <Box sx={{ pt: 2 }}>
         <Typography variant='caption' sx={{ color: 'text.secondary' }}>

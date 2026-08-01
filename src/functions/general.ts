@@ -3331,6 +3331,52 @@ export const applyPower = (
             value: `RD de ${damageType} ${bonus.modifier.value}`,
           });
         }
+      } else if (
+        bonus.target.type === 'Skill' ||
+        bonus.target.type === 'AllAttackBonus' ||
+        bonus.target.type === 'ModifySkillAttribute' ||
+        bonus.target.type === 'TrainSkill'
+      ) {
+        // Bônus de perícia não geravam subStep nenhum: um devoto de Hyninn com
+        // Golpista Divino (só bônus de perícia) não produzia nada, e o step
+        // "Poderes Concedidos" — guardado por `if (subSteps.length)` — nem
+        // chegava a ser criado. Sem isto o passo-a-passo do recálculo nunca
+        // menciona os +2, e o poder parece inerte.
+        //
+        // `PickSkill` fica de fora de propósito: o bônus só se materializa
+        // quando há uma escolha feita, resolvida no Step 8 do
+        // `recalculateSheet`. Anunciá-lo aqui mentiria em ficha sem escolha.
+        //
+        // O valor sai de `modifier.value` em vez de `calculateBonusValue`
+        // (declarado depois neste arquivo — `no-use-before-define`), igual aos
+        // ramos de PM/PV/RD acima.
+        const formatted =
+          bonus.modifier.type === 'Fixed' && 'value' in bonus.modifier
+            ? `${bonus.modifier.value >= 0 ? '+' : ''}${bonus.modifier.value}`
+            : 'Bônus';
+
+        let description = '';
+        if (bonus.target.type === 'Skill') {
+          description = `${formatted} em ${bonus.target.name}`;
+        } else if (bonus.target.type === 'AllAttackBonus') {
+          description = `${formatted} em Luta e Pontaria`;
+        } else if (bonus.target.type === 'ModifySkillAttribute') {
+          description = `${bonus.target.skill} passa a usar ${bonus.target.attribute}`;
+        } else {
+          const { skills, pick } = bonus.target;
+          description =
+            pick >= skills.length
+              ? `Treina ${skills.join(', ')}`
+              : `Treina ${pick} perícia(s): ${skills.join(', ')}`;
+        }
+
+        subSteps.push({
+          // `getSourceName` devolve '' para divindade/raça/classe, o que
+          // renderizaria uma linha sem dono. Não dá pra corrigir lá sem mexer
+          // nos subSteps de PV/PM/RD já existentes.
+          name: sourceName || powerOrAbility.name,
+          value: description,
+        });
       }
     });
   }
@@ -3433,6 +3479,14 @@ export function applyRaceAbilities(
   return sheetClone;
 }
 
+/**
+ * Rótulo do step de poderes concedidos. Compartilhado com o
+ * `applyDivinePowers` do `recalculateSheet`, que precisa reconhecer o step da
+ * rodada anterior para substituí-lo — se as duas strings divergirem, o
+ * passo-a-passo duplica.
+ */
+export const GRANTED_POWERS_STEP_LABEL = 'Poderes Concedidos';
+
 function applyDivinePowers(
   sheet: CharacterSheet,
   manualSelections?: ManualPowerSelections
@@ -3464,7 +3518,7 @@ function applyDivinePowers(
   if (subSteps.length) {
     sheetClone.steps.push({
       type: 'Poderes',
-      label: 'Poderes Concedidos',
+      label: GRANTED_POWERS_STEP_LABEL,
       value: subSteps,
     });
   }
