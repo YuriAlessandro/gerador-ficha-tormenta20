@@ -402,6 +402,21 @@ const Changelog: React.FC = () => {
                   aparecia como não atendendo ao requisito nos quatro.
                 </li>
                 <li>
+                  <strong>Correção:</strong> os poderes agora mostram{' '}
+                  <strong>o que aplicaram na ficha</strong>. O card de{' '}
+                  <strong>Golpista Divino</strong>, por exemplo, lista{' '}
+                  <strong>Enganação +2</strong>, <strong>Jogatina +2</strong> e{' '}
+                  <strong>Ladinagem +2</strong>. O bônus sempre existiu, mas em{' '}
+                  <strong>Ladinagem</strong> ele dividia a coluna{' '}
+                  <strong>Outros</strong> com a penalidade de armadura: um
+                  personagem de couro batido via <strong>+1</strong> e concluía
+                  que o poder não estava funcionando. Poderes divinos também
+                  deixaram de aparecer como{' '}
+                  <strong>&quot;Origem não identificada&quot;</strong> e
+                  passaram a creditar a divindade, e os bônus de perícia
+                  entraram no passo a passo da ficha.
+                </li>
+                <li>
                   <strong>Correção:</strong> a página de apoio anunciava{' '}
                   <strong>&quot;Até 10 fichas&quot;</strong> no Nível 1, mas o
                   limite aplicado era 15. Os benefícios listados passaram a ser
