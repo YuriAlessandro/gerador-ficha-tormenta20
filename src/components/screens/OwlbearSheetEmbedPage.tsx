@@ -24,6 +24,7 @@ import {
   startEmbedBridge,
   waitForToken,
   getEmbedToken,
+  forwardVitals,
 } from '@/functions/owlbearEmbedBridge';
 
 /**
@@ -39,6 +40,35 @@ import {
 type LoadedContent =
   | { kind: 'player'; sheet: CharacterSheet }
   | { kind: 'threat'; threat: ThreatSheet };
+
+/**
+ * Manda PV/Defesa para a extensão espelhar na barra de vida do token. Chamado no
+ * carregamento e a cada edição — `Result`/`ThreatResult` avisam qualquer
+ * mudança, então dano e cura chegam aqui sem instrumentar a ficha por dentro.
+ *
+ * Ameaça não tem PV atual na ficha (só `combatStats.hitPoints`): mandamos o
+ * máximo, e o dano do monstro segue com o mestre na própria barra.
+ */
+function reportVitals(content: LoadedContent): void {
+  if (!isOwlbearEmbedded()) return;
+  if (content.kind === 'threat') {
+    forwardVitals({
+      kind: 'threat',
+      maxPv: content.threat.combatStats.hitPoints,
+      defense: content.threat.combatStats.defense,
+    });
+    return;
+  }
+  const { pv, currentPV, tempPV, defesa } = content.sheet;
+  forwardVitals({
+    kind: 'player',
+    maxPv: pv,
+    // Ficha nunca jogada não tem currentPV: cheia, não zerada.
+    currentPv: currentPV ?? pv,
+    tempPv: tempPV ?? 0,
+    defense: defesa,
+  });
+}
 
 const OwlbearSheetEmbedPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -115,6 +145,7 @@ const OwlbearSheetEmbedPage: React.FC = () => {
             threat.imageUrl = fullSheet.image;
           }
           setContent({ kind: 'threat', threat });
+          reportVitals({ kind: 'threat', threat });
           return;
         }
 
@@ -151,6 +182,7 @@ const OwlbearSheetEmbedPage: React.FC = () => {
         restoreSpellPath(restoredSheet, CLASSES);
 
         setContent({ kind: 'player', sheet: restoredSheet });
+        reportVitals({ kind: 'player', sheet: restoredSheet });
       } catch (err) {
         if (active) {
           setError(
@@ -174,6 +206,7 @@ const OwlbearSheetEmbedPage: React.FC = () => {
     async (updated: CharacterSheet) => {
       if (!isOwner || !id) return;
       setContent({ kind: 'player', sheet: updated });
+      reportVitals({ kind: 'player', sheet: updated });
       try {
         await updateSheet(id, {
           sheetData: updated as unknown as Parameters<
@@ -193,6 +226,7 @@ const OwlbearSheetEmbedPage: React.FC = () => {
     async (updated: ThreatSheet) => {
       if (!isOwner || !id) return;
       setContent({ kind: 'threat', threat: updated });
+      reportVitals({ kind: 'threat', threat: updated });
       try {
         await updateSheet(id, {
           sheetData: updated as unknown as Parameters<

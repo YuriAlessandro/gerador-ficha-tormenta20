@@ -6,13 +6,16 @@
  * (iframe pai) via postMessage. Este módulo:
  *  - anuncia "ready" ao pai e recebe/renova o token;
  *  - expõe `getEmbedToken()` para o api client usar como Bearer;
- *  - encaminha rolagens (`forwardRoll`) para a extensão fazer broadcast no Owlbear.
+ *  - encaminha rolagens (`forwardRoll`) para a extensão fazer broadcast no Owlbear;
+ *  - encaminha os vitais (`forwardVitals`) para a extensão espelhar o PV na
+ *    barra de vida do token.
  *
  * Protocolo (espelhado em extensions/owlbear/src/components/EmbeddedSheet.tsx):
  *  - embed → pai:  { type: 'fdn-embed:ready' }
  *  - pai  → embed: { type: 'fdn-embed:token', token, expiresAt }
  *  - embed → pai:  { type: 'fdn-embed:refresh' }
  *  - embed → pai:  { type: 'fdn-embed:roll', payload }
+ *  - embed → pai:  { type: 'fdn-embed:vitals', payload }
  */
 
 export const EMBED_MSG = {
@@ -20,7 +23,21 @@ export const EMBED_MSG = {
   token: 'fdn-embed:token',
   refresh: 'fdn-embed:refresh',
   roll: 'fdn-embed:roll',
+  vitals: 'fdn-embed:vitals',
 } as const;
+
+/**
+ * PV/Defesa da ficha aberta, para a extensão espelhar na barra de vida do token.
+ * Ameaça não tem PV atual na ficha (só o máximo), então `currentPv` fica de fora
+ * nesse caso — quem controla o dano do monstro é o mestre, na própria barra.
+ */
+export interface OwlbearVitalsPayload {
+  kind: 'player' | 'threat';
+  maxPv: number;
+  currentPv?: number;
+  tempPv?: number;
+  defense?: number;
+}
 
 let currentToken: string | null = null;
 let expiresAt = 0;
@@ -96,4 +113,14 @@ export async function getEmbedToken(): Promise<string | null> {
 export function forwardRoll(payload: unknown): void {
   if (!isOwlbearEmbedded()) return;
   window.parent.postMessage({ type: EMBED_MSG.roll, payload }, parentOrigin);
+}
+
+/**
+ * Encaminha os vitais da ficha para a extensão, que os espelha na barra de vida
+ * do token. Chamado a cada mudança da ficha: quem decide o que fazer com isso
+ * (e se deve fazer algo) é a extensão.
+ */
+export function forwardVitals(payload: OwlbearVitalsPayload): void {
+  if (!isOwlbearEmbedded()) return;
+  window.parent.postMessage({ type: EMBED_MSG.vitals, payload }, parentOrigin);
 }
