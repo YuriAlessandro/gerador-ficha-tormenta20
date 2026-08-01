@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { RootState, AppDispatch } from '../store';
 import {
   fetchSubscription,
@@ -14,12 +14,13 @@ import {
 import {
   SubscriptionTier,
   SubscriptionStatus,
-  canAccessFeature,
-  hasReachedLimit,
   SubscriptionLimits,
+  getSupportLimits,
   isSupporter as checkIsSupporter,
   canAccessGameTables as checkCanAccessGameTables,
 } from '../types/subscription.types';
+import { applyLimitBoost } from '../functions/limitBoost';
+import { useLimitBoost } from './useLimitBoost';
 
 /**
  * Custom hook for subscription management
@@ -37,7 +38,6 @@ export const useSubscription = () => {
   );
   const loading = useSelector((state: RootState) => state.subscription.loading);
   const error = useSelector((state: RootState) => state.subscription.error);
-  const limits = useSelector((state: RootState) => state.subscription.limits);
 
   // Get auth state to check if user is authenticated
   const isAuthenticated = useSelector(
@@ -46,6 +46,16 @@ export const useSubscription = () => {
 
   // Get current tier (defaults to FREE if no subscription)
   const tier = subscription?.tier || SubscriptionTier.FREE;
+
+  // Limites são DERIVADOS de (nível de apoio + boost global), e não lidos do
+  // slice: o boost pode ser ligado/desligado pelo admin a qualquer momento, e
+  // um valor guardado no store ficaria congelado até o próximo fetch.
+  const limitBoost = useLimitBoost();
+  const limits = useMemo(
+    () => applyLimitBoost(getSupportLimits(tier), limitBoost),
+    [tier, limitBoost]
+  );
+
   const status = subscription?.status || SubscriptionStatus.ACTIVE;
   const isActive = status === SubscriptionStatus.ACTIVE;
   const isPremium =
@@ -102,19 +112,23 @@ export const useSubscription = () => {
     dispatch(clearSubscriptionError());
   }, [dispatch]);
 
-  // Utility functions
+  // Utility functions — operam sobre os limites JÁ turbinados
   const canAccess = useCallback(
-    (feature: keyof SubscriptionLimits): boolean =>
-      canAccessFeature(tier, feature),
-    [tier]
+    (feature: keyof SubscriptionLimits): boolean => limits[feature] > 0,
+    [limits]
   );
 
   const hasReached = useCallback(
     (
       limitType: 'maxSheets' | 'maxGameTables' | 'maxPlayersPerTable',
       currentCount: number
-    ): boolean => hasReachedLimit(tier, limitType, currentCount),
-    [tier]
+    ): boolean => {
+      const maxAllowed = limits[limitType];
+      if (maxAllowed === -1) return false; // ilimitado
+      if (maxAllowed === 0) return true; // indisponível
+      return currentCount >= maxAllowed;
+    },
+    [limits]
   );
 
   // Check if user is a supporter (any paid level)
@@ -139,7 +153,9 @@ export const useSubscription = () => {
     isPremium,
     isSupporter: isUserSupporter, // Is user a supporter (any paid level)
     canAccessGameTables, // Can access game tables (NIVEL_2 or higher)
-    limits,
+    limits, // já turbinados quando o boost está ligado
+    limitBoost, // estado do boost global, para a UI da chama
+    baseLimits: getSupportLimits(tier), // valores sem boost, para "10 → 15"
 
     // Pricing and invoices
     pricingPlans,

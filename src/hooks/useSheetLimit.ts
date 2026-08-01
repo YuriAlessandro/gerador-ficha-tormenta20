@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSubscription } from './useSubscription';
 import { useSheets } from './useSheets';
 import { SubscriptionTier } from '../types/subscription.types';
+import { LimitBoost } from '../functions/limitBoost';
 
 export interface SheetLimitResult {
   // Combined totals (for backward compatibility)
@@ -24,6 +25,10 @@ export interface SheetLimitResult {
   // Helpers for unlimited (-1) display
   isCharacterLimitUnlimited: boolean;
   isMenaceLimitUnlimited: boolean;
+  // Boost global de limites (meta de 200 apoiadores) — para o efeito de chama
+  limitBoost: LimitBoost;
+  baseMaxSheets: number;
+  baseMaxMenaceSheets: number;
 }
 
 /**
@@ -31,7 +36,7 @@ export interface SheetLimitResult {
  * Properly separates character sheets from threat/menace sheets
  */
 export const useSheetLimit = (): SheetLimitResult => {
-  const { limits, tier } = useSubscription();
+  const { limits, tier, limitBoost, baseLimits } = useSubscription();
   const { sheets } = useSheets();
 
   // Separate sheets by type
@@ -144,5 +149,8 @@ export const useSheetLimit = (): SheetLimitResult => {
     remainingMenaceSlots,
     isCharacterLimitUnlimited,
     isMenaceLimitUnlimited,
+    limitBoost,
+    baseMaxSheets: baseLimits.maxSheets,
+    baseMaxMenaceSheets: baseLimits.maxMenaceSheets,
   };
 };

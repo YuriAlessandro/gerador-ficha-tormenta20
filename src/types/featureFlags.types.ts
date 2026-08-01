@@ -1,6 +1,11 @@
 export interface FeatureFlag {
   enabled: boolean;
   supporterOnly: boolean;
+  /**
+   * Parâmetro numérico opcional da flag. Hoje só a `limitBoost` usa (guarda o
+   * multiplicador dos limites); as demais ignoram.
+   */
+  value?: number;
 }
 
 export interface FeatureFlags {
@@ -11,6 +16,7 @@ export interface FeatureFlags {
   partners: FeatureFlag;
   complications: FeatureFlag;
   spellAreaGuide: FeatureFlag;
+  limitBoost: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -27,4 +33,9 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   complications: { enabled: true, supporterOnly: true },
   // Guia de acerto: prévia em grid de batalha da área de efeito das magias.
   spellAreaGuide: { enabled: true, supporterOnly: true },
+  // Boost de limites da meta de 200 apoiadores: multiplica TODOS os limites por
+  // nível de apoio (menos suplementos), inclusive os de contas gratuitas.
+  // `supporterOnly` é ignorado — vale para todo mundo. Default desligado: o
+  // admin liga quando quiser anunciar.
+  limitBoost: { enabled: false, supporterOnly: false, value: 1.5 },
 };

@@ -15,6 +15,8 @@ import { useHistory } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
 import FolderIcon from '@mui/icons-material/Folder';
 import { Favorite } from '@mui/icons-material';
+import { useLimitBoost } from '../../hooks/useLimitBoost';
+import { BoostFlame, BoostedNumber } from './BoostedLimit';
 
 interface SheetLimitDialogProps {
   open: boolean;
@@ -36,6 +38,7 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
   tierName,
 }) => {
   const history = useHistory();
+  const limitBoost = useLimitBoost();
 
   const handleUpgrade = () => {
     onClose();
@@ -62,7 +65,11 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
       </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ mb: 3 }}>
-          Você atingiu o limite de <strong>{maxCount} fichas</strong> do plano{' '}
+          Você atingiu o limite de{' '}
+          <strong>
+            <BoostedNumber boost={limitBoost}>{maxCount}</BoostedNumber> fichas
+          </strong>{' '}
+          <BoostFlame boost={limitBoost} boostedValue={maxCount} /> do plano{' '}
           <strong>{tierName}</strong>.
         </DialogContentText>
 
@@ -87,9 +94,16 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
               variant='body2'
               sx={{
                 fontWeight: 'bold',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
               }}
             >
-              {currentCount}/{maxCount}
+              <span>
+                {currentCount}/
+                <BoostedNumber boost={limitBoost}>{maxCount}</BoostedNumber>
+              </span>
+              <BoostFlame boost={limitBoost} boostedValue={maxCount} />
             </Typography>
           </Box>
           <LinearProgress

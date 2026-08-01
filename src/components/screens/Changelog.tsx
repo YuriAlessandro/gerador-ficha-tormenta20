@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            29/07/2026 (v4.28).
+            01/08/2026 (v4.29).
           </p>
 
           <p>
@@ -74,6 +74,66 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.29</h3>
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{ fontWeight: 'bold', color: 'success.dark' }}
+                >
+                  🔥 200 apoiadores: todos os limites turbinados
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  A comunidade bateu a meta de <strong>200 apoiadores</strong> —
+                  e a recompensa vale para <strong>todo mundo</strong>,
+                  inclusive quem usa a conta gratuita. Todos os limites da
+                  plataforma foram multiplicados por <strong>1,5x</strong>:
+                  fichas de personagem, fichas de ameaça, mesas de jogo,
+                  jogadores por mesa, publicações semanais no bestiário e
+                  homebrews ativos ao mesmo tempo.
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Na conta grátis, por exemplo, são{' '}
+                  <strong>15 fichas de personagem</strong> no lugar de 10,{' '}
+                  <strong>15 ameaças</strong> no lugar de 10 e{' '}
+                  <strong>5 homebrews ativos</strong> no lugar de 3.
+                </Typography>
+                <Typography variant='body1'>
+                  Onde um limite estiver turbinado você vai ver o número pegando{' '}
+                  <strong>fogo</strong> 🔥 — passe o mouse para ver o valor
+                  antigo e o novo. Obrigado a cada pessoa que apoia o projeto!
+                </Typography>
+              </Alert>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Boost de limites</strong> da
+                  meta de 200 apoiadores — fichas, ameaças, mesas, jogadores por
+                  mesa, publicações no bestiário e homebrews ativos aumentaram
+                  1,5x para todos os níveis, inclusive o gratuito. O limite de{' '}
+                  <strong>suplementos ativos</strong> não faz parte do boost.
+                </li>
+                <li>
+                  <strong>Novo:</strong> os contadores de limite agora mostram
+                  um <strong>efeito de chama</strong> quando o valor está
+                  turbinado, com um resumo de quanto ele subiu.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a página de apoio anunciava{' '}
+                  <strong>&quot;Até 10 fichas&quot;</strong> no Nível 1, mas o
+                  limite aplicado era 15. Os benefícios listados passaram a ser
+                  gerados a partir dos limites reais, então não têm mais como
+                  divergir.
+                </li>
+              </ul>
               <h3>4.28</h3>
               <Alert
                 severity='success'

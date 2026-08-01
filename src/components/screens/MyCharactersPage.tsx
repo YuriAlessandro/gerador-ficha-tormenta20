@@ -84,6 +84,7 @@ import {
   wouldCreateCycle,
 } from '../../utils/folderTree';
 import CharacterLimitIndicator from '../CharacterLimitIndicator';
+import { BoostedLimitLabel } from '../common/BoostedLimit';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
 import SupporterBadge from '../Premium/SupporterBadge';
@@ -172,6 +173,9 @@ const MyCharactersPage: React.FC = () => {
     remainingMenaceSlots,
     isCharacterLimitUnlimited,
     isMenaceLimitUnlimited,
+    limitBoost,
+    baseMaxSheets,
+    baseMaxMenaceSheets,
   } = useSheetLimit();
 
   // Batch threat export
@@ -1502,18 +1506,19 @@ const MyCharactersPage: React.FC = () => {
                   <CharacterLimitIndicator
                     current={playerSheets.length}
                     max={maxSheets}
+                    boost={limitBoost}
+                    baseMax={baseMaxSheets}
                   />
-                  <Typography
-                    variant='body2'
+                  <BoostedLimitLabel
+                    boost={limitBoost}
+                    prefix={`${playerSheets.length} de `}
+                    max={maxSheets}
+                    baseMax={baseMaxSheets}
+                    suffix=' fichas de personagem'
                     color={
                       isNearCharacterLimit ? 'warning.main' : 'text.secondary'
                     }
-                    sx={{
-                      fontWeight: isNearCharacterLimit ? 'bold' : 'normal',
-                    }}
-                  >
-                    {playerSheets.length} de {maxSheets} fichas de personagem
-                  </Typography>
+                  />
                 </Stack>
               )}
               {activeTab === 1 && !isMenaceLimitUnlimited && (
@@ -1527,18 +1532,19 @@ const MyCharactersPage: React.FC = () => {
                   <CharacterLimitIndicator
                     current={threatSheets.length}
                     max={maxMenaceSheets}
+                    boost={limitBoost}
+                    baseMax={baseMaxMenaceSheets}
                   />
-                  <Typography
-                    variant='body2'
+                  <BoostedLimitLabel
+                    boost={limitBoost}
+                    prefix={`${threatSheets.length} de `}
+                    max={maxMenaceSheets}
+                    baseMax={baseMaxMenaceSheets}
+                    suffix=' fichas de ameaças'
                     color={
                       isNearMenaceLimit ? 'warning.main' : 'text.secondary'
                     }
-                    sx={{
-                      fontWeight: isNearMenaceLimit ? 'bold' : 'normal',
-                    }}
-                  >
-                    {threatSheets.length} de {maxMenaceSheets} fichas de ameaças
-                  </Typography>
+                  />
                 </Stack>
               )}
             </Stack>
