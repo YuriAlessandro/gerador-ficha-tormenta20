@@ -314,6 +314,37 @@ const Changelog: React.FC = () => {
                   turbinado, com um resumo de quanto ele subiu.
                 </li>
                 <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Rolagem de iniciativa em lote</strong> no tracker de
+                  combate. Um botão rola a iniciativa de{' '}
+                  <strong>todas as ameaças de uma vez</strong>, no lugar de
+                  clicar criatura por criatura. Com a opção{' '}
+                  <strong>uma rolagem por grupo de criatura</strong> ligada
+                  (padrão), criaturas do mesmo tipo compartilham o d20 e agem
+                  juntas — os cinco kobolds saem no mesmo turno, e o chefe rola
+                  a dele. Desligue a opção para que cada criatura tenha a sua. A
+                  escolha fica salva para os próximos combates.
+                </li>
+                <li>
+                  <strong>Novo:</strong> as ameaças já roladas ganharam um botão
+                  de <strong>rolar novamente</strong> durante a fase de
+                  iniciativa, que antes não tinha como refazer uma rolagem.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a tela de iniciativa agora separa{' '}
+                  <strong>Ameaças</strong> e <strong>Jogadores</strong> em
+                  seções distintas, com os controles do mestre restritos à parte
+                  das ameaças. Antes os dois vinham misturados na mesma lista,
+                  com botões iguais, e era fácil rolar a iniciativa de um
+                  jogador sem querer.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a iniciativa rolada em lote entra
+                  no histórico de rolagens como{' '}
+                  <strong>uma única entrada</strong>, com o resultado de cada
+                  criatura, em vez de uma notificação por ameaça na sala.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O que está no ar agora é{' '}
                   <strong>salvo na mesa</strong>. Antes a projeção de imagem era
                   passageira e sumia em qualquer reconexão; agora ela sobrevive
@@ -330,6 +361,12 @@ const Changelog: React.FC = () => {
                   jogador agora se ajusta ao tamanho da tela: o texto cresce até
                   a maior fonte que ainda couber e fica centralizado. Antes saía
                   minúsculo num projetor.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na ordem de turnos, criaturas
+                  numeradas do mesmo grupo ficavam fora de ordem —{' '}
+                  <strong>Kobold 10</strong> aparecia antes de{' '}
+                  <strong>Kobold 2</strong>.
                 </li>
                 <li>
                   <strong>Correção:</strong> O conteúdo privado do{' '}
