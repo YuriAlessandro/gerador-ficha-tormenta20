@@ -21,7 +21,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import GroupIcon from '@mui/icons-material/Group';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import Race from '../../interfaces/Race';
+import Race, { RaceAttributeAbility } from '../../interfaces/Race';
 import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
@@ -36,11 +36,11 @@ interface ProcessedAttribute {
   type: 'specific' | 'any' | 'special';
 }
 
-const processRaceAttributes = (race: Race): ProcessedAttribute[] => {
-  const specificAttrs = race.attributes.attrs.filter(
-    (attr) => attr.attr !== 'any'
-  );
-  const anyAttrs = race.attributes.attrs.filter((attr) => attr.attr === 'any');
+const processAttributeList = (
+  attrs: RaceAttributeAbility[]
+): ProcessedAttribute[] => {
+  const specificAttrs = attrs.filter((attr) => attr.attr !== 'any');
+  const anyAttrs = attrs.filter((attr) => attr.attr === 'any');
 
   const result: ProcessedAttribute[] = [];
 
@@ -64,14 +64,26 @@ const processRaceAttributes = (race: Race): ProcessedAttribute[] => {
     const sign = modValue > 0 ? '+' : '';
     const plural = count > 1;
     result.push({
-      label: `${sign}${modValue} em ${count} atributo${plural ? 's' : ''} ${
-        plural ? 'diferentes' : ''
+      label: `${sign}${modValue} em ${count} atributo${
+        plural ? 's diferentes' : ''
       } à sua escolha`,
       type: 'any',
     });
   });
 
   return result;
+};
+
+// Raças com attributeVariants (ex.: Kallyanach) oferecem conjuntos alternativos
+// de modificadores — cada variante vira um chip e o jogador escolhe um deles.
+const processRaceAttributes = (race: Race): ProcessedAttribute[] => {
+  if (race.attributeVariants && race.attributeVariants.length > 1) {
+    return race.attributeVariants.flatMap((variant) =>
+      processAttributeList(variant.attrs)
+    );
+  }
+
+  return processAttributeList(race.attributes.attrs);
 };
 
 const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
@@ -218,6 +230,18 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                     />
                   ))}
                 </Box>
+                {race.attributeVariants &&
+                  race.attributeVariants.length > 1 && (
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                        mt: 1,
+                      }}
+                    >
+                      Escolha apenas uma das opções acima.
+                    </Typography>
+                  )}
                 {race.heritages && (
                   <Typography
                     variant='body2'
@@ -275,26 +299,25 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                             mb: 1.5,
                           }}
                         >
-                          {processRaceAttributes({
-                            ...race,
-                            attributes: { attrs: heritage.attributes },
-                          } as Race).map((attrInfo) => (
-                            <Chip
-                              key={`${heritageKey}-attr-${attrInfo.label.replace(
-                                /[^a-zA-Z0-9]/g,
-                                '-'
-                              )}`}
-                              label={attrInfo.label}
-                              variant='outlined'
-                              color={
-                                attrInfo.type === 'any'
-                                  ? 'secondary'
-                                  : 'primary'
-                              }
-                              size='small'
-                              sx={{ fontFamily: 'Tfont, serif' }}
-                            />
-                          ))}
+                          {processAttributeList(heritage.attributes).map(
+                            (attrInfo) => (
+                              <Chip
+                                key={`${heritageKey}-attr-${attrInfo.label.replace(
+                                  /[^a-zA-Z0-9]/g,
+                                  '-'
+                                )}`}
+                                label={attrInfo.label}
+                                variant='outlined'
+                                color={
+                                  attrInfo.type === 'any'
+                                    ? 'secondary'
+                                    : 'primary'
+                                }
+                                size='small'
+                                sx={{ fontFamily: 'Tfont, serif' }}
+                              />
+                            )
+                          )}
                         </Box>
 
                         {heritage.abilities.map((ability, abilityIdx) => (

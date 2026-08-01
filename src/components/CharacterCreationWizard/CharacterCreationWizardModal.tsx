@@ -40,6 +40,7 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
 import {
+  applyAttributeVariant,
   buildClassEquipmentsFromChoices,
   convertOriginItemsToBagEquipments,
   getEffectiveRaceAttrs,
@@ -245,6 +246,17 @@ const CharacterCreationWizardModal: React.FC<
     yidishanNaturezaOldRace,
   ]);
 
+  // Para raças com attributeVariants (Kallyanach), `race.attributes` é só o
+  // fallback do catálogo — a escolha do jogador no passo "Variante de Atributos"
+  // é a fonte da verdade. Todo cálculo de atributo usa esta versão.
+  const raceWithVariant: Race | undefined = useMemo(
+    () =>
+      race && selections.attributeVariant
+        ? applyAttributeVariant(race, selections.attributeVariant)
+        : race,
+    [race, selections.attributeVariant]
+  );
+
   // Memoize classe to prevent infinite re-renders (used as useEffect dependency)
   const classe: ClassDescription | undefined = useMemo(() => {
     const classes = dataRegistry.getClassesBySupplements(supplements);
@@ -329,29 +341,26 @@ const CharacterCreationWizardModal: React.FC<
 
   // Helper to calculate intelligence modifier (including racial modifiers)
   const getIntelligenceModifier = (): number => {
-    if (!selections.baseAttributes || !race) return 0;
+    if (!selections.baseAttributes || !raceWithVariant) return 0;
     // baseAttributes now contains the modifier directly
     const baseModifier = selections.baseAttributes[Atributo.INTELIGENCIA];
 
     // Add racial modifier for Intelligence
     let racialModifier = 0;
-    const raceAttrs = getEffectiveRaceAttrs(race, sexForAttributes);
+    let anyIndex = 0;
 
-    // Count fixed modifiers for INT
-    raceAttrs.forEach((attr) => {
+    // Cada slot 'any' corresponde à escolha de mesmo índice (igual ao
+    // getRacialModifier do AttributeBaseValuesStep)
+    getEffectiveRaceAttrs(raceWithVariant, sexForAttributes).forEach((attr) => {
       if (attr.attr === Atributo.INTELIGENCIA) {
         racialModifier += attr.mod;
+      } else if (attr.attr === 'any') {
+        if (selections.raceAttributes?.[anyIndex] === Atributo.INTELIGENCIA) {
+          racialModifier += attr.mod;
+        }
+        anyIndex += 1;
       }
     });
-
-    // For 'any' attributes: add the bonus only if INT was selected
-    // and only once (using the mod from the first 'any' found)
-    if (selections.raceAttributes?.includes(Atributo.INTELIGENCIA)) {
-      const anyAttr = raceAttrs.find((attr) => attr.attr === 'any');
-      if (anyAttr) {
-        racialModifier += anyAttr.mod;
-      }
-    }
 
     return baseModifier + racialModifier;
   };
@@ -371,12 +380,10 @@ const CharacterCreationWizardModal: React.FC<
   };
 
   const needsRaceAttributes = (): boolean => {
-    if (!race) return false;
-    // If variant is selected, use variant's attrs, otherwise use race's attrs
-    const attrs =
-      selections.attributeVariant?.attrs ||
-      getEffectiveRaceAttrs(race, sexForAttributes);
-    return attrs.some((attr) => attr.attr === 'any');
+    if (!raceWithVariant) return false;
+    return getEffectiveRaceAttrs(raceWithVariant, sexForAttributes).some(
+      (attr) => attr.attr === 'any'
+    );
   };
 
   const needsClassSkills = (): boolean => {
@@ -903,7 +910,7 @@ const CharacterCreationWizardModal: React.FC<
         );
 
       case 'Valores dos Atributos': {
-        if (!race) return null;
+        if (!raceWithVariant) return null;
         const zeroedAttributes: Record<Atributo, number> = {
           [Atributo.FORCA]: 0,
           [Atributo.DESTREZA]: 0,
@@ -915,7 +922,7 @@ const CharacterCreationWizardModal: React.FC<
         const attributeOrder = Object.values(Atributo);
         return (
           <AttributeBaseValuesStep
-            race={race}
+            race={raceWithVariant}
             sexForAttributes={sexForAttributes}
             baseAttributes={selections.baseAttributes || zeroedAttributes}
             raceAttributeChoices={selections.raceAttributes}
@@ -979,9 +986,8 @@ const CharacterCreationWizardModal: React.FC<
       }
 
       case 'Atributos da Raça': {
-        if (!race) return null;
-        // Use variant's attrs if selected, otherwise use race's default attrs
-        const attrSource = selections.attributeVariant || race.attributes;
+        if (!raceWithVariant) return null;
+        const attrSource = raceWithVariant.attributes;
         const { attrs } = attrSource;
         const attrCount = attrs.filter((a) => a.attr === 'any').length;
         const excludedAttributes = attrSource.excludeFromAny || [];
@@ -1131,7 +1137,7 @@ const CharacterCreationWizardModal: React.FC<
             cachedBenefits={selections.cachedOriginBenefits}
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
-            race={race}
+            race={raceWithVariant}
             sexForAttributes={sexForAttributes}
             classe={classe}
           />
@@ -1146,7 +1152,7 @@ const CharacterCreationWizardModal: React.FC<
             }
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
-            race={race}
+            race={raceWithVariant}
             sexForAttributes={sexForAttributes}
             classe={classe}
             usedSkills={getAllUsedSkills()}
@@ -1235,7 +1241,7 @@ const CharacterCreationWizardModal: React.FC<
             knownPowers={knownPowers}
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
-            race={race}
+            race={raceWithVariant}
             sexForAttributes={sexForAttributes}
             classe={classe}
             usedSkills={getAllUsedSkills()}
@@ -1528,11 +1534,8 @@ const CharacterCreationWizardModal: React.FC<
         return selections.attributeVariant !== undefined;
 
       case 'Atributos da Raça': {
-        if (!race) return false;
-        // Use variant's attrs if selected, otherwise use race's default attrs
-        const attrs =
-          selections.attributeVariant?.attrs ||
-          getEffectiveRaceAttrs(race, sexForAttributes);
+        if (!raceWithVariant) return false;
+        const attrs = getEffectiveRaceAttrs(raceWithVariant, sexForAttributes);
         const attrCount = attrs.filter((a) => a.attr === 'any').length;
         return (
           selections.raceAttributes?.length === attrCount &&

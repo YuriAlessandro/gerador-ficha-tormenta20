@@ -34,7 +34,8 @@ const faithProbability = {
 
 const KALLYANACH: Race = {
   name: 'Kallyanach',
-  // Atributos padrão (usado para geração aleatória quando setup é chamado)
+  // Fallback (igual à primeira variante). O sorteio da geração aleatória fica em
+  // rollAttributeVariant; no assistente quem escolhe a variante é o jogador.
   attributes: {
     attrs: [
       {
@@ -59,42 +60,6 @@ const KALLYANACH: Race = {
   ],
   faithProbability,
   abilities: kallyanachAbilities,
-  // Setup escolhe aleatoriamente entre +2 em 1 atributo ou +1 em 2 atributos (para geração aleatória)
-  setup: (race) => {
-    const useDoubleBonus = Math.random() < 0.5;
-
-    if (useDoubleBonus) {
-      // Variante: +2 em um atributo
-      return {
-        ...race,
-        attributes: {
-          attrs: [
-            {
-              attr: 'any',
-              mod: 2,
-            },
-          ],
-        },
-      };
-    }
-
-    // Variante: +1 em dois atributos
-    return {
-      ...race,
-      attributes: {
-        attrs: [
-          {
-            attr: 'any',
-            mod: 1,
-          },
-          {
-            attr: 'any',
-            mod: 1,
-          },
-        ],
-      },
-    };
-  },
 };
 
 export default KALLYANACH;

@@ -49,7 +49,10 @@ import {
   CharacterAttributes,
   CharacterReligion,
 } from '../interfaces/Character';
-import Race, { RaceAttributeAbility } from '../interfaces/Race';
+import Race, {
+  AttributeVariant,
+  RaceAttributeAbility,
+} from '../interfaces/Race';
 import { ClassDescription, ClassPower } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
@@ -599,6 +602,36 @@ export function getEffectiveRaceAttrs(
     : race.attributes.attrs;
 }
 
+// Raças com attributeVariants (ex.: Kallyanach) oferecem conjuntos alternativos
+// de modificadores; a variante escolhida sobrescreve race.attributes
+export function applyAttributeVariant(
+  race: Race,
+  variant: AttributeVariant
+): Race {
+  return {
+    ...race,
+    attributes: {
+      ...race.attributes,
+      attrs: variant.attrs,
+      excludeFromAny: variant.excludeFromAny || race.attributes.excludeFromAny,
+    },
+  };
+}
+
+// Sorteia uma variante de atributos (geração aleatória — no assistente quem
+// escolhe é o jogador). Raças sem variantes passam intactas.
+export function rollAttributeVariant(race: Race): {
+  race: Race;
+  variant?: AttributeVariant;
+} {
+  if (!race.attributeVariants || race.attributeVariants.length === 0) {
+    return { race };
+  }
+
+  const variant = getRandomItemFromArray(race.attributeVariants);
+  return { race: applyAttributeVariant(race, variant), variant };
+}
+
 // Moreau também tem getAttributes, mas retorna o mesmo conjunto para ambos os
 // sexos (depende de herança) — por isso a detecção compara os dois resultados
 export function raceHasSexDimorphism(race: Race): boolean {
@@ -768,8 +801,10 @@ export function selectRace(selectedOptions: SelectedOptions): Race {
   }
 
   const randomRace = getRandomItemFromArray(races);
-  // Use randomRace directly to support race variants with same name
-  return randomRace;
+  // Use randomRace directly to support race variants with same name.
+  // Clona (como getRaceByName faz) porque getRacesBySupplements devolve as
+  // instâncias compartilhadas do catálogo — a ficha muta raca in-place.
+  return _.cloneDeep(randomRace);
 }
 
 function getRaceAndName(
@@ -5175,7 +5210,15 @@ export default function generateRandomSheet(
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
 
   // Passo 2: Definir raça (pode sobrescrever o sexo para raças exclusivas)
-  const { race, nome, sex: finalSex } = getRaceAndName(selectedOptions, sexo);
+  const {
+    race: baseRace,
+    nome,
+    sex: finalSex,
+  } = getRaceAndName(selectedOptions, sexo);
+
+  // Passo 2.1: Raças com conjuntos alternativos de modificadores (Kallyanach)
+  // sorteiam a variante aqui; no assistente quem escolhe é o jogador.
+  const { race, variant: attributeVariant } = rollAttributeVariant(baseRace);
 
   if (raceHasOrigin(race.name)) {
     steps.push({
@@ -5188,6 +5231,13 @@ export default function generateRandomSheet(
     label: 'Raça',
     value: [{ value: race.name }],
   });
+
+  if (attributeVariant) {
+    steps.push({
+      label: 'Variante de Atributos',
+      value: [{ value: attributeVariant.label }],
+    });
+  }
 
   // Add heritage step if race has heritage (e.g., Moreau)
   if (race.heritage) {
@@ -5471,6 +5521,7 @@ export default function generateRandomSheet(
     spells: initialSpells,
     sentidos: [],
     dinheiro: initialMoney,
+    selectedAttributeVariant: attributeVariant,
   };
 
   // Persistir a customização do Duende (campos dedicados) a partir da raça
