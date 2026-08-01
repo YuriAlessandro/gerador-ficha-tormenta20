@@ -16,6 +16,7 @@ export interface FeatureFlags {
   partners: FeatureFlag;
   complications: FeatureFlag;
   spellAreaGuide: FeatureFlag;
+  playerScreen: FeatureFlag;
   limitBoost: FeatureFlag;
 }
 
@@ -33,6 +34,8 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   complications: { enabled: true, supporterOnly: true },
   // Guia de acerto: prévia em grid de batalha da área de efeito das magias.
   spellAreaGuide: { enabled: true, supporterOnly: true },
+  // Tela do Jogador: segunda tela pública que o mestre projeta para a mesa.
+  playerScreen: { enabled: true, supporterOnly: true },
   // Boost de limites da meta de 200 apoiadores: multiplica TODOS os limites por
   // nível de apoio (menos suplementos), inclusive os de contas gratuitas.
   // `supporterOnly` é ignorado — vale para todo mundo. Default desligado: o
