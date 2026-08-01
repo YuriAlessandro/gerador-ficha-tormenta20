@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            01/08/2026 (v4.29).
+            01/08/2026 (v4.28).
           </p>
 
           <p>
@@ -74,7 +74,7 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <h3>4.29</h3>
+              <h3>4.28</h3>
               <Alert
                 severity='success'
                 sx={{
@@ -113,28 +113,6 @@ const Changelog: React.FC = () => {
                   antigo e o novo. Obrigado a cada pessoa que apoia o projeto!
                 </Typography>
               </Alert>
-              <ul>
-                <li>
-                  <strong>Novo:</strong> <strong>Boost de limites</strong> da
-                  meta de 200 apoiadores — fichas, ameaças, mesas, jogadores por
-                  mesa, publicações no bestiário e homebrews ativos aumentaram
-                  1,5x para todos os níveis, inclusive o gratuito. O limite de{' '}
-                  <strong>suplementos ativos</strong> não faz parte do boost.
-                </li>
-                <li>
-                  <strong>Novo:</strong> os contadores de limite agora mostram
-                  um <strong>efeito de chama</strong> quando o valor está
-                  turbinado, com um resumo de quanto ele subiu.
-                </li>
-                <li>
-                  <strong>Correção:</strong> a página de apoio anunciava{' '}
-                  <strong>&quot;Até 10 fichas&quot;</strong> no Nível 1, mas o
-                  limite aplicado era 15. Os benefícios listados passaram a ser
-                  gerados a partir dos limites reais, então não têm mais como
-                  divergir.
-                </li>
-              </ul>
-              <h3>4.28</h3>
               <Alert
                 severity='success'
                 sx={{
@@ -324,6 +302,18 @@ const Changelog: React.FC = () => {
                   detalhamento aparece ao tocar no nome da perícia.
                 </li>
                 <li>
+                  <strong>Novo:</strong> <strong>Boost de limites</strong> da
+                  meta de 200 apoiadores — fichas, ameaças, mesas, jogadores por
+                  mesa, publicações no bestiário e homebrews ativos aumentaram
+                  1,5x para todos os níveis, inclusive o gratuito. O limite de{' '}
+                  <strong>suplementos ativos</strong> não faz parte do boost.
+                </li>
+                <li>
+                  <strong>Novo:</strong> os contadores de limite agora mostram
+                  um <strong>efeito de chama</strong> quando o valor está
+                  turbinado, com um resumo de quanto ele subiu.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O que está no ar agora é{' '}
                   <strong>salvo na mesa</strong>. Antes a projeção de imagem era
                   passageira e sumia em qualquer reconexão; agora ela sobrevive
@@ -373,6 +363,32 @@ const Changelog: React.FC = () => {
                   <strong>Golpista Divino</strong> tinham o nome do deus escrito
                   errado no pré-requisito, então devoto legítimo de Hyninn
                   aparecia como não atendendo ao requisito nos quatro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a página de apoio anunciava{' '}
+                  <strong>&quot;Até 10 fichas&quot;</strong> no Nível 1, mas o
+                  limite aplicado era 15. Os benefícios listados passaram a ser
+                  gerados a partir dos limites reais, então não têm mais como
+                  divergir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a origem{' '}
+                  <strong>Procurado: Vivo ou Morto (Smokestone)</strong> grudava{' '}
+                  <strong>–5 em Diplomacia</strong> e{' '}
+                  <strong>+5 em Intimidação</strong> na ficha inteira, sem como
+                  tirar. Pelo livro esses números só valem{' '}
+                  <strong>
+                    contra quem, a critério do mestre, reconhece o personagem e
+                    sabe de sua fama
+                  </strong>{' '}
+                  — quem nunca ouviu falar dele não deveria ser afetado. Agora
+                  eles saem da ficha: quem é apoiador liga o{' '}
+                  <strong>efeito ativo</strong> pela estrelinha do poder na cena
+                  em que é reconhecido (sem custo de PM) e desliga depois; para
+                  os demais, o texto do poder resolve na mesa. As{' '}
+                  <strong>fichas já afetadas se corrigem sozinhas</strong> ao
+                  serem abertas. A proficiência com armas de fogo e a Pistola
+                  continuam como estavam.
                 </li>
               </ul>
               <h3>4.27</h3>
