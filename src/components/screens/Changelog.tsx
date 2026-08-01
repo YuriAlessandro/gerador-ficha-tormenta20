@@ -466,6 +466,28 @@ const Changelog: React.FC = () => {
                   sozinho enquanto a tela estava aberta. Agora a lista completa
                   de benefícios aparece e fica estável.
                 </li>
+                <li>
+                  <strong>Correção:</strong> no assistente de criação, o{' '}
+                  <strong>Kallyanach</strong> que escolhia{' '}
+                  <strong>&quot;+2 em 1 atributo&quot;</strong> via{' '}
+                  <strong>+1</strong> no lugar de +2 na tela de atributos — o
+                  bônus mostrado era sorteado em vez de seguir a variante
+                  escolhida. Isso também bagunçava a quantidade de{' '}
+                  <strong>perícias por Inteligência</strong> oferecidas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na ficha aleatória, o Kallyanach
+                  sempre saía com <strong>+2 em 1 atributo</strong> — a opção{' '}
+                  <strong>+1 em 2 atributos</strong> nunca era sorteada. Agora
+                  as duas aparecem, e a variante sorteada fica registrada no
+                  passo-a-passo e na edição da ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na enciclopédia de raças, o
+                  Kallyanach mostrava só uma das duas opções de modificador de
+                  atributo. Agora as duas aparecem, com o aviso de que você
+                  escolhe apenas uma.
+                </li>
               </ul>
               <h3>4.27</h3>
               <ul>
