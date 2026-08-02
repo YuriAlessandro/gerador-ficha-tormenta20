@@ -113,119 +113,14 @@ const Changelog: React.FC = () => {
                   antigo e o novo. Obrigado a cada pessoa que apoia o projeto!
                 </Typography>
               </Alert>
-              <Alert
-                severity='success'
-                sx={{
-                  my: 2,
-                  py: 2,
-                  border: '2px solid',
-                  borderColor: 'success.main',
-                  '& .MuiAlert-message': { width: '100%' },
-                }}
-              >
-                <Typography
-                  variant='h5'
-                  gutterBottom
-                  sx={{ fontWeight: 'bold', color: 'success.dark' }}
-                >
-                  Descanso — a ficha faz a conta de PV e PM por você
-                </Typography>
-                <Typography variant='body1' sx={{ mb: 1 }}>
-                  Acabou a matemática de fim de sessão. Um botão novo na ficha
-                  abre o <strong>Descanso</strong>: você escolhe a{' '}
-                  <strong>condição</strong> em que o grupo dormiu — ruim,
-                  normal, confortável ou luxuosa — e a ficha aplica a regra do
-                  livro (metade do nível, o nível, o dobro ou o triplo) direto
-                  nas barras de PV e PM.
-                </Typography>
-                <Typography variant='body1' sx={{ mb: 1 }}>
-                  <strong>
-                    E ela já sabe o que o seu personagem tem de especial.
-                  </strong>{' '}
-                  Se você é goblin, o <strong>Rato das Ruas</strong> aparece
-                  sozinho garantindo o nível cheio mesmo dormindo mal. Golens e
-                  osteon ignoram as condições. <strong>Estoico</strong>,{' '}
-                  <strong>Pajem</strong>, <strong>Vida Rústica</strong>,{' '}
-                  <strong>Descanso Natural</strong> e{' '}
-                  <strong>Herança de Vitalia</strong> entram na conta
-                  automaticamente — e as complicações que atrapalham o sono
-                  também, sem escapar.
-                </Typography>
-                <Typography variant='body1' sx={{ mb: 1 }}>
-                  O que a ficha não tem como adivinhar fica a um clique:{' '}
-                  <strong>cuidados prolongados</strong> de um aliado treinado em
-                  Cura, o <strong>prato do aventureiro</strong>, a{' '}
-                  <strong>sopa de peixe</strong>, uma noite em Galrasia ou o
-                  azar de descansar em <strong>área de Tormenta</strong>.
-                </Typography>
-                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                  A prévia mostra o resultado e a conta inteira antes de você
-                  confirmar. No mesmo modal dá para limpar efeitos ativos e
-                  condições, e o Melhor Amigo do Treinador descansa junto.
-                </Typography>
-              </Alert>
-              <Alert
-                severity='success'
-                sx={{
-                  my: 2,
-                  py: 2,
-                  border: '2px solid',
-                  borderColor: 'success.main',
-                  '& .MuiAlert-message': { width: '100%' },
-                }}
-              >
-                <Typography
-                  variant='h5'
-                  gutterBottom
-                  sx={{ fontWeight: 'bold', color: 'success.dark' }}
-                >
-                  Tela do Jogador — a segunda tela da sua mesa
-                </Typography>
-                <Typography variant='body1' sx={{ mb: 1 }}>
-                  Agora o mestre pode abrir uma <strong>tela pública</strong>{' '}
-                  num segundo monitor, numa TV ou num projetor virado para a
-                  mesa, e controlar tudo o que aparece nela sem sair da própria
-                  tela. No Escudo do Mestre há um painel novo,{' '}
-                  <strong>Tela do Jogador</strong>, com o botão para abrir a
-                  janela e a lista do que dá para exibir.
-                </Typography>
-                <Typography variant='body1' sx={{ mb: 1 }}>
-                  Monte suas <strong>cenas</strong> antes da sessão: cada uma
-                  guarda uma arte e/ou uma música do YouTube. &quot;Taverna do
-                  Porto&quot;, &quot;Chefe Final&quot;, &quot;Viagem pela
-                  estrada&quot; — durante o jogo é um clique em
-                  &quot;Entrar&quot;.
-                </Typography>
-                <Typography variant='body1' sx={{ mb: 1 }}>
-                  <strong>A música é um canal separado da imagem.</strong> Você
-                  põe a trilha de combate, joga o{' '}
-                  <strong>rastreador de combate</strong> no telão e a música
-                  continua tocando. O rastreador mostra iniciativa, turno atual
-                  e condições respeitando exatamente o que você configurou em
-                  &quot;O que os JOGADORES veem&quot; — nada de PV real de
-                  ameaça vazando. Dá para pausar, trocar e ajustar o volume sem
-                  sair da sua tela.
-                </Typography>
-                <Typography variant='body1' sx={{ mb: 1 }}>
-                  O <strong>Mapa de Arton</strong> e o{' '}
-                  <strong>calendário da mesa</strong> também vão para o telão. O
-                  mapa acompanha o seu enquadramento em tempo real: para onde
-                  você arrasta e dá zoom, a mesa vai junto — e os seus pins de
-                  mestre aparecem lá, sem o selo que os denuncia como segredo.
-                  Segure o clique por 3 segundos para dar um{' '}
-                  <strong>ping</strong> e levar o olhar de todos ao ponto.
-                </Typography>
-                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                  Tudo fica salvo: se a TV desligar, cair a internet ou alguém
-                  der F5, a tela volta sozinha para o que estava no ar.
-                </Typography>
-              </Alert>
               <ul>
                 <li>
                   <strong>Novo:</strong> <strong>Tela do Jogador</strong> — uma
                   janela pública (endereço próprio) para monitor secundário,
                   projetor ou TV, controlada em tempo real pelo painel novo no
-                  Escudo do Mestre.
+                  Escudo do Mestre. O que está no ar fica salvo na mesa: se a TV
+                  desligar, cair a internet ou alguém der F5, a tela volta
+                  sozinha para o que estava sendo exibido.
                 </li>
                 <li>
                   <strong>Novo:</strong> <strong>Cenas preparadas</strong>.
@@ -270,7 +165,9 @@ const Changelog: React.FC = () => {
                   <strong>Novo:</strong> Botão de <strong>transmitir</strong> no
                   cabeçalho dos painéis do escudo — imagem, vídeo, anotações e
                   tabelas vão para a tela pública com um clique, sem precisar
-                  cadastrar o conteúdo de novo.
+                  cadastrar o conteúdo de novo. O <strong>aviso</strong> escrito
+                  para a mesa aparece na maior fonte que couber na tela, para
+                  ser legível de longe.
                 </li>
                 <li>
                   <strong>Novo:</strong>{' '}
@@ -283,15 +180,14 @@ const Changelog: React.FC = () => {
                 <li>
                   <strong>Novo:</strong> <strong>Mapa de Arton</strong> na tela
                   do jogador, com o enquadramento acompanhando o mapa do mestre
-                  (arrastar e zoom) e o ping de 3 segundos chamando a atenção da
-                  mesa para um ponto. Os pins do mestre aparecem na projeção;
-                  quem abrir a mesma tela como jogador continua vendo só os
-                  públicos.
+                  (arrastar, zoom e as camadas que você esconde) e o ping de 3
+                  segundos chamando a atenção da mesa para um ponto. Os pins do
+                  mestre aparecem na projeção; quem abrir a mesma tela como
+                  jogador continua vendo só os públicos.
                 </li>
                 <li>
                   <strong>Novo:</strong> <strong>Calendário da mesa</strong> na
-                  tela do jogador — antes o conteúdo era aceito mas a tela caía
-                  no estado de espera.
+                  tela do jogador.
                 </li>
                 <li>
                   <strong>Novo:</strong> a coluna <strong>Outros</strong> das
@@ -323,7 +219,10 @@ const Changelog: React.FC = () => {
                   (padrão), criaturas do mesmo tipo compartilham o d20 e agem
                   juntas — os cinco kobolds saem no mesmo turno, e o chefe rola
                   a dele. Desligue a opção para que cada criatura tenha a sua. A
-                  escolha fica salva para os próximos combates.
+                  escolha fica salva para os próximos combates, e tudo entra no
+                  histórico como <strong>uma única rolagem</strong>, com o
+                  resultado de cada criatura, em vez de inundar a sala com uma
+                  notificação por ameaça.
                 </li>
                 <li>
                   <strong>Novo:</strong> as ameaças já roladas ganharam um botão
@@ -424,30 +323,6 @@ const Changelog: React.FC = () => {
                   jogador sem querer.
                 </li>
                 <li>
-                  <strong>Melhoria:</strong> a iniciativa rolada em lote entra
-                  no histórico de rolagens como{' '}
-                  <strong>uma única entrada</strong>, com o resultado de cada
-                  criatura, em vez de uma notificação por ameaça na sala.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> O que está no ar agora é{' '}
-                  <strong>salvo na mesa</strong>. Antes a projeção de imagem era
-                  passageira e sumia em qualquer reconexão; agora ela sobrevive
-                  a recarregar a página e a quedas de conexão.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> as <strong>camadas do mapa</strong>{' '}
-                  acompanham a projeção. Esconder reinos, capitais ou
-                  localidades no seu mapa agora esconde no telão também — antes
-                  a projeção desenhava tudo, sempre.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> o <strong>aviso</strong> na tela do
-                  jogador agora se ajusta ao tamanho da tela: o texto cresce até
-                  a maior fonte que ainda couber e fica centralizado. Antes saía
-                  minúsculo num projetor.
-                </li>
-                <li>
                   <strong>Melhoria:</strong> ao editar a ficha, as heranças de
                   Suraggel que envolvem uma escolha (Nivenciuén, Arbória e
                   Chacina) agora mostram essa escolha em{' '}
@@ -482,23 +357,10 @@ const Changelog: React.FC = () => {
                   criação customizada.
                 </li>
                 <li>
-                  <strong>Correção:</strong> o item sorteado pela origem mudava
-                  a cada vez que a tela era redesenhada, então a arma exibida no
-                  assistente quase nunca era a que ia parar na ficha. Agora o
-                  sorteio acontece uma vez só, e o histórico de geração mostra
-                  exatamente o que está na mochila.
-                </li>
-                <li>
                   <strong>Correção:</strong> ao editar a origem de uma ficha, os
                   itens apareciam como se fossem <strong>benefícios</strong>{' '}
                   selecionáveis: marcar um deles gastava uma das suas 2 escolhas
                   (perícia/poder) e não entregava item nenhum.
-                </li>
-                <li>
-                  <strong>Correção:</strong> na ordem de turnos, criaturas
-                  numeradas do mesmo grupo ficavam fora de ordem —{' '}
-                  <strong>Kobold 10</strong> aparecia antes de{' '}
-                  <strong>Kobold 2</strong>.
                 </li>
                 <li>
                   <strong>Correção:</strong> O conteúdo privado do{' '}
@@ -515,14 +377,6 @@ const Changelog: React.FC = () => {
                   barrado, e o painel engolia o erro em silêncio — agora
                   qualquer tier pago inicia e, quando algo falha, o motivo
                   aparece na tela.
-                </li>
-                <li>
-                  <strong>Correção:</strong> o checkbox{' '}
-                  <strong>&quot;ao relento&quot;</strong> do descanso só aparece
-                  quando a ficha tem alguma habilidade que cite o relento (Vida
-                  Rústica ou Descanso Natural), e a legenda diz qual. Nas outras
-                  fichas ele era um controle morto: marcar e desmarcar não mexia
-                  na prévia.
                 </li>
                 <li>
                   <strong>Correção:</strong> os poderes concedidos{' '}
@@ -547,13 +401,6 @@ const Changelog: React.FC = () => {
                   <strong>&quot;Origem não identificada&quot;</strong> e
                   passaram a creditar a divindade, e os bônus de perícia
                   entraram no passo a passo da ficha.
-                </li>
-                <li>
-                  <strong>Correção:</strong> a página de apoio anunciava{' '}
-                  <strong>&quot;Até 10 fichas&quot;</strong> no Nível 1, mas o
-                  limite aplicado era 15. Os benefícios listados passaram a ser
-                  gerados a partir dos limites reais, então não têm mais como
-                  divergir.
                 </li>
                 <li>
                   <strong>Correção:</strong> a origem{' '}
