@@ -1731,6 +1731,7 @@ export const applyPower = (
     learnSpell: ['SpellsLearned'],
     learnAnySpellFromHighestCircle: ['SpellsLearned'],
     learnClassAbility: ['ClassAbilityLearned'],
+    markTrainedSkills: ['TrainedSkillsMarked'],
     getClassPower: ['ClassPowerAdded', 'PowerAdded'],
     grantSpecificClassPower: ['ClassPowerAdded', 'PowerAdded'],
     addAlchemyItems: ['EquipmentAdded'],
@@ -2580,6 +2581,40 @@ export const applyPower = (
           name: getSourceName(sheetAction.source),
           value: `Adicionando ${alwaysActiveSpell.nome} à sua lista de magias.`,
         });
+      } else if (sheetAction.action.type === 'markTrainedSkills') {
+        // Marca perícias JÁ treinadas (ex.: Especialista do Ladino). Não
+        // concede treinamento nem bônus — é registro para o uso do poder, por
+        // isso não emite `sheetBonuses`.
+        const { pickByAttribute, min } = sheetAction.action;
+
+        const attributeMod = sheet.atributos[pickByAttribute]?.value ?? 0;
+        const pick = Math.max(min, attributeMod);
+
+        const trainedSkills = sheet.skills ?? [];
+        const manualSkills = (manualSelections?.skills ?? []).filter((skill) =>
+          trainedSkills.includes(skill as Skill)
+        ) as Skill[];
+
+        const chosenSkills =
+          manualSkills.length > 0
+            ? manualSkills.slice(0, pick)
+            : pickFromArray(
+                trainedSkills,
+                Math.min(pick, trainedSkills.length)
+              );
+
+        if (chosenSkills.length > 0) {
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [{ type: 'TrainedSkillsMarked', skills: chosenSkills }],
+          });
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Perícias escolhidas: ${chosenSkills.join(', ')}`,
+          });
+        }
       } else if (sheetAction.action.type === 'learnClassAbility') {
         const { availableClasses: classNames, level } = sheetAction.action;
 
@@ -2660,8 +2695,29 @@ export const applyPower = (
           // Apply sheetBonuses from the learned ability
           sheet.sheetBonuses.push(...learnedBonuses);
 
-          // Note: sheetActions from learned abilities are NOT automatically applied
-          // The user will need to manually trigger them or they will be shown in the power description
+          // A habilidade aprendida pode ter escolha própria (ex.: Especialista
+          // do Ladino pede perícias). Aplica recursivamente, como o Futura
+          // Lenda faz com o poder de classe escolhido. As sub-escolhas vêm no
+          // MESMO `manualSelections` — o assistente as grava na entrada do
+          // poder de origem, não numa entrada separada.
+          if (selectedAbility.sheetActions?.length) {
+            const [updatedSheet, abilitySubSteps] = applyPower(
+              sheet,
+              {
+                name: composedName,
+                sheetActions: selectedAbility.sheetActions,
+                sheetBonuses: [],
+              },
+              manualSelections
+            );
+            Object.assign(sheet, updatedSheet);
+            abilitySubSteps.forEach((subStep) => {
+              subSteps.push({
+                name: subStep.name || composedName,
+                value: subStep.value,
+              });
+            });
+          }
 
           sheet.sheetActionHistory.push({
             source: sheetAction.source,

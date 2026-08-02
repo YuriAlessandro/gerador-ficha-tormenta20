@@ -342,6 +342,23 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      // Marcar perícias já treinadas (ex.: "Especialista" do Ladino). O `pick`
+      // real é dinâmico (modificador do atributo, piso `min`) e só pode ser
+      // calculado por quem tem a ficha — aqui vai o piso, e o atributo segue no
+      // metadata para o assistente e o `validateSelections` resolverem.
+      if (action.type === 'markTrainedSkills') {
+        requirements.push({
+          type: 'markTrainedSkills',
+          availableOptions: [], // Populado em getFilteredAvailableOptions
+          pick: action.min,
+          label: 'Selecione as perícias treinadas',
+          metadata: {
+            pickByAttribute: action.pickByAttribute,
+            minPick: action.min,
+          },
+        });
+      }
+
       // Aprender uma habilidade de outra classe (ex.: origem "Duplo Feérico").
       // `availableOptions` guarda a whitelist crua do dado; o cruzamento com os
       // suplementos ativos e a exclusão da própria classe ficam em
@@ -821,6 +838,13 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.localeCompare(b, 'pt-BR'));
     }
 
+    case 'markTrainedSkills': {
+      // Só perícias em que o personagem JÁ é treinado
+      return [...(sheet.skills ?? [])].sort((a, b) =>
+        a.localeCompare(b, 'pt-BR')
+      );
+    }
+
     case 'learnClassAbility': {
       // Devolve NOMES DE CLASSE (não pares classe+habilidade): `renderRequirement`
       // aborta o passo quando a lista vem vazia, e a lista de habilidades depende
@@ -904,6 +928,11 @@ export function countRequirementSelections(
     case 'learnClassAbility':
       return selections?.classAbilities?.[0]?.abilityName ? 1 : 0;
 
+    // O `pick` real é dinâmico; quem chama ajusta pelo atributo (o assistente
+    // faz isso em `canProceed`). Aqui só a contagem crua.
+    case 'markTrainedSkills':
+      return selections?.skills?.length ?? 0;
+
     // Versátil (Humano), Deformidade (Lefou) e Chassi (Mashin): 2 perícias OU
     // 1 perícia + 1 poder.
     case 'humanoVersatil':
@@ -947,6 +976,9 @@ export function validateSelections(
     const { type, pick } = requirement;
 
     let selectedCount = 0;
+    // Quantidade esperada. Quase sempre é o `pick` declarado; tipos de pick
+    // dinâmico (markTrainedSkills) recalculam a partir da ficha.
+    let expectedPick = pick;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let selectedItems: any[] = [];
 
@@ -1047,6 +1079,24 @@ export function validateSelections(
         break;
       }
 
+      case 'markTrainedSkills': {
+        // Quantidade = modificador do atributo, com piso `minPick`. Aqui há
+        // ficha, então dá para exigir o número certo (ao contrário do
+        // `getPowerSelectionRequirements`, que só conhece o poder).
+        const attribute = requirement.metadata?.pickByAttribute;
+        const attributeMod = attribute
+          ? sheet.atributos[attribute]?.value ?? 0
+          : 0;
+        const trainedCount = (sheet.skills ?? []).length;
+        expectedPick = Math.min(
+          Math.max(requirement.metadata?.minPick ?? pick, attributeMod),
+          trainedCount
+        );
+        selectedItems = selections.skills || [];
+        selectedCount = selectedItems.length;
+        break;
+      }
+
       case 'learnClassAbility': {
         // 1 classe + 1 habilidade daquela classe. `selectedItems` guarda só os
         // nomes de classe para casar com a lista de opções (também nomes de
@@ -1065,9 +1115,9 @@ export function validateSelections(
     }
 
     const isOptional = requirement.optional === true;
-    if (!isOptional && selectedCount !== pick) {
+    if (!isOptional && selectedCount !== expectedPick) {
       errors.push(
-        `${requirement.label}: esperado ${pick}, selecionado ${selectedCount}`
+        `${requirement.label}: esperado ${expectedPick}, selecionado ${selectedCount}`
       );
     }
 

@@ -1517,8 +1517,8 @@ export function reverseSheetActionsForPower(
         // Sem isso a entrada fica órfã em classPowers e o applyClassPowers
         // reaplica os sheetBonuses dela em todo recálculo, para sempre.
         case 'ClassAbilityLearned': {
+          const composedName = `${change.abilityName} (${change.className})`;
           if (sheet.classPowers) {
-            const composedName = `${change.abilityName} (${change.className})`;
             const abilityIndex = sheet.classPowers.findIndex(
               (power) => power.name === composedName
             );
@@ -1526,6 +1526,12 @@ export function reverseSheetActionsForPower(
               sheet.classPowers.splice(abilityIndex, 1);
             }
           }
+          // Ações ANINHADAS da habilidade aprendida (ex.: as perícias da
+          // Especialista) são carimbadas com o nome composto — se sobreviverem,
+          // o `isActionAlreadyApplied` congela a escolha antiga.
+          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+            (entry) => entry.powerName !== composedName
+          );
           break;
         }
 

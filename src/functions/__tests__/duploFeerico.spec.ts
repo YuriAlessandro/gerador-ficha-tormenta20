@@ -16,8 +16,10 @@ import { dataRegistry } from '../../data/registry';
 import BARBARO from '../../data/systems/tormenta20/classes/barbaro';
 import BARDO from '../../data/systems/tormenta20/classes/bardo';
 import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
+import LADINO from '../../data/systems/tormenta20/classes/ladino';
 import { SupplementId } from '../../types/supplement.types';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
+import Skill from '../../interfaces/Skills';
 
 /**
  * Origem "Duplo Feérico (Pondsmânia)" (Atlas de Arton).
@@ -44,9 +46,26 @@ describe('Duplo Feérico', () => {
     return sheet;
   };
 
-  const manualPick = (className: string, abilityName: string) => ({
-    [POWER_NAME]: { classAbilities: [{ className, abilityName }] },
+  const manualPick = (
+    className: string,
+    abilityName: string,
+    skills?: Skill[]
+  ) => ({
+    [POWER_NAME]: {
+      classAbilities: [{ className, abilityName }],
+      // Sub-escolhas da habilidade aprendida vivem na MESMA entrada
+      ...(skills ? { skills } : {}),
+    },
   });
+
+  const markedSkillsOf = (sheet: CharacterSheet, powerName: string) =>
+    sheet.sheetActionHistory
+      .filter((entry) => entry.powerName === powerName)
+      .flatMap((entry) =>
+        entry.changes.flatMap((c) =>
+          c.type === 'TrainedSkillsMarked' ? c.skills : []
+        )
+      );
 
   const classPowerNames = (sheet: CharacterSheet) =>
     (sheet.classPowers || []).map((p) => p.name);
@@ -198,6 +217,72 @@ describe('Duplo Feérico', () => {
     });
   });
 
+  // A habilidade aprendida pode ter escolha própria. Antes, `applyPower` pulava
+  // de propósito os `sheetActions` da habilidade aprendida — o jogador escolhia
+  // "Especialista" e nada acontecia.
+  describe('escolha aninhada da habilidade aprendida', () => {
+    it('a Especialista do Ladino declara a escolha de perícias', () => {
+      const especialista = LADINO.abilities.find(
+        (a) => a.name === 'Especialista'
+      );
+      expect(especialista).toBeDefined();
+
+      const reqs = getPowerSelectionRequirements(especialista!);
+      expect(reqs).not.toBeNull();
+
+      const requirement = reqs!.requirements[0];
+      expect(requirement.type).toBe('markTrainedSkills');
+      expect(requirement.metadata?.pickByAttribute).toBe(Atributo.INTELIGENCIA);
+      expect(requirement.metadata?.minPick).toBe(1);
+    });
+
+    it('aplica a escolha de perícias feita junto com a habilidade', () => {
+      const sheet = recalculateSheet(
+        mkSheet(),
+        undefined,
+        manualPick('Ladino', 'Especialista', [Skill.ATLETISMO])
+      );
+
+      expect(classPowerNames(sheet)).toContain('Especialista (Ladino)');
+      expect(markedSkillsOf(sheet, 'Especialista (Ladino)')).toEqual([
+        Skill.ATLETISMO,
+      ]);
+    });
+
+    it('só aceita perícias em que o personagem é treinado', () => {
+      const base = mkSheet();
+      expect(base.skills).not.toContain(Skill.MISTICISMO);
+
+      const sheet = recalculateSheet(
+        base,
+        undefined,
+        manualPick('Ladino', 'Especialista', [Skill.MISTICISMO])
+      );
+
+      // Misticismo é descartado; cai no sorteio entre as treinadas
+      const marked = markedSkillsOf(sheet, 'Especialista (Ladino)');
+      expect(marked).not.toContain(Skill.MISTICISMO);
+      marked.forEach((skill) => expect(base.skills).toContain(skill));
+    });
+
+    it('não duplica a escolha aninhada em recálculos sucessivos', () => {
+      const first = recalculateSheet(
+        mkSheet(),
+        undefined,
+        manualPick('Ladino', 'Especialista', [Skill.ATLETISMO])
+      );
+      const second = recalculateSheet(
+        first,
+        undefined,
+        manualPick('Ladino', 'Especialista', [Skill.ATLETISMO])
+      );
+
+      expect(markedSkillsOf(second, 'Especialista (Ladino)')).toEqual([
+        Skill.ATLETISMO,
+      ]);
+    });
+  });
+
   describe('limpeza ao trocar de origem', () => {
     const applied = () =>
       recalculateSheet(
@@ -262,6 +347,30 @@ describe('Duplo Feérico', () => {
       reverseSheetActionsForPower(sheet, POWER_NAME);
 
       expect(classPowerNames(sheet)).not.toContain('Ataque Furtivo (Ladino)');
+    });
+
+    // Mesma armadilha do "toda hora bárbaro", um nível abaixo: o recibo da
+    // escolha aninhada é carimbado com o nome composto, não com o da origem.
+    it('limpa também a escolha aninhada da habilidade aprendida', () => {
+      const sheet = recalculateSheet(
+        mkSheet(),
+        undefined,
+        manualPick('Ladino', 'Especialista', [Skill.ATLETISMO])
+      );
+      expect(markedSkillsOf(sheet, 'Especialista (Ladino)')).toEqual([
+        Skill.ATLETISMO,
+      ]);
+
+      const cleaned = removeOriginBenefits(sheet);
+      expect(markedSkillsOf(cleaned, 'Especialista (Ladino)')).toEqual([]);
+
+      const reversed = recalculateSheet(
+        mkSheet(),
+        undefined,
+        manualPick('Ladino', 'Especialista', [Skill.ATLETISMO])
+      );
+      reverseSheetActionsForPower(reversed, POWER_NAME);
+      expect(markedSkillsOf(reversed, 'Especialista (Ladino)')).toEqual([]);
     });
   });
 });

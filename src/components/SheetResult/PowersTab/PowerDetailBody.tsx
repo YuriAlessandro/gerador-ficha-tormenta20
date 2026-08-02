@@ -72,6 +72,21 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
     [sheetHistory, power.name]
   );
 
+  // Perícias marcadas por `markTrainedSkills` (ex.: Especialista do Ladino).
+  // Não mexem em número nenhum na ficha, então o card é o único lugar onde a
+  // escolha do jogador aparece.
+  const markedSkills = useMemo(
+    () =>
+      sheetHistory
+        .filter((entry) => entry.powerName === power.name)
+        .flatMap((entry) =>
+          entry.changes
+            .filter((c) => c.type === 'TrainedSkillsMarked')
+            .flatMap((c) => (c.type === 'TrainedSkillsMarked' ? c.skills : []))
+        ),
+    [sheetHistory, power.name]
+  );
+
   const historySources = useMemo(
     () =>
       sheetHistory
@@ -203,6 +218,19 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
             ? 'Armas escolhidas: '
             : 'Arma escolhida: '}
           {selectedWeapons.join(', ')}
+        </Typography>
+      )}
+
+      {markedSkills.length > 0 && (
+        <Typography
+          variant='caption'
+          color='primary'
+          sx={{ display: 'block', mb: 1, fontWeight: 'bold' }}
+        >
+          {markedSkills.length > 1
+            ? 'Perícias escolhidas: '
+            : 'Perícia escolhida: '}
+          {markedSkills.join(', ')}
         </Typography>
       )}
 

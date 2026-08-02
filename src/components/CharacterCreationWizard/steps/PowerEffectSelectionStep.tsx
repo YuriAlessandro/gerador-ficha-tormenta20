@@ -43,6 +43,7 @@ import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
 import { isPowerAvailable } from '@/functions/powers';
 import Skill from '@/interfaces/Skills';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
@@ -80,6 +81,10 @@ interface PowerEffectSelectionStepProps {
   supplements?: SupplementId[];
   // Skills already selected in wizard (for requirement checking)
   usedSkills?: Skill[];
+  // Modificadores finais dos atributos (já com os raciais). Necessário para
+  // requisitos de `pick` dinâmico, como o markTrainedSkills da Especialista.
+  // No level-up vem de `actualSheet`; na criação, do assistente.
+  attributeModifiers?: Partial<Record<Atributo, number>>;
 }
 
 const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
@@ -98,11 +103,25 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   classAbilityLevel,
   supplements = [SupplementId.TORMENTA20_CORE],
   usedSkills = [],
+  attributeModifiers,
 }) => {
   // Search query state for each requirement (keyed by requirement index)
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
     {}
   );
+
+  // Modificadores finais dos atributos. No level-up saem da ficha real; na
+  // criação vêm do assistente (a ficha mock abaixo usa placeholders).
+  const resolvedAttributeModifiers: Partial<Record<Atributo, number>> =
+    attributeModifiers ??
+    (actualSheet
+      ? (Object.fromEntries(
+          Object.entries(actualSheet.atributos).map(([attr, data]) => [
+            attr,
+            data.value,
+          ])
+        ) as Partial<Record<Atributo, number>>)
+      : {});
 
   // Nome do poder cujo construtor de Golpe Pessoal está aberto (null = fechado)
   const [golpePessoalDialogPower, setGolpePessoalDialogPower] = useState<
@@ -134,6 +153,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'selectAnimalTotem'
         | 'buildGolpePessoal'
         | 'learnClassAbility'
+        | 'markTrainedSkills'
         | 'getClassPower'
         | 'humanoVersatil'
         | 'lefouDeformidade'
@@ -152,6 +172,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         optionKey?: string;
         linkedTo?: string;
         abilityLevel?: number;
+        pickByAttribute?: Atributo;
+        minPick?: number;
       };
     }>;
   }> = [];
@@ -468,6 +490,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     // Determine which selection array to update
     switch (selectionType) {
       case 'learnSkill':
+      case 'markTrainedSkills':
         currentItems = powerSelections.skills || [];
         updateKey = 'skills';
         break;
@@ -550,6 +573,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
     switch (selectionType) {
       case 'learnSkill':
+      case 'markTrainedSkills':
         currentItems = powerSelections.skills || [];
         break;
       case 'addProficiency':
@@ -598,6 +622,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     const powerSelections = selections[powerName] || {};
     switch (selectionType) {
       case 'learnSkill':
+      case 'markTrainedSkills':
         return powerSelections.skills?.length || 0;
       case 'addProficiency':
         return powerSelections.proficiencies?.length || 0;
@@ -640,6 +665,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'selectAnimalTotem'
         | 'buildGolpePessoal'
         | 'learnClassAbility'
+        | 'markTrainedSkills'
         | 'getClassPower'
         | 'humanoVersatil'
         | 'lefouDeformidade'
@@ -660,10 +686,14 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         minLevel?: number;
         ignoreOnlyLevelRequirement?: boolean;
         abilityLevel?: number;
+        pickByAttribute?: Atributo;
+        minPick?: number;
       };
     },
     requirementIndex: number
-  ) => {
+    // Anotado porque a função se referencia recursivamente (requisito aninhado
+    // do learnClassAbility) — sem isso o TS infere `any`.
+  ): React.ReactNode => {
     const { type, pick, label } = requirement;
     const allAvailableOptions = getFilteredAvailableOptions(
       requirement,
@@ -671,8 +701,21 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       supplements
     );
 
+    // `markTrainedSkills` (Especialista) tem quantidade dinâmica: o modificador
+    // do atributo, com piso `minPick`. O `pick` declarado é só o piso, porque
+    // `getPowerSelectionRequirements` não conhece a ficha.
+    const declaredPick =
+      type === 'markTrainedSkills'
+        ? Math.max(
+            requirement.metadata?.minPick ?? pick,
+            (requirement.metadata?.pickByAttribute
+              ? resolvedAttributeModifiers[requirement.metadata.pickByAttribute]
+              : undefined) ?? 0
+          )
+        : pick;
+
     // Adjust pick when some options were filtered out (e.g., class already has the proficiency)
-    const effectivePick = Math.min(pick, allAvailableOptions.length);
+    const effectivePick = Math.min(declaredPick, allAvailableOptions.length);
 
     // Get search query for this requirement
     const searchQuery = searchQueries[requirementIndex] || '';
@@ -1651,6 +1694,22 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         .getClassesBySupplements(supplements)
         .filter((c) => eligibleClassNames.includes(c.name));
 
+      // A habilidade escolhida pode ter escolha própria (ex.: Especialista do
+      // Ladino pede perícias). Renderiza inline, no MESMO passo e na MESMA
+      // entrada de seleções — um passo condicional a uma escolha do passo
+      // anterior obrigaria a recalcular a lista de passos no meio do fluxo.
+      const chosenSelection = powerSelections.classAbilities?.[0];
+      const chosenAbility = chosenSelection?.abilityName
+        ? classesForCA
+            .find((c) => c.name === chosenSelection.className)
+            ?.abilities.find((a) => a.name === chosenSelection.abilityName)
+        : undefined;
+      const nestedRequirements = chosenAbility
+        ? getPowerSelectionRequirements(
+            chosenAbility as Parameters<typeof getPowerSelectionRequirements>[0]
+          )
+        : null;
+
       return (
         <Box
           key={requirementIndex}
@@ -1669,6 +1728,21 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               });
             }}
           />
+          {nestedRequirements?.requirements.map((nestedRequirement, index) => (
+            <Box
+              // eslint-disable-next-line react/no-array-index-key
+              key={`${chosenAbility?.name}-${index}`}
+              sx={{ mt: 3 }}
+            >
+              {renderRequirement(
+                powerName,
+                nestedRequirement,
+                // Índice próprio para não colidir com o do requisito de fora
+                // (a busca por texto é indexada por ele)
+                requirementIndex * 1000 + index
+              )}
+            </Box>
+          ))}
         </Box>
       );
     }
@@ -1866,6 +1940,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
         switch (type) {
           case 'learnSkill':
+          case 'markTrainedSkills':
             firstItem = powerSelections.skills?.[0];
             break;
           case 'addProficiency':

@@ -78,33 +78,37 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
 
   // Remove class powers that were granted by origin sheetActions
   // (ex.: Futura Lenda via ClassPowerAdded, Duplo Feérico via ClassAbilityLearned)
-  if (sheet.sheetActionHistory) {
-    const classPowersFromOrigin = sheet.sheetActionHistory
-      .filter(isFromOrigin)
-      .flatMap((entry) => entry.changes)
-      .map((change) => {
-        if (change.type === 'ClassAbilityLearned') {
-          // Mesmo formato composto usado ao inserir em classPowers (general.ts)
-          return `${change.abilityName} (${change.className})`;
-        }
-        if (change.type === 'ClassPowerAdded' || change.type === 'PowerAdded') {
-          return change.powerName;
-        }
-        return undefined;
-      })
-      .filter((name): name is string => name !== undefined);
+  const classPowersFromOrigin = (sheet.sheetActionHistory || [])
+    .filter(isFromOrigin)
+    .flatMap((entry) => entry.changes)
+    .map((change) => {
+      if (change.type === 'ClassAbilityLearned') {
+        // Mesmo formato composto usado ao inserir em classPowers (general.ts)
+        return `${change.abilityName} (${change.className})`;
+      }
+      if (change.type === 'ClassPowerAdded' || change.type === 'PowerAdded') {
+        return change.powerName;
+      }
+      return undefined;
+    })
+    .filter((name): name is string => name !== undefined);
 
-    if (classPowersFromOrigin.length > 0) {
-      updatedSheet.classPowers = (sheet.classPowers || []).filter(
-        (p) => !classPowersFromOrigin.includes(p.name)
-      );
-    }
+  if (sheet.sheetActionHistory && classPowersFromOrigin.length > 0) {
+    updatedSheet.classPowers = (sheet.classPowers || []).filter(
+      (p) => !classPowersFromOrigin.includes(p.name)
+    );
   }
 
-  // Remove sheetActionHistory entries that came from origin
+  // Remove sheetActionHistory entries that came from origin. Inclui as ações
+  // ANINHADAS do que a origem concedeu — a escolha da Especialista aprendida
+  // pelo Duplo Feérico é carimbada com o nome composto do poder, não com o da
+  // origem, e sobreviver aqui faria o `isActionAlreadyApplied` congelar a
+  // escolha antiga na próxima vez que a origem fosse aplicada.
   if (sheet.sheetActionHistory) {
     updatedSheet.sheetActionHistory = sheet.sheetActionHistory.filter(
-      (entry) => !isFromOrigin(entry)
+      (entry) =>
+        !isFromOrigin(entry) &&
+        !(entry.powerName && classPowersFromOrigin.includes(entry.powerName))
     );
   }
 

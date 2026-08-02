@@ -162,6 +162,14 @@ export type SheetActionStep =
       level: number; // Level of the ability (usually 1)
     }
   | {
+      // Marca perícias que o personagem JÁ é treinado (não concede treinamento).
+      // Ex.: "Especialista" do Ladino. A quantidade é dinâmica: o modificador de
+      // `pickByAttribute`, com piso `min`.
+      type: 'markTrainedSkills';
+      pickByAttribute: Atributo;
+      min: number;
+    }
+  | {
       type: 'getClassPower';
       minLevel?: number; // Minimum level of powers to choose from (default: 2)
       ignoreOnlyLevelRequirement?: boolean; // If true, ignores level requirement but respects other requirements (default: true)
@@ -284,6 +292,12 @@ export type SheetActionReceipt =
       type: 'ClassAbilityLearned';
       className: string;
       abilityName: string;
+    }
+  | {
+      // Perícias marcadas por `markTrainedSkills` (ex.: Especialista do Ladino).
+      // Não alteram número nenhum na ficha — são registro para o uso do poder.
+      type: 'TrainedSkillsMarked';
+      skills: Skill[];
     }
   | {
       type: 'OptionChosen';

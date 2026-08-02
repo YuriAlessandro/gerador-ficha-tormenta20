@@ -804,6 +804,24 @@ const CharacterCreationWizardModal: React.FC<
     return skills;
   };
 
+  /**
+   * Quantidade esperada de escolhas. Quase sempre é o `pick` declarado, mas
+   * `markTrainedSkills` (Especialista do Ladino) é dinâmico: o modificador do
+   * atributo, com piso `minPick`. `getPowerSelectionRequirements` não conhece a
+   * ficha, então declara só o piso e deixa o atributo no metadata.
+   */
+  const resolveRequirementPick = (req: PowerSelectionRequirement): number => {
+    if (req.type !== 'markTrainedSkills') return req.pick;
+    const attributeMod =
+      req.metadata?.pickByAttribute === Atributo.INTELIGENCIA
+        ? getIntelligenceModifier()
+        : 0;
+    return Math.min(
+      Math.max(req.metadata?.minPick ?? req.pick, attributeMod),
+      getAllUsedSkills().length
+    );
+  };
+
   // Helper function to build pre-populated bag from origin and selections
   const buildPrePopulatedBag = (
     currentOrigin: Origin | undefined,
@@ -1413,6 +1431,9 @@ const CharacterCreationWizardModal: React.FC<
             arcanistaSubtype={selections.arcanistaSubtype}
             supplements={supplements}
             usedSkills={getAllUsedSkills()}
+            attributeModifiers={{
+              [Atributo.INTELIGENCIA]: getIntelligenceModifier(),
+            }}
           />
         );
 
@@ -1756,7 +1777,7 @@ const CharacterCreationWizardModal: React.FC<
           if (count === null) return true;
 
           // Adjust pick for proficiencies already owned by the class
-          let effectivePick = pick;
+          let effectivePick = resolveRequirementPick(req);
           if (type === 'addProficiency' && req.availableOptions && classe) {
             const filteredCount = (req.availableOptions as string[]).filter(
               (prof) => !classe.proficiencias.includes(prof)
@@ -1787,6 +1808,39 @@ const CharacterCreationWizardModal: React.FC<
                 return nestedCount < nestedReq.pick;
               });
             });
+            if (hasUnmetNested) return false;
+          }
+
+          // A habilidade aprendida (Duplo Feérico) pode ter escolha própria —
+          // ex.: Especialista do Ladino pede perícias. As sub-escolhas ficam na
+          // MESMA entrada de seleções do poder de origem.
+          if (type === 'learnClassAbility' && count >= effectivePick) {
+            const powerSelections = effectSelections[powerName] || {};
+            const chosen = powerSelections.classAbilities?.[0];
+            const chosenAbility = chosen?.abilityName
+              ? dataRegistry
+                  .getClassesBySupplements(supplements)
+                  .find((c) => c.name === chosen.className)
+                  ?.abilities.find((a) => a.name === chosen.abilityName)
+              : undefined;
+            const nestedReqs = chosenAbility
+              ? getPowerSelectionRequirements(
+                  chosenAbility as Parameters<
+                    typeof getPowerSelectionRequirements
+                  >[0]
+                )
+              : null;
+            const hasUnmetNested = (nestedReqs?.requirements ?? []).some(
+              (nestedReq) => {
+                if (nestedReq.optional) return false;
+                const nestedCount = countRequirementSelections(
+                  nestedReq,
+                  powerSelections
+                );
+                if (nestedCount === null) return false;
+                return nestedCount < resolveRequirementPick(nestedReq);
+              }
+            );
             if (hasUnmetNested) return false;
           }
 
