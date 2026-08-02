@@ -19,7 +19,11 @@ import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { CompanionSheet, CompanionTrick } from '@/interfaces/Companion';
-import { getAllowedClassPowers, isPowerAvailable } from '@/functions/powers';
+import {
+  getAllowedClassPowers,
+  getCharacterPowerNames,
+  isPowerAvailable,
+} from '@/functions/powers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
@@ -41,9 +45,13 @@ import {
   serializeSpellPath,
   applySerializedOverrides,
   getClassSetupAbilities,
+  getBaseAbilitiesForLevelUp,
   classNeedsFirstLevelSetup,
 } from '@/functions/multiclass';
-import { partitionCrossTraditionByCircle } from '@/functions/spellPathUtils';
+import {
+  partitionCrossTraditionByCircle,
+  buildSpellPool,
+} from '@/functions/spellPathUtils';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
   countNaturalWeapons,
@@ -411,122 +419,27 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       deityMaxCircle === null
         ? levelCircle
         : Math.min(levelCircle, deityMaxCircle);
-    // Teurgista Místico: o limite de magias da tradição oposta é POR CÍRCULO,
-    // então rastreamos os nomes cross agrupados pelo círculo numérico (que já
-    // conhecemos dentro dos loops abaixo).
-    const crossNamesByCircle = new Map<number, Set<string>>();
-    const addCross = (circle: number, spells: Spell[]) => {
-      let set = crossNamesByCircle.get(circle);
-      if (!set) {
-        set = new Set<string>();
-        crossNamesByCircle.set(circle, set);
-      }
-      spells.forEach((s) => set!.add(s.nome));
-    };
 
-    // Get spells from all available circles (1 through spellCircle)
-    let allSpellsOfCircle: Spell[] = [];
-    if (spellPath.spellType === 'Arcane') {
-      for (let circle = 1; circle <= spellCircle; circle += 1) {
-        const circleSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
-          circle,
-          supplements
-        );
-        allSpellsOfCircle = [...allSpellsOfCircle, ...circleSpells];
-      }
+    // Poderes que destravam círculos da tradição oposta (Herança
+    // Aprimorada/Superior). Inclui a escolha PENDENTE deste level-up: Herança
+    // Superior exige nível 11 e o Feiticeiro aprende magia justamente no 11.
+    const pendingPowerName =
+      currentLevelSelection.powerChoice === 'class'
+        ? currentLevelSelection.selectedClassPower?.name
+        : currentLevelSelection.selectedGeneralPower?.name;
+    const ownedPowerNames = [
+      ...getCharacterPowerNames(simulatedSheet),
+      ...(pendingPowerName ? [pendingPowerName] : []),
+    ];
 
-      // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
-      if (
-        spellPath.includeDivineSchools &&
-        spellPath.includeDivineSchools.length > 0
-      ) {
-        for (let circle = 1; circle <= spellCircle; circle += 1) {
-          const divineSpells =
-            dataRegistry.getDivineSpellsByCircleAndSupplements(
-              circle,
-              supplements
-            );
-          const extraDivineSpells = divineSpells.filter((spell) =>
-            spellPath.includeDivineSchools!.includes(spell.school)
-          );
-          if (spellPath.crossTraditionLimit) {
-            addCross(circle, extraDivineSpells);
-          }
-          allSpellsOfCircle = [...allSpellsOfCircle, ...extraDivineSpells];
-        }
-      }
-    } else if (spellPath.spellType === 'Divine') {
-      for (let circle = 1; circle <= spellCircle; circle += 1) {
-        const circleSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
-          circle,
-          supplements
-        );
-        allSpellsOfCircle = [...allSpellsOfCircle, ...circleSpells];
-      }
-
-      // Include arcane spells from specified schools (e.g., Teurgista Místico)
-      if (
-        spellPath.includeArcaneSchools &&
-        spellPath.includeArcaneSchools.length > 0
-      ) {
-        for (let circle = 1; circle <= spellCircle; circle += 1) {
-          const arcaneSpells =
-            dataRegistry.getArcaneSpellsByCircleAndSupplements(
-              circle,
-              supplements
-            );
-          const extraArcaneSpells = arcaneSpells.filter((spell) =>
-            spellPath.includeArcaneSchools!.includes(spell.school)
-          );
-          if (spellPath.crossTraditionLimit) {
-            addCross(circle, extraArcaneSpells);
-          }
-          allSpellsOfCircle = [...allSpellsOfCircle, ...extraArcaneSpells];
-        }
-      }
-    } else if (spellPath.spellType === 'Both') {
-      // Combine arcane and divine spells from all circles
-      for (let circle = 1; circle <= spellCircle; circle += 1) {
-        const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
-          circle,
-          supplements
-        );
-        const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
-          circle,
-          supplements
-        );
-        allSpellsOfCircle = [
-          ...allSpellsOfCircle,
-          ...arcaneSpells,
-          ...divineSpells,
-        ];
-      }
-      allSpellsOfCircle = allSpellsOfCircle.filter(
-        (spell, index, self) =>
-          index === self.findIndex((s) => s.nome === spell.nome)
-      );
-    } else {
-      // Fallback: combine arcane + divine from all circles
-      for (let circle = 1; circle <= spellCircle; circle += 1) {
-        const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
-          circle,
-          supplements
-        );
-        const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
-          circle,
-          supplements
-        );
-        allSpellsOfCircle = [
-          ...allSpellsOfCircle,
-          ...arcaneSpells,
-          ...divineSpells,
-        ];
-      }
-      allSpellsOfCircle = allSpellsOfCircle.filter(
-        (spell, index, self) =>
-          index === self.findIndex((s) => s.nome === spell.nome)
-      );
-    }
+    const pool = buildSpellPool({
+      spellPath,
+      maxCircle: spellCircle,
+      supplements,
+      ownedPowerNames,
+    });
+    let poolSpells = pool.spells;
+    const { crossNamesByCircle } = pool;
 
     // Teurgista Místico: aplica o limite POR CÍRCULO. Círculos onde o
     // personagem já atingiu o limite têm suas magias cross removidas do pool;
@@ -540,39 +453,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         spellPath.crossTraditionLimit
       );
       if (removeNames.size > 0) {
-        allSpellsOfCircle = allSpellsOfCircle.filter(
-          (s) => !removeNames.has(s.nome)
-        );
+        poolSpells = poolSpells.filter((s) => !removeNames.has(s.nome));
       }
       crossNames = keepNames;
     }
 
     // Filter out spells already known
     const knownSpellNames = simulatedSheet.spells.map((s) => s.nome);
-
-    // Filter by schools (if applicable)
-    let filteredSpells = allSpellsOfCircle;
-    if (spellPath.schools && spellPath.schools.length > 0) {
-      filteredSpells = allSpellsOfCircle.filter((spell) =>
-        spellPath.schools!.includes(spell.school)
-      );
-    }
-
-    // Apply excludeSchools blacklist
-    if (spellPath.excludeSchools && spellPath.excludeSchools.length > 0) {
-      filteredSpells = filteredSpells.filter(
-        (spell) => !spellPath.excludeSchools!.includes(spell.school)
-      );
-    }
-
-    // Remove duplicates by name
-    filteredSpells = filteredSpells.filter(
-      (spell, index, self) =>
-        index === self.findIndex((s) => s.nome === spell.nome)
-    );
-
-    // Filter out already known spells
-    const availableSpells = filteredSpells.filter(
+    const availableSpells = poolSpells.filter(
       (s) => !knownSpellNames.includes(s.nome)
     );
 
@@ -602,9 +490,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Check if class abilities for this level need effect selections
   // For multiclass: use selected class's abilities filtered by CLASS level
   const needsAbilityEffectSelections = (): boolean => {
-    const activeClassDesc = selectedClassDesc || simulatedSheet.classe;
-    const baseAbilities =
-      activeClassDesc.originalAbilities || activeClassDesc.abilities;
+    const baseAbilities = getBaseAbilitiesForLevelUp(
+      simulatedSheet.classe,
+      selectedClassDesc,
+      selectedClassName
+    );
     const setupAbilities = getClassSetupAbilities(
       selectedClassName,
       currentLevelSelection.classSetup
@@ -1137,20 +1027,26 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Efeitos de Habilidades': {
-        // For multiclass: use the selected class for ability effects,
-        // injecting setup abilities (e.g. Feiticeiro linhagem)
+        // Mesma resolução de `needsAbilityEffectSelections`: as habilidades
+        // injetadas no setup (linhagens do Feiticeiro) vivem na FICHA, não na
+        // entrada do registry.
         const activeClass = selectedClassDesc || simulatedSheet.classe;
         const setupAbilitiesForStep = getClassSetupAbilities(
           selectedClassName,
           currentLevelSelection.classSetup
         );
-        const expandedClass =
-          setupAbilitiesForStep.length > 0
-            ? {
-                ...activeClass,
-                abilities: [...activeClass.abilities, ...setupAbilitiesForStep],
-              }
-            : activeClass;
+        const baseAbilitiesForStep = getBaseAbilitiesForLevelUp(
+          simulatedSheet.classe,
+          selectedClassDesc,
+          selectedClassName
+        );
+        const expandedClass = {
+          ...activeClass,
+          abilities: [...baseAbilitiesForStep, ...setupAbilitiesForStep],
+          // `PowerEffectSelectionStep` prefere `originalAbilities` a
+          // `abilities`; mantê-lo faria a lista mesclada ser ignorada.
+          originalAbilities: undefined,
+        };
         return (
           <Box>
             <Typography variant='h6' gutterBottom>

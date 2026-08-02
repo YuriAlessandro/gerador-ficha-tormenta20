@@ -60,6 +60,16 @@ function getAllCharacterPowers(sheet: CharacterSheet): { name: string }[] {
   ];
 }
 
+/**
+ * Nomes dos poderes que o personagem possui. Usado por regras que dependem de
+ * "o personagem tem o poder X?" fora do sistema de requisitos — ex.: o teto de
+ * círculo da tradição oposta da Linhagem Abençoada, destravado por Herança
+ * Aprimorada/Superior.
+ */
+export function getCharacterPowerNames(sheet: CharacterSheet): string[] {
+  return getAllCharacterPowers(sheet).map((power) => power.name);
+}
+
 export function isPowerAvailable(
   sheet: CharacterSheet,
   power: GeneralPower | ClassPower,

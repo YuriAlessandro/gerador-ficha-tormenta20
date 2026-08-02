@@ -1,4 +1,4 @@
-import { ClassDescription, ClassPower } from './Class';
+import { ClassDescription, ClassPower, CrossTraditionRules } from './Class';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
 import Bag from './Bag';
@@ -852,6 +852,7 @@ export interface SerializedSpellPath {
   includeDivineSchools?: SpellSchool[];
   includeArcaneSchools?: SpellSchool[];
   crossTraditionLimit?: number;
+  crossTraditionRules?: CrossTraditionRules;
   keyAttribute: Atributo;
   // Metadata para restaurar funções
   className: string;

@@ -15,7 +15,10 @@ import {
   getMulticlassAvailableAbilities,
   findClassDescription,
   classNeedsFirstLevelSetup,
+  buildSpellPathFromSetup,
 } from '../multiclass';
+import { allSpellSchools } from '../../interfaces/Spells';
+import { arcanistaSpellPaths } from '../../data/systems/tormenta20/classes/arcanista';
 
 // Helper: create a simple class description for testing
 function makeClassDesc(overrides: Partial<ClassDescription>): ClassDescription {
@@ -704,5 +707,50 @@ describe('classNeedsFirstLevelSetup', () => {
     const guerreiro = findClassDescription('Guerreiro')!;
 
     expect(classNeedsFirstLevelSetup(guerreiro)).toBe(false);
+  });
+});
+
+/**
+ * Multiclassar em Feiticeiro com a Linhagem Abençoada tem que dar os MESMOS 4
+ * espaços de magia da criação normal (Deuses de Arton, pág. 33). Antes o
+ * caminho do multiclasse setava só `includeDivineSchools` e esquecia o
+ * `initialSpells`, então o jogador escolhia 3 magias em vez de 4.
+ */
+describe('buildSpellPathFromSetup - Feiticeiro Linhagem Abençoada', () => {
+  test('multiclasse recebe 4 magias iniciais e o teto de 1º círculo', () => {
+    const spellPath = buildSpellPathFromSetup('Arcanista', undefined, {
+      arcanistaSubtype: 'Feiticeiro',
+      feiticeiroLinhagem: 'Linhagem Abençoada',
+      linhagemAbencoadaDeus: 'Khalmyr',
+    });
+
+    expect(spellPath?.initialSpells).toBe(4);
+    expect(spellPath?.spellType).toBe('Arcane');
+    expect(spellPath?.includeDivineSchools).toEqual(allSpellSchools);
+    expect(spellPath?.crossTraditionRules?.maxCircle).toBe(1);
+    expect(spellPath?.crossTraditionRules?.minInitialSpells).toBe(1);
+  });
+
+  test('Feiticeiro sem a linhagem continua com 3 e sem lista divina', () => {
+    const spellPath = buildSpellPathFromSetup('Arcanista', undefined, {
+      arcanistaSubtype: 'Feiticeiro',
+      feiticeiroLinhagem: 'Linhagem Dracônica',
+    });
+
+    expect(spellPath?.initialSpells).toBe(3);
+    expect(spellPath?.includeDivineSchools).toBeUndefined();
+    expect(spellPath?.crossTraditionRules).toBeUndefined();
+  });
+
+  test('o spellPath devolvido nunca é a referência do catálogo', () => {
+    const a = buildSpellPathFromSetup('Arcanista', undefined, {
+      arcanistaSubtype: 'Mago',
+    });
+    const b = buildSpellPathFromSetup('Arcanista', undefined, {
+      arcanistaSubtype: 'Mago',
+    });
+
+    expect(a).not.toBe(b);
+    expect(a).not.toBe(arcanistaSpellPaths.Mago);
   });
 });

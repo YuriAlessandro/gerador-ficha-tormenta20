@@ -7,14 +7,15 @@ import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import {
-  arcanistaSpellPaths,
   ArcanistaSubtypes,
   classAbilities as arcanistaClassAbilities,
   feiticeiroPaths,
   createLinhagemAbencoada,
+  getArcanistaSpellPath,
+  applyLinhagemAbencoadaToSpellPath,
 } from '@/data/systems/tormenta20/classes/arcanista';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
+import { SpellSchool } from '@/interfaces/Spells';
 import { isClassOrVariantOf } from './general';
 import { resolveSchoolChoice } from './spellPathUtils';
 
@@ -364,12 +365,12 @@ export function buildSpellPathFromSetup(
   // Arcanista: usar subtype das choices
   if (className === 'Arcanista' && classSetup?.arcanistaSubtype) {
     const subtype = classSetup.arcanistaSubtype as ArcanistaSubtypes;
-    const spellPath = { ...arcanistaSpellPaths[subtype] };
+    const spellPath = getArcanistaSpellPath(subtype);
     if (
       subtype === 'Feiticeiro' &&
       classSetup.feiticeiroLinhagem === 'Linhagem Abençoada'
     ) {
-      spellPath.includeDivineSchools = allSpellSchools;
+      return applyLinhagemAbencoadaToSpellPath(spellPath);
     }
     return spellPath;
   }
@@ -436,6 +437,7 @@ export function serializeSpellPath(
     includeDivineSchools: spellPath.includeDivineSchools,
     includeArcaneSchools: spellPath.includeArcaneSchools,
     crossTraditionLimit: spellPath.crossTraditionLimit,
+    crossTraditionRules: spellPath.crossTraditionRules,
     keyAttribute: spellPath.keyAttribute,
     className,
     classSubname,
@@ -449,6 +451,11 @@ export function applySerializedOverrides(
   target: SpellPath,
   serialized: SerializedSpellPath
 ): void {
+  // `initialSpells` pode divergir da definição da classe (Linhagem Abençoada
+  // dá 4 em vez de 3). Sem isso, a ficha recarregada voltava para o valor base.
+  if (typeof serialized.initialSpells === 'number') {
+    target.initialSpells = serialized.initialSpells;
+  }
   if (serialized.schools) {
     target.schools = serialized.schools;
   }
@@ -466,6 +473,9 @@ export function applySerializedOverrides(
   }
   if (serialized.crossTraditionLimit !== undefined) {
     target.crossTraditionLimit = serialized.crossTraditionLimit;
+  }
+  if (serialized.crossTraditionRules) {
+    target.crossTraditionRules = serialized.crossTraditionRules;
   }
 }
 
@@ -512,4 +522,36 @@ export function getClassSetupAbilities(
   }
 
   return [];
+}
+
+/**
+ * Habilidades base da classe que está subindo de nível.
+ *
+ * `findClassDescription` é SEMPRE resolvido para a classe principal da ficha,
+ * e o que ele devolve é a entrada do REGISTRY — sem `originalAbilities` e sem
+ * as habilidades injetadas pelo setup (as linhagens do Feiticeiro). O padrão
+ * antigo `selectedClassDesc || sheet.classe` silenciava a ficha, então a
+ * habilidade de nível 2 da Linhagem Abençoada ("poder concedido") nunca
+ * chegava ao wizard nem ao apply — e acabava sorteada no recálculo.
+ *
+ * Para a classe principal usamos as habilidades DA FICHA, completadas pelas do
+ * registry que faltarem por nome (fichas antigas sem `originalAbilities`
+ * chegam com `abilities` já filtrado por nível, sem as de níveis futuros).
+ */
+export function getBaseAbilitiesForLevelUp(
+  sheetClass: ClassDescription,
+  selectedClassDesc: ClassDescription | undefined,
+  selectedClassName: string
+): ClassAbility[] {
+  const fromRegistry =
+    selectedClassDesc?.originalAbilities || selectedClassDesc?.abilities || [];
+
+  if (selectedClassName !== sheetClass.name) return fromRegistry;
+
+  const fromSheet = sheetClass.originalAbilities || sheetClass.abilities || [];
+  const sheetNames = new Set(fromSheet.map((ability) => ability.name));
+  return [
+    ...fromSheet,
+    ...fromRegistry.filter((ability) => !sheetNames.has(ability.name)),
+  ];
 }

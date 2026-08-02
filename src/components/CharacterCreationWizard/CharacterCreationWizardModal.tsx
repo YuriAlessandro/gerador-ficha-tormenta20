@@ -33,6 +33,12 @@ import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-ar
 import { applyMoreauCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applySuragelAlternativeAbility } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import {
+  ArcanistaSubtypes,
+  applyLinhagemAbencoadaToSpellPath,
+  getArcanistaSpellPath,
+} from '@/data/systems/tormenta20/classes/arcanista';
+import { buildSpellPool } from '@/functions/spellPathUtils';
 
 // Import step components
 import {
@@ -612,6 +618,7 @@ const CharacterCreationWizardModal: React.FC<
     | 'includeDivineSchools'
     | 'includeArcaneSchools'
     | 'crossTraditionLimit'
+    | 'crossTraditionRules'
   > | null => {
     if (!classe) return null;
 
@@ -626,6 +633,7 @@ const CharacterCreationWizardModal: React.FC<
       | 'includeDivineSchools'
       | 'includeArcaneSchools'
       | 'crossTraditionLimit'
+      | 'crossTraditionRules'
     > | null = null;
 
     // For classes with spellPath already defined
@@ -637,30 +645,27 @@ const CharacterCreationWizardModal: React.FC<
         includeDivineSchools: classe.spellPath.includeDivineSchools,
         includeArcaneSchools: classe.spellPath.includeArcaneSchools,
         crossTraditionLimit: classe.spellPath.crossTraditionLimit,
+        crossTraditionRules: classe.spellPath.crossTraditionRules,
       };
     } else if (classe.name === 'Arcanista' && selections.arcanistaSubtype) {
-      // For Arcanista with wizard subtype selection
-      const initialSpellsBySubtype = {
-        Bruxo: 3,
-        Mago: 4,
-        Feiticeiro: 3,
-      };
-
-      // Linhagem Abençoada: include divine spells from all schools and grant
-      // one extra spell (the divine spell), for a total of 4 at level 1.
+      // Arcanista: o spellPath só existe depois do setup(), então lemos a
+      // definição da classe (fonte única) em vez de repetir os números aqui.
       const isFeiticeiroAbencoado =
         selections.arcanistaSubtype === 'Feiticeiro' &&
         selections.feiticeiroLinhagem === 'Linhagem Abençoada';
-      const includeDivineSchools = isFeiticeiroAbencoado
-        ? allSpellSchools
-        : undefined;
+      const subtypePath = getArcanistaSpellPath(
+        selections.arcanistaSubtype as ArcanistaSubtypes
+      );
+      const resolvedPath = isFeiticeiroAbencoado
+        ? applyLinhagemAbencoadaToSpellPath(subtypePath)
+        : subtypePath;
 
       result = {
-        spellType: 'Arcane',
-        initialSpells: isFeiticeiroAbencoado
-          ? 4
-          : initialSpellsBySubtype[selections.arcanistaSubtype],
-        includeDivineSchools,
+        spellType: resolvedPath.spellType,
+        initialSpells: resolvedPath.initialSpells,
+        excludeSchools: resolvedPath.excludeSchools,
+        includeDivineSchools: resolvedPath.includeDivineSchools,
+        crossTraditionRules: resolvedPath.crossTraditionRules,
       };
     } else if (isClassOrVariantOf(classe, 'Bardo')) {
       result = { spellType: 'Arcane', initialSpells: 2 };
@@ -1420,6 +1425,10 @@ const CharacterCreationWizardModal: React.FC<
             includeDivineSchools={spellInfo.includeDivineSchools}
             includeArcaneSchools={spellInfo.includeArcaneSchools}
             crossTraditionLimit={spellInfo.crossTraditionLimit}
+            crossTraditionRules={spellInfo.crossTraditionRules}
+            minCrossTraditionSpells={
+              spellInfo.crossTraditionRules?.minInitialSpells ?? 0
+            }
             supplements={supplements}
           />
         );
@@ -1701,8 +1710,30 @@ const CharacterCreationWizardModal: React.FC<
       case 'Magias Iniciais': {
         const spellInfo = getSpellInfo();
         if (!spellInfo || spellInfo.initialSpells === 0) return true;
+        const chosenSpells = selections.initialSpells ?? [];
+        if (chosenSpells.length !== spellInfo.initialSpells) return false;
+
+        // Linhagem Abençoada: uma das magias tem que ser divina. Os nomes cross
+        // vêm do MESMO builder que o passo usa — computá-los de outro jeito
+        // faria o botão e os checkboxes discordarem.
+        const minCross = spellInfo.crossTraditionRules?.minInitialSpells ?? 0;
+        if (minCross <= 0) return true;
+        const { crossNames } = buildSpellPool({
+          spellPath: {
+            spellType: spellInfo.spellType,
+            schools: selections.spellSchools,
+            excludeSchools: spellInfo.excludeSchools,
+            includeDivineSchools: spellInfo.includeDivineSchools,
+            includeArcaneSchools: spellInfo.includeArcaneSchools,
+            crossTraditionLimit: spellInfo.crossTraditionLimit,
+            crossTraditionRules: spellInfo.crossTraditionRules,
+          },
+          maxCircle: 1,
+          supplements,
+        });
         return (
-          (selections.initialSpells ?? []).length === spellInfo.initialSpells
+          chosenSpells.filter((spell) => crossNames.has(spell.nome)).length >=
+          minCross
         );
       }
 

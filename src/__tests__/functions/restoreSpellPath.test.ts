@@ -19,6 +19,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import Bag from '../../interfaces/Bag';
 import { BagEquipments } from '../../interfaces/Equipment';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { allSpellSchools } from '../../interfaces/Spells';
 import { dataRegistry } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
 
@@ -356,5 +357,77 @@ describe('restoreSpellPath - classe fora dos suplementos habilitados', () => {
     );
     expect(sheet.classe.spellPath?.keyAttribute).toBe(Atributo.CARISMA);
     expect(sheet.classe.spellPath?.schools).toEqual(['Necro']);
+  });
+
+  /**
+   * Linhagem Abençoada: `initialSpells: 4` e o teto de círculo das divinas vêm
+   * do setup da ficha, não da definição do Arcanista. O rebuild parte de
+   * `arcanistaSpellPaths[subtype]` (3 magias, sem teto), então esses campos
+   * precisam ser capturados antes e reaplicados — senão a ficha recarregada
+   * voltava a 3 magias e liberava divinas de todos os círculos.
+   */
+  it('preserva os campos da Linhagem Abençoada num Feiticeiro salvo', () => {
+    const sheet = {
+      nivel: 5,
+      classe: serialized({
+        name: 'Arcanista',
+        subname: 'Feiticeiro',
+        abilities: [],
+        spellPath: {
+          initialSpells: 4,
+          spellType: 'Arcane',
+          includeDivineSchools: allSpellSchools,
+          crossTraditionRules: {
+            maxCircle: 1,
+            maxCircleByPower: [
+              { powerName: 'Herança Aprimorada', maxCircle: 3 },
+              { powerName: 'Herança Superior', maxCircle: 5 },
+            ],
+            minInitialSpells: 1,
+          },
+          qtySpellsLearnAtLevel: () => 1,
+          spellCircleAvailableAtLevel: () => 1,
+          keyAttribute: Atributo.CARISMA,
+        },
+      }),
+    } as unknown as CharacterSheet;
+
+    restoreSpellPath(sheet, coreClasses);
+
+    expect(typeof sheet.classe.spellPath?.qtySpellsLearnAtLevel).toBe(
+      'function'
+    );
+    expect(sheet.classe.spellPath?.initialSpells).toBe(4);
+    expect(sheet.classe.spellPath?.includeDivineSchools).toEqual(
+      allSpellSchools
+    );
+    expect(sheet.classe.spellPath?.crossTraditionRules?.maxCircle).toBe(1);
+    expect(sheet.classe.spellPath?.crossTraditionRules?.minInitialSpells).toBe(
+      1
+    );
+  });
+
+  it('um Feiticeiro comum continua com 3 magias iniciais', () => {
+    const sheet = {
+      nivel: 3,
+      classe: serialized({
+        name: 'Arcanista',
+        subname: 'Feiticeiro',
+        abilities: [],
+        spellPath: {
+          initialSpells: 3,
+          spellType: 'Arcane',
+          qtySpellsLearnAtLevel: () => 1,
+          spellCircleAvailableAtLevel: () => 1,
+          keyAttribute: Atributo.CARISMA,
+        },
+      }),
+    } as unknown as CharacterSheet;
+
+    restoreSpellPath(sheet, coreClasses);
+
+    expect(sheet.classe.spellPath?.initialSpells).toBe(3);
+    expect(sheet.classe.spellPath?.crossTraditionRules).toBeUndefined();
+    expect(sheet.classe.spellPath?.includeDivineSchools).toBeUndefined();
   });
 });

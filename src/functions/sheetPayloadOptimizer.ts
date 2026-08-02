@@ -230,6 +230,7 @@ export function stripSheetForStorage(
         includeDivineSchools: sheet.classe.spellPath.includeDivineSchools,
         includeArcaneSchools: sheet.classe.spellPath.includeArcaneSchools,
         crossTraditionLimit: sheet.classe.spellPath.crossTraditionLimit,
+        crossTraditionRules: sheet.classe.spellPath.crossTraditionRules,
         keyAttribute: sheet.classe.spellPath.keyAttribute,
       };
     }

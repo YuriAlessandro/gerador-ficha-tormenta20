@@ -88,6 +88,30 @@ export type ClassPower = {
   className?: string; // Multiclasse: qual classe concedeu este poder
 };
 
+/**
+ * Regras extras sobre o pool da tradição oposta — o habilitado por
+ * `includeDivineSchools` / `includeArcaneSchools`.
+ *
+ * AUSENTE (`undefined`) = sem regra extra, que é o comportamento do Necromante
+ * (`includeDivineSchools: ['Necro']` em todos os círculos) e do Teurgista
+ * Místico (`applyTeurgistaMistico`). Só quem precisa de teto de círculo ou de
+ * mínimo obrigatório declara este campo.
+ */
+export interface CrossTraditionRules {
+  /** Teto de círculo da tradição oposta sem nenhum poder de classe. */
+  maxCircle: number;
+  /**
+   * Poderes de classe/gerais que elevam o teto. O maior valor entre os poderes
+   * que o personagem possui vence; nenhum poder possuído = `maxCircle`.
+   */
+  maxCircleByPower?: { powerName: string; maxCircle: number }[];
+  /**
+   * Quantas das magias INICIAIS têm que vir obrigatoriamente da tradição
+   * oposta (Linhagem Abençoada: "você aprende uma magia divina de 1º círculo").
+   */
+  minInitialSpells?: number;
+}
+
 export interface SpellPath {
   initialSpells: number;
   spellType: 'Arcane' | 'Divine' | 'Both';
@@ -100,6 +124,7 @@ export interface SpellPath {
   includeDivineSchools?: SpellSchool[];
   includeArcaneSchools?: SpellSchool[];
   crossTraditionLimit?: number;
+  crossTraditionRules?: CrossTraditionRules;
   qtySpellsLearnAtLevel: (level: number) => number;
   spellCircleAvailableAtLevel: (level: number) => number;
   keyAttribute: Atributo;

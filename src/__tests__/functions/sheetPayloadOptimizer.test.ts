@@ -17,6 +17,9 @@ import {
 import generateRandomSheet from '../../functions/general';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import { SupplementId } from '../../types/supplement.types';
+import { allSpellSchools } from '../../interfaces/Spells';
+import { SpellPath } from '../../interfaces/Class';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 
 const zeroedAtributos = {
   Força: { name: 'Força', value: 0 },
@@ -159,5 +162,52 @@ describe('isSheetIntegrityError', () => {
   it('não acusa outros erros', () => {
     expect(isSheetIntegrityError(new Error('network'))).toBe(false);
     expect(isSheetIntegrityError(undefined)).toBe(false);
+  });
+});
+
+/**
+ * `stripSheetForStorage` reconstrói `classe.spellPath` campo a campo — todo
+ * campo novo tem que ser adicionado lá, senão a regra some ao salvar na nuvem.
+ * Linhagem Abençoada: 4 magias iniciais + teto de 1º círculo para as divinas.
+ */
+describe('stripSheetForStorage - spellPath da Linhagem Abençoada', () => {
+  it('preserva initialSpells, includeDivineSchools e crossTraditionRules', () => {
+    const sheet = generateRandomSheet({
+      nivel: 1,
+      raca: 'Humano',
+      classe: 'Arcanista',
+      origin: '',
+      devocao: { label: '--', value: '--' },
+      supplements: [SupplementId.TORMENTA20_CORE],
+    } as SelectOptions);
+
+    sheet.classe.subname = 'Feiticeiro';
+    sheet.classe.spellPath = {
+      initialSpells: 4,
+      spellType: 'Arcane',
+      includeDivineSchools: allSpellSchools,
+      crossTraditionRules: {
+        maxCircle: 1,
+        maxCircleByPower: [{ powerName: 'Herança Aprimorada', maxCircle: 3 }],
+        minInitialSpells: 1,
+      },
+      qtySpellsLearnAtLevel: () => 1,
+      spellCircleAvailableAtLevel: () => 1,
+      keyAttribute: Atributo.CARISMA,
+    };
+
+    // `stripSheetForStorage` devolve Record<string, unknown> (payload de rede).
+    const stripped = stripSheetForStorage(sheet) as unknown as {
+      classe: { spellPath?: SpellPath };
+    };
+    const { spellPath } = stripped.classe;
+
+    expect(spellPath?.initialSpells).toBe(4);
+    expect(spellPath?.includeDivineSchools).toEqual(allSpellSchools);
+    expect(spellPath?.crossTraditionRules).toEqual({
+      maxCircle: 1,
+      maxCircleByPower: [{ powerName: 'Herança Aprimorada', maxCircle: 3 }],
+      minInitialSpells: 1,
+    });
   });
 });

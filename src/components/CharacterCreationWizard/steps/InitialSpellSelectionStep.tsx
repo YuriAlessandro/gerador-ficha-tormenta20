@@ -15,7 +15,9 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Spell, SpellSchool } from '@/interfaces/Spells';
+import { CrossTraditionRules } from '@/interfaces/Class';
 import { dataRegistry } from '@/data/registry';
+import { buildSpellPool } from '@/functions/spellPathUtils';
 import { SupplementId } from '@/types/supplement.types';
 import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
 import {
@@ -36,6 +38,9 @@ interface InitialSpellSelectionStepProps {
   includeDivineSchools?: SpellSchool[];
   includeArcaneSchools?: SpellSchool[];
   crossTraditionLimit?: number;
+  crossTraditionRules?: CrossTraditionRules;
+  /** Linhagem Abençoada: ao menos N das magias iniciais têm que ser divinas. */
+  minCrossTraditionSpells?: number;
   supplements?: SupplementId[];
 }
 
@@ -50,6 +55,8 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
   includeDivineSchools,
   includeArcaneSchools,
   crossTraditionLimit,
+  crossTraditionRules,
+  minCrossTraditionSpells = 0,
   supplements = [SupplementId.TORMENTA20_CORE],
 }) => {
   // Get available spells based on type, schools, and supplements
@@ -59,109 +66,40 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
     arcaneNames,
     divineNames,
   } = useMemo(() => {
-    // Get spells from registry (includes supplements)
-    const spellsByCircle =
-      dataRegistry.getSpellsCircle1BySupplements(supplements);
-    const arcaneSpellsCircle1 = spellsByCircle.arcane;
-    const divineSpellsCircle1 = spellsByCircle.divine;
-
-    let spellList: Spell[] = [];
-    const crossNames = new Set<string>();
-
-    if (spellType === 'Arcane') {
-      if (schools && schools.length > 0) {
-        // Filter by schools
-        spellList = schools.flatMap(
-          (school) => arcaneSpellsCircle1[school] || []
-        );
-      } else {
-        // All arcane spells of circle 1
-        spellList = (Object.values(arcaneSpellsCircle1) as Spell[][]).flat();
-      }
-
-      // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
-      if (includeDivineSchools && includeDivineSchools.length > 0) {
-        const extraDivineSpells = includeDivineSchools.flatMap(
-          (school) => divineSpellsCircle1[school] || []
-        );
-        if (crossTraditionLimit) {
-          extraDivineSpells.forEach((s) => crossNames.add(s.nome));
-        }
-        spellList = [...spellList, ...extraDivineSpells];
-      }
-    } else if (spellType === 'Divine') {
-      if (schools && schools.length > 0) {
-        // Divine - Filter by schools
-        spellList = schools.flatMap(
-          (school) => divineSpellsCircle1[school] || []
-        );
-      } else {
-        // Divine - All schools
-        spellList = (Object.values(divineSpellsCircle1) as Spell[][]).flat();
-      }
-
-      // Include arcane spells from specified schools (e.g., Teurgista Místico)
-      if (includeArcaneSchools && includeArcaneSchools.length > 0) {
-        const extraArcaneSpells = includeArcaneSchools.flatMap(
-          (school) => arcaneSpellsCircle1[school] || []
-        );
-        if (crossTraditionLimit) {
-          extraArcaneSpells.forEach((s) => crossNames.add(s.nome));
-        }
-        spellList = [...spellList, ...extraArcaneSpells];
-      }
-    } else if (spellType === 'Both') {
-      // Both arcane and divine
-      let arcaneList: Spell[] = [];
-      let divineList: Spell[] = [];
-
-      if (schools && schools.length > 0) {
-        arcaneList = schools.flatMap(
-          (school) => arcaneSpellsCircle1[school] || []
-        );
-        divineList = schools.flatMap(
-          (school) => divineSpellsCircle1[school] || []
-        );
-      } else {
-        arcaneList = (Object.values(arcaneSpellsCircle1) as Spell[][]).flat();
-        divineList = (Object.values(divineSpellsCircle1) as Spell[][]).flat();
-      }
-
-      spellList = [...arcaneList, ...divineList];
-    }
-
-    // Apply excludeSchools blacklist
-    if (excludeSchools && excludeSchools.length > 0) {
-      spellList = spellList.filter(
-        (spell) => !excludeSchools.includes(spell.school)
-      );
-    }
-
-    // Remove duplicates by nome (also remove from crossNames if native version exists)
-    const seenNames = new Set<string>();
-    const uniqueSpells = spellList.filter((spell) => {
-      if (seenNames.has(spell.nome)) return false;
-      seenNames.add(spell.nome);
-      return true;
+    // Magias iniciais são sempre de 1º círculo. O pool sai do mesmo builder da
+    // geração aleatória e do wizard de evolução — três implementações
+    // separadas divergiam.
+    const { spells, crossNames } = buildSpellPool({
+      spellPath: {
+        spellType,
+        schools,
+        excludeSchools,
+        includeDivineSchools,
+        includeArcaneSchools,
+        crossTraditionLimit,
+        crossTraditionRules,
+      },
+      maxCircle: 1,
+      supplements,
     });
 
     // Tradition name sets, used by the "Tipo" filter when spellType is 'Both'.
+    const spellsByCircle =
+      dataRegistry.getSpellsCircle1BySupplements(supplements);
     const allArcaneNames = new Set<string>(
-      (Object.values(arcaneSpellsCircle1) as Spell[][])
+      (Object.values(spellsByCircle.arcane) as Spell[][])
         .flat()
         .map((s) => s.nome)
     );
     const allDivineNames = new Set<string>(
-      (Object.values(divineSpellsCircle1) as Spell[][])
+      (Object.values(spellsByCircle.divine) as Spell[][])
         .flat()
         .map((s) => s.nome)
     );
 
     // Sort alphabetically
     return {
-      availableSpells: uniqueSpells.sort((a, b) =>
-        a.nome.localeCompare(b.nome)
-      ),
+      availableSpells: [...spells].sort((a, b) => a.nome.localeCompare(b.nome)),
       crossTraditionSpellNames: crossNames,
       arcaneNames: allArcaneNames,
       divineNames: allDivineNames,
@@ -173,6 +111,7 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
     includeDivineSchools,
     includeArcaneSchools,
     crossTraditionLimit,
+    crossTraditionRules,
     supplements,
   ]);
 
@@ -221,7 +160,10 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
     }
   };
 
-  const isComplete = selectedSpells.length === requiredCount;
+  const isMinCrossTraditionMet =
+    selectedCrossTraditionCount >= minCrossTraditionSpells;
+  const isComplete =
+    selectedSpells.length === requiredCount && isMinCrossTraditionMet;
 
   // Group spells by school for better organization
   const spellsBySchool = useMemo(() => {
@@ -286,6 +228,14 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
           {spellType === 'Arcane' ? 'divina' : 'arcana'}
           {crossTraditionLimit > 1 ? 's' : ''} por círculo.
           {isCrossTraditionLimitReached && ' (Limite atingido)'}
+        </Alert>
+      )}
+      {minCrossTraditionSpells > 0 && (
+        <Alert severity={isMinCrossTraditionMet ? 'success' : 'warning'}>
+          Ao menos {minCrossTraditionSpells} das {requiredCount} magias precisa
+          ser {spellType === 'Arcane' ? 'divina' : 'arcana'} (
+          {selectedCrossTraditionCount} selecionada
+          {selectedCrossTraditionCount === 1 ? '' : 's'}).
         </Alert>
       )}
       {selectedSpells.length > 0 && (

@@ -91,7 +91,7 @@ import {
   resolveGolpePessoalEffectKey,
 } from './powers/golpePessoal';
 import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcane';
-import { Spell, allSpellSchools } from '../interfaces/Spells';
+import { Spell } from '../interfaces/Spells';
 import { DiceRoll } from '../interfaces/DiceRoll';
 import { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { generateRandomAnimalCompanion } from '../premium/functions/animalCompanionEffects';
@@ -130,8 +130,13 @@ import {
   serializeSpellPath,
   applySerializedOverrides,
   getClassSetupAbilities,
+  getBaseAbilitiesForLevelUp,
 } from './multiclass';
-import { resolveSchoolChoice } from './spellPathUtils';
+import {
+  resolveSchoolChoice,
+  buildSpellPool,
+  pickWithMinimumCrossTradition,
+} from './spellPathUtils';
 import Skill, {
   SkillsWithArmorPenalty,
   getSheetSkillNames,
@@ -143,6 +148,7 @@ import roles from '../data/systems/tormenta20/roles';
 import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
+  getCharacterPowerNames,
   getFuturaLendaClassPowers,
   getPowersAllowedByRequirements,
   getWeightedInventorClassPowers,
@@ -200,6 +206,8 @@ import {
   arcanistaSpellPaths,
   ArcanistaSubtypes,
   createLinhagemAbencoada,
+  getArcanistaSpellPath,
+  applyLinhagemAbencoadaToSpellPath,
 } from '../data/systems/tormenta20/classes/arcanista';
 
 // Reexportado por compatibilidade: a implementação vive em `originItems.ts`
@@ -1306,7 +1314,7 @@ function getReligiosidade(
   return { divindade, poderes };
 }
 
-function getNewSpells(
+export function getNewSpells(
   nivel: number,
   classe: ClassDescription,
   usedSpells: Spell[],
@@ -1314,119 +1322,51 @@ function getNewSpells(
   // Devoto de deus menor: a divindade limita o círculo máximo. `null` = sem
   // limite. Vem de `getDeityMaxSpellCircle`, que já checa se a classe é
   // conjuradora divina.
-  deityMaxCircle: number | null = null
+  deityMaxCircle: number | null = null,
+  // Poderes que o personagem possui — destravam círculos da tradição oposta
+  // (Herança Aprimorada/Superior na Linhagem Abençoada).
+  ownedPowerNames: readonly string[] = []
 ): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return [];
 
-  const {
-    initialSpells,
-    schools,
-    excludeSchools,
-    includeDivineSchools,
-    includeArcaneSchools,
-    crossTraditionLimit,
-    spellType,
-    spellCircleAvailableAtLevel,
-    qtySpellsLearnAtLevel,
-  } = spellPath;
+  const { initialSpells, spellCircleAvailableAtLevel, qtySpellsLearnAtLevel } =
+    spellPath;
 
   const levelCircle = spellCircleAvailableAtLevel(nivel);
   const circle =
     deityMaxCircle === null
       ? levelCircle
       : Math.min(levelCircle, deityMaxCircle);
-  const qtySpellsLearn = qtySpellsLearnAtLevel(nivel);
 
-  let spellList: Spell[] = [];
-  if (spellType === 'Arcane') {
-    for (let index = 1; index < circle + 1; index += 1) {
-      spellList = spellList.concat(
-        dataRegistry.getArcaneSpellsByCircleAndSupplements(index, supplements)
-      );
-    }
+  const { spells, crossNames } = buildSpellPool({
+    spellPath,
+    maxCircle: circle,
+    supplements,
+    ownedPowerNames,
+    // Teurgista Místico: no sorteio automático o limite por círculo é aplicado
+    // ofertando uma única magia cross por círculo.
+    crossTraditionMode: spellPath.crossTraditionLimit
+      ? 'sampleOnePerCircle'
+      : 'offerAll',
+  });
 
-    // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
-    if (includeDivineSchools && includeDivineSchools.length > 0) {
-      for (let index = 1; index < circle + 1; index += 1) {
-        const divineCircle = dataRegistry.getSpellsByCircleAndSupplements(
-          index,
-          supplements
-        ).divine;
-        const circleSpells = includeDivineSchools.flatMap(
-          (school) => divineCircle[school] || []
-        );
-        if (crossTraditionLimit && circleSpells.length > 0) {
-          const randomSpell = getRandomItemFromArray(circleSpells);
-          spellList = spellList.concat(randomSpell);
-        } else {
-          spellList = spellList.concat(circleSpells);
-        }
-      }
-    }
-  } else {
-    for (let index = 1; index < circle + 1; index += 1) {
-      spellList = spellList.concat(
-        dataRegistry.getDivineSpellsByCircleAndSupplements(index, supplements)
-      );
-    }
-
-    // Include arcane spells from specified schools (e.g., Teurgista Místico)
-    if (includeArcaneSchools && includeArcaneSchools.length > 0) {
-      for (let index = 1; index < circle + 1; index += 1) {
-        const arcaneCircle = dataRegistry.getSpellsByCircleAndSupplements(
-          index,
-          supplements
-        ).arcane;
-        const circleSpells = includeArcaneSchools.flatMap(
-          (school) => arcaneCircle[school] || []
-        );
-        if (crossTraditionLimit && circleSpells.length > 0) {
-          const randomSpell = getRandomItemFromArray(circleSpells);
-          spellList = spellList.concat(randomSpell);
-        } else {
-          spellList = spellList.concat(circleSpells);
-        }
-      }
-    }
-  }
-
-  if (schools) {
-    for (let index = 1; index < circle + 1; index += 1) {
-      const circleByType = dataRegistry.getSpellsByCircleAndSupplements(
-        index,
-        supplements
-      );
-      const schoolMap =
-        spellType === 'Arcane' ? circleByType.arcane : circleByType.divine;
-      const circleSpells = schools.flatMap((school) => schoolMap[school] || []);
-      spellList = index === 1 ? circleSpells : spellList.concat(circleSpells);
-    }
-  }
-
-  // Apply excludeSchools blacklist
-  if (excludeSchools && excludeSchools.length > 0) {
-    spellList = spellList.filter(
-      (spell) => !excludeSchools.includes(spell.school)
-    );
-  }
-
-  // Remove duplicates by name
-  spellList = spellList.filter(
-    (spell, index, self) =>
-      index === self.findIndex((s) => s.nome === spell.nome)
-  );
-
-  const filteredSpellList = spellList.filter(
+  const availableSpells = spells.filter(
     (spell) => !usedSpells.find((usedSpell) => usedSpell.nome === spell.nome)
   );
 
-  const selectedSpells = pickFromArray(
-    filteredSpellList,
-    nivel === 1 ? initialSpells : qtySpellsLearn
-  );
+  const qty = nivel === 1 ? initialSpells : qtySpellsLearnAtLevel(nivel);
+  // O mínimo obrigatório da tradição oposta vale só para as magias iniciais
+  // ("você aprende uma magia divina de 1º círculo").
+  const minCross =
+    nivel === 1 ? spellPath.crossTraditionRules?.minInitialSpells ?? 0 : 0;
 
-  return selectedSpells;
+  return pickWithMinimumCrossTradition(
+    availableSpells,
+    crossNames,
+    qty,
+    minCross
+  );
 }
 
 export function calculateMaxSpaces(forca: number): number {
@@ -4008,7 +3948,8 @@ function levelUp(
     sheet.classe,
     sheet.spells,
     supplements,
-    getDeityMaxSpellCircle(updatedSheet)
+    getDeityMaxSpellCircle(updatedSheet),
+    getCharacterPowerNames(updatedSheet)
   );
   // Filter out duplicates before adding
   const uniqueNewSpells = newSpells.filter(
@@ -4554,10 +4495,11 @@ export function applyManualLevelUp(
   // Apply newly available class abilities for this level
   // For multiclass: use selected class's abilities filtered by CLASS level,
   // plus any setup abilities (e.g. Feiticeiro linhagem)
-  const activeClassForAbilities = selectedClassDesc || updatedSheet.classe;
-  const baseAbilitiesForLevel =
-    activeClassForAbilities.originalAbilities ||
-    activeClassForAbilities.abilities;
+  const baseAbilitiesForLevel = getBaseAbilitiesForLevelUp(
+    updatedSheet.classe,
+    selectedClassDesc,
+    selectedClassName
+  );
   const setupAbilities = getClassSetupAbilities(
     selectedClassName,
     selections.classSetup
@@ -5742,7 +5684,8 @@ export default function generateRandomSheet(
     charSheet.classe,
     charSheet.spells,
     supplements,
-    getDeityMaxSpellCircle(charSheet)
+    getDeityMaxSpellCircle(charSheet),
+    getCharacterPowerNames(charSheet)
   );
   // Filter out duplicates before adding
   const uniqueNewSpells = newSpells.filter(
@@ -6060,41 +6003,17 @@ export function generateEmptySheet(
     const subtype = wizardSelections.arcanistaSubtype;
     modifiedClasse.subname = subtype;
 
-    // Set spellPath based on subtype
+    // Set spellPath based on subtype. Fonte única: `arcanistaSpellPaths` —
+    // literais duplicados aqui divergiam da definição da classe.
+    modifiedClasse.spellPath = getArcanistaSpellPath(subtype);
+
     if (subtype === 'Bruxo') {
-      modifiedClasse.spellPath = {
-        initialSpells: 3,
-        spellType: 'Arcane' as const,
-        qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
-        spellCircleAvailableAtLevel: (level: number) => {
-          if (level < 5) return 1;
-          if (level < 9) return 2;
-          if (level < 13) return 3;
-          if (level < 17) return 4;
-          return 5;
-        },
-        keyAttribute: Atributo.INTELIGENCIA,
-      };
       modifiedClasse.abilities.push({
         name: 'Caminho do Arcanista',
         text: 'Você é um bruxo, capaz de lançar magias através de um foco como uma varinha, cajado, chapéu, etc.',
         nivel: 1,
       });
     } else if (subtype === 'Mago') {
-      modifiedClasse.spellPath = {
-        initialSpells: 4,
-        spellType: 'Arcane' as const,
-        qtySpellsLearnAtLevel: (level) =>
-          [5, 9, 13, 17].includes(level) ? 2 : 1,
-        spellCircleAvailableAtLevel: (level) => {
-          if (level < 5) return 1;
-          if (level < 9) return 2;
-          if (level < 13) return 3;
-          if (level < 17) return 4;
-          return 5;
-        },
-        keyAttribute: Atributo.INTELIGENCIA,
-      };
       modifiedClasse.abilities.push({
         name: 'Caminho do Arcanista',
         text: 'Você é um mago, capaz de lançar magia através de todo o seu estudo mágico.',
@@ -6102,19 +6021,6 @@ export function generateEmptySheet(
       });
     } else if (subtype === 'Feiticeiro') {
       modifiedClasse.attrPriority = [Atributo.CARISMA];
-      modifiedClasse.spellPath = {
-        initialSpells: 3,
-        spellType: 'Arcane' as const,
-        qtySpellsLearnAtLevel: (level) => (level % 2 === 1 ? 1 : 0),
-        spellCircleAvailableAtLevel: (level) => {
-          if (level < 5) return 1;
-          if (level < 9) return 2;
-          if (level < 13) return 3;
-          if (level < 17) return 4;
-          return 5;
-        },
-        keyAttribute: Atributo.CARISMA,
-      };
       modifiedClasse.abilities.push({
         name: 'Caminho do Arcanista',
         text: 'Você é um feiticeiro, capaz de lançar magias através de um poder inato que corre no seu sangue.',
@@ -6160,11 +6066,10 @@ export function generateEmptySheet(
           modifiedClasse.abilities.push(linhagemRubra);
         }
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada') {
-        // Linhagem Abençoada: include divine spells from all schools and grant
-        // one extra spell (the divine spell), for a total of 4 at level 1.
         if (modifiedClasse.spellPath) {
-          modifiedClasse.spellPath.includeDivineSchools = allSpellSchools;
-          modifiedClasse.spellPath.initialSpells = 4;
+          modifiedClasse.spellPath = applyLinhagemAbencoadaToSpellPath(
+            modifiedClasse.spellPath
+          );
         }
 
         const deusEscolhido =
@@ -7159,7 +7064,7 @@ export function restoreSpellPath(
     if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
       const subtype = sheet.classe.subname as ArcanistaSubtypes;
       if (arcanistaSpellPaths[subtype]) {
-        sheet.classe.spellPath = { ...arcanistaSpellPaths[subtype] };
+        sheet.classe.spellPath = getArcanistaSpellPath(subtype);
       }
     } else {
       const baseClass = resolveClassByName();
@@ -7186,12 +7091,18 @@ export function restoreSpellPath(
     sheet.classe.spellPath.includeArcaneSchools;
   const originalCrossTraditionLimit =
     sheet.classe.spellPath.crossTraditionLimit;
+  // Estes dois vêm do setup da ficha (Linhagem Abençoada dá 4 magias iniciais
+  // e limita as divinas ao 1º círculo) e não existem na definição da classe,
+  // então precisam ser capturados ANTES do rebuild abaixo.
+  const originalInitialSpells = sheet.classe.spellPath.initialSpells;
+  const originalCrossTraditionRules =
+    sheet.classe.spellPath.crossTraditionRules;
 
   if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
     // Arcanista: lookup by subtype (setup() randomizes, so we use the saved subname)
     const subtype = sheet.classe.subname as ArcanistaSubtypes;
     if (arcanistaSpellPaths[subtype]) {
-      sheet.classe.spellPath = { ...arcanistaSpellPaths[subtype] };
+      sheet.classe.spellPath = getArcanistaSpellPath(subtype);
     }
   } else {
     const baseClass = resolveClassByName();
@@ -7215,13 +7126,14 @@ export function restoreSpellPath(
   // Restore user-customized fields from serialized data onto the restored spellPath
   if (sheet.classe.spellPath) {
     applySerializedOverrides(sheet.classe.spellPath, {
-      initialSpells: sheet.classe.spellPath.initialSpells,
+      initialSpells: originalInitialSpells,
       spellType: sheet.classe.spellPath.spellType,
       schools: originalSchools,
       excludeSchools: sheet.classe.spellPath.excludeSchools,
       includeDivineSchools: originalIncludeDivineSchools,
       includeArcaneSchools: originalIncludeArcaneSchools,
       crossTraditionLimit: originalCrossTraditionLimit,
+      crossTraditionRules: originalCrossTraditionRules,
       keyAttribute: originalKeyAttribute,
       className: sheet.classe.name,
       classSubname: sheet.classe.subname,

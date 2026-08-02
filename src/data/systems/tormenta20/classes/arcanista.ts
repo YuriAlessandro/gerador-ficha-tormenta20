@@ -168,6 +168,50 @@ export const DEUSES_MAIORES = [
   'Wynna',
 ];
 
+/** Poderes de classe que destravam círculos divinos da Linhagem Abençoada. */
+export const HERANCA_APRIMORADA = 'Herança Aprimorada';
+export const HERANCA_SUPERIOR = 'Herança Superior';
+
+/**
+ * Cópia do spellPath do subtipo. `arcanistaSpellPaths` é um singleton de
+ * módulo e vários pontos do código mutam `sheet.classe.spellPath` in place
+ * (`applyTeurgistaMistico`, por exemplo) — sem a cópia, uma ficha contamina
+ * todas as outras geradas depois na mesma sessão.
+ */
+export function getArcanistaSpellPath(subtype: ArcanistaSubtypes): SpellPath {
+  return { ...arcanistaSpellPaths[subtype] };
+}
+
+/**
+ * Fonte única dos efeitos da Linhagem Abençoada sobre o spellPath (Deuses de
+ * Arton, pág. 33):
+ *
+ * - "Você aprende uma magia divina de 1º círculo" → +1 magia inicial (3 → 4),
+ *   sendo pelo menos uma delas obrigatoriamente divina (`minInitialSpells`).
+ * - "e pode aprender magias divinas de 1º círculo como magias de feiticeiro"
+ *   → a lista divina SOMA à arcana (não substitui), limitada ao 1º círculo.
+ * - Herança Aprimorada libera 2º e 3º círculos; Herança Superior, 4º e 5º.
+ *
+ * Nunca muta: devolve um novo SpellPath.
+ */
+export function applyLinhagemAbencoadaToSpellPath(
+  spellPath: SpellPath
+): SpellPath {
+  return {
+    ...spellPath,
+    initialSpells: spellPath.initialSpells + 1,
+    includeDivineSchools: allSpellSchools,
+    crossTraditionRules: {
+      maxCircle: 1,
+      maxCircleByPower: [
+        { powerName: HERANCA_APRIMORADA, maxCircle: 3 },
+        { powerName: HERANCA_SUPERIOR, maxCircle: 5 },
+      ],
+      minInitialSpells: 1,
+    },
+  };
+}
+
 export function createLinhagemAbencoada(deus: string): ClassAbility[] {
   const abilities: ClassAbility[] = [
     {
@@ -499,7 +543,7 @@ const ARCANISTA: ClassDescription = {
     if (!modifiedClasse.periciasbasicas) modifiedClasse.periciasbasicas = [];
     const subtype = getRandomItemFromArray(allArcanistaSubtypes);
     modifiedClasse.subname = subtype;
-    modifiedClasse.spellPath = arcanistaSpellPaths[subtype];
+    modifiedClasse.spellPath = getArcanistaSpellPath(subtype);
     modifiedClasse.abilities.push(classAbilities[subtype]);
     if (subtype === 'Feiticeiro') {
       modifiedClasse.attrPriority = [Atributo.CARISMA];
@@ -516,13 +560,20 @@ const ARCANISTA: ClassDescription = {
       const selectedSubType = getRandomItemFromArray(availablePaths);
 
       if (selectedSubType.name === 'Linhagem Dracônica') {
-        selectedSubType.text += `. Tipo escolhido: ${getRandomItemFromArray([
-          'Ácido',
-          'Elétrico',
-          'Fogo',
-          'Frio',
-        ])}`;
-        modifiedClasse.abilities.push(selectedSubType);
+        // Cópia: `feiticeiroPaths` é um array de módulo e `[...feiticeiroPaths]`
+        // é raso, então `text +=` acumularia "Tipo escolhido: X" na definição
+        // compartilhada a cada ficha gerada na sessão.
+        modifiedClasse.abilities.push({
+          ...selectedSubType,
+          text: `${
+            selectedSubType.text
+          }. Tipo escolhido: ${getRandomItemFromArray([
+            'Ácido',
+            'Elétrico',
+            'Fogo',
+            'Frio',
+          ])}`,
+        });
       } else if (selectedSubType.name === 'Linhagem Feérica') {
         modifiedClasse.periciasbasicas.push({
           type: 'and',
@@ -535,15 +586,9 @@ const ARCANISTA: ClassDescription = {
         const deus = getRandomItemFromArray(DEUSES_MAIORES);
         const linhagemAbilities = createLinhagemAbencoada(deus);
         if (modifiedClasse.spellPath) {
-          // Clone the spellPath to avoid mutating the shared
-          // arcanistaSpellPaths['Feiticeiro'] reference across generations.
-          // Linhagem Abençoada adds divine spells to the pool and grants one
-          // extra spell, for a total of 4 at level 1.
-          modifiedClasse.spellPath = {
-            ...modifiedClasse.spellPath,
-            includeDivineSchools: allSpellSchools,
-            initialSpells: 4,
-          };
+          modifiedClasse.spellPath = applyLinhagemAbencoadaToSpellPath(
+            modifiedClasse.spellPath
+          );
         }
         modifiedClasse.abilities.push(...linhagemAbilities);
       }
