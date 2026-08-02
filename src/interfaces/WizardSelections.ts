@@ -4,7 +4,7 @@ import { SelectionOptions, ManualPowerSelections } from './PowerSelections';
 import { Spell, SpellSchool } from './Spells';
 import { ClassPower } from './Class';
 import { GeneralPower } from './Poderes';
-import { OriginBenefits } from './Origin';
+import { Items, OriginBenefits } from './Origin';
 import { MarketSelections } from './MarketEquipment';
 import Equipment, { DefenseEquipment } from './Equipment';
 import { AttributeVariant } from './Race';
@@ -131,6 +131,13 @@ export interface WizardSelections {
 
   // Cached origin benefits (computed once to prevent random re-selection on navigation)
   cachedOriginBenefits?: OriginBenefits;
+
+  // Itens da origem congelados na 1ª entrada do passo. `getItems()` re-sorteia a
+  // cada chamada, então sem o cache a lista exibida discorda da que vai pra ficha.
+  cachedOriginItems?: Items[];
+
+  // Escolhas de item da origem: `choice.key` -> nome do item escolhido.
+  originItemChoices?: Record<string, string>;
 
   // Origin power selections (if origin powers need selection)
   originPowerSelections?: SelectionOptions;

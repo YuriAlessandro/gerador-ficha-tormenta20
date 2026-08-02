@@ -5,7 +5,7 @@ import Origin, {
 import atlasOriginPowers from '../powers/originPowers';
 import Skill from '../../../../../interfaces/Skills';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -60,13 +60,9 @@ const PROFETA_DO_AKZATH: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSelecionada = getRandomItemFromArray(todasArmas);
 
     return [
-      {
-        equipment: armaSelecionada,
-        qtd: 1,
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas, 1),
       {
         equipment: Armas.BORDAO,
         qtd: 1,

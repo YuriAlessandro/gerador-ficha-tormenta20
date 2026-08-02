@@ -5,7 +5,7 @@ import Origin, {
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -38,13 +38,8 @@ const ANAO_DE_ARMAS: Origin = {
       Armas.PICARETA_DE_GUERRA,
     ];
 
-    const armaSorteada = getRandomItemFromArray(armasTradicoinaisAnas);
-
     return [
-      {
-        equipment: armaSorteada,
-        description: 'Arma marcial tradicional anã',
-      },
+      itemChoice('arma', 'Arma marcial tradicional anã', armasTradicoinaisAnas),
       {
         equipment: 'Instrumentos de Ofício (armeiro)',
       },

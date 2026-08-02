@@ -5,7 +5,7 @@ import Origin, {
 import atlasOriginPowers from '../powers/originPowers';
 import Skill from '../../../../../interfaces/Skills';
 import { Armas, Armaduras } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -46,13 +46,8 @@ const RECRUTA_DA_FENIX: Origin = {
       Armas.ALABARDA,
     ];
 
-    const armaSelecionada = getRandomItemFromArray(armasMarciais);
-
     return [
-      {
-        equipment: armaSelecionada,
-        qtd: 1,
-      },
+      itemChoice('arma', 'Arma marcial', armasMarciais, 1),
       {
         equipment: Armaduras.BRUNEA,
         qtd: 1,

@@ -5,7 +5,7 @@ import Origin, {
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 function getAllRegionalBenefits(): OriginBenefits {
   return {
@@ -50,13 +50,8 @@ const ARMEIRO_ARMADO: Origin = {
       Armas.TRIDENTE,
     ];
 
-    const armaSorteada = getRandomItemFromArray(armasMarciais);
-
     return [
-      {
-        equipment: armaSorteada,
-        description: 'Arma marcial',
-      },
+      itemChoice('arma', 'Arma marcial', armasMarciais),
       {
         equipment: 'Instrumentos de Ofício (armeiro)',
       },

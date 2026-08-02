@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 function getAllRegionalBenefits(): OriginBenefits {
   return {
@@ -62,13 +62,9 @@ const APRENDIZ_DE_DRAGOEIRO: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSorteada = getRandomItemFromArray(todasArmas);
 
     return [
-      {
-        equipment: armaSorteada,
-        description: 'Arma simples ou marcial',
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas),
       {
         equipment: 'Troféu de caça',
       },

@@ -6,6 +6,7 @@ import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -45,8 +46,6 @@ const NOBRE_ZAKHAROVIANO: Origin = {
       Armas.MONTANTE,
     ];
 
-    const armaSelecionada = getRandomItemFromArray(armasMarciais);
-
     // Lista de melhorias possíveis
     const melhorias = [
       'Acurada',
@@ -60,10 +59,11 @@ const NOBRE_ZAKHAROVIANO: Origin = {
     const melhoria = getRandomItemFromArray(melhorias);
 
     return [
-      {
-        equipment: armaSelecionada,
-        description: `Arma superior com melhoria: ${melhoria}`,
-      },
+      itemChoice(
+        'arma',
+        `Arma marcial superior com melhoria: ${melhoria}`,
+        armasMarciais
+      ),
       {
         equipment: 'Traje da corte',
         qtd: 1,

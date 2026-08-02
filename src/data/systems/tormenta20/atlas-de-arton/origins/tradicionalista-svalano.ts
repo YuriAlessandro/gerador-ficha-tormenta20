@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -59,13 +59,9 @@ const TRADICIONALISTA_SVALANO: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSelecionada = getRandomItemFromArray(todasArmas);
 
     return [
-      {
-        equipment: armaSelecionada,
-        qtd: 1,
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas, 1),
       {
         equipment: 'Corda',
         qtd: 1,

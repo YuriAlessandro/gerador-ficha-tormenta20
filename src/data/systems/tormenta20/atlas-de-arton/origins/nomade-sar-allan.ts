@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -58,20 +58,15 @@ const NOMADE_SAR_ALLAN: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSelecionada = getRandomItemFromArray(todasArmas);
-
-    // Escolhe entre corcel do deserto e dromedário
-    const montarias = ['Corcel do deserto', 'Dromedário'];
-    const montariaSelecionada = getRandomItemFromArray(montarias);
 
     return [
-      {
-        equipment: armaSelecionada,
-      },
-      {
-        equipment: montariaSelecionada,
-        qtd: 1,
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas),
+      itemChoice(
+        'montaria',
+        'Corcel do deserto ou dromedário',
+        ['Corcel do deserto', 'Dromedário'],
+        1
+      ),
       {
         equipment: 'Manto camuflado (deserto)',
         qtd: 1,

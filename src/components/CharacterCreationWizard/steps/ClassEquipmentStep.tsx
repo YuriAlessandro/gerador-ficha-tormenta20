@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  Typography,
-  Alert,
-  Chip,
-  Divider,
-  Card,
-  CardActionArea,
-} from '@mui/material';
+import { Box, Typography, Alert, Chip, Divider } from '@mui/material';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import ItemStats from '@/components/common/ItemStats';
 import { ClassDescription } from '@/interfaces/Class';
@@ -19,6 +11,7 @@ import EQUIPAMENTOS, {
 } from '@/data/systems/tormenta20/equipamentos';
 import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
 import { isClassOrVariantOf } from '@/functions/general';
+import SelectableItemGrid from './SelectableItemGrid';
 
 interface ClassEquipmentStepProps {
   classe: ClassDescription;
@@ -47,40 +40,11 @@ const ClassEquipmentStep: React.FC<ClassEquipmentStepProps> = ({
     selectedName: string | undefined,
     onSelect: (item: Equipment | DefenseEquipment) => void
   ) => (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: {
-          xs: '1fr',
-          sm: 'repeat(auto-fill, minmax(220px, 1fr))',
-        },
-        gap: 1,
-      }}
-    >
-      {items.map((item) => {
-        const isSelected = selectedName === item.nome;
-        return (
-          <Card
-            key={item.nome}
-            variant='outlined'
-            sx={{
-              borderColor: isSelected ? 'primary.main' : 'divider',
-              borderWidth: isSelected ? 2 : 1,
-              backgroundColor: isSelected
-                ? 'rgba(209, 50, 53, 0.08)'
-                : 'transparent',
-            }}
-          >
-            <CardActionArea onClick={() => onSelect(item)} sx={{ p: 1.5 }}>
-              <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
-                {item.nome}
-              </Typography>
-              <ItemStats item={item} />
-            </CardActionArea>
-          </Card>
-        );
-      })}
-    </Box>
+    <SelectableItemGrid
+      items={items}
+      selectedName={selectedName}
+      onSelect={(item) => onSelect(item as Equipment | DefenseEquipment)}
+    />
   );
 
   const fixedItems: (Equipment | DefenseEquipment)[] = [];

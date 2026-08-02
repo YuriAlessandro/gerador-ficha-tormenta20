@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armaduras, Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -58,12 +58,9 @@ const INICIADO_DOS_CACA_MONSTROS: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSorteada = getRandomItemFromArray(todasArmas);
 
     return [
-      {
-        equipment: armaSorteada,
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas),
       {
         equipment: Armaduras.GIBAODEPELES,
       },

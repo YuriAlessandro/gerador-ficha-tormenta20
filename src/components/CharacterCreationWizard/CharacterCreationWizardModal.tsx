@@ -25,7 +25,7 @@ import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race, { AttributeVariant } from '@/interfaces/Race';
 import { ClassDescription, SpellPath } from '@/interfaces/Class';
 import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
-import Origin, { OriginBenefits } from '@/interfaces/Origin';
+import Origin, { Items, OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
 import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
@@ -42,13 +42,13 @@ import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
 import {
   applyAttributeVariant,
   buildClassEquipmentsFromChoices,
-  convertOriginItemsToBagEquipments,
   getEffectiveRaceAttrs,
   getInitialMoneyWithDetails,
   isClassOrVariantOf,
   raceHasSexDimorphism,
   resolveSexForAttributes,
 } from '@/functions/general';
+import { getOriginBagEquipments } from '@/functions/originItems';
 import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
 import { rollAttributePool } from '@/functions/attributeMethods';
 import {
@@ -89,6 +89,7 @@ import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
 import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 import ClassEquipmentStep from './steps/ClassEquipmentStep';
+import OriginItemStep from './steps/OriginItemStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
 import MoreauSapienciaSpellStep from './steps/MoreauSapienciaSpellStep';
 import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
@@ -303,6 +304,18 @@ const CharacterCreationWizardModal: React.FC<
     return allOrigins.find((o: Origin) => o.name === selectedOptions.origin);
   }, [supplements, selectedOptions.origin]);
 
+  // Congela os itens da origem assim que ela é escolhida. `getItems()` sorteia a
+  // cada chamada, então sem isso a lista exibida no passo de benefícios, a do
+  // passo de itens, a do Mercado e a que vai pra ficha seriam todas diferentes.
+  // Trocar de origem descarta o cache e as escolhas antigas.
+  useEffect(() => {
+    setSelections((prev) => ({
+      ...prev,
+      cachedOriginItems: origin?.getItems(),
+      originItemChoices: undefined,
+    }));
+  }, [origin]);
+
   // Memoize deity to prevent infinite re-renders (used as useEffect dependency)
   // Use registry to get deity with supplement powers merged
   const deity: Divindade | null = useMemo(() => {
@@ -401,6 +414,15 @@ const CharacterCreationWizardModal: React.FC<
   const needsOriginPowers = (): boolean =>
     // For now, always skip (placeholder implementation)
     false;
+
+  // Itens da origem que o jogador escolhe (ex.: Gladiador, "uma arma marcial ou
+  // exótica"). Lê do cache quando já congelado — `getItems()` re-sorteia a cada
+  // chamada, mas a existência de escolhas é estável entre sorteios.
+  const originItems = (): Items[] =>
+    selections.cachedOriginItems || origin?.getItems() || [];
+
+  const needsOriginItemChoice = (): boolean =>
+    !!origin && originItems().some((item) => item.choice);
 
   const needsCompanionCreation = (): boolean => classe?.name === 'Treinador';
 
@@ -680,6 +702,7 @@ const CharacterCreationWizardModal: React.FC<
     if (needsClassPowers()) stepsArray.push('Poderes da Classe');
     if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
     if (needsCompanionCreation()) stepsArray.push('Melhor Amigo');
+    if (needsOriginItemChoice()) stepsArray.push('Itens da Origem');
     if (classe) stepsArray.push('Equipamento Inicial');
     stepsArray.push('Mercado'); // Always show as final step
     return stepsArray;
@@ -815,31 +838,14 @@ const CharacterCreationWizardModal: React.FC<
       });
     };
 
-    // Add origin items (for regional origins)
-    if (currentOrigin?.isRegional) {
-      mergeIntoBag(convertOriginItemsToBagEquipments(currentOrigin.getItems()));
-    }
-
-    // Add items from non-regional origin benefits if selected as 'item' type
-    if (
-      currentSelections.originBenefits &&
-      currentOrigin &&
-      !currentOrigin.isRegional
-    ) {
-      const originItems = currentOrigin.getItems();
-      currentSelections.originBenefits
-        .filter((b) => b.type === 'item')
-        .forEach((benefit) => {
-          const item = originItems.find((i) => {
-            const itemName =
-              typeof i.equipment === 'string' ? i.equipment : i.equipment.nome;
-            return itemName === benefit.name;
-          });
-          if (item) {
-            mergeIntoBag(convertOriginItemsToBagEquipments([item]));
-          }
-        });
-    }
+    // Itens da origem: gratuitos e automáticos para TODAS as origens (JDA).
+    // Usa os itens congelados + as escolhas do passo "Itens da Origem".
+    mergeIntoBag(
+      getOriginBagEquipments(currentOrigin, {
+        choices: currentSelections.originItemChoices,
+        cachedItems: currentSelections.cachedOriginItems,
+      })
+    );
 
     // Add class starting equipment chosen in the "Equipamento Inicial" step
     if (classe && currentSelections.classEquipment) {
@@ -1135,6 +1141,7 @@ const CharacterCreationWizardModal: React.FC<
             }
             usedSkills={getAllUsedSkills()}
             cachedBenefits={selections.cachedOriginBenefits}
+            cachedItems={selections.cachedOriginItems}
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
             race={raceWithVariant}
@@ -1445,6 +1452,19 @@ const CharacterCreationWizardModal: React.FC<
             }
             onTricksChange={(tricks) =>
               setSelections((prev) => ({ ...prev, companionTricks: tricks }))
+            }
+          />
+        );
+
+      case 'Itens da Origem':
+        if (!origin) return null;
+        return (
+          <OriginItemStep
+            origin={origin}
+            items={originItems()}
+            choices={selections.originItemChoices}
+            onChange={(originItemChoices) =>
+              setSelections((prev) => ({ ...prev, originItemChoices }))
             }
           />
         );
@@ -1791,6 +1811,13 @@ const CharacterCreationWizardModal: React.FC<
           hasTricks &&
           hasSpiritEnergy
         );
+      }
+
+      case 'Itens da Origem': {
+        const chosen = selections.originItemChoices || {};
+        return originItems()
+          .filter((item) => item.choice)
+          .every((item) => !!item.choice && !!chosen[item.choice.key]);
       }
 
       case 'Equipamento Inicial': {

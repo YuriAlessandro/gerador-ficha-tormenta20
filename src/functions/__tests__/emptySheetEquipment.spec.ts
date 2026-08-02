@@ -88,7 +88,14 @@ describe('generateEmptySheet - equipamento inicial de classe', () => {
     expect(sheet.bag.equipments.Arma.length).toBeGreaterThanOrEqual(2);
     expect(bagNames(sheet, 'Armadura')).toContain('Brunea');
     expect(bagNames(sheet, 'Escudo')).toContain('Escudo Leve');
-    expect(sheet.mainHandItemId).toBeDefined();
+
+    // A auto-empunhadura rodou. Não dá pra afirmar `mainHandItemId` aqui: as
+    // duas armas são sorteadas e, se ambas forem de duas mãos (~11% dos casos),
+    // o escudo ocupa a offhand e nenhuma delas cabe na mão principal — era essa
+    // a origem da flakiness deste teste.
+    expect(sheet.equipStateMigrated).toBe(true);
+    expect(sheet.wornArmorId).toBeDefined();
+    expect(sheet.offHandItemId).toBeDefined();
   });
 
   it('não injeta equipamento quando o usuário interagiu com o Mercado', () => {
@@ -137,18 +144,33 @@ describe('generateEmptySheet - itens e dinheiro de origem', () => {
     expect(sheet.dinheiro).toBeLessThanOrEqual(124);
   });
 
-  it('benefício de origem tipo item: adiciona o item escolhido ao bag', () => {
-    const wizSel: WizardSelections = {
+  it('origem do core: itens são concedidos automaticamente (não são benefício)', () => {
+    // Acólito dá Símbolo sagrado + Traje de Sacerdote. Pelo JDA os itens são
+    // gratuitos e não consomem nenhum dos 2 benefícios (perícias/poderes).
+    const sheet = generateEmptySheet(BASE_OPTIONS, {
       originBenefits: [
-        { type: 'item', name: 'Símbolo sagrado' },
-        { type: 'item', name: 'Traje de Sacerdote' },
+        { type: 'skill', name: 'Religião' },
+        { type: 'skill', name: 'Vontade' },
       ],
-    };
-
-    const sheet = generateEmptySheet(BASE_OPTIONS, wizSel);
+    });
 
     expect(bagNames(sheet, 'Item Geral')).toContain('Símbolo sagrado');
     expect(bagNames(sheet, 'Item Geral')).toContain('Traje de Sacerdote');
+  });
+
+  it('origem do core sem nenhuma seleção do wizard também recebe os itens', () => {
+    const sheet = generateEmptySheet(BASE_OPTIONS, {});
+
+    expect(bagNames(sheet, 'Item Geral')).toContain('Símbolo sagrado');
+  });
+
+  it('anota a procedência do item em descricao', () => {
+    const sheet = generateEmptySheet(BASE_OPTIONS, {});
+
+    const simbolo = sheet.bag.equipments['Item Geral'].find(
+      (e) => e.nome === 'Símbolo sagrado'
+    );
+    expect(simbolo?.descricao).toContain('Recebido da origem: Acólito');
   });
 });
 

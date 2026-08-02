@@ -5,7 +5,7 @@ import Origin, {
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armaduras, Escudos } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -27,23 +27,16 @@ const ESCUDEIRO_DA_LUZ: Origin = {
   poderes: [atlasOriginPowers.ESCUDEIRO_DA_LUZ],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Escolhe entre cota de malha ou escudo pesado
-    const opcoes = [
-      { equipment: Armaduras.COTA_DE_MALHA },
-      { equipment: Escudos.ESCUDO_PESADO },
-    ];
-
-    const itemEscolhido = getRandomItemFromArray(opcoes);
-
-    return [
-      itemEscolhido,
-      {
-        equipment: 'Enfeite de elmo com o símbolo da Ordem da Luz',
-        description: 'Símbolo honorário da Ordem da Luz',
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('equipamento', 'Cota de malha ou escudo pesado', [
+      Armaduras.COTA_DE_MALHA,
+      Escudos.ESCUDO_PESADO,
+    ]),
+    {
+      equipment: 'Enfeite de elmo com o símbolo da Ordem da Luz',
+      description: 'Símbolo honorário da Ordem da Luz',
+    },
+  ],
 };
 
 export default ESCUDEIRO_DA_LUZ;

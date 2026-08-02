@@ -5,7 +5,7 @@ import Origin, {
 import atlasOriginPowers from '../powers/originPowers';
 import Skill from '../../../../../interfaces/Skills';
 import { Armas, Escudos } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -60,11 +60,6 @@ const SUCATEIRO_DE_BATALHAS: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSelecionada = getRandomItemFromArray(todasArmas);
-
-    // Escolhe entre escudo leve ou pesado
-    const escudos = [Escudos.ESCUDO_LEVE, Escudos.ESCUDO_PESADO];
-    const escudoSelecionado = getRandomItemFromArray(escudos);
 
     // Rola 4d6 para o dinheiro
     let dinheiro = 0;
@@ -73,18 +68,17 @@ const SUCATEIRO_DE_BATALHAS: Origin = {
     }
 
     return [
-      {
-        equipment: armaSelecionada,
-        qtd: 1,
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas, 1),
       {
         equipment: 'Bálsamo restaurador',
         qtd: 1,
       },
-      {
-        equipment: escudoSelecionado,
-        qtd: 1,
-      },
+      itemChoice(
+        'escudo',
+        'Escudo leve ou pesado',
+        [Escudos.ESCUDO_LEVE, Escudos.ESCUDO_PESADO],
+        1
+      ),
       {
         equipment: 'Essência de mana',
         qtd: 1,

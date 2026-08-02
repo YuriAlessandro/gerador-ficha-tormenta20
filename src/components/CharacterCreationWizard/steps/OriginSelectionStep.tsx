@@ -7,7 +7,7 @@ import {
   Checkbox,
   Paper,
 } from '@mui/material';
-import Origin, { OriginBenefits } from '@/interfaces/Origin';
+import Origin, { Items, OriginBenefits } from '@/interfaces/Origin';
 import Skill from '@/interfaces/Skills';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
@@ -41,6 +41,9 @@ interface OriginSelectionStepProps {
   onChange: (benefits: OriginBenefit[]) => void;
   usedSkills: Skill[];
   cachedBenefits?: OriginBenefits;
+  // Itens congelados pelo assistente. `origin.getItems()` re-sorteia a cada
+  // chamada, então usá-lo direto aqui faria a lista mudar a cada render.
+  cachedItems?: Items[];
   // Attributes for requirement checking
   baseAttributes?: Record<Atributo, number>;
   raceAttributes?: Atributo[];
@@ -55,6 +58,7 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   onChange,
   usedSkills,
   cachedBenefits,
+  cachedItems,
   baseAttributes,
   raceAttributes,
   race,
@@ -62,6 +66,12 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   classe,
 }) => {
   const REQUIRED_SELECTIONS = 2;
+
+  // Fallback ao `getItems()` só quando o assistente ainda não congelou a lista
+  const originItems = useMemo(
+    () => cachedItems || origin.getItems(),
+    [cachedItems, origin]
+  );
 
   // Build a mock sheet for power requirement checking
   const mockSheetForRequirements = useMemo((): CharacterSheet | null => {
@@ -197,16 +207,29 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             </Box>
           )}
 
-          {origin.getItems().length > 0 && (
+          {originItems.length > 0 && (
             <Box>
               <Typography variant='subtitle2'>Itens:</Typography>
-              {origin.getItems().map((item, index) => {
+              {originItems.map((item, index) => {
                 if (!item.equipment) return null;
                 const itemName =
                   typeof item.equipment === 'string'
                     ? item.equipment
                     : item.equipment.nome;
                 const itemKey = `${itemName}-${item.qtd || 1}-${index}`;
+
+                if (item.choice) {
+                  return (
+                    <Typography
+                      key={item.choice.key}
+                      variant='body2'
+                      sx={{ color: 'text.secondary' }}
+                    >
+                      • {item.choice.label} (você escolhe no passo “Itens da
+                      Origem”)
+                    </Typography>
+                  );
+                }
 
                 return (
                   <Typography
@@ -252,7 +275,7 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
         });
 
   // Items are always given automatically - not selectable
-  const items = origin.getItems();
+  const items = originItems;
 
   // Build benefit options - only skills and powers are selectable
   // Get all origin skills to show disabled ones that are already selected
@@ -412,6 +435,21 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
                 ? item.equipment
                 : item.equipment.nome;
             const itemKey = `${itemName}-${item.qtd || 1}-${index}`;
+
+            // Item com escolha: mostrar o rótulo do livro, não o sorteio — quem
+            // decide é o jogador, no passo "Itens da Origem".
+            if (item.choice) {
+              return (
+                <Typography
+                  key={item.choice.key}
+                  variant='body2'
+                  sx={{ color: 'text.secondary' }}
+                >
+                  • {item.choice.label} (você escolhe no passo “Itens da
+                  Origem”)
+                </Typography>
+              );
+            }
 
             return (
               <Typography

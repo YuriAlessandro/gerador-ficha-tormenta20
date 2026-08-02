@@ -4,8 +4,8 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import { DestinyPowers } from '../../powers/destinyPowers';
+import { itemChoice } from '../../originItemHelpers';
 
 function getAllRegionalBenefits(): OriginBenefits {
   return {
@@ -50,14 +50,7 @@ const COMPETIDOR_DO_CIRCUITO: Origin = {
       Armas.TRIDENTE,
     ];
 
-    const armaSorteada = getRandomItemFromArray(armasMarciais);
-
-    return [
-      {
-        equipment: armaSorteada,
-        description: 'Arma marcial',
-      },
-    ];
+    return [itemChoice('arma', 'Arma marcial', armasMarciais)];
   },
   getMoney: () => 100,
 };

@@ -693,6 +693,12 @@ export default interface CharacterSheet {
         name: string;
         powers: OriginPower[];
         selectedBenefits?: OriginBenefit[]; // Track which benefits were chosen (for editing)
+        // Itens da origem escolhidos pelo jogador: `choice.key` -> nome do item.
+        // Permite reeditar a escolha depois da criação.
+        itemChoices?: Record<string, string>;
+        // Ids, na mochila, dos itens concedidos pela origem. É o que permite
+        // trocar/remover esses itens sem mexer no resto do inventário.
+        grantedItemIds?: string[];
       }
     | undefined;
   spells: Spell[];

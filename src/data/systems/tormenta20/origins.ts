@@ -20,6 +20,7 @@ import {
 import CORE_POWERS from './core/powers';
 import Skill from '../../../interfaces/Skills';
 import EQUIPAMENTOS, { Armas } from './equipamentos';
+import { itemChoice } from './originItemHelpers';
 import combatPowers from './powers/combatPowers';
 import atlasMagicPowers from './atlas-de-arton/powers/magicPowers';
 import CharacterSheet, { SubStep } from '../../../interfaces/CharacterSheet';
@@ -481,33 +482,22 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Batedor: {
     name: 'Batedor',
-    getItems: (): Items[] => {
-      const allowedWapons = [
+    getItems: (): Items[] => [
+      itemChoice('arma', 'Uma arma simples ou marcial de ataque à distância', [
         Armas.ARCOCURTO,
         Armas.BESTALEVE,
         Armas.AZAGAIA,
         Armas.FUNDA,
         Armas.ARCO_LONGO,
         Armas.BESTA_PESADA,
-      ];
-
-      const selectedWeapon = getRandomItemFromArray(allowedWapons);
-
-      const originItems = [
-        {
-          equipment: selectedWeapon,
-          description: 'Uma arma simples ou marcial de ataque à distância',
-        },
-        {
-          equipment: 'Barraca',
-        },
-        {
-          equipment: 'Equipamento de viagem',
-        },
-      ];
-
-      return originItems;
-    },
+      ]),
+      {
+        equipment: 'Barraca',
+      },
+      {
+        equipment: 'Equipamento de viagem',
+      },
+    ],
     pericias: [Skill.FURTIVIDADE, Skill.PERCEPCAO, Skill.SOBREVIVENCIA],
     poderes: [
       originPowers.PROVA_DE_TUDO,
@@ -517,23 +507,17 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Capanga: {
     name: 'Capanga',
-    getItems: (): Items[] => {
-      const allowedWapons = [Armas.ADAGA, Armas.ESPADACURTA, Armas.FOICE];
-
-      const selectedWeapon = getRandomItemFromArray(allowedWapons);
-
-      const originItems = [
-        {
-          equipment: selectedWeapon,
-        },
-        {
-          equipment:
-            'Tatuagem ou outro adereço de sua gangue aprimorado (+1 em Intimidação)',
-        },
-      ];
-
-      return originItems;
-    },
+    getItems: (): Items[] => [
+      itemChoice('arma', 'Adaga, espada curta ou foice', [
+        Armas.ADAGA,
+        Armas.ESPADACURTA,
+        Armas.FOICE,
+      ]),
+      {
+        equipment:
+          'Tatuagem ou outro adereço de sua gangue aprimorado (+1 em Intimidação)',
+      },
+    ],
     pericias: [Skill.LUTA, Skill.INTIMIDACAO],
     poderes: [originPowers.CONFISSAO],
     getPowersAndSkills: getBenefitsWithRandomCombatPower,
@@ -688,26 +672,15 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Gladiador: {
     name: 'Gladiador',
-    getItems: (): Items[] => {
-      const allowedWapons = [
+    getItems: (): Items[] => [
+      itemChoice('arma', 'Uma arma marcial ou exótica', [
         ...EQUIPAMENTOS.armasMarciais,
         ...EQUIPAMENTOS.armasExoticas,
-      ];
-
-      const selectedWeapon = getRandomItemFromArray(allowedWapons);
-
-      const originItems = [
-        {
-          equipment: selectedWeapon,
-          description: 'Uma arma marcial ou exótica',
-        },
-        {
-          equipment: 'Item sem valor recebido de um admirador',
-        },
-      ];
-
-      return originItems;
-    },
+      ]),
+      {
+        equipment: 'Item sem valor recebido de um admirador',
+      },
+    ],
     pericias: [Skill.ATUACAO, Skill.LUTA],
     poderes: [
       originPowers.PAO_E_CIRCO,
@@ -718,26 +691,15 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Guarda: {
     name: 'Guarda',
-    getItems: (): Items[] => {
-      const allowedWapons = [...EQUIPAMENTOS.armasMarciais];
-
-      const selectedWeapon = getRandomItemFromArray(allowedWapons);
-
-      const originItems = [
-        {
-          equipment: 'Insígnia da Milícia',
-        },
-        {
-          equipment: 'Apito',
-        },
-        {
-          equipment: selectedWeapon,
-          description: 'Uma arma marcial',
-        },
-      ];
-
-      return originItems;
-    },
+    getItems: (): Items[] => [
+      {
+        equipment: 'Insígnia da Milícia',
+      },
+      {
+        equipment: 'Apito',
+      },
+      itemChoice('arma', 'Uma arma marcial', [...EQUIPAMENTOS.armasMarciais]),
+    ],
     pericias: [Skill.INVESTIGACAO, Skill.LUTA, Skill.PERCEPCAO],
     poderes: [
       originPowers.DETETIVE,
@@ -815,16 +777,12 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   'Membro de Guilda': {
     name: 'Membro de Guilda',
-    getItems: (): Items[] => {
-      const allowedEquipments = [
-        { equipment: 'Gazua.' },
-        { equipment: 'Instrumento de Ofício' },
-      ];
-
-      const selectedItem = getRandomItemFromArray(allowedEquipments);
-
-      return [selectedItem];
-    },
+    getItems: (): Items[] => [
+      itemChoice('item', 'Gazua ou instrumentos de ofício', [
+        'Gazua',
+        'Instrumentos de ofício',
+      ]),
+    ],
     pericias: [
       Skill.DIPLOMACIA,
       Skill.ENGANACAO,
@@ -941,23 +899,12 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Selvagem: {
     name: 'Selvagem',
-    getItems: (): Items[] => {
-      const allowedWapons = [...EQUIPAMENTOS.armasSimples];
-
-      const selectedWeapon = getRandomItemFromArray(allowedWapons);
-
-      const originItems = [
-        {
-          equipment: 'Pequeno animal de estimação como um pássaro ou esquilo',
-        },
-        {
-          equipment: selectedWeapon,
-          description: 'Uma arma simples',
-        },
-      ];
-
-      return originItems;
-    },
+    getItems: (): Items[] => [
+      {
+        equipment: 'Pequeno animal de estimação como um pássaro ou esquilo',
+      },
+      itemChoice('arma', 'Uma arma simples', [...EQUIPAMENTOS.armasSimples]),
+    ],
     pericias: [Skill.PERCEPCAO, Skill.REFLEXOS, Skill.SOBREVIVENCIA],
     poderes: [
       originPowers.VIDA_RUSTICA,
@@ -967,24 +914,15 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Soldado: {
     name: 'Soldado',
-    getItems: (): Items[] => {
-      const selectedWeapon = getRandomItemFromArray(EQUIPAMENTOS.armasMarciais);
-
-      const originItems = [
-        {
-          equipment: selectedWeapon,
-          description: 'Uma arma marcial ou exótica',
-        },
-        {
-          equipment: 'Uniforme militar',
-        },
-        {
-          equipment: 'Insígnia de seu exército',
-        },
-      ];
-
-      return originItems;
-    },
+    getItems: (): Items[] => [
+      itemChoice('arma', 'Uma arma marcial', [...EQUIPAMENTOS.armasMarciais]),
+      {
+        equipment: 'Uniforme militar',
+      },
+      {
+        equipment: 'Insígnia de seu exército',
+      },
+    ],
     pericias: [Skill.FORTITUDE, Skill.GUERRA, Skill.LUTA, Skill.PONTARIA],
     poderes: [
       originPowers.INFLUENCIA_MILITAR,

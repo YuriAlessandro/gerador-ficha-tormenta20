@@ -5,6 +5,7 @@ import Origin, {
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -57,7 +58,6 @@ const FUTURA_LENDA: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSorteada = getRandomItemFromArray(todasArmas);
 
     // Nomes pomposos para armas
     const nomesPomposos = [
@@ -75,10 +75,11 @@ const FUTURA_LENDA: Origin = {
     const nomePomposo = getRandomItemFromArray(nomesPomposos);
 
     return [
-      {
-        equipment: armaSorteada,
-        description: `"${nomePomposo}" (arma comum sem melhorias, apenas nome pomposo)`,
-      },
+      itemChoice(
+        'arma',
+        `Arma simples ou marcial — "${nomePomposo}" (arma comum sem melhorias, apenas nome pomposo)`,
+        todasArmas
+      ),
       {
         equipment: 'Essência de mana',
         qtd: 2,

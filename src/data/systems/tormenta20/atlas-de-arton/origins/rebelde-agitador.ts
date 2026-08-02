@@ -5,7 +5,7 @@ import Origin, {
 import atlasOriginPowers from '../powers/originPowers';
 import Skill from '../../../../../interfaces/Skills';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -60,7 +60,6 @@ const REBELDE_AGITADOR: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSelecionada = getRandomItemFromArray(todasArmas);
 
     // Rola 6d12 para os impostos não pagos
     let impostos = 0;
@@ -69,10 +68,7 @@ const REBELDE_AGITADOR: Origin = {
     }
 
     return [
-      {
-        equipment: armaSelecionada,
-        qtd: 1,
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas, 1),
       {
         equipment: 'Panfleto revolucionário',
         qtd: 1,

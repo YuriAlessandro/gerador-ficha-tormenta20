@@ -5,7 +5,7 @@ import Origin, {
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -42,13 +42,8 @@ const AMOQUE_PURPURA: Origin = {
       Armas.MACHADINHA,
     ];
 
-    const armaSorteada = getRandomItemFromArray(armasSimples);
-
     return [
-      {
-        equipment: armaSorteada,
-        description: 'Arma simples',
-      },
+      itemChoice('arma', 'Arma simples', armasSimples),
       {
         equipment: 'Estandarte da sua tribo',
       },

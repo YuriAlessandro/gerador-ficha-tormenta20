@@ -4,8 +4,8 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import Skill from '../../../../../interfaces/Skills';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -44,14 +44,7 @@ const PRISIONEIRO_DAS_CATACUMBAS: Origin = {
       Armas.LANCA,
     ];
 
-    const armaSelecionada = getRandomItemFromArray(armasMarciais);
-
-    return [
-      {
-        equipment: armaSelecionada,
-        qtd: 1,
-      },
-    ];
+    return [itemChoice('arma', 'Arma marcial', armasMarciais, 1)];
   },
 };
 

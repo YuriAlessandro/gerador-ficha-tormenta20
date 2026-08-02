@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -43,13 +43,8 @@ const DUYSHID_AKK_INFILTRADO: Origin = {
       Armas.MONTANTE,
     ];
 
-    const armaSorteada = getRandomItemFromArray(armasMarciais);
-
     return [
-      {
-        equipment: armaSorteada,
-        description: 'Arma marcial',
-      },
+      itemChoice('arma', 'Arma marcial', armasMarciais),
       {
         equipment: 'Peças sobressalentes',
         description: 'T$ 100 para vender ou construir engenhocas',

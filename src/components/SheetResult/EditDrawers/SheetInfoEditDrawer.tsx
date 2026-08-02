@@ -84,6 +84,10 @@ import {
   applyRegionalOriginBenefits,
   removeOriginBenefits,
 } from '@/functions/originBenefits';
+import {
+  applyOriginItemChoices,
+  OriginItemChoices,
+} from '@/functions/originItems';
 import { GeneralPower } from '@/interfaces/Poderes';
 import {
   isMulticlass,
@@ -1516,10 +1520,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   };
 
   // Handle origin benefit selection
-  const handleOriginBenefitsSave = (selectedBenefits: OriginBenefit[]) => {
+  const handleOriginBenefitsSave = (
+    selectedBenefits: OriginBenefit[],
+    itemChoices: OriginItemChoices
+  ) => {
     if (!pendingOrigin) return;
 
-    // Remove old origin benefits first
+    // Remove old origin benefits first (inclui os itens já concedidos)
     let updatedSheet = removeOriginBenefits(sheet);
 
     // Apply new origin with selected benefits
@@ -1529,11 +1536,22 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       selectedBenefits
     );
 
-    // Merge origin-related updates
+    // Escolhas de item do jogador (troca a arma concedida, se houver)
+    updatedSheet = applyOriginItemChoices(
+      updatedSheet,
+      pendingOrigin,
+      itemChoices
+    );
+
+    // Merge origin-related updates.
+    // `bag` é obrigatório aqui: trocar de origem remove os itens antigos e
+    // concede os novos numa NOVA instância de Bag — sem propagá-la, a mochila
+    // do save continuaria sendo a antiga.
     const originUpdates = {
       ...pendingUpdates,
       origin: updatedSheet.origin,
       skills: updatedSheet.skills,
+      bag: updatedSheet.bag,
     };
 
     // Check if there's also a pending deity change

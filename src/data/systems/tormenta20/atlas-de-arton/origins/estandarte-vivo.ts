@@ -5,7 +5,7 @@ import Origin, {
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas, Armaduras } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -58,13 +58,9 @@ const ESTANDARTE_VIVO: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSorteada = getRandomItemFromArray(todasArmas);
 
     return [
-      {
-        equipment: armaSorteada,
-        description: 'Arma simples ou marcial',
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas),
       {
         equipment: Armaduras.GIBAO_DE_PELES,
       },

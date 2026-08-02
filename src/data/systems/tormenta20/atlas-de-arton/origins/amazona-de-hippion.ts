@@ -5,7 +5,7 @@ import Origin, {
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -57,13 +57,9 @@ const AMAZONA_DE_HIPPION: Origin = {
     ];
 
     const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSorteada = getRandomItemFromArray(todasArmas);
 
     return [
-      {
-        equipment: armaSorteada,
-        description: 'Arma simples ou marcial',
-      },
+      itemChoice('arma', 'Arma simples ou marcial', todasArmas),
       {
         equipment: 'Cavalo de guerra (montaria)',
       },

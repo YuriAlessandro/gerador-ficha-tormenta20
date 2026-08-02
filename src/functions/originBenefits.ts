@@ -5,17 +5,32 @@ import Origin from '@/interfaces/Origin';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import Skill from '@/interfaces/Skills';
+import {
+  grantOriginItemsToBag,
+  OriginItemChoices,
+  removeGrantedOriginItems,
+} from './originItems';
+
+/**
+ * Mantém as escolhas de item quando o jogador só editou os benefícios da MESMA
+ * origem; ao trocar de origem, as escolhas antigas não fazem mais sentido.
+ */
+function carryOverItemChoices(
+  sheet: CharacterSheet,
+  origin: Origin
+): OriginItemChoices | undefined {
+  return sheet.origin?.name === origin.name
+    ? sheet.origin?.itemChoices
+    : undefined;
+}
 
 /**
  * Removes origin benefits from the character sheet
- * This includes skills, powers, sheetBonuses, and sheetActionHistory granted by the origin
- *
- * NOTE: Items are NOT removed because Bag uses a complex BagEquipments structure
- * that groups items by category, making it difficult to track which items came from origin.
- * Skills can be removed if selectedBenefits is persisted in sheet.origin.
+ * This includes skills, powers, sheetBonuses, sheetActionHistory and the items
+ * granted by the origin (rastreados por id em `origin.grantedItemIds`).
  */
 export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
-  const updatedSheet = { ...sheet };
+  const updatedSheet = removeGrantedOriginItems(sheet);
 
   // Get origin power names for filtering
   const originPowerNames = sheet.origin?.powers?.map((p) => p.name) || [];
@@ -165,11 +180,9 @@ export function applyOriginBenefits(
         break;
       }
 
-      case 'item': {
-        // NOTE: Items are not automatically added to bag due to BagEquipments complexity
-        // Users will need to manually add origin items to their bag
-        break;
-      }
+      // `item` não é mais um benefício: itens de origem são concedidos de graça
+      // por `applyOriginItemChoices`, sem consumir um dos 2 slots. Fichas antigas
+      // ainda podem trazer entradas 'item' em selectedBenefits — caem no default.
 
       case 'power': {
         // Check if it's an origin power
@@ -203,20 +216,26 @@ export function applyOriginBenefits(
     }
   });
 
+  // Itens da origem: concedidos de graça, sem consumir slot de benefício.
+  const itemChoices = carryOverItemChoices(sheet, origin);
+  const grantedItemIds = grantOriginItemsToBag(updatedSheet.bag, origin, {
+    choices: itemChoices,
+  });
+
   // Update origin with powers and selected benefits
   updatedSheet.origin = {
     name: origin.name,
     powers: originPowers,
     selectedBenefits,
+    itemChoices,
+    grantedItemIds,
   };
 
   return updatedSheet;
 }
 
 /**
- * For regional origins, automatically grants all benefits
- *
- * NOTE: Items are NOT added to the bag (same limitation as applyOriginBenefits)
+ * For regional origins, automatically grants all benefits (skills, powers e itens)
  */
 export function applyRegionalOriginBenefits(
   sheet: CharacterSheet,
@@ -262,11 +281,19 @@ export function applyRegionalOriginBenefits(
     }
   });
 
+  // Itens da origem regional (podem incluir escolhas, ex.: Escudeiro da Luz)
+  const itemChoices = carryOverItemChoices(sheet, origin);
+  const grantedItemIds = grantOriginItemsToBag(updatedSheet.bag, origin, {
+    choices: itemChoices,
+  });
+
   // Set origin with all powers
   updatedSheet.origin = {
     name: origin.name,
     powers: originBenefits.powers.origin,
     // Regional origins don't need selectedBenefits since all are granted
+    itemChoices,
+    grantedItemIds,
   };
 
   return updatedSheet;

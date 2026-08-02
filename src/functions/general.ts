@@ -101,6 +101,10 @@ import {
 } from '../data/systems/tormenta20/races/functions/functions';
 import Origin, { Items } from '../interfaces/Origin';
 import {
+  convertOriginItemsToBagEquipments,
+  grantOriginItemsToBag,
+} from './originItems';
+import {
   GeneralPower,
   GeneralPowerType,
   OriginPower,
@@ -197,6 +201,10 @@ import {
   ArcanistaSubtypes,
   createLinhagemAbencoada,
 } from '../data/systems/tormenta20/classes/arcanista';
+
+// Reexportado por compatibilidade: a implementação vive em `originItems.ts`
+// (mover pra lá quebrou o ciclo de import general <-> originItems).
+export { convertOriginItemsToBagEquipments };
 
 // Race customization interface for races with customization options
 export interface RaceCustomization {
@@ -1152,66 +1160,21 @@ export function buildClassEquipmentsFromChoices(
   };
 }
 
-export function convertOriginItemsToBagEquipments(
-  items: Items[] | undefined
-): Partial<BagEquipments> {
-  const equipments: Partial<BagEquipments> = {
-    'Item Geral': [],
-  };
-
-  items?.forEach((equip) => {
-    if (typeof equip.equipment === 'string') {
-      equipments['Item Geral']?.push({
-        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-        group: 'Item Geral',
-      });
-    } else if (equip.equipment) {
-      // Clona: os objetos vêm dos catálogos, que são singletons compartilhados
-      // e cacheados. Colocá-los na mochila por referência faz `ensureIds`
-      // gravar o `id` no catálogo e vazar estado entre fichas.
-      const equipValue = { ...equip.equipment };
-
-      // Verifica se é uma armadura (comparação por nome)
-      if (
-        Object.values(Armaduras).some((armor) => armor.nome === equipValue.nome)
-      ) {
-        if (!equipments.Armadura) {
-          equipments.Armadura = [];
-        }
-        equipments.Armadura.push(equipValue as DefenseEquipment);
-      }
-      // Verifica se é um escudo
-      else if (
-        Object.values(Escudos).some((shield) => shield.nome === equipValue.nome)
-      ) {
-        if (!equipments.Escudo) {
-          equipments.Escudo = [];
-        }
-        equipments.Escudo.push(equipValue as DefenseEquipment);
-      }
-      // Arma ou item geral, conforme o grupo
-      else if (equipValue.group === 'Arma') {
-        if (!equipments.Arma) {
-          equipments.Arma = [];
-        }
-        equipments.Arma.push(equipValue);
-      } else {
-        equipments['Item Geral']?.push(equipValue);
-      }
-    }
-  });
-
-  return equipments;
-}
-
-function getInitialBag(origin: Origin | undefined): Bag {
-  // Apenas origens regionais (isRegional = true) adicionam itens automaticamente
-  // Origens do core não adicionam itens aqui (apenas se escolhidos nos 2 benefícios)
-  if (origin?.isRegional) {
-    return new Bag(convertOriginItemsToBagEquipments(origin.getItems()));
+function getInitialBag(origin: Origin | undefined, originItems?: Items[]): Bag {
+  // JDA: "Você começa com todos os itens descritos na linha 'Itens' de sua
+  // origem sem pagar por eles" — vale para TODAS as origens, não só as
+  // regionais. Itens são gratuitos e automáticos, independentes dos 2
+  // benefícios (perícias/poderes).
+  if (!origin) {
+    return new Bag({ 'Item Geral': [] });
   }
 
-  return new Bag({ 'Item Geral': [] });
+  return new Bag(
+    convertOriginItemsToBagEquipments(
+      originItems || origin.getItems(),
+      origin.name
+    )
+  );
 }
 
 function getThyatisPowers(
@@ -5298,7 +5261,10 @@ export default function generateRandomSheet(
   // Nada aqui - o step de origem será criado em getSkillsAndPowersByClassAndOrigin
 
   // Passo 5: itens, feitiços, e valores iniciais
-  const initialBag = getInitialBag(origin);
+  // Sorteia os itens da origem UMA vez: `getItems()` é não-determinístico, e a
+  // mochila e o histórico de geração precisam concordar.
+  const rolledOriginItems = origin?.getItems() ?? [];
+  const initialBag = getInitialBag(origin, rolledOriginItems);
   let initialMoney = getInitialMoney(targetLevel);
 
   // Adicionar dinheiro da origem, apenas se for origem regional
@@ -5471,31 +5437,30 @@ export default function generateRandomSheet(
         });
       }
 
-      // Adicionar itens (apenas para origens regionais)
-      if (origin.isRegional) {
-        const originItems = origin.getItems();
-        if (originItems && originItems.length > 0) {
-          const itemsList = originItems.map((item) => {
-            if (typeof item.equipment === 'string') {
-              const qtd = item.qtd ? `${item.qtd}x ` : '';
-              return `${qtd}${item.equipment}`;
-            }
-            return item.equipment.nome;
-          });
-          additionalSubsteps.push({
-            name: 'Itens',
-            value: itemsList.join(', '),
-          });
-        }
+      // Itens concedidos pela origem. Usa a MESMA lista que foi para a mochila
+      // (`rolledOriginItems`) — chamar `getItems()` de novo re-sortearia e o
+      // histórico listaria uma arma diferente da que está na ficha.
+      if (rolledOriginItems.length > 0) {
+        const itemsList = rolledOriginItems.map((item) => {
+          if (typeof item.equipment === 'string') {
+            const qtd = item.qtd ? `${item.qtd}x ` : '';
+            return `${qtd}${item.equipment}`;
+          }
+          return item.equipment.nome;
+        });
+        additionalSubsteps.push({
+          name: 'Itens',
+          value: itemsList.join(', '),
+        });
+      }
 
-        // Adicionar dinheiro (apenas para origens regionais)
-        if (origin.getMoney) {
-          const money = origin.getMoney();
-          additionalSubsteps.push({
-            name: 'Dinheiro adicional',
-            value: `T$ ${money}`,
-          });
-        }
+      // Adicionar dinheiro (apenas para origens regionais)
+      if (origin.isRegional && origin.getMoney) {
+        const money = origin.getMoney();
+        additionalSubsteps.push({
+          name: 'Dinheiro adicional',
+          value: `T$ ${money}`,
+        });
       }
 
       // Adicionar os novos substeps aos existentes
@@ -6698,16 +6663,11 @@ export function generateEmptySheet(
         // Use resolved powers from getPowersAndSkills
         originPowers = originBenefits.powers.origin;
 
-        // Itens e dinheiro da origem regional. Só no fallback: se o usuário
-        // interagiu com o Mercado, o bag do mercado já os contém.
-        if (!wizardSelections?.marketSelections) {
-          emptySheet.bag.addEquipment(
-            convertOriginItemsToBagEquipments(selectedOrigin.getItems())
-          );
-          if (selectedOrigin.getMoney) {
-            emptySheet.dinheiro =
-              (emptySheet.dinheiro || 0) + selectedOrigin.getMoney();
-          }
+        // Dinheiro extra da origem regional. Só no fallback: se o usuário
+        // interagiu com o Mercado, o bag do mercado já o contabilizou.
+        if (!wizardSelections?.marketSelections && selectedOrigin.getMoney) {
+          emptySheet.dinheiro =
+            (emptySheet.dinheiro || 0) + selectedOrigin.getMoney();
         }
       } else if (
         wizardSelections?.originBenefits &&
@@ -6748,25 +6708,12 @@ export function generateEmptySheet(
                 emptySheet.generalPowers.push(generalPower);
               }
             }
-          } else if (
-            benefit.type === 'item' &&
-            !wizardSelections?.marketSelections
-          ) {
-            // Item escolhido como benefício da origem. Só no fallback: se o
-            // usuário interagiu com o Mercado, o bag do mercado já o contém.
-            const benefitItem = selectedOrigin.getItems().find((i) => {
-              const itemName =
-                typeof i.equipment === 'string'
-                  ? i.equipment
-                  : i.equipment.nome;
-              return itemName === benefit.name;
-            });
-            if (benefitItem) {
-              emptySheet.bag.addEquipment(
-                convertOriginItemsToBagEquipments([benefitItem])
-              );
-            }
           }
+          // `benefit.type === 'item'` não é mais tratado aqui: itens de origem
+          // são concedidos gratuitamente para TODAS as origens no bloco abaixo,
+          // sem consumir um dos 2 slots de benefício. Fichas antigas podem ter
+          // itens em `selectedBenefits`; são ignorados sem perda (o item entra
+          // pelo caminho novo).
         });
 
         originPowers = resolvedOriginPowers;
@@ -6779,10 +6726,24 @@ export function generateEmptySheet(
         });
       }
 
+      // Itens da origem: gratuitos e automáticos para TODAS as origens (JDA,
+      // "Itens de Origem"). Só no fallback: se o usuário interagiu com o
+      // Mercado, o bag do mercado já os contém.
+      const itemChoices = wizardSelections?.originItemChoices;
+      let grantedItemIds: string[] | undefined;
+      if (!wizardSelections?.marketSelections) {
+        grantedItemIds = grantOriginItemsToBag(emptySheet.bag, selectedOrigin, {
+          choices: itemChoices,
+          cachedItems: wizardSelections?.cachedOriginItems,
+        });
+      }
+
       emptySheet.origin = {
         name: selectedOrigin.name,
         powers: originPowers as OriginPower[],
         selectedBenefits: wizardSelections?.originBenefits,
+        itemChoices,
+        grantedItemIds,
       };
     }
   }

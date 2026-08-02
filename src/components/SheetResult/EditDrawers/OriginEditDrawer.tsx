@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -18,13 +18,21 @@ import Skill from '@/interfaces/Skills';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { ORIGIN_POWER_TYPE } from '@/data/systems/tormenta20/powers/originPowers';
+import {
+  getOriginItemOptionName,
+  OriginItemChoices,
+} from '@/functions/originItems';
+import SelectableItemGrid from '@/components/CharacterCreationWizard/steps/SelectableItemGrid';
 
 interface OriginEditDrawerProps {
   open: boolean;
   onClose: () => void;
   origin: Origin;
   sheet: CharacterSheet;
-  onSave: (selectedBenefits: OriginBenefit[]) => void;
+  onSave: (
+    selectedBenefits: OriginBenefit[],
+    itemChoices: OriginItemChoices
+  ) => void;
 }
 
 const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
@@ -36,36 +44,85 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
 }) => {
   const REQUIRED_SELECTIONS = 2;
   const [selectedBenefits, setSelectedBenefits] = useState<OriginBenefit[]>([]);
+  const [itemChoices, setItemChoices] = useState<OriginItemChoices>({});
 
   // Get used skills from the character sheet
   const usedSkills: Skill[] = sheet.skills;
+
+  // `getItems()` re-sorteia a cada chamada; congelar por origem estabiliza a
+  // lista exibida. As `choice.options` são as mesmas em qualquer sorteio.
+  const items = useMemo(() => origin.getItems(), [origin]);
+  const choiceItems = useMemo(
+    () => items.filter((item) => item.choice),
+    [items]
+  );
+
+  // Fichas antigas gravaram itens como benefício (`type: 'item'`), o que
+  // consumia um dos 2 slots sem conceder nada. Filtrar aqui evita travar o gate
+  // de 2 seleções ao reabrir essas fichas.
+  const isSelectableBenefit = (benefit: OriginBenefit) =>
+    benefit.type !== 'item';
 
   // Reset selections when drawer opens or origin changes
   useEffect(() => {
     if (open) {
       // If sheet has previously selected benefits for this origin, use them
       if (sheet.origin?.selectedBenefits && sheet.origin.name === origin.name) {
-        setSelectedBenefits(sheet.origin.selectedBenefits);
+        setSelectedBenefits(
+          sheet.origin.selectedBenefits.filter(isSelectableBenefit)
+        );
       } else {
         setSelectedBenefits([]);
       }
+
+      setItemChoices(
+        sheet.origin?.name === origin.name
+          ? sheet.origin?.itemChoices || {}
+          : {}
+      );
     }
   }, [open, origin.name, sheet.origin]);
 
   const handleSave = () => {
-    onSave(selectedBenefits);
+    onSave(selectedBenefits, itemChoices);
     onClose();
   };
 
   const handleCancel = () => {
     // Reset to original selections
     if (sheet.origin?.selectedBenefits && sheet.origin.name === origin.name) {
-      setSelectedBenefits(sheet.origin.selectedBenefits);
+      setSelectedBenefits(
+        sheet.origin.selectedBenefits.filter(isSelectableBenefit)
+      );
     } else {
       setSelectedBenefits([]);
     }
     onClose();
   };
+
+  const renderItemChoices = () =>
+    choiceItems.map((item) => {
+      const { choice } = item;
+      if (!choice) return null;
+
+      return (
+        <Paper key={choice.key} sx={{ p: 2, mb: 3 }}>
+          <Typography variant='h6' gutterBottom>
+            {choice.label}
+          </Typography>
+          <SelectableItemGrid
+            items={choice.options}
+            selectedName={itemChoices[choice.key]}
+            onSelect={(option) =>
+              setItemChoices((prev) => ({
+                ...prev,
+                [choice.key]: getOriginItemOptionName(option),
+              }))
+            }
+          />
+        </Paper>
+      );
+    });
 
   // Regional origins grant all benefits automatically
   if (origin.isRegional) {
@@ -148,10 +205,22 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
               </Box>
             )}
 
-            {origin.getItems().length > 0 && (
+            {items.length > 0 && (
               <Box>
                 <Typography variant='subtitle2'>Itens:</Typography>
-                {origin.getItems().map((item) => {
+                {items.map((item) => {
+                  if (item.choice) {
+                    return (
+                      <Typography
+                        key={item.choice.key}
+                        variant='body2'
+                        sx={{ color: 'text.secondary' }}
+                      >
+                        • {item.choice.label} (a sua escolha)
+                      </Typography>
+                    );
+                  }
+
                   const itemName =
                     typeof item.equipment === 'string'
                       ? item.equipment
@@ -175,9 +244,11 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
             )}
           </Paper>
 
+          {renderItemChoices()}
+
           <Alert severity='success' sx={{ mb: 3 }}>
-            Nenhuma seleção necessária - todos os benefícios serão concedidos
-            automaticamente.
+            Perícias e poderes são concedidos automaticamente
+            {choiceItems.length > 0 ? '; escolha os itens acima' : ''}.
           </Alert>
 
           <Stack direction='row' spacing={2}>
@@ -208,18 +279,11 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
         skills: origin.pericias,
       };
 
-  const items = origin.getItems();
-
-  // Build benefit options
+  // Build benefit options — apenas perícias e poderes. Itens são concedidos de
+  // graça (JDA, "Itens de Origem") e não consomem um dos 2 slots.
   const skillOptions: OriginBenefit[] = originBenefits.skills.map((skill) => ({
     type: 'skill' as const,
     name: skill,
-  }));
-
-  const itemOptions: OriginBenefit[] = items.map((item) => ({
-    type: 'item' as const,
-    name:
-      typeof item.equipment === 'string' ? item.equipment : item.equipment.nome,
   }));
 
   // O fallback acima faz cast de todos os `origin.poderes` (inclusive poderes
@@ -312,8 +376,9 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
             mb: 2,
           }}
         >
-          A origem {origin.name} permite escolher {REQUIRED_SELECTIONS}{' '}
-          benefícios entre perícias, itens e poderes. Selecione abaixo:
+          A origem {origin.name} concede itens automaticamente e permite
+          escolher {REQUIRED_SELECTIONS} benefícios entre perícias e poderes.
+          Selecione abaixo:
         </Typography>
 
         <Typography
@@ -355,35 +420,8 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
             </Paper>
           )}
 
-          {/* Items Section */}
-          {itemOptions.length > 0 && (
-            <Paper sx={{ p: 2, mb: 2 }}>
-              <Typography variant='h6' gutterBottom>
-                Itens
-              </Typography>
-              {itemOptions.map((benefit) => {
-                const isSelected = selectedBenefits.some(
-                  (b) => b.type === benefit.type && b.name === benefit.name
-                );
-                const isDisabled =
-                  !isSelected && selectedBenefits.length >= REQUIRED_SELECTIONS;
-
-                return (
-                  <FormControlLabel
-                    key={`item-${benefit.name}`}
-                    control={
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={() => handleToggle(benefit)}
-                        disabled={isDisabled}
-                      />
-                    }
-                    label={benefit.name}
-                  />
-                );
-              })}
-            </Paper>
-          )}
+          {/* Itens com escolha — concedidos de graça, fora dos 2 benefícios */}
+          {renderItemChoices()}
 
           {/* Powers Section */}
           {powerOptions.length > 0 && (

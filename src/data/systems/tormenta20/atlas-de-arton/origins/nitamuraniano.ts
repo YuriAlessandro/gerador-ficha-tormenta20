@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { itemChoice } from '../../originItemHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -26,26 +26,15 @@ const NITAMURANIANO: Origin = {
   poderes: [atlasOriginPowers.NITAMURANIANO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Escolhe entre arco longo e katana
-    const armas = [Armas.ARCO_LONGO, 'Katana'];
-    const armaSelecionada = getRandomItemFromArray(armas);
-
-    // Escolhe entre camisa bufante e traje de seda
-    const roupas = ['Camisa bufante', 'Traje de seda'];
-    const roupaSelecionada = getRandomItemFromArray(roupas);
-
-    return [
-      {
-        equipment:
-          armaSelecionada === Armas.ARCO_LONGO ? Armas.ARCO_LONGO : 'Katana',
-      },
-      {
-        equipment: roupaSelecionada,
-        qtd: 1,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arco longo ou katana', [Armas.ARCO_LONGO, 'Katana']),
+    itemChoice(
+      'roupa',
+      'Camisa bufante ou traje de seda',
+      ['Camisa bufante', 'Traje de seda'],
+      1
+    ),
+  ],
 };
 
 export default NITAMURANIANO;
