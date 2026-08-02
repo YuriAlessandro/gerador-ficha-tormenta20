@@ -374,6 +374,42 @@ const Changelog: React.FC = () => {
                   primeira existia.
                 </li>
                 <li>
+                  <strong>Novo:</strong> <strong>busca e filtros</strong> na aba
+                  de Magias. Procure pelo nome ou por um trecho da descrição e
+                  filtre por círculo, escola, execução, magias com rolagem
+                  configurada ou (para o Mago) só as memorizadas.
+                </li>
+                <li>
+                  <strong>Novo:</strong> cada <strong>escola de magia</strong>{' '}
+                  agora tem um ícone e uma cor próprios — caveira para
+                  Necromancia, bola de cristal para Adivinhação, portal para
+                  Convocação e assim por diante. Dá para reconhecer a escola de
+                  relance, sem ler.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a{' '}
+                  <strong>aba de Magias foi refeita</strong>. A tabela de sete
+                  colunas, que cortava quase tudo (&quot;Pad…&quot;, &quot;1
+                  obje…&quot;), virou uma lista onde as informações quebram de
+                  linha em vez de serem cortadas — no celular, na tela do mestre
+                  ou no Owlbear, o texto aparece inteiro.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o <strong>custo em PM</strong>{' '}
+                  agora aparece na lista, no cabeçalho de cada círculo, e
+                  destacado na magia quando ela foge da regra.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> ao abrir uma magia, o detalhe
+                  mostra as <strong>rolagens configuradas</strong> e um botão{' '}
+                  <strong>Conjurar</strong> com o custo já calculado.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> no celular, tocar numa magia abre o
+                  detalhe numa <strong>janela de baixo</strong>, igual à aba de
+                  Poderes.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> os itens ganhos pela origem agora
                   vêm com a <strong>procedência anotada</strong> (&quot;Recebido
                   da origem: Gladiador — Uma arma marcial ou exótica&quot;),
@@ -422,6 +458,12 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> fichas <strong>já criadas</strong>{' '}
                   com uma herança de Suraggel passam a receber as escolhas novas
                   automaticamente, sem precisar refazer o personagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> magia com um{' '}
+                  <strong>círculo fora do padrão</strong> — vinda de homebrew ou
+                  criada à mão — sumia da aba de Magias sem aviso. Agora aparece
+                  num grupo <strong>Outras</strong>.
                 </li>
                 <li>
                   <strong>Correção:</strong> os <strong>itens de origem</strong>{' '}
