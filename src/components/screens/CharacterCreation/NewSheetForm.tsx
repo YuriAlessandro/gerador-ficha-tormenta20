@@ -332,6 +332,7 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
           <Select
             options={racas}
             placeholder='Selecione uma raça...'
+            value={racas.find((r) => r.value === selectedOptions.raca) ?? null}
             onChange={onSelectRaca}
             isSearchable
             styles={selectStyles}
@@ -355,6 +356,9 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
             options={classesopt}
             placeholder='Selecione uma classe...'
             formatOptionLabel={formatOptionLabel}
+            value={
+              classesopt.find((c) => c.value === selectedOptions.classe) ?? null
+            }
             onChange={onSelectClasse}
             isSearchable
             styles={selectStyles}
@@ -439,7 +443,15 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
             isSearchable
             formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
             onChange={onSelectNivel}
-            defaultValue={{ value: '1', label: 'Nível 1' }}
+            // Controlado (e não `defaultValue`): o formulário é remontado pelo
+            // `key={mode}` do layout e `selectedOptions` não é resetado — sem
+            // isso o campo volta a exibir "Nível 1" com o valor antigo no estado
+            value={
+              niveis.find((n) => Number(n.value) === selectedOptions.nivel) ?? {
+                value: String(selectedOptions.nivel),
+                label: `Nível ${selectedOptions.nivel}`,
+              }
+            }
             styles={selectStyles}
             menuPortalTarget={document.body}
             theme={(selectTheme) => ({
