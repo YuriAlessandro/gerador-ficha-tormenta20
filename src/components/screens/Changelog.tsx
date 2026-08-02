@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            01/08/2026 (v4.28).
+            02/08/2026 (v4.28).
           </p>
 
           <p>
@@ -331,6 +331,23 @@ const Changelog: React.FC = () => {
                   iniciativa, que antes não tinha como refazer uma rolagem.
                 </li>
                 <li>
+                  <strong>Novo:</strong> novo passo{' '}
+                  <strong>Itens da Origem</strong> no assistente de criação.
+                  Quando o livro diz &quot;uma arma marcial ou exótica&quot;
+                  (Gladiador), &quot;uma arma marcial&quot; (Guarda, Soldado) ou
+                  &quot;cota de malha ou escudo pesado&quot; (Escudeiro da Luz),
+                  agora é <strong>você</strong> quem escolhe — antes o item era
+                  sorteado. Vale para 31 origens do básico e do Atlas de Arton,
+                  e também dá para trocar a escolha depois, editando a origem da
+                  ficha.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> os itens ganhos pela origem agora
+                  vêm com a <strong>procedência anotada</strong> (&quot;Recebido
+                  da origem: Gladiador — Uma arma marcial ou exótica&quot;),
+                  visível na mochila e na tabela de equipamentos.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> a tela de iniciativa agora separa{' '}
                   <strong>Ameaças</strong> e <strong>Jogadores</strong> em
                   seções distintas, com os controles do mestre restritos à parte
@@ -361,6 +378,29 @@ const Changelog: React.FC = () => {
                   jogador agora se ajusta ao tamanho da tela: o texto cresce até
                   a maior fonte que ainda couber e fica centralizado. Antes saía
                   minúsculo num projetor.
+                </li>
+                <li>
+                  <strong>Correção:</strong> os <strong>itens de origem</strong>{' '}
+                  das origens do livro básico não estavam chegando na ficha. O
+                  assistente listava &quot;Itens (concedidos
+                  automaticamente)&quot; e a mochila saía sem eles — a arma do
+                  Gladiador, o arco do Batedor, o símbolo sagrado do Acólito.
+                  Pelo livro esses itens são gratuitos e automáticos, e agora
+                  são de fato concedidos, tanto na ficha aleatória quanto na
+                  criação customizada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o item sorteado pela origem mudava
+                  a cada vez que a tela era redesenhada, então a arma exibida no
+                  assistente quase nunca era a que ia parar na ficha. Agora o
+                  sorteio acontece uma vez só, e o histórico de geração mostra
+                  exatamente o que está na mochila.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao editar a origem de uma ficha, os
+                  itens apareciam como se fossem <strong>benefícios</strong>{' '}
+                  selecionáveis: marcar um deles gastava uma das suas 2 escolhas
+                  (perícia/poder) e não entregava item nenhum.
                 </li>
                 <li>
                   <strong>Correção:</strong> na ordem de turnos, criaturas
