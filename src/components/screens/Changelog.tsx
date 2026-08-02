@@ -342,6 +342,38 @@ const Changelog: React.FC = () => {
                   ficha.
                 </li>
                 <li>
+                  <strong>Novo:</strong> a habilidade{' '}
+                  <strong>Especialista</strong> do Ladino agora pergunta{' '}
+                  <strong>quais perícias</strong> você escolhe (a quantidade vem
+                  do seu modificador de Inteligência). Antes ela era só texto e
+                  ninguém era perguntado — nem quem a recebia pela origem{' '}
+                  <strong>Duplo Feérico</strong>, que agora encadeia a escolha
+                  no mesmo passo.
+                </li>
+                <li>
+                  <strong>Novo:</strong> a{' '}
+                  <strong>Herança de Nivenciuén</strong> (Suraggel) agora deixa
+                  você escolher a habilidade élfica que ela concede:{' '}
+                  <strong>Graça de Glórienn</strong> (deslocamento 12m) ou{' '}
+                  <strong>Sangue Mágico</strong> (+1 PM por nível). Antes só o
+                  +2 em Misticismo era aplicado.
+                </li>
+                <li>
+                  <strong>Novo:</strong> as heranças de <strong>Arbória</strong>{' '}
+                  e <strong>Chacina</strong> passam a conceder{' '}
+                  <strong>Forma Selvagem</strong> de verdade: você escolhe a
+                  forma na criação (Ágil, Sorrateira ou Veloz; Feroz ou
+                  Resistente) e ela fica disponível para uso na ficha, com o
+                  custo reduzido em 1 PM se você também tiver o poder do druida.
+                </li>
+                <li>
+                  <strong>Novo:</strong> a <strong>Herança de Werra</strong>{' '}
+                  agora oferece as duas opções da regra — proficiência com{' '}
+                  <strong>armas marciais</strong> ou com{' '}
+                  <strong>duas armas exóticas</strong> a sua escolha. Antes só a
+                  primeira existia.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> os itens ganhos pela origem agora
                   vêm com a <strong>procedência anotada</strong> (&quot;Recebido
                   da origem: Gladiador — Uma arma marcial ou exótica&quot;),
@@ -378,6 +410,18 @@ const Changelog: React.FC = () => {
                   jogador agora se ajusta ao tamanho da tela: o texto cresce até
                   a maior fonte que ainda couber e fica centralizado. Antes saía
                   minúsculo num projetor.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> ao editar a ficha, as heranças de
+                  Suraggel que envolvem uma escolha (Nivenciuén, Arbória e
+                  Chacina) agora mostram essa escolha em{' '}
+                  <strong>Editar &gt; Informações</strong>, dá para trocá-la
+                  quando quiser.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> fichas <strong>já criadas</strong>{' '}
+                  com uma herança de Suraggel passam a receber as escolhas novas
+                  automaticamente, sem precisar refazer o personagem.
                 </li>
                 <li>
                   <strong>Correção:</strong> os <strong>itens de origem</strong>{' '}
@@ -572,6 +616,23 @@ const Changelog: React.FC = () => {
                   montava outro personagem sem tocar nesses campos recebia outro
                   Bárbaro. Agora os campos sempre mostram o que está de fato
                   selecionado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao escolher uma{' '}
+                  <strong>herança de Suraggel</strong> no assistente, o passo
+                  &quot;Efeitos de Poderes&quot; continuava pedindo a escolha da
+                  habilidade padrão (<strong>Luz Sagrada</strong> /{' '}
+                  <strong>Sombras Profanas</strong>) e nunca a da herança
+                  escolhida. Valia para todas as heranças: Al-Gazara, Magika,
+                  Pelágia, Ramknal e Werra tinham suas escolhas{' '}
+                  <strong>sorteadas em silêncio</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> trocar a herança de Suraggel pelo
+                  editor da ficha não recalculava o personagem — os bônus da
+                  habilidade anterior continuavam valendo, e magias, perícias e
+                  proficiências dadas por ela iam se <strong>acumulando</strong>{' '}
+                  a cada troca.
                 </li>
               </ul>
               <h3>4.27</h3>
