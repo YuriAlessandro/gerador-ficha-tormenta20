@@ -684,6 +684,18 @@ const Changelog: React.FC = () => {
                   a <strong>Linhagem Dracônica</strong>, que ia acumulando
                   &quot;Tipo escolhido&quot; no texto da habilidade.
                 </li>
+                <li>
+                  <strong>Correção:</strong> na mesa, o botão{' '}
+                  <strong>&quot;Ativar na minha ficha&quot;</strong> nunca
+                  aparecia nos cards do histórico de rolagens quando o poder ou
+                  a magia tinha sido usado por <strong>outro jogador</strong>.
+                  As rolagens dos colegas chegavam sem horário, e o histórico as
+                  tratava como antigas demais para ainda oferecer o efeito.
+                  Agora, quando alguém do grupo usa uma habilidade que beneficia
+                  aliados, o card traz o botão para você ativar o efeito na sua
+                  ficha — e o horário volta a aparecer em todas as rolagens da
+                  mesa.
+                </li>
               </ul>
               <h3>4.27</h3>
               <ul>
