@@ -225,30 +225,37 @@ const SkillTable: React.FC<IProps> = ({
   return (
     <Box>
       <BookTitle>Perícias</BookTitle>
-      <TextField
-        fullWidth
-        size='small'
-        placeholder='Buscar perícia...'
-        value={localSearchQuery}
-        onChange={handleSearchChange}
-        sx={{ p: 1.5, width: '95%' }}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon color='action' fontSize='small' />
-              </InputAdornment>
-            ),
-            endAdornment: localSearchQuery && (
-              <InputAdornment position='end'>
-                <IconButton size='small' onClick={handleClearSearch} edge='end'>
-                  <ClearIcon fontSize='small' />
-                </IconButton>
-              </InputAdornment>
-            ),
-          },
-        }}
-      />
+      {/* O respiro lateral mora no wrapper: `width: '95%'` no campo deixava a
+          margem direita crescendo com a largura do card. */}
+      <Box sx={{ px: 1.5, pt: 1.5, pb: 0.5 }}>
+        <TextField
+          fullWidth
+          size='small'
+          placeholder='Buscar perícia...'
+          value={localSearchQuery}
+          onChange={handleSearchChange}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon color='action' fontSize='small' />
+                </InputAdornment>
+              ),
+              endAdornment: localSearchQuery && (
+                <InputAdornment position='end'>
+                  <IconButton
+                    size='small'
+                    onClick={handleClearSearch}
+                    edge='end'
+                  >
+                    <ClearIcon fontSize='small' />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+      </Box>
       <Box
         sx={{
           display: 'flex',
