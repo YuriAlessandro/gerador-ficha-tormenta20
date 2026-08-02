@@ -460,6 +460,12 @@ const Changelog: React.FC = () => {
                   automaticamente, sem precisar refazer o personagem.
                 </li>
                 <li>
+                  <strong>Correção:</strong> no card de{' '}
+                  <strong>Perícias</strong> da ficha, o campo de busca ficava
+                  desalinhado — a folga da direita crescia junto com a largura
+                  da tela e em alguns tamanhos o campo encostava na borda.
+                </li>
+                <li>
                   <strong>Correção:</strong> magia com um{' '}
                   <strong>círculo fora do padrão</strong> — vinda de homebrew ou
                   criada à mão — sumia da aba de Magias sem aviso. Agora aparece
