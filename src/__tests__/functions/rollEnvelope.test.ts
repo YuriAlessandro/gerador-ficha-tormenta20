@@ -11,10 +11,14 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   decodeRollLabel,
   encodeRollLabel,
+  normalizeDiceResultPayload,
   ENCODED_LABEL_MAX_LENGTH,
   ROLL_GROUPS_DELIMITER,
 } from '../../premium/services/rollEnvelope';
-import type { RollGroup } from '../../premium/services/socket.service';
+import type {
+  DiceRollPayload,
+  RollGroup,
+} from '../../premium/services/socket.service';
 
 const groups: RollGroup[] = [
   {
@@ -159,5 +163,125 @@ describe('compatibilidade com formatos antigos', () => {
     expect(decoded.rollGroups).toEqual(groups);
     expect(decoded.characterName).toBeUndefined();
     expect(decoded.ability).toBeUndefined();
+  });
+});
+
+/**
+ * O `timestamp` é o que decide se a oferta de efeito ativo ainda está dentro
+ * da janela de validade. O broadcast do backend não carregava o campo, então
+ * TODA rolagem vinda de outro jogador chegava sem horário e a oferta era
+ * descartada como antiga — o botão "Ativar na minha ficha" nunca aparecia.
+ */
+describe('normalizeDiceResultPayload', () => {
+  const RECEIVED_AT = 1_700_000_000_000;
+
+  const legacyPayload = (rollLabel: string): DiceRollPayload => ({
+    tableId: 'mesa-1',
+    playerId: 'jogador-1',
+    playerName: 'Yuri',
+    rollLabel,
+    diceNotation: '1d20+5',
+    rolls: [12],
+    modifier: 5,
+    total: 17,
+    isCritical: false,
+    isFumble: false,
+  });
+
+  it('carimba receivedAt quando o payload não traz timestamp', () => {
+    const encoded = encodeRollLabel('Inspiração', {
+      rollGroups: [],
+      ability: { kind: 'power', name: 'Inspiração' },
+    });
+
+    const normalized = normalizeDiceResultPayload(
+      legacyPayload(encoded),
+      RECEIVED_AT
+    );
+    expect(normalized.timestamp).toBe(RECEIVED_AT);
+  });
+
+  it('preserva o timestamp quando o backend manda um', () => {
+    const encoded = encodeRollLabel('Inspiração', { rollGroups: [] });
+    const normalized = normalizeDiceResultPayload(
+      { ...legacyPayload(encoded), timestamp: 42 },
+      RECEIVED_AT
+    );
+    expect(normalized.timestamp).toBe(42);
+  });
+
+  it('mantém a oferta de efeito ativo do envelope intacta', () => {
+    const encoded = encodeRollLabel('Inspiração', {
+      rollGroups: [],
+      characterName: 'Tark',
+      ability: {
+        kind: 'power',
+        name: 'Inspiração',
+        effectOffer: {
+          powerKey: 'bardo:inspiracao',
+          name: 'Inspiração',
+          sourceLabel: 'Bardo · Inspiração',
+          optionId: 'padrao',
+          optionLabel: '+1d4',
+          bonuses: [],
+          affectsAllies: true,
+        },
+      },
+    });
+
+    const normalized = normalizeDiceResultPayload(
+      legacyPayload(encoded),
+      RECEIVED_AT
+    );
+    expect(normalized.rollLabel).toBe('Inspiração');
+    expect(normalized.characterName).toBe('Tark');
+    expect(normalized.ability?.effectOffer?.powerKey).toBe('bardo:inspiracao');
+    expect(normalized.timestamp).toBe(RECEIVED_AT);
+  });
+
+  it('envelope quebrado cai nos campos legados e ainda ganha timestamp', () => {
+    const normalized = normalizeDiceResultPayload(
+      legacyPayload(`Ataque${ROLL_GROUPS_DELIMITER}{quebrado`),
+      RECEIVED_AT
+    );
+    expect(normalized.rollLabel).toBe('Ataque');
+    expect(normalized.rollGroups).toHaveLength(1);
+    expect(normalized.rollGroups[0].total).toBe(17);
+    expect(normalized.timestamp).toBe(RECEIVED_AT);
+  });
+
+  it('payload legado sem envelope vira um grupo único com timestamp', () => {
+    const normalized = normalizeDiceResultPayload(
+      legacyPayload('Rolagem Rápida'),
+      RECEIVED_AT
+    );
+    expect(normalized.rollLabel).toBe('Rolagem Rápida');
+    expect(normalized.rollGroups).toEqual([
+      {
+        label: 'Rolagem Rápida',
+        diceNotation: '1d20+5',
+        rolls: [12],
+        modifier: 5,
+        total: 17,
+        isCritical: false,
+        isFumble: false,
+      },
+    ]);
+    expect(normalized.timestamp).toBe(RECEIVED_AT);
+  });
+
+  it('payload já estendido preserva os grupos e ganha timestamp', () => {
+    const normalized = normalizeDiceResultPayload(
+      {
+        tableId: 'mesa-1',
+        playerId: 'jogador-1',
+        playerName: 'Yuri',
+        rollLabel: 'Ataque',
+        rollGroups: groups,
+      },
+      RECEIVED_AT
+    );
+    expect(normalized.rollGroups).toEqual(groups);
+    expect(normalized.timestamp).toBe(RECEIVED_AT);
   });
 });
