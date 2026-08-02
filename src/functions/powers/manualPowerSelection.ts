@@ -31,6 +31,7 @@ import {
 import { SupplementId } from '@/types/supplement.types';
 import { getAttributeIncreasesInSamePlateau } from './general';
 import { getFuturaLendaClassPowers, isPowerAvailable } from '../powers';
+import { isClassOrVariantOf } from '../general';
 
 /**
  * Helper to determine if a spell list represents "all arcane spells of circle X"
@@ -338,6 +339,22 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Populated dynamically by the component
           pick: 1, // 1 class + 1 power
           label: 'Selecione uma classe e um poder dessa classe',
+        });
+      }
+
+      // Aprender uma habilidade de outra classe (ex.: origem "Duplo Feérico").
+      // `availableOptions` guarda a whitelist crua do dado; o cruzamento com os
+      // suplementos ativos e a exclusão da própria classe ficam em
+      // `getFilteredAvailableOptions`.
+      if (action.type === 'learnClassAbility') {
+        requirements.push({
+          type: 'learnClassAbility',
+          availableOptions: action.availableClasses,
+          pick: 1,
+          label: `Selecione uma classe e uma habilidade de ${action.level}º nível dela`,
+          metadata: {
+            abilityLevel: action.level,
+          },
         });
       }
 
@@ -804,6 +821,26 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.localeCompare(b, 'pt-BR'));
     }
 
+    case 'learnClassAbility': {
+      // Devolve NOMES DE CLASSE (não pares classe+habilidade): `renderRequirement`
+      // aborta o passo quando a lista vem vazia, e a lista de habilidades depende
+      // da classe que o jogador ainda vai escolher.
+      const whitelist = availableOptions as string[];
+      const level = requirement.metadata?.abilityLevel ?? 1;
+
+      return (
+        dataRegistry
+          .getClassesBySupplements(supplements)
+          .filter((cls) => whitelist.includes(cls.name))
+          // "uma classe que não seja a sua" — variante conta como a base
+          .filter((cls) => !isClassOrVariantOf(sheet.classe, cls.name))
+          // classe sem habilidade no nível pedido não tem o que oferecer
+          .filter((cls) => cls.abilities.some((a) => a.nivel === level))
+          .map((cls) => cls.name)
+          .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      );
+    }
+
     case 'getClassPower': {
       // Poderes de classe elegíveis (ex.: origem "Futura Lenda"), filtrados por
       // nível mínimo e disponibilidade. Mesma lógica usada pelo gerador.
@@ -859,6 +896,13 @@ export function countRequirementSelections(
       return selections?.golpePessoalBuild ? 1 : 0;
     case 'almaLivreSelectClass':
       return selections?.almaLivreClass && selections?.almaLivrePower ? 1 : 0;
+
+    // Escolha em dois passos: ao selecionar a classe o campo já grava
+    // `{ className, abilityName: '' }` para que a classe sobreviva à navegação
+    // entre passos do assistente. Só conta como escolha feita quando a
+    // habilidade também foi escolhida.
+    case 'learnClassAbility':
+      return selections?.classAbilities?.[0]?.abilityName ? 1 : 0;
 
     // Versátil (Humano), Deformidade (Lefou) e Chassi (Mashin): 2 perícias OU
     // 1 perícia + 1 poder.
@@ -1000,6 +1044,18 @@ export function validateSelections(
           selections.almaLivreClass,
           selections.almaLivrePower,
         ].filter(Boolean);
+        break;
+      }
+
+      case 'learnClassAbility': {
+        // 1 classe + 1 habilidade daquela classe. `selectedItems` guarda só os
+        // nomes de classe para casar com a lista de opções (também nomes de
+        // classe) na checagem genérica de disponibilidade logo abaixo.
+        const classAbilities = selections.classAbilities || [];
+        selectedCount = classAbilities.filter(
+          (selection) => selection.abilityName
+        ).length;
+        selectedItems = classAbilities.map((selection) => selection.className);
         break;
       }
 

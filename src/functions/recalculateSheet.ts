@@ -1513,6 +1513,22 @@ export function reverseSheetActionsForPower(
           break;
         }
 
+        // Habilidade de outra classe aprendida (ex.: origem "Duplo Feérico").
+        // Sem isso a entrada fica órfã em classPowers e o applyClassPowers
+        // reaplica os sheetBonuses dela em todo recálculo, para sempre.
+        case 'ClassAbilityLearned': {
+          if (sheet.classPowers) {
+            const composedName = `${change.abilityName} (${change.className})`;
+            const abilityIndex = sheet.classPowers.findIndex(
+              (power) => power.name === composedName
+            );
+            if (abilityIndex > -1) {
+              sheet.classPowers.splice(abilityIndex, 1);
+            }
+          }
+          break;
+        }
+
         case 'SpellsLearned': {
           if (sheet.spells) {
             change.spellNames.forEach((spellName: string) => {

@@ -344,9 +344,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetActions: [
       {
-        source: { type: 'power', name: 'Duplo Feérico' },
+        // `origin` (e não `power`) para que a limpeza ao trocar de origem
+        // encontre a habilidade concedida — mesmo padrão do FUTURA_LENDA
+        source: { type: 'origin', originName: 'Duplo Feérico (Pondsmânia)' },
         action: {
           type: 'learnClassAbility',
+          // Classes base apenas: as variantes repetem as habilidades de 1º
+          // nível da classe base, então listá-las seria só ruído
           availableClasses: [
             'Arcanista',
             'Bárbaro',
@@ -356,12 +360,14 @@ const atlasOriginPowers: Record<string, OriginPower> = {
             'Cavaleiro',
             'Clérigo',
             'Druida',
+            'Frade',
             'Guerreiro',
             'Inventor',
             'Ladino',
             'Lutador',
             'Nobre',
             'Paladino',
+            'Treinador',
           ],
           level: 1,
         },

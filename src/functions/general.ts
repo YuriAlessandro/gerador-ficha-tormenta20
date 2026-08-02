@@ -2620,71 +2620,82 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'learnClassAbility') {
         const { availableClasses: classNames, level } = sheetAction.action;
 
-        // Get all available classes
-        const allClasses = dataRegistry.getClassesBySupplements([
-          SupplementId.TORMENTA20_CORE,
-        ]);
+        const isEligible = (cls: ClassDescription) =>
+          classNames.includes(cls.name) &&
+          // "uma classe que não seja a sua" — variante conta como a base
+          !isClassOrVariantOf(sheet.classe, cls.name) &&
+          cls.abilities.some((ability) => ability.nivel === level);
 
-        // Filter classes by the available list and exclude current class
-        const availableClasses = allClasses.filter(
-          (cls) =>
-            classNames.includes(cls.name) && cls.name !== sheet.classe.name
-        );
+        // Sorteio automático: só o livro básico. Uma ficha gerada
+        // aleatoriamente não deve receber conteúdo de suplemento que o usuário
+        // não ativou.
+        const randomPool = dataRegistry
+          .getClassesBySupplements([SupplementId.TORMENTA20_CORE])
+          .filter(isEligible);
 
-        let selectedClass: ClassDescription;
-        let selectedAbility: ClassDescription['abilities'][number];
+        // Escolha manual: resolvida contra todos os suplementos — o assistente
+        // já filtrou pelos suplementos ativos do usuário antes de gravá-la.
+        const manualSelection = manualSelections?.classAbilities?.[0];
+        // `abilityName` vazio = o jogador escolheu a classe no assistente mas
+        // ainda não a habilidade; trata como "sem escolha manual".
+        const manuallyPickedClass = manualSelection?.abilityName
+          ? dataRegistry
+              .getClassesBySupplements(Object.values(SupplementId))
+              .filter(isEligible)
+              .find((cls) => cls.name === manualSelection.className)
+          : undefined;
 
-        // Use manual selection if provided, otherwise random
-        if (
-          manualSelections?.classAbilities &&
-          manualSelections.classAbilities.length > 0
-        ) {
-          // Manual selection provides { className, abilityName }
-          const selection = manualSelections.classAbilities[0];
-          selectedClass =
-            availableClasses.find((cls) => cls.name === selection.className) ||
-            getRandomItemFromArray(availableClasses);
-        } else {
-          // Random selection
-          selectedClass = getRandomItemFromArray(availableClasses);
-        }
+        const selectedClass =
+          manuallyPickedClass ??
+          (randomPool.length > 0
+            ? getRandomItemFromArray(randomPool)
+            : undefined);
 
         // Get abilities of the specified level
-        const levelAbilities = selectedClass.abilities.filter(
-          (ability) => ability.nivel === level
-        );
+        const levelAbilities =
+          selectedClass?.abilities.filter(
+            (ability) => ability.nivel === level
+          ) ?? [];
 
-        if (levelAbilities.length > 0) {
-          if (
-            manualSelections?.classAbilities &&
-            manualSelections.classAbilities.length > 0
-          ) {
-            const selection = manualSelections.classAbilities[0];
-            selectedAbility =
-              levelAbilities.find(
-                (ability) => ability.name === selection.abilityName
-              ) || getRandomItemFromArray(levelAbilities);
-          } else {
-            selectedAbility = getRandomItemFromArray(levelAbilities);
-          }
+        if (selectedClass && levelAbilities.length > 0) {
+          const selectedAbility = manuallyPickedClass
+            ? levelAbilities.find(
+                (ability) => ability.name === manualSelection?.abilityName
+              ) ?? getRandomItemFromArray(levelAbilities)
+            : getRandomItemFromArray(levelAbilities);
 
           // Add the ability to classPowers array
           if (!sheet.classPowers) {
             sheet.classPowers = [];
           }
 
+          const composedName = `${selectedAbility.name} (${selectedClass.name})`;
+
+          // Ressalva do livro: ao escolher a habilidade "Magias" você recebe
+          // +1 PM, mas NÃO soma o atributo-chave dela no total de PM. Os
+          // sheetBonuses originais da habilidade fazem exatamente o contrário
+          // (target PM com o atributo-chave), então são substituídos.
+          const isMagiasAbility = selectedAbility.name === 'Magias';
+          const learnedBonuses: SheetBonus[] = isMagiasAbility
+            ? [
+                {
+                  source: { type: 'power', name: composedName },
+                  target: { type: 'PM' },
+                  modifier: { type: 'Fixed', value: 1 },
+                },
+              ]
+            : selectedAbility.sheetBonuses ?? [];
+
           // Convert ClassAbility to ClassPower format and add to classPowers
           sheet.classPowers.push({
-            name: `${selectedAbility.name} (${selectedClass.name})`,
+            name: composedName,
             text: selectedAbility.text,
             sheetActions: selectedAbility.sheetActions,
-            sheetBonuses: selectedAbility.sheetBonuses,
+            sheetBonuses: learnedBonuses,
           });
 
           // Apply sheetBonuses from the learned ability
-          if (selectedAbility.sheetBonuses) {
-            sheet.sheetBonuses.push(...selectedAbility.sheetBonuses);
-          }
+          sheet.sheetBonuses.push(...learnedBonuses);
 
           // Note: sheetActions from learned abilities are NOT automatically applied
           // The user will need to manually trigger them or they will be shown in the power description
@@ -2705,6 +2716,14 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Aprendeu ${selectedAbility.name} de ${selectedClass.name}`,
           });
+
+          if (isMagiasAbility) {
+            subSteps.push({
+              name: getSourceName(sheetAction.source),
+              value:
+                'Você recebe +1 PM e aprende uma única magia (sem somar o atributo-chave no total de PM). Escolha a magia manualmente na aba de Magias.',
+            });
+          }
         }
       } else if (sheetAction.action.type === 'buildGolpePessoal') {
         // Usa o build montado pelo usuário no assistente, se houver;

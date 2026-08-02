@@ -1,4 +1,6 @@
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  SheetActionHistoryEntry,
+} from '@/interfaces/CharacterSheet';
 import Origin from '@/interfaces/Origin';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
@@ -17,6 +19,18 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
 
   // Get origin power names for filtering
   const originPowerNames = sheet.origin?.powers?.map((p) => p.name) || [];
+
+  // Predicado único: uma entrada veio da origem se a `source` diz `origin`, ou
+  // se é `power` com o nome de um poder DESTA origem. O segundo ramo é
+  // indispensável — nem todo poder de origem carimba `type: 'origin'` (o Duplo
+  // Feérico gravava `power`), e fichas antigas já têm o histórico persistido
+  // com o valor errado. Se a entrada sobreviver à troca de origem, o
+  // `isActionAlreadyApplied` de `applyPower` continua verdadeiro e o poder vira
+  // um no-op silencioso ao ser reaplicado.
+  const isFromOrigin = (entry: SheetActionHistoryEntry) =>
+    entry.source?.type === 'origin' ||
+    (entry.source?.type === 'power' &&
+      originPowerNames.includes(entry.source.name));
 
   // If we have selectedBenefits, remove those skills
   if (sheet.origin?.selectedBenefits) {
@@ -47,16 +61,23 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
     });
   }
 
-  // Remove class powers that were granted by origin sheetActions (e.g., Futura Lenda)
+  // Remove class powers that were granted by origin sheetActions
+  // (ex.: Futura Lenda via ClassPowerAdded, Duplo Feérico via ClassAbilityLearned)
   if (sheet.sheetActionHistory) {
     const classPowersFromOrigin = sheet.sheetActionHistory
-      .filter((entry) => entry.source?.type === 'origin')
+      .filter(isFromOrigin)
       .flatMap((entry) => entry.changes)
-      .filter(
-        (change) =>
-          change.type === 'ClassPowerAdded' || change.type === 'PowerAdded'
-      )
-      .map((change) => change.powerName);
+      .map((change) => {
+        if (change.type === 'ClassAbilityLearned') {
+          // Mesmo formato composto usado ao inserir em classPowers (general.ts)
+          return `${change.abilityName} (${change.className})`;
+        }
+        if (change.type === 'ClassPowerAdded' || change.type === 'PowerAdded') {
+          return change.powerName;
+        }
+        return undefined;
+      })
+      .filter((name): name is string => name !== undefined);
 
     if (classPowersFromOrigin.length > 0) {
       updatedSheet.classPowers = (sheet.classPowers || []).filter(
@@ -68,7 +89,7 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
   // Remove sheetActionHistory entries that came from origin
   if (sheet.sheetActionHistory) {
     updatedSheet.sheetActionHistory = sheet.sheetActionHistory.filter(
-      (entry) => entry.source?.type !== 'origin'
+      (entry) => !isFromOrigin(entry)
     );
   }
 

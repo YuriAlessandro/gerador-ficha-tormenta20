@@ -53,6 +53,7 @@ import DeformidadeSelectionField from './DeformidadeSelectionField';
 import MemoriaPostumaSelectionField from './MemoriaPostumaSelectionField';
 import YidishanNaturezaOrganicaSelectionField from './YidishanNaturezaOrganicaSelectionField';
 import AlmaLivreSelectionField from './AlmaLivreSelectionField';
+import ClassAbilitySelectionField from './ClassAbilitySelectionField';
 import MashinSelectionField from './MashinSelectionField';
 
 interface PowerEffectSelectionStepProps {
@@ -150,6 +151,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         schools?: string[];
         optionKey?: string;
         linkedTo?: string;
+        abilityLevel?: number;
       };
     }>;
   }> = [];
@@ -248,6 +250,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         // Necessário para filtrar poderes de classe (ex.: origem "Futura Lenda")
         powers: classe.powers || [],
         spellPath: classe.spellPath,
+        // Necessário para o `isClassOrVariantOf` excluir também a classe base
+        // quando o personagem é de uma variante (ex.: Duelista → Bucaneiro)
+        isVariant: classe.isVariant,
+        baseClassName: classe.baseClassName,
       },
       raca: race,
       generalPowers: [],
@@ -653,6 +659,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         linkedTo?: string;
         minLevel?: number;
         ignoreOnlyLevelRequirement?: boolean;
+        abilityLevel?: number;
       };
     },
     requirementIndex: number
@@ -1625,6 +1632,35 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <AlmaLivreSelectionField
             availableClasses={availableClassesForAL}
             supplements={supplements}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // Render learnClassAbility class + ability selection (origem "Duplo Feérico")
+    if (type === 'learnClassAbility') {
+      const eligibleClassNames = allAvailableOptions as unknown as string[];
+      const classesForCA = dataRegistry
+        .getClassesBySupplements(supplements)
+        .filter((c) => eligibleClassNames.includes(c.name));
+
+      return (
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
+          <ClassAbilitySelectionField
+            availableClasses={classesForCA}
+            abilityLevel={requirement.metadata?.abilityLevel ?? 1}
             selections={powerSelections}
             onChange={(newSelections) => {
               onChange({

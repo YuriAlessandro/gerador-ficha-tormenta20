@@ -120,11 +120,33 @@ describe('countRequirementSelections', () => {
     ).toBe(0);
   });
 
+  // Duplo Feérico: a classe é gravada antes da habilidade (com `abilityName`
+  // vazio) para sobreviver à navegação entre passos — só conta como escolha
+  // feita quando a habilidade também foi escolhida.
+  it('learnClassAbility exige classe E habilidade', () => {
+    const requirement = makeRequirement('learnClassAbility');
+    expect(countRequirementSelections(requirement, {})).toBe(0);
+    expect(
+      countRequirementSelections(requirement, {
+        classAbilities: [{ className: 'Bárbaro', abilityName: '' }],
+      })
+    ).toBe(0);
+    expect(
+      countRequirementSelections(requirement, {
+        classAbilities: [{ className: 'Bárbaro', abilityName: 'Fúria' }],
+      })
+    ).toBe(1);
+  });
+
   // O chamador deve tratar `null` como "não bloquear" — assim um tipo novo
   // nunca prende o assistente como aconteceu com `chooseFromOptions`.
+  // Todos os tipos do union são contáveis hoje, então a cobaia é um tipo
+  // inexistente: o ponto do teste é o contrato do `default`, não o tipo em si.
   it('retorna null para tipo não contável', () => {
+    const unknownType =
+      'tipoAindaNaoImplementado' as PowerSelectionRequirement['type'];
     expect(
-      countRequirementSelections(makeRequirement('learnClassAbility'), {})
+      countRequirementSelections(makeRequirement(unknownType), {})
     ).toBeNull();
   });
 });
