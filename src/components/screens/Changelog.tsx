@@ -488,6 +488,51 @@ const Changelog: React.FC = () => {
                   atributo. Agora as duas aparecem, com o aviso de que você
                   escolhe apenas uma.
                 </li>
+                <li>
+                  <strong>Correção:</strong> a origem{' '}
+                  <strong>Duplo Feérico (Pondsmânia)</strong> nunca perguntava
+                  nada. O poder manda{' '}
+                  <strong>
+                    escolher uma habilidade de 1º nível de outra classe
+                  </strong>
+                  , mas o assistente sorteava a escolha sozinho — e o sorteio
+                  ficava congelado na ficha para sempre, dando a impressão de
+                  que a origem &quot;sempre cai em Bárbaro&quot;. Agora aparece
+                  um passo no assistente para escolher a <strong>classe</strong>{' '}
+                  e a <strong>habilidade</strong>, com a sua própria classe fora
+                  da lista (incluindo a classe base, se você jogar uma
+                  variante). Frade e Treinador entraram nas opções para quem tem
+                  os suplementos ativos.{' '}
+                  <strong>
+                    Fichas criadas antes desta versão mantêm a habilidade
+                    sorteada
+                  </strong>{' '}
+                  — regere a ficha ou selecione a origem de novo para escolher.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ainda no Duplo Feérico, escolher a
+                  habilidade <strong>Magias</strong> somava o atributo-chave da
+                  outra classe no seu total de PM — justamente o que o livro
+                  proíbe. Agora o poder concede o <strong>+1 PM</strong> correto
+                  e avisa que a magia deve ser adicionada por você na aba de
+                  Magias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao trocar a origem de uma ficha
+                  pronta, a habilidade concedida pelo Duplo Feérico continuava
+                  em <strong>Poderes de Classe</strong> mesmo depois da origem
+                  antiga sair, e os bônus dela voltavam a cada recálculo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> no formulário de{' '}
+                  <strong>Nova Ficha</strong>, os campos de{' '}
+                  <strong>Raça</strong>, <strong>Classe</strong> e{' '}
+                  <strong>Nível</strong> apareciam vazios mas seguravam a
+                  escolha da ficha anterior — quem criava um Bárbaro e depois
+                  montava outro personagem sem tocar nesses campos recebia outro
+                  Bárbaro. Agora os campos sempre mostram o que está de fato
+                  selecionado.
+                </li>
               </ul>
               <h3>4.27</h3>
               <ul>
