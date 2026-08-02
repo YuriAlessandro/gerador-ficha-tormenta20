@@ -634,6 +634,56 @@ const Changelog: React.FC = () => {
                   proficiências dadas por ela iam se <strong>acumulando</strong>{' '}
                   a cada troca.
                 </li>
+                <li>
+                  <strong>Correção:</strong> o <strong>Feiticeiro</strong> com a{' '}
+                  <strong>Linhagem Abençoada</strong> escolhia as 4 magias
+                  iniciais livremente e podia terminar{' '}
+                  <strong>sem nenhuma magia divina</strong>. Pelo livro, a
+                  linhagem concede especificamente{' '}
+                  <em>uma magia divina de 1º círculo</em> — agora o assistente
+                  exige que ao menos uma das 4 seja divina, e a geração
+                  aleatória garante isso sozinha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> as{' '}
+                  <strong>magias divinas da Linhagem Abençoada</strong> não
+                  respeitavam o limite de círculo. A Herança Básica dá acesso
+                  apenas às divinas de <strong>1º círculo</strong>; a{' '}
+                  <strong>Herança Aprimorada</strong> libera 2º e 3º, e a{' '}
+                  <strong>Herança Superior</strong>, 4º e 5º. Antes o Feiticeiro
+                  já podia aprender magias divinas de qualquer círculo desde o
+                  começo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao subir para o{' '}
+                  <strong>2º nível</strong>, o <strong>poder concedido</strong>{' '}
+                  da Linhagem Abençoada era{' '}
+                  <strong>sorteado sem perguntar</strong> para Feiticeiros de
+                  classe única — o assistente só oferecia a escolha em fichas
+                  multiclasse. Agora o passo aparece sempre e o poder escolhido
+                  é respeitado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao{' '}
+                  <strong>multiclassar em Feiticeiro</strong> com a Linhagem
+                  Abençoada, a ficha oferecia <strong>3 magias</strong> em vez
+                  de 4.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o <strong>Bardo</strong> gerado
+                  aleatoriamente (e a evolução automática) recebia{' '}
+                  <strong>somente magias divinas</strong>. O Bardo conjura das
+                  duas tradições — agora o sorteio oferece{' '}
+                  <strong>arcanas e divinas</strong> das escolas escolhidas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> gerar um{' '}
+                  <strong>Arcanista Teurgista Místico</strong> contaminava a
+                  definição da classe na sessão: todos os arcanistas criados
+                  depois herdavam o acesso à tradição oposta. O mesmo valia para
+                  a <strong>Linhagem Dracônica</strong>, que ia acumulando
+                  &quot;Tipo escolhido&quot; no texto da habilidade.
+                </li>
               </ul>
               <h3>4.27</h3>
               <ul>
