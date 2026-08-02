@@ -497,6 +497,34 @@ const TermsOfUse: React.FC = () => {
             sx={{
               color: 'text.secondary',
               textAlign: 'center',
+              marginBottom: '8px',
+            }}
+          >
+            Os ícones das escolas de magia são de autoria de Lorc, Delapouite e
+            Sbed, obtidos em{' '}
+            <Link
+              href='https://game-icons.net'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              game-icons.net
+            </Link>{' '}
+            e utilizados sob a licença{' '}
+            <Link
+              href='https://creativecommons.org/licenses/by/3.0/'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              CC BY 3.0
+            </Link>
+            .
+          </Typography>
+
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              textAlign: 'center',
             }}
           >
             © {new Date().getFullYear()} Fichas de Nimb. Tormenta 20 © Jambô

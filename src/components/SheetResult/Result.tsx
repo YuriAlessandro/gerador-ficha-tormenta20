@@ -136,7 +136,7 @@ import Equipment, {
 } from '../../interfaces/Equipment';
 import Bag from '../../interfaces/Bag';
 import '../../assets/css/result.css';
-import Spells from '../Spells';
+import Spells from './SpellsTab/SpellsDisplay';
 import SkillTable from './SkillTable';
 import LabelDisplay from './LabelDisplay';
 import AttributeDisplay from './AttributeDisplay';

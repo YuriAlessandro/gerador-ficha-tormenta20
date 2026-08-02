@@ -266,33 +266,6 @@ table {
   transform: rotateZ(90deg);
 }
 
-.spellCalc {
-  font-size: 12px;
-}
-
-.speelsInfos {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 25px;
-  margin-bottom: 20px;
-}
-
-.tableMobile {
-  display: none;
-}
-
-.spellMobile {
-  margin-bottom: 10px;
-  border: 1px solid black;
-  border-radius: 3px;
-  padding: 5px;
-}
-
-.spellMobile .spellName {
-  font-size: 22px;
-  margin-bottom: 5px;
-}
-
 .periciasDiv {
   -moz-column-count: 3;
   -moz-column-gap: 50px;
@@ -399,14 +372,6 @@ table {
     display: none;
   }
 
-  .tableMobile {
-    display: block;
-  }
-
-  .speelsInfos {
-    flex-direction: column;
-    padding: 0;
-  }
   .periciasDiv {
     -moz-column-count: 2;
     -moz-column-gap: 50px;
@@ -424,10 +389,6 @@ table {
 
   .tableDesk {
     display: none;
-  }
-
-  .tableMobile {
-    display: block;
   }
 
   .resultLeft {
