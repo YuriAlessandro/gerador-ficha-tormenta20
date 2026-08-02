@@ -6,6 +6,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
+import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { getComplicationByName } from '../premium/data/complications';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import {
@@ -175,6 +176,26 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     sheet.raca.abilities = sheet.raca.abilities.filter(
       (a) => a && typeof a.name === 'string'
     );
+
+    // Mesmo princípio do refresh de poderes concedidos abaixo: a ficha embute a
+    // cópia da herança de Suraggel da época em que foi escolhida, e antes de
+    // jul/2026 essa cópia levava só 4 campos. Refrescar pelo catálogo atual faz
+    // as escolhas mecanizadas depois (habilidade élfica de Nivenciuén, forma
+    // selvagem de Arbória/Chacina) alcançarem fichas antigas.
+    if (sheet.suragelAbility) {
+      const current = getSuragelAlternativeAbility(sheet.suragelAbility);
+      const index = sheet.raca.abilities.findIndex(
+        (a) => a.name === sheet.suragelAbility
+      );
+      if (current && index !== -1) {
+        sheet.raca.abilities[index] = {
+          ...sheet.raca.abilities[index],
+          description: current.description,
+          sheetBonuses: current.sheetBonuses,
+          sheetActions: current.sheetActions,
+        };
+      }
+    }
   }
 
   if (sheet.devoto) {

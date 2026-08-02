@@ -1,5 +1,31 @@
-import { RaceAbility } from '@/interfaces/Race';
+import cloneDeep from 'lodash/cloneDeep';
+import omit from 'lodash/omit';
+import Race, { RaceAbility } from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
+import EQUIPAMENTOS from '../../equipamentos';
+import PROFICIENCIAS from '../../proficiencias';
+
+/**
+ * Armas exóticas do livro básico — pool da opção "duas armas exóticas" da
+ * Herança de Werra. `availableProficiencies` é uma lista estática de strings
+ * (sem consciência de suplemento), então exóticas de Heróis/Ameaças de Arton
+ * ficam de fora; elas podem ser adicionadas à mão no editor de proficiências.
+ */
+const EXOTIC_WEAPON_NAMES = EQUIPAMENTOS.armasExoticas.map(
+  (weapon) => weapon.nome
+);
+
+/**
+ * Chaves em `sheet.optionChoices` com a forma selvagem escolhida por Arbória e
+ * Chacina. O motor de Forma Selvagem vive no módulo premium e lê estas chaves
+ * (casando pelo NOME da forma) para liberar só a forma escolhida — este arquivo
+ * não importa nada de premium, senão a build open-source (que troca o módulo por
+ * um stub vazio) passaria a depender dele.
+ */
+export const SURAGEL_WILD_SHAPE_OPTION_KEYS = {
+  arboria: 'suragelArboriaForma',
+  chacina: 'suragelChacinaForma',
+} as const;
 
 /**
  * Habilidades raciais alternativas para Suraggel (Aggelus e Sulfure)
@@ -183,14 +209,56 @@ export const SURAGEL_ALTERNATIVE_ABILITIES: SuragelAlternativeAbility[] = [
     plano: 'Arbória',
     description:
       'Como parte do Grande Ciclo de Allihanna, você recebe a habilidade Forma Selvagem para uma única forma, escolhida entre Ágil, Sorrateira e Veloz. Caso adquira essa habilidade novamente, o custo dessa forma diminui em –1 PM.',
-    // Nota: Forma Selvagem requer implementação especial - por ora apenas descritivo
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Herança de Arbória' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: SURAGEL_WILD_SHAPE_OPTION_KEYS.arboria,
+          pick: 1,
+          options: [
+            {
+              name: 'Forma Ágil',
+              text: 'Você assume a forma de um felino: +2 Destreza e duas garras (1d6, crítico 19, corte).',
+            },
+            {
+              name: 'Forma Sorrateira',
+              text: 'Você assume a forma de um morcego: +2 Destreza, tamanho Pequeno e uma garra (1d4).',
+            },
+            {
+              name: 'Forma Veloz',
+              text: 'Você assume a forma de um cervo: +2 Destreza, deslocamento aumentado e uma chifrada (1d6).',
+            },
+          ],
+        },
+      },
+    ],
   },
   {
     name: 'Herança de Chacina',
     plano: 'Chacina',
     description:
       'Pela ferocidade de Megalokk, você recebe a habilidade Forma Selvagem para uma única forma, escolhida entre Feroz e Resistente. Caso adquira essa habilidade novamente, o custo dessa forma diminui em –1 PM.',
-    // Nota: Forma Selvagem requer implementação especial - por ora apenas descritivo
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Herança de Chacina' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: SURAGEL_WILD_SHAPE_OPTION_KEYS.chacina,
+          pick: 1,
+          options: [
+            {
+              name: 'Forma Feroz',
+              text: 'Você assume a forma de um urso: +3 Força, +2 na Defesa e uma mordida (1d8).',
+            },
+            {
+              name: 'Forma Resistente',
+              text: 'Você assume a forma de uma tartaruga: +5 na Defesa, redução de dano 5 e uma investida (1d6).',
+            },
+          ],
+        },
+      },
+    ],
   },
   {
     name: 'Herança de Magika',
@@ -220,7 +288,42 @@ export const SURAGEL_ALTERNATIVE_ABILITIES: SuragelAlternativeAbility[] = [
         modifier: { type: 'Fixed', value: 2 },
       },
     ],
-    // Nota: Escolha de habilidade élfica requer implementação especial
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Herança de Nivenciuén' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: 'suragelNivenciuenElfica',
+          pick: 1,
+          options: [
+            {
+              name: 'Graça de Glórienn',
+              text: 'Seu deslocamento é 12m (em vez de 9m).',
+              sheetBonuses: [
+                {
+                  source: { type: 'power', name: 'Herança de Nivenciuén' },
+                  // O elfo chega aos 12m por `getDisplacement`, não por bônus da
+                  // habilidade — aqui o Suraggel parte dos 9m padrão e sobe +3.
+                  target: { type: 'Displacement' },
+                  modifier: { type: 'Fixed', value: 3 },
+                },
+              ],
+            },
+            {
+              name: 'Sangue Mágico',
+              text: 'Você recebe +1 ponto de mana por nível.',
+              sheetBonuses: [
+                {
+                  source: { type: 'power', name: 'Herança de Nivenciuén' },
+                  target: { type: 'PM' },
+                  modifier: { type: 'LevelCalc', formula: '{level}' },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
   },
   {
     name: 'Herança de Pelágia',
@@ -299,13 +402,46 @@ export const SURAGEL_ALTERNATIVE_ABILITIES: SuragelAlternativeAbility[] = [
       {
         source: { type: 'power', name: 'Herança de Werra' },
         action: {
-          type: 'addProficiency',
-          availableProficiencies: ['Armas Marciais'],
+          type: 'chooseFromOptions',
+          optionKey: 'suragelWerraProficiencia',
           pick: 1,
+          options: [
+            {
+              name: 'Armas Marciais',
+              text: 'Você recebe proficiência com armas marciais.',
+              sheetBonuses: [
+                {
+                  source: { type: 'power', name: 'Herança de Werra' },
+                  target: {
+                    type: 'Proficiency',
+                    proficiency: PROFICIENCIAS.MARCIAIS,
+                  },
+                  modifier: { type: 'Fixed', value: 1 },
+                },
+              ],
+            },
+            {
+              name: 'Duas Armas Exóticas',
+              text: 'Você recebe proficiência com duas armas exóticas a sua escolha.',
+              // Proficiência por arma nomeada: `isProficientWithWeapon` casa pelo
+              // nome antes de olhar a categoria, então não é preciso conceder a
+              // categoria "Armas Exóticas" inteira.
+              sheetActions: [
+                {
+                  source: { type: 'power', name: 'Herança de Werra' },
+                  action: {
+                    type: 'addProficiency',
+                    availableProficiencies: EXOTIC_WEAPON_NAMES,
+                    pick: 2,
+                  },
+                },
+              ],
+            },
+          ],
         },
       },
     ],
-    // Nota: +1 em ataque é apenas descritivo; escolha de 2 exóticas requer implementação especial
+    // Nota: +1 em ataque é apenas descritivo
   },
 
   // === APENAS DESCRITIVAS (dependem de ação em jogo) ===
@@ -371,5 +507,89 @@ export const SURAGEL_ALTERNATIVE_ABILITIES: SuragelAlternativeAbility[] = [
     // Nota: Bônus em testes estendidos é apenas descritivo
   },
 ];
+
+/** Nome da habilidade racial padrão que a herança alternativa substitui. */
+export function getSuragelDefaultAbilityName(raceName: string): string {
+  return raceName.includes('Aggelus') ? 'Luz Sagrada' : 'Sombras Profanas';
+}
+
+/** Herança alternativa pelo nome (undefined se não existir). */
+export function getSuragelAlternativeAbility(
+  abilityName?: string
+): SuragelAlternativeAbility | undefined {
+  if (!abilityName) return undefined;
+  return SURAGEL_ALTERNATIVE_ABILITIES.find((a) => a.name === abilityName);
+}
+
+/**
+ * Escolha embutida da herança (Nivenciuén, Arbória, Chacina), quando houver.
+ *
+ * O assistente de criação já pede essas escolhas pelo passo "Efeitos de Poderes";
+ * o editor da ficha usa isto para oferecer a mesma escolha em vez de deixar o
+ * sorteio do `applyPower` decidir sem volta.
+ */
+export function getSuragelAbilityChoiceAction(abilityName?: string):
+  | {
+      optionKey: string;
+      options: Array<{ name: string; text: string }>;
+    }
+  | undefined {
+  const ability = getSuragelAlternativeAbility(abilityName);
+  if (!ability?.sheetActions) return undefined;
+
+  const choice = ability.sheetActions.find(
+    (sheetAction) => sheetAction.action.type === 'chooseFromOptions'
+  );
+  if (choice?.action.type !== 'chooseFromOptions') return undefined;
+
+  return {
+    optionKey: choice.action.optionKey,
+    options: choice.action.options.map((option) => ({
+      name: option.name,
+      text: option.text,
+    })),
+  };
+}
+
+/**
+ * Substitui a habilidade racial padrão do Suraggel (Luz Sagrada / Sombras
+ * Profanas) pela herança alternativa escolhida.
+ *
+ * PONTO ÚNICO da troca: assistente de criação (`race` memo), `generateEmptySheet`
+ * e o editor da ficha usam esta função. O assistente precisa dela porque o passo
+ * "Efeitos de Poderes" deriva as escolhas pendentes de `race.abilities` — sem a
+ * troca ali, ele pedia as seleções da habilidade padrão e nunca as da herança.
+ *
+ * Copia a habilidade INTEIRA (menos `plano`), não só bônus/ações, para não
+ * perder `rolls`, `customEffects` e `grantsPowerRequirements`.
+ */
+export function applySuragelAlternativeAbility(
+  race: Race,
+  abilityName?: string
+): Race {
+  if (!race.name.startsWith('Suraggel')) return race;
+
+  const alternative = getSuragelAlternativeAbility(abilityName);
+  if (!alternative) return race;
+
+  const defaultAbilityName = getSuragelDefaultAbilityName(race.name);
+  const abilityIndex = race.abilities.findIndex(
+    (a) => a.name === defaultAbilityName
+  );
+  if (abilityIndex === -1) return race;
+
+  // Clone: a habilidade vai parar dentro de `sheet.raca.abilities`, e o catálogo
+  // aqui é um singleton compartilhado por todas as fichas.
+  const ability: RaceAbility = omit(cloneDeep(alternative), 'plano');
+
+  return {
+    ...race,
+    abilities: [
+      ...race.abilities.slice(0, abilityIndex),
+      ability,
+      ...race.abilities.slice(abilityIndex + 1),
+    ],
+  };
+}
 
 export default SURAGEL_ALTERNATIVE_ABILITIES;

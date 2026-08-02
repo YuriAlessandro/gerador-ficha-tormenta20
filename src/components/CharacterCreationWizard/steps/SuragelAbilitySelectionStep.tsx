@@ -9,7 +9,10 @@ import {
   Paper,
   Chip,
 } from '@mui/material';
-import { SURAGEL_ALTERNATIVE_ABILITIES } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import {
+  SURAGEL_ALTERNATIVE_ABILITIES,
+  getSuragelDefaultAbilityName,
+} from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 
 interface SuragelAbilitySelectionStepProps {
   raceName: string;
@@ -21,7 +24,7 @@ const SuragelAbilitySelectionStep: React.FC<
   SuragelAbilitySelectionStepProps
 > = ({ raceName, selectedAbility, onChange }) => {
   const isAggelus = raceName.includes('Aggelus');
-  const defaultAbilityName = isAggelus ? 'Luz Sagrada' : 'Sombras Profanas';
+  const defaultAbilityName = getSuragelDefaultAbilityName(raceName);
   const defaultAbilityDescription = isAggelus
     ? 'Você recebe +2 em Diplomacia e Intuição. Além disso, pode lançar Luz (como uma magia divina; atributo-chave Carisma). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.'
     : 'Você recebe +2 em Enganação e Furtividade. Além disso, pode lançar Escuridão (como uma magia divina; atributo-chave Inteligência). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.';

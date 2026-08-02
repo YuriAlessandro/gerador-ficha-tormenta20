@@ -38,7 +38,10 @@ import Divindade from '@/interfaces/Divindade';
 import { DIVINDADES as DIVINDADES_CORE } from '@/data/systems/tormenta20/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import { recalculateSheet } from '@/functions/recalculateSheet';
+import {
+  recalculateSheet,
+  reverseSheetActionsForPower,
+} from '@/functions/recalculateSheet';
 import {
   modifyAttributesBasedOnRace,
   applyManualLevelUp,
@@ -62,7 +65,12 @@ import {
   getCompatibleEnergySources,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto-config';
 import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
-import { SURAGEL_ALTERNATIVE_ABILITIES } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import {
+  SURAGEL_ALTERNATIVE_ABILITIES,
+  applySuragelAlternativeAbility,
+  getSuragelAbilityChoiceAction,
+  getSuragelDefaultAbilityName,
+} from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import {
   DUENDE_SIZES,
   DUENDE_SIZE_NAMES,
@@ -153,6 +161,15 @@ const getSeedDuendeBonusAttributes = (sheet: CharacterSheet): Atributo[] => {
   return reconstructDuendeDonsFromRaca(sheet);
 };
 
+/** Escolha já feita dentro da herança de Suraggel (`sheet.optionChoices`). */
+const getSeedSuragelAbilityChoice = (
+  sheet: CharacterSheet
+): string | undefined => {
+  const choice = getSuragelAbilityChoiceAction(sheet.suragelAbility);
+  if (!choice) return undefined;
+  return sheet.optionChoices?.[choice.optionKey]?.[0];
+};
+
 interface SheetInfoEditDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -171,6 +188,9 @@ interface EditedData {
   raceEnergySource: string | undefined; // For Golem Desperto
   raceSizeCategory: string | undefined; // For Golem Desperto
   suragelAbility: string | undefined; // For Suraggel (Aggelus/Sulfure) alternative abilities
+  // Escolha embutida da herança de Suraggel (habilidade élfica de Nivenciuén,
+  // forma selvagem de Arbória/Chacina). Persistida em `sheet.optionChoices`.
+  suragelAbilityChoice: string | undefined;
   duendeNature: string | undefined; // For Duende (animal/vegetal/mineral)
   duendePresentes: string[] | undefined; // For Duende (3 selected powers)
   duendeTabuSkill: string | undefined; // For Duende (skill with -5 penalty)
@@ -303,6 +323,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     raceEnergySource: sheet.raceEnergySource,
     raceSizeCategory: sheet.raceSizeCategory,
     suragelAbility: sheet.suragelAbility,
+    suragelAbilityChoice: getSeedSuragelAbilityChoice(sheet),
     duendeNature: sheet.duendeNature || sheet.raca.nature,
     duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
     duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
@@ -388,6 +409,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
       suragelAbility: sheet.suragelAbility,
+      suragelAbilityChoice: getSeedSuragelAbilityChoice(sheet),
       duendeNature: sheet.duendeNature || sheet.raca.nature,
       duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
       duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
@@ -449,6 +471,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
   // Get info about the currently selected race's attribute requirements
   const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
+
+  // Escolha embutida da herança de Suraggel selecionada (se houver)
+  const suragelAbilityChoiceAction = getSuragelAbilityChoiceAction(
+    editedData.suragelAbility
+  );
 
   // Get race attributes (considering sex-dependent races like Nagah, heritage-based races like Moreau, and Golem Desperto)
   const raceAttributes = (() => {
@@ -754,7 +781,23 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   };
 
   const handleSave = () => {
+    // Escolha embutida da herança de Suraggel. Gravar em `optionChoices` ANTES do
+    // recálculo é o que faz a escolha valer: o replay de `chooseFromOptions`
+    // prioriza `optionChoices` sobre o histórico, então trocar depois funciona —
+    // e sem isso a escolha seria sorteada sem volta.
+    const suragelChoice = getSuragelAbilityChoiceAction(
+      editedData.suragelAbility
+    );
+    const suragelOptionChoices =
+      suragelChoice && editedData.suragelAbilityChoice
+        ? {
+            ...(sheet.optionChoices || {}),
+            [suragelChoice.optionKey]: [editedData.suragelAbilityChoice],
+          }
+        : undefined;
+
     const updates: Partial<CharacterSheet> = {
+      ...(suragelOptionChoices ? { optionChoices: suragelOptionChoices } : {}),
       nome: editedData.nome,
       nivel: editedData.nivel,
       sexo: editedData.sexo,
@@ -943,17 +986,27 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     // Check for Suraggel ability change
     if (
       editedData.raceName.startsWith('Suraggel') &&
-      editedData.suragelAbility !== sheet.suragelAbility
+      (editedData.suragelAbility !== sheet.suragelAbility ||
+        editedData.suragelAbilityChoice !== getSeedSuragelAbilityChoice(sheet))
     ) {
-      const defaultAbilityName = editedData.raceName.includes('Aggelus')
-        ? 'Luz Sagrada'
-        : 'Sombras Profanas';
-      const abilityName = editedData.suragelAbility || defaultAbilityName;
+      const abilityName =
+        editedData.suragelAbility ||
+        getSuragelDefaultAbilityName(editedData.raceName);
+
+      const suragelChanges: SubStep[] = [
+        { name: 'Habilidade', value: abilityName },
+      ];
+      if (editedData.suragelAbilityChoice) {
+        suragelChanges.push({
+          name: 'Escolha',
+          value: editedData.suragelAbilityChoice,
+        });
+      }
 
       newSteps.push({
         label: 'Edição Manual - Habilidade Racial Suraggel',
         type: 'Edição Manual',
-        value: [{ name: 'Habilidade', value: abilityName }],
+        value: suragelChanges,
       });
     }
 
@@ -1149,7 +1202,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           editedData.raceEnergySource !== sheet.raceEnergySource ||
           editedData.raceSizeCategory !== sheet.raceSizeCategory)) ||
       (editedData.raceName.startsWith('Suraggel') &&
-        editedData.suragelAbility !== sheet.suragelAbility) ||
+        (editedData.suragelAbility !== sheet.suragelAbility ||
+          editedData.suragelAbilityChoice !==
+            getSeedSuragelAbilityChoice(sheet))) ||
       isDuendeConfigChanged(editedData, sheet);
 
     if (raceOrSexOrHeritageOrGolemOrSuragelChanged) {
@@ -1195,38 +1250,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         }
 
         // For Suraggel races, apply alternative ability if selected
-        if (editedData.raceName.startsWith('Suraggel')) {
-          const defaultAbilityName = editedData.raceName.includes('Aggelus')
-            ? 'Luz Sagrada'
-            : 'Sombras Profanas';
-
-          if (editedData.suragelAbility) {
-            // User selected an alternative ability - replace the default one
-            const alternativeAbility = SURAGEL_ALTERNATIVE_ABILITIES.find(
-              (a) => a.name === editedData.suragelAbility
-            );
-            if (alternativeAbility) {
-              const abilityIndex = newRace.abilities.findIndex(
-                (a) => a.name === defaultAbilityName
-              );
-              if (abilityIndex !== -1) {
-                newRace = {
-                  ...newRace,
-                  abilities: [
-                    ...newRace.abilities.slice(0, abilityIndex),
-                    {
-                      name: alternativeAbility.name,
-                      description: alternativeAbility.description,
-                      sheetBonuses: alternativeAbility.sheetBonuses,
-                      sheetActions: alternativeAbility.sheetActions,
-                    },
-                    ...newRace.abilities.slice(abilityIndex + 1),
-                  ],
-                };
-              }
-            }
-          }
-        }
+        newRace = applySuragelAlternativeAbility(
+          newRace,
+          editedData.suragelAbility
+        );
 
         // For Duende, apply customization
         if (
@@ -1453,6 +1480,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.tradicaoPerdidaPmAttribute !==
       sheet.tradicaoPerdidaPmAttribute;
 
+    // A herança de Suraggel troca uma habilidade racial inteira (e, em algumas,
+    // uma escolha embutida): sem recálculo os bônus da habilidade anterior
+    // continuariam na ficha.
+    const suragelChanged =
+      editedData.raceName.startsWith('Suraggel') &&
+      (editedData.suragelAbility !== sheet.suragelAbility ||
+        editedData.suragelAbilityChoice !== getSeedSuragelAbilityChoice(sheet));
+
     const shouldUseRecalculateSheet =
       attributesChanged ||
       raceChanged ||
@@ -1460,11 +1495,29 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       levelChanged ||
       manualMaxChanged ||
       heritageChanged ||
+      suragelChanged ||
       moreauSapienciaSpellChanged ||
       tradicaoPerdidaPmChanged;
 
     if (shouldUseRecalculateSheet) {
-      const updatedSheet = { ...sheet, ...updates };
+      let updatedSheet = { ...sheet, ...updates };
+
+      // Trocar a herança de Suraggel remove uma habilidade racial inteira. Os
+      // sheetBonuses o recálculo refaz sozinho, mas o que ela concedeu fora
+      // deles (magias, perícias, proficiências) sobreviveria e se acumularia a
+      // cada troca — daí a reversão explícita pelo histórico.
+      const previousSuragelAbility =
+        sheet.suragelAbility || getSuragelDefaultAbilityName(sheet.raca.name);
+      if (
+        suragelChanged &&
+        previousSuragelAbility !==
+          (editedData.suragelAbility ||
+            getSuragelDefaultAbilityName(editedData.raceName))
+      ) {
+        updatedSheet = _.cloneDeep(updatedSheet);
+        reverseSheetActionsForPower(updatedSheet, previousSuragelAbility);
+      }
+
       const recalculatedSheet = recalculateSheet(updatedSheet);
       onSave(recalculatedSheet);
     } else {
@@ -1486,6 +1539,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
       suragelAbility: sheet.suragelAbility,
+      suragelAbilityChoice: getSeedSuragelAbilityChoice(sheet),
       duendeNature: sheet.duendeNature || sheet.raca.nature,
       duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
       duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
@@ -2098,6 +2152,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           suragelAbility: newRaceName.startsWith('Suraggel')
                             ? editedData.suragelAbility
                             : undefined,
+                          suragelAbilityChoice: newRaceName.startsWith(
+                            'Suraggel'
+                          )
+                            ? editedData.suragelAbilityChoice
+                            : undefined,
                         });
                       }}
                     >
@@ -2290,6 +2349,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                             setEditedData({
                               ...editedData,
                               suragelAbility: e.target.value || undefined,
+                              // A escolha embutida pertence à herança anterior
+                              suragelAbilityChoice: undefined,
                             })
                           }
                         >
@@ -2302,9 +2363,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                               }}
                             >
                               <span>
-                                {editedData.raceName.includes('Aggelus')
-                                  ? 'Luz Sagrada'
-                                  : 'Sombras Profanas'}
+                                {getSuragelDefaultAbilityName(
+                                  editedData.raceName
+                                )}
                               </span>
                               <Chip
                                 label='Padrão'
@@ -2343,6 +2404,46 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                             </MenuItem>
                           ))}
                         </Select>
+                      </FormControl>
+                    )}
+
+                  {/* Escolha embutida da herança (habilidade élfica de
+                      Nivenciuén, forma selvagem de Arbória/Chacina). Sem isto a
+                      escolha seria sorteada e não teria como ser trocada. */}
+                  {editedData.raceName.startsWith('Suraggel') &&
+                    userSupplements.includes(
+                      SupplementId.TORMENTA20_DEUSES_ARTON
+                    ) &&
+                    suragelAbilityChoiceAction && (
+                      <FormControl fullWidth>
+                        <InputLabel>
+                          Escolha de {editedData.suragelAbility}
+                        </InputLabel>
+                        <Select
+                          value={editedData.suragelAbilityChoice || ''}
+                          label={`Escolha de ${editedData.suragelAbility}`}
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              suragelAbilityChoice: e.target.value || undefined,
+                            })
+                          }
+                        >
+                          {suragelAbilityChoiceAction.options.map((option) => (
+                            <MenuItem key={option.name} value={option.name}>
+                              {option.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        <FormHelperText>
+                          {editedData.suragelAbilityChoice
+                            ? suragelAbilityChoiceAction.options.find(
+                                (option) =>
+                                  option.name ===
+                                  editedData.suragelAbilityChoice
+                              )?.text
+                            : 'Sem escolha, uma opção é sorteada.'}
+                        </FormHelperText>
                       </FormControl>
                     )}
 

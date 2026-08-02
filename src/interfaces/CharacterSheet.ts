@@ -227,6 +227,13 @@ export type SheetActionStep =
         // anexados ao poder/habilidade dono quando a opção é escolhida ("sub-poder").
         customEffects?: CustomEffect[];
         rolls?: DiceRoll[];
+        // Ações desta opção — cascateadas com `applyPower` como se pertencessem
+        // ao poder/habilidade dono (mesmo `name`, então as seleções manuais do
+        // jogador casam pela mesma chave). Permite expressar "A OU escolha N de B"
+        // (ex.: Herança de Werra: armas marciais ou duas armas exóticas).
+        // Os requisitos de escolha aninhados só aparecem no assistente depois que
+        // a opção é escolhida — ver `getChosenOptionNestedRequirements`.
+        sheetActions?: SheetAction[];
       }>;
       pick?: number; // Quantas seleções o jogador faz (padrão 1). >1 = multi-pick.
       // Novas escolhas ao subir de nível. `substitutes` indica se cada pick novo

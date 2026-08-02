@@ -419,6 +419,47 @@ export function getPowerSelectionRequirements(
 }
 
 /**
+ * Requisitos de escolha que só existem DEPOIS de o jogador escolher uma opção de
+ * `chooseFromOptions` — as `sheetActions` da opção escolhida (ex.: Herança de
+ * Werra → "Duas Armas Exóticas" pede 2 proficiências).
+ *
+ * Ficam fora de `getPowerSelectionRequirements` porque são condicionais: quem
+ * chama precisa ter as seleções atuais em mãos. Como as ações são cascateadas
+ * com o nome do poder dono (ver `applyPower`), as seleções resultantes são
+ * gravadas sob a MESMA chave do poder — sem colisão, porque o pai usa
+ * `chosenOption` e as filhas usam os campos do próprio tipo de ação.
+ */
+export function getChosenOptionNestedRequirements(
+  power: GeneralPower | ClassPower | RaceAbility | OriginPower,
+  selectionForPower?: SelectionOptions
+): PowerSelectionRequirement[] {
+  const chosenNames = selectionForPower?.chosenOption;
+  if (!chosenNames || chosenNames.length === 0) return [];
+  if (!power.sheetActions || power.sheetActions.length === 0) return [];
+
+  const nested: PowerSelectionRequirement[] = [];
+
+  power.sheetActions.forEach((sheetAction) => {
+    if (sheetAction.action.type !== 'chooseFromOptions') return;
+
+    sheetAction.action.options.forEach((option) => {
+      if (!chosenNames.includes(option.name)) return;
+      if (!option.sheetActions || option.sheetActions.length === 0) return;
+
+      const optionRequirements = getPowerSelectionRequirements({
+        ...power,
+        sheetActions: option.sheetActions,
+      });
+      if (optionRequirements) {
+        nested.push(...optionRequirements.requirements);
+      }
+    });
+  });
+
+  return nested;
+}
+
+/**
  * Filter available options based on what the character already has
  * @param requirement - The power selection requirement
  * @param sheet - The character sheet

@@ -178,7 +178,7 @@ import {
   captureUserAbilityFields,
   restoreUserAbilityFields,
 } from './powers/preserveUserAbilityFields';
-import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import { applySuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { addOtherBonusToSkill } from './skills/general';
 import { applyGolemDespertoCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 import { applyDuendeCustomization } from '../data/systems/tormenta20/herois-de-arton/races/duende';
@@ -1989,6 +1989,22 @@ export const applyPower = (
                 }
               });
             }
+            // Ações da opção: reaplicadas pelo mesmo caminho da aplicação
+            // fresca. O dedupe por histórico (`isActionAlreadyApplied`) pula as
+            // que já foram concedidas, então isto só recompõe o que o recálculo
+            // zerou.
+            if (chosenOption?.sheetActions?.length) {
+              const [updatedSheet, nestedSubSteps] = applyPower(
+                sheet,
+                {
+                  name: powerOrAbility.name,
+                  sheetActions: chosenOption.sheetActions,
+                },
+                manualSelections
+              );
+              Object.assign(sheet, updatedSheet);
+              subSteps.push(...nestedSubSteps);
+            }
             if (chosenOption) {
               mergeOptionEffectsIntoOwner(
                 sheet,
@@ -3270,6 +3286,22 @@ export const applyPower = (
               subSteps,
               manualSelections
             );
+          }
+          // Ações da opção escolhida (ex.: Herança de Werra → "duas armas
+          // exóticas" carrega um `addProficiency pick: 2`). Cascateadas com o
+          // NOME do dono, então as seleções manuais do jogador casam pela mesma
+          // chave e o dedupe por histórico vale no recálculo.
+          if (chosen.sheetActions && chosen.sheetActions.length > 0) {
+            const [updatedSheet, nestedSubSteps] = applyPower(
+              sheet,
+              {
+                name: powerOrAbility.name,
+                sheetActions: chosen.sheetActions,
+              },
+              manualSelections
+            );
+            Object.assign(sheet, updatedSheet);
+            subSteps.push(...nestedSubSteps);
           }
           // Efeitos ativos e rolagens da opção ("sub-poder") → anexados ao
           // poder/habilidade dono para aparecerem na ficha.
@@ -5949,37 +5981,16 @@ export function generateEmptySheet(
     }
   }
 
-  // Apply Suraggel alternative ability if selected
-  if (
-    wizardSelections?.suragelAbility &&
-    emptySheet.raca.name.startsWith('Suraggel')
-  ) {
-    const alternativeAbility = SURAGEL_ALTERNATIVE_ABILITIES.find(
-      (a) => a.name === wizardSelections.suragelAbility
+  // Apply Suraggel alternative ability if selected. `applySuragelAlternativeAbility`
+  // devolve a MESMA referência quando não há troca (raça não-Suraggel, herança
+  // desconhecida), então a identidade decide se a escolha foi registrada.
+  if (wizardSelections?.suragelAbility) {
+    const modifiedRace = applySuragelAlternativeAbility(
+      emptySheet.raca,
+      wizardSelections.suragelAbility
     );
-    if (alternativeAbility) {
-      // Clone the race to avoid mutating the original
-      const modifiedRace = _.cloneDeep(emptySheet.raca);
 
-      // Find the default ability to replace (Luz Sagrada for Aggelus, Sombras Profanas for Sulfure)
-      const defaultAbilityName = modifiedRace.name.includes('Aggelus')
-        ? 'Luz Sagrada'
-        : 'Sombras Profanas';
-
-      const abilityIndex = modifiedRace.abilities.findIndex(
-        (a) => a.name === defaultAbilityName
-      );
-
-      if (abilityIndex !== -1) {
-        // Replace the default ability with the alternative
-        modifiedRace.abilities[abilityIndex] = {
-          name: alternativeAbility.name,
-          description: alternativeAbility.description,
-          sheetBonuses: alternativeAbility.sheetBonuses,
-          sheetActions: alternativeAbility.sheetActions,
-        };
-      }
-
+    if (modifiedRace !== emptySheet.raca) {
       emptySheet.raca = modifiedRace;
       emptySheet.suragelAbility = wizardSelections.suragelAbility;
     }

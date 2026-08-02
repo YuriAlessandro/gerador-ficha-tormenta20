@@ -37,6 +37,7 @@ import GolpePessoalBuilder from '@/components/SheetResult/EditDrawers/GolpePesso
 import Divindade from '@/interfaces/Divindade';
 import {
   getPowerSelectionRequirements,
+  getChosenOptionNestedRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
@@ -178,30 +179,39 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     }>;
   }> = [];
 
+  // Junta os requisitos fixos do poder com os que só existem depois de uma
+  // escolha de `chooseFromOptions` (ex.: Herança de Werra → "Duas Armas
+  // Exóticas" pede 2 proficiências).
+  const collectRequirements = (
+    powerOrAbility: Parameters<typeof getPowerSelectionRequirements>[0],
+    source: 'race' | 'class' | 'origin'
+  ) => {
+    const reqs = getPowerSelectionRequirements(powerOrAbility);
+    const nested = getChosenOptionNestedRequirements(
+      powerOrAbility,
+      selections[powerOrAbility.name]
+    );
+    const requirements = [...(reqs?.requirements ?? []), ...nested];
+    if (requirements.length === 0) return;
+    allRequirements.push({
+      powerName: powerOrAbility.name,
+      source,
+      requirements,
+    });
+  };
+
   // Check selected power first (for level-up wizard)
   if (selectedPower) {
-    const reqs = getPowerSelectionRequirements(selectedPower);
-    if (reqs) {
-      allRequirements.push({
-        powerName: selectedPower.name,
-        source: powerSource === 'general' ? 'origin' : 'class', // Map to existing source types
-        requirements: reqs.requirements,
-      });
-    }
+    // Map to existing source types
+    collectRequirements(
+      selectedPower,
+      powerSource === 'general' ? 'origin' : 'class'
+    );
   }
 
   // Check race abilities (skip during level-up since they're already applied at level 1)
   if (!skipRaceAbilities) {
-    race.abilities.forEach((ability) => {
-      const reqs = getPowerSelectionRequirements(ability);
-      if (reqs) {
-        allRequirements.push({
-          powerName: ability.name,
-          source: 'race',
-          requirements: reqs.requirements,
-        });
-      }
-    });
+    race.abilities.forEach((ability) => collectRequirements(ability, 'race'));
   }
 
   // Check class abilities: use originalAbilities for level-up (has all levels), or abilities for initial creation
@@ -210,16 +220,9 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     ? allClassAbilities.filter((ability) => ability.nivel === classAbilityLevel)
     : (classe.abilities || []).filter((ability) => ability.nivel <= 1);
 
-  classAbilitiesToCheck?.forEach((ability) => {
-    const reqs = getPowerSelectionRequirements(ability);
-    if (reqs) {
-      allRequirements.push({
-        powerName: ability.name,
-        source: 'class',
-        requirements: reqs.requirements,
-      });
-    }
-  });
+  classAbilitiesToCheck?.forEach((ability) =>
+    collectRequirements(ability, 'class')
+  );
 
   // Check origin powers (if exists)
   if (origin) {
@@ -229,16 +232,9 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       : { powers: { origin: [], general: [] }, skills: [] };
 
     // Check origin-specific powers
-    originBenefits.powers.origin.forEach((power) => {
-      const reqs = getPowerSelectionRequirements(power);
-      if (reqs) {
-        allRequirements.push({
-          powerName: power.name,
-          source: 'origin',
-          requirements: reqs.requirements,
-        });
-      }
-    });
+    originBenefits.powers.origin.forEach((power) =>
+      collectRequirements(power, 'origin')
+    );
   }
 
   // Check deity granted powers (if selected)
@@ -246,16 +242,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     const deityPowers = deity.poderes.filter((p) =>
       selectedDeityPowers.includes(p.name)
     );
-    deityPowers.forEach((power) => {
-      const reqs = getPowerSelectionRequirements(power);
-      if (reqs) {
-        allRequirements.push({
-          powerName: power.name,
-          source: 'origin', // Use 'origin' as source type for deity powers (closest match)
-          requirements: reqs.requirements,
-        });
-      }
-    });
+    // Use 'origin' as source type for deity powers (closest match)
+    deityPowers.forEach((power) => collectRequirements(power, 'origin'));
   }
 
   // Use actual sheet if provided, otherwise create mock sheet

@@ -32,10 +32,12 @@ import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameac
 import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
 import { applyMoreauCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import { applySuragelAlternativeAbility } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 
 // Import step components
 import {
   getPowerSelectionRequirements,
+  getChosenOptionNestedRequirements,
   countRequirementSelections,
 } from '@/functions/powers/manualPowerSelection';
 import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
@@ -227,6 +229,16 @@ const CharacterCreationWizardModal: React.FC<
       }
     }
 
+    // Herança alternativa de Suraggel (Deuses de Arton): substitui Luz Sagrada /
+    // Sombras Profanas. Precisa acontecer AQUI porque `needsPowerEffectSelections`,
+    // o passo "Efeitos de Poderes" e sua validação derivam as escolhas pendentes
+    // de `race.abilities` — sem isso o assistente pede as seleções da habilidade
+    // padrão e nunca as da herança escolhida.
+    baseRace = applySuragelAlternativeAbility(
+      baseRace,
+      selections.suragelAbility
+    );
+
     // Apply Yidishan old race from Natureza Orgânica selections
     if (yidishanNaturezaOldRace && baseRace.name === 'Yidishan') {
       const allRaces = dataRegistry.getRacesBySupplements(supplements);
@@ -245,6 +257,7 @@ const CharacterCreationWizardModal: React.FC<
     raceCustomization,
     memoriaPostumaOldRace,
     yidishanNaturezaOldRace,
+    selections.suragelAbility,
   ]);
 
   // Para raças com attributeVariants (Kallyanach), `race.attributes` é só o
@@ -1702,28 +1715,30 @@ const CharacterCreationWizardModal: React.FC<
           PowerSelectionRequirement & { powerName: string }
         > = [];
 
+        const effectSelections = selections.powerEffectSelections || {};
+
+        // Mesma coleta do PowerEffectSelectionStep: requisitos fixos + os que só
+        // aparecem depois de uma escolha de `chooseFromOptions`.
+        const collectRequirements = (
+          powerOrAbility: Parameters<typeof getPowerSelectionRequirements>[0]
+        ) => {
+          const reqs = getPowerSelectionRequirements(powerOrAbility);
+          const nested = getChosenOptionNestedRequirements(
+            powerOrAbility,
+            effectSelections[powerOrAbility.name]
+          );
+          [...(reqs?.requirements ?? []), ...nested].forEach((req) => {
+            allRequirements.push({ powerName: powerOrAbility.name, ...req });
+          });
+        };
+
         // Check race abilities
-        race.abilities.forEach((ability) => {
-          const reqs = getPowerSelectionRequirements(ability);
-          if (reqs) {
-            reqs.requirements.forEach((req) => {
-              allRequirements.push({ powerName: ability.name, ...req });
-            });
-          }
-        });
+        race.abilities.forEach(collectRequirements);
 
         // Check class abilities (filter to nivel <= 1 to match what PowerEffectSelectionStep displays)
-        const classAbilitiesForValidation = (classe.abilities || []).filter(
-          (a) => a.nivel <= 1
-        );
-        classAbilitiesForValidation.forEach((ability) => {
-          const reqs = getPowerSelectionRequirements(ability);
-          if (reqs) {
-            reqs.requirements.forEach((req) => {
-              allRequirements.push({ powerName: ability.name, ...req });
-            });
-          }
-        });
+        (classe.abilities || [])
+          .filter((a) => a.nivel <= 1)
+          .forEach(collectRequirements);
 
         // Check origin powers
         if (origin) {
@@ -1731,14 +1746,7 @@ const CharacterCreationWizardModal: React.FC<
             ? origin.getPowersAndSkills([], origin, true)
             : { powers: { origin: [], general: [] }, skills: [] };
 
-          originBenefits.powers.origin.forEach((power) => {
-            const reqs = getPowerSelectionRequirements(power);
-            if (reqs) {
-              reqs.requirements.forEach((req) => {
-                allRequirements.push({ powerName: power.name, ...req });
-              });
-            }
-          });
+          originBenefits.powers.origin.forEach(collectRequirements);
         }
 
         // Check deity granted powers (selected in previous step)
@@ -1747,20 +1755,10 @@ const CharacterCreationWizardModal: React.FC<
           selections.deityPowers &&
           selections.deityPowers.length > 0
         ) {
-          const selectedDeityPowers = deity.poderes.filter((p) =>
-            selections.deityPowers?.includes(p.name)
-          );
-          selectedDeityPowers.forEach((power) => {
-            const reqs = getPowerSelectionRequirements(power);
-            if (reqs) {
-              reqs.requirements.forEach((req) => {
-                allRequirements.push({ powerName: power.name, ...req });
-              });
-            }
-          });
+          deity.poderes
+            .filter((p) => selections.deityPowers?.includes(p.name))
+            .forEach(collectRequirements);
         }
-
-        const effectSelections = selections.powerEffectSelections || {};
 
         // Validate all requirements are met
         return allRequirements.every((req) => {
