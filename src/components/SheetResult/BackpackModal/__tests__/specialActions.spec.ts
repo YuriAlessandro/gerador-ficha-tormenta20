@@ -10,7 +10,7 @@ describe('Catálogo: specialActions tagging', () => {
     ['MACHADINHA', ['corpo-a-corpo', 'arremessar']],
     ['TRIDENTE', ['corpo-a-corpo', 'arremessar']],
   ])('%s expõe modos corpo-a-corpo + arremessar', (key, expected) => {
-    const weapon = Armas[key];
+    const weapon = Armas[key as keyof typeof Armas];
     expect(weapon.specialActions).toBeDefined();
     expect(weapon.specialActions?.map((a) => a.id).sort()).toEqual(
       expected.sort()

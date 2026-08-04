@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import EQUIPAMENTOS from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -27,28 +27,12 @@ const AMOQUE_PURPURA: Origin = {
   poderes: [atlasOriginPowers.AMOQUE_PURPURA],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Escolhe arma simples aleatória
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDAO,
-      Armas.CLAVA,
-      Armas.FACA,
-      Armas.FOICE,
-      Armas.LANCA,
-      Armas.LANCA_MONTARIA,
-      Armas.MANGUAL,
-      Armas.MACHADINHA,
-    ];
-
-    return [
-      itemChoice('arma', 'Arma simples', armasSimples),
-      {
-        equipment: 'Estandarte da sua tribo',
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma simples', EQUIPAMENTOS.armasSimples),
+    {
+      equipment: 'Estandarte da sua tribo',
+    },
+  ],
 };
 
 export default AMOQUE_PURPURA;

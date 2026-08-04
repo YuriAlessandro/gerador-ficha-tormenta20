@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import Skill from '../../../../../interfaces/Skills';
-import { Armas, Escudos } from '../../equipamentos';
+import EQUIPAMENTOS, { ARMAS_SIMPLES_E_MARCIAIS } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -28,39 +28,6 @@ const SUCATEIRO_DE_BATALHAS: Origin = {
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
   getItems: (): Items[] => {
-    // Armas simples
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDAO,
-      Armas.CAJADO_FERRADO,
-      Armas.CLAVA,
-      Armas.LANCA_MONTARIA,
-      Armas.MACHADINHA,
-      Armas.MACA,
-      Armas.FOICE,
-    ];
-
-    // Armas marciais
-    const armasMarciais = [
-      Armas.ESPADA_LONGA,
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MANGUAL,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.TRIDENTE,
-      Armas.GLADIO,
-      Armas.KATANA,
-      Armas.CIMITARRA,
-      Armas.ALFANJE,
-      Armas.PICARETA_DE_GUERRA,
-      Armas.MACHADO_ANAO,
-      Armas.LANCA,
-      Armas.MONTANTE,
-      Armas.ALABARDA,
-    ];
-
-    const todasArmas = [...armasSimples, ...armasMarciais];
-
     // Rola 4d6 para o dinheiro
     let dinheiro = 0;
     for (let i = 0; i < 4; i += 1) {
@@ -68,17 +35,17 @@ const SUCATEIRO_DE_BATALHAS: Origin = {
     }
 
     return [
-      itemChoice('arma', 'Arma simples ou marcial', todasArmas, 1),
+      itemChoice(
+        'arma',
+        'Arma simples ou marcial',
+        ARMAS_SIMPLES_E_MARCIAIS,
+        1
+      ),
       {
         equipment: 'Bálsamo restaurador',
         qtd: 1,
       },
-      itemChoice(
-        'escudo',
-        'Escudo leve ou pesado',
-        [Escudos.ESCUDO_LEVE, Escudos.ESCUDO_PESADO],
-        1
-      ),
+      itemChoice('escudo', 'Escudo leve ou pesado', EQUIPAMENTOS.escudos, 1),
       {
         equipment: 'Essência de mana',
         qtd: 1,

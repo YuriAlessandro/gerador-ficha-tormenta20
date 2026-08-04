@@ -34,7 +34,9 @@ const SelectableItemGrid: React.FC<SelectableItemGridProps> = ({
       gap: 1,
     }}
   >
-    {items.map((item) => {
+    {/* Um item nulo no pool derrubava a tela inteira (`getName` lê `.nome`).
+        Dado ruim de origem/homebrew não pode custar o passo do assistente. */}
+    {items.filter(Boolean).map((item) => {
       const name = getName(item);
       const isSelected = selectedName === name;
       return (

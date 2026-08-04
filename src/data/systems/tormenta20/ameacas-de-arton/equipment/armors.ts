@@ -5,7 +5,7 @@ import { DefenseEquipment } from '../../../../../interfaces/Equipment';
  * Apenas disponíveis quando o suplemento está ativo
  */
 
-export const AMEACAS_ARTON_ARMORS: Record<string, DefenseEquipment> = {
+export const AMEACAS_ARTON_ARMORS = {
   ARMADURA_DE_OSSOS: {
     nome: 'Armadura de ossos',
     defenseBonus: 3,
@@ -39,6 +39,6 @@ export const AMEACAS_ARTON_ARMORS: Record<string, DefenseEquipment> = {
     group: 'Escudo',
     preco: 3,
   },
-};
+} satisfies Record<string, DefenseEquipment>;
 
 export default AMEACAS_ARTON_ARMORS;

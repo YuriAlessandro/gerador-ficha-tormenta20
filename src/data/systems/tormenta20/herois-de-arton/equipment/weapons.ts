@@ -592,7 +592,7 @@ const SIFAO_CAUSTICO: Equipment = {
   twoHanded: true,
 };
 
-export const HEROIS_ARTON_WEAPONS: Record<string, Equipment> = {
+export const HEROIS_ARTON_WEAPONS = {
   // Armas Simples
   BASTAO_LUDICO,
   BESTA_DE_MAO,
@@ -645,4 +645,4 @@ export const HEROIS_ARTON_WEAPONS: Record<string, Equipment> = {
   CANHAO_PORTATIL,
   BOLA_DE_FERRO,
   SIFAO_CAUSTICO,
-};
+} satisfies Record<string, Equipment>;

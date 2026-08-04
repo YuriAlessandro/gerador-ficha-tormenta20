@@ -3,7 +3,7 @@ import Origin, {
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import EQUIPAMENTOS from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -26,30 +26,14 @@ const INSURGENTE_TAPISTANO: Origin = {
   poderes: [atlasOriginPowers.INSURGENTE_TAPISTANO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Escolhe arma simples aleatória
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDAO,
-      Armas.CLAVA,
-      Armas.FACA,
-      Armas.FOICE,
-      Armas.LANCA,
-      Armas.LANCA_MONTARIA,
-      Armas.MANGUAL,
-      Armas.MACHADINHA,
-    ];
-
-    return [
-      itemChoice('arma', 'Arma simples', armasSimples),
-      {
-        equipment: 'Amuleto da resistência',
-        qtd: 1,
-        description: 'Símbolo reconhecível por outros rebeldes',
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma simples', EQUIPAMENTOS.armasSimples),
+    {
+      equipment: 'Amuleto da resistência',
+      qtd: 1,
+      description: 'Símbolo reconhecível por outros rebeldes',
+    },
+  ],
 };
 
 export default INSURGENTE_TAPISTANO;

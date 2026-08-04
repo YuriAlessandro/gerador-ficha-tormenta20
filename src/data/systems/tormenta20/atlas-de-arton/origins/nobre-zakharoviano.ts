@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import { TODAS_AS_ARMAS } from '../../equipamentos';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import { itemChoice } from '../../originItemHelpers';
 
@@ -29,30 +29,15 @@ const NOBRE_ZAKHAROVIANO: Origin = {
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
   getItems: (): Items[] => {
-    // Escolhe uma arma marcial aleatória para ser a arma superior
-    const armasMarciais = [
-      Armas.ALFANJE,
-      Armas.ARCO_CURTO,
-      Armas.ARCO_LONGO,
-      Armas.BESTA_LEVE,
-      Armas.BESTA_PESADA,
-      Armas.CIMITARRA,
-      Armas.ESPADA_BASTARDA,
-      Armas.ESPADA_CURTA,
-      Armas.ESPADA_LONGA,
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MACHADO_DE_GUERRA,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.MONTANTE,
-    ];
-
-    // Lista de melhorias possíveis
+    // O Atlas lista só "Traje da corte" em Itens; a arma vem do Benefício
+    // ("recebe uma arma superior com uma melhoria, exceto material especial"),
+    // que não restringe a categoria — daí o pool completo.
     const melhorias = [
       'Acurada',
       'Ágil',
       'Equilibrada',
       'Letal',
-      'Poderósa',
+      'Poderosa',
       'Precisa',
     ];
 
@@ -61,8 +46,8 @@ const NOBRE_ZAKHAROVIANO: Origin = {
     return [
       itemChoice(
         'arma',
-        `Arma marcial superior com melhoria: ${melhoria}`,
-        armasMarciais
+        `Arma superior com melhoria: ${melhoria}`,
+        TODAS_AS_ARMAS
       ),
       {
         equipment: 'Traje da corte',

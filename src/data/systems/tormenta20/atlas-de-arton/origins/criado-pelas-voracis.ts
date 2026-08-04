@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import EQUIPAMENTOS, { Armas } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -27,31 +27,13 @@ const CRIADO_PELAS_VORACIS: Origin = {
   poderes: [atlasOriginPowers.CRIADO_PELAS_VORACIS],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Escolhe arma simples aleatória
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDAO,
-      Armas.CLAVA,
-      Armas.FACA,
-      Armas.FOICE,
-      Armas.LANCA,
-      Armas.LANCA_MONTARIA,
-      Armas.MANGUAL,
-      Armas.MACHADINHA,
-    ];
-
-    return [
-      itemChoice('arma', 'Arma simples', armasSimples),
-      {
-        equipment: 'Armadura leve',
-      },
-      {
-        equipment: Armas.LANCA,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma simples', EQUIPAMENTOS.armasSimples),
+    itemChoice('armadura', 'Armadura leve', EQUIPAMENTOS.armadurasLeves),
+    {
+      equipment: Armas.LANCA,
+    },
+  ],
 };
 
 export default CRIADO_PELAS_VORACIS;

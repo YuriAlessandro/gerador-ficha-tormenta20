@@ -6,12 +6,13 @@
  * Quando o livro diz "uma arma marcial ou exótica", quem escolhe é o jogador; a
  * geração aleatória sorteia como fallback.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
 import Origin, { Items } from '../../interfaces/Origin';
 import Bag from '../../interfaces/Bag';
 import Equipment from '../../interfaces/Equipment';
+import { Armas } from '../../data/systems/tormenta20/equipamentos';
 import {
   applyOriginItemChoices,
   getOriginBagEquipments,
@@ -61,7 +62,7 @@ describe('resolveOriginItems', () => {
     );
   });
 
-  it('escolha inválida (fora do pool) cai no sorteio', () => {
+  it('escolha inexistente no catálogo cai no sorteio', () => {
     const items = gladiador.getItems();
     const rolled = items.find((i) => i.choice)?.equipment as Equipment;
 
@@ -72,9 +73,81 @@ describe('resolveOriginItems', () => {
     );
   });
 
+  it('preserva item de ficha antiga que saiu do pool mas existe no catálogo', () => {
+    // Pools de origem já encolheram (ex.: exóticas removidas de listas que as
+    // continham por engano). Editar a origem não pode apagar a arma do jogador.
+    const items = gladiador.getItems();
+    const options = items.find((i) => i.choice)?.choice?.options as Equipment[];
+    const foraDoPool = Object.values(Armas).find(
+      (arma) => !options.some((o) => o.nome === arma.nome)
+    ) as Equipment;
+
+    const resolved = resolveOriginItems(items, { arma: foraDoPool.nome });
+
+    expect((resolved.find((i) => i.choice)?.equipment as Equipment).nome).toBe(
+      foraDoPool.nome
+    );
+  });
+
   it('não mexe em itens sem escolha', () => {
     const items: Items[] = [{ equipment: 'Barraca' }];
     expect(resolveOriginItems(items, { arma: 'Espada Longa' })).toEqual(items);
+  });
+});
+
+describe('integridade dos itens de todas as origens', () => {
+  // Este teste existe por causa de um crash em produção: 23 origens do Atlas
+  // referenciavam chaves inexistentes do catálogo (`Armas.GLADIO`,
+  // `Armas.ALFANJE`…). Como os catálogos eram `Record<string, Equipment>`, o
+  // TypeScript aceitava e o valor virava `undefined` em runtime — a grade de
+  // escolha do assistente quebrava ao ler `.nome`. A cobertura anterior só
+  // exercitava o livro básico.
+  const TODOS_OS_SUPLEMENTOS = Object.values(SupplementId);
+  const origins = dataRegistry.getOriginsBySupplements(TODOS_OS_SUPLEMENTOS);
+
+  function describeOption(option: Equipment | string): string {
+    return typeof option === 'string' ? option : option?.nome;
+  }
+
+  it('encontra origens em todos os suplementos', () => {
+    expect(origins.length).toBeGreaterThan(50);
+  });
+
+  it.each(origins.map((origin) => [origin.name, origin] as const))(
+    '%s concede itens válidos',
+    (_name, origin) => {
+      // `itemChoice` filtra opções nulas para não derrubar a tela, mas grita no
+      // console — é esse grito que denuncia a chave inexistente aqui.
+      const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // `getItems()` re-sorteia a cada chamada; repetir cobre o sorteio interno
+      // de `itemChoice`.
+      for (let i = 0; i < 5; i += 1) {
+        origin.getItems().forEach((item) => {
+          expect(item.equipment).toBeDefined();
+          expect(describeOption(item.equipment)).toBeTruthy();
+
+          item.choice?.options.forEach((option) => {
+            expect(option).toBeDefined();
+            expect(describeOption(option)).toBeTruthy();
+          });
+        });
+      }
+
+      const calls = logged.mock.calls.map((args) => String(args[0]));
+      logged.mockRestore();
+      expect(calls).toEqual([]);
+    }
+  );
+
+  it('nenhuma escolha fica com o pool de opções vazio', () => {
+    origins.forEach((origin) => {
+      origin.getItems().forEach((item) => {
+        if (item.choice) {
+          expect(item.choice.options.length).toBeGreaterThan(0);
+        }
+      });
+    });
   });
 });
 

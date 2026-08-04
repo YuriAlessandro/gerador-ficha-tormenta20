@@ -3,7 +3,7 @@ import Origin, {
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import EQUIPAMENTOS from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -26,31 +26,13 @@ const DUYSHID_AKK_INFILTRADO: Origin = {
   poderes: [atlasOriginPowers.DUYSHID_AKK_INFILTRADO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Escolhe arma marcial aleatória
-    const armasMarciais = [
-      Armas.ALFANJE,
-      Armas.ARCO_CURTO,
-      Armas.ARCO_LONGO,
-      Armas.BESTA_LEVE,
-      Armas.BESTA_PESADA,
-      Armas.ESPADA_BASTARDA,
-      Armas.ESPADA_CURTA,
-      Armas.ESPADA_LONGA,
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MACHADO_DE_GUERRA,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.MONTANTE,
-    ];
-
-    return [
-      itemChoice('arma', 'Arma marcial', armasMarciais),
-      {
-        equipment: 'Peças sobressalentes',
-        description: 'T$ 100 para vender ou construir engenhocas',
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma marcial', EQUIPAMENTOS.armasMarciais),
+    {
+      equipment: 'Peças sobressalentes',
+      description: 'T$ 100 para vender ou construir engenhocas',
+    },
+  ],
 };
 
 export default DUYSHID_AKK_INFILTRADO;

@@ -3,7 +3,7 @@ import Origin, {
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import { ARMAS_SIMPLES_E_MARCIAIS } from '../../equipamentos';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import { itemChoice } from '../../originItemHelpers';
 
@@ -28,37 +28,6 @@ const FUTURA_LENDA: Origin = {
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
   getItems: (): Items[] => {
-    // Escolhe arma simples ou marcial aleatória
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDAO,
-      Armas.CLAVA,
-      Armas.FACA,
-      Armas.FOICE,
-      Armas.LANCA,
-      Armas.LANCA_MONTARIA,
-      Armas.MANGUAL,
-      Armas.MACHADINHA,
-    ];
-
-    const armasMarciais = [
-      Armas.ALFANJE,
-      Armas.ARCO_CURTO,
-      Armas.ARCO_LONGO,
-      Armas.BESTA_LEVE,
-      Armas.BESTA_PESADA,
-      Armas.ESPADA_BASTARDA,
-      Armas.ESPADA_CURTA,
-      Armas.ESPADA_LONGA,
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MACHADO_DE_GUERRA,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.MONTANTE,
-    ];
-
-    const todasArmas = [...armasSimples, ...armasMarciais];
-
     // Nomes pomposos para armas
     const nomesPomposos = [
       'Lâmina do Destino',
@@ -78,7 +47,7 @@ const FUTURA_LENDA: Origin = {
       itemChoice(
         'arma',
         `Arma simples ou marcial — "${nomePomposo}" (arma comum sem melhorias, apenas nome pomposo)`,
-        todasArmas
+        ARMAS_SIMPLES_E_MARCIAIS
       ),
       {
         equipment: 'Essência de mana',

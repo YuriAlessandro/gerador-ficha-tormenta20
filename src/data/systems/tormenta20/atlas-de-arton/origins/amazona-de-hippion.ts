@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import { ARMAS_SIMPLES_E_MARCIAIS } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -27,44 +27,12 @@ const AMAZONA_DE_HIPPION: Origin = {
   poderes: [atlasOriginPowers.AMAZONA_DE_HIPPION],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Escolhe arma simples ou marcial aleatória
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDAO,
-      Armas.CLAVA,
-      Armas.FACA,
-      Armas.FOICE,
-      Armas.LANCA,
-      Armas.LANCA_MONTARIA,
-      Armas.MANGUAL,
-      Armas.MACHADINHA,
-    ];
-
-    const armasMarciais = [
-      Armas.ALABARDA,
-      Armas.ESPADA_BASTARDA,
-      Armas.ESPADA_CURTA,
-      Armas.ESPADA_LONGA,
-      Armas.FLORETE,
-      Armas.GLAIVE,
-      Armas.LANCA_DE_CAVALARIA,
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MANGUAL_PESADO,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.PICARETA_DE_GUERRA,
-    ];
-
-    const todasArmas = [...armasSimples, ...armasMarciais];
-
-    return [
-      itemChoice('arma', 'Arma simples ou marcial', todasArmas),
-      {
-        equipment: 'Cavalo de guerra (montaria)',
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma simples ou marcial', ARMAS_SIMPLES_E_MARCIAIS),
+    {
+      equipment: 'Cavalo de guerra (montaria)',
+    },
+  ],
 };
 
 export default AMAZONA_DE_HIPPION;

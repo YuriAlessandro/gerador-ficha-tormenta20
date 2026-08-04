@@ -5,7 +5,11 @@ import Equipment, {
 import Origin, { Items } from '../interfaces/Origin';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Bag from '../interfaces/Bag';
-import { Armaduras, Escudos } from '../data/systems/tormenta20/equipamentos';
+import {
+  Armaduras,
+  Armas,
+  Escudos,
+} from '../data/systems/tormenta20/equipamentos';
 
 /**
  * Escolhas de item da origem: `choice.key` -> nome do item escolhido.
@@ -91,9 +95,22 @@ export function convertOriginItemsToBagEquipments(
 }
 
 /**
+ * Procura um item pelo nome nos catálogos base. Serve de rede de segurança para
+ * escolhas gravadas em fichas antigas cujo pool de opções mudou depois — sem
+ * isso, editar a origem descartaria silenciosamente a arma do jogador e
+ * concederia um sorteio no lugar.
+ */
+function findEquipmentByName(name: string): Equipment | undefined {
+  return [
+    ...Object.values(Armas),
+    ...Object.values(Armaduras),
+    ...Object.values(Escudos),
+  ].find((equipment) => equipment.nome === name);
+}
+
+/**
  * Substitui o sorteio de `getItems()` pela escolha do jogador quando houver uma.
- * Sem escolha (ou com escolha inválida — item fora do pool), mantém o sorteio,
- * que é o comportamento da geração aleatória.
+ * Sem escolha, mantém o sorteio, que é o comportamento da geração aleatória.
  */
 export function resolveOriginItems(
   items: Items[] | undefined,
@@ -111,9 +128,14 @@ export function resolveOriginItems(
     const chosen = item.choice.options.find(
       (option) => getOriginItemOptionName(option) === chosenName
     );
-    if (!chosen) return item;
+    if (chosen) return { ...item, equipment: chosen };
 
-    return { ...item, equipment: chosen };
+    // Fora do pool atual: preserva o item do jogador se ele ainda existir no
+    // catálogo. Só cai no sorteio quando o nome não resolve em lugar nenhum.
+    const fromCatalog = findEquipmentByName(chosenName);
+    if (fromCatalog) return { ...item, equipment: fromCatalog };
+
+    return item;
   });
 }
 

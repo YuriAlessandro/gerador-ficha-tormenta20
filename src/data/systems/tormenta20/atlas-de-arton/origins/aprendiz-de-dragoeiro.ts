@@ -3,7 +3,7 @@ import Origin, {
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import { ARMAS_SIMPLES_E_MARCIAIS } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 function getAllRegionalBenefits(): OriginBenefits {
@@ -22,57 +22,15 @@ const APRENDIZ_DE_DRAGOEIRO: Origin = {
   poderes: [atlasOriginPowers.APRENDIZ_DE_DRAGOEIRO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDO,
-      Armas.CAJADO,
-      Armas.CLAVA,
-      Armas.FOICE,
-      Armas.LANCA,
-      Armas.MACHADINHA,
-      Armas.MACA,
-    ];
-
-    const armasMarciais = [
-      Armas.ALABARDA,
-      Armas.ARCO_CURTO,
-      Armas.ARCO_LONGO,
-      Armas.BESTA_LEVE,
-      Armas.BESTA_PESADA,
-      Armas.CHICOTE,
-      Armas.CIMITARRA,
-      Armas.ESPADA_BASTARDA,
-      Armas.ESPADA_CURTA,
-      Armas.ESPADA_LONGA,
-      Armas.ESPADAO,
-      Armas.FOICE_DE_GUERRA,
-      Armas.GLAIVE,
-      Armas.LANCA_DE_CAVALARIA,
-      Armas.LANCA_MONTANTE,
-      Armas.MACHADO_DE_ARREMESSO,
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MANGUAL,
-      Armas.MARTELO_DE_ARREMESSO,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.MARRETA,
-      Armas.PICARETA_DE_GUERRA,
-      Armas.TRIDENTE,
-    ];
-
-    const todasArmas = [...armasSimples, ...armasMarciais];
-
-    return [
-      itemChoice('arma', 'Arma simples ou marcial', todasArmas),
-      {
-        equipment: 'Troféu de caça',
-      },
-      {
-        equipment: 'Treckod',
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma simples ou marcial', ARMAS_SIMPLES_E_MARCIAIS),
+    {
+      equipment: 'Troféu de caça',
+    },
+    {
+      equipment: 'Treckod',
+    },
+  ],
 };
 
 export default APRENDIZ_DE_DRAGOEIRO;

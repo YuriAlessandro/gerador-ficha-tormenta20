@@ -32,7 +32,7 @@ const TOCADO_PELO_INDOMAVEL: Origin = {
       qtd: 1,
     },
     {
-      equipment: Armaduras.GIBAO_DE_PELES,
+      equipment: Armaduras.GIBAODEPELES,
       qtd: 1,
       description: 'Carcaça de couro de animal caçado',
     },

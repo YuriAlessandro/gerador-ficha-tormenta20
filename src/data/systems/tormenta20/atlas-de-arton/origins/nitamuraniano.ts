@@ -27,7 +27,10 @@ const NITAMURANIANO: Origin = {
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
   getItems: (): Items[] => [
-    itemChoice('arma', 'Arco longo ou katana', [Armas.ARCO_LONGO, 'Katana']),
+    itemChoice('arma', 'Arco longo ou katana', [
+      Armas.ARCO_LONGO,
+      Armas.KATANA,
+    ]),
     itemChoice(
       'roupa',
       'Camisa bufante ou traje de seda',

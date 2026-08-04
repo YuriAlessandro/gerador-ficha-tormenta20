@@ -3,7 +3,7 @@ import Origin, {
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armaduras, Armas } from '../../equipamentos';
+import { Armaduras, ARMAS_SIMPLES_E_MARCIAIS } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -26,46 +26,12 @@ const INICIADO_DOS_CACA_MONSTROS: Origin = {
   poderes: [atlasOriginPowers.INICIADO_DOS_CACA_MONSTROS],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Escolhe arma simples ou marcial aleatória
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDAO,
-      Armas.CLAVA,
-      Armas.FACA,
-      Armas.FOICE,
-      Armas.LANCA,
-      Armas.LANCA_MONTARIA,
-      Armas.MANGUAL,
-      Armas.MACHADINHA,
-    ];
-
-    const armasMarciais = [
-      Armas.ALFANJE,
-      Armas.ARCO_CURTO,
-      Armas.ARCO_LONGO,
-      Armas.BESTA_LEVE,
-      Armas.BESTA_PESADA,
-      Armas.CIMITARRA,
-      Armas.ESPADA_BASTARDA,
-      Armas.ESPADA_CURTA,
-      Armas.ESPADA_LONGA,
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MACHADO_DE_GUERRA,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.MONTANTE,
-    ];
-
-    const todasArmas = [...armasSimples, ...armasMarciais];
-
-    return [
-      itemChoice('arma', 'Arma simples ou marcial', todasArmas),
-      {
-        equipment: Armaduras.GIBAODEPELES,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma simples ou marcial', ARMAS_SIMPLES_E_MARCIAIS),
+    {
+      equipment: Armaduras.GIBAODEPELES,
+    },
+  ],
 };
 
 export default INICIADO_DOS_CACA_MONSTROS;

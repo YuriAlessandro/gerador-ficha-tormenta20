@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import Skill from '../../../../../interfaces/Skills';
-import { Armas, Armaduras } from '../../equipamentos';
+import EQUIPAMENTOS, { Armaduras } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -27,33 +27,13 @@ const SELVAGEM_SANGUINARIO: Origin = {
   poderes: [atlasOriginPowers.SELVAGEM_SANGUINARIO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Armas marciais
-    const armasMarciais = [
-      Armas.ESPADA_LONGA,
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MANGUAL,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.TRIDENTE,
-      Armas.GLADIO,
-      Armas.KATANA,
-      Armas.CIMITARRA,
-      Armas.ALFANJE,
-      Armas.PICARETA_DE_GUERRA,
-      Armas.MACHADO_ANAO,
-      Armas.LANCA,
-      Armas.MONTANTE,
-      Armas.ALABARDA,
-    ];
-
-    return [
-      itemChoice('arma', 'Arma marcial', armasMarciais, 1),
-      {
-        equipment: Armaduras.GIBAO_DE_PELES,
-        qtd: 1,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma marcial', EQUIPAMENTOS.armasMarciais, 1),
+    {
+      equipment: Armaduras.GIBAODEPELES,
+      qtd: 1,
+    },
+  ],
 };
 
 export default SELVAGEM_SANGUINARIO;

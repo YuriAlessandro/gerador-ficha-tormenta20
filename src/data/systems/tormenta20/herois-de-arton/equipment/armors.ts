@@ -147,7 +147,7 @@ const SAGNA: DefenseEquipment = {
   preco: 20,
 };
 
-export const HEROIS_ARTON_ARMORS: Record<string, DefenseEquipment> = {
+export const HEROIS_ARTON_ARMORS = {
   // Armaduras Leves
   ARMADURA_SENSUAL,
   ARMADURA_DE_FOLHAS,
@@ -165,4 +165,4 @@ export const HEROIS_ARTON_ARMORS: Record<string, DefenseEquipment> = {
   ESCUDO_DE_VIME,
   ESCUDO_TORRE,
   SAGNA,
-};
+} satisfies Record<string, DefenseEquipment>;

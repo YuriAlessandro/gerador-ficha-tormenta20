@@ -17,11 +17,32 @@ export function itemChoice(
   options: (Equipment | string)[],
   qtd?: number
 ): Items {
+  // Um item nulo aqui derruba a grade de escolha inteira (ela lê `.nome` de cada
+  // opção). Já aconteceu com origens que referenciavam chaves inexistentes do
+  // catálogo; homebrew e suplementos futuros podem repetir o erro.
+  const validOptions = options.filter(Boolean);
+
+  if (validOptions.length !== options.length) {
+    // Filtrar salva a tela, mas o dado continua errado — avisa alto para que o
+    // problema apareça no teste de integridade e no console de desenvolvimento
+    // em vez de virar uma opção que some em silêncio.
+    // eslint-disable-next-line no-console
+    console.error(
+      `[itemChoice] "${label}" recebeu ${
+        options.length - validOptions.length
+      } opção(ões) inválida(s) — provável referência a uma chave inexistente do catálogo de equipamentos.`
+    );
+  }
+
   return {
-    equipment: getRandomItemFromArray(options),
+    // Com o pool vazio o sorteio devolveria `undefined`; cai para o próprio
+    // rótulo, que os consumidores já sabem tratar como item de texto livre.
+    equipment: validOptions.length
+      ? getRandomItemFromArray(validOptions)
+      : label,
     description: label,
     qtd,
-    choice: { key, label, options },
+    choice: { key, label, options: validOptions },
   };
 }
 

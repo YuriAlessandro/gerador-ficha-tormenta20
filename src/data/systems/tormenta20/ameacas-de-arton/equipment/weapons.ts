@@ -5,7 +5,7 @@ import Equipment from '../../../../../interfaces/Equipment';
  * Apenas disponíveis quando o suplemento está ativo
  */
 
-export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
+export const AMEACAS_ARTON_WEAPONS = {
   // ===== ARMAS SIMPLES =====
   PORRETE: {
     nome: 'Porrete',
@@ -246,6 +246,6 @@ export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
     group: 'Arma',
     preco: 30,
   },
-};
+} satisfies Record<string, Equipment>;
 
 export default AMEACAS_ARTON_WEAPONS;

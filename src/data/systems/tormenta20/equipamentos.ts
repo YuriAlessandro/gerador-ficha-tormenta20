@@ -5,7 +5,24 @@ import Equipment, {
   CombatItems,
 } from '../../../interfaces/Equipment';
 
-export const Armas: Record<string, Equipment> = {
+/**
+ * Fixa as chaves do catálogo sem estreitar os valores.
+ *
+ * Anotar como `Record<string, Equipment>` cria uma index signature: `Armas.GLADIO`
+ * compila e vale `undefined` em runtime. Foi assim que 118 referências a armas
+ * inexistentes entraram nas origens do Atlas e derrubaram o passo "Itens da
+ * Origem". Com o mapped type abaixo, uma chave errada vira erro de compilação —
+ * e `Armas[k]` / `Object.values(Armas)` continuam devolvendo `Equipment`.
+ */
+const catalog = <T extends Record<string, Equipment>>(
+  items: T
+): { [K in keyof T]: Equipment } => items;
+
+const defenseCatalog = <T extends Record<string, DefenseEquipment>>(
+  items: T
+): { [K in keyof T]: DefenseEquipment } => items;
+
+export const Armas = catalog({
   BALAS: {
     nome: 'Balas (20)',
     dano: '-',
@@ -611,9 +628,9 @@ export const Armas: Record<string, Equipment> = {
     weaponTags: ['armaDeFogo'],
     ammoType: 'Balas',
   },
-};
+});
 
-export const Armaduras: Record<string, DefenseEquipment> = {
+export const Armaduras = defenseCatalog({
   ARMADURA_ACOLCHOADA: {
     nome: 'Armadura Acolchoada',
     defenseBonus: 1,
@@ -694,9 +711,9 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     group: 'Armadura',
     preco: 3000,
   },
-};
+});
 
-export const Escudos: Record<string, DefenseEquipment> = {
+export const Escudos = defenseCatalog({
   ESCUDOLEVE: {
     nome: 'Escudo Leve',
     defenseBonus: 1,
@@ -713,7 +730,7 @@ export const Escudos: Record<string, DefenseEquipment> = {
     group: 'Escudo',
     preco: 15,
   },
-};
+});
 
 const EQUIPAMENTOS: CombatItems = {
   armasSimples: [
@@ -781,6 +798,23 @@ const EQUIPAMENTOS: CombatItems = {
 };
 
 export default EQUIPAMENTOS;
+
+/**
+ * Pool de "uma arma simples ou marcial" — as duas tabelas do JDA juntas.
+ * Várias origens (principalmente as regionais do Atlas) concedem exatamente essa
+ * categoria; centralizar evita listas escritas à mão, que já divergiram do
+ * catálogo e chegaram a referenciar armas inexistentes.
+ */
+export const ARMAS_SIMPLES_E_MARCIAIS: Equipment[] = [
+  ...EQUIPAMENTOS.armasSimples,
+  ...EQUIPAMENTOS.armasMarciais,
+];
+
+/** Pool de "uma arma qualquer" — simples, marciais e exóticas. */
+export const TODAS_AS_ARMAS: Equipment[] = [
+  ...ARMAS_SIMPLES_E_MARCIAIS,
+  ...EQUIPAMENTOS.armasExoticas,
+];
 
 /**
  * Verifica se uma armadura é pesada.

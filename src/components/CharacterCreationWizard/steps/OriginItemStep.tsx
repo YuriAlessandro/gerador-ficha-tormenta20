@@ -74,6 +74,10 @@ const OriginItemStep: React.FC<OriginItemStepProps> = ({
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {fixedItems.map((item) => {
+                // Mesmo guard de OriginSelectionStep: item sem equipamento
+                // (dado de origem quebrado) some da lista em vez de quebrar.
+                if (!item.equipment) return null;
+
                 const isText = typeof item.equipment === 'string';
                 const name = isText
                   ? (item.equipment as string)

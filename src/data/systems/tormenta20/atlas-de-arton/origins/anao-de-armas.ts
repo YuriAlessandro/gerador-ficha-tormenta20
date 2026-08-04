@@ -4,7 +4,7 @@ import Origin, {
 } from '../../../../../interfaces/Origin';
 import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
-import { Armas } from '../../equipamentos';
+import EQUIPAMENTOS, { Armas } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
 
 /**
@@ -28,18 +28,20 @@ const ANAO_DE_ARMAS: Origin = {
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
   getItems: (): Items[] => {
-    // Armas marciais tradicionais anãs (machados, martelos, marretas e picaretas)
-    const armasTradicoinaisAnas = [
-      Armas.MACHADO_DE_BATALHA,
-      Armas.MACHADO_DE_ARREMESSO,
-      Armas.MARTELO_DE_ARREMESSO,
-      Armas.MARTELO_DE_GUERRA,
-      Armas.MARRETA,
-      Armas.PICARETA_DE_GUERRA,
-    ];
+    // Recorte marcial da tradição anã: machados, martelos, marretas e picaretas.
+    // Derivado da tabela do JDA para não divergir do catálogo.
+    const armasTradicionaisAnas = EQUIPAMENTOS.armasMarciais.filter((arma) =>
+      [
+        Armas.MACHADO_DE_BATALHA,
+        Armas.MACHADO_DE_GUERRA,
+        Armas.MARTELO_DE_GUERRA,
+        Armas.MARRETA,
+        Armas.PICARETA,
+      ].includes(arma)
+    );
 
     return [
-      itemChoice('arma', 'Arma marcial tradicional anã', armasTradicoinaisAnas),
+      itemChoice('arma', 'Arma marcial tradicional anã', armasTradicionaisAnas),
       {
         equipment: 'Instrumentos de Ofício (armeiro)',
       },
