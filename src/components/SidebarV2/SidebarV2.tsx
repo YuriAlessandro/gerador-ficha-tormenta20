@@ -45,8 +45,8 @@ import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { APP_VERSION } from '../../utils/appVersion';
 
-const APP_VERSION = '4.28.1';
 const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
 interface SidebarV2Props {
@@ -531,7 +531,7 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 
           {/* Footer spacing - extra space for iOS safe areas */}
           <Box sx={{ height: 60, pl: 2 }}>
-            <span>${APP_VERSION}</span>
+            <span>v{APP_VERSION}</span>
           </Box>
         </StyledPaper>
       </Slide>

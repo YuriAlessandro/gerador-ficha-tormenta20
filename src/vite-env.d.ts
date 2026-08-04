@@ -1,5 +1,9 @@
 /// <reference types="vite/client" />
 
+/** Versão de `package.json`, injetada em build time (`define` do Vite). */
+// eslint-disable-next-line no-underscore-dangle
+declare const __APP_VERSION__: string;
+
 declare module '*?raw' {
   const content: string;
   export default content;

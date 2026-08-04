@@ -1,7 +1,19 @@
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
+// Espelha o `define` de vite.config.ts — o vitest não herda a config do Vite.
+const APP_VERSION: string = JSON.parse(
+  fs.readFileSync(
+    fileURLToPath(new URL('./package.json', import.meta.url)),
+    'utf-8'
+  )
+).version;
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
   test: {
     globals: true,
     setupFiles: ['./src/setupTests.ts'],

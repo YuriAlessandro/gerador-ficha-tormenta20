@@ -25,6 +25,7 @@ Run the following commands to understand what work was done since the last relea
 Read the file `src/components/screens/Changelog.tsx` (first ~150 lines) to understand the existing format and structure.
 
 The changelog uses this pattern inside `<AccordionDetails>`:
+
 - Each version is an `<h3>` tag (e.g., `<h3>4.7</h3>`)
 - Changes are listed in `<ul><li>` elements
 - Each item starts with a bold category like `<strong>Correção:</strong>`, `<strong>Novo:</strong>`, `<strong>Melhoria:</strong>`, etc.
@@ -33,6 +34,7 @@ The changelog uses this pattern inside `<AccordionDetails>`:
 Based on the git log, create a new `<h3>$ARGUMENTS</h3>` section with `<ul><li>` entries summarizing all the work done since the last version. Place it **above** the previous version's `<h3>` tag inside the current major version's `<AccordionDetails>`.
 
 Use these categories:
+
 - **Novo:** — for new features
 - **Melhoria:** — for improvements/enhancements
 - **Correção:** — for bug fixes
@@ -48,15 +50,21 @@ já existentes; a regra vale para o conteúdo novo que você adicionar.)
 
 Also update the "Última atualização em" date in the introductory paragraph to today's date in DD/MM/YYYY format.
 
-### Step 3: Format the file
+### Step 3: Bump the version in `package.json`
 
-Run `npx prettier --write src/components/screens/Changelog.tsx` to ensure consistent formatting.
+Set `"version"` in `package.json` to `$ARGUMENTS` (use the full `X.Y.Z` form — e.g. `4.29` becomes `4.29.0`).
 
-### Step 4: Commit changes
+This is the **single source of truth** for the app version: `vite.config.ts` reads it to name the PWA caches (bumping it invalidates the old caches) and to inject `__APP_VERSION__`, which feeds the version shown in the sidebar, in the footer, and in the ErrorBoundary's bug report. Skipping this step means the new build reuses the previous version's cache names and every bug report keeps claiming the old version.
+
+### Step 4: Format the files
+
+Run `npx prettier --write src/components/screens/Changelog.tsx package.json` to ensure consistent formatting.
+
+### Step 5: Commit changes
 
 There are two types of changes to commit — handle them separately:
 
-#### 4a. Commit pending code changes (if any)
+#### 5a. Commit pending code changes (if any)
 
 If there are uncommitted changes **other than** `Changelog.tsx` (e.g., bug fixes, data corrections, new features), commit them first with a message that describes **what was actually changed** — not the version number. For example: `fix: corrigir duração da magia Velocidade`.
 
@@ -65,23 +73,25 @@ If there are uncommitted changes **other than** `Changelog.tsx` (e.g., bug fixes
 
 If there are multiple unrelated changes, create separate commits for each.
 
-#### 4b. Commit the changelog
+#### 5b. Commit the changelog
 
 After all code changes are committed:
 
-1. Stage only the changelog: `git add src/components/screens/Changelog.tsx`
+1. Stage the changelog and the version bump: `git add src/components/screens/Changelog.tsx package.json`
 2. Create a commit with the message: `release: v$ARGUMENTS`
 
 Include the co-author line in all commits:
+
 ```
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
 ```
 
-### Step 5: Manual testing walkthrough (SEMPRE)
+### Step 6: Manual testing walkthrough (SEMPRE)
 
 After committing, you **MUST** output a manual testing walkthrough for at least one scenario from the work done in this release. This is mandatory — never skip this step.
 
 Requirements:
+
 - Pick at least one meaningful change from this release (prefer a user-visible feature, fix, or improvement).
 - Write the walkthrough in Brazilian Portuguese, addressed to the user as if they were a normal end user of the app.
 - Describe the steps as clicks/taps and visible UI interactions only (e.g., "abra o app", "clique em X", "selecione Y", "verifique que Z aparece").

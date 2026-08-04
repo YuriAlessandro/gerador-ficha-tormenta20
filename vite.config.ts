@@ -7,8 +7,13 @@ import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 
-// Version used for cache naming - changing this invalidates all PWA caches
-const APP_VERSION = '4.28.1';
+// Fonte única da versão: `package.json`. Além de nomear os caches do PWA
+// (bumpar a versão invalida todos), é exposta ao bundle como `__APP_VERSION__`
+// para o relatório do ErrorBoundary — sem ela não dá para saber se um bug
+// reportado veio da versão atual ou de um build antigo preso no cache.
+const APP_VERSION: string = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
+).version;
 
 const PREMIUM_DIR = path.resolve(__dirname, 'src/premium');
 const PREMIUM_STUB_DIR = path.resolve(__dirname, 'src/premium-stub');
@@ -104,6 +109,9 @@ function spaFallbackPlugin(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig({
   appType: 'spa',
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
   // Dev-only: proxia /api para o backend local. Usado ao testar a ficha
   // embutida no Owlbear (frontend via túnel HTTPS) rodando com VITE_API_URL=/
   // — evita mixed content e CORS. Não afeta o build de produção.

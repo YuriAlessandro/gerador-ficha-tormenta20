@@ -18,6 +18,7 @@ import {
   Refresh as RefreshIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';
+import { APP_VERSION, getBuildDiagnostics } from '@/utils/appVersion';
 
 interface Props {
   children: ReactNode;
@@ -67,10 +68,14 @@ class ErrorBoundary extends Component<Props, State> {
 
   private copyErrorToClipboard = async () => {
     const { error, errorInfo } = this.state;
+    const { serviceWorker, pendingUpdate } = getBuildDiagnostics();
     const errorText = `
 ERRO NA APLICAÇÃO FICHAS DE NIMB
 ================================
 
+Versão do App: ${APP_VERSION}
+Service Worker: ${serviceWorker}
+Atualização pendente: ${pendingUpdate}
 Data/Hora: ${new Date().toLocaleString('pt-BR')}
 URL: ${window.location.href}
 User Agent: ${navigator.userAgent}
@@ -254,6 +259,15 @@ const ErrorFallbackUI: React.FC<{
           >
             Copiar Detalhes do Erro para Enviar ao Suporte
           </Button>
+
+          {/* Versão visível sem precisar copiar o relatório — é o primeiro dado
+              que o suporte pede para saber se o erro é de um build antigo. */}
+          <Typography
+            variant='caption'
+            sx={{ display: 'block', color: 'text.secondary', mb: 2 }}
+          >
+            Versão {APP_VERSION}
+          </Typography>
 
           {/* Error Details Expandable Section */}
           <Box sx={{ mt: 3 }}>

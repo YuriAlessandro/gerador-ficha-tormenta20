@@ -10,8 +10,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { useHistory } from 'react-router-dom';
-
-const APP_VERSION = '4.28.1';
+import { APP_VERSION } from '@/utils/appVersion';
 
 // Image credits - add more as needed
 const imageCredits = [
