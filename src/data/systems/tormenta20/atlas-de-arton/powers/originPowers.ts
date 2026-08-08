@@ -666,7 +666,6 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         action: {
           type: 'getClassPower',
           minLevel: 2,
-          ignoreOnlyLevelRequirement: true,
         },
       },
     ],

@@ -171,8 +171,9 @@ export type SheetActionStep =
     }
   | {
       type: 'getClassPower';
-      minLevel?: number; // Minimum level of powers to choose from (default: 2)
-      ignoreOnlyLevelRequirement?: boolean; // If true, ignores level requirement but respects other requirements (default: true)
+      // Nível em que os requisitos são avaliados (default: 2). Ver
+      // getFuturaLendaClassPowers.
+      minLevel?: number;
     }
   | {
       type: 'grantSpecificClassPower';

@@ -271,14 +271,16 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       origin: undefined,
       spells: [],
       nivel: 1,
-      atributos: {
-        Força: { value: 10 },
-        Destreza: { value: 10 },
-        Constituição: { value: 10 },
-        Inteligência: { value: 10 },
-        Sabedoria: { value: 10 },
-        Carisma: { value: 10 },
-      },
+      // Modificadores finais reais (base + raciais). Antes eram valores fixos,
+      // o que fazia todo pré-requisito de ATRIBUTO passar de graça — requisitos
+      // de poder são expressos em modificador (ex.: "Destreza 2").
+      atributos: Object.values(Atributo).reduce(
+        (acc, attr) => ({
+          ...acc,
+          [attr]: { name: attr, value: resolvedAttributeModifiers[attr] ?? 0 },
+        }),
+        {}
+      ),
       sheetActionHistory: [],
     } as unknown as CharacterSheet);
 
@@ -672,7 +674,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         optionKey?: string;
         linkedTo?: string;
         minLevel?: number;
-        ignoreOnlyLevelRequirement?: boolean;
         abilityLevel?: number;
         pickByAttribute?: Atributo;
         minPick?: number;

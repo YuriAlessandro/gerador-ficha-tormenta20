@@ -384,8 +384,6 @@ export function getPowerSelectionRequirements(
           label: 'Selecione um poder de classe',
           metadata: {
             minLevel: action.minLevel ?? 2,
-            ignoreOnlyLevelRequirement:
-              action.ignoreOnlyLevelRequirement ?? true,
           },
         });
       }
@@ -911,8 +909,7 @@ export function getFilteredAvailableOptions(
       // nível mínimo e disponibilidade. Mesma lógica usada pelo gerador.
       return getFuturaLendaClassPowers(
         sheet,
-        requirement.metadata?.minLevel ?? 2,
-        requirement.metadata?.ignoreOnlyLevelRequirement ?? true
+        requirement.metadata?.minLevel ?? 2
       ).sort((a, b) => a.name.localeCompare(b.name));
     }
 

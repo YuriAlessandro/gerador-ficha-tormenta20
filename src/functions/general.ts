@@ -618,6 +618,43 @@ export function getEffectiveRaceAttrs(
     : race.attributes.attrs;
 }
 
+/**
+ * Modificadores finais dos seis atributos durante a criação: o modificador base
+ * escolhido pelo jogador + os modificadores raciais (cada slot `any` pareado
+ * por ÍNDICE com a escolha de mesmo índice, como no passo "Valores dos
+ * Atributos").
+ *
+ * Fonte única para os passos do assistente que precisam dos atributos antes de
+ * a ficha existir — em especial as fichas-mock de filtragem de poderes, onde
+ * valores falsos fazem todo pré-requisito de atributo passar de graça.
+ */
+export function computeFinalAttributeModifiers(
+  race: Race | undefined,
+  sexForAttributes: 'Masculino' | 'Feminino' | undefined,
+  baseAttributes: Partial<Record<Atributo, number>> | undefined,
+  raceAttributeChoices: (Atributo | undefined)[] | undefined
+): Record<Atributo, number> {
+  const modifiers = Object.values(Atributo).reduce(
+    (acc, attr) => ({ ...acc, [attr]: baseAttributes?.[attr] ?? 0 }),
+    {} as Record<Atributo, number>
+  );
+
+  if (!race) return modifiers;
+
+  let anyIndex = 0;
+  getEffectiveRaceAttrs(race, sexForAttributes).forEach((attr) => {
+    if (attr.attr === 'any') {
+      const chosen = raceAttributeChoices?.[anyIndex];
+      if (chosen) modifiers[chosen] += attr.mod;
+      anyIndex += 1;
+    } else {
+      modifiers[attr.attr] += attr.mod;
+    }
+  });
+
+  return modifiers;
+}
+
 // Raças com attributeVariants (ex.: Kallyanach) oferecem conjuntos alternativos
 // de modificadores; a variante escolhida sobrescreve race.attributes
 export function applyAttributeVariant(
@@ -2806,87 +2843,88 @@ export const applyPower = (
 
         subSteps.push(...currentSteps);
       } else if (sheetAction.action.type === 'getClassPower') {
-        const { minLevel = 2, ignoreOnlyLevelRequirement = true } =
-          sheetAction.action;
+        const { minLevel = 2 } = sheetAction.action;
 
         // Filter class powers by minimum level and requirements
-        const availablePowers = getFuturaLendaClassPowers(
-          sheet,
-          minLevel,
-          ignoreOnlyLevelRequirement
-        );
+        const availablePowers = getFuturaLendaClassPowers(sheet, minLevel);
 
         if (availablePowers.length === 0) {
-          throw new Error(
-            `Nenhum poder de classe disponível com nível mínimo ${minLevel}`
-          );
-        }
-
-        // Select power (manual or random)
-        let selectedPower: ClassPower;
-        if (manualSelections?.powers && manualSelections.powers.length > 0) {
-          const manualPower = manualSelections.powers[0];
-          selectedPower =
-            availablePowers.find((p) => p.name === manualPower.name) ||
-            getRandomItemFromArray(availablePowers);
-        } else {
-          selectedPower = getRandomItemFromArray(availablePowers);
-        }
-
-        // Add power to classPowers array
-        if (!sheet.classPowers) {
-          sheet.classPowers = [];
-        }
-        sheet.classPowers.push(selectedPower);
-
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: `Poder de classe adquirido: ${selectedPower.name}`,
-        });
-
-        // Druida: o poder Companheiro Animal concede um parceiro. Semeia um
-        // com espécie/tipo/nome aleatórios para a ficha já sair jogável — o
-        // jogador renomeia e troca o tipo depois no painel.
-        if (selectedPower.name === 'Companheiro Animal') {
-          const companion = generateRandomAnimalCompanion(uuid());
-          sheet.animalCompanions = [
-            ...(sheet.animalCompanions ?? []),
-            companion,
-          ];
+          // Sem catálogo resolvível (classe homebrew/variante de suplemento
+          // desativado) ou nenhum poder elegível: registrar e seguir. Lançar
+          // aqui quebraria o recálculo inteiro da ficha, que não tem try/catch.
+          // Não gravamos no sheetActionHistory de propósito — assim a concessão
+          // volta a ser aplicada quando o suplemento/classe retornar.
           subSteps.push({
-            name: 'Companheiro Animal',
-            value: `${companion.name} (${companion.species})`,
+            name: getSourceName(sheetAction.source),
+            value: `Nenhum poder de classe elegível (nível mínimo ${minLevel})`,
           });
-        }
+        } else {
+          // Select power (manual or random)
+          let selectedPower: ClassPower;
+          if (manualSelections?.powers && manualSelections.powers.length > 0) {
+            const manualPower = manualSelections.powers[0];
+            selectedPower =
+              availablePowers.find((p) => p.name === manualPower.name) ||
+              getRandomItemFromArray(availablePowers);
+          } else {
+            selectedPower = getRandomItemFromArray(availablePowers);
+          }
 
-        // Apply the selected power's sheetActions and sheetBonuses
-        if (selectedPower.sheetActions || selectedPower.sheetBonuses) {
-          const [updatedSheet, powerSubSteps] = applyPower(
-            sheet,
-            selectedPower,
-            manualSelections
-          );
-          // Update sheet reference with changes from applying the power
-          Object.assign(sheet, updatedSheet);
-          // Add substeps from the power application with proper context
-          powerSubSteps.forEach((subStep) => {
+          // Add power to classPowers array
+          if (!sheet.classPowers) {
+            sheet.classPowers = [];
+          }
+          sheet.classPowers.push(selectedPower);
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Poder de classe adquirido: ${selectedPower.name}`,
+          });
+
+          // Druida: o poder Companheiro Animal concede um parceiro. Semeia um
+          // com espécie/tipo/nome aleatórios para a ficha já sair jogável — o
+          // jogador renomeia e troca o tipo depois no painel.
+          if (selectedPower.name === 'Companheiro Animal') {
+            const companion = generateRandomAnimalCompanion(uuid());
+            sheet.animalCompanions = [
+              ...(sheet.animalCompanions ?? []),
+              companion,
+            ];
             subSteps.push({
-              name: subStep.name || selectedPower.name,
-              value: subStep.value,
+              name: 'Companheiro Animal',
+              value: `${companion.name} (${companion.species})`,
             });
+          }
+
+          // Apply the selected power's sheetActions and sheetBonuses
+          if (selectedPower.sheetActions || selectedPower.sheetBonuses) {
+            const [updatedSheet, powerSubSteps] = applyPower(
+              sheet,
+              selectedPower,
+              manualSelections
+            );
+            // Update sheet reference with changes from applying the power
+            Object.assign(sheet, updatedSheet);
+            // Add substeps from the power application with proper context
+            powerSubSteps.forEach((subStep) => {
+              subSteps.push({
+                name: subStep.name || selectedPower.name,
+                value: subStep.value,
+              });
+            });
+          }
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'ClassPowerAdded',
+                powerName: selectedPower.name,
+              },
+            ],
           });
         }
-
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: [
-            {
-              type: 'ClassPowerAdded',
-              powerName: selectedPower.name,
-            },
-          ],
-        });
       } else if (sheetAction.action.type === 'grantSpecificClassPower') {
         const { powerName: targetPowerName } = sheetAction.action;
 

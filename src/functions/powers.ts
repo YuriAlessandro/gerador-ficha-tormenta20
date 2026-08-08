@@ -3,11 +3,7 @@ import generalPowers from '../data/poderes';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
-import {
-  GeneralPower,
-  Requirement,
-  RequirementType,
-} from '../interfaces/Poderes';
+import { GeneralPower, RequirementType } from '../interfaces/Poderes';
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
   isGenericOficio,
@@ -18,6 +14,7 @@ import {
   InventorSpecialization,
   isClassOrVariantOf,
 } from './general';
+import { findClassDescription } from './multiclass';
 
 export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
 
@@ -72,8 +69,7 @@ export function getCharacterPowerNames(sheet: CharacterSheet): string[] {
 
 export function isPowerAvailable(
   sheet: CharacterSheet,
-  power: GeneralPower | ClassPower,
-  options?: { ignoreLevelRequirement?: boolean }
+  power: GeneralPower | ClassPower
 ): boolean {
   // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
   // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
@@ -177,7 +173,6 @@ export function isPowerAvailable(
             return sheet.classe.proficiencias.includes(proficiencia);
           }
           case RequirementType.NIVEL: {
-            if (options?.ignoreLevelRequirement) return true;
             const nivel = rule.value as number;
             return sheet.nivel >= nivel;
           }
@@ -255,6 +250,24 @@ export function getPowersAllowedByRequirements(
     });
 }
 
+/**
+ * Catálogo de poderes da classe da ficha, com fallback no registro.
+ *
+ * `stripSheetForStorage` zera `classe.powers` e `rehydrateSheet` só o restaura
+ * quando a classe/variante é resolvida — variantes, homebrew e suplementos
+ * desativados deixam o array vazio em fichas carregadas.
+ */
+function resolveClassPowerCatalog(sheet: CharacterSheet): ClassPower[] {
+  const stored = sheet.classe?.powers ?? [];
+  if (stored.length > 0) return stored;
+
+  const fullClass = findClassDescription(
+    sheet.classe?.name,
+    sheet.classe?.subname
+  );
+  return fullClass?.powers ?? [];
+}
+
 export function getAllowedClassPowers(
   sheet: CharacterSheet,
   options?: { classLevel?: number }
@@ -266,7 +279,7 @@ export function getAllowedClassPowers(
       ? { ...sheet, nivel: options.classLevel }
       : sheet;
 
-  return sheet.classe.powers.filter((power) => {
+  return resolveClassPowerCatalog(sheet).filter((power) => {
     const existingClassPowers = sheet.classPowers || [];
     const isRepeatedPower = existingClassPowers.find(
       (existingPower) => existingPower.name === power.name
@@ -282,22 +295,31 @@ export function getAllowedClassPowers(
 
 /**
  * Retorna os poderes de classe elegíveis para a ação `getClassPower`
- * (ex.: origem "Futura Lenda", que concede um poder de classe normalmente
- * disponível a partir do 2º nível). Filtra por nível mínimo do poder,
- * repetição e disponibilidade (ignorando o requisito de nível quando pedido).
+ * (ex.: origem "Futura Lenda": "escolha um dos poderes de sua classe,
+ * normalmente disponíveis a partir do 2º nível").
+ *
+ * A cláusula "a partir do 2º nível" é descritiva — poderes de classe começam no
+ * 2º nível e a origem antecipa um deles. Logo os requisitos são avaliados como
+ * se o personagem estivesse no 2º nível: entram os poderes sem requisito e os
+ * de NÍVEL 2, ficam de fora os de nível maior e os com pré-requisito de
+ * atributo/perícia/proficiência/poder não atendido.
+ *
+ * O nível efetivo é FIXO em `minLevel`, não o nível do personagem: é benefício
+ * de origem, adquirido no 1º nível, e precisa render a mesma lista em qualquer
+ * recálculo — inclusive de uma ficha já em nível alto.
  *
  * Mesma lógica usada pelo gerador em applyPower (getClassPower), extraída para
  * ser reaproveitada pela UI de seleção manual (assistente de criação).
  */
 export function getFuturaLendaClassPowers(
   sheet: CharacterSheet,
-  minLevel = 2,
-  ignoreOnlyLevelRequirement = true
+  minLevel = 2
 ): ClassPower[] {
-  return sheet.classe.powers.filter((power) => {
+  const sheetForCheck: CharacterSheet = { ...sheet, nivel: minLevel };
+
+  return resolveClassPowerCatalog(sheet).filter((power) => {
     // Check if power already exists and if it can be repeated
-    const existingClassPowers = sheet.classPowers || [];
-    const isRepeatedPower = existingClassPowers.find(
+    const isRepeatedPower = (sheet.classPowers ?? []).some(
       (existingPower) => existingPower.name === power.name
     );
 
@@ -305,39 +327,7 @@ export function getFuturaLendaClassPowers(
       return false;
     }
 
-    // Check minimum level requirement in power requirements
-    let meetsMinLevel = true;
-    if (power.requirements && power.requirements.length > 0) {
-      // Check if any requirement path has a level requirement >= minLevel
-      meetsMinLevel = power.requirements.some((req: Requirement[]) =>
-        req.some(
-          (rule: Requirement) =>
-            rule.type === RequirementType.NIVEL &&
-            (rule.value as number) >= minLevel
-        )
-      );
-
-      // If no level requirement found, check if it's a basic power (usually level 1)
-      if (
-        !meetsMinLevel &&
-        !power.requirements.some((req: Requirement[]) =>
-          req.some((rule: Requirement) => rule.type === RequirementType.NIVEL)
-        )
-      ) {
-        // Power has no level requirement, assume it's available from level 1
-        meetsMinLevel = minLevel <= 1;
-      }
-    } else {
-      // No requirements, assume level 1 power
-      meetsMinLevel = minLevel <= 1;
-    }
-
-    return (
-      meetsMinLevel &&
-      isPowerAvailable(sheet, power, {
-        ignoreLevelRequirement: ignoreOnlyLevelRequirement,
-      })
-    );
+    return isPowerAvailable(sheetForCheck, power);
   });
 }
 

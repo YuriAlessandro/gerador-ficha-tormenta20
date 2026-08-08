@@ -95,8 +95,7 @@ export interface PowerSelectionRequirement {
     schools?: string[];
     optionKey?: string; // For chooseFromOptions: the option key identifier
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
-    minLevel?: number; // For getClassPower: minimum level of eligible class powers
-    ignoreOnlyLevelRequirement?: boolean; // For getClassPower: ignore only the level requirement
+    minLevel?: number; // For getClassPower: nível em que os requisitos são avaliados
     abilityLevel?: number; // For learnClassAbility: nível das habilidades elegíveis
     // For markTrainedSkills: o `pick` real é o modificador deste atributo, com
     // piso `minPick`. Só quem tem a ficha consegue resolver.

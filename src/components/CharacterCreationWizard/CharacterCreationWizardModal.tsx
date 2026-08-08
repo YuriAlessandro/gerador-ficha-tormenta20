@@ -50,6 +50,7 @@ import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
 import {
   applyAttributeVariant,
   buildClassEquipmentsFromChoices,
+  computeFinalAttributeModifiers,
   getEffectiveRaceAttrs,
   getInitialMoneyWithDetails,
   isClassOrVariantOf,
@@ -371,31 +372,19 @@ const CharacterCreationWizardModal: React.FC<
     selections.dimorphismChoice
   );
 
+  // Modificadores finais dos seis atributos (base + raciais). Necessários pelos
+  // passos que filtram poderes antes de a ficha existir — sem eles a ficha-mock
+  // usa valores falsos e todo pré-requisito de atributo passa de graça.
+  const finalAttributeModifiers = computeFinalAttributeModifiers(
+    raceWithVariant,
+    sexForAttributes,
+    selections.baseAttributes,
+    selections.raceAttributes
+  );
+
   // Helper to calculate intelligence modifier (including racial modifiers)
-  const getIntelligenceModifier = (): number => {
-    if (!selections.baseAttributes || !raceWithVariant) return 0;
-    // baseAttributes now contains the modifier directly
-    const baseModifier = selections.baseAttributes[Atributo.INTELIGENCIA];
-
-    // Add racial modifier for Intelligence
-    let racialModifier = 0;
-    let anyIndex = 0;
-
-    // Cada slot 'any' corresponde à escolha de mesmo índice (igual ao
-    // getRacialModifier do AttributeBaseValuesStep)
-    getEffectiveRaceAttrs(raceWithVariant, sexForAttributes).forEach((attr) => {
-      if (attr.attr === Atributo.INTELIGENCIA) {
-        racialModifier += attr.mod;
-      } else if (attr.attr === 'any') {
-        if (selections.raceAttributes?.[anyIndex] === Atributo.INTELIGENCIA) {
-          racialModifier += attr.mod;
-        }
-        anyIndex += 1;
-      }
-    });
-
-    return baseModifier + racialModifier;
-  };
+  const getIntelligenceModifier = (): number =>
+    finalAttributeModifiers[Atributo.INTELIGENCIA];
 
   // Helper to get intelligence skills count
   const getIntelligenceSkillsCount = (): number => {
@@ -1453,9 +1442,7 @@ const CharacterCreationWizardModal: React.FC<
             arcanistaSubtype={selections.arcanistaSubtype}
             supplements={supplements}
             usedSkills={getAllUsedSkills()}
-            attributeModifiers={{
-              [Atributo.INTELIGENCIA]: getIntelligenceModifier(),
-            }}
+            attributeModifiers={finalAttributeModifiers}
           />
         );
 
