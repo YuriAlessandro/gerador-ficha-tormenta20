@@ -143,6 +143,33 @@ const Changelog: React.FC = () => {
                   da magia que faltava no efeito ativo.
                 </li>
                 <li>
+                  <strong>Correção:</strong> no <strong>celular</strong>, o{' '}
+                  <strong>cabeçalho da ficha saía do card</strong> — o nome do
+                  personagem aparecia cortado nos dois lados, com o começo fora
+                  do alcance da rolagem, e as linhas de Origem, Divindade e
+                  Condições ficavam decepadas ("...M:", "...ADE:"). Nomes longos
+                  agora quebram em várias linhas, e nada mais é escondido.
+                </li>
+                <li>
+                  <strong>Correção:</strong> não dava para{' '}
+                  <strong>empunhar duas armas de uma mão</strong> pelo botão
+                  "Empunhar e atacar" da aba Ataques: com o Machado de Batalha
+                  na mão principal, tocar na Machadinha derrubava o machado — e
+                  vice-versa, sem nunca encher as duas mãos. Agora a segunda
+                  arma vai sozinha para a mão secundária. Também passou a ser
+                  possível empunhar <strong>duas cópias do mesmo item</strong>{' '}
+                  (duas Machadinhas, uma em cada mão): ao escolher a segunda
+                  mão, a pilha se divide na Mochila, e volta a se juntar quando
+                  você solta uma delas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> em <strong>Forma Selvagem</strong>,
+                  atacar com uma garra pelo botão "Empunhar e atacar" registrava
+                  a arma natural como item empunhado, o que deixava uma mão
+                  ocupada por um item inexistente depois de voltar à forma
+                  normal.
+                </li>
+                <li>
                   <strong>Correção:</strong> efeitos que{' '}
                   <strong>aumentam o dado de dano</strong> da arma (o poder do
                   Guerreiro, Armamento da Natureza) subiam um degrau a cada
