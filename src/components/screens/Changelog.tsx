@@ -107,6 +107,25 @@ const Changelog: React.FC = () => {
                   de erro.
                 </li>
                 <li>
+                  <strong>Correção:</strong> efeitos ativos de{' '}
+                  <strong>ataque e dano corpo a corpo</strong> — Fúria do
+                  Bárbaro, Ataque Poderoso, Estilo de Duas Mãos e efeitos
+                  personalizados — não mexiam nos números da arma na ficha
+                  quando a arma podia ser <strong>arremessada</strong> (adaga,
+                  lança, machadinha, azagaia, tridente). O poder cobrava os PM e
+                  parecia não fazer nada; só armas criadas por você funcionavam.
+                  Agora o bônus (ou a penalidade) aparece direto na linha da
+                  arma, e some no modo de arremesso, onde não vale.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a estrelinha ✨ ao lado da arma
+                  agora lista também os <strong>efeitos ativos</strong> que
+                  estão somando ali, e fica dourada enquanto algum estiver
+                  ligado — antes só mostrava poderes permanentes. Penalidades
+                  também aparecem com o sinal certo (o Ataque Poderoso exibia
+                  <code> +-2</code>).
+                </li>
+                <li>
                   <strong>Correção:</strong> a origem{' '}
                   <strong>Futura Lenda</strong> (Nova Malpetrim) listava{' '}
                   <strong>exatamente os poderes errados</strong>: apareciam só
