@@ -56,6 +56,13 @@ export type SheetChangeSource =
   | {
       type: 'complication';
       complicationName: string;
+    }
+  | {
+      // Bônus derivado da categoria de tamanho da criatura (ex.: o passo de
+      // dano das armas). Não vem de nenhuma escolha do jogador — é recomputado
+      // do `sheet.size` final a cada recálculo.
+      type: 'size';
+      sizeName: string;
     };
 
 export type SheetAction = {
@@ -487,6 +494,17 @@ export type StatModifierTarget =
       // irrelevante (a troca é categórica, não numérica).
       type: 'SizeOverride';
       size: raceSize;
+    }
+  | {
+      // Desloca a categoria de tamanho em N degraus (+1 = uma acima, -1 = uma
+      // abaixo), com clamp entre Minúsculo e Colossal. Relativo de propósito:
+      // efeitos como a magia Alterar Tamanho são ofertados a aliados da mesa e
+      // precisam resolver contra o tamanho DO ALVO, não o do conjurador. Vários
+      // `SizeSteps` somam, e o total é aplicado por cima de um `SizeOverride`
+      // absoluto quando os dois existem. Como no `SizeOverride`, o `modifier`
+      // do bônus é irrelevante.
+      type: 'SizeSteps';
+      steps: number;
     }
   | {
       // Concede um deslocamento secundário (voo, escalada, natação, escavação).

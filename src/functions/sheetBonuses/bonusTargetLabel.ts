@@ -94,6 +94,15 @@ export function describeBonusTarget(
         label: `Tamanho: ${RACE_SIZES[target.size]?.name ?? target.size}`,
         numeric: false,
       };
+    case 'SizeSteps': {
+      const categorias =
+        Math.abs(target.steps) === 1 ? 'categoria' : 'categorias';
+      const direcao = target.steps >= 0 ? 'acima' : 'abaixo';
+      return {
+        label: `Tamanho: ${Math.abs(target.steps)} ${categorias} ${direcao}`,
+        numeric: false,
+      };
+    }
     case 'MovementType':
       return { label: MOVEMENT_LABELS[target.movement], numeric: true };
     case 'ThrownAttackUseStrength':

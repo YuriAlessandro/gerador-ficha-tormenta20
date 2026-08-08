@@ -27,7 +27,12 @@ import {
   isHeavyArmor,
 } from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
-import { RACE_SIZES } from '@/data/systems/tormenta20/races/raceSizes/raceSizes';
+import {
+  RACE_SIZES,
+  SIZE_DAMAGE_STEP,
+  getRaceSizeKey,
+  shiftSize,
+} from '@/data/systems/tormenta20/races/raceSizes/raceSizes';
 import { ClassAbility, ClassDescription } from '@/interfaces/Class';
 import { CONDITION_TEMPLATES } from '@/premium/data/conditions';
 import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
@@ -386,10 +391,16 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
   // Reset damage to base value or extract base if not stored
   if (resetWeapon.baseDano) {
     resetWeapon.dano = resetWeapon.baseDano;
-  } else if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
-    // Fallback: strip the baked flat bonus to recover the base damage. Handle
-    // dual-mode strings per segment ("1d6+5/1d6+5" -> "1d6/1d6") so versatile/
-    // double-damage weapons aren't corrupted to a single mode.
+  } else if (resetWeapon.dano) {
+    // Primeira vez que esta arma passa por aqui: snapshota a base, do mesmo
+    // jeito que `baseCritico` logo abaixo. Sem o snapshot, um bônus de PASSO
+    // de dado (`WeaponDamageStep` — tamanho Grande, Armamento da Natureza,
+    // poder do Guerreiro) compõe a cada recálculo: 1d8 → 1d10 → 1d12 → 3d6.
+    // O bônus plano não tinha esse problema porque o "+N" era detectável e
+    // removido — o passo não deixa rastro na string.
+    //
+    // Tira o "+N" baked, tratando cada modo separadamente ("1d6+5/1d6+5" ->
+    // "1d6/1d6") para não corromper armas versáteis/de dano duplo.
     resetWeapon.dano = resetWeapon.dano
       .split('/')
       .map((part) => part.split('+')[0])
@@ -531,7 +542,10 @@ const applyWeaponBonuses = (
         weaponCopy.atkBonus = (weaponCopy.atkBonus ?? 0) + totalAttackBonus;
       }
 
-      if (totalDamageSteps > 0 && weaponCopy.dano) {
+      // `!== 0` e não `> 0`: passo negativo é real (criatura Minúscula usa
+      // armas reduzidas, munição improvisada). `stepUpDamage` faz o clamp na
+      // ponta de baixo da escala.
+      if (totalDamageSteps !== 0 && weaponCopy.dano) {
         weaponCopy.dano = stepUpDamage(weaponCopy.dano, totalDamageSteps);
       }
 
@@ -2312,18 +2326,34 @@ export function recalculateSheet(
     updatedSheet.size = updatedSheet.customSize;
   }
 
-  // Step 11.5: troca de tamanho por bônus (`SizeOverride` — Forma Selvagem).
+  // Step 11.5: troca de tamanho por bônus. Duas formas, que combinam:
+  //  - `SizeOverride`: categoria ABSOLUTA (Forma Selvagem). Com vários, o
+  //    primeiro vence.
+  //  - `SizeSteps`: deslocamento RELATIVO (magia Alterar Tamanho, Potência
+  //    Divina). Todos somam e são aplicados por cima do override absoluto.
   // Autocurável: snapshota o tamanho original em `baseSize` na primeira vez que
-  // um override aparece e restaura (descartando o snapshot) quando ele some.
-  // Só toca em `size` quando há override OU snapshot pendente, então fichas sem
-  // nenhuma troca de forma — ameaças, raças homebrew — ficam intactas.
+  // uma troca aparece e restaura (descartando o snapshot) quando ela some.
+  // Só toca em `size` quando há troca OU snapshot pendente, então fichas sem
+  // nenhuma alteração de forma — ameaças, raças homebrew — ficam intactas.
   const sizeOverrideBonus = updatedSheet.sheetBonuses.find(
     (bonus) => bonus.target.type === 'SizeOverride'
   );
-  if (sizeOverrideBonus && sizeOverrideBonus.target.type === 'SizeOverride') {
+  const totalSizeSteps = updatedSheet.sheetBonuses.reduce(
+    (acc, bonus) =>
+      bonus.target.type === 'SizeSteps' ? acc + bonus.target.steps : acc,
+    0
+  );
+
+  if (sizeOverrideBonus || totalSizeSteps !== 0) {
     updatedSheet.baseSize =
       updatedSheet.customSize ?? updatedSheet.baseSize ?? updatedSheet.size;
-    updatedSheet.size = RACE_SIZES[sizeOverrideBonus.target.size];
+
+    const absolute =
+      sizeOverrideBonus?.target.type === 'SizeOverride'
+        ? sizeOverrideBonus.target.size
+        : getRaceSizeKey(updatedSheet.baseSize);
+
+    updatedSheet.size = RACE_SIZES[shiftSize(absolute, totalSizeSteps)];
   } else if (updatedSheet.baseSize) {
     updatedSheet.size = updatedSheet.customSize ?? updatedSheet.baseSize;
     delete updatedSheet.baseSize;
@@ -2354,6 +2384,29 @@ export function recalculateSheet(
     updatedSheet.computedMovementTypes = computedMovement;
   } else if (updatedSheet.computedMovementTypes) {
     delete updatedSheet.computedMovementTypes;
+  }
+
+  // Step 11.7: passo de dano derivado da categoria de tamanho já resolvida.
+  // JDA, Toques Finais (p. 106): Minúsculas usam armas reduzidas (um passo a
+  // menos), Grandes e Enormes usam aumentadas (um a mais) e Colossais usam
+  // gigantes (dois a mais). Vale para qualquer origem do tamanho — raça Grande,
+  // Forma Selvagem, Alterar Tamanho — porque lê o `size` FINAL do Step 11.5.
+  // Entra como `sheetBonus` (em vez de somar direto no baking de armas) para
+  // reusar o pipeline e aparecer no detalhamento como qualquer outro bônus; o
+  // Step 1 zera `sheetBonuses`, então é idempotente.
+  //
+  // Limitação conhecida: o `DAMAGE_LADDER` de `weaponDamageStep.ts` só conhece
+  // a cadeia 1 → 1d2 → … → 1d12 → 3d6 → 4d6 → …; armas 2dX (montante, 2d6) não
+  // sobem passo. A Tabela 3-2 do JDA é ambígua nesse ponto (2d6 aparece como
+  // "Normal" numa linha, com +1 passo = 3d6, e como "–1 Passo" na seguinte,
+  // com +1 passo = 2d8), então a escolha ficou fora deste escopo.
+  const sizeDamageStep = SIZE_DAMAGE_STEP[getRaceSizeKey(updatedSheet.size)];
+  if (sizeDamageStep !== 0) {
+    updatedSheet.sheetBonuses.push({
+      source: { type: 'size', sizeName: updatedSheet.size.name },
+      target: { type: 'WeaponDamageStep' },
+      modifier: { type: 'Fixed', value: sizeDamageStep },
+    });
   }
 
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
