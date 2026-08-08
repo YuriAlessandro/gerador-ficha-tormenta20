@@ -1,5 +1,4 @@
 {
-  "homepage": "https://yurialessandro.github.io/",
   "name": "gerador-ficha-tormenta20",
   "version": "4.28.2",
   "private": true,
@@ -63,9 +62,7 @@
     "start": "vite",
     "build": "vite build",
     "test": "vitest run",
-    "testWatch": "vitest",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "testWatch": "vitest"
   },
   "eslintConfig": {
     "extends": [

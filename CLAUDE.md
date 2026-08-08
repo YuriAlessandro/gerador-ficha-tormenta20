@@ -78,7 +78,7 @@ npm start           # Start Vite dev server at localhost:5173
 npm run build       # Build for production
 ```
 
-Frontend é deployado automaticamente via Cloud Build trigger `frontend-deploy` (em `southamerica-east1`) a cada push em `main`. Config em `cloudbuild-frontend.yaml`.
+Frontend é deployado automaticamente no **Cloudflare Pages** a cada push em `main`, via GitHub Actions (`.github/workflows/deploy-frontend.yml`).
 
 ### Backend Development
 
@@ -175,11 +175,22 @@ npx prettier --check <filename>  # Check if files are formatted
 
 ### Infraestrutura
 
-- **Frontend** (este repo): Cloud Run `fichas-frontend` em `southamerica-east1`. Deploy automatizado via Cloud Build trigger `frontend-deploy` (`cloudbuild-frontend.yaml`). Push em `main` → build com `VITE_API_URL=https://fichas-backend.fly.dev` → deploy.
+- **Frontend** (este repo): **Cloudflare Pages**, projeto `fichas-frontend`. Push em `main` → GitHub Actions (`.github/workflows/deploy-frontend.yml`) faz `npm run build` e publica via `wrangler pages deploy` (Direct Upload). A integração Git nativa do Pages **não serve**: não clona submódulo privado, e o build depende de `src/premium`.
 - **Backend** (`/backend` submodule): Fly.io `fichas-backend` em região `gru` (São Paulo) — `shared-cpu-2x` 1GB, 1 machine, `auto_stop_machines=off`. Deploy automatizado via GitHub Actions (`.github/workflows/fly-deploy.yml`) no repo do backend. Runbook completo em `backend/docs/runbook.md`.
 - **Banco**: MongoDB Atlas (externo, fora do GCP).
-- **Auth**: Firebase Auth (no projeto GCP `fichas-de-nimb`).
+- **Auth**: Firebase Auth (no projeto GCP `fichas-de-nimb`). **É a única coisa que ainda vive no GCP** — todo o resto foi decomissionado em 08/08/2026. Não apagar o projeto.
 - **Pagamentos**: Stripe — webhooks vão direto pra `https://fichas-backend.fly.dev/api/webhooks/stripe`.
+
+#### Serving layer (o que era o nginx do Cloud Run)
+
+O Pages não é só hospedagem estática aqui. Três arquivos carregam o que o `nginx.conf` fazia:
+
+- `public/_redirects` — SPA fallback. Precisa ser explícito porque rotas têm ponto (`/perfil/user.name`) e o fallback automático do Pages as trata como arquivo.
+- `public/_headers` — cache, CORS dos assets e headers de segurança. `X-Frame-Options` é destacado (`!`) em `/owlbear/*` e `/mapadearton*`.
+- `functions/_middleware.ts` — proxy de SEO por User-Agent (crawler → backend, que devolve HTML com OG tags) e remoção do XFO no subdomínio `mapadearton.*`.
+- `public/_routes.json` — **crítico para custo**: restringe quais caminhos invocam a Function. Sem ele, toda requisição de asset conta na cota do Workers (100k/dia no free).
+
+⚠️ **Transform Rules / regras de resposta da zona Cloudflare NÃO se aplicam ao tráfego servido pelo Pages** (verificado empiricamente). Qualquer manipulação de header de resposta vai em `_headers` ou na Function — não no dashboard de Rules.
 
 ### ESLint Rules - DO NOT VIOLATE
 
