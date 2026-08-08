@@ -6,7 +6,10 @@ import {
   RequirementType,
 } from '../../../../interfaces/Poderes';
 import PROFICIENCIAS from '../proficiencias';
-import { ESTILO_DE_DISPARO_SHEET_BONUSES } from './classPowerSheetBonuses';
+import {
+  ESTILO_DE_DISPARO_SHEET_BONUSES,
+  INEXPUGNAVEL_SHEET_BONUSES,
+} from './classPowerSheetBonuses';
 
 const combatPowers: Record<string, GeneralPower> = {
   ACUIDADE_COM_ARMA: {
@@ -420,6 +423,7 @@ const combatPowers: Record<string, GeneralPower> = {
         },
       ],
     ],
+    sheetBonuses: INEXPUGNAVEL_SHEET_BONUSES,
   },
   MIRA_APURADA: {
     name: 'Mira Apurada',

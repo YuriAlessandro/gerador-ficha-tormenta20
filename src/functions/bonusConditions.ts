@@ -16,13 +16,13 @@ import CharacterSheet, {
   BonusConditionOp,
   SheetBonus,
 } from '../interfaces/CharacterSheet';
-import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
-import { isHeavyArmor } from '../data/systems/tormenta20/equipamentos';
+import Equipment from '../interfaces/Equipment';
 import { isWeaponMelee } from './weaponSkill';
 import {
   isTwoHanded,
   getWornArmor,
 } from '../components/SheetResult/BackpackModal/wielding';
+import { isWearingHeavyArmor } from './wornArmor';
 import { getClassLevel } from './multiclass';
 import { getSheetProficiencias } from './proficiencies';
 
@@ -66,13 +66,8 @@ function evaluateClause(
   clause: BonusConditionClause
 ): boolean {
   switch (clause.kind) {
-    case 'wearingHeavyArmor': {
-      const armor = getWornArmor(
-        sheet.bag.equipments.Armadura || [],
-        sheet.wornArmorId
-      );
-      return !!armor && isHeavyArmor(armor as DefenseEquipment);
-    }
+    case 'wearingHeavyArmor':
+      return isWearingHeavyArmor(sheet);
     case 'wearingArmor':
       return !!getWornArmor(
         sheet.bag.equipments.Armadura || [],

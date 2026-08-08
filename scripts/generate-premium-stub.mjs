@@ -68,6 +68,8 @@ const OVERRIDES = {
   WILD_SHAPE_POWER_KEY: { expr: "'druida:forma-selvagem'" },
   // SCREAMING_CASE cairia em `[]`, mas isto é um emoji renderizado como texto
   WILD_SHAPE_FALLBACK_EMOJI: { expr: "'🐾'" },
+  // SCREAMING_CASE cairia em `[]`, mas o consumidor chama `.has()`
+  RETIRED_ACTIVE_POWER_KEYS: { expr: 'new Set()' },
   // camelCase cairia em `noop` (undefined); estes são lidos como string/array
   getWildShapeAnimalEmoji: { expr: "() => '🐾'" },
   getWildShapeAnimals: { expr: '() => []' },

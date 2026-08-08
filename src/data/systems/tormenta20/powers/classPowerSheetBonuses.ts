@@ -1,4 +1,5 @@
 import { SheetBonus } from '@/interfaces/CharacterSheet';
+import Skill from '@/interfaces/Skills';
 import { Atributo } from '../atributos';
 
 /**
@@ -48,3 +49,20 @@ export const ESTILO_DE_DISPARO_SHEET_BONUSES: SheetBonus[] = [
     modifier: { type: 'Attribute', attribute: Atributo.DESTREZA },
   },
 ];
+
+/**
+ * Inexpugnável: +2 em todos os testes de resistência USANDO armadura pesada.
+ * Em T20 os testes de resistência são as três perícias abaixo. Mora aqui pelo
+ * mesmo motivo dos de cima: precisa ser refrescado em fichas salvas, que
+ * guardam a cópia embutida do poder de quando ele não tinha automação.
+ */
+export const INEXPUGNAVEL_SHEET_BONUSES: SheetBonus[] = [
+  Skill.FORTITUDE,
+  Skill.REFLEXOS,
+  Skill.VONTADE,
+].map((skill) => ({
+  source: { type: 'power', name: 'Inexpugnável' },
+  target: { type: 'Skill', name: skill },
+  modifier: { type: 'Fixed', value: 2 },
+  condition: { combinator: 'AND', clauses: [{ kind: 'wearingHeavyArmor' }] },
+}));

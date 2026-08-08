@@ -14,7 +14,6 @@ import CharacterSheet, {
 import { calculateCompanionStats } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
-import { RequirementType } from '@/interfaces/Poderes';
 import Skill, {
   SkillsWithArmorPenalty,
   getSheetSkillNames,
@@ -31,6 +30,7 @@ import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/f
 import { RACE_SIZES } from '@/data/systems/tormenta20/races/raceSizes/raceSizes';
 import { ClassAbility, ClassDescription } from '@/interfaces/Class';
 import { CONDITION_TEMPLATES } from '@/premium/data/conditions';
+import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
 import {
@@ -50,6 +50,11 @@ import {
 import { expandAttributeBonus } from './attributeExpansion';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
+import { getSheetWornArmor } from './wornArmor';
+import {
+  getHeavyArmorPowerBonuses,
+  hasFanatico,
+} from './powers/heavyArmorPowers';
 import {
   getNonProficientArmorPenalty,
   getSheetProficiencias,
@@ -811,6 +816,27 @@ const injectEstiloDeArmaEEscudoBonuses = (
   return updatedSheet;
 };
 
+/**
+ * Encouraçado (+2 na Defesa) e Encastelado (RD Geral 2), ambos escalando com o
+ * número de outros poderes que têm Encouraçado como pré-requisito. Valor
+ * dinâmico (depende de quais poderes a ficha tem) e condição de equipamento
+ * (armadura pesada VESTIDA), então não cabem como `sheetBonuses` estáticos no
+ * dado do poder — mesma solução dos Estilos acima. O gate de armadura vive
+ * dentro de `getHeavyArmorPowerBonuses`, porque esta injeção roda depois do
+ * filtro de `isBonusActive` (Step 8) e um `condition` aqui não seria aplicado.
+ */
+const injectHeavyArmorPowerBonuses = (
+  sheet: CharacterSheet
+): CharacterSheet => {
+  const bonuses = getHeavyArmorPowerBonuses(sheet);
+  if (bonuses.length === 0) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push(...bonuses);
+
+  return updatedSheet;
+};
+
 // Copy of calcDisplacement function from general.ts
 const calcDisplacement = (
   bag: Bag,
@@ -1381,6 +1407,11 @@ function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
   if (active.length === 0) return updated;
 
   active.forEach((eff) => {
+    // Efeito aposentado (a regra virou passivo automático): ignorar, senão
+    // conta em dobro. `normalizeSheet` limpa na carga; isto cobre a ficha que
+    // chega por outro caminho (compartilhamento em mesa, socket).
+    if (RETIRED_ACTIVE_POWER_KEYS.has(eff.powerKey)) return;
+
     eff.bonuses.forEach((b) => {
       const source = {
         type: 'activeEffect' as const,
@@ -2184,18 +2215,21 @@ export function recalculateSheet(
 
   // Step 8.5: Inject Estilo de Uma Arma bonuses (condicional à empunhadura).
   // Precisa rodar APÓS sheetBonuses estarem populados e ANTES dos Steps 9-10
-  // (Defesa) e 13 (armas), que consomem os bônus injetados.
+  // (Defesa), 13 (armas) e 14 (RD), que consomem os bônus injetados.
   updatedSheet = injectEstiloDeUmaArmaBonuses(updatedSheet);
   updatedSheet = injectEstiloDeArmaEEscudoBonuses(updatedSheet);
+  updatedSheet = injectHeavyArmorPowerBonuses(updatedSheet);
 
   // Step 9: Reset defense to base and recalculate from ground up
   const baseDefense = updatedSheet.customDefenseBase ?? 10;
   updatedSheet.defesa = baseDefense;
   updatedSheet = calcDefense(updatedSheet);
 
-  // Check if heavy armor is equipped
-  const equippedArmors = updatedSheet.bag.equipments.Armadura || [];
-  const heavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
+  // Armadura pesada VESTIDA. Carregar a armadura na mochila não conta: a regra
+  // fala em usar a armadura, e é o que `calcDefense` já faz para o bônus de
+  // Defesa. Fonte única em `wornArmor.ts`.
+  const wornArmorItem = getSheetWornArmor(updatedSheet);
+  const heavyArmor = !!wornArmorItem && isHeavyArmor(wornArmorItem);
 
   // Apply custom attribute logic if defined
   if (updatedSheet.useDefenseAttribute === false && !heavyArmor) {
@@ -2268,7 +2302,8 @@ export function recalculateSheet(
       updatedSheet.dinheiroTC,
       updatedSheet.dinheiroTO,
       updatedSheet.raca.ignoreEncumbrance ?? false,
-      heavyArmor
+      // Fanático: "seu deslocamento não é reduzido por usar armaduras pesadas".
+      heavyArmor && !hasFanatico(updatedSheet)
     );
   }
 
@@ -2341,17 +2376,7 @@ export function recalculateSheet(
 
   // Material especial em armadura/escudo EQUIPADO (ex.: Adamante RD 5 pesada /
   // 2 leve e escudos). Só o item de fato equipado contribui — armaduras na
-  // mochila não dão RD.
-  let wornArmorItem = updatedSheet.wornArmorId
-    ? equippedArmors.find((armor) => armor.id === updatedSheet.wornArmorId)
-    : undefined;
-  if (
-    !wornArmorItem &&
-    !updatedSheet.wornArmorId &&
-    equippedArmors.length === 1
-  ) {
-    [wornArmorItem] = equippedArmors; // legacy compat (sem wornArmorId)
-  }
+  // mochila não dão RD. `wornArmorItem` vem do Step 9.
   const equippedShields = updatedSheet.bag.equipments.Escudo || [];
   const wornShield = equippedShields.find(
     (shield) =>
@@ -2359,16 +2384,21 @@ export function recalculateSheet(
       shield.id === updatedSheet.offHandItemId
   );
   [
-    ...(wornArmorItem
-      ? getDefenseMaterialRd(wornArmorItem, isHeavyArmor(wornArmorItem))
-      : []),
+    ...(wornArmorItem ? getDefenseMaterialRd(wornArmorItem, heavyArmor) : []),
     ...(wornShield ? getDefenseMaterialRd(wornShield, false) : []),
   ].forEach((dr) => {
     computedRd[dr.damageType] = (computedRd[dr.damageType] ?? 0) + dr.value;
   });
 
-  // Bárbaro: Resistência a Dano (RD Geral escalável com nível de Bárbaro)
-  const barbaroLevel = getClassLevel(updatedSheet, 'Bárbaro');
+  // Bárbaro: Resistência a Dano (RD Geral escalável com nível de Bárbaro).
+  // O guard de classe é obrigatório: numa ficha mono-classe (sem `classLevels`)
+  // `getClassLevel` devolve o nível TOTAL para qualquer nome perguntado, então
+  // sem ele todo personagem de nível 5+ recebia a RD do Bárbaro. `general.ts`
+  // já checava a classe; era só aqui que divergia.
+  const isBarbaro =
+    updatedSheet.classe.name === 'Bárbaro' ||
+    (updatedSheet.classLevels ?? []).some((cl) => cl.className === 'Bárbaro');
+  const barbaroLevel = isBarbaro ? getClassLevel(updatedSheet, 'Bárbaro') : 0;
   if (barbaroLevel >= 5) {
     const rdValue = 2 * Math.min(5, 1 + Math.floor((barbaroLevel - 5) / 3));
     computedRd.Geral = (computedRd.Geral ?? 0) + rdValue;
@@ -2387,23 +2417,9 @@ export function recalculateSheet(
     computedRd.Geral = (computedRd.Geral ?? 0) + 5;
   }
 
-  // Encastelado (RD Geral 2 + escala, requer armadura pesada)
-  const hasEncastelado = (updatedSheet.generalPowers || []).some(
-    (p) => p.name === 'Encastelado'
-  );
-  if (hasEncastelado && heavyArmor) {
-    const encouracadoDependents = (updatedSheet.generalPowers || []).filter(
-      (p) =>
-        p.name !== 'Encastelado' &&
-        p.requirements?.some((reqGroup) =>
-          reqGroup.some(
-            (req) =>
-              req.type === RequirementType.PODER && req.name === 'Encouraçado'
-          )
-        )
-    ).length;
-    computedRd.Geral = (computedRd.Geral ?? 0) + 2 + encouracadoDependents;
-  }
+  // Encastelado: a RD entra como `sheetBonus` injetado no Step 8.5 (ver
+  // `injectHeavyArmorPowerBonuses`), somado pelo loop de `DamageReduction` no
+  // topo deste passo — assim também aparece em "Aplicado na ficha" no card.
 
   // Selvagem Sanguinário (RD Geral 1, sem armadura pesada)
   const hasSelvagem = [

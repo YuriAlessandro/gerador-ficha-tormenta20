@@ -13,6 +13,11 @@ import {
 } from './recalculateSheet';
 import { normalizeSheet } from './sheetNormalizer';
 import { isBonusActive } from './bonusConditions';
+import { getSheetWornArmor, isWearingHeavyArmor } from './wornArmor';
+import {
+  getHeavyArmorPowerBonuses,
+  hasFanatico,
+} from './powers/heavyArmorPowers';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
 import {
@@ -110,7 +115,6 @@ import {
   OriginPower,
   PowerGetter,
   PowersGetters,
-  RequirementType,
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   ClassLevelEntry,
@@ -4891,6 +4895,13 @@ const applyStatModifiers = (
     });
   }
 
+  // Encouraçado/Encastelado: o valor escala com os outros poderes da ficha, então
+  // não cabe como `sheetBonuses` estático no dado do poder. Injetado aqui (o
+  // espelho do Step 8.5 de `recalculateSheet`) para o loop abaixo somar tanto a
+  // Defesa quanto a RD. Auto-gateado por armadura pesada VESTIDA — entra depois
+  // do filtro de `isBonusActive`, então um `condition` aqui não seria aplicado.
+  sheet.sheetBonuses.push(...getHeavyArmorPowerBonuses(sheet));
+
   const pvSubSteps: SubStep[] = [];
   const pmSubSteps: SubStep[] = [];
   const defSubSteps: SubStep[] = [];
@@ -5053,13 +5064,7 @@ const applyStatModifiers = (
 
   // Class-conditional Damage Reduction. Uses ONLY the worn armor — multiple
   // armors may live in the bag now, but only the worn one drives effects.
-  const allArmors = sheet.bag.equipments.Armadura || [];
-  let wornArmor = sheet.wornArmorId
-    ? allArmors.find((a) => a.id === sheet.wornArmorId)
-    : undefined;
-  if (!wornArmor && !sheet.wornArmorId && allArmors.length === 1) {
-    [wornArmor] = allArmors; // legacy compat
-  }
+  const wornArmor = getSheetWornArmor(sheet);
   const hasHeavyArmor = wornArmor ? isHeavyArmor(wornArmor) : false;
 
   // Material especial em armadura/escudo EQUIPADO (ex.: Adamante). Só o item de
@@ -5108,27 +5113,9 @@ const applyStatModifiers = (
     sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + 5;
   }
 
-  // Encastelado (RD Geral 2 + escala, armadura pesada)
-  const hasEncastelado = (sheet.generalPowers || []).some(
-    (p) => p.name === 'Encastelado'
-  );
-  if (hasEncastelado && hasHeavyArmor) {
-    const encouracadoDependents = (sheet.generalPowers || []).filter(
-      (p) =>
-        p.name !== 'Encastelado' &&
-        p.requirements?.some((reqGroup) =>
-          reqGroup.some(
-            (req) =>
-              req.type === RequirementType.PODER && req.name === 'Encouraçado'
-          )
-        )
-    ).length;
-    if (!sheet.reducaoDeDano) {
-      sheet.reducaoDeDano = {};
-    }
-    sheet.reducaoDeDano.Geral =
-      (sheet.reducaoDeDano.Geral ?? 0) + 2 + encouracadoDependents;
-  }
+  // Encastelado: a RD entra como `sheetBonus` injetado no topo desta função
+  // (ver `getHeavyArmorPowerBonuses`), somada pelo ramo `DamageReduction` do
+  // loop acima — assim também aparece em "Aplicado na ficha" no card do poder.
 
   // Selvagem Sanguinário (RD Geral 1, sem armadura pesada)
   const hasSelvagem = [
@@ -5740,16 +5727,9 @@ export default function generateRandomSheet(
     });
   }
 
-  const armorsInBag = charSheet.bag.equipments.Armadura || [];
-  let wornArmorForDisp = charSheet.wornArmorId
-    ? armorsInBag.find((a) => a.id === charSheet.wornArmorId)
-    : undefined;
-  if (!wornArmorForDisp && !charSheet.wornArmorId && armorsInBag.length === 1) {
-    [wornArmorForDisp] = armorsInBag; // legacy compat
-  }
-  const hasHeavyArmor = wornArmorForDisp
-    ? isHeavyArmor(wornArmorForDisp)
-    : false;
+  // Fanático: "seu deslocamento não é reduzido por usar armaduras pesadas".
+  const hasHeavyArmor =
+    isWearingHeavyArmor(charSheet) && !hasFanatico(charSheet);
   const displacement = calcDisplacement(
     charSheet.bag,
     getRaceDisplacement(charSheet.raca),

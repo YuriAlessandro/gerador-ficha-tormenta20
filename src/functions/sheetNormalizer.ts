@@ -9,10 +9,12 @@ import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { getComplicationByName } from '../premium/data/complications';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
+import { RETIRED_ACTIVE_POWER_KEYS } from '../premium/data/activePowers';
 import {
   ARQUEIRO_SHEET_BONUSES,
   ESGRIMISTA_SHEET_BONUSES,
   ESTILO_DE_DISPARO_SHEET_BONUSES,
+  INEXPUGNAVEL_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/classPowerSheetBonuses';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
@@ -23,22 +25,23 @@ const GRANTED_POWERS_BY_NAME = new Map(
 
 // Poderes cujos `sheetBonuses` passaram a existir depois de já haver fichas
 // salvas com a cópia embutida SEM automação (Arqueiro, Esgrimista, Estilo de
-// Disparo). Refrescamos a cópia embutida pelo dado atual para que a automação
-// alcance essas fichas — mesmo princípio do refresh de poderes concedidos
-// (GRANTED_POWERS) logo abaixo. Homebrew de mesmo nome ficaria com bônus
-// sobrescrito, mas nenhum dos três é reproduzível como homebrew hoje.
-const WEAPON_DAMAGE_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
+// Disparo, Inexpugnável). Refrescamos a cópia embutida pelo dado atual para que
+// a automação alcance essas fichas — mesmo princípio do refresh de poderes
+// concedidos (GRANTED_POWERS) logo abaixo. Homebrew de mesmo nome ficaria com
+// bônus sobrescrito, mas nenhum destes é reproduzível como homebrew hoje.
+const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
   ['Estilo de Disparo', ESTILO_DE_DISPARO_SHEET_BONUSES],
+  ['Inexpugnável', INEXPUGNAVEL_SHEET_BONUSES],
 ]);
 
-function refreshWeaponDamagePower<
+function refreshPowerBonuses<
   T extends { name: string; sheetBonuses?: SheetBonus[] }
 >(power: T): T {
-  const bonuses = WEAPON_DAMAGE_POWER_BONUSES_BY_NAME.get(power.name);
+  const bonuses = REFRESHED_POWER_BONUSES_BY_NAME.get(power.name);
   if (!bonuses) return power;
-  return { ...power, sheetBonuses: bonuses };
+  return { ...power, sheetBonuses: _.cloneDeep(bonuses) };
 }
 
 // Poderes de ORIGEM cujos `sheetBonuses` DEIXARAM de valer sempre. Ao contrário
@@ -124,12 +127,12 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
 
   sheet.generalPowers = sheet.generalPowers
     .filter((p) => p && typeof p.name === 'string')
-    .map(refreshWeaponDamagePower);
+    .map(refreshPowerBonuses);
   if (sheet.classPowers) {
     sheet.classPowers = Array.isArray(sheet.classPowers)
       ? sheet.classPowers
           .filter((p) => p && typeof p.name === 'string')
-          .map(refreshWeaponDamagePower)
+          .map(refreshPowerBonuses)
       : [];
   }
 
@@ -408,6 +411,16 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     );
   } else if (sheet.animalCompanions !== undefined) {
     delete sheet.animalCompanions;
+  }
+
+  // Efeitos ativos APOSENTADOS: a regra virou automação passiva, mas o efeito
+  // salvo carrega os próprios `bonuses` e seria somado por cima do passivo novo.
+  // Não mexemos em `defesa`/`reducaoDeDano` aqui — carregar a ficha não dispara
+  // recálculo, e o próximo recálculo reconstrói os dois do zero.
+  if (Array.isArray(sheet.activeEffects)) {
+    sheet.activeEffects = sheet.activeEffects.filter(
+      (effect) => !effect || !RETIRED_ACTIVE_POWER_KEYS.has(effect.powerKey)
+    );
   }
 
   // Campos DERIVADOS da Forma Selvagem que podem ter sido serializados órfãos

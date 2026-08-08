@@ -177,6 +177,27 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> a versão exibida no menu lateral
                   aparecia com um cifrão na frente (<code>$4.28.1</code>).
                 </li>
+                <li>
+                  <strong>Correção:</strong> os poderes de{' '}
+                  <strong>armadura pesada</strong> agora valem sozinhos, sem
+                  precisar ligar nada: <strong>Encouraçado</strong> soma o +2 na
+                  Defesa (e mais +2 para cada poder que tenha ele como
+                  pré-requisito), <strong>Encastelado</strong> mostra a redução
+                  de dano no card do poder, <strong>Inexpugnável</strong> dá +2
+                  em Fortitude, Reflexos e Vontade e <strong>Fanático</strong>{' '}
+                  cancela a perda de deslocamento. Todos passaram a exigir a
+                  armadura de fato <strong>vestida</strong> — carregá-la na
+                  mochila não conta mais (isso também acertou Bastião,
+                  Especialização em Armadura e Selvagem Sanguinário).{' '}
+                  <strong>Catafractário</strong> continua como efeito ativo,
+                  porque depende do nível de parceiro da montaria.
+                </li>
+                <li>
+                  <strong>Correção:</strong> personagens de{' '}
+                  <strong>nível 5 ou mais</strong> de qualquer classe recebiam a{' '}
+                  <strong>Resistência a Dano do Bárbaro</strong> ao editar a
+                  ficha — um Guerreiro nível 6 aparecia com RD 2 sem motivo.
+                </li>
               </ul>
               <h3>4.28</h3>
               <Alert
