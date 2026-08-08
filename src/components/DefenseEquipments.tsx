@@ -91,7 +91,9 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
           : false;
         return (
           <DefenseItem
-            key={getKey(equip.nome)}
+            // Pelo id: itens de mesmo nome (duas entradas de uma pilha
+            // dividida) gerariam keys idênticas.
+            key={equip.id ? getKey(equip.id) : getKey(equip.nome)}
             equipment={equip}
             isWorn={isWorn}
             isWielded={isWielded}

@@ -87,6 +87,13 @@ interface WeaponProps {
   onWieldingChange?: (slot: WieldingSlot) => void;
   wieldingDisabledSlots?: Partial<Record<'main' | 'off', { reason: string }>>;
   /**
+   * Mão escolhida pelo atalho "Empunhar e atacar". Calculada pelo pai, que é
+   * quem conhece as duas mãos: sem isso este componente só sabia chutar
+   * `'main'` e evictava a arma que já estava lá (Machado + Machadinha).
+   * `null` = item não empunhável (armas naturais da Forma Selvagem).
+   */
+  defaultWieldSlot?: WieldingSlot;
+  /**
    * True when at least one hand slot is currently occupied somewhere on the
    * sheet — used to decide whether to warn the player about attacking with an
    * unwielded weapon. Sheets with no hand assigned (legacy mode) skip the warn.
@@ -132,6 +139,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     wieldingSlot = null,
     onWieldingChange,
     wieldingDisabledSlots,
+    defaultWieldSlot = null,
     wieldingTrackingActive = false,
     availableAmmo,
     onConsumeAmmo,
@@ -629,16 +637,14 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   }, [dano, shouldWarnUnwielded, proceedAfterUnwielded]);
 
   const handleWieldAndAttack = useCallback(() => {
-    if (!onWieldingChange) {
-      setUnwieldedDialogOpen(false);
-      proceedAfterUnwielded();
-      return;
+    // `defaultWieldSlot === null` = item não empunhável (arma natural da Forma
+    // Selvagem): ataca sem gravar um id fantasma no slot da mão.
+    if (onWieldingChange && defaultWieldSlot !== null) {
+      onWieldingChange(defaultWieldSlot);
     }
-    const slot: WieldingSlot = defaultIsTwoHanded(equipment) ? 'both' : 'main';
-    onWieldingChange(slot);
     setUnwieldedDialogOpen(false);
     proceedAfterUnwielded();
-  }, [equipment, onWieldingChange, proceedAfterUnwielded]);
+  }, [defaultWieldSlot, onWieldingChange, proceedAfterUnwielded]);
 
   const handleAttackAnyway = useCallback(() => {
     setUnwieldedDialogOpen(false);

@@ -1,6 +1,8 @@
 import {
   applyTwoHandedToggle,
   applyWielding,
+  canSplitStack,
+  commitWielding,
   getWieldingSlot,
   getWornArmor,
   isTwoHanded,
@@ -8,10 +10,15 @@ import {
   migrateLegacyEquipState,
   MigratableBagView,
   MigratableSheetView,
+  pickDefaultWieldSlot,
   pruneWielding,
+  WieldingState,
   WORN_ARMOR_NONE,
 } from '../wielding';
-import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
+import Equipment, {
+  BagEquipments,
+  DefenseEquipment,
+} from '../../../../interfaces/Equipment';
 
 describe('isWieldable', () => {
   test('weapons are wieldable', () => {
@@ -535,5 +542,341 @@ describe('migrateLegacyEquipState', () => {
     const result = migrateLegacyEquipState(input);
     expect(result.mainHandItemId).toBe('w1');
     expect(result.offHandItemId).toBeUndefined();
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * Empunhadura de duas armas de uma mão (Machado de Batalha +
+ * Machadinha) e divisão de pilha para cópias idênticas.
+ * ------------------------------------------------------------------ */
+
+const battleAxe: Equipment = {
+  id: 'axe1',
+  nome: 'Machado de Batalha',
+  group: 'Arma',
+  spaces: 1,
+};
+const handAxe: Equipment = {
+  id: 'axe2',
+  nome: 'Machadinha',
+  group: 'Arma',
+  spaces: 1,
+};
+const greatsword: Equipment = {
+  id: 'gs',
+  nome: 'Montante',
+  group: 'Arma',
+  twoHanded: true,
+  spaces: 3,
+};
+const buckler = {
+  id: 'sh1',
+  nome: 'Escudo Leve',
+  group: 'Escudo' as const,
+  defenseBonus: 2,
+  armorPenalty: 0,
+} as unknown as Equipment;
+
+function makeLookup(items: Equipment[]) {
+  return (id: string): Equipment | undefined => items.find((i) => i.id === id);
+}
+
+function makeBag(arma: Equipment[], escudo: Equipment[] = []): BagEquipments {
+  return {
+    Arma: arma,
+    Armadura: [],
+    Escudo: escudo as unknown as DefenseEquipment[],
+    'Item Geral': [],
+    Alquimía: [],
+    Esotérico: [],
+    Vestuário: [],
+    Hospedagem: [],
+    Alimentação: [],
+    Animal: [],
+    Veículo: [],
+    Serviço: [],
+  };
+}
+
+function totalSpaces(equipments: BagEquipments): number {
+  return equipments.Arma.reduce(
+    (sum, it) => sum + (it.spaces ?? 0) * (it.quantity ?? 1),
+    0
+  );
+}
+
+describe('pickDefaultWieldSlot', () => {
+  const lookup = makeLookup([battleAxe, handAxe, greatsword, buckler]);
+
+  test('both hands free: main', () => {
+    expect(pickDefaultWieldSlot({}, handAxe, lookup)).toBe('main');
+  });
+
+  // A regressão relatada: Machado de Batalha na principal, Machadinha ia para
+  // 'main' e evictava o machado.
+  test('main taken by another one-handed weapon, off free: off', () => {
+    const state = { mainHandItemId: 'axe1' };
+    expect(pickDefaultWieldSlot(state, handAxe, lookup)).toBe('off');
+  });
+
+  test('both hands taken by weapons: replaces main', () => {
+    const state = { mainHandItemId: 'axe1', offHandItemId: 'axe2' };
+    const third: Equipment = { id: 'sw', nome: 'Espada', group: 'Arma' };
+    expect(pickDefaultWieldSlot(state, third, lookup)).toBe('main');
+  });
+
+  test('main holds a shield and off a weapon: replaces off, keeping the shield', () => {
+    const state = { mainHandItemId: 'sh1', offHandItemId: 'axe1' };
+    expect(pickDefaultWieldSlot(state, handAxe, lookup)).toBe('off');
+  });
+
+  test('main holds a weapon and off a shield: replaces main', () => {
+    const state = { mainHandItemId: 'axe1', offHandItemId: 'sh1' };
+    expect(pickDefaultWieldSlot(state, handAxe, lookup)).toBe('main');
+  });
+
+  test('already wielded in the off hand: no-op', () => {
+    const state = { mainHandItemId: 'axe1', offHandItemId: 'axe2' };
+    expect(pickDefaultWieldSlot(state, handAxe, lookup)).toBe('off');
+  });
+
+  test('two-handed weapon: both', () => {
+    expect(pickDefaultWieldSlot({}, greatsword, lookup)).toBe('both');
+  });
+
+  test('two-handed weapon occupying both hands, new 1H: main', () => {
+    const state = { mainHandItemId: 'gs', offHandItemId: 'gs' };
+    expect(pickDefaultWieldSlot(state, handAxe, lookup)).toBe('main');
+  });
+
+  test('non-wieldable item (wild shape natural weapon): null', () => {
+    const claw: Equipment = {
+      id: 'wildshape-1-0',
+      nome: 'Garras',
+      group: 'Arma',
+      canBeWielded: false,
+    };
+    expect(pickDefaultWieldSlot({}, claw, lookup)).toBeNull();
+  });
+
+  test('without lookup the shield tiebreak is skipped: main', () => {
+    const state = { mainHandItemId: 'sh1', offHandItemId: 'axe1' };
+    expect(pickDefaultWieldSlot(state, handAxe)).toBe('main');
+  });
+});
+
+describe('applyWielding — duas armas de uma mão', () => {
+  test('axe in main + hand axe in off, and it is NOT read as two-handed', () => {
+    let state: WieldingState = {};
+    state = applyWielding(state, 'axe1', 'main');
+    state = applyWielding(state, 'axe2', 'off');
+
+    expect(state.mainHandItemId).toBe('axe1');
+    expect(state.offHandItemId).toBe('axe2');
+    expect(getWieldingSlot('axe1', state)).toBe('main');
+    expect(getWieldingSlot('axe2', state)).toBe('off');
+    // `dualWielding` em bonusConditions depende exatamente desta desigualdade.
+    expect(state.mainHandItemId).not.toBe(state.offHandItemId);
+  });
+});
+
+describe('canSplitStack', () => {
+  const stack = (extra: Partial<Equipment>): Equipment => ({
+    ...handAxe,
+    quantity: 2,
+    ...extra,
+  });
+
+  test('quantity 1: no', () => {
+    expect(canSplitStack({ ...handAxe, quantity: 1 })).toBe(false);
+  });
+  test('quantity 2: yes', () => {
+    expect(canSplitStack(stack({}))).toBe(true);
+  });
+  test('ammo: no', () => {
+    expect(canSplitStack(stack({ isAmmo: true }))).toBe(false);
+  });
+  test('carries sheetBonuses: no (would double the bonus)', () => {
+    const bonus = { source: {}, target: {}, modifier: {} };
+    expect(canSplitStack(stack({ sheetBonuses: [bonus] as never }))).toBe(
+      false
+    );
+  });
+  test('carries conditionalBonuses: no', () => {
+    expect(canSplitStack(stack({ conditionalBonuses: [{}] as never }))).toBe(
+      false
+    );
+  });
+  test('carries selectableBonus: no', () => {
+    expect(canSplitStack(stack({ selectableBonus: {} as never }))).toBe(false);
+  });
+});
+
+describe('commitWielding', () => {
+  test('splits a stack of 2 so each copy fills one hand', () => {
+    const stacked: Equipment = { ...handAxe, quantity: 2 };
+    const equipments = makeBag([stacked]);
+    const before = totalSpaces(equipments);
+
+    const result = commitWielding({
+      equipments,
+      displayOrder: ['axe2'],
+      state: { mainHandItemId: 'axe2' },
+      itemId: 'axe2',
+      slot: 'off',
+      newId: 'copy1',
+    });
+
+    expect(result.bagChanged).toBe(true);
+    expect(result.mainHandItemId).toBe('axe2');
+    expect(result.offHandItemId).toBe('copy1');
+    expect(result.mainHandItemId).not.toBe(result.offHandItemId);
+
+    const axes = result.equipments.Arma.filter(
+      (it) => it.nome === 'Machadinha'
+    );
+    expect(axes).toHaveLength(2);
+    expect(axes.every((it) => it.quantity === 1)).toBe(true);
+    // O split não pode alterar o peso carregado.
+    expect(totalSpaces(result.equipments)).toBe(before);
+  });
+
+  test('the copy is inserted right after the original in displayOrder', () => {
+    const equipments = makeBag([battleAxe, { ...handAxe, quantity: 2 }]);
+    const result = commitWielding({
+      equipments,
+      displayOrder: ['axe1', 'axe2', 'other'],
+      state: { mainHandItemId: 'axe2' },
+      itemId: 'axe2',
+      slot: 'off',
+      newId: 'copy1',
+    });
+    expect(result.displayOrder).toEqual(['axe1', 'axe2', 'copy1', 'other']);
+  });
+
+  test('quantity 1 moves between hands instead of splitting', () => {
+    const equipments = makeBag([handAxe]);
+    const result = commitWielding({
+      equipments,
+      displayOrder: ['axe2'],
+      state: { mainHandItemId: 'axe2' },
+      itemId: 'axe2',
+      slot: 'off',
+      newId: 'copy1',
+    });
+    expect(result.bagChanged).toBe(false);
+    expect(result.mainHandItemId).toBeUndefined();
+    expect(result.offHandItemId).toBe('axe2');
+    expect(result.equipments.Arma).toHaveLength(1);
+  });
+
+  test('a bonus-bearing stack is never split (bonuses count per entry)', () => {
+    const enchanted: Equipment = {
+      ...handAxe,
+      quantity: 2,
+      sheetBonuses: [{ source: {}, target: {}, modifier: {} }] as never,
+    };
+    const result = commitWielding({
+      equipments: makeBag([enchanted]),
+      displayOrder: ['axe2'],
+      state: { mainHandItemId: 'axe2' },
+      itemId: 'axe2',
+      slot: 'off',
+      newId: 'copy1',
+    });
+    expect(result.bagChanged).toBe(false);
+    expect(result.equipments.Arma).toHaveLength(1);
+    expect(result.offHandItemId).toBe('axe2');
+  });
+
+  test('releasing one copy merges the stack back, keeping the wielded id', () => {
+    const split = commitWielding({
+      equipments: makeBag([{ ...handAxe, quantity: 2 }]),
+      displayOrder: ['axe2'],
+      state: { mainHandItemId: 'axe2' },
+      itemId: 'axe2',
+      slot: 'off',
+      newId: 'copy1',
+    });
+
+    const released = commitWielding({
+      equipments: split.equipments,
+      displayOrder: split.displayOrder,
+      state: {
+        mainHandItemId: split.mainHandItemId,
+        offHandItemId: split.offHandItemId,
+      },
+      itemId: 'copy1',
+      slot: null,
+      newId: 'unused',
+    });
+
+    expect(released.equipments.Arma).toHaveLength(1);
+    expect(released.equipments.Arma[0].quantity).toBe(2);
+    // O id preservado é o que continua empunhado.
+    expect(released.equipments.Arma[0].id).toBe('axe2');
+    expect(released.mainHandItemId).toBe('axe2');
+    expect(released.displayOrder).toEqual(['axe2']);
+  });
+
+  test('a renamed copy is never merged back', () => {
+    const split = commitWielding({
+      equipments: makeBag([{ ...handAxe, quantity: 2 }]),
+      displayOrder: ['axe2'],
+      state: { mainHandItemId: 'axe2' },
+      itemId: 'axe2',
+      slot: 'off',
+      newId: 'copy1',
+    });
+    const renamed = split.equipments.Arma.map((it) =>
+      it.id === 'copy1'
+        ? { ...it, customDisplayName: 'Machadinha Sortuda' }
+        : it
+    );
+
+    const released = commitWielding({
+      equipments: makeBag(renamed),
+      displayOrder: split.displayOrder,
+      state: {
+        mainHandItemId: split.mainHandItemId,
+        offHandItemId: split.offHandItemId,
+      },
+      itemId: 'copy1',
+      slot: null,
+      newId: 'unused',
+    });
+
+    expect(released.equipments.Arma).toHaveLength(2);
+  });
+
+  test('shield guard still applies through commitWielding', () => {
+    const equipments = makeBag([greatsword], [buckler]);
+    const result = commitWielding({
+      equipments,
+      displayOrder: ['gs', 'sh1'],
+      state: { mainHandItemId: 'gs', offHandItemId: 'gs' },
+      itemId: 'sh1',
+      slot: 'off',
+      newId: 'unused',
+    });
+    // Mão consumida pela arma de duas mãos: estado inalterado.
+    expect(result.mainHandItemId).toBe('gs');
+    expect(result.offHandItemId).toBe('gs');
+  });
+
+  test('two-handed weapon takes both hands and never splits', () => {
+    const equipments = makeBag([{ ...greatsword, quantity: 2 }]);
+    const result = commitWielding({
+      equipments,
+      displayOrder: ['gs'],
+      state: {},
+      itemId: 'gs',
+      slot: 'both',
+      newId: 'copy1',
+    });
+    expect(result.mainHandItemId).toBe('gs');
+    expect(result.offHandItemId).toBe('gs');
+    expect(result.equipments.Arma).toHaveLength(1);
+    expect(result.bagChanged).toBe(false);
   });
 });

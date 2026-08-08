@@ -12,7 +12,7 @@ import {
   getEquipmentMaxSpacesBonus,
 } from '../../../functions/general';
 import {
-  applyWielding,
+  commitWielding,
   isTwoHanded,
   migrateLegacyEquipState,
   pruneWielding,
@@ -436,19 +436,24 @@ function reducer(state: StagedState, action: Action): StagedState {
     case 'REORDER':
       return { ...state, displayOrder: action.orderedIds };
     case 'SET_WIELDING': {
-      const lookup = (id: string): Equipment | undefined =>
-        flattenEquipments(state.equipments).find((it) => it.id === id);
-      const next = applyWielding(
-        {
+      // `commitWielding` também divide a pilha quando o jogador põe a segunda
+      // cópia de um item empilhado na outra mão (duas Machadinhas), e refunde
+      // quando ele solta uma delas.
+      const next = commitWielding({
+        equipments: state.equipments,
+        displayOrder: state.displayOrder,
+        state: {
           mainHandItemId: state.mainHandItemId,
           offHandItemId: state.offHandItemId,
         },
-        action.itemId,
-        action.slot,
-        lookup
-      );
+        itemId: action.itemId,
+        slot: action.slot,
+        newId: uuid(),
+      });
       return {
         ...state,
+        equipments: next.equipments,
+        displayOrder: next.displayOrder,
         mainHandItemId: next.mainHandItemId,
         offHandItemId: next.offHandItemId,
       };

@@ -156,7 +156,7 @@ import {
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
-import { applyWielding, WieldingSlot } from './BackpackModal/wielding';
+import { commitWielding, WieldingSlot } from './BackpackModal/wielding';
 import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
 import { findAmmoStack } from './BackpackModal/ammo';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
@@ -1341,19 +1341,30 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleQuickWieldChange = useCallback(
     (itemId: string, slot: WieldingSlot) => {
-      const next = applyWielding(
-        {
+      // Mesmo ponto de escrita usado pelo reducer da Mochila: garante que os
+      // guards de escudo, o split de pilha e a refusão valham nos dois
+      // caminhos (antes daqui saía um `applyWielding` sem `lookup`).
+      const next = commitWielding({
+        equipments: bagEquipments,
+        displayOrder: bag.displayOrder ?? [],
+        state: {
           mainHandItemId: currentSheet.mainHandItemId,
           offHandItemId: currentSheet.offHandItemId,
         },
         itemId,
-        slot
-      );
+        slot,
+        newId: uuidv4(),
+      });
       const updatedSheet: CharacterSheet = {
         ...currentSheet,
         mainHandItemId: next.mainHandItemId,
         offHandItemId: next.offHandItemId,
       };
+      // Só reconstrói a Bag quando a pilha foi dividida/refundida — trocar de
+      // mão não deve invalidar a referência da mochila à toa.
+      if (next.bagChanged) {
+        updatedSheet.bag = new Bag(next.equipments, true, next.displayOrder);
+      }
       // Run the full recalc (skipping PV/PM since wielding doesn't touch them).
       // Calling `calcDefense` directly here would compound bonuses: that
       // function sums equipment bonuses on top of `sheet.defesa`, which
@@ -1363,10 +1374,22 @@ const Result: React.FC<ResultProps> = (props) => {
         skipPMRecalc: true,
         skipPVRecalc: true,
       });
+      // Rehydrate Bag class methods after recalculateSheet's cloneDeep strips them.
+      if (recomputed.bag && !recomputed.bag.getEquipments) {
+        const plainBag = recomputed.bag as unknown as {
+          equipments: typeof bagEquipments;
+          displayOrder?: string[];
+        };
+        recomputed.bag = new Bag(
+          plainBag.equipments,
+          true,
+          plainBag.displayOrder
+        );
+      }
       setCurrentSheet(recomputed);
       if (onSheetUpdate) onSheetUpdate(recomputed);
     },
-    [currentSheet, onSheetUpdate]
+    [bag, bagEquipments, currentSheet, onSheetUpdate]
   );
 
   // Shared by Ataques and Defesa: blocks slots when a hand is already

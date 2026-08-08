@@ -11,6 +11,7 @@ import { BackHand as HandIcon, Check as CheckIcon } from '@mui/icons-material';
 
 import Equipment from '../../../interfaces/Equipment';
 import {
+  canSplitStack,
   isTwoHanded as defaultIsTwoHanded,
   isWieldable as defaultIsWieldable,
   WieldingSlot,
@@ -79,6 +80,13 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
   const renderHandSlot = (slot: 'main' | 'off') => {
     const selected = currentSlot === slot;
     const disabled = disabledSlots?.[slot];
+    // O item já está na outra mão e a pilha tem cópias sobrando: escolher esta
+    // mão divide a pilha (duas Machadinhas, uma em cada mão). É a única pista
+    // de que isso é possível.
+    const splitsStack =
+      !selected &&
+      (currentSlot === 'main' || currentSlot === 'off') &&
+      canSplitStack(item);
     const itemRow = (
       <MenuItem
         key={slot}
@@ -89,7 +97,11 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
         <ListItemIcon sx={{ minWidth: 28 }}>
           {selected ? <CheckIcon fontSize='small' /> : null}
         </ListItemIcon>
-        <ListItemText primary={SLOT_LABELS[slot]} />
+        <ListItemText
+          primary={
+            splitsStack ? `${SLOT_LABELS[slot]} (2ª cópia)` : SLOT_LABELS[slot]
+          }
+        />
       </MenuItem>
     );
     if (disabled) {

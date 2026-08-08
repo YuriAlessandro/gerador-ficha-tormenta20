@@ -8,6 +8,7 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { SheetBonus } from '../interfaces/CharacterSheet';
 import {
   getWieldingSlot,
+  pickDefaultWieldSlot,
   WieldingSlot,
 } from './SheetResult/BackpackModal/wielding';
 import { getAmmoUnits } from './SheetResult/BackpackModal/ammo';
@@ -93,6 +94,18 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
 
   const wieldingState = { mainHandItemId, offHandItemId };
 
+  // Resolve o item de qualquer mão para o desempate de escudo do
+  // `pickDefaultWieldSlot` (o que ocupa a mão pode não ser uma arma).
+  const wieldingLookup = (id: string): Equipment | undefined => {
+    if (!bagEquipments) return undefined;
+    return [
+      ...bagEquipments.Arma,
+      ...bagEquipments.Escudo,
+      ...bagEquipments.Alquimía,
+      ...bagEquipments['Item Geral'],
+    ].find((it) => it.id === id);
+  };
+
   const hasNonProficientWeapon =
     !!proficiencias &&
     weapons.some(
@@ -109,8 +122,16 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
       : 0;
     return (
       <Weapon
-        key={getKey(equip.nome)}
+        // Pelo id, não pelo nome: duas cópias empunhadas de um mesmo item
+        // (Machadinha em cada mão) gerariam keys idênticas e embaralhariam o
+        // estado de diálogo entre as duas linhas.
+        key={equip.id ? getKey(equip.id) : getKey(equip.nome)}
         equipment={equip}
+        defaultWieldSlot={pickDefaultWieldSlot(
+          wieldingState,
+          equip,
+          wieldingLookup
+        )}
         completeSkills={completeSkills}
         atributos={atributos}
         modDano={modFor}
