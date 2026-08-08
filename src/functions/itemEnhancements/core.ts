@@ -477,7 +477,20 @@ export function applyDelta<T extends Equipment>(
   const newDerived = delta.derivedSpecialActions.filter(
     (a) => !baseIds.has(a.id)
   );
-  const combinedActions = [...baseActions, ...newDerived];
+  // O atributo de dano por modo é escolha do usuário (editor da mochila, que
+  // grava em `specialActions`). `baseSpecialActions` é um snapshot congelado na
+  // primeira passagem do pipeline, então reconstruir a lista só a partir dele
+  // apagaria essa escolha a cada recálculo. Reaplicamos os overrides atuais por
+  // id — mesmo princípio do `extraDamage` do usuário, preservado acima.
+  const damageAttributeOverrides = new Map(
+    (captured.specialActions ?? []).map((a) => [a.id, a.damageAttribute])
+  );
+  const combinedActions = [...baseActions, ...newDerived].map<WeaponAction>(
+    (a) =>
+      damageAttributeOverrides.has(a.id)
+        ? { ...a, damageAttribute: damageAttributeOverrides.get(a.id) }
+        : a
+  );
   result.specialActions =
     combinedActions.length > 0 ? combinedActions : undefined;
 
