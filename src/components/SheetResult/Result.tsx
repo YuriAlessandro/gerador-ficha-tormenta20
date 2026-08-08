@@ -1863,14 +1863,25 @@ const Result: React.FC<ResultProps> = (props) => {
                   sheet={currentSheet}
                   onRevert={onSheetUpdate ? handleRevertWildShape : undefined}
                 />
+                {/*
+                 * `useFlexGap` é obrigatório aqui: sem ele o `spacing` do MUI
+                 * compila para `margin-left: 16px` E o `gap` continua valendo,
+                 * somando duas goteiras (no mobile eram 40px + 16px de sobra
+                 * comidos da largura útil). Com ele, `spacing` vira `gap`.
+                 * `justifyContent: center` só era perigoso enquanto o conteúdo
+                 * transbordava (o começo do texto saía pela esquerda, fora do
+                 * alcance do scroll); com os `minWidth: 0` abaixo ele volta a
+                 * ser apenas o alinhamento pretendido.
+                 */}
                 <Stack
                   direction='row'
                   spacing={2}
+                  useFlexGap
                   sx={{
                     alignItems: 'center',
                     flexWrap: 'wrap',
                     justifyContent: 'center',
-                    gap: isMobile ? 5 : 0,
+                    rowGap: isMobile ? 3 : 0,
                   }}
                 >
                   {currentSheet.imageUrl && (
@@ -1890,12 +1901,29 @@ const Result: React.FC<ResultProps> = (props) => {
                       }}
                     />
                   )}
-                  <Box sx={{ flexGrow: 1, position: 'relative', zIndex: 1 }}>
+                  {/*
+                   * `minWidth: 0` em toda a cadeia de itens de flex daqui até o
+                   * texto: item de flex tem `min-width: auto`, então sem isto a
+                   * coluna se recusa a encolher abaixo do min-content do nome e
+                   * estoura o card. Mesmo mecanismo já corrigido nos controles
+                   * de PV/PM logo abaixo.
+                   */}
+                  <Box
+                    sx={{
+                      flexGrow: 1,
+                      minWidth: 0,
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                  >
                     <Stack
                       direction='row'
                       spacing={0.5}
+                      useFlexGap
                       sx={{
                         alignItems: 'center',
+                        flexWrap: 'wrap',
+                        minWidth: 0,
                       }}
                     >
                       {markersEnabled && (
@@ -1905,11 +1933,12 @@ const Result: React.FC<ResultProps> = (props) => {
                         />
                       )}
                       <Box
-                        sx={
-                          markersEnabled
+                        sx={{
+                          minWidth: 0,
+                          ...(markersEnabled
                             ? getConditionLabelStyle(conditionHighlights.name)
-                            : undefined
-                        }
+                            : {}),
+                        }}
                       >
                         <LabelDisplay text={nome} size='large' />
                       </Box>
