@@ -258,6 +258,17 @@ const racePowers: Record<string, GeneralPower> = {
       'Seu povo veste metal como se fosse algodão. Você não sofre penalidade de armadura por usar armaduras (mas ainda sofre por escudos). Além disso, se estiver usando armadura pesada, recebe +2 na Defesa.',
     type: GeneralPowerType.RACA,
     requirements: [[{ type: RequirementType.RACA, name: 'Anão' }]],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Conforto do Aço' },
+        target: { type: 'Defense' },
+        modifier: { type: 'Fixed', value: 2 },
+        condition: {
+          combinator: 'AND',
+          clauses: [{ kind: 'wearingHeavyArmor' }],
+        },
+      },
+    ],
   },
   CONSTRICAO_ATROZ: {
     name: 'Constrição Atroz',

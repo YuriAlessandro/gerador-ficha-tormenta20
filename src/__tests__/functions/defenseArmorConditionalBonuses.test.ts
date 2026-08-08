@@ -5,6 +5,9 @@
  * (ou armadura pesada). Estes testes cobrem os dois sentidos da condição para
  * Tanga de Peles (Machado de Pedra) e para os poderes que receberam o backfill
  * da condição: Pele de Ferro, Insolência, Casca Grossa e Braços Calejados.
+ *
+ * Conforto do Aço (poder de raça do Anão) é o caso inverso dos demais: em vez de
+ * ser cancelado por armadura pesada, ele só vale COM armadura pesada.
  */
 import { describe, it, expect } from 'vitest';
 import _ from 'lodash';
@@ -17,6 +20,8 @@ import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
 import { Armaduras } from '../../data/systems/tormenta20/equipamentos';
 import { ClassDescription, ClassPower } from '../../interfaces/Class';
+import { GeneralPower } from '../../interfaces/Poderes';
+import racePowers from '../../data/systems/tormenta20/herois-de-arton/powers/racePowers';
 
 const SUPPLEMENTS = [
   SupplementId.TORMENTA20_CORE,
@@ -41,13 +46,24 @@ type Opts = {
   /** Armadura colocada na mochila e vestida. `undefined` = sem armadura. */
   armor?: typeof LIGHT_ARMOR;
   classPowers?: ClassPower[];
+  /** Poderes gerais (poderes de raça vivem aqui, não em `classPowers`). */
+  generalPowers?: GeneralPower[];
+  /** Raça do personagem. Padrão: Humano. */
+  raceName?: string;
 };
 
-const buildSheet = ({ className, nivel, armor, classPowers }: Opts) => {
+const buildSheet = ({
+  className,
+  nivel,
+  armor,
+  classPowers,
+  generalPowers,
+  raceName = 'Humano',
+}: Opts) => {
   const classe = _.cloneDeep(findClass(className));
-  const humano = dataRegistry
+  const raca = dataRegistry
     .getRacesBySupplements([SupplementId.TORMENTA20_CORE])
-    .find((r) => r.name === 'Humano')!;
+    .find((r) => r.name === raceName)!;
 
   const attributes: CharacterAttributes = {
     [Atributo.FORCA]: { name: Atributo.FORCA, value: 2 },
@@ -69,7 +85,7 @@ const buildSheet = ({ className, nivel, armor, classPowers }: Opts) => {
     sexo: 'Masculino',
     nivel,
     atributos: attributes,
-    raca: humano,
+    raca,
     classe,
     skills: [],
     pv: 20,
@@ -82,9 +98,9 @@ const buildSheet = ({ className, nivel, armor, classPowers }: Opts) => {
     origin: undefined,
     spells: [],
     displacement: 9,
-    size: humano.size!,
+    size: raca.size!,
     maxSpaces: 10,
-    generalPowers: [],
+    generalPowers: generalPowers ?? [],
     classPowers: classPowers ?? [],
     steps: [],
     // Impede a auto-empunhadura/auto-vestimenta, para controlar o estado.
@@ -244,6 +260,33 @@ describe('Pele de Ferro (Bárbaro) - condicionada a armadura pesada', () => {
       })
     );
     expect(comPoderPesada.defesa).toBe(semPoderPesada.defesa);
+  });
+});
+
+describe('Conforto do Aço (Anão) - só vale COM armadura pesada', () => {
+  const confortoDoAco = () => _.cloneDeep(racePowers.CONFORTO_DO_ACO);
+
+  const anao = (armor?: typeof LIGHT_ARMOR, comPoder = false) =>
+    recalculateSheet(
+      buildSheet({
+        className: 'Guerreiro',
+        nivel: 1,
+        raceName: 'Anão',
+        armor,
+        generalPowers: comPoder ? [confortoDoAco()] : [],
+      })
+    );
+
+  it('concede +2 na Defesa com armadura pesada', () => {
+    expect(anao(HEAVY_ARMOR, true).defesa).toBe(anao(HEAVY_ARMOR).defesa + 2);
+  });
+
+  it('não concede nada com armadura leve', () => {
+    expect(anao(LIGHT_ARMOR, true).defesa).toBe(anao(LIGHT_ARMOR).defesa);
+  });
+
+  it('não concede nada sem armadura', () => {
+    expect(anao(undefined, true).defesa).toBe(anao().defesa);
   });
 });
 
