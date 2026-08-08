@@ -1,11 +1,17 @@
 import Equipment from '../../interfaces/Equipment';
 import { CharacterAttributes } from '../../interfaces/Character';
+import type { SheetBonus } from '../../interfaces/CharacterSheet';
+import Bag from '../../interfaces/Bag';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import {
   evaluateSimpleModifier,
+  isLiveWeaponBonus,
   isModeScopedForWeapon,
+  sumLiveWeaponBonuses,
   weaponMatchesScope,
 } from '../weaponBonusScope';
+import { recalculateSheet } from '../recalculateSheet';
+import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import { isFiringWeapon, isLightOrAgileMeleeWeapon } from '../weaponTraits';
 
 const arcoLongo: Equipment = {
@@ -293,6 +299,244 @@ describe('evaluateSimpleModifier — LevelCalc', () => {
         atributos,
         10
       )
+    ).toBe(0);
+  });
+});
+
+/**
+ * Regressão do bug relatado em ago/2026: a Fúria (e Ataque Poderoso, e Estilo
+ * de Duas Mãos) gastava PM mas não mexia nos números da arma na ficha — só em
+ * armas do CATÁLOGO. Armas personalizadas funcionavam.
+ *
+ * Causa: bônus `meleeOnly` numa arma com `arremesso: true` (Adaga, Lança,
+ * Machadinha, Azagaia, Tridente) não é bakeado em `dano`/`atkBonus` pelo
+ * `applyWeaponBonuses` (bakear vazaria para o modo de arremesso), e a linha da
+ * arma em `Weapon.tsx` só lia os campos bakeados. Arma criada pelo
+ * `CustomItemForm` nunca tem `arremesso`, então sempre era bakeada.
+ */
+describe('isLiveWeaponBonus / sumLiveWeaponBonuses', () => {
+  const atributos: CharacterAttributes = {
+    [Atributo.FORCA]: { name: Atributo.FORCA, value: 4 },
+    [Atributo.DESTREZA]: { name: Atributo.DESTREZA, value: 2 },
+    [Atributo.CONSTITUICAO]: { name: Atributo.CONSTITUICAO, value: 2 },
+    [Atributo.INTELIGENCIA]: { name: Atributo.INTELIGENCIA, value: 0 },
+    [Atributo.SABEDORIA]: { name: Atributo.SABEDORIA, value: 1 },
+    [Atributo.CARISMA]: { name: Atributo.CARISMA, value: 0 },
+  };
+  const ctx = { atributos, nivel: 5 };
+
+  // Lança do catálogo: corpo a corpo E arremesso.
+  const lanca: Equipment = {
+    nome: 'Lança',
+    group: 'Arma',
+    dano: '1d6',
+    critico: 'x2',
+    alcance: 'Curto',
+    arremesso: true,
+  };
+  // Arma criada pelo CustomItemForm: sem `alcance`, sem `arremesso`.
+  const armaCustom: Equipment = {
+    nome: 'Espada do Fulano',
+    group: 'Arma',
+    dano: '1d8',
+    critico: 'x2',
+    isCustom: true,
+  };
+
+  const mkBonus = (
+    target: SheetBonus['target'],
+    value: number,
+    source: SheetBonus['source'] = {
+      type: 'activeEffect',
+      powerKey: 'barbaro:furia',
+      name: 'Fúria',
+    }
+  ): SheetBonus => ({
+    source,
+    target,
+    modifier: { type: 'Fixed', value },
+  });
+
+  // Fúria: +2 ataque e +2 dano, corpo a corpo.
+  const furia: SheetBonus[] = [
+    mkBonus({ type: 'WeaponAttack', meleeOnly: true }, 2),
+    mkBonus({ type: 'WeaponDamage', meleeOnly: true }, 2),
+  ];
+
+  it('arma de arremesso do catálogo: bônus é VIVO (não foi bakeado)', () => {
+    expect(isLiveWeaponBonus(lanca, { meleeOnly: true }, 'activeEffect')).toBe(
+      true
+    );
+    expect(sumLiveWeaponBonuses(lanca, furia, 'WeaponAttack', ctx)).toBe(2);
+    expect(sumLiveWeaponBonuses(lanca, furia, 'WeaponDamage', ctx)).toBe(2);
+  });
+
+  it('arma de arremesso: no modo arremesso o bônus corpo a corpo não vale', () => {
+    const thrown = { ...ctx, thrownMode: true };
+    expect(sumLiveWeaponBonuses(lanca, furia, 'WeaponAttack', thrown)).toBe(0);
+    expect(sumLiveWeaponBonuses(lanca, furia, 'WeaponDamage', thrown)).toBe(0);
+  });
+
+  it('arma corpo a corpo pura: bônus é bakeado, a linha NÃO pode somar de novo', () => {
+    expect(
+      isLiveWeaponBonus(espadaLonga, { meleeOnly: true }, 'activeEffect')
+    ).toBe(false);
+    expect(sumLiveWeaponBonuses(espadaLonga, furia, 'WeaponAttack', ctx)).toBe(
+      0
+    );
+    expect(sumLiveWeaponBonuses(armaCustom, furia, 'WeaponDamage', ctx)).toBe(
+      0
+    );
+  });
+
+  it('Ataque Poderoso: a penalidade negativa também é somada ao vivo', () => {
+    const ataquePoderoso = [
+      mkBonus({ type: 'WeaponAttack', meleeOnly: true }, -2, {
+        type: 'activeEffect',
+        powerKey: 'general:ataque-poderoso',
+        name: 'Ataque Poderoso',
+      }),
+      mkBonus({ type: 'WeaponDamage', meleeOnly: true }, 5, {
+        type: 'activeEffect',
+        powerKey: 'general:ataque-poderoso',
+        name: 'Ataque Poderoso',
+      }),
+    ];
+    expect(
+      sumLiveWeaponBonuses(lanca, ataquePoderoso, 'WeaponAttack', ctx)
+    ).toBe(-2);
+    expect(
+      sumLiveWeaponBonuses(lanca, ataquePoderoso, 'WeaponDamage', ctx)
+    ).toBe(5);
+  });
+
+  it('arma editada manualmente: efeito ativo soma por cima, poder permanente não', () => {
+    const editada: Equipment = { ...espadaLonga, hasManualEdits: true };
+    const doPoder = mkBonus({ type: 'WeaponDamage' }, 3, {
+      type: 'power',
+      name: 'Poder Permanente',
+    });
+
+    expect(isLiveWeaponBonus(editada, {}, 'activeEffect')).toBe(true);
+    expect(isLiveWeaponBonus(editada, {}, 'power')).toBe(false);
+    expect(sumLiveWeaponBonuses(editada, furia, 'WeaponDamage', ctx)).toBe(2);
+    expect(sumLiveWeaponBonuses(editada, [doPoder], 'WeaponDamage', ctx)).toBe(
+      0
+    );
+  });
+
+  it('escopo que não casa com a arma continua fora, mesmo sendo vivo', () => {
+    // Estilo de Duas Mãos: `twoHandedOnly` — a Lança não é de duas mãos.
+    const estiloDuasMaos = [
+      mkBonus(
+        { type: 'WeaponDamage', meleeOnly: true, twoHandedOnly: true },
+        5,
+        {
+          type: 'activeEffect',
+          powerKey: 'general:estilo-de-duas-maos',
+          name: 'Estilo de Duas Mãos',
+        }
+      ),
+    ];
+    expect(
+      sumLiveWeaponBonuses(lanca, estiloDuasMaos, 'WeaponDamage', ctx)
+    ).toBe(0);
+    expect(
+      sumLiveWeaponBonuses(
+        { ...lanca, twoHanded: true },
+        estiloDuasMaos,
+        'WeaponDamage',
+        ctx
+      )
+    ).toBe(5);
+  });
+});
+
+/**
+ * Complementaridade com o motor: o que `applyWeaponBonuses` bakeia e o que a
+ * exibição soma ao vivo têm que ser conjuntos DISJUNTOS e completos — senão o
+ * bônus some da ficha ou entra duas vezes.
+ */
+describe('bônus vivo × baking do recalculateSheet', () => {
+  const LANCA_ID = 'live-bonus-lanca';
+  const ESPADA_ID = 'live-bonus-espada';
+
+  const mkSheet = () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag = new Bag({
+      Arma: [
+        {
+          id: LANCA_ID,
+          nome: 'Lança',
+          group: 'Arma',
+          dano: '1d6',
+          critico: 'x2',
+          alcance: 'Curto',
+          arremesso: true,
+        },
+        {
+          id: ESPADA_ID,
+          nome: 'Espada Longa',
+          group: 'Arma',
+          dano: '1d8',
+          critico: 'x2',
+          alcance: '-',
+        },
+      ],
+    });
+    sheet.activeEffects = [
+      {
+        instanceId: 'furia-instance',
+        powerKey: 'barbaro:furia',
+        name: 'Fúria',
+        sourceLabel: 'Bárbaro · Fúria',
+        optionId: 'furia-2',
+        optionLabel: '+2 ataque e dano',
+        bonuses: [
+          {
+            target: { type: 'WeaponAttack', meleeOnly: true },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+          {
+            target: { type: 'WeaponDamage', meleeOnly: true },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+        ],
+        appliedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+    return sheet;
+  };
+
+  it('a Lança NÃO é bakeada, mas a soma viva devolve o bônus', () => {
+    const out = recalculateSheet(mkSheet());
+    const lanca = out.bag.equipments.Arma.find((w) => w.id === LANCA_ID)!;
+
+    // Nada bakeado (o modo de arremesso não pode herdar o bônus)...
+    expect(lanca.dano).toBe('1d6');
+    expect(lanca.atkBonus ?? 0).toBe(0);
+    // ...e é exatamente por isso que a exibição precisa somar ao vivo.
+    const ctx = { atributos: out.atributos, nivel: out.nivel };
+    expect(
+      sumLiveWeaponBonuses(lanca, out.sheetBonuses, 'WeaponAttack', ctx)
+    ).toBe(2);
+    expect(
+      sumLiveWeaponBonuses(lanca, out.sheetBonuses, 'WeaponDamage', ctx)
+    ).toBe(2);
+  });
+
+  it('a Espada Longa é bakeada e a soma viva devolve 0 (sem dupla contagem)', () => {
+    const out = recalculateSheet(mkSheet());
+    const espada = out.bag.equipments.Arma.find((w) => w.id === ESPADA_ID)!;
+
+    expect(espada.dano).toBe('1d8+2');
+    expect(espada.atkBonus).toBe(2);
+    const ctx = { atributos: out.atributos, nivel: out.nivel };
+    expect(
+      sumLiveWeaponBonuses(espada, out.sheetBonuses, 'WeaponAttack', ctx)
+    ).toBe(0);
+    expect(
+      sumLiveWeaponBonuses(espada, out.sheetBonuses, 'WeaponDamage', ctx)
     ).toBe(0);
   });
 });

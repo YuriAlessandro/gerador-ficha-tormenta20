@@ -1,5 +1,9 @@
 import Equipment, { WeaponCategory } from '../interfaces/Equipment';
-import { SheetChangeSource, StatModifier } from '../interfaces/CharacterSheet';
+import {
+  SheetBonus,
+  SheetChangeSource,
+  StatModifier,
+} from '../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../interfaces/Character';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { getEffectiveWeaponCategory } from './proficiencies';
@@ -124,6 +128,33 @@ export function isModeScopedForWeapon(
 }
 
 /**
+ * O bônus NÃO é bakeado por `applyWeaponBonuses` (recalculateSheet) e portanto
+ * precisa ser somado AO VIVO na exibição e na rolagem?
+ *
+ * É o complemento EXATO do que o baking aplica — os dois lados têm que
+ * concordar, senão o bônus some da ficha (era o bug da Fúria nas armas de
+ * arremesso do catálogo) ou entra duas vezes. Dois motivos para um bônus ficar
+ * de fora do baking:
+ *
+ *  1. **Escopo por modo** (`isModeScopedForWeapon`): bakear na string
+ *     `dano`/`atkBonus` vazaria o bônus para o outro modo de uma arma híbrida
+ *     de arremesso.
+ *  2. **Arma com `hasManualEdits`**: `applyWeaponBonuses` retorna cedo e não
+ *     bakeia NADA nela — o valor digitado pelo usuário é a base. Só as fontes
+ *     voláteis (efeitos ativos) voltam ao vivo por cima dessa base; bônus
+ *     permanentes de poder continuam congelados, que é o sentido da edição
+ *     manual.
+ */
+export function isLiveWeaponBonus(
+  weapon: Equipment,
+  scope: WeaponBonusScope,
+  sourceType: SheetChangeSource['type']
+): boolean {
+  if (weapon.hasManualEdits) return sourceType === 'activeEffect';
+  return isModeScopedForWeapon(weapon, scope);
+}
+
+/**
  * Contexto opcional para resolver `{classLevel}` / `capBy: 'classLevel'` fora do
  * recalculateSheet. Sem ele, o nível de classe recai no nível total (`nivel`),
  * que é o comportamento correto para ficha mono-classe.
@@ -192,4 +223,59 @@ export function evaluateSimpleModifier(
     }
   }
   return 0;
+}
+
+/** Contexto da ficha necessário para avaliar os modificadores dos bônus vivos. */
+export interface LiveWeaponBonusContext {
+  atributos: CharacterAttributes;
+  nivel: number;
+  classLevels?: Map<string, number>;
+  /**
+   * O ataque é o modo de arremesso de uma arma de arremesso (perícia Pontaria)?
+   * A linha da arma na ficha e o corpo a corpo passam `false` — o padrão de
+   * exibição é o modo corpo a corpo, coerente com `getWeaponSkill`.
+   */
+  thrownMode?: boolean;
+}
+
+/**
+ * Soma os bônus de arma que NÃO foram bakeados (ver `isLiveWeaponBonus`) e que
+ * valem para a arma e o modo de ataque atuais. Fonte única de `Weapon.tsx`:
+ * linha exibida, preview de modo e rolagem usam esta função para não divergir.
+ *
+ * Regra de modo: bônus com escopo por modo valem `thrownOnly`/`rangedOnly` no
+ * arremesso e `meleeOnly` no corpo a corpo (arremessar É atacar à distância).
+ * Bônus vivos por edição manual não têm escopo de modo e valem em qualquer um,
+ * desde que casem estaticamente com a arma.
+ */
+export function sumLiveWeaponBonuses(
+  weapon: Equipment,
+  bonuses: SheetBonus[] | undefined,
+  targetType: 'WeaponAttack' | 'WeaponDamage',
+  ctx: LiveWeaponBonusContext
+): number {
+  if (!bonuses?.length) return 0;
+  const thrown = !!ctx.thrownMode;
+
+  return bonuses.reduce((sum, bonus) => {
+    if (bonus.target.type !== targetType) return sum;
+    const scope = bonus.target as WeaponBonusScope;
+    if (!isLiveWeaponBonus(weapon, scope, bonus.source.type)) return sum;
+    if (!weaponMatchesScope(weapon, scope)) return sum;
+
+    if (isModeScopedForWeapon(weapon, scope)) {
+      const appliesInMode = thrown
+        ? !!scope.thrownOnly || !!scope.rangedOnly
+        : !!scope.meleeOnly;
+      if (!appliesInMode) return sum;
+    }
+
+    return (
+      sum +
+      evaluateSimpleModifier(bonus.modifier, ctx.atributos, ctx.nivel, {
+        classLevels: ctx.classLevels,
+        source: bonus.source,
+      })
+    );
+  }, 0);
 }

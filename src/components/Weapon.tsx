@@ -38,7 +38,7 @@ import {
 } from '../functions/weaponDamageStep';
 import {
   evaluateSimpleModifier,
-  isModeScopedForWeapon,
+  sumLiveWeaponBonuses,
   weaponMatchesScope,
   WeaponBonusScope,
 } from '../functions/weaponBonusScope';
@@ -49,6 +49,7 @@ import WeaponModeDialog from './WeaponModeDialog';
 import { ConditionMarker } from '../premium/components/Conditions';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../premium/functions/conditionHighlights';
+import { ACTIVE_EFFECT_COLOR } from '../premium/functions/activeEffectHighlights';
 import WieldingControl from './SheetResult/BackpackModal/WieldingControl';
 import {
   isTwoHanded as defaultIsTwoHanded,
@@ -148,8 +149,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     completeSkills,
     atributos
   );
-  const baseAtk =
-    (atkBonus ? atkBonus + baseModAtk : baseModAtk) + proficiencyPenalty;
 
   // Sem proficiência: a row inteira ganha um fundo âmbar sutil; a legenda
   // explicativa é renderizada uma única vez pela lista (Weapons.tsx).
@@ -191,46 +190,39 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [equipment.arremesso]
   );
 
-  // Bônus de arma aplicados POR MODO de ataque (não bakeados na string `dano`/
-  // `atkBonus` porque valem só em um dos modos de uma arma híbrida de arremesso).
-  // Somamos os bônus `mode-scoped` (ver isModeScopedForWeapon) cujo escopo casa
-  // com a arma E com o modo atual: no modo de arremesso valem thrownOnly e
-  // rangedOnly (arremessar É atacar à distância — ex.: Arqueiro na adaga); no
-  // modo corpo a corpo valem meleeOnly (ex.: Esgrimista na adaga). Armas puras
-  // já têm esses bônus bakeados pelo recalculateSheet.
-  const modeWeaponBonus = useCallback(
-    (targetType: 'WeaponDamage' | 'WeaponAttack', action?: WeaponAction) => {
-      const thrown = isThrownAction(action);
-      return (sheetBonuses ?? []).reduce((sum, b) => {
-        if (b.target.type !== targetType) return sum;
-        const scope = b.target as WeaponBonusScope;
-        if (!isModeScopedForWeapon(equipment, scope)) return sum;
-        if (!weaponMatchesScope(equipment, scope)) return sum;
-        const appliesInMode = thrown
-          ? !!scope.thrownOnly || !!scope.rangedOnly
-          : !!scope.meleeOnly;
-        if (!appliesInMode) return sum;
-        return (
-          sum +
-          evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1, {
-            classLevels,
-            source: b.source,
-          })
-        );
-      }, 0);
-    },
+  // Bônus de arma que NÃO foram bakeados em `dano`/`atkBonus` pelo
+  // recalculateSheet e precisam ser somados ao vivo — bônus com escopo por modo
+  // (arma híbrida de arremesso) e efeitos ativos sobre arma editada
+  // manualmente. Ver `isLiveWeaponBonus`, que é o complemento exato do baking.
+  const liveWeaponBonus = useCallback(
+    (targetType: 'WeaponDamage' | 'WeaponAttack', action?: WeaponAction) =>
+      sumLiveWeaponBonuses(equipment, sheetBonuses, targetType, {
+        atributos,
+        nivel: nivel ?? 1,
+        classLevels,
+        thrownMode: isThrownAction(action),
+      }),
     [sheetBonuses, equipment, isThrownAction, atributos, nivel, classLevels]
   );
 
-  const modeDamageBonus = useCallback(
-    (action?: WeaponAction) => modeWeaponBonus('WeaponDamage', action),
-    [modeWeaponBonus]
+  const liveDamageBonus = useCallback(
+    (action?: WeaponAction) => liveWeaponBonus('WeaponDamage', action),
+    [liveWeaponBonus]
   );
 
-  const modeAttackBonus = useCallback(
-    (action?: WeaponAction) => modeWeaponBonus('WeaponAttack', action),
-    [modeWeaponBonus]
+  const liveAttackBonus = useCallback(
+    (action?: WeaponAction) => liveWeaponBonus('WeaponAttack', action),
+    [liveWeaponBonus]
   );
+
+  // Ataque e dano da linha principal da arma. O modo de referência é o corpo a
+  // corpo (mesma escolha de `getWeaponSkill`, que devolve Luta para arma de
+  // arremesso), então os bônus vivos entram com `action` indefinida. Sem isso a
+  // Fúria/Ataque Poderoso somem da ficha em toda arma de arremesso do catálogo.
+  const baseAtk =
+    (atkBonus ? atkBonus + baseModAtk : baseModAtk) +
+    proficiencyPenalty +
+    liveAttackBonus();
 
   // Arremesso Potente: pode usar Força em vez de Destreza no teste de ataque de
   // arremesso. O poder diz "você pode", então aplicamos só quando é vantajoso
@@ -283,12 +275,12 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         baseFromBonus +
         proficiencyPenalty +
         (action.atkBonusDelta ?? 0) +
-        modeAttackBonus(action) +
+        liveAttackBonus(action) +
         (thrown ? strengthThrowDelta : 0);
 
       const resolvedAttr = resolveDamageAttribute(equipment, action);
       const previewDamageMod =
-        damageModForAttribute(resolvedAttr) + modeDamageBonus(action);
+        damageModForAttribute(resolvedAttr) + liveDamageBonus(action);
 
       const previewStepDelta =
         (action.damageStepDelta ?? 0) + arremessadorStepBonus(action);
@@ -324,8 +316,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       bakedFlatDamageBonus,
       isThrownAction,
       proficiencyPenalty,
-      modeAttackBonus,
-      modeDamageBonus,
+      liveAttackBonus,
+      liveDamageBonus,
       strengthThrowDelta,
     ]
   );
@@ -335,18 +327,27 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [dano]
   );
 
-  const powerBonusEffects = useMemo<string[]>(() => {
-    if (!sheetBonuses) return [];
-    const effects: string[] = [];
+  // Lista do tooltip ✨ da arma. Inclui poderes permanentes E efeitos ativos —
+  // sem os efeitos ativos o jogador ativava a Fúria e não via nada na arma
+  // mudar de origem, mesmo quando o bônus estava sendo aplicado.
+  const bonusEffects = useMemo<{
+    lines: string[];
+    hasActiveEffect: boolean;
+  }>(() => {
+    const lines: string[] = [];
+    let hasActiveEffect = false;
+    if (!sheetBonuses) return { lines, hasActiveEffect };
+
     sheetBonuses.forEach((b) => {
-      if (b.source.type !== 'power') return;
+      if (b.source.type !== 'power' && b.source.type !== 'activeEffect') return;
+      const sourceName = b.source.name;
+      const isActiveEffect = b.source.type === 'activeEffect';
       const targetType = b.target.type;
       // Arremesso Potente: pode usar Força no ataque de arremesso.
       if (targetType === 'ThrownAttackUseStrength') {
         if (equipment.arremesso) {
-          effects.push(
-            `${b.source.name}: pode usar Força no ataque (arremesso)`
-          );
+          lines.push(`${sourceName}: pode usar Força no ataque (arremesso)`);
+          hasActiveEffect = hasActiveEffect || isActiveEffect;
         }
         return;
       }
@@ -368,6 +369,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         classLevels,
         source: b.source,
       });
+      // Penalidades existem (Ataque Poderoso: −2 no ataque), então o sinal sai
+      // do valor — `+${value}` imprimia "+-2".
+      const signed = value >= 0 ? `+${value}` : `−${Math.abs(value)}`;
       // Sufixo de modo para armas híbridas de arremesso (o bônus vale só num dos
       // modos). Armas puras não recebem sufixo (o modo é único).
       let suffix = '';
@@ -379,25 +383,33 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         suffix = ' (corpo a corpo)';
       }
       if (targetType === 'WeaponAttack') {
-        effects.push(`${b.source.name}: +${value} no ataque${suffix}`);
+        lines.push(`${sourceName}: ${signed} no ataque${suffix}`);
       } else if (targetType === 'WeaponDamage') {
-        effects.push(`${b.source.name}: +${value} no dano${suffix}`);
+        lines.push(`${sourceName}: ${signed} no dano${suffix}`);
       } else if (targetType === 'WeaponDamageStep') {
-        effects.push(
-          `${b.source.name}: +${value} passo${value > 1 ? 's' : ''} de dano`
+        lines.push(
+          `${sourceName}: ${signed} passo${
+            Math.abs(value) > 1 ? 's' : ''
+          } de dano`
         );
       } else if (targetType === 'WeaponThreatMargin') {
-        effects.push(
+        lines.push(
           b.target.mode === 'set'
-            ? `${b.source.name}: margem de ameaça ${value}`
-            : `${b.source.name}: +${value} na margem de ameaça`
+            ? `${sourceName}: margem de ameaça ${value}`
+            : `${sourceName}: ${signed} na margem de ameaça`
         );
       }
+      hasActiveEffect = hasActiveEffect || isActiveEffect;
     });
-    return effects;
+
+    return { lines, hasActiveEffect };
   }, [sheetBonuses, equipment, atributos, nivel, classLevels]);
 
-  const damage = getWeaponDisplayDamage(equipment, atributos);
+  const damage = getWeaponDisplayDamage(
+    equipment,
+    atributos,
+    liveDamageBonus()
+  );
 
   const performWeaponRoll = useCallback(
     (selectedDano: string, ctx: RollContext) => {
@@ -426,12 +438,12 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         baseAtkFromBonus +
         proficiencyPenalty +
         (action?.atkBonusDelta ?? 0) +
-        modeAttackBonus(action) +
+        liveAttackBonus(action) +
         (thrown ? strengthThrowDelta : 0);
 
       const resolvedAttr = resolveDamageAttribute(equipment, action);
       const localDamageMod =
-        damageModForAttribute(resolvedAttr) + modeDamageBonus(action);
+        damageModForAttribute(resolvedAttr) + liveDamageBonus(action);
 
       // Apply step delta to the chosen dano string (if any), including the
       // Hynne "Arremessador" +1 step on ranged/thrown attacks.
@@ -501,8 +513,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       arremessadorStepBonus,
       isThrownAction,
       proficiencyPenalty,
-      modeAttackBonus,
-      modeDamageBonus,
+      liveAttackBonus,
+      liveDamageBonus,
       strengthThrowDelta,
     ]
   );
@@ -726,11 +738,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         >
           <ConditionMarker conditions={attackConditions} fontSize='inherit' />
           {displayName}
-          {powerBonusEffects.length > 0 && (
+          {bonusEffects.lines.length > 0 && (
             <Tooltip
               title={
                 <Box>
-                  {powerBonusEffects.map((effect) => (
+                  {bonusEffects.lines.map((effect) => (
                     <Typography
                       key={effect}
                       variant='caption'
@@ -745,11 +757,15 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               }
               arrow
             >
+              {/* Âmbar quando há efeito ativo em jogo — mesma cor usada em
+                  Defesa e perícias sob efeito. */}
               <AutoAwesomeIcon
                 sx={{
                   fontSize: 14,
                   ml: 0.5,
-                  color: theme.palette.primary.main,
+                  color: bonusEffects.hasActiveEffect
+                    ? ACTIVE_EFFECT_COLOR
+                    : theme.palette.primary.main,
                   cursor: 'help',
                 }}
                 onClick={(e) => e.stopPropagation()}

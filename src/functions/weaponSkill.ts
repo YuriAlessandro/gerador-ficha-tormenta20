@@ -6,6 +6,7 @@ import Skill, { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { parseDualModeDamage } from './diceRoller';
+import { addFlatDamageBonus } from './weaponDamageStep';
 
 export function getWeaponSkill(weapon: Equipment): Skill {
   if (weapon.customSkill) return weapon.customSkill;
@@ -56,13 +57,21 @@ export function resolveDamageAttribute(
  * `weapon.dano` (só bônus fixos de poder/encantamento), então anexar aqui não
  * duplica. Usado tanto na exibição quanto na exportação do PDF para garantir
  * que os dois mostrem o mesmo valor.
+ *
+ * `extraFlatBonus` são os bônus de dano que não foram bakeados em `weapon.dano`
+ * e precisam ser somados ao vivo (ver `sumLiveWeaponBonuses`). O PDF não passa
+ * esse parâmetro: efeito ativo é estado transitório de combate e não deve ser
+ * congelado na exportação.
  */
 export function getWeaponDisplayDamage(
   weapon: Equipment,
-  atributos: CharacterAttributes
+  atributos: CharacterAttributes,
+  extraFlatBonus = 0
 ): string {
-  const dano = weapon.dano ?? '';
-  if (!dano) return dano;
+  const baseDano = weapon.dano ?? '';
+  if (!baseDano) return baseDano;
+
+  const dano = addFlatDamageBonus(baseDano, extraFlatBonus);
 
   const dualMode = parseDualModeDamage(dano);
   if (!isWeaponMelee(weapon) || dualMode) return dano;
