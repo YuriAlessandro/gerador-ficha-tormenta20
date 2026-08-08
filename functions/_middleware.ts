@@ -56,15 +56,41 @@ function isCrawler(userAgent: string | null): boolean {
   return CRAWLER_USER_AGENTS.some((crawler) => ua.includes(crawler));
 }
 
+/**
+ * O Mapa de Arton também é servido por um subdomínio-máscara, que renderiza o
+ * mapa na raiz (`/`). Essa página é pública e precisa ser incorporável por
+ * qualquer site, então não pode sair com `X-Frame-Options`.
+ *
+ * O `public/_headers` resolve o caso por CAMINHO (`/mapadearton*`), mas não sabe
+ * casar por host. A saída natural seria uma Transform Rule na zona — e foi o que
+ * tentamos primeiro: regras de resposta da zona **não se aplicam** ao tráfego
+ * servido pelo Pages (verificado com uma regra de teste que nunca apareceu na
+ * resposta). Então o destacamento acontece aqui.
+ */
+function isMapSubdomain(hostname: string): boolean {
+  return hostname.startsWith('mapadearton.');
+}
+
+function withoutFrameOptions(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.delete('X-Frame-Options');
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export const onRequest = async (context: PagesContext): Promise<Response> => {
   const { request, next } = context;
   const userAgent = request.headers.get('User-Agent');
+  const url = new URL(request.url);
+  const onMapSubdomain = isMapSubdomain(url.hostname);
 
   if (!isCrawler(userAgent)) {
-    return next();
+    const response = await next();
+    return onMapSubdomain ? withoutFrameOptions(response) : response;
   }
-
-  const url = new URL(request.url);
 
   try {
     const upstream = await fetch(`${BACKEND_URL}${url.pathname}${url.search}`, {
@@ -88,24 +114,27 @@ export const onRequest = async (context: PagesContext): Promise<Response> => {
       return next();
     }
 
+    // As regras do `public/_headers` só valem para assets servidos pelo Pages —
+    // uma Response construída aqui não passa por elas. Sem repetir os headers, a
+    // resposta ao crawler sairia sem eles, divergindo do que o nginx fazia.
+    const crawlerHeaders: Record<string, string> = {
+      'Content-Type':
+        upstream.headers.get('Content-Type') ?? 'text/html; charset=utf-8',
+      // HTML de crawler é montado a partir de dados que mudam (nome da ficha,
+      // bio do perfil). Cache curto no edge mantém o preview atualizado sem
+      // martelar o backend quando um link viraliza.
+      'Cache-Control': 'public, max-age=300',
+      'X-Content-Type-Options': 'nosniff',
+      'X-XSS-Protection': '1; mode=block',
+    };
+
+    if (!onMapSubdomain) {
+      crawlerHeaders['X-Frame-Options'] = 'SAMEORIGIN';
+    }
+
     return new Response(upstream.body, {
       status: upstream.status,
-      headers: {
-        'Content-Type':
-          upstream.headers.get('Content-Type') ?? 'text/html; charset=utf-8',
-        // HTML de crawler é montado a partir de dados que mudam (nome da ficha,
-        // bio do perfil). Cache curto no edge mantém o preview atualizado sem
-        // martelar o backend quando um link viraliza.
-        'Cache-Control': 'public, max-age=300',
-        // As regras do `public/_headers` só valem para assets servidos pelo
-        // Pages — resposta construída aqui não passa por elas. Sem repetir os
-        // headers, a resposta ao crawler sairia sem eles, divergindo do que o
-        // nginx fazia. O XFO do subdomínio do Mapa de Arton continua sendo
-        // removido pela Transform Rule, que roda depois desta resposta.
-        'X-Frame-Options': 'SAMEORIGIN',
-        'X-Content-Type-Options': 'nosniff',
-        'X-XSS-Protection': '1; mode=block',
-      },
+      headers: crawlerHeaders,
     });
   } catch {
     // Timeout, DNS, TLS — qualquer falha degrada para o SPA.
