@@ -6,5 +6,14 @@
 # as faz parecer arquivo e devolver 404. É o mesmo motivo do `spaFallbackPlugin()`
 # em vite.config.ts, que só vale para o dev server.
 #
+# As regras são avaliadas em ordem, então tudo que for específico precisa vir
+# antes do catch-all.
+
+# O Pages remove o `.html` das URLs e devolve 308 para a versão sem extensão.
+# No arquivo de verificação do Search Console isso muda a URL que o Google
+# pediu, então servimos por rewrite (200) e a URL fica idêntica à do nginx.
+# (O domínio também está verificado por TXT no DNS — isto é cinto e suspensório.)
+/googleeda1efffc269b53c.html  /googleeda1efffc269b53c  200
+
 # Status 200 = rewrite (a URL do navegador não muda), não redirect.
 /*  /index.html  200

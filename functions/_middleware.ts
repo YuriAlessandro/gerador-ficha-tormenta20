@@ -97,6 +97,14 @@ export const onRequest = async (context: PagesContext): Promise<Response> => {
         // bio do perfil). Cache curto no edge mantém o preview atualizado sem
         // martelar o backend quando um link viraliza.
         'Cache-Control': 'public, max-age=300',
+        // As regras do `public/_headers` só valem para assets servidos pelo
+        // Pages — resposta construída aqui não passa por elas. Sem repetir os
+        // headers, a resposta ao crawler sairia sem eles, divergindo do que o
+        // nginx fazia. O XFO do subdomínio do Mapa de Arton continua sendo
+        // removido pela Transform Rule, que roda depois desta resposta.
+        'X-Frame-Options': 'SAMEORIGIN',
+        'X-Content-Type-Options': 'nosniff',
+        'X-XSS-Protection': '1; mode=block',
       },
     });
   } catch {
