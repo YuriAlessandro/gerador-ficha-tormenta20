@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            02/08/2026 (v4.28).
+            08/08/2026 (v4.29).
           </p>
 
           <p>
@@ -74,6 +74,63 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.29</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> na{' '}
+                  <strong>extensão do Owlbear Rodeo</strong>, o{' '}
+                  <strong>PV do personagem aparece na barra de vida</strong> do
+                  token, direto no mapa — sem precisar abrir a ficha para saber
+                  como o grupo está.
+                </li>
+                <li>
+                  <strong>Novo:</strong> a extensão do Owlbear ganhou{' '}
+                  <strong>histórico de rolagens</strong>, para conferir os
+                  resultados anteriores sem sair do mapa.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a ficha na extensão do Owlbear
+                  agora abre em um <strong>painel que não fecha</strong> ao
+                  clicar fora — antes era um popover que sumia a qualquer clique
+                  no mapa. E quando a sessão expira, a extensão{' '}
+                  <strong>avisa</strong> em vez de simplesmente parar de
+                  responder.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o{' '}
+                  <strong>relatório de erro</strong> agora informa a{' '}
+                  <strong>versão do app</strong> que você está usando e se
+                  existe uma <strong>atualização pendente</strong>. Quem
+                  dispensa o aviso de nova versão continua rodando a versão
+                  antiga por tempo indeterminado — agora dá para saber disso ao
+                  reportar um problema. A versão também aparece na própria tela
+                  de erro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Conforto do Aço</strong> (Anão) não dava o{' '}
+                  <strong>+2 na Defesa</strong> ao usar armadura pesada — o
+                  poder existia na lista, mas não tinha nenhum efeito na ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o passo{' '}
+                  <strong>Itens da Origem</strong> quebrava a criação de
+                  personagem em{' '}
+                  <strong>qualquer origem regional do Atlas</strong>. De quebra,
+                  as listas de armas dessas origens estavam com categorias
+                  erradas: Katana, Machado Anão, Espada Bastarda e Chicote
+                  apareciam como marciais (são exóticas) e o Mangual como
+                  simples.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a página de <strong>mesas</strong>{' '}
+                  caía com erro ao carregar a listagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a versão exibida no menu lateral
+                  aparecia com um cifrão na frente (<code>$4.28.1</code>).
+                </li>
+              </ul>
               <h3>4.28</h3>
               <Alert
                 severity='success'

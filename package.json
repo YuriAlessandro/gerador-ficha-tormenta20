@@ -1,6 +1,6 @@
 {
   "name": "gerador-ficha-tormenta20",
-  "version": "4.28.2",
+  "version": "4.29.0",
   "private": true,
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
