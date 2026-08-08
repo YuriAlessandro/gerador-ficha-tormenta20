@@ -4,6 +4,12 @@ import { Box, Button, Chip, Tooltip, Typography } from '@mui/material';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { useContainerWidth } from '@/hooks/useContainerWidth';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import CharacterSheet from '@/interfaces/CharacterSheet';
+import type {
+  ActiveEffectUsageOption,
+  ActivePowerDefinition,
+} from '@/premium/interfaces/ActiveEffect';
 import { CharacterAttribute } from '@/interfaces/Character';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell, spellsCircles } from '@/interfaces/Spells';
@@ -23,6 +29,7 @@ import {
 } from '../common/listStyles';
 import SpellDetailSheet from './SpellDetailSheet';
 import SpellRow from './SpellRow';
+import { getSpellActiveEffectDefinition } from './spellActiveEffect';
 import SpellsHeaderStats from './SpellsHeaderStats';
 import SpellsToolbar, { CircleFilterOption } from './SpellsToolbar';
 import { SheetSpellToggles } from './SpellsFilterPopover';
@@ -110,6 +117,15 @@ export interface SpellsDisplayProps {
    * (deus menor). Computado no render pelo pai — nunca persistido.
    */
   getCircleWarning?: (circle: number) => string | null;
+  /**
+   * Ficha e callback de ativação. Presentes, a estrelinha da linha vira botão
+   * e abre o diálogo de tipos de uso — o mesmo caminho da aba de Poderes.
+   */
+  sheet?: CharacterSheet;
+  onActivateEffect?: (
+    definition: ActivePowerDefinition,
+    option: ActiveEffectUsageOption
+  ) => void;
 }
 
 const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
@@ -129,7 +145,10 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   onKeyAttributeChange,
   bonusSpellDC,
   getCircleWarning,
+  sheet,
+  onActivateEffect,
 }) => {
+  const { hasAccess: canUseActiveEffects } = useFeatureAccess('activeEffects');
   const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
   const compact = containerWidth > 0 && containerWidth < COMPACT_BREAKPOINT;
 
@@ -320,6 +339,13 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
                   isMago={isMago}
                   onToggleMemorized={onToggleMemorized}
                   onToggleAlwaysPrepared={onToggleAlwaysPrepared}
+                  activeEffect={
+                    canUseActiveEffects
+                      ? getSpellActiveEffectDefinition(spell, nivel)
+                      : null
+                  }
+                  sheet={sheet}
+                  onActivateEffect={onActivateEffect}
                 />
               ))}
             </Box>

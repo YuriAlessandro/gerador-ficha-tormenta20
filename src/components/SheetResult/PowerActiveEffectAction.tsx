@@ -35,6 +35,7 @@ export default function PowerActiveEffectAction({
         <IconButton
           size='small'
           onClick={() => setOpen(true)}
+          aria-label={`Usar ${definition.name}`}
           sx={{ color: ACTIVE_EFFECT_COLOR }}
         >
           <AutoAwesomeIcon fontSize='small' />

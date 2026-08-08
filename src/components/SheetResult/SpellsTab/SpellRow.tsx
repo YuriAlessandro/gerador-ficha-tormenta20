@@ -18,6 +18,12 @@ import {
 } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
+import CharacterSheet from '@/interfaces/CharacterSheet';
+import type {
+  ActiveEffectUsageOption,
+  ActivePowerDefinition,
+} from '@/premium/interfaces/ActiveEffect';
+import PowerActiveEffectAction from '../PowerActiveEffectAction';
 import {
   ACTION_RAIL_SX,
   CHEVRON_SX,
@@ -45,6 +51,14 @@ export interface SpellRowProps {
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
+  /** Efeito ativo que esta magia aplica na ficha, quando tem um. */
+  activeEffect?: ActivePowerDefinition | null;
+  /** Com estes dois, a estrelinha aparece no rail. */
+  sheet?: CharacterSheet;
+  onActivateEffect?: (
+    definition: ActivePowerDefinition,
+    option: ActiveEffectUsageOption
+  ) => void;
 }
 
 /**
@@ -71,6 +85,9 @@ const SpellRow: React.FC<SpellRowProps> = ({
   isMago,
   onToggleMemorized,
   onToggleAlwaysPrepared,
+  activeEffect,
+  sheet,
+  onActivateEffect,
 }) => {
   // O `?? 0` não é decorativo: magia de círculo fora do enum (homebrew,
   // personalizada) não tem entrada na tabela, e sem ele o custo viraria NaN.
@@ -198,6 +215,15 @@ const SpellRow: React.FC<SpellRowProps> = ({
   // abriria o detalhe da linha.
   const rail = (
     <Box sx={ACTION_RAIL_SX} onClick={(e) => e.stopPropagation()}>
+      {/* Mesma estrelinha da aba de Poderes: abre o diálogo de tipos de uso.
+          Não cobra PM — o custo da magia é pago no lançamento. */}
+      {activeEffect && sheet && onActivateEffect && (
+        <PowerActiveEffectAction
+          definition={activeEffect}
+          sheet={sheet}
+          onActivate={onActivateEffect}
+        />
+      )}
       <Tooltip title='Usar magia' arrow>
         <IconButton
           size='small'

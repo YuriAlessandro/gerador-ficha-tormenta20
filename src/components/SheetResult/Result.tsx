@@ -2109,7 +2109,10 @@ const Result: React.FC<ResultProps> = (props) => {
                     zIndex: 1,
                   }}
                 >
-                  {activeSheetTab === 'poderes' &&
+                  {/* Magias também acendem efeito ativo, então o gerenciador
+                      precisa estar ao alcance nas duas abas. */}
+                  {(activeSheetTab === 'poderes' ||
+                    activeSheetTab === 'magias') &&
                     canUseActiveEffects &&
                     (() => {
                       const activeCount =
@@ -2569,6 +2572,12 @@ const Result: React.FC<ResultProps> = (props) => {
                         }
                         getCircleWarning={(circle) =>
                           getDeitySpellCircleWarning(currentSheet, circle)
+                        }
+                        sheet={currentSheet}
+                        onActivateEffect={
+                          onSheetUpdate && canUseActiveEffects
+                            ? handleActiveEffectActivate
+                            : undefined
                         }
                       />
                     </Box>

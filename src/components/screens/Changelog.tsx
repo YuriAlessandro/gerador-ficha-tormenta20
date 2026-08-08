@@ -99,6 +99,15 @@ const Changelog: React.FC = () => {
                   aliado da mesa, e resolve a partir do tamanho <em>dele</em>.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> a aba de <strong>Magias</strong>{' '}
+                  agora tem os mesmos acessos a <strong>efeitos ativos</strong>{' '}
+                  que a de Poderes: o botão de efeitos ativos no canto do card
+                  (com o contador de quantos estão ligados) aparece nas duas
+                  abas, e as magias que aplicam um efeito na ficha ganharam a
+                  estrelinha ✨ na linha, para ativar sem precisar relançar a
+                  magia.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> a ficha na extensão do Owlbear
                   agora abre em um <strong>painel que não fecha</strong> ao
                   clicar fora — antes era um popover que sumia a qualquer clique
