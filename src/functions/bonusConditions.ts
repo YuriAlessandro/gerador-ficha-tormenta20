@@ -25,6 +25,7 @@ import {
 import { isWearingHeavyArmor } from './wornArmor';
 import { getClassLevel } from './multiclass';
 import { getSheetProficiencias } from './proficiencies';
+import { sheetHasPowerNamed } from './powers/hasPowerNamed';
 
 function compare(actual: number, op: BonusConditionOp, value: number): boolean {
   if (op === 'gte') return actual >= value;
@@ -45,20 +46,6 @@ function getWieldedItems(sheet: CharacterSheet): Equipment[] {
     ...(eq.Alquimía || []),
   ];
   return pool.filter((i) => i.id && ids.includes(i.id));
-}
-
-function characterHasPower(sheet: CharacterSheet, name: string): boolean {
-  const names = [
-    ...(sheet.generalPowers || []).map((p) => p.name),
-    ...(sheet.classPowers || []).map((p) => p.name),
-    ...((sheet.origin?.powers as { name: string }[] | undefined) || []).map(
-      (p) => p.name
-    ),
-    ...((sheet.raca?.abilities as { name: string }[] | undefined) || []).map(
-      (a) => a.name
-    ),
-  ];
-  return names.includes(name);
 }
 
 function evaluateClause(
@@ -111,7 +98,7 @@ function evaluateClause(
         getClassLevel(sheet, clause.value) > 0
       );
     case 'hasPower':
-      return characterHasPower(sheet, clause.value);
+      return sheetHasPowerNamed(sheet, clause.value);
     case 'hasProficiency':
       return getSheetProficiencias(sheet).includes(clause.value);
     case 'hasSkill':
