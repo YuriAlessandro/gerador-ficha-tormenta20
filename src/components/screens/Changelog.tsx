@@ -89,6 +89,16 @@ const Changelog: React.FC = () => {
                   resultados anteriores sem sair do mapa.
                 </li>
                 <li>
+                  <strong>Novo:</strong> a magia{' '}
+                  <strong>Alterar Tamanho</strong> ganhou efeito ativo. Ao
+                  lançá-la, dá para escolher entre os aprimoramentos de +2 PM
+                  (uma categoria de tamanho acima e Força +2) e +3 PM (uma
+                  abaixo e Destreza +2) — o tamanho muda na ficha, os atributos
+                  entram nas perícias e o dado de dano das armas acompanha. Como
+                  a magia é de toque, o efeito também pode ser oferecido a um
+                  aliado da mesa, e resolve a partir do tamanho <em>dele</em>.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> a ficha na extensão do Owlbear
                   agora abre em um <strong>painel que não fecha</strong> ao
                   clicar fora — antes era um popover que sumia a qualquer clique
@@ -105,6 +115,31 @@ const Changelog: React.FC = () => {
                   antiga por tempo indeterminado — agora dá para saber disso ao
                   reportar um problema. A versão também aparece na própria tela
                   de erro.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o{' '}
+                  <strong>
+                    tamanho da criatura agora altera o dado de dano
+                  </strong>{' '}
+                  das armas, como manda o livro: Minúsculo usa armas reduzidas
+                  (um passo a menos), Grande e Enorme usam aumentadas (um a
+                  mais) e Colossal usa gigantes (dois a mais). Vale para
+                  qualquer origem do tamanho — raças Grandes como Ogro, Centauro
+                  e Ceratops passam a causar o dano correto, e o mesmo acontece
+                  em Forma Selvagem, Alterar Tamanho e Potência Divina.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> <strong>Potência Divina</strong>{' '}
+                  agora também aumenta a categoria de tamanho, que era a parte
+                  da magia que faltava no efeito ativo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> efeitos que{' '}
+                  <strong>aumentam o dado de dano</strong> da arma (o poder do
+                  Guerreiro, Armamento da Natureza) subiam um degrau a cada
+                  recálculo da ficha — 1d8 virava 1d10, depois 1d12, depois 3d6.
+                  Agora o passo é aplicado uma vez só e volta ao normal quando o
+                  efeito sai.
                 </li>
                 <li>
                   <strong>Correção:</strong> efeitos ativos de{' '}
