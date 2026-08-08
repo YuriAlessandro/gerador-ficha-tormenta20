@@ -99,6 +99,15 @@ const Changelog: React.FC = () => {
                   aliado da mesa, e resolve a partir do tamanho <em>dele</em>.
                 </li>
                 <li>
+                  <strong>Novo:</strong> o editor de{' '}
+                  <strong>efeitos customizados</strong> ganhou o tipo{' '}
+                  <strong>Perícia (todas)</strong> — um bônus que vale em todas
+                  as perícias de uma vez, no lugar de adicionar uma linha por
+                  perícia. Os efeitos que já usavam a lista completa também
+                  passaram a aparecer resumidos como &ldquo;+2 em todas as
+                  perícias&rdquo;.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> a aba de <strong>Magias</strong>{' '}
                   agora tem os mesmos acessos a <strong>efeitos ativos</strong>{' '}
                   que a de Poderes: o botão de efeitos ativos no canto do card
@@ -268,6 +277,16 @@ const Changelog: React.FC = () => {
                   <strong>nível 5 ou mais</strong> de qualquer classe recebiam a{' '}
                   <strong>Resistência a Dano do Bárbaro</strong> ao editar a
                   ficha — um Guerreiro nível 6 aparecia com RD 2 sem motivo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Coragem Aguerrida</strong> não somava nada na ficha.
+                  Agora, quando você fica com{' '}
+                  <strong>metade ou menos dos PV</strong>, o +2 em testes de
+                  perícia e na Defesa entra sozinho — e sai quando você é curado
+                  acima da metade. Também dá para ligar e desligar à mão pelo
+                  painel de efeitos ativos, para quem joga com o PV controlado
+                  pelo mestre.
                 </li>
               </ul>
               <h3>4.28</h3>

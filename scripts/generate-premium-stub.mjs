@@ -78,6 +78,7 @@ const OVERRIDES = {
   buildWildShapeOptionId: { expr: "() => ''" },
   // reconciler: null = "já sincronizado, nada a fazer"
   reconcileAnimalCompanionEffects: { expr: '() => null' },
+  reconcileAutoPowerEffects: { expr: '() => null' },
   getAnimalCompanionActivatedPowers: { expr: '() => []' },
   buildAnimalCompanionEffect: { expr: '() => null' },
   isAnimalCompanionPowerKey: { expr: '() => false' },

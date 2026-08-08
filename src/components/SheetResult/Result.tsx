@@ -111,6 +111,7 @@ import {
   getAnimalCompanionActivatedPowers,
   reconcileAnimalCompanionEffects,
 } from '@/premium/functions/animalCompanionEffects';
+import { reconcileAutoPowerEffects } from '@/premium/functions/autoPowerEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
 import {
@@ -537,16 +538,28 @@ const Result: React.FC<ResultProps> = (props) => {
     return unsub;
   }, [currentSheet.activeEffects]);
 
-  // Companheiro Animal: mantém os `ActiveEffect`s passivos em dia com
-  // `sheet.animalCompanions`. Roda no load da ficha e sempre que a lista ou o
-  // nível muda (subir de nível troca o grau do parceiro, e com ele os bônus).
-  // `reconcileAnimalCompanionEffects` devolve `null` quando já está
-  // sincronizado, então o efeito não entra em laço de re-render.
+  // Efeitos DERIVADOS da ficha (não escolhidos pelo jogador):
+  //  - Companheiro Animal: mantém os `ActiveEffect`s passivos em dia com
+  //    `sheet.animalCompanions` (subir de nível troca o grau do parceiro, e
+  //    com ele os bônus).
+  //  - Poderes automáticos (Coragem Aguerrida): ligam/desligam conforme o
+  //    estado vivo da ficha — a dependência é o `currentSheet` inteiro, então
+  //    o efeito já re-roda a cada mudança de PV.
+  // Os dois reconciliadores devolvem `null` quando já estão sincronizados, o
+  // que é o que impede o laço de re-render. Ficam no MESMO `useEffect` de
+  // propósito: dois efeitos separados chamando `applyRecalculatedSheet` sobre
+  // o mesmo `currentSheet` fariam o segundo sobrescrever a escrita do
+  // primeiro (cada um espalha do closure já obsoleto).
   React.useEffect(() => {
     if (!onSheetUpdate) return;
-    const next = reconcileAnimalCompanionEffects(currentSheet);
-    if (!next) return;
-    applyRecalculatedSheet({ ...currentSheet, activeEffects: next });
+    const companions = reconcileAnimalCompanionEffects(currentSheet);
+    const base = companions
+      ? { ...currentSheet, activeEffects: companions }
+      : currentSheet;
+    const auto = reconcileAutoPowerEffects(base);
+    const nextEffects = auto ?? companions;
+    if (!nextEffects) return;
+    applyRecalculatedSheet({ ...currentSheet, activeEffects: nextEffects });
   }, [currentSheet, onSheetUpdate, applyRecalculatedSheet]);
 
   const handleConditionsChange = useCallback(
