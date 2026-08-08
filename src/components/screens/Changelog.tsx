@@ -107,6 +107,34 @@ const Changelog: React.FC = () => {
                   de erro.
                 </li>
                 <li>
+                  <strong>Correção:</strong> a origem{' '}
+                  <strong>Futura Lenda</strong> (Nova Malpetrim) listava{' '}
+                  <strong>exatamente os poderes errados</strong>: apareciam só
+                  os poderes de classe de nível alto — justamente os que o
+                  personagem não podia escolher — e sumiam todos os que ele
+                  podia de fato pegar. No Guerreiro, por exemplo, apareciam
+                  Golpe Pessoal e Especialização em Armadura no lugar de Bater e
+                  Correr, Ataque Reflexo e companhia. Em classes com poucos
+                  poderes de nível alto, como o Clérigo, sobrava uma única
+                  opção, escolhida automaticamente sem você perceber.
+                </li>
+                <li>
+                  <strong>Correção:</strong> durante a{' '}
+                  <strong>criação de personagem</strong>, as escolhas de poder
+                  ignoravam os <strong>pré-requisitos de atributo</strong> — o
+                  assistente oferecia poderes como Ambidestria (Destreza 2) ou
+                  Arqueiro (Sabedoria 1) mesmo para quem não tinha o atributo.
+                  As listas agora respeitam seus atributos finais, do mesmo
+                  jeito que o assistente de subida de nível já fazia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> fichas salvas com a origem{' '}
+                  <strong>Futura Lenda</strong> podiam quebrar a tela ao serem
+                  abertas, quando o catálogo de poderes da classe não era
+                  reconstruído (classes variantes, homebrew ou de suplemento
+                  desativado).
+                </li>
+                <li>
                   <strong>Correção:</strong> o poder{' '}
                   <strong>Conforto do Aço</strong> (Anão) não dava o{' '}
                   <strong>+2 na Defesa</strong> ao usar armadura pesada — o
