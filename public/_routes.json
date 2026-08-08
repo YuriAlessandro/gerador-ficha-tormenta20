@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "include": [
+    "/",
+    "/ficha/*",
+    "/perfil/*",
+    "/u/*",
+    "/blog",
+    "/blog/*",
+    "/build/*",
+    "/builds",
+    "/builds/*",
+    "/forum",
+    "/forum/*",
+    "/threat/*",
+    "/database",
+    "/rolador-recompensas",
+    "/itens-superiores",
+    "/itens-magicos",
+    "/gerador-ameacas",
+    "/changelog",
+    "/caverna-do-saber",
+    "/termos-de-uso",
+    "/wyrt"
+  ],
+  "exclude": []
+}

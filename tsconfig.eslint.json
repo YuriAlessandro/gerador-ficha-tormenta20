@@ -3,6 +3,7 @@
   "include": [
     "src",
     "src/premium",
+    "functions",
     "./jest.config.js",
     "jest.d.ts",
     "tailwind.config.js",

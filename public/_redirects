@@ -1,0 +1,10 @@
+# SPA fallback do Cloudflare Pages.
+#
+# Equivale ao `try_files $uri $uri/ /index.html` do nginx que rodava no Cloud Run.
+# Precisa ser explícito: o fallback automático do Pages decide pela "cara" do
+# caminho, e várias rotas do app têm ponto no meio (`/perfil/user.name`), o que
+# as faz parecer arquivo e devolver 404. É o mesmo motivo do `spaFallbackPlugin()`
+# em vite.config.ts, que só vale para o dev server.
+#
+# Status 200 = rewrite (a URL do navegador não muda), não redirect.
+/*  /index.html  200

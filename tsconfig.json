@@ -20,6 +20,16 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "./jest.config.js", "jest.d.ts", "tailwind.config.js", "vite.config.ts", "vite-env.d.ts", "postcss.config.js", "vitest.config.ts"],
+  "include": [
+    "src",
+    "functions",
+    "./jest.config.js",
+    "jest.d.ts",
+    "tailwind.config.js",
+    "vite.config.ts",
+    "vite-env.d.ts",
+    "postcss.config.js",
+    "vitest.config.ts"
+  ],
   "exclude": ["src/premium"]
 }

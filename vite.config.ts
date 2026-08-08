@@ -197,6 +197,10 @@ export default defineConfig({
         // Exclude HTML from precache - let it be handled by NetworkFirst runtime caching
         // This ensures users always get the latest HTML on navigation
         globPatterns: ['**/*.{js,css,ico,png,svg,json,wasm}'],
+        // `_routes.json` é config de deploy do Cloudflare Pages (define quais
+        // caminhos invocam a Function), não asset da aplicação. O glob de .json
+        // acima o pegaria e o service worker o precachearia à toa.
+        globIgnores: ['_routes.json'],
         // Don't precache index.html - always fetch fresh
         navigateFallback: null,
         // O chunk principal já passa de 10 MB. Sem folga aqui o build quebra

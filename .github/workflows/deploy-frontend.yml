@@ -1,0 +1,81 @@
+name: Deploy frontend (Cloudflare Pages)
+
+# Substitui o trigger `frontend-deploy` do Cloud Build, que buildava uma imagem
+# Docker com nginx e a subia no Cloud Run. Aqui o build é o mesmo `vite build`;
+# só o destino mudou para o Cloudflare Pages, onde a banda é gratuita.
+#
+# A integração Git nativa do Pages não serve para este repo: ela não consegue
+# inicializar submódulo privado, e o build depende de `src/premium`. Por isso o
+# build roda aqui e a publicação é por Direct Upload (`wrangler pages deploy`).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # `src/premium` é privado, então o token padrão do Actions não o alcança.
+      # `backend` NÃO é inicializado de propósito: o Cloud Build o inicializava,
+      # mas nada em src/ importa dele — só o Dockerfile precisava, e ele morreu.
+      - name: Checkout do submódulo premium
+        env:
+          SUBMODULES_PAT: ${{ secrets.SUBMODULES_PAT }}
+        run: |
+          git config --global url."https://x-access-token:${SUBMODULES_PAT}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --recursive src/premium
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # --legacy-peer-deps é obrigatório: a árvore de dependências não resolve
+      # sem ele (mesma flag usada pelo Dockerfile antigo e pelo CircleCI).
+      - name: Instalar dependências
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          # Nunca foi passado pelo Cloud Build — produção caía no default
+          # hardcoded em MapaDeArton/data/mapConfig.ts.
+          VITE_ARTON_TILES_URL: ${{ secrets.VITE_ARTON_TILES_URL }}
+        run: npm run build
+
+      # O Pages recusa qualquer arquivo acima de 25 MiB e o deploy falha no meio.
+      # Melhor quebrar aqui, com mensagem clara, do que no upload.
+      - name: Checar limite de 25 MiB por arquivo
+        run: |
+          BIG=$(find build -type f -size +25M)
+          if [ -n "$BIG" ]; then
+            echo "::error::Arquivos acima do limite de 25 MiB do Cloudflare Pages:"
+            echo "$BIG" | xargs -r du -h
+            exit 1
+          fi
+
+      - name: Publicar no Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy build --project-name=fichas-frontend --branch=main

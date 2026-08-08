@@ -1,0 +1,75 @@
+# Porta do bloco de headers do nginx que rodava no Cloud Run
+# (src/premium/devops/nginx.conf, removido na migração para o Cloudflare Pages).
+#
+# Regras que casam o mesmo caminho são MESCLADAS, e um mesmo header definido por
+# duas regras tem os valores juntados por vírgula. Ou seja: nunca defina o mesmo
+# header em duas regras que se sobrepõem — use `! Header` para destacar o valor
+# vindo de uma regra mais abrangente.
+
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+
+# Assets com hash de conteúdo gerados pelo Vite. O hash muda quando o conteúdo
+# muda, então cache imutável de 1 ano é seguro.
+#
+# O `Access-Control-Allow-Origin` é load-bearing, não higiene: módulos ES e web
+# fonts são sempre buscados com CORS, e num embed em iframe sandbox sem
+# allow-same-origin (origem opaca, `Origin: null`) o próprio bundle do Vite é
+# bloqueado sem ele — tela branca na extensão do Owlbear. Assets são públicos e
+# sem credencial, então `*` é seguro.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# Assets da raiz que NÃO têm hash no nome (ícones, PDF da ficha, imagem de
+# compartilhamento). O nginx os marcava como `immutable` por 1 ano junto com os
+# hasheados, o que significava que trocar o favicon não chegava a quem já tinha
+# visitado. Como a banda agora é gratuita, 1 dia é a escolha certa.
+/sheet.pdf
+  Cache-Control: public, max-age=86400
+  Access-Control-Allow-Origin: *
+
+/shareImage.jpg
+  Cache-Control: public, max-age=86400
+  Access-Control-Allow-Origin: *
+
+# Service workers precisam ser revalidados sempre, senão o usuário fica preso
+# numa versão antiga do app. O regex do nginx (`\.(js|css|…)$`) pegava `/sw.js`
+# e o marcava como imutável por 1 ano — bug latente que some aqui porque a regra
+# passou a ser por caminho.
+/sw.js
+  Cache-Control: no-cache
+
+/workbox-*.js
+  Cache-Control: no-cache
+
+/push-sw.js
+  Cache-Control: no-cache
+
+# --- Framing ---
+#
+# Padrão é bloquear (X-Frame-Options: SAMEORIGIN, na regra /* acima). Duas
+# exceções, ambas destacando o header com `!`:
+
+# 1. Ficha embutida na extensão do Owlbear: troca o XFO por um CSP restrito à
+#    cadeia owlbear.rodeo → extensão (hospedada no Cloudflare Pages).
+/owlbear/*
+  ! X-Frame-Options
+  Content-Security-Policy: frame-ancestors https://www.owlbear.rodeo https://fichas-owlbear.pages.dev https://*.fichas-owlbear.pages.dev
+
+# 2. Mapa de Arton: página pública somente leitura, incorporável por qualquer
+#    site — omite XFO E CSP. Não usar `frame-ancestors *`: o `*` só casa com
+#    origens de esquema de rede (http/https/ws/wss) e rejeita ancestral com
+#    origem opaca, que é o que plataformas criam ao envolver embeds em iframe
+#    sandbox sem allow-same-origin.
+#
+#    O subdomínio-máscara `mapadearton.fichasdenimb.com.br` serve o mapa na raiz
+#    (`/`), e `_headers` não casa por host — esse caso é coberto por uma
+#    Transform Rule na zona da Cloudflare, não aqui.
+/mapadearton
+  ! X-Frame-Options
+
+/mapadearton/*
+  ! X-Frame-Options
