@@ -156,27 +156,28 @@ const Changelog: React.FC = () => {
                   <strong>cabeçalho da ficha saía do card</strong> — o nome do
                   personagem aparecia cortado nos dois lados, com o começo fora
                   do alcance da rolagem, e as linhas de Origem, Divindade e
-                  Condições ficavam decepadas ("...M:", "...ADE:"). Nomes longos
-                  agora quebram em várias linhas, e nada mais é escondido.
+                  Condições ficavam decepadas (&ldquo;...M:&rdquo;,
+                  &ldquo;...ADE:&rdquo;). Nomes longos agora quebram em várias
+                  linhas, e nada mais é escondido.
                 </li>
                 <li>
                   <strong>Correção:</strong> não dava para{' '}
-                  <strong>empunhar duas armas de uma mão</strong> pelo botão
-                  "Empunhar e atacar" da aba Ataques: com o Machado de Batalha
-                  na mão principal, tocar na Machadinha derrubava o machado — e
-                  vice-versa, sem nunca encher as duas mãos. Agora a segunda
-                  arma vai sozinha para a mão secundária. Também passou a ser
-                  possível empunhar <strong>duas cópias do mesmo item</strong>{' '}
-                  (duas Machadinhas, uma em cada mão): ao escolher a segunda
-                  mão, a pilha se divide na Mochila, e volta a se juntar quando
-                  você solta uma delas.
+                  <strong>empunhar duas armas de uma mão</strong> pelo botão{' '}
+                  &ldquo;Empunhar e atacar&rdquo; da aba Ataques: com o Machado
+                  de Batalha na mão principal, tocar na Machadinha derrubava o
+                  machado — e vice-versa, sem nunca encher as duas mãos. Agora a
+                  segunda arma vai sozinha para a mão secundária. Também passou
+                  a ser possível empunhar{' '}
+                  <strong>duas cópias do mesmo item</strong> (duas Machadinhas,
+                  uma em cada mão): ao escolher a segunda mão, a pilha se divide
+                  na Mochila, e volta a se juntar quando você solta uma delas.
                 </li>
                 <li>
                   <strong>Correção:</strong> em <strong>Forma Selvagem</strong>,
-                  atacar com uma garra pelo botão "Empunhar e atacar" registrava
-                  a arma natural como item empunhado, o que deixava uma mão
-                  ocupada por um item inexistente depois de voltar à forma
-                  normal.
+                  atacar com uma garra pelo botão &ldquo;Empunhar e
+                  atacar&rdquo; registrava a arma natural como item empunhado, o
+                  que deixava uma mão ocupada por um item inexistente depois de
+                  voltar à forma normal.
                 </li>
                 <li>
                   <strong>Correção:</strong> efeitos que{' '}
@@ -287,6 +288,18 @@ const Changelog: React.FC = () => {
                   acima da metade. Também dá para ligar e desligar à mão pelo
                   painel de efeitos ativos, para quem joga com o PV controlado
                   pelo mestre.
+                </li>
+                <li>
+                  <strong>Correção:</strong> os{' '}
+                  <strong>poderes concedidos por divindade</strong> não
+                  ofereciam seus efeitos ativos. A aba{' '}
+                  <strong>Efeitos (auto)</strong> do poder dizia &ldquo;Nenhum
+                  tier disponível para a ficha atual&rdquo; e a estrelinha ✨
+                  abria sem nenhuma opção para escolher. Voltaram a funcionar{' '}
+                  <strong>Fúria Divina</strong>, Percepção Temporal, Sangue de
+                  Ferro, Dom da Verdade, Poder Oculto, Armadura de Ossos,
+                  Barreira de Coral, Pilar de Heredrimm, Cancioneiro da
+                  Esperança e Ferramentas da Guerra.
                 </li>
               </ul>
               <h3>4.28</h3>
