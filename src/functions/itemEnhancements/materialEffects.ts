@@ -1,7 +1,7 @@
 import { DefenseEquipment } from '../../interfaces/Equipment';
 import { DamageType } from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
-import { EnhancementEffect } from './core';
+import { EnhancementEffect, resolveScaledEffect } from './core';
 
 /**
  * Numeric effects applied by special materials when used as a weapon or as an
@@ -131,6 +131,19 @@ export function getDefenseMaterialRd(
     (m) => m.mod === 'Material especial' && m.specialMaterial
   );
   if (!materialMod?.specialMaterial) return [];
+
+  // Snapshot primeiro (conteúdo não-core), registro estático depois — mesma
+  // ordem de `applyItemEnhancements`. Sem isto, a RD de material de suplemento
+  // ou homebrew não chegaria ao cálculo de RD da ficha.
+  if (materialMod.materialEffect) {
+    return (
+      resolveScaledEffect(materialMod.materialEffect, {
+        ...item,
+        isHeavyArmor: heavy,
+      }).damageReduction ?? []
+    );
+  }
+
   const effect = resolveMaterialEffect(materialMod.specialMaterial, 'defense', {
     ...item,
     isHeavyArmor: heavy,

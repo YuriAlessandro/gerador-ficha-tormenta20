@@ -81,6 +81,37 @@ export interface EnhancementEffect {
 }
 
 /**
+ * Effect that may vary with the size of the defense item it is applied to.
+ *
+ * Core materials express this with a function (`materialEffects`), which is not
+ * serializable. Content that travels as DATA (supplements, homebrew) uses this
+ * two-branch shape instead — `light` covers light armor and shields, `heavy`
+ * covers heavy armor.
+ */
+export type ScaledEnhancementEffect =
+  | EnhancementEffect
+  | { light: EnhancementEffect; heavy: EnhancementEffect };
+
+/** True when the scaled effect actually branches on armor weight. */
+function isBranchedEffect(
+  effect: ScaledEnhancementEffect
+): effect is { light: EnhancementEffect; heavy: EnhancementEffect } {
+  return 'light' in effect && 'heavy' in effect;
+}
+
+/**
+ * Picks the branch of a `ScaledEnhancementEffect` matching the item. Heavy
+ * armor takes the `heavy` branch; light armor and shields take `light`.
+ */
+export function resolveScaledEffect(
+  effect: ScaledEnhancementEffect,
+  item?: DefenseEquipment
+): EnhancementEffect {
+  if (!isBranchedEffect(effect)) return effect;
+  return item?.isHeavyArmor ? effect.heavy : effect.light;
+}
+
+/**
  * An effect being aggregated alongside the source name (mod/enchantment name)
  * so origin can be propagated to derived `ExtraDamage` entries.
  */

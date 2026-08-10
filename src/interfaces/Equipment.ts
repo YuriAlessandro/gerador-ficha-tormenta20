@@ -1,6 +1,12 @@
 import { SheetBonus } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
 import Skill from './Skills';
+// `import type` de propósito: `core.ts` importa tipos daqui, e só a forma
+// type-only é apagada na compilação, evitando um ciclo em runtime.
+import type {
+  EnhancementEffect,
+  ScaledEnhancementEffect,
+} from '../functions/itemEnhancements/core';
 
 export type equipGroup =
   | 'Arma'
@@ -42,6 +48,25 @@ export interface EquipmentSelectableBonus {
 export interface AppliedModification {
   mod: string;
   specialMaterial?: string;
+  /**
+   * Snapshot do efeito numérico, tirado no momento em que a melhoria foi
+   * aplicada. Presente apenas para conteúdo NÃO-core (suplemento/homebrew),
+   * que carrega o efeito no próprio dado.
+   *
+   * Existe para que o item sobreviva à desativação da fonte: o item guarda só o
+   * NOME da melhoria, então resolver por lookup faria os números sumirem da
+   * ficha salva quando o homebrew fosse desativado — e voltarem ao reativar.
+   * Melhorias do livro básico não têm snapshot e continuam resolvendo pelo
+   * registro estático, de modo que rebalanceamentos oficiais ainda alcançam
+   * fichas antigas.
+   */
+  effect?: EnhancementEffect;
+  /** Snapshot do efeito do material, quando `mod === 'Material especial'`. */
+  materialEffect?: ScaledEnhancementEffect;
+  /** Prosa snapshotada, para exibir quando a fonte não está mais disponível. */
+  description?: string;
+  /** Suplemento de origem (informativo; NÃO entra em `usedSupplements`). */
+  supplementId?: string;
 }
 
 /**
@@ -58,6 +83,15 @@ export interface AppliedEnchantment {
    * the enchantment is applied.
    */
   selectedSpell?: string;
+  /**
+   * Snapshot do efeito numérico (mesma razão de `AppliedModification.effect`):
+   * presente apenas para encantos de conteúdo não-core.
+   */
+  effect?: EnhancementEffect;
+  /** Prosa snapshotada, para exibir quando a fonte não está mais disponível. */
+  description?: string;
+  /** Suplemento de origem (informativo). */
+  supplementId?: string;
 }
 
 /**

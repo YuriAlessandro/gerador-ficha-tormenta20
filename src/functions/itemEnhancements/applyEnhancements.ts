@@ -4,6 +4,7 @@ import {
   applyDelta,
   captureBaseValues,
   isDefenseEquipment,
+  resolveScaledEffect,
   SourcedEffect,
   sumDeltas,
 } from './core';
@@ -48,19 +49,32 @@ export function applyItemEnhancements<T extends Equipment>(item: T): T {
   const isDefense = isDefenseEquipment(captured);
   const isWeapon = captured.group === 'Arma';
 
+  // Ordem de resolução, para melhoria, material e encanto:
+  //   1. snapshot gravado na entrada aplicada (conteúdo não-core),
+  //   2. registro estático do core,
+  //   3. sem efeito (melhoria puramente descritiva).
+  // O snapshot vir primeiro é o que faz um item continuar valendo os mesmos
+  // números depois que o suplemento/homebrew de origem é desativado.
   const modEntries: SourcedEffect[] = (captured.modifications ?? []).map(
     (m) => {
       if (m.mod === 'Material especial' && m.specialMaterial) {
         let context: 'weapon' | 'defense' | undefined;
         if (isWeapon) context = 'weapon';
         else if (isDefense) context = 'defense';
-        const effect = context
-          ? resolveMaterialEffect(
-              m.specialMaterial,
-              context,
-              isDefense ? (captured as DefenseEquipment) : undefined
-            )
-          : undefined;
+
+        let effect;
+        if (m.materialEffect) {
+          effect = resolveScaledEffect(
+            m.materialEffect,
+            isDefense ? (captured as DefenseEquipment) : undefined
+          );
+        } else if (context) {
+          effect = resolveMaterialEffect(
+            m.specialMaterial,
+            context,
+            isDefense ? (captured as DefenseEquipment) : undefined
+          );
+        }
         return {
           effect,
           source: 'modification',
@@ -68,7 +82,7 @@ export function applyItemEnhancements<T extends Equipment>(item: T): T {
         };
       }
       return {
-        effect: modificationEffects[m.mod],
+        effect: m.effect ?? modificationEffects[m.mod],
         source: 'modification',
         sourceName: m.mod,
       };
@@ -76,7 +90,7 @@ export function applyItemEnhancements<T extends Equipment>(item: T): T {
   );
   const enchEntries: SourcedEffect[] = (captured.enchantments ?? []).map(
     (e) => ({
-      effect: enchantmentEffects[e.enchantment],
+      effect: e.effect ?? enchantmentEffects[e.enchantment],
       source: 'enchantment',
       sourceName: e.enchantment,
     })

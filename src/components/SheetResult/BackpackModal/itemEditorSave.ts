@@ -11,6 +11,13 @@ import Equipment, {
 import Skill from '../../../interfaces/Skills';
 import { DiceRoll } from '../../../interfaces/DiceRoll';
 import { ItemE, ItemMod } from '../../../interfaces/Rewards';
+import { dataRegistry } from '../../../data/registry';
+import {
+  MaterialContext,
+  toAppliedEnchantment,
+  toAppliedModification,
+  withMaterialSnapshot,
+} from '../../../functions/itemEnhancements/snapshot';
 import { isDefenseGroup } from './equipmentCatalog';
 
 export type StatField =
@@ -81,22 +88,34 @@ export function buildSavedItem(
       ? item.spaces
       : parseFloat(form.spacesText.replace(',', '.'));
 
+  // Melhorias e encantos de conteúdo não-core carregam o efeito no próprio
+  // dado; ele é congelado aqui para o item sobreviver à desativação da fonte.
+  const materialContext: MaterialContext | undefined =
+    (isWeapon && 'weapon') || (isDefense && 'defense') || undefined;
+  const material = form.selectedMaterial
+    ? dataRegistry.getSpecialMaterialByName(form.selectedMaterial)
+    : undefined;
+
   const persistedMods: AppliedModification[] = form.selectedModifications.map(
-    (m) => ({
-      mod: m.mod,
-      specialMaterial:
-        m.mod === 'Material especial' ? form.selectedMaterial : undefined,
-    })
+    (m) => {
+      const applied = toAppliedModification(
+        m,
+        m.mod === 'Material especial' ? form.selectedMaterial : undefined
+      );
+      if (m.mod !== 'Material especial' || !materialContext) return applied;
+      return withMaterialSnapshot(applied, material, materialContext);
+    }
   );
 
   const persistedEnchantments: AppliedEnchantment[] =
-    form.selectedEnchantments.map((e) => ({
-      enchantment: e.enchantment,
-      selectedSpell:
+    form.selectedEnchantments.map((e) =>
+      toAppliedEnchantment(
+        e,
         e.enchantment === 'Conjuradora' && form.selectedConjuradoraSpell
           ? form.selectedConjuradoraSpell
-          : undefined,
-    }));
+          : undefined
+      )
+    );
 
   const persistedUserExtraDamage: ExtraDamage[] = form.userExtraDamage
     .filter((e) => e.dice.trim().length > 0)

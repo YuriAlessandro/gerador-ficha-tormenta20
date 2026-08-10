@@ -51,9 +51,12 @@ import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { SupplementId } from '../../../types/supplement.types';
 import { applyItemEnhancements } from '../../../functions/itemEnhancements/applyEnhancements';
 import {
-  armorEnchantments,
-  weaponsEnchantments,
-} from '../../../data/rewards/items';
+  MaterialContext,
+  toAppliedEnchantment,
+  toAppliedModification,
+  withMaterialSnapshot,
+} from '../../../functions/itemEnhancements/snapshot';
+import { dataRegistry } from '../../../data/registry';
 import RollsEditDialog from '../../RollsEditDialog';
 import ItemModificationsEditor, {
   ModificationItemType,
@@ -104,10 +107,9 @@ function enchItemTypeFor(item: Equipment): EnchantmentItemType | null {
 }
 
 function findEnchantmentByName(name: string): ItemE | undefined {
-  return (
-    weaponsEnchantments.find((e) => e.enchantment === name) ||
-    armorEnchantments.find((e) => e.enchantment === name)
-  );
+  // Busca em core + todos os suplementos (inclusive runtime), independente de
+  // ativação: o item guarda só o nome e precisa reidratar o encanto.
+  return dataRegistry.getEnchantmentByName(name);
 }
 
 function buildInitial(item: Equipment | null): ItemEditorFormState {
@@ -239,21 +241,32 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     if (!open || !item) return;
     if (!isWeapon && !isDefense) return;
 
+    // Mesmo congelamento do save (`buildSavedItem`): sem ele, a prévia não
+    // mostraria o efeito de melhorias de suplemento/homebrew.
+    const materialContext: MaterialContext | undefined =
+      (isWeapon && 'weapon') || (isDefense && 'defense') || undefined;
+    const material = form.selectedMaterial
+      ? dataRegistry.getSpecialMaterialByName(form.selectedMaterial)
+      : undefined;
+
     const previewMods: AppliedModification[] = form.selectedModifications.map(
-      (m) => ({
-        mod: m.mod,
-        specialMaterial:
-          m.mod === 'Material especial' ? form.selectedMaterial : undefined,
-      })
+      (m) => {
+        const applied = toAppliedModification(
+          m,
+          m.mod === 'Material especial' ? form.selectedMaterial : undefined
+        );
+        if (m.mod !== 'Material especial' || !materialContext) return applied;
+        return withMaterialSnapshot(applied, material, materialContext);
+      }
     );
     const previewEnch: AppliedEnchantment[] = form.selectedEnchantments.map(
-      (e) => ({
-        enchantment: e.enchantment,
-        selectedSpell:
+      (e) =>
+        toAppliedEnchantment(
+          e,
           e.enchantment === 'Conjuradora' && form.selectedConjuradoraSpell
             ? form.selectedConjuradoraSpell
-            : undefined,
-      })
+            : undefined
+        )
     );
 
     const virtual: Equipment = {
