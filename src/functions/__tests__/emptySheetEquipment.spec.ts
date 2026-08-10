@@ -114,9 +114,23 @@ describe('generateEmptySheet - equipamento inicial de classe', () => {
 
     const sheet = generateEmptySheet(BASE_OPTIONS, wizSel);
 
-    // O bag deve ser exatamente o do mercado (defaults, sem armas injetadas)
-    expect(sheet.bag.equipments.Arma).toHaveLength(0);
+    // O que está sob teste é a ANTI-DUPLICAÇÃO: nada do equipamento de classe
+    // pode ser injetado por cima do bag do Mercado.
+    //
+    // A afirmação não pode ser "o grupo Arma está vazio": a raça Humano sorteia
+    // um poder geral, e alguns deles (Dentes Afiados) concedem uma arma natural
+    // — que corretamente vai para a mochila. Era essa a origem da flakiness
+    // deste teste (~1 em 75 execuções).
+    expect(bagNames(sheet, 'Arma')).not.toContain(Armas.ADAGA.nome);
+    expect(bagNames(sheet, 'Arma')).not.toContain(Armas.ESPADA_LONGA.nome);
     expect(sheet.bag.equipments.Armadura).toHaveLength(0);
+    expect(sheet.bag.equipments.Escudo).toHaveLength(0);
+
+    // Armas naturais são concedidas por poder, nunca compradas.
+    sheet.bag.equipments.Arma.forEach((weapon) => {
+      expect(weapon.preco ?? 0).toBe(0);
+    });
+
     expect(sheet.dinheiro).toBe(60);
   });
 });
