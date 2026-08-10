@@ -34,10 +34,23 @@ export function computeUsedRuntimeSupplements(sheet: CharacterSheet): string[] {
 
   const className = sheet.classe?.name;
   if (className) {
+    // Classes precisam da lista COMPLETA (oficiais + runtime), não só a
+    // runtime: `getClassesWithSupplementInfo` resolve uma classe variante
+    // procurando a base dentro do próprio resultado. Passando só os ids
+    // runtime, a base do core não está lá e a variante é silenciosamente
+    // pulada — que é como variantes homebrew deixavam de ser carimbadas.
+    const runtimeSet = new Set(runtimeIds);
+    const allIds = [
+      ...Object.values(SupplementId),
+      ...runtimeIds,
+    ] as SupplementId[];
+    const subname = sheet.classe?.subname ?? '';
     const match = dataRegistry
-      .getClassesWithSupplementInfo(runtimeIds as SupplementId[])
-      .find((c) => c.name === className);
-    if (match) used.add(match.supplementId as unknown as string);
+      .getClassesWithSupplementInfo(allIds)
+      .find((c) => c.name === className && (c.subname ?? '') === subname);
+    if (match && runtimeSet.has(match.supplementId as unknown as string)) {
+      used.add(match.supplementId as unknown as string);
+    }
   }
 
   return Array.from(used);

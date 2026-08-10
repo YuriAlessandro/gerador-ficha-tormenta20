@@ -45,6 +45,7 @@ export const HomebrewProvider = PassthroughProvider;
 export const HomebrewTestSheetPage = NullComponent;
 export const HomebrewViewPage = NullComponent;
 export const HomebrewsListPage = NullComponent;
+export const ItemPackEditorPage = NullComponent;
 export const JoinTableByLinkPage = NullComponent;
 export const MapaDeArtonPage = NullComponent;
 export const MyBestiaryPage = NullComponent;
@@ -60,6 +61,7 @@ export const PushNotificationToggle = NullComponent;
 export const RaceHomebrewEditorPage = NullComponent;
 export const SpellPackEditorPage = NullComponent;
 export const ThreadPage = NullComponent;
+export const VariantClassEditorPage = NullComponent;
 export const getFeatureFlags = async () => ALL_FEATURES_DISABLED;
 export const useHomebrews = () => ({
   activated: [],

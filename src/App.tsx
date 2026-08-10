@@ -96,6 +96,8 @@ import {
   RaceHomebrewEditorPage,
   ClassHomebrewEditorPage,
   SpellPackEditorPage,
+  ItemPackEditorPage,
+  VariantClassEditorPage,
   PowerPackEditorPage,
   CollectionEditorPage,
   OriginHomebrewEditorPage,
@@ -483,6 +485,22 @@ function ThemedApp(): JSX.Element {
                                         redirectTo='/'
                                       >
                                         <PowerPackEditorPage />
+                                      </ProtectedRoute>
+                                    </Route>
+                                    <Route path='/meus-homebrews/criar/classe-variante'>
+                                      <ProtectedRoute
+                                        requireAuth
+                                        redirectTo='/'
+                                      >
+                                        <VariantClassEditorPage />
+                                      </ProtectedRoute>
+                                    </Route>
+                                    <Route path='/meus-homebrews/criar/itens'>
+                                      <ProtectedRoute
+                                        requireAuth
+                                        redirectTo='/'
+                                      >
+                                        <ItemPackEditorPage />
                                       </ProtectedRoute>
                                     </Route>
                                     <Route path='/meus-homebrews/criar/colecao'>
