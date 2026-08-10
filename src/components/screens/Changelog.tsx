@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            08/08/2026 (v4.29).
+            09/08/2026 (v4.29).
           </p>
 
           <p>
@@ -76,6 +76,31 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.29</h3>
               <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Pacotes de Itens</strong> nos
+                  homebrews. Dá para criar armas, armaduras, escudos, itens
+                  gerais, esotéricos, vestuário e alquímicos com preço, espaços,
+                  dano, crítico e bônus na ficha — e eles aparecem no{' '}
+                  <strong>Mercado</strong> da criação de personagem e no
+                  catálogo da <strong>Mochila</strong>, junto com os itens do
+                  livro. O pacote também aceita{' '}
+                  <strong>melhorias, materiais especiais e encantos</strong>{' '}
+                  próprios, com efeito de verdade: bônus de ataque, dano, passo
+                  de dado, margem de ameaça, redução de dano e dano extra. Uma
+                  vez aplicados a um item, os números ficam gravados nele — se
+                  você desativar o pacote depois, o item continua valendo o
+                  mesmo.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Classes Variantes</strong> nos
+                  homebrews. Em vez de montar uma classe inteira, você escolhe
+                  uma classe base e muda só o que quiser: PV e PM, perícias,
+                  proficiências, habilidades, poderes e conjuração. Cada seção
+                  tem um interruptor <strong>Herdar da base</strong> /{' '}
+                  <strong>Substituir</strong>, então o que você não mexer
+                  continua idêntico ao original. A variante aparece agrupada sob
+                  a classe base, com a marca de &ldquo;Variante&rdquo;.
+                </li>
                 <li>
                   <strong>Novo:</strong> na{' '}
                   <strong>extensão do Owlbear Rodeo</strong>, o{' '}
@@ -150,6 +175,21 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> <strong>Potência Divina</strong>{' '}
                   agora também aumenta a categoria de tamanho, que era a parte
                   da magia que faltava no efeito ativo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> conteúdo de{' '}
+                  <strong>homebrew</strong> aparecia identificado por um código
+                  interno (algo como <em>homebrew:65f3a…</em>) no lugar do nome
+                  do pacote — na etiqueta de origem da raça, da classe e dos
+                  itens. Agora mostra o nome que o autor deu.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao{' '}
+                  <strong>ativar ou desativar um homebrew</strong>, telas que já
+                  estavam abertas continuavam com a lista antiga de conteúdo. A
+                  Mochila era a mais afetada, por abrir por cima da ficha: o
+                  item recém-ativado só aparecia depois de navegar para outra
+                  tela e voltar.
                 </li>
                 <li>
                   <strong>Correção:</strong> no <strong>celular</strong>, o{' '}
