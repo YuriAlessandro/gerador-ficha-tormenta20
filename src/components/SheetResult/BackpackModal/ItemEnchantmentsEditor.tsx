@@ -8,16 +8,9 @@ import {
   Typography,
 } from '@mui/material';
 
-import {
-  armorEnchantments,
-  weaponsEnchantments,
-} from '../../../data/rewards/items';
-import { TORMENTA20_SYSTEM } from '../../../data/systems/tormenta20';
+import { dataRegistry } from '../../../data/registry';
 import { ItemE } from '../../../interfaces/Rewards';
-import {
-  SUPPLEMENT_METADATA,
-  SupplementId,
-} from '../../../types/supplement.types';
+import { SupplementId } from '../../../types/supplement.types';
 import {
   calculateEnchantmentCost,
   validateEnchantmentForItemType,
@@ -69,23 +62,12 @@ function getEnchantmentsForType(
   itemType: EnchantmentItemType,
   userSupplements: SupplementId[]
 ): ItemE[] {
-  const base = itemType === 'weapon' ? weaponsEnchantments : armorEnchantments;
+  const enchantments =
+    dataRegistry.getEnchantmentsBySupplements(userSupplements);
+  const forType =
+    itemType === 'weapon' ? enchantments.weapons : enchantments.armors;
 
-  const supplementEnchantments: ItemE[] = [];
-  userSupplements.forEach((supplementId) => {
-    const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
-    if (supplement?.enchantments) {
-      const toAdd =
-        itemType === 'weapon'
-          ? supplement.enchantments.weapons || []
-          : supplement.enchantments.armors || [];
-      supplementEnchantments.push(...toAdd);
-    }
-  });
-
-  return [...base, ...supplementEnchantments].filter((e) =>
-    validateEnchantmentForItemType(e, itemType)
-  );
+  return forType.filter((e) => validateEnchantmentForItemType(e, itemType));
 }
 
 const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
@@ -164,7 +146,7 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
               const hasNumericEffect =
                 enchantmentEffects[option.enchantment] !== undefined;
               const supplementMeta = option.supplementId
-                ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
+                ? dataRegistry.getSupplementLabel(option.supplementId)
                 : null;
               return (
                 <Chip
@@ -209,7 +191,7 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
               enchantmentEffects[option.enchantment] !== undefined;
             const isTextOnly = TEXT_ONLY_ENCHANTMENTS.has(option.enchantment);
             const supplementMeta = option.supplementId
-              ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
+              ? dataRegistry.getSupplementLabel(option.supplementId)
               : null;
             return (
               <Box

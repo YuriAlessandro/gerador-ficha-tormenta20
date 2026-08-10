@@ -36,10 +36,6 @@ import {
 import { TransitionGroup } from 'react-transition-group';
 
 import { SEO, getPageSEO } from '../SEO';
-import {
-  armorsModifications,
-  weaponsModifications,
-} from '../../data/rewards/items';
 import { getSpecialMaterial } from '../../functions/rewards/rewardsGenerator';
 import Equipment from '../../interfaces/Equipment';
 import { ItemMod } from '../../interfaces/Rewards';
@@ -52,13 +48,8 @@ import {
   validateModificationCombination,
   validateModificationRequirement,
 } from '../../utils/superiorItemsValidation';
-import { getSpecialMaterialData } from '../../data/systems/tormenta20/specialMaterials';
 import { useContentSupplements } from '../../hooks/useContentSupplements';
-import { TORMENTA20_SYSTEM } from '../../data/systems/tormenta20';
-import {
-  SupplementId,
-  SUPPLEMENT_METADATA,
-} from '../../types/supplement.types';
+import { dataRegistry } from '../../data/registry';
 import ItemModificationsEditor from '../SheetResult/BackpackModal/ItemModificationsEditor';
 import { getCategorizedCombatItems } from '../../utils/itemGeneratorEquipment';
 
@@ -106,26 +97,11 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
   const [availableItems, setAvailableItems] = useState<ItemOption[]>([]);
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
 
-  // Get modifications including supplement-based ones
+  // Get modifications including supplement-based ones (oficiais e runtime)
   const getModifications = (itemType: ItemType): ItemMod[] => {
-    // Start with base modifications
-    const baseMods =
-      itemType === 'weapon' ? weaponsModifications : armorsModifications;
-
-    // Collect supplement-based modifications
-    const supplementMods: ItemMod[] = [];
-    userSupplements.forEach((supplementId: SupplementId) => {
-      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
-      if (supplement?.improvements) {
-        const modsToAdd =
-          itemType === 'weapon'
-            ? supplement.improvements.weapons || []
-            : supplement.improvements.armors || [];
-        supplementMods.push(...modsToAdd);
-      }
-    });
-
-    return [...baseMods, ...supplementMods];
+    const improvements =
+      dataRegistry.getImprovementsBySupplements(userSupplements);
+    return itemType === 'weapon' ? improvements.weapons : improvements.armors;
   };
 
   const getValidMods = (
@@ -343,7 +319,8 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
         // Replace "Material especial" with actual material
         if (mod.mod === 'Material especial') {
           const specialMaterial = getSpecialMaterial();
-          const materialData = getSpecialMaterialData(specialMaterial);
+          const materialData =
+            dataRegistry.getSpecialMaterialByName(specialMaterial);
           const relevantEffect =
             state.selectedItemType === 'weapon'
               ? materialData?.weaponEffect
@@ -426,7 +403,8 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
       modifications: state.selectedModifications.map((mod) => {
         // Replace "Material especial" with selected material
         if (mod.mod === 'Material especial' && selectedMaterial) {
-          const materialData = getSpecialMaterialData(selectedMaterial);
+          const materialData =
+            dataRegistry.getSpecialMaterialByName(selectedMaterial);
           const relevantEffect =
             state.selectedItemType === 'weapon'
               ? materialData?.weaponEffect
@@ -684,9 +662,9 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                           </Typography>
                           {item.modifications.map((mod) => {
                             const supplementMeta = mod.supplementId
-                              ? SUPPLEMENT_METADATA[
-                                  mod.supplementId as SupplementId
-                                ]
+                              ? dataRegistry.getSupplementLabel(
+                                  mod.supplementId
+                                )
                               : null;
                             return (
                               <Accordion

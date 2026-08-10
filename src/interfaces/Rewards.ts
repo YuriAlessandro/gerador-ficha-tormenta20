@@ -1,3 +1,4 @@
+import type { EnhancementEffect } from '../functions/itemEnhancements/core';
 import Equipment from './Equipment';
 
 export enum LEVELS {
@@ -115,6 +116,16 @@ export interface ItemE {
   onlyShield?: boolean;
   /** Optional supplement ID for supplement-specific enchantments */
   supplementId?: string;
+  /** Nome de exibição do suplemento de origem (carimbado pelo registry) */
+  supplementName?: string;
+  /**
+   * Efeito numérico embutido no próprio dado. Presente em conteúdo não-core
+   * (suplemento/homebrew), cujo nome nunca casaria no registro estático
+   * `enchantmentEffects`. Ausente = resolve pelo registro estático.
+   *
+   * `effect` acima é a PROSA do encanto; este é a mecânica.
+   */
+  effectStats?: EnhancementEffect;
 }
 
 export interface ItemMod {
@@ -137,4 +148,11 @@ export interface ItemMod {
   appliesTo?: 'weapon' | 'armor' | 'shield' | 'all';
   /** Optional supplement ID for supplement-specific modifications */
   supplementId?: string;
+  /** Nome de exibição do suplemento de origem (carimbado pelo registry) */
+  supplementName?: string;
+  /**
+   * Efeito numérico embutido no próprio dado (conteúdo não-core). Ausente =
+   * resolve pelo registro estático `modificationEffects`.
+   */
+  effect?: EnhancementEffect;
 }

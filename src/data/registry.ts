@@ -52,6 +52,15 @@ import {
 } from './systems/tormenta20/magias/divine';
 import Divindade from '../interfaces/Divindade';
 import { DIVINDADES } from './systems/tormenta20/divindades';
+import { ItemE, ItemMod } from '../interfaces/Rewards';
+import { SpecialMaterial } from '../interfaces/SpecialMaterials';
+import {
+  weaponsModifications,
+  armorsModifications,
+  weaponsEnchantments,
+  armorEnchantments,
+} from './rewards/items';
+import { specialMaterials as coreSpecialMaterials } from './systems/tormenta20/specialMaterials';
 
 /**
  * Tipos para dados com informação de origem do suplemento
@@ -90,6 +99,18 @@ export interface GolpePessoalEffectWithSupplement extends GolpePessoalEffect {
   supplementName?: string;
 }
 
+/** Melhorias (modificações) de item combinadas de core + suplementos ativos */
+export interface ResolvedImprovements {
+  weapons: ItemMod[];
+  armors: ItemMod[];
+}
+
+/** Encantos mágicos combinados de core + suplementos ativos */
+export interface ResolvedEnchantments {
+  weapons: ItemE[];
+  armors: ItemE[];
+}
+
 /**
  * Mapa de todos os sistemas disponíveis
  */
@@ -116,6 +137,12 @@ class DataRegistry {
 
   private equipmentCache: CacheEntry<MarketEquipment> | null = null;
 
+  private improvementsCache: CacheEntry<ResolvedImprovements> | null = null;
+
+  private enchantmentsCache: CacheEntry<ResolvedEnchantments> | null = null;
+
+  private specialMaterialsCache: CacheEntry<SpecialMaterial[]> | null = null;
+
   private currentSystem: SystemId = SystemId.TORMENTA20;
 
   /**
@@ -126,6 +153,40 @@ class DataRegistry {
    * mesclados em `getResolvedSystemData`.
    */
   private runtimeSupplements: Map<string, SupplementData> = new Map();
+
+  /**
+   * Contador incrementado a cada mudança no conjunto de suplementos runtime.
+   * Serve de snapshot para quem assina o registry — hooks que derivam a lista
+   * de suplementos ativos precisam recalcular quando homebrews são
+   * registrados/removidos, e não há nenhum estado do Redux que mude nesse
+   * momento.
+   */
+  private runtimeVersion = 0;
+
+  private runtimeListeners = new Set<() => void>();
+
+  private bumpRuntimeVersion(): void {
+    this.runtimeVersion += 1;
+    this.runtimeListeners.forEach((listener) => listener());
+  }
+
+  /**
+   * Inscreve um callback nas mudanças do conjunto de suplementos runtime.
+   * Devolve a função de cancelamento. Arrow function para poder ser passada
+   * direto a um `useEffect` sem re-bind.
+   */
+  subscribeRuntimeSupplements = (listener: () => void): (() => void) => {
+    this.runtimeListeners.add(listener);
+    return () => {
+      this.runtimeListeners.delete(listener);
+    };
+  };
+
+  /**
+   * Snapshot do conjunto de suplementos runtime (muda a cada
+   * registro/remoção). Arrow function pelo mesmo motivo acima.
+   */
+  getRuntimeSupplementsVersion = (): number => this.runtimeVersion;
 
   /**
    * Define o sistema atual
@@ -162,6 +223,7 @@ class DataRegistry {
   registerRuntimeSupplement(id: string, data: SupplementData): void {
     this.runtimeSupplements.set(id, data);
     this.clearCache();
+    this.bumpRuntimeVersion();
   }
 
   /**
@@ -170,6 +232,7 @@ class DataRegistry {
   unregisterRuntimeSupplement(id: string): void {
     if (this.runtimeSupplements.delete(id)) {
       this.clearCache();
+      this.bumpRuntimeVersion();
     }
   }
 
@@ -181,6 +244,7 @@ class DataRegistry {
     if (this.runtimeSupplements.size > 0) {
       this.runtimeSupplements.clear();
       this.clearCache();
+      this.bumpRuntimeVersion();
     }
   }
 
@@ -199,6 +263,38 @@ class DataRegistry {
    */
   getRuntimeSupplement(id: string): SupplementData | undefined {
     return this.runtimeSupplements.get(id);
+  }
+
+  /**
+   * Nome de exibição de um suplemento, oficial ou runtime.
+   *
+   * Suplementos runtime (ex.: `homebrew:<id>`) não estão em
+   * `SUPPLEMENT_METADATA`, então o fallback antigo (`?.name || id`) vazava o id
+   * cru para a UI. Aqui caímos primeiro no `displayName` que o próprio
+   * `SupplementData` carrega, e só depois no id.
+   */
+  private supplementNameOf(id: string): string {
+    return (
+      SUPPLEMENT_METADATA[id as SupplementId]?.name ||
+      this.runtimeSupplements.get(id)?.displayName ||
+      id
+    );
+  }
+
+  /**
+   * Nome e abreviação de exibição de um suplemento, oficial ou runtime. Ponto
+   * único para componentes que hoje leem `SUPPLEMENT_METADATA` direto e
+   * mostrariam `homebrew:<id>` como rótulo.
+   */
+  getSupplementLabel(id: string): { name: string; abbreviation: string } {
+    const meta = SUPPLEMENT_METADATA[id as SupplementId];
+    if (meta) return { name: meta.name, abbreviation: meta.abbreviation || '' };
+
+    const displayName = this.runtimeSupplements.get(id)?.displayName;
+    return {
+      name: displayName || id,
+      abbreviation: displayName || 'Homebrew',
+    };
   }
 
   /**
@@ -264,8 +360,7 @@ class DataRegistry {
 
     supplementIds.forEach((supplementId) => {
       const races = systemData.supplements[supplementId]?.races || [];
-      const supplementName =
-        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+      const supplementName = this.supplementNameOf(supplementId);
 
       races
         .filter((race) => !race.deprecated)
@@ -311,7 +406,7 @@ class DataRegistry {
 
       const supplementClassPowers = systemData.supplements[id]?.classPowers;
       if (supplementClassPowers) {
-        const supplementName = SUPPLEMENT_METADATA[id]?.name || id;
+        const supplementName = this.supplementNameOf(id);
         Object.entries(supplementClassPowers).forEach(([className, powers]) => {
           const key = className as ClassNames;
           if (!additionalClassPowers[key]) {
@@ -392,7 +487,7 @@ class DataRegistry {
 
       const supplementClassPowers = systemData.supplements[id]?.classPowers;
       if (supplementClassPowers) {
-        const supName = SUPPLEMENT_METADATA[id]?.name || id;
+        const supName = this.supplementNameOf(id);
         Object.entries(supplementClassPowers).forEach(([className, powers]) => {
           const key = className as ClassNames;
           if (!additionalClassPowers[key]) {
@@ -416,8 +511,7 @@ class DataRegistry {
 
     supplementIds.forEach((supplementId) => {
       const classes = systemData.supplements[supplementId]?.classes || [];
-      const supplementName =
-        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+      const supplementName = this.supplementNameOf(supplementId);
 
       classes.forEach((classDesc) => {
         // Mescla poderes adicionais na classe
@@ -444,8 +538,7 @@ class DataRegistry {
     supplementIds.forEach((supplementId) => {
       const variants =
         systemData.supplements[supplementId]?.variantClasses || [];
-      const supplementName =
-        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+      const supplementName = this.supplementNameOf(supplementId);
 
       variants.forEach((variant) => {
         const baseClass = classesWithInfo.find(
@@ -556,8 +649,7 @@ class DataRegistry {
 
     supplementIds.forEach((supplementId) => {
       const supplementPowers = systemData.supplements[supplementId]?.powers;
-      const supplementName =
-        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+      const supplementName = this.supplementNameOf(supplementId);
 
       if (supplementPowers) {
         result.COMBATE.push(
@@ -624,13 +716,13 @@ class DataRegistry {
     supplementIds.forEach((supplementId) => {
       const supplementOrigins =
         systemData.supplements[supplementId]?.origins || [];
-      const supplementMeta = SUPPLEMENT_METADATA[supplementId];
+      const supplementName = this.supplementNameOf(supplementId);
 
       supplementOrigins.forEach((origin) => {
         origins.push({
           ...origin,
           supplementId,
-          supplementName: supplementMeta?.name || '',
+          supplementName,
         });
       });
     });
@@ -697,7 +789,7 @@ class DataRegistry {
 
       const supplementEffects = systemData.supplements[id]?.golpePessoalEffects;
       if (supplementEffects) {
-        const supplementName = SUPPLEMENT_METADATA[id]?.name || id;
+        const supplementName = this.supplementNameOf(id);
         Object.entries(supplementEffects).forEach(([key, effect]) => {
           combinedEffects[key] = {
             ...effect,
@@ -781,8 +873,7 @@ class DataRegistry {
     supplementIds.forEach((id) => {
       const supplementEquipment = systemData.supplements[id]?.equipment;
       if (supplementEquipment) {
-        const supplementMeta = SUPPLEMENT_METADATA[id];
-        const supplementName = supplementMeta?.name || id;
+        const supplementName = this.supplementNameOf(id);
 
         // Helper to add supplement info to item
         const addSupplementInfo = <T extends Equipment>(item: T): T => ({
@@ -862,6 +953,195 @@ class DataRegistry {
       data: result,
     };
     return result;
+  }
+
+  /**
+   * Melhorias (modificações) de item do livro básico somadas às dos suplementos
+   * ativos, incluindo suplementos registrados em runtime.
+   *
+   * Antes deste getter, as telas de melhoria liam `TORMENTA20_SYSTEM.supplements`
+   * direto — o que tornava conteúdo runtime invisível para elas.
+   *
+   * IMPORTANTE: como em `getEquipmentBySupplements`, o resultado é cacheado e
+   * COMPARTILHADO. Não mute os arrays nem as entradas.
+   */
+  getImprovementsBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = SystemId.TORMENTA20
+  ): ResolvedImprovements {
+    if (this.isCacheValid(this.improvementsCache, supplementIds, systemId)) {
+      return this.improvementsCache!.data;
+    }
+
+    const result: ResolvedImprovements = {
+      weapons: [...weaponsModifications],
+      armors: [...armorsModifications],
+    };
+
+    const systemData = this.getResolvedSystemData(systemId);
+    if (systemData) {
+      supplementIds.forEach((id) => {
+        const improvements = systemData.supplements[id]?.improvements;
+        if (!improvements) return;
+
+        const supplementName = this.supplementNameOf(id);
+        const stamp = (mod: ItemMod): ItemMod => ({
+          ...mod,
+          supplementId: id,
+          supplementName,
+        });
+
+        if (improvements.weapons) {
+          result.weapons.push(...improvements.weapons.map(stamp));
+        }
+        if (improvements.armors) {
+          result.armors.push(...improvements.armors.map(stamp));
+        }
+      });
+    }
+
+    this.improvementsCache = {
+      system: systemId,
+      supplements: [...supplementIds],
+      data: result,
+    };
+    return result;
+  }
+
+  /**
+   * Encantos mágicos do livro básico somados aos dos suplementos ativos,
+   * incluindo suplementos registrados em runtime. Resultado cacheado e
+   * compartilhado — não mutar.
+   */
+  getEnchantmentsBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = SystemId.TORMENTA20
+  ): ResolvedEnchantments {
+    if (this.isCacheValid(this.enchantmentsCache, supplementIds, systemId)) {
+      return this.enchantmentsCache!.data;
+    }
+
+    const result: ResolvedEnchantments = {
+      weapons: [...weaponsEnchantments],
+      armors: [...armorEnchantments],
+    };
+
+    const systemData = this.getResolvedSystemData(systemId);
+    if (systemData) {
+      supplementIds.forEach((id) => {
+        const enchantments = systemData.supplements[id]?.enchantments;
+        if (!enchantments) return;
+
+        const supplementName = this.supplementNameOf(id);
+        const stamp = (ench: ItemE): ItemE => ({
+          ...ench,
+          supplementId: id,
+          supplementName,
+        });
+
+        if (enchantments.weapons) {
+          result.weapons.push(...enchantments.weapons.map(stamp));
+        }
+        if (enchantments.armors) {
+          result.armors.push(...enchantments.armors.map(stamp));
+        }
+      });
+    }
+
+    this.enchantmentsCache = {
+      system: systemId,
+      supplements: [...supplementIds],
+      data: result,
+    };
+    return result;
+  }
+
+  /**
+   * Materiais especiais do livro básico somados aos dos suplementos ativos,
+   * incluindo suplementos registrados em runtime. Resultado cacheado e
+   * compartilhado — não mutar.
+   */
+  getSpecialMaterialsBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = SystemId.TORMENTA20
+  ): SpecialMaterial[] {
+    if (
+      this.isCacheValid(this.specialMaterialsCache, supplementIds, systemId)
+    ) {
+      return this.specialMaterialsCache!.data;
+    }
+
+    const result: SpecialMaterial[] = [...coreSpecialMaterials];
+
+    const systemData = this.getResolvedSystemData(systemId);
+    if (systemData) {
+      supplementIds.forEach((id) => {
+        const materials = systemData.supplements[id]?.specialMaterials;
+        if (!materials) return;
+
+        const supplementName = this.supplementNameOf(id);
+        result.push(
+          ...materials.map((material) => ({
+            ...material,
+            supplementId: id,
+            supplementName,
+          }))
+        );
+      });
+    }
+
+    this.specialMaterialsCache = {
+      system: systemId,
+      supplements: [...supplementIds],
+      data: result,
+    };
+    return result;
+  }
+
+  /**
+   * Busca um encanto por NOME em core + TODOS os suplementos (oficiais e
+   * runtime), independente de estarem ativos.
+   *
+   * Mesma razão de `getSpecialMaterialByName`: o item guarda só o nome do
+   * encanto aplicado, e precisa continuar exibindo o efeito mesmo com o
+   * suplemento de origem desativado.
+   */
+  getEnchantmentByName(name: string): ItemE | undefined {
+    const systemData = this.getResolvedSystemData(this.currentSystem);
+    const fromSupplements = systemData
+      ? Object.values(systemData.supplements).flatMap((supplement) => [
+          ...(supplement?.enchantments?.weapons ?? []),
+          ...(supplement?.enchantments?.armors ?? []),
+        ])
+      : [];
+
+    return [
+      ...weaponsEnchantments,
+      ...armorEnchantments,
+      ...fromSupplements,
+    ].find((ench) => ench.enchantment === name);
+  }
+
+  /**
+   * Busca um material especial por NOME em core + TODOS os suplementos
+   * (oficiais e runtime), independente de estarem ativos.
+   *
+   * A ficha guarda apenas o nome do material aplicado, então um item pode
+   * carregar um material de suplemento desativado e ainda precisar exibir o
+   * efeito. Por isso este lookup ignora a lista de ativos — ao contrário de
+   * `getSpecialMaterialsBySupplements`, que alimenta os seletores.
+   */
+  getSpecialMaterialByName(name: string): SpecialMaterial | undefined {
+    const systemData = this.getResolvedSystemData(this.currentSystem);
+    const fromSupplements = systemData
+      ? Object.values(systemData.supplements).flatMap(
+          (supplement) => supplement?.specialMaterials ?? []
+        )
+      : [];
+
+    return [...coreSpecialMaterials, ...fromSupplements].find(
+      (material) => material.name === name
+    );
   }
 
   /**
@@ -1181,6 +1461,9 @@ class DataRegistry {
     this.classesCache = null;
     this.powersCache = null;
     this.equipmentCache = null;
+    this.improvementsCache = null;
+    this.enchantmentsCache = null;
+    this.specialMaterialsCache = null;
   }
 
   /**

@@ -31,10 +31,8 @@ import {
 import debounce from 'lodash/debounce';
 
 import Equipment, { equipGroup } from '../../../interfaces/Equipment';
-import {
-  SUPPLEMENT_METADATA,
-  SupplementId,
-} from '../../../types/supplement.types';
+import { SupplementId } from '../../../types/supplement.types';
+import { dataRegistry } from '../../../data/registry';
 import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { CATEGORY_ORDER, itemTypeStyles } from './itemTypeStyles';
 import {
@@ -121,7 +119,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
 
   const renderItemRow = (item: Equipment) => {
     const supplementMeta = item.supplementId
-      ? SUPPLEMENT_METADATA[item.supplementId as SupplementId]
+      ? dataRegistry.getSupplementLabel(item.supplementId)
       : null;
     const cantAfford =
       autoDeductMoney &&

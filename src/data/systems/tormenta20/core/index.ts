@@ -57,6 +57,13 @@ export interface SupplementEnchantments {
 
 export interface SupplementData {
   id: SupplementId;
+  /**
+   * Nome de exibição do suplemento. Só é necessário para suplementos
+   * registrados em runtime (ex.: homebrew), que não estão em
+   * `SUPPLEMENT_METADATA` — sem ele a UI mostraria o id cru
+   * (`homebrew:65f3a…`) como nome da fonte.
+   */
+  displayName?: string;
   races: Race[];
   classes: ClassDescription[];
   powers: GeneralPowers;

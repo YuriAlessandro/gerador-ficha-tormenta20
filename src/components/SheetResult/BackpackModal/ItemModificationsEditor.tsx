@@ -9,17 +9,9 @@ import {
   Typography,
 } from '@mui/material';
 
-import {
-  armorsModifications,
-  weaponsModifications,
-} from '../../../data/rewards/items';
-import { getSpecialMaterialData } from '../../../data/systems/tormenta20/specialMaterials';
-import { TORMENTA20_SYSTEM } from '../../../data/systems/tormenta20';
+import { dataRegistry } from '../../../data/registry';
 import { ItemMod } from '../../../interfaces/Rewards';
-import {
-  SUPPLEMENT_METADATA,
-  SupplementId,
-} from '../../../types/supplement.types';
+import { SupplementId } from '../../../types/supplement.types';
 import {
   addModificationWithPrerequisites,
   calculateModificationCost,
@@ -44,35 +36,28 @@ export interface ItemModificationsEditorProps {
   onError?: (message: string) => void;
 }
 
-const MATERIAL_OPTIONS: { value: string; label: string }[] = [
-  { value: 'aço rubi', label: 'Aço Rubi' },
-  { value: 'adamante', label: 'Adamante' },
-  { value: 'gelo eterno', label: 'Gelo Eterno' },
-  { value: 'madeira Tollon', label: 'Madeira Tollon' },
-  { value: 'matéria vermelha', label: 'Matéria Vermelha' },
-  { value: 'mitral', label: 'Mitral' },
-];
-
 /**
- * Opções de material especial: core + materiais dos suplementos ativos.
- * Materiais de suplemento são filtrados pelo tipo do item (ex.: Couro de
- * Bulette só tem efeito de armadura e não aparece para armas nem escudos).
+ * Opções de material especial: core + materiais dos suplementos ativos
+ * (incluindo os registrados em runtime, como homebrew).
+ *
+ * Materiais são filtrados pelo tipo do item: quem não tem efeito para aquele
+ * tipo não aparece (ex.: Couro de Bulette só tem efeito de armadura, então não
+ * aparece para armas nem escudos).
  */
 function getMaterialOptions(
   itemType: ModificationItemType,
   userSupplements: SupplementId[]
 ): { value: string; label: string }[] {
-  const options = [...MATERIAL_OPTIONS];
-  userSupplements.forEach((supplementId) => {
-    const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
-    supplement?.specialMaterials?.forEach((material) => {
+  const options: { value: string; label: string }[] = [];
+  dataRegistry
+    .getSpecialMaterialsBySupplements(userSupplements)
+    .forEach((material) => {
       const effect =
         itemType === 'weapon' ? material.weaponEffect : material.armorEffect;
       if (!effect) return;
       if (itemType === 'shield' && effect.type === 'Armadura') return;
       options.push({ value: material.name, label: effect.material });
     });
-  });
   return options;
 }
 
@@ -82,22 +67,9 @@ function getModificationsForType(
   itemType: ModificationItemType,
   userSupplements: SupplementId[]
 ): ItemMod[] {
-  const baseMods =
-    itemType === 'weapon' ? weaponsModifications : armorsModifications;
-
-  const supplementMods: ItemMod[] = [];
-  userSupplements.forEach((supplementId) => {
-    const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
-    if (supplement?.improvements) {
-      const modsToAdd =
-        itemType === 'weapon'
-          ? supplement.improvements.weapons || []
-          : supplement.improvements.armors || [];
-      supplementMods.push(...modsToAdd);
-    }
-  });
-
-  return [...baseMods, ...supplementMods];
+  const improvements =
+    dataRegistry.getImprovementsBySupplements(userSupplements);
+  return itemType === 'weapon' ? improvements.weapons : improvements.armors;
 }
 
 const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
@@ -187,7 +159,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
     (mod) => mod.mod === 'Material especial'
   );
   const materialData = selectedMaterial
-    ? getSpecialMaterialData(selectedMaterial)
+    ? dataRegistry.getSpecialMaterialByName(selectedMaterial)
     : null;
   let materialEffect = null;
   if (materialData) {
@@ -218,7 +190,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
           renderValue={(value, getItemProps) =>
             value.map((option, index) => {
               const supplementMeta = option.supplementId
-                ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
+                ? dataRegistry.getSupplementLabel(option.supplementId)
                 : null;
               return (
                 <Chip
@@ -254,7 +226,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
           renderOption={(props, option) => {
             const optionDisabled = isOptionDisabled(option);
             const supplementMeta = option.supplementId
-              ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
+              ? dataRegistry.getSupplementLabel(option.supplementId)
               : null;
             return (
               <Box

@@ -36,10 +36,7 @@ import {
 import { TransitionGroup } from 'react-transition-group';
 
 import { SEO, getPageSEO } from '../SEO';
-import {
-  armorEnchantments,
-  weaponsEnchantments,
-} from '../../data/rewards/items';
+import { dataRegistry } from '../../data/registry';
 import Equipment from '../../interfaces/Equipment';
 import { ItemE } from '../../interfaces/Rewards';
 import {
@@ -100,13 +97,16 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
   const [availableItems, setAvailableItems] = useState<ItemOption[]>([]);
 
   const getEnchantments = (itemType: ItemType): ItemE[] => {
-    if (itemType === 'weapon') return weaponsEnchantments;
+    // Core + suplementos ativos (inclusive runtime, como homebrew).
+    const enchantments =
+      dataRegistry.getEnchantmentsBySupplements(userSupplements);
+    if (itemType === 'weapon') return enchantments.weapons;
     if (itemType === 'shield') {
       // Shields can use armor enchantments, including shield-only ones
-      return armorEnchantments;
+      return enchantments.armors;
     }
     // Armor uses armor enchantments but excludes shield-only ones
-    return armorEnchantments.filter((e) => !e.onlyShield);
+    return enchantments.armors.filter((e) => !e.onlyShield);
   };
 
   const getValidEnchantments = (

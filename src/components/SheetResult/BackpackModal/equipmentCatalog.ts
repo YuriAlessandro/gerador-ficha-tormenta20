@@ -5,10 +5,7 @@ import Equipment, {
   equipGroup,
 } from '../../../interfaces/Equipment';
 import { dataRegistry } from '../../../data/registry';
-import {
-  SUPPLEMENT_METADATA,
-  SupplementId,
-} from '../../../types/supplement.types';
+import { SupplementId } from '../../../types/supplement.types';
 
 /**
  * One subgroup inside a category (e.g. "Armas Simples" inside "Arma").
@@ -167,9 +164,10 @@ export function buildEquipmentCatalog(
     catalog.find((c) => c.group === group);
 
   supplementsOnly.forEach((supplementId) => {
-    const meta = SUPPLEMENT_METADATA[supplementId];
-    const supplementName = meta?.name ?? supplementId;
-    const supplementAbbr = meta?.abbreviation ?? supplementName;
+    // Suplementos runtime (homebrew) não estão em SUPPLEMENT_METADATA — sem
+    // este resolver o rótulo do subgrupo seria o id cru (`homebrew:<id>`).
+    const { abbreviation: supplementAbbr } =
+      dataRegistry.getSupplementLabel(supplementId);
 
     const append = (group: equipGroup, items: Equipment[]) => {
       if (items.length === 0) return;
