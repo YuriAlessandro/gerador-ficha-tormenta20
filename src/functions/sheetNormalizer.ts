@@ -2,6 +2,7 @@ import _ from 'lodash';
 import CharacterSheet, { SheetBonus } from '../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../interfaces/Character';
 import Bag from '../interfaces/Bag';
+import { WeaponOverride } from '../interfaces/Equipment';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
@@ -103,6 +104,39 @@ function refreshOriginPower<
   // Cópia: o array do mapa é do módulo e seria compartilhado por todas as
   // fichas normalizadas na sessão.
   return { ...power, sheetBonuses: _.cloneDeep(current) };
+}
+
+const VALID_WEAPON_ATTRIBUTES = new Set([...VALID_ATRIBUTOS, 'Nenhum']);
+
+/**
+ * Saneia `weaponOverrides` (edições sobre armas virtuais). O mapa vem inteiro da
+ * nuvem sem schema forte, então descartamos entradas que não são objeto e
+ * atributos fora da união; entradas que ficam vazias somem, e o mapa some
+ * quando não sobra nenhuma.
+ */
+function sanitizeWeaponOverrides(sheet: CharacterSheet): void {
+  const raw = sheet.weaponOverrides;
+  if (raw === undefined) return;
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    delete sheet.weaponOverrides;
+    return;
+  }
+
+  const cleaned: NonNullable<CharacterSheet['weaponOverrides']> = {};
+  Object.entries(raw).forEach(([key, entry]) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return;
+    const next: WeaponOverride = {};
+    if (typeof entry.customSkill === 'string')
+      next.customSkill = entry.customSkill;
+    if (VALID_WEAPON_ATTRIBUTES.has(entry.attackAttribute as string))
+      next.attackAttribute = entry.attackAttribute;
+    if (VALID_WEAPON_ATTRIBUTES.has(entry.damageAttribute as string))
+      next.damageAttribute = entry.damageAttribute;
+    if (Object.keys(next).length > 0) cleaned[key] = next;
+  });
+
+  if (Object.keys(cleaned).length === 0) delete sheet.weaponOverrides;
+  else sheet.weaponOverrides = cleaned;
 }
 
 /**
@@ -438,6 +472,11 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     }
     delete sheet.computedMovementTypes;
   }
+
+  // Overrides de arma virtual. Ao contrário dos campos derivados acima, estes
+  // NÃO são podados fora da forma: o ponto deles é justamente persistir entre
+  // transformações. Só sanidade de shape, contra ficha corrompida na nuvem.
+  sanitizeWeaponOverrides(sheet);
 
   sanitizeSheetElements(sheet);
 }

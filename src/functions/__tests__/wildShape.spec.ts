@@ -480,6 +480,86 @@ describe('armas naturais virtuais', () => {
   });
 });
 
+/**
+ * As armas da Forma Selvagem não estão na mochila, então a edição de
+ * perícia/atributos do jogador mora em `sheet.weaponOverrides`, endereçada pela
+ * `overrideKey` derivada do catálogo.
+ */
+describe('overrides das armas naturais virtuais', () => {
+  it('sem override a arma sai igual ao catálogo', () => {
+    const sheet = druidSheet();
+    sheet.activeEffects = [wildShapeEffect('feroz', 'basica')];
+
+    const [weapon] = getWildShapeNaturalWeapons(sheet);
+    expect(weapon.attackAttribute).toBeUndefined();
+    expect(weapon.damageAttribute).toBeUndefined();
+    expect(weapon.customSkill).toBeUndefined();
+  });
+
+  it('cada arma carrega uma overrideKey estável derivada do catálogo', () => {
+    const sheet = druidSheet();
+    sheet.activeEffects = [wildShapeEffect('agil', 'superior')];
+
+    const weapons = getWildShapeNaturalWeapons(sheet);
+    expect(weapons[0].overrideKey).toBe('wildshape:agil:superior:0');
+    expect(weapons[1].overrideKey).toBe('wildshape:agil:superior:1');
+  });
+
+  it('override é aplicado sobre a arma virtual', () => {
+    const sheet = druidSheet();
+    sheet.activeEffects = [wildShapeEffect('feroz', 'basica')];
+    sheet.weaponOverrides = {
+      'wildshape:feroz:basica:0': {
+        attackAttribute: 'Sabedoria',
+        damageAttribute: 'Destreza',
+      },
+    };
+
+    const [weapon] = getWildShapeNaturalWeapons(sheet);
+    expect(weapon.attackAttribute).toBe('Sabedoria');
+    expect(weapon.damageAttribute).toBe('Destreza');
+    // O resto da arma continua vindo do catálogo.
+    expect(weapon.weaponTags).toContain('natural');
+  });
+
+  it('só a arma endereçada pela chave é afetada', () => {
+    const sheet = druidSheet();
+    sheet.activeEffects = [wildShapeEffect('agil', 'superior')];
+    sheet.weaponOverrides = {
+      'wildshape:agil:superior:1': { attackAttribute: 'Sabedoria' },
+    };
+
+    const weapons = getWildShapeNaturalWeapons(sheet);
+    expect(weapons[0].attackAttribute).toBeUndefined();
+    expect(weapons[1].attackAttribute).toBe('Sabedoria');
+  });
+
+  // O motivo de a chave NÃO sair do `instanceId`: ele muda a cada nova
+  // transformação e levaria a edição do jogador junto.
+  it('sobrevive a reverter e voltar à forma', () => {
+    const sheet = druidSheet();
+    sheet.weaponOverrides = {
+      'wildshape:feroz:basica:0': { attackAttribute: 'Sabedoria' },
+    };
+
+    sheet.activeEffects = [wildShapeEffect('feroz', 'basica')];
+    const antes = getWildShapeNaturalWeapons(sheet)[0];
+
+    sheet.activeEffects = []; // reverte
+    expect(getWildShapeNaturalWeapons(sheet)).toEqual([]);
+
+    // Retransforma com outro instanceId, como acontece de verdade.
+    sheet.activeEffects = [
+      { ...wildShapeEffect('feroz', 'basica'), instanceId: 'outra-instancia' },
+    ];
+    const depois = getWildShapeNaturalWeapons(sheet)[0];
+
+    expect(depois.id).not.toBe(antes.id);
+    expect(depois.overrideKey).toBe(antes.overrideKey);
+    expect(depois.attackAttribute).toBe('Sabedoria');
+  });
+});
+
 describe('atributos exibidos', () => {
   it('o motor NÃO muta atributos[attr].value', () => {
     const sheet = druidSheet();

@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Stack,
   Tooltip,
   Typography,
@@ -14,23 +15,24 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import TuneIcon from '@mui/icons-material/Tune';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import Equipment, {
   AmmoType,
   DamageAttribute,
   WeaponAction,
+  WeaponOverride,
 } from '../interfaces/Equipment';
-import { Atributo } from '../data/systems/tormenta20/atributos';
 import type { SheetBonus } from '../interfaces/CharacterSheet';
 import { AMMO_LABELS } from './SheetResult/BackpackModal/ammo';
 import { parseCritical, parseDualModeDamage } from '../functions/diceRoller';
 import { AttackExtraSpec } from '../functions/attackRoll';
 import {
-  getWeaponSkill,
-  getSkillAttackBonus,
+  getWeaponAttackSkillBonus,
   resolveDamageAttribute,
   getWeaponDisplayDamage,
+  weaponAttributeModifier,
 } from '../functions/weaponSkill';
 import {
   stepUpDamage,
@@ -42,10 +44,11 @@ import {
   weaponMatchesScope,
   WeaponBonusScope,
 } from '../functions/weaponBonusScope';
-import Skill, { CompleteSkill } from '../interfaces/Skills';
+import { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
 import WeaponModeDialog from './WeaponModeDialog';
+import WeaponAttributesDialog from './SheetResult/WeaponAttributesDialog';
 import { ConditionMarker } from '../premium/components/Conditions';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../premium/functions/conditionHighlights';
@@ -71,7 +74,6 @@ interface WeaponProps {
   equipment: Equipment;
   completeSkills: CompleteSkill[] | undefined;
   atributos: CharacterAttributes;
-  modDano: number;
   /** Nível total do personagem — usado pelos bônus de dano por modo baseados
    * em atributo limitado pelo nível (Arqueiro, Esgrimista). */
   nivel?: number;
@@ -118,6 +120,12 @@ interface WeaponProps {
    * background (the explanatory legend is rendered once by Weapons.tsx).
    */
   proficiencyPenalty?: number;
+  /**
+   * Persiste a edição de perícia/atributos desta arma. Ausente = ícone de ajuste
+   * escondido (ficha em modo leitura). É o único caminho de edição das armas
+   * naturais da Forma Selvagem, que não aparecem na Mochila.
+   */
+  onSemanticsChange?: (next: WeaponOverride) => void;
 }
 
 interface RollContext {
@@ -130,7 +138,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     equipment,
     completeSkills,
     atributos,
-    modDano,
     nivel,
     classLevels,
     characterName,
@@ -145,15 +152,15 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     onConsumeAmmo,
     hasArremessador = false,
     proficiencyPenalty = 0,
+    onSemanticsChange,
   } = props;
   const { nome, dano, critico, atkBonus, customSkill } = equipment;
   const displayName = equipment.customDisplayName?.trim() || nome;
   const theme = useTheme();
   const { showAttackRoll } = useDiceRoll();
 
-  const baseWeaponSkill = getWeaponSkill(equipment);
-  const baseModAtk = getSkillAttackBonus(
-    baseWeaponSkill,
+  const baseModAtk = getWeaponAttackSkillBonus(
+    equipment,
     completeSkills,
     atributos
   );
@@ -162,17 +169,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   // explicativa é renderizada uma única vez pela lista (Weapons.tsx).
   const isNonProficient = proficiencyPenalty !== 0;
 
-  // Resolve the damage modifier given an attribute choice. 'Nenhum' adds 0.
-  // Otherwise, returns `atributos[attr].value`. Falls back to `modDano`
-  // (Força) when the attribute lookup fails for any reason.
+  // Modificador de dano de um atributo. Delega ao leitor único do motor para
+  // que ficha, PDF e rolagem nunca divirjam.
   const damageModForAttribute = useCallback(
-    (attr: DamageAttribute): number => {
-      if (attr === 'Nenhum') return 0;
-      const atributoKey = attr as Atributo;
-      const value = atributos[atributoKey]?.value;
-      return typeof value === 'number' ? value : modDano;
-    },
-    [atributos, modDano]
+    (attr: DamageAttribute): number => weaponAttributeModifier(attr, atributos),
+    [atributos]
   );
 
   // Hynne "Arremessador": +1 damage step on ranged/thrown attacks (skill
@@ -262,20 +263,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   // applied) so the player sees exactly what the chosen mode will roll.
   const computeActionPreview = useCallback(
     (action: WeaponAction) => {
-      let previewSkill: Skill;
-      if (customSkill) {
-        previewSkill = customSkill;
-      } else if (action.skill === 'Luta') {
-        previewSkill = Skill.LUTA;
-      } else if (action.skill === 'Pontaria') {
-        previewSkill = Skill.PONTARIA;
-      } else {
-        previewSkill = baseWeaponSkill;
-      }
-      const skillMod = getSkillAttackBonus(
-        previewSkill,
+      const skillMod = getWeaponAttackSkillBonus(
+        equipment,
         completeSkills,
-        atributos
+        atributos,
+        action
       );
       const baseFromBonus = atkBonus ? atkBonus + skillMod : skillMod;
       const thrown = isThrownAction(action);
@@ -313,10 +305,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [
       atkBonus,
       atributos,
-      baseWeaponSkill,
       completeSkills,
       critico,
-      customSkill,
       damageModForAttribute,
       dano,
       equipment,
@@ -423,22 +413,14 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     (selectedDano: string, ctx: RollContext) => {
       const { action, useTrigger } = ctx;
 
-      // Skill / atk bonus resolution: action.skill overrides; customSkill still
-      // wins; otherwise default rule. The melee Força mod only applies to Luta.
-      let resolvedSkill: Skill | undefined;
-      if (customSkill) {
-        resolvedSkill = customSkill;
-      } else if (action?.skill === 'Luta') {
-        resolvedSkill = Skill.LUTA;
-      } else if (action?.skill === 'Pontaria') {
-        resolvedSkill = Skill.PONTARIA;
-      } else {
-        resolvedSkill = baseWeaponSkill;
-      }
-      const modAtk = getSkillAttackBonus(
-        resolvedSkill,
+      // Perícia rolada e atributo do teste saem do mesmo ponto que a linha
+      // exibida na ficha (`customSkill` > perícia do modo > regra de alcance,
+      // com `attackAttribute` trocando só a parcela de atributo).
+      const modAtk = getWeaponAttackSkillBonus(
+        equipment,
         completeSkills,
-        atributos
+        atributos,
+        action
       );
       const baseAtkFromBonus = atkBonus ? atkBonus + modAtk : modAtk;
       const thrown = isThrownAction(action);
@@ -509,11 +491,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [
       atributos,
       atkBonus,
-      baseWeaponSkill,
       characterName,
       completeSkills,
       critico,
-      customSkill,
       damageModForAttribute,
       equipment,
       displayName,
@@ -533,6 +513,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const [triggerDialogOpen, setTriggerDialogOpen] = useState(false);
   const [ammoDialogOpen, setAmmoDialogOpen] = useState(false);
   const [modeDialogOpen, setModeDialogOpen] = useState(false);
+  const [attributesDialogOpen, setAttributesDialogOpen] = useState(false);
   const [stagedAction, setStagedAction] = useState<WeaponAction | null>(null);
   const [stagedUseTrigger, setStagedUseTrigger] = useState(false);
 
@@ -838,17 +819,43 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           {wieldingSlot === 'main' && ' · 🤚 Principal'}
           {wieldingSlot === 'off' && ' · ✋ Secundária'}
           {wieldingSlot === 'both' && ' · 🤝 Duas mãos'}
-          {onWieldingChange && (
+          {(onWieldingChange || onSemanticsChange) && (
             <Box
-              sx={{ ml: 'auto', display: 'inline-flex' }}
+              sx={{
+                ml: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+              }}
               onClick={(e) => e.stopPropagation()}
             >
-              <WieldingControl
-                item={equipment}
-                currentSlot={wieldingSlot}
-                onChange={onWieldingChange}
-                disabledSlots={wieldingDisabledSlots}
-              />
+              {onWieldingChange && (
+                <WieldingControl
+                  item={equipment}
+                  currentSlot={wieldingSlot}
+                  onChange={onWieldingChange}
+                  disabledSlots={wieldingDisabledSlots}
+                />
+              )}
+              {onSemanticsChange && (
+                <Tooltip title='Ajustar perícia e atributos de ataque/dano'>
+                  <IconButton
+                    size='small'
+                    aria-label='Ajustar perícia e atributos de ataque e dano'
+                    onClick={() => setAttributesDialogOpen(true)}
+                    sx={{
+                      // No desktop o ícone fica discreto até o hover da linha;
+                      // no mobile não há hover, então ele é sempre visível e
+                      // com alvo de toque cheio.
+                      opacity: { xs: 1, md: 0.35 },
+                      minWidth: 40,
+                      minHeight: 40,
+                      '&:hover': { opacity: 1 },
+                    }}
+                  >
+                    <TuneIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
             </Box>
           )}
           {equipment.descricao && (
@@ -880,6 +887,14 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           </Typography>
         )}
       </Box>
+      {onSemanticsChange && (
+        <WeaponAttributesDialog
+          open={attributesDialogOpen}
+          onClose={() => setAttributesDialogOpen(false)}
+          weapon={equipment}
+          onSave={onSemanticsChange}
+        />
+      )}
       {dualMode && !dualMode.isSameDamage && (
         <WeaponModeDialog
           open={modeDialogOpen}

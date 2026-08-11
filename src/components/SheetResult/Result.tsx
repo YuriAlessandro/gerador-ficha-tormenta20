@@ -146,8 +146,10 @@ import Equipment, {
   AmmoType,
   DefenseEquipment,
   equipGroup,
+  WeaponOverride,
 } from '../../interfaces/Equipment';
 import Bag from '../../interfaces/Bag';
+import { setWeaponOverride } from '../../functions/weaponOverrides';
 import '../../assets/css/result.css';
 import Spells from './SpellsTab/SpellsDisplay';
 import SkillTable from './SkillTable';
@@ -788,7 +790,7 @@ const Result: React.FC<ResultProps> = (props) => {
         onSheetUpdate(updatedSheet);
       }
     },
-    [currentSheet, onSheetUpdate]
+    [currentSheet, onSheetUpdate, ownsSpell]
   );
 
   const handleToggleMemorized = useCallback(
@@ -803,7 +805,7 @@ const Result: React.FC<ResultProps> = (props) => {
         onSheetUpdate(updatedSheet);
       }
     },
-    [currentSheet, onSheetUpdate]
+    [currentSheet, onSheetUpdate, ownsSpell]
   );
 
   const handleToggleAlwaysPrepared = useCallback(
@@ -837,7 +839,7 @@ const Result: React.FC<ResultProps> = (props) => {
         onSheetUpdate(updatedSheet);
       }
     },
-    [currentSheet, onSheetUpdate, ownsSpell]
+    [currentSheet, onSheetUpdate]
   );
 
   const handlePowerRollsUpdate = useCallback(
@@ -878,7 +880,7 @@ const Result: React.FC<ResultProps> = (props) => {
         onSheetUpdate(updatedSheet);
       }
     },
-    [currentSheet, onSheetUpdate, ownsSpell]
+    [currentSheet, onSheetUpdate]
   );
 
   const handlePMDecrement = useCallback(
@@ -1338,8 +1340,6 @@ const Result: React.FC<ResultProps> = (props) => {
   // `equipamentosOrdered` via the displayOrder traversal — no extra pushes
   // needed.
 
-  const modFor = atributos.Força.value;
-
   const handleConsumeAmmo = useCallback(
     (ammoType: AmmoType) => {
       const stack = findAmmoStack(bagEquipments, ammoType);
@@ -1441,6 +1441,58 @@ const Result: React.FC<ResultProps> = (props) => {
     [bag, bagEquipments, currentSheet, onSheetUpdate]
   );
 
+  /**
+   * Grava a edição de perícia/atributos de uma arma feita direto na aba
+   * Ataques. Dois destinos, porque há dois tipos de arma na lista:
+   *
+   * - arma VIRTUAL (Forma Selvagem): não está na mochila, então o override vai
+   *   para o mapa da ficha, endereçado pela `overrideKey` estável;
+   * - arma da mochila (incluindo as naturais de raça/poder): grava no próprio
+   *   item.
+   *
+   * Sem `recalculateSheet`: nenhum desses campos alimenta `sheetBonuses`, e
+   * eles são de propósito invisíveis para `hasManualEdits` — o baking
+   * automático de bônus na arma continua valendo.
+   */
+  const handleWeaponSemanticsChange = useCallback(
+    (weapon: Equipment, next: WeaponOverride) => {
+      let updatedSheet: CharacterSheet;
+
+      if (weapon.overrideKey) {
+        updatedSheet = setWeaponOverride(
+          currentSheet,
+          weapon.overrideKey,
+          next
+        );
+      } else if (weapon.id) {
+        const nextArma = bagEquipments.Arma.map((item) =>
+          item.id === weapon.id
+            ? {
+                ...item,
+                customSkill: next.customSkill,
+                attackAttribute: next.attackAttribute,
+                damageAttribute: next.damageAttribute,
+              }
+            : item
+        );
+        updatedSheet = {
+          ...currentSheet,
+          bag: new Bag(
+            { ...bagEquipments, Arma: nextArma },
+            true,
+            bag.displayOrder
+          ),
+        };
+      } else {
+        return;
+      }
+
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) onSheetUpdate(updatedSheet);
+    },
+    [bag, bagEquipments, currentSheet, onSheetUpdate]
+  );
+
   // Shared by Ataques and Defesa: blocks slots when a hand is already
   // occupied by a 2H weapon or a shield. The wielded item itself is exempt.
   const computeWieldingDisabled = useMemo(() => {
@@ -1535,7 +1587,6 @@ const Result: React.FC<ResultProps> = (props) => {
         ]}
         completeSkills={completeSkills}
         atributos={atributos}
-        modFor={modFor}
         nivel={currentSheet.nivel}
         classLevels={classLevels}
         characterName={nome}
@@ -1552,6 +1603,9 @@ const Result: React.FC<ResultProps> = (props) => {
         onConsumeAmmo={onSheetUpdate ? handleConsumeAmmo : undefined}
         hasArremessador={hasArremessador}
         proficiencias={effectiveProficiencias}
+        onWeaponSemanticsChange={
+          onSheetUpdate ? handleWeaponSemanticsChange : undefined
+        }
       />
     );
   }, [
@@ -1559,7 +1613,6 @@ const Result: React.FC<ResultProps> = (props) => {
     bagEquipments,
     completeSkills,
     atributos,
-    modFor,
     nome,
     markersEnabled,
     conditionHighlights.attack,
@@ -1570,8 +1623,10 @@ const Result: React.FC<ResultProps> = (props) => {
     currentSheet.offHandItemId,
     currentSheet.raca,
     currentSheet.activeEffects,
+    currentSheet.weaponOverrides,
     onSheetUpdate,
     handleQuickWieldChange,
+    handleWeaponSemanticsChange,
     handleConsumeAmmo,
     computeWieldingDisabled,
     effectiveProficiencias,

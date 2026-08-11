@@ -1,6 +1,10 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import Equipment, { AmmoType, BagEquipments } from '../interfaces/Equipment';
+import Equipment, {
+  AmmoType,
+  BagEquipments,
+  WeaponOverride,
+} from '../interfaces/Equipment';
 import { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import Weapon from './Weapon';
@@ -19,7 +23,6 @@ interface WeaponsProps {
   getKey: (eId: string) => string;
   completeSkills: CompleteSkill[] | undefined;
   atributos: CharacterAttributes;
-  modFor: number;
   /** Nível total do personagem — repassado a cada Weapon para os bônus de dano
    * por modo baseados em atributo limitado pelo nível (Arqueiro, Esgrimista). */
   nivel?: number;
@@ -59,6 +62,11 @@ interface WeaponsProps {
    * provided, weapons outside the list get the -5 non-proficiency penalty.
    */
   proficiencias?: string[];
+  /**
+   * Persiste a edição de perícia/atributos de uma arma. Ausente = ícone de
+   * ajuste escondido em todas as linhas (ficha em modo leitura).
+   */
+  onWeaponSemanticsChange?: (weapon: Equipment, next: WeaponOverride) => void;
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
@@ -67,7 +75,6 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     getKey,
     completeSkills,
     atributos,
-    modFor,
     nivel,
     classLevels,
     characterName,
@@ -82,6 +89,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     onConsumeAmmo,
     hasArremessador,
     proficiencias,
+    onWeaponSemanticsChange,
   } = props;
 
   if (!weapons || weapons.length === 0) {
@@ -134,7 +142,6 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         )}
         completeSkills={completeSkills}
         atributos={atributos}
-        modDano={modFor}
         nivel={nivel}
         classLevels={classLevels}
         characterName={characterName}
@@ -156,6 +163,11 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         onConsumeAmmo={onConsumeAmmo}
         hasArremessador={hasArremessador}
         proficiencyPenalty={proficiencyPenalty}
+        onSemanticsChange={
+          onWeaponSemanticsChange
+            ? (next) => onWeaponSemanticsChange(equip, next)
+            : undefined
+        }
       />
     );
   });

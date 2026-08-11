@@ -153,12 +153,10 @@ export type AmmoType =
   | 'Bola de Ferro';
 
 /**
- * Atributo somado ao dano da arma. Pode ser qualquer um dos 6 atributos
- * (Força, Destreza, Constituição, Inteligência, Sabedoria, Carisma) ou
- * "Nenhum" (não soma atributo). Quando undefined, resolve-se a partir de
- * `isWeaponMelee` (melee → 'Força', ranged → 'Nenhum').
+ * Atributo aplicável a uma arma (no teste de ataque ou na rolagem de dano).
+ * Qualquer um dos 6 atributos ou "Nenhum" (não soma atributo).
  */
-export type DamageAttribute =
+export type WeaponAttribute =
   | 'Força'
   | 'Destreza'
   | 'Constituição'
@@ -166,6 +164,37 @@ export type DamageAttribute =
   | 'Sabedoria'
   | 'Carisma'
   | 'Nenhum';
+
+/**
+ * Atributo somado ao dano da arma. Quando undefined, resolve-se a partir de
+ * `isWeaponMelee` (melee → 'Força', ranged → 'Nenhum').
+ *
+ * @see WeaponAttribute — alias mantido pelo nome por retrocompatibilidade dos
+ * imports já existentes.
+ */
+export type DamageAttribute = WeaponAttribute;
+
+/**
+ * Atributo usado no TESTE DE ATAQUE. Substitui APENAS a contribuição de
+ * atributo da perícia resolvida (Luta/Pontaria/`customSkill`); metade do nível,
+ * treinamento e outros bônus continuam vindo da perícia.
+ *
+ * `undefined` = usa o `modAttr` da própria perícia (comportamento padrão).
+ * `'Nenhum'` é um valor legítimo: existem ataques que não somam atributo.
+ */
+export type AttackAttribute = WeaponAttribute;
+
+/**
+ * Edição do jogador sobre os campos *semânticos* de uma arma — perícia rolada e
+ * atributos de ataque/dano. Existe como tipo próprio porque armas VIRTUAIS (que
+ * não estão na mochila, como as da Forma Selvagem) não têm onde gravar a
+ * escolha e precisam de um mapa à parte na ficha. Ver `functions/weaponOverrides.ts`.
+ */
+export interface WeaponOverride {
+  customSkill?: Skill;
+  attackAttribute?: AttackAttribute;
+  damageAttribute?: DamageAttribute;
+}
 
 /**
  * A "modo de ataque" the weapon supports. When `specialActions` is non-empty,
@@ -197,6 +226,8 @@ export interface WeaponAction {
   critico?: string;
   /** Atributo somado ao dano nesse modo. Quando undefined, herda de weapon.damageAttribute. */
   damageAttribute?: DamageAttribute;
+  /** Atributo no teste de ataque nesse modo. Quando undefined, herda de weapon.attackAttribute. */
+  attackAttribute?: AttackAttribute;
   /** Atk bonus delta layered on top of the weapon's atkBonus (e.g. Azagaia -5 melee). */
   atkBonusDelta?: number;
   /** Step-down N notches in the damage die ladder before rolling (Funda improvisada). */
@@ -330,6 +361,25 @@ export default interface Equipment {
    * O usuário pode editar via Mochila para qualquer arma.
    */
   damageAttribute?: DamageAttribute;
+
+  /**
+   * Atributo usado no teste de ataque desta arma. Quando undefined, usa o
+   * atributo da própria perícia rolada. Cobre Acuidade com Arma (Destreza na
+   * Luta), Armeiro do Inventor (Inteligência) e as armas naturais da Forma
+   * Selvagem.
+   *
+   * NÃO marca `hasManualEdits` — é campo semântico, como `customSkill` e
+   * `weaponCategory`, e o baking automático de bônus deve continuar valendo.
+   */
+  attackAttribute?: AttackAttribute;
+
+  /**
+   * Chave estável de override para armas VIRTUAIS — as que não estão na mochila
+   * e por isso não têm onde gravar a edição do jogador (hoje, as armas naturais
+   * da Forma Selvagem). Quando presente, o editor grava em
+   * `CharacterSheet.weaponOverrides[overrideKey]`. Ver `functions/weaponOverrides.ts`.
+   */
+  overrideKey?: string;
 
   // Supplement information (for items from supplements)
   supplementId?: string;

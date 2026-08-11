@@ -32,6 +32,7 @@ import {
 import Equipment, {
   AppliedEnchantment,
   AppliedModification,
+  AttackAttribute,
   DamageAttribute,
   DAMAGE_TYPES,
   DamageType,
@@ -43,7 +44,6 @@ import {
   getCatalogWeaponCategoryByName,
   WEAPON_CATEGORY_LABELS,
 } from '../../../functions/proficiencies';
-import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Skill from '../../../interfaces/Skills';
 import { DiceRoll } from '../../../interfaces/DiceRoll';
 import { ItemE, ItemMod } from '../../../interfaces/Rewards';
@@ -70,16 +70,10 @@ import {
   ItemEditorFormState,
   StatField,
 } from './itemEditorSave';
-
-const DAMAGE_ATTRIBUTE_OPTIONS: DamageAttribute[] = [
-  Atributo.FORCA,
-  Atributo.DESTREZA,
-  Atributo.CONSTITUICAO,
-  Atributo.INTELIGENCIA,
-  Atributo.SABEDORIA,
-  Atributo.CARISMA,
-  'Nenhum',
-];
+import {
+  ATTACK_ATTRIBUTE_DEFAULT_LABEL,
+  WEAPON_ATTRIBUTE_OPTIONS,
+} from './weaponAttributeOptions';
 
 export interface ItemEditorDialogProps {
   open: boolean;
@@ -131,11 +125,15 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
     ? resolveDamageAttribute(item)
     : 'Nenhum';
   const actionDamageAttributes: Record<string, DamageAttribute> = {};
+  const actionAttackAttributes: Record<string, AttackAttribute | ''> = {};
   (item?.specialActions ?? []).forEach((action) => {
     actionDamageAttributes[action.id] = resolveDamageAttribute(
       item as Equipment,
       action
     );
+    // Assimetria proposital com o dano: '' significa "herda da arma / da
+    // perícia", estado que o atributo de ataque tem e o de dano não.
+    actionAttackAttributes[action.id] = action.attackAttribute ?? '';
   });
   return {
     customDisplayName: item?.customDisplayName ?? '',
@@ -148,8 +146,10 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
     criticoText: item?.critico ?? 'x2',
     customSkill: (item?.customSkill ?? '') as Skill | '',
     damageAttribute: baseDamageAttribute,
+    attackAttribute: item?.attackAttribute ?? '',
     weaponCategory: item?.weaponCategory ?? '',
     actionDamageAttributes,
+    actionAttackAttributes,
     defenseBonusText:
       item && isDefenseGroup(item.group)
         ? String((item as DefenseEquipment).defenseBonus)
@@ -593,6 +593,32 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <FormControl fullWidth>
+                    <InputLabel>Atributo no ataque</InputLabel>
+                    <Select
+                      label='Atributo no ataque'
+                      value={form.attackAttribute}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          attackAttribute: e.target.value as
+                            | AttackAttribute
+                            | '',
+                        }))
+                      }
+                    >
+                      <MenuItem value=''>
+                        <em>{ATTACK_ATTRIBUTE_DEFAULT_LABEL}</em>
+                      </MenuItem>
+                      {WEAPON_ATTRIBUTE_OPTIONS.map((opt) => (
+                        <MenuItem key={opt} value={opt}>
+                          {opt}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <FormControl fullWidth>
                     <InputLabel>Atributo no dano</InputLabel>
                     <Select
                       label='Atributo no dano'
@@ -604,13 +630,24 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                         }))
                       }
                     >
-                      {DAMAGE_ATTRIBUTE_OPTIONS.map((opt) => (
+                      {WEAPON_ATTRIBUTE_OPTIONS.map((opt) => (
                         <MenuItem key={opt} value={opt}>
                           {opt}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Typography
+                    variant='caption'
+                    sx={{ color: 'text.secondary', display: 'block' }}
+                  >
+                    &quot;Perícia&quot; troca a perícia rolada inteira
+                    (treinamento incluso). &quot;Atributo no ataque&quot; troca
+                    só o atributo dentro dela — é o que modela Acuidade com Arma
+                    e armas naturais.
+                  </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
@@ -651,16 +688,16 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                         mb: 0.5,
                       }}
                     >
-                      Atributo no dano por modo de ataque:
+                      Atributos por modo de ataque (ataque / dano):
                     </Typography>
                     <Stack spacing={1}>
                       {item.specialActions.map((action) => (
                         <Stack
                           key={action.id}
-                          direction='row'
+                          direction={{ xs: 'column', sm: 'row' }}
                           spacing={1}
                           sx={{
-                            alignItems: 'center',
+                            alignItems: { xs: 'stretch', sm: 'center' },
                           }}
                         >
                           <Typography
@@ -669,8 +706,39 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                           >
                             {action.label}
                           </Typography>
-                          <FormControl size='small' sx={{ minWidth: 140 }}>
+                          <FormControl size='small' sx={{ minWidth: 160 }}>
+                            <InputLabel>Ataque</InputLabel>
                             <Select
+                              label='Ataque'
+                              value={
+                                form.actionAttackAttributes[action.id] ?? ''
+                              }
+                              onChange={(e) =>
+                                setForm((f) => ({
+                                  ...f,
+                                  actionAttackAttributes: {
+                                    ...f.actionAttackAttributes,
+                                    [action.id]: e.target.value as
+                                      | AttackAttribute
+                                      | '',
+                                  },
+                                }))
+                              }
+                            >
+                              <MenuItem value=''>
+                                <em>Padrão</em>
+                              </MenuItem>
+                              {WEAPON_ATTRIBUTE_OPTIONS.map((opt) => (
+                                <MenuItem key={opt} value={opt}>
+                                  {opt}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <FormControl size='small' sx={{ minWidth: 160 }}>
+                            <InputLabel>Dano</InputLabel>
+                            <Select
+                              label='Dano'
                               value={
                                 form.actionDamageAttributes[action.id] ??
                                 'Nenhum'
@@ -686,7 +754,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                                 }))
                               }
                             >
-                              {DAMAGE_ATTRIBUTE_OPTIONS.map((opt) => (
+                              {WEAPON_ATTRIBUTE_OPTIONS.map((opt) => (
                                 <MenuItem key={opt} value={opt}>
                                   {opt}
                                 </MenuItem>

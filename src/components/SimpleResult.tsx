@@ -10,6 +10,10 @@ import {
   getDerivedSpellCircle,
   hasDerivedSpellAccess,
 } from '../functions/spells/derivedSpells';
+import {
+  getWeaponAttackSkillBonus,
+  getWeaponDisplayDamage,
+} from '../functions/weaponSkill';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { SkillsTotals } from '../interfaces/Skills';
@@ -103,9 +107,6 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
     bagEquipments
   ).flatMap((value) => value[1]);
 
-  const fightSkill = skillsTotals.Luta;
-  const rangeSkill = skillsTotals.Pontaria;
-
   const handleExport = () => resultRef.current;
 
   return (
@@ -174,12 +175,20 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
           <SheetText>Ataques</SheetText>
         </div>
         {sheet.bag.equipments.Arma.map((eq) => {
-          const isRange = eq.alcance && eq.alcance !== '-' && !eq.arremesso;
-          const modAtk = isRange ? rangeSkill : fightSkill;
+          // Mesmo motor da ficha completa e do PDF — antes esta tela
+          // reimplementava a regra à mão e cravava Força, ignorando
+          // `customSkill`, `damageAttribute`, `attackAttribute` e `atkBonus`.
+          const modAtk =
+            (eq.atkBonus ?? 0) +
+            getWeaponAttackSkillBonus(
+              eq,
+              sheet.completeSkills,
+              sheet.atributos
+            );
           return (
             <div key={getKey(eq.nome)}>
-              {eq.nome} {modAtk > 0 ? `+${modAtk}` : modAtk} ({eq.dano}
-              {isRange ? '' : `+${sheet.atributos.Força.value}`}, {eq.critico})
+              {eq.nome} {modAtk > 0 ? `+${modAtk}` : modAtk} (
+              {getWeaponDisplayDamage(eq, sheet.atributos)}, {eq.critico})
             </div>
           );
         })}

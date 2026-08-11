@@ -27,8 +27,10 @@ const mkForm = (
   criticoText: 'x2',
   customSkill: '',
   damageAttribute: 'Nenhum',
+  attackAttribute: '',
   weaponCategory: '',
   actionDamageAttributes: {},
+  actionAttackAttributes: {},
   defenseBonusText: '0',
   armorPenaltyText: '0',
   isHeavyArmor: false,
@@ -146,5 +148,56 @@ describe('buildSavedItem — categoria de proficiência (weaponCategory)', () =>
   it('editar categoria não marca hasManualEdits', () => {
     const result = save(espadaLonga, mkForm({ weaponCategory: 'simple' }));
     expect(result.hasManualEdits).toBeUndefined();
+  });
+});
+
+describe('buildSavedItem — atributo no ataque (attackAttribute)', () => {
+  const mordida: Equipment = {
+    nome: 'Mordida',
+    group: 'Arma',
+    dano: '1d4',
+    critico: 'x2',
+    spaces: 0,
+    preco: 0,
+    specialActions: [
+      { id: 'corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      { id: 'bote', label: 'Bote', skill: 'Luta', dano: '1d6' },
+    ],
+  };
+
+  it('atributo escolhido no form é persistido', () => {
+    const result = save(mordida, mkForm({ attackAttribute: 'Sabedoria' }));
+    expect(result.attackAttribute).toBe('Sabedoria');
+  });
+
+  it("'' (Padrão) limpa o override — undefined usa o atributo da perícia", () => {
+    const result = save(
+      { ...mordida, attackAttribute: 'Sabedoria' },
+      mkForm({ attackAttribute: '' })
+    );
+    expect(result.attackAttribute).toBeUndefined();
+  });
+
+  it("'Nenhum' é um valor legítimo, não um 'limpar'", () => {
+    const result = save(mordida, mkForm({ attackAttribute: 'Nenhum' }));
+    expect(result.attackAttribute).toBe('Nenhum');
+  });
+
+  // Crítico: se `hasManualEdits` ligasse aqui, `applyWeaponBonuses` pararia de
+  // bakear Fúria/encantos nesta arma e o jogador perderia bônus em silêncio.
+  it('editar atributo de ataque NÃO marca hasManualEdits', () => {
+    const result = save(mordida, mkForm({ attackAttribute: 'Destreza' }));
+    expect(result.hasManualEdits).toBeUndefined();
+  });
+
+  it('override por modo de ataque é gravado e limpo de forma independente', () => {
+    const result = save(
+      mordida,
+      mkForm({
+        actionAttackAttributes: { corpo: 'Destreza', bote: '' },
+      })
+    );
+    expect(result.specialActions?.[0].attackAttribute).toBe('Destreza');
+    expect(result.specialActions?.[1].attackAttribute).toBeUndefined();
   });
 });

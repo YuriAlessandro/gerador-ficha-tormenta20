@@ -8,8 +8,7 @@ import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import {
-  getWeaponSkill,
-  getSkillAttackBonus,
+  getWeaponAttackSkillBonus,
   getWeaponDisplayDamage,
 } from './weaponSkill';
 import {
@@ -211,8 +210,8 @@ const preparePDF: (
     weaponTypeField.setText(sanitizeForWinAnsi(weapon.tipo));
     weaponRangeField.setText(sanitizeForWinAnsi(weapon.alcance));
 
-    const modAtk = getSkillAttackBonus(
-      getWeaponSkill(weapon),
+    const modAtk = getWeaponAttackSkillBonus(
+      weapon,
       sheet.completeSkills,
       sheet.atributos
     );

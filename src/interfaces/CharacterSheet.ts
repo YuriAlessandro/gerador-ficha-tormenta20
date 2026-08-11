@@ -6,7 +6,7 @@ import { Spell, SpellSchool } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
 import { Atributo } from '../data/systems/tormenta20/atributos';
-import { BagEquipments } from './Equipment';
+import { BagEquipments, WeaponOverride } from './Equipment';
 import { OriginBenefit } from './WizardSelections';
 import { CustomPower } from './CustomPower';
 import { CompanionSheet } from './Companion';
@@ -851,6 +851,16 @@ export default interface CharacterSheet {
   animalCompanions?: SheetAnimalCompanion[]; // Companheiro(s) Animal(is) do Druida
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
   activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
+  /**
+   * Overrides do jogador (perícia rolada, atributo de ataque/dano) sobre armas
+   * VIRTUAIS — as que não estão na mochila e por isso não têm onde gravar a
+   * edição. Hoje: as armas naturais da Forma Selvagem.
+   *
+   * Chaveado por `Equipment.overrideKey`, derivado do catálogo (forma + grau +
+   * índice) e NÃO do `instanceId` do efeito ativo — é o que faz a escolha
+   * sobreviver a reverter e voltar à forma. Ver `functions/weaponOverrides.ts`.
+   */
+  weaponOverrides?: Record<string, WeaponOverride>;
   /**
    * @deprecated Mantido por um ciclo de release apenas para deserializar
    * fichas antigas. Versões anteriores aplicavam penalidades de condições

@@ -1,6 +1,7 @@
 import Equipment, {
   AppliedEnchantment,
   AppliedModification,
+  AttackAttribute,
   DamageAttribute,
   DamageType,
   DefenseEquipment,
@@ -42,10 +43,14 @@ export interface ItemEditorFormState {
   criticoText: string;
   customSkill: Skill | '';
   damageAttribute: DamageAttribute;
+  // '' = usa o atributo da própria perícia rolada (comportamento padrão).
+  // Diferente de `damageAttribute`, que sempre carrega um atributo concreto.
+  attackAttribute: AttackAttribute | '';
   // '' = herda a categoria do catálogo (via getEffectiveWeaponCategory);
   // para itens custom, '' = sem categoria = sempre proficiente.
   weaponCategory: WeaponCategory | '';
   actionDamageAttributes: Record<string, DamageAttribute>;
+  actionAttackAttributes: Record<string, AttackAttribute | ''>;
   defenseBonusText: string;
   armorPenaltyText: string;
   isHeavyArmor: boolean;
@@ -161,17 +166,21 @@ export function buildSavedItem(
     }
     next.customSkill = (form.customSkill || undefined) as Skill | undefined;
     next.damageAttribute = form.damageAttribute;
-    // Campo semântico (como customSkill): gravado sempre, sem marcar
-    // hasManualEdits — não congela os bônus automáticos da arma.
+    // Campos semânticos (como customSkill): gravados sempre, sem marcar
+    // hasManualEdits — não congelam os bônus automáticos da arma.
+    next.attackAttribute = form.attackAttribute || undefined;
     next.weaponCategory =
       form.weaponCategory === '' ? undefined : form.weaponCategory;
     if (item.specialActions && item.specialActions.length > 0) {
       next.specialActions = item.specialActions.map((action) => {
-        const overridden = form.actionDamageAttributes[action.id];
-        if (!overridden) return action;
+        const damageOverride = form.actionDamageAttributes[action.id];
+        const attackOverride = form.actionAttackAttributes?.[action.id];
+        const nextAction: WeaponAction = { ...action };
         // Strip from the action when it matches the resolved-from-weapon
         // default — keeps the saved object clean.
-        return { ...action, damageAttribute: overridden } as WeaponAction;
+        if (damageOverride) nextAction.damageAttribute = damageOverride;
+        nextAction.attackAttribute = attackOverride || undefined;
+        return nextAction;
       });
     }
     next.hasManualEdits = weaponStatTouched ? true : undefined;

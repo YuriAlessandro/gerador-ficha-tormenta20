@@ -1,4 +1,4 @@
-import { resolveDamageAttribute } from '../weaponSkill';
+import { resolveAttackAttribute, resolveDamageAttribute } from '../weaponSkill';
 import Equipment from '../../interfaces/Equipment';
 import { Armas } from '../../data/systems/tormenta20/equipamentos';
 import { HEROIS_ARTON_WEAPONS } from '../../data/systems/tormenta20/herois-de-arton/equipment/weapons';
@@ -97,5 +97,39 @@ describe('resolveDamageAttribute', () => {
       damageAttribute: 'Carisma',
     };
     expect(resolveDamageAttribute(carisma)).toBe('Carisma');
+  });
+});
+
+describe('resolveAttackAttribute', () => {
+  const garra: Equipment = { nome: 'Garra', group: 'Arma' };
+
+  // Diferente do dano, "sem override" NÃO colapsa para um atributo concreto:
+  // undefined é o que sinaliza "usa o atributo da própria perícia".
+  test('sem override devolve undefined', () => {
+    expect(resolveAttackAttribute(garra)).toBeUndefined();
+    expect(
+      resolveAttackAttribute(garra, { id: 'a', label: 'A' })
+    ).toBeUndefined();
+  });
+
+  test('override da arma é usado', () => {
+    expect(
+      resolveAttackAttribute({ ...garra, attackAttribute: 'Sabedoria' })
+    ).toBe('Sabedoria');
+  });
+
+  test('override do modo prevalece sobre o da arma', () => {
+    expect(
+      resolveAttackAttribute(
+        { ...garra, attackAttribute: 'Sabedoria' },
+        { id: 'a', label: 'A', attackAttribute: 'Destreza' }
+      )
+    ).toBe('Destreza');
+  });
+
+  test("'Nenhum' é um override legítimo, não uma ausência", () => {
+    expect(
+      resolveAttackAttribute({ ...garra, attackAttribute: 'Nenhum' })
+    ).toBe('Nenhum');
   });
 });

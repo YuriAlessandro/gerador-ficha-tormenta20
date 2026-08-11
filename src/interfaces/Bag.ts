@@ -173,6 +173,50 @@ export function reconcileDisplayOrder(
   return result;
 }
 
+/**
+ * Campos SEMÂNTICOS de uma arma: escolhas do jogador que não são stats e que o
+ * catálogo nunca define. Ao contrário de `dano`/`atkBonus`, eles não são
+ * recalculados por nada — se forem perdidos, o jogador simplesmente refaz a
+ * edição sem entender por quê.
+ */
+const SEMANTIC_EQUIPMENT_FIELDS = [
+  'customSkill',
+  'attackAttribute',
+  'damageAttribute',
+  'customDisplayName',
+  'weaponCategory',
+] as const;
+
+/**
+ * Ao adicionar um item que colide por `nome` com um já existente, o novo (vindo
+ * limpo do catálogo) vence — é o que permite a um poder atualizar a arma que
+ * concede. Mas isso apagava as escolhas do jogador.
+ *
+ * A guarda de idempotência do `sheetActionHistory` normalmente impede a
+ * reaplicação; quando ela falha (ficha importada, histórico truncado, homebrew
+ * recompilado com outro `source`), transplantamos os campos semânticos do item
+ * antigo para o novo — mas só os que o novo não define, para o catálogo poder
+ * declarar o seu.
+ */
+function keepSemanticFields(
+  incoming: Equipment,
+  oldEquips: Equipment[]
+): Equipment {
+  const previous = oldEquips.find((old) => old.nome === incoming.nome);
+  if (!previous) return incoming;
+
+  let merged: Equipment | undefined;
+  SEMANTIC_EQUIPMENT_FIELDS.forEach((field) => {
+    if (previous[field] === undefined || incoming[field] !== undefined) return;
+    merged = merged ?? { ...incoming };
+    // Campo a campo com tipos distintos — a asserção é local e o `forEach`
+    // acima garante que origem e destino são a MESMA chave.
+    (merged as unknown as Record<string, unknown>)[field] = previous[field];
+  });
+
+  return merged ?? incoming;
+}
+
 export default class Bag {
   public equipments: BagEquipments;
 
@@ -320,7 +364,9 @@ export default class Bag {
       equipments,
       (oldEquips: Equipment[], newEquips: Equipment[]) => {
         if (isArray(oldEquips))
-          return newEquips.concat(differenceBy(oldEquips, newEquips, 'nome'));
+          return newEquips
+            .map((incoming) => keepSemanticFields(incoming, oldEquips))
+            .concat(differenceBy(oldEquips, newEquips, 'nome'));
 
         return undefined;
       }
