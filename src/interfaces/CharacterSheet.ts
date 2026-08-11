@@ -838,6 +838,7 @@ export default interface CharacterSheet {
   removedProficiencias?: string[]; // Proficiências base removidas manualmente pelo usuário
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
+  poderesCapturados?: PoderCapturadoChoice[]; // Usurpador: Poder Capturado (4º nível)
   notes?: string; // Anotações livres do jogador
   imageUrl?: string; // URL de imagem do personagem
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
@@ -860,6 +861,24 @@ export default interface CharacterSheet {
    * automaticamente quando encontrado. Remover em release subsequente.
    */
   conditionAttributePenalties?: Partial<Record<Atributo, number>>;
+}
+
+/**
+ * Usurpador — Poder Capturado (4º nível): "Escolha um deus maior por nível e um
+ * poder concedido desse deus".
+ *
+ * Guardado por NOME (não por objeto) porque o poder concedido é resolvido no
+ * `dataRegistry` a cada render — assim correções no catálogo chegam a fichas
+ * antigas. Este campo NÃO entra em nenhum motor de bônus: é insumo puro do
+ * `ActiveEffect` que representa o poder atualmente roubado.
+ */
+export interface PoderCapturadoChoice {
+  /** Nome do deus maior. */
+  divindade: string;
+  /** Nome do poder concedido escolhido desse deus. */
+  poder: string;
+  /** Nível em que a escolha foi feita (auditoria). */
+  level: number;
 }
 
 /** SpellPath sem funções — para persistência. As funções são restauradas via restoreSpellPath. */

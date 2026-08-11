@@ -51,6 +51,7 @@ import {
   getDerivedSpellsNotice,
 } from '@/functions/spells/derivedSpells';
 import { buildUsurparCastCheck } from '@/functions/spells/usurpar';
+import { getPoderCapturadoDefinition } from '@/functions/powers/poderCapturadoEffects';
 import { ignoresEncumbrance } from '@/functions/encumbrance';
 import {
   applyManualLevelUp,
@@ -133,6 +134,8 @@ import {
   updatePowerAcrossSheet,
   PowerUserPatch,
 } from '@/functions/powers/updatePowerAcrossSheet';
+import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
+import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import CharacterSheet, {
   DamageReduction,
@@ -289,6 +292,8 @@ const Result: React.FC<ResultProps> = (props) => {
     setActiveTab(newValue);
   };
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
+  const [poderCapturadoDrawerOpen, setPoderCapturadoDrawerOpen] =
+    useState(false);
   const [spellEffectDef, setSpellEffectDef] =
     useState<ActivePowerDefinition | null>(null);
   // Metadados da magia recém-lançada, guardados enquanto o diálogo de efeito
@@ -336,13 +341,19 @@ const Result: React.FC<ResultProps> = (props) => {
   }, [currentSheet.animalCompanions, currentSheet.classPowers, currentSheet]);
 
   // Definições injetadas em runtime no gerenciador de efeitos: efeitos custom
-  // do jogador + benefícios ativados dos companheiros animais.
+  // do jogador + benefícios ativados dos companheiros animais + o Poder
+  // Capturado do Usurpador (montado a partir de `sheet.poderesCapturados`).
+  const poderCapturadoDefinition = useMemo(
+    () => getPoderCapturadoDefinition(currentSheet, userSupplements),
+    [currentSheet, userSupplements]
+  );
   const virtualCustomEffectDefinitions = useMemo(
     () => [
       ...collectVirtualCustomEffectDefinitions(currentSheet),
       ...getAnimalCompanionActivatedPowers(currentSheet),
+      ...(poderCapturadoDefinition ? [poderCapturadoDefinition] : []),
     ],
-    [currentSheet]
+    [currentSheet, poderCapturadoDefinition]
   );
 
   const applyRecalculatedSheet = useCallback(
@@ -2634,16 +2645,33 @@ const Result: React.FC<ResultProps> = (props) => {
                             ? scrollToAnimalCompanions
                             : undefined
                         }
-                        parodyButtonSlot={
-                          <Tooltip title='Buscar magia para parodiar' arrow>
-                            <IconButton
-                              size='small'
-                              onClick={() => setParodyDialogOpen(true)}
-                            >
-                              <SearchIcon fontSize='small' color='primary' />
-                            </IconButton>
-                          </Tooltip>
-                        }
+                        powerActionSlots={{
+                          Paródia: (
+                            <Tooltip title='Buscar magia para parodiar' arrow>
+                              <IconButton
+                                size='small'
+                                onClick={() => setParodyDialogOpen(true)}
+                              >
+                                <SearchIcon fontSize='small' color='primary' />
+                              </IconButton>
+                            </Tooltip>
+                          ),
+                          'Poder Capturado': (
+                            <PoderCapturadoAction
+                              sheet={currentSheet}
+                              onConfigure={() =>
+                                setPoderCapturadoDrawerOpen(true)
+                              }
+                              onActivate={
+                                onSheetUpdate && canUseActiveEffects
+                                  ? handleActiveEffectActivate
+                                  : undefined
+                              }
+                              onSheetUpdate={onSheetUpdate}
+                              characterName={nome}
+                            />
+                          ),
+                        }}
                       />
                     </Box>
                   </TabPanel>
@@ -3207,6 +3235,17 @@ const Result: React.FC<ResultProps> = (props) => {
               tempPM={currentSheet.tempPM ?? 0}
               onCast={handleSpellCast}
               characterName={nome}
+            />
+          )}
+
+          {onSheetUpdate && (
+            <PoderCapturadoEditDrawer
+              open={poderCapturadoDrawerOpen}
+              onClose={() => setPoderCapturadoDrawerOpen(false)}
+              sheet={currentSheet}
+              onSave={(poderesCapturados) =>
+                handleSheetInfoUpdate({ poderesCapturados })
+              }
             />
           )}
 

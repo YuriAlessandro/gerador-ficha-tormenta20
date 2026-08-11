@@ -106,7 +106,12 @@ const PowersDisplay: React.FC<{
   onCompanionClick?: () => void;
   /** Atalho para o painel de Companheiros Animais (Druida). */
   onAnimalCompanionClick?: () => void;
-  parodyButtonSlot?: React.ReactNode;
+  /**
+   * Ações extras no cabeçalho de poderes específicos, por NOME do poder
+   * (ex.: `Paródia` → busca de magia; `Poder Capturado` → escolher deus/poder).
+   * Consultado ANTES de qualquer automação genérica.
+   */
+  powerActionSlots?: Record<string, React.ReactNode>;
   sheet?: CharacterSheet;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
   onActivateEffect?: (
@@ -132,7 +137,7 @@ const PowersDisplay: React.FC<{
   characterName,
   onCompanionClick,
   onAnimalCompanionClick,
-  parodyButtonSlot,
+  powerActionSlots,
   sheet,
   onSheetUpdate,
   onActivateEffect,
@@ -357,7 +362,8 @@ const PowersDisplay: React.FC<{
   };
 
   const buildBaseHeaderActionSlot = (pw: SheetPower): React.ReactNode => {
-    if (pw.name === 'Paródia') return parodyButtonSlot;
+    const namedSlot = powerActionSlots?.[pw.name];
+    if (namedSlot) return namedSlot;
     if (sheet && onSheetUpdate && hasWeaponSpecAction(pw)) {
       return (
         <PowerWeaponSelectionAction

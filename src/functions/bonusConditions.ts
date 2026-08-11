@@ -26,6 +26,7 @@ import { isWearingHeavyArmor } from './wornArmor';
 import { getClassLevel } from './multiclass';
 import { getSheetProficiencias } from './proficiencies';
 import { sheetHasPowerNamed } from './powers/hasPowerNamed';
+import { getEffectiveDeityName } from './powers/poderCapturadoEffects';
 
 function compare(actual: number, op: BonusConditionOp, value: number): boolean {
   if (op === 'gte') return actual >= value;
@@ -104,7 +105,11 @@ function evaluateClause(
     case 'hasSkill':
       return (sheet.skills || []).includes(clause.value);
     case 'devoteOf':
-      return sheet.devoto?.divindade?.name === clause.value;
+      // `getEffectiveDeityName` e não `sheet.devoto` direto: o Poder Capturado
+      // do Usurpador faz a ficha contar como devota do deus roubado enquanto
+      // o efeito estiver ativo ("considerado um devoto desse deus para efeitos
+      // de habilidades e itens").
+      return getEffectiveDeityName(sheet) === clause.value;
     case 'isRace':
       return sheet.raca?.name === clause.value;
     default:
