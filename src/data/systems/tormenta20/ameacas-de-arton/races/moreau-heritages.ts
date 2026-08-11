@@ -157,13 +157,9 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Agarra-me Se Puderes',
         description:
           'Seu deslocamento é 12m (em vez de 9m) e você tem visão na penumbra.',
-        sheetBonuses: [
-          {
-            source: { type: 'power', name: 'Agarra-me Se Puderes' },
-            target: { type: 'Displacement' },
-            modifier: { type: 'Fixed', value: 3 },
-          },
-        ],
+        // Sem bônus de Displacement: os 12m já são a BASE da herança (campo
+        // `displacement` abaixo, lido por `getDisplacement` em moreau.ts). Um
+        // +3 aqui somaria por cima e daria 15m.
       },
       {
         name: 'Esperteza Vulpina',
@@ -273,13 +269,9 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Patas Ligeiras',
         description:
           'Seu deslocamento é 12m e, quando faz uma investida ou um teste de Atletismo para correr, você não precisa percorrer uma linha reta.',
-        sheetBonuses: [
-          {
-            source: { type: 'power', name: 'Patas Ligeiras' },
-            target: { type: 'Displacement' },
-            modifier: { type: 'Fixed', value: 3 },
-          },
-        ],
+        // Sem bônus de Displacement: os 12m já são a BASE da herança (campo
+        // `displacement` abaixo, lido por `getDisplacement` em moreau.ts). Um
+        // +3 aqui somaria por cima e daria 15m.
       },
       {
         name: 'Pé de Coelho',
