@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            09/08/2026 (v4.29).
+            11/08/2026 (v4.29).
           </p>
 
           <p>
@@ -175,6 +175,32 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> <strong>Potência Divina</strong>{' '}
                   agora também aumenta a categoria de tamanho, que era a parte
                   da magia que faltava no efeito ativo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> pré-requisitos de{' '}
+                  <strong>exclusão apareciam invertidos</strong>. O poder{' '}
+                  <strong>Arma Sagrada</strong>, do Paladino, que segundo o
+                  livro é para devotos de qualquer divindade{' '}
+                  <em>exceto Lena e Marah</em>, era exibido pedindo justamente
+                  &ldquo;Devoto de Lena&rdquo; e &ldquo;Devoto de Marah&rdquo; —
+                  na tabela de Classes, na de Poderes e na hora de escolher
+                  poderes. Agora aparece como &ldquo;Não ser devoto de
+                  Lena&rdquo;.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ainda no{' '}
+                  <strong>Arma Sagrada</strong>, o poder ficava liberado para
+                  todo mundo ao editar os poderes da ficha, mesmo para devotos
+                  de Lena ou Marah. Requisitos de divindade em poderes de classe
+                  passaram a ser conferidos de verdade.
+                </li>
+                <li>
+                  <strong>Correção:</strong> requisitos do tipo{' '}
+                  <strong>&ldquo;NÃO ter&rdquo;</strong> criados em{' '}
+                  <strong>homebrews</strong> eram ignorados na maioria dos casos
+                  — marcar &ldquo;NÃO ter&rdquo; em um poder, perícia, raça ou
+                  nível não fazia efeito nenhum, e o poder acabava exigindo o
+                  contrário do que o autor escreveu.
                 </li>
                 <li>
                   <strong>Correção:</strong> conteúdo de{' '}
