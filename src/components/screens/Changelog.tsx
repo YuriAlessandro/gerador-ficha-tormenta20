@@ -133,6 +133,83 @@ const Changelog: React.FC = () => {
                   perícias&rdquo;.
                 </li>
                 <li>
+                  <strong>Novo:</strong> o <strong>Usurpador</strong> ganhou a
+                  aba de <strong>Magias</strong> de verdade. Como ele não
+                  aprende magias, a lista mostra{' '}
+                  <strong>
+                    todas as magias divinas até o círculo a que ele tem acesso
+                  </strong>
+                  , com atributo-chave e CD no topo — antes a aba aparecia
+                  vazia.
+                </li>
+                <li>
+                  <strong>Novo:</strong> ao lançar uma magia pelo{' '}
+                  <strong>Usurpar</strong>, a ficha rola sozinha o{' '}
+                  <strong>teste de Enganação (CD 15 + o custo em PM)</strong>,
+                  já com a penalidade de armadura descontada e um botão para
+                  marcar o <strong>−5 de símbolo sagrado visível</strong>. Se o
+                  teste falhar, a magia é perdida e os PM são gastos do mesmo
+                  jeito. No 20º nível, o <strong>Roubo Divino</strong> aplica
+                  sozinho −1 PM e +1 na CD para resistir a cada 10 pontos do
+                  resultado, e a habilidade <strong>Poder de Clérigo</strong>{' '}
+                  troca Sabedoria por Carisma nos poderes de clérigo e
+                  concedidos.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Poder Capturado</strong> na
+                  ficha do Usurpador. Pela engrenagem na habilidade você escolhe{' '}
+                  <strong>
+                    um deus maior por nível e um poder concedido dele
+                  </strong>{' '}
+                  — e os poderes bloqueados aparecem com o motivo (exclusivo de
+                  outra classe, pré-requisito não cumprido) em vez de sumirem da
+                  lista. O botão de usar rola o{' '}
+                  <strong>
+                    teste de Enganação (CD 20, +5 por uso no mesmo dia)
+                  </strong>
+                  : passando, o poder roubado vira <strong>efeito ativo</strong>{' '}
+                  com os bônus na ficha; falhando, os 3 PM saem sozinhos.
+                  Enquanto está ativo, a ficha{' '}
+                  <strong>conta como devota do deus roubado</strong>, então
+                  poderes e itens que exigem devoção àquele deus passam a valer.
+                </li>
+                <li>
+                  <strong>Novo:</strong> agora dá para escolher{' '}
+                  <strong>qual atributo entra no ataque e no dano</strong> de
+                  cada arma, sem precisar trocar a perícia inteira (e sem perder
+                  o treinamento dela). Um botão de ajuste na linha da arma, na
+                  aba <strong>Ataques</strong>, abre a escolha — e ele funciona
+                  também nas <strong>armas naturais</strong>, que antes não
+                  tinham como ser editadas: as da{' '}
+                  <strong>Forma Selvagem</strong> do Druida nem apareciam na
+                  Mochila, e a escolha feita nelas continua valendo depois de
+                  reverter e voltar à forma. Serve para Acuidade com Arma,
+                  Armeiro do Inventor e qualquer arma que ataque com outro
+                  atributo.
+                </li>
+                <li>
+                  <strong>Novo:</strong> as <strong>armas naturais</strong> dos
+                  homebrews (garras, mordida, chifres) também ganharam os campos
+                  de <strong>atributo no ataque e no dano</strong>, então dá
+                  para criar uma criatura que ataque com Sabedoria ou Destreza
+                  já de fábrica.
+                </li>
+                <li>
+                  <strong>Novo:</strong> os poderes de origem de{' '}
+                  <strong>Heróis de Arton</strong> — Carcereiro, Contrabandista,
+                  Mensageiro, Náufrago, Pedinte e Pescador — passaram a{' '}
+                  <strong>aplicar os bônus sozinhos</strong> na ficha, em vez de
+                  só descrever o efeito no texto.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> os avisos de{' '}
+                  <strong>sobrecarga</strong> (na Mochila, no resumo de carga e
+                  no chip da ficha) pararam de prometer um <strong>−3m</strong>{' '}
+                  que não se aplica a Anão, Trog Anão e Golem: agora eles avisam
+                  que a carga estourou, mas que a sua raça ignora a redução de
+                  deslocamento.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> a aba de <strong>Magias</strong>{' '}
                   agora tem os mesmos acessos a <strong>efeitos ativos</strong>{' '}
                   que a de Poderes: o botão de efeitos ativos no canto do card
@@ -175,6 +252,31 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> <strong>Potência Divina</strong>{' '}
                   agora também aumenta a categoria de tamanho, que era a parte
                   da magia que faltava no efeito ativo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Anão</strong>,{' '}
+                  <strong>Trog Anão</strong> e <strong>Golem</strong> (e Osteon,
+                  Soterrado e Yidishan derivados deles) voltam a{' '}
+                  <strong>não perder 3m de deslocamento</strong> por sobrecarga
+                  ou armadura. A isenção estava sendo descartada ao salvar a
+                  ficha, então tudo que vinha da nuvem chegava com o
+                  deslocamento errado — as fichas antigas se corrigem sozinhas
+                  ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o dano exibido na ficha e no PDF{' '}
+                  <strong>não batia com o que era rolado</strong> em armas à
+                  distância que somam Força. <strong>Arco Longo</strong> e{' '}
+                  <strong>Funda</strong> mostravam só o dado, mas a rolagem
+                  somava a Força. Armas de dano duplo (1d8/1d10) também não
+                  mostravam o modificador, e um bônus já embutido aparecia
+                  somado duas vezes (1d8+2+3 em vez de 1d8+5).
+                </li>
+                <li>
+                  <strong>Correção:</strong> as heranças moreau{' '}
+                  <strong>Agarra-me Se Puderes</strong> e{' '}
+                  <strong>Patas Ligeiras</strong> mostravam <strong>15m</strong>{' '}
+                  de deslocamento em vez dos 12m corretos.
                 </li>
                 <li>
                   <strong>Correção:</strong> pré-requisitos de{' '}
