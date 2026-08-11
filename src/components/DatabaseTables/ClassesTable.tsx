@@ -24,7 +24,8 @@ import WhatshotIcon from '@mui/icons-material/Whatshot';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
-import { Requirement, RequirementType } from '../../interfaces/Poderes';
+import { Requirement } from '../../interfaces/Poderes';
+import { formatRequirement } from '../../functions/requirementText';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 import SupplementFilter from './SupplementFilter';
@@ -37,41 +38,19 @@ interface IProps {
   defaultOpen: boolean;
 }
 
-const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
-  let reqText = '';
-
-  if (requirement.type === RequirementType.ATRIBUTO) {
-    reqText = `${requirement.name} ${requirement.value}`;
-  } else if (requirement.type === RequirementType.DEVOTO) {
-    reqText = `Devoto de ${requirement.name}`;
-  } else if (requirement.type === RequirementType.NIVEL) {
-    reqText = `Nível ${requirement.value}`;
-  } else if (requirement.type === RequirementType.PERICIA) {
-    reqText = `Treinado em ${requirement.name}`;
-  } else if (requirement.type === RequirementType.TEXT) {
-    reqText = requirement.text || '';
-  } else if (requirement.type === RequirementType.PODER_TORMENTA) {
-    reqText = `Pelo menos ${requirement.value} ${
-      (requirement.value || 0) > 1 ? 'poderes' : 'poder'
-    } da Tormenta`;
-  } else {
-    reqText = requirement.name || '';
-  }
-
-  return (
-    <Chip
-      label={reqText}
-      size='small'
-      variant='outlined'
-      color='secondary'
-      sx={{
-        m: 0.5,
-        fontFamily: 'Tfont, serif',
-        fontSize: '0.75rem',
-      }}
-    />
-  );
-};
+const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => (
+  <Chip
+    label={formatRequirement(requirement)}
+    size='small'
+    variant='outlined'
+    color='secondary'
+    sx={{
+      m: 0.5,
+      fontFamily: 'Tfont, serif',
+      fontSize: '0.75rem',
+    }}
+  />
+);
 
 const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
   const theme = useTheme();

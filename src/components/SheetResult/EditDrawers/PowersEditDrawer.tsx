@@ -31,6 +31,7 @@ import {
   RequirementType,
   OriginPower,
 } from '@/interfaces/Poderes';
+import { applyRequirementNot } from '@/functions/powers';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
@@ -61,6 +62,7 @@ import {
   getClassLevel,
 } from '@/functions/multiclass';
 import { normalizeSearch } from '@/functions/stringUtils';
+import { formatRequirements } from '@/functions/requirementText';
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
   isGenericOficio,
@@ -1147,126 +1149,133 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     // Each outer array represents an "OR" group, inner arrays are "AND" requirements
     return power.requirements.some((reqGroup) =>
       reqGroup.every((req) => {
-        switch (req.type) {
-          case RequirementType.ATRIBUTO: {
-            const attrName = req.name as Atributo;
-            const attrValue = sheet.atributos[attrName]?.value || 0;
-            return attrValue >= (req.value || 0);
-          }
+        const met = Boolean(
+          (() => {
+            switch (req.type) {
+              case RequirementType.ATRIBUTO: {
+                const attrName = req.name as Atributo;
+                const attrValue = sheet.atributos[attrName]?.value || 0;
+                return attrValue >= (req.value || 0);
+              }
 
-          case RequirementType.NIVEL:
-            return sheet.nivel >= (req.value || 0);
+              case RequirementType.NIVEL:
+                return sheet.nivel >= (req.value || 0);
 
-          case RequirementType.PODER:
-            // Check if character has the required power
-            return (
-              selectedPowers.some((p) => p.name === req.name) ||
-              sheet.generalPowers?.some((p) => p.name === req.name) ||
-              sheet.classPowers?.some((p) => p.name === req.name) ||
-              // Habilidades raciais que contam como possuir um poder
-              // (ex.: Centauro "Ginete Natural" → poder "Ginete")
-              (sheet.raca.abilities ?? []).some((a) =>
-                a.grantsPowerRequirements?.includes(req.name ?? '')
-              ) ||
-              sheet.sheetActionHistory?.some((entry) =>
-                entry.changes.some(
-                  (change) =>
-                    change.type === 'OptionChosen' &&
-                    change.chosenName === req.name
-                )
-              ) ||
-              false
-            );
+              case RequirementType.PODER:
+                // Check if character has the required power
+                return (
+                  selectedPowers.some((p) => p.name === req.name) ||
+                  sheet.generalPowers?.some((p) => p.name === req.name) ||
+                  sheet.classPowers?.some((p) => p.name === req.name) ||
+                  // Habilidades raciais que contam como possuir um poder
+                  // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+                  (sheet.raca.abilities ?? []).some((a) =>
+                    a.grantsPowerRequirements?.includes(req.name ?? '')
+                  ) ||
+                  sheet.sheetActionHistory?.some((entry) =>
+                    entry.changes.some(
+                      (change) =>
+                        change.type === 'OptionChosen' &&
+                        change.chosenName === req.name
+                    )
+                  ) ||
+                  false
+                );
 
-          case RequirementType.PERICIA: {
-            // Generic Ofício requirement matches any specific Ofício variant
-            if (isGenericOficio(req.name)) {
-              return (
-                sheet.completeSkills?.some(
-                  (s) => isOficioSkill(s.name) && (s.training || 0) > 0
-                ) || false
-              );
+              case RequirementType.PERICIA: {
+                // Generic Ofício requirement matches any specific Ofício variant
+                if (isGenericOficio(req.name)) {
+                  return (
+                    sheet.completeSkills?.some(
+                      (s) => isOficioSkill(s.name) && (s.training || 0) > 0
+                    ) || false
+                  );
+                }
+                const skill = sheet.completeSkills?.find(
+                  (s) => s.name === req.name
+                );
+                if (skill && (skill.training || 0) > 0) return true;
+
+                // Artesão Criativo: Ofício (Artesão) substitui qualquer outro
+                // Ofício específico para fins de pré-requisito.
+                if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
+                  const hasArtesaoCriativo =
+                    selectedPowers.some((p) => p.name === 'Artesão Criativo') ||
+                    sheet.generalPowers?.some(
+                      (p) => p.name === 'Artesão Criativo'
+                    ) ||
+                    sheet.classPowers?.some(
+                      (p) => p.name === 'Artesão Criativo'
+                    );
+                  const hasArtesanato = sheet.completeSkills?.some(
+                    (s) =>
+                      s.name === Skill.OFICIO_ARTESANATO &&
+                      (s.training || 0) > 0
+                  );
+                  if (hasArtesaoCriativo && hasArtesanato) return true;
+                }
+
+                return false;
+              }
+
+              case RequirementType.PROFICIENCIA: {
+                // Caso especial: 'all' significa qualquer proficiência de arma (exceto Simples)
+                if (req.name === 'all') {
+                  const weaponProficiencies = [
+                    'Armas Marciais',
+                    'Armas de Fogo',
+                    'Armas Exóticas',
+                  ];
+                  return weaponProficiencies.some((wp) =>
+                    sheet.classe.proficiencias.includes(wp)
+                  );
+                }
+                return sheet.classe.proficiencias.includes(req.name as string);
+              }
+
+              case RequirementType.CLASSE:
+                return isClassOrVariantOf(sheet.classe, req.name as string);
+
+              case RequirementType.DEVOTO: {
+                const godName = req.name;
+                if (!godName || godName === 'any') return !!sheet.devoto;
+                return (
+                  sheet.devoto?.divindade.name.toLowerCase() ===
+                  godName.toLowerCase()
+                );
+              }
+
+              case RequirementType.HABILIDADE:
+                // Check class abilities
+                return sheet.classe.abilities?.some((a) => a.name === req.name);
+
+              case RequirementType.RACA:
+                // Check if character is the required race
+                return sheet.raca.name === req.name;
+
+              case RequirementType.CHASSIS:
+                // Check if character has the required chassis
+                return sheet.raca.chassis === req.name;
+
+              case RequirementType.TIER_LIMIT: {
+                // Check if character can still pick this power in current tier
+                const category = req.name as string;
+                const currentTierPowers = selectedPowers.filter((p) =>
+                  p.name.includes(category)
+                ).length;
+                const sheetTierPowers =
+                  sheet.generalPowers?.filter((p) => p.name.includes(category))
+                    .length || 0;
+                return currentTierPowers + sheetTierPowers < 1;
+              }
+
+              default:
+                // For unknown requirement types, assume they're met
+                return true;
             }
-            const skill = sheet.completeSkills?.find(
-              (s) => s.name === req.name
-            );
-            if (skill && (skill.training || 0) > 0) return true;
-
-            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro
-            // Ofício específico para fins de pré-requisito.
-            if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
-              const hasArtesaoCriativo =
-                selectedPowers.some((p) => p.name === 'Artesão Criativo') ||
-                sheet.generalPowers?.some(
-                  (p) => p.name === 'Artesão Criativo'
-                ) ||
-                sheet.classPowers?.some((p) => p.name === 'Artesão Criativo');
-              const hasArtesanato = sheet.completeSkills?.some(
-                (s) =>
-                  s.name === Skill.OFICIO_ARTESANATO && (s.training || 0) > 0
-              );
-              if (hasArtesaoCriativo && hasArtesanato) return true;
-            }
-
-            return false;
-          }
-
-          case RequirementType.PROFICIENCIA: {
-            // Caso especial: 'all' significa qualquer proficiência de arma (exceto Simples)
-            if (req.name === 'all') {
-              const weaponProficiencies = [
-                'Armas Marciais',
-                'Armas de Fogo',
-                'Armas Exóticas',
-              ];
-              return weaponProficiencies.some((wp) =>
-                sheet.classe.proficiencias.includes(wp)
-              );
-            }
-            return sheet.classe.proficiencias.includes(req.name as string);
-          }
-
-          case RequirementType.CLASSE:
-            return isClassOrVariantOf(sheet.classe, req.name as string);
-
-          case RequirementType.DEVOTO: {
-            const godName = req.name;
-            const result = godName
-              ? sheet.devoto?.divindade.name.toLowerCase() ===
-                godName.toLowerCase()
-              : !!sheet.devoto;
-            if (req.not) return !result;
-            return result;
-          }
-
-          case RequirementType.HABILIDADE:
-            // Check class abilities
-            return sheet.classe.abilities?.some((a) => a.name === req.name);
-
-          case RequirementType.RACA:
-            // Check if character is the required race
-            return sheet.raca.name === req.name;
-
-          case RequirementType.CHASSIS:
-            // Check if character has the required chassis
-            return sheet.raca.chassis === req.name;
-
-          case RequirementType.TIER_LIMIT: {
-            // Check if character can still pick this power in current tier
-            const category = req.name as string;
-            const currentTierPowers = selectedPowers.filter((p) =>
-              p.name.includes(category)
-            ).length;
-            const sheetTierPowers =
-              sheet.generalPowers?.filter((p) => p.name.includes(category))
-                .length || 0;
-            return currentTierPowers + sheetTierPowers < 1;
-          }
-
-          default:
-            // For unknown requirement types, assume they're met
-            return true;
-        }
+          })()
+        );
+        return applyRequirementNot(req, met);
       })
     );
   };
@@ -1285,138 +1294,118 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
     return power.requirements.some((reqGroup) =>
       reqGroup.every((req) => {
-        switch (req.type) {
-          case RequirementType.ATRIBUTO: {
-            const attrName = req.name as Atributo;
-            const attrValue = sheet.atributos[attrName]?.value || 0;
-            return attrValue >= (req.value || 0);
-          }
-          case RequirementType.NIVEL:
-            return sheet.nivel >= (req.value || 0);
-          case RequirementType.PODER:
-            return (
-              selectedPowers.some((p) => p.name === req.name) ||
-              selectedClassPowers.some((p) => p.name === req.name) ||
-              sheet.generalPowers?.some((p) => p.name === req.name) ||
-              sheet.classPowers?.some((p) => p.name === req.name) ||
-              // Habilidades raciais que contam como possuir um poder
-              // (ex.: Centauro "Ginete Natural" → poder "Ginete")
-              (sheet.raca.abilities ?? []).some((a) =>
-                a.grantsPowerRequirements?.includes(req.name ?? '')
-              ) ||
-              sheet.sheetActionHistory?.some((entry) =>
-                entry.changes.some(
-                  (change) =>
-                    change.type === 'OptionChosen' &&
-                    change.chosenName === req.name
-                )
-              ) ||
-              false
-            );
-          case RequirementType.PERICIA: {
-            if (isGenericOficio(req.name)) {
-              return (
-                sheet.completeSkills?.some(
-                  (s) => isOficioSkill(s.name) && (s.training || 0) > 0
-                ) || false
-              );
-            }
-            const skill = sheet.completeSkills?.find(
-              (s) => s.name === req.name
-            );
-            if (skill && (skill.training || 0) > 0) return true;
+        const met = Boolean(
+          (() => {
+            switch (req.type) {
+              case RequirementType.ATRIBUTO: {
+                const attrName = req.name as Atributo;
+                const attrValue = sheet.atributos[attrName]?.value || 0;
+                return attrValue >= (req.value || 0);
+              }
+              case RequirementType.NIVEL:
+                return sheet.nivel >= (req.value || 0);
+              case RequirementType.PODER:
+                return (
+                  selectedPowers.some((p) => p.name === req.name) ||
+                  selectedClassPowers.some((p) => p.name === req.name) ||
+                  sheet.generalPowers?.some((p) => p.name === req.name) ||
+                  sheet.classPowers?.some((p) => p.name === req.name) ||
+                  // Habilidades raciais que contam como possuir um poder
+                  // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+                  (sheet.raca.abilities ?? []).some((a) =>
+                    a.grantsPowerRequirements?.includes(req.name ?? '')
+                  ) ||
+                  sheet.sheetActionHistory?.some((entry) =>
+                    entry.changes.some(
+                      (change) =>
+                        change.type === 'OptionChosen' &&
+                        change.chosenName === req.name
+                    )
+                  ) ||
+                  false
+                );
+              case RequirementType.PERICIA: {
+                if (isGenericOficio(req.name)) {
+                  return (
+                    sheet.completeSkills?.some(
+                      (s) => isOficioSkill(s.name) && (s.training || 0) > 0
+                    ) || false
+                  );
+                }
+                const skill = sheet.completeSkills?.find(
+                  (s) => s.name === req.name
+                );
+                if (skill && (skill.training || 0) > 0) return true;
 
-            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro
-            // Ofício específico para fins de pré-requisito.
-            if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
-              const hasArtesaoCriativo =
-                selectedPowers.some((p) => p.name === 'Artesão Criativo') ||
-                selectedClassPowers.some(
-                  (p) => p.name === 'Artesão Criativo'
-                ) ||
-                sheet.generalPowers?.some(
-                  (p) => p.name === 'Artesão Criativo'
-                ) ||
-                sheet.classPowers?.some((p) => p.name === 'Artesão Criativo');
-              const hasArtesanato = sheet.completeSkills?.some(
-                (s) =>
-                  s.name === Skill.OFICIO_ARTESANATO && (s.training || 0) > 0
-              );
-              if (hasArtesaoCriativo && hasArtesanato) return true;
-            }
+                // Artesão Criativo: Ofício (Artesão) substitui qualquer outro
+                // Ofício específico para fins de pré-requisito.
+                if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
+                  const hasArtesaoCriativo =
+                    selectedPowers.some((p) => p.name === 'Artesão Criativo') ||
+                    selectedClassPowers.some(
+                      (p) => p.name === 'Artesão Criativo'
+                    ) ||
+                    sheet.generalPowers?.some(
+                      (p) => p.name === 'Artesão Criativo'
+                    ) ||
+                    sheet.classPowers?.some(
+                      (p) => p.name === 'Artesão Criativo'
+                    );
+                  const hasArtesanato = sheet.completeSkills?.some(
+                    (s) =>
+                      s.name === Skill.OFICIO_ARTESANATO &&
+                      (s.training || 0) > 0
+                  );
+                  if (hasArtesaoCriativo && hasArtesanato) return true;
+                }
 
-            return false;
-          }
-          case RequirementType.PROFICIENCIA:
-            return sheet.classe.proficiencias.includes(req.name as string);
-          case RequirementType.HABILIDADE:
-            return sheet.classe.abilities?.some((a) => a.name === req.name);
-          case RequirementType.RACA:
-            return sheet.raca.name === req.name;
-          case RequirementType.CHASSIS:
-            return sheet.raca.chassis === req.name;
-          case RequirementType.TIER_LIMIT: {
-            const category = req.name as string;
-            const currentTierPowers = selectedClassPowers.filter((p) =>
-              p.name.includes(category)
-            ).length;
-            const sheetTierPowers =
-              sheet.classPowers?.filter((p) => p.name.includes(category))
-                .length || 0;
-            return currentTierPowers + sheetTierPowers < 1;
-          }
-          default:
-            return true;
-        }
+                return false;
+              }
+              case RequirementType.PROFICIENCIA:
+                return sheet.classe.proficiencias.includes(req.name as string);
+              case RequirementType.HABILIDADE:
+                return sheet.classe.abilities?.some((a) => a.name === req.name);
+              case RequirementType.RACA:
+                return sheet.raca.name === req.name;
+              case RequirementType.CHASSIS:
+                return sheet.raca.chassis === req.name;
+              // Sem este case, poderes de classe com pré-requisito de devoção
+              // (Arma Sagrada, do Paladino) caíam no `default: true` e ficavam
+              // sempre liberados.
+              case RequirementType.DEVOTO: {
+                const godName = req.name;
+                if (!godName || godName === 'any')
+                  return !!sheet.devoto?.divindade;
+                return (
+                  sheet.devoto?.divindade.name.toLowerCase() ===
+                  godName.toLowerCase()
+                );
+              }
+              case RequirementType.TIER_LIMIT: {
+                const category = req.name as string;
+                const currentTierPowers = selectedClassPowers.filter((p) =>
+                  p.name.includes(category)
+                ).length;
+                const sheetTierPowers =
+                  sheet.classPowers?.filter((p) => p.name.includes(category))
+                    .length || 0;
+                return currentTierPowers + sheetTierPowers < 1;
+              }
+              default:
+                return true;
+            }
+          })()
+        );
+        return applyRequirementNot(req, met);
       })
     );
   };
 
-  const getRequirementText = (power: GeneralPower | ClassPower): string => {
-    if (!power.requirements || power.requirements.length === 0) {
-      return 'Nenhum pré-requisito';
-    }
-
-    // Verificar se há requisitos reais (não apenas arrays vazios)
-    const hasActualRequirements = power.requirements.some(
-      (reqGroup) => reqGroup.length > 0
-    );
-
-    if (!hasActualRequirements) {
-      return 'Nenhum pré-requisito';
-    }
-
-    return power.requirements
-      .map((reqGroup) =>
-        reqGroup
-          .map((req) => {
-            switch (req.type) {
-              case RequirementType.ATRIBUTO:
-                return `${req.name} ${req.value || 0}`;
-              case RequirementType.PODER:
-                return `Poder: ${req.name}`;
-              case RequirementType.NIVEL:
-                return `Nível ${req.value || 0}`;
-              case RequirementType.PERICIA:
-                return `Perícia: ${req.name}`;
-              case RequirementType.PROFICIENCIA:
-                return req.name === 'all'
-                  ? 'Proficiência em qualquer arma'
-                  : `Proficiência: ${req.name}`;
-              case RequirementType.CLASSE:
-                return `Classe: ${req.name}`;
-              case RequirementType.DEVOTO:
-                return req.name ? `Devoto de ${req.name}` : 'Ser devoto';
-              case RequirementType.HABILIDADE:
-                return `Habilidade: ${req.name}`;
-              default:
-                return req.text || req.name || 'Requisito especial';
-            }
-          })
-          .join(', ')
-      )
-      .join(' OU ');
-  };
+  const getRequirementText = (power: GeneralPower | ClassPower): string =>
+    formatRequirements(power.requirements, {
+      andSeparator: ', ',
+      emptyText: 'Nenhum pré-requisito',
+    });
 
   // Helper function to find which origin a power belongs to
   const getOriginForPower = (power: OriginPower): string | null => {

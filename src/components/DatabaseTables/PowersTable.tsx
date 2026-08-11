@@ -23,7 +23,8 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import { Requirement, RequirementType } from '../../interfaces/Poderes';
+import { Requirement } from '../../interfaces/Poderes';
+import { formatRequirement } from '../../functions/requirementText';
 import { SEO, getPageSEO } from '../SEO';
 import SearchInput from './SearchInput';
 import TormentaTitle from '../Database/TormentaTitle';
@@ -33,41 +34,19 @@ import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, GeneralPowerWithSupplement } from '../../data/registry';
 import { normalizeSearch } from '../../functions/stringUtils';
 
-const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
-  let reqText = '';
-
-  if (requirement.type === RequirementType.ATRIBUTO) {
-    reqText = `${requirement.name} ${requirement.value}`;
-  } else if (requirement.type === RequirementType.DEVOTO) {
-    reqText = `Devoto de ${requirement.name}`;
-  } else if (requirement.type === RequirementType.NIVEL) {
-    reqText = `Nível ${requirement.value}`;
-  } else if (requirement.type === RequirementType.PERICIA) {
-    reqText = `Treinado em ${requirement.name}`;
-  } else if (requirement.type === RequirementType.TEXT) {
-    reqText = requirement.text || '';
-  } else if (requirement.type === RequirementType.PODER_TORMENTA) {
-    reqText = `Pelo menos ${requirement.value} ${
-      (requirement.value || 0) > 1 ? 'poderes' : 'poder'
-    } da Tormenta`;
-  } else {
-    reqText = requirement.name || '';
-  }
-
-  return (
-    <Chip
-      label={reqText}
-      size='small'
-      variant='outlined'
-      color='secondary'
-      sx={{
-        m: 0.5,
-        fontFamily: 'Tfont, serif',
-        fontSize: '0.75rem',
-      }}
-    />
-  );
-};
+const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => (
+  <Chip
+    label={formatRequirement(requirement)}
+    size='small'
+    variant='outlined'
+    color='secondary'
+    sx={{
+      m: 0.5,
+      fontFamily: 'Tfont, serif',
+      fontSize: '0.75rem',
+    }}
+  />
+);
 
 const Row: React.FC<{
   power: GeneralPowerWithSupplement;

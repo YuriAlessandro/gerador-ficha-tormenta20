@@ -3,7 +3,11 @@ import generalPowers from '../data/poderes';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
-import { GeneralPower, RequirementType } from '../interfaces/Poderes';
+import {
+  GeneralPower,
+  Requirement,
+  RequirementType,
+} from '../interfaces/Poderes';
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
   isGenericOficio,
@@ -67,6 +71,156 @@ export function getCharacterPowerNames(sheet: CharacterSheet): string[] {
   return getAllCharacterPowers(sheet).map((power) => power.name);
 }
 
+/**
+ * Aplica a flag `not` ao resultado bruto de um requisito. Ponto único da
+ * negação: antes disso cada `case` do avaliador tratava (ou, em 13 dos 15
+ * tipos, esquecia de tratar) o `not` por conta própria.
+ */
+export function applyRequirementNot(rule: Requirement, met: boolean): boolean {
+  // `TEXT` (e tipos desconhecidos) não são avaliáveis — quem julga é o usuário,
+  // então valem sempre. Negá-los tem que continuar permissivo, não virar um
+  // bloqueio impossível de satisfazer.
+  const isEvaluable =
+    rule.type !== RequirementType.TEXT &&
+    Object.values(RequirementType).includes(rule.type);
+  if (!isEvaluable) return met;
+
+  return rule.not ? !met : met;
+}
+
+/** Avalia um único requisito, ignorando a flag `not` (aplicada por quem chama). */
+function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
+  switch (rule.type) {
+    case RequirementType.PODER: {
+      const allPowers = getAllCharacterPowers(sheet);
+
+      const foundInPowers = allPowers.some(
+        (currPower) => currPower.name === rule.name
+      );
+      if (foundInPowers) return true;
+
+      // Habilidades raciais que contam como possuir um poder
+      // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+      const grantedByRace = (sheet.raca.abilities ?? []).some((a) =>
+        a.grantsPowerRequirements?.includes(rule.name ?? '')
+      );
+      if (grantedByRace) return true;
+
+      // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
+      return (sheet.sheetActionHistory ?? []).some((entry) =>
+        entry.changes.some(
+          (change) =>
+            change.type === 'OptionChosen' && change.chosenName === rule.name
+        )
+      );
+    }
+    case RequirementType.ATRIBUTO: {
+      const attr = rule.name as Atributo;
+      return !!rule.name && sheet.atributos[attr].value >= (rule?.value || 0);
+    }
+    case RequirementType.PERICIA: {
+      if (isGenericOficio(rule.name)) {
+        // isOficioSkill (e não a lista fechada) para que um Ofício
+        // customizado também satisfaça o pré-requisito genérico
+        return sheet.skills.some(isOficioSkill);
+      }
+
+      const pericia = rule.name as Skill;
+      if (rule.name && sheet.skills.includes(pericia)) return true;
+
+      // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
+      // específico para fins de pré-requisito.
+      if (ALL_SPECIFIC_OFICIOS.includes(pericia)) {
+        const hasArtesaoCriativo = getAllCharacterPowers(sheet).some(
+          (p) => p.name === 'Artesão Criativo'
+        );
+        if (
+          hasArtesaoCriativo &&
+          sheet.skills.includes(Skill.OFICIO_ARTESANATO)
+        ) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+    case RequirementType.HABILIDADE:
+      return sheet.classe.abilities.some(
+        (ability) => ability.name === rule.name
+      );
+    case RequirementType.PODER_TORMENTA: {
+      const qtdPowers = rule.value as number;
+      return (
+        // OTHER powers, so can't count itself
+        sheet.generalPowers.filter(
+          (actualPower) => actualPower.type === 'TORMENTA'
+        ).length >=
+        qtdPowers + 1
+      );
+    }
+    case RequirementType.PROFICIENCIA: {
+      const proficiencia = rule.name as string;
+
+      // Caso especial: 'all' significa qualquer proficiência de arma (exceto Simples, que todas as classes têm)
+      if (proficiencia === 'all') {
+        const weaponProficiencies = [
+          PROFICIENCIAS.MARCIAIS,
+          PROFICIENCIAS.FOGO,
+          PROFICIENCIAS.EXOTICAS,
+        ];
+        return weaponProficiencies.some((wp) =>
+          sheet.classe.proficiencias.includes(wp)
+        );
+      }
+
+      return sheet.classe.proficiencias.includes(proficiencia);
+    }
+    case RequirementType.NIVEL: {
+      const nivel = rule.value as number;
+      return sheet.nivel >= nivel;
+    }
+    case RequirementType.CLASSE: {
+      // O nome da classe fica em rule.name nos dados (não em rule.value)
+      const className = rule.name as string;
+      return !!className && isClassOrVariantOf(sheet.classe, className);
+    }
+    case RequirementType.TIPO_ARCANISTA: {
+      const classSubName = rule.name;
+      return sheet.classe.subname === classSubName;
+    }
+    case RequirementType.MAGIA: {
+      const spellName = rule.name;
+      return (
+        sheet.spells.filter((spell) => spell.nome === spellName).length >= 1
+      );
+    }
+    case RequirementType.DEVOTO: {
+      const godName = rule.name;
+      // 'any' significa que o personagem deve ser devoto de qualquer divindade
+      if (godName === 'any') return !!sheet.devoto?.divindade;
+      return sheet.devoto?.divindade.name === godName;
+    }
+    case RequirementType.RACA: {
+      const raceName = rule.name;
+      return sheet.raca.name === raceName;
+    }
+    case RequirementType.CHASSIS: {
+      return sheet.raca.chassis === rule.name;
+    }
+    case RequirementType.TIER_LIMIT: {
+      const category = rule.name as string; // "Bênção Dracônica"
+      const count = getPowerCountInCurrentTier(sheet, category);
+      return count < 1; // Máximo 1 bênção por patamar
+    }
+    case RequirementType.TEXT:
+      // TEXT requirements are always considered met - the user reads
+      // the text description and judges if they meet the requirement
+      return true;
+    default:
+      return true;
+  }
+}
+
 export function isPowerAvailable(
   sheet: CharacterSheet,
   power: GeneralPower | ClassPower
@@ -80,150 +234,7 @@ export function isPowerAvailable(
 
   if (power.requirements && power.requirements.length > 0) {
     return power.requirements.some((req) =>
-      req.every((rule) => {
-        switch (rule.type) {
-          case RequirementType.PODER: {
-            const allPowers = getAllCharacterPowers(sheet);
-
-            const foundInPowers = allPowers.some(
-              (currPower) => currPower.name === rule.name
-            );
-            if (foundInPowers) return true;
-
-            // Habilidades raciais que contam como possuir um poder
-            // (ex.: Centauro "Ginete Natural" → poder "Ginete")
-            const grantedByRace = (sheet.raca.abilities ?? []).some((a) =>
-              a.grantsPowerRequirements?.includes(rule.name ?? '')
-            );
-            if (grantedByRace) return true;
-
-            // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
-            return (sheet.sheetActionHistory ?? []).some((entry) =>
-              entry.changes.some(
-                (change) =>
-                  change.type === 'OptionChosen' &&
-                  change.chosenName === rule.name
-              )
-            );
-          }
-          case RequirementType.ATRIBUTO: {
-            const attr = rule.name as Atributo;
-            return (
-              rule.name && sheet.atributos[attr].value >= (rule?.value || 0)
-            );
-          }
-          case RequirementType.PERICIA: {
-            if (isGenericOficio(rule.name)) {
-              // isOficioSkill (e não a lista fechada) para que um Ofício
-              // customizado também satisfaça o pré-requisito genérico
-              return sheet.skills.some(isOficioSkill);
-            }
-
-            const pericia = rule.name as Skill;
-            if (rule.name && sheet.skills.includes(pericia)) return true;
-
-            // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
-            // específico para fins de pré-requisito.
-            if (ALL_SPECIFIC_OFICIOS.includes(pericia)) {
-              const hasArtesaoCriativo = getAllCharacterPowers(sheet).some(
-                (p) => p.name === 'Artesão Criativo'
-              );
-              if (
-                hasArtesaoCriativo &&
-                sheet.skills.includes(Skill.OFICIO_ARTESANATO)
-              ) {
-                return true;
-              }
-            }
-
-            return false;
-          }
-          case RequirementType.HABILIDADE: {
-            const result = sheet.classe.abilities.some(
-              (ability) => ability.name === rule.name
-            );
-            if (rule.not) return !result;
-            return result;
-          }
-          case RequirementType.PODER_TORMENTA: {
-            const qtdPowers = rule.value as number;
-            return (
-              // OTHER powers, so can't count itself
-              sheet.generalPowers.filter(
-                (actualPower) => actualPower.type === 'TORMENTA'
-              ).length >=
-              qtdPowers + 1
-            );
-          }
-          case RequirementType.PROFICIENCIA: {
-            const proficiencia = rule.name as string;
-
-            // Caso especial: 'all' significa qualquer proficiência de arma (exceto Simples, que todas as classes têm)
-            if (proficiencia === 'all') {
-              const weaponProficiencies = [
-                PROFICIENCIAS.MARCIAIS,
-                PROFICIENCIAS.FOGO,
-                PROFICIENCIAS.EXOTICAS,
-              ];
-              return weaponProficiencies.some((wp) =>
-                sheet.classe.proficiencias.includes(wp)
-              );
-            }
-
-            return sheet.classe.proficiencias.includes(proficiencia);
-          }
-          case RequirementType.NIVEL: {
-            const nivel = rule.value as number;
-            return sheet.nivel >= nivel;
-          }
-          case RequirementType.CLASSE: {
-            // O nome da classe fica em rule.name nos dados (não em rule.value)
-            const className = rule.name as string;
-            return !!className && isClassOrVariantOf(sheet.classe, className);
-          }
-          case RequirementType.TIPO_ARCANISTA: {
-            const classSubName = rule.name;
-            return sheet.classe.subname === classSubName;
-          }
-          case RequirementType.MAGIA: {
-            const spellName = rule.name;
-            return (
-              sheet.spells.filter((spell) => spell.nome === spellName).length >=
-              1
-            );
-          }
-          case RequirementType.DEVOTO: {
-            const godName = rule.name;
-            // 'any' significa que o personagem deve ser devoto de qualquer divindade
-            if (godName === 'any') {
-              const result = !!sheet.devoto?.divindade;
-              if (rule.not) return !result;
-              return result;
-            }
-            const result = sheet.devoto?.divindade.name === godName;
-            if (rule.not) return !result;
-            return result;
-          }
-          case RequirementType.RACA: {
-            const raceName = rule.name;
-            return sheet.raca.name === raceName;
-          }
-          case RequirementType.CHASSIS: {
-            return sheet.raca.chassis === rule.name;
-          }
-          case RequirementType.TIER_LIMIT: {
-            const category = rule.name as string; // "Bênção Dracônica"
-            const count = getPowerCountInCurrentTier(sheet, category);
-            return count < 1; // Máximo 1 bênção por patamar
-          }
-          case RequirementType.TEXT:
-            // TEXT requirements are always considered met - the user reads
-            // the text description and judges if they meet the requirement
-            return true;
-          default:
-            return true;
-        }
-      })
+      req.every((rule) => applyRequirementNot(rule, evaluateRule(sheet, rule)))
     );
   }
 

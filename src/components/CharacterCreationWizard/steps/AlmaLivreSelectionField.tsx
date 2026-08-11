@@ -17,10 +17,10 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import { ClassDescription, ClassPower } from '@/interfaces/Class';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
-import { RequirementType } from '@/interfaces/Poderes';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import { normalizeSearch } from '@/functions/stringUtils';
+import { formatRequirements } from '@/functions/requirementText';
 
 interface AlmaLivreSelectionFieldProps {
   availableClasses: ClassDescription[];
@@ -213,32 +213,7 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
                           }}
                         >
                           Pré-requisitos:{' '}
-                          {power.requirements
-                            .map((reqGroup) =>
-                              reqGroup
-                                .map((req) => {
-                                  switch (req.type) {
-                                    case RequirementType.NIVEL:
-                                      return `Nível ${req.value}`;
-                                    case RequirementType.PODER:
-                                      return req.name;
-                                    case RequirementType.ATRIBUTO:
-                                      return `${req.name} ${req.value}`;
-                                    case RequirementType.PERICIA:
-                                      return `Treinado em ${req.name}`;
-                                    case RequirementType.HABILIDADE:
-                                      return req.not
-                                        ? `Não ter ${req.name}`
-                                        : req.name;
-                                    default:
-                                      return '';
-                                  }
-                                })
-                                .filter((text) => text !== '')
-                                .join(' e ')
-                            )
-                            .filter((text) => text !== '')
-                            .join(' OU ')}
+                          {formatRequirements(power.requirements)}
                         </Typography>
                       </Box>
                     )}

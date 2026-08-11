@@ -14,7 +14,8 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { ClassPower } from '@/interfaces/Class';
-import { GeneralPower, RequirementType } from '@/interfaces/Poderes';
+import { GeneralPower } from '@/interfaces/Poderes';
+import { formatRequirements } from '@/functions/requirementText';
 
 interface PowerSelectionStepProps {
   classPowers: ClassPower[];
@@ -265,52 +266,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                           }}
                         >
                           Pré-requisitos:{' '}
-                          {power.requirements
-                            .map((reqGroup) =>
-                              reqGroup
-                                .map((req) => {
-                                  switch (req.type) {
-                                    case RequirementType.NIVEL:
-                                      return `Nível ${req.value}`;
-                                    case RequirementType.PODER:
-                                      return req.name;
-                                    case RequirementType.ATRIBUTO:
-                                      return `${req.name} ${req.value}`;
-                                    case RequirementType.PERICIA:
-                                      return `Treinado em ${req.name}`;
-                                    case RequirementType.HABILIDADE:
-                                      return req.not
-                                        ? `Não ter ${req.name}`
-                                        : req.name;
-                                    case RequirementType.PROFICIENCIA:
-                                      return req.name === 'all'
-                                        ? 'Proficiência em qualquer arma'
-                                        : `Proficiência: ${req.name}`;
-                                    case RequirementType.CLASSE:
-                                      return `Classe: ${req.value}`;
-                                    case RequirementType.TIPO_ARCANISTA:
-                                      return req.name;
-                                    case RequirementType.MAGIA:
-                                      return `Magia: ${req.name}`;
-                                    case RequirementType.DEVOTO:
-                                      return req.name === 'any'
-                                        ? 'Devoto de qualquer divindade'
-                                        : `Devoto de ${req.name}`;
-                                    case RequirementType.RACA:
-                                      return `Raça: ${req.name}`;
-                                    case RequirementType.CHASSIS:
-                                      return `Chassi: ${req.name}`;
-                                    case RequirementType.TEXT:
-                                      return req.text || '';
-                                    default:
-                                      return '';
-                                  }
-                                })
-                                .filter((text) => text !== '')
-                                .join(' e ')
-                            )
-                            .filter((text) => text !== '')
-                            .join(' OU ')}
+                          {formatRequirements(power.requirements)}
                         </Typography>
                       </Box>
                     )}
@@ -441,52 +397,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                           }}
                         >
                           Pré-requisitos:{' '}
-                          {power.requirements
-                            .map((reqGroup) =>
-                              reqGroup
-                                .map((req) => {
-                                  switch (req.type) {
-                                    case RequirementType.NIVEL:
-                                      return `Nível ${req.value}`;
-                                    case RequirementType.PODER:
-                                      return req.name;
-                                    case RequirementType.ATRIBUTO:
-                                      return `${req.name} ${req.value}`;
-                                    case RequirementType.PERICIA:
-                                      return `Treinado em ${req.name}`;
-                                    case RequirementType.HABILIDADE:
-                                      return req.not
-                                        ? `Não ter ${req.name}`
-                                        : req.name;
-                                    case RequirementType.PROFICIENCIA:
-                                      return req.name === 'all'
-                                        ? 'Proficiência em qualquer arma'
-                                        : `Proficiência: ${req.name}`;
-                                    case RequirementType.CLASSE:
-                                      return `Classe: ${req.value}`;
-                                    case RequirementType.TIPO_ARCANISTA:
-                                      return req.name;
-                                    case RequirementType.MAGIA:
-                                      return `Magia: ${req.name}`;
-                                    case RequirementType.DEVOTO:
-                                      return req.name === 'any'
-                                        ? 'Devoto de qualquer divindade'
-                                        : `Devoto de ${req.name}`;
-                                    case RequirementType.RACA:
-                                      return `Raça: ${req.name}`;
-                                    case RequirementType.CHASSIS:
-                                      return `Chassi: ${req.name}`;
-                                    case RequirementType.TEXT:
-                                      return req.text || '';
-                                    default:
-                                      return '';
-                                  }
-                                })
-                                .filter((text) => text !== '')
-                                .join(' e ')
-                            )
-                            .filter((text) => text !== '')
-                            .join(' OU ')}
+                          {formatRequirements(power.requirements)}
                         </Typography>
                       </Box>
                     )}
@@ -574,32 +485,9 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                         }}
                       >
                         Pré-requisitos:{' '}
-                        {almaLivrePower!.requirements
-                          .map((reqGroup) =>
-                            reqGroup
-                              .map((req) => {
-                                switch (req.type) {
-                                  case RequirementType.NIVEL:
-                                    return `Nível ${req.value} (efetivo: nível −4)`;
-                                  case RequirementType.PODER:
-                                    return req.name;
-                                  case RequirementType.ATRIBUTO:
-                                    return `${req.name} ${req.value}`;
-                                  case RequirementType.PERICIA:
-                                    return `Treinado em ${req.name}`;
-                                  case RequirementType.HABILIDADE:
-                                    return req.not
-                                      ? `Não ter ${req.name}`
-                                      : req.name;
-                                  default:
-                                    return '';
-                                }
-                              })
-                              .filter((text) => text !== '')
-                              .join(' e ')
-                          )
-                          .filter((text) => text !== '')
-                          .join(' OU ')}
+                        {formatRequirements(almaLivrePower!.requirements, {
+                          levelSuffix: ' (efetivo: nível −4)',
+                        })}
                       </Typography>
                     </Box>
                   )}
