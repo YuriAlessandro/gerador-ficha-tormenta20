@@ -1,9 +1,33 @@
 import { OriginPower } from '../../../../../interfaces/Poderes';
+import Skill from '../../../../../interfaces/Skills';
 
 export const ORIGIN_POWER_TYPE = 'ORIGEM';
 
 /**
  * Poderes de origem do suplemento Heróis de Arton
+ *
+ * Só entram em `sheetBonuses` os bônus FIXOS e INCONDICIONAIS — o resto vive na
+ * `description`. Ficaram deliberadamente sem automação:
+ *
+ * - Condicionais (dependem do alvo/situação, não do estado da ficha): Cocheiro,
+ *   Servo, Caçador de Ratos, Interrogador, Suporte de Tropas, e as partes
+ *   condicionais de Ladrão de Túmulos, Contrabandista, Pedinte, Pescador e
+ *   Carcereiro.
+ * - Insciente ("resistência a magia +5"): não existe alvo nem campo de
+ *   resistência a magia no código (o Bárbaro tem a mesma lacuna).
+ * - Ferreiro Militar e Padeiro (dano com martelos/marretas e com armas de
+ *   impacto): `WeaponDamage` só escopa por `Equipment.weaponTags`, e não há tag
+ *   de impacto nem de martelo — `heredrimm` é largo demais (inclui machados e
+ *   picaretas). Mesmo punt do poder Escavador em `powers/originPowers.ts`.
+ * - "Você é treinado em <perícia>" (Bacharel, Boticário, Catador da Catástrofe,
+ *   Chef Hynne, Cirurgião-Barbeiro, Citadino Abastado, Carpinteiro de Guilda):
+ *   o encoding é `sheetActions`/`learnSkill`, não `sheetBonuses`. Nenhum poder
+ *   de origem do repo usa isso hoje, e `getFilteredAvailableOptions` remove
+ *   perícias já treinadas — um grant obrigatório pode virar insatisfazível no
+ *   wizard. Além disso "Ofício (barbeiro)" e "Ofício (serviçal)" não existem no
+ *   enum `Skill`.
+ * - Espião: `ModifySkillAttribute` com perícia escolhida pelo jogador; não há
+ *   mecanismo de seleção para esse alvo.
  */
 const heroisArtonOriginPowers: Record<string, OriginPower> = {
   BACHAREL: {
@@ -35,6 +59,24 @@ const heroisArtonOriginPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +2 em testes contra efeitos mentais, Enganação, Furtividade e Intimidação.',
     type: ORIGIN_POWER_TYPE,
+    // O +2 contra efeitos mentais é condicional e fica só na descrição.
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Carcereiro' },
+        target: { type: 'Skill', name: Skill.ENGANACAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Carcereiro' },
+        target: { type: 'Skill', name: Skill.FURTIVIDADE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Carcereiro' },
+        target: { type: 'Skill', name: Skill.INTIMIDACAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   CARPINTEIRO_DE_GUILDA: {
     name: 'Carpinteiro de Guilda',
@@ -90,6 +132,14 @@ const heroisArtonOriginPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +5 em testes de Ladinagem para ocultar itens em si mesmo ou em veículos. Além disso, sua capacidade de carga aumenta em 2 espaços.',
     type: ORIGIN_POWER_TYPE,
+    // O +5 em Ladinagem é condicional (só para ocultar itens) e fica na descrição.
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Contrabandista' },
+        target: { type: 'MaxSpaces' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   COUREIRO: {
     name: 'Coureiro',
@@ -162,12 +212,49 @@ const heroisArtonOriginPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +3m em seu deslocamento e +2 em testes de resistência.',
     type: ORIGIN_POWER_TYPE,
+    // "Testes de resistência" = as três perícias de resistência; não há alvo
+    // agregado para elas no motor de bônus.
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Mensageiro' },
+        target: { type: 'Displacement' },
+        modifier: { type: 'Fixed', value: 3 },
+      },
+      {
+        source: { type: 'power', name: 'Mensageiro' },
+        target: { type: 'Skill', name: Skill.FORTITUDE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Mensageiro' },
+        target: { type: 'Skill', name: Skill.REFLEXOS },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Mensageiro' },
+        target: { type: 'Skill', name: Skill.VONTADE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   NAUFRAGO: {
     name: 'Náufrago',
     description:
       'Você recebe +5 PV e +2 PM. Além disso, uma vez por cena pode gastar 2 PM para receber um dos seguintes benefícios até o fim da cena: treinamento em uma perícia; proficiência com uma arma, armadura ou escudo; usar uma ferramenta no lugar de outra.',
     type: ORIGIN_POWER_TYPE,
+    // O benefício de 2 PM por cena é ativado em jogo e fica só na descrição.
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Náufrago' },
+        target: { type: 'PV' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Náufrago' },
+        target: { type: 'PM' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   PADEIRO: {
     name: 'Padeiro',
@@ -180,12 +267,32 @@ const heroisArtonOriginPowers: Record<string, OriginPower> = {
     description:
       'Você é muito discreto, recebendo +2 em Enganação e Furtividade. Além disso, aprendeu a aproveitar o máximo de cada recurso. Quando você usa um alimento, preparado alquímico ou poção, pode rolar seu efeito duas vezes e usar o melhor resultado (se o efeito for aleatório), ou pode dividir o item com um aliado adjacente (ele também gasta a ação para consumi-lo e recebe o benefício normal, mas você gasta apenas um item).',
     type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Pedinte' },
+        target: { type: 'Skill', name: Skill.ENGANACAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Pedinte' },
+        target: { type: 'Skill', name: Skill.FURTIVIDADE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   PESCADOR: {
     name: 'Pescador',
     description:
       'Você sabe aguardar o instante exato de puxar o anzol. Recebe +2 em Iniciativa e, sempre que prepara uma ação, recebe +2 em testes para executá-la.',
     type: ORIGIN_POWER_TYPE,
+    // O +2 para executar ação preparada é condicional e fica só na descrição.
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Pescador' },
+        target: { type: 'Skill', name: Skill.INICIATIVA },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   SERVO: {
     name: 'Servo',
