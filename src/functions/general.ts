@@ -14,6 +14,7 @@ import {
 import { normalizeSheet } from './sheetNormalizer';
 import { isBonusActive } from './bonusConditions';
 import { getSheetWornArmor, isWearingHeavyArmor } from './wornArmor';
+import { ignoresEncumbrance } from './encumbrance';
 import {
   getHeavyArmorPowerBonuses,
   hasFanatico,
@@ -5740,7 +5741,7 @@ export default function generateRandomSheet(
     charSheet.dinheiro,
     charSheet.dinheiroTC,
     charSheet.dinheiroTO,
-    charSheet.raca.ignoreEncumbrance ?? false,
+    ignoresEncumbrance(charSheet),
     hasHeavyArmor
   );
   charSheet.displacement = displacement;

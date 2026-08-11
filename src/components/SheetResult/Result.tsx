@@ -43,6 +43,7 @@ import {
   calculateBonusValue,
 } from '@/functions/recalculateSheet';
 import { getSheetProficiencias } from '@/functions/proficiencies';
+import { ignoresEncumbrance } from '@/functions/encumbrance';
 import {
   applyManualLevelUp,
   calculateCurrencySpaces,
@@ -308,6 +309,9 @@ const Result: React.FC<ResultProps> = (props) => {
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
+  // "Devagar e Sempre"/Golem: a sobrecarga não reduz o deslocamento, então os
+  // avisos não podem prometer um -3m que o cálculo não aplica.
+  const sheetIgnoresEncumbrance = ignoresEncumbrance(currentSheet);
   const activeEffectHighlights = useMemo(
     () => getActiveEffectHighlights(currentSheet),
     [currentSheet]
@@ -2679,6 +2683,7 @@ const Result: React.FC<ResultProps> = (props) => {
                           dinheiroTO
                         )}
                         maxSpaces={customMaxSpaces ?? maxSpaces}
+                        ignoresEncumbrance={sheetIgnoresEncumbrance}
                       />
                     </Box>
                   </TabPanel>
@@ -2835,16 +2840,23 @@ const Result: React.FC<ResultProps> = (props) => {
                           dinheiroTO
                         );
                       if (totalUsedSpaces > effectiveMaxSpaces) {
-                        return (
-                          <Tooltip
-                            title={`Sobrecarga: ${totalUsedSpaces.toFixed(
+                        // Anão/Golem: a sobrecarga ainda é informação útil, mas
+                        // o deslocamento não cai — não anunciar o -3m.
+                        const tooltip = sheetIgnoresEncumbrance
+                          ? `Sobrecarga: ${totalUsedSpaces.toFixed(
                               1
-                            )}/${effectiveMaxSpaces} espaços (-3m)`}
-                          >
+                            )}/${effectiveMaxSpaces} espaços (sua raça ignora a redução de deslocamento)`
+                          : `Sobrecarga: ${totalUsedSpaces.toFixed(
+                              1
+                            )}/${effectiveMaxSpaces} espaços (-3m)`;
+                        return (
+                          <Tooltip title={tooltip}>
                             <Chip
                               size='small'
                               label='Sobrecarga'
-                              color='error'
+                              color={
+                                sheetIgnoresEncumbrance ? 'warning' : 'error'
+                              }
                               sx={{ mt: 1, fontSize: '0.7rem' }}
                             />
                           </Tooltip>

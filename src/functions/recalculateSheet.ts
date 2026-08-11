@@ -56,6 +56,7 @@ import { expandAttributeBonus } from './attributeExpansion';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
 import { getSheetWornArmor } from './wornArmor';
+import { ignoresEncumbrance } from './encumbrance';
 import {
   getHeavyArmorPowerBonuses,
   hasFanatico,
@@ -2315,7 +2316,7 @@ export function recalculateSheet(
       updatedSheet.dinheiro,
       updatedSheet.dinheiroTC,
       updatedSheet.dinheiroTO,
-      updatedSheet.raca.ignoreEncumbrance ?? false,
+      ignoresEncumbrance(updatedSheet),
       // Fanático: "seu deslocamento não é reduzido por usar armaduras pesadas".
       heavyArmor && !hasFanatico(updatedSheet)
     );

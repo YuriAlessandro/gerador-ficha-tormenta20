@@ -255,6 +255,13 @@ export function stripSheetForStorage(
       nature: sheet.raca.nature,
       presentPowers: sheet.raca.presentPowers,
       tabuSkill: sheet.raca.tabuSkill,
+      // "Devagar e Sempre"/Golem: sem isso a ficha volta da nuvem sem a
+      // isenção e o recálculo aplica −3m de deslocamento por carga/armadura.
+      ignoreEncumbrance: sheet.raca.ignoreEncumbrance,
+      // A raça original de Osteon/Yidishan/Soterrado é a fonte do
+      // deslocamento, do tamanho e da isenção acima. Sem preservá-la, o
+      // rehydrate roda `setup()` de novo e SORTEIA outra raça-base.
+      oldRace: sheet.raca.oldRace,
       // STRIP generation metadata (not needed post-creation)
       // faithProbability, attributeVariants, setup, getSize, getDisplacement, getAttributes
       // are omitted (functions are lost on serialization anyway)
@@ -385,6 +392,30 @@ function refreshChosenPowersFromCatalog(
   }
 }
 
+/**
+ * `ignoreEncumbrance` ("Devagar e Sempre" do Anão/Trog Anão, Golem) só passou a
+ * existir em jun/2026, e até agora o strip descartava o campo — então tanto
+ * fichas antigas quanto tudo que voltava da nuvem chegava aqui sem a isenção e
+ * levava −3m de deslocamento por carga/armadura.
+ *
+ * Precedência: o valor gravado na ficha vence (é o único que sabe qual raça-base
+ * um Osteon sorteou), com o catálogo como cura para quem nunca teve o campo.
+ * A consulta usa a definição ESTÁTICA da raça — `getRaceByName` executaria
+ * `setup()` e re-sortearia dados da raça.
+ */
+function refreshRaceEncumbranceFlag(
+  sheet: CharacterSheet,
+  supplementIds: SupplementId[]
+) {
+  if (!sheet.raca?.name || sheet.raca.ignoreEncumbrance !== undefined) return;
+
+  const catalogRace = dataRegistry
+    .getRacesBySupplements(supplementIds)
+    .find((r) => r.name === sheet.raca.name);
+
+  sheet.raca.ignoreEncumbrance = catalogRace?.ignoreEncumbrance ?? false;
+}
+
 export function rehydrateSheet(
   sheetData: Record<string, unknown>,
   supplementIds: SupplementId[]
@@ -396,6 +427,7 @@ export function rehydrateSheet(
   // definition (e.g., weapon-specialization on Foco em Arma).
   if (!(STRIPPED_MARKER in sheetData)) {
     refreshChosenPowersFromCatalog(sheet, supplementIds);
+    refreshRaceEncumbranceFlag(sheet, supplementIds);
     return sheet;
   }
 
@@ -468,6 +500,7 @@ export function rehydrateSheet(
         attributeVariants: fullRace.attributeVariants,
       } as Race;
     }
+    refreshRaceEncumbranceFlag(sheet, supplementIds);
   }
 
   // Rehydrate devoto.divindade (restore deity powers catalog from registry)

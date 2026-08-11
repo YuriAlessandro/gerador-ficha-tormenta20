@@ -42,6 +42,7 @@ import CharacterSheet, {
 import Bag from '../../../interfaces/Bag';
 import Equipment, { equipGroup } from '../../../interfaces/Equipment';
 import { recalculateSheet } from '../../../functions/recalculateSheet';
+import { ignoresEncumbrance } from '../../../functions/encumbrance';
 import BackpackItemCard from './BackpackItemCard';
 import BackpackToolbar from './BackpackToolbar';
 import AddItemDialog from './AddItemDialog';
@@ -116,6 +117,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     [sheet.dinheiro, sheet.dinheiroTC, sheet.dinheiroTO]
   );
   const forca = sheet.atributos.Força.value;
+  // "Devagar e Sempre"/Golem: sobrecarregar não custa deslocamento.
+  const sheetIgnoresEncumbrance = ignoresEncumbrance(sheet);
 
   const state = useBackpackState({
     bag: sheet.bag,
@@ -690,16 +693,22 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         )}
 
         {totals.isOverloaded && (
-          <Alert severity='error' sx={{ mb: 2 }}>
+          <Alert
+            severity={sheetIgnoresEncumbrance ? 'warning' : 'error'}
+            sx={{ mb: 2 }}
+          >
             <Typography variant='body2' sx={{ fontWeight: 600 }}>
               Você está sobrecarregado: {totals.totalSpaces} /{' '}
               {totals.maxSpaces} espaços usados
             </Typography>
             <Typography variant='caption' sx={{ display: 'block', mt: 0.25 }}>
               Itens em vermelho excedem o limite na ordem da mochila. Você ainda
-              pode carregá-los, mas seu deslocamento sofre penalidade enquanto
-              estiver sobrecarregado. (Capacidade = 10 + 2×Força, ou 10 −
-              |Força| quando negativa. Cada 1.000 moedas conta 1 espaço.)
+              pode carregá-los,{' '}
+              {sheetIgnoresEncumbrance
+                ? 'e sua raça ignora a redução de deslocamento por excesso de carga.'
+                : 'mas seu deslocamento sofre penalidade enquanto estiver sobrecarregado.'}{' '}
+              (Capacidade = 10 + 2×Força, ou 10 − |Força| quando negativa. Cada
+              1.000 moedas conta 1 espaço.)
             </Typography>
           </Alert>
         )}
