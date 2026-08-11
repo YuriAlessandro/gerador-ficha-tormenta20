@@ -202,6 +202,34 @@ export function isProficientWithDefense(
 }
 
 /**
+ * Penalidade de armadura ATIVA da ficha: soma o `armorPenalty` da armadura
+ * vestida e do(s) escudo(s) em mão, independentemente de proficiência. Valor
+ * positivo (é subtraído por quem usa).
+ *
+ * Prefere `Bag.getActiveArmorPenalty` (que resolve "vestida/empunhado",
+ * incluindo o fallback legado de armadura única sem `wornArmorId`), com
+ * degradação para `getArmorPenalty()` e para o campo `armorPenalty` cru quando
+ * o Bag perdeu os métodos de classe (pós-cloneDeep/serialização).
+ *
+ * Ponto único: recálculo de perícias, geração aleatória e qualquer teste que
+ * sofra penalidade de armadura (ex.: Enganação no Usurpar) leem daqui.
+ */
+export function getActiveArmorPenalty(sheet: CharacterSheet): number {
+  const { bag } = sheet;
+  if (!bag) return 0;
+
+  if (bag.getActiveArmorPenalty) {
+    return bag.getActiveArmorPenalty(
+      sheet.wornArmorId,
+      sheet.mainHandItemId,
+      sheet.offHandItemId
+    );
+  }
+  if (bag.getArmorPenalty) return bag.getArmorPenalty();
+  return bag.armorPenalty ?? 0;
+}
+
+/**
  * Soma de `armorPenalty` dos itens de defesa ATIVOS (armadura vestida +
  * escudo(s) empunhado(s)) com os quais o personagem NÃO é proficiente. Em
  * Tormenta 20, essa parcela se aplica a TODAS as perícias baseadas em Força e

@@ -69,6 +69,11 @@ const USURPADOR: VariantClassOverrides = {
       nivel: 2,
     },
     {
+      name: 'Poder de Clérigo',
+      text: 'A partir do 2º nível, você recebe esta habilidade como o clérigo básico (mas não pode escolher Conhecimento Mágico). Você substitui Sabedoria por Carisma em todos os poderes de clérigo e concedidos com efeito baseado nesse atributo.',
+      nivel: 2,
+    },
+    {
       name: 'Discrição Divina',
       text: 'No 3º nível, você recebe +1 em Furtividade e testes de resistência. A cada seis níveis, esse bônus aumenta em +1.',
       nivel: 3,
@@ -130,6 +135,10 @@ const USURPADOR: VariantClassOverrides = {
       return 5;
     },
     keyAttribute: Atributo.CARISMA,
+    // Usurpar: ele não aprende magia nenhuma (initialSpells 0 e nada por
+    // nível), mas pode lançar QUALQUER magia divina dos círculos a que tem
+    // acesso. A lista é derivada no render por `getDerivedSpells`.
+    spellAccess: 'allOfType',
   },
   excludedPowers: ['Conhecimento Mágico'],
   setup: undefined,

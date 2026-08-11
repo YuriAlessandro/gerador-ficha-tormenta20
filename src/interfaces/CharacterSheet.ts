@@ -873,6 +873,7 @@ export interface SerializedSpellPath {
   crossTraditionLimit?: number;
   crossTraditionRules?: CrossTraditionRules;
   keyAttribute: Atributo;
+  spellAccess?: 'known' | 'allOfType';
   // Metadata para restaurar funções
   className: string;
   classSubname?: string;

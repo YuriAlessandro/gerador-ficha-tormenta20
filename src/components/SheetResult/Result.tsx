@@ -42,7 +42,15 @@ import {
   recalculateSheet,
   calculateBonusValue,
 } from '@/functions/recalculateSheet';
-import { getSheetProficiencias } from '@/functions/proficiencies';
+import {
+  getActiveArmorPenalty,
+  getSheetProficiencias,
+} from '@/functions/proficiencies';
+import {
+  getDerivedSpells,
+  getDerivedSpellsNotice,
+} from '@/functions/spells/derivedSpells';
+import { buildUsurparCastCheck } from '@/functions/spells/usurpar';
 import { ignoresEncumbrance } from '@/functions/encumbrance';
 import {
   applyManualLevelUp,
@@ -747,8 +755,19 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
+  /**
+   * Magia derivada (Usurpar) não vive em `sheet.spells` — sem este guard, o
+   * `map` abaixo devolveria um array novo e idêntico e dispararia um save
+   * inútil a cada interação.
+   */
+  const ownsSpell = useCallback(
+    (spell: Spell) => !!currentSheet.spells?.some((s) => s.nome === spell.nome),
+    [currentSheet.spells]
+  );
+
   const handleSpellRollsUpdate = useCallback(
     (spell: Spell, newRolls: DiceRoll[]) => {
+      if (!ownsSpell(spell)) return;
       const updatedSpells = currentSheet.spells?.map((s) =>
         s.nome === spell.nome ? { ...s, rolls: newRolls } : s
       );
@@ -763,6 +782,7 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleToggleMemorized = useCallback(
     (spell: Spell) => {
+      if (!ownsSpell(spell)) return;
       const updatedSpells = currentSheet.spells?.map((s) =>
         s.nome === spell.nome ? { ...s, memorized: !s.memorized } : s
       );
@@ -777,6 +797,7 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleToggleAlwaysPrepared = useCallback(
     (spell: Spell) => {
+      if (!ownsSpell(spell)) return;
       const updatedSpells = currentSheet.spells?.map((s) =>
         s.nome === spell.nome
           ? {
@@ -792,7 +813,7 @@ const Result: React.FC<ResultProps> = (props) => {
         onSheetUpdate(updatedSheet);
       }
     },
-    [currentSheet, onSheetUpdate]
+    [currentSheet, onSheetUpdate, ownsSpell]
   );
 
   // Campos por-instância do poder (rolagens, efeitos, nome/texto customizados)
@@ -805,7 +826,7 @@ const Result: React.FC<ResultProps> = (props) => {
         onSheetUpdate(updatedSheet);
       }
     },
-    [currentSheet, onSheetUpdate]
+    [currentSheet, onSheetUpdate, ownsSpell]
   );
 
   const handlePowerRollsUpdate = useCallback(
@@ -846,7 +867,7 @@ const Result: React.FC<ResultProps> = (props) => {
         onSheetUpdate(updatedSheet);
       }
     },
-    [currentSheet, onSheetUpdate]
+    [currentSheet, onSheetUpdate, ownsSpell]
   );
 
   const handlePMDecrement = useCallback(
@@ -1659,6 +1680,33 @@ const Result: React.FC<ResultProps> = (props) => {
     currentSheet.overrideKeyAttribute ??
     Atributo.SABEDORIA;
   const keyAttr = atributos[effectiveKeyAttribute];
+
+  /**
+   * Usurpar (Usurpador): a classe não aprende magias, mas pode lançar qualquer
+   * magia divina dos círculos acessíveis. A lista é DERIVADA aqui e nunca
+   * gravada em `sheet.spells` — ver `derivedSpells.ts`.
+   *
+   * As deps são estreitas de propósito: `currentSheet` muda a cada tique de
+   * PV/PM e recalcularia ~140 magias à toa. O que importa é o círculo e o tipo.
+   */
+  // O useMemo aqui é só para evitar a chamada; a estabilidade de referência (o
+  // que realmente importa, porque o SpellsDisplay memoiza em cima da lista) vem
+  // do cache por (tipo, círculo, suplementos) dentro de `getDerivedSpells`.
+  // Por isso `currentSheet` pode entrar nas deps sem custo: a cada tique de
+  // PV/PM o memo reexecuta, mas devolve exatamente a mesma referência.
+  const derivedSpells = useMemo(
+    () => getDerivedSpells(currentSheet, userSupplements),
+    [currentSheet, userSupplements]
+  );
+  const isDerivedSpells = derivedSpells.length > 0;
+  const displayedSpells = isDerivedSpells ? derivedSpells : spells;
+  const derivedSpellsNotice = getDerivedSpellsNotice(currentSheet);
+  // Teste de Enganação do Usurpar. `undefined` para todo mundo que não tem a
+  // habilidade — aí o diálogo de conjuração se comporta como sempre.
+  const usurparCastCheck = useMemo(
+    () => buildUsurparCastCheck(currentSheet),
+    [currentSheet]
+  );
 
   const spellDCBonus = useMemo(() => {
     let total = currentSheet.bonusSpellDC ?? 0;
@@ -2503,18 +2551,7 @@ const Result: React.FC<ResultProps> = (props) => {
                             }}
                           >
                             <strong>Penalidade de Armadura: </strong>
-                            {((() => {
-                              if (bag.getActiveArmorPenalty) {
-                                return bag.getActiveArmorPenalty(
-                                  currentSheet.wornArmorId,
-                                  currentSheet.mainHandItemId,
-                                  currentSheet.offHandItemId
-                                );
-                              }
-                              if (bag.getArmorPenalty)
-                                return bag.getArmorPenalty();
-                              return bag.armorPenalty;
-                            })() +
+                            {(getActiveArmorPenalty(currentSheet) +
                               extraArmorPenalty) *
                               -1}
                           </Typography>
@@ -2614,12 +2651,17 @@ const Result: React.FC<ResultProps> = (props) => {
                     <Box>
                       <BookTitle>Magias</BookTitle>
                       <Spells
-                        spells={spells}
+                        spells={displayedSpells}
                         keyAttr={keyAttr}
                         selectedKeyAttribute={effectiveKeyAttribute}
                         nivel={nivel}
+                        // Magia derivada não é da ficha: sem `onUpdateRolls` o
+                        // diálogo esconde o editor persistente de rolagens e
+                        // mantém só o override efêmero da conjuração.
                         onUpdateRolls={
-                          onSheetUpdate ? handleSpellRollsUpdate : undefined
+                          onSheetUpdate && !isDerivedSpells
+                            ? handleSpellRollsUpdate
+                            : undefined
                         }
                         characterName={nome}
                         currentPM={currentSheet.currentPM ?? pm}
@@ -2642,6 +2684,9 @@ const Result: React.FC<ResultProps> = (props) => {
                         getCircleWarning={(circle) =>
                           getDeitySpellCircleWarning(currentSheet, circle)
                         }
+                        derived={isDerivedSpells}
+                        derivedNotice={derivedSpellsNotice}
+                        castCheck={usurparCastCheck}
                         sheet={currentSheet}
                         onActivateEffect={
                           onSheetUpdate && canUseActiveEffects

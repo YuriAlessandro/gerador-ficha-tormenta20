@@ -128,6 +128,22 @@ export interface SpellPath {
   qtySpellsLearnAtLevel: (level: number) => number;
   spellCircleAvailableAtLevel: (level: number) => number;
   keyAttribute: Atributo;
+  /**
+   * Como o personagem obtém acesso às magias.
+   *
+   * ausente / 'known' — padrão: aprende magias, que ficam em `sheet.spells`.
+   * 'allOfType' — Usurpar (Usurpador): lança QUALQUER magia do `spellType` nos
+   *   círculos a que tem acesso, sem aprender nenhuma. A lista é DERIVADA no
+   *   render por `getDerivedSpells` e NUNCA persistida em `sheet.spells` —
+   *   mesmo contrato de `getDeitySpellCircleWarning`.
+   *
+   * ATENÇÃO: `spellPath` não sobrevive à serialização (carrega funções) e é
+   * reconstruído em vários pontos. Ao mexer aqui, conferir todos eles:
+   * `SerializedSpellPath`, `serializeSpellPath`/`applySerializedOverrides`
+   * (multiclass.ts), `sheetPayloadOptimizer` (strip campo a campo),
+   * `restoreSpellPath` (general.ts) e o rebuild inline do LevelUpWizardModal.
+   */
+  spellAccess?: 'known' | 'allOfType';
 }
 export interface ClassDescription {
   name: string;

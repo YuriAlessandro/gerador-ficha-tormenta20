@@ -62,10 +62,12 @@ import {
   hasFanatico,
 } from './powers/heavyArmorPowers';
 import {
+  getActiveArmorPenalty,
   getNonProficientArmorPenalty,
   getSheetProficiencias,
   isProficientWithWeapon,
 } from './proficiencies';
+import { applyAttributeSubstitution } from './powers/attributeSubstitution';
 import { stampUsedSupplements } from './contentSources';
 import {
   isModeScopedForWeapon,
@@ -888,18 +890,7 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
   // Calculate armor penalty for skills that are affected by armor. Use the
   // wielding/worn-aware variant so multiple armors in the bag don't double-
   // count — only the worn armor and the wielded shield contribute.
-  let armorPenalty = 0;
-  if (updatedSheet.bag.getActiveArmorPenalty) {
-    armorPenalty = updatedSheet.bag.getActiveArmorPenalty(
-      updatedSheet.wornArmorId,
-      updatedSheet.mainHandItemId,
-      updatedSheet.offHandItemId
-    );
-  } else if (updatedSheet.bag.getArmorPenalty) {
-    armorPenalty = updatedSheet.bag.getArmorPenalty();
-  } else {
-    armorPenalty = updatedSheet.bag.armorPenalty;
-  }
+  const armorPenalty = getActiveArmorPenalty(updatedSheet);
 
   // Non-proficient armor/shield (T20 rule): the armor penalty of active items
   // the character can't use extends to ALL Força/Destreza-based skills, not
@@ -1941,6 +1932,12 @@ export function recalculateSheet(
   // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
   // replace it. Pushes SheetBonus entries for the main loop below.
   updatedSheet = applyActiveEffectBonuses(updatedSheet);
+
+  // Step 7.47: Substituição de atributo em escopo de ficha (Usurpador, "Poder
+  // de Clérigo": Sabedoria vira Carisma nos poderes de clérigo e concedidos).
+  // Depois de 7.45 para alcançar também os bônus do Poder Capturado ativado, e
+  // antes do Step 8, que é quem consome `ModifySkillAttribute`.
+  applyAttributeSubstitution(updatedSheet);
 
   // Check for manual max overrides - when set, skip ALL recalculation for that stat
   // Player takes full control of these values when manually defined

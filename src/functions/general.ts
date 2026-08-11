@@ -72,7 +72,11 @@ import {
   rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/systems/tormenta20/proficiencias';
-import { getNonProficientArmorPenalty } from './proficiencies';
+import {
+  getActiveArmorPenalty,
+  getNonProficientArmorPenalty,
+} from './proficiencies';
+import { applyAttributeSubstitution } from './powers/attributeSubstitution';
 import {
   generateRandomCompanion,
   createCompanion,
@@ -4870,7 +4874,15 @@ const calculateBonusValue = (
   return 0;
 };
 
-const applyStatModifiers = (
+/**
+ * Motor de derivação da geração ALEATÓRIA. O espelho do wizard/recálculo é
+ * `recalculateSheet` — os dois divergem em silêncio, então toda regra nova
+ * precisa entrar nos dois e ser coberta por teste nos dois.
+ *
+ * Exportado para os testes conseguirem exercitar este caminho diretamente, sem
+ * depender do sorteio de `gerarFicha`.
+ */
+export const applyStatModifiers = (
   _sheet: CharacterSheet,
   manualSelections?: SelectionOptions
 ) => {
@@ -4902,6 +4914,11 @@ const applyStatModifiers = (
   // Defesa quanto a RD. Auto-gateado por armadura pesada VESTIDA — entra depois
   // do filtro de `isBonusActive`, então um `condition` aqui não seria aplicado.
   sheet.sheetBonuses.push(...getHeavyArmorPowerBonuses(sheet));
+
+  // Substituição de atributo em escopo de ficha (Usurpador, "Poder de Clérigo").
+  // Espelho do Step 7.47 de `recalculateSheet`: precisa rodar nos DOIS motores,
+  // depois dos bônus coletados e antes do loop que os consome.
+  applyAttributeSubstitution(sheet);
 
   const pvSubSteps: SubStep[] = [];
   const pmSubSteps: SubStep[] = [];
@@ -5672,14 +5689,7 @@ export default function generateRandomSheet(
 
       let armorPenalty = 0;
       if (SkillsWithArmorPenalty.includes(skill)) {
-        armorPenalty =
-          charSheet.bag.getActiveArmorPenalty?.(
-            charSheet.wornArmorId,
-            charSheet.mainHandItemId,
-            charSheet.offHandItemId
-          ) ??
-          charSheet.bag.getArmorPenalty?.() ??
-          0;
+        armorPenalty = getActiveArmorPenalty(charSheet);
       } else if (
         skillAttr === Atributo.FORCA ||
         skillAttr === Atributo.DESTREZA
@@ -7116,6 +7126,10 @@ export function restoreSpellPath(
   const originalInitialSpells = sheet.classe.spellPath.initialSpells;
   const originalCrossTraditionRules =
     sheet.classe.spellPath.crossTraditionRules;
+  // Usurpar (Usurpador): normalmente volta do rebuild pela classe do registry,
+  // mas é capturado aqui para o caso da classe não ser resolvível (suplemento
+  // desativado por quem visualiza) — sem ele a aba de magias derivada some.
+  const originalSpellAccess = sheet.classe.spellPath.spellAccess;
 
   if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
     // Arcanista: lookup by subtype (setup() randomizes, so we use the saved subname)
@@ -7154,6 +7168,7 @@ export function restoreSpellPath(
       crossTraditionLimit: originalCrossTraditionLimit,
       crossTraditionRules: originalCrossTraditionRules,
       keyAttribute: originalKeyAttribute,
+      spellAccess: originalSpellAccess,
       className: sheet.classe.name,
       classSubname: sheet.classe.subname,
     });

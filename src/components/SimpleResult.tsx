@@ -6,6 +6,10 @@ import {
   getPowerDisplayName,
   getPowerDisplayText,
 } from '../functions/powers/powerText';
+import {
+  getDerivedSpellCircle,
+  hasDerivedSpellAccess,
+} from '../functions/spells/derivedSpells';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { SkillsTotals } from '../interfaces/Skills';
@@ -257,7 +261,20 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
           </div>
         ))}
         {/* Mágias */}
-        {sheet.spells.length > 0 && (
+        {/*
+          Usurpar (Usurpador): a ficha não tem magias — o repertório é o
+          catálogo divino inteiro até o círculo acessível, então listar nomes
+          aqui não faz sentido.
+        */}
+        {hasDerivedSpellAccess(sheet) && (
+          <div>
+            <SheetDivisor />
+            <SheetText>Magias </SheetText>
+            Qualquer magia divina até o {getDerivedSpellCircle(sheet)}º círculo
+            (Usurpar).
+          </div>
+        )}
+        {!hasDerivedSpellAccess(sheet) && sheet.spells.length > 0 && (
           <div>
             <SheetDivisor />
             <SheetText>Magias </SheetText>

@@ -30,7 +30,7 @@ import { ACTIVE_EFFECT_COLOR } from '@/premium/functions/activeEffectHighlights'
 import SpellAreaGuideSection from '@/premium/components/SpellAreaGuide/SpellAreaGuideSection';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { executeMultipleDamageRolls } from '@/utils/diceRoller';
+import { executeMultipleDamageRolls, rollDie } from '@/utils/diceRoller';
 import { buildSpellAbilityMeta } from '@/functions/rollAbilityMeta';
 import {
   augmentSpellRolls,
@@ -42,6 +42,49 @@ import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSp
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
 import { RollGroup } from '../premium/services/socket.service';
 import RollsEditDialog from './RollsEditDialog';
+
+/** Resultado bruto do teste que precede o lançamento (Usurpar). */
+export interface SpellCastCheckResult {
+  d20: number;
+  total: number;
+  dc: number;
+  success: boolean;
+}
+
+/**
+ * Ajuste do lançamento derivado do resultado do teste (Roubo Divino).
+ *
+ * `dcBonus` é POR LANÇAMENTO e por isso só aparece no card da rolagem — não
+ * cabe em `sheetBonuses` nem em `bonusSpellDC`, que são valores por ficha;
+ * gravá-lo ali vazaria estado temporário para a ficha persistida.
+ */
+export interface SpellCastCheckAdjustment {
+  /** Somado ao custo em PM (negativo reduz). */
+  pmDelta: number;
+  /** Somado à CD para resistir à magia (informativo). */
+  dcBonus: number;
+  /** Linha extra no card do histórico. */
+  note?: string;
+}
+
+/**
+ * Teste que precede o lançamento. Ausente = comportamento padrão do diálogo.
+ * Montado por `buildUsurparCastCheck` (functions/spells/usurpar.ts).
+ */
+export interface SpellCastCheck {
+  /** Ex.: 'Enganação (Usurpar)'. */
+  label: string;
+  /** Bônus total já resolvido pelo pai (perícia − penalidade de armadura). */
+  modifier: number;
+  /** CD a partir do custo final em PM (que só existe aqui dentro). */
+  getDC: (pmCost: number) => number;
+  /** Penalidades situacionais que o jogador liga/desliga. */
+  toggles?: { id: string; label: string; value: number }[];
+  /** Texto de regra exibido sob o teste. */
+  note?: string;
+  /** Gancho para converter o resultado em ajuste do lançamento. */
+  resolve?: (result: SpellCastCheckResult) => SpellCastCheckAdjustment;
+}
 
 interface SpellCastDialogProps {
   open: boolean;
@@ -55,6 +98,8 @@ interface SpellCastDialogProps {
   onCast: (pmSpent: number, spell: Spell, castLogged?: boolean) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
+  /** Teste obrigatório antes do lançamento (Usurpar). */
+  castCheck?: SpellCastCheck;
 }
 
 const isStackable = (aprimoramento: Aprimoramento): boolean =>
@@ -82,6 +127,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   onCast,
   onUpdateRolls,
   characterName,
+  castCheck,
 }) => {
   const theme = useTheme();
   const { showDiceResult, logExternalRoll } = useDiceRoll();
@@ -113,6 +159,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     null
   );
   const [selectedRollIds, setSelectedRollIds] = useState<Set<string>>(
+    new Set()
+  );
+  // Penalidades situacionais do teste (ex.: símbolo sagrado visível).
+  const [activeCheckToggles, setActiveCheckToggles] = useState<Set<string>>(
     new Set()
   );
 
@@ -222,6 +272,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       setLocalRolls(rollsWithIds);
       // Select all rolls by default
       setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
+      setActiveCheckToggles(new Set());
     }
   }, [open, spell.rolls]);
 
@@ -308,6 +359,24 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
   }, []);
 
+  /** Modificador exibido: bônus base + penalidades situacionais ligadas. */
+  const castCheckModifier = useMemo(() => {
+    if (!castCheck) return 0;
+    const situational = (castCheck.toggles ?? [])
+      .filter((toggle) => activeCheckToggles.has(toggle.id))
+      .reduce((sum, toggle) => sum + toggle.value, 0);
+    return castCheck.modifier + situational;
+  }, [castCheck, activeCheckToggles]);
+
+  const handleToggleCheckPenalty = useCallback((id: string) => {
+    setActiveCheckToggles((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   const handleResetOverride = useCallback(() => {
     setOverriddenRolls(null);
     setSelectedRollIds(
@@ -316,23 +385,72 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   }, [effectiveRolls]);
 
   const handleCast = useCallback(() => {
-    // Executa somente as rolagens selecionadas (edição manual quando houver,
-    // senão o aumento automático), suportando notação multi-grupo.
-    const rollsToExecute = displayedRolls
-      .filter((roll) => roll.id && selectedRollIds.has(roll.id))
-      .map(toPlainRoll);
+    // Teste que precede o lançamento (Usurpar). O grupo do teste entra como
+    // PRIMEIRO grupo do card para o histórico mostrar teste e dano juntos.
+    let checkGroup: RollGroup | undefined;
+    let adjustment: SpellCastCheckAdjustment = { pmDelta: 0, dcBonus: 0 };
+    let checkFailed = false;
+
+    if (castCheck) {
+      const situational = (castCheck.toggles ?? [])
+        .filter((toggle) => activeCheckToggles.has(toggle.id))
+        .reduce((sum, toggle) => sum + toggle.value, 0);
+      const modifier = castCheck.modifier + situational;
+      const d20 = rollDie(20);
+      const total = d20 + modifier;
+      const dc = castCheck.getDC(totalPMCost);
+      const success = total >= dc;
+
+      checkFailed = !success;
+      if (success) {
+        adjustment =
+          castCheck.resolve?.({ d20, total, dc, success }) ?? adjustment;
+      }
+
+      checkGroup = {
+        label: `${castCheck.label} — CD ${dc}`,
+        diceNotation: `1d20${modifier >= 0 ? '+' : ''}${modifier}`,
+        rolls: [d20],
+        modifier,
+        total,
+      };
+    }
+
+    // "Se falhar, a magia é perdida, mas os PM são gastos mesmo assim": nada
+    // de dano, mas o custo continua sendo cobrado abaixo.
+    const rollsToExecute = checkFailed
+      ? []
+      : displayedRolls
+          .filter((roll) => roll.id && selectedRollIds.has(roll.id))
+          .map(toPlainRoll);
+
+    const pmSpent = shouldSpendPM
+      ? Math.max(0, totalPMCost + adjustment.pmDelta)
+      : 0;
 
     // Nome, descrição, círculo e PM acompanham a rolagem no histórico da
     // mesa — antes o card mostrava só os números do dano.
-    const ability = buildSpellAbilityMeta(
-      spell,
-      shouldSpendPM ? totalPMCost : 0
-    );
+    const ability = buildSpellAbilityMeta(spell, pmSpent);
+    const extraNote = (() => {
+      if (checkFailed)
+        return 'Usurpar falhou: a magia é perdida, mas os PM são gastos.';
+      return adjustment.note;
+    })();
+    const abilityWithNote = extraNote
+      ? {
+          ...ability,
+          description: [ability.description, extraNote]
+            .filter(Boolean)
+            .join(' · '),
+        }
+      : ability;
 
     // O card do lançamento sai daqui, EXCETO quando a ficha vai oferecer o
     // efeito ativo e não há dano a rolar — nesse caso quem publica é a
-    // ativação do efeito, já com o botão de ativar junto.
-    const castLogged = rollsToExecute.length > 0 || !willLogViaEffect;
+    // ativação do efeito, já com o botão de ativar junto. Com teste de
+    // conjuração sempre publicamos: o resultado do teste é a informação.
+    const castLogged =
+      rollsToExecute.length > 0 || !!checkGroup || !willLogViaEffect;
 
     if (rollsToExecute.length > 0) {
       const damageTypeById = new Map(
@@ -347,16 +465,24 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         total: Math.max(1, result.total),
         damageType: damageTypeById.get(result.rollId),
       }));
-      showDiceResult(spell.nome, rollGroups, characterName, ability);
+      showDiceResult(
+        spell.nome,
+        checkGroup ? [checkGroup, ...rollGroups] : rollGroups,
+        characterName,
+        abilityWithNote
+      );
+    } else if (checkGroup) {
+      showDiceResult(spell.nome, [checkGroup], characterName, abilityWithNote);
     } else if (castLogged) {
       // Magia sem dano (utilitária/buff) e sem efeito ativo: sem isso ela não
       // aparecia em lugar nenhum do histórico, mesmo tendo custado PM.
-      logExternalRoll(spell.nome, [], characterName, ability);
+      logExternalRoll(spell.nome, [], characterName, abilityWithNote);
     }
 
     // Sempre repassa o lançamento (com 0 PM quando o jogador opta por não
     // gastar) para que o efeito ativo da magia, se houver, seja oferecido.
-    onCast(shouldSpendPM ? totalPMCost : 0, spell, castLogged);
+    // Na falha do teste não há efeito a oferecer — a magia não aconteceu.
+    onCast(pmSpent, spell, castLogged);
 
     onClose();
   }, [
@@ -364,6 +490,8 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     selectedRollIds,
     shouldSpendPM,
     totalPMCost,
+    castCheck,
+    activeCheckToggles,
     onCast,
     onClose,
     showDiceResult,
@@ -830,6 +958,62 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                 </Typography>
               )}
             </Box>
+
+            {castCheck && (
+              <>
+                <Divider />
+                <Box>
+                  <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                    {castCheck.label}
+                  </Typography>
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 1 }}
+                  >
+                    <Chip
+                      size='small'
+                      color='primary'
+                      label={`CD ${castCheck.getDC(totalPMCost)}`}
+                    />
+                    <Chip
+                      size='small'
+                      variant='outlined'
+                      label={`1d20 ${
+                        castCheckModifier >= 0 ? '+' : '−'
+                      } ${Math.abs(castCheckModifier)}`}
+                    />
+                  </Stack>
+                  {(castCheck.toggles ?? []).map((toggle) => (
+                    <FormControlLabel
+                      key={toggle.id}
+                      control={
+                        <Checkbox
+                          size='small'
+                          checked={activeCheckToggles.has(toggle.id)}
+                          onChange={() => handleToggleCheckPenalty(toggle.id)}
+                        />
+                      }
+                      label={`${toggle.label} (${
+                        toggle.value >= 0 ? '+' : '−'
+                      }${Math.abs(toggle.value)})`}
+                    />
+                  ))}
+                  {castCheck.note && (
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        display: 'block',
+                        color: 'text.secondary',
+                        mt: 0.5,
+                      }}
+                    >
+                      {castCheck.note}
+                    </Typography>
+                  )}
+                </Box>
+              </>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>

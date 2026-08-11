@@ -439,6 +439,7 @@ export function serializeSpellPath(
     crossTraditionLimit: spellPath.crossTraditionLimit,
     crossTraditionRules: spellPath.crossTraditionRules,
     keyAttribute: spellPath.keyAttribute,
+    spellAccess: spellPath.spellAccess,
     className,
     classSubname,
   };
@@ -476,6 +477,9 @@ export function applySerializedOverrides(
   }
   if (serialized.crossTraditionRules) {
     target.crossTraditionRules = serialized.crossTraditionRules;
+  }
+  if (serialized.spellAccess) {
+    target.spellAccess = serialized.spellAccess;
   }
 }
 

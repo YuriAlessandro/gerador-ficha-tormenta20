@@ -18,6 +18,10 @@ import {
 } from './proficiencies';
 import { applyPowersOrder } from './powers/applyPowersOrder';
 import { getPowerDisplayName, getPowerDisplayText } from './powers/powerText';
+import {
+  getDerivedSpellCircle,
+  hasDerivedSpellAccess,
+} from './spells/derivedSpells';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
 import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
 
@@ -414,14 +418,26 @@ const preparePDF: (
 
   // Add spells with descriptions
   const spells = sheet.spells || [];
-  const spellsText = spells
-    .sort((a, b) => {
-      const circleCompare = a.spellCircle.localeCompare(b.spellCircle);
-      if (circleCompare !== 0) return circleCompare;
-      return a.nome.localeCompare(b.nome);
-    })
-    .map(generateSpellText)
-    .join('\n');
+  // Usurpar (Usurpador): o repertório é o catálogo divino inteiro até o
+  // círculo acessível (~140 magias). Despejar as descrições aqui daria ~150 mil
+  // caracteres num único campo AcroForm — a escala de fonte satura em 6pt e o
+  // campo estoura. Sai a regra em vez da lista.
+  const spellsText = hasDerivedSpellAccess(sheet)
+    ? [
+        `Usurpar: você pode lançar qualquer magia divina até o ${getDerivedSpellCircle(
+          sheet
+        )}º círculo.`,
+        'Teste de Enganação (CD 15 + custo em PM da magia). Se falhar, a magia é perdida mas os PM são gastos.',
+        'Não pode escolher 10 nesse teste. Sofre penalidade de armadura. -5 em local com símbolo sagrado visível.',
+      ].join('\n')
+    : spells
+        .sort((a, b) => {
+          const circleCompare = a.spellCircle.localeCompare(b.spellCircle);
+          if (circleCompare !== 0) return circleCompare;
+          return a.nome.localeCompare(b.nome);
+        })
+        .map(generateSpellText)
+        .join('\n');
   spellsField.setText(sanitizeForWinAnsi(spellsText));
   const spellsFieldFontSize = (): number => {
     if (spellsText.length > 7000) return 6;

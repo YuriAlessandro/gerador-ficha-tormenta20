@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import { Box, Button, Chip, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Tooltip, Typography } from '@mui/material';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { useContainerWidth } from '@/hooks/useContainerWidth';
@@ -20,7 +20,7 @@ import {
   deriveSpellFilterOptions,
   getCircleNumber,
 } from '@/components/SpellPicker/spellFilters';
-import SpellCastDialog from '@/components/SpellCastDialog';
+import SpellCastDialog, { SpellCastCheck } from '@/components/SpellCastDialog';
 import {
   EMPTY_SX,
   GROUP_COUNT_SX,
@@ -118,6 +118,20 @@ export interface SpellsDisplayProps {
    */
   getCircleWarning?: (circle: number) => string | null;
   /**
+   * Lista DERIVADA (Usurpar): as magias não pertencem à ficha, são todas as do
+   * tipo nos círculos acessíveis. Desliga o que só faz sentido para magia
+   * conhecida — contadores de memorização do Mago e o aviso de deus menor
+   * (o Usurpador não tem devoção).
+   */
+  derived?: boolean;
+  /** Texto de regra exibido acima da lista quando `derived`. */
+  derivedNotice?: string | null;
+  /**
+   * Teste obrigatório antes do lançamento (Usurpar). Repassado ao
+   * `SpellCastDialog`, que é quem conhece o custo final em PM.
+   */
+  castCheck?: SpellCastCheck;
+  /**
    * Ficha e callback de ativação. Presentes, a estrelinha da linha vira botão
    * e abre o diálogo de tipos de uso — o mesmo caminho da aba de Poderes.
    */
@@ -145,6 +159,9 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   onKeyAttributeChange,
   bonusSpellDC,
   getCircleWarning,
+  derived,
+  derivedNotice,
+  castCheck,
   sheet,
   onActivateEffect,
 }) => {
@@ -218,13 +235,21 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   const groups = useMemo(() => groupByCircle(visible), [visible]);
 
   const magoCounters = useMemo(() => {
+    // Magia derivada não é "conhecida", então não há o que memorizar/preparar.
+    if (derived) {
+      return {
+        memorizedCount: 0,
+        memorizedLimit: 0,
+        alwaysPreparedCount: 0,
+      };
+    }
     const preparable = spells.filter((s) => !s.alwaysPrepared);
     return {
       memorizedCount: preparable.filter((s) => s.memorized).length,
       memorizedLimit: Math.floor(preparable.length / 2),
       alwaysPreparedCount: spells.filter((s) => s.alwaysPrepared).length,
     };
-  }, [spells]);
+  }, [spells, derived]);
 
   const activeFilterCount =
     (filters.school !== 'all' ? 1 : 0) +
@@ -250,16 +275,19 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
     setDetailSpell(null);
   }, []);
 
-  if (spells.length === 0) {
-    return <Typography sx={EMPTY_SX}>Não Possui</Typography>;
-  }
-
+  const isEmpty = spells.length === 0;
   const showToolbar = spells.length >= TOOLBAR_MIN_SPELLS;
   const hasActiveQuery =
     !!filters.search || filters.circle !== 'all' || activeFilterCount > 0;
 
   return (
     <Box ref={containerRef} sx={{ minWidth: 0 }}>
+      {/*
+        O cabeçalho vem ANTES do caso vazio de propósito: o atributo-chave e a
+        CD de magia são da ficha, não das magias. Sem isso, um conjurador ainda
+        sem magias (ou o Usurpador, que nunca aprende nenhuma) não via nem o
+        atributo-chave nem a CD.
+      */}
       <SpellsHeaderStats
         keyAttr={keyAttr}
         selectedKeyAttribute={selectedKeyAttribute}
@@ -272,7 +300,15 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         alwaysPreparedCount={magoCounters.alwaysPreparedCount}
       />
 
-      {showToolbar && (
+      {derivedNotice && (
+        <Alert severity='info' sx={{ mb: 1.5 }}>
+          {derivedNotice}
+        </Alert>
+      )}
+
+      {isEmpty && <Typography sx={EMPTY_SX}>Não Possui</Typography>}
+
+      {!isEmpty && showToolbar && (
         <SpellsToolbar
           filters={filters}
           onFiltersChange={setFilters}
@@ -287,7 +323,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         />
       )}
 
-      {groups.length === 0 ? (
+      {!isEmpty && groups.length === 0 && (
         <Box sx={EMPTY_SX}>
           <Typography variant='body2' sx={{ mb: 1 }}>
             Nenhuma magia encontrada.
@@ -298,11 +334,16 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
             </Button>
           )}
         </Box>
-      ) : (
+      )}
+
+      {!isEmpty &&
         groups.map((group) => {
-          const warning = group.circle
-            ? getCircleWarning?.(getCircleNumber(group.circle))
-            : null;
+          // Lista derivada não tem devoção, então o aviso de deus menor não se
+          // aplica — o limite de círculo já foi cortado na origem.
+          const warning =
+            group.circle && !derived
+              ? getCircleWarning?.(getCircleNumber(group.circle))
+              : null;
           return (
             <Box key={group.key}>
               <Box sx={GROUP_HEADER_SX}>
@@ -350,8 +391,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
               ))}
             </Box>
           );
-        })
-      )}
+        })}
 
       <SpellDetailSheet
         open={!!detailSpell}
@@ -379,6 +419,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           onCast={handleCast}
           onUpdateRolls={onUpdateRolls}
           characterName={characterName}
+          castCheck={castCheck}
         />
       )}
     </Box>

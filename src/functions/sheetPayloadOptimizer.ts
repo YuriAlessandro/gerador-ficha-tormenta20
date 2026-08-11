@@ -232,6 +232,7 @@ export function stripSheetForStorage(
         crossTraditionLimit: sheet.classe.spellPath.crossTraditionLimit,
         crossTraditionRules: sheet.classe.spellPath.crossTraditionRules,
         keyAttribute: sheet.classe.spellPath.keyAttribute,
+        spellAccess: sheet.classe.spellPath.spellAccess,
       };
     }
 
