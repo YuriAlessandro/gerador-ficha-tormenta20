@@ -79,3 +79,109 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy build --project-name=fichas-frontend --branch=main
+
+      # --- Cura e verificação do cache do edge ---
+      #
+      # `public/_redirects` termina em `/*  /index.html  200`, então arquivo
+      # ausente sob `/assets/` não devolve 404: devolve o HTML do SPA com status
+      # 200. E `public/_headers` carimba tudo em `/assets/*` como `immutable` por
+      # um ano — inclusive esse HTML. Na janela entre o deploy virar produção e
+      # os arquivos propagarem, basta uma requisição azarada para a Cloudflare
+      # guardar HTML sob a URL de um `.js`, imutável por 365 dias. O navegador
+      # recusa o módulo por MIME type e a página fica branca. Foi o que derrubou
+      # o site em 12/08/2026, e nada no `_redirects` consegue evitar: o Pages não
+      # aceita 404 ali (só 3xx e o rewrite 200), e cobrir `/assets/*` pela
+      # Function jogaria todo asset na cota do Workers — o oposto do que o
+      # `_routes.json` existe para fazer.
+      #
+      # A ordem dos três passos abaixo é o que resolve. Purgar antes de propagar
+      # não adianta: o envenenamento acontece depois.
+
+      - name: Aguardar a propagação do deploy
+        env:
+          SITE: https://fichasdenimb.com.br
+        run: |
+          EXPECTED=$(grep -oE 'src="/assets/[^"]+\.js"' build/index.html | head -1 | cut -d'"' -f2)
+          if [ -z "$EXPECTED" ]; then
+            echo "::error::não achei o bundle principal em build/index.html"
+            exit 1
+          fi
+          echo "Esperando $SITE servir $EXPECTED"
+          for i in $(seq 1 60); do
+            HTML=$(curl -sS --max-time 20 "$SITE/?deploycheck=$i" || true)
+            if printf '%s' "$HTML" | grep -qF "$EXPECTED"; then
+              echo "Deploy no ar (tentativa $i)."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::$SITE não passou a servir $EXPECTED em 5 minutos."
+          exit 1
+
+      # Purga a zona inteira, não URLs específicas: qualquer arquivo sob
+      # `/assets/*` (fontes, mp3, imagens) pode ter sido envenenado, e de fora
+      # não dá para enumerar o que está no cache. Como os assets são hasheados,
+      # purgar tudo é barato.
+      # `continue-on-error` + o gate no fim do job: a falha mais provável aqui é
+      # o token sem a permissão Zone → Cache Purge, e nesse caso a verificação
+      # dos assets é mais útil ainda. Abortar no meio esconderia o resultado dela.
+      - name: Purgar o cache do edge
+        id: purge
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          RESP=$(curl -sS --max-time 60 -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+          # A API responde 200 com `"success": false` quando falta a permissão
+          # Zone → Cache Purge no token; olhar só o status HTTP não pega isso.
+          node -e '
+            const r = JSON.parse(process.argv[1]);
+            if (!r.success) {
+              console.error("::error::purge falhou: " + JSON.stringify(r.errors));
+              process.exit(1);
+            }
+            console.log("Cache da zona purgado.");
+          ' "$RESP"
+
+      # Baixa cada `.js`/`.css` do build pelo domínio de produção. Faz as duas
+      # coisas de uma vez: confirma que o edge devolve o asset (e não o HTML do
+      # fallback) e reaquece o cache com a resposta certa, encurtando a janela em
+      # que um usuário real poderia envenená-lo de novo. Download completo em vez
+      # de HEAD é justamente por causa do reaquecimento.
+      - name: Verificar e aquecer os assets
+        env:
+          SITE: https://fichasdenimb.com.br
+        run: |
+          FAILED=0
+          while read -r FILE; do
+            URL="$SITE/${FILE#build/}"
+            CT=$(curl -sS --max-time 180 --retry 3 --retry-all-errors \
+              -o /dev/null -w '%{content_type}' "$URL" || echo 'erro-de-rede')
+            case "$CT" in
+              text/html*)
+                echo "::error::$URL devolveu $CT — o fallback do SPA está cacheado no lugar do asset"
+                FAILED=1
+                ;;
+              erro-de-rede)
+                echo "::error::$URL não respondeu"
+                FAILED=1
+                ;;
+              *)
+                echo "ok  $CT  $URL"
+                ;;
+            esac
+          done < <(find build/assets -type f \( -name '*.js' -o -name '*.css' \))
+          exit $FAILED
+
+      # A purga roda com `continue-on-error` para não pular a verificação acima;
+      # o job ainda precisa ficar vermelho quando ela falha.
+      - name: Falhar se a purga do cache não funcionou
+        if: steps.purge.outcome == 'failure'
+        run: |
+          echo "::error::o deploy subiu, mas o cache do edge não foi purgado — confira a permissão Zone → Cache Purge no CLOUDFLARE_API_TOKEN"
+          exit 1
