@@ -71,6 +71,7 @@ export type Spell = {
    * strip and re-inject these entries idempotently as gear changes.
    */
   equipmentSource?: string;
+  imageUrl?: string;
 };
 
 export type SpellSchool =

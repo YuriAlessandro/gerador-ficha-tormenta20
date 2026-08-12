@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -19,7 +19,15 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
-import { useHistory, useRouteMatch } from 'react-router-dom';
+
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import GridViewIcon from '@mui/icons-material/GridView';
+import SpellCardsView from './SpellCardsView';
+import SpellSortMenu, { SortCriterion } from './SpellSortMenu';
+
+import { useRouteMatch } from 'react-router-dom';
 
 import { SEO, getPageSEO } from '../SEO';
 import {
@@ -104,6 +112,7 @@ interface SpellFilters {
   school: string | 'all';
   executionTime: string | 'all';
   spellType: 'arcane' | 'divine' | 'all';
+  imageUrl?: string;
 }
 
 // Function to merge duplicate spells
@@ -131,6 +140,42 @@ const mergeSpells = (spells: ExtendedSpell[]): MergedSpell[] => {
   return Object.values(spellMap).sort((a, b) =>
     a.nome.localeCompare(b.nome, 'pt-BR')
   );
+};
+
+// --- Ordenação multi-critério ---
+const getSortValue = (
+  spell: MergedSpell,
+  criterion: SortCriterion
+): string | number => {
+  switch (criterion) {
+    case 'school':
+      return spell.school;
+    case 'circle':
+      return getCircleNumber(spell.spellCircle);
+    default:
+      return spell.nome;
+  }
+};
+
+const compareSpells = (
+  a: MergedSpell,
+  b: MergedSpell,
+  order: SortCriterion[]
+): number => {
+  const diff = order
+    .map((criterion) => {
+      const valueA = getSortValue(a, criterion);
+      const valueB = getSortValue(b, criterion);
+
+      if (typeof valueA === 'number' && typeof valueB === 'number') {
+        return valueA - valueB;
+      }
+
+      return String(valueA).localeCompare(String(valueB), 'pt-BR');
+    })
+    .find((result) => result !== 0);
+
+  return diff ?? 0;
 };
 
 const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
@@ -338,6 +383,35 @@ const UnifiedSpellsTable: React.FC = () => {
     ]
   );
 
+  const [sortOrder, setSortOrder] = useState<SortCriterion[]>([
+    'circle',
+    'school',
+    'name',
+  ]);
+
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>(() => {
+    try {
+      return localStorage.getItem('unifiedSpellsViewMode') === 'cards'
+        ? 'cards'
+        : 'table';
+    } catch {
+      return 'table';
+    }
+  });
+
+  const handleViewModeChange = (
+    _: React.MouseEvent<HTMLElement>,
+    newMode: 'table' | 'cards' | null
+  ) => {
+    if (!newMode) return;
+    setViewMode(newMode);
+    try {
+      localStorage.setItem('unifiedSpellsViewMode', newMode);
+    } catch {
+      // armazenamento indisponível — ignora
+    }
+  };
+
   // Get supplement spells memoized
   const supplementSpells = useMemo((): ExtendedSpell[] => {
     const spells: ExtendedSpell[] = [];
@@ -422,7 +496,6 @@ const UnifiedSpellsTable: React.FC = () => {
   const [filteredSpells, setFilteredSpells] =
     useState<MergedSpell[]>(allSpells);
   const { params } = useRouteMatch();
-  const history = useHistory();
 
   // Filter spells based on all criteria
   useEffect(() => {
@@ -467,45 +540,37 @@ const UnifiedSpellsTable: React.FC = () => {
         spell.spellTypes.includes(filters.spellType as 'arcane' | 'divine')
       );
     }
-
+    // Aplica a ordenação escolhida (cópia para não mutar allSpells)
+    filtered = [...filtered].sort((a, b) => compareSpells(a, b, sortOrder));
     setFilteredSpells(filtered);
 
     // Handle URL navigation for single results only (enables deep linking)
     // We don't push for multiple results to avoid unnecessary navigation
-    if (filtered.length === 1 && filters.search.trim()) {
-      const spellName = filtered[0].nome.toLowerCase();
-      const targetUrl = `/database/magias/${spellName}`;
-      // Only push if we're not already at this URL
-      if (!history.location.pathname.endsWith(spellName)) {
-        history.push(targetUrl);
-      }
-    }
-  }, [filters, allSpells, history]);
+  }, [filters, allSpells, sortOrder]);
 
   // Handle URL parameters - only set search from URL on initial load or direct navigation
-  useEffect(() => {
-    const { selectedSpell } = params as { selectedSpell?: string };
-    if (selectedSpell) {
-      // Decode URL and handle case sensitivity
-      const decodedSpellName = decodeURIComponent(selectedSpell).toLowerCase();
+  const selectedSpellParam = (params as { selectedSpell?: string })
+    .selectedSpell;
+  const lastAppliedSpellParam = useRef<string | undefined>(undefined);
 
-      // Try to find exact match first
+  useEffect(() => {
+    if (selectedSpellParam === lastAppliedSpellParam.current) return;
+    lastAppliedSpellParam.current = selectedSpellParam;
+
+    if (selectedSpellParam) {
+      const decodedSpellName =
+        decodeURIComponent(selectedSpellParam).toLowerCase();
       const exactMatch = allSpells.find(
         (spell) => spell.nome.toLowerCase() === decodedSpellName
       );
-
-      const newSearchValue = exactMatch ? exactMatch.nome : selectedSpell;
-
-      // Only update if the search value is different
-      setFilters((prev) => {
-        if (prev.search !== newSearchValue) {
-          return { ...prev, search: newSearchValue };
-        }
-        return prev;
-      });
+      const newSearchValue = exactMatch ? exactMatch.nome : selectedSpellParam;
+      setFilters((prev) =>
+        prev.search !== newSearchValue
+          ? { ...prev, search: newSearchValue }
+          : prev
+      );
     }
-    // Note: We don't clear search when no selectedSpell - the user controls the search field
-  }, [params, allSpells]);
+  }, [selectedSpellParam, allSpells]);
 
   const handleFilterChange = (newFilters: Partial<SpellFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
@@ -610,6 +675,8 @@ const UnifiedSpellsTable: React.FC = () => {
           availableExecutionTimes={availableExecutionTimes}
         />
 
+        <SpellSortMenu sortOrder={sortOrder} onChange={setSortOrder} />
+
         {/* Results Summary */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
           <Typography
@@ -626,104 +693,163 @@ const UnifiedSpellsTable: React.FC = () => {
           </Typography>
         </Box>
 
-        {/* Spells Table */}
-        <TableContainer
-          component={Paper}
-          className='table-container'
+        <Box
           sx={{
-            maxWidth: '100%',
-            overflowX: 'auto',
-            '& .MuiTable-root': {
-              minWidth: 650,
-              '@media (max-width: 768px)': {
-                minWidth: '100%',
-              },
-            },
-            '& .MuiTableCell-root': {
-              '@media (max-width: 768px)': {
-                padding: '8px 4px',
-                fontSize: '0.875rem',
-              },
-            },
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+            mt: 1,
+            mb: 1.5,
           }}
         >
-          <Table aria-label='unified spells table'>
-            <TableHead>
-              <TableRow>
-                <TableCell />
-                <TableCell>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Nome da Magia
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Círculo
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Escola
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Execução
-                  </Typography>
-                </TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredSpells.length === 0 ? (
+          <Typography variant='body2' color='text.secondary'>
+            {filteredSpells.length === 0
+              ? 'Nenhuma magia encontrada com os filtros aplicados'
+              : `${filteredSpells.length} magia${
+                  filteredSpells.length !== 1 ? 's' : ''
+                } encontrada${filteredSpells.length !== 1 ? 's' : ''}`}
+          </Typography>
+
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            size='small'
+            onChange={handleViewModeChange}
+            sx={{
+              bgcolor: theme.palette.action.hover,
+              borderRadius: '999px',
+              p: 0.25,
+              '& .MuiToggleButton-root': {
+                border: 'none',
+                borderRadius: '999px',
+                textTransform: 'none',
+                fontFamily: 'Tfont, serif',
+                fontSize: '0.75rem',
+                gap: 0.5,
+                px: 1.25,
+                py: 0.5,
+                color: 'text.secondary',
+                '&.Mui-selected': {
+                  bgcolor: theme.palette.primary.main,
+                  color: '#fff',
+                  boxShadow: '0 2px 6px rgba(0,0,0,.25)',
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                },
+              },
+            }}
+          >
+            <ToggleButton value='table'>
+              <ViewListIcon sx={{ fontSize: 30 }} /> Tabela
+            </ToggleButton>
+            <ToggleButton value='cards'>
+              <GridViewIcon sx={{ fontSize: 30 }} /> Cards
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+
+        {/* Spells Table */}
+        {viewMode === 'table' ? (
+          <TableContainer
+            component={Paper}
+            className='table-container'
+            sx={{
+              maxWidth: '100%',
+              overflowX: 'auto',
+              '& .MuiTable-root': {
+                minWidth: 650,
+                '@media (max-width: 768px)': {
+                  minWidth: '100%',
+                },
+              },
+              '& .MuiTableCell-root': {
+                '@media (max-width: 768px)': {
+                  padding: '8px 4px',
+                  fontSize: '0.875rem',
+                },
+              },
+            }}
+          >
+            <Table aria-label='unified spells table'>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={6} align='center' sx={{ py: 4 }}>
+                  <TableCell />
+                  <TableCell>
                     <Typography
-                      variant='body1'
+                      variant='h6'
                       sx={{
-                        color: 'text.secondary',
+                        fontFamily: 'Tfont, serif',
+                        color: theme.palette.primary.main,
                       }}
                     >
-                      Nenhuma magia encontrada. Tente ajustar os filtros.
+                      Nome da Magia
                     </Typography>
                   </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        fontFamily: 'Tfont, serif',
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      Círculo
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        fontFamily: 'Tfont, serif',
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      Escola
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        fontFamily: 'Tfont, serif',
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      Execução
+                    </Typography>
+                  </TableCell>
+                  <TableCell />
                 </TableRow>
-              ) : (
-                filteredSpells.map((spell) => (
-                  <Row
-                    key={`${spell.nome}-${spell.spellTypes.join('-')}`}
-                    spell={spell}
-                    defaultOpen={filteredSpells.length === 1}
-                  />
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {filteredSpells.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align='center' sx={{ py: 4 }}>
+                      <Typography
+                        variant='body1'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
+                        Nenhuma magia encontrada. Tente ajustar os filtros.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredSpells.map((spell) => (
+                    <Row
+                      key={`${spell.nome}-${spell.spellTypes.join('-')}`}
+                      spell={spell}
+                      defaultOpen={filteredSpells.length === 1}
+                    />
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <SpellCardsView spells={filteredSpells} />
+        )}
       </Box>
     </>
   );
