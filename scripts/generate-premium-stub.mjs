@@ -105,7 +105,7 @@ const OVERRIDES = {
   // Raças Abertas: sem o premium a regra nunca é ligada (a flag vem desligada),
   // mas o retorno alimenta `sheet.raca` — devolver a raça intacta é o que
   // impede um `undefined` de derrubar a geração se o caminho for alcançado.
-  applyOpenRace: { expr: '(race) => race' },
+  applyOpenRace: { expr: '(race: unknown) => race' },
   toOpenRaceVariant: { expr: '() => undefined' },
   hasOpenableAttributes: { expr: '() => false' },
   // false travaria o wizard no passo de complicação

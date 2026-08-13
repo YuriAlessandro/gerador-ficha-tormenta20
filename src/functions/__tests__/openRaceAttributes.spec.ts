@@ -4,10 +4,7 @@ import SelectedOptions from '../../interfaces/SelectedOptions';
 import { WizardSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
 import { generateEmptySheet } from '../general';
-import {
-  rehydrateSheet,
-  stripSheetForStorage,
-} from '../sheetPayloadOptimizer';
+import { rehydrateSheet, stripSheetForStorage } from '../sheetPayloadOptimizer';
 
 const ZEROED: Record<Atributo, number> = {
   [Atributo.FORCA]: 0,

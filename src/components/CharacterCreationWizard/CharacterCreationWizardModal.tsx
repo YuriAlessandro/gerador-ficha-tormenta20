@@ -82,6 +82,11 @@ import {
   applyOpenRace,
   hasOpenableAttributes,
 } from '@/premium/functions/openRaces';
+import {
+  getVariedAttributeMethod,
+  resolveVariedAttributeMethod,
+  VARIED_ATTRIBUTE_METHODS,
+} from '@/premium/data/attributeMethods';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import type { GeneralPower } from '@/interfaces/Poderes';
@@ -132,6 +137,26 @@ interface CharacterCreationWizardModalProps {
   onConfirm: (selections: WizardSelections) => void;
   selectedOptions: SelectedOptions;
   raceCustomization?: RaceCustomization;
+}
+
+/**
+ * Khalmyr (Atributos Variados) distribui um arranjo FIXO — não há o que rolar,
+ * então o pool precisa já existir no instante em que a variante é escolhida.
+ * Para todas as outras, o jogador ainda vai clicar em "Rolar".
+ */
+function buildInitialPoolState(
+  methodId: string,
+  attributeCount: number
+): Partial<WizardSelections> {
+  const method = getVariedAttributeMethod(methodId);
+  if (method?.id !== 'khalmyr' || !method.rollPool) return {};
+
+  const pool = method.rollPool();
+  return {
+    attributeDicePool: pool.mods,
+    attributeDicePoolLabels: pool.labels,
+    attributeDiceAssignment: Array.from({ length: attributeCount }, () => null),
+  };
 }
 
 const CharacterCreationWizardModal: React.FC<
@@ -393,6 +418,21 @@ const CharacterCreationWizardModal: React.FC<
         : raceWithVariant,
     [raceWithVariant, selections.openRaces, sexForAttributes]
   );
+
+  // Atributos Variados (Heróis de Arton). Sem a regra a lista fica vazia e o
+  // passo de atributos se comporta exatamente como antes: três botões, os
+  // métodos do livro básico.
+  const variedAttributeMethods = optionalRulesAvailable
+    ? VARIED_ATTRIBUTE_METHODS
+    : [];
+  const attributeMethod = selections.attributeMethod || 'free';
+  const variedAttributeMethod =
+    optionalRulesAvailable && attributeMethod !== 'free'
+      ? resolveVariedAttributeMethod(
+          attributeMethod,
+          selections.attributeMethodVariant
+        )
+      : undefined;
 
   // A raça TEM modificadores para redistribuir? Lê sempre a raça fechada — a
   // aberta já é o resultado da transformação.
@@ -987,6 +1027,16 @@ const CharacterCreationWizardModal: React.FC<
           [Atributo.CARISMA]: 0,
         };
         const attributeOrder = Object.values(Atributo);
+        // Reset comum a toda troca de método/variante/rolagem: os valores
+        // anteriores não têm significado no método novo.
+        const clearedAttributeState = {
+          baseAttributes: { ...zeroedAttributes },
+          attributeDicePool: undefined,
+          attributeDicePoolLabels: undefined,
+          attributeDiceAssignment: undefined,
+          attributeRawDice: undefined,
+          attributeRawAssignment: undefined,
+        };
         return (
           <AttributeBaseValuesStep
             race={raceForAttributes}
@@ -995,7 +1045,12 @@ const CharacterCreationWizardModal: React.FC<
             raceAttributeChoices={selections.raceAttributes}
             method={selections.attributeMethod || 'free'}
             dicePool={selections.attributeDicePool}
+            dicePoolLabels={selections.attributeDicePoolLabels}
             diceAssignment={selections.attributeDiceAssignment}
+            variedMethods={variedAttributeMethods}
+            variedMethod={variedAttributeMethod}
+            rawDice={selections.attributeRawDice}
+            rawAssignment={selections.attributeRawAssignment}
             onChange={(attrs) =>
               setSelections({ ...selections, baseAttributes: attrs })
             }
@@ -1003,19 +1058,43 @@ const CharacterCreationWizardModal: React.FC<
               setSelections({
                 ...selections,
                 attributeMethod: method,
-                baseAttributes: { ...zeroedAttributes },
-                attributeDicePool: undefined,
-                attributeDiceAssignment: undefined,
+                // A variante volta ao padrão do livro básico ao trocar de
+                // coluna — um id de "Pontos" não faz sentido em "Dados".
+                attributeMethodVariant: undefined,
+                ...clearedAttributeState,
               })
             }
-            onRoll={() =>
+            onVariedMethodChange={(methodId) =>
               setSelections({
                 ...selections,
-                attributeDicePool: rollAttributePool(),
-                attributeDiceAssignment: attributeOrder.map(() => null),
-                baseAttributes: { ...zeroedAttributes },
+                attributeMethodVariant: methodId,
+                ...clearedAttributeState,
+                // Khalmyr não tem botão de rolar: o arranjo fixo já entra
+                // pronto ao selecionar a variante.
+                ...buildInitialPoolState(methodId, attributeOrder.length),
               })
             }
+            onRoll={() => {
+              const method = variedAttributeMethod;
+              if (method?.kind === 'raw' && method.raw) {
+                setSelections({
+                  ...selections,
+                  ...clearedAttributeState,
+                  attributeRawDice: method.raw.rollDicePool(),
+                });
+                return;
+              }
+              const pool = method?.rollPool?.() ?? {
+                mods: rollAttributePool(),
+              };
+              setSelections({
+                ...selections,
+                ...clearedAttributeState,
+                attributeDicePool: pool.mods,
+                attributeDicePoolLabels: pool.labels,
+                attributeDiceAssignment: attributeOrder.map(() => null),
+              });
+            }}
             onDiceAssignmentChange={(assignment) => {
               const newBase: Record<Atributo, number> = { ...zeroedAttributes };
               attributeOrder.forEach((attr, i) => {
@@ -1028,6 +1107,26 @@ const CharacterCreationWizardModal: React.FC<
               setSelections({
                 ...selections,
                 attributeDiceAssignment: assignment,
+                baseAttributes: newBase,
+              });
+            }}
+            onRawAssignmentChange={(assignment) => {
+              const raw = variedAttributeMethod?.raw;
+              if (!raw) return;
+              const newBase: Record<Atributo, number> = { ...zeroedAttributes };
+              attributeOrder.forEach((attr, attrIndex) => {
+                const total = assignment.reduce<number>(
+                  (acc, target, dieIndex) =>
+                    target === attrIndex
+                      ? acc + (selections.attributeRawDice?.[dieIndex] ?? 0)
+                      : acc,
+                  raw.startingValue
+                );
+                newBase[attr] = raw.convert(total);
+              });
+              setSelections({
+                ...selections,
+                attributeRawAssignment: assignment,
                 baseAttributes: newBase,
               });
             }}
@@ -1621,16 +1720,37 @@ const CharacterCreationWizardModal: React.FC<
             !!selections.dimorphismChoice)
         );
 
-      case 'Valores dos Atributos':
-        // Método 'dice' exige que todos os 6 valores rolados sejam distribuídos.
-        // 'free' e 'points' liberam o avanço sempre (a UI de pontos impede saldo negativo).
-        if (selections.attributeMethod === 'dice') {
+      case 'Valores dos Atributos': {
+        // Métodos em valor bruto (Valkaria) exigem que TODOS os dados sejam
+        // aplicados — um dado sobrando é atributo jogado fora.
+        if (variedAttributeMethod?.kind === 'raw') {
+          const dice = selections.attributeRawDice;
+          const assignment = selections.attributeRawAssignment;
+          if (!dice || dice.length === 0 || !assignment) return false;
+          return dice.every(
+            (_die, index) =>
+              assignment[index] !== null && assignment[index] !== undefined
+          );
+        }
+
+        // Métodos de pool exigem que todos os 6 valores rolados sejam
+        // distribuídos. Khalmyr entra aqui mesmo estando na coluna "Pontos";
+        // já a compra de pontos e o método Livre não têm pool nenhum.
+        const usesPool =
+          selections.attributeMethod === 'dice'
+            ? true
+            : variedAttributeMethod?.kind === 'pool';
+        if (selections.attributeMethod !== 'free' && usesPool) {
           const assignment = selections.attributeDiceAssignment;
           const pool = selections.attributeDicePool;
           if (!pool || pool.length === 0 || !assignment) return false;
           return assignment.every((idx) => idx !== null && idx !== undefined);
         }
+
+        // 'free' e compra de pontos liberam o avanço sempre (a UI de pontos
+        // impede saldo negativo).
         return true;
+      }
 
       case 'Variante de Atributos':
         // Must have selected a variant

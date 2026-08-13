@@ -6843,6 +6843,15 @@ export function generateEmptySheet(
   const usedOptionalRules: SheetOptionalRules = {};
   if (selectedOptions.openDeities) usedOptionalRules.openDeities = true;
   if (wizardSelections?.openRaces) usedOptionalRules.openRaces = true;
+  // Só registra a variante de atributos quando ela NÃO é a do livro básico —
+  // toda ficha usa algum método, mas só as opcionais interessam à auditoria.
+  if (
+    wizardSelections?.attributeMethodVariant &&
+    !['heroica', 'p10'].includes(wizardSelections.attributeMethodVariant)
+  ) {
+    usedOptionalRules.attributeMethodVariant =
+      wizardSelections.attributeMethodVariant;
+  }
   if (Object.keys(usedOptionalRules).length > 0) {
     emptySheet.optionalRules = usedOptionalRules;
   }

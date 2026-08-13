@@ -29,6 +29,11 @@ import {
   POINT_BUY_MIN,
 } from '@/functions/attributeMethods';
 import { getEffectiveRaceAttrs } from '@/functions/general';
+import type { VariedAttributeMethod } from '@/premium/data/attributeMethods';
+import {
+  RawAttributeCell,
+  RawAttributeDicePool,
+} from '@/premium/components/OptionalRules';
 
 export type AttributeMethod = 'free' | 'dice' | 'points';
 
@@ -44,6 +49,21 @@ interface AttributeBaseValuesStepProps {
   onMethodChange: (method: AttributeMethod) => void;
   onRoll: () => void;
   onDiceAssignmentChange: (assignment: (number | null)[]) => void;
+  /**
+   * Atributos Variados (Heróis de Arton). Vazio quando a regra não está
+   * disponível — nesse caso o seletor de variante nem aparece e o passo se
+   * comporta exatamente como antes.
+   */
+  variedMethods?: VariedAttributeMethod[];
+  /** Variante ativa do botão base atual (heroica, nimb, p15, khalmyr…). */
+  variedMethod?: VariedAttributeMethod;
+  onVariedMethodChange?: (methodId: string) => void;
+  /** Rótulos do pool quando o valor bruto importa (Nimb: "20 → +5"). */
+  dicePoolLabels?: string[];
+  /** Estado dos métodos em valor bruto (Valkaria). */
+  rawDice?: number[];
+  rawAssignment?: (number | null)[];
+  onRawAssignmentChange?: (assignment: (number | null)[]) => void;
 }
 
 // Helper to format modifier with sign
@@ -64,6 +84,13 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
   onMethodChange,
   onRoll,
   onDiceAssignmentChange,
+  variedMethods = [],
+  variedMethod,
+  onVariedMethodChange,
+  dicePoolLabels,
+  rawDice,
+  rawAssignment,
+  onRawAssignmentChange,
 }) => {
   const allAttributes = Object.values(Atributo);
 
@@ -124,6 +151,14 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
     onDiceAssignmentChange(next);
   };
 
+  const handleRawAssign = (dieIndex: number, attrIndex: number | null) => {
+    const next: (number | null)[] = (rawDice ?? []).map(
+      (_, i) => rawAssignment?.[i] ?? null
+    );
+    next[dieIndex] = attrIndex;
+    onRawAssignmentChange?.(next);
+  };
+
   // Calculate racial modifier bonus
   const getRacialModifier = (atributo: Atributo): number => {
     let modifier = 0;
@@ -153,7 +188,23 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
     return 'text.secondary';
   };
 
-  const remainingPoints = getRemainingPoints(baseAttributes);
+  // Sem Atributos Variados, o orçamento é o do livro básico. Com a regra, a
+  // variante escolhida manda (5, 10 ou 15 pontos).
+  const pointBudget =
+    variedMethod?.kind === 'points'
+      ? variedMethod.budget ?? POINT_BUY_BUDGET
+      : POINT_BUY_BUDGET;
+  const remainingPoints = getRemainingPoints(baseAttributes, pointBudget);
+
+  // Khalmyr é um método "por pontos" que na prática distribui um pool fixo — a
+  // UI dele é a de dados, não a de compra.
+  const usesPoolUI =
+    method === 'dice'
+      ? variedMethod?.kind !== 'raw'
+      : variedMethod?.kind === 'pool';
+  const usesRawUI = variedMethod?.kind === 'raw' && !!variedMethod.raw;
+  const usesPointsUI = method === 'points' && variedMethod?.kind !== 'pool';
+
   const usedPoolIndices = new Set(
     (diceAssignment ?? [])
       .filter((idx): idx is number => idx !== null && idx !== undefined)
@@ -163,27 +214,64 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
   const methodDescriptions: Record<AttributeMethod, string> = {
     free: 'Defina livremente o modificador de cada atributo, sem restrições.',
     dice: 'Role 4d6 (descartando o menor) seis vezes e distribua os modificadores resultantes entre os atributos como quiser.',
-    points:
-      'Você tem 10 pontos para distribuir. Custos: +1 = 1, +2 = 2, +3 = 4, +4 = 7. Reduzir um atributo para −1 devolve 1 ponto.',
+    points: `Você tem ${pointBudget} pontos para distribuir. Custos: +1 = 1, +2 = 2, +3 = 4, +4 = 7. Reduzir um atributo para −1 devolve 1 ponto.`,
   };
+
+  // A variante descreve o método melhor que o texto genérico do botão base.
+  const methodDescription =
+    method !== 'free' && variedMethod
+      ? variedMethod.description
+      : methodDescriptions[method];
+
+  const variantOptions = variedMethods.filter(
+    (candidate) => candidate.base === method
+  );
+  const showVariantSelector = method !== 'free' && variantOptions.length > 1;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        <ToggleButtonGroup
-          color='primary'
-          exclusive
-          value={method}
-          onChange={(_e, value: AttributeMethod | null) => {
-            if (value) onMethodChange(value);
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            flexWrap: 'wrap',
+            alignItems: 'center',
           }}
-          size='small'
-          sx={{ flexWrap: 'wrap' }}
         >
-          <ToggleButton value='free'>Livre</ToggleButton>
-          <ToggleButton value='dice'>Dados</ToggleButton>
-          <ToggleButton value='points'>Pontos</ToggleButton>
-        </ToggleButtonGroup>
+          <ToggleButtonGroup
+            color='primary'
+            exclusive
+            value={method}
+            onChange={(_e, value: AttributeMethod | null) => {
+              if (value) onMethodChange(value);
+            }}
+            size='small'
+            sx={{ flexWrap: 'wrap' }}
+          >
+            <ToggleButton value='free'>Livre</ToggleButton>
+            <ToggleButton value='dice'>Dados</ToggleButton>
+            <ToggleButton value='points'>Pontos</ToggleButton>
+          </ToggleButtonGroup>
+
+          {showVariantSelector && (
+            <FormControl size='small' sx={{ minWidth: 200 }}>
+              <InputLabel id='attribute-variant-label'>Variante</InputLabel>
+              <Select
+                labelId='attribute-variant-label'
+                label='Variante'
+                value={variedMethod?.id ?? ''}
+                onChange={(e) => onVariedMethodChange?.(String(e.target.value))}
+              >
+                {variantOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </Box>
 
         <Typography
           variant='body2'
@@ -191,17 +279,33 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
             color: 'text.secondary',
           }}
         >
-          {methodDescriptions[method]} Os modificadores da raça {race.name} são
-          aplicados automaticamente ao valor final.
+          {methodDescription} Os modificadores da raça {race.name} são aplicados
+          automaticamente ao valor final.
         </Typography>
+        {showVariantSelector &&
+          variedMethod &&
+          variedMethod.id !== 'heroica' &&
+          variedMethod.id !== 'p10' && (
+            <Alert severity='info'>
+              <strong>{variedMethod.label}</strong> é uma variante opcional de{' '}
+              <em>Heróis de Arton</em> (p. 280). Combine com o mestre: os
+              métodos não são equilibrados entre si.
+            </Alert>
+          )}
       </Box>
-      {method === 'points' && (
+      {usesPointsUI && (
         <Alert severity={remainingPoints === 0 ? 'success' : 'info'}>
-          Pontos restantes: <strong>{remainingPoints}</strong> /{' '}
-          {POINT_BUY_BUDGET}
+          Pontos restantes: <strong>{remainingPoints}</strong> / {pointBudget}
         </Alert>
       )}
-      {method === 'dice' && (
+      {usesRawUI && (
+        <RawAttributeDicePool
+          dice={rawDice}
+          assignment={rawAssignment}
+          onRoll={onRoll}
+        />
+      )}
+      {usesPoolUI && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Box
             sx={{
@@ -211,22 +315,25 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
               flexWrap: 'wrap',
             }}
           >
-            <Button
-              variant='contained'
-              startIcon={<CasinoIcon />}
-              onClick={onRoll}
-            >
-              {dicePool && dicePool.length > 0
-                ? 'Rolar novamente'
-                : 'Rolar atributos'}
-            </Button>
+            {/* Khalmyr não rola nada: o arranjo é fixo e já vem pronto. */}
+            {variedMethod?.id !== 'khalmyr' && (
+              <Button
+                variant='contained'
+                startIcon={<CasinoIcon />}
+                onClick={onRoll}
+              >
+                {dicePool && dicePool.length > 0
+                  ? 'Rolar novamente'
+                  : 'Rolar atributos'}
+              </Button>
+            )}
             {dicePool && dicePool.length > 0 && (
               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                 {dicePool.map((mod, idx) => (
                   <Chip
                     // eslint-disable-next-line react/no-array-index-key
                     key={idx}
-                    label={formatMod(mod)}
+                    label={dicePoolLabels?.[idx] ?? formatMod(mod)}
                     size='small'
                     color={usedPoolIndices.has(idx) ? 'default' : 'primary'}
                     variant={usedPoolIndices.has(idx) ? 'outlined' : 'filled'}
@@ -291,7 +398,7 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   }}
                 />
               )}
-              {method === 'points' && (
+              {usesPointsUI && (
                 <Box
                   sx={{
                     display: 'flex',
@@ -324,7 +431,17 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   </IconButton>
                 </Box>
               )}
-              {method === 'dice' && (
+              {usesRawUI && variedMethod?.raw && (
+                <RawAttributeCell
+                  attributeIndex={attrIndex}
+                  dice={rawDice}
+                  assignment={rawAssignment}
+                  startingValue={variedMethod.raw.startingValue}
+                  convert={variedMethod.raw.convert}
+                  onAssign={handleRawAssign}
+                />
+              )}
+              {usesPoolUI && (
                 <FormControl
                   size='small'
                   sx={{ width: 100, mb: 1 }}
@@ -358,7 +475,7 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                           value={String(poolIdx)}
                           disabled={disabled}
                         >
-                          {formatMod(mod)}
+                          {dicePoolLabels?.[poolIdx] ?? formatMod(mod)}
                         </MenuItem>
                       );
                     })}

@@ -100,12 +100,27 @@ export interface WizardSelections {
   // Attribute generation method chosen in the wizard (default 'free' when absent)
   attributeMethod?: 'free' | 'dice' | 'points';
 
+  // Atributos Variados (Heróis de Arton): variante do método base escolhida
+  // ('heroica' | 'classica' | 'epica' | 'valkaria' | 'nimb' | 'p10' | 'p5' |
+  // 'p15' | 'khalmyr'). Ausente = o método do livro básico.
+  attributeMethodVariant?: string;
+
   // The 6 rolled modifiers (method 'dice'), kept to preserve the roll while distributing
   attributeDicePool?: number[];
+
+  // Rótulos do pool quando o valor bruto importa para o jogador (Nimb: "20 → +5").
+  // Alinhado por índice a `attributeDicePool`.
+  attributeDicePoolLabels?: string[];
 
   // Pool index assigned to each attribute (method 'dice'), aligned to Object.values(Atributo).
   // null = not yet assigned. Source of truth for the dice distribution UI.
   attributeDiceAssignment?: (number | null)[];
+
+  // Métodos em valor bruto (Valkaria): os dados rolados e, para cada dado, o
+  // ÍNDICE DO ATRIBUTO que o recebeu. A relação é N→1 (um atributo acumula
+  // vários dados), o inverso de `attributeDiceAssignment`.
+  attributeRawDice?: number[];
+  attributeRawAssignment?: (number | null)[];
 
   // Race attribute variant selection (for races with multiple attribute options like Kallyanach)
   attributeVariant?: AttributeVariant;

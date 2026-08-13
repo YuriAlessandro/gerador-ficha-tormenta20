@@ -62,13 +62,18 @@ export function getPointBuyCost(modValue: number): number {
 
 /**
  * Calcula quantos pontos ainda restam dado o conjunto atual de modificadores base.
+ *
+ * `budget` existe por causa de "Pontos Variados" (Heróis de Arton, p. 280), que
+ * mantém a mesma tabela de custos mas troca a pontuação — 5 para campanhas pé no
+ * chão, 15 para as exageradas. Sem argumento, vale o orçamento do livro básico.
  */
 export function getRemainingPoints(
-  baseAttributes: Record<Atributo, number>
+  baseAttributes: Record<Atributo, number>,
+  budget: number = POINT_BUY_BUDGET
 ): number {
   const spent = Object.values(baseAttributes).reduce(
     (acc, value) => acc + getPointBuyCost(value),
     0
   );
-  return POINT_BUY_BUDGET - spent;
+  return budget - spent;
 }
