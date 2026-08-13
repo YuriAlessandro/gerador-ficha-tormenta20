@@ -109,6 +109,8 @@ import {
   applyOpenRace,
   toOpenRaceVariant,
 } from '../premium/functions/openRaces';
+import { getAgeBracket } from '../premium/data/ageBrackets';
+import { getAgeAttributeModifiers } from '../premium/functions/ages';
 import {
   getRaceDisplacement,
   getRaceSize,
@@ -6838,9 +6840,80 @@ export function generateEmptySheet(
     });
   }
 
+  // Idades Variadas (Heróis de Arton) — regra opcional.
+  //
+  // Jovem é a faixa padrão e não altera nada, então nem chega a ser gravada: uma
+  // ficha sem `age` e uma ficha Jovem são a mesma coisa para o motor.
+  if (wizardSelections?.ageBracket && wizardSelections.ageBracket !== 'jovem') {
+    const bracket = getAgeBracket(wizardSelections.ageBracket);
+    if (bracket) {
+      emptySheet.age = {
+        bracket: wizardSelections.ageBracket,
+        years: wizardSelections.ageYears,
+        complications: wizardSelections.ageComplications ?? [],
+        grantedPowerName: wizardSelections.agePower?.name,
+        // Congelado aqui: trocar a faixa etária depois NÃO reescreve o nível.
+        extraLevels: bracket.extraLevels,
+      };
+
+      // Modificadores de atributo da faixa: permanentes, somados aqui uma única
+      // vez — exatamente como os raciais. O recálculo não os reaplica, e trocar
+      // a faixa pelo drawer aplica só o delta (`getAgeAttributeDelta`).
+      const ageAttributeSubSteps: SubStep[] = [];
+      getAgeAttributeModifiers(wizardSelections.ageBracket).forEach(
+        ({ attribute, value }) => {
+          emptySheet.atributos[attribute].value += value;
+          ageAttributeSubSteps.push({
+            name: bracket.label,
+            value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
+          });
+        }
+      );
+      if (ageAttributeSubSteps.length > 0) {
+        emptySheet.steps.push({
+          label: 'Atributos Modificados (idade)',
+          type: 'Atributos',
+          value: ageAttributeSubSteps,
+        });
+      }
+
+      const { agePower } = wizardSelections;
+      if (agePower) {
+        if (!emptySheet.generalPowers.some((p) => p.name === agePower.name)) {
+          emptySheet.generalPowers.push(agePower);
+        }
+      }
+
+      emptySheet.steps.push({
+        label: 'Idade',
+        type: 'Atributos',
+        value: [
+          { name: 'Faixa etária', value: bracket.label },
+          ...(wizardSelections.ageYears
+            ? [{ name: 'Idade', value: `${wizardSelections.ageYears} anos` }]
+            : []),
+          ...(emptySheet.age.complications.length > 0
+            ? [
+                {
+                  name: 'Complicações de idade',
+                  value: emptySheet.age.complications
+                    .map((c) => c.name)
+                    .join(', '),
+                },
+              ]
+            : []),
+          ...(wizardSelections.agePower
+            ? [{ name: 'Já Vi Coisas', value: wizardSelections.agePower.name }]
+            : []),
+        ],
+      });
+    }
+  }
+
   // Regras opcionais de Heróis de Arton em uso. Só grava o que estiver ligado —
   // um objeto com todas as chaves `false` viraria ruído em toda ficha nova.
   const usedOptionalRules: SheetOptionalRules = {};
+  if (wizardSelections?.deathByOldAge) usedOptionalRules.deathByOldAge = true;
   if (selectedOptions.openDeities) usedOptionalRules.openDeities = true;
   if (wizardSelections?.openRaces) usedOptionalRules.openRaces = true;
   // Só registra a variante de atributos quando ela NÃO é a do livro básico —

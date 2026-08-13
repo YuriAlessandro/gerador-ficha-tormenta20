@@ -87,6 +87,13 @@ import {
   resolveVariedAttributeMethod,
   VARIED_ATTRIBUTE_METHODS,
 } from '@/premium/data/attributeMethods';
+import { AgeComplicationsStep } from '@/premium/components/Ages';
+import { getAgeBracket } from '@/premium/data/ageBrackets';
+import {
+  getAgeOriginBenefits,
+  getRequiredAgeComplications,
+  isAgeSelectionComplete,
+} from '@/premium/functions/ages';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import type { GeneralPower } from '@/interfaces/Poderes';
@@ -434,6 +441,18 @@ const CharacterCreationWizardModal: React.FC<
         )
       : undefined;
 
+  // Quantos benefícios de origem a faixa etária concede: Criança 0 ("Sem
+  // Origem"), Adolescente 1 ("Origem em Construção"), demais 2.
+  const ageOriginBenefits = optionalRulesAvailable
+    ? getAgeOriginBenefits(selections.ageBracket)
+    : 2;
+
+  // "Já Vi Coisas" só existe no Adulto; nas demais faixas o poder não é opcional
+  // (não existe), então o toggle nunca vale.
+  const tookAgeOptionalPower =
+    !!selections.ageOptionalPowerTaken &&
+    !!getAgeBracket(selections.ageBracket)?.optionalGeneralPower;
+
   // A raça TEM modificadores para redistribuir? Lê sempre a raça fechada — a
   // aberta já é o resultado da transformação.
   const canOpenRace =
@@ -633,6 +652,16 @@ const CharacterCreationWizardModal: React.FC<
     !!selections.complication &&
     selections.complication !== 'declined';
 
+  // Idades Variadas: o passo só existe a partir de Adulto (as faixas mais novas
+  // não têm complicação de idade). Para o Adulto ele aparece mesmo assim,
+  // porque é lá que mora o toggle de "Já Vi Coisas".
+  const needsAgeComplications = (): boolean =>
+    optionalRulesAvailable &&
+    getRequiredAgeComplications(selections.ageBracket) > 0;
+
+  const needsAgePower = (): boolean =>
+    needsAgeComplications() && tookAgeOptionalPower;
+
   const needsQareenElementSelection = (): boolean => {
     if (!race) return false;
     return race.name === 'Qareen';
@@ -776,9 +805,14 @@ const CharacterCreationWizardModal: React.FC<
       stepsArray.push('Linhagem do Feiticeiro');
     if (needsSpellSchoolSelection()) stepsArray.push('Escolas de Magia');
     if (needsInitialSpellSelection()) stepsArray.push('Magias Iniciais');
-    if (origin) stepsArray.push('Benefícios da Origem');
+    // Criança não recebe benefícios de origem ("Sem Origem", p. 288), então o
+    // passo some por inteiro.
+    if (origin && ageOriginBenefits > 0)
+      stepsArray.push('Benefícios da Origem');
     else if (race && !raceHasOrigin(race.name))
       stepsArray.push('Propósito de Criação');
+    if (needsAgeComplications()) stepsArray.push('Complicações de Idade');
+    if (needsAgePower()) stepsArray.push('Poder da Idade');
     if (needsComplicationSelection()) stepsArray.push('Complicação');
     if (needsComplicationPower()) stepsArray.push('Poder da Complicação');
     if (needsPowerEffectSelections()) stepsArray.push('Efeitos de Poderes');
@@ -823,11 +857,22 @@ const CharacterCreationWizardModal: React.FC<
   }, [open]);
 
   // Recalculate steps when race, class, or origin change (fixes bug where origin benefits don't show on first load)
+  //
+  // A faixa etária entra na lista porque muda quais passos existem: Criança
+  // remove "Benefícios da Origem", Adulto em diante acrescenta "Complicações de
+  // Idade", e aceitar "Já Vi Coisas" acrescenta "Poder da Idade".
   useEffect(() => {
     if (open && stepsInitialized) {
       setSteps(getSteps());
     }
-  }, [race, classe, origin, deity]);
+  }, [
+    race,
+    classe,
+    origin,
+    deity,
+    selections.ageBracket,
+    selections.ageOptionalPowerTaken,
+  ]);
 
   useEffect(() => {
     if (stepperScrollRef.current) {
@@ -1013,6 +1058,31 @@ const CharacterCreationWizardModal: React.FC<
             raceName={selectedOptions.raca}
             race={race}
             supplements={supplements}
+            ageSelection={
+              optionalRulesAvailable
+                ? {
+                    bracket: selections.ageBracket ?? 'jovem',
+                    years: selections.ageYears,
+                    deathByOldAge: selections.deathByOldAge,
+                  }
+                : undefined
+            }
+            onAgeChange={
+              optionalRulesAvailable
+                ? (age) =>
+                    setSelections({
+                      ...selections,
+                      ageBracket: age.bracket,
+                      ageYears: age.years,
+                      deathByOldAge: age.deathByOldAge,
+                      // Trocar de faixa muda quantas complicações são exigidas e
+                      // se o poder opcional existe — as escolhas antigas não
+                      // sobrevivem à troca.
+                      ageComplications: [],
+                      agePower: undefined,
+                    })
+                : undefined
+            }
           />
         );
 
@@ -1324,6 +1394,7 @@ const CharacterCreationWizardModal: React.FC<
             race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
+            requiredSelections={ageOriginBenefits}
           />
         );
 
@@ -1419,6 +1490,93 @@ const CharacterCreationWizardModal: React.FC<
                 delete rest[complicationPowerName];
               } else {
                 rest[complicationPowerName] = sel;
+              }
+              setSelections({ ...selections, powerEffectSelections: rest });
+            }}
+            knownPowers={knownPowers}
+            baseAttributes={selections.baseAttributes}
+            raceAttributes={selections.raceAttributes}
+            race={raceForAttributes}
+            sexForAttributes={sexForAttributes}
+            classe={classe}
+            usedSkills={getAllUsedSkills()}
+            supplements={supplements}
+          />
+        );
+      }
+
+      case 'Complicações de Idade': {
+        if (!selections.ageBracket) return null;
+        return (
+          <AgeComplicationsStep
+            bracket={selections.ageBracket}
+            selected={selections.ageComplications ?? []}
+            onChange={(ageComplications) =>
+              setSelections({ ...selections, ageComplications })
+            }
+            tookOptionalPower={tookAgeOptionalPower}
+            onOptionalPowerChange={(took) =>
+              setSelections({
+                ...selections,
+                // O toggle vira o gatilho do passo do poder; recusar descarta o
+                // poder já escolhido junto com a complicação que vinha com ele.
+                agePower: took ? selections.agePower : undefined,
+                ageOptionalPowerTaken: took,
+              })
+            }
+          />
+        );
+      }
+
+      case 'Poder da Idade': {
+        const allGeneralPowers =
+          dataRegistry.getAllPowersBySupplements(supplements);
+        const knownPowers: GeneralPower[] = [];
+        (selections.originBenefits || []).forEach((benefit) => {
+          if (benefit.type === 'power') {
+            const known = allGeneralPowers.find((p) => p.name === benefit.name);
+            if (known) knownPowers.push(known);
+          }
+        });
+        if (selections.propositoCriacaoPower) {
+          knownPowers.push(selections.propositoCriacaoPower);
+        }
+        if (selections.complicationPower) {
+          knownPowers.push(selections.complicationPower);
+        }
+
+        const agePowerName = selections.agePower?.name;
+        return (
+          <ComplicationPowerStep
+            intro={
+              <>
+                Por <strong>Já Vi Coisas</strong>, seu personagem adulto recebe
+                um poder geral. Escolha livremente, desde que preencha os
+                pré-requisitos.
+              </>
+            }
+            selectedPower={selections.agePower}
+            onChange={(power) => {
+              const next: WizardSelections = { ...selections, agePower: power };
+              if (agePowerName && agePowerName !== power?.name) {
+                const rest = { ...(selections.powerEffectSelections || {}) };
+                delete rest[agePowerName];
+                next.powerEffectSelections = rest;
+              }
+              setSelections(next);
+            }}
+            pickSelections={
+              agePowerName
+                ? selections.powerEffectSelections?.[agePowerName]
+                : undefined
+            }
+            onPickChange={(sel) => {
+              if (!agePowerName) return;
+              const rest = { ...(selections.powerEffectSelections || {}) };
+              if (sel === undefined) {
+                delete rest[agePowerName];
+              } else {
+                rest[agePowerName] = sel;
               }
               setSelections({ ...selections, powerEffectSelections: rest });
             }}
@@ -1751,6 +1909,16 @@ const CharacterCreationWizardModal: React.FC<
         // impede saldo negativo).
         return true;
       }
+
+      case 'Complicações de Idade':
+        return isAgeSelectionComplete(
+          selections.ageBracket,
+          (selections.ageComplications ?? []).length,
+          tookAgeOptionalPower
+        );
+
+      case 'Poder da Idade':
+        return !!selections.agePower;
 
       case 'Variante de Atributos':
         // Must have selected a variant

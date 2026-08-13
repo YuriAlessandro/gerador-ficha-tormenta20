@@ -4,6 +4,7 @@ import {
   Diversity3 as RacaIcon,
   EditNote as CustomIcon,
   Gavel as CombateIcon,
+  HourglassBottom as IdadeIcon,
   Handshake as ConcedidoIcon,
   HistoryEdu as OrigemIcon,
   MilitaryTech as ClassPowerIcon,
@@ -46,7 +47,8 @@ export type PowerOriginKind =
   | 'generalRaca'
   | 'customGranted'
   | 'custom'
-  | 'complication';
+  | 'complication'
+  | 'age';
 
 export interface PowerOriginDescriptor {
   kind: PowerOriginKind;
@@ -171,6 +173,13 @@ export const POWER_ORIGINS: Record<PowerOriginKind, PowerOriginDescriptor> = {
     color: 'warning.main',
     order: 13,
     label: () => 'Complicação',
+  },
+  age: {
+    kind: 'age',
+    icon: IdadeIcon,
+    color: 'secondary.main',
+    order: 14,
+    label: () => 'Idade',
   },
 };
 

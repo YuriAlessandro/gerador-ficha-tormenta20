@@ -48,6 +48,7 @@ import { reorderPowersWithinGroup } from '@/functions/powers/reorderPowersWithin
 import { normalizeSearch } from '@/functions/stringUtils';
 import { getActivePowerForSheetEntry } from '@/premium/data/activePowers';
 import { getComplicationPowerWarning } from '@/premium/functions/complications';
+import { getAgeBracket } from '@/premium/data/ageBrackets';
 import type {
   ActivePowerDefinition,
   ActiveEffectUsageOption,
@@ -77,6 +78,7 @@ function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
 }
 
 const COMPLICATION_ORIGIN: PowerOrigin = { kind: 'complication' };
+const AGE_ORIGIN: PowerOrigin = { kind: 'age' };
 
 const PowersDisplay: React.FC<{
   sheetHistory: SheetActionHistoryEntry[];
@@ -531,26 +533,57 @@ const PowersDisplay: React.FC<{
       }
     : null;
 
+  // Idades Variadas: a faixa etária e cada complicação de idade viram
+  // pseudo-poderes no mesmo esquema da Complicação — fora de `uniquePowers`,
+  // portanto fora do drag-and-drop e de `powersOrder`.
+  const agePowers: SheetPower[] = useMemo(() => {
+    if (!sheet?.age) return [];
+    const bracket = getAgeBracket(sheet.age.bracket);
+    if (!bracket) return [];
+    return [
+      {
+        name: `Faixa Etária: ${bracket.label}`,
+        description: bracket.description,
+      },
+      ...sheet.age.complications.map((complication) => ({
+        name: complication.name,
+        description: complication.description,
+      })),
+    ];
+  }, [sheet?.age]);
+
   const selectedPower: SheetPower | null = useMemo(() => {
     if (!selectedPowerName) return null;
     if (complicationPower && complicationPower.name === selectedPowerName) {
       return complicationPower;
     }
+    const agePower = agePowers.find((p) => p.name === selectedPowerName);
+    if (agePower) return agePower;
     return uniquePowers.find((p) => p.name === selectedPowerName) || null;
-  }, [selectedPowerName, uniquePowers, complicationPower]);
+  }, [selectedPowerName, uniquePowers, complicationPower, agePowers]);
+
+  const isAgeSelected = agePowers.some((p) => p.name === selectedPowerName);
 
   const selectedOrigin: PowerOrigin =
     (selectedPowerName && origins.get(selectedPowerName)) ||
-    COMPLICATION_ORIGIN;
+    (isAgeSelected ? AGE_ORIGIN : COMPLICATION_ORIGIN);
 
   const isComplicationSelected =
     !!complicationPower && complicationPower.name === selectedPowerName;
 
-  const renderRow = (power: SheetPower, extra?: React.ReactNode) => {
-    const origin = origins.get(power.name) || COMPLICATION_ORIGIN;
-    // A Complicação é pseudo-poder: não vive em nenhum array de poderes, então
-    // não há onde gravar um override de exibição.
-    const isComplication = complicationPower?.name === power.name;
+  const renderRow = (
+    power: SheetPower,
+    extra?: React.ReactNode,
+    // Pseudo-poderes (Complicação, Idade) não estão em `origins`, que é montado
+    // a partir dos arrays de poderes reais da ficha.
+    originOverride?: PowerOrigin
+  ) => {
+    const origin =
+      originOverride || origins.get(power.name) || COMPLICATION_ORIGIN;
+    // Pseudo-poderes não vivem em nenhum array de poderes, então não há onde
+    // gravar um override de exibição.
+    const isPseudoPower =
+      complicationPower?.name === power.name || !!originOverride;
     return (
       <PowerRow
         key={power.name}
@@ -565,7 +598,7 @@ const PowersDisplay: React.FC<{
         className={className}
         onUpdateRolls={onUpdateRolls}
         onUpdateCustomEffects={onUpdateCustomEffects}
-        onUpdateDisplay={isComplication ? undefined : onUpdateDisplay}
+        onUpdateDisplay={isPseudoPower ? undefined : onUpdateDisplay}
         detailExtra={extra}
       />
     );
@@ -721,6 +754,21 @@ const PowersDisplay: React.FC<{
                 1
               )}
               {renderRow(complicationPower, complicationExtra)}
+            </Box>
+          )}
+
+          {agePowers.length > 0 && (
+            <Box>
+              {renderGroupHeader(
+                'age',
+                POWER_ORIGINS.age.label(),
+                POWER_ORIGINS.age.color,
+                POWER_ORIGINS.age.icon,
+                agePowers.length
+              )}
+              {agePowers.map((power) =>
+                renderRow(power, undefined, AGE_ORIGIN)
+              )}
             </Box>
           )}
         </>

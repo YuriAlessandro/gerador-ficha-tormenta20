@@ -14,6 +14,7 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
+import type { SheetAge } from '../premium/interfaces/Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { DiceRoll } from './DiceRoll';
 
@@ -873,6 +874,7 @@ export default interface CharacterSheet {
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha
+  age?: SheetAge; // Idades Variadas (Heróis de Arton) — faixa etária + complicações de idade
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
   tradicaoPerdidaPmAttribute?: Atributo; // Poder Tradição Perdida: atributo que entra no total de PM no lugar do atributo da classe (cap 6 +2/patamar). undefined = usa o atributo da classe.
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)

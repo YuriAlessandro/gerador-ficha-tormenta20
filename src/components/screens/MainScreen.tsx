@@ -78,6 +78,7 @@ import {
   isSheetIntegrityError,
 } from '../../functions/sheetPayloadOptimizer';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import { getAgeExtraLevels } from '../../premium/functions/ages';
 
 import '../../assets/css/mainScreen.css';
 import roles from '../../data/systems/tormenta20/roles';
@@ -126,6 +127,9 @@ import {
 
 // localStorage key for persisting creation mode
 const CREATION_MODE_KEY = 'fdnLastCreationMode';
+
+/** Teto de nível do sistema — o mesmo do seletor de nível do formulário. */
+const MAX_LEVEL = 20;
 
 type SelectedOption = {
   value: string;
@@ -396,6 +400,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     React.useState(false);
   const [pendingLevel1Sheet, setPendingLevel1Sheet] =
     React.useState<CharacterSheet | null>(null);
+  // Alvo do assistente de evolução. Normalmente é o nível pedido no formulário,
+  // mas Idades Variadas soma os níveis extras da faixa etária (Maduro +1,
+  // Velho +2, Ancião +3), decidida dentro do assistente de criação.
+  const [pendingTargetLevel, setPendingTargetLevel] = React.useState<
+    number | null
+  >(null);
 
   // Support CTA states
   const [showSupportSnackbar, setShowSupportSnackbar] = React.useState(false);
@@ -764,8 +774,18 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       // Clear race customization after use
       setRaceCustomization({});
 
+      // Idades Variadas (Heróis de Arton): Maduro, Velho e Ancião começam com
+      // níveis adicionais em relação ao resto do grupo. O alvo do assistente de
+      // evolução passa a ser o nível pedido + os extras da faixa (teto 20).
+      const ageExtraLevels = getAgeExtraLevels(wizardSelections.ageBracket);
+      const effectiveLevel = Math.min(
+        MAX_LEVEL,
+        selectedOptions.nivel + ageExtraLevels
+      );
+      setPendingTargetLevel(effectiveLevel);
+
       // If level > 1, open level up wizard modal
-      if (selectedOptions.nivel > 1) {
+      if (effectiveLevel > 1) {
         setPendingLevel1Sheet(level1Sheet);
         setLevelUpWizardModalOpen(true);
         return;
@@ -1631,7 +1651,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         <LevelUpWizardModal
           open={levelUpWizardModalOpen}
           initialSheet={pendingLevel1Sheet}
-          targetLevel={selectedOptions.nivel}
+          targetLevel={pendingTargetLevel ?? selectedOptions.nivel}
           supplements={
             selectedOptions.supplements || [SupplementId.TORMENTA20_CORE]
           }

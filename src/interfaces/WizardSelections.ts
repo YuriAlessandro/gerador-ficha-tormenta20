@@ -17,6 +17,7 @@ import {
   SpiritEnergyType,
 } from './Companion';
 import type { Complication } from '../premium/interfaces/Complication';
+import type { AgeBracketId, AgeComplication } from '../premium/interfaces/Age';
 
 export interface ClassEquipmentSelections {
   simpleWeapon?: Equipment;
@@ -217,6 +218,20 @@ export interface WizardSelections {
   complication?: Complication | 'declined';
   // Poder geral adicional concedido pela complicação
   complicationPower?: GeneralPower;
+
+  // Idades Variadas (Heróis de Arton). `ageBracket` ausente = regra desligada;
+  // 'jovem' é a faixa padrão, escolhida explicitamente mas sem efeito nenhum.
+  ageBracket?: AgeBracketId;
+  ageYears?: number;
+  // Complicações de idade escolhidas (1 para Adulto, ..., 4 para Ancião)
+  ageComplications?: AgeComplication[];
+  // "Já Vi Coisas": poder geral opcional do Adulto. O booleano é separado do
+  // poder porque o jogador aceita o benefício ANTES de escolher qual poder é —
+  // e é ele que liga o passo "Poder da Idade" e a exigência da complicação.
+  ageOptionalPowerTaken?: boolean;
+  agePower?: GeneralPower;
+  // Morte por Velhice (p. 291): marcador de mesa, oferecido a Velho e Ancião
+  deathByOldAge?: boolean;
 
   // Equipamento inicial da classe escolhido no step "Equipamento Inicial"
   classEquipment?: ClassEquipmentSelections;

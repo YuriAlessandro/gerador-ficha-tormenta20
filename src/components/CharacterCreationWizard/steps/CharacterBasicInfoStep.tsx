@@ -19,6 +19,8 @@ import {
   getEffectiveRaceAttrs,
   raceHasSexDimorphism,
 } from '@/functions/general';
+import { AgeBracketField } from '@/premium/components/Ages';
+import type { AgeBracketId } from '@/premium/interfaces/Age';
 
 interface CharacterBasicInfo {
   name?: string;
@@ -27,12 +29,25 @@ interface CharacterBasicInfo {
   dimorphismChoice?: 'Masculino' | 'Feminino';
 }
 
+interface AgeSelection {
+  bracket: AgeBracketId;
+  years?: number;
+  deathByOldAge?: boolean;
+}
+
 interface CharacterBasicInfoStepProps {
   basicInfo: CharacterBasicInfo;
   onChange: (info: CharacterBasicInfo) => void;
   raceName: string;
   race?: Race;
   supplements: SupplementId[];
+  /**
+   * Idades Variadas (Heróis de Arton). A faixa etária é decidida aqui porque
+   * tudo que ela altera vem depois: benefícios de origem, complicações de idade
+   * e os níveis extras que definem o alvo do assistente de evolução.
+   */
+  ageSelection?: AgeSelection;
+  onAgeChange?: (age: AgeSelection) => void;
 }
 
 const formatAttrSet = (race: Race, sex: 'Masculino' | 'Feminino'): string =>
@@ -50,6 +65,8 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
   raceName,
   race,
   supplements,
+  ageSelection,
+  onAgeChange,
 }) => {
   const [nameSuggestions, setNameSuggestions] = useState<string[]>(() =>
     getNameSuggestions(raceName, basicInfo.gender || 'Masculino', supplements)
@@ -215,6 +232,15 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
             />
           </RadioGroup>
         </FormControl>
+      )}
+      {onAgeChange && (
+        <AgeBracketField
+          raceName={race?.name ?? raceName}
+          bracket={ageSelection?.bracket}
+          years={ageSelection?.years}
+          deathByOldAge={ageSelection?.deathByOldAge}
+          onChange={onAgeChange}
+        />
       )}
       {isComplete ? (
         <Alert severity='success'>

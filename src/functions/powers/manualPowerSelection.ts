@@ -29,9 +29,17 @@ import {
   allDivineSpellsCircle5,
 } from '@/data/systems/tormenta20/magias/divine';
 import { SupplementId } from '@/types/supplement.types';
+import { isPhysicalIncreaseBlockedByAge } from '@/premium/functions/ages';
 import { getAttributeIncreasesInSamePlateau } from './general';
 import { getFuturaLendaClassPowers, isPowerAvailable } from '../powers';
 import { isClassOrVariantOf } from '../general';
+
+/** Força, Destreza e Constituição — os atributos "físicos" de T20. */
+const PHYSICAL_ATTRIBUTES: Atributo[] = [
+  Atributo.FORCA,
+  Atributo.DESTREZA,
+  Atributo.CONSTITUICAO,
+];
 
 /**
  * Helper to determine if a spell list represents "all arcane spells of circle X"
@@ -695,8 +703,15 @@ export function getFilteredAvailableOptions(
     case 'increaseAttribute': {
       // Get attributes that haven't been increased in the current plateau
       const usedAttributes = getAttributeIncreasesInSamePlateau(sheet);
+      // Idades Variadas (Heróis de Arton, p. 290): Velhos e Anciões "não podem
+      // escolher o poder Aumento de Atributo para nenhum atributo físico".
+      // Filtrar aqui cobre de uma vez o assistente de criação, o de evolução e
+      // o drawer de poderes — todos passam por esta função.
+      const blockedByAge = isPhysicalIncreaseBlockedByAge(sheet.age?.bracket)
+        ? PHYSICAL_ATTRIBUTES
+        : [];
       const availableAttributes = Object.values(Atributo).filter(
-        (attr) => !usedAttributes.includes(attr)
+        (attr) => !usedAttributes.includes(attr) && !blockedByAge.includes(attr)
       );
 
       // Return attribute names sorted alphabetically

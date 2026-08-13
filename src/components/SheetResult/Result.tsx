@@ -89,8 +89,10 @@ import {
   ActivePowerUseDialog,
 } from '@/premium/components/ActiveEffects';
 import { ComplicationEditDrawer } from '@/premium/components/Complications';
+import { AgeEditDrawer } from '@/premium/components/Ages';
 import { SupplementId } from '@/types/supplement.types';
 import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
+import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import socketService, {
   type PowerEffectBonusPayload,
   type RollAbilityMeta,
@@ -272,6 +274,7 @@ const Result: React.FC<ResultProps> = (props) => {
   >(undefined);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [complicationDrawerOpen, setComplicationDrawerOpen] = useState(false);
+  const [ageDrawerOpen, setAgeDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
@@ -317,6 +320,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
   const complicationsFeature = useFeatureAccess('complications');
+  const optionalRulesFeature = useFeatureAccess('optionalRules');
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
   // forma); este componente precisa ficar transparente para não cobri-lo.
@@ -2365,6 +2369,32 @@ const Result: React.FC<ResultProps> = (props) => {
                         </IconButton>
                       </Tooltip>
                     )}
+                  {onSheetUpdate &&
+                    // Mesma regra da complicação: quem já tem idade na ficha
+                    // continua podendo editá-la (e voltar para Jovem) mesmo sem
+                    // acesso à feature.
+                    (!!currentSheet.age ||
+                      (optionalRulesFeature.hasAccess &&
+                        userSupplements.includes(
+                          SupplementId.TORMENTA20_HEROIS_ARTON
+                        ))) && (
+                      <Tooltip title='Idade (Heróis de Arton)'>
+                        <IconButton
+                          size='small'
+                          sx={{
+                            backgroundColor: theme.palette.primary.main,
+                            color: 'white',
+                            borderRadius: 1,
+                            '&:hover': {
+                              backgroundColor: theme.palette.primary.dark,
+                            },
+                          }}
+                          onClick={() => setAgeDrawerOpen(true)}
+                        >
+                          <HourglassBottomIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   {activeSheetTab === 'defesa' && onSheetUpdate && (
                     <Tooltip title='Configurações de defesa' arrow>
                       <IconButton
@@ -3270,6 +3300,15 @@ const Result: React.FC<ResultProps> = (props) => {
               onClose={() => setComplicationDrawerOpen(false)}
               sheet={currentSheet}
               supplements={userSupplements}
+              onSave={handlePowersUpdate}
+            />
+          )}
+
+          {onSheetUpdate && (
+            <AgeEditDrawer
+              open={ageDrawerOpen}
+              onClose={() => setAgeDrawerOpen(false)}
+              sheet={currentSheet}
               onSave={handlePowersUpdate}
             />
           )}

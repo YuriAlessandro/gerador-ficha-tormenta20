@@ -37,6 +37,7 @@ import { ClassAbility, ClassDescription } from '@/interfaces/Class';
 import { CONDITION_TEMPLATES } from '@/premium/data/conditions';
 import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
+import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
 import {
   isMulticlass,
@@ -1260,6 +1261,26 @@ function applyComplication(
 }
 
 /**
+ * Reaplica os `sheetBonuses` da idade (Idades Variadas, Heróis de Arton): os da
+ * faixa etária mais os das complicações de idade escolhidas. Precisam voltar a
+ * cada recálculo porque o Step 1 zera a lista.
+ *
+ * Os modificadores de ATRIBUTO da faixa não passam por aqui: são permanentes e
+ * seguem o caminho dos raciais — somados uma vez em `generateEmptySheet` e
+ * ajustados por delta quando o jogador troca a faixa. Ver
+ * `getAgeAttributeModifiers`.
+ */
+function applyAge(sheet: CharacterSheet): CharacterSheet {
+  const ageBonuses = getAgeSheetBonuses(sheet.age);
+  if (ageBonuses.length === 0) return sheet;
+
+  return {
+    ...sheet,
+    sheetBonuses: [...sheet.sheetBonuses, ...ageBonuses],
+  };
+}
+
+/**
  * Checks if the character has a specific class ability
  */
 function hasClassAbility(sheet: CharacterSheet, abilityName: string): boolean {
@@ -1843,6 +1864,11 @@ export function recalculateSheet(
       removedPowerNames.push(originalSheet.complication.name);
     }
 
+    // A faixa etária NÃO entra aqui: os modificadores de atributo dela são
+    // permanentes (como os raciais) e vivem em `atributos`, não em
+    // `sheetActionHistory`. Quem troca a faixa aplica o delta na hora — ver
+    // `getAgeAttributeDelta`.
+
     // Only reverse sheet actions (not bonuses) since bonuses will be cleared anyway
     removedPowerNames.forEach((powerName) => {
       reverseSheetActionsForPower(updatedSheet, powerName);
@@ -1919,6 +1945,9 @@ export function recalculateSheet(
 
   // Step 7.2: Apply complication (Heróis de Arton)
   updatedSheet = applyComplication(updatedSheet, manualSelections);
+
+  // Step 7.25: Apply age bracket + age complications (Heróis de Arton)
+  updatedSheet = applyAge(updatedSheet);
 
   // Step 7.3: Apply equipment bonuses
   updatedSheet = applyEquipmentBonuses(updatedSheet);

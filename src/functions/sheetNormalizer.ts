@@ -9,6 +9,8 @@ import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-d
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { getComplicationByName } from '../premium/data/complications';
+import { getAgeBracket } from '../premium/data/ageBrackets';
+import { getAgeComplicationByName } from '../premium/data/ageComplications';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import { RETIRED_ACTIVE_POWER_KEYS } from '../premium/data/activePowers';
 import {
@@ -281,6 +283,26 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     }
   }
 
+  if (sheet.age) {
+    // Idem para as complicações de idade: a ficha embute cópias, e refrescar
+    // pelo catálogo faz correções de dados alcançarem fichas antigas. A faixa
+    // etária em si não é copiada — `getAgeBracket` resolve pelo id.
+    sheet.age.complications = (
+      Array.isArray(sheet.age.complications) ? sheet.age.complications : []
+    )
+      .filter((c) => c && typeof c.name === 'string')
+      .map((c) => {
+        const current = getAgeComplicationByName(c.name);
+        return current
+          ? {
+              ...c,
+              description: current.description,
+              sheetBonuses: current.sheetBonuses,
+            }
+          : c;
+      });
+  }
+
   // Result renderiza `step.value.map` e o recalculateSheet lê `step.label`.
   sheet.steps = sheet.steps.filter(
     (s) => s && typeof s.label === 'string' && Array.isArray(s.value)
@@ -422,6 +444,17 @@ export function normalizeSheet(sheet: CharacterSheet): void {
       typeof sheet.complication.grantedPowerName !== 'string')
   ) {
     delete sheet.complication;
+  }
+
+  // Idade com faixa etária desconhecida não resolve no catálogo — nem os
+  // bônus nem o rótulo saem de pé, então descarta o bloco inteiro.
+  if (sheet.age && !getAgeBracket(sheet.age.bracket)) {
+    delete sheet.age;
+  }
+  if (sheet.age && typeof sheet.age.extraLevels !== 'number') {
+    // `extraLevels` é só memória de quanto a faixa concedeu na criação; um
+    // valor ausente vira 0 em vez de derrubar a ficha.
+    sheet.age.extraLevels = 0;
   }
 
   // Devoto parcial (sem divindade) quebra o Result (`devoto.divindade.name`);

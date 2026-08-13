@@ -50,6 +50,12 @@ interface OriginSelectionStepProps {
   race?: Race;
   sexForAttributes?: 'Masculino' | 'Feminino'; // Dimorfismo sexual (ex: Nagah)
   classe?: ClassDescription;
+  /**
+   * Quantos benefícios a origem concede. Dois pelo livro básico; "Origem em
+   * Construção" (Adolescente, Idades Variadas p. 289) reduz para um. A Criança
+   * não recebe nenhum, mas nesse caso o assistente nem exibe este passo.
+   */
+  requiredSelections?: number;
 }
 
 const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
@@ -64,8 +70,9 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   race,
   sexForAttributes,
   classe,
+  requiredSelections = 2,
 }) => {
-  const REQUIRED_SELECTIONS = 2;
+  const REQUIRED_SELECTIONS = requiredSelections;
 
   // Fallback ao `getItems()` só quando o assistente ainda não congelou a lista
   const originItems = useMemo(

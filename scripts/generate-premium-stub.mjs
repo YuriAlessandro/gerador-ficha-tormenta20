@@ -108,6 +108,25 @@ const OVERRIDES = {
   applyOpenRace: { expr: '(race: unknown) => race' },
   toOpenRaceVariant: { expr: '() => undefined' },
   hasOpenableAttributes: { expr: '() => false' },
+  // Atributos Variados: lista vazia esconde o seletor de variante e mantém os
+  // três métodos do livro básico.
+  VARIED_ATTRIBUTE_METHODS: { expr: '[]' },
+  resolveVariedAttributeMethod: { expr: '() => undefined' },
+  getVariedAttributeMethod: { expr: '() => undefined' },
+  // Idades Variadas. Os `noop` do default virariam NaN (soma de nível), sumiriam
+  // com o passo de benefícios de origem (`> 0` com undefined) ou quebrariam num
+  // `.length`/`.forEach` — cada valor abaixo é o neutro do seu call site.
+  getAgeBracket: { expr: '() => undefined' },
+  getAgeComplicationByName: { expr: '() => undefined' },
+  getAgeExtraLevels: { expr: '() => 0' },
+  // 2 = o padrão do livro básico; qualquer outro valor mudaria a criação de
+  // ficha de quem roda sem o submódulo.
+  getAgeOriginBenefits: { expr: '() => 2' },
+  getRequiredAgeComplications: { expr: '() => 0' },
+  getAgeAttributeModifiers: { expr: '() => []' },
+  getAgeSheetBonuses: { expr: '() => []' },
+  // false travaria o assistente num passo que nem chega a existir
+  isAgeSelectionComplete: { expr: '() => true' },
   // false travaria o wizard no passo de complicação
   isComplicationPowerSelectionComplete: { expr: '() => true' },
   getComplicationByName: { expr: '() => undefined' },
