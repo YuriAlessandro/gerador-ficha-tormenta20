@@ -27,6 +27,8 @@ export function describeBonusSource(source: SheetChangeSource): string {
       return source.equipmentName;
     case 'complication':
       return source.complicationName;
+    case 'age':
+      return source.ageLabel;
     case 'activeEffect':
       return source.name;
     case 'condition':

@@ -2,5 +2,4 @@
 // Stub público — gerado por scripts/generate-premium-stub.mjs.
 import { noop } from '../_inert';
 
-export const validateHomebrew = () => ({ valid: true, errors: [] });
-export const validateRaceContent = noop;
+export const compileNaturalWeapon = noop;

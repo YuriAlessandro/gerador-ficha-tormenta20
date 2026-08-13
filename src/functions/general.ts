@@ -106,6 +106,10 @@ import { DiceRoll } from '../interfaces/DiceRoll';
 import { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { generateRandomAnimalCompanion } from '../premium/functions/animalCompanionEffects';
 import {
+  applyOpenRace,
+  toOpenRaceVariant,
+} from '../premium/functions/openRaces';
+import {
   getRaceDisplacement,
   getRaceSize,
 } from '../data/systems/tormenta20/races/functions/functions';
@@ -126,6 +130,7 @@ import CharacterSheet, {
   SheetActionStep,
   SheetBonus,
   SheetChangeSource,
+  SheetOptionalRules,
   StatModifier,
   Step,
   SubStep,
@@ -941,7 +946,9 @@ export function selectClass(
   }
 
   const dv = selectedOptions.devocao.value;
-  if (dv) {
+  // Devoções Abertas (Heróis de Arton): qualquer classe serve a qualquer deus,
+  // então o filtro por devoção some.
+  if (dv && !selectedOptions.openDeities) {
     allClasses = allClasses.filter(
       (cl) => cl.faithProbability?.[dv as DivindadeNames] !== 0
     );
@@ -6596,6 +6603,23 @@ export function generateEmptySheet(
     emptySheet.selectedAttributeVariant = wizardSelections.attributeVariant;
   }
 
+  // Raças Abertas (Heróis de Arton): roda DEPOIS da variante — abrir a raça é a
+  // última transformação dos modificadores raciais. `applyOpenRace` transforma
+  // cada modificador num slot `any` e zera `getAttributes`, então
+  // `modifyAttributesBasedOnRace` logo abaixo já casa cada slot com a escolha de
+  // mesmo índice em `raceAttributes`, exatamente como faz com o Humano.
+  if (wizardSelections?.openRaces) {
+    const effectiveAttrs = getEffectiveRaceAttrs(
+      emptySheet.raca,
+      resolveSexForAttributes(
+        wizardSelections?.characterGender,
+        wizardSelections?.dimorphismChoice
+      )
+    );
+    emptySheet.raca = applyOpenRace(emptySheet.raca, effectiveAttrs);
+    emptySheet.selectedAttributeVariant = toOpenRaceVariant(effectiveAttrs);
+  }
+
   // Apply race attribute modifiers
   const tempSteps: Step[] = [];
   emptySheet.atributos = modifyAttributesBasedOnRace(
@@ -6812,6 +6836,15 @@ export function generateEmptySheet(
         { name: 'Poder Geral', value: complicationPower.name },
       ],
     });
+  }
+
+  // Regras opcionais de Heróis de Arton em uso. Só grava o que estiver ligado —
+  // um objeto com todas as chaves `false` viraria ruído em toda ficha nova.
+  const usedOptionalRules: SheetOptionalRules = {};
+  if (selectedOptions.openDeities) usedOptionalRules.openDeities = true;
+  if (wizardSelections?.openRaces) usedOptionalRules.openRaces = true;
+  if (Object.keys(usedOptionalRules).length > 0) {
+    emptySheet.optionalRules = usedOptionalRules;
   }
 
   // Process deity if selected

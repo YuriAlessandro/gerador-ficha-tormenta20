@@ -113,6 +113,11 @@ export interface WizardSelections {
   // Race attribute choices for races with 'any' attributes
   raceAttributes?: Atributo[];
 
+  // Raças Abertas (Heróis de Arton): redistribuir livremente os modificadores
+  // raciais. Quando ligado, TODOS os modificadores da raça viram slots 'any' e
+  // `raceAttributes` passa a ter uma entrada por modificador, pareada por índice.
+  openRaces?: boolean;
+
   // Base skill 'or' choices (e.g., Luta OR Pontaria for Guerreiro)
   // Each position corresponds to the Nth 'or' group in periciasbasicas
   baseSkillChoices?: Skill[];

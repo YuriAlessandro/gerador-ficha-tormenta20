@@ -102,6 +102,12 @@ const OVERRIDES = {
   aggregateConditionBonuses: { expr: '(bonuses = []) => bonuses' },
   CONDITION_TEMPLATES: { expr: '{}' },
   getComplicationPowerWarning: { expr: '() => null' },
+  // Raças Abertas: sem o premium a regra nunca é ligada (a flag vem desligada),
+  // mas o retorno alimenta `sheet.raca` — devolver a raça intacta é o que
+  // impede um `undefined` de derrubar a geração se o caminho for alcançado.
+  applyOpenRace: { expr: '(race) => race' },
+  toOpenRaceVariant: { expr: '() => undefined' },
+  hasOpenableAttributes: { expr: '() => false' },
   // false travaria o wizard no passo de complicação
   isComplicationPowerSelectionComplete: { expr: '() => true' },
   getComplicationByName: { expr: '() => undefined' },

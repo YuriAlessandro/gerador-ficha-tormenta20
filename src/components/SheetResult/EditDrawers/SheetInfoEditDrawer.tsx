@@ -479,6 +479,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
   // Get race attributes (considering sex-dependent races like Nagah, heritage-based races like Moreau, and Golem Desperto)
   const raceAttributes = (() => {
+    // Raças Abertas (Heróis de Arton) vem ANTES de todos os casos especiais: a
+    // variante sintética já foi derivada da raça final (herança, chassi, sexo)
+    // no momento da criação, então reprocessar a raça aqui desfaria a abertura.
+    if (editedData.selectedAttributeVariant?.openRace) {
+      return editedData.selectedAttributeVariant.attrs;
+    }
+
     // For Moreau, use heritage attributes if heritage is selected
     if (editedData.raceName === 'Moreau' && editedData.raceHeritage) {
       const heritage =
@@ -2712,8 +2719,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     </Box>
                   )}
 
+                  {/* Raças Abertas: a variante é sintética e não está no
+                      catálogo, então o seletor de variantes abaixo fica de fora
+                      (nenhuma das opções corresponde à distribuição em uso). */}
+                  {editedData.selectedAttributeVariant?.openRace && (
+                    <Alert severity='info'>
+                      Esta ficha usa <strong>Raças Abertas</strong> (regra
+                      opcional de <em>Heróis de Arton</em>): os modificadores da
+                      raça foram distribuídos livremente e podem ser
+                      reatribuídos abaixo.
+                    </Alert>
+                  )}
+
                   {/* Race Attribute Variant Selector */}
-                  {selectedRace?.attributeVariants &&
+                  {!editedData.selectedAttributeVariant?.openRace &&
+                    selectedRace?.attributeVariants &&
                     selectedRace.attributeVariants.length > 1 && (
                       <Box
                         sx={{

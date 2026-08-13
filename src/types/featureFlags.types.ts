@@ -15,6 +15,7 @@ export interface FeatureFlags {
   bestiary: FeatureFlag;
   partners: FeatureFlag;
   complications: FeatureFlag;
+  optionalRules: FeatureFlag;
   spellAreaGuide: FeatureFlag;
   playerScreen: FeatureFlag;
   limitBoost: FeatureFlag;
@@ -32,6 +33,10 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   partners: { enabled: false, supporterOnly: true },
   // Complicações (regra opcional de Heróis de Arton) na criação de ficha.
   complications: { enabled: true, supporterOnly: true },
+  // Demais regras opcionais de Heróis de Arton na criação de ficha: Atributos
+  // Variados, Raças Abertas, Devoções Abertas e Idades Variadas. Complicações
+  // ficou com flag própria por já estar em produção antes desta.
+  optionalRules: { enabled: true, supporterOnly: true },
   // Guia de acerto: prévia em grid de batalha da área de efeito das magias.
   spellAreaGuide: { enabled: true, supporterOnly: true },
   // Tela do Jogador: segunda tela pública que o mestre projeta para a mesa.

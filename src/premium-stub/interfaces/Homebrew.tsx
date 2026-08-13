@@ -25,3 +25,5 @@ export const HomebrewSpellPackContent =
 export type HomebrewVariantClassContent = any;
 export const HomebrewVariantClassContent =
   undefined as unknown as HomebrewVariantClassContent;
+export type HomebrewNaturalWeapon = any;
+export type HomebrewRaceContent = any;

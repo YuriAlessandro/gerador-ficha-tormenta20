@@ -21,6 +21,14 @@ export interface AttributeVariant {
   label: string;
   attrs: RaceAttributeAbility[];
   excludeFromAny?: Atributo[];
+  /**
+   * Marca a variante SINTÉTICA gerada por Raças Abertas (regra opcional de
+   * Heróis de Arton, p. 281), na qual todo modificador racial vira um slot
+   * `any`. Diferente das variantes declaradas em `Race.attributeVariants`, esta
+   * não existe no catálogo — é derivada em tempo de criação, então quem lista
+   * variantes para o jogador escolher precisa ignorá-la.
+   */
+  openRace?: boolean;
 }
 
 export type raceSize =

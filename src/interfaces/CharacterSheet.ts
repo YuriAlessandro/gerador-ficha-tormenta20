@@ -58,6 +58,13 @@ export type SheetChangeSource =
       complicationName: string;
     }
   | {
+      // Idades Variadas (Heróis de Arton): tanto os efeitos da faixa etária
+      // quanto as complicações de idade escolhidas por ela. `ageLabel` guarda o
+      // nome da faixa ("Ancião") ou da complicação ("Catarata").
+      type: 'age';
+      ageLabel: string;
+    }
+  | {
       // Bônus derivado da categoria de tamanho da criatura (ex.: o passo de
       // dano das armas). Não vem de nenhuma escolha do jogador — é recomputado
       // do `sheet.size` final a cada recálculo.
@@ -676,6 +683,28 @@ export interface ClassLevelEntry {
   classSubname?: string;
 }
 
+/**
+ * Regras opcionais de Heróis de Arton (cap. 4) em uso nesta ficha.
+ *
+ * Complicações NÃO entram aqui — têm campo próprio (`complication`) desde antes
+ * deste bloco. As flags abaixo são registradas na criação e servem tanto de
+ * auditoria quanto de gate para a edição pós-criação: mesmo que o usuário perca
+ * o acesso à feature, quem já tem a regra na ficha continua podendo removê-la.
+ */
+export interface SheetOptionalRules {
+  /** Raças Abertas (p. 281): modificadores raciais distribuídos livremente. */
+  openRaces?: boolean;
+  /** Devoções Abertas (p. 281): devoto de qualquer divindade. */
+  openDeities?: boolean;
+  /** Morte por Velhice (p. 291): marcador de mesa, sem mecânica automática. */
+  deathByOldAge?: boolean;
+  /**
+   * Variante de Atributos Variados usada na criação (ex.: 'classica', 'nimb').
+   * Informativo: os atributos já saem calculados, isto só registra a origem.
+   */
+  attributeMethodVariant?: string;
+}
+
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
 export default interface CharacterSheet {
   id: string;
@@ -843,6 +872,7 @@ export default interface CharacterSheet {
   imageUrl?: string; // URL de imagem do personagem
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
+  optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
   tradicaoPerdidaPmAttribute?: Atributo; // Poder Tradição Perdida: atributo que entra no total de PM no lugar do atributo da classe (cap 6 +2/patamar). undefined = usa o atributo da classe.
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)

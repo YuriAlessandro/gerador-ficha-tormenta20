@@ -78,7 +78,12 @@ import {
   ComplicationPowerStep,
 } from '@/premium/components/Complications';
 import { isComplicationPowerSelectionComplete } from '@/premium/functions/complications';
+import {
+  applyOpenRace,
+  hasOpenableAttributes,
+} from '@/premium/functions/openRaces';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import type { GeneralPower } from '@/interfaces/Poderes';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
@@ -133,6 +138,7 @@ const CharacterCreationWizardModal: React.FC<
   CharacterCreationWizardModalProps
 > = ({ open, onClose, onConfirm, selectedOptions, raceCustomization }) => {
   const complicationsFeature = useFeatureAccess('complications');
+  const optionalRulesAvailable = useOptionalRulesAvailable();
   const [activeStep, setActiveStep] = useState(0);
   const [steps, setSteps] = useState<string[]>([]);
   const [stepsInitialized, setStepsInitialized] = useState(false);
@@ -372,11 +378,37 @@ const CharacterCreationWizardModal: React.FC<
     selections.dimorphismChoice
   );
 
+  // Raças Abertas (Heróis de Arton) roda POR CIMA da variante escolhida: abrir a
+  // raça é a última transformação dos modificadores raciais, nunca a primeira.
+  // Daqui pra baixo, todo cálculo de atributo usa `raceForAttributes` —
+  // `raceWithVariant` só sobrevive onde a identidade da raça importa mais que os
+  // atributos (ex.: a lista de variantes do catálogo).
+  const raceForAttributes: Race | undefined = useMemo(
+    () =>
+      raceWithVariant && selections.openRaces
+        ? applyOpenRace(
+            raceWithVariant,
+            getEffectiveRaceAttrs(raceWithVariant, sexForAttributes)
+          )
+        : raceWithVariant,
+    [raceWithVariant, selections.openRaces, sexForAttributes]
+  );
+
+  // A raça TEM modificadores para redistribuir? Lê sempre a raça fechada — a
+  // aberta já é o resultado da transformação.
+  const canOpenRace =
+    optionalRulesAvailable &&
+    hasOpenableAttributes(
+      raceWithVariant
+        ? getEffectiveRaceAttrs(raceWithVariant, sexForAttributes)
+        : undefined
+    );
+
   // Modificadores finais dos seis atributos (base + raciais). Necessários pelos
   // passos que filtram poderes antes de a ficha existir — sem eles a ficha-mock
   // usa valores falsos e todo pré-requisito de atributo passa de graça.
   const finalAttributeModifiers = computeFinalAttributeModifiers(
-    raceWithVariant,
+    raceForAttributes,
     sexForAttributes,
     selections.baseAttributes,
     selections.raceAttributes
@@ -401,8 +433,12 @@ const CharacterCreationWizardModal: React.FC<
   };
 
   const needsRaceAttributes = (): boolean => {
-    if (!raceWithVariant) return false;
-    return getEffectiveRaceAttrs(raceWithVariant, sexForAttributes).some(
+    if (!raceForAttributes) return false;
+    // Com Raças Abertas disponível o passo aparece sempre: é lá que mora o
+    // toggle da regra, então ele precisa existir mesmo antes de o jogador
+    // decidir (e mesmo em raças sem nenhum slot `any` no catálogo).
+    if (canOpenRace) return true;
+    return getEffectiveRaceAttrs(raceForAttributes, sexForAttributes).some(
       (attr) => attr.attr === 'any'
     );
   };
@@ -941,7 +977,7 @@ const CharacterCreationWizardModal: React.FC<
         );
 
       case 'Valores dos Atributos': {
-        if (!raceWithVariant) return null;
+        if (!raceForAttributes) return null;
         const zeroedAttributes: Record<Atributo, number> = {
           [Atributo.FORCA]: 0,
           [Atributo.DESTREZA]: 0,
@@ -953,7 +989,7 @@ const CharacterCreationWizardModal: React.FC<
         const attributeOrder = Object.values(Atributo);
         return (
           <AttributeBaseValuesStep
-            race={raceWithVariant}
+            race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             baseAttributes={selections.baseAttributes || zeroedAttributes}
             raceAttributeChoices={selections.raceAttributes}
@@ -1017,19 +1053,36 @@ const CharacterCreationWizardModal: React.FC<
       }
 
       case 'Atributos da Raça': {
-        if (!raceWithVariant) return null;
-        const attrSource = raceWithVariant.attributes;
-        const { attrs } = attrSource;
-        const attrCount = attrs.filter((a) => a.attr === 'any').length;
-        const excludedAttributes = attrSource.excludeFromAny || [];
+        if (!raceForAttributes) return null;
+        const attrs = getEffectiveRaceAttrs(
+          raceForAttributes,
+          sexForAttributes
+        );
+        const anySlots = attrs.filter((a) => a.attr === 'any');
+        const excludedAttributes =
+          raceForAttributes.attributes.excludeFromAny || [];
         return (
           <RaceAttributeStep
             selectedAttributes={selections.raceAttributes || []}
             onChange={(raceAttrs) =>
               setSelections({ ...selections, raceAttributes: raceAttrs })
             }
-            requiredCount={attrCount}
+            requiredCount={anySlots.length}
+            slotModifiers={anySlots.map((a) => a.mod)}
             excludedAttributes={excludedAttributes}
+            openRacesAvailable={canOpenRace}
+            openRaces={!!selections.openRaces}
+            onOpenRacesChange={(openRaces) =>
+              setSelections({
+                ...selections,
+                openRaces,
+                // Os slots mudam de quantidade e de significado ao ligar/desligar
+                // a regra — manter as escolhas antigas pareadas por índice
+                // colocaria o modificador errado no atributo errado.
+                raceAttributes: [],
+              })
+            }
+            raceName={raceForAttributes.name}
           />
         );
       }
@@ -1169,7 +1222,7 @@ const CharacterCreationWizardModal: React.FC<
             cachedItems={selections.cachedOriginItems}
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
-            race={raceWithVariant}
+            race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
           />
@@ -1184,7 +1237,7 @@ const CharacterCreationWizardModal: React.FC<
             }
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
-            race={raceWithVariant}
+            race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
             usedSkills={getAllUsedSkills()}
@@ -1273,7 +1326,7 @@ const CharacterCreationWizardModal: React.FC<
             knownPowers={knownPowers}
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
-            race={raceWithVariant}
+            race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
             usedSkills={getAllUsedSkills()}
@@ -1584,8 +1637,11 @@ const CharacterCreationWizardModal: React.FC<
         return selections.attributeVariant !== undefined;
 
       case 'Atributos da Raça': {
-        if (!raceWithVariant) return false;
-        const attrs = getEffectiveRaceAttrs(raceWithVariant, sexForAttributes);
+        if (!raceForAttributes) return false;
+        const attrs = getEffectiveRaceAttrs(
+          raceForAttributes,
+          sexForAttributes
+        );
         const attrCount = attrs.filter((a) => a.attr === 'any').length;
         return (
           selections.raceAttributes?.length === attrCount &&

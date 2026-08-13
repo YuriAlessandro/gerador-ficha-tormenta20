@@ -5,10 +5,16 @@ import {
   Button,
   Grid,
   Chip,
+  Switch,
+  FormControlLabel,
+  Tooltip,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { Edit as EditIcon } from '@mui/icons-material';
+import {
+  Edit as EditIcon,
+  HelpOutlined as HelpOutlineIcon,
+} from '@mui/icons-material';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import SelectOptions from '../../../interfaces/SelectedOptions';
@@ -25,6 +31,7 @@ import {
 } from '../../../data/registry';
 import getSelectTheme from '../../../functions/style';
 import { raceHasOrigin } from '../../../data/systems/tormenta20/origins';
+import { useOptionalRulesAvailable } from '../../../hooks/useOptionalRules';
 
 type SelectedOption = {
   value: string;
@@ -109,6 +116,7 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const optionalRulesAvailable = useOptionalRulesAvailable();
 
   const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
@@ -237,6 +245,9 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
   const divindades = React.useMemo(() => {
     const staticOptions = allDivindadeNames
       .filter((dv) => {
+        // Devoções Abertas (Heróis de Arton): o Panteão aceita qualquer devoto,
+        // então as restrições de classe caem.
+        if (selectedOptions.openDeities) return true;
         if (selectedOptions.classe) {
           const classe = CLASSES.find((c) => c.name === selectedOptions.classe);
           if (classe) return classe?.faithProbability?.[dv] !== 0;
@@ -258,7 +269,12 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
         statusDivino: d.statusDivino,
       }));
     return [...staticOptions.sort(byLabel), ...supplementOptions.sort(byLabel)];
-  }, [selectedOptions.classe, CLASSES, userSupplements]);
+  }, [
+    selectedOptions.classe,
+    selectedOptions.openDeities,
+    CLASSES,
+    userSupplements,
+  ]);
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
@@ -430,6 +446,34 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
               },
             })}
           />
+          {optionalRulesAvailable && (
+            <FormControlLabel
+              sx={{ mt: 0.5, ml: 0 }}
+              control={
+                <Switch
+                  size='small'
+                  checked={!!selectedOptions.openDeities}
+                  onChange={(_e, checked) =>
+                    onSelectedOptionsChange({
+                      ...selectedOptions,
+                      openDeities: checked,
+                    })
+                  }
+                />
+              }
+              label={
+                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                  Devoções Abertas{' '}
+                  <Tooltip title='Regra opcional de Heróis de Arton (p. 281): um personagem pode ser devoto de qualquer divindade, independente de sua raça ou classe.'>
+                    <HelpOutlineIcon
+                      fontSize='inherit'
+                      sx={{ verticalAlign: 'middle' }}
+                    />
+                  </Tooltip>
+                </Typography>
+              }
+            />
+          )}
         </Grid>
 
         {/* Level Selection */}
