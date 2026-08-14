@@ -286,6 +286,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
 
     const beforeItems = sheet.bag.getOrderedEquipments();
     const newBag = new Bag(staged.equipments, true, staged.displayOrder);
+    const derivedMaxSpacesAttribute =
+      sheet.maxSpacesAttribute ?? Atributo.FORCA;
+    const manualMaxSpacesAttribute =
+      staged.maxSpacesAttribute !== derivedMaxSpacesAttribute
+        ? staged.maxSpacesAttribute
+        : sheet.manualMaxSpacesAttribute;
 
     const recalculated = recalculateSheet(
       {
@@ -294,7 +300,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         dinheiro: staged.money.dinheiro,
         dinheiroTC: staged.money.dinheiroTC,
         dinheiroTO: staged.money.dinheiroTO,
-        manualMaxSpacesAttribute: staged.maxSpacesAttribute,
+        manualMaxSpacesAttribute,
         customMaxSpaces: staged.customMaxSpaces,
         // Drive the recalc off the STAGED equip-state, not the stale sheet
         // values — otherwise defesa/armor-penalty are computed against the
@@ -354,7 +360,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       dinheiro: staged.money.dinheiro,
       dinheiroTC: staged.money.dinheiroTC,
       dinheiroTO: staged.money.dinheiroTO,
-      manualMaxSpacesAttribute: staged.maxSpacesAttribute,
+      manualMaxSpacesAttribute,
       maxSpacesAttribute: recalculated.maxSpacesAttribute,
       customMaxSpaces: staged.customMaxSpaces,
       maxSpaces: recalculated.maxSpaces ?? sheet.maxSpaces,

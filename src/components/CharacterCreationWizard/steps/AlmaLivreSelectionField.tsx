@@ -43,8 +43,13 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const selectedClassName = selections.almaLivreClass || '';
-  const selectedPower = selections.almaLivrePower;
+  const selectedClassName =
+    (immediateClassPower
+      ? selections.diferentaoClass
+      : selections.almaLivreClass) || '';
+  const selectedPower = immediateClassPower
+    ? selections.diferentaoPower
+    : selections.almaLivrePower;
 
   const sortedClasses = useMemo(
     () =>
@@ -78,6 +83,8 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
                 classe:
                   dataRegistry.getClassByName(selectedClassName, supplements) ||
                   sheet.classe,
+                // Nível 0 não é válido no filtro de requisitos; poderes de
+                // classe são avaliados a partir do nível efetivo mínimo 1.
                 nivel: Math.max(1, sheet.nivel - 4),
               },
               power
@@ -103,15 +110,17 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
   const handleClassChange = (className: string) => {
     setSearchQuery('');
     onChange({
-      almaLivreClass: className,
-      almaLivrePower: undefined,
+      ...(immediateClassPower
+        ? { diferentaoClass: className, diferentaoPower: undefined }
+        : { almaLivreClass: className, almaLivrePower: undefined }),
     });
   };
 
   const handlePowerSelect = (power: ClassPower) => {
     onChange({
-      almaLivreClass: selectedClassName,
-      almaLivrePower: power,
+      ...(immediateClassPower
+        ? { diferentaoClass: selectedClassName, diferentaoPower: power }
+        : { almaLivreClass: selectedClassName, almaLivrePower: power }),
     });
   };
 

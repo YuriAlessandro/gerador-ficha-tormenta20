@@ -2005,6 +2005,26 @@ export function recalculateSheet(
     synthesizeHistoryForRemovedPowers(updatedSheet, removedPowerNames);
   }
 
+  // Diferentão grants a class power directly, so its removal does not pass
+  // through reverseSheetActionsForPower. Remove the granted power with the
+  // source talent instead of leaving it orphaned on the sheet.
+  if (
+    !updatedSheet.generalPowers?.some(
+      (power) => power.name === 'Diferentão (Kobolds)'
+    ) &&
+    updatedSheet.diferentaoPower
+  ) {
+    updatedSheet.classPowers = (updatedSheet.classPowers || []).filter(
+      (power) =>
+        !(
+          power.name === updatedSheet.diferentaoPower?.name &&
+          power.className === updatedSheet.diferentaoClass
+        )
+    );
+    updatedSheet.diferentaoClass = undefined;
+    updatedSheet.diferentaoPower = undefined;
+  }
+
   // Step 1: Clear existing bonuses to avoid accumulation
   updatedSheet.sheetBonuses = [];
 

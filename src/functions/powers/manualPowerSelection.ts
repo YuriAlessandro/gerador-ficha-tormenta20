@@ -984,8 +984,15 @@ export function countRequirementSelections(
       return selections?.chosenOption?.length ?? 0;
     case 'buildGolpePessoal':
       return selections?.golpePessoalBuild ? 1 : 0;
-    case 'almaLivreSelectClass':
-      return selections?.almaLivreClass && selections?.almaLivrePower ? 1 : 0;
+    case 'almaLivreSelectClass': {
+      const selectedClass = requirement.metadata?.immediateClassPower
+        ? selections?.diferentaoClass
+        : selections?.almaLivreClass;
+      const selectedPower = requirement.metadata?.immediateClassPower
+        ? selections?.diferentaoPower
+        : selections?.almaLivrePower;
+      return selectedClass && selectedPower ? 1 : 0;
+    }
 
     // Escolha em dois passos: ao selecionar a classe o campo já grava
     // `{ className, abilityName: '' }` para que a classe sobreviva à navegação
@@ -1135,13 +1142,16 @@ export function validateSelections(
 
       case 'almaLivreSelectClass': {
         // 1 class + 1 power
-        const hasClass = selections.almaLivreClass ? 1 : 0;
-        const hasPower = selections.almaLivrePower ? 1 : 0;
+        const selectedClass = requirement.metadata?.immediateClassPower
+          ? selections.diferentaoClass
+          : selections.almaLivreClass;
+        const selectedPower = requirement.metadata?.immediateClassPower
+          ? selections.diferentaoPower
+          : selections.almaLivrePower;
+        const hasClass = selectedClass ? 1 : 0;
+        const hasPower = selectedPower ? 1 : 0;
         selectedCount = hasClass && hasPower ? 1 : 0;
-        selectedItems = [
-          selections.almaLivreClass,
-          selections.almaLivrePower,
-        ].filter(Boolean);
+        selectedItems = [selectedClass, selectedPower].filter(Boolean);
         break;
       }
 

@@ -1511,8 +1511,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             ];
           }
 
-          // Apply Alma Livre class/power selections to the simulated sheet
-          // so the next level can detect and offer the pre-selected power
+          // Apply class/power selections to the simulated sheet so the next
+          // level can detect and offer the pre-selected power.
           if (selectedPower && currentLevelSelection.powerEffectSelections) {
             const almaLivreEffects =
               currentLevelSelection.powerEffectSelections[selectedPower.name];
@@ -1522,6 +1522,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             ) {
               nextSheet.almaLivreClass = almaLivreEffects.almaLivreClass;
               nextSheet.almaLivrePower = almaLivreEffects.almaLivrePower;
+            }
+            if (
+              almaLivreEffects?.diferentaoClass &&
+              almaLivreEffects?.diferentaoPower
+            ) {
+              nextSheet.diferentaoClass = almaLivreEffects.diferentaoClass;
+              nextSheet.diferentaoPower = almaLivreEffects.diferentaoPower;
             }
           }
         }

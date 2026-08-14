@@ -755,8 +755,23 @@ export function applyDiferentaoSelectClassPower(
   manualSelections?: SelectionOptions
 ): SubStep[] {
   const substeps: SubStep[] = [];
-  const selectedClass = manualSelections?.almaLivreClass;
-  const selectedPower = manualSelections?.almaLivrePower;
+  const selectedClass = manualSelections?.diferentaoClass;
+  const selectedPower = manualSelections?.diferentaoPower;
+
+  const diferentao = sheet.generalPowers?.some(
+    (power) => power.name === 'Diferentão (Kobolds)'
+  );
+  if (!diferentao && sheet.diferentaoPower) {
+    sheet.classPowers = (sheet.classPowers || []).filter(
+      (classPower) =>
+        !(
+          classPower.name === sheet.diferentaoPower?.name &&
+          classPower.className === sheet.diferentaoClass
+        )
+    );
+    sheet.diferentaoClass = undefined;
+    sheet.diferentaoPower = undefined;
+  }
 
   if (selectedClass && selectedPower) {
     sheet.diferentaoClass = selectedClass;
@@ -772,14 +787,6 @@ export function applyDiferentaoSelectClassPower(
   if (!alreadyGranted) {
     const grantedPower = { ...power, className: sheet.diferentaoClass };
     sheet.classPowers = [...(sheet.classPowers || []), grantedPower];
-    sheet.sheetActionHistory.push({
-      source: { type: 'power', name: 'Diferentão (Kobolds)' },
-      powerName: 'Diferentão (Kobolds)',
-      changes: [{ type: 'ClassPowerAdded', powerName: grantedPower.name }],
-    });
-    const [updatedSheet, powerSubsteps] = applyPower(sheet, grantedPower);
-    Object.assign(sheet, updatedSheet);
-    substeps.push(...powerSubsteps);
   }
 
   substeps.unshift({
