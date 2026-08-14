@@ -62,6 +62,7 @@ import {
   getHeavyArmorPowerBonuses,
   hasFanatico,
 } from './powers/heavyArmorPowers';
+import { getCarapacaKappaBonuses } from './powers/kappaCarapaca';
 import {
   getActiveArmorPenalty,
   getNonProficientArmorPenalty,
@@ -865,6 +866,21 @@ const injectHeavyArmorPowerBonuses = (
   sheet: CharacterSheet
 ): CharacterSheet => {
   const bonuses = getHeavyArmorPowerBonuses(sheet);
+  if (bonuses.length === 0) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push(...bonuses);
+
+  return updatedSheet;
+};
+
+/**
+ * Carapaça Kappa: +Constituição (limitada pelo nível) na Defesa, ou +2 quando a
+ * ficha já soma Constituição na Defesa por outra fonte. Ver
+ * `getCarapacaKappaBonuses` — inclusive o porquê do gate manual de armadura.
+ */
+const injectCarapacaKappaBonuses = (sheet: CharacterSheet): CharacterSheet => {
+  const bonuses = getCarapacaKappaBonuses(sheet);
   if (bonuses.length === 0) return sheet;
 
   const updatedSheet = _.cloneDeep(sheet);
@@ -2293,6 +2309,9 @@ export function recalculateSheet(
   updatedSheet = injectEstiloDeUmaArmaBonuses(updatedSheet);
   updatedSheet = injectEstiloDeArmaEEscudoBonuses(updatedSheet);
   updatedSheet = injectHeavyArmorPowerBonuses(updatedSheet);
+  // Depois dos demais: a Carapaça Kappa inspeciona se algo mais já soma
+  // Constituição na Defesa para decidir entre +Con e o +2 substituto.
+  updatedSheet = injectCarapacaKappaBonuses(updatedSheet);
 
   // Step 9: Reset defense to base and recalculate from ground up
   const baseDefense = updatedSheet.customDefenseBase ?? 10;

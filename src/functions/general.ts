@@ -19,6 +19,7 @@ import {
   getHeavyArmorPowerBonuses,
   hasFanatico,
 } from './powers/heavyArmorPowers';
+import { getCarapacaKappaBonuses } from './powers/kappaCarapaca';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
 import {
@@ -4902,6 +4903,11 @@ export const applyStatModifiers = (
   // Defesa quanto a RD. Auto-gateado por armadura pesada VESTIDA — entra depois
   // do filtro de `isBonusActive`, então um `condition` aqui não seria aplicado.
   sheet.sheetBonuses.push(...getHeavyArmorPowerBonuses(sheet));
+
+  // Carapaça Kappa: espelho do Step 8.5 de `recalculateSheet`. Depois do push
+  // acima porque a habilidade inspeciona se algo mais já soma Constituição na
+  // Defesa. Ver `getCarapacaKappaBonuses`.
+  sheet.sheetBonuses.push(...getCarapacaKappaBonuses(sheet));
 
   // Substituição de atributo em escopo de ficha (Usurpador, "Poder de Clérigo").
   // Espelho do Step 7.47 de `recalculateSheet`: precisa rodar nos DOIS motores,
