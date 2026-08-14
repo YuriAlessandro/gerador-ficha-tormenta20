@@ -39,6 +39,7 @@ import CharacterSheet, {
   Step,
   SubStep,
 } from '../../../interfaces/CharacterSheet';
+import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Bag from '../../../interfaces/Bag';
 import Equipment, { equipGroup } from '../../../interfaces/Equipment';
 import { recalculateSheet } from '../../../functions/recalculateSheet';
@@ -116,14 +117,15 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     }),
     [sheet.dinheiro, sheet.dinheiroTC, sheet.dinheiroTO]
   );
-  const forca = sheet.atributos.Força.value;
+  const maxSpacesAttribute = sheet.maxSpacesAttribute ?? Atributo.FORCA;
   // "Devagar e Sempre"/Golem: sobrecarregar não custa deslocamento.
   const sheetIgnoresEncumbrance = ignoresEncumbrance(sheet);
 
   const state = useBackpackState({
     bag: sheet.bag,
     initialMoney,
-    forca,
+    maxSpacesAttribute,
+    maxSpacesAttributeValue: sheet.atributos[maxSpacesAttribute].value,
     initialCustomMaxSpaces: sheet.customMaxSpaces,
     initialMainHandItemId: sheet.mainHandItemId,
     initialOffHandItemId: sheet.offHandItemId,

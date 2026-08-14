@@ -120,6 +120,10 @@ export type SheetActionStep =
       optionKey?: string;
     }
   | {
+      type: 'setMaxSpacesAttribute';
+      attribute: Atributo;
+    }
+  | {
       type: 'special';
       specialAction:
         | 'humanoVersatil'
@@ -269,6 +273,10 @@ export type SheetActionReceipt =
       type: 'Attribute';
       attribute: Atributo;
       value: number; // Positive or negative
+    }
+  | {
+      type: 'MaxSpacesAttributeSet';
+      attribute: Atributo;
     }
   | {
       type: 'SkillsAdded';
@@ -745,6 +753,7 @@ export default interface CharacterSheet {
   displacement: number;
   size: RaceSize;
   maxSpaces: number;
+  maxSpacesAttribute?: Atributo;
   customMaxSpaces?: number; // Manual override for max spaces
   customDisplacement?: number; // Manual override for displacement
   customSize?: RaceSize; // Manual override for size

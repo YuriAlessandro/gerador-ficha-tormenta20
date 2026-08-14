@@ -1891,7 +1891,9 @@ export function recalculateSheet(
   // Step 1: Clear existing bonuses to avoid accumulation
   updatedSheet.sheetBonuses = [];
 
-  // Step 1.5: Recalculate maxSpaces based on current Força modifier
+  // Step 1.5: Recalculate maxSpaces based on the default Força modifier.
+  // Powers that replace the attribute reapply their choice below.
+  updatedSheet.maxSpacesAttribute = undefined;
   updatedSheet.maxSpaces = calculateMaxSpaces(
     updatedSheet.atributos.Força.value
   );
