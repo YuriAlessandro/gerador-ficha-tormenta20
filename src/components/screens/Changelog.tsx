@@ -123,6 +123,56 @@ const Changelog: React.FC = () => {
                   ficha, para grupos que quiserem levar a mortalidade a sério.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> o <strong>PDF da ficha</strong>{' '}
+                  agora sai completo. O que não cabia nas páginas do modelo
+                  deixou de ser cortado no meio: <strong>anotações</strong>,{' '}
+                  <strong>redução de dano</strong>, <strong>complicação</strong>
+                  , <strong>idade</strong>, <strong>poderes capturados</strong>,{' '}
+                  <strong>companheiros</strong> e a sobra de poderes, magias,
+                  equipamentos e ofícios saem em páginas extras no fim do
+                  arquivo. Fichas que cabem no modelo continuam com as três
+                  páginas de sempre.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o PDF passou a preencher campos que
+                  ficavam em branco: <strong>nível</strong>,{' '}
+                  <strong>dinheiro</strong>,{' '}
+                  <strong>penalidade de armadura</strong>, a marcação de{' '}
+                  <strong>armadura pesada</strong>, o <strong>tamanho</strong> e
+                  os modificadores de furtividade e manobra.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o PDF não trazia os{' '}
+                  <strong>poderes criados à mão</strong> na ficha — nem os
+                  poderes personalizados, nem os poderes concedidos
+                  personalizados. Eles apareciam na ficha na tela, mas sumiam na
+                  exportação.
+                </li>
+                <li>
+                  <strong>Correção:</strong> itens{' '}
+                  <strong>renomeados por você</strong> saíam no PDF com o nome
+                  do catálogo, tanto na tabela de ataques quanto na lista de
+                  equipamentos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a lista de equipamentos do PDF era
+                  cortada em 2000 caracteres, sem aviso e no meio de uma
+                  palavra. Mochilas grandes perdiam itens.
+                </li>
+                <li>
+                  <strong>Correção:</strong> um poder que viesse de duas fontes
+                  (por exemplo, concedido e também geral) era impresso{' '}
+                  <strong>duas vezes</strong> no PDF, cada linha com um{' '}
+                  <em>(x2)</em> que não correspondia a nada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> no PDF, o total de{' '}
+                  <strong>Furtividade</strong> ignorava o modificador de
+                  tamanho, saindo errado para personagens pequenos, e o atributo
+                  da <strong>Defesa</strong> aparecia sempre como Destreza,
+                  mesmo em fichas de Nobre ou com o atributo trocado.
+                </li>
+                <li>
                   <strong>Correção:</strong> a <strong>tela branca</strong> que
                   podia aparecer logo depois de uma atualização do site. O cache
                   agora é limpo e conferido a cada publicação, então a versão
