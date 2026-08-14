@@ -8,6 +8,7 @@ import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import { KAIJIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
@@ -45,6 +46,26 @@ function refreshPowerBonuses<
   const bonuses = REFRESHED_POWER_BONUSES_BY_NAME.get(power.name);
   if (!bonuses) return power;
   return { ...power, sheetBonuses: _.cloneDeep(bonuses) };
+}
+
+// Habilidades de RAÇA (e o poder falso que uma delas concede) cujo texto
+// divergia da fonte oficial. Fichas antigas embutem a cópia errada e abrir uma
+// ficha não dispara recálculo, então a correção do dado sozinha só alcançaria
+// fichas novas.
+//
+// Allowlist em vez de refresh genérico das habilidades pelo catálogo da raça:
+// várias raças variam a descrição por instância (Osteon, Lefou, Golem,
+// variantes de atributo), e um match cego por nome apagaria essa variação.
+const REFRESHED_DESCRIPTIONS_BY_NAME = new Map<string, string>(
+  Object.entries(KAIJIN_REFRESHED_DESCRIPTIONS)
+);
+
+function refreshDescription<T extends { name: string; description?: string }>(
+  entry: T
+): T {
+  const description = REFRESHED_DESCRIPTIONS_BY_NAME.get(entry.name);
+  if (!description) return entry;
+  return { ...entry, description };
 }
 
 // Poderes de ORIGEM cujos `sheetBonuses` DEIXARAM de valer sempre. Ao contrário
@@ -163,7 +184,8 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
 
   sheet.generalPowers = sheet.generalPowers
     .filter((p) => p && typeof p.name === 'string')
-    .map(refreshPowerBonuses);
+    .map(refreshPowerBonuses)
+    .map(refreshDescription);
   if (sheet.classPowers) {
     sheet.classPowers = Array.isArray(sheet.classPowers)
       ? sheet.classPowers
@@ -212,9 +234,9 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
   }
 
   if (sheet.raca) {
-    sheet.raca.abilities = sheet.raca.abilities.filter(
-      (a) => a && typeof a.name === 'string'
-    );
+    sheet.raca.abilities = sheet.raca.abilities
+      .filter((a) => a && typeof a.name === 'string')
+      .map(refreshDescription);
 
     // Mesmo princípio do refresh de poderes concedidos abaixo: a ficha embute a
     // cópia da herança de Suraggel da época em que foi escolhida, e antes de
