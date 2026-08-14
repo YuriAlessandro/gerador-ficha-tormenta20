@@ -54,6 +54,37 @@ describe('max spaces attribute', () => {
     expect(calculateMaxSpaces(-1)).toBe(9);
   });
 
+  it('persists a manual load attribute through recalculation', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.manualMaxSpacesAttribute = Atributo.DESTREZA;
+    sheet.atributos[Atributo.FORCA].value = 1;
+    sheet.atributos[Atributo.DESTREZA].value = 4;
+
+    const result = recalculateSheet(sheet);
+
+    expect(result.maxSpacesAttribute).toBe(Atributo.DESTREZA);
+    expect(result.maxSpaces).toBe(18);
+  });
+
+  it('lets the manual choice override Organizadinhos', () => {
+    const sheet = createMockCharacterSheet();
+    const organizadinhos = KOBOLDS_TALENTS.find(
+      (power) => power.name === 'Organizadinhos (Kobolds)'
+    );
+    if (!organizadinhos) throw new Error('Organizadinhos não encontrado');
+
+    sheet.generalPowers = [organizadinhos];
+    sheet.manualMaxSpacesAttribute = Atributo.SABEDORIA;
+    sheet.atributos[Atributo.DESTREZA].value = 4;
+    sheet.atributos[Atributo.SABEDORIA].value = 2;
+
+    const result = recalculateSheet(sheet);
+
+    expect(result.maxSpacesAttribute).toBe(Atributo.SABEDORIA);
+    expect(result.manualMaxSpacesAttribute).toBe(Atributo.SABEDORIA);
+    expect(result.maxSpaces).toBe(14);
+  });
+
   it('configures Organizadinhos and Andarilho Carregado with the action', () => {
     const organizadinhos = KOBOLDS_TALENTS.find(
       (power) => power.name === 'Organizadinhos (Kobolds)'

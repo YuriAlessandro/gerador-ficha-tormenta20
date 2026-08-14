@@ -790,6 +790,7 @@ export default interface CharacterSheet {
   size: RaceSize;
   maxSpaces: number;
   maxSpacesAttribute?: Atributo;
+  manualMaxSpacesAttribute?: Atributo;
   customMaxSpaces?: number; // Manual override for max spaces
   customDisplacement?: number; // Manual override for displacement
   customSize?: RaceSize; // Manual override for size
