@@ -2332,6 +2332,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
         text: 'muda a duração para um dia ou até ser descarregada. Em vez do normal, você cria uma pequena pedra flamejante, que pode detonar como uma reação, descarregando a magia. A pedra pode ser usada como uma arma de arremesso com alcance curto. Uma vez detonada, causa o dano da magia numa área de esfera com 6m de raio.',
       },
     ],
+    imageUrl:
+      'https://i.pinimg.com/736x/32/fa/a6/32faa6e4ab54fe3c660d82b81bb583c1.jpg',
   },
   [spellsCircle2Names.flechaAcida]: {
     spellCircle: spellsCircles.c2,

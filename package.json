@@ -18,9 +18,7 @@
     "@types/jest": "^26.0.15",
     "@types/node": "^18.0.0",
     "@types/prop-types": "^15.7.3",
-    "@types/react": "^17.0.0",
     "@types/react-beautiful-dnd": "^13.1.4",
-    "@types/react-dom": "^17.0.0",
     "@types/react-redux": "^7.1.25",
     "@uiw/react-md-editor": "^4.0.11",
     "axios": "^1.12.2",
@@ -85,6 +83,8 @@
   "devDependencies": {
     "@types/leaflet": "^1.9.21",
     "@types/lodash": "^4.14.168",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
     "@types/react-router-dom": "^5.1.7",
     "@types/react-select": "^4.0.13",
     "@types/react-speech-recognition": "^3.9.0",
