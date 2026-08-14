@@ -286,6 +286,18 @@ const Changelog: React.FC = () => {
                   lutador), recebe <strong>+2</strong> no lugar, sem contar o
                   atributo duas vezes.
                 </li>
+                <li>
+                  <strong>Correção:</strong> o texto de{' '}
+                  <strong>Disforme</strong>, habilidade de raça do{' '}
+                  <strong>Kaijin</strong>, dizia o contrário da regra: que o
+                  personagem não podia empunhar nem vestir itens mágicos ou
+                  adaptados. É justamente o oposto — o kaijin não pode usar
+                  itens <em>a menos que</em> sejam mágicos ou adaptados para
+                  ele. O texto de <strong>Cria de Tormenta</strong> também
+                  estava incompleto: o +5 em resistência vale contra efeitos de{' '}
+                  <strong>lefeu</strong> e da Tormenta, não só da Tormenta.
+                  Fichas de kaijin já salvas são corrigidas ao serem abertas.
+                </li>
               </ul>
               <h3>4.29</h3>
               <ul>
