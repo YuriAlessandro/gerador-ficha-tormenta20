@@ -31,6 +31,7 @@ interface StagedState {
   equipments: BagEquipments;
   displayOrder: string[];
   money: BackpackMoney;
+  maxSpacesAttribute: Atributo;
   customMaxSpaces?: number;
   autoDeductMoney: boolean;
   mainHandItemId?: string;
@@ -43,7 +44,7 @@ export interface BackpackInputs {
   bag: Bag;
   initialMoney: BackpackMoney;
   maxSpacesAttribute: Atributo;
-  maxSpacesAttributeValue: number;
+  attributeValues: Record<Atributo, number>;
   initialCustomMaxSpaces?: number;
   /** Default for the auto-deduct toggle when entering the modal. */
   initialAutoDeductMoney?: boolean;
@@ -92,6 +93,7 @@ export interface BackpackActions {
   /** Replaces the item in place by id. */
   updateItem: (id: string, next: Equipment) => void;
   setMoney: (money: Partial<BackpackMoney>) => void;
+  setMaxSpacesAttribute: (attribute: Atributo) => void;
   setCustomMaxSpaces: (value: number | undefined) => void;
   setAutoDeductMoney: (value: boolean) => void;
   /** Reorders by item id (used by drag-and-drop in PR 6). */
@@ -161,6 +163,7 @@ type Action =
   | { type: 'SET_QUANTITY'; id: string; quantity: number }
   | { type: 'UPDATE_ITEM'; id: string; next: Equipment }
   | { type: 'SET_MONEY'; money: Partial<BackpackMoney> }
+  | { type: 'SET_MAX_SPACES_ATTRIBUTE'; attribute: Atributo }
   | { type: 'SET_CUSTOM_MAX_SPACES'; value: number | undefined }
   | { type: 'SET_AUTO_DEDUCT'; value: boolean }
   | { type: 'REORDER'; orderedIds: string[] }
@@ -431,6 +434,12 @@ function reducer(state: StagedState, action: Action): StagedState {
       };
     case 'SET_MONEY':
       return { ...state, money: { ...state.money, ...action.money } };
+    case 'SET_MAX_SPACES_ATTRIBUTE':
+      return {
+        ...state,
+        maxSpacesAttribute: action.attribute,
+        customMaxSpaces: undefined,
+      };
     case 'SET_CUSTOM_MAX_SPACES':
       return { ...state, customMaxSpaces: action.value };
     case 'SET_AUTO_DEDUCT':
@@ -482,7 +491,7 @@ export function useBackpackState({
   bag,
   initialMoney,
   maxSpacesAttribute,
-  maxSpacesAttributeValue,
+  attributeValues,
   initialCustomMaxSpaces,
   initialAutoDeductMoney = true,
   initialMainHandItemId,
@@ -532,6 +541,7 @@ export function useBackpackState({
       equipments,
       displayOrder,
       money: { ...initialMoney },
+      maxSpacesAttribute,
       customMaxSpaces: initialCustomMaxSpaces,
       autoDeductMoney: initialAutoDeductMoney,
       mainHandItemId: pruned.mainHandItemId,
@@ -609,7 +619,8 @@ export function useBackpackState({
     const equipMaxSpacesBonus = getEquipmentMaxSpacesBonus(orderedItems);
     const maxSpaces =
       staged.customMaxSpaces ??
-      calculateMaxSpaces(maxSpacesAttributeValue) + equipMaxSpacesBonus;
+      calculateMaxSpaces(attributeValues[staged.maxSpacesAttribute]) +
+        equipMaxSpacesBonus;
     const { overflowItemIds, overflowStartIndex } = computeOverflow(
       orderedItems,
       maxSpaces - currencySpaces
@@ -627,8 +638,8 @@ export function useBackpackState({
     orderedItems,
     staged.money,
     staged.customMaxSpaces,
-    maxSpacesAttribute,
-    maxSpacesAttributeValue,
+    staged.maxSpacesAttribute,
+    attributeValues,
   ]);
 
   const filteredItems = useMemo(() => {
@@ -659,6 +670,9 @@ export function useBackpackState({
 
   const isDirty = useMemo(() => {
     if (staged.autoDeductMoney !== initialSnapshot.autoDeductMoney) return true;
+    if (staged.maxSpacesAttribute !== initialSnapshot.maxSpacesAttribute) {
+      return true;
+    }
     if (staged.customMaxSpaces !== initialSnapshot.customMaxSpaces) return true;
     if (
       staged.money.dinheiro !== initialSnapshot.money.dinheiro ||
@@ -725,6 +739,12 @@ export function useBackpackState({
     []
   );
 
+  const setMaxSpacesAttribute = useCallback(
+    (attribute: Atributo) =>
+      dispatch({ type: 'SET_MAX_SPACES_ATTRIBUTE', attribute }),
+    []
+  );
+
   const setCustomMaxSpaces = useCallback(
     (value: number | undefined) =>
       dispatch({ type: 'SET_CUSTOM_MAX_SPACES', value }),
@@ -779,6 +799,7 @@ export function useBackpackState({
     setQuantity,
     updateItem,
     setMoney,
+    setMaxSpacesAttribute,
     setCustomMaxSpaces,
     setAutoDeductMoney,
     reorder,

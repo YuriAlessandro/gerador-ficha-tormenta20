@@ -1891,11 +1891,13 @@ export function recalculateSheet(
   // Step 1: Clear existing bonuses to avoid accumulation
   updatedSheet.sheetBonuses = [];
 
-  // Step 1.5: Recalculate maxSpaces based on the default Força modifier.
-  // Powers that replace the attribute reapply their choice below.
-  updatedSheet.maxSpacesAttribute = undefined;
+  // Step 1.5: Recalculate maxSpaces from the manual attribute choice when
+  // present. Powers that replace the attribute reapply their choice below.
+  updatedSheet.maxSpacesAttribute = updatedSheet.manualMaxSpacesAttribute;
+  const baseMaxSpacesAttribute =
+    updatedSheet.manualMaxSpacesAttribute ?? Atributo.FORCA;
   updatedSheet.maxSpaces = calculateMaxSpaces(
-    updatedSheet.atributos.Força.value
+    updatedSheet.atributos[baseMaxSpacesAttribute].value
   );
 
   // Step 1.6: Reset extraArmorPenalty to avoid accumulation across recalculations
@@ -1934,6 +1936,15 @@ export function recalculateSheet(
   // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
   // replace it. Pushes SheetBonus entries for the main loop below.
   updatedSheet = applyActiveEffectBonuses(updatedSheet);
+
+  // A escolha explícita da mochila tem precedência sobre substituições de
+  // atributo concedidas por poderes.
+  if (updatedSheet.manualMaxSpacesAttribute) {
+    updatedSheet.maxSpacesAttribute = updatedSheet.manualMaxSpacesAttribute;
+    updatedSheet.maxSpaces = calculateMaxSpaces(
+      updatedSheet.atributos[updatedSheet.manualMaxSpacesAttribute].value
+    );
+  }
 
   // Step 7.47: Substituição de atributo em escopo de ficha (Usurpador, "Poder
   // de Clérigo": Sabedoria vira Carisma nos poderes de clérigo e concedidos).

@@ -8,9 +8,13 @@ import {
   Collapse,
   Dialog,
   Divider,
+  FormControl,
   Grid,
+  InputLabel,
   IconButton,
   LinearProgress,
+  MenuItem,
+  Select,
   Slide,
   Stack,
   TextField,
@@ -118,6 +122,17 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     [sheet.dinheiro, sheet.dinheiroTC, sheet.dinheiroTO]
   );
   const maxSpacesAttribute = sheet.maxSpacesAttribute ?? Atributo.FORCA;
+  const attributeValues = useMemo(
+    () =>
+      Object.values(Atributo).reduce(
+        (values, attribute) => ({
+          ...values,
+          [attribute]: sheet.atributos[attribute].value,
+        }),
+        {} as Record<Atributo, number>
+      ),
+    [sheet.atributos]
+  );
   // "Devagar e Sempre"/Golem: sobrecarregar não custa deslocamento.
   const sheetIgnoresEncumbrance = ignoresEncumbrance(sheet);
 
@@ -125,7 +140,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     bag: sheet.bag,
     initialMoney,
     maxSpacesAttribute,
-    maxSpacesAttributeValue: sheet.atributos[maxSpacesAttribute].value,
+    attributeValues,
     initialCustomMaxSpaces: sheet.customMaxSpaces,
     initialMainHandItemId: sheet.mainHandItemId,
     initialOffHandItemId: sheet.offHandItemId,
@@ -152,6 +167,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     setQuantity,
     updateItem,
     setMoney,
+    setMaxSpacesAttribute,
     setCustomMaxSpaces,
     setAutoDeductMoney,
     reorder,
@@ -264,6 +280,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         dinheiro: staged.money.dinheiro,
         dinheiroTC: staged.money.dinheiroTC,
         dinheiroTO: staged.money.dinheiroTO,
+        manualMaxSpacesAttribute: staged.maxSpacesAttribute,
         customMaxSpaces: staged.customMaxSpaces,
         // Drive the recalc off the STAGED equip-state, not the stale sheet
         // values — otherwise defesa/armor-penalty are computed against the
@@ -323,6 +340,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       dinheiro: staged.money.dinheiro,
       dinheiroTC: staged.money.dinheiroTC,
       dinheiroTO: staged.money.dinheiroTO,
+      manualMaxSpacesAttribute: staged.maxSpacesAttribute,
+      maxSpacesAttribute: recalculated.maxSpacesAttribute,
       customMaxSpaces: staged.customMaxSpaces,
       maxSpaces: recalculated.maxSpaces ?? sheet.maxSpaces,
       defesa: recalculated.defesa ?? sheet.defesa,
@@ -971,6 +990,28 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
               (v) => setMoney({ dinheiroTO: v }),
               '1 TO = T$ 10'
             )}
+            <FormControl
+              size='small'
+              sx={{ width: { xs: 'calc(50% - 4px)', sm: 170 } }}
+            >
+              <InputLabel id='backpack-load-attribute-label'>
+                Atributo de carga
+              </InputLabel>
+              <Select
+                labelId='backpack-load-attribute-label'
+                value={staged.maxSpacesAttribute}
+                label='Atributo de carga'
+                onChange={(event) =>
+                  setMaxSpacesAttribute(event.target.value as Atributo)
+                }
+              >
+                {Object.values(Atributo).map((attribute) => (
+                  <MenuItem key={attribute} value={attribute}>
+                    {attribute}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <TextField
               label='Espaço máx.'
               size='small'
