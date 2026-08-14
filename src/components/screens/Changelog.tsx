@@ -158,6 +158,28 @@ const Changelog: React.FC = () => {
                   </a>
                   )
                 </li>
+                <li>
+                  <strong>Correção:</strong> armas de{' '}
+                  <strong>arremesso criadas em homebrew</strong> não ofereciam
+                  os dois modos de ataque. Marcar &ldquo;Arremesso&rdquo; no
+                  pacote de itens agora gera as opções{' '}
+                  <strong>Corpo a corpo</strong> e <strong>Arremessar</strong>{' '}
+                  na hora de rolar o ataque, como acontece com a adaga e a
+                  machadinha do livro — cada modo com a perícia e o atributo de
+                  dano certos. Pacotes já publicados são corrigidos sozinhos;
+                  itens que já estavam na mochila precisam ser removidos e
+                  comprados de novo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> agora dá para cadastrar{' '}
+                  <strong>armas versáteis</strong> direto no homebrew, com dano
+                  diferente em uma ou duas mãos (por exemplo,{' '}
+                  <strong>1d8/1d10</strong>). Antes o pacote se recusava a
+                  salvar, e só dava para ajustar o dano depois, item por item,
+                  na mochila. O aumento de dado de melhorias e encantos, que era
+                  silenciosamente ignorado nessas armas, também voltou a
+                  funcionar.
+                </li>
               </ul>
               <h3>4.29</h3>
               <ul>
