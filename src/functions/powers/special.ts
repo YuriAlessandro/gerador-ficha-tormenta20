@@ -750,6 +750,45 @@ export function applyAlmaLivreSelectClass(
   return substeps;
 }
 
+export function applyDiferentaoSelectClassPower(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): SubStep[] {
+  const substeps: SubStep[] = [];
+  const selectedClass = manualSelections?.almaLivreClass;
+  const selectedPower = manualSelections?.almaLivrePower;
+
+  if (selectedClass && selectedPower) {
+    sheet.diferentaoClass = selectedClass;
+    sheet.diferentaoPower = selectedPower;
+  }
+
+  const power = sheet.diferentaoPower;
+  if (!power) return substeps;
+
+  const alreadyGranted = sheet.classPowers?.some(
+    (classPower) => classPower.name === power.name
+  );
+  if (!alreadyGranted) {
+    const grantedPower = { ...power, className: sheet.diferentaoClass };
+    sheet.classPowers = [...(sheet.classPowers || []), grantedPower];
+    sheet.sheetActionHistory.push({
+      source: { type: 'power', name: 'Diferentão (Kobolds)' },
+      powerName: 'Diferentão (Kobolds)',
+      changes: [{ type: 'ClassPowerAdded', powerName: grantedPower.name }],
+    });
+    const [updatedSheet, powerSubsteps] = applyPower(sheet, grantedPower);
+    Object.assign(sheet, updatedSheet);
+    substeps.push(...powerSubsteps);
+  }
+
+  substeps.unshift({
+    name: 'Diferentão (Kobolds)',
+    value: `Classe: ${sheet.diferentaoClass} — Poder: ${power.name}`,
+  });
+  return substeps;
+}
+
 export function applyTeurgistaMistico(sheet: CharacterSheet): SubStep[] {
   const substeps: SubStep[] = [];
 

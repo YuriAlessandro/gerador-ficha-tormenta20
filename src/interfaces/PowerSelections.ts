@@ -95,6 +95,7 @@ export interface PowerSelectionRequirement {
     schools?: string[];
     optionKey?: string; // For chooseFromOptions: the option key identifier
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
+    immediateClassPower?: boolean; // Diferentão grants the selected power now
     minLevel?: number; // For getClassPower: nível em que os requisitos são avaliados
     abilityLevel?: number; // For learnClassAbility: nível das habilidades elegíveis
     // For markTrainedSkills: o `pick` real é o modificador deste atributo, com

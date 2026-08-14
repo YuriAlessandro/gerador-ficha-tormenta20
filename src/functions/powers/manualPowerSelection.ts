@@ -342,6 +342,19 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'diferentaoSelectClassPower'
+      ) {
+        requirements.push({
+          type: 'almaLivreSelectClass',
+          availableOptions: [],
+          pick: 1,
+          label: 'Selecione uma classe e um poder dessa classe',
+          metadata: { immediateClassPower: true },
+        });
+      }
+
       // Marcar perícias já treinadas (ex.: "Especialista" do Ladino). O `pick`
       // real é dinâmico (modificador do atributo, piso `min`) e só pode ser
       // calculado por quem tem a ficha — aqui vai o piso, e o atributo segue no

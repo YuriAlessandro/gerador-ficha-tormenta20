@@ -153,4 +153,41 @@ describe('max spaces attribute', () => {
       )
     ).toBe(true);
   });
+
+  it('selects and grants a Diferentão class power immediately', () => {
+    const sheet = createMockCharacterSheet();
+    const diferentao = KOBOLDS_TALENTS.find(
+      (power) => power.name === 'Diferentão (Kobolds)'
+    );
+    if (!diferentao) throw new Error('Diferentão não encontrado');
+
+    const selectedPower = {
+      name: 'Poder de Teste do Diferentão',
+      text: 'Um poder de classe escolhido por teste.',
+      requirements: [],
+    };
+    sheet.generalPowers = [diferentao];
+
+    const result = recalculateSheet(sheet, undefined, {
+      'Diferentão (Kobolds)': {
+        almaLivreClass: 'Bardo',
+        almaLivrePower: selectedPower,
+      },
+    });
+
+    expect(result.diferentaoClass).toBe('Bardo');
+    expect(result.diferentaoPower?.name).toBe(selectedPower.name);
+    expect(
+      result.classPowers?.some((power) => power.name === selectedPower.name)
+    ).toBe(true);
+    expect(
+      result.sheetActionHistory.some((entry) =>
+        entry.changes.some(
+          (change) =>
+            change.type === 'ClassPowerAdded' &&
+            change.powerName === selectedPower.name
+        )
+      )
+    ).toBe(true);
+  });
 });

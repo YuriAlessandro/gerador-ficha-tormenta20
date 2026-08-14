@@ -136,6 +136,7 @@ export type SheetActionStep =
         | 'meioElfoAmbicaoHerdada'
         | 'qareenResistenciaElemental'
         | 'almaLivreSelectClass'
+        | 'diferentaoSelectClassPower'
         | 'teurgistaMistico'
         | 'mashinChassi';
     }
@@ -848,6 +849,8 @@ export default interface CharacterSheet {
   removedProficiencias?: string[]; // Proficiências base removidas manualmente pelo usuário
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
+  diferentaoClass?: string; // Classe escolhida pelo poder Diferentão
+  diferentaoPower?: ClassPower; // Poder escolhido pelo poder Diferentão
   poderesCapturados?: PoderCapturadoChoice[]; // Usurpador: Poder Capturado (4º nível)
   notes?: string; // Anotações livres do jogador
   imageUrl?: string; // URL de imagem do personagem
