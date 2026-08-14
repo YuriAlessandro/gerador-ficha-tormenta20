@@ -186,6 +186,7 @@ import {
   applyMeioElfoAmbicaoHerdada,
   applyQareenResistenciaElemental,
   applyAlmaLivreSelectClass,
+  applyDiferentaoSelectClassPower,
   applyTeurgistaMistico,
   applyMashinChassi,
 } from './powers/special';
@@ -2897,6 +2898,13 @@ export const applyPower = (
           sheetAction.action.specialAction === 'almaLivreSelectClass'
         ) {
           currentSteps = applyAlmaLivreSelectClass(sheet, manualSelections);
+        } else if (
+          sheetAction.action.specialAction === 'diferentaoSelectClassPower'
+        ) {
+          currentSteps = applyDiferentaoSelectClassPower(
+            sheet,
+            manualSelections
+          );
         } else if (sheetAction.action.specialAction === 'teurgistaMistico') {
           currentSteps = applyTeurgistaMistico(sheet);
         } else if (sheetAction.action.specialAction === 'mashinChassi') {

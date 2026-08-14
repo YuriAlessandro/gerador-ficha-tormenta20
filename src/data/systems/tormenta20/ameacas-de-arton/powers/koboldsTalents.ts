@@ -45,6 +45,15 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
     description:
       'Escolham um poder de outra classe cujos requisitos vocês cumpram (como um poder de bardo da lista de Poderes de Bardo). Vocês recebem o poder escolhido; para efeitos de nível na classe desse poder, considere seu nível de personagem −4.',
     requirements: [[{ type: RequirementType.RACA, name: 'Kobolds' }]],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Diferentão (Kobolds)' },
+        action: {
+          type: 'special',
+          specialAction: 'diferentaoSelectClassPower',
+        },
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,

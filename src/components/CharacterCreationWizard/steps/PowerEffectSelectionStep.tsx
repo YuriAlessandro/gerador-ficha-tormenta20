@@ -673,6 +673,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         schools?: string[];
         optionKey?: string;
         linkedTo?: string;
+        immediateClassPower?: boolean;
         minLevel?: number;
         abilityLevel?: number;
         pickByAttribute?: Atributo;
@@ -1653,6 +1654,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       const availableClassesForAL = allClassesForAL.filter(
         (c) => c.name !== sheetForFiltering.classe.name
       );
+      const immediateClassPower = requirement.metadata?.immediateClassPower;
 
       return (
         <Box
@@ -1665,6 +1667,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             availableClasses={availableClassesForAL}
             supplements={supplements}
             selections={powerSelections}
+            immediateClassPower={immediateClassPower}
+            sheet={sheetForFiltering}
             onChange={(newSelections) => {
               onChange({
                 ...selections,
