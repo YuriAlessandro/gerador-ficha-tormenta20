@@ -123,6 +123,19 @@ const Changelog: React.FC = () => {
                   ficha, para grupos que quiserem levar a mortalidade a sério.
                 </li>
                 <li>
+                  <strong>Novo:</strong> poderes personalizados agora podem{' '}
+                  <strong>contar como poder da Tormenta</strong>. Ao criar um
+                  poder personalizado na ficha, marque a opção e ele passa a
+                  entrar no total de poderes da Tormenta do personagem — fazendo
+                  os poderes que escalam com esse total subirem e aplicando a
+                  perda de Carisma. É o que faltava para montar coisas como o{' '}
+                  <strong>Escolhido de Aharadak</strong>, da origem Escolhido
+                  dos Deuses. Há também uma sub-opção &ldquo;exceto para perda
+                  de Carisma&rdquo;, para poderes como{' '}
+                  <strong>Corrupção Rubra</strong> e{' '}
+                  <strong>Forma Aberrante</strong>.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> o <strong>PDF da ficha</strong>{' '}
                   agora sai completo. O que não cabia nas páginas do modelo
                   deixou de ser cortado no meio: <strong>anotações</strong>,{' '}
@@ -140,6 +153,11 @@ const Changelog: React.FC = () => {
                   <strong>penalidade de armadura</strong>, a marcação de{' '}
                   <strong>armadura pesada</strong>, o <strong>tamanho</strong> e
                   os modificadores de furtividade e manobra.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a contagem de poderes da Tormenta
+                  passou a olhar a ficha inteira — poderes gerais, de classe, de
+                  origem e concedidos —, e não só a lista de poderes gerais.
                 </li>
                 <li>
                   <strong>Correção:</strong> o PDF não trazia os{' '}
@@ -229,6 +247,34 @@ const Changelog: React.FC = () => {
                   na mochila. O aumento de dado de melhorias e encantos, que era
                   silenciosamente ignorado nessas armas, também voltou a
                   funcionar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> os poderes da Tormenta que crescem
+                  conforme você acumula outros poderes da Tormenta (
+                  <strong>Antenas</strong>,{' '}
+                  <strong>Articulações Flexíveis</strong>,{' '}
+                  <strong>Carapaça</strong>, <strong>Mãos Membranosas</strong>,{' '}
+                  <strong>Olhos Vermelhos</strong>) não estavam calculando nada
+                  em fichas criadas ou editadas pelo assistente — o bônus ficava
+                  em zero. Agora escalam corretamente nos dois casos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a <strong>perda de Carisma</strong>{' '}
+                  por poderes da Tormenta só era aplicada em fichas aleatórias.
+                  Personagem criado pelo assistente nunca perdia Carisma. Agora
+                  a regra vale em todos os caminhos — e fichas antigas passam a
+                  refletir isso ao serem abertas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> qualquer bônus de perícia (de
+                  Sentidos Aguçados a itens) estava sendo contado como se fosse
+                  um poder da Tormenta. Personagens sem nenhum poder da Tormenta
+                  podiam perder Carisma e receber reduções de dano indevidas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Bolsões Insanos</strong>{' '}
+                  dava sempre +2 espaços de carga, ignorando o &ldquo;+1 para
+                  cada outro poder da Tormenta&rdquo; do livro.
                 </li>
               </ul>
               <h3>4.29</h3>
