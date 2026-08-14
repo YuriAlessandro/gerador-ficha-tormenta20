@@ -26,9 +26,8 @@ import { DiceRoll } from '@/interfaces/DiceRoll';
 import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
-import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-special';
 import { CustomPower } from '@/interfaces/CustomPower';
-import { applyPowersOrder } from '@/functions/powers/applyPowersOrder';
+import { collectPowers } from '@/functions/powers/collectSheetPowers';
 import {
   classifyPowers,
   groupPowersByOrigin,
@@ -67,15 +66,6 @@ import {
   GROUP_HEADER_SX,
   GROUP_TITLE_SX,
 } from './PowersTab/powersTabStyles';
-
-function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
-  const seen = new Set<string>();
-  return array.filter((item) => {
-    if (seen.has(item.name)) return false;
-    seen.add(item.name);
-    return true;
-  });
-}
 
 const COMPLICATION_ORIGIN: PowerOrigin = { kind: 'complication' };
 const AGE_ORIGIN: PowerOrigin = { kind: 'age' };
@@ -154,73 +144,32 @@ const PowersDisplay: React.FC<{
     null
   );
 
-  // Aplica texto dinâmico para poderes que dependem da divindade
-  const processedClassPowers = useMemo(
+  // Montagem da lista: dynamicText da divindade, filtro das habilidades de
+  // classe redundantes, dedupe sobre a lista concatenada e ordem manual. Vive
+  // em `collectPowers` para que o gerador de PDF use exatamente a mesma lista —
+  // era aqui que as duas telas divergiam.
+  const collected = useMemo(
     () =>
-      classPowers.map((power) => {
-        if (power.name === 'Autoridade Eclesiástica') {
-          const dynamicText = getAutoridadeEclesiasticaDynamicText(deityName);
-          if (dynamicText) {
-            return { ...power, dynamicText };
-          }
-        }
-        return power;
-      }),
-    [classPowers, deityName]
-  );
-
-  // Filtra habilidades de classe cujo nome já exista como poder de classe
-  // (ex: habilidade "Alquimista Iniciado" que auto-concede o poder de mesmo nome)
-  const classPowerNames = new Set(processedClassPowers.map((p) => p.name));
-  const filteredClassAbilities = classAbilities.filter(
-    (ability) => !classPowerNames.has(ability.name)
-  );
-
-  const powers = [
-    ...processedClassPowers,
-    ...raceAbilities,
-    ...filteredClassAbilities,
-    ...originPowers,
-    ...deityPowers,
-    ...generalPowers,
-    ...(customPowers || []),
-    ...(customGrantedPowers || []),
-  ];
-
-  // Count how many times a power if the same name appears
-  const powerCount: Record<string, number> = {};
-
-  powers.forEach((power) => {
-    powerCount[power.name] = (powerCount[power.name] || 0) + 1;
-  });
-
-  // Dedupe SOBRE A LISTA CONCATENADA, não por array: um mesmo nome em dois
-  // arrays (ex: poder concedido que também é poder geral) gerava duas linhas
-  // com a mesma React key e, no modo reordenar, dois `draggableId` iguais
-  // dentro do mesmo Droppable — invariant do react-beautiful-dnd.
-  const uniquePowers = applyPowersOrder(
-    filterUniqueByName<SheetPower>(powers),
-    sheet?.powersOrder
-  );
-
-  const origins = useMemo(
-    () =>
-      classifyPowers({
-        classPowers: processedClassPowers,
-        raceAbilities,
-        classAbilities: filteredClassAbilities,
-        originPowers,
-        deityPowers,
-        generalPowers,
-        customPowers,
-        customGrantedPowers,
-        className,
-        raceName,
-      }),
+      collectPowers(
+        {
+          classPowers,
+          raceAbilities,
+          classAbilities,
+          originPowers,
+          deityPowers,
+          generalPowers,
+          customPowers,
+          customGrantedPowers,
+          className,
+          raceName,
+        },
+        sheet?.powersOrder,
+        deityName
+      ),
     [
-      processedClassPowers,
+      classPowers,
       raceAbilities,
-      filteredClassAbilities,
+      classAbilities,
       originPowers,
       deityPowers,
       generalPowers,
@@ -228,7 +177,17 @@ const PowersDisplay: React.FC<{
       customGrantedPowers,
       className,
       raceName,
+      sheet?.powersOrder,
+      deityName,
     ]
+  );
+
+  const uniquePowers = collected.powers;
+  const powerCount = collected.counts;
+
+  const origins = useMemo(
+    () => classifyPowers(collected.sources),
+    [collected.sources]
   );
 
   // Agrupamento da lista COMPLETA (sem busca nem filtro de origem). É o que o

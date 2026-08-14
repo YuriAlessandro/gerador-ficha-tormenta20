@@ -6,6 +6,17 @@ import Equipment from '../interfaces/Equipment';
  * para que as três telas mostrem o mesmo item exatamente da mesma forma.
  */
 
+/**
+ * Nome exibido de um item: o apelido dado pelo usuário quando existe, senão o
+ * nome de catálogo.
+ *
+ * Ponto único de propósito — a expressão estava repetida em mais de uma dezena
+ * de telas e o gerador de PDF simplesmente não a tinha, então item renomeado
+ * saía exportado com o nome do livro.
+ */
+export const getItemDisplayName = (item: Equipment): string =>
+  item.customDisplayName || item.nome;
+
 /** Preço em tibares. Itens sem preço (ou de preço 0) são "Grátis". */
 export const formatPrice = (price?: number): string =>
   !price ? 'Grátis' : `T$ ${price}`;
