@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            11/08/2026 (v4.29).
+            13/08/2026 (v4.30).
           </p>
 
           <p>
@@ -74,6 +74,61 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.30</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Idades Variadas</strong>, a
+                  regra opcional de <em>Heróis de Arton</em>. No assistente de
+                  criação, em &ldquo;Informações Básicas&rdquo;, você escolhe
+                  entre as sete faixas etárias — de <strong>Criança</strong> a{' '}
+                  <strong>Ancião</strong> — e o app cuida do resto:
+                  modificadores de atributo, tamanho, Defesa, PM, benefícios de
+                  origem e até os <strong>níveis adicionais</strong> de Maduro,
+                  Velho e Ancião, que já entram no assistente de evolução. A
+                  faixa de anos é calculada para a sua raça (um anão vira adulto
+                  aos 50, um elfo só aos 125), e personagens adultos ou mais
+                  velhos escolhem suas <strong>complicações de idade</strong> —
+                  uma para adultos, até quatro para anciões. Velhos e anciões
+                  também deixam de poder gastar{' '}
+                  <strong>Aumento de Atributo</strong> em atributos físicos.
+                  Tudo editável depois, pelo botão de idade na ficha.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Atributos Variados</strong>. O
+                  passo de atributos ganhou um seletor de variante ao lado dos
+                  botões Livre / Dados / Pontos, com os seis métodos novos do
+                  livro: <strong>Clássica</strong> (3d6, para heróis que vêm do
+                  povo comum), <strong>Épica</strong>, <strong>Valkaria</strong>{' '}
+                  (distribua 7d6 entre atributos que começam em 8),{' '}
+                  <strong>Nimb</strong> (7d20 descartando o menor — um 20 vira
+                  um espantoso +5) e <strong>Khalmyr</strong>, além de compra
+                  por <strong>5 ou 15 pontos</strong>.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Raças Abertas</strong>. Um
+                  interruptor no passo &ldquo;Atributos da Raça&rdquo; libera
+                  você a aplicar cada modificador da sua raça no atributo que
+                  quiser — o anão continua com +2, +1 e −1, mas você decide onde
+                  cada um cai. Sem repetir o mesmo atributo, como manda a regra.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Devoções Abertas</strong>. Um
+                  interruptor ao lado da divindade, no formulário de criação,
+                  libera qualquer personagem a ser devoto de qualquer deus,
+                  independente de raça ou classe.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Morte por Velhice</strong>,
+                  disponível para personagens velhos e anciões como marcador na
+                  ficha, para grupos que quiserem levar a mortalidade a sério.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a <strong>tela branca</strong> que
+                  podia aparecer logo depois de uma atualização do site. O cache
+                  agora é limpo e conferido a cada publicação, então a versão
+                  nova chega inteira em vez de misturada com a antiga.
+                </li>
+              </ul>
               <h3>4.29</h3>
               <ul>
                 <li>
