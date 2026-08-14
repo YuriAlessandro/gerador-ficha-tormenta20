@@ -5,6 +5,7 @@ import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { GeneralPowerType } from '../../interfaces/Poderes';
 import KOBOLDS_TALENTS from '../../data/systems/tormenta20/ameacas-de-arton/powers/koboldsTalents';
 import DEITY_POWERS from '../../data/systems/tormenta20/deuses-de-arton/powers';
+import { getPowerSelectionRequirements } from '../powers/manualPowerSelection';
 
 describe('max spaces attribute', () => {
   it('uses the selected attribute and replays it after recalculation', () => {
@@ -101,5 +102,55 @@ describe('max spaces attribute', () => {
       type: 'setMaxSpacesAttribute',
       attribute: Atributo.SABEDORIA,
     });
+  });
+
+  it('configures Ex-Familiar with the familiar selection step', () => {
+    const exFamiliar = KOBOLDS_TALENTS.find(
+      (power) => power.name === 'Ex-Familiar (Kobolds)'
+    );
+
+    expect(exFamiliar?.sheetActions?.[0].action).toEqual({
+      type: 'selectFamiliar',
+    });
+
+    const requirements = exFamiliar
+      ? getPowerSelectionRequirements(exFamiliar)
+      : undefined;
+    expect(
+      requirements?.requirements.some(
+        (requirement) => requirement.type === 'selectFamiliar'
+      )
+    ).toBe(true);
+  });
+
+  it('applies the selected familiar from Ex-Familiar to the sheet', () => {
+    const sheet = createMockCharacterSheet();
+    const exFamiliar = KOBOLDS_TALENTS.find(
+      (power) => power.name === 'Ex-Familiar (Kobolds)'
+    );
+    if (!exFamiliar) throw new Error('Ex-Familiar não encontrado');
+
+    sheet.generalPowers = [exFamiliar];
+    const result = recalculateSheet(sheet, undefined, {
+      'Ex-Familiar (Kobolds)': { familiars: ['GATO'] },
+    });
+
+    const familiarChange = result.sheetActionHistory
+      .flatMap((entry) => entry.changes)
+      .find((change) => change.type === 'FamiliarSelected');
+    expect(familiarChange).toEqual({
+      type: 'FamiliarSelected',
+      familiarKey: 'GATO',
+    });
+    expect(result.pm).toBe(8);
+    expect(
+      result.sheetBonuses.some(
+        (bonus) =>
+          bonus.target.type === 'Skill' &&
+          bonus.target.name === 'Furtividade' &&
+          bonus.modifier.type === 'Fixed' &&
+          bonus.modifier.value === 2
+      )
+    ).toBe(true);
   });
 });

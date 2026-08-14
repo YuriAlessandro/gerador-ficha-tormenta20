@@ -59,6 +59,12 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
         modifier: { type: 'Fixed', value: 2 },
       },
     ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Ex-Familiar (Kobolds)' },
+        action: { type: 'selectFamiliar' },
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,
