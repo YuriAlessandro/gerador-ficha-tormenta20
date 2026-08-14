@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            13/08/2026 (v4.30).
+            14/08/2026 (v4.30).
           </p>
 
           <p>
@@ -127,6 +127,36 @@ const Changelog: React.FC = () => {
                   podia aparecer logo depois de uma atualização do site. O cache
                   agora é limpo e conferido a cada publicação, então a versão
                   nova chega inteira em vez de misturada com a antiga.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o assistente de evolução{' '}
+                  <strong>
+                    travava ao subir um nível de classe secundária
+                  </strong>{' '}
+                  quando aquele nível concedia um poder de classe — por exemplo,
+                  o 2º nível de Alquimista numa ficha que começou como Ladino,
+                  que concede <em>Alquimista Iniciado</em>. O poder agora é
+                  procurado no catálogo da classe do nível, e não na classe
+                  principal da ficha. (por{' '}
+                  <a href='https://github.com/MauroGarcia' target='blank'>
+                    MauroGarcia
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Correção:</strong> itens{' '}
+                  <strong>encantados, modificados ou apelidados</strong>{' '}
+                  deixavam de se comportar direito na mochila. Uma adaga comum
+                  se fundia com a sua &ldquo;Adaga da Tormenta&rdquo; encantada
+                  (e uma das duas sumia), duas entradas do mesmo item passavam a
+                  agir como uma só ao empunhar, editar ou remover, e a escolha
+                  de atributo de dano por modo de ataque — trocar Força por
+                  Destreza no arremesso, por exemplo — não persistia em armas
+                  encantadas. (por{' '}
+                  <a href='https://github.com/MauroGarcia' target='blank'>
+                    MauroGarcia
+                  </a>
+                  )
                 </li>
               </ul>
               <h3>4.29</h3>
