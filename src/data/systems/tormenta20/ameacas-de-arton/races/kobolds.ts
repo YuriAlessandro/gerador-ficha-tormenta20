@@ -10,12 +10,12 @@ const koboldsAbilities: RaceAbility[] = [
       'Embora sejam um grupo de kobolds, para todos os efeitos vocês são uma única criatura Média com dois braços. Entretanto, contam como Pequenos para efeitos dos espaços por onde podem passar e, quando fazem um teste de resistência contra um efeito que afeta apenas uma criatura e não causa dano, rolam dois dados e usam o melhor resultado. Por fim, têm vulnerabilidade a dano de área.',
   },
   {
-    name: 'Praga Perigosa',
+    name: 'Praga Monstruosa',
     description:
       'Vocês são criaturas do tipo monstro e recebem visão no escuro e +2 em Sobrevivência.',
     sheetBonuses: [
       {
-        source: { type: 'power', name: 'Praga Perigosa' },
+        source: { type: 'power', name: 'Praga Monstruosa' },
         target: { type: 'Skill', name: Skill.SOBREVIVENCIA },
         modifier: { type: 'Fixed', value: 2 },
       },

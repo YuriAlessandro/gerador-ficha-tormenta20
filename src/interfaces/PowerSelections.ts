@@ -26,6 +26,8 @@ export interface SelectionOptions {
   raceAbilities?: Array<{ raceName: string; abilityName: string }>; // Race ability selections for Memória Póstuma
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
+  diferentaoClass?: string; // Classe escolhida pelo poder Diferentão
+  diferentaoPower?: ClassPower; // Poder escolhido pelo poder Diferentão
   alchemyItems?: Equipment[]; // Selected alchemy items for addAlchemyItems action
   golpePessoalBuild?: GolpePessoalBuild; // Build do Golpe Pessoal montado no assistente
 }

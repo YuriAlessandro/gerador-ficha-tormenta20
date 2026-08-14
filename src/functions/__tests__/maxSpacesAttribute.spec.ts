@@ -3,6 +3,7 @@ import { calculateMaxSpaces } from '../general';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { GeneralPowerType } from '../../interfaces/Poderes';
+import Skill from '../../interfaces/Skills';
 import KOBOLDS_TALENTS from '../../data/systems/tormenta20/ameacas-de-arton/powers/koboldsTalents';
 import DEITY_POWERS from '../../data/systems/tormenta20/deuses-de-arton/powers';
 import { getPowerSelectionRequirements } from '../powers/manualPowerSelection';
@@ -165,13 +166,23 @@ describe('max spaces attribute', () => {
       name: 'Poder de Teste do Diferentão',
       text: 'Um poder de classe escolhido por teste.',
       requirements: [],
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power' as const,
+            name: 'Poder de Teste do Diferentão',
+          },
+          target: { type: 'Skill' as const, name: Skill.FURTIVIDADE },
+          modifier: { type: 'Fixed' as const, value: 2 },
+        },
+      ],
     };
     sheet.generalPowers = [diferentao];
 
     const result = recalculateSheet(sheet, undefined, {
       'Diferentão (Kobolds)': {
-        almaLivreClass: 'Bardo',
-        almaLivrePower: selectedPower,
+        diferentaoClass: 'Bardo',
+        diferentaoPower: selectedPower,
       },
     });
 
@@ -181,13 +192,21 @@ describe('max spaces attribute', () => {
       result.classPowers?.some((power) => power.name === selectedPower.name)
     ).toBe(true);
     expect(
-      result.sheetActionHistory.some((entry) =>
-        entry.changes.some(
-          (change) =>
-            change.type === 'ClassPowerAdded' &&
-            change.powerName === selectedPower.name
-        )
+      result.sheetBonuses.filter(
+        (bonus) =>
+          bonus.target.type === 'Skill' &&
+          bonus.target.name === Skill.FURTIVIDADE &&
+          bonus.modifier.type === 'Fixed' &&
+          bonus.modifier.value === 2
       )
-    ).toBe(true);
+    ).toHaveLength(1);
+
+    result.generalPowers = [];
+    const removed = recalculateSheet(result);
+    expect(removed.diferentaoClass).toBeUndefined();
+    expect(removed.diferentaoPower).toBeUndefined();
+    expect(
+      removed.classPowers?.some((power) => power.name === selectedPower.name)
+    ).toBe(false);
   });
 });
