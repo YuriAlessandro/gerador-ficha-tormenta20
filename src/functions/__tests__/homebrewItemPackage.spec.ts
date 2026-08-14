@@ -128,6 +128,44 @@ describe('homebrew item package', () => {
     expect(plain.critico).toBe('x2');
   });
 
+  it('gives a thrown weapon both attack modes', () => {
+    // `arremesso` sozinho só classifica a arma (e força Luta em
+    // getWeaponSkill); é `specialActions` que abre o seletor de modo.
+    const weapon = compileItem({ ...content.items[0], thrown: true });
+
+    expect(weapon.arremesso).toBe(true);
+    expect(weapon.specialActions).toEqual([
+      { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      {
+        id: 'arremessar',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Força',
+      },
+    ]);
+  });
+
+  it('keeps the authored damage attribute on the thrown mode', () => {
+    const weapon = compileItem({
+      ...content.items[0],
+      thrown: true,
+      damageAttribute: 'Destreza',
+    });
+    expect(weapon.specialActions?.[1].damageAttribute).toBe('Destreza');
+  });
+
+  it('does not add attack modes to a plain weapon', () => {
+    const weapon = compileItem(content.items[0]);
+    expect('specialActions' in weapon).toBe(false);
+    expect('arremesso' in weapon).toBe(false);
+  });
+
+  it('passes versatile damage through untouched', () => {
+    // "1d8/1d10" é lido por parseDualModeDamage na hora de rolar.
+    const weapon = compileItem({ ...content.items[0], damage: '1d8/1d10' });
+    expect(weapon.dano).toBe('1d8/1d10');
+  });
+
   it('omits absent optional fields instead of writing undefined', () => {
     const shield = compileItem(content.items[2]);
     // Uma chave presente com valor `undefined` sobrescreveria valores
@@ -273,6 +311,23 @@ describe('homebrew item package', () => {
       });
       expect(result.valid).toBe(false);
       expect(result.errors.join(' ')).toContain('não se aplicam');
+    });
+
+    it('accepts versatile damage notation', () => {
+      expect(
+        validate({ items: [{ ...content.items[0], damage: '1d8/1d10' }] })
+      ).toEqual({ valid: true, errors: [] });
+      expect(
+        validate({ items: [{ ...content.items[0], damage: '2d6+1' }] })
+      ).toEqual({ valid: true, errors: [] });
+    });
+
+    it('rejects malformed damage', () => {
+      ['1d8/', 'abc', '1d8//1d10', '1d8/1d10/1d12/2d6'].forEach((damage) => {
+        const result = validate({ items: [{ ...content.items[0], damage }] });
+        expect(result.valid).toBe(false);
+        expect(result.errors.join(' ')).toContain('Dano da arma inválido');
+      });
     });
 
     it('rejects an out-of-range attack bonus', () => {

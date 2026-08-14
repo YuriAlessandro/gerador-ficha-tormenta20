@@ -1,4 +1,5 @@
 import { applyItemEnhancements } from '../itemEnhancements/applyEnhancements';
+import { stepUpDamageDice } from '../itemEnhancements/core';
 import { getDefenseMaterialRd } from '../itemEnhancements/materialEffects';
 import {
   toAppliedEnchantment,
@@ -454,6 +455,14 @@ describe('homebrew item enhancements', () => {
       const result = applyItemEnhancements(item);
       expect(result.atkBonus).toBe(3);
       expect(result.dano).toBe('1d8+2');
+    });
+
+    it('steps up both sides of a versatile weapon damage', () => {
+      // Arma versátil ("1d8/1d10") tem os dois dados aumentados; antes o
+      // damageStepUp era silenciosamente ignorado nesses itens.
+      expect(stepUpDamageDice('1d8/1d10', 1)).toBe('1d10/2d6');
+      expect(stepUpDamageDice('1d6+1', 1)).toBe('1d8+1');
+      expect(stepUpDamageDice('-', 1)).toBe('-');
     });
   });
 

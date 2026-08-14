@@ -245,26 +245,35 @@ const DAMAGE_DICE_PROGRESSION = [
   '2d10',
 ];
 
-/**
- * Steps the damage die size up (positive `steps`) or down (negative) according
- * to the T20 progression. Preserves any `+N` / `-N` flat suffix.
- *   stepUpDamageDice('1d6', 1)    => '1d8'
- *   stepUpDamageDice('1d8+1', 2)  => '2d6+1'
- *   stepUpDamageDice('xpto', 1)   => 'xpto'   (untouched if not in progression)
- */
-export function stepUpDamageDice(dano: string, steps: number): string {
-  if (!dano || steps === 0) return dano;
-  const match = dano.trim().match(/^(\d+d\d+)([+-]\d+)?$/);
-  if (!match) return dano;
+function stepUpSinglePart(part: string, steps: number): string {
+  const match = part.trim().match(/^(\d+d\d+)([+-]\d+)?$/);
+  if (!match) return part;
   const base = match[1];
   const suffix = match[2] ?? '';
   const idx = DAMAGE_DICE_PROGRESSION.indexOf(base);
-  if (idx === -1) return dano;
+  if (idx === -1) return part;
   const newIdx = Math.min(
     DAMAGE_DICE_PROGRESSION.length - 1,
     Math.max(0, idx + steps)
   );
   return DAMAGE_DICE_PROGRESSION[newIdx] + suffix;
+}
+
+/**
+ * Steps the damage die size up (positive `steps`) or down (negative) according
+ * to the T20 progression. Preserves any `+N` / `-N` flat suffix. Dual-mode
+ * damage ("1d8/1d10", versatile weapons) has every side stepped.
+ *   stepUpDamageDice('1d6', 1)        => '1d8'
+ *   stepUpDamageDice('1d8+1', 2)      => '2d6+1'
+ *   stepUpDamageDice('1d8/1d10', 1)   => '1d10/2d6'
+ *   stepUpDamageDice('xpto', 1)       => 'xpto'   (untouched if not in progression)
+ */
+export function stepUpDamageDice(dano: string, steps: number): string {
+  if (!dano || steps === 0) return dano;
+  return dano
+    .split('/')
+    .map((part) => stepUpSinglePart(part, steps))
+    .join('/');
 }
 
 /**
