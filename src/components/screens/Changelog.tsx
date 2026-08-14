@@ -276,6 +276,16 @@ const Changelog: React.FC = () => {
                   dava sempre +2 espaços de carga, ignorando o &ldquo;+1 para
                   cada outro poder da Tormenta&rdquo; do livro.
                 </li>
+                <li>
+                  <strong>Correção:</strong> a <strong>Carapaça Kappa</strong>,
+                  habilidade de raça do <strong>Kappa</strong>, era só texto: a
+                  Defesa não recebia nada. Agora o kappa soma a{' '}
+                  <strong>Constituição</strong> na Defesa, limitada pelo nível e
+                  cancelada por armadura pesada — e, se já somar Constituição
+                  por outra fonte (como a <strong>Casca Grossa</strong> do
+                  lutador), recebe <strong>+2</strong> no lugar, sem contar o
+                  atributo duas vezes.
+                </li>
               </ul>
               <h3>4.29</h3>
               <ul>
