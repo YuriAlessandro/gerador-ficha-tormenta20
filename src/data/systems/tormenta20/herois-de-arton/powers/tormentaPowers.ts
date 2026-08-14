@@ -18,7 +18,12 @@ const tormentaPowers: Record<string, GeneralPower> = {
       {
         source: { type: 'power', name: 'Bolsões Insanos' },
         target: { type: 'MaxSpaces' },
-        modifier: { type: 'Fixed', value: 2 },
+        // "2 espaços, mais 1 para cada OUTRO poder da Tormenta" — `{tPowQtd}`
+        // já inclui este poder, então `{tPowQtd} - 1` são os outros.
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: '2 + ({tPowQtd} - 1)',
+        },
       },
     ],
   },

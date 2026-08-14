@@ -228,6 +228,14 @@ export type CompleteSkill = {
   others?: number;
   manualOthers?: number;
   manuallyUntrained?: boolean;
+  /**
+   * @deprecated Não é mais lido por `countTormentaPowers`. Existia para a
+   * Deformidade do Lefou, que hoje concede um poder da Tormenta de verdade em
+   * `generalPowers`. `addOtherBonusToSkill` a carimbava em toda perícia que
+   * tocava, então fichas antigas trazem a flag ligada indevidamente — por isso
+   * o campo continua declarado, só para desserializar. Remover em release
+   * subsequente.
+   */
   countAsTormentaPower?: boolean;
 };
 

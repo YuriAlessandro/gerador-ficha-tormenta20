@@ -1,7 +1,8 @@
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { DiceRoll } from './DiceRoll';
+import { CountsAsTormentaPower } from './Poderes';
 
-export interface CustomPower {
+export interface CustomPower extends CountsAsTormentaPower {
   id: string; // UUID para identificação única
   name: string; // Nome do poder (definido pelo usuário)
   description: string; // Descrição do poder

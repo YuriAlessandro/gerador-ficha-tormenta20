@@ -15,6 +15,8 @@ import {
   Typography,
   Box,
   Divider,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -41,6 +43,8 @@ const CustomPowerDialog: React.FC<CustomPowerDialogProps> = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [localRolls, setLocalRolls] = useState<DiceRoll[]>([]);
+  const [countAsTormentaPower, setCountAsTormentaPower] = useState(false);
+  const [excludesCharisma, setExcludesCharisma] = useState(false);
 
   // Power validation errors
   const [nameError, setNameError] = useState('');
@@ -71,10 +75,14 @@ const CustomPowerDialog: React.FC<CustomPowerDialogProps> = ({
         setName(power.name);
         setDescription(power.description);
         setLocalRolls(power.rolls ? [...power.rolls] : []);
+        setCountAsTormentaPower(!!power.countAsTormentaPower);
+        setExcludesCharisma(!!power.tormentaCountExcludesCharisma);
       } else {
         setName('');
         setDescription('');
         setLocalRolls([]);
+        setCountAsTormentaPower(false);
+        setExcludesCharisma(false);
       }
       resetRollForm();
       setNameError('');
@@ -176,6 +184,9 @@ const CustomPowerDialog: React.FC<CustomPowerDialogProps> = ({
       description: description.trim(),
       rolls: localRolls.length > 0 ? localRolls : undefined,
       customEffects: power?.customEffects,
+      countAsTormentaPower: countAsTormentaPower || undefined,
+      tormentaCountExcludesCharisma:
+        countAsTormentaPower && excludesCharisma ? true : undefined,
     };
 
     onSave(customPower);
@@ -230,6 +241,54 @@ const CustomPowerDialog: React.FC<CustomPowerDialogProps> = ({
                   'Descreva o efeito do poder e como ele funciona'
                 }
               />
+              <Box>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={countAsTormentaPower}
+                      onChange={(e) =>
+                        setCountAsTormentaPower(e.target.checked)
+                      }
+                    />
+                  }
+                  label='Conta como poder da Tormenta'
+                />
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  component='p'
+                  sx={{ ml: 4, mt: -0.5 }}
+                >
+                  Entra no total de poderes da Tormenta da ficha: faz os poderes
+                  que escalam com esse total subirem e aplica a perda de
+                  Carisma. Ex.: o poder da origem &quot;Escolhido dos
+                  Deuses&quot; (Aharadak).
+                </Typography>
+                {countAsTormentaPower && (
+                  <Box sx={{ ml: 4, mt: 1 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={excludesCharisma}
+                          onChange={(e) =>
+                            setExcludesCharisma(e.target.checked)
+                          }
+                        />
+                      }
+                      label='Exceto para perda de Carisma'
+                    />
+                    <Typography
+                      variant='caption'
+                      color='text.secondary'
+                      component='p'
+                      sx={{ ml: 4, mt: -0.5 }}
+                    >
+                      Conta para a escala, mas não reduz Carisma — como
+                      &quot;Corrupção Rubra&quot; e &quot;Forma Aberrante&quot;.
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
             </Stack>
           </Box>
 

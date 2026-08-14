@@ -98,6 +98,7 @@ import {
   getVirtudePaladinescaPMBonus,
 } from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
+import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
 
 /**
  * Finds a class definition by name and optional subname.
@@ -285,6 +286,23 @@ export const calculateBonusValue = (
         resolveClassLevel(sheet, source).toString()
       );
     }
+    try {
+      // eslint-disable-next-line no-eval
+      return eval(formula);
+    } catch {
+      return 0;
+    }
+  }
+  if (bonus.type === 'TormentaPowersCalc' && bonus.formula) {
+    // Espelha o ramo de `applyStatModifiers` (general.ts). Sem isto, TODO poder
+    // que escala com o total de poderes da Tormenta (Antenas, Articulações
+    // Flexíveis, Carapaça, Mãos Membranosas, Olhos Vermelhos, Bolsões Insanos e
+    // os homebrews) valia 0 no assistente e em qualquer edição de ficha — só
+    // funcionava no motor de ficha aleatória.
+    const formula = bonus.formula.replace(
+      /\{tPowQtd\}/g,
+      countTormentaPowers(sheet).toString()
+    );
     try {
       // eslint-disable-next-line no-eval
       return eval(formula);
@@ -1951,6 +1969,21 @@ export function recalculateSheet(
 
   // Step 7.3: Apply equipment bonuses
   updatedSheet = applyEquipmentBonuses(updatedSheet);
+
+  // Step 7.35: Perda de atributo por poderes da Tormenta.
+  //
+  // Depois do 7.3 porque precisa de TODOS os baldes de poder já preenchidos
+  // (gerais, de classe, concedidos, de origem, complicação), e antes do 7.4
+  // para que a escolha da Linhagem Rubra ("o maior atributo que não seja
+  // Carisma") olhe os atributos permanentes, sem as penalidades temporárias de
+  // condição. Também precisa vir antes do Step 7.5 e do Step 8, que derivam
+  // PV/PM, Defesa e perícias a partir dos atributos.
+  //
+  // A função é um ledger idempotente: `recalculateSheet` não rebaseia
+  // `atributos`, então ela reverte o próprio desconto anterior antes de
+  // reaplicar. Os `SubStep`s só interessam ao passo-a-passo da criação, montado
+  // no motor de ficha aleatória.
+  applyTormentaAttributePenalty(updatedSheet);
 
   // Step 7.4: Apply active condition bonuses
   //   - Attribute targets mutate atributos directly (before skills/defense recalc)

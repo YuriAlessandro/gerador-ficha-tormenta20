@@ -15,6 +15,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../../interfaces/Character';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import Bag from '../../interfaces/Bag';
+import Skill from '../../interfaces/Skills';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
 
@@ -77,6 +78,12 @@ const createSheetWithRace = (
     generalPowers: [],
     classPowers: [],
     steps: [],
+    // Versátil (Humano) sorteia perícia OU poder geral a cada recálculo — e um
+    // poder da Tormenta sorteado faria o personagem perder Carisma, deixando as
+    // asserções de atributo intermitentes. Pinar a escolha ativa o caminho
+    // determinístico de `applyHumanoVersatil`. Inócuo nas outras raças.
+    humanoVersatilSkill: Skill.ATLETISMO,
+    humanoVersatilChoice: { type: 'skill', value: Skill.PERCEPCAO },
   };
 };
 

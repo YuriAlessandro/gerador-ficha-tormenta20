@@ -19,6 +19,7 @@ import {
   isClassOrVariantOf,
 } from './general';
 import { findClassDescription } from './multiclass';
+import { countTormentaPowers } from './randomUtils';
 
 export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
 
@@ -150,13 +151,10 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       );
     case RequirementType.PODER_TORMENTA: {
       const qtdPowers = rule.value as number;
-      return (
-        // OTHER powers, so can't count itself
-        sheet.generalPowers.filter(
-          (actualPower) => actualPower.type === 'TORMENTA'
-        ).length >=
-        qtdPowers + 1
-      );
+      // `countTormentaPowers` também enxerga poderes de outros tipos marcados
+      // com `countAsTormentaPower` (poder personalizado, origem homebrew).
+      // OTHER powers, so can't count itself
+      return countTormentaPowers(sheet) >= qtdPowers + 1;
     }
     case RequirementType.PROFICIENCIA: {
       const proficiencia = rule.name as string;

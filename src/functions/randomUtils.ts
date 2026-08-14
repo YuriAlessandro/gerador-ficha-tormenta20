@@ -134,16 +134,77 @@ export function getNotRepeatedRandom<T extends notRepeatedTypes>(
   return getRandomItemFromArray<T>(notRepeated);
 }
 
-export function countTormentaPowers(sheet: CharacterSheet) {
-  let tormentaPowersQtd = sheet.generalPowers.filter(
-    (power) => power.type === GeneralPowerType.TORMENTA
-  ).length;
-  const tormentaPowersFromSkills = sheet.completeSkills?.filter(
-    (skill) => skill.countAsTormentaPower
-  )?.length;
-  if (tormentaPowersFromSkills) {
-    tormentaPowersQtd += tormentaPowersFromSkills;
-  }
+/**
+ * Forma mínima do que conta como poder da Tormenta. Cobre `GeneralPower`,
+ * `OriginPower`, `ClassPower` e `CustomPower` — `type` só existe em alguns
+ * deles, e a flag pode aparecer em qualquer um.
+ */
+type TormentaCountable = {
+  name: string;
+  type?: string;
+  countAsTormentaPower?: boolean;
+  tormentaCountExcludesCharisma?: boolean;
+};
+
+export interface CountTormentaPowersOptions {
+  /**
+   * Quando true, ignora os poderes marcados com
+   * `tormentaCountExcludesCharisma` ("conta como poder da Tormenta, exceto
+   * para perda de Carisma").
+   */
+  forCharismaPenalty?: boolean;
+}
+
+/**
+ * Total de poderes da Tormenta da ficha — ponto único de verdade.
+ *
+ * Conta tanto os poderes cujo `type` é TORMENTA quanto os de qualquer outro
+ * tipo marcados com `countAsTormentaPower`, varrendo TODOS os baldes onde um
+ * poder pode viver (poder concedido, por exemplo, vive só em `devoto.poderes`).
+ * A dedução por nome existe porque poderes concedidos são copiados entre
+ * baldes — ver `sheetHasPowerNamed` para o mesmo problema.
+ */
+export function countTormentaPowers(
+  sheet: CharacterSheet,
+  options?: CountTormentaPowersOptions
+): number {
+  const forCharismaPenalty = options?.forCharismaPenalty ?? false;
+
+  const buckets: TormentaCountable[][] = [
+    sheet.generalPowers ?? [],
+    sheet.customPowers ?? [],
+    sheet.customGrantedPowers ?? [],
+    sheet.classPowers ?? [],
+    sheet.origin?.powers ?? [],
+    sheet.devoto?.poderes ?? [],
+  ];
+
+  // Dedup por nome ANTES de decidir se conta: se o mesmo poder aparece em dois
+  // baldes, a primeira cópia é a que vale (senão uma cópia sem a ressalva de
+  // Carisma reintroduziria o poder que a outra acabou de descartar).
+  const byName = new Map<string, TormentaCountable>();
+  buckets.forEach((bucket) => {
+    bucket.forEach((power) => {
+      if (!power || byName.has(power.name)) return;
+      byName.set(power.name, power);
+    });
+  });
+
+  let tormentaPowersQtd = 0;
+  byName.forEach((power) => {
+    if (forCharismaPenalty && power.tormentaCountExcludesCharisma) return;
+    const isTormenta =
+      power.type === GeneralPowerType.TORMENTA ||
+      power.countAsTormentaPower === true;
+    if (isTormenta) tormentaPowersQtd += 1;
+  });
+
+  // `Skill.countAsTormentaPower` NÃO entra na conta. A flag era da Deformidade
+  // do Lefou, que hoje concede um poder da Tormenta de verdade em
+  // `generalPowers` — contá-la duplicaria. Pior: `addOtherBonusToSkill` a
+  // carimbava em toda perícia que tocava, então fichas antigas trazem a flag
+  // ligada em perícias que nada têm a ver com a Tormenta. Ignorar aqui é o que
+  // conserta essas fichas.
 
   return tormentaPowersQtd;
 }

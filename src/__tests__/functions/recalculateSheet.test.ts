@@ -28,10 +28,13 @@ describe('recalculateSheet - Attribute and PM Preservation', () => {
     ]);
 
     const bardClass = coreClasses.find((c) => c.name === 'Bardo');
-    const humanoRace = coreRaces.find((r) => r.name === 'Humano');
+    // Elfo, e não Humano: o Versátil do Humano sorteia um poder geral a cada
+    // recálculo, e se calhar de sair um poder da Tormenta o personagem perde
+    // Carisma — o que deixaria as asserções de Carisma/PM intermitentes.
+    const elfoRace = coreRaces.find((r) => r.name === 'Elfo');
 
-    if (!bardClass || !humanoRace) {
-      throw new Error('Bardo class or Humano race not found in registry');
+    if (!bardClass || !elfoRace) {
+      throw new Error('Bardo class or Elfo race not found in registry');
     }
 
     // In the simplified system, value IS the modifier directly
@@ -50,7 +53,7 @@ describe('recalculateSheet - Attribute and PM Preservation', () => {
       sexo: 'Masculino',
       nivel: 6,
       atributos: attributes,
-      raca: humanoRace,
+      raca: elfoRace,
       classe: bardClass,
       skills: [],
       pv: 30, // Will be recalculated
@@ -63,7 +66,7 @@ describe('recalculateSheet - Attribute and PM Preservation', () => {
       origin: undefined,
       spells: [],
       displacement: 9,
-      size: humanoRace.size!,
+      size: elfoRace.size!,
       maxSpaces: 10,
       generalPowers: [],
       classPowers: [],

@@ -903,6 +903,18 @@ export default interface CharacterSheet {
    * automaticamente quando encontrado. Remover em release subsequente.
    */
   conditionAttributePenalties?: Partial<Record<Atributo, number>>;
+  /**
+   * Ledger da perda de atributo por poderes da Tormenta ("ao escolher um poder
+   * da Tormenta você perde 1 de Carisma, mais 1 para cada dois outros").
+   *
+   * Diferente de `conditionAttributePenalties`, esta perda é permanente e faz
+   * parte da ficha — mutar `atributos` é o comportamento correto. O ledger
+   * existe porque `recalculateSheet` NÃO rebaseia `atributos`: sem registrar
+   * quanto já foi descontado (e de qual atributo, já que Linhagem Rubra drena
+   * o maior atributo que não seja Carisma), cada recálculo empilharia a
+   * penalidade de novo. Ver `functions/tormentaCharismaPenalty.ts`.
+   */
+  tormentaAttributePenalties?: Partial<Record<Atributo, number>>;
 }
 
 /**

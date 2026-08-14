@@ -71,6 +71,7 @@ import {
   pickFromArray,
   rollDice,
 } from './randomUtils';
+import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
 import todasProficiencias from '../data/systems/tormenta20/proficiencias';
 import {
   getActiveArmorPenalty,
@@ -3800,44 +3801,10 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
     return newAcc;
   }, sheetClone);
 
-  // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois outros poderes da Tormenta, perde 1 de carisma.
-  const tormentaPowersQtd = countTormentaPowers(sheetClone);
-
-  const totalPenalty = Math.floor((tormentaPowersQtd + 1) / 2);
-  if (totalPenalty > 0) {
-    // Caso especial pra feiticeiros da linhagem rubra, eles nunca querem perder carisma
-    if (
-      sheetClone.classe.abilities.find(
-        (ability) => ability.name === 'Linhagem Rubra'
-      )
-    ) {
-      let remainingPenalty = totalPenalty;
-      while (remainingPenalty > 0) {
-        // Ache o atributo com maior value que não seja carisma
-        const highestAttribute = Object.values(sheetClone.atributos).reduce(
-          (prev, curr) => {
-            if (curr.name === 'Carisma') return prev;
-            if (prev.value > curr.value) return prev;
-            return curr;
-          }
-        );
-
-        sheetClone.atributos[highestAttribute.name].value -= 1;
-        remainingPenalty -= 1;
-
-        subSteps.push({
-          name: highestAttribute.name,
-          value: `-1 por ${tormentaPowersQtd} poderes da Tormenta`,
-        });
-      }
-    } else {
-      sheetClone.atributos.Carisma.value -= totalPenalty;
-      subSteps.push({
-        name: 'Carisma',
-        value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
-      });
-    }
-  }
+  // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois
+  // outros poderes da Tormenta, perde 1 de carisma. Compartilhado com o
+  // `recalculateSheet` — grava o ledger que torna a regra idempotente.
+  subSteps.push(...applyTormentaAttributePenalty(sheetClone));
 
   if (subSteps.length) {
     sheetClone.steps.push({
@@ -4835,7 +4802,7 @@ const calculateBonusValue = (
   }
   if (bonus.type === 'TormentaPowersCalc') {
     const filledFormula = bonus.formula.replace(
-      '{tPowQtd}',
+      /\{tPowQtd\}/g,
       countTormentaPowers(sheet).toString()
     );
     // eslint-disable-next-line no-eval

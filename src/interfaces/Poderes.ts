@@ -43,7 +43,23 @@ export interface Requirement {
   text?: string;
 }
 
-export interface GeneralPower {
+/**
+ * Faz o poder somar em `countTormentaPowers` mesmo que seu `type` não seja
+ * TORMENTA. Ex.: o poder da origem "Escolhido dos Deuses" (Aharadak), ou
+ * qualquer poder homebrew/personalizado que o mestre declare como tal.
+ */
+export interface CountsAsTormentaPower {
+  countAsTormentaPower?: boolean;
+  /**
+   * Só faz sentido junto de `countAsTormentaPower`. O poder conta para a
+   * escala dos poderes da Tormenta mas NÃO para a perda de Carisma — a
+   * ressalva "(exceto para perda de Carisma)" de Corrupção Rubra (Arcanista)
+   * e Forma Aberrante (Druida).
+   */
+  tormentaCountExcludesCharisma?: boolean;
+}
+
+export interface GeneralPower extends CountsAsTormentaPower {
   type: GeneralPowerType;
   description: string;
   name: string;
@@ -65,7 +81,7 @@ export type GeneralPowers = {
   [key in GeneralPowerType]: GeneralPower[];
 };
 
-export type OriginPower = {
+export type OriginPower = CountsAsTormentaPower & {
   name: string;
   description: string;
   type: string;

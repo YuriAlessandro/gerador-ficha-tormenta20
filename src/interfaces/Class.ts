@@ -3,7 +3,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { SheetBonus, SheetAction } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
-import { Requirement } from './Poderes';
+import { CountsAsTormentaPower, Requirement } from './Poderes';
 import Skill from './Skills';
 import { SpellSchool } from './Spells';
 import { SupplementId } from '../types/supplement.types';
@@ -68,7 +68,7 @@ export type ClassAbility = {
   customDescription?: string;
 };
 
-export type ClassPower = {
+export type ClassPower = CountsAsTormentaPower & {
   name: string;
   text: string;
   dynamicText?: string; // Texto dinâmico que substitui o texto padrão (ex: Autoridade Eclesiástica)
