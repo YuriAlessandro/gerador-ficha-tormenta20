@@ -10,6 +10,7 @@ import Equipment, {
   BagEquipments,
   equipGroup,
 } from '../../../interfaces/Equipment';
+import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import {
   calculateCurrencySpaces,
   calculateMaxSpaces,
@@ -61,7 +62,8 @@ interface StagedState {
 export interface BackpackInputs {
   bag: Bag;
   initialMoney: BackpackMoney;
-  forca: number;
+  maxSpacesAttribute: Atributo;
+  maxSpacesAttributeValue: number;
   initialCustomMaxSpaces?: number;
   /** Default for the auto-deduct toggle when entering the modal. */
   initialAutoDeductMoney?: boolean;
@@ -603,7 +605,8 @@ export function reducer(state: StagedState, action: Action): StagedState {
 export function useBackpackState({
   bag,
   initialMoney,
-  forca,
+  maxSpacesAttribute,
+  maxSpacesAttributeValue,
   initialCustomMaxSpaces,
   initialAutoDeductMoney = true,
   initialMainHandItemId,
@@ -735,7 +738,8 @@ export function useBackpackState({
     // destaque de sobrecarga reajam ao adicionar/remover esses itens.
     const equipMaxSpacesBonus = getEquipmentMaxSpacesBonus(orderedItems);
     const maxSpaces =
-      staged.customMaxSpaces ?? calculateMaxSpaces(forca) + equipMaxSpacesBonus;
+      staged.customMaxSpaces ??
+      calculateMaxSpaces(maxSpacesAttributeValue) + equipMaxSpacesBonus;
     const { overflowItemIds, overflowStartIndex } = computeOverflow(
       orderedItems,
       maxSpaces - currencySpaces
@@ -749,7 +753,13 @@ export function useBackpackState({
       overflowItemIds,
       overflowStartIndex,
     };
-  }, [orderedItems, staged.money, staged.customMaxSpaces, forca]);
+  }, [
+    orderedItems,
+    staged.money,
+    staged.customMaxSpaces,
+    maxSpacesAttribute,
+    maxSpacesAttributeValue,
+  ]);
 
   const filteredItems = useMemo(() => {
     const q = normalize(searchQuery);

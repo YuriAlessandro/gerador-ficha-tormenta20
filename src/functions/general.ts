@@ -1454,9 +1454,9 @@ export function getNewSpells(
   );
 }
 
-export function calculateMaxSpaces(forca: number): number {
-  if (forca < 0) return 10 + forca;
-  return 10 + 2 * forca;
+export function calculateMaxSpaces(attributeValue: number): number {
+  if (attributeValue < 0) return 10 + attributeValue;
+  return 10 + 2 * attributeValue;
 }
 
 // Soma os bônus de capacidade de carga (MaxSpaces) concedidos por equipamentos
@@ -1765,6 +1765,7 @@ export const applyPower = (
     selectFamiliar: ['FamiliarSelected'],
     selectWeaponSpecialization: ['WeaponSpecializationSelected'],
     selectAnimalTotem: ['AnimalTotemSelected'],
+    setMaxSpacesAttribute: ['MaxSpacesAttributeSet'],
   };
 
   const isActionAlreadyApplied = (
@@ -1968,6 +1969,14 @@ export const applyPower = (
         !forceApply &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
+        if (sheetAction.action.type === 'setMaxSpacesAttribute') {
+          const { attribute } = sheetAction.action;
+          sheet.maxSpacesAttribute = attribute;
+          sheet.maxSpaces = calculateMaxSpaces(
+            sheet.atributos[attribute].value
+          );
+          return;
+        }
         // For chooseFromOptions, re-apply sheetBonuses from the chosen option
         // (sheetBonuses are cleared during recalculation, so they need to be re-added)
         if (sheetAction.action.type === 'chooseFromOptions') {
@@ -2111,7 +2120,16 @@ export const applyPower = (
         return;
       }
 
-      if (sheetAction.action.type === 'ModifyAttribute') {
+      if (sheetAction.action.type === 'setMaxSpacesAttribute') {
+        const { attribute } = sheetAction.action;
+        sheet.maxSpacesAttribute = attribute;
+        sheet.maxSpaces = calculateMaxSpaces(sheet.atributos[attribute].value);
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [{ type: 'MaxSpacesAttributeSet', attribute }],
+        });
+      } else if (sheetAction.action.type === 'ModifyAttribute') {
         const { attribute, value } = sheetAction.action;
         const newValue = sheet.atributos[attribute].value + value;
         sheet.atributos[attribute].value = newValue;
