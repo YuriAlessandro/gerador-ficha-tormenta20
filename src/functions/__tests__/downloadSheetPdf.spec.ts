@@ -128,8 +128,12 @@ describe('fillSheetPdf', () => {
   it('usa o nome customizado do item na tabela de ataques e no inventário', async () => {
     const sheet = makeSheet();
     const weapon = sheet.bag.equipments.Arma[0];
-    expect(weapon).toBeDefined();
+    expect(weapon?.id).toBeDefined();
     weapon.customDisplayName = 'Fiel Companheira';
+    // O equipamento inicial é sorteado e o PDF põe as armas EMPUNHADAS nos
+    // primeiros slots, então a posição no bag não decide qual cai em `ataque1`.
+    // Empunhar a arma renomeada ancora o teste em vez de contar com a ordem.
+    sheet.mainHandItemId = weapon.id;
 
     const { form } = await renderPdf(sheet);
 
