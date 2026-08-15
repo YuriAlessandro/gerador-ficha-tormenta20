@@ -35,6 +35,23 @@
   Cache-Control: public, max-age=86400
   Access-Control-Allow-Origin: *
 
+# Catálogo de ícones do game-icons.net (gerado por scripts/build-game-icons.mjs).
+#
+# São ~4.200 arquivos servidos sob demanda pelos layouts de ficha, e cada um é
+# imutável de fato: o desenho de `lorc/crystal-ball` nunca muda: um ícone novo
+# ganha um nome novo. Por isso 1 ano, e não o 1 dia dos assets de raiz — sem
+# isso a ficha revalidaria dezenas de arquivos a cada visita.
+#
+# O `Access-Control-Allow-Origin` importa pelo mesmo motivo do bloco /assets/*:
+# no iframe de origem opaca da extensão do Owlbear o `fetch` do ícone seria
+# bloqueado sem ele.
+#
+# Custo: `public/_routes.json` só inclui rotas de página, então estes caminhos
+# nunca invocam a Function e não consomem cota do Workers.
+/game-icons/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
 # Service workers precisam ser revalidados sempre, senão o usuário fica preso
 # numa versão antiga do app. O regex do nginx (`\.(js|css|…)$`) pegava `/sw.js`
 # e o marcava como imutável por 1 ano — bug latente que some aqui porque a regra
