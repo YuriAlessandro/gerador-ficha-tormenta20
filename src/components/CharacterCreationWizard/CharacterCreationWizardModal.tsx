@@ -52,6 +52,7 @@ import {
   buildClassEquipmentsFromChoices,
   computeFinalAttributeModifiers,
   getEffectiveRaceAttrs,
+  isRaceAttributeSelectionComplete,
   getInitialMoneyWithDetails,
   isClassOrVariantOf,
   raceHasSexDimorphism,
@@ -1924,18 +1925,12 @@ const CharacterCreationWizardModal: React.FC<
         // Must have selected a variant
         return selections.attributeVariant !== undefined;
 
-      case 'Atributos da Raça': {
-        if (!raceForAttributes) return false;
-        const attrs = getEffectiveRaceAttrs(
+      case 'Atributos da Raça':
+        return isRaceAttributeSelectionComplete(
           raceForAttributes,
-          sexForAttributes
+          sexForAttributes,
+          selections.raceAttributes
         );
-        const attrCount = attrs.filter((a) => a.attr === 'any').length;
-        return (
-          selections.raceAttributes?.length === attrCount &&
-          new Set(selections.raceAttributes).size === attrCount
-        );
-      }
 
       case 'Habilidade Suraggel':
         // Always valid - either default ability or selected alternative

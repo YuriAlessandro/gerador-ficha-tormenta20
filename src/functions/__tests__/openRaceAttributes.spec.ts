@@ -3,8 +3,14 @@ import { Atributo } from '../../data/systems/tormenta20/atributos';
 import SelectedOptions from '../../interfaces/SelectedOptions';
 import { WizardSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
-import { generateEmptySheet } from '../general';
+import {
+  generateEmptySheet,
+  getEffectiveRaceAttrs,
+  isRaceAttributeSelectionComplete,
+} from '../general';
 import { rehydrateSheet, stripSheetForStorage } from '../sheetPayloadOptimizer';
+import { dataRegistry } from '../../data/registry';
+import { applyOpenRace } from '../../premium/functions/openRaces';
 
 const ZEROED: Record<Atributo, number> = {
   [Atributo.FORCA]: 0,
@@ -104,6 +110,72 @@ describe('Raças Abertas (Heróis de Arton) na geração de ficha', () => {
     expect(sheet.atributos[Atributo.SABEDORIA].value).toBe(1);
     expect(sheet.atributos[Atributo.DESTREZA].value).toBe(-1);
     expect(sheet.optionalRules).toBeUndefined();
+  });
+});
+
+describe('Avanço do passo "Atributos da Raça"', () => {
+  const getRace = (name: string) =>
+    dataRegistry
+      .getRacesBySupplements([SupplementId.TORMENTA20_CORE])
+      .find((r) => r.name === name)!;
+
+  test('raça de modificadores fixos libera o avanço SEM escolha nenhuma', () => {
+    // O passo passou a existir também para raças sem slot `any` — é onde mora o
+    // interruptor de Raças Abertas. Sem tratar `undefined` como "nada
+    // escolhido", o "Próximo" ficava travado para todo anão que não ligasse a
+    // regra opcional.
+    const anao = getRace('Anão');
+
+    expect(isRaceAttributeSelectionComplete(anao, undefined, undefined)).toBe(
+      true
+    );
+    expect(isRaceAttributeSelectionComplete(anao, undefined, [])).toBe(true);
+  });
+
+  test('raça com slots livres exige todas as escolhas', () => {
+    const humano = getRace('Humano'); // três slots `any`
+
+    expect(isRaceAttributeSelectionComplete(humano, undefined, undefined)).toBe(
+      false
+    );
+    expect(
+      isRaceAttributeSelectionComplete(humano, undefined, [Atributo.FORCA])
+    ).toBe(false);
+    expect(
+      isRaceAttributeSelectionComplete(humano, undefined, [
+        Atributo.FORCA,
+        Atributo.DESTREZA,
+        Atributo.CARISMA,
+      ])
+    ).toBe(true);
+  });
+
+  test('atributo repetido não conta como completo', () => {
+    const humano = getRace('Humano');
+
+    expect(
+      isRaceAttributeSelectionComplete(humano, undefined, [
+        Atributo.FORCA,
+        Atributo.FORCA,
+        Atributo.CARISMA,
+      ])
+    ).toBe(false);
+  });
+
+  test('com Raças Abertas, o anão passa a exigir as três escolhas', () => {
+    const anao = getRace('Anão');
+    const aberto = applyOpenRace(anao, getEffectiveRaceAttrs(anao, undefined));
+
+    expect(isRaceAttributeSelectionComplete(aberto, undefined, undefined)).toBe(
+      false
+    );
+    expect(
+      isRaceAttributeSelectionComplete(aberto, undefined, [
+        Atributo.CARISMA,
+        Atributo.INTELIGENCIA,
+        Atributo.CONSTITUICAO,
+      ])
+    ).toBe(true);
   });
 });
 

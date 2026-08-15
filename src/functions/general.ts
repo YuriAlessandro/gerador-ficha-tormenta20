@@ -646,6 +646,33 @@ export function getEffectiveRaceAttrs(
  * a ficha existir — em especial as fichas-mock de filtragem de poderes, onde
  * valores falsos fazem todo pré-requisito de atributo passar de graça.
  */
+/**
+ * O jogador já preencheu todos os slots `any` da raça?
+ *
+ * `undefined` conta como "nenhuma escolha feita", e é essa distinção que
+ * importa: quando a raça NÃO tem slots (`attrCount === 0`) a resposta é `true`
+ * mesmo sem escolha nenhuma. O passo "Atributos da Raça" passou a existir
+ * também nesse caso — é onde mora o interruptor de Raças Abertas —, então
+ * comparar `raceAttributeChoices?.length` direto com 0 travava o "Próximo" para
+ * qualquer raça de modificadores fixos.
+ */
+export function isRaceAttributeSelectionComplete(
+  race: Race | undefined,
+  sexForAttributes: 'Masculino' | 'Feminino' | undefined,
+  raceAttributeChoices: (Atributo | undefined)[] | undefined
+): boolean {
+  if (!race) return false;
+
+  const attrCount = getEffectiveRaceAttrs(race, sexForAttributes).filter(
+    (attr) => attr.attr === 'any'
+  ).length;
+  const chosen = (raceAttributeChoices ?? []).filter(
+    (attr): attr is Atributo => attr !== undefined
+  );
+
+  return chosen.length === attrCount && new Set(chosen).size === attrCount;
+}
+
 export function computeFinalAttributeModifiers(
   race: Race | undefined,
   sexForAttributes: 'Masculino' | 'Feminino' | undefined,
