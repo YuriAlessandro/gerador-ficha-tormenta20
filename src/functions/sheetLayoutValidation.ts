@@ -1,0 +1,410 @@
+/**
+ * Validação e saneamento de `SheetLayout`.
+ *
+ * Este módulo trata todo layout como PAYLOAD HOSTIL. Um layout chega de três
+ * lugares em que o app não manda: `sheetData` salvo há meses, JSON de ficha
+ * importado de terceiros e a galeria da comunidade. Nenhum deles pode derrubar
+ * a ficha.
+ *
+ * Daí a divisão em duas funções:
+ * - `sanitizeSheetLayout` NUNCA lança e sempre devolve um layout renderizável;
+ *   o que não dá para consertar é descartado em silêncio (cor inválida, ícone
+ *   desconhecido, seção de uma versão futura).
+ * - `validateSheetLayout` responde "isto é aceitável para SALVAR?", e é essa
+ *   que o editor e o backend usam. Erros bloqueiam; avisos só informam.
+ *
+ * O backend tem um espelho deste arquivo. Divergir os dois é como se ganha um
+ * 400 no PUT com o editor achando que está tudo certo.
+ */
+import {
+  LayoutRegion,
+  LayoutRegionRole,
+  LAYOUT_REGION_ROLES,
+  LayoutSection,
+  SheetLayout,
+  SheetSectionKind,
+  SheetSectionWidth,
+  SheetTemplateKind,
+  SHEET_ICON_KEY_RE,
+  SHEET_LAYOUT_CAPS,
+  SHEET_LAYOUT_SCHEMA_VERSION,
+  SHEET_SECTION_KINDS,
+  SHEET_TEMPLATE_KINDS,
+  isPresetLayoutId,
+} from '../interfaces/SheetLayout';
+import { DEFAULT_SHEET_LAYOUT } from '../interfaces/sheetLayoutPresets';
+
+export type LayoutIssueLevel = 'error' | 'warning';
+
+export interface LayoutIssue {
+  level: LayoutIssueLevel;
+  code: string;
+  message: string;
+  sectionId?: string;
+  regionId?: string;
+}
+
+export interface ValidateLayoutResult {
+  ok: boolean;
+  layout?: SheetLayout;
+  issues: LayoutIssue[];
+}
+
+/**
+ * Seções sem as quais a ficha deixa de ser utilizável. `identity` carrega nome,
+ * raça/classe, nível E os pontos de vida e mana — é o mínimo para a ficha ainda
+ * servir numa mesa.
+ */
+export const REQUIRED_SECTION_KINDS: SheetSectionKind[] = ['identity'];
+
+const KIND_SET = new Set<string>(SHEET_SECTION_KINDS);
+const ROLE_SET = new Set<string>(LAYOUT_REGION_ROLES);
+const TEMPLATE_SET = new Set<string>(SHEET_TEMPLATE_KINDS);
+
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
+const asString = (v: unknown): string | undefined =>
+  typeof v === 'string' ? v : undefined;
+
+const asColor = (v: unknown): string | undefined => {
+  const s = asString(v);
+  return s && HEX_COLOR_RE.test(s) ? s : undefined;
+};
+
+const asIconKey = (v: unknown): string | undefined => {
+  const s = asString(v);
+  return s && SHEET_ICON_KEY_RE.test(s) ? s : undefined;
+};
+
+const asWidth = (v: unknown): SheetSectionWidth =>
+  v === 'half' ? 'half' : 'full';
+
+const asHttpsUrl = (v: unknown): string | undefined => {
+  const s = asString(v);
+  if (!s) return undefined;
+  try {
+    // Mesmo critério do `profileController` (só o protocolo, sem allowlist de
+    // host): o app inteiro já aceita URL colada pelo usuário assim.
+    return new URL(s).protocol === 'https:' ? s : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/* ------------------------------------------------------------------ *
+ * Sanitize — nunca lança
+ * ------------------------------------------------------------------ */
+
+const sanitizeSection = (raw: unknown): LayoutSection | null => {
+  if (!isRecord(raw)) return null;
+
+  const payload = isRecord(raw.payload) ? raw.payload : undefined;
+  const kind = asString(payload?.kind);
+  if (!kind || !KIND_SET.has(kind)) return null;
+
+  const id = asString(raw.id);
+  if (!id) return null;
+
+  const section: LayoutSection = {
+    id,
+    payload:
+      kind === 'note'
+        ? {
+            kind: 'note',
+            content: (asString(payload?.content) ?? '').slice(
+              0,
+              SHEET_LAYOUT_CAPS.maxNoteLength
+            ),
+          }
+        : { kind: kind as Exclude<SheetSectionKind, 'note'> },
+    width: asWidth(raw.width),
+  };
+
+  const title = asString(raw.title);
+  if (title)
+    section.title = title.slice(0, SHEET_LAYOUT_CAPS.maxSectionTitleLength);
+
+  const iconKey = asIconKey(raw.iconKey);
+  if (iconKey) section.iconKey = iconKey;
+
+  const titleColor = asColor(raw.titleColor);
+  if (titleColor) section.titleColor = titleColor;
+
+  return section;
+};
+
+const sanitizeRegion = (raw: unknown): LayoutRegion | null => {
+  if (!isRecord(raw)) return null;
+
+  const id = asString(raw.id);
+  const role = asString(raw.role);
+  if (!id || !role || !ROLE_SET.has(role)) return null;
+
+  const sections = Array.isArray(raw.sections)
+    ? raw.sections
+        .map(sanitizeSection)
+        .filter((s): s is LayoutSection => s !== null)
+        .slice(0, SHEET_LAYOUT_CAPS.maxSectionsPerRegion)
+    : [];
+
+  const region: LayoutRegion = {
+    id,
+    role: role as LayoutRegionRole,
+    sections,
+  };
+
+  const label = asString(raw.label);
+  if (label)
+    region.label = label.slice(0, SHEET_LAYOUT_CAPS.maxRegionLabelLength);
+
+  const iconKey = asIconKey(raw.iconKey);
+  if (iconKey) region.iconKey = iconKey;
+
+  return region;
+};
+
+/** Por que um payload é irrecuperável. Vira código de erro na validação. */
+export type LayoutRejection =
+  | 'not-an-object'
+  | 'schema-version-ahead'
+  | 'missing-required-section';
+
+export interface StrictSanitizeResult {
+  layout: SheetLayout | null;
+  rejection?: LayoutRejection;
+}
+
+/**
+ * O saneamento de verdade: devolve `null` (com o motivo) quando o payload é
+ * irrecuperável, em vez de mascarar o problema com o preset padrão.
+ *
+ * Existe separado porque as duas chamadas querem coisas opostas. Renderizar
+ * quer um fallback silencioso; salvar precisa saber que o documento foi
+ * recusado — sem essa separação, validar um layout quebrado aprovava o preset
+ * padrão no lugar dele.
+ */
+export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
+  if (!isRecord(raw)) return { layout: null, rejection: 'not-an-object' };
+
+  const version =
+    typeof raw.schemaVersion === 'number' ? raw.schemaVersion : undefined;
+  // Documento de uma versão futura: não dá para adivinhar o que mudou.
+  if (version === undefined || version > SHEET_LAYOUT_SCHEMA_VERSION) {
+    return { layout: null, rejection: 'schema-version-ahead' };
+  }
+
+  const template = asString(raw.template);
+  const regions = Array.isArray(raw.regions)
+    ? raw.regions
+        .map(sanitizeRegion)
+        .filter((r): r is LayoutRegion => r !== null)
+        .slice(0, SHEET_LAYOUT_CAPS.maxRegions)
+    : [];
+
+  const present = new Set(
+    regions.flatMap((r) => r.sections.map((s) => s.payload.kind))
+  );
+  if (REQUIRED_SECTION_KINDS.some((kind) => !present.has(kind))) {
+    return { layout: null, rejection: 'missing-required-section' };
+  }
+
+  const rawTheme = isRecord(raw.theme) ? raw.theme : {};
+  const theme: SheetLayout['theme'] = {};
+  const accentColor = asColor(rawTheme.accentColor);
+  if (accentColor) theme.accentColor = accentColor;
+  const titleColor = asColor(rawTheme.titleColor);
+  if (titleColor) theme.titleColor = titleColor;
+  const cardBackgroundColor = asColor(rawTheme.cardBackgroundColor);
+  if (cardBackgroundColor) theme.cardBackgroundColor = cardBackgroundColor;
+  const backgroundPresetId = asString(rawTheme.backgroundPresetId);
+  if (backgroundPresetId) theme.backgroundPresetId = backgroundPresetId;
+  const backgroundImageUrl = asHttpsUrl(rawTheme.backgroundImageUrl);
+  if (backgroundImageUrl) theme.backgroundImageUrl = backgroundImageUrl;
+  if (typeof rawTheme.backgroundOpacity === 'number') {
+    theme.backgroundOpacity = Math.min(
+      1,
+      Math.max(0, rawTheme.backgroundOpacity)
+    );
+  }
+  const fontFamily = asString(rawTheme.fontFamily);
+  if (fontFamily) theme.fontFamily = fontFamily;
+  if (
+    rawTheme.cardStyle === 'flat' ||
+    rawTheme.cardStyle === 'outlined' ||
+    rawTheme.cardStyle === 'default'
+  ) {
+    theme.cardStyle = rawTheme.cardStyle;
+  }
+
+  const layout: SheetLayout = {
+    schemaVersion: SHEET_LAYOUT_SCHEMA_VERSION,
+    id: asString(raw.id) ?? DEFAULT_SHEET_LAYOUT.id,
+    name: (asString(raw.name) ?? 'Meu layout').slice(
+      0,
+      SHEET_LAYOUT_CAPS.maxLayoutNameLength
+    ),
+    template:
+      template && TEMPLATE_SET.has(template)
+        ? (template as SheetTemplateKind)
+        : 'tabs',
+    regions,
+    theme,
+  };
+
+  const rawMobile = isRecord(raw.mobile) ? raw.mobile : undefined;
+  if (rawMobile) {
+    const regionIds = new Set(regions.map((r) => r.id));
+    const sectionIds = new Set(
+      regions.flatMap((r) => r.sections.map((s) => s.id))
+    );
+
+    const mobile: NonNullable<SheetLayout['mobile']> = {};
+
+    const mobileTemplate = asString(rawMobile.template);
+    if (mobileTemplate && TEMPLATE_SET.has(mobileTemplate)) {
+      mobile.template = mobileTemplate as SheetTemplateKind;
+    }
+
+    if (isRecord(rawMobile.regionOverrides)) {
+      const overrides: Record<string, string> = {};
+      Object.entries(rawMobile.regionOverrides).forEach(
+        ([sectionId, target]) => {
+          const t = asString(target);
+          // Override apontando para região/seção que não existe mais é lixo de
+          // uma edição anterior — some sem alarde.
+          if (t && sectionIds.has(sectionId) && regionIds.has(t)) {
+            overrides[sectionId] = t;
+          }
+        }
+      );
+      if (Object.keys(overrides).length > 0) mobile.regionOverrides = overrides;
+    }
+
+    if (Array.isArray(rawMobile.hiddenRegionIds)) {
+      const hidden = rawMobile.hiddenRegionIds
+        .map(asString)
+        .filter((id): id is string => !!id && regionIds.has(id));
+      if (hidden.length > 0) mobile.hiddenRegionIds = hidden;
+    }
+
+    if (rawMobile.forceFullWidth === false) mobile.forceFullWidth = false;
+
+    if (Object.keys(mobile).length > 0) layout.mobile = mobile;
+  }
+
+  // `readonly` só é honrado nos presets embarcados. Num documento do usuário a
+  // flag não concede nada (o editor apenas forka em vez de editar no lugar),
+  // mas preservá-la aqui é o que mantém o sanitize idempotente sobre eles.
+  if (raw.readonly === true && isPresetLayoutId(layout.id)) {
+    layout.readonly = true;
+  }
+
+  return { layout };
+}
+
+/**
+ * Devolve SEMPRE um layout renderizável: o que não dá para consertar vira o
+ * preset padrão, que é o comportamento histórico da ficha.
+ */
+export function sanitizeSheetLayout(raw: unknown): SheetLayout {
+  return sanitizeSheetLayoutStrict(raw).layout ?? DEFAULT_SHEET_LAYOUT;
+}
+
+/* ------------------------------------------------------------------ *
+ * Validate — responde "dá para salvar?"
+ * ------------------------------------------------------------------ */
+
+const REJECTION_MESSAGES: Record<LayoutRejection, string> = {
+  'not-an-object': 'Layout inválido.',
+  'schema-version-ahead':
+    'Este layout foi criado numa versão mais nova do app. Atualize a página.',
+  'missing-required-section':
+    'A ficha precisa manter a identidade e os pontos de vida.',
+};
+
+export function validateSheetLayout(raw: unknown): ValidateLayoutResult {
+  const issues: LayoutIssue[] = [];
+
+  // Usa a variante estrita de propósito: o fallback para o preset padrão
+  // aprovaria silenciosamente um documento que o usuário acabou de quebrar.
+  const { layout, rejection } = sanitizeSheetLayoutStrict(raw);
+
+  if (!layout) {
+    const code = rejection ?? 'not-an-object';
+    return {
+      ok: false,
+      issues: [{ level: 'error', code, message: REJECTION_MESSAGES[code] }],
+    };
+  }
+
+  if (layout.regions.length > SHEET_LAYOUT_CAPS.maxRegions) {
+    issues.push({
+      level: 'error',
+      code: 'too-many-regions',
+      message: `Um layout pode ter no máximo ${SHEET_LAYOUT_CAPS.maxRegions} áreas.`,
+    });
+  }
+
+  const seenKinds = new Set<SheetSectionKind>();
+  layout.regions.forEach((region) => {
+    if (region.role === 'surface' && !region.label) {
+      issues.push({
+        level: 'error',
+        code: 'surface-without-label',
+        message: 'Toda aba ou tela precisa de um nome.',
+        regionId: region.id,
+      });
+    }
+
+    if (region.sections.length === 0) {
+      issues.push({
+        level: 'warning',
+        code: 'empty-region',
+        message: `A área "${
+          region.label ?? region.role
+        }" está vazia e não vai aparecer.`,
+        regionId: region.id,
+      });
+    }
+
+    region.sections.forEach((section) => {
+      const { kind } = section.payload;
+      // `note` é a única que pode repetir: é conteúdo do usuário, não um bloco
+      // da ficha. As demais montam DragDropContext e ids fixos de DOM, e
+      // duplicar quebraria a reordenação de poderes.
+      if (kind === 'note') return;
+
+      if (seenKinds.has(kind)) {
+        issues.push({
+          level: 'error',
+          code: 'duplicate-section-kind',
+          message: 'Cada seção só pode aparecer uma vez no layout.',
+          sectionId: section.id,
+          regionId: region.id,
+        });
+      } else {
+        seenKinds.add(kind);
+      }
+    });
+  });
+
+  // Não há checagem de seção obrigatória aqui: o saneamento estrito já recusa
+  // o documento antes de chegar neste ponto.
+
+  if (
+    layout.template === 'actionMenu' &&
+    !layout.regions.some((r) => r.role === 'header')
+  ) {
+    issues.push({
+      level: 'error',
+      code: 'header-required',
+      message: 'O menu de ação precisa de uma área fixa no topo.',
+    });
+  }
+
+  const ok = !issues.some((issue) => issue.level === 'error');
+  return { ok, layout: ok ? layout : undefined, issues };
+}
