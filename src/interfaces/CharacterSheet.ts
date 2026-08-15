@@ -17,6 +17,7 @@ import type { SheetComplication } from '../premium/interfaces/Complication';
 import type { SheetAge } from '../premium/interfaces/Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { DiceRoll } from './DiceRoll';
+import type { SheetLayout } from './SheetLayout';
 
 export type SheetChangeSource =
   | {
@@ -871,6 +872,15 @@ export default interface CharacterSheet {
   poderesCapturados?: PoderCapturadoChoice[]; // Usurpador: Poder Capturado (4º nível)
   notes?: string; // Anotações livres do jogador
   imageUrl?: string; // URL de imagem do personagem
+  /**
+   * Layout customizado desta ficha.
+   *
+   * Sobrevive ao `stripSheetForStorage` (que faz spread no nível raiz) e ao
+   * `Sheet.sheetData`, que é `Mixed` no backend — por isso guardar o documento
+   * aqui não exigiu nenhuma mudança de schema. É tratado como payload não
+   * confiável na leitura: quem resolve passa pelo `sanitizeSheetLayout`.
+   */
+  layout?: SheetLayout;
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha

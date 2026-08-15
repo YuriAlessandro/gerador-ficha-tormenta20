@@ -18,6 +18,7 @@ export interface FeatureFlags {
   optionalRules: FeatureFlag;
   spellAreaGuide: FeatureFlag;
   playerScreen: FeatureFlag;
+  sheetLayouts: FeatureFlag;
   limitBoost: FeatureFlag;
 }
 
@@ -41,6 +42,10 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   spellAreaGuide: { enabled: true, supporterOnly: true },
   // Tela do Jogador: segunda tela pública que o mestre projeta para a mesa.
   playerScreen: { enabled: true, supporterOnly: true },
+  // Layouts customizáveis de ficha: os três modelos, o editor e a galeria.
+  // Default off — o admin liga quando o rollout estiver pronto. Desligada, a
+  // ficha renderiza no arranjo histórico e o botão nem aparece.
+  sheetLayouts: { enabled: false, supporterOnly: true },
   // Boost de limites da meta de 200 apoiadores: multiplica TODOS os limites por
   // nível de apoio (menos suplementos), inclusive os de contas gratuitas.
   // `supporterOnly` é ignorado — vale para todo mundo. Default desligado: o
