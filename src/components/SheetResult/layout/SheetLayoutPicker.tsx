@@ -29,6 +29,8 @@ import IconButton from '@mui/material/IconButton';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import LockIcon from '@mui/icons-material/Lock';
 
+import SheetLayoutEditorDialog from '../../../premium/components/SheetLayoutEditor/SheetLayoutEditorDialog';
+import CharacterSheet from '../../../interfaces/CharacterSheet';
 import { SheetLayout } from '../../../interfaces/SheetLayout';
 import {
   DEFAULT_SHEET_LAYOUT,
@@ -48,15 +50,22 @@ const PRESET_BLURBS: Record<string, string> = {
 
 export interface SheetLayoutPickerProps {
   currentLayoutId: string;
+  /** O layout em uso, ponto de partida do editor. */
+  currentLayout: SheetLayout;
+  /** A ficha que o editor usa no preview. */
+  sheet: CharacterSheet;
   onSelect: (layout: SheetLayout) => void;
 }
 
 const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
   currentLayoutId,
+  currentLayout,
+  sheet,
   onSelect,
 }) => {
   const { isEnabled, hasAccess, needsSupport } = useSheetLayoutAccess();
   const [open, setOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
 
   if (!isEnabled) return null;
 
@@ -157,8 +166,34 @@ const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
               Voltar ao padrão
             </Button>
           )}
+          {hasAccess && (
+            <Button
+              variant='contained'
+              onClick={() => {
+                setOpen(false);
+                setEditorOpen(true);
+              }}
+            >
+              Personalizar
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
+
+      {/*
+       * O editor vive no submódulo premium. No build sem ele o stub devolve um
+       * componente nulo — e isso nunca aparece, porque lá as feature flags vêm
+       * todas desligadas e este seletor inteiro já não é renderizado.
+       */}
+      {hasAccess && editorOpen && (
+        <SheetLayoutEditorDialog
+          open
+          layout={currentLayout}
+          sheet={sheet}
+          onClose={() => setEditorOpen(false)}
+          onSave={onSelect}
+        />
+      )}
     </>
   );
 };

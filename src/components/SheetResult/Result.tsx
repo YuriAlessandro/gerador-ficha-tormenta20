@@ -2118,6 +2118,8 @@ const Result: React.FC<ResultProps> = (props) => {
                 {onSheetUpdate && (
                   <SheetLayoutPicker
                     currentLayoutId={activeLayout.id}
+                    currentLayout={activeLayout}
+                    sheet={currentSheet}
                     onSelect={handleLayoutSelect}
                   />
                 )}
