@@ -36,6 +36,10 @@ export const NEVER_UNSET_SHEET_KEYS: readonly string[] = [
   'generalPowers',
   'sheetActionHistory',
   'steps',
+  // Diário do Jogador. Diferente do resto da lista, não é derivável de nada:
+  // é prosa escrita à mão pelo jogador. Uma vez que existe, o normalizeSheet
+  // garante que continua existindo em toda carga.
+  'journal',
 ];
 
 /**

@@ -183,6 +183,13 @@ import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
 import NotesDialog from './NotesDialog';
+import {
+  PlayerJournalCard,
+  PlayerJournalFullScreen,
+  PLAYER_JOURNAL_AVAILABLE,
+} from '../../premium/components/PlayerJournal';
+import { PlayerJournal } from '../../interfaces/PlayerJournal';
+import { countJournalNodes } from '../../functions/playerJournal';
 import RestDialog, { RestConfirmConfig } from './RestDialog';
 import {
   calculateRestRecovery,
@@ -283,6 +290,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [statDrawerOpen, setStatDrawerOpen] = useState(false);
   const [restDialogOpen, setRestDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
@@ -671,6 +679,15 @@ const Result: React.FC<ResultProps> = (props) => {
   const handleNotesSave = useCallback(
     (notes: string) => {
       handleSheetInfoUpdate({ notes });
+    },
+    [handleSheetInfoUpdate]
+  );
+
+  // Diário: merge parcial de UMA chave, sem recálculo — igual às anotações. O
+  // debounce fica do lado do diário, que grava com o diálogo aberto.
+  const handleJournalSave = useCallback(
+    (journal: PlayerJournal) => {
+      handleSheetInfoUpdate({ journal });
     },
     [handleSheetInfoUpdate]
   );
@@ -1866,9 +1883,21 @@ const Result: React.FC<ResultProps> = (props) => {
   // (SheetViewPage, MainScreen) a ficha ficava presa no layout antigo.
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY, { noSsr: true });
 
-  // No desktop Perícias vive na coluna da direita, não nas abas
+  // Diário do Jogador. Enquanto a flag estiver desligada (ou faltar o
+  // submódulo premium), a ficha mantém exatamente o botão e o diálogo de
+  // anotações de sempre — o rollout é reversível sem redeploy, e o texto
+  // original nunca sai de `sheet.notes`.
+  const journalAccess = useFeatureAccess('playerJournal');
+  const journalEnabled = journalAccess.hasAccess && PLAYER_JOURNAL_AVAILABLE;
+  const journalNodeCount = countJournalNodes(currentSheet.journal);
+
+  // No desktop Perícias e Diário vivem na coluna da direita, não nas abas.
+  // Sem esta coerção, girar o tablet estando numa dessas abas deixaria o
+  // desktop sem painel nenhum selecionado.
   const activeSheetTab: SheetTabValue =
-    !isMobile && activeTab === 'pericias' ? 'ataques' : activeTab;
+    !isMobile && (activeTab === 'pericias' || activeTab === 'diario')
+      ? 'ataques'
+      : activeTab;
 
   const hasAnyRd =
     currentSheet.reducaoDeDano &&
@@ -2077,12 +2106,24 @@ const Result: React.FC<ResultProps> = (props) => {
                       >
                         <LabelDisplay text={nome} size='large' />
                       </Box>
-                      <Tooltip title='Anotações'>
+                      <Tooltip
+                        title={
+                          journalEnabled ? 'Diário do Jogador' : 'Anotações'
+                        }
+                      >
                         <IconButton
                           size='small'
-                          onClick={() => setNotesDialogOpen(true)}
+                          onClick={() =>
+                            journalEnabled
+                              ? setJournalOpen(true)
+                              : setNotesDialogOpen(true)
+                          }
                           sx={{
-                            color: currentSheet.notes
+                            color: (
+                              journalEnabled
+                                ? journalNodeCount > 0
+                                : currentSheet.notes
+                            )
                               ? theme.palette.primary.main
                               : theme.palette.text.secondary,
                           }}
@@ -2437,6 +2478,8 @@ const Result: React.FC<ResultProps> = (props) => {
                           setPowersDrawerOpen(true);
                         } else if (activeSheetTab === 'magias') {
                           setSpellsDrawerOpen(true);
+                        } else if (activeSheetTab === 'diario') {
+                          setJournalOpen(true);
                         } else {
                           setBackpackInitialFilter(undefined);
                           setBackpackOpen(true);
@@ -2464,10 +2507,21 @@ const Result: React.FC<ResultProps> = (props) => {
                     <Tab label='Poderes' value='poderes' />
                     <Tab label='Magias' value='magias' />
                     <Tab label='Equip.' value='equipamentos' />
+                    {isMobile && journalEnabled && (
+                      <Tab label='Diário' value='diario' />
+                    )}
                   </TabList>
                   {isMobile && (
                     <TabPanel value='pericias' sx={{ p: 0 }}>
                       {periciasDiv}
+                    </TabPanel>
+                  )}
+                  {isMobile && journalEnabled && (
+                    <TabPanel value='diario' sx={{ p: 2 }}>
+                      <PlayerJournalCard
+                        journal={currentSheet.journal}
+                        onOpen={() => setJournalOpen(true)}
+                      />
                     </TabPanel>
                   )}
                   <TabPanel value='ataques' sx={{ p: 2 }}>
@@ -3171,6 +3225,12 @@ const Result: React.FC<ResultProps> = (props) => {
                     )}
                     {periciasDiv}
                   </Card>
+                  {journalEnabled && (
+                    <PlayerJournalCard
+                      journal={currentSheet.journal}
+                      onOpen={() => setJournalOpen(true)}
+                    />
+                  )}
                 </Stack>
               </Box>
             )}
@@ -3386,6 +3446,20 @@ const Result: React.FC<ResultProps> = (props) => {
             notes={currentSheet.notes || ''}
             onSave={handleNotesSave}
           />
+          {journalEnabled && (
+            <PlayerJournalFullScreen
+              open={journalOpen}
+              onClose={() => setJournalOpen(false)}
+              characterName={currentSheet.nome}
+              journal={currentSheet.journal}
+              // Sem `onSheetUpdate` o diário abre em leitura, em vez de sumir:
+              // ele é feito para ser LIDO durante a sessão, e fechá-lo na cara
+              // de quem está consultando as anotações seria pior do que
+              // desabilitar a edição. É por isso que ele NÃO entra no efeito
+              // que fecha os drawers quando a edição cai.
+              onSave={onSheetUpdate ? handleJournalSave : undefined}
+            />
+          )}
           {(() => {
             const companions = currentSheet.companions || [];
             const safeIndex = Math.min(

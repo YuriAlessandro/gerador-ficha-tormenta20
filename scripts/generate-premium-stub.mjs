@@ -70,6 +70,10 @@ const OVERRIDES = {
   WILD_SHAPE_FALLBACK_EMOJI: { expr: "'🐾'" },
   // SCREAMING_CASE cairia em `[]`, mas o consumidor chama `.has()`
   RETIRED_ACTIVE_POWER_KEYS: { expr: 'new Set()' },
+  // SCREAMING_CASE cairia em `[]`, que é TRUTHY — e o público usa isto como
+  // boolean para decidir se mostra a aba "Diário". Sem o submódulo não há
+  // canvas, então a aba apareceria vazia.
+  PLAYER_JOURNAL_AVAILABLE: { expr: 'false' },
   // camelCase cairia em `noop` (undefined); estes são lidos como string/array
   getWildShapeAnimalEmoji: { expr: "() => '🐾'" },
   getWildShapeAnimals: { expr: '() => []' },

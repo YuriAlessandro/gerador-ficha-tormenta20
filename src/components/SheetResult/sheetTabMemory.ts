@@ -4,7 +4,8 @@ export type SheetTabValue =
   | 'defesa'
   | 'poderes'
   | 'magias'
-  | 'equipamentos';
+  | 'equipamentos'
+  | 'diario';
 
 /**
  * Última aba aberta por ficha, viva só enquanto a página estiver aberta.

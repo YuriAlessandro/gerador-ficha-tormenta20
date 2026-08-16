@@ -17,6 +17,7 @@ import type { SheetComplication } from '../premium/interfaces/Complication';
 import type { SheetAge } from '../premium/interfaces/Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { DiceRoll } from './DiceRoll';
+import type { PlayerJournal } from './PlayerJournal';
 
 export type SheetChangeSource =
   | {
@@ -869,7 +870,15 @@ export default interface CharacterSheet {
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
   poderesCapturados?: PoderCapturadoChoice[]; // Usurpador: Poder Capturado (4º nível)
+  /**
+   * @deprecated Substituído pelo `journal` (Diário do Jogador). Continua sendo
+   * LIDO — é o fallback quando a feature está desligada e a fonte da migração —,
+   * mas nada escreve nele. Mantido em disco de propósito: `migrateNotesToJournal`
+   * copia o texto para um nó em vez de mover, então uma migração com defeito não
+   * leva junto a anotação original do jogador.
+   */
   notes?: string; // Anotações livres do jogador
+  journal?: PlayerJournal; // Diário do Jogador (canvas de blocos)
   imageUrl?: string; // URL de imagem do personagem
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido

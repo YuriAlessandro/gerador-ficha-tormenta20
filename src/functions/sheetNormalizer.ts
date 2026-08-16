@@ -5,6 +5,7 @@ import Bag from '../interfaces/Bag';
 import { WeaponOverride } from '../interfaces/Equipment';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
+import { migrateNotesToJournal } from './playerJournal';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
@@ -534,6 +535,11 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   sanitizeWeaponOverrides(sheet);
 
   sanitizeSheetElements(sheet);
+
+  // Anotações livres antigas viram o primeiro nó do Diário do Jogador. Só age
+  // em ficha que TEM anotação e ainda NÃO tem diário, e não apaga o texto
+  // original — ver `migrateNotesToJournal`.
+  migrateNotesToJournal(sheet);
 }
 
 export default normalizeSheet;

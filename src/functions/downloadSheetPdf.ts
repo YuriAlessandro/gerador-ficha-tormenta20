@@ -16,6 +16,7 @@ import {
   getWeaponNonProficiencyPenalty,
 } from './proficiencies';
 import { collectSheetPowers } from './powers/collectSheetPowers';
+import { serializeJournalForPdf } from './playerJournal';
 import { getPowerDisplayName, getPowerDisplayText } from './powers/powerText';
 import {
   getDerivedSpellCircle,
@@ -138,7 +139,15 @@ const buildExtraSections = (
     if (body.trim()) sections.push({ title, body: sanitizeForWinAnsi(body) });
   };
 
-  push('Anotações', sheet.notes ?? '');
+  // Diário do Jogador. As anotações livres só saem quando NÃO há diário: uma
+  // ficha migrada mantém `sheet.notes` em disco como rede de segurança, e
+  // imprimir os dois duplicaria o mesmo texto no PDF.
+  const journalText = serializeJournalForPdf(sheet.journal, sheet.nome);
+  if (journalText) {
+    push('Diário do Jogador', journalText);
+  } else {
+    push('Anotações', sheet.notes ?? '');
+  }
 
   const rd = sheet.reducaoDeDano;
   if (rd) {

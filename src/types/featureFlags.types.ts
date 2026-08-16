@@ -18,6 +18,7 @@ export interface FeatureFlags {
   optionalRules: FeatureFlag;
   spellAreaGuide: FeatureFlag;
   playerScreen: FeatureFlag;
+  playerJournal: FeatureFlag;
   limitBoost: FeatureFlag;
 }
 
@@ -41,6 +42,12 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   spellAreaGuide: { enabled: true, supporterOnly: true },
   // Tela do Jogador: segunda tela pública que o mestre projeta para a mesa.
   playerScreen: { enabled: true, supporterOnly: true },
+  // Diário do Jogador: canvas de blocos que substitui as anotações livres da
+  // ficha. `supporterOnly` é FALSE de propósito — o diário é de todo mundo, e o
+  // corte por apoiador vive nos limites (`maxJournalNodes` e categorias
+  // customizadas). Ligar `supporterOnly` aqui trancaria a feature INTEIRA,
+  // porque o `useFeatureAccess` é binário. Default desligado até o rollout.
+  playerJournal: { enabled: false, supporterOnly: false },
   // Boost de limites da meta de 200 apoiadores: multiplica TODOS os limites por
   // nível de apoio (menos suplementos), inclusive os de contas gratuitas.
   // `supporterOnly` é ignorado — vale para todo mundo. Default desligado: o
