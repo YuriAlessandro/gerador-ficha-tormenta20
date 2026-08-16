@@ -325,6 +325,11 @@ export const fillSheetPdf: (
   // impresso), mas o campo próprio existe e ficava vazio.
   levelField.setText(sheet.nivel.toString());
   deytiField.setText(sanitizeForWinAnsi(sheet.devoto?.divindade.name));
+  // Atributos BASE de propósito — aqui e nas perícias/armas mais abaixo. Mesma
+  // política já adotada para o bônus de dano de efeito ativo (ver
+  // `weaponSkill.ts`): estado transitório de combate (efeito ativo, condição,
+  // modificador temporário manual) NÃO é congelado na exportação. Quem quiser o
+  // valor efetivo olha a ficha, que é onde ele vive.
   forceField.setText(sheet.atributos.Força.value.toString());
   dexterityField.setText(sheet.atributos.Destreza.value.toString());
   constitutionField.setText(sheet.atributos.Constituição.value.toString());

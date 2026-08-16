@@ -13,7 +13,7 @@ import { ConditionMarker } from '../../premium/components/Conditions';
 import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
 import { getConditionAttributeModifier } from '../../premium/functions/conditionAttributeModifier';
-import { getActiveEffectAttributeModifier } from '../../premium/functions/activeEffectHighlights';
+import { getAttributeDelta } from '../../functions/effectiveAttributes';
 
 type Props = {
   attributes: CharacterAttributes;
@@ -66,13 +66,11 @@ const AttributeDisplay = ({
           attributeName as Atributo
         )
       : 0;
-    // Efeitos ativos (Forma Selvagem, Força da Natureza…) também alteram o
-    // atributo sem mutar `atributos[attr].value`, então entram aqui.
+    // Efeitos ativos (Mente Divina, Forma Selvagem…) e a caixa de modificador
+    // temporário manual alteram o atributo sem mutar `atributos[attr].value`:
+    // o total já vem resolvido em `atributosTemporarios` pelo Step 7.46.
     const effectBonus = sheet
-      ? getActiveEffectAttributeModifier(
-          sheet.activeEffects,
-          attributeName as Atributo
-        )
+      ? getAttributeDelta(sheet, attributeName as Atributo)
       : 0;
 
     const effectiveModifier = modifier + conditionPenalty + effectBonus;
@@ -119,10 +117,12 @@ const AttributeDisplay = ({
         const label = attribute;
         const attrConditions = attributeHighlights?.[attribute as Atributo];
         const labelStyle = getConditionLabelStyle(attrConditions);
-        // Override puramente visual: mostra `valorBase + delta` quando há
-        // condição ou efeito ativo afetando este atributo. NÃO altera o valor
-        // persistido na ficha — `value.value` permanece o base, e o delta é
-        // re-derivado de `activeConditions`/`activeEffects` em todo render.
+        // Mostra `valorBase + delta`. `value.value` permanece o BASE persistido
+        // — o motor nunca muta `atributos`. As duas parcelas vêm de canais
+        // separados de propósito: `atributosTemporarios` é a camada de atributo
+        // efetivo (efeitos ativos + caixa manual), que alimenta TODAS as
+        // derivações; condições são penalidade de TESTE (agregação pior-vence)
+        // e ficam fora dela, só aparecendo aqui e na rolagem.
         const conditionPenalty = sheet
           ? getConditionAttributeModifier(
               sheet.activeConditions,
@@ -131,10 +131,7 @@ const AttributeDisplay = ({
             )
           : 0;
         const effectBonus = sheet
-          ? getActiveEffectAttributeModifier(
-              sheet.activeEffects,
-              attribute as Atributo
-            )
+          ? getAttributeDelta(sheet, attribute as Atributo)
           : 0;
         const totalDelta = conditionPenalty + effectBonus;
         const displayedValue = value.value + totalDelta;

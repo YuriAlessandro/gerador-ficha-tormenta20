@@ -1,4 +1,5 @@
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import { getEffectiveAttributeModifier } from '../effectiveAttributes';
 import Skill, { getSkillAttr } from '../../interfaces/Skills';
 import { getActiveArmorPenalty } from '../proficiencies';
 import type {
@@ -61,7 +62,8 @@ export function hasUsurpar(sheet: CharacterSheet): boolean {
 export function getUsurparCheckModifier(sheet: CharacterSheet): number {
   const skill = sheet?.completeSkills?.find((s) => s.name === Skill.ENGANACAO);
   const modAttr = skill?.modAttr ?? getSkillAttr(Skill.ENGANACAO);
-  const attrValue = modAttr ? sheet.atributos?.[modAttr]?.value ?? 0 : 0;
+  // Atributo EFETIVO (ver `functions/effectiveAttributes.ts`).
+  const attrValue = modAttr ? getEffectiveAttributeModifier(sheet, modAttr) : 0;
 
   const halfLevel = skill?.halfLevel ?? Math.floor((sheet?.nivel ?? 1) / 2);
   const training = skill?.training ?? 0;

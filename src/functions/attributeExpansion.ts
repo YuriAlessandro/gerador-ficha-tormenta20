@@ -6,25 +6,29 @@ import type { SheetBonus, StatModifier } from '@/interfaces/CharacterSheet';
 type SourcelessBonus = Omit<SheetBonus, 'source'>;
 
 /**
- * Expande um boost de atributo (ex.: "+2 Inteligência") numa lista de bônus
- * aplicáveis pelo motor. Mesma estratégia das condições e dos efeitos ativos
- * pré-canned (ver `attributeBoostBonuses` no premium, que delega aqui): mutar
- * `atributos[attr].value` foi tentado antes e abandonado porque vazava efeitos
- * temporários para o estado persistido (PM máximo, Defesa, perícias) e corrompia
- * atributos editados manualmente.
+ * Lista QUAIS campos da ficha um boost de atributo afeta.
+ *
+ * ⚠️ **Isto não é mais um motor.** Desde a camada de atributo efetivo
+ * (`functions/effectiveAttributes.ts`), um bônus com alvo `Attribute` é somado
+ * em `atributosTemporarios` no Step 7.46 do `recalculateSheet`, e cada
+ * derivação lê o atributo já efetivo. Emitir estes bônus para o motor contaria
+ * em DOBRO.
+ *
+ * O que sobrou é o uso de DESTAQUE visual: `getActiveEffectHighlights` chama
+ * isto para saber quais perícias / Defesa / dano marcar como "sob efeito" —
+ * informação que antes vinha de graça, porque os bônus expandidos existiam de
+ * verdade em `sheetBonuses`.
  *
  * Cobertura por atributo:
- *  - Sempre: uma `Skill` bonus para cada perícia que usa o atributo (cobre
- *    testes de perícia incluindo Luta/Pontaria = ataques CaC/à distância,
- *    Fortitude/Reflexos/Vontade = resistências, Iniciativa).
- *  - FOR: também `WeaponDamage` melee (FOR adiciona ao dano corpo a corpo, fora
- *    do sistema de perícias).
- *  - DES: também `Defense` (DES contribui pra Defesa; o cap por armadura pesada
- *    NÃO é enforced aqui — usuário ajusta se for o caso).
+ *  - Sempre: uma `Skill` para cada perícia que usa o atributo (cobre
+ *    Luta/Pontaria = ataques, Fortitude/Reflexos/Vontade = resistências,
+ *    Iniciativa).
+ *  - FOR: também `WeaponDamage` melee.
+ *  - DES: também `Defense`.
  *
- * Não cobre PV (CON), PM máximo (atributo-chave) nem perícias adicionais
- * treinadas — RAW de T20 para boosts temporários: PV/PM são calculados no
- * level-up, não retroagem.
+ * Não lista PV (CON) nem PM máximo (atributo-chave): em RAW de T20 um boost
+ * temporário não retroage neles, e a camada efetiva respeita isso lendo o
+ * atributo BASE no cálculo de PV/PM.
  */
 export function expandAttributeBonus(
   attr: Atributo,

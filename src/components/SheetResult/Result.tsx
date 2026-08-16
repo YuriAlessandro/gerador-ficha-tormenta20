@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import EditIcon from '@mui/icons-material/Edit';
+import TuneIcon from '@mui/icons-material/Tune';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -37,6 +38,7 @@ import {
   MoreauHeritageName,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { getEffectiveAttributes } from '@/functions/effectiveAttributes';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import {
   recalculateSheet,
@@ -90,6 +92,7 @@ import {
 } from '@/premium/components/ActiveEffects';
 import { ComplicationEditDrawer } from '@/premium/components/Complications';
 import { AgeEditDrawer } from '@/premium/components/Ages';
+import { AttributeModifiersDrawer } from '@/premium/components/Attributes';
 import { SupplementId } from '@/types/supplement.types';
 import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
 import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
@@ -274,6 +277,8 @@ const Result: React.FC<ResultProps> = (props) => {
   const { sheet, isDarkMode, onSheetUpdate } = props;
   const [currentSheet, setCurrentSheet] = useState(sheet);
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
+  const [attributeModifiersDrawerOpen, setAttributeModifiersDrawerOpen] =
+    useState(false);
   const [skillsDrawerOpen, setSkillsDrawerOpen] = useState(false);
   const [backpackOpen, setBackpackOpen] = useState(false);
   const [backpackInitialFilter, setBackpackInitialFilter] = useState<
@@ -1262,6 +1267,22 @@ const Result: React.FC<ResultProps> = (props) => {
     return `${id}-${elementId}`;
   }
 
+  /**
+   * Atributos com o modificador temporário já somado — a leitura canônica de
+   * toda derivação (ver `functions/effectiveAttributes.ts`). É o que alimenta a
+   * aba de Ataques inteira, a tabela de perícias e a CD de magia.
+   *
+   * `atributos` cru continua indo só para o `AttributeDisplay`, que mostra o
+   * base e o delta separados, e para o drawer que edita o base.
+   *
+   * Memoizado porque `getEffectiveAttributes` devolve objeto novo a cada
+   * chamada, e vários memos abaixo dependem da identidade dele.
+   */
+  const atributosEfetivos = useMemo(
+    () => getEffectiveAttributes(currentSheet),
+    [currentSheet]
+  );
+
   let className: string;
   if (isMulticlass(currentSheet)) {
     className = getMulticlassDisplayName(currentSheet);
@@ -1607,7 +1628,7 @@ const Result: React.FC<ResultProps> = (props) => {
           ),
         ]}
         completeSkills={completeSkills}
-        atributos={atributos}
+        atributos={atributosEfetivos}
         nivel={currentSheet.nivel}
         classLevels={classLevels}
         characterName={nome}
@@ -1633,7 +1654,7 @@ const Result: React.FC<ResultProps> = (props) => {
     bag,
     bagEquipments,
     completeSkills,
-    atributos,
+    atributosEfetivos,
     nome,
     markersEnabled,
     conditionHighlights.attack,
@@ -1699,7 +1720,8 @@ const Result: React.FC<ResultProps> = (props) => {
       const defaultAttr =
         classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
       const attrToUse = currentSheet.customDefenseAttribute || defaultAttr;
-      const attrValue = atributos[attrToUse]?.value || 0;
+      // Efetivo, para o detalhamento casar com a Defesa que o motor calculou.
+      const attrValue = atributosEfetivos[attrToUse]?.value || 0;
       if (attrValue !== 0) {
         const attrName = attrToUse.substring(0, 3).toUpperCase();
         components.push(`${attrValue} (${attrName})`);
@@ -1755,7 +1777,7 @@ const Result: React.FC<ResultProps> = (props) => {
     defenseEquipments,
     bagEquipments.Armadura,
     classe.name,
-    atributos,
+    atributosEfetivos,
     defesa,
   ]);
 
@@ -1766,7 +1788,10 @@ const Result: React.FC<ResultProps> = (props) => {
     classe.spellPath?.keyAttribute ??
     currentSheet.overrideKeyAttribute ??
     Atributo.SABEDORIA;
-  const keyAttr = atributos[effectiveKeyAttribute];
+  // EFETIVO: a CD de magia é `10 + ½ nível + mod do atributo-chave`, e em RAW um
+  // bônus temporário no atributo-chave (Mente Divina) SOBE a CD. Este era o
+  // buraco principal do modelo antigo, que só cascateava nas perícias.
+  const keyAttr = atributosEfetivos[effectiveKeyAttribute];
 
   /**
    * Usurpar (Usurpador): a classe não aprende magias, mas pode lançar qualquer
@@ -2290,6 +2315,35 @@ const Result: React.FC<ResultProps> = (props) => {
                   overflow: 'visible',
                 }}
               >
+                {onSheetUpdate && (
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      zIndex: 1,
+                    }}
+                  >
+                    <Tooltip title='Modificadores temporários de atributo'>
+                      <IconButton
+                        size='small'
+                        sx={{
+                          backgroundColor: theme.palette.primary.main,
+                          color: 'white',
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                        }}
+                        onClick={() => setAttributeModifiersDrawerOpen(true)}
+                      >
+                        <TuneIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                )}
                 <BookTitle>Atributos</BookTitle>
                 <AttributeDisplay
                   attributes={atributos}
@@ -3306,6 +3360,16 @@ const Result: React.FC<ResultProps> = (props) => {
             onClose={() => setSheetInfoDrawerOpen(false)}
             sheet={currentSheet}
             onSave={handleSheetInfoUpdate}
+          />
+
+          {/* Modificador temporário por atributo. Salva via
+              `applyRecalculatedSheet` (e não `handleSheetInfoUpdate`) porque o
+              campo muda derivados: perícias, Defesa, carga, CD de magia. */}
+          <AttributeModifiersDrawer
+            open={attributeModifiersDrawerOpen}
+            onClose={() => setAttributeModifiersDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={applyRecalculatedSheet}
           />
 
           <LevelUpWizardModal

@@ -164,6 +164,39 @@ function sanitizeWeaponOverrides(sheet: CharacterSheet): void {
 }
 
 /**
+ * Saneia os mapas de modificador temporário de atributo (`bonusAtributos`,
+ * escrito pelo jogador, e `atributosTemporarios`, derivado do recálculo). Os
+ * dois chegam da nuvem sem schema forte, e um valor não-numérico aqui vira NaN
+ * em TODA derivação da ficha (perícias, ataque, Defesa, CD, carga).
+ *
+ * Descarta chaves fora do enum `Atributo` e valores não-finitos, poda zeros e
+ * remove o campo quando não sobra nada — mapa vazio persistido viraria ruído no
+ * delta da nuvem.
+ */
+function sanitizeAttributeModifierMaps(sheet: CharacterSheet): void {
+  (['bonusAtributos', 'atributosTemporarios'] as const).forEach((field) => {
+    const raw = sheet[field];
+    if (raw === undefined) return;
+    if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+      delete sheet[field];
+      return;
+    }
+
+    const cleaned: Partial<Record<Atributo, number>> = {};
+    Object.entries(raw).forEach(([key, value]) => {
+      if (!VALID_ATRIBUTOS.includes(key)) return;
+      if (typeof value !== 'number' || !Number.isFinite(value)) return;
+      const rounded = Math.trunc(value);
+      if (rounded === 0) return;
+      cleaned[key as Atributo] = rounded;
+    });
+
+    if (Object.keys(cleaned).length === 0) delete sheet[field];
+    else sheet[field] = cleaned;
+  });
+}
+
+/**
  * Saneia os ELEMENTOS dos arrays da ficha. Garantir que os arrays existem não
  * basta: entradas nulas ou sem campos obrigatórios (magia sem `nome`, poder
  * sem `name`, entrada de histórico sem `changes`, step sem `value`) explodem
@@ -533,6 +566,7 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // NÃO são podados fora da forma: o ponto deles é justamente persistir entre
   // transformações. Só sanidade de shape, contra ficha corrompida na nuvem.
   sanitizeWeaponOverrides(sheet);
+  sanitizeAttributeModifierMaps(sheet);
 
   sanitizeSheetElements(sheet);
 

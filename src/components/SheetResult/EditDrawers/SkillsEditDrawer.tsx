@@ -23,6 +23,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
+import { getEffectiveAttributeModifier } from '@/functions/effectiveAttributes';
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
   CompleteSkill,
@@ -115,7 +116,8 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       return 2;
     };
 
-    const attrBonus = sheet.atributos[skill.modAttr]?.value ?? 0;
+    // Atributo EFETIVO, para o total aqui casar com o da tabela de perícias.
+    const attrBonus = getEffectiveAttributeModifier(sheet, skill.modAttr);
     const halfLevel = Math.floor(sheet.nivel / 2);
     const training = skillTrainingMod(skill.trained, sheet.nivel);
 

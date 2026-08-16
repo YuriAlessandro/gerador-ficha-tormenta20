@@ -5,6 +5,7 @@ import {
   ManualPowerSelections,
 } from '@/interfaces/PowerSelections';
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 import {
@@ -4904,6 +4905,12 @@ export const applyStatModifiers = (
 ) => {
   const sheet = _.cloneDeep(_sheet);
 
+  // Zera o mapa de modificador temporário de atributo ANTES do laço abaixo, que
+  // o reconstrói somando os alvos `Attribute`. Este motor é incremental (`+=`)
+  // e não limpa `sheetBonuses` como o Step 1 do `recalculateSheet`, então sem
+  // isto uma segunda passada compõe o delta em cima do anterior.
+  sheet.atributosTemporarios = undefined;
+
   // Remove bônus cuja condição (opcional) não é satisfeita antes de aplicar
   // qualquer um — gateia todos os consumidores abaixo nesta função.
   sheet.sheetBonuses = sheet.sheetBonuses.filter((bonus) =>
@@ -5076,6 +5083,22 @@ export const applyStatModifiers = (
       }
       sheet.reducaoDeDano[damageType] =
         (sheet.reducaoDeDano[damageType] ?? 0) + bonusValue;
+    } else if (bonus.target.type === 'Attribute') {
+      // Espelho do Step 7.46 do `recalculateSheet`: alvo `Attribute` alimenta a
+      // camada de atributo efetivo, nunca `atributos[attr].value`.
+      //
+      // Na prática o mapa sai vazio aqui — uma ficha recém-gerada não tem
+      // efeitos ativos nem `bonusAtributos`. O ramo existe porque homebrew PODE
+      // emitir alvo `Attribute`, e sem ele a ficha aleatória divergiria em
+      // silêncio da que passa pelo wizard.
+      const { attribute } = bonus.target;
+      if (bonusValue !== 0) {
+        sheet.atributosTemporarios = {
+          ...(sheet.atributosTemporarios ?? {}),
+          [attribute]:
+            (sheet.atributosTemporarios?.[attribute] ?? 0) + bonusValue,
+        };
+      }
     } else if (bonus.target.type === 'ModifySkillAttribute') {
       const { attribute } = bonus.target;
       const skillName = bonus.target.skill;
@@ -5100,6 +5123,15 @@ export const applyStatModifiers = (
       // console.warn('bonus não implementado', bonus);
     }
   });
+
+  // Espelho do passo 3 do Step 7.46: re-deriva a capacidade de carga a partir
+  // da Força EFETIVA. Idempotente, e no-op quando não há delta (o caso comum
+  // aqui). Passa pelo `calculateMaxSpaces` porque a escala é não-linear.
+  if (sheet.atributosTemporarios) {
+    sheet.maxSpaces = calculateMaxSpaces(
+      getEffectiveAttributeModifier(sheet, Atributo.FORCA)
+    );
+  }
 
   // Class-conditional Damage Reduction. Uses ONLY the worn armor — multiple
   // armors may live in the bag now, but only the worn one drives effects.

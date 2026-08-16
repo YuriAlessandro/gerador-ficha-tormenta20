@@ -32,6 +32,7 @@ import { normalizeSearch } from '../../functions/stringUtils';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 import SkillActionsDialog from './SkillActionsDialog';
 import { ConditionMarker } from '../../premium/components/Conditions';
+import { getEffectiveAttributeModifier } from '../../functions/effectiveAttributes';
 import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
 import { ActiveEffectMarker } from '../../premium/components/ActiveEffects';
@@ -297,8 +298,11 @@ const SkillTable: React.FC<IProps> = ({
           </TableHead>
           <TableBody sx={{ border: 'none' }}>
             {filteredSkills.map((skill) => {
+              // Atributo EFETIVO: o bônus temporário de atributo (Mente Divina,
+              // Forma Selvagem, caixa manual) entra por aqui e NÃO em "Outros"
+              // — ver `functions/effectiveAttributes.ts`.
               const attrValue = skill.modAttr
-                ? sheet.atributos[skill.modAttr].value
+                ? getEffectiveAttributeModifier(sheet, skill.modAttr)
                 : 0;
 
               // Get size modifier for stealth (Furtividade)

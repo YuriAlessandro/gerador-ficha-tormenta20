@@ -53,7 +53,7 @@ import {
   captureUserAbilityFields,
   restoreUserAbilityFields,
 } from './powers/preserveUserAbilityFields';
-import { expandAttributeBonus } from './attributeExpansion';
+import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
 import { getSheetWornArmor } from './wornArmor';
@@ -1480,21 +1480,11 @@ function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
         name: eff.name,
       };
 
-      // Bônus que miram um atributo são expandidos em suas perícias/dano/Defesa
-      // derivados (o motor não muta `atributos[attr].value` — vazaria pro estado
-      // persistido). Mesma estratégia das condições e dos efeitos pré-canned.
-      if (b.target.type === 'Attribute') {
-        const { attribute } = b.target;
-        expandAttributeBonus(attribute, b.modifier).forEach((expanded) => {
-          updated.sheetBonuses.push({
-            source,
-            target: expanded.target,
-            modifier: expanded.modifier,
-          });
-        });
-        return;
-      }
-
+      // Bônus com alvo `Attribute` passam DIRETO. Quem os consome é o Step
+      // 7.46, que os reduz em `atributosTemporarios` (camada de atributo
+      // efetivo). Antes eles eram expandidos aqui em perícias/dano/Defesa, o
+      // que deixava CD de magia e capacidade de carga de fora — ver
+      // `functions/effectiveAttributes.ts`.
       updated.sheetBonuses.push({
         source,
         target: b.target,
@@ -1502,6 +1492,73 @@ function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
       });
     });
   });
+
+  return updated;
+}
+
+/**
+ * Step 7.46 — reduz TODO bônus com alvo `Attribute` em `atributosTemporarios`,
+ * a camada de "atributo efetivo" (ver `functions/effectiveAttributes.ts`).
+ *
+ * Produtor único: antes de reduzir, injeta o campo manual `bonusAtributos` como
+ * `sheetBonuses` de alvo `Attribute`. Assim o bônus manual entra de graça na
+ * infra de origem/tooltip (`sheetBonuses/appliedBonuses.ts`) e existe um só
+ * caminho de leitura.
+ *
+ * Roda DEPOIS do Step 7.45 (efeitos ativos já em `sheetBonuses`) e ANTES do
+ * 7.5 (PV/PM), do 7.7 (perícias) e do Step 8.
+ *
+ * O motor NUNCA muta `atributos[attr].value`: mutar vazava efeito temporário
+ * para o estado persistido e corrompia atributo editado à mão.
+ */
+function applyTemporaryAttributeModifiers(
+  sheet: CharacterSheet
+): CharacterSheet {
+  const updated = _.cloneDeep(sheet);
+
+  // 1. Injeta o campo manual como bônus de alvo `Attribute`.
+  Object.entries(updated.bonusAtributos ?? {}).forEach(([attr, value]) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value === 0) {
+      return;
+    }
+    updated.sheetBonuses.push({
+      source: { type: 'manualEdit' },
+      target: { type: 'Attribute', attribute: attr as Atributo },
+      modifier: { type: 'Fixed', value },
+    });
+  });
+
+  // 2. Reduz todos os alvos `Attribute` vivos. `calculateBonusValue` cobre
+  //    também `LevelCalc`/`ScaledValue`, e `isBonusActive` mantém a paridade
+  //    com o filtro do Step 8.
+  const totals: Partial<Record<Atributo, number>> = {};
+  updated.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type !== 'Attribute') return;
+    if (!isBonusActive(updated, bonus)) return;
+
+    const { attribute } = bonus.target;
+    const value = calculateBonusValue(updated, bonus.modifier, bonus.source);
+    if (!Number.isFinite(value) || value === 0) return;
+    totals[attribute] = (totals[attribute] ?? 0) + value;
+  });
+
+  // Poda zeros; mapa vazio vira `undefined` para o delta da nuvem virar $unset.
+  const cleaned: Partial<Record<Atributo, number>> = {};
+  (Object.keys(totals) as Atributo[]).forEach((attr) => {
+    if (totals[attr]) cleaned[attr] = totals[attr];
+  });
+  updated.atributosTemporarios =
+    Object.keys(cleaned).length > 0 ? cleaned : undefined;
+
+  // 3. Re-deriva a capacidade de carga a partir da Força EFETIVA. O Step 1.5 já
+  //    calculou com a Força base (valor sensato para os Steps 2-7); esta
+  //    atribuição sobrescreve e é idempotente. Precisa passar pelo
+  //    `calculateMaxSpaces` em vez de somar o delta: a escala é não-linear
+  //    (10+2·FOR, mas 10+FOR quando negativa). O Step 8 continua somando os
+  //    alvos `MaxSpaces` por cima.
+  updated.maxSpaces = calculateMaxSpaces(
+    getEffectiveAttributeModifier(updated, Atributo.FORCA)
+  );
 
   return updated;
 }
@@ -2001,15 +2058,21 @@ export function recalculateSheet(
   // no motor de ficha aleatória.
   applyTormentaAttributePenalty(updatedSheet);
 
-  // Step 7.4: Apply active condition bonuses
-  //   - Attribute targets mutate atributos directly (before skills/defense recalc)
-  //   - Other targets are pushed to sheetBonuses for the main loop
+  // Step 7.4: Apply active condition bonuses. Condições NUNCA mutam
+  // `atributos` nem entram no atributo efetivo: em RAW "Fraco" é "−2 em testes
+  // de Força", penalidade de TESTE (agregação pior-vence), não redução de
+  // atributo — por isso emitem só bônus `Skill`. Ver `effectiveAttributes.ts`.
   updatedSheet = applyConditionBonuses(updatedSheet);
 
   // Step 7.45: Apply active effect bonuses (powers with temporary bonus,
   // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
   // replace it. Pushes SheetBonus entries for the main loop below.
   updatedSheet = applyActiveEffectBonuses(updatedSheet);
+
+  // Step 7.46: Reduz os alvos `Attribute` (efeitos ativos + campo manual
+  // `bonusAtributos`) em `atributosTemporarios` e re-deriva a capacidade de
+  // carga. Tem que vir antes do 7.5 (PV/PM), do 7.7 (perícias) e do Step 8.
+  updatedSheet = applyTemporaryAttributeModifiers(updatedSheet);
 
   // Step 7.47: Substituição de atributo em escopo de ficha (Usurpador, "Poder
   // de Clérigo": Sabedoria vira Carisma nos poderes de clérigo e concedidos).
@@ -2327,10 +2390,15 @@ export function recalculateSheet(
   // Apply custom attribute logic if defined
   if (updatedSheet.useDefenseAttribute === false && !heavyArmor) {
     // User explicitly disabled attribute, remove it
-    const defaultAttr =
+    // Precisa casar com o que `calcDefense` acabou de somar — e ele soma o
+    // atributo EFETIVO. Ler o base aqui deixaria o delta temporário preso na
+    // Defesa depois de o jogador desligar o atributo.
+    const defaultAttr = getEffectiveAttributeModifier(
+      updatedSheet,
       updatedSheet.classe.name === 'Nobre'
-        ? updatedSheet.atributos.Carisma.value
-        : updatedSheet.atributos.Destreza.value;
+        ? Atributo.CARISMA
+        : Atributo.DESTREZA
+    );
     updatedSheet.defesa -= defaultAttr;
   } else if (
     updatedSheet.customDefenseAttribute &&
@@ -2344,10 +2412,17 @@ export function recalculateSheet(
         : Atributo.DESTREZA;
 
     if (updatedSheet.customDefenseAttribute !== defaultAttr) {
-      // Remove default attribute value and add custom
-      const defaultValue = updatedSheet.atributos[defaultAttr].value;
-      const customValue =
-        updatedSheet.atributos[updatedSheet.customDefenseAttribute].value;
+      // Remove default attribute value and add custom. Os dois EFETIVOS: o que
+      // sai tem que casar com o que `calcDefense` somou, e o que entra também
+      // recebe o delta temporário.
+      const defaultValue = getEffectiveAttributeModifier(
+        updatedSheet,
+        defaultAttr
+      );
+      const customValue = getEffectiveAttributeModifier(
+        updatedSheet,
+        updatedSheet.customDefenseAttribute
+      );
       updatedSheet.defesa = updatedSheet.defesa - defaultValue + customValue;
     }
   }

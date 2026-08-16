@@ -852,6 +852,31 @@ export default interface CharacterSheet {
   useDefenseAttribute?: boolean; // Whether to use attribute mod (false = ignore even without heavy armor)
   bonusDefense?: number; // Manual defense bonus
   bonusSpellDC?: number; // Manual bonus to spell DC (Teste de Resistência)
+  /**
+   * Modificador temporário por atributo registrado À MÃO pelo jogador (magia
+   * não modelada, decisão do mestre, item). É o par MANUAL de
+   * `atributosTemporarios`, como `bonusRd` é de `reducaoDeDano`.
+   *
+   * Só guarda chaves != 0; vazio vira `undefined` para o delta da nuvem virar
+   * `$unset`. Fora de `NEVER_UNSET_SHEET_KEYS`: zerar é operação legítima.
+   */
+  bonusAtributos?: Partial<Record<Atributo, number>>;
+  /**
+   * DERIVADO — total do modificador temporário de cada atributo, recomputado do
+   * zero no Step 7.46 do `recalculateSheet` a partir de TODO `sheetBonus` com
+   * alvo `Attribute` (efeitos ativos, Forma Selvagem, efeitos customizados e a
+   * injeção de `bonusAtributos`).
+   *
+   * O motor NUNCA muta `atributos[attr].value` — isso já foi tentado e vazava
+   * efeito temporário para o estado persistido. Este campo é a camada de
+   * "atributo efetivo" que fica por cima; ler sempre via
+   * `functions/effectiveAttributes.ts`.
+   *
+   * É derivado mas persiste de propósito: fichas chegam por socket e
+   * compartilhamento de mesa e são renderizadas SEM passar por
+   * `recalculateSheet` — sem persistir, o parceiro veria os valores base.
+   */
+  atributosTemporarios?: Partial<Record<Atributo, number>>;
   manualPMEdit?: number; // Manual PM adjustment (added after calculation)
   manualPVEdit?: number; // Manual PV adjustment (added after calculation)
   // Manual PM/PV control (for gameplay tracking and manual overrides)

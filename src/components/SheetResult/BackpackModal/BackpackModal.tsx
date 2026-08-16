@@ -40,6 +40,8 @@ import CharacterSheet, {
   SubStep,
 } from '../../../interfaces/CharacterSheet';
 import Bag from '../../../interfaces/Bag';
+import { getEffectiveAttributeModifier } from '../../../functions/effectiveAttributes';
+import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Equipment, { equipGroup } from '../../../interfaces/Equipment';
 import { recalculateSheet } from '../../../functions/recalculateSheet';
 import { ignoresEncumbrance } from '../../../functions/encumbrance';
@@ -116,7 +118,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     }),
     [sheet.dinheiro, sheet.dinheiroTC, sheet.dinheiroTO]
   );
-  const forca = sheet.atributos.Força.value;
+  // Força EFETIVA: um bônus temporário de Força aumenta a capacidade de carga.
+  const forca = getEffectiveAttributeModifier(sheet, Atributo.FORCA);
   // "Devagar e Sempre"/Golem: sobrecarregar não custa deslocamento.
   const sheetIgnoresEncumbrance = ignoresEncumbrance(sheet);
 
