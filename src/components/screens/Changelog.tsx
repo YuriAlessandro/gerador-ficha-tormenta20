@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            14/08/2026 (v4.30).
+            16/08/2026 (v4.30).
           </p>
 
           <p>
@@ -76,6 +76,21 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.30</h3>
               <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Diário do Jogador</strong>. O
+                  antigo campo de anotações virou um <em>canvas</em>: em vez de
+                  um texto corrido, você cria blocos para cada coisa que quer
+                  lembrar — um <strong>local</strong> que visitou, um{' '}
+                  <strong>NPC</strong> que conheceu, uma <strong>missão</strong>
+                  , um <strong>item</strong>, uma <strong>divindade</strong> — e
+                  liga uns aos outros. Cada bloco é um círculo com a cor da sua
+                  categoria; clicar abre o bloco ali mesmo, com espaço para
+                  escrever. Arraste para organizar, ou use o botão{' '}
+                  <em>Organizar em círculo</em> e deixe o app montar o mapa das
+                  suas conexões em volta do personagem. O diário fica no{' '}
+                  <strong>lado direito da ficha</strong>, abaixo das perícias, e
+                  numa aba própria no celular.
+                </li>
                 <li>
                   <strong>Novo:</strong> <strong>Idades Variadas</strong>, a
                   regra opcional de <em>Heróis de Arton</em>. No assistente de
@@ -134,6 +149,14 @@ const Changelog: React.FC = () => {
                   de Carisma&rdquo;, para poderes como{' '}
                   <strong>Corrupção Rubra</strong> e{' '}
                   <strong>Forma Aberrante</strong>.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> suas anotações antigas{' '}
+                  <strong>não se perdem</strong>: ao abrir uma ficha que já
+                  tinha texto no campo de anotações, ele vira automaticamente o
+                  primeiro bloco do diário, ligado ao seu personagem. O diário
+                  também entra na <strong>exportação em PDF</strong>, agrupado
+                  por categoria e com as conexões de cada bloco.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> o <strong>PDF da ficha</strong>{' '}
