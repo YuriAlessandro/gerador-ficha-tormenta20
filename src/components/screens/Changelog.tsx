@@ -151,6 +151,19 @@ const Changelog: React.FC = () => {
                   <strong>Forma Aberrante</strong>.
                 </li>
                 <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>modificadores temporários de atributo</strong>. O card
+                  de Atributos ganhou um botão que abre uma caixa para você
+                  registrar à mão um bônus ou penalidade em cada atributo —
+                  aquela magia que a ficha ainda não conhece, um item, uma
+                  decisão do mestre. A ficha considera o valor sozinha em
+                  perícias, ataques, dano, Defesa, CD de magia, iniciativa e
+                  capacidade de carga, e mostra o total ajustado embaixo do
+                  atributo. Seguindo o livro, um bônus temporário não altera PV
+                  nem PM máximos. Para mudar o atributo em definitivo, continue
+                  usando o botão de Informações.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> suas anotações antigas{' '}
                   <strong>não se perdem</strong>: ao abrir uma ficha que já
                   tinha texto no campo de anotações, ele vira automaticamente o
@@ -181,6 +194,25 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> a contagem de poderes da Tormenta
                   passou a olhar a ficha inteira — poderes gerais, de classe, de
                   origem e concedidos —, e não só a lista de poderes gerais.
+                </li>
+                <li>
+                  <strong>Correção:</strong> magias que dão{' '}
+                  <strong>bônus em atributo</strong> — como{' '}
+                  <strong>Mente Divina</strong>,{' '}
+                  <strong>Força da Natureza</strong> e as{' '}
+                  <strong>Formas Selvagens</strong> — só aumentavam as perícias
+                  daquele atributo. A <strong>CD das suas magias</strong> e a{' '}
+                  <strong>capacidade de carga</strong> ficavam de fora, e o
+                  número no card do atributo nem se mexia. Agora o bônus é
+                  aplicado no <strong>atributo</strong>, e tudo que depende dele
+                  acompanha junto — inclusive a CD, que é o caso mais fácil de
+                  esquecer na mesa.
+                </li>
+                <li>
+                  <strong>Correção:</strong> um bônus de <strong>Força</strong>{' '}
+                  aumentava indevidamente o dano de armas{' '}
+                  <strong>ágeis que usam Destreza</strong>, e um bônus de
+                  Destreza não aumentava nada nessas armas.
                 </li>
                 <li>
                   <strong>Correção:</strong> não dava para{' '}
