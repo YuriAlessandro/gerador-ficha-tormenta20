@@ -201,3 +201,66 @@ describe('buildSavedItem — atributo no ataque (attackAttribute)', () => {
     expect(result.specialActions?.[1].attackAttribute).toBeUndefined();
   });
 });
+
+/**
+ * Regressão do bug "não consigo zerar o espaço de alguns itens": `applyDelta`
+ * reescrevia `spaces` a partir de `baseSpaces` a cada passagem pelo pipeline,
+ * fora do guard de edições manuais. Como o pipeline só roda em itens que já
+ * tiveram alguma melhoria/encanto/dano extra, o valor digitado grudava em uns
+ * itens e era revertido em outros — daí o "alguns".
+ */
+describe('buildSavedItem — espaços editados à mão', () => {
+  const espadaLonga: Equipment = {
+    nome: 'Espada Longa',
+    group: 'Arma',
+    dano: '1d8',
+    critico: 'x2',
+    atkBonus: 0,
+    spaces: 1,
+  };
+
+  /** Arma que já passou pelo pipeline: tem os snapshots `base*` gravados. */
+  const jaEnriquecida: Equipment = {
+    ...espadaLonga,
+    baseSpaces: 1,
+    baseAtkBonus: 0,
+    baseDano: '1d8',
+    baseSheetBonuses: [],
+    modifications: [{ mod: 'Certeira' }],
+  };
+
+  it('zerar o espaço de um item com melhoria persiste (não volta ao base)', () => {
+    const result = save(jaEnriquecida, mkForm({ spacesText: '0' }), ['spaces']);
+    expect(result.spaces).toBe(0);
+    expect(result.hasManualSpaces).toBe(true);
+  });
+
+  it('espaço manual sobrevive a recálculos posteriores da ficha', () => {
+    const saved = save(jaEnriquecida, mkForm({ spacesText: '0' }), ['spaces']);
+    // `recalculateSheet` reaplica o pipeline em todo item da mochila.
+    expect(applyItemEnhancements(saved).spaces).toBe(0);
+    expect(applyItemEnhancements(applyItemEnhancements(saved)).spaces).toBe(0);
+  });
+
+  it('editar espaço NÃO congela os stats de combate', () => {
+    const result = save(jaEnriquecida, mkForm({ spacesText: '0' }), ['spaces']);
+    expect(result.hasManualEdits).toBeUndefined();
+  });
+
+  it('sem edição manual o espaço continua sendo recalculado do base', () => {
+    const result = save(jaEnriquecida, mkForm({ spacesText: '1' }));
+    expect(result.hasManualSpaces).toBeUndefined();
+    expect(result.spaces).toBe(1);
+  });
+
+  it('texto inválido não grava NaN — cai no valor atual do item', () => {
+    const result = save(espadaLonga, mkForm({ spacesText: 'abc' }), ['spaces']);
+    expect(result.spaces).toBe(1);
+    expect(Number.isNaN(result.spaces)).toBe(false);
+  });
+
+  it('valor negativo é aparado em 0', () => {
+    const result = save(espadaLonga, mkForm({ spacesText: '-3' }), ['spaces']);
+    expect(result.spaces).toBe(0);
+  });
+});

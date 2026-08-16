@@ -31,7 +31,7 @@ const ItemStats: React.FC<ItemStatsProps> = ({ item }) => (
         color='primary'
       />
     )}
-    {item.spaces !== undefined && item.spaces > 0 && (
+    {item.spaces !== undefined && (
       <Chip label={`${item.spaces} esp.`} size='small' variant='outlined' />
     )}
   </Stack>

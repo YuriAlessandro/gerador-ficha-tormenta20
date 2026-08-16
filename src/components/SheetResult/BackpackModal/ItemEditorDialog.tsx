@@ -216,17 +216,18 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       // Preserve prior manual edits when reopening an item that already had
       // the flag set — otherwise the live-preview effect below would silently
       // recompute over the user's persisted values.
-      setManualEditedFields(
-        item?.hasManualEdits
-          ? new Set<StatField>([
-              'dano',
-              'atkBonus',
-              'critico',
-              'defenseBonus',
-              'armorPenalty',
-            ])
-          : new Set()
-      );
+      const restored = new Set<StatField>();
+      if (item?.hasManualEdits) {
+        restored.add('dano');
+        restored.add('atkBonus');
+        restored.add('critico');
+        restored.add('defenseBonus');
+        restored.add('armorPenalty');
+      }
+      // Flag independente: reabrir um item com espaço manual não pode perder o
+      // congelamento só porque o jogador não tocou no campo desta vez.
+      if (item?.hasManualSpaces) restored.add('spaces');
+      setManualEditedFields(restored);
       setTab('geral');
       setModError('');
       setEnchError('');
@@ -274,11 +275,18 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       modifications: previewMods.length > 0 ? previewMods : undefined,
       enchantments: previewEnch.length > 0 ? previewEnch : undefined,
       hasManualEdits: false,
+      hasManualSpaces: false,
     };
     const recomputed = applyItemEnhancements(virtual);
 
     setForm((f) => {
       const next = { ...f };
+      if (
+        !manualEditedFields.has('spaces') &&
+        recomputed.spaces !== undefined
+      ) {
+        next.spacesText = String(recomputed.spaces);
+      }
       if (!manualEditedFields.has('dano') && recomputed.dano !== undefined) {
         next.danoText = recomputed.dano;
       }
@@ -334,9 +342,17 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       return next;
     });
 
+  // Existe um espaço "automático" para voltar? Ou o pipeline de aprimoramentos
+  // já capturou um base, ou é munição (espaço vem das unidades restantes).
+  const hasAutomaticSpaces =
+    item !== null &&
+    item !== undefined &&
+    (item.baseSpaces !== undefined || item.isAmmo === true);
+
   const baseSnapshot = useMemo(() => {
     if (!item) return null;
     return {
+      spaces: item.baseSpaces ?? item.spaces,
       dano: item.baseDano ?? item.dano ?? '',
       atkBonus: item.baseAtkBonus ?? item.atkBonus ?? 0,
       critico: item.baseCritico ?? item.critico ?? 'x2',
@@ -353,11 +369,33 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
   if (!item) return null;
 
+  /**
+   * Devolve o espaço ao cálculo automático (base + deltas de melhorias, ou a
+   * regra de unidades por espaço da munição). Fica junto do campo, na aba
+   * Geral, porque o botão "Resetar" da aba Estatísticas só existe para armas
+   * e armaduras — e espaço é editável em qualquer item.
+   */
+  const handleResetSpaces = () => {
+    setManualEditedFields((s) => {
+      if (!s.has('spaces')) return s;
+      const next = new Set(s);
+      next.delete('spaces');
+      return next;
+    });
+    setForm((f) => ({
+      ...f,
+      spacesText:
+        baseSnapshot?.spaces !== undefined ? String(baseSnapshot.spaces) : '',
+    }));
+  };
+
   const handleResetToBase = () => {
     if (!baseSnapshot) return;
     setManualEditedFields(new Set());
     setForm((f) => ({
       ...f,
+      spacesText:
+        baseSnapshot.spaces !== undefined ? String(baseSnapshot.spaces) : '',
       danoText: baseSnapshot.dano,
       atkBonusText: String(baseSnapshot.atkBonus),
       criticoText: baseSnapshot.critico,
@@ -365,6 +403,22 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       armorPenaltyText: String(baseSnapshot.armorPenalty),
     }));
   };
+
+  const spacesAreManual = manualEditedFields.has('spaces');
+  let spacesHelperText: React.ReactNode;
+  if (spacesAreManual && hasAutomaticSpaces) {
+    spacesHelperText = (
+      <Button
+        size='small'
+        onClick={handleResetSpaces}
+        sx={{ p: 0, minWidth: 0, fontSize: 'inherit', textTransform: 'none' }}
+      >
+        Voltar ao automático
+      </Button>
+    );
+  } else if (item.isAmmo && !spacesAreManual) {
+    spacesHelperText = 'Vem das unidades restantes.';
+  }
 
   const handleSave = () => {
     // Build the persisted item (pure composition — stat fields only written
@@ -456,12 +510,17 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                   label='Espaços'
                   fullWidth
                   value={form.spacesText}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, spacesText: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    // Aceita decimal com ponto ou vírgula; barra o resto para o
+                    // campo nunca produzir NaN.
+                    const sanitized = e.target.value.replace(/[^0-9.,]/g, '');
+                    markManualEdit('spaces');
+                    setForm((f) => ({ ...f, spacesText: sanitized }));
+                  }}
                   slotProps={{
                     htmlInput: { inputMode: 'decimal' },
                   }}
+                  helperText={spacesHelperText}
                 />
               </Grid>
               <Grid size={12}>

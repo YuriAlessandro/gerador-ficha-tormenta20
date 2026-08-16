@@ -29,7 +29,7 @@ import {
   splitToFit,
 } from './pdf/sheetExtraPages';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
-import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
+import { getItemSpaces } from '../interfaces/Bag';
 
 const CP1252_REPLACEMENTS: Record<string, string> = {
   '‘': "'",
@@ -482,17 +482,20 @@ export const fillSheetPdf: (
       it.group !== 'Arma' && it.group !== 'Armadura' && it.group !== 'Escudo'
   );
 
+  // Sufixo de espaços. `0` é um valor válido (item que o jogador zerou de
+  // propósito) — o que suprime o sufixo é o espaço ausente, não o espaço zero.
+  const spacesSuffix = (equip: Equipment): string => {
+    if (equip.spaces === undefined && !equip.isAmmo) return '';
+    return ` (${getItemSpaces(equip)} espaços)`;
+  };
+
   // Concanenate all equipments names into one string
   const equipmentsNames = equipsEntriesNoWeapons
     .map(
       (equip) =>
         `${
           equip.quantity && equip.quantity > 1 ? `${equip.quantity}x ` : ''
-        }${getItemDisplayName(equip)}${
-          equip.spaces
-            ? ` (${equip.spaces * (equip.quantity || 1)} espaços)`
-            : ''
-        }`
+        }${getItemDisplayName(equip)}${spacesSuffix(equip)}`
     )
     .join('\n');
 
@@ -510,24 +513,14 @@ export const fillSheetPdf: (
       const displayName = getItemDisplayName(weapon);
       if (weapon.isAmmo) {
         const units = weapon.unitsRemaining ?? 0;
-        const ammoSpaces = calcAmmoSpaces(weapon);
-        return `${displayName}: ${units}${
-          ammoSpaces > 0 ? ` (${ammoSpaces} espaços)` : ''
-        }`;
+        return `${displayName}: ${units}${spacesSuffix(weapon)}`;
       }
-      return `${displayName}${
-        weapon.spaces ? ` (${weapon.spaces} espaços)` : ''
-      }`;
+      return `${displayName}${spacesSuffix(weapon)}`;
     })
     .join('\n');
 
   const defenseNames = allDefenseEquipments
-    .map(
-      (defense) =>
-        `${getItemDisplayName(defense)}${
-          defense.spaces ? ` (${defense.spaces} espaços)` : ''
-        }`
-    )
+    .map((defense) => `${getItemDisplayName(defense)}${spacesSuffix(defense)}`)
     .join('\n');
 
   // `filter(Boolean)`: juntar incondicionalmente deixava linhas em branco no

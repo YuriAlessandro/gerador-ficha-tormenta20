@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo, useReducer, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import Bag, { ensureIds, reconcileDisplayOrder } from '../../../interfaces/Bag';
+import Bag, {
+  ensureIds,
+  getItemSpaces,
+  reconcileDisplayOrder,
+} from '../../../interfaces/Bag';
 import Equipment, {
   BagEquipments,
   equipGroup,
@@ -143,7 +147,7 @@ export function computeOverflow(
   let overflowStartIndex = -1;
   for (let i = 0; i < orderedItems.length; i += 1) {
     const item = orderedItems[i];
-    cumulative += (item.spaces ?? 0) * (item.quantity ?? 1);
+    cumulative += getItemSpaces(item);
     if (cumulative > ceiling) {
       if (overflowStartIndex === -1) overflowStartIndex = i;
       if (item.id) overflowItemIds.add(item.id);
@@ -629,8 +633,11 @@ export function useBackpackState({
   }, [staged.equipments, staged.displayOrder]);
 
   const totals = useMemo<BackpackDerivedTotals>(() => {
+    // Mesma conta do total da ficha (`bag.getSpaces()`) — antes esta linha
+    // divergia dela na munição, e a modal mostrava um total que a ficha não
+    // reconhecia.
     const itemSpaces = orderedItems.reduce(
-      (acc, item) => acc + (item.spaces ?? 0) * (item.quantity ?? 1),
+      (acc, item) => acc + getItemSpaces(item),
       0
     );
     const currencySpaces = calculateCurrencySpaces(

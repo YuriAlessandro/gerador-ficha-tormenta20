@@ -420,7 +420,11 @@ export function captureBaseValues<T extends Equipment>(item: T): T {
  * When `preserveManualStats` is true, skip rewriting the numeric stat fields
  * the user can edit by hand (`dano`, `atkBonus`, `critico`, `defenseBonus`,
  * `armorPenalty`). Derived effects (sheetBonuses, extraDamage, specialActions,
- * arremesso, spaces) still apply — those don't compete with manual edits.
+ * arremesso) still apply — those don't compete with manual edits.
+ *
+ * `spaces` também é editável pelo jogador, mas tem a sua própria flag
+ * (`hasManualSpaces`) em vez de entrar no grupo acima: o editor deixa mexer no
+ * espaço sem tocar nos stats de combate, e vice-versa.
  */
 export function applyDelta<T extends Equipment>(
   captured: T,
@@ -462,7 +466,10 @@ export function applyDelta<T extends Equipment>(
     }
   }
 
-  if (captured.baseSpaces !== undefined) {
+  // `hasManualSpaces` é do ITEM, não do parâmetro `preserveManualStats`: este
+  // pipeline também roda no recálculo da ficha, longe do editor, e lá o único
+  // sinal de que o jogador digitou o espaço à mão é a flag gravada no item.
+  if (!captured.hasManualSpaces && captured.baseSpaces !== undefined) {
     result.spaces = Math.max(0, captured.baseSpaces + delta.spacesDelta);
   }
 

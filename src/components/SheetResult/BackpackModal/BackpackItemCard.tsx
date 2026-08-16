@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 
 import Equipment, { DefenseEquipment } from '../../../interfaces/Equipment';
+import { getItemSpaces } from '../../../interfaces/Bag';
 import { itemTypeStyles } from './itemTypeStyles';
 import WieldingControl from './WieldingControl';
 import WornArmorControl from './WornArmorControl';
@@ -88,9 +89,13 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
   const style = itemTypeStyles[item.group];
   const Icon = style.icon;
   const quantity = item.quantity ?? 1;
-  const unitSpaces = item.spaces ?? 0;
-  const totalSpaces = unitSpaces * quantity;
+  const unitSpaces = item.spaces;
+  const totalSpaces = getItemSpaces(item);
   const isAmmoItem = Boolean(item.isAmmo);
+  // Munição normalmente mostra unidades no lugar do espaço; quando o jogador
+  // sobrescreveu o espaço à mão, o número passa a valer e precisa aparecer.
+  const showSpaces =
+    unitSpaces !== undefined && (!isAmmoItem || Boolean(item.hasManualSpaces));
   const ammoUnits = item.unitsRemaining ?? 0;
   const ammoPackSize = item.ammoPackSize ?? 20;
   const ammoLabel = item.ammoType ? AMMO_LABELS[item.ammoType] : 'Munição';
@@ -232,11 +237,10 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               }}
             >
               {style.label}
-              {isAmmoItem
-                ? ` · ${ammoLabel}: ${ammoUnits}`
-                : totalSpaces > 0 && ` · ${totalSpaces} esp.`}
-              {!isAmmoItem &&
-                unitSpaces > 0 &&
+              {isAmmoItem && ` · ${ammoLabel}: ${ammoUnits}`}
+              {showSpaces && ` · ${totalSpaces} esp.`}
+              {showSpaces &&
+                !isAmmoItem &&
                 quantity > 1 &&
                 ` (${unitSpaces} × ${quantity})`}
             </Typography>

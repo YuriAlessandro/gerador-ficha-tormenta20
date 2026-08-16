@@ -277,6 +277,17 @@ export default interface Equipment {
   // When true, recalculateSheet will preserve user edits instead of resetting
   hasManualEdits?: boolean;
 
+  /**
+   * O jogador editou `spaces` à mão — o pipeline de aprimoramentos para de
+   * reescrever o espaço a partir de `baseSpaces + delta`, e munição passa a
+   * usar esse valor em vez da regra de unidades por espaço.
+   *
+   * Flag SEPARADA de `hasManualEdits` de propósito: aquela congela o grupo de
+   * stats de combate (`dano`/`atkBonus`/`critico`/`defenseBonus`/
+   * `armorPenalty`), e uma edição só-de-espaço não deve congelar nada disso.
+   */
+  hasManualSpaces?: boolean;
+
   // Override which skill is rolled for this weapon's attack test.
   // When undefined, falls back to the default rule (alcance/arremesso → Luta or Pontaria).
   customSkill?: Skill;

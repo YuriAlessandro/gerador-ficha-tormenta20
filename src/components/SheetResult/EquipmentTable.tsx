@@ -133,6 +133,9 @@ const EquipmentRow: React.FC<{
   characterName: string;
 }> = ({ item, stats, gridTemplate, compact, characterName }) => {
   const spaces = getItemSpaces(item);
+  // `—` significa "espaço não definido", não "zero": um item que o jogador
+  // zerou de propósito precisa mostrar 0, senão a edição parece não ter salvo.
+  const spacesLabel = item.spaces === undefined && !item.isAmmo ? '—' : spaces;
   const countLabel = getCountLabel(item);
   const supplement = getSupplementInitials(item.supplementName);
 
@@ -173,7 +176,7 @@ const EquipmentRow: React.FC<{
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ flex: 1, minWidth: 0 }}>{nameCell}</Box>
           <Typography variant='body2' sx={SPACES_CELL_SX}>
-            {spaces > 0 ? spaces : '—'}
+            {spacesLabel}
           </Typography>
         </Box>
         {stats.length > 0 && (
@@ -213,7 +216,7 @@ const EquipmentRow: React.FC<{
         );
       })}
       <Typography variant='body2' sx={SPACES_CELL_SX}>
-        {spaces > 0 ? spaces : '—'}
+        {spacesLabel}
       </Typography>
     </Box>
   );

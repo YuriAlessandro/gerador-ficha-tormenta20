@@ -21,12 +21,21 @@ import {
 } from '../../../functions/itemEnhancements/snapshot';
 import { isDefenseGroup } from './equipmentCatalog';
 
+/**
+ * Campos que o jogador pode sobrescrever à mão no editor, congelando o
+ * recálculo automático a partir dos snapshots `base*`.
+ *
+ * `spaces` faz parte do conjunto mas NÃO do grupo de stats de combate: ele tem
+ * a sua própria flag persistida (`hasManualSpaces`), para uma edição de espaço
+ * não congelar `dano`/`atkBonus`/`critico` junto.
+ */
 export type StatField =
   | 'dano'
   | 'atkBonus'
   | 'critico'
   | 'defenseBonus'
-  | 'armorPenalty';
+  | 'armorPenalty'
+  | 'spaces';
 
 /**
  * Shape of the ItemEditorDialog form state. Kept here (not in the dialog) so the
@@ -78,6 +87,10 @@ export interface ItemEditorFormState {
  * `base*` snapshots. Writing the form's (preview) values on an untouched item
  * would let `captureBaseValues` snapshot an already base+delta value as the new
  * base, double-applying the modification (e.g. Reforçada +2/+2 instead of +1/+1).
+ *
+ * `spaces` segue a mesma lógica por outra via: o valor sempre é gravado, mas a
+ * flag `hasManualSpaces` (que faz `applyDelta` parar de reescrever o espaço a
+ * partir de `baseSpaces`) só é ligada quando o jogador mexeu no campo.
  */
 export function buildSavedItem(
   item: Equipment,
@@ -88,10 +101,15 @@ export function buildSavedItem(
   const isDefense = isDefenseGroup(item.group);
 
   const quantity = Math.max(1, parseInt(form.quantityText, 10) || 1);
+
+  // Campo de texto livre: sem a guarda de NaN, um "abc" gravaria `spaces: NaN`,
+  // que vira `null` no JSON do histórico e quebra o total da mochila.
+  const spacesManual = manualEditedFields.has('spaces');
+  const parsedSpaces = parseFloat(form.spacesText.replace(',', '.'));
   const spaces =
-    form.spacesText === ''
+    form.spacesText === '' || Number.isNaN(parsedSpaces)
       ? item.spaces
-      : parseFloat(form.spacesText.replace(',', '.'));
+      : Math.max(0, parsedSpaces);
 
   // Melhorias e encantos de conteúdo não-core carregam o efeito no próprio
   // dado; ele é congelado aqui para o item sobreviver à desativação da fonte.
@@ -136,6 +154,8 @@ export function buildSavedItem(
     customDisplayName: form.customDisplayName.trim() || undefined,
     quantity,
     spaces,
+    // Independente de `hasManualEdits`: só congela o espaço, não os stats.
+    hasManualSpaces: spacesManual ? true : undefined,
     descricao: form.descricao.trim() || undefined,
     rolls: form.rolls.length > 0 ? form.rolls : undefined,
     modifications: persistedMods.length > 0 ? persistedMods : undefined,
