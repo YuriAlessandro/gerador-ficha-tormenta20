@@ -183,6 +183,36 @@ const Changelog: React.FC = () => {
                   origem e concedidos —, e não só a lista de poderes gerais.
                 </li>
                 <li>
+                  <strong>Correção:</strong> não dava para{' '}
+                  <strong>zerar o espaço de alguns itens</strong> na mochila.
+                  Você digitava <em>0</em>, salvava, e o valor antigo voltava —
+                  em uns itens sim, em outros não. O que decidia era o item já
+                  ter recebido alguma{' '}
+                  <strong>modificação, material especial</strong> ou{' '}
+                  <strong>encantamento</strong> em algum momento: nesses, o
+                  espaço era recalculado por cima do que você tinha digitado.
+                  Agora o valor que você escreve manda, e continua valendo
+                  depois de recarregar a ficha ou de ganhar o item de novo por
+                  um poder. No editor do item, um <em>Voltar ao automático</em>{' '}
+                  devolve o espaço original quando você quiser.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o espaço de{' '}
+                  <strong>munição</strong> (flechas, virotes, pedras) ignorava
+                  por completo o valor digitado — ele agora vale, quando você
+                  escolhe editá-lo. E o total de espaços mostrado{' '}
+                  <strong>dentro da mochila</strong> podia divergir do total da
+                  ficha justamente por causa da munição; os dois passaram a
+                  fazer a mesma conta.
+                </li>
+                <li>
+                  <strong>Correção:</strong> um item com{' '}
+                  <strong>0 espaços</strong> aparecia como &ldquo;—&rdquo; (ou
+                  não aparecia) na lista de equipamentos, nos cards da mochila e
+                  no PDF, o que fazia uma edição bem-sucedida parecer que não
+                  tinha salvado.
+                </li>
+                <li>
                   <strong>Correção:</strong> o PDF não trazia os{' '}
                   <strong>poderes criados à mão</strong> na ficha — nem os
                   poderes personalizados, nem os poderes concedidos
