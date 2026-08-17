@@ -412,7 +412,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
                   )}
                 </Typography>
                 {onToggleAutoDeductMoney && (
-                  <Tooltip title='Quando ativo, adicionar um item desconta o preço do saldo. Remover devolve.'>
+                  <Tooltip title='Quando ativo, adicionar um item desconta o preço do saldo. Remover devolve apenas o que foi comprado agora.'>
                     <FormControlLabel
                       control={
                         <Switch

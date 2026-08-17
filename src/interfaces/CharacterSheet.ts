@@ -758,6 +758,11 @@ export default interface CharacterSheet {
   // modal grid; otherwise flat. Per-sheet because different characters benefit
   // from different layouts (e.g. inventory-heavy vs. minimal kits).
   backpackGroupByCategory?: boolean;
+  // Mochila: quando `true` (o padrão para ficha legada, que grava `undefined`),
+  // adicionar um item desconta o preço do saldo em T$. Por ficha porque cada
+  // personagem tende a viver num modo — um em campanha, gastando consumíveis,
+  // outro em fase de compras.
+  backpackAutoDeductMoney?: boolean;
   devoto?: CharacterReligion;
   origin:
     | {

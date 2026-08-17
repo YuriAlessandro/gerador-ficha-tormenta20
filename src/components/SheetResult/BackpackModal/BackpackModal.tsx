@@ -8,11 +8,13 @@ import {
   Collapse,
   Dialog,
   Divider,
+  FormControlLabel,
   Grid,
   IconButton,
   LinearProgress,
   Slide,
   Stack,
+  Switch,
   TextField,
   Toolbar,
   Tooltip,
@@ -76,6 +78,15 @@ const SlideUpTransition = React.forwardRef<
 ));
 SlideUpTransition.displayName = 'SlideUpTransition';
 
+/**
+ * Formata um valor de moeda para exibição. Sem casas decimais quando o valor é
+ * inteiro (o caso comum) — "T$ 13.500" lê melhor que "T$ 13.500,00" numa linha
+ * de resumo já cheia de números.
+ */
+function formatCoin(value: number): string {
+  return value.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+}
+
 function buildEquipmentSubsteps(
   before: Equipment[],
   after: Equipment[]
@@ -132,6 +143,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     initialOffHandItemId: sheet.offHandItemId,
     initialWornArmorId: sheet.wornArmorId,
     initialGroupByCategory: sheet.backpackGroupByCategory,
+    initialAutoDeductMoney: sheet.backpackAutoDeductMoney,
     initialCategoryFilters,
     open,
   });
@@ -332,6 +344,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       offHandItemId: staged.offHandItemId,
       wornArmorId: staged.wornArmorId,
       backpackGroupByCategory: staged.groupByCategory,
+      backpackAutoDeductMoney: staged.autoDeductMoney,
       sheetBonuses: recalculated.sheetBonuses ?? sheet.sheetBonuses,
       // Propagate the recomputed Damage Reduction so equipment-driven RD
       // (e.g. Adamante armor/shield material) actually persists. Without this,
@@ -925,6 +938,48 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                 {totals.totalSpaces} / {totals.maxSpaces}
               </Box>
             </Typography>
+            {/* Saldo à vista: antes só existia dentro do painel do TuneIcon e
+                no diálogo de adicionar item, então o jogador não via o dinheiro
+                mudar enquanto mexia na mochila. Lê o valor STAGED, logo
+                acompanha cada compra/reembolso em tempo real. */}
+            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+              T${' '}
+              <Box
+                component='span'
+                sx={{
+                  fontWeight: 700,
+                  // Pode ficar negativo: o gate do botão de adicionar só olha
+                  // o preço unitário, e os campos de dinheiro aceitam qualquer
+                  // valor.
+                  color:
+                    staged.money.dinheiro < 0 ? 'error.main' : 'text.primary',
+                }}
+              >
+                {formatCoin(staged.money.dinheiro)}
+              </Box>
+            </Typography>
+            {staged.money.dinheiroTC > 0 && (
+              <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                TC{' '}
+                <Box
+                  component='span'
+                  sx={{ fontWeight: 600, color: 'text.primary' }}
+                >
+                  {formatCoin(staged.money.dinheiroTC)}
+                </Box>
+              </Typography>
+            )}
+            {staged.money.dinheiroTO > 0 && (
+              <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                TO{' '}
+                <Box
+                  component='span'
+                  sx={{ fontWeight: 600, color: 'text.primary' }}
+                >
+                  {formatCoin(staged.money.dinheiroTO)}
+                </Box>
+              </Typography>
+            )}
           </Stack>
           <Tooltip
             title={
@@ -995,23 +1050,50 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           </Stack>
         </Collapse>
 
+        {/* O switch divide a linha com os botões em vez de ganhar uma linha só
+            sua: no mobile o modal é fullScreen e cada linha do rodapé come
+            altura da lista de itens. `flexWrap` deixa ele cair sozinho quando
+            não couber. */}
         <Stack
           direction='row'
           spacing={1}
-          sx={{ justifyContent: 'flex-end', mt: { xs: 0.25, sm: 0 } }}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 1,
+            mt: { xs: 0.25, sm: 0 },
+          }}
         >
-          <Button onClick={handleClose} size={isMobile ? 'small' : 'medium'}>
-            Cancelar
-          </Button>
-          <Button
-            variant='contained'
-            startIcon={isMobile ? undefined : <SaveIcon />}
-            onClick={handleSave}
-            disabled={!isDirty}
-            size={isMobile ? 'small' : 'medium'}
-          >
-            Salvar
-          </Button>
+          <Tooltip title='Quando ativo, adicionar um item desconta o preço do saldo. Remover devolve apenas o que foi comprado agora.'>
+            <FormControlLabel
+              control={
+                <Switch
+                  size='small'
+                  checked={staged.autoDeductMoney}
+                  onChange={(e) => setAutoDeductMoney(e.target.checked)}
+                />
+              }
+              label={
+                <Typography variant='caption'>Auto-descontar T$</Typography>
+              }
+              sx={{ mr: 0 }}
+            />
+          </Tooltip>
+          <Stack direction='row' spacing={1}>
+            <Button onClick={handleClose} size={isMobile ? 'small' : 'medium'}>
+              Cancelar
+            </Button>
+            <Button
+              variant='contained'
+              startIcon={isMobile ? undefined : <SaveIcon />}
+              onClick={handleSave}
+              disabled={!isDirty}
+              size={isMobile ? 'small' : 'medium'}
+            >
+              Salvar
+            </Button>
+          </Stack>
         </Stack>
       </Box>
       <AddItemDialog

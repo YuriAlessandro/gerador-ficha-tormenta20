@@ -37,6 +37,21 @@ interface StagedState {
   money: BackpackMoney;
   customMaxSpaces?: number;
   autoDeductMoney: boolean;
+  /**
+   * Quanto de cada item foi efetivamente PAGO nesta sessão do modal. A chave é
+   * o id da entrada na mochila; o valor está na MESMA unidade que o débito
+   * usou — itens para item comum, PACOTES para munição.
+   *
+   * É o único gatilho de reembolso: consumir uma poção que o personagem já
+   * tinha não devolve dinheiro que nunca saiu do bolso. Mesma regra do
+   * `purchasedIds` do MarketStep (ver `MarketSelections`), mas contando
+   * unidades em vez de ids — aqui a mochila JÁ EXISTE quando o modal abre e os
+   * itens EMPILHAM, então uma mesma pilha pode ter parte paga e parte não.
+   *
+   * Nasce vazio a cada abertura do modal (`buildSnapshot`): é isso que torna
+   * tudo que já estava na mochila irreembolsável.
+   */
+  paidUnits: Record<string, number>;
   mainHandItemId?: string;
   offHandItemId?: string;
   wornArmorId?: string;
@@ -331,7 +346,44 @@ function updateItemInEquipments(
   return out;
 }
 
-function reducer(state: StagedState, action: Action): StagedState {
+/**
+ * Quantas "unidades de compra" o item representa HOJE — a mesma unidade em que
+ * o débito foi cobrado, para poder comparar com `paidUnits`.
+ *
+ * Item comum conta por `quantity`. Munição conta por PACOTES FECHADOS: um
+ * pacote parcialmente gasto não volta pra loja, então `floor` (e não `ceil`,
+ * que devolvia um pacote cheio por 1 flecha sobrando).
+ */
+function purchaseUnits(item: Equipment): number {
+  if (item.isAmmo) {
+    const packSize = item.ammoPackSize ?? 20;
+    return Math.floor((item.unitsRemaining ?? 0) / packSize);
+  }
+  return item.quantity ?? 1;
+}
+
+/** Soma `delta` ao crédito pago de `id`, descartando a chave ao chegar em zero. */
+function bumpPaidUnits(
+  paidUnits: Record<string, number>,
+  id: string,
+  delta: number
+): Record<string, number> {
+  const next = { ...paidUnits };
+  const value = (next[id] ?? 0) + delta;
+  if (value > 0) next[id] = value;
+  else delete next[id];
+  return next;
+}
+
+/**
+ * Exportados para teste — a contabilidade de dinheiro da mochila (débito na
+ * compra, reembolso só do que foi pago) não tem como ser exercitada pela UI
+ * neste projeto: React 17 + @testing-library/react v11 não têm `renderHook`.
+ */
+export type BackpackStagedState = StagedState;
+export type BackpackAction = Action;
+
+export function reducer(state: StagedState, action: Action): StagedState {
   switch (action.type) {
     case 'ADD_ITEM': {
       const { equipments, displayOrder, addedId } = addItemToEquipments(
@@ -340,10 +392,16 @@ function reducer(state: StagedState, action: Action): StagedState {
         action.item,
         Math.max(1, action.quantity)
       );
-      let { money } = state;
+      let { money, paidUnits } = state;
       if (state.autoDeductMoney && action.item.preco) {
         const cost = action.item.preco * action.quantity;
         money = { ...money, dinheiro: money.dinheiro - cost };
+        // Registra a procedência para que SÓ essa parte reembolse depois. No
+        // merge, `addedId` é o id da pilha JÁ existente — de propósito: 3 poções
+        // antigas + 2 compradas viram uma pilha com `paidUnits = 2`.
+        if (addedId) {
+          paidUnits = bumpPaidUnits(paidUnits, addedId, action.quantity);
+        }
       }
 
       // Auto-wield: if a weapon is added while both hand slots are empty, the
@@ -391,6 +449,7 @@ function reducer(state: StagedState, action: Action): StagedState {
         equipments,
         displayOrder,
         money,
+        paidUnits,
         mainHandItemId,
         offHandItemId,
         wornArmorId,
@@ -402,20 +461,26 @@ function reducer(state: StagedState, action: Action): StagedState {
         state.displayOrder,
         action.id
       );
-      let { money } = state;
-      if (state.autoDeductMoney && removed?.preco) {
-        let refund: number;
-        if (removed.isAmmo) {
-          // Ammo: each "buy" gave packSize units; refund full packs only.
-          const packSize = removed.ammoPackSize ?? 20;
-          const units = removed.unitsRemaining ?? 0;
-          const stacks = Math.ceil(units / packSize);
-          refund = removed.preco * stacks;
-        } else {
-          refund = removed.preco * (removed.quantity ?? 1);
-        }
-        money = { ...money, dinheiro: money.dinheiro + refund };
+      let { money, paidUnits } = state;
+      // O gate é a PROCEDÊNCIA, não o toggle: só devolve o que foi comprado
+      // nesta sessão do modal. Apagar/consumir um item que o personagem já
+      // possuía não gera mais dinheiro do nada (era o bug de "consumir = vender").
+      //
+      // O toggle não entra aqui de propósito: `paidUnits` só é preenchido
+      // enquanto ele está ligado, então um crédito nunca devolve mais do que
+      // saiu — e comprar, desligar o toggle e desfazer a compra ainda funciona.
+      const paid = state.paidUnits[action.id] ?? 0;
+      if (paid > 0 && removed?.preco) {
+        // `min` com o que de fato está na pilha: `SET_WIELDING` divide pilhas
+        // criando um id novo, então uma pilha paga pode encolher sem passar
+        // por SET_QUANTITY.
+        const refundable = Math.min(paid, purchaseUnits(removed));
+        money = {
+          ...money,
+          dinheiro: money.dinheiro + removed.preco * refundable,
+        };
       }
+      if (paid > 0) paidUnits = bumpPaidUnits(paidUnits, action.id, -paid);
       // Clear wielding slots if they pointed at the removed item.
       const mainHandItemId =
         state.mainHandItemId === action.id ? undefined : state.mainHandItemId;
@@ -428,6 +493,7 @@ function reducer(state: StagedState, action: Action): StagedState {
         equipments,
         displayOrder,
         money,
+        paidUnits,
         mainHandItemId,
         offHandItemId,
         wornArmorId,
@@ -454,12 +520,27 @@ function reducer(state: StagedState, action: Action): StagedState {
         }
       });
       if (!touched) return state;
-      let { money } = state;
-      if (state.autoDeductMoney && unitPrice) {
-        const delta = (Math.max(1, action.quantity) - oldQty) * unitPrice;
-        money = { ...money, dinheiro: money.dinheiro - delta };
+      let { money, paidUnits } = state;
+      const delta = Math.max(1, action.quantity) - oldQty;
+      if (unitPrice && delta > 0) {
+        // Aumentar quantidade é compra: cobra (se o toggle deixar) e registra.
+        if (state.autoDeductMoney) {
+          money = { ...money, dinheiro: money.dinheiro - delta * unitPrice };
+          paidUnits = bumpPaidUnits(paidUnits, action.id, delta);
+        }
+      } else if (unitPrice && delta < 0) {
+        // Diminuir é consumo OU desfazer compra. Só devolve a parte paga —
+        // gastar 2 de uma pilha com 1 unidade paga reembolsa 1, não 2.
+        const refundable = Math.min(-delta, paidUnits[action.id] ?? 0);
+        if (refundable > 0) {
+          money = {
+            ...money,
+            dinheiro: money.dinheiro + refundable * unitPrice,
+          };
+          paidUnits = bumpPaidUnits(paidUnits, action.id, -refundable);
+        }
       }
-      return { ...state, equipments, money };
+      return { ...state, equipments, money, paidUnits };
     }
     case 'UPDATE_ITEM':
       return {
@@ -574,6 +655,9 @@ export function useBackpackState({
       money: { ...initialMoney },
       customMaxSpaces: initialCustomMaxSpaces,
       autoDeductMoney: initialAutoDeductMoney,
+      // Sempre vazio: nada que já estava na mochila ao abrir o modal foi pago
+      // AQUI, então nada disso reembolsa. É o que impede "consumir = vender".
+      paidUnits: {},
       mainHandItemId: pruned.mainHandItemId,
       offHandItemId: pruned.offHandItemId,
       wornArmorId: wornArmorIsPresent ? seededWornArmorId : undefined,
