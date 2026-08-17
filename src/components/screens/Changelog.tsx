@@ -164,6 +164,15 @@ const Changelog: React.FC = () => {
                   usando o botão de Informações.
                 </li>
                 <li>
+                  <strong>Novo:</strong> o interruptor{' '}
+                  <strong>Auto-descontar T$</strong> saiu de dentro da janela de
+                  adicionar item e agora fica no{' '}
+                  <strong>rodapé da mochila</strong>, sempre à mão. Cada
+                  personagem <strong>lembra</strong> da sua escolha: quem está
+                  em campanha gastando consumíveis pode deixá-lo desligado de
+                  vez, sem precisar reajustar toda vez que abre a mochila.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> suas anotações antigas{' '}
                   <strong>não se perdem</strong>: ao abrir uma ficha que já
                   tinha texto no campo de anotações, ele vira automaticamente o
@@ -194,6 +203,24 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> a contagem de poderes da Tormenta
                   passou a olhar a ficha inteira — poderes gerais, de classe, de
                   origem e concedidos —, e não só a lista de poderes gerais.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o <strong>saldo em T$</strong>{' '}
+                  agora aparece direto no rodapé da mochila, ao lado da contagem
+                  de espaços, e muda na hora a cada item que você adiciona ou
+                  remove — antes era preciso abrir o painel de ajustes para ver
+                  quanto dinheiro sobrava.
+                </li>
+                <li>
+                  <strong>Correção:</strong> remover ou consumir um item que o
+                  personagem <strong>já possuía</strong> não devolve mais
+                  dinheiro. Com o auto-desconto ligado, apagar uma poção ou
+                  baixar a quantidade de um item creditava o preço de catálogo
+                  no seu saldo, como se você tivesse <strong>vendido</strong> o
+                  item — gastar consumíveis deixava o personagem mais rico.
+                  Agora só volta o que foi <strong>comprado ali na hora</strong>
+                  , então desfazer uma compra continua funcionando. Munição
+                  segue a mesma regra: só pacotes fechados são reembolsados.
                 </li>
                 <li>
                   <strong>Correção:</strong> a origem{' '}
