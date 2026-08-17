@@ -226,6 +226,17 @@ const Changelog: React.FC = () => {
                   quanto dinheiro sobrava.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> o detalhamento da coluna{' '}
+                  <strong>Outros</strong>, nas perícias, agora aparece mesmo
+                  quando só uma coisa está dando o bônus. Antes ele só surgia
+                  com duas ou mais fontes ao mesmo tempo, então um <em>−1</em>{' '}
+                  em Furtividade ou um <em>+2</em> em Percepção ficavam sem
+                  explicação. Agora o número vem sublinhado sempre que houver
+                  algo a dizer — passe o mouse (ou toque, no celular) para ver
+                  de onde vem cada ponto, seja um poder, a penalidade da
+                  armadura ou o seu próprio ajuste manual.
+                </li>
+                <li>
                   <strong>Correção:</strong> remover ou consumir um item que o
                   personagem <strong>já possuía</strong> não devolve mais
                   dinheiro. Com o auto-desconto ligado, apagar uma poção ou
