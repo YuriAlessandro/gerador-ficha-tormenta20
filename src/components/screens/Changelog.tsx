@@ -173,6 +173,20 @@ const Changelog: React.FC = () => {
                   vez, sem precisar reajustar toda vez que abre a mochila.
                 </li>
                 <li>
+                  <strong>Novo:</strong> <strong>Asas Insetoides</strong> virou
+                  um efeito ativo. Ligue o poder na ficha e o{' '}
+                  <strong>deslocamento de voo</strong> aparece já calculado —
+                  9m, mais 1,5m para cada outro poder da Tormenta que você
+                  tiver.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> as reduções de dano de{' '}
+                  <strong>Carapaça Corrompida</strong> e{' '}
+                  <strong>Pele Corrompida</strong> passaram a aparecer no
+                  detalhamento &ldquo;Aplicado na ficha&rdquo; do card do poder,
+                  como as outras.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> suas anotações antigas{' '}
                   <strong>não se perdem</strong>: ao abrir uma ficha que já
                   tinha texto no campo de anotações, ele vira automaticamente o
@@ -408,7 +422,31 @@ const Changelog: React.FC = () => {
                 <li>
                   <strong>Correção:</strong> <strong>Bolsões Insanos</strong>{' '}
                   dava sempre +2 espaços de carga, ignorando o &ldquo;+1 para
-                  cada outro poder da Tormenta&rdquo; do livro.
+                  cada outro poder da Tormenta&rdquo; do livro. A correção agora
+                  também alcança as fichas que já estavam salvas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a <strong>Deformidade</strong> do{' '}
+                  <strong>Lefou</strong> derrubava o Carisma, apesar de o livro
+                  dizer que ela &ldquo;não causa perda de Carisma&rdquo;. E os{' '}
+                  <strong>+2 em duas perícias</strong> que ela concede não
+                  entravam na conta de poderes da Tormenta, embora o livro diga
+                  que cada um deles conta como um — então todos os poderes que
+                  escalam vinham menores do que deviam.
+                </li>
+                <li>
+                  <strong>Correção:</strong>{' '}
+                  <strong>Afinidade com a Tormenta</strong>, poder concedido de{' '}
+                  <strong>Aharadak</strong>, era só texto na ficha. O &ldquo;seu
+                  primeiro poder da Tormenta não conta para perda de
+                  Carisma&rdquo; agora vale de verdade.
+                </li>
+                <li>
+                  <strong>Correção:</strong> as habilidades{' '}
+                  <strong>Couraça Rúbea</strong> e <strong>Disforme</strong> do{' '}
+                  <strong>Kaijin</strong> descontavam Carisma, apesar de o livro
+                  dizer que contam como poder da Tormenta{' '}
+                  <em>exceto para perda de Carisma</em>.
                 </li>
                 <li>
                   <strong>Correção:</strong> a <strong>Carapaça Kappa</strong>,
