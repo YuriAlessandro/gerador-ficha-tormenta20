@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            16/08/2026 (v4.30).
+            17/08/2026 (v4.30).
           </p>
 
           <p>
@@ -196,6 +196,17 @@ const Changelog: React.FC = () => {
                   origem e concedidos —, e não só a lista de poderes gerais.
                 </li>
                 <li>
+                  <strong>Correção:</strong> a origem{' '}
+                  <strong>Cria da Favela</strong> (<em>Atlas de Arton</em>) não
+                  concedia o <strong>+1 em Constituição</strong> quando o
+                  personagem era criado pelo{' '}
+                  <strong>assistente de criação</strong> — só a ficha aleatória
+                  aplicava. Agora vale nos dois caminhos, e o PV já entra
+                  somando o ponto. Fichas antigas continuam como estão; para
+                  receber o bônus, resselecione a origem no editor de
+                  informações da ficha.
+                </li>
+                <li>
                   <strong>Correção:</strong> magias que dão{' '}
                   <strong>bônus em atributo</strong> — como{' '}
                   <strong>Mente Divina</strong>,{' '}
@@ -349,6 +360,17 @@ const Changelog: React.FC = () => {
                   Personagem criado pelo assistente nunca perdia Carisma. Agora
                   a regra vale em todos os caminhos — e fichas antigas passam a
                   refletir isso ao serem abertas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na outra ponta, o personagem{' '}
+                  <strong>aleatório</strong> que ganhava um poder da Tormenta ao{' '}
+                  <strong>subir de nível</strong> também não perdia o Carisma
+                  correspondente: a regra era aplicada antes da evolução, quando
+                  o poder ainda nem existia. Pior, o atributo despencava
+                  &ldquo;sozinho&rdquo; na primeira vez que a ficha era editada.
+                  Personagens de <strong>Bardo</strong> e{' '}
+                  <strong>Feiticeiro</strong> nessa situação também vinham com
+                  PM a mais.
                 </li>
                 <li>
                   <strong>Correção:</strong> qualquer bônus de perícia (de
