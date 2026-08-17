@@ -6,7 +6,6 @@ import {
   PowerGetter,
 } from './Poderes';
 import Skill from './Skills';
-import { Atributo } from '../data/systems/tormenta20/atributos';
 
 export interface OriginBenefits {
   powers: {
@@ -42,11 +41,6 @@ export interface Items {
   choice?: OriginItemChoice;
 }
 
-export interface AttributeModifier {
-  attribute: Atributo;
-  modifier: number;
-}
-
 interface Origin {
   name: string;
   pericias: Skill[];
@@ -58,7 +52,6 @@ interface Origin {
   ) => OriginBenefits;
   getItems: () => Items[];
   getMoney?: () => number;
-  getAttributeModifier?: (classPriority: Atributo[]) => AttributeModifier;
   isRegional?: boolean; // true = origem regional que concede TODOS os benefícios automaticamente
 }
 

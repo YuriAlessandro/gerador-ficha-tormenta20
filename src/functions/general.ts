@@ -5490,25 +5490,15 @@ export default function generateRandomSheet(
     sexForAttributes
   );
 
-  // Aplicar modificador de atributo da origem, apenas se for origem regional
-  let attributeModifierText: string | undefined;
-  if (origin?.isRegional && origin?.getAttributeModifier) {
-    const attributeModifier = origin.getAttributeModifier(classe.attrPriority);
-    const currentAttr = atributos[attributeModifier.attribute];
-    const newValue = currentAttr.value + attributeModifier.modifier;
-    atributos[attributeModifier.attribute] = {
-      ...currentAttr,
-      value: newValue,
-    };
-
-    attributeModifierText = `+${attributeModifier.modifier} ${attributeModifier.attribute} (${currentAttr.value} → ${newValue})`;
-  }
-
   // Os substeps da origem serão adicionados depois que getSkillsAndPowersByClassAndOrigin for chamado
 
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxSpaces = calculateMaxSpaces(atributos.Força.value);
-  const summedPV = initialPV + atributos.Constituição.value;
+  // Guardado à parte: poderes de origem/raça/classe (aplicados só no Passo 11)
+  // podem mexer em Constituição — ver o ajuste após `getAndApplyPowers`, que é
+  // também quem empurra o step "Vida máxima (+CON)" com o total já corrigido.
+  const conForInitialPV = atributos.Constituição.value;
+  const summedPV = initialPV + conForInitialPV;
 
   steps.push({
     label: 'Vida máxima (+CON)',
@@ -5554,13 +5544,9 @@ export default function generateRandomSheet(
     if (originStepIndex >= 0) {
       const additionalSubsteps: SubStep[] = [];
 
-      // Adicionar bônus de atributo
-      if (attributeModifierText) {
-        additionalSubsteps.push({
-          name: 'Bônus de Atributo',
-          value: attributeModifierText,
-        });
-      }
+      // Bônus de atributo da origem NÃO entra aqui: virou `sheetAction` do
+      // poder, e o `applyPowerGetters` já empurra o substep dele no step
+      // "Benefícios da Origem (<nome>)". Duplicaria no passo-a-passo.
 
       // Itens concedidos pela origem. Usa a MESMA lista que foi para a mochila
       // (`rolledOriginItems`) — chamar `getItems()` de novo re-sortearia e o
@@ -5716,6 +5702,30 @@ export default function generateRandomSheet(
   // Passo 11:
   // Gerar poderes restantes, e aplicar habilidades, e poderes
   charSheet = getAndApplyPowers(charSheet, powersGetters);
+
+  // Poderes aplicados acima podem alterar Constituição (ex.: o +1 de "Cria da
+  // Favela"), mas o PV base foi fechado no Passo 6.1 com a CON de ANTES.
+  // Espelha o Step 7.5 do `recalculateSheet`, que reconstrói o PV depois dos
+  // poderes. DELTA e não atribuição absoluta: o ramo `HPAttributeReplacement`
+  // do `applyPower` ("Dom da Esperança") já reescreveu `pv` por outra fórmula.
+  // Tem que vir antes do laço de `levelUp`, que soma sobre `charSheet.pv`.
+  const conAfterPowers = charSheet.atributos.Constituição.value;
+  if (
+    conAfterPowers !== conForInitialPV &&
+    !charSheet.sheetBonuses.some(
+      (bonus) => bonus.target.type === 'HPAttributeReplacement'
+    )
+  ) {
+    charSheet.pv += conAfterPowers - conForInitialPV;
+
+    // Corrige o step já empurrado no Passo 6.1 sem mexer na ordem do
+    // passo-a-passo. `applyPowerGetters` clona a ficha, então o array local
+    // `steps` não é mais o mesmo objeto — tem que reachar em `charSheet`.
+    const pvStep = charSheet.steps.find(
+      (step) => step.label === 'Vida máxima (+CON)'
+    );
+    if (pvStep) pvStep.value = [{ value: charSheet.pv }];
+  }
 
   // Passo 11.5:
   // Define a empunhadura inicial (arma/escudo) e a armadura vestida a partir do

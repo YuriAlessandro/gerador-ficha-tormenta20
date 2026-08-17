@@ -198,6 +198,20 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +1 em Constituição e, por piores que sejam as condições de descanso, sua recuperação é sempre pelo menos normal.',
     type: ORIGIN_POWER_TYPE,
+    // O +1 CON vinha de `Origin.getAttributeModifier`, um gancho exclusivo
+    // desta origem que SÓ o motor de ficha aleatória chamava — no assistente o
+    // bônus nunca era aplicado. Como `sheetAction` ele passa pelo `applyPower`,
+    // comum aos dois motores e idempotente pelo `sheetActionHistory`.
+    sheetActions: [
+      {
+        source: { type: 'origin', originName: 'Cria da Favela (Valkaria)' },
+        action: {
+          type: 'ModifyAttribute',
+          attribute: Atributo.CONSTITUICAO,
+          value: 1,
+        },
+      },
+    ],
   },
   CRIADO_PELAS_VORACIS: {
     name: 'Criado pelas Voracis',

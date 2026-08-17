@@ -5,6 +5,7 @@ import Origin from '@/interfaces/Origin';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import Skill from '@/interfaces/Skills';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
   grantOriginItemsToBag,
   OriginItemChoices,
@@ -97,6 +98,40 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
     updatedSheet.classPowers = (sheet.classPowers || []).filter(
       (p) => !classPowersFromOrigin.includes(p.name)
     );
+  }
+
+  // Desfaz os `ModifyAttribute` que a origem aplicou (ex.: o +1 Constituição de
+  // "Cria da Favela"). Tem que ser AQUI, antes do filtro abaixo: as entradas do
+  // histórico são descartadas na sequência, e o recibo grava o valor ABSOLUTO
+  // pós-aplicação — o delta só sai do DADO do poder. Gateado pelo histórico:
+  // só desfaz o que de fato chegou a ser aplicado.
+  const attributeDeltas = new Map<Atributo, number>();
+  (sheet.origin?.powers ?? []).forEach((power) => {
+    const wasApplied = (sheet.sheetActionHistory ?? []).some(
+      (entry) =>
+        entry.powerName === power.name &&
+        entry.changes.some((change) => change.type === 'Attribute')
+    );
+    if (!wasApplied) return;
+    (power.sheetActions ?? []).forEach((sheetAction) => {
+      if (sheetAction.action.type !== 'ModifyAttribute') return;
+      const { attribute, value } = sheetAction.action;
+      attributeDeltas.set(
+        attribute,
+        (attributeDeltas.get(attribute) ?? 0) + value
+      );
+    });
+  });
+  if (attributeDeltas.size > 0) {
+    // Cópia: `updatedSheet` é spread raso de `sheet`; mutar `atributos` in
+    // place alteraria também a ficha de entrada.
+    updatedSheet.atributos = { ...updatedSheet.atributos };
+    attributeDeltas.forEach((delta, attribute) => {
+      updatedSheet.atributos[attribute] = {
+        ...updatedSheet.atributos[attribute],
+        value: updatedSheet.atributos[attribute].value - delta,
+      };
+    });
   }
 
   // Remove sheetActionHistory entries that came from origin. Inclui as ações
