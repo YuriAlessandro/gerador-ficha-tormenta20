@@ -11,7 +11,9 @@
  *  - As fórmulas `TormentaPowersCalc` valem nos DOIS motores de derivação.
  */
 import { describe, it, expect } from 'vitest';
+import _ from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
+import generateRandomSheet from '../general';
 import { countTormentaPowers } from '../randomUtils';
 import { isPowerAvailable } from '../powers';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
@@ -24,6 +26,7 @@ import {
 } from '../../interfaces/Poderes';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import Skill from '../../interfaces/Skills';
+import { SupplementId } from '../../types/supplement.types';
 import tormentaPowers from '../../data/systems/tormenta20/powers/tormentaPowers';
 
 const { ANTENAS } = tormentaPowers;
@@ -245,5 +248,56 @@ describe('perda de atributo por poderes da Tormenta', () => {
     expect(sheet.tormentaAttributePenalties).toBeUndefined();
 
     expect(carisma(recalculateSheet(sheet))).toBe(base - 1);
+  });
+});
+
+/**
+ * Regressão do motor de ficha ALEATÓRIA.
+ *
+ * A penalidade rodava no Passo 11 (`applyGeneralPowers`), antes do laço de
+ * níveis — então poder da Tormenta sorteado em level-up não descontava nada, e
+ * ainda gravava o ledger vazio: o atributo caía "sozinho" na primeira edição da
+ * ficha. Hoje é o Passo 13.5, depois do laço.
+ *
+ * A ficha é aleatória, então NÃO dá para fixar totais (ver
+ * `randomSheetWeaponBonuses.spec.ts`): as duas asserções abaixo são relacionais,
+ * derivadas da própria ficha. `Elfo` de propósito — Humano sorteia um poder
+ * geral a cada recálculo e deixaria o segundo teste intermitente.
+ */
+describe('perda de atributo por poderes da Tormenta: motor de ficha aleatória', () => {
+  const AMOSTRA = 30;
+
+  const gerar = (): CharacterSheet =>
+    generateRandomSheet({
+      nivel: 10,
+      raca: 'Elfo',
+      classe: 'Bárbaro',
+      origin: '',
+      devocao: { label: '', value: '' },
+      supplements: [SupplementId.TORMENTA20_CORE],
+    });
+
+  const somaLedger = (sheet: CharacterSheet) =>
+    Object.values(sheet.tormentaAttributePenalties ?? {}).reduce(
+      (acc, value) => acc + value,
+      0
+    );
+
+  it('o ledger bate com a contagem final, incluindo poderes de level-up', () => {
+    for (let i = 0; i < AMOSTRA; i += 1) {
+      const sheet = gerar();
+      const qtd = countTormentaPowers(sheet, { forCharismaPenalty: true });
+
+      expect(somaLedger(sheet)).toBe(Math.floor((qtd + 1) / 2));
+    }
+  });
+
+  it('o primeiro recálculo não mexe no Carisma', () => {
+    for (let i = 0; i < AMOSTRA; i += 1) {
+      const sheet = gerar();
+      const antes = carisma(sheet);
+
+      expect(carisma(recalculateSheet(_.cloneDeep(sheet)))).toBe(antes);
+    }
   });
 });

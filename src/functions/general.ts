@@ -3830,10 +3830,9 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
     return newAcc;
   }, sheetClone);
 
-  // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois
-  // outros poderes da Tormenta, perde 1 de carisma. Compartilhado com o
-  // `recalculateSheet` — grava o ledger que torna a regra idempotente.
-  subSteps.push(...applyTormentaAttributePenalty(sheetClone));
+  // A perda de atributo por poderes da Tormenta NÃO entra aqui: esta função roda
+  // no Passo 11, antes do laço de níveis, e os poderes ganhos em level-up ainda
+  // não existem. Ver o Passo 13.5 de `generateRandomSheet`.
 
   if (subSteps.length) {
     sheetClone.steps.push({
@@ -5811,6 +5810,28 @@ export default function generateRandomSheet(
 
   for (let index = 2; index <= targetLevel; index += 1) {
     charSheet = levelUp(charSheet, supplements);
+  }
+
+  // Passo 13.5: Perda de atributo por poderes da Tormenta ("ao escolher um poder
+  // da Tormenta você perde 1 ponto de Carisma; para cada dois outros poderes da
+  // Tormenta, perde mais 1").
+  //
+  // Ponto ÚNICO de aplicação neste motor. Antes rodava no Passo 11, dentro de
+  // `applyGeneralPowers` — ou seja, ANTES do laço de níveis acima, então poder da
+  // Tormenta sorteado em level-up não descontava nada (e ainda gravava o ledger
+  // vazio, fazendo o atributo cair "sozinho" na primeira edição da ficha).
+  //
+  // Precisa vir antes do Passo 14, que é quem consome os `sheetBonuses` de PM —
+  // classes com Carisma como atributo-chave saíam com PM inflado. As perícias são
+  // imunes: `completeSkills` guarda o NOME do atributo em `modAttr` e o valor é
+  // lido ao vivo. Espelha o Step 7.35 de `recalculateSheet`.
+  const tormentaSubSteps = applyTormentaAttributePenalty(charSheet);
+  if (tormentaSubSteps.length) {
+    charSheet.steps.push({
+      type: 'Atributos',
+      label: 'Poderes da Tormenta',
+      value: tormentaSubSteps,
+    });
   }
 
   // Passo 14: Aplicar modificadores de atributos
