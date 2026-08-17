@@ -1,6 +1,9 @@
 import KAIJIN, {
+  COURACA_RUBEA_POWER,
+  DISFORME_POWER,
   KAIJIN_REFRESHED_DESCRIPTIONS,
 } from '../../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
+import { countTormentaPowers } from '../randomUtils';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import { normalizeSheet } from '../sheetNormalizer';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -80,6 +83,23 @@ describe('normalizeSheet — refresh das habilidades do Kaijin', () => {
 
     // O refresh toca só a descrição: a concessão do poder falso continua de pé.
     expect(disforme?.sheetActions).toEqual(getAbility('Disforme').sheetActions);
+  });
+
+  test('carimba a isenção de Carisma nos poderes falsos salvos sem ela', () => {
+    // `tormentaCountExcludesCharisma` é campo novo: a ficha antiga embute o
+    // poder sem a flag e o Kaijin perdia Carisma por uma habilidade que o
+    // livro isenta ("conta como um poder da Tormenta, exceto para perda de
+    // Carisma").
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [
+      { ...COURACA_RUBEA_POWER, tormentaCountExcludesCharisma: undefined },
+      { ...DISFORME_POWER, tormentaCountExcludesCharisma: undefined },
+    ];
+
+    normalizeSheet(sheet);
+
+    expect(countTormentaPowers(sheet)).toBe(2);
+    expect(countTormentaPowers(sheet, { forCharismaPenalty: true })).toBe(0);
   });
 
   test('não mexe em habilidades de outras raças', () => {

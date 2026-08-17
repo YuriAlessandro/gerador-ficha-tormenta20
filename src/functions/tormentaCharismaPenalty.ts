@@ -1,6 +1,7 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import CharacterSheet, { SubStep } from '../interfaces/CharacterSheet';
 import { countTormentaPowers } from './randomUtils';
+import { sheetHasPowerNamed } from './powers/hasPowerNamed';
 
 const ATTRIBUTE_NAMES = new Set<string>(Object.values(Atributo));
 
@@ -79,9 +80,17 @@ export function applyTormentaAttributePenalty(
   sheet.tormentaAttributePenalties = ledger;
 
   // 2. Recalcula a penalidade do zero.
-  const tormentaPowersQtd = countTormentaPowers(sheet, {
+  const rawQtd = countTormentaPowers(sheet, {
     forCharismaPenalty: true,
   });
+
+  // "Afinidade com a Tormenta" (poder concedido de Aharadak): "seu primeiro
+  // poder da Tormenta não conta para perda de Carisma". `sheetHasPowerNamed` é
+  // obrigatório aqui — poder concedido pode viver SÓ em `devoto.poderes`, que
+  // um `generalPowers.some(...)` não enxergaria.
+  const hasAfinidade = sheetHasPowerNamed(sheet, 'Afinidade com a Tormenta');
+  const tormentaPowersQtd = Math.max(0, rawQtd - (hasAfinidade ? 1 : 0));
+
   const totalPenalty = Math.floor((tormentaPowersQtd + 1) / 2);
   if (totalPenalty <= 0) return subSteps;
 

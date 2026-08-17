@@ -5,6 +5,7 @@ import {
   GeneralPowerType,
   RequirementType,
 } from '../../../../interfaces/Poderes';
+import { PELE_CORROMPIDA_SHEET_BONUSES } from './tormentaPowerSheetBonuses';
 
 const tormentaPowers: Record<string, GeneralPower> = {
   ANATOMIA_INSANA: {
@@ -405,6 +406,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Sua carne foi mesclada à matéria vermelha. Você recebe redução de ácido, eletricidade, fogo, frio, luz e trevas 2. Esta RD aumenta em +2 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
+    sheetBonuses: PELE_CORROMPIDA_SHEET_BONUSES,
   },
   SANGUE_ACIDO: {
     name: 'Sangue Ácido',

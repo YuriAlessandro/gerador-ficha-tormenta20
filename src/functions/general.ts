@@ -5199,35 +5199,10 @@ export const applyStatModifiers = (
     sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + 1;
   }
 
-  // Carapaça Corrompida (RD Geral 1 + escala com poderes da Tormenta)
-  const hasCarapaca = (sheet.generalPowers || []).some(
-    (p) => p.name === 'Carapaça Corrompida'
-  );
-  if (hasCarapaca) {
-    const otherTormentaPowers = countTormentaPowers(sheet) - 1;
-    const rdValue = 1 + Math.floor(Math.max(0, otherTormentaPowers) / 2);
-    if (!sheet.reducaoDeDano) {
-      sheet.reducaoDeDano = {};
-    }
-    sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + rdValue;
-  }
-
-  // Pele Corrompida (RD 6 tipos, escala com poderes da Tormenta)
-  const hasPeleCorr = (sheet.generalPowers || []).some(
-    (p) => p.name === 'Pele Corrompida'
-  );
-  if (hasPeleCorr) {
-    const otherTormentaPowers = countTormentaPowers(sheet) - 1;
-    const rdValue = 2 + 2 * Math.floor(Math.max(0, otherTormentaPowers) / 2);
-    const rdTypes = ['Ácido', 'Eletricidade', 'Fogo', 'Frio', 'Luz', 'Trevas'];
-    if (!sheet.reducaoDeDano) {
-      sheet.reducaoDeDano = {};
-    }
-    rdTypes.forEach((dt) => {
-      (sheet.reducaoDeDano as Record<string, number>)[dt] =
-        ((sheet.reducaoDeDano as Record<string, number>)[dt] ?? 0) + rdValue;
-    });
-  }
+  // Carapaça Corrompida e Pele Corrompida saíram daqui: viraram `sheetBonuses`
+  // com alvo `DamageReduction` (`tormentaPowerSheetBonuses.ts`), somados pelo
+  // ramo `DamageReduction` do loop acima. Eram a última automação de poder da
+  // Tormenta duplicada entre os dois motores de derivação.
 
   // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
   const virtudePM = getVirtudePaladinescaPMBonus(sheet.classPowers);

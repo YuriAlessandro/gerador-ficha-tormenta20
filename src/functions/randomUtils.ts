@@ -193,18 +193,35 @@ export function countTormentaPowers(
   let tormentaPowersQtd = 0;
   byName.forEach((power) => {
     if (forCharismaPenalty && power.tormentaCountExcludesCharisma) return;
+    // Deformidade do Lefou: "Esta habilidade não causa perda de Carisma".
+    // O poder trocado entra em `generalPowers` como TORMENTA puro, então a
+    // ressalva não vem do objeto — vem de `lefouDeformidadePower`, que é o
+    // campo que a ficha persiste. Ler daqui (em vez de carimbar a flag no
+    // clone empurrado por `applyLefouDeformidade`) cura as fichas antigas de
+    // graça, sem precisar de refresh em `normalizeSheet`.
+    if (forCharismaPenalty && power.name === sheet.lefouDeformidadePower)
+      return;
     const isTormenta =
       power.type === GeneralPowerType.TORMENTA ||
       power.countAsTormentaPower === true;
     if (isTormenta) tormentaPowersQtd += 1;
   });
 
-  // `Skill.countAsTormentaPower` NÃO entra na conta. A flag era da Deformidade
-  // do Lefou, que hoje concede um poder da Tormenta de verdade em
-  // `generalPowers` — contá-la duplicaria. Pior: `addOtherBonusToSkill` a
-  // carimbava em toda perícia que tocava, então fichas antigas trazem a flag
-  // ligada em perícias que nada têm a ver com a Tormenta. Ignorar aqui é o que
-  // conserta essas fichas.
+  // A outra metade da Deformidade: "Você recebe +2 em duas perícias a sua
+  // escolha. CADA UM desses bônus conta como um poder da Tormenta." Os bônus
+  // de perícia não vivem em nenhum balde de poder, então entram aqui — e só
+  // para a ESCALA, nunca para Carisma (mesma ressalva acima).
+  //
+  // Somados ao poder trocado, a Deformidade sempre contribui exatamente 2 nos
+  // dois arranjos possíveis: duas perícias, ou uma perícia + um poder.
+  //
+  // `Skill.countAsTormentaPower` continua FORA da conta: `addOtherBonusToSkill`
+  // a carimbava em toda perícia que tocava, então fichas antigas trazem a flag
+  // ligada em perícias que nada têm a ver com a Tormenta. `lefouDeformidadeSkills`
+  // é a fonte precisa do mesmo dado.
+  if (!forCharismaPenalty) {
+    tormentaPowersQtd += sheet.lefouDeformidadeSkills?.length ?? 0;
+  }
 
   return tormentaPowersQtd;
 }

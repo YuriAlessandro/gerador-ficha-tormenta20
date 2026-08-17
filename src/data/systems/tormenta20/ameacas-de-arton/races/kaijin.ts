@@ -7,12 +7,15 @@ import {
 import tormentaPowers from '../../powers/tormentaPowers';
 
 // Poder fake de Tormenta para Couraça Rúbea
-const COURACA_RUBEA_POWER: GeneralPower = {
+export const COURACA_RUBEA_POWER: GeneralPower = {
   type: GeneralPowerType.TORMENTA,
   name: 'Couraça Rúbea (Kaijin)',
   description:
     'Você recebe redução de dano 2. Sua couraça conta como um poder da Tormenta, exceto por perda de Carisma.',
   requirements: [],
+  // "exceto por perda de Carisma" — sem esta flag todo Kaijin perdia Carisma
+  // por uma habilidade que o livro isenta.
+  tormentaCountExcludesCharisma: true,
   sheetBonuses: [
     {
       source: { type: 'power', name: 'Couraça Rúbea (Kaijin)' },
@@ -34,11 +37,13 @@ const CRIA_DE_TORMENTA_DESCRIPTION =
   'Você é uma criatura do tipo monstro e recebe +5 em testes de resistência contra efeitos causados por lefeu e pela Tormenta. Além disso, efeitos da Tormenta que não afetem lefou também não afetam você.';
 
 // Poder fake de Tormenta para Disforme (conta como poder da Tormenta, exceto por perda de Carisma)
-const DISFORME_POWER: GeneralPower = {
+export const DISFORME_POWER: GeneralPower = {
   type: GeneralPowerType.TORMENTA,
   name: 'Disforme (Kaijin)',
   description: DISFORME_DESCRIPTION,
   requirements: [],
+  // Ver `COURACA_RUBEA_POWER`: "exceto para perda de Carisma".
+  tormentaCountExcludesCharisma: true,
 };
 
 /**
@@ -47,6 +52,18 @@ const DISFORME_POWER: GeneralPower = {
  * não alcançariam quem já é Kaijin. Exportado para que `normalizeSheet`
  * refresque essas cópias (`raca.abilities` e o poder falso em `generalPowers`).
  */
+/**
+ * Poderes falsos do Kaijin que "contam como um poder da Tormenta, EXCETO para
+ * perda de Carisma". A ressalva estava só no texto — o dado não setava
+ * `tormentaCountExcludesCharisma`, então todo Kaijin perdia Carisma por elas.
+ * Como a flag é campo novo, fichas antigas embutem a cópia sem ela: exportado
+ * para que `normalizeSheet` carimbe a ressalva nessas cópias.
+ */
+export const KAIJIN_CHARISMA_EXEMPT_POWER_NAMES = [
+  'Couraça Rúbea (Kaijin)',
+  'Disforme (Kaijin)',
+];
+
 export const KAIJIN_REFRESHED_DESCRIPTIONS: Record<string, string> = {
   Disforme: DISFORME_DESCRIPTION,
   'Disforme (Kaijin)': DISFORME_DESCRIPTION,

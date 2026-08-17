@@ -2637,35 +2637,10 @@ export function recalculateSheet(
     computedRd.Geral = (computedRd.Geral ?? 0) + 1;
   }
 
-  // Carapaça Corrompida (RD Geral 1 + escala com poderes da Tormenta)
-  const hasCarapaca = (updatedSheet.generalPowers || []).some(
-    (p) => p.name === 'Carapaça Corrompida'
-  );
-  if (hasCarapaca) {
-    const otherTormentaPowers = countTormentaPowers(updatedSheet) - 1;
-    const rdValue = 1 + Math.floor(Math.max(0, otherTormentaPowers) / 2);
-    computedRd.Geral = (computedRd.Geral ?? 0) + rdValue;
-  }
-
-  // Pele Corrompida (RD 6 tipos, escala com poderes da Tormenta)
-  const hasPeleCorr = (updatedSheet.generalPowers || []).some(
-    (p) => p.name === 'Pele Corrompida'
-  );
-  if (hasPeleCorr) {
-    const otherTormentaPowers = countTormentaPowers(updatedSheet) - 1;
-    const rdValue = 2 + 2 * Math.floor(Math.max(0, otherTormentaPowers) / 2);
-    const types: DamageType[] = [
-      'Ácido',
-      'Eletricidade',
-      'Fogo',
-      'Frio',
-      'Luz',
-      'Trevas',
-    ];
-    types.forEach((dt) => {
-      computedRd[dt] = (computedRd[dt] ?? 0) + rdValue;
-    });
-  }
+  // Carapaça Corrompida e Pele Corrompida saíram daqui: viraram `sheetBonuses`
+  // com alvo `DamageReduction` (`tormentaPowerSheetBonuses.ts`), somados pelo
+  // loop de `DamageReduction` no topo deste passo. Eram a última automação de
+  // poder da Tormenta duplicada entre os dois motores de derivação.
 
   if (updatedSheet.bonusRd) {
     Object.entries(updatedSheet.bonusRd).forEach(([key, value]) => {

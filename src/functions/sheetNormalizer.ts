@@ -9,7 +9,10 @@ import { migrateNotesToJournal } from './playerJournal';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
-import { KAIJIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
+import {
+  KAIJIN_CHARISMA_EXEMPT_POWER_NAMES,
+  KAIJIN_REFRESHED_DESCRIPTIONS,
+} from '../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
@@ -21,6 +24,11 @@ import {
   ESTILO_DE_DISPARO_SHEET_BONUSES,
   INEXPUGNAVEL_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/classPowerSheetBonuses';
+import {
+  BOLSOES_INSANOS_SHEET_BONUSES,
+  CARAPACA_CORROMPIDA_SHEET_BONUSES,
+  PELE_CORROMPIDA_SHEET_BONUSES,
+} from '../data/systems/tormenta20/powers/tormentaPowerSheetBonuses';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
 
@@ -34,11 +42,21 @@ const GRANTED_POWERS_BY_NAME = new Map(
 // a automação alcance essas fichas — mesmo princípio do refresh de poderes
 // concedidos (GRANTED_POWERS) logo abaixo. Homebrew de mesmo nome ficaria com
 // bônus sobrescrito, mas nenhum destes é reproduzível como homebrew hoje.
+//
+// Os três poderes da Tormenta abaixo são OBRIGATÓRIOS, não cosméticos:
+// - Carapaça Corrompida e Pele Corrompida tinham a RD hardcoded por nome nos
+//   dois motores; ao migrar para `sheetBonuses`, quem já tem o poder PERDERIA a
+//   RD sem este refresh.
+// - Bolsões Insanos era `Fixed: 2`, ignorando o "+1 para cada outro poder da
+//   Tormenta"; sem o refresh a cópia errada fica travada para sempre.
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
   ['Estilo de Disparo', ESTILO_DE_DISPARO_SHEET_BONUSES],
   ['Inexpugnável', INEXPUGNAVEL_SHEET_BONUSES],
+  ['Carapaça Corrompida', CARAPACA_CORROMPIDA_SHEET_BONUSES],
+  ['Pele Corrompida', PELE_CORROMPIDA_SHEET_BONUSES],
+  ['Bolsões Insanos', BOLSOES_INSANOS_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<
@@ -67,6 +85,22 @@ function refreshDescription<T extends { name: string; description?: string }>(
   const description = REFRESHED_DESCRIPTIONS_BY_NAME.get(entry.name);
   if (!description) return entry;
   return { ...entry, description };
+}
+
+// Poderes que sempre contaram como poder da Tormenta "exceto para perda de
+// Carisma", mas cujo dado não setava a flag que implementa a ressalva. Ela é
+// campo novo, então a cópia embutida nas fichas salvas não a tem — sem este
+// carimbo a correção só alcançaria fichas novas.
+const CHARISMA_EXEMPT_POWER_NAMES = new Set<string>(
+  KAIJIN_CHARISMA_EXEMPT_POWER_NAMES
+);
+
+function refreshCharismaExemption<
+  T extends { name: string; tormentaCountExcludesCharisma?: boolean }
+>(power: T): T {
+  if (!CHARISMA_EXEMPT_POWER_NAMES.has(power.name)) return power;
+  if (power.tormentaCountExcludesCharisma) return power;
+  return { ...power, tormentaCountExcludesCharisma: true };
 }
 
 // Poderes de ORIGEM cujos `sheetBonuses` DEIXARAM de valer sempre. Ao contrário
@@ -219,7 +253,8 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
   sheet.generalPowers = sheet.generalPowers
     .filter((p) => p && typeof p.name === 'string')
     .map(refreshPowerBonuses)
-    .map(refreshDescription);
+    .map(refreshDescription)
+    .map(refreshCharismaExemption);
   if (sheet.classPowers) {
     sheet.classPowers = Array.isArray(sheet.classPowers)
       ? sheet.classPowers
