@@ -20,6 +20,7 @@ import { CompleteSkill } from '../../interfaces/Skills';
 import { SkillAction, getSkillActions } from '../../data/skillActions';
 import {
   SkillOthersEntry,
+  hasSkillOthersDetail,
   formatBreakdownValue,
 } from '../../functions/skills/skillBonusBreakdown';
 
@@ -239,11 +240,12 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
                 {attrValue}) + Treino ({skill.training ?? 0}) + ½ Nível (
                 {skill.halfLevel ?? 0}) + Outros ({skill.others ?? 0})
               </Typography>
-              {/* Detalhamento do "Outros": bônus e penalidades caem no mesmo
-                  número, então sem isto um bônus real fica invisível quando há
-                  penalidade na mesma perícia (ex.: Golpista Divino em
-                  Ladinagem sob a penalidade de armadura). */}
-              {othersBreakdown.length > 1 && (
+              {/* Detalhamento do "Outros": o número sozinho não diz de onde
+                  vem, e ainda mistura bônus com penalidades — sem isto um bônus
+                  real fica invisível quando há penalidade na mesma perícia
+                  (ex.: Golpista Divino em Ladinagem sob a penalidade de
+                  armadura). */}
+              {hasSkillOthersDetail(othersBreakdown) && (
                 <Box sx={{ mt: 0.75, maxWidth: 260 }}>
                   {othersBreakdown.map((entry) => (
                     <Box

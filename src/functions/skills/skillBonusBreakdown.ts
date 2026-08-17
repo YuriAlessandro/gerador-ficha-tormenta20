@@ -8,6 +8,12 @@ export type SkillOthersEntry = { label: string; value: number };
 
 const ARMOR_PENALTY_LABEL = 'Penalidade de armadura';
 
+/**
+ * Rótulo da parcela sem origem rastreável: o que sobrou de `others` e não veio
+ * de nenhum `sheetBonus`, ajuste manual ou penalidade de armadura.
+ */
+const GENERIC_LABEL = 'Outros';
+
 /** Rótulo legível de qualquer origem de bônus da ficha. */
 export function describeBonusSource(source: SheetChangeSource): string {
   switch (source.type) {
@@ -40,7 +46,7 @@ export function describeBonusSource(source: SheetChangeSource): string {
     case 'manualEdit':
       return 'Edição manual';
     default:
-      return 'Outros';
+      return GENERIC_LABEL;
   }
 }
 
@@ -108,7 +114,7 @@ export function getSkillOthersBreakdown(
   const residual = (skill.others ?? 0) - accounted;
   if (residual !== 0) {
     entries.push({
-      label: residual < 0 ? ARMOR_PENALTY_LABEL : 'Outros',
+      label: residual < 0 ? ARMOR_PENALTY_LABEL : GENERIC_LABEL,
       value: residual,
     });
   }
@@ -133,6 +139,26 @@ export function getSkillOthersBreakdown(
   return Array.from(merged, ([label, value]) => ({ label, value })).filter(
     (entry) => entry.value !== 0
   );
+}
+
+/**
+ * A ficha deve exibir o detalhamento deste "Outros"?
+ *
+ * Basta UMA parcela: saber que o -1 de Furtividade é a penalidade de armadura,
+ * ou que o +2 de Percepção vem de Sentidos Aguçados, é útil por si só — não só
+ * quando um bônus está mascarado por uma penalidade no mesmo pote.
+ *
+ * A exceção é a parcela genérica sozinha. Ela é derivada por resto (o pote que
+ * `addOtherBonusToSkill` alimenta sem registrar um `sheetBonus` — os +5 do
+ * Frade, por exemplo), então não tem nome de origem para mostrar: o tooltip
+ * diria "Outros +5" ao lado de um "+5" já visível na coluna, prometendo
+ * detalhamento pela dica visual e não entregando nenhum.
+ */
+export function hasSkillOthersDetail(breakdown: SkillOthersEntry[]): boolean {
+  if (breakdown.length === 0) return false;
+  if (breakdown.length === 1 && breakdown[0].label === GENERIC_LABEL)
+    return false;
+  return true;
 }
 
 /** `2` → `'+2'`, `-1` → `'-1'`. */

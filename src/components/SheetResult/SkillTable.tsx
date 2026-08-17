@@ -40,6 +40,7 @@ import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
 import { getActiveEffectLabelStyle } from '../../premium/functions/activeEffectHighlights';
 import {
   getSkillOthersBreakdown,
+  hasSkillOthersDetail,
   formatBreakdownValue,
 } from '../../functions/skills/skillBonusBreakdown';
 
@@ -318,9 +319,11 @@ const SkillTable: React.FC<IProps> = ({
                 (skill.training ?? 0) +
                 sizeModifier;
 
-              // "Outros" soma bônus e penalidades no mesmo número, o que
-              // esconde bônus reais (ex.: o +2 de Golpista Divino em Ladinagem
-              // sob a penalidade de armadura). O detalhamento mostra as parcelas.
+              // "Outros" é um número só: não diz de onde vem (o -1 de
+              // Furtividade é armadura? o +2 de Percepção é qual poder?) e
+              // ainda soma bônus com penalidades, escondendo bônus reais (o +2
+              // de Golpista Divino em Ladinagem sob a penalidade de armadura).
+              // O detalhamento mostra as parcelas.
               const othersTotal = (skill.others ?? 0) + sizeModifier;
               const othersBreakdown = getSkillOthersBreakdown(sheet, skill);
 
@@ -391,7 +394,7 @@ const SkillTable: React.FC<IProps> = ({
                     )}
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
-                    {othersBreakdown.length > 1 ? (
+                    {hasSkillOthersDetail(othersBreakdown) ? (
                       <Tooltip
                         arrow
                         enterTouchDelay={0}

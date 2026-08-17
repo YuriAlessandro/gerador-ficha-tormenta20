@@ -1,7 +1,10 @@
 import _ from 'lodash';
 import generateRandomSheet from '../general';
 import { recalculateSheet } from '../recalculateSheet';
-import { getSkillOthersBreakdown } from '../skills/skillBonusBreakdown';
+import {
+  getSkillOthersBreakdown,
+  hasSkillOthersDetail,
+} from '../skills/skillBonusBreakdown';
 import { getPowerAppliedBonuses } from '../sheetBonuses/appliedBonuses';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -116,6 +119,16 @@ describe('Golpista Divino', () => {
       expect(breakdownOf(recalculated, Skill.LADINAGEM)).toEqual([
         { label: 'Golpista Divino', value: 2 },
       ]);
+    });
+
+    it('exibe o detalhamento mesmo com essa única parcela', () => {
+      // A ficha mostrava só o "+2" cru enquanto o detalhamento exigia 2+
+      // fontes: o nome do poder ficava invisível justamente no caso simples.
+      const recalculated = recalculateSheet(mkDevotoSheet());
+
+      expect(
+        hasSkillOthersDetail(breakdownOf(recalculated, Skill.LADINAGEM))
+      ).toBe(true);
     });
   });
 
