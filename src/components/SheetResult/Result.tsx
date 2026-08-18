@@ -108,6 +108,9 @@ import {
 import { getActiveEffectForSpell } from '@/premium/data/activePowers';
 import {
   collectVirtualCustomEffectDefinitions,
+  collectStandaloneCustomEffectDefinitions,
+  buildStandaloneEffectPowerKey,
+  isStandaloneEffectPowerKey,
   buildVirtualDefinitionFromCustomEffect,
 } from '@/premium/data/activePowers/customEffectAdapter';
 import type {
@@ -360,8 +363,9 @@ const Result: React.FC<ResultProps> = (props) => {
   }, [currentSheet.animalCompanions, currentSheet.classPowers, currentSheet]);
 
   // Definições injetadas em runtime no gerenciador de efeitos: efeitos custom
-  // do jogador + benefícios ativados dos companheiros animais + o Poder
-  // Capturado do Usurpador (montado a partir de `sheet.poderesCapturados`).
+  // do jogador (presos a um poder ou avulsos) + benefícios ativados dos
+  // companheiros animais + o Poder Capturado do Usurpador (montado a partir de
+  // `sheet.poderesCapturados`).
   const poderCapturadoDefinition = useMemo(
     () => getPoderCapturadoDefinition(currentSheet, userSupplements),
     [currentSheet, userSupplements]
@@ -369,6 +373,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const virtualCustomEffectDefinitions = useMemo(
     () => [
       ...collectVirtualCustomEffectDefinitions(currentSheet),
+      ...collectStandaloneCustomEffectDefinitions(currentSheet),
       ...getAnimalCompanionActivatedPowers(currentSheet),
       ...(poderCapturadoDefinition ? [poderCapturadoDefinition] : []),
     ],
@@ -505,6 +510,82 @@ const Result: React.FC<ResultProps> = (props) => {
       });
     },
     [currentSheet, applyRecalculatedSheet]
+  );
+
+  // Efeitos customizados AVULSOS (aba "Meus Efeitos" do gerenciador). Só a
+  // definição muda aqui — mas se o efeito editado/apagado estiver ativo, a
+  // instância em `activeEffects` carrega uma CÓPIA dos bônus e precisa
+  // acompanhar, senão o bônus fica grudado na ficha sem definição por trás
+  // (apagar) ou a edição só valeria na próxima ativação (editar).
+  const handleStandaloneCustomEffectsChange = useCallback(
+    (next: CustomEffect[]) => {
+      const active = currentSheet.activeEffects ?? [];
+      const survivingKeys = new Set(
+        next.map((effect) => buildStandaloneEffectPowerKey(effect.id))
+      );
+
+      const removed = active.filter(
+        (eff) =>
+          isStandaloneEffectPowerKey(eff.powerKey) &&
+          !survivingKeys.has(eff.powerKey)
+      );
+
+      let touchedActive = removed.length > 0;
+      const nextActive = active
+        .filter((eff) => !removed.includes(eff))
+        .map((eff) => {
+          if (!isStandaloneEffectPowerKey(eff.powerKey)) return eff;
+          const definition = next.find(
+            (effect) =>
+              buildStandaloneEffectPowerKey(effect.id) === eff.powerKey
+          );
+          const tier = definition?.tiers.find((t) => t.id === eff.optionId);
+          // Tier removido na edição: a instância vira órfã, mas manter os
+          // bônus antigos é melhor que apagá-los sem o jogador pedir — ele
+          // ainda vê e remove o chip pela aba "Ativos".
+          if (!tier) return eff;
+          if (
+            tier.label === eff.optionLabel &&
+            JSON.stringify(tier.bonuses) === JSON.stringify(eff.bonuses)
+          ) {
+            return eff;
+          }
+          touchedActive = true;
+          return { ...eff, optionLabel: tier.label, bonuses: tier.bonuses };
+        });
+
+      // `next` é sempre um array (nunca `undefined`): apagar o último efeito
+      // grava `[]`, e a AUSÊNCIA da chave é o que o guard de integridade trata
+      // como corrupção.
+      const nextSheet: CharacterSheet = {
+        ...currentSheet,
+        customEffects: next,
+        activeEffects: nextActive,
+      };
+
+      // Sem instância ativa afetada, mexer na definição é cosmético: grava
+      // direto, sem pagar um `recalculateSheet` inteiro.
+      if (!touchedActive) {
+        setCurrentSheet(nextSheet);
+        if (onSheetUpdate) onSheetUpdate(nextSheet);
+        return;
+      }
+
+      applyRecalculatedSheet({
+        ...nextSheet,
+        tempPM: Math.max(
+          0,
+          (currentSheet.tempPM ?? 0) -
+            removed.reduce((sum, eff) => sum + (eff.grantsTempPM ?? 0), 0)
+        ),
+        tempPV: Math.max(
+          0,
+          (currentSheet.tempPV ?? 0) -
+            removed.reduce((sum, eff) => sum + (eff.grantsTempPV ?? 0), 0)
+        ),
+      });
+    },
+    [currentSheet, onSheetUpdate, applyRecalculatedSheet]
   );
 
   // O painel de companheiros fica fora da aba Poderes; o ícone de patinha no
@@ -2301,6 +2382,8 @@ const Result: React.FC<ResultProps> = (props) => {
                 sheet={currentSheet}
                 readonly={!onSheetUpdate || !canUseActiveEffects}
                 customDefinitions={virtualCustomEffectDefinitions}
+                standaloneEffects={currentSheet.customEffects ?? []}
+                onStandaloneEffectsChange={handleStandaloneCustomEffectsChange}
                 onRemove={handleActiveEffectRemove}
                 onActivate={handleActiveEffectActivate}
                 onClose={() => setEffectsModalOpen(false)}

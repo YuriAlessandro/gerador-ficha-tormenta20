@@ -150,6 +150,11 @@ const OVERRIDES = {
   getActiveEffectForSpell: { expr: '() => undefined' },
   buildVirtualDefinitionFromCustomEffect: { expr: '() => null' },
   collectVirtualCustomEffectDefinitions: { expr: '() => []' },
+  // espalhados com `...` na lista de definições do gerenciador de efeitos
+  collectStandaloneCustomEffectDefinitions: { expr: '() => []' },
+  // usadas como chave/predicado: precisam de string e boolean, não undefined
+  buildStandaloneEffectPowerKey: { expr: "() => ''" },
+  isStandaloneEffectPowerKey: { expr: '() => false' },
   resolveProfileFont: { expr: "() => 'inherit'" },
   // hooks: as chaves abaixo são as que o público desestrutura
   useDiceRoll: {

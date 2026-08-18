@@ -40,6 +40,10 @@ export const NEVER_UNSET_SHEET_KEYS: readonly string[] = [
   // é prosa escrita à mão pelo jogador. Uma vez que existe, o normalizeSheet
   // garante que continua existindo em toda carga.
   'journal',
+  // Efeitos customizados avulsos. Mesma categoria do diário: autorais, não
+  // deriváveis de nada. Apagar todos é legítimo, mas isso grava `[]` — a
+  // AUSÊNCIA da chave só pode ser corrupção em memória.
+  'customEffects',
 ];
 
 /**

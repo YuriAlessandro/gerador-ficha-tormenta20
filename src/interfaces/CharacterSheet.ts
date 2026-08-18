@@ -936,6 +936,15 @@ export default interface CharacterSheet {
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
   activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
   /**
+   * Efeitos customizados AVULSOS: criados direto no modal de Efeitos Ativos,
+   * sem pertencer a nenhum poder/habilidade/magia. Existem só como definição —
+   * ativá-los grava uma instância em `activeEffects`, como qualquer outro.
+   *
+   * Os efeitos customizados presos a um poder continuam morando no
+   * `customEffects` do próprio poder.
+   */
+  customEffects?: CustomEffect[];
+  /**
    * Overrides do jogador (perícia rolada, atributo de ataque/dano) sobre armas
    * VIRTUAIS — as que não estão na mochila e por isso não têm onde gravar a
    * edição. Hoje: as armas naturais da Forma Selvagem.
