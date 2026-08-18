@@ -30,6 +30,7 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
   countRequirementSelections,
+  resolvePowerRequirements,
 } from '@/functions/powers/manualPowerSelection';
 import {
   getCurrentPlateau,
@@ -696,16 +697,22 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         if (!power) return false;
 
-        const requirements = getPowerSelectionRequirements(power);
-        if (!requirements) return true;
-
         // Get selections keyed by power name
         const allEffectSelections =
           currentLevelSelection.powerEffectSelections || {};
-        const effectSelections = allEffectSelections[power.name] || {};
 
-        return requirements.requirements.every((req) => {
+        // Mesma coleta que o `PowerEffectSelectionStep` usa para desenhar os
+        // seletores — inclui as escolhas exigidas pelos poderes concedidos, que
+        // moram sob o nome do poder concedido.
+        const requirements = resolvePowerRequirements(
+          power,
+          allEffectSelections
+        );
+        if (requirements.length === 0) return true;
+
+        return requirements.every(({ selectionKey, requirement: req }) => {
           const { type, pick } = req;
+          const effectSelections = allEffectSelections[selectionKey] || {};
 
           // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
           if (req.optional) return true;
@@ -729,34 +736,6 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           const count = countRequirementSelections(req, effectSelections);
           // Tipo não contável: não bloquear o assistente
           if (count === null) return true;
-
-          // For getGeneralPower, also check if nested power requirements are met
-          if (type === 'getGeneralPower' && count >= effectivePick) {
-            const selectedPower = effectSelections.powers?.[0] as
-              | { name?: string; sheetActions?: unknown[] }
-              | undefined;
-            if (selectedPower?.name && selectedPower.sheetActions) {
-              const nestedReqs = getPowerSelectionRequirements(
-                selectedPower as Parameters<
-                  typeof getPowerSelectionRequirements
-                >[0]
-              );
-              if (nestedReqs) {
-                // As seleções do poder aninhado ficam sob o nome DELE
-                const nestedSelections =
-                  allEffectSelections[selectedPower.name] || {};
-                return nestedReqs.requirements.every((nestedReq) => {
-                  if (nestedReq.optional) return true;
-                  const nestedCount = countRequirementSelections(
-                    nestedReq,
-                    nestedSelections
-                  );
-                  if (nestedCount === null) return true;
-                  return nestedCount >= nestedReq.pick;
-                });
-              }
-            }
-          }
 
           return count >= effectivePick;
         });

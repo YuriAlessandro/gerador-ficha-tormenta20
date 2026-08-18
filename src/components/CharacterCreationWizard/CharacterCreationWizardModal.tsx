@@ -43,8 +43,9 @@ import { buildSpellPool } from '@/functions/spellPathUtils';
 // Import step components
 import {
   getPowerSelectionRequirements,
-  getChosenOptionNestedRequirements,
   countRequirementSelections,
+  resolvePowerRequirements,
+  ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
 import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
 import {
@@ -2066,27 +2067,21 @@ const CharacterCreationWizardModal: React.FC<
       case 'Efeitos de Poderes': {
         if (!race || !classe) return false;
 
-        // Collect all requirements from race, class, origin, and deity powers
-        // Each requirement is tied to its power name for per-power validation
-        const allRequirements: Array<
-          PowerSelectionRequirement & { powerName: string }
-        > = [];
-
         const effectSelections = selections.powerEffectSelections || {};
 
-        // Mesma coleta do PowerEffectSelectionStep: requisitos fixos + os que só
-        // aparecem depois de uma escolha de `chooseFromOptions`.
+        // Mesma coleta que o `PowerEffectSelectionStep` usa para desenhar os
+        // seletores: requisitos do poder + os que só existem depois de uma
+        // escolha (`chooseFromOptions`) + os dos poderes concedidos. Enquanto as
+        // duas coisas coletavam por caminhos diferentes, dava para existir
+        // requisito que travava o Próximo sem ter onde escolher (ex.: os
+        // Talentos do Bando dos Kobolds).
+        const allRequirements: ResolvedRequirement[] = [];
         const collectRequirements = (
-          powerOrAbility: Parameters<typeof getPowerSelectionRequirements>[0]
+          powerOrAbility: Parameters<typeof resolvePowerRequirements>[0]
         ) => {
-          const reqs = getPowerSelectionRequirements(powerOrAbility);
-          const nested = getChosenOptionNestedRequirements(
-            powerOrAbility,
-            effectSelections[powerOrAbility.name]
+          allRequirements.push(
+            ...resolvePowerRequirements(powerOrAbility, effectSelections)
           );
-          [...(reqs?.requirements ?? []), ...nested].forEach((req) => {
-            allRequirements.push({ powerName: powerOrAbility.name, ...req });
-          });
         };
 
         // Check race abilities
@@ -2118,16 +2113,14 @@ const CharacterCreationWizardModal: React.FC<
         }
 
         // Validate all requirements are met
-        return allRequirements.every((req) => {
-          const { powerName, type, pick } = req;
+        return allRequirements.every(({ selectionKey, requirement: req }) => {
+          const { type, pick } = req;
 
           // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
           if (req.optional) return true;
 
-          const count = countRequirementSelections(
-            req,
-            effectSelections[powerName]
-          );
+          const ownSelections = effectSelections[selectionKey];
+          const count = countRequirementSelections(req, ownSelections);
           // Tipo não contável: não bloquear o assistente
           if (count === null) return true;
 
@@ -2140,37 +2133,11 @@ const CharacterCreationWizardModal: React.FC<
             effectivePick = Math.min(pick, filteredCount);
           }
 
-          // For getGeneralPower, also check if nested power requirements are met
-          if (type === 'getGeneralPower' && count >= effectivePick) {
-            const powerSelections = effectSelections[powerName] || {};
-            const allSelectedPowers = (powerSelections.powers || []) as Array<{
-              name?: string;
-              sheetActions?: unknown[];
-            }>;
-            const hasUnmetNested = allSelectedPowers.some((selPower) => {
-              if (!selPower?.name || !selPower.sheetActions) return false;
-              const nestedReqs = getPowerSelectionRequirements(
-                selPower as Parameters<typeof getPowerSelectionRequirements>[0]
-              );
-              if (!nestedReqs) return false;
-              return nestedReqs.requirements.some((nestedReq) => {
-                if (nestedReq.optional) return false;
-                const nestedCount = countRequirementSelections(
-                  nestedReq,
-                  effectSelections[selPower.name!]
-                );
-                if (nestedCount === null) return false;
-                return nestedCount < nestedReq.pick;
-              });
-            });
-            if (hasUnmetNested) return false;
-          }
-
           // A habilidade aprendida (Duplo Feérico) pode ter escolha própria —
           // ex.: Especialista do Ladino pede perícias. As sub-escolhas ficam na
           // MESMA entrada de seleções do poder de origem.
           if (type === 'learnClassAbility' && count >= effectivePick) {
-            const powerSelections = effectSelections[powerName] || {};
+            const powerSelections = ownSelections || {};
             const chosen = powerSelections.classAbilities?.[0];
             const chosenAbility = chosen?.abilityName
               ? dataRegistry

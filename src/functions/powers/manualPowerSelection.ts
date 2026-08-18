@@ -2,6 +2,7 @@ import { ClassPower } from '@/interfaces/Class';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import {
+  ManualPowerSelections,
   PowerSelectionRequirement,
   PowerSelectionRequirements,
   SelectionOptions,
@@ -476,6 +477,94 @@ export function getChosenOptionNestedRequirements(
   });
 
   return nested;
+}
+
+/**
+ * Um requisito de escolha já resolvido: além do requisito em si, diz sob QUAL
+ * chave de `ManualPowerSelections` as respostas dele moram.
+ *
+ * Existe porque um poder pode conceder outro poder que, por sua vez, pede uma
+ * escolha própria (ex.: Talentos do Bando dos Kobolds → Ex-Familiar → familiar).
+ * As respostas desse segundo nível são gravadas sob o nome do poder CONCEDIDO,
+ * não do poder pai.
+ */
+export interface ResolvedRequirement {
+  /** Chave em `ManualPowerSelections` onde as respostas deste requisito moram. */
+  selectionKey: string;
+  /** Nome do poder dono do requisito (o concedido, quando aninhado). */
+  ownerName: string;
+  /** Quando true, o requisito veio de um poder concedido por outro poder. */
+  isNested: boolean;
+  requirement: PowerSelectionRequirement;
+}
+
+/**
+ * Escolhas exigidas pelos poderes que o jogador escolheu em um requisito
+ * `getGeneralPower`/`getClassPower`.
+ *
+ * As respostas moram sob o nome do poder CONCEDIDO, não do poder pai — é assim
+ * que o passo do assistente grava e que os validadores leem. Exportada para que
+ * a tela que desenha os seletores e o validador que libera o botão Próximo
+ * derivem a lista do MESMO lugar.
+ */
+export function getGrantedPowerRequirements(
+  selectionForPower: SelectionOptions | undefined
+): ResolvedRequirement[] {
+  const grantedPowers = (selectionForPower?.powers ?? []) as Array<
+    GeneralPower | ClassPower
+  >;
+
+  return grantedPowers.flatMap((granted) => {
+    if (!granted?.name || !granted.sheetActions) return [];
+    return (getPowerSelectionRequirements(granted)?.requirements ?? []).map(
+      (requirement) => ({
+        selectionKey: granted.name,
+        ownerName: granted.name,
+        isNested: true,
+        requirement,
+      })
+    );
+  });
+}
+
+/**
+ * Lista achatada de TODAS as escolhas que um poder exige, incluindo as dos
+ * poderes que ele concede.
+ *
+ * É a fonte única de verdade para quem desenha os seletores (o passo "Efeitos de
+ * Poderes") e para quem libera o botão Próximo (`canProceed` / `isStepComplete`).
+ * Enquanto as duas coisas coletavam requisitos por caminhos diferentes, dava
+ * para existir requisito que bloqueia o assistente sem ter onde escolher.
+ */
+export function resolvePowerRequirements(
+  power: GeneralPower | ClassPower | RaceAbility | OriginPower,
+  allSelections: ManualPowerSelections
+): ResolvedRequirement[] {
+  const selectionKey = power.name;
+  const ownSelections = allSelections[selectionKey];
+
+  const own = [
+    ...(getPowerSelectionRequirements(power)?.requirements ?? []),
+    // Requisitos que só existem depois de uma escolha de `chooseFromOptions`.
+    // Ficam na MESMA chave do poder pai (ver `applyPower`).
+    ...getChosenOptionNestedRequirements(power, ownSelections),
+  ].map((requirement) => ({
+    selectionKey,
+    ownerName: power.name,
+    isNested: false,
+    requirement,
+  }));
+
+  // Segundo nível: cada poder concedido pode ter escolhas próprias. Só um nível
+  // de profundidade — é o que os validadores sempre fizeram, e evita ciclo.
+  const grantsPower = own.some(
+    ({ requirement }) =>
+      requirement.type === 'getGeneralPower' ||
+      requirement.type === 'getClassPower'
+  );
+  const nested = grantsPower ? getGrantedPowerRequirements(ownSelections) : [];
+
+  return [...own, ...nested];
 }
 
 /**
@@ -1196,6 +1285,11 @@ export function validateSelections(
         `${requirement.label}: esperado ${expectedPick}, selecionado ${selectedCount}`
       );
     }
+
+    // Tipos cuja lista de opções é montada pelo próprio componente (o
+    // `getFilteredAvailableOptions` devolve vazio de propósito). Conferir
+    // disponibilidade aqui reprovaria toda escolha válida.
+    if (type === 'almaLivreSelectClass') return;
 
     // Check if selections are available
     const availableOptions = getFilteredAvailableOptions(

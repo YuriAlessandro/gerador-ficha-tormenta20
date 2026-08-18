@@ -28,6 +28,8 @@ import {
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
+import { dataRegistry } from '@/data/registry';
+import AlmaLivreSelectionField from '@/components/CharacterCreationWizard/steps/AlmaLivreSelectionField';
 
 interface PowerSelectionDialogProps {
   open: boolean;
@@ -304,6 +306,38 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
       sheet,
       supplements
     );
+
+    // Alma Livre e Diferentão (Kobolds): escolher uma classe e um poder dela.
+    // Não têm `availableOptions` — as listas são montadas pelo próprio campo —,
+    // então precisa vir ANTES do early-return de "sem opções". Sem este caso o
+    // diálogo abria sem seletor nenhum e o Confirmar era rejeitado pelo
+    // `validateSelections`: o poder ficava impossível de adicionar pela ficha.
+    if (type === 'almaLivreSelectClass') {
+      const availableClasses = dataRegistry
+        .getClassesBySupplements(supplements)
+        .filter((c) => c.name !== sheet.classe.name);
+
+      return (
+        <Box
+          key={index}
+          sx={{
+            mb: 2,
+          }}
+        >
+          <Typography variant='h6' gutterBottom>
+            {label}
+          </Typography>
+          <AlmaLivreSelectionField
+            availableClasses={availableClasses}
+            supplements={supplements}
+            selections={selections}
+            immediateClassPower={requirement.metadata?.immediateClassPower}
+            sheet={sheet}
+            onChange={(newSelections) => setSelections(newSelections)}
+          />
+        </Box>
+      );
+    }
 
     if (availableOptions.length === 0) {
       return (
