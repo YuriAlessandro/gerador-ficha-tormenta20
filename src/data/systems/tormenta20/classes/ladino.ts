@@ -141,9 +141,7 @@ const LADINO: ClassDescription = {
     {
       name: 'Gatuno',
       text: 'Você recebe +2 em Atletismo. Quando escala, não fica desprevenido e avança seu deslocamento normal, em vez de metade dele.',
-      requirements: [
-        [{ type: RequirementType.PERICIA, name: Skill.ATLETISMO }],
-      ],
+      requirements: [],
       sheetBonuses: [
         {
           source: {
