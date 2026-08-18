@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   JOURNAL_CHARACTER_NODE_ID,
+  JournalEntry,
   PlayerJournal,
 } from '../../interfaces/PlayerJournal';
 import {
+  countJournalEntries,
   countJournalNodes,
   createEmptyJournal,
   flattenMarkdown,
@@ -16,6 +18,7 @@ import {
   resolveJournalNodeTitle,
   sanitizeJournal,
   serializeJournalForPdf,
+  sortJournalEntries,
 } from '../playerJournal';
 
 /** Ficha mínima: só o que a migração e a serialização realmente leem. */
@@ -131,6 +134,105 @@ describe('migrateNotesToJournal', () => {
     migrateNotesToJournal(sheet);
     expect(sheet.journal).toBeDefined();
     expect(sheet.journal?.version).toBe(1);
+  });
+});
+
+describe('ordem cronológica das entradas', () => {
+  const entry = (
+    id: string,
+    createdAt: string,
+    date?: { year: number; month: number; day: number; isNimb?: boolean }
+  ): JournalEntry => ({
+    id,
+    title: id,
+    body: '',
+    ...(date
+      ? {
+          date: {
+            year: date.year,
+            month: date.month,
+            day: date.day,
+            isNimb: date.isNimb ?? false,
+            label: `${date.day}/${date.month}/${date.year}`,
+          },
+        }
+      : {}),
+    createdAt,
+    updatedAt: createdAt,
+  });
+
+  const ids = (entries: JournalEntry[]) => entries.map((item) => item.id);
+
+  it('ordena por ano, mês e dia do calendário', () => {
+    const sorted = sortJournalEntries([
+      entry('c', '2026-01-03T00:00:00.000Z', { year: 1420, month: 5, day: 2 }),
+      entry('a', '2026-01-01T00:00:00.000Z', {
+        year: 1419,
+        month: 12,
+        day: 30,
+      }),
+      entry('b', '2026-01-02T00:00:00.000Z', { year: 1420, month: 5, day: 1 }),
+    ]);
+    expect(ids(sorted)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('põe os Dias de Nimb DEPOIS do mês que eles seguem', () => {
+    // O Dia de Nimb guarda o mês que veio antes dele; sem o desempate ele
+    // cairia junto com os dias comuns daquele mês.
+    const sorted = sortJournalEntries([
+      entry('mesSeguinte', '2026-01-03T00:00:00.000Z', {
+        year: 1420,
+        month: 4,
+        day: 1,
+      }),
+      entry('nimb', '2026-01-02T00:00:00.000Z', {
+        year: 1420,
+        month: 3,
+        day: 1,
+        isNimb: true,
+      }),
+      entry('diaComum', '2026-01-01T00:00:00.000Z', {
+        year: 1420,
+        month: 3,
+        day: 28,
+      }),
+    ]);
+    expect(ids(sorted)).toEqual(['diaComum', 'nimb', 'mesSeguinte']);
+  });
+
+  it('entradas sem data vão para o fim, na ordem em que foram escritas', () => {
+    const sorted = sortJournalEntries([
+      entry('semData2', '2026-02-02T00:00:00.000Z'),
+      entry('comData', '2026-01-01T00:00:00.000Z', {
+        year: 1420,
+        month: 1,
+        day: 1,
+      }),
+      entry('semData1', '2026-02-01T00:00:00.000Z'),
+    ]);
+    expect(ids(sorted)).toEqual(['comData', 'semData1', 'semData2']);
+  });
+
+  it('sem calendário nenhum, é a ordem de escrita', () => {
+    const sorted = sortJournalEntries([
+      entry('terceira', '2026-03-01T00:00:00.000Z'),
+      entry('primeira', '2026-01-01T00:00:00.000Z'),
+      entry('segunda', '2026-02-01T00:00:00.000Z'),
+    ]);
+    expect(ids(sorted)).toEqual(['primeira', 'segunda', 'terceira']);
+  });
+
+  it('não muta a lista recebida', () => {
+    const original = [
+      entry('b', '2026-02-01T00:00:00.000Z'),
+      entry('a', '2026-01-01T00:00:00.000Z'),
+    ];
+    sortJournalEntries(original);
+    expect(ids(original)).toEqual(['b', 'a']);
+  });
+
+  it('lida com bloco sem entradas', () => {
+    expect(sortJournalEntries(undefined)).toEqual([]);
   });
 });
 
@@ -266,6 +368,89 @@ describe('sanitizeJournal', () => {
     ]);
   });
 
+  it('descarta data de entrada sem rótulo formatado', () => {
+    // Sem o `label` o PDF e o build sem premium não teriam como exibir a data;
+    // melhor entrada sem data do que data meio gravada.
+    const journal = sanitizeJournal(
+      base({
+        nodes: [
+          {
+            id: 'a',
+            title: 'A',
+            body: '',
+            x: 0,
+            y: 0,
+            entries: [
+              {
+                id: 'e1',
+                title: 'Com rótulo',
+                body: '',
+                date: {
+                  year: 1420,
+                  month: 3,
+                  day: 1,
+                  isNimb: false,
+                  label: 'x',
+                },
+                createdAt: '2026-01-01T00:00:00.000Z',
+              },
+              {
+                id: 'e2',
+                title: 'Sem rótulo',
+                body: '',
+                date: { year: 1420, month: 3, day: 1, isNimb: false },
+                createdAt: '2026-01-01T00:00:00.000Z',
+              },
+            ],
+          },
+        ],
+      })
+    );
+
+    const entries = journal?.nodes[0].entries ?? [];
+    expect(entries).toHaveLength(2);
+    expect(entries[0].date).toBeDefined();
+    expect(entries[1].date).toBeUndefined();
+  });
+
+  it('descarta entrada sem id e deduplica por id', () => {
+    const journal = sanitizeJournal(
+      base({
+        nodes: [
+          {
+            id: 'a',
+            title: 'A',
+            body: '',
+            x: 0,
+            y: 0,
+            entries: [
+              {
+                id: 'e1',
+                title: 'Boa',
+                body: '',
+                createdAt: '2026-01-01T00:00:00.000Z',
+              },
+              { title: 'Sem id', body: '' },
+              { id: 'e1', title: 'Duplicada', body: '' },
+            ],
+          },
+        ],
+      })
+    );
+
+    const entries = journal?.nodes[0].entries ?? [];
+    expect(entries).toHaveLength(1);
+    expect(entries[0].title).toBe('Boa');
+  });
+
+  it('bloco sem entradas não ganha a chave `entries`', () => {
+    // Um array vazio em cada nó só engordaria o documento da ficha.
+    const journal = sanitizeJournal(
+      base({ nodes: [{ id: 'a', title: 'A', body: '', x: 0, y: 0 }] })
+    );
+    expect(journal?.nodes[0].entries).toBeUndefined();
+  });
+
   it('devolve undefined para valor que nem é objeto', () => {
     expect(sanitizeJournal(null)).toBeUndefined();
     expect(sanitizeJournal('texto')).toBeUndefined();
@@ -380,6 +565,108 @@ describe('serializeJournalForPdf', () => {
     });
 
     expect(serializeJournalForPdf(journal, 'Thalia')).toContain('- Órfão');
+  });
+
+  it('imprime as entradas em ordem cronológica, com a data', () => {
+    const journal = journalWithNodes();
+    const npc = journal.nodes.find((node) => node.id === 'npc1');
+    if (npc) {
+      npc.entries = [
+        {
+          id: 'e2',
+          title: 'Cobrou o favor',
+          body: 'Queria metade do ouro.',
+          date: {
+            year: 1420,
+            month: 5,
+            day: 12,
+            isNimb: false,
+            label: '12 de Deusa',
+          },
+          createdAt: '2026-02-01T00:00:00.000Z',
+          updatedAt: '2026-02-01T00:00:00.000Z',
+        },
+        {
+          id: 'e1',
+          title: 'Primeiro encontro',
+          body: 'Nos deixou passar.',
+          date: {
+            year: 1420,
+            month: 3,
+            day: 2,
+            isNimb: false,
+            label: '2 de Wynna',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ];
+    }
+
+    const text = serializeJournalForPdf(journal, 'Thalia');
+
+    expect(text).toContain('[2 de Wynna] Primeiro encontro');
+    expect(text).toContain('[12 de Deusa] Cobrou o favor');
+    // A mais antiga tem que vir primeiro no papel.
+    expect(text.indexOf('Primeiro encontro')).toBeLessThan(
+      text.indexOf('Cobrou o favor')
+    );
+  });
+
+  it('marca as entradas sem data em vez de deixar o campo vazio', () => {
+    const journal = journalWithNodes();
+    const npc = journal.nodes.find((node) => node.id === 'npc1');
+    if (npc) {
+      npc.entries = [
+        {
+          id: 'e1',
+          title: 'Anotação solta',
+          body: '',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ];
+    }
+
+    expect(serializeJournalForPdf(journal, 'Thalia')).toContain(
+      '[sem data] Anotação solta'
+    );
+  });
+
+  it('imprime o diário de bordo do próprio personagem', () => {
+    // O nó do personagem não vira item de lista, mas as entradas dele são o
+    // caso de quem usa o diário sem montar grafo nenhum.
+    const journal = createEmptyJournal('Thalia');
+    journal.nodes[0].entries = [
+      {
+        id: 'e1',
+        title: 'Saí de Valkaria',
+        body: 'Peguei a estrada ao norte.',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+
+    const text = serializeJournalForPdf(journal, 'Thalia');
+    expect(text).toContain('Diário de bordo');
+    expect(text).toContain('Saí de Valkaria');
+  });
+
+  it('diário só com entradas do personagem conta como conteúdo', () => {
+    const journal = createEmptyJournal('Thalia');
+    expect(journalHasContent(journal)).toBe(false);
+
+    journal.nodes[0].entries = [
+      {
+        id: 'e1',
+        title: 'Algo',
+        body: '',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+    expect(journalHasContent(journal)).toBe(true);
+    expect(countJournalEntries(journal)).toBe(1);
   });
 
   it('trunca um diário gigante em vez de gerar dezenas de páginas', () => {

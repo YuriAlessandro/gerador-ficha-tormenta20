@@ -1,6 +1,8 @@
 import { v4 as uuid } from 'uuid';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import {
+  JournalEntry,
+  JournalEntryDate,
   JournalLink,
   JournalNode,
   PlayerJournal,
@@ -25,6 +27,8 @@ import {
 export const JOURNAL_RING_RADIUS = 260;
 
 export const JOURNAL_MAX_TITLE_LENGTH = 80;
+/** Rótulo de data já formatado; folgado, mas contra dado corrompido. */
+export const JOURNAL_MAX_DATE_LABEL_LENGTH = 120;
 export const JOURNAL_MAX_BODY_LENGTH = 10000;
 export const JOURNAL_MIN_ZOOM = 0.3;
 export const JOURNAL_MAX_ZOOM = 2.5;
@@ -87,9 +91,68 @@ export function countJournalNodes(journal?: PlayerJournal): number {
   return journal.nodes.filter((node) => !node.locked).length;
 }
 
-/** Um diário só tem conteúdo quando existe algo além do nó do personagem. */
+/** Total de entradas datadas no diário inteiro. */
+export function countJournalEntries(journal?: PlayerJournal): number {
+  if (!journal) return 0;
+  return journal.nodes.reduce(
+    (total, node) => total + (node.entries?.length ?? 0),
+    0
+  );
+}
+
+/**
+ * Tem conteúdo quando há algum bloco além do personagem OU alguma entrada.
+ *
+ * As entradas do próprio nó do personagem contam: é onde cai o diário de bordo
+ * de quem não quer montar um grafo, e sem isso o PDF sairia vazio para essa
+ * pessoa.
+ */
 export function journalHasContent(journal?: PlayerJournal): boolean {
-  return countJournalNodes(journal) > 0;
+  return countJournalNodes(journal) > 0 || countJournalEntries(journal) > 0;
+}
+
+/**
+ * Chave de ordenação de uma data de Arton.
+ *
+ * Os Dias de Nimb caem DEPOIS do mês que carregam em `month`, então entram
+ * entre o mês e o seguinte — daí o desempate por `isNimb`. A comparação é
+ * puramente posicional e não precisa da tabela de Dias de Nimb do ano, que só
+ * existe do lado premium.
+ */
+const dateSortKey = (date: JournalEntryDate): number[] => [
+  date.year,
+  date.month,
+  date.isNimb ? 1 : 0,
+  date.day,
+];
+
+/**
+ * Ordem cronológica das entradas.
+ *
+ * Entradas COM data vêm primeiro, na ordem do calendário do mundo. As sem data
+ * (mesa sem calendário iniciado) vão depois, na ordem em que foram escritas —
+ * é o único tempo que se conhece delas.
+ */
+export function compareJournalEntries(
+  a: JournalEntry,
+  b: JournalEntry
+): number {
+  if (a.date && b.date) {
+    const keyA = dateSortKey(a.date);
+    const keyB = dateSortKey(b.date);
+    for (let index = 0; index < keyA.length; index += 1) {
+      if (keyA[index] !== keyB[index]) return keyA[index] - keyB[index];
+    }
+    return a.createdAt.localeCompare(b.createdAt);
+  }
+  if (a.date) return -1;
+  if (b.date) return 1;
+  return a.createdAt.localeCompare(b.createdAt);
+}
+
+/** Cópia ordenada das entradas de um bloco. Nunca muta a lista original. */
+export function sortJournalEntries(entries?: JournalEntry[]): JournalEntry[] {
+  return [...(entries ?? [])].sort(compareJournalEntries);
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -102,6 +165,60 @@ const text = (value: unknown, max: number): string =>
   typeof value === 'string' ? value.slice(0, max) : '';
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
+/**
+ * Saneia a data de uma entrada. Data sem `label` é descartada por inteiro: sem
+ * o rótulo o PDF e o build sem premium não teriam como exibi-la, e uma data
+ * meio gravada é pior do que entrada sem data.
+ */
+function sanitizeEntryDate(value: unknown): JournalEntryDate | undefined {
+  if (!isRecord(value)) return undefined;
+  const label = text(value.label, JOURNAL_MAX_DATE_LABEL_LENGTH);
+  if (!label) return undefined;
+
+  const date: JournalEntryDate = {
+    year: Math.trunc(finite(value.year, 0)),
+    month: Math.min(12, Math.max(1, Math.trunc(finite(value.month, 1)))),
+    day: Math.max(1, Math.trunc(finite(value.day, 1))),
+    isNimb: value.isNimb === true,
+    label,
+  };
+
+  const adventureDay = Math.trunc(finite(value.adventureDay, 0));
+  if (adventureDay > 0) date.adventureDay = adventureDay;
+
+  return date;
+}
+
+function sanitizeEntries(value: unknown): JournalEntry[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+
+  return value.flatMap((raw) => {
+    if (!isRecord(raw)) return [];
+    const id = typeof raw.id === 'string' ? raw.id : '';
+    if (!id || seen.has(id)) return [];
+    seen.add(id);
+
+    const createdAt =
+      typeof raw.createdAt === 'string'
+        ? raw.createdAt
+        : new Date(0).toISOString();
+    const date = sanitizeEntryDate(raw.date);
+
+    return [
+      {
+        id,
+        title: text(raw.title, JOURNAL_MAX_TITLE_LENGTH),
+        body: text(raw.body, JOURNAL_MAX_BODY_LENGTH),
+        ...(date ? { date } : {}),
+        createdAt,
+        updatedAt:
+          typeof raw.updatedAt === 'string' ? raw.updatedAt : createdAt,
+      },
+    ];
+  });
+}
 
 /**
  * Saneia um diário vindo do disco.
@@ -137,6 +254,8 @@ export function sanitizeJournal(value: unknown): PlayerJournal | undefined {
         ? raw.createdAt
         : new Date(0).toISOString();
 
+    const entries = sanitizeEntries(raw.entries);
+
     nodes.push({
       id,
       categoryId:
@@ -145,6 +264,9 @@ export function sanitizeJournal(value: unknown): PlayerJournal | undefined {
           : JOURNAL_DEFAULT_CATEGORY_ID,
       title: text(raw.title, JOURNAL_MAX_TITLE_LENGTH),
       body: text(raw.body, JOURNAL_MAX_BODY_LENGTH),
+      // Bloco sem entradas não ganha a chave: é o caso comum, e um array vazio
+      // em cada nó só engordaria o documento da ficha.
+      ...(entries.length > 0 ? { entries } : {}),
       x: finite(raw.x, 0),
       y: finite(raw.y, 0),
       ...(locked ? { locked: true as const } : {}),
@@ -324,7 +446,22 @@ export function serializeJournalForPdf(
       .map((link) => titleOf(link.from === nodeId ? link.to : link.from))
       .filter((title) => !!title);
 
+  /** Entradas em ordem cronológica, indentadas sob o bloco. */
+  const entryLines = (node: JournalNode): string[] =>
+    sortJournalEntries(node.entries).map((entry) => {
+      const when = entry.date?.label ?? 'sem data';
+      const body = flattenMarkdown(entry.body);
+      return `  · [${when}] ${entry.title}${body ? ` — ${body}` : ''}`;
+    });
+
   const blocks: string[] = [];
+
+  // O nó do personagem não vira um item de lista (o nome já está no cabeçalho
+  // da ficha), mas as entradas dele são o diário de bordo e precisam sair.
+  const characterNode = journal.nodes.find((node) => node.locked);
+  if (characterNode && (characterNode.entries?.length ?? 0) > 0) {
+    blocks.push(`Diário de bordo\n${entryLines(characterNode).join('\n')}`);
+  }
 
   getJournalCategories(journal).forEach((category) => {
     const nodes = journal.nodes.filter(
@@ -339,6 +476,7 @@ export function serializeJournalForPdf(
       if (connections.length > 0) {
         parts.push(`  Conexões: ${connections.join(', ')}`);
       }
+      parts.push(...entryLines(node));
       return parts.join('\n');
     });
 
@@ -357,7 +495,10 @@ export function serializeJournalForPdf(
     const fallback = getJournalCategory(JOURNAL_DEFAULT_CATEGORY_ID, journal);
     const lines = orphans.map((node) => {
       const body = flattenMarkdown(node.body);
-      return `- ${node.title}${body ? ` — ${body}` : ''}`;
+      return [
+        `- ${node.title}${body ? ` — ${body}` : ''}`,
+        ...entryLines(node),
+      ].join('\n');
     });
     blocks.push(`${fallback.name}\n${lines.join('\n')}`);
   }

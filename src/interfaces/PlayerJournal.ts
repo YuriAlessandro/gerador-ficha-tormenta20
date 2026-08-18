@@ -25,12 +25,52 @@ export interface JournalCategory {
   custom?: boolean;
 }
 
+/**
+ * Data de uma entrada, no calendário de Arton.
+ *
+ * Guarda os campos estruturados (para ordenar) E o `label` já formatado. A
+ * duplicação é deliberada: o PDF e o build sem o submódulo premium precisam
+ * exibir a data, e o formatador vive no módulo do calendário, que é premium.
+ * Sem o rótulo gravado, uma ficha exportada mostraria "1420-1-10" cru.
+ */
+export interface JournalEntryDate {
+  year: number;
+  /** 1-12. Num Dia de Nimb, é o mês APÓS o qual o bloco ocorre. */
+  month: number;
+  day: number;
+  isNimb: boolean;
+  /** Ex.: "10 de Caravana de mil quatrocentos e vinte". */
+  label: string;
+  /** Dia da aventura (1-based), quando veio do calendário de uma mesa. */
+  adventureDay?: number;
+}
+
+/**
+ * Uma anotação datada dentro de um bloco.
+ *
+ * O `body` do bloco é o contexto que não muda ("quem é essa pessoa"); as
+ * entradas são o que foi acontecendo, em ordem cronológica.
+ */
+export interface JournalEntry {
+  id: string;
+  title: string;
+  /** Texto livre em markdown. */
+  body: string;
+  /** Ausente quando a mesa não tem calendário iniciado. */
+  date?: JournalEntryDate;
+  /** ISO 8601 — é o critério de ordem para entradas sem data. */
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface JournalNode {
   id: string;
   categoryId: JournalCategoryId;
   title: string;
-  /** Texto livre em markdown. */
+  /** Texto livre em markdown: o contexto permanente do bloco. */
   body: string;
+  /** Anotações datadas, em ordem cronológica. */
+  entries?: JournalEntry[];
   /**
    * Coordenadas de MUNDO — não de tela. A conversão para pixels depende do
    * zoom e do deslocamento do viewport, que são estado de UI.
