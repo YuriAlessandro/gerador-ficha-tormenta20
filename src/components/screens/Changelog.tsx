@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            18/08/2026 (v4.30).
+            18/08/2026 (v4.30.1).
           </p>
 
           <p>
@@ -74,6 +74,27 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.30.1</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Ao criar um{' '}
+                  <strong>Kobolds</strong>, escolher{' '}
+                  <strong>Ex-Familiar</strong> ou <strong>Diferentão</strong>{' '}
+                  entre os <em>Talentos do Bando</em> travava o botão{' '}
+                  <strong>Próximo</strong>: o assistente exigia a escolha extra
+                  de cada talento (o familiar, e a classe e o poder) sem
+                  oferecer onde fazê-la. Agora qualquer poder concedido por
+                  outro poder mostra as próprias escolhas na hora.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Adicionar o poder{' '}
+                  <strong>Diferentão</strong> pelo <em>Editar Poderes</em> de
+                  uma ficha pronta abria uma janela sem nenhuma opção e recusava
+                  o Confirmar. Agora a escolha de classe e poder aparece
+                  normalmente.
+                </li>
+              </ul>
+
               <h3>4.30</h3>
 
               <Typography variant='body1' sx={{ mt: 2 }}>
