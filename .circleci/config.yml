@@ -13,33 +13,37 @@ jobs:
       - image: cimg/node:22.21.1
     steps:
       - checkout
-      # O código core e os testes importam de src/premium (submódulo PRIVADO).
-      # O `checkout` do CircleCI NÃO inicializa submódulos, então sem este passo
-      # o src/premium fica vazio e o vitest falha em cascata com
-      # "Failed to load url .../premium/...". Precisa de acesso de leitura ao
-      # repo privado fichas-de-nimb-premium.
+      # O código core importa src/premium (submódulo PRIVADO) em ~173 pontos, e
+      # o `checkout` do CircleCI não inicializa submódulos.
       #
-      # Opção em uso: PAT via env var (combina com a URL HTTPS do .gitmodules).
-      #   Crie um GitHub PAT fine-grained com permissão de leitura (Contents)
-      #   no repo fichas-de-nimb-premium e adicione como variável de ambiente
-      #   GITHUB_PAT em Project Settings > Environment Variables no CircleCI.
+      # Dois cenários, um job só:
+      #
+      # 1. Branch/PR do próprio repo: o CircleCI expõe as variáveis do projeto,
+      #    então GITHUB_PAT existe e o submódulo é clonado -> suíte COMPLETA
+      #    (187 suítes).
+      # 2. PR de fork: o CircleCI NÃO passa segredos para builds de fork (e não
+      #    deve — o PR poderia imprimi-los). GITHUB_PAT chega vazio, o submódulo
+      #    fica ausente e o vitest.config.ts detecta isso sozinho, redirecionando
+      #    os imports para o stub público de src/premium-stub -> suíte PÚBLICA
+      #    (130 suítes; as que dependem de lógica premium ficam de fora, ver a
+      #    lista PREMIUM_DEPENDENT_TESTS em vitest.config.ts).
+      #
+      # Para o cenário 2 aparecer no PR é preciso ligar "Build forked pull
+      # requests" em Project Settings > Advanced. NÃO ligar "Pass secrets to
+      # builds from forked pull requests": isso vazaria o PAT.
+      #
+      # O PAT é um GitHub fine-grained token com leitura (Contents) no repo
+      # fichas-de-nimb-premium, em Project Settings > Environment Variables.
       - run:
           name: Init premium submodule
           command: |
+            if [ -z "${GITHUB_PAT}" ]; then
+              echo "GITHUB_PAT ausente (PR de fork ou variável não configurada)."
+              echo "Rodando em modo stub público — src/premium-stub cobre os imports."
+              exit 0
+            fi
             git config --global url."https://${GITHUB_PAT}@github.com/".insteadOf "https://github.com/"
             git submodule update --init src/premium
-      # Alternativa com SSH deploy key (read-only) em vez do PAT:
-      #   1. Gere uma deploy key no repo premium e adicione a chave privada em
-      #      Project Settings > SSH Keys no CircleCI (anote o fingerprint).
-      #   2. Substitua o passo acima por:
-      #        - add_ssh_keys:
-      #            fingerprints:
-      #              - "SEU:FINGERPRINT:AQUI"
-      #        - run:
-      #            name: Init premium submodule
-      #            command: |
-      #              git config --global url."git@github.com:".insteadOf "https://github.com/"
-      #              git submodule update --init src/premium
       # A imagem cimg/node:22.x embute npm 10.x; sobe pro 11 (mesmo do dev local)
       - run:
           name: Use npm 11
@@ -47,6 +51,14 @@ jobs:
       - node/install-packages:
           pkg-manager: npm
           cache-version: v4
+      - run:
+          name: Report test mode
+          command: |
+            if [ -f src/premium/index.ts ]; then
+              echo "Submódulo premium presente -> suíte completa."
+            else
+              echo "Sem submódulo premium -> suíte pública (stub)."
+            fi
       - run:
           name: Run Tests
           command: npm test
