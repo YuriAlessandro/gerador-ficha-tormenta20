@@ -180,8 +180,14 @@ trade-off — não decida sozinho.
 
 ## Passo 6A — Caminho APROVADO
 
-Traga para a `main` local via **cherry-pick** (não merge — a branch do fork está atrás da `main`,
-e um merge arrastaria centenas de arquivos desatualizados). O cherry-pick **preserva a autoria do
+São **duas etapas**: trazer o conteúdo por cherry-pick e, logo em seguida, registrar o merge do
+PR. Pular a segunda deixa o PR aberto para sempre no GitHub e **rouba o crédito do contribuidor**
+— veja o porquê logo abaixo.
+
+### 6A.1 — Conteúdo: cherry-pick
+
+O merge direto não serve para trazer o conteúdo: a branch do fork está atrás da `main` e
+arrastaria centenas de arquivos desatualizados. O cherry-pick **preserva a autoria do
 contribuidor**, o que é o certo: ele fica como `author`, o usuário como `committer`.
 
 ```bash
@@ -195,6 +201,52 @@ Não altere a mensagem de commit original do contribuidor e **não acrescente `C
 IA**. Limpe as branches temporárias (`git branch -D pr<N> pr<N>-verify`) e o teste de scratch, se
 houver.
 
+### 6A.2 — Crédito: registrar o merge com `-s ours` (obrigatório)
+
+O cherry-pick gera **SHAs novos**. O GitHub só marca um PR como _Merged_ quando o **SHA exato do
+head do PR** vira ancestral da branch base — não existe detecção por conteúdo nem por `patch-id`.
+Ou seja: cherry-pick puro deixa o PR **aberto para sempre** e o contribuidor **sem o PR merged no
+perfil**, mesmo com o código dele em produção.
+
+A correção é um merge `-s ours` do head do PR: traz o commit original para o histórico da `main`
+**sem alterar um único byte da árvore** (o conteúdo já entrou pelo cherry-pick).
+
+```bash
+# fork  → refs/pull/<N>/head ; branch do próprio repo → origin/<branch>
+git fetch origin refs/pull/<N>/head:refs/pr/<N>
+TREE_ANTES=$(git rev-parse HEAD^{tree})
+
+git merge -s ours --no-ff refs/pr/<N> -m "chore: registra merge do PR #<N> (cherry-pick já aplicado em <sha-na-main>)
+
+Merge -s ours: a árvore da main não muda, o conteúdo já estava aplicado.
+Serve para o GitHub reconhecer o PR como merged e creditar a contribuição
+de @<login>.
+
+Co-Authored-By: <Nome> <email@do.autor>"
+
+# verificação obrigatória — a árvore TEM que ser idêntica
+[ "$TREE_ANTES" = "$(git rev-parse HEAD^{tree})" ] && echo OK || echo "ALERTA: árvore mudou"
+git merge-base --is-ancestor $(git rev-parse refs/pr/<N>) HEAD && echo "head do PR é ancestral OK"
+```
+
+Se forem vários PRs, faça um merge por PR (nunca um octopus só) — o GitHub precisa de cada head
+como ancestral. No push, ele marca todos como _Merged_ sozinho; não é preciso fechar à mão.
+
+### 6A.3 — Checar se a autoria do commit resolve para uma conta do GitHub
+
+O crédito por commit (quadradinhos verdes, lista de Contributors) depende **só** do e-mail do
+`author` estar vinculado a uma conta GitHub. Se não estiver, o commit não conta para ninguém, e
+nem o merge nem o cherry-pick resolvem isso — só o contribuidor pode, adicionando o e-mail em
+`github.com/settings/emails` (o GitHub reatribui retroativamente).
+
+```bash
+SHA=$(git rev-parse <sha-na-main>)
+gh api graphql -f query="{ repository(owner:\"YuriAlessandro\", name:\"gerador-ficha-tormenta20\") {
+  object(oid:\"$SHA\") { ... on Commit { author { email user { login } } } } } }"
+```
+
+`user: null` → avise o usuário para mencionar isso ao contribuidor no PR.
+
 Não faça push. Não crie entrada de Changelog nem bump de versão — isso é do `/release`, e cabe ao
 usuário decidir quando.
 
@@ -204,9 +256,9 @@ Ao final, relate ao usuário em português:
 - os caminhos extras que você checou além do teste do autor;
 - o resultado de cada validação;
 - ressalvas menores encontradas;
-- o hash do commit que entrou na `main` local;
-- lembrete de que nada foi pushado, e que fechar o PR no GitHub referenciando o hash dá o crédito
-  visível ao contribuidor.
+- o hash do commit que entrou na `main` local **e** o do merge `-s ours` que registra o PR;
+- se o e-mail do autor resolve para uma conta GitHub (passo 6A.3);
+- lembrete de que nada foi pushado, e que no push o GitHub marca o PR como _Merged_ sozinho.
 
 ## Passo 6B — Caminho REPROVADO
 
