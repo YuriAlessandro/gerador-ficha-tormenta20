@@ -5154,7 +5154,10 @@ export const applyStatModifiers = (
   // aqui). Passa pelo `calculateMaxSpaces` porque a escala é não-linear.
   if (sheet.atributosTemporarios) {
     sheet.maxSpaces = calculateMaxSpaces(
-      getEffectiveAttributeModifier(sheet, Atributo.FORCA)
+      getEffectiveAttributeModifier(
+        sheet,
+        sheet.maxSpacesAttribute ?? Atributo.FORCA
+      )
     );
   }
 

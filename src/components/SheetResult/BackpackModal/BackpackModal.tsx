@@ -45,7 +45,6 @@ import CharacterSheet, {
   Step,
   SubStep,
 } from '../../../interfaces/CharacterSheet';
-import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Bag from '../../../interfaces/Bag';
 import { getEffectiveAttributeModifier } from '../../../functions/effectiveAttributes';
 import { Atributo } from '../../../data/systems/tormenta20/atributos';
@@ -135,16 +134,17 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     [sheet.dinheiro, sheet.dinheiroTC, sheet.dinheiroTO]
   );
   const maxSpacesAttribute = sheet.maxSpacesAttribute ?? Atributo.FORCA;
+  // Atributo EFETIVO: um bônus temporário aumenta a capacidade de carga.
   const attributeValues = useMemo(
     () =>
       Object.values(Atributo).reduce(
         (values, attribute) => ({
           ...values,
-          [attribute]: sheet.atributos[attribute].value,
+          [attribute]: getEffectiveAttributeModifier(sheet, attribute),
         }),
         {} as Record<Atributo, number>
       ),
-    [sheet.atributos]
+    [sheet]
   );
   // "Devagar e Sempre"/Golem: sobrecarregar não custa deslocamento.
   const sheetIgnoresEncumbrance = ignoresEncumbrance(sheet);

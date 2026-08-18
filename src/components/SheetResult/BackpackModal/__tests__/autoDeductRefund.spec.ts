@@ -1,3 +1,4 @@
+import { Atributo } from '../../../../data/systems/tormenta20/atributos';
 import Equipment, { BagEquipments } from '../../../../interfaces/Equipment';
 import {
   BackpackStagedState,
@@ -70,6 +71,7 @@ function makeState(
     equipments,
     displayOrder,
     money: { dinheiro: 1000, dinheiroTC: 0, dinheiroTO: 0 },
+    maxSpacesAttribute: Atributo.FORCA,
     customMaxSpaces: undefined,
     autoDeductMoney: true,
     // Sempre vazio ao abrir o modal — nada pré-existente é reembolsável.

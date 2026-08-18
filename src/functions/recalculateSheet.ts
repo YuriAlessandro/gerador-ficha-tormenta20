@@ -1555,9 +1555,14 @@ function applyTemporaryAttributeModifiers(
   //    atribuição sobrescreve e é idempotente. Precisa passar pelo
   //    `calculateMaxSpaces` em vez de somar o delta: a escala é não-linear
   //    (10+2·FOR, mas 10+FOR quando negativa). O Step 8 continua somando os
-  //    alvos `MaxSpaces` por cima.
+  //    alvos `MaxSpaces` por cima. O atributo não é necessariamente Força:
+  //    Organizadinhos/Andarilho Carregado e o seletor da mochila trocam-no via
+  //    `maxSpacesAttribute` — ler Força fixo aqui zeraria esses efeitos.
   updated.maxSpaces = calculateMaxSpaces(
-    getEffectiveAttributeModifier(updated, Atributo.FORCA)
+    getEffectiveAttributeModifier(
+      updated,
+      updated.maxSpacesAttribute ?? Atributo.FORCA
+    )
   );
 
   return updated;
