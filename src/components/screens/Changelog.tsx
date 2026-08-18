@@ -222,6 +222,20 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo:</strong> dá para criar um{' '}
+                  <strong>efeito ativo avulso</strong>, sem precisar inventar um
+                  poder só para pendurá-lo. Abra o menu de{' '}
+                  <strong>Efeitos Ativos</strong> (o ✨ no topo da ficha) e use
+                  a nova aba <strong>Meus Efeitos</strong> para montar um bônus
+                  ou penalidade na hora — aquele item que o mestre acabou de
+                  entregar, uma bênção improvisada, um agouro. O efeito criado
+                  aparece <strong>no topo da aba Adicionar</strong>, marcado
+                  como <em>Customizado</em>, pronto para ligar e desligar, e com
+                  um botão de apagar ali mesmo. Antes era preciso criar um poder
+                  personalizado, entrar nele, criar o efeito e só então
+                  ativá-lo.
+                </li>
+                <li>
                   <strong>Novo:</strong> poderes personalizados agora podem{' '}
                   <strong>contar como poder da Tormenta</strong>. Ao criar um
                   poder personalizado na ficha, marque a opção e ele passa a
@@ -348,6 +362,12 @@ const Changelog: React.FC = () => {
                   nota, em vez de mostrarem sempre os mesmos do topo da média.
                   Conteúdo bem avaliado continua aparecendo mais, mas agora todo
                   mundo tem vez — e a home muda de cara todo dia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder <strong>Gatuno</strong>, do
+                  Ladino, não exige mais treinamento em{' '}
+                  <strong>Atletismo</strong>. O pré-requisito não existe no
+                  livro e travava a escolha do poder sem motivo.
                 </li>
                 <li>
                   <strong>Correção:</strong> remover ou consumir um item que o
