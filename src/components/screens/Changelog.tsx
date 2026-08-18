@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            17/08/2026 (v4.30).
+            18/08/2026 (v4.30).
           </p>
 
           <p>
@@ -75,11 +75,38 @@ const Changelog: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <h3>4.30</h3>
-              <ul>
-                <li>
-                  <strong>Novo:</strong> <strong>Diário do Jogador</strong>. O
-                  antigo campo de anotações virou um <em>canvas</em>: em vez de
-                  um texto corrido, você cria blocos para cada coisa que quer
+
+              <Typography variant='body1' sx={{ mt: 2 }}>
+                Os dois destaques desta versão — o{' '}
+                <strong>Diário do Jogador</strong> e as{' '}
+                <strong>regras opcionais de Heróis de Arton</strong> — vieram da{' '}
+                <strong>votação dos apoiadores</strong>. Obrigado a quem votou e
+                a quem sustenta o projeto! 💜
+              </Typography>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  📔 Diário do Jogador
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O antigo campo de anotações virou um <em>canvas</em>: em vez
+                  de um texto corrido, você cria blocos para cada coisa que quer
                   lembrar — um <strong>local</strong> que visitou, um{' '}
                   <strong>NPC</strong> que conheceu, uma <strong>missão</strong>
                   , um <strong>item</strong>, uma <strong>divindade</strong> — e
@@ -90,53 +117,110 @@ const Changelog: React.FC = () => {
                   suas conexões em volta do personagem. O diário fica no{' '}
                   <strong>lado direito da ficha</strong>, abaixo das perícias, e
                   numa aba própria no celular.
-                </li>
-                <li>
-                  <strong>Novo:</strong> <strong>Idades Variadas</strong>, a
-                  regra opcional de <em>Heróis de Arton</em>. No assistente de
-                  criação, em &ldquo;Informações Básicas&rdquo;, você escolhe
-                  entre as sete faixas etárias — de <strong>Criança</strong> a{' '}
-                  <strong>Ancião</strong> — e o app cuida do resto:
-                  modificadores de atributo, tamanho, Defesa, PM, benefícios de
-                  origem e até os <strong>níveis adicionais</strong> de Maduro,
-                  Velho e Ancião, que já entram no assistente de evolução. A
-                  faixa de anos é calculada para a sua raça (um anão vira adulto
-                  aos 50, um elfo só aos 125), e personagens adultos ou mais
-                  velhos escolhem suas <strong>complicações de idade</strong> —
-                  uma para adultos, até quatro para anciões. Velhos e anciões
-                  também deixam de poder gastar{' '}
-                  <strong>Aumento de Atributo</strong> em atributos físicos.
-                  Tudo editável depois, pelo botão de idade na ficha.
-                </li>
-                <li>
-                  <strong>Novo:</strong> <strong>Atributos Variados</strong>. O
-                  passo de atributos ganhou um seletor de variante ao lado dos
-                  botões Livre / Dados / Pontos, com os seis métodos novos do
-                  livro: <strong>Clássica</strong> (3d6, para heróis que vêm do
-                  povo comum), <strong>Épica</strong>, <strong>Valkaria</strong>{' '}
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Cada bloco tem dois tipos de anotação: o texto de cima é o
+                  contexto que não muda (quem é aquele NPC, como é aquele
+                  lugar), e abaixo dele ficam as <strong>entradas</strong> — o
+                  que foi acontecendo, em ordem cronológica, cada uma com
+                  título, data e texto. Na <strong>Mesa Virtual</strong>, se o{' '}
+                  <em>Calendário de Arton</em> estiver iniciado, a data do mundo
+                  é preenchida <strong>sozinha</strong>: escreveu sobre a
+                  emboscada, a entrada já nasce marcada como &ldquo;12 de
+                  Deusa&rdquo;. Fora da mesa as entradas seguem a ordem em que
+                  você escreveu, sem depender de nada.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Suas anotações antigas <strong>não se perdem</strong>: ao
+                  abrir uma ficha que já tinha texto no campo de anotações, ele
+                  vira automaticamente o primeiro bloco do diário, ligado ao seu
+                  personagem. O diário também entra na{' '}
+                  <strong>exportação em PDF</strong>, agrupado por categoria e
+                  com as conexões e as entradas de cada bloco.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  📜 Regras opcionais de Heróis de Arton
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Depois das <strong>Complicações</strong> (v4.26), chegam mais{' '}
+                  <strong>quatro regras opcionais</strong> de{' '}
+                  <em>Heróis de Arton</em>: <strong>Idades Variadas</strong>,{' '}
+                  <strong>Atributos Variados</strong>,{' '}
+                  <strong>Raças Abertas</strong> e{' '}
+                  <strong>Devoções Abertas</strong>. Todas ficam desligadas por
+                  padrão — você liga só as que a sua mesa usa, no próprio
+                  assistente de criação.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  <strong>Idades Variadas:</strong> em &ldquo;Informações
+                  Básicas&rdquo;, você escolhe entre as sete faixas etárias — de{' '}
+                  <strong>Criança</strong> a <strong>Ancião</strong> — e o app
+                  cuida do resto: modificadores de atributo, tamanho, Defesa,
+                  PM, benefícios de origem e até os{' '}
+                  <strong>níveis adicionais</strong> de Maduro, Velho e Ancião,
+                  que já entram no assistente de evolução. A faixa de anos é
+                  calculada para a sua raça (um anão vira adulto aos 50, um elfo
+                  só aos 125), e personagens adultos ou mais velhos escolhem
+                  suas <strong>complicações de idade</strong> — uma para
+                  adultos, até quatro para anciões. Velhos e anciões também
+                  deixam de poder gastar <strong>Aumento de Atributo</strong> em
+                  atributos físicos. Tudo editável depois, pelo botão de idade
+                  na ficha. Junto vem a <strong>Morte por Velhice</strong>,
+                  disponível para velhos e anciões como marcador na ficha, para
+                  grupos que quiserem levar a mortalidade a sério.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  <strong>Atributos Variados:</strong> o passo de atributos
+                  ganhou um seletor de variante ao lado dos botões Livre / Dados
+                  / Pontos, com os seis métodos novos do livro:{' '}
+                  <strong>Clássica</strong> (3d6, para heróis que vêm do povo
+                  comum), <strong>Épica</strong>, <strong>Valkaria</strong>{' '}
                   (distribua 7d6 entre atributos que começam em 8),{' '}
                   <strong>Nimb</strong> (7d20 descartando o menor — um 20 vira
                   um espantoso +5) e <strong>Khalmyr</strong>, além de compra
                   por <strong>5 ou 15 pontos</strong>.
-                </li>
-                <li>
-                  <strong>Novo:</strong> <strong>Raças Abertas</strong>. Um
-                  interruptor no passo &ldquo;Atributos da Raça&rdquo; libera
-                  você a aplicar cada modificador da sua raça no atributo que
-                  quiser — o anão continua com +2, +1 e −1, mas você decide onde
-                  cada um cai. Sem repetir o mesmo atributo, como manda a regra.
-                </li>
-                <li>
-                  <strong>Novo:</strong> <strong>Devoções Abertas</strong>. Um
-                  interruptor ao lado da divindade, no formulário de criação,
-                  libera qualquer personagem a ser devoto de qualquer deus,
-                  independente de raça ou classe.
-                </li>
-                <li>
-                  <strong>Novo:</strong> <strong>Morte por Velhice</strong>,
-                  disponível para personagens velhos e anciões como marcador na
-                  ficha, para grupos que quiserem levar a mortalidade a sério.
-                </li>
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  <strong>Raças Abertas:</strong> um interruptor no passo
+                  &ldquo;Atributos da Raça&rdquo; libera você a aplicar cada
+                  modificador da sua raça no atributo que quiser — o anão
+                  continua com +2, +1 e −1, mas você decide onde cada um cai
+                  (sem repetir o mesmo atributo, como manda a regra).{' '}
+                  <strong>Devoções Abertas:</strong> um interruptor ao lado da
+                  divindade libera qualquer personagem a ser devoto de qualquer
+                  deus, independente de raça ou classe.
+                </Typography>
+              </Alert>
+
+              <ul>
                 <li>
                   <strong>Novo:</strong> poderes personalizados agora podem{' '}
                   <strong>contar como poder da Tormenta</strong>. Ao criar um
@@ -180,19 +264,39 @@ const Changelog: React.FC = () => {
                   tiver.
                 </li>
                 <li>
+                  <strong>Novo:</strong> os <strong>Talentos do Bando</strong>{' '}
+                  dos <strong>Kobolds</strong> (<em>Ameaças de Arton</em>) agora
+                  funcionam sozinhos na ficha. <strong>Diferentão</strong> abre
+                  a lista de poderes de outra classe na hora em que você escolhe
+                  o talento — já filtrada pelos requisitos que vocês cumprem,
+                  contando seu nível de personagem −4.{' '}
+                  <strong>Ex-Familiar</strong> deixa você escolher o familiar,
+                  como o Arcanista. <strong>Organizadinhos</strong> passa seu
+                  limite de carga a usar <strong>Destreza</strong> no lugar de
+                  Força.
+                </li>
+                <li>
+                  <strong>Novo:</strong> você pode{' '}
+                  <strong>
+                    escolher qual atributo define o seu limite de carga
+                  </strong>{' '}
+                  direto na mochila. Serve para o poder que o app ainda não
+                  conhece, ou para uma decisão do mestre — e o número de espaços
+                  se recalcula na hora. Poderes que já mudam esse atributo
+                  sozinhos continuam valendo por padrão.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Andarilho Carregado</strong>, o
+                  poder concedido de <strong>Valkaria</strong> (
+                  <em>Deuses de Arton</em>), passou a aplicar sozinho o limite
+                  de carga por <strong>Sabedoria</strong>.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> as reduções de dano de{' '}
                   <strong>Carapaça Corrompida</strong> e{' '}
                   <strong>Pele Corrompida</strong> passaram a aparecer no
                   detalhamento &ldquo;Aplicado na ficha&rdquo; do card do poder,
                   como as outras.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> suas anotações antigas{' '}
-                  <strong>não se perdem</strong>: ao abrir uma ficha que já
-                  tinha texto no campo de anotações, ele vira automaticamente o
-                  primeiro bloco do diário, ligado ao seu personagem. O diário
-                  também entra na <strong>exportação em PDF</strong>, agrupado
-                  por categoria e com as conexões de cada bloco.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> o <strong>PDF da ficha</strong>{' '}
@@ -235,6 +339,15 @@ const Changelog: React.FC = () => {
                   algo a dizer — passe o mouse (ou toque, no celular) para ver
                   de onde vem cada ponto, seja um poder, a penalidade da
                   armadura ou o seu próprio ajuste manual.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> as vitrines de{' '}
+                  <strong>homebrews</strong> e do <strong>bestiário</strong> na
+                  página inicial passaram a ser{' '}
+                  <strong>sorteadas uma vez por dia</strong>, com peso pela
+                  nota, em vez de mostrarem sempre os mesmos do topo da média.
+                  Conteúdo bem avaliado continua aparecendo mais, mas agora todo
+                  mundo tem vez — e a home muda de cara todo dia.
                 </li>
                 <li>
                   <strong>Correção:</strong> remover ou consumir um item que o
@@ -480,6 +593,37 @@ const Changelog: React.FC = () => {
                   estava incompleto: o +5 em resistência vale contra efeitos de{' '}
                   <strong>lefeu</strong> e da Tormenta, não só da Tormenta.
                   Fichas de kaijin já salvas são corrigidas ao serem abertas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a <strong>Tela do Jogador</strong>{' '}
+                  voltou a poder ser aberta por{' '}
+                  <strong>qualquer participante da mesa</strong>, apoiador ou
+                  não. O bloqueio de apoio tinha sido aplicado à tela inteira,
+                  então os jogadores de um mestre apoiador eram mandados de
+                  volta para a página inicial ao abrir o link — justamente quem
+                  a tela existe para atender. Montar e transmitir a tela
+                  continua sendo exclusivo de apoiadores.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a habilidade{' '}
+                  <strong>Mente Criminosa</strong>, do <strong>Ladino</strong>,
+                  exigia <strong>Destreza</strong> em vez de{' '}
+                  <strong>Inteligência</strong> como pré-requisito. Como ela
+                  soma Inteligência em Ladinagem e Furtividade, o requisito
+                  certo é Inteligência.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a habilidade de raça dos{' '}
+                  <strong>Kobolds</strong> estava escrita como &ldquo;Praça
+                  Perigosa&rdquo; — o nome certo é{' '}
+                  <strong>Praga Perigosa</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o limite de carga por um atributo
+                  diferente de Força voltava sozinho para Força quando a ficha
+                  era recalculada. Quem usava <strong>Organizadinhos</strong> ou{' '}
+                  <strong>Andarilho Carregado</strong> via os espaços da mochila
+                  caírem em silêncio (com Destreza 4, 12 espaços em vez de 18).
                 </li>
               </ul>
               <h3>4.29</h3>
