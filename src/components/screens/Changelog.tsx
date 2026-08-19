@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            18/08/2026 (v4.30.1).
+            19/08/2026 (v4.30.2).
           </p>
 
           <p>
@@ -74,6 +74,37 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.30.2</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> O texto das habilidades{' '}
+                  <strong>Cascos</strong> e <strong>Ginete Natural</strong> do{' '}
+                  <strong>Centauro</strong> estava misturado: as duas terminavam
+                  com a mesma frase sem sentido, Cascos descrevia um efeito que
+                  não existe no lugar do seu (gastar 1 PM por um ataque extra) e
+                  Ginete Natural citava o poder errado. Agora os quatro textos
+                  são os de <em>Ameaças de Arton</em>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os <strong>cascos</strong> do
+                  Centauro causavam dano de <strong>perfuração</strong>; o
+                  correto é <strong>impacto</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O Centauro liberava, sem cumprir
+                  pré-requisito nenhum, todos os poderes com &quot;Carga&quot;
+                  ou &quot;Investida&quot; no nome — além de{' '}
+                  <strong>Catafractário</strong>. Pelo livro, a única concessão
+                  é <strong>Carga de Cavalaria</strong>, e é só ela agora.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As três correções acima também
+                  valem para <strong>fichas de Centauro já criadas</strong>:
+                  elas são ajustadas ao serem abertas, sem precisar refazer
+                  nada.
+                </li>
+              </ul>
+
               <h3>4.30.1</h3>
               <ul>
                 <li>
