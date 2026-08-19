@@ -1136,7 +1136,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   const checkRequirements = (power: GeneralPower): boolean => {
     // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
-    // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+    // (ex.: Centauro "Ginete Natural" → poder "Carga de Cavalaria")
     const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
       a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
     );
@@ -1168,7 +1168,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   sheet.generalPowers?.some((p) => p.name === req.name) ||
                   sheet.classPowers?.some((p) => p.name === req.name) ||
                   // Habilidades raciais que contam como possuir um poder
-                  // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+                  // (hoje só raças de homebrew usam este hook)
                   (sheet.raca.abilities ?? []).some((a) =>
                     a.grantsPowerRequirements?.includes(req.name ?? '')
                   ) ||
@@ -1282,7 +1282,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   const checkClassPowerRequirements = (power: ClassPower): boolean => {
     // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
-    // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+    // (ex.: Centauro "Ginete Natural" → poder "Carga de Cavalaria")
     const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
       a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
     );
@@ -1311,7 +1311,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   sheet.generalPowers?.some((p) => p.name === req.name) ||
                   sheet.classPowers?.some((p) => p.name === req.name) ||
                   // Habilidades raciais que contam como possuir um poder
-                  // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+                  // (hoje só raças de homebrew usam este hook)
                   (sheet.raca.abilities ?? []).some((a) =>
                     a.grantsPowerRequirements?.includes(req.name ?? '')
                   ) ||

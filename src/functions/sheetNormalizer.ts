@@ -13,6 +13,10 @@ import {
   KAIJIN_CHARISMA_EXEMPT_POWER_NAMES,
   KAIJIN_REFRESHED_DESCRIPTIONS,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
+import {
+  CENTAURO_REFRESHED_DESCRIPTIONS,
+  CENTAURO_REFRESHED_PREREQ_HOOKS,
+} from '../data/systems/tormenta20/ameacas-de-arton/races/centauro';
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
@@ -75,9 +79,10 @@ function refreshPowerBonuses<
 // Allowlist em vez de refresh genérico das habilidades pelo catálogo da raça:
 // várias raças variam a descrição por instância (Osteon, Lefou, Golem,
 // variantes de atributo), e um match cego por nome apagaria essa variação.
-const REFRESHED_DESCRIPTIONS_BY_NAME = new Map<string, string>(
-  Object.entries(KAIJIN_REFRESHED_DESCRIPTIONS)
-);
+const REFRESHED_DESCRIPTIONS_BY_NAME = new Map<string, string>([
+  ...Object.entries(KAIJIN_REFRESHED_DESCRIPTIONS),
+  ...Object.entries(CENTAURO_REFRESHED_DESCRIPTIONS),
+]);
 
 function refreshDescription<T extends { name: string; description?: string }>(
   entry: T
@@ -85,6 +90,69 @@ function refreshDescription<T extends { name: string; description?: string }>(
   const description = REFRESHED_DESCRIPTIONS_BY_NAME.get(entry.name);
   if (!description) return entry;
   return { ...entry, description };
+}
+
+/**
+ * Refresh dos hooks de pré-requisito das habilidades do CENTAURO. Diferente do
+ * refresh de descrição acima, este não é cosmético: os valores errados liberavam
+ * poderes de verdade na ficha (ver `CENTAURO_REFRESHED_PREREQ_HOOKS`), e
+ * `isPowerAvailable`/`PowersEditDrawer` leem a cópia embutida na ficha, nunca o
+ * catálogo — sem isto a correção só alcançaria fichas novas.
+ *
+ * Gated pelo nome da raça (e não por um mapa global por nome de habilidade, como
+ * as descrições) porque aqui se está DESFAZENDO algo que já vale na ficha.
+ */
+function refreshCentauroPrereqHooks<
+  T extends {
+    name: string;
+    bypassPrereqForPowersNamed?: string[];
+    grantsPowerRequirements?: string[];
+  }
+>(ability: T): T {
+  const hooks = CENTAURO_REFRESHED_PREREQ_HOOKS[ability.name];
+  if (!hooks) return ability;
+
+  const refreshed = { ...ability };
+  if (hooks.bypassPrereqForPowersNamed) {
+    refreshed.bypassPrereqForPowersNamed = [
+      ...hooks.bypassPrereqForPowersNamed,
+    ];
+  } else {
+    delete refreshed.bypassPrereqForPowersNamed;
+  }
+  if (hooks.grantsPowerRequirements) {
+    refreshed.grantsPowerRequirements = [...hooks.grantsPowerRequirements];
+  } else {
+    delete refreshed.grantsPowerRequirements;
+  }
+  return refreshed;
+}
+
+/**
+ * A arma natural do Centauro nasceu com `tipo: 'Perf.'` (o livro diz impacto). A
+ * cópia que está na mochila da ficha é intocável pelo recálculo: o handler de
+ * `addEquipment` é pulado por `isActionAlreadyApplied` assim que existe a entrada
+ * `EquipmentAdded` no `sheetActionHistory`, então a arma errada ficaria congelada
+ * para sempre. Curamos o campo in loco.
+ *
+ * Mutação direta em vez de `bag.addEquipment`: reinjetar o item o faria receber
+ * um `id` novo, o que desequiparia a arma (os slots de mão apontam para o id) e
+ * embaralharia o `displayOrder`. `tipo` não entra em nenhum cálculo — só na
+ * exibição e no PDF.
+ *
+ * Gate triplo (raça + nome do item + valor antigo) para não encostar em uma arma
+ * homebrew chamada "Cascos" e para ser idempotente numa segunda passada.
+ */
+function healCentauroHoovesDamageType(sheet: CharacterSheet): void {
+  if (sheet.raca?.name !== 'Centauro') return;
+  const weapons = sheet.bag?.equipments?.Arma;
+  if (!Array.isArray(weapons)) return;
+  weapons.forEach((weapon) => {
+    if (weapon?.nome === 'Cascos' && weapon.tipo === 'Perf.') {
+      // eslint-disable-next-line no-param-reassign
+      weapon.tipo = 'Impac.';
+    }
+  });
 }
 
 // Poderes que sempre contaram como poder da Tormenta "exceto para perda de
@@ -306,6 +374,13 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     sheet.raca.abilities = sheet.raca.abilities
       .filter((a) => a && typeof a.name === 'string')
       .map(refreshDescription);
+
+    if (sheet.raca.name === 'Centauro') {
+      sheet.raca.abilities = sheet.raca.abilities.map(
+        refreshCentauroPrereqHooks
+      );
+      healCentauroHoovesDamageType(sheet);
+    }
 
     // Mesmo princípio do refresh de poderes concedidos abaixo: a ficha embute a
     // cópia da herança de Suraggel da época em que foi escolhida, e antes de

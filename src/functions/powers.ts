@@ -101,7 +101,9 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       if (foundInPowers) return true;
 
       // Habilidades raciais que contam como possuir um poder
-      // (ex.: Centauro "Ginete Natural" → poder "Ginete")
+      // Nenhuma raça do core usa mais este hook (o Centauro usava, mas o livro dá
+      // um bypass de poder específico, não o poder Ginete); ele sobrevive para
+      // raças de homebrew — ver `compileRace`.
       const grantedByRace = (sheet.raca.abilities ?? []).some((a) =>
         a.grantsPowerRequirements?.includes(rule.name ?? '')
       );
@@ -224,7 +226,9 @@ export function isPowerAvailable(
   power: GeneralPower | ClassPower
 ): boolean {
   // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
-  // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
+  // (ex.: Centauro "Ginete Natural" → poder "Carga de Cavalaria").
+  // Atenção: o casamento é por SUBSTRING do nome do poder, então os termos aqui
+  // precisam ser específicos o bastante para não pegar poderes vizinhos.
   const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
     a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
   );
