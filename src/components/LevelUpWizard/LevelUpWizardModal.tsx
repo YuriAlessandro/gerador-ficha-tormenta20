@@ -15,7 +15,7 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
-import { ClassPower } from '@/interfaces/Class';
+import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { CompanionSheet, CompanionTrick } from '@/interfaces/Companion';
@@ -31,7 +31,9 @@ import {
   getFilteredAvailableOptions,
   countRequirementSelections,
   resolvePowerRequirements,
+  ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
+import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import {
   getCurrentPlateau,
   getDeityMaxSpellCircleFor,
@@ -488,28 +490,34 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     return requirements !== null && requirements.requirements.length > 0;
   };
 
-  // Check if class abilities for this level need effect selections
-  // For multiclass: use selected class's abilities filtered by CLASS level
-  const needsAbilityEffectSelections = (): boolean => {
-    const baseAbilities = getBaseAbilitiesForLevelUp(
+  // Habilidades da classe que está subindo de nível. As injetadas no setup
+  // (linhagens do Feiticeiro) vivem na FICHA, não na entrada do registry — por
+  // isso a mescla. Fonte única do passo "Efeitos de Habilidades": detecção,
+  // render e validação.
+  const getMergedClassAbilities = (): ClassAbility[] => [
+    ...getBaseAbilitiesForLevelUp(
       simulatedSheet.classe,
       selectedClassDesc,
       selectedClassName
-    );
-    const setupAbilities = getClassSetupAbilities(
+    ),
+    ...getClassSetupAbilities(
       selectedClassName,
       currentLevelSelection.classSetup
-    );
-    const allAbilities = [...baseAbilities, ...setupAbilities];
-    const newlyAvailableAbilities = allAbilities.filter(
+    ),
+  ];
+
+  // Só as que estreiam neste nível de CLASSE (importa na multiclasse).
+  const getAbilitiesForCurrentLevel = (): ClassAbility[] =>
+    getMergedClassAbilities().filter(
       (ability) => ability.nivel === selectedClassLevel
     );
 
-    return newlyAvailableAbilities.some((ability) => {
+  // Check if class abilities for this level need effect selections
+  const needsAbilityEffectSelections = (): boolean =>
+    getAbilitiesForCurrentLevel().some((ability) => {
       const requirements = getPowerSelectionRequirements(ability);
       return requirements !== null && requirements.requirements.length > 0;
     });
-  };
 
   // Habilidades de raça que concedem novas escolhas ("picks") ao subir de nível
   // (config `levelUp` na ação `chooseFromOptions`). Apenas o caso ADITIVO
@@ -634,6 +642,47 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
   const steps = getSteps();
 
+  /**
+   * Toda escolha exigida foi feita? Compartilhado pelos passos "Efeitos do
+   * Poder" e "Efeitos de Habilidades", que derivam os requisitos do MESMO
+   * `resolvePowerRequirements` que o `PowerEffectSelectionStep` usa para
+   * desenhar os seletores — assim não existe requisito que trave o botão
+   * "Próximo" sem ter onde escolher.
+   */
+  const areRequirementsSatisfied = (
+    requirements: ResolvedRequirement[],
+    allSelections: ManualPowerSelections
+  ): boolean =>
+    requirements.every(({ selectionKey, requirement: req }) => {
+      const { type, pick } = req;
+      const effectSelections = allSelections[selectionKey] || {};
+
+      // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
+      if (req.optional) return true;
+
+      // Golpe Pessoal usa um construtor próprio e tem availableOptions vazio
+      // por design — exige que um build tenha sido montado pelo usuário.
+      if (type === 'buildGolpePessoal') {
+        return !!effectSelections.golpePessoalBuild;
+      }
+
+      // Check available options - if none available, consider requirement satisfied
+      const availableOptions = getFilteredAvailableOptions(
+        req,
+        sheetForCurrentLevel
+      );
+      if (availableOptions.length === 0) return true;
+
+      // If fewer options than required, adjust the effective pick count
+      const effectivePick = Math.min(pick, availableOptions.length);
+
+      const count = countRequirementSelections(req, effectSelections);
+      // Tipo não contável: não bloquear o assistente
+      if (count === null) return true;
+
+      return count >= effectivePick;
+    });
+
   // Validate current step completion
   const isStepComplete = (stepIndex: number): boolean => {
     const stepName = steps[stepIndex];
@@ -708,48 +757,35 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           power,
           allEffectSelections
         );
-        if (requirements.length === 0) return true;
 
-        return requirements.every(({ selectionKey, requirement: req }) => {
-          const { type, pick } = req;
-          const effectSelections = allEffectSelections[selectionKey] || {};
-
-          // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
-          if (req.optional) return true;
-
-          // Golpe Pessoal usa um construtor próprio e tem availableOptions vazio
-          // por design — exige que um build tenha sido montado pelo usuário.
-          if (type === 'buildGolpePessoal') {
-            return !!effectSelections.golpePessoalBuild;
-          }
-
-          // Check available options - if none available, consider requirement satisfied
-          const availableOptions = getFilteredAvailableOptions(
-            req,
-            sheetForCurrentLevel
-          );
-          if (availableOptions.length === 0) return true;
-
-          // If fewer options than required, adjust the effective pick count
-          const effectivePick = Math.min(pick, availableOptions.length);
-
-          const count = countRequirementSelections(req, effectSelections);
-          // Tipo não contável: não bloquear o assistente
-          if (count === null) return true;
-
-          return count >= effectivePick;
-        });
+        return areRequirementsSatisfied(requirements, allEffectSelections);
       }
 
       case 'Efeitos de Habilidades': {
         // Treinador 5: a escolha de Treino Especializado é obrigatória — sem
-        // ela, o chooseFromOptions sorteia uma opção aleatória no apply
-        if (selectedClassName === 'Treinador' && selectedClassLevel === 5) {
-          return !!getTreinoEspecializadoChoice(currentLevelSelection);
+        // ela, o chooseFromOptions sorteia uma opção aleatória no apply.
+        // Explícito porque a checagem genérica abaixo dá o requisito por
+        // satisfeito quando a lista de opções vem vazia.
+        if (
+          selectedClassName === 'Treinador' &&
+          selectedClassLevel === 5 &&
+          !getTreinoEspecializadoChoice(currentLevelSelection)
+        ) {
+          return false;
         }
-        // Demais habilidades: opcional (pode pular)
-        // TODO: Implement validation for required ability selections
-        return true;
+
+        // Mesmas habilidades que o passo desenha. Sem isso, pular o passo fazia
+        // o `applyPower` SORTEAR a escolha em silêncio (era assim que o poder
+        // concedido da Linhagem Abençoada saía aleatório).
+        const allEffectSelections =
+          currentLevelSelection.abilityEffectSelections || {};
+
+        return getAbilitiesForCurrentLevel().every((ability) =>
+          areRequirementsSatisfied(
+            resolvePowerRequirements(ability, allEffectSelections),
+            allEffectSelections
+          )
+        );
       }
 
       case 'Escolhas de Raça': {
@@ -1006,22 +1042,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Efeitos de Habilidades': {
-        // Mesma resolução de `needsAbilityEffectSelections`: as habilidades
-        // injetadas no setup (linhagens do Feiticeiro) vivem na FICHA, não na
-        // entrada do registry.
+        // Mesma mescla de `needsAbilityEffectSelections` e da validação: as
+        // habilidades injetadas no setup (linhagens do Feiticeiro) vivem na
+        // FICHA, não na entrada do registry. O passo filtra por
+        // `classAbilityLevel`, então a lista vai completa.
         const activeClass = selectedClassDesc || simulatedSheet.classe;
-        const setupAbilitiesForStep = getClassSetupAbilities(
-          selectedClassName,
-          currentLevelSelection.classSetup
-        );
-        const baseAbilitiesForStep = getBaseAbilitiesForLevelUp(
-          simulatedSheet.classe,
-          selectedClassDesc,
-          selectedClassName
-        );
         const expandedClass = {
           ...activeClass,
-          abilities: [...baseAbilitiesForStep, ...setupAbilitiesForStep],
+          abilities: getMergedClassAbilities(),
           // `PowerEffectSelectionStep` prefere `originalAbilities` a
           // `abilities`; mantê-lo faria a lista mesclada ser ignorada.
           originalAbilities: undefined,

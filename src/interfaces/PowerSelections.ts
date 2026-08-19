@@ -100,6 +100,9 @@ export interface PowerSelectionRequirement {
     immediateClassPower?: boolean; // Diferentão grants the selected power now
     minLevel?: number; // For getClassPower: nível em que os requisitos são avaliados
     abilityLevel?: number; // For learnClassAbility: nível das habilidades elegíveis
+    // For getGeneralPower: a concessão vale apesar dos pré-requisitos dos
+    // poderes ofertados (ex.: Linhagem Abençoada, "sem precisar ser devoto").
+    ignorePrerequisites?: boolean;
     // For markTrainedSkills: o `pick` real é o modificador deste atributo, com
     // piso `minPick`. Só quem tem a ficha consegue resolver.
     pickByAttribute?: Atributo;

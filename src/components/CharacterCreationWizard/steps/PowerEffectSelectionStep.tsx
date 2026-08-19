@@ -142,42 +142,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   const allRequirements: Array<{
     powerName: string;
     source: 'race' | 'class' | 'origin';
-    requirements: Array<{
-      type:
-        | 'learnSkill'
-        | 'addProficiency'
-        | 'getGeneralPower'
-        | 'learnSpell'
-        | 'learnAnySpellFromHighestCircle'
-        | 'increaseAttribute'
-        | 'selectWeaponSpecialization'
-        | 'selectFamiliar'
-        | 'selectAnimalTotem'
-        | 'buildGolpePessoal'
-        | 'learnClassAbility'
-        | 'markTrainedSkills'
-        | 'getClassPower'
-        | 'humanoVersatil'
-        | 'lefouDeformidade'
-        | 'osteonMemoriaPostuma'
-        | 'yidishanNaturezaOrganica'
-        | 'chooseFromOptions'
-        | 'almaLivreSelectClass'
-        | 'mashinChassi';
-      pick: number;
-      label: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      availableOptions: any[];
-      metadata?: {
-        allowedType?: 'Arcane' | 'Divine' | 'Both';
-        schools?: string[];
-        optionKey?: string;
-        linkedTo?: string;
-        abilityLevel?: number;
-        pickByAttribute?: Atributo;
-        minPick?: number;
-      };
-    }>;
+    requirements: PowerSelectionRequirement[];
   }> = [];
 
   // Junta os requisitos fixos do poder com os que só existem depois de uma
@@ -643,44 +608,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   // Render a single requirement for a specific power
   const renderRequirement = (
     powerName: string,
-    requirement: {
-      type:
-        | 'learnSkill'
-        | 'addProficiency'
-        | 'getGeneralPower'
-        | 'learnSpell'
-        | 'learnAnySpellFromHighestCircle'
-        | 'increaseAttribute'
-        | 'selectWeaponSpecialization'
-        | 'selectFamiliar'
-        | 'selectAnimalTotem'
-        | 'buildGolpePessoal'
-        | 'learnClassAbility'
-        | 'markTrainedSkills'
-        | 'getClassPower'
-        | 'humanoVersatil'
-        | 'lefouDeformidade'
-        | 'osteonMemoriaPostuma'
-        | 'yidishanNaturezaOrganica'
-        | 'chooseFromOptions'
-        | 'almaLivreSelectClass'
-        | 'mashinChassi';
-      pick: number;
-      label: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      availableOptions: any[];
-      metadata?: {
-        allowedType?: 'Arcane' | 'Divine' | 'Both';
-        schools?: string[];
-        optionKey?: string;
-        linkedTo?: string;
-        immediateClassPower?: boolean;
-        minLevel?: number;
-        abilityLevel?: number;
-        pickByAttribute?: Atributo;
-        minPick?: number;
-      };
-    },
+    requirement: PowerSelectionRequirement,
     requirementIndex: number,
     // Profundidade do aninhamento. Só o nível 0 desenha as escolhas dos poderes
     // concedidos — mesma profundidade que os validadores conferem.

@@ -184,6 +184,7 @@ export function getPowerSelectionRequirements(
           label: `Selecione ${action.pick} poder${
             action.pick > 1 ? 'es' : ''
           } geral${action.pick > 1 ? 'is' : ''}`,
+          metadata: { ignorePrerequisites: action.ignorePrerequisites },
         });
       }
 
@@ -619,6 +620,12 @@ export function getFilteredAvailableOptions(
 
     case 'getGeneralPower': {
       const powers = availableOptions as GeneralPower[];
+      // Concessões marcadas com `ignorePrerequisites` valem apesar dos
+      // pré-requisitos dos poderes ofertados (Linhagem Abençoada dá um poder
+      // concedido "sem precisar ser devoto"). Sem isso, o requisito DEVOTO
+      // reprova a lista inteira e o assistente fica sem opção nenhuma.
+      const ignorePrerequisites =
+        requirement.metadata?.ignorePrerequisites === true;
       return powers
         .filter((power) => {
           // Filter out powers the character already has
@@ -630,7 +637,7 @@ export function getFilteredAvailableOptions(
             return false;
           }
           // Filter out powers whose requirements are not met
-          if (!isPowerAvailable(sheet, power)) {
+          if (!ignorePrerequisites && !isPowerAvailable(sheet, power)) {
             return false;
           }
           return true;

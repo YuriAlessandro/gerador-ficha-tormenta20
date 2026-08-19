@@ -106,6 +106,11 @@ export type SheetActionStep =
       type: 'getGeneralPower';
       availablePowers: GeneralPower[]; // List of available powers
       pick: number; // Number of powers to learn
+      // Concessões que valem apesar dos pré-requisitos dos poderes ofertados.
+      // Linhagem Abençoada (Deuses de Arton, pág. 33) dá um poder concedido
+      // "sem precisar ser devoto" — sem isso, o filtro do assistente descarta
+      // todos eles pelo requisito DEVOTO e o jogador fica sem opção.
+      ignorePrerequisites?: boolean;
     }
   | {
       type: 'addProficiency';
