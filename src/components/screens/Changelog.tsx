@@ -77,6 +77,23 @@ const Changelog: React.FC = () => {
               <h3>4.30.2</h3>
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> No assistente de evolução, o passo{' '}
+                  <strong>Efeitos de Habilidades</strong> não deixa mais avançar
+                  com escolha pendente. Antes dava para clicar em{' '}
+                  <strong>Próximo Nível</strong> sem escolher nada, e a ficha
+                  recebia uma opção <em>sorteada</em> em silêncio.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Feiticeiro</strong> de{' '}
+                  <strong>Linhagem Abençoada</strong> não conseguia escolher o{' '}
+                  <strong>poder concedido do 2º nível</strong>: no lugar da
+                  lista, o assistente dizia &quot;você já possui todas as opções
+                  disponíveis deste poder&quot; e o poder acabava sorteado. Os
+                  poderes concedidos exigem ser devoto do deus, mas a linhagem
+                  dá o poder <em>sem precisar ser devoto</em> — agora os quatro
+                  poderes do deus escolhido aparecem normalmente.
+                </li>
+                <li>
                   <strong>Correção:</strong> O texto das habilidades{' '}
                   <strong>Cascos</strong> e <strong>Ginete Natural</strong> do{' '}
                   <strong>Centauro</strong> estava misturado: as duas terminavam
