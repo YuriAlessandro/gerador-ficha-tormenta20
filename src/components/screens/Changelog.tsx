@@ -120,6 +120,17 @@ const Changelog: React.FC = () => {
                   elas são ajustadas ao serem abertas, sem precisar refazer
                   nada.
                 </li>
+                <li>
+                  <strong>Correção:</strong> No{' '}
+                  <strong>app instalado no iPhone</strong>, a faixa do topo —
+                  onde ficam o relógio e a bateria — aparecia com um borrão
+                  estranho por cima do conteúdo. Agora o app pinta essa faixa
+                  com a cor do tema. De quebra, o que fica na parte de baixo da
+                  tela (a barra de ações da mesa virtual, os botões flutuantes e
+                  os resultados de rolagem) não passa mais por trás da barrinha
+                  de gestos do iPhone, e as telas cheias respeitam as bordas do
+                  aparelho também na horizontal.
+                </li>
               </ul>
 
               <h3>4.30.1</h3>
