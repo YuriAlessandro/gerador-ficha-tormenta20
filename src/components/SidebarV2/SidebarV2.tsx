@@ -61,8 +61,8 @@ const StyledPaper = styled(Paper)`
   z-index: 3;
   height: 100vh;
   height: 100dvh; /* Dynamic viewport height for iOS */
-  padding-top: 20px;
-  padding-bottom: env(safe-area-inset-bottom, 20px);
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   transition: visibility 0s, opacity 0.5s linear;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;

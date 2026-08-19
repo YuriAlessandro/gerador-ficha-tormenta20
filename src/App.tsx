@@ -119,6 +119,8 @@ import {
   MapaDeArtonPage,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
+import { safeTop } from './theme/safeArea';
+import SafeAreaScrim from './components/SafeAreaScrim';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 declare module 'notistack' {
@@ -314,6 +316,9 @@ function ThemedApp(): JSX.Element {
   return (
     <ThemeProvider theme={theme}>
       <CssVarsProvider>
+        {/* Fora do AuthLoadingWrapper de propósito: a faixa da status bar
+            precisa estar pintada já na tela de carregamento. */}
+        <SafeAreaScrim />
         <SnackbarProvider
           autoHideDuration={null}
           anchorOrigin={{
@@ -359,6 +364,12 @@ function ThemedApp(): JSX.Element {
                                         alignItems: 'center',
                                         width: '100%',
                                         position: 'absolute',
+                                        // O containing block deste Stack é o
+                                        // initial containing block (nenhum
+                                        // ancestral é posicionado), então o
+                                        // padding do .App não o move — o inset
+                                        // da status bar tem que vir no `top`.
+                                        top: safeTop(),
                                       }}
                                     >
                                       <NavbarV2
@@ -370,7 +381,7 @@ function ThemedApp(): JSX.Element {
                                 </header>
                                 <Box
                                   className='mainArea'
-                                  sx={{ mt: hideChrome ? 0 : 15 }}
+                                  sx={{ mt: hideChrome ? 0 : safeTop(120) }}
                                 >
                                   <Switch>
                                     {isMapSubdomain && (

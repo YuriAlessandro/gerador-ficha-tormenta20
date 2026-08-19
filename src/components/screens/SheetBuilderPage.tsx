@@ -119,7 +119,7 @@ const SheetBuilderPage: React.FC = () => {
     margin: 0px;
     top: auto;
     right: 20px;
-    bottom: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     left: auto;
     position: fixed;
     z-index: 10;
