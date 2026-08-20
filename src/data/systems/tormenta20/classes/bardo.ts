@@ -86,7 +86,7 @@ const BARDO: ClassDescription = {
   ],
   powers: [
     {
-      name: 'Arte Mágica.',
+      name: 'Arte Mágica',
       text: 'Enquanto você estiver sob efeito de sua Inspiração, a CD para resistir a suas habilidades de bardo aumenta em +2',
       requirements: [],
     },
