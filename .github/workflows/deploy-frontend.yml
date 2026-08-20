@@ -153,18 +153,51 @@ jobs:
       # fallback) e reaquece o cache com a resposta certa, encurtando a janela em
       # que um usuário real poderia envenená-lo de novo. Download completo em vez
       # de HEAD é justamente por causa do reaquecimento.
+      #
+      # O HTML do fallback chega como 200, então `--retry` do curl não o alcança:
+      # para o curl aquilo foi sucesso. Daí o laço próprio. E ele purga a URL
+      # antes de tentar de novo, porque as duas causas pedem coisas diferentes:
+      # se a propagação só estava atrasada, basta esperar; se o HTML já entrou no
+      # cache com o `immutable` do `_headers`, esperar não resolve nunca — toda
+      # releitura devolveria a mesma resposta envenenada, por um ano.
       - name: Verificar e aquecer os assets
         env:
           SITE: https://fichasdenimb.com.br
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         run: |
           FAILED=0
+
+          purge_url() {
+            curl -sS --max-time 30 -X POST \
+              "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data "{\"files\":[\"$1\"]}" >/dev/null 2>&1 || true
+          }
+
           while read -r FILE; do
             URL="$SITE/${FILE#build/}"
-            CT=$(curl -sS --max-time 180 --retry 3 --retry-all-errors \
-              -o /dev/null -w '%{content_type}' "$URL" || echo 'erro-de-rede')
+            CT=''
+            for ATTEMPT in 1 2 3 4 5 6; do
+              CT=$(curl -sS --max-time 180 --retry 3 --retry-all-errors \
+                -o /dev/null -w '%{content_type}' "$URL" || echo 'erro-de-rede')
+              case "$CT" in
+                text/html*|erro-de-rede)
+                  if [ "$ATTEMPT" -lt 6 ]; then
+                    echo "aguardando  $CT  $URL  (tentativa $ATTEMPT)"
+                    purge_url "$URL"
+                    sleep 10
+                  fi
+                  ;;
+                *)
+                  break
+                  ;;
+              esac
+            done
             case "$CT" in
               text/html*)
-                echo "::error::$URL devolveu $CT — o fallback do SPA está cacheado no lugar do asset"
+                echo "::error::$URL ainda devolve $CT depois de 6 tentativas — o fallback do SPA está cacheado no lugar do asset"
                 FAILED=1
                 ;;
               erro-de-rede)
