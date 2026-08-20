@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            19/08/2026 (v4.30.2).
+            20/08/2026 (v4.31).
           </p>
 
           <p>
@@ -74,6 +74,24 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.31</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Ao adicionar um efeito manualmente
+                  pelo gerenciador de efeitos, os aprimoramentos do poder não
+                  são mais ligados todos de uma vez: a Inspiração do bardo só
+                  soma na Defesa se a ficha tiver <em>Inspiração Resoluta</em>,
+                  no dano se tiver <em>Inspiração Marcial</em> e assim por
+                  diante. O mesmo valia para a Fúria do bárbaro (Rigidez
+                  Selvagem, Fúria Titânica, Alma de Bronze), o Gritar Ordens do
+                  nobre (Ordens Agressivas e Encorajadoras) e a Escaramuça do
+                  caçador (Escaramuça Superior).
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder <em>Arte Mágica</em> do
+                  bardo estava cadastrado com um ponto final sobrando no nome.
+                </li>
+              </ul>
               <h3>4.30.2</h3>
               <ul>
                 <li>
