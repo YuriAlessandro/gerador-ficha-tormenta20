@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            20/08/2026 (v4.31).
+            21/08/2026 (v4.31).
           </p>
 
           <p>
@@ -90,6 +90,16 @@ const Changelog: React.FC = () => {
                 <li>
                   <strong>Correção:</strong> O poder <em>Arte Mágica</em> do
                   bardo estava cadastrado com um ponto final sobrando no nome.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No assistente de evolução, o truque{' '}
+                  <strong>Magia Inata</strong> do melhor amigo do{' '}
+                  <strong>Treinador</strong> travava a tela: nenhuma magia podia
+                  ser selecionada, o botão <strong>Próximo</strong> ficava
+                  desabilitado para sempre e nem desmarcar o truque nem escolher
+                  outro funcionava — o truque voltava sozinho. Acontecia ao
+                  pegar o poder <em>Ensinar Truque</em> (por exemplo, ao criar
+                  uma ficha já no nível 2) e nos níveis de truque automático.
                 </li>
               </ul>
               <h3>4.30.2</h3>
