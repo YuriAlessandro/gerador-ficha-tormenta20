@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconButton, Tooltip } from '@mui/material';
-import { Checkroom as ArmorIcon } from '@mui/icons-material';
+import ArmorIcon from '@mui/icons-material/Checkroom';
 
 import Equipment from '../../../interfaces/Equipment';
 

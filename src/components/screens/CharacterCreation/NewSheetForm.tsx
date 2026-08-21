@@ -11,10 +11,8 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  HelpOutlined as HelpOutlineIcon,
-} from '@mui/icons-material';
+import EditIcon from '@mui/icons-material/Edit';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import SelectOptions from '../../../interfaces/SelectedOptions';

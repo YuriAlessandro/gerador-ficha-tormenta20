@@ -12,19 +12,17 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-  PictureAsPdf as PdfIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Extension as ExtensionIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  History as HistoryIcon,
-  Home as HomeIcon,
-  Dangerous as ThreatIcon,
-  FolderOpen as FolderOpenIcon,
-  LocalOffer as LocalOfferIcon,
-} from '@mui/icons-material';
+import PdfIcon from '@mui/icons-material/PictureAsPdf';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningIcon from '@mui/icons-material/Warning';
+import ExtensionIcon from '@mui/icons-material/Extension';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import HistoryIcon from '@mui/icons-material/History';
+import HomeIcon from '@mui/icons-material/Home';
+import ThreatIcon from '@mui/icons-material/Dangerous';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { useConfirm } from '../../hooks/useDialog';

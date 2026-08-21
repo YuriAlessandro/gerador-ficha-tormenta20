@@ -27,20 +27,18 @@ import {
   Snackbar,
   Link,
 } from '@mui/material';
-import {
-  History as HistoryIcon,
-  PictureAsPdf as PdfIcon,
-  CloudUpload as CloudUploadIcon,
-  CheckCircle as CheckCircleIcon,
-  Extension as ExtensionIcon,
-  Warning as WarningIcon,
-  Cloud as CloudIcon,
-  HelpOutlined as HelpIcon,
-  Favorite as FavoriteIcon,
-  Article as ArticleIcon,
-  Subject as SubjectIcon,
-  Folder as FolderIcon,
-} from '@mui/icons-material';
+import HistoryIcon from '@mui/icons-material/History';
+import PdfIcon from '@mui/icons-material/PictureAsPdf';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ExtensionIcon from '@mui/icons-material/Extension';
+import WarningIcon from '@mui/icons-material/Warning';
+import CloudIcon from '@mui/icons-material/Cloud';
+import HelpIcon from '@mui/icons-material/HelpOutlined';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ArticleIcon from '@mui/icons-material/Article';
+import SubjectIcon from '@mui/icons-material/Subject';
+import FolderIcon from '@mui/icons-material/Folder';
 import Button from '@mui/material/Button';
 import React from 'react';
 import { useHistory, useLocation, Prompt } from 'react-router-dom';

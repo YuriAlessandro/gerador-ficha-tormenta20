@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import {
   Route,
   Switch,
@@ -29,30 +29,10 @@ import SystemSetupDialog from './components/SystemSetupDialog';
 import TermsAcceptanceModal from './components/Terms/TermsAcceptanceModal';
 import { AuthProvider } from './contexts/AuthContext';
 import { CURRENT_TERMS_VERSION } from './constants/terms';
-import CavernaDoSaber from './components/screens/CavernaDoSaber';
-import Changelog from './components/screens/Changelog';
-import Database from './components/screens/Database';
-import TermsOfUse from './components/screens/TermsOfUse';
 import LandingPageV2 from './components/LandingPageV2';
-import MainScreen from './components/screens/MainScreen';
-import MyCharactersPage from './components/screens/MyCharactersPage';
-import Rewards from './components/screens/Rewards';
-import SheetBuilderPage from './components/screens/SheetBuilderPage';
-import SheetList from './components/screens/SheetList';
-import SuperiorItems from './components/screens/SuperiorItems';
-import MagicalItems from './components/screens/MagicalItems';
-import ProfilePage from './components/screens/ProfilePage';
-import ThreatGeneratorScreen from './components/ThreatGenerator/ThreatGeneratorScreen';
-import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
-import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
-import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloudWrapper';
-import SheetViewPage from './components/screens/SheetViewPage';
-import OwlbearSheetEmbedPage from './components/screens/OwlbearSheetEmbedPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import ScrollToTop from './components/ScrollToTop';
 import NotificationDeepLinkHandler from './components/Notifications/NotificationDeepLinkHandler';
-import InstallPage from './components/screens/InstallPage';
-import { WyrtScreen } from './premium/components/Wyrt';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SEOProvider } from './components/SEO';
 import { useAuth } from './hooks/useAuth';
@@ -68,8 +48,6 @@ import { useFeatureAccess } from './hooks/useFeatureAccess';
 import { SupplementId } from './types/supplement.types';
 import logoFichasDeNimb from './assets/images/logoFichasDeNimb.svg';
 // Support page
-import SupportPage from './components/Premium/SupportPage';
-import SupportSuccessPage from './components/Premium/SupportSuccessPage';
 import JamboFooter from './components/LandingPageV2/JamboFooter';
 
 // Premium features (including Blog components)
@@ -122,6 +100,69 @@ import { Dice3DProvider } from './contexts/Dice3DContext';
 import { safeTop } from './theme/safeArea';
 import SafeAreaScrim from './components/SafeAreaScrim';
 // import CreatureSheet from './components/screens/CreatureSheet';
+
+// Telas de rota carregadas sob demanda. Cada uma vira um chunk próprio, então
+// a carga inicial não arrasta mais o app inteiro — o Changelog sozinho tem
+// 460 KB de fonte, e quem só quer gerar uma ficha não precisa dele. Em dev
+// isso também encolhe o grafo de módulos que o Vite transforma e mantém em
+// memória a cada page load.
+//
+// LandingPageV2 fica de fora de propósito: é a rota catch-all (a home), então
+// adiar seu chunk só trocaria conteúdo por um spinner no primeiro paint.
+const CavernaDoSaber = React.lazy(
+  () => import('./components/screens/CavernaDoSaber')
+);
+const Changelog = React.lazy(() => import('./components/screens/Changelog'));
+const Database = React.lazy(() => import('./components/screens/Database'));
+const TermsOfUse = React.lazy(() => import('./components/screens/TermsOfUse'));
+const MainScreen = React.lazy(() => import('./components/screens/MainScreen'));
+const MyCharactersPage = React.lazy(
+  () => import('./components/screens/MyCharactersPage')
+);
+const Rewards = React.lazy(() => import('./components/screens/Rewards'));
+const SheetBuilderPage = React.lazy(
+  () => import('./components/screens/SheetBuilderPage')
+);
+const SheetList = React.lazy(() => import('./components/screens/SheetList'));
+const SuperiorItems = React.lazy(
+  () => import('./components/screens/SuperiorItems')
+);
+const MagicalItems = React.lazy(
+  () => import('./components/screens/MagicalItems')
+);
+const ProfilePage = React.lazy(
+  () => import('./components/screens/ProfilePage')
+);
+const SheetViewPage = React.lazy(
+  () => import('./components/screens/SheetViewPage')
+);
+const OwlbearSheetEmbedPage = React.lazy(
+  () => import('./components/screens/OwlbearSheetEmbedPage')
+);
+const InstallPage = React.lazy(
+  () => import('./components/screens/InstallPage')
+);
+const ThreatGeneratorScreen = React.lazy(
+  () => import('./components/ThreatGenerator/ThreatGeneratorScreen')
+);
+const ThreatHistory = React.lazy(
+  () => import('./components/ThreatGenerator/ThreatHistory')
+);
+const ThreatViewWrapper = React.lazy(
+  () => import('./components/ThreatGenerator/ThreatViewWrapper')
+);
+const ThreatViewCloudWrapper = React.lazy(
+  () => import('./components/ThreatGenerator/ThreatViewCloudWrapper')
+);
+const SupportPage = React.lazy(
+  () => import('./components/Premium/SupportPage')
+);
+const SupportSuccessPage = React.lazy(
+  () => import('./components/Premium/SupportSuccessPage')
+);
+const WyrtScreen = React.lazy(() =>
+  import('./premium/components/Wyrt').then((m) => ({ default: m.WyrtScreen }))
+);
 
 declare module 'notistack' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -383,338 +424,359 @@ function ThemedApp(): JSX.Element {
                                   className='mainArea'
                                   sx={{ mt: hideChrome ? 0 : safeTop(120) }}
                                 >
-                                  <Switch>
-                                    {isMapSubdomain && (
-                                      <Route exact path='/'>
-                                        <Redirect to='/mapadearton' />
-                                      </Route>
-                                    )}
-                                    <Route path='/mapadearton'>
-                                      <MapaDeArtonPage />
-                                    </Route>
-                                    <Route path='/changelog'>
-                                      <Changelog />
-                                    </Route>
-                                    <Route path='/termos-de-uso'>
-                                      <TermsOfUse />
-                                    </Route>
-                                    <Route path='/recompensas'>
-                                      <Rewards />
-                                    </Route>
-                                    <Route path='/itens-superiores'>
-                                      <SuperiorItems isDarkMode={darkMode} />
-                                    </Route>
-                                    <Route path='/itens-magicos'>
-                                      <MagicalItems isDarkMode={darkMode} />
-                                    </Route>
-                                    <Route path='/criar-ficha'>
-                                      <MainScreen isDarkMode={darkMode} />
-                                    </Route>
-                                    <Route path='/ficha-aleatoria'>
-                                      <MainScreen isDarkMode={darkMode} />
-                                    </Route>
-                                    <Route path='/database'>
-                                      <Database />
-                                    </Route>
-                                    <Route path='/caverna-do-saber'>
-                                      <CavernaDoSaber />
-                                    </Route>
-                                    <Route path='/meus-personagens'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
+                                  {/* As telas de rota são lazy: este fallback cobre o intervalo entre
+                                      a navegação e o chunk chegar. O chrome (navbar/sidebar) fica
+                                      montado em volta, então basta um spinner na área de conteúdo. */}
+                                  <Suspense
+                                    fallback={
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                          minHeight: '50vh',
+                                        }}
                                       >
-                                        <MyCharactersPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/ficha/:id'>
-                                      <SheetViewPage />
-                                    </Route>
-                                    <Route path='/owlbear/ficha/:id'>
-                                      <OwlbearSheetEmbedPage />
-                                    </Route>
-                                    <Route path='/builds'>
-                                      <BuildsListPage />
-                                    </Route>
-                                    <Route path='/my-builds'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <MyBuildsPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/build/:id'>
-                                      <PremiumBuildViewPage />
-                                    </Route>
-                                    <Route path='/homebrews'>
-                                      <HomebrewsListPage />
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/raca'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <RaceHomebrewEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/classe'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <ClassHomebrewEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/origem'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <OriginHomebrewEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/divindade'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <DeityHomebrewEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/magias'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <SpellPackEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/poderes'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <PowerPackEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/classe-variante'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <VariantClassEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/itens'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <ItemPackEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/criar/colecao'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <CollectionEditorPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews/editar/:id'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <HomebrewEditEntryPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/meus-homebrews'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <MyHomebrewsPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/homebrew/:id/testar'>
-                                      <HomebrewTestSheetPage />
-                                    </Route>
-                                    <Route path='/homebrew/:id'>
-                                      <HomebrewViewPage />
-                                    </Route>
-                                    <Route path='/bestiario/:id'>
-                                      {bestiaryEnabled ? (
-                                        <PremiumBestiaryViewPage />
-                                      ) : (
-                                        <Redirect to='/' />
+                                        <CircularProgress
+                                          size={50}
+                                          color='primary'
+                                        />
+                                      </Box>
+                                    }
+                                  >
+                                    <Switch>
+                                      {isMapSubdomain && (
+                                        <Route exact path='/'>
+                                          <Redirect to='/mapadearton' />
+                                        </Route>
                                       )}
-                                    </Route>
-                                    <Route path='/meu-bestiario'>
-                                      {bestiaryEnabled ? (
+                                      <Route path='/mapadearton'>
+                                        <MapaDeArtonPage />
+                                      </Route>
+                                      <Route path='/changelog'>
+                                        <Changelog />
+                                      </Route>
+                                      <Route path='/termos-de-uso'>
+                                        <TermsOfUse />
+                                      </Route>
+                                      <Route path='/recompensas'>
+                                        <Rewards />
+                                      </Route>
+                                      <Route path='/itens-superiores'>
+                                        <SuperiorItems isDarkMode={darkMode} />
+                                      </Route>
+                                      <Route path='/itens-magicos'>
+                                        <MagicalItems isDarkMode={darkMode} />
+                                      </Route>
+                                      <Route path='/criar-ficha'>
+                                        <MainScreen isDarkMode={darkMode} />
+                                      </Route>
+                                      <Route path='/ficha-aleatoria'>
+                                        <MainScreen isDarkMode={darkMode} />
+                                      </Route>
+                                      <Route path='/database'>
+                                        <Database />
+                                      </Route>
+                                      <Route path='/caverna-do-saber'>
+                                        <CavernaDoSaber />
+                                      </Route>
+                                      <Route path='/meus-personagens'>
                                         <ProtectedRoute
                                           requireAuth
                                           redirectTo='/'
                                         >
-                                          <MyBestiaryPage />
+                                          <MyCharactersPage />
                                         </ProtectedRoute>
-                                      ) : (
-                                        <Redirect to='/' />
-                                      )}
-                                    </Route>
-                                    <Route path='/bestiario'>
-                                      {bestiaryEnabled ? (
-                                        <BestiaryListPage />
-                                      ) : (
-                                        <Redirect to='/' />
-                                      )}
-                                    </Route>
-                                    {/* Game Tables - Auth required, premium check done by backend */}
-                                    <Route path='/mesas'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <GameTablesPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/mesa/entrar/:code'>
-                                      <JoinTableByLinkPage />
-                                    </Route>
-                                    <Route path='/mesa/:tableId'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <GameTableDetailPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/sessao/:tableId'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <GameSessionPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    {/* Tela do Jogador — segunda tela pública
-                                        que o mestre abre num monitor/projetor
-                                        virado para a mesa. */}
-                                    <Route path='/tela/:tableId'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <PlayerScreenPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/sheets'>
-                                      <SheetList />
-                                    </Route>
-                                    <Route path='/sheet-builder/:id'>
-                                      <SheetBuilderPage />
-                                    </Route>
-                                    <Route path='/gerador-ameacas'>
-                                      <ThreatGeneratorScreen
-                                        isDarkMode={darkMode}
-                                      />
-                                    </Route>
-                                    <Route path='/threat-generator'>
-                                      <ThreatGeneratorScreen
-                                        isDarkMode={darkMode}
-                                      />
-                                    </Route>
-                                    <Route path='/threat-history'>
-                                      <ThreatHistory />
-                                    </Route>
-                                    <Route path='/threat-view'>
-                                      <ThreatViewCloudWrapper />
-                                    </Route>
-                                    <Route path='/threat/:id'>
-                                      <ThreatViewWrapper />
-                                    </Route>
-                                    <Route path='/perfil/:username'>
-                                      <ProfilePage />
-                                    </Route>
-                                    <Route path='/u/:username'>
-                                      <ProfilePage />
-                                    </Route>
-                                    {/* Support pages */}
-                                    <Route path='/apoiar/sucesso'>
-                                      <SupportSuccessPage />
-                                    </Route>
-                                    <Route path='/apoiar'>
-                                      <SupportPage />
-                                    </Route>
-                                    {/* Blog routes */}
-                                    <Route path='/blog/novo'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/blog'
-                                      >
-                                        <BlogEditor />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/blog/:id/edit'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/blog'
-                                      >
-                                        <BlogEditor />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/blog/:slug'>
-                                      <BlogPostPage />
-                                    </Route>
-                                    <Route path='/blog'>
-                                      <BlogList />
-                                    </Route>
-                                    {/* Forum routes */}
-                                    <Route path='/forum/novo'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/forum'
-                                      >
-                                        <CreateThreadPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/forum/:slug/editar'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/forum'
-                                      >
-                                        <EditThreadPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/forum/:slug'>
-                                      <ThreadPage />
-                                    </Route>
-                                    <Route path='/forum'>
-                                      <ForumPage />
-                                    </Route>
-                                    {/* Admin page - hidden, no links, only accessible by admin email */}
-                                    <Route path='/admin'>
-                                      <ProtectedRoute
-                                        requireAuth
-                                        redirectTo='/'
-                                      >
-                                        <AdminPage />
-                                      </ProtectedRoute>
-                                    </Route>
-                                    <Route path='/wyrt'>
-                                      <WyrtScreen />
-                                    </Route>
-                                    <Route path='/instalar'>
-                                      <InstallPage />
-                                    </Route>
-                                    {/* <Route path='/ficha-criatura'>
-                <CreatureSheet isDarkMode={darkMode} />
-              </Route> */}
-                                    <Route>
-                                      <LandingPageV2 />
-                                    </Route>
-                                  </Switch>
+                                      </Route>
+                                      <Route path='/ficha/:id'>
+                                        <SheetViewPage />
+                                      </Route>
+                                      <Route path='/owlbear/ficha/:id'>
+                                        <OwlbearSheetEmbedPage />
+                                      </Route>
+                                      <Route path='/builds'>
+                                        <BuildsListPage />
+                                      </Route>
+                                      <Route path='/my-builds'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <MyBuildsPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/build/:id'>
+                                        <PremiumBuildViewPage />
+                                      </Route>
+                                      <Route path='/homebrews'>
+                                        <HomebrewsListPage />
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/raca'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <RaceHomebrewEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/classe'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <ClassHomebrewEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/origem'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <OriginHomebrewEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/divindade'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <DeityHomebrewEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/magias'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <SpellPackEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/poderes'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <PowerPackEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/classe-variante'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <VariantClassEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/itens'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <ItemPackEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/criar/colecao'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <CollectionEditorPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews/editar/:id'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <HomebrewEditEntryPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/meus-homebrews'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <MyHomebrewsPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/homebrew/:id/testar'>
+                                        <HomebrewTestSheetPage />
+                                      </Route>
+                                      <Route path='/homebrew/:id'>
+                                        <HomebrewViewPage />
+                                      </Route>
+                                      <Route path='/bestiario/:id'>
+                                        {bestiaryEnabled ? (
+                                          <PremiumBestiaryViewPage />
+                                        ) : (
+                                          <Redirect to='/' />
+                                        )}
+                                      </Route>
+                                      <Route path='/meu-bestiario'>
+                                        {bestiaryEnabled ? (
+                                          <ProtectedRoute
+                                            requireAuth
+                                            redirectTo='/'
+                                          >
+                                            <MyBestiaryPage />
+                                          </ProtectedRoute>
+                                        ) : (
+                                          <Redirect to='/' />
+                                        )}
+                                      </Route>
+                                      <Route path='/bestiario'>
+                                        {bestiaryEnabled ? (
+                                          <BestiaryListPage />
+                                        ) : (
+                                          <Redirect to='/' />
+                                        )}
+                                      </Route>
+                                      {/* Game Tables - Auth required, premium check done by backend */}
+                                      <Route path='/mesas'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <GameTablesPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/mesa/entrar/:code'>
+                                        <JoinTableByLinkPage />
+                                      </Route>
+                                      <Route path='/mesa/:tableId'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <GameTableDetailPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/sessao/:tableId'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <GameSessionPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      {/* Tela do Jogador — segunda tela pública
+                                          que o mestre abre num monitor/projetor
+                                          virado para a mesa. */}
+                                      <Route path='/tela/:tableId'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <PlayerScreenPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/sheets'>
+                                        <SheetList />
+                                      </Route>
+                                      <Route path='/sheet-builder/:id'>
+                                        <SheetBuilderPage />
+                                      </Route>
+                                      <Route path='/gerador-ameacas'>
+                                        <ThreatGeneratorScreen
+                                          isDarkMode={darkMode}
+                                        />
+                                      </Route>
+                                      <Route path='/threat-generator'>
+                                        <ThreatGeneratorScreen
+                                          isDarkMode={darkMode}
+                                        />
+                                      </Route>
+                                      <Route path='/threat-history'>
+                                        <ThreatHistory />
+                                      </Route>
+                                      <Route path='/threat-view'>
+                                        <ThreatViewCloudWrapper />
+                                      </Route>
+                                      <Route path='/threat/:id'>
+                                        <ThreatViewWrapper />
+                                      </Route>
+                                      <Route path='/perfil/:username'>
+                                        <ProfilePage />
+                                      </Route>
+                                      <Route path='/u/:username'>
+                                        <ProfilePage />
+                                      </Route>
+                                      {/* Support pages */}
+                                      <Route path='/apoiar/sucesso'>
+                                        <SupportSuccessPage />
+                                      </Route>
+                                      <Route path='/apoiar'>
+                                        <SupportPage />
+                                      </Route>
+                                      {/* Blog routes */}
+                                      <Route path='/blog/novo'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/blog'
+                                        >
+                                          <BlogEditor />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/blog/:id/edit'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/blog'
+                                        >
+                                          <BlogEditor />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/blog/:slug'>
+                                        <BlogPostPage />
+                                      </Route>
+                                      <Route path='/blog'>
+                                        <BlogList />
+                                      </Route>
+                                      {/* Forum routes */}
+                                      <Route path='/forum/novo'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/forum'
+                                        >
+                                          <CreateThreadPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/forum/:slug/editar'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/forum'
+                                        >
+                                          <EditThreadPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/forum/:slug'>
+                                        <ThreadPage />
+                                      </Route>
+                                      <Route path='/forum'>
+                                        <ForumPage />
+                                      </Route>
+                                      {/* Admin page - hidden, no links, only accessible by admin email */}
+                                      <Route path='/admin'>
+                                        <ProtectedRoute
+                                          requireAuth
+                                          redirectTo='/'
+                                        >
+                                          <AdminPage />
+                                        </ProtectedRoute>
+                                      </Route>
+                                      <Route path='/wyrt'>
+                                        <WyrtScreen />
+                                      </Route>
+                                      <Route path='/instalar'>
+                                        <InstallPage />
+                                      </Route>
+                                      {/* <Route path='/ficha-criatura'>
+                  <CreatureSheet isDarkMode={darkMode} />
+                </Route> */}
+                                      <Route>
+                                        <LandingPageV2 />
+                                      </Route>
+                                    </Switch>
+                                  </Suspense>
                                 </Box>
                               </div>
                               {!hideChrome && <JamboFooter />}

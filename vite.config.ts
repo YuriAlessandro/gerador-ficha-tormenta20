@@ -90,10 +90,19 @@ export default defineConfig({
     spaFallbackPlugin(),
     ...(premiumAvailable ? [] : [premiumStubPlugin(__dirname)]),
     react(),
-    // O checker roda tsc e eslint sobre todo o src. Sem o submódulo premium os
-    // 173 imports viram TS2307 e o overlay cobre a tela — o stub resolve em
-    // runtime, mas não no type-check. Desligado nesse modo de propósito.
-    ...(premiumAvailable
+    // O checker roda tsc e eslint sobre todo o src — medido em 1.8 GB (tsc) +
+    // 2.1 GB (eslint) de pico, dentro do processo do dev server e re-rodando a
+    // cada save. Somado ao servidor isso estourava a RAM do WSL e o kernel
+    // matava o `npm start` por OOM. O editor já roda tsserver e eslintServer,
+    // então em dev isso era o mesmo trabalho pago duas vezes.
+    //
+    // Agora é opt-in: `VITE_CHECK=1 npm start` para ter o overlay de volta.
+    // O portão de verdade continua sendo `npx tsc --noEmit` + eslint no CI.
+    //
+    // Sem o submódulo premium ele fica desligado de qualquer forma: os 173
+    // imports viram TS2307 e o overlay cobre a tela — o stub resolve em
+    // runtime, mas não no type-check.
+    ...(premiumAvailable && process.env.VITE_CHECK === '1'
       ? [
           checker({
             overlay: { initialIsOpen: false },

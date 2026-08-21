@@ -7,11 +7,9 @@ import {
   Collapse,
   Divider,
 } from '@mui/material';
-import {
-  AutoStories as AutoStoriesIcon,
-  ExpandMore as ExpandMoreIcon,
-  Bolt as BoltIcon,
-} from '@mui/icons-material';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import BoltIcon from '@mui/icons-material/Bolt';
 import {
   SupplementId,
   SUPPLEMENT_METADATA,

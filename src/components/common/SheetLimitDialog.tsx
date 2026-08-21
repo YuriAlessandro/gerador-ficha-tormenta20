@@ -14,7 +14,7 @@ import {
 import { useHistory } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
 import FolderIcon from '@mui/icons-material/Folder';
-import { Favorite } from '@mui/icons-material';
+import Favorite from '@mui/icons-material/Favorite';
 import { useLimitBoost } from '../../hooks/useLimitBoost';
 import { BoostFlame, BoostedNumber } from './BoostedLimit';
 

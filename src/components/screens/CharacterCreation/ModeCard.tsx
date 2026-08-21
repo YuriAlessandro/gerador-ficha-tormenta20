@@ -1,9 +1,7 @@
 import React from 'react';
 import { Box, Typography, Chip, useTheme, alpha } from '@mui/material';
-import {
-  ArrowForward as ArrowForwardIcon,
-  SwapHoriz as SwapHorizIcon,
-} from '@mui/icons-material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import './characterCreation.css';
 
 export type ModeAccent = 'edit' | 'random';

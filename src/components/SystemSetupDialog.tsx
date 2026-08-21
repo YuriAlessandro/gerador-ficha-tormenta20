@@ -17,7 +17,8 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Check as CheckIcon, Lock as LockIcon } from '@mui/icons-material';
+import CheckIcon from '@mui/icons-material/Check';
+import LockIcon from '@mui/icons-material/Lock';
 import {
   SupplementId,
   SUPPLEMENT_METADATA,

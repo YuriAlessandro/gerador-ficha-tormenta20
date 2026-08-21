@@ -27,13 +27,11 @@ import {
   useTheme,
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import {
-  Close as CloseIcon,
-  ExpandLess as ExpandLessIcon,
-  Inventory as InventoryIcon,
-  Save as SaveIcon,
-  Tune as TuneIcon,
-} from '@mui/icons-material';
+import CloseIcon from '@mui/icons-material/Close';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import SaveIcon from '@mui/icons-material/Save';
+import TuneIcon from '@mui/icons-material/Tune';
 import {
   DragDropContext,
   Draggable,

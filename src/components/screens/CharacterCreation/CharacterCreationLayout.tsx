@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { Casino as CasinoIcon, Edit as EditIcon } from '@mui/icons-material';
+import CasinoIcon from '@mui/icons-material/Casino';
+import EditIcon from '@mui/icons-material/Edit';
 import ModeCard from './ModeCard';
 import './characterCreation.css';
 

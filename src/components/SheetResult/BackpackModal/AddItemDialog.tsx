@@ -21,13 +21,11 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Build as CustomIcon,
-  Clear as ClearIcon,
-  Close as CloseIcon,
-  Search as SearchIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import CustomIcon from '@mui/icons-material/Build';
+import ClearIcon from '@mui/icons-material/Clear';
+import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
 import debounce from 'lodash/debounce';
 
 import Equipment, { equipGroup } from '../../../interfaces/Equipment';

@@ -21,13 +21,11 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Casino as RollsIcon,
-  Close as CloseIcon,
-  Delete as DeleteIcon,
-  RestartAlt as ResetIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import RollsIcon from '@mui/icons-material/Casino';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ResetIcon from '@mui/icons-material/RestartAlt';
 
 import Equipment, {
   AppliedEnchantment,

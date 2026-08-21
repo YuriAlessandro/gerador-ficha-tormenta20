@@ -30,23 +30,21 @@ import {
   Switch,
   Tooltip,
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  Person as PersonIcon,
-  CalendarToday as CalendarIcon,
-  Description as SheetIcon,
-  Settings as SettingsIcon,
-  Favorite as FavoriteIcon,
-  Receipt as ReceiptIcon,
-  CreditCard as CreditCardIcon,
-  Cancel as CancelIcon,
-  Refresh as RefreshIcon,
-  OpenInNew as OpenInNewIcon,
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon,
-  Check as CheckIcon,
-  Lock as LockIcon,
-} from '@mui/icons-material';
+import EditIcon from '@mui/icons-material/Edit';
+import PersonIcon from '@mui/icons-material/Person';
+import CalendarIcon from '@mui/icons-material/CalendarToday';
+import SheetIcon from '@mui/icons-material/Description';
+import SettingsIcon from '@mui/icons-material/Settings';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import CancelIcon from '@mui/icons-material/Cancel';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import CheckIcon from '@mui/icons-material/Check';
+import LockIcon from '@mui/icons-material/Lock';
 import SupporterBadge from '../Premium/SupporterBadge';
 import ProfileLevelChip from '../Premium/ProfileLevelChip';
 import {

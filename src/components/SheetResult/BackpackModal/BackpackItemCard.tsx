@@ -9,14 +9,12 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  DragIndicator as DragIcon,
-  Edit as EditIcon,
-  Remove as RemoveIcon,
-  ReportProblem as OverflowIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DragIcon from '@mui/icons-material/DragIndicator';
+import EditIcon from '@mui/icons-material/Edit';
+import RemoveIcon from '@mui/icons-material/Remove';
+import OverflowIcon from '@mui/icons-material/ReportProblem';
 
 import Equipment, { DefenseEquipment } from '../../../interfaces/Equipment';
 import { getItemSpaces } from '../../../interfaces/Bag';

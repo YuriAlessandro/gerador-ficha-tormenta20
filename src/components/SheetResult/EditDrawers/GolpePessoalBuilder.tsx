@@ -18,11 +18,9 @@ import {
   Alert,
   Grid,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Remove as RemoveIcon,
-  Settings as SettingsIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {
   GolpePessoalBuild,
   ELEMENTAL_DAMAGE_TYPES,
