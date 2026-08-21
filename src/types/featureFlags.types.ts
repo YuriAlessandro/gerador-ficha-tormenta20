@@ -19,6 +19,7 @@ export interface FeatureFlags {
   spellAreaGuide: FeatureFlag;
   playerScreen: FeatureFlag;
   playerJournal: FeatureFlag;
+  portrait: FeatureFlag;
   limitBoost: FeatureFlag;
 }
 
@@ -48,6 +49,11 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // customizadas). Ligar `supporterOnly` aqui trancaria a feature INTEIRA,
   // porque o `useFeatureAccess` é binário. Default desligado até o rollout.
   playerJournal: { enabled: false, supporterOnly: false },
+  // Portrait: overlay da ficha para streams (`/portrait/:token`), embutível como
+  // Browser Source no OBS. `supporterOnly` trava quem GERA e configura o link;
+  // ASSISTIR não passa por esta flag — o OBS não tem sessão, e a rota pública é
+  // guardada só pelo token. Default desligado até o rollout.
+  portrait: { enabled: false, supporterOnly: true },
   // Boost de limites da meta de 200 apoiadores: multiplica TODOS os limites por
   // nível de apoio (menos suplementos), inclusive os de contas gratuitas.
   // `supporterOnly` é ignorado — vale para todo mundo. Default desligado: o

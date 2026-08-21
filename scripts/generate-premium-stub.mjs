@@ -74,6 +74,12 @@ const OVERRIDES = {
   // boolean para decidir se mostra a aba "Diário". Sem o submódulo não há
   // canvas, então a aba apareceria vazia.
   PLAYER_JOURNAL_AVAILABLE: { expr: 'false' },
+  // O público lê `.hasAccess` para decidir se mostra o botão do Portrait. O
+  // default `() => ({})` funcionaria por acidente (undefined é falsy), mas
+  // deixa o contrato implícito e quebra na hora que alguém ler `.isEnabled`.
+  usePortraitAccess: {
+    expr: '() => ({ isEnabled: false, hasAccess: false, needsSupport: false })',
+  },
   // camelCase cairia em `noop` (undefined); estes são lidos como string/array
   getWildShapeAnimalEmoji: { expr: "() => '🐾'" },
   getWildShapeAnimals: { expr: '() => []' },

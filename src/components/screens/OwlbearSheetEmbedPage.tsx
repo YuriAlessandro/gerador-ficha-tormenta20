@@ -11,6 +11,7 @@ import { AuthResponse } from '@/services/auth.service';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { useSheets } from '@/hooks/useSheets';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import { setActivePortraitSheet } from '@/functions/portraitBridge';
 import Bag from '@/interfaces/Bag';
 import { ThreatSheet, normalizeThreatSheet } from '@/interfaces/ThreatSheet';
 import { dataRegistry } from '@/data/registry';
@@ -205,6 +206,19 @@ const OwlbearSheetEmbedPage: React.FC = () => {
       active = false;
     };
   }, [id]);
+
+  /**
+   * Registra a ficha como origem das rolagens do Portrait (overlay de stream).
+   *
+   * Aqui não há UI de configuração — a tela do embed é apertada demais. Só o
+   * registro, para que quem joga pelo Owlbear com o overlay ligado veja as
+   * rolagens aparecerem na live do mesmo jeito.
+   */
+  useEffect(() => {
+    if (!isOwner || !id) return undefined;
+    setActivePortraitSheet(id);
+    return () => setActivePortraitSheet(null);
+  }, [isOwner, id]);
 
   const handleSheetUpdate = useCallback(
     async (updated: CharacterSheet) => {

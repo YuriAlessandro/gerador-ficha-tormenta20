@@ -50,8 +50,8 @@
 
 # --- Framing ---
 #
-# Padrão é bloquear (X-Frame-Options: SAMEORIGIN, na regra /* acima). Duas
-# exceções, ambas destacando o header com `!`:
+# Padrão é bloquear (X-Frame-Options: SAMEORIGIN, na regra /* acima). Três
+# exceções, todas destacando o header com `!`:
 
 # 1. Ficha embutida nas extensões de VTT: troca o XFO por um CSP restrito às
 #    origens que podem embutir a ficha.
@@ -66,7 +66,26 @@
   ! X-Frame-Options
   Content-Security-Policy: frame-ancestors https://www.owlbear.rodeo https://fichas-owlbear.pages.dev https://*.fichas-owlbear.pages.dev https://app.roll20.net
 
-# 2. Mapa de Arton: página pública somente leitura, incorporável por qualquer
+# 2. Portrait: overlay de ficha para streams, carregado como Browser Source no
+#    OBS. O OBS é página top-level (não iframe), então o XFO nem se aplica a
+#    ele — o motivo de destacar é outro: gente embute isto em Streamlabs, no
+#    painel da Twitch e em editores de overlay, que usam iframe sandbox sem
+#    allow-same-origin (origem opaca). Mesma razão do Mapa de Arton abaixo,
+#    inclusive para NÃO usar CSP com `frame-ancestors *`. Embutir não expõe
+#    nada que o link já não exponha.
+#
+#    `no-store`: o shell do SPA é o que o OBS carrega e ele fica com a fonte
+#    aberta por semanas; sem isto uma cena antiga serve HTML velho depois de um
+#    deploy.
+#
+#    `noindex`: o token é a credencial da rota, e não pode acabar num índice de
+#    busca.
+/portrait/*
+  ! X-Frame-Options
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+
+# 3. Mapa de Arton: página pública somente leitura, incorporável por qualquer
 #    site — omite XFO E CSP. Não usar `frame-ancestors *`: o `*` só casa com
 #    origens de esquema de rede (http/https/ws/wss) e rejeita ancestral com
 #    origem opaca, que é o que plataformas criam ao envolver embeds em iframe
