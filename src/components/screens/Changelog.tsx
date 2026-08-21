@@ -77,6 +77,23 @@ const Changelog: React.FC = () => {
               <h3>4.31</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Os{' '}
+                  <strong>poderes personalizados</strong> agora podem{' '}
+                  <strong>conceder bônus que a ficha calcula sozinha</strong>.
+                  Antes eles só guardavam um texto e uma rolagem: se o seu poder
+                  dava +2 em Fortitude, você tinha que somar na mão. Agora, ao
+                  criar ou editar um poder personalizado, existe a seção{' '}
+                  <strong>Bônus Passivos</strong> — a mesma dos homebrews — onde
+                  você escolhe o que o poder concede (atributo, perícia, PV, PM,
+                  Defesa, deslocamento, redução de dano, dano de arma, margem de
+                  ameaça…) e a ficha aplica na hora. No modo{' '}
+                  <strong>Avançado</strong> dá para fazer o bônus escalar com o
+                  nível. Os bônus aparecem no poder como{' '}
+                  <em>Aplicado na ficha</em>, então dá para conferir de onde
+                  veio cada número. Vale também para os poderes concedidos
+                  personalizados.
+                </li>
+                <li>
                   <strong>Novo:</strong>{' '}
                   <strong>Overlay de ficha para lives</strong> (apoiadores). Na
                   tela de visualização da ficha há um botão para configurar um
