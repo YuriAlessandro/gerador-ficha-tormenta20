@@ -99,6 +99,23 @@ const Changelog: React.FC = () => {
                   nenhuma ficha muda de número.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Os itens de{' '}
+                  <strong>Heróis de Arton</strong> e{' '}
+                  <strong>Ameaças de Arton</strong> agora têm{' '}
+                  <strong>descrição e efeito</strong>. Antes eles entravam na
+                  mochila só com preço, espaços e Defesa — a{' '}
+                  <em>Armadura sensual</em> aparecia como uma armadura leve
+                  qualquer, sem nenhum sinal de que deveria dar bônus. Agora 228
+                  itens trazem o texto da regra, e 15 deles somam sozinhos na
+                  ficha: a <em>Armadura sensual</em> dá +2 em perícias de
+                  Carisma (ou +5 se você tiver o poder <em>Atraente</em>), a{' '}
+                  <em>Cota de moedas</em> dá +2 em Diplomacia, a{' '}
+                  <em>Veste de teia de aranha</em> +5 em Furtividade, os{' '}
+                  <em>Elmos</em> aplicam suas penalidades em Iniciativa e
+                  Percepção, e por aí vai. Fichas antigas também recebem os
+                  efeitos: não precisa recomprar o item.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Ao aplicar o efeito da magia{' '}
                   <strong>Escudo da Fé</strong>, além dos valores prontos de +2
                   e +3 na Defesa agora existe a opção{' '}
@@ -106,6 +123,16 @@ const Changelog: React.FC = () => {
                   quanto de Defesa a magia está dando. O limite acompanha o
                   atributo-chave de conjuração do personagem, do mesmo jeito que
                   já acontecia na <em>Armadura Arcana</em>.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na <strong>Mochila</strong>, o card
+                  de cada item passou a mostrar a{' '}
+                  <strong>descrição da regra</strong> — inclusive de armas,
+                  armaduras e escudos, que antes eram os únicos que não a
+                  exibiam. Quando o item concede algum bônus, ele também aparece
+                  em uma etiqueta ao lado dos números, marcada como{' '}
+                  <em>(cond.)</em> quando só vale em certas situações (por
+                  exemplo, enquanto a armadura estiver vestida).
                 </li>
                 <li>
                   <strong>Correção:</strong> Ao adicionar um efeito manualmente
@@ -165,6 +192,24 @@ const Changelog: React.FC = () => {
                   <strong>5 PV temporários para cada +1 na Defesa</strong> — 10
                   PV no bônus de +2, 15 no de +3, e acompanhando o contador no
                   valor customizado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em fichas de{' '}
+                  <strong>classes variantes</strong> (Alquimista, Necromante,
+                  Duelista e as outras de Heróis de Arton), a lista de{' '}
+                  <strong>poderes de classe</strong> podia sumir por completo do
+                  editor de poderes — sem lista e sem aviso — quando o
+                  suplemento de origem estava desativado. Agora os poderes
+                  aparecem de qualquer jeito, e se algo impedir de carregá-los a
+                  ficha explica o motivo em vez de mostrar nada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ainda nas classes variantes, os
+                  poderes herdados da classe base ficavam sem o botão{' '}
+                  <strong>Usar</strong>. Um <strong>Alquimista</strong> não
+                  conseguia ativar <em>Pedra de Amolar</em>,{' '}
+                  <em>Ajuste de Mira</em> nem <em>Oficina de Campo</em>, que são
+                  poderes de inventor.
                 </li>
               </ul>
               <h3>4.30.2</h3>
