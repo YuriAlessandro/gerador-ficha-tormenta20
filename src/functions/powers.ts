@@ -278,7 +278,7 @@ export function getPowersAllowedByRequirements(
  * quando a classe/variante é resolvida — variantes, homebrew e suplementos
  * desativados deixam o array vazio em fichas carregadas.
  */
-function resolveClassPowerCatalog(sheet: CharacterSheet): ClassPower[] {
+export function resolveClassPowerCatalog(sheet: CharacterSheet): ClassPower[] {
   const stored = sheet.classe?.powers ?? [];
   if (stored.length > 0) return stored;
 

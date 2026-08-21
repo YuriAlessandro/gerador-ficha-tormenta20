@@ -14,6 +14,7 @@ import {
   FormControlLabel,
   Chip,
   TextField,
+  Alert,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
@@ -31,7 +32,10 @@ import {
   RequirementType,
   OriginPower,
 } from '@/interfaces/Poderes';
-import { applyRequirementNot } from '@/functions/powers';
+import {
+  applyRequirementNot,
+  resolveClassPowerCatalog,
+} from '@/functions/powers';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
@@ -258,14 +262,17 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   // Organize all powers by category
   // Use all available supplements to show all powers in editor
-  const allSupplements = [
-    SupplementId.TORMENTA20_CORE,
-    SupplementId.TORMENTA20_AMEACAS_ARTON,
-    SupplementId.TORMENTA20_DEUSES_ARTON,
-    SupplementId.TORMENTA20_HEROIS_ARTON,
-    // Suplementos runtime ativados (ex.: Pacotes de Poderes homebrew).
-    ...(dataRegistry.getRuntimeSupplementIds() as unknown as SupplementId[]),
-  ];
+  const allSupplements = useMemo(
+    () => [
+      SupplementId.TORMENTA20_CORE,
+      SupplementId.TORMENTA20_AMEACAS_ARTON,
+      SupplementId.TORMENTA20_DEUSES_ARTON,
+      SupplementId.TORMENTA20_HEROIS_ARTON,
+      // Suplementos runtime ativados (ex.: Pacotes de Poderes homebrew).
+      ...(dataRegistry.getRuntimeSupplementIds() as unknown as SupplementId[]),
+    ],
+    []
+  );
   const allPowersByCategory =
     dataRegistry.getPowersBySupplements(allSupplements);
 
@@ -273,12 +280,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   const classPowerSets = useMemo(() => {
     const sets: Array<{ className: string; powers: ClassPower[] }> = [];
 
+    // `resolveClassPowerCatalog` e não `sheet.classe.powers` direto: fichas
+    // salvas têm o catálogo zerado por `stripSheetForStorage`, e
+    // `rehydrateSheet` só o restaura quando a classe é resolvida DENTRO dos
+    // suplementos ativos do usuário. Uma variante (ex.: Alquimista) com o
+    // suplemento de origem desativado ficava com `powers: []` e o acordeão
+    // inteiro sumia daqui sem nenhuma mensagem.
+    const primaryPowers = resolveClassPowerCatalog(sheet);
+
     if (!isMulticlass(sheet)) {
       // Single-class: use primary class powers
-      if (sheet.classe.powers && sheet.classe.powers.length > 0) {
+      if (primaryPowers.length > 0) {
         sets.push({
           className: sheet.classe.name,
-          powers: sheet.classe.powers,
+          powers: primaryPowers,
         });
       }
       return sets;
@@ -289,8 +304,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     classLevelsMap.forEach((_level, className) => {
       if (className === sheet.classe.name) {
         // Primary class: use sheet.classe.powers (may have setup modifications)
-        if (sheet.classe.powers && sheet.classe.powers.length > 0) {
-          sets.push({ className, powers: sheet.classe.powers });
+        if (primaryPowers.length > 0) {
+          sets.push({ className, powers: primaryPowers });
         }
       } else {
         // Secondary class: look up from registry
@@ -2408,6 +2423,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           ))}
 
           {/* Class Powers Section(s) - one accordion per class for multiclass */}
+          {classPowerSets.length === 0 && (
+            <Alert severity='info' sx={{ mb: 2 }}>
+              Não foi possível carregar o catálogo de poderes de{' '}
+              {sheet.classe.name}. Se essa classe vem de um suplemento,
+              reative-o nas configurações de conteúdo para ver e escolher os
+              poderes dela.
+            </Alert>
+          )}
+
           {classPowerSets.map(({ className: clsName, powers: clsPowers }) => {
             const filtered = filterPowers(clsPowers);
             if (filtered.length === 0) return null;
@@ -2422,6 +2446,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <AccordionDetails>
                   <Stack spacing={2}>
                     {filtered
+                      .slice()
                       .sort((a, b) => {
                         const aQualifies = checkClassPowerRequirements(a);
                         const bQualifies = checkClassPowerRequirements(b);
@@ -2626,6 +2651,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <AccordionDetails>
                   <Stack spacing={2}>
                     {filteredPowers
+                      .slice()
                       .sort((a, b) => {
                         if (category.type === 'ORIGEM') {
                           // Check if powers meet origin requirements
