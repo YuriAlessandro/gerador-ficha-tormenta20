@@ -101,6 +101,31 @@ const Changelog: React.FC = () => {
                   pegar o poder <em>Ensinar Truque</em> (por exemplo, ao criar
                   uma ficha já no nível 2) e nos níveis de truque automático.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Raças variantes não tinham acesso
+                  aos <strong>poderes de raça</strong> da raça base. O{' '}
+                  <strong>Soterrado</strong> (variante de osteon) agora alcança
+                  Explosão Óssea, Manipulação Esquelética e Ossos Afiados, e o{' '}
+                  <strong>Trog Anão</strong> (variante de trog) alcança os onze
+                  poderes de trog. Pelo mesmo motivo, também passaram a valer as
+                  regras de <strong>Meio-Orc</strong> (&quot;considerado um orc
+                  para efeitos relacionados a raça&quot;),{' '}
+                  <strong>Meio-Elfo</strong> (considerado um elfo) e{' '}
+                  <strong>Moreau</strong> (considerado também um humano), que
+                  agora enxergam os poderes de orc, elfo e humano.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Alguns poderes de raça estavam
+                  cadastrados com o nome da raça diferente do catálogo e por
+                  isso <strong>nunca ficavam disponíveis para ninguém</strong>:
+                  Asas de Aço para <strong>Harpia</strong>, Entre as Pernas e
+                  Golpe no Joelho para <strong>Kobolds</strong>, Asas de Aço,
+                  Asas Extraplanares, Criança da Luz/das Trevas e Familiar de
+                  Luz/Trevas para <strong>Suraggel</strong>, Camuflagem
+                  Mimética, Canto da Sereia e Pirata Oceânico para{' '}
+                  <strong>Sereia</strong>, e Magia Ofídica para o{' '}
+                  <strong>Moreau da Serpente</strong>.
+                </li>
               </ul>
               <h3>4.30.2</h3>
               <ul>
