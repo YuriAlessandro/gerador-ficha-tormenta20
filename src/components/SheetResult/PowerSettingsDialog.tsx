@@ -89,9 +89,12 @@ const PowerSettingsDialog: React.FC<PowerSettingsDialogProps> = ({
     setTextDraft(customDescription ?? defaultText ?? '');
   }, [open, powerName]);
 
+  // `sheet.classe` e não `className`: as definições são cadastradas com o nome
+  // da classe-base, então uma variante (Alquimista → Inventor) só casa quando
+  // passamos a ClassDescription inteira.
   const precannedDef = useMemo(
-    () => getActivePowerForSheetEntry(className, powerName),
-    [className, powerName]
+    () => getActivePowerForSheetEntry(sheet?.classe ?? className, powerName),
+    [sheet?.classe, className, powerName]
   );
 
   let effectsBadgeSuffix = '';

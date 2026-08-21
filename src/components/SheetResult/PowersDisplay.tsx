@@ -336,7 +336,12 @@ const PowersDisplay: React.FC<{
       );
     }
     if (sheet && onActivateEffect) {
-      const activeDef = getActivePowerForSheetEntry(className, pw.name);
+      // `sheet.classe` e não `className`: variantes (Alquimista → Inventor)
+      // só casam com a ClassDescription, que carrega `baseClassName`.
+      const activeDef = getActivePowerForSheetEntry(
+        sheet?.classe ?? className,
+        pw.name
+      );
       if (activeDef) {
         return (
           <PowerActiveEffectAction
