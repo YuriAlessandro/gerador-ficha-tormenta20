@@ -77,6 +77,28 @@ const Changelog: React.FC = () => {
               <h3>4.31</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Overlay de ficha para lives</strong> (apoiadores). Na
+                  tela de visualização da ficha há um botão para configurar um
+                  overlay e gerar um link próprio — cole em um{' '}
+                  <em>Browser Source</em> do OBS e a ficha aparece na
+                  transmissão, atualizando sozinha conforme você joga. Dá para
+                  escolher quais blocos aparecem e, dentro de{' '}
+                  <strong>Vitais</strong>, ligar item a item o que quer mostrar:
+                  PV, PM, pontos temporários, Defesa e os números.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Peças de <strong>Vestuário</strong>{' '}
+                  agora podem ser <strong>vestidas ou guardadas</strong>, como
+                  já acontecia com armaduras. Antes, uma <em>Camisa bufante</em>{' '}
+                  ou uns <em>Farrapos de ermitão</em> aplicavam seus efeitos só
+                  por estarem na mochila, sem opção de dizer que o personagem
+                  não estava usando aquilo. Agora cada peça tem um botão de
+                  cabide no card da Mochila: só o que está vestido conta na
+                  ficha. Suas peças atuais continuam todas vestidas, então
+                  nenhuma ficha muda de número.
+                </li>
+                <li>
                   <strong>Correção:</strong> Ao adicionar um efeito manualmente
                   pelo gerenciador de efeitos, os aprimoramentos do poder não
                   são mais ligados todos de uma vez: a Inspiração do bardo só
