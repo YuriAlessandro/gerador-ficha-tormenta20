@@ -59,9 +59,14 @@ const handlePWAUpdate = (reloadPage?: boolean) => {
   }
 };
 
-// Página standalone para a extensão do Owlbear Rodeo (popup de login). Renderiza
-// sem o chrome/providers do app principal — apenas o auth bridge.
-if (window.location.pathname === '/owlbear-auth') {
+// Página standalone de login das extensões (Owlbear Rodeo e Roll20). Renderiza
+// sem o chrome/providers do app principal — apenas o auth bridge. Os dois
+// caminhos servem o mesmo componente; a origem de quem pede o token é validada
+// dentro dele.
+if (
+  window.location.pathname === '/owlbear-auth' ||
+  window.location.pathname === '/roll20-auth'
+) {
   ReactDOM.render(
     <React.StrictMode>
       <OwlbearAuthBridge />

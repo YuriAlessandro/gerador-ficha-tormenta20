@@ -53,11 +53,18 @@
 # Padrão é bloquear (X-Frame-Options: SAMEORIGIN, na regra /* acima). Duas
 # exceções, ambas destacando o header com `!`:
 
-# 1. Ficha embutida na extensão do Owlbear: troca o XFO por um CSP restrito à
-#    cadeia owlbear.rodeo → extensão (hospedada no Cloudflare Pages).
+# 1. Ficha embutida nas extensões de VTT: troca o XFO por um CSP restrito às
+#    origens que podem embutir a ficha.
+#
+#    A rota se chama /owlbear/* por ter nascido para o Owlbear, mas serve as
+#    duas extensões — a do Roll20 embute a MESMA rota no painel dentro do jogo.
+#    Renomear a rota quebraria a extensão do Owlbear já instalada, então o que
+#    cresce é a lista de ancestrais:
+#      - owlbear.rodeo → extensão do Owlbear (hospedada no Cloudflare Pages)
+#      - app.roll20.net → painel da extensão do Roll20, injetado na página do jogo
 /owlbear/*
   ! X-Frame-Options
-  Content-Security-Policy: frame-ancestors https://www.owlbear.rodeo https://fichas-owlbear.pages.dev https://*.fichas-owlbear.pages.dev
+  Content-Security-Policy: frame-ancestors https://www.owlbear.rodeo https://fichas-owlbear.pages.dev https://*.fichas-owlbear.pages.dev https://app.roll20.net
 
 # 2. Mapa de Arton: página pública somente leitura, incorporável por qualquer
 #    site — omite XFO E CSP. Não usar `frame-ancestors *`: o `*` só casa com

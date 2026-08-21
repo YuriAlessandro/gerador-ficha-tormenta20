@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            20/08/2026 (v4.31).
+            21/08/2026 (v4.31).
           </p>
 
           <p>
@@ -76,6 +76,20 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.31</h3>
               <ul>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Extensão para o Roll20.</strong> Agora dá para levar
+                  suas fichas para o Roll20 de duas formas, que funcionam
+                  juntas. A <em>importação</em> copia a ficha inteira —
+                  atributos, perícias, magias, poderes, habilidades, equipamento
+                  e ataques — para a ficha oficial{' '}
+                  <em>Tormenta20 - Jogo do Ano</em>, então a mesa toda enxerga
+                  seu personagem. E o <em>painel</em> abre sua ficha do Fichas
+                  de Nimb dentro da própria tela do Roll20: as rolagens feitas
+                  nela aparecem no chat da mesa, e seus PV e PM são espelhados
+                  na ficha do Roll20 enquanto você joga. Reimportar depois de
+                  subir de nível atualiza tudo no lugar, sem duplicar nada.
+                </li>
                 <li>
                   <strong>Correção:</strong> Ao adicionar um efeito manualmente
                   pelo gerenciador de efeitos, os aprimoramentos do poder não
