@@ -1,4 +1,6 @@
 import Equipment from '../interfaces/Equipment';
+import { SheetBonus } from '../interfaces/CharacterSheet';
+import { describeBonusTarget } from './sheetBonuses/bonusTargetLabel';
 
 /**
  * Helpers de apresentação de equipamento, compartilhados entre a ficha, o
@@ -78,4 +80,51 @@ export const getSupplementInitials = (name?: string): string | undefined => {
 export const formatReach = (item: Equipment): string | undefined => {
   if (item.alcance && item.alcance !== '-') return item.alcance;
   return item.arremesso ? 'Arremesso' : undefined;
+};
+
+/**
+ * Rótulos curtos dos bônus mecânicos que um item concede — para exibir ao lado
+ * dos stats na mochila e no mercado.
+ *
+ * Só cobre `sheetBonuses` de valor FIXO: os demais modificadores (`LevelCalc`,
+ * `CappedAttribute`…) dependem da ficha e não cabem num chip de catálogo.
+ * `conditionalBonuses` também fica de fora — a condição deles (`isClass`,
+ * `hasClassAbility`) só faz sentido com a ficha em mãos.
+ *
+ * Bônus com `condition` ganham o prefixo "(cond.)": o número existe, mas não
+ * vale sempre — é o caso da Armadura sensual, que só conta enquanto vestida.
+ *
+ * Valores diferentes para o mesmo alvo são agrupados com "/" em vez de virarem
+ * dois chips: a Armadura sensual cadastra dois conjuntos MUTUAMENTE EXCLUSIVOS
+ * (+2 sem o poder Atraente, +5 com), e mostrá-los lado a lado sugeriria soma.
+ */
+export const describeItemBonuses = (item: Equipment): string[] => {
+  const groups = new Map<
+    string,
+    { prefix: string; label: string; values: number[] }
+  >();
+
+  (item.sheetBonuses ?? []).forEach((bonus: SheetBonus) => {
+    if (bonus.modifier.type !== 'Fixed') return;
+
+    const { label, numeric } = describeBonusTarget(bonus.target);
+    if (!numeric) return;
+
+    const prefix = bonus.condition ? '(cond.) ' : '';
+    const key = `${prefix}${label}`;
+    const group = groups.get(key) ?? { prefix, label, values: [] };
+    if (!group.values.includes(bonus.modifier.value)) {
+      group.values.push(bonus.modifier.value);
+    }
+    groups.set(key, group);
+  });
+
+  return [...groups.values()].map(({ prefix, label, values }) => {
+    const numbers = values
+      .slice()
+      .sort((a, b) => a - b)
+      .map((value) => (value >= 0 ? `+${value}` : `${value}`))
+      .join('/');
+    return `${prefix}${numbers} ${label}`;
+  });
 };

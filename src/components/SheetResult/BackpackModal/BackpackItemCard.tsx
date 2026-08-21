@@ -16,6 +16,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import RemoveIcon from '@mui/icons-material/Remove';
 import OverflowIcon from '@mui/icons-material/ReportProblem';
 
+import { describeItemBonuses } from '@/functions/equipmentDisplay';
 import Equipment, { DefenseEquipment } from '../../../interfaces/Equipment';
 import { getItemSpaces } from '../../../interfaces/Bag';
 import { itemTypeStyles } from './itemTypeStyles';
@@ -100,6 +101,8 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
   const ammoUnits = item.unitsRemaining ?? 0;
   const ammoPackSize = item.ammoPackSize ?? 20;
   const ammoLabel = item.ammoType ? AMMO_LABELS[item.ammoType] : 'Munição';
+
+  const bonusLabels = describeItemBonuses(item);
 
   const stats: { label: string; value: string }[] = [];
   if (item.group === 'Arma') {
@@ -284,9 +287,32 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               </Stack>
             )}
 
-            {item.descricao && item.group !== 'Arma' && !isDefense(item) && (
+            {bonusLabels.length > 0 && (
+              <Stack
+                direction='row'
+                spacing={0.5}
+                sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}
+              >
+                {bonusLabels.map((label) => (
+                  <Chip
+                    key={label}
+                    size='small'
+                    variant='outlined'
+                    color='success'
+                    label={label}
+                    sx={{ height: 20, fontSize: '0.65rem' }}
+                  />
+                ))}
+              </Stack>
+            )}
+
+            {/* Armas e armaduras mostram a descrição como qualquer outro item:
+                escondê-las deixava invisível a regra de itens como a Armadura
+                sensual, cujo efeito inteiro vive no texto. */}
+            {item.descricao && (
               <Typography
                 variant='caption'
+                title={item.descricao}
                 sx={{
                   color: 'text.secondary',
                   display: '-webkit-box',
