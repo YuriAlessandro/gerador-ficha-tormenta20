@@ -13,6 +13,7 @@ import {
   reapplyEnhancementsAndWeaponBonuses,
 } from './recalculateSheet';
 import { normalizeSheet } from './sheetNormalizer';
+import { refreshBagItemsFromCatalog } from './bagCatalogRefresh';
 import { isBonusActive } from './bonusConditions';
 import { getSheetWornArmor, isWearingHeavyArmor } from './wornArmor';
 import { ignoresEncumbrance } from './encumbrance';
@@ -7281,6 +7282,11 @@ export function restoreSpellPath(
   // Repara invariantes estruturais (atributos, arrays, size, etc.) de fichas
   // antigas/corrompidas. Este é o chokepoint de todos os caminhos de carga.
   normalizeSheet(sheet);
+
+  // Re-carimba nos itens da mochila o dado estático do catálogo (descrição e
+  // bônus). A mochila guarda snapshots do momento da compra, então uma regra
+  // cadastrada depois só alcançaria fichas novas sem isso.
+  refreshBagItemsFromCatalog(sheet);
 
   if (!sheet.classe) return;
 
