@@ -18,7 +18,7 @@ import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
-import { CompanionSheet, CompanionTrick } from '@/interfaces/Companion';
+import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
@@ -69,6 +69,10 @@ import LevelBenefitsStep from './steps/LevelBenefitsStep';
 import ClassSelectionStep from './steps/ClassSelectionStep';
 import ClassSetupStep from './steps/ClassSetupStep';
 import CompanionTrickSelectionStep from './steps/CompanionTrickSelectionStep';
+import {
+  applyCompanionTrickPatch,
+  CompanionTrickPatch,
+} from './companionTrickSelection';
 import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCreationStep';
 import RaceLevelUpPickStep, {
   RaceLevelUpPick,
@@ -863,6 +867,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           if (def.subChoiceType === 'attribute')
             return !!t.choices?.primary && !!t.choices?.secondary;
           if (def.subChoiceType === 'movement') return !!t.choices?.type;
+          // Magia Inata: sem a magia escolhida o truque não concede nada
+          if (def.subChoiceType === 'spell') return !!t.choices?.spell;
           return true;
         });
       }
@@ -1171,34 +1177,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           getProjectedCompanion(reason, selectedCompanionIndex) ||
           companions[0];
 
-        const upsert = (
-          patch: Partial<{
-            companionIndex: number;
-            trick: CompanionTrick | undefined;
-            spell: Spell | undefined;
-          }>
-        ) => {
-          const others = selections.filter((e) => e.reason !== reason);
-          // Se "patch.trick" for explicitamente undefined (clear), remove a entry
-          if ('trick' in patch && patch.trick === undefined) {
-            setCurrentLevelSelection({
-              ...currentLevelSelection,
-              companionTrickSelections: others.length ? others : undefined,
-            });
-            return;
-          }
-          const baseTrick = patch.trick ?? existing?.trick;
-          if (!baseTrick) return;
-          const updated = {
-            companionIndex: patch.companionIndex ?? selectedCompanionIndex,
-            trick: baseTrick,
-            spell: 'spell' in patch ? patch.spell : existing?.spell,
-            reason,
-          };
-          setCurrentLevelSelection({
-            ...currentLevelSelection,
-            companionTrickSelections: [...others, updated],
-          });
+        // Atualização funcional e atômica: o passo dispara DOIS callbacks no
+        // mesmo evento (magia + truque, ou truque + limpeza da magia), então
+        // cada patch precisa partir do estado mais recente — não do render.
+        const upsert = (patch: CompanionTrickPatch) => {
+          setCurrentLevelSelection((prev) =>
+            applyCompanionTrickPatch(
+              prev,
+              reason,
+              patch,
+              selectedCompanionIndex
+            )
+          );
         };
 
         return (
