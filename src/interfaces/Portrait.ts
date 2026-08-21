@@ -49,6 +49,28 @@ export interface PortraitBlocks {
   conditions: boolean;
 }
 
+/**
+ * Itens do bloco `vitals`, escolhidos um a um.
+ *
+ * Vivem separados de `blocks` porque `blocks.vitals` é o interruptor mestre: se
+ * ele estiver desligado nada disto importa. E vivem FORA de `appearance` porque
+ * são conteúdo, não estilo — `showNumbers` e `showDefense` nasceram lá por
+ * engano, e o resultado foi um toggle de Defesa a três seções de distância do
+ * toggle de Vitais.
+ */
+export interface PortraitVitalsItems {
+  /** Barra de PV. */
+  pv: boolean;
+  /** Barra de PM. */
+  pm: boolean;
+  /** Segmento listrado de PV/PM temporário, empilhado à direita das barras. */
+  temp: boolean;
+  /** Badge "DEF n" ao lado do nome. */
+  defense: boolean;
+  /** "34/48" sobre as barras. Desligado, ficam só as barras. */
+  numbers: boolean;
+}
+
 export interface PortraitAppearance {
   theme: 'dark' | 'light';
   /** Cor de destaque, `#RRGGBB`. Default = `#d13235` (accent "Tormenta 20"). */
@@ -68,15 +90,13 @@ export interface PortraitAppearance {
   /** Quanto tempo o painel de rolagem fica em cena. Clampado em [3, 30]. */
   rollTtlSeconds: number;
   showPortraitImage: boolean;
-  /** `false` deixa só as barras, sem "34/48". */
-  showNumbers: boolean;
-  showDefense: boolean;
 }
 
 export interface PortraitConfig {
   /** O config é gravado num campo Mixed; a versão é o que permite migrar. */
   version: 1;
   blocks: PortraitBlocks;
+  vitals: PortraitVitalsItems;
   appearance: PortraitAppearance;
 }
 
@@ -206,6 +226,13 @@ export const DEFAULT_PORTRAIT_CONFIG: PortraitConfig = {
     rolls: true,
     conditions: true,
   },
+  vitals: {
+    pv: true,
+    pm: true,
+    temp: true,
+    defense: true,
+    numbers: true,
+  },
   appearance: {
     theme: 'dark',
     accent: PORTRAIT_DEFAULT_ACCENT,
@@ -216,8 +243,6 @@ export const DEFAULT_PORTRAIT_CONFIG: PortraitConfig = {
     scale: 1,
     rollTtlSeconds: 8,
     showPortraitImage: true,
-    showNumbers: true,
-    showDefense: true,
   },
 };
 
@@ -253,6 +278,7 @@ function oneOf<T extends string>(value: unknown, allowed: T[], fallback: T): T {
 export function sanitizePortraitConfig(raw: unknown): PortraitConfig {
   const input = (raw ?? {}) as Partial<PortraitConfig>;
   const blocks = (input.blocks ?? {}) as Partial<PortraitBlocks>;
+  const vitals = (input.vitals ?? {}) as Partial<PortraitVitalsItems>;
   const appearance = (input.appearance ?? {}) as Partial<PortraitAppearance>;
   const d = DEFAULT_PORTRAIT_CONFIG;
 
@@ -263,6 +289,13 @@ export function sanitizePortraitConfig(raw: unknown): PortraitConfig {
       vitals: bool(blocks.vitals, d.blocks.vitals),
       rolls: bool(blocks.rolls, d.blocks.rolls),
       conditions: bool(blocks.conditions, d.blocks.conditions),
+    },
+    vitals: {
+      pv: bool(vitals.pv, d.vitals.pv),
+      pm: bool(vitals.pm, d.vitals.pm),
+      temp: bool(vitals.temp, d.vitals.temp),
+      defense: bool(vitals.defense, d.vitals.defense),
+      numbers: bool(vitals.numbers, d.vitals.numbers),
     },
     appearance: {
       theme: oneOf(appearance.theme, ['dark', 'light'], d.appearance.theme),
@@ -290,8 +323,6 @@ export function sanitizePortraitConfig(raw: unknown): PortraitConfig {
         appearance.showPortraitImage,
         d.appearance.showPortraitImage
       ),
-      showNumbers: bool(appearance.showNumbers, d.appearance.showNumbers),
-      showDefense: bool(appearance.showDefense, d.appearance.showDefense),
     },
   };
 }
