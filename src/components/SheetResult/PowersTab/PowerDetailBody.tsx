@@ -118,7 +118,9 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
   // parece inerte. Aqui o valor é o do poder, isolado.
   const appliedBonuses = useMemo(() => {
     if (!sheet) return [];
-    // `CustomPower` não tem `sheetBonuses` — mesmo padrão usado para `rolls`.
+    // Nem todo membro da união `SheetPower` declara `sheetBonuses` (mesmo
+    // padrão usado para `rolls`). `CustomPower` declara desde os bônus
+    // passivos do poder personalizado.
     const declared = 'sheetBonuses' in power ? power.sheetBonuses : undefined;
     return getPowerAppliedBonuses(sheet, {
       name: power.name,

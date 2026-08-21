@@ -70,6 +70,10 @@ import {
   isProficientWithWeapon,
 } from './proficiencies';
 import { applyAttributeSubstitution } from './powers/attributeSubstitution';
+import {
+  sanitizeCustomPowerBonuses,
+  stampCustomPowerSource,
+} from './powers/customPowerBonuses';
 import { stampUsedSupplements } from './contentSources';
 import {
   isModeScopedForWeapon,
@@ -1234,6 +1238,47 @@ function applyGeneralPowers(
   return sheetClone;
 }
 
+/**
+ * Bônus passivos dos poderes criados à mão (`customPowers` +
+ * `customGrantedPowers`). Espelha `applyGeneralPowers`, com duas diferenças:
+ *
+ * 1. O `source` é RE-CARIMBADO aqui, e não gravado pelo diálogo: o usuário pode
+ *    renomear o poder, e um `source.name` congelado no save quebraria o
+ *    casamento em `getPowerAppliedBonuses`. Como o Step 1 zera `sheetBonuses` e
+ *    este passo reconstrói tudo, carimbar aqui é sempre idempotente.
+ * 2. Os bônus passam pelo saneador antes de virarem número — é conteúdo de
+ *    usuário e pode chegar de uma ficha compartilhada ou da nuvem.
+ *
+ * Não passa `sourceClassName`: poder personalizado não pertence a classe
+ * nenhuma, e o `className` faria `{classLevel}` resolver contra uma classe
+ * arbitrária.
+ */
+function applyCustomPowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
+  const customPowers = [
+    ...(sheet.customPowers || []),
+    ...(sheet.customGrantedPowers || []),
+  ];
+  if (customPowers.length === 0) return sheet;
+
+  return customPowers.reduce((acc, power) => {
+    const sheetBonuses = stampCustomPowerSource(
+      sanitizeCustomPowerBonuses(power.sheetBonuses),
+      power.name
+    );
+    if (sheetBonuses.length === 0) return acc;
+
+    const [newAcc] = applyPower(
+      acc,
+      { name: power.name, sheetBonuses },
+      manualSelections?.[power.name]
+    );
+    return newAcc;
+  }, _.cloneDeep(sheet));
+}
+
 function applyClassPowers(
   sheet: CharacterSheet,
   manualSelections?: ManualPowerSelections
@@ -2077,6 +2122,12 @@ export function recalculateSheet(
 
   // Step 7: Apply origin powers
   updatedSheet = applyOriginPowers(updatedSheet, manualSelections);
+
+  // Step 7.1: Bônus passivos dos poderes personalizados. Fica junto dos demais
+  // baldes de poder (Steps 2-7) e ANTES do 7.35 (perda de Carisma da Tormenta,
+  // que precisa de todos os baldes preenchidos), do 7.46 (único consumidor dos
+  // alvos `Attribute`), do 7.5 (PV/PM), do 7.7 (perícias) e do Step 8.
+  updatedSheet = applyCustomPowers(updatedSheet, manualSelections);
 
   // Step 7.2: Apply complication (Heróis de Arton)
   updatedSheet = applyComplication(updatedSheet, manualSelections);

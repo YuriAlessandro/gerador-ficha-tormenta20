@@ -76,6 +76,7 @@ import { CustomPower } from '@/interfaces/CustomPower';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
 import CustomPowerDialog from './CustomPowerDialog';
+import { describeBonusTarget } from '../../../functions/sheetBonuses/bonusTargetLabel';
 import EnsinarTruqueDialog, { EnsinarTruquePick } from './EnsinarTruqueDialog';
 
 interface PowersEditDrawerProps {
@@ -2954,6 +2955,26 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                     >
                                       {power.description}
                                     </Typography>
+                                    {power.sheetBonuses &&
+                                      power.sheetBonuses.length > 0 && (
+                                        <Typography
+                                          variant='caption'
+                                          sx={{
+                                            color: 'text.secondary',
+                                            display: 'block',
+                                            mt: 0.5,
+                                          }}
+                                        >
+                                          <strong>Bônus:</strong>{' '}
+                                          {power.sheetBonuses
+                                            .map(
+                                              (b) =>
+                                                describeBonusTarget(b.target)
+                                                  .label
+                                            )
+                                            .join(', ')}
+                                        </Typography>
+                                      )}
                                   </Box>
                                   <Stack direction='row' spacing={0.5}>
                                     <IconButton
@@ -3068,6 +3089,24 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                               {power.rolls.map((r) => r.label).join(', ')}
                             </Typography>
                           )}
+                          {power.sheetBonuses &&
+                            power.sheetBonuses.length > 0 && (
+                              <Typography
+                                variant='caption'
+                                sx={{
+                                  color: 'text.secondary',
+                                  display: 'block',
+                                  mt: 0.5,
+                                }}
+                              >
+                                <strong>Bônus:</strong>{' '}
+                                {power.sheetBonuses
+                                  .map(
+                                    (b) => describeBonusTarget(b.target).label
+                                  )
+                                  .join(', ')}
+                              </Typography>
+                            )}
                         </Box>
                         <Stack direction='row' spacing={0.5}>
                           <IconButton

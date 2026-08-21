@@ -23,6 +23,8 @@ import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import { RETIRED_ACTIVE_POWER_KEYS } from '../premium/data/activePowers';
+import { CustomPower } from '../interfaces/CustomPower';
+import { sanitizeCustomPowerBonuses } from './powers/customPowerBonuses';
 import {
   ARQUEIRO_SHEET_BONUSES,
   ESGRIMISTA_SHEET_BONUSES,
@@ -329,6 +331,29 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
       ? sheet.classPowers
           .filter((p) => p && typeof p.name === 'string')
           .map(refreshPowerBonuses)
+      : [];
+  }
+
+  // Poderes personalizados: os `sheetBonuses` são conteúdo de usuário e
+  // chegam da nuvem/localStorage sem passar por validação nenhuma. Sanear aqui
+  // (o chokepoint de toda carga) em vez de confiar só no `applyCustomPowers`,
+  // senão o dado sujo fica gravado para sempre.
+  const sanitizeCustomPowerList = (list: CustomPower[]): CustomPower[] =>
+    list
+      .filter((p) => p && typeof p.name === 'string')
+      .map((p) =>
+        p.sheetBonuses === undefined
+          ? p
+          : { ...p, sheetBonuses: sanitizeCustomPowerBonuses(p.sheetBonuses) }
+      );
+  if (sheet.customPowers !== undefined) {
+    sheet.customPowers = Array.isArray(sheet.customPowers)
+      ? sanitizeCustomPowerList(sheet.customPowers)
+      : [];
+  }
+  if (sheet.customGrantedPowers !== undefined) {
+    sheet.customGrantedPowers = Array.isArray(sheet.customGrantedPowers)
+      ? sanitizeCustomPowerList(sheet.customGrantedPowers)
       : [];
   }
 
