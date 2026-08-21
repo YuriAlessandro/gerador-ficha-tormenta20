@@ -120,7 +120,7 @@ const racePowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.RACA,
     requirements: [
       [
-        { type: RequirementType.RACA, name: 'Hárpia' },
+        { type: RequirementType.RACA, name: 'Harpia' },
         { type: RequirementType.TEXT, text: 'Possuir asas' },
       ],
       [
@@ -517,7 +517,7 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.PERICIA, name: Skill.ACROBACIA },
       ],
       [
-        { type: RequirementType.RACA, name: 'Kobold' },
+        { type: RequirementType.RACA, name: 'Kobolds' },
         { type: RequirementType.PERICIA, name: Skill.ACROBACIA },
       ],
     ],
@@ -788,7 +788,7 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.PODER, name: 'Entre as Pernas' },
       ],
       [
-        { type: RequirementType.RACA, name: 'Kobold' },
+        { type: RequirementType.RACA, name: 'Kobolds' },
         { type: RequirementType.PODER, name: 'Entre as Pernas' },
       ],
     ],
@@ -829,7 +829,8 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.TEXT, text: 'Lançar magias' },
       ],
       [
-        { type: RequirementType.RACA, name: 'Moreau da Serpente' },
+        { type: RequirementType.RACA, name: 'Moreau' },
+        { type: RequirementType.HERANCA, name: 'Serpente' },
         { type: RequirementType.TEXT, text: 'Lançar magias' },
       ],
       [

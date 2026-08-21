@@ -1,6 +1,7 @@
 import Race, { RaceAbility } from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
 import Skill from '../../../../../interfaces/Skills';
+import RACE_COUNTS_AS from '../../races/raceCountsAs';
 
 const meioOrcAbilities: RaceAbility[] = [
   {
@@ -53,6 +54,8 @@ const meioOrcAbilities: RaceAbility[] = [
 
 const MEIO_ORC: Race = {
   name: 'Meio-Orc',
+  // Ver `raceCountsAs.ts` para a justificativa no livro.
+  countsAsRaces: RACE_COUNTS_AS['Meio-Orc'],
   attributes: {
     attrs: [
       { attr: Atributo.FORCA, mod: 2 },

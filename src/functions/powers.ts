@@ -17,6 +17,7 @@ import {
   INVENTOR_SPECIALIZATIONS,
   InventorSpecialization,
   isClassOrVariantOf,
+  isRaceOrVariantOf,
 } from './general';
 import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
@@ -201,11 +202,18 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       return sheet.devoto?.divindade.name === godName;
     }
     case RequirementType.RACA: {
-      const raceName = rule.name;
-      return sheet.raca.name === raceName;
+      // Aceita variantes e "considerado um X para efeitos relacionados a raça"
+      // (Soterrado→Osteon, Trog Anão→Trog, Meio-Orc→Orc, Meio-Elfo→Elfo,
+      // Moreau→Humano) além do nome próprio da raça.
+      const raceName = rule.name as string | undefined;
+      return !!raceName && isRaceOrVariantOf(sheet.raca, raceName);
     }
     case RequirementType.CHASSIS: {
       return sheet.raca.chassis === rule.name;
+    }
+    case RequirementType.HERANCA: {
+      // Herança do Moreau (ex.: Magia Ofídica exige "Moreau da Serpente").
+      return sheet.raca.heritage === rule.name;
     }
     case RequirementType.TIER_LIMIT: {
       const category = rule.name as string; // "Bênção Dracônica"

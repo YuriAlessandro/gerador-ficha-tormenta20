@@ -39,6 +39,8 @@ function baseText(req: Requirement, options: FormatRequirementOptions): string {
       return `Raça: ${req.name}`;
     case RequirementType.CHASSIS:
       return `Chassi: ${req.name}`;
+    case RequirementType.HERANCA:
+      return `Herança: ${req.name}`;
     case RequirementType.DEVOTO:
       if (!req.name) return 'Devoto de uma divindade';
       return req.name === 'any'
@@ -70,6 +72,7 @@ function negatedText(req: Requirement, base: string): string {
     case RequirementType.CLASSE:
     case RequirementType.RACA:
     case RequirementType.CHASSIS:
+    case RequirementType.HERANCA:
     case RequirementType.ATRIBUTO:
     case RequirementType.NIVEL:
       return `Não: ${base}`;

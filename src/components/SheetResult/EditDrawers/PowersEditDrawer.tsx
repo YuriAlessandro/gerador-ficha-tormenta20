@@ -54,7 +54,7 @@ import {
   calculateGolpePessoalCost,
   resolveGolpePessoalEffectKey,
 } from '@/functions/powers/golpePessoal';
-import { isClassOrVariantOf } from '@/functions/general';
+import { isClassOrVariantOf, isRaceOrVariantOf } from '@/functions/general';
 import {
   isMulticlass,
   getClassLevelsMap,
@@ -1250,12 +1250,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 return sheet.classe.abilities?.some((a) => a.name === req.name);
 
               case RequirementType.RACA:
-                // Check if character is the required race
-                return sheet.raca.name === req.name;
+                // Aceita variantes e "considerado um X para efeitos
+                // relacionados a raça" (mesmo critério de `evaluateRule`).
+                return (
+                  !!req.name &&
+                  isRaceOrVariantOf(sheet.raca, req.name as string)
+                );
 
               case RequirementType.CHASSIS:
                 // Check if character has the required chassis
                 return sheet.raca.chassis === req.name;
+
+              case RequirementType.HERANCA:
+                // Herança do Moreau (ex.: "Moreau da Serpente")
+                return sheet.raca.heritage === req.name;
 
               case RequirementType.TIER_LIMIT: {
                 // Check if character can still pick this power in current tier
@@ -1366,9 +1374,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               case RequirementType.HABILIDADE:
                 return sheet.classe.abilities?.some((a) => a.name === req.name);
               case RequirementType.RACA:
-                return sheet.raca.name === req.name;
+                return (
+                  !!req.name &&
+                  isRaceOrVariantOf(sheet.raca, req.name as string)
+                );
               case RequirementType.CHASSIS:
                 return sheet.raca.chassis === req.name;
+              case RequirementType.HERANCA:
+                return sheet.raca.heritage === req.name;
               // Sem este case, poderes de classe com pré-requisito de devoção
               // (Arma Sagrada, do Paladino) caíam no `default: true` e ficavam
               // sempre liberados.

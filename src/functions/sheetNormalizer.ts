@@ -5,6 +5,7 @@ import Bag from '../interfaces/Bag';
 import { WeaponOverride } from '../interfaces/Equipment';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
+import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
@@ -374,6 +375,14 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     sheet.raca.abilities = sheet.raca.abilities
       .filter((a) => a && typeof a.name === 'string')
       .map(refreshDescription);
+
+    // `countsAsRaces` é dado estático de catálogo (nunca escolha do usuário),
+    // então sobrescrever pelo mapa atual cura fichas salvas antes do campo
+    // existir — sem isso, um Soterrado do localStorage continuaria sem acesso
+    // aos poderes de raça de Osteon. O caminho da nuvem tem a cura equivalente
+    // em `rehydrateSheet`.
+    const countsAs = RACE_COUNTS_AS[sheet.raca.name];
+    if (countsAs) sheet.raca.countsAsRaces = countsAs;
 
     if (sheet.raca.name === 'Centauro') {
       sheet.raca.abilities = sheet.raca.abilities.map(

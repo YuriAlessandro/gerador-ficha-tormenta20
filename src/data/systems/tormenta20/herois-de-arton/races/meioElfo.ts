@@ -1,9 +1,12 @@
 import Race from '../../../../../interfaces/Race';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
+import RACE_COUNTS_AS from '../../races/raceCountsAs';
 
 const MEIO_ELFO: Race = {
   name: 'Meio-Elfo',
+  // Ver `raceCountsAs.ts` para a justificativa no livro.
+  countsAsRaces: RACE_COUNTS_AS['Meio-Elfo'],
   attributes: {
     attrs: [
       { attr: Atributo.INTELIGENCIA, mod: 1 },

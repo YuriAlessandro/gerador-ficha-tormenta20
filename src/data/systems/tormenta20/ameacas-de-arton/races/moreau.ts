@@ -6,6 +6,7 @@ import {
   MoreauHeritageName,
 } from './moreau-heritages';
 import { Atributo } from '../../atributos';
+import RACE_COUNTS_AS from '../../races/raceCountsAs';
 
 /**
  * Aplica customização ao Moreau
@@ -38,6 +39,8 @@ export function applyMoreauCustomization(
 
 const MOREAU: Race = {
   name: 'Moreau',
+  // Ver `raceCountsAs.ts` para a justificativa no livro.
+  countsAsRaces: RACE_COUNTS_AS.Moreau,
   // Default attributes (will be overridden by heritage)
   attributes: {
     attrs: [

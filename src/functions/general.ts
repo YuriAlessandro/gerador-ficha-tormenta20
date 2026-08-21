@@ -940,6 +940,21 @@ export function isClassOrVariantOf(
   );
 }
 
+/**
+ * Análogo racial de `isClassOrVariantOf`. Além do nome próprio, aceita as
+ * raças listadas em `countsAsRaces` — Raças Variantes (Soterrado → Osteon,
+ * Trog Anão → Trog), a cláusula "é considerado um X para efeitos relacionados
+ * a raça" (Meio-Orc, Meio-Elfo, Moreau) e os apelidos do livro que divergem do
+ * nome do catálogo (Suraggel, Sereia/Tritão).
+ *
+ * A relação é de mão única: um Osteon NÃO conta como Soterrado.
+ */
+export function isRaceOrVariantOf(race: Race, raceName: string): boolean {
+  return (
+    race.name === raceName || (race.countsAsRaces ?? []).includes(raceName)
+  );
+}
+
 function getClassByFilter(selectedOptions: SelectedOptions) {
   const supplements = selectedOptions.supplements || [
     SupplementId.TORMENTA20_CORE,

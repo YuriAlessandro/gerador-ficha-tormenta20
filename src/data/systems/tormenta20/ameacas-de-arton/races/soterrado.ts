@@ -8,9 +8,12 @@ import {
 } from '../../races/functions/functions';
 import { Atributo } from '../../atributos';
 import HUMANO from '../../races/humano';
+import RACE_COUNTS_AS from '../../races/raceCountsAs';
 
 const SOTERRADO: Race = {
   name: 'Soterrado',
+  // Ver `raceCountsAs.ts` para a justificativa no livro.
+  countsAsRaces: RACE_COUNTS_AS.Soterrado,
   attributes: {
     attrs: [
       { attr: Atributo.CONSTITUICAO, mod: -1 },
