@@ -614,6 +614,8 @@ export type BonusConditionOp = 'gte' | 'lte' | 'eq';
 export type BonusConditionClause = (
   | { kind: 'wearingHeavyArmor' }
   | { kind: 'wearingArmor' }
+  /** Vestindo a armadura de nome exato `value` (identidade de catálogo). */
+  | { kind: 'wearingArmorNamed'; value: string }
   | { kind: 'wieldingShield' }
   | { kind: 'wieldingItemNamed'; value: string }
   | { kind: 'wieldingTwoHandedWeapon' }
