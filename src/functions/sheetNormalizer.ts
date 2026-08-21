@@ -581,6 +581,15 @@ export function normalizeSheet(sheet: CharacterSheet): void {
 
   if (!sheet.bag) sheet.bag = Bag.fromStored();
 
+  // `undefined` é o estado SAUDÁVEL aqui (= nada guardado, tudo vestido), então
+  // só desfaz um valor corrompido — nunca preenche com `[]`.
+  if (
+    sheet.unwornClothingIds !== undefined &&
+    !Array.isArray(sheet.unwornClothingIds)
+  ) {
+    sheet.unwornClothingIds = undefined;
+  }
+
   if (!Array.isArray(sheet.skills)) sheet.skills = [];
   if (!Array.isArray(sheet.spells)) sheet.spells = [];
   if (!Array.isArray(sheet.generalPowers)) sheet.generalPowers = [];

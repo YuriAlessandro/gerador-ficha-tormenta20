@@ -20,8 +20,8 @@ import Equipment, { DefenseEquipment } from '../../../interfaces/Equipment';
 import { getItemSpaces } from '../../../interfaces/Bag';
 import { itemTypeStyles } from './itemTypeStyles';
 import WieldingControl from './WieldingControl';
-import WornArmorControl from './WornArmorControl';
-import { isTwoHanded, WieldingSlot } from './wielding';
+import WornItemControl from './WornItemControl';
+import { hasMechanicalBonus, isTwoHanded, WieldingSlot } from './wielding';
 import { AMMO_LABELS } from './ammo';
 
 export interface BackpackItemCardProps {
@@ -40,7 +40,10 @@ export interface BackpackItemCardProps {
    * both hands).
    */
   wieldingDisabledSlots?: Partial<Record<'main' | 'off', { reason: string }>>;
-  /** True when this item (armor) is the one currently worn. */
+  /**
+   * True quando a peça está vestida. Vale para os dois grupos vestíveis:
+   * `Armadura` (a armadura escolhida) e `Vestuário` (peça não guardada).
+   */
   isWorn?: boolean;
   onWornChange?: (worn: boolean) => void;
   /** Adjust ammunition units remaining (positive or negative delta). */
@@ -224,6 +227,27 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
                   sx={{ height: 20, fontSize: '0.65rem' }}
                 />
               )}
+              {isWorn && item.group === 'Vestuário' && (
+                <Chip
+                  size='small'
+                  label='Vestindo'
+                  color='primary'
+                  sx={{ height: 20, fontSize: '0.65rem' }}
+                />
+              )}
+              {/* "Guardado" só quando guardar de fato muda algum número —
+                  sinalizar em toda roupa sem efeito só poluiria os cards. */}
+              {!isWorn &&
+                item.group === 'Vestuário' &&
+                hasMechanicalBonus(item) && (
+                  <Chip
+                    size='small'
+                    label='Guardado'
+                    color='warning'
+                    variant='outlined'
+                    sx={{ height: 20, fontSize: '0.65rem' }}
+                  />
+                )}
             </Stack>
 
             <Typography
@@ -301,21 +325,25 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               alignItems: 'center',
             }}
           >
-            {item.group === 'Armadura' && onWornChange && (
-              <WornArmorControl
-                item={item}
-                isWorn={isWorn}
-                onChange={onWornChange}
-              />
-            )}
-            {item.group !== 'Armadura' && !isAmmoItem && onWieldingChange && (
-              <WieldingControl
-                item={item}
-                currentSlot={wieldingSlot}
-                onChange={onWieldingChange}
-                disabledSlots={wieldingDisabledSlots}
-              />
-            )}
+            {(item.group === 'Armadura' || item.group === 'Vestuário') &&
+              onWornChange && (
+                <WornItemControl
+                  item={item}
+                  isWorn={isWorn}
+                  onChange={onWornChange}
+                />
+              )}
+            {item.group !== 'Armadura' &&
+              item.group !== 'Vestuário' &&
+              !isAmmoItem &&
+              onWieldingChange && (
+                <WieldingControl
+                  item={item}
+                  currentSlot={wieldingSlot}
+                  onChange={onWieldingChange}
+                  disabledSlots={wieldingDisabledSlots}
+                />
+              )}
             {onEdit && (
               <Tooltip title='Editar item'>
                 <IconButton size='small' onClick={onEdit} aria-label='Editar'>

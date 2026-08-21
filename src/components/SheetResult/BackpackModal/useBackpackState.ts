@@ -17,9 +17,11 @@ import {
   getEquipmentMaxSpacesBonus,
 } from '../../../functions/general';
 import {
+  applyClothingWorn,
   commitWielding,
   isTwoHanded,
   migrateLegacyEquipState,
+  pruneUnwornClothing,
   pruneWielding,
   WieldingSlot,
   WORN_ARMOR_NONE,
@@ -57,6 +59,11 @@ interface StagedState {
   mainHandItemId?: string;
   offHandItemId?: string;
   wornArmorId?: string;
+  /**
+   * Peças de Vestuário GUARDADAS (conjunto de opt-out — ver
+   * `CharacterSheet.unwornClothingIds`). `undefined` = tudo vestido.
+   */
+  unwornClothingIds?: string[];
   groupByCategory: boolean;
 }
 
@@ -71,6 +78,7 @@ export interface BackpackInputs {
   initialMainHandItemId?: string;
   initialOffHandItemId?: string;
   initialWornArmorId?: string;
+  initialUnwornClothingIds?: string[];
   initialGroupByCategory?: boolean;
   /**
    * Categories to pre-select in the filter when the modal opens. The user can
@@ -122,6 +130,8 @@ export interface BackpackActions {
   setWielding: (itemId: string, slot: WieldingSlot) => void;
   /** Sets which armor is currently worn. Pass `null` to unwear. */
   setWornArmor: (itemId: string | null) => void;
+  /** Veste (`worn = true`) ou guarda na mochila uma peça de Vestuário. */
+  setWornClothing: (itemId: string, worn: boolean) => void;
   /** Switches the modal grid between flat (false) and category-grouped (true). */
   setGroupByCategory: (value: boolean) => void;
   /** Resets the staged state back to the snapshot taken at modal open. */
@@ -189,6 +199,7 @@ type Action =
   | { type: 'REORDER'; orderedIds: string[] }
   | { type: 'SET_WIELDING'; itemId: string; slot: WieldingSlot }
   | { type: 'SET_WORN_ARMOR'; itemId: string | null }
+  | { type: 'SET_WORN_CLOTHING'; itemId: string; worn: boolean }
   | { type: 'SET_GROUP_BY_CATEGORY'; value: boolean }
   | { type: 'RESET'; snapshot: StagedState };
 
@@ -449,6 +460,15 @@ export function reducer(state: StagedState, action: Action): StagedState {
         wornArmorId = addedId;
       }
 
+      // Auto-vestir peça de Vestuário. O default já é "vestida" (o conjunto é
+      // de opt-out), mas o merge de pilha pode cair numa entrada GUARDADA — uma
+      // 2ª Bandana somada a uma Bandana guardada. Vestir explicitamente evita
+      // que a peça recém-comprada nasça sem efeito.
+      let { unwornClothingIds } = state;
+      if (action.item.group === 'Vestuário' && addedId) {
+        unwornClothingIds = applyClothingWorn(unwornClothingIds, addedId, true);
+      }
+
       return {
         ...state,
         equipments,
@@ -458,6 +478,7 @@ export function reducer(state: StagedState, action: Action): StagedState {
         mainHandItemId,
         offHandItemId,
         wornArmorId,
+        unwornClothingIds,
       };
     }
     case 'REMOVE_ITEM': {
@@ -493,6 +514,13 @@ export function reducer(state: StagedState, action: Action): StagedState {
         state.offHandItemId === action.id ? undefined : state.offHandItemId;
       const wornArmorId =
         state.wornArmorId === action.id ? undefined : state.wornArmorId;
+      // Higiene de payload: ids são uuid e nunca reusados, mas deixar o id
+      // órfão no conjunto sujaria o delta a cada save.
+      const unwornClothingIds = applyClothingWorn(
+        state.unwornClothingIds,
+        action.id,
+        true
+      );
       return {
         ...state,
         equipments,
@@ -502,6 +530,7 @@ export function reducer(state: StagedState, action: Action): StagedState {
         mainHandItemId,
         offHandItemId,
         wornArmorId,
+        unwornClothingIds,
       };
     }
     case 'SET_QUANTITY': {
@@ -599,6 +628,16 @@ export function reducer(state: StagedState, action: Action): StagedState {
       // legacy fallback doesn't immediately re-apply it (see wielding.ts).
       return { ...state, wornArmorId: action.itemId ?? WORN_ARMOR_NONE };
     }
+    case 'SET_WORN_CLOTHING': {
+      return {
+        ...state,
+        unwornClothingIds: applyClothingWorn(
+          state.unwornClothingIds,
+          action.itemId,
+          action.worn
+        ),
+      };
+    }
     case 'SET_GROUP_BY_CATEGORY': {
       return { ...state, groupByCategory: action.value };
     }
@@ -621,6 +660,7 @@ export function useBackpackState({
   initialMainHandItemId,
   initialOffHandItemId,
   initialWornArmorId,
+  initialUnwornClothingIds,
   initialGroupByCategory = false,
   initialCategoryFilters,
   open,
@@ -674,6 +714,12 @@ export function useBackpackState({
       mainHandItemId: pruned.mainHandItemId,
       offHandItemId: pruned.offHandItemId,
       wornArmorId: wornArmorIsPresent ? seededWornArmorId : undefined,
+      // Sem sentinela aqui: `undefined` significa só "nada guardado", então
+      // basta descartar os ids de peças que saíram da mochila.
+      unwornClothingIds: pruneUnwornClothing(
+        initialUnwornClothingIds,
+        existingIds
+      ),
       groupByCategory: initialGroupByCategory,
     };
   };
@@ -819,6 +865,14 @@ export function useBackpackState({
     ) {
       return true;
     }
+    // Mesmo critério do `computeSheetDelta`, que compara por JSON — por isso
+    // `applyClothingWorn` preserva a ordem de inserção.
+    if (
+      JSON.stringify(staged.unwornClothingIds ?? null) !==
+      JSON.stringify(initialSnapshot.unwornClothingIds ?? null)
+    ) {
+      return true;
+    }
     if (staged.displayOrder.length !== initialSnapshot.displayOrder.length) {
       return true;
     }
@@ -902,6 +956,12 @@ export function useBackpackState({
     []
   );
 
+  const setWornClothing = useCallback(
+    (itemId: string, worn: boolean) =>
+      dispatch({ type: 'SET_WORN_CLOTHING', itemId, worn }),
+    []
+  );
+
   const setGroupByCategory = useCallback(
     (value: boolean) => dispatch({ type: 'SET_GROUP_BY_CATEGORY', value }),
     []
@@ -935,6 +995,7 @@ export function useBackpackState({
     reorder,
     setWielding,
     setWornArmor,
+    setWornClothing,
     setGroupByCategory,
     revertChanges,
   };

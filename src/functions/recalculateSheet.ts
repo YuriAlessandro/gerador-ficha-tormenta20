@@ -1355,10 +1355,25 @@ function isConditionMet(
 function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
   const updatedSheet = _.cloneDeep(sheet);
 
+  // Vestuário é o ÚNICO grupo, além de Armadura, com estado vestido/guardado:
+  // uma peça guardada na mochila não aplica nada. Os outros 10 grupos seguem
+  // aplicando por estarem na mochila (decisão de escopo).
+  //
+  // `unwornClothingIds` é um conjunto de OPT-OUT: ausente = nada guardado = tudo
+  // vestido, que é o comportamento de toda ficha criada antes da feature. É por
+  // isso que não há migração nenhuma aqui — NÃO inverter para uma lista de "o
+  // que está vestido", ou toda peça que entra na mochila por fora da modal
+  // (recompensa, item de origem, homebrew, geração aleatória) perde o bônus.
+  const unwornClothing = new Set(updatedSheet.unwornClothingIds ?? []);
+  const wornClothing = (updatedSheet.bag.equipments.Vestuário || []).filter(
+    // Peça sem id nunca pôde ser guardada pela UI.
+    (item) => !item.id || !unwornClothing.has(item.id)
+  );
+
   // Collect all equipment from the bag
   const allEquipment: Equipment[] = [
     ...(updatedSheet.bag.equipments['Item Geral'] || []),
-    ...(updatedSheet.bag.equipments.Vestuário || []),
+    ...wornClothing,
     ...(updatedSheet.bag.equipments.Alquimía || []),
     ...(updatedSheet.bag.equipments.Arma || []),
     ...(updatedSheet.bag.equipments.Armadura || []),

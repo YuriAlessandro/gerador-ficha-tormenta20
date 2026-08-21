@@ -1,13 +1,18 @@
 import {
+  applyClothingWorn,
   applyTwoHandedToggle,
   applyWielding,
   canSplitStack,
   commitWielding,
   getWieldingSlot,
   getWornArmor,
+  hasMechanicalBonus,
+  isClothing,
+  isClothingWorn,
   isTwoHanded,
   isWieldable,
   migrateLegacyEquipState,
+  pruneUnwornClothing,
   MigratableBagView,
   MigratableSheetView,
   pickDefaultWieldSlot,
@@ -19,6 +24,7 @@ import Equipment, {
   BagEquipments,
   DefenseEquipment,
 } from '../../../../interfaces/Equipment';
+import Skill from '../../../../interfaces/Skills';
 
 describe('isWieldable', () => {
   test('weapons are wieldable', () => {
@@ -878,5 +884,100 @@ describe('commitWielding', () => {
     expect(result.offHandItemId).toBe('gs');
     expect(result.equipments.Arma).toHaveLength(1);
     expect(result.bagChanged).toBe(false);
+  });
+});
+
+describe('vestuário — vestir/guardar', () => {
+  const camisa: Equipment = {
+    id: 'c1',
+    nome: 'Camisa bufante',
+    group: 'Vestuário',
+  };
+
+  test('vestuário é reconhecido e nunca é empunhável', () => {
+    expect(isClothing(camisa)).toBe(true);
+    expect(isWieldable(camisa)).toBe(false);
+  });
+
+  describe('isClothingWorn', () => {
+    test('ficha legada (sem conjunto): a peça está vestida', () => {
+      expect(isClothingWorn('c1', undefined)).toBe(true);
+    });
+
+    test('id no conjunto de guardados: não está vestida', () => {
+      expect(isClothingWorn('c1', ['c1'])).toBe(false);
+    });
+
+    test('id fora do conjunto: está vestida', () => {
+      expect(isClothingWorn('c1', ['outro'])).toBe(true);
+    });
+
+    test('peça sem id conta como vestida (nunca perder bônus por acidente)', () => {
+      expect(isClothingWorn(undefined, ['c1'])).toBe(true);
+    });
+  });
+
+  describe('applyClothingWorn', () => {
+    test('guardar a partir de nada cria o conjunto', () => {
+      expect(applyClothingWorn(undefined, 'c1', false)).toEqual(['c1']);
+    });
+
+    test('guardar duas vezes é idempotente e não duplica', () => {
+      const once = applyClothingWorn(undefined, 'c1', false);
+      expect(applyClothingWorn(once, 'c1', false)).toBe(once);
+    });
+
+    test('vestir a última peça guardada colapsa para undefined', () => {
+      expect(applyClothingWorn(['c1'], 'c1', true)).toBeUndefined();
+    });
+
+    test('vestir preserva a ordem de inserção do restante', () => {
+      expect(applyClothingWorn(['a', 'b', 'c'], 'b', true)).toEqual(['a', 'c']);
+    });
+
+    test('guardar acrescenta no fim (ordem estável para o delta)', () => {
+      expect(applyClothingWorn(['a'], 'b', false)).toEqual(['a', 'b']);
+    });
+
+    test('vestir peça que já estava vestida é no-op', () => {
+      const current = ['a'];
+      expect(applyClothingWorn(current, 'b', true)).toBe(current);
+    });
+  });
+
+  describe('pruneUnwornClothing', () => {
+    test('descarta id de peça que saiu da mochila', () => {
+      expect(pruneUnwornClothing(['a', 'x'], new Set(['a']))).toEqual(['a']);
+    });
+
+    test('conjunto inteiro órfão colapsa para undefined', () => {
+      expect(pruneUnwornClothing(['x'], new Set(['a']))).toBeUndefined();
+    });
+
+    test('sem órfãos devolve a mesma referência', () => {
+      const current = ['a'];
+      expect(pruneUnwornClothing(current, new Set(['a']))).toBe(current);
+    });
+
+    test('undefined continua undefined', () => {
+      expect(pruneUnwornClothing(undefined, new Set(['a']))).toBeUndefined();
+    });
+  });
+
+  test('canSplitStack segue recusando pilha com bônus (soma por ENTRADA)', () => {
+    const duas: Equipment = {
+      ...camisa,
+      quantity: 2,
+      sheetBonuses: [
+        {
+          source: { type: 'equipment', equipmentName: 'Camisa bufante' },
+          target: { type: 'Skill', name: Skill.ATUACAO },
+          modifier: { type: 'Fixed', value: 1 },
+        },
+      ],
+    };
+    expect(canSplitStack(duas)).toBe(false);
+    expect(hasMechanicalBonus(duas)).toBe(true);
+    expect(hasMechanicalBonus(camisa)).toBe(false);
   });
 });

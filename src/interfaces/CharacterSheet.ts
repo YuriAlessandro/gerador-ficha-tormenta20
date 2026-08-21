@@ -768,6 +768,24 @@ export default interface CharacterSheet {
   // the auto-equip migration from running again and overriding deliberate
   // choices made by the player after the migration.
   equipStateMigrated?: boolean;
+  /**
+   * Peças de `Vestuário` que o jogador GUARDOU na mochila (não está vestindo).
+   * É um conjunto de OPT-OUT de propósito: `undefined`/ausente significa "nada
+   * guardado", logo tudo vestido — exatamente o comportamento de toda ficha
+   * criada antes desta feature. Por isso NÃO existe migração aqui e nenhuma
+   * ficha antiga muda de número.
+   *
+   * A inversão também protege os caminhos que colocam Vestuário na mochila SEM
+   * passar pela Mochila (recompensa de tesouro, itens de origem, pacote de item
+   * homebrew, geração aleatória): a peça nova nunca está no conjunto, então
+   * nasce vestida. Uma lista positiva ("o que está vestido") faria essas peças
+   * perderem o bônus em silêncio.
+   *
+   * Ao esvaziar, volta a `undefined` (ver `applyClothingWorn`) para manter o
+   * payload limpo — `stripSheetForStorage` remove a chave e o delta vira
+   * `$unset`, que é a representação correta de "nada guardado".
+   */
+  unwornClothingIds?: string[];
   // Backpack visual mode: when `true`, items are grouped by category in the
   // modal grid; otherwise flat. Per-sheet because different characters benefit
   // from different layouts (e.g. inventory-heavy vs. minimal kits).

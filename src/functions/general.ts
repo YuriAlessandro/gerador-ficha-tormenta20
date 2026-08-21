@@ -4938,6 +4938,12 @@ const calculateBonusValue = (
  *
  * Exportado para os testes conseguirem exercitar este caminho diretamente, sem
  * depender do sorteio de `gerarFicha`.
+ *
+ * Exceção conhecida à simetria: bônus de EQUIPAMENTO não têm espelho aqui. Este
+ * motor só consome `sheet.sheetBonuses` já preenchido; quem coleta os bônus dos
+ * itens da mochila é `applyEquipmentBonuses`, que existe apenas no
+ * `recalculateSheet`. Por isso o gate de "peça de Vestuário guardada não aplica
+ * bônus" mora só lá.
  */
 export const applyStatModifiers = (
   _sheet: CharacterSheet,

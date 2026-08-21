@@ -309,6 +309,20 @@ export function pickDefaultWieldSlot(
 }
 
 /**
+ * Item carrega algum efeito mecânico na ficha? Usado por `canSplitStack` (que
+ * recusa dividir a pilha porque `applyEquipmentBonuses` soma por ENTRADA e não
+ * por `quantity`) e pela UI, que só sinaliza "Guardado" quando guardar de fato
+ * muda algum número.
+ */
+export function hasMechanicalBonus(item: Equipment): boolean {
+  if (item.sheetBonuses && item.sheetBonuses.length > 0) return true;
+  if (item.conditionalBonuses && item.conditionalBonuses.length > 0) {
+    return true;
+  }
+  return item.selectableBonus !== undefined;
+}
+
+/**
  * Itens não-custom empilham por nome numa única entrada (`quantity`), então
  * duas Machadinhas compartilham um id — e um id nos dois slots significa "arma
  * de duas mãos" em toda a base (getWieldingSlot, calcDefense, dualWielding,
@@ -321,12 +335,7 @@ export function pickDefaultWieldSlot(
 export function canSplitStack(item: Equipment): boolean {
   if (item.isAmmo) return false;
   if ((item.quantity ?? 1) < 2) return false;
-  if (item.sheetBonuses && item.sheetBonuses.length > 0) return false;
-  if (item.conditionalBonuses && item.conditionalBonuses.length > 0) {
-    return false;
-  }
-  if (item.selectableBonus) return false;
-  return true;
+  return !hasMechanicalBonus(item);
 }
 
 /**
@@ -526,4 +535,64 @@ export function pruneWielding(
         ? state.offHandItemId
         : undefined,
   };
+}
+
+/**
+ * Peça de vestuário — o único grupo, além de Armadura, com estado
+ * vestido/guardado. Vestuário nunca é empunhável (ver `isWieldable`), então os
+ * dois controles da mochila são mutuamente exclusivos.
+ */
+export function isClothing(item: Equipment): boolean {
+  return item.group === 'Vestuário';
+}
+
+/**
+ * A peça está vestida? `unwornClothingIds` é um conjunto de OPT-OUT: sem
+ * conjunto (ficha legada) ou id fora dele = vestida. Item sem id nunca pôde ser
+ * guardado, então também conta como vestido — nunca perder bônus por acidente.
+ */
+export function isClothingWorn(
+  itemId: string | undefined,
+  unwornClothingIds: string[] | undefined
+): boolean {
+  if (!itemId) return true;
+  if (!unwornClothingIds) return true;
+  return !unwornClothingIds.includes(itemId);
+}
+
+/**
+ * Novo conjunto de guardados ao vestir (`worn = true`) ou guardar
+ * (`worn = false`) uma peça. Devolve `undefined` quando o resultado ficaria
+ * vazio, para a ficha voltar ao estado "nada guardado" e não sujar o payload.
+ *
+ * NÃO reordena: `computeSheetDelta` compara por `JSON.stringify`, então manter
+ * a ordem de inserção evita delta espúrio a cada save.
+ */
+export function applyClothingWorn(
+  current: string[] | undefined,
+  itemId: string,
+  worn: boolean
+): string[] | undefined {
+  const list = current ?? [];
+  if (worn) {
+    if (!list.includes(itemId)) return current;
+    const next = list.filter((id) => id !== itemId);
+    return next.length > 0 ? next : undefined;
+  }
+  if (list.includes(itemId)) return current;
+  return [...list, itemId];
+}
+
+/**
+ * Descarta ids de peças que não estão mais na mochila. Espelho de
+ * `pruneWielding`, usado no snapshot da modal.
+ */
+export function pruneUnwornClothing(
+  current: string[] | undefined,
+  existingItemIds: Set<string>
+): string[] | undefined {
+  if (!current) return undefined;
+  const next = current.filter((id) => existingItemIds.has(id));
+  if (next.length === 0) return undefined;
+  return next.length === current.length ? current : next;
 }

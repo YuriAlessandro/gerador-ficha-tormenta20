@@ -54,7 +54,7 @@ import BackpackToolbar from './BackpackToolbar';
 import AddItemDialog from './AddItemDialog';
 import ItemEditorDialog from './ItemEditorDialog';
 import { useBackpackState } from './useBackpackState';
-import { getWieldingSlot, getWornArmor } from './wielding';
+import { getWieldingSlot, getWornArmor, isClothingWorn } from './wielding';
 import { CATEGORY_ORDER, itemTypeStyles } from './itemTypeStyles';
 
 export interface BackpackModalProps {
@@ -70,6 +70,9 @@ export interface BackpackModalProps {
    */
   initialCategoryFilters?: equipGroup[];
 }
+
+/** Dispensa do aviso de vestir/guardar Vestuário. Preferência de UI, por device. */
+const CLOTHING_HINT_DISMISSED_KEY = 'fdn:backpack:clothingWearHintDismissed';
 
 const SlideUpTransition = React.forwardRef<
   unknown,
@@ -156,6 +159,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     initialMainHandItemId: sheet.mainHandItemId,
     initialOffHandItemId: sheet.offHandItemId,
     initialWornArmorId: sheet.wornArmorId,
+    initialUnwornClothingIds: sheet.unwornClothingIds,
     initialGroupByCategory: sheet.backpackGroupByCategory,
     initialAutoDeductMoney: sheet.backpackAutoDeductMoney,
     initialCategoryFilters,
@@ -185,6 +189,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     reorder,
     setWielding,
     setWornArmor,
+    setWornClothing,
     setGroupByCategory,
     revertChanges,
   } = state;
@@ -208,6 +213,20 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
   const wornArmor = getWornArmor(armorsInBag, staged.wornArmorId);
   const ambiguousArmor =
     armorsInBag.length >= 2 && staged.wornArmorId === undefined;
+
+  // Aviso único de descoberta: até esta versão toda peça de Vestuário aplicava
+  // bônus só por estar na mochila, então o jogador precisa saber que agora
+  // existe um estado vestido/guardado. Dispensa em localStorage — é preferência
+  // de UI, nunca dado de personagem.
+  const [clothingHintDismissed, setClothingHintDismissed] = useState(
+    () => localStorage.getItem(CLOTHING_HINT_DISMISSED_KEY) === 'true'
+  );
+  const dismissClothingHint = () => {
+    localStorage.setItem(CLOTHING_HINT_DISMISSED_KEY, 'true');
+    setClothingHintDismissed(true);
+  };
+  const hasClothing = orderedItems.some((it) => it.group === 'Vestuário');
+  const showClothingHint = hasClothing && !clothingHintDismissed;
 
   /**
    * Returns the slot disable map for an item card. Blocks slots when a hand
@@ -307,6 +326,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         mainHandItemId: staged.mainHandItemId,
         offHandItemId: staged.offHandItemId,
         wornArmorId: staged.wornArmorId,
+        unwornClothingIds: staged.unwornClothingIds,
       },
       undefined,
       undefined,
@@ -367,6 +387,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       mainHandItemId: staged.mainHandItemId,
       offHandItemId: staged.offHandItemId,
       wornArmorId: staged.wornArmorId,
+      unwornClothingIds: staged.unwornClothingIds,
       backpackGroupByCategory: staged.groupByCategory,
       backpackAutoDeductMoney: staged.autoDeductMoney,
       sheetBonuses: recalculated.sheetBonuses ?? sheet.sheetBonuses,
@@ -456,49 +477,76 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     setEditingItem(null);
   };
 
-  const renderItemCard = (item: Equipment) => (
-    <BackpackItemCard
-      item={item}
-      isOverflowing={item.id ? totals.overflowItemIds.has(item.id) : false}
-      reorderMode={reorderMode}
-      onEdit={() => handleEdit(item)}
-      onDelete={() => item.id && removeItem(item.id)}
-      onIncrementQuantity={
-        item.group !== 'Armadura' && item.group !== 'Escudo'
-          ? () => item.id && setQuantity(item.id, (item.quantity ?? 1) + 1)
-          : undefined
-      }
-      onDecrementQuantity={
-        item.group !== 'Armadura' && item.group !== 'Escudo'
-          ? () =>
-              item.id &&
-              setQuantity(item.id, Math.max(1, (item.quantity ?? 1) - 1))
-          : undefined
-      }
-      wieldingSlot={getWieldingSlot(item.id, wieldingState)}
-      onWieldingChange={
-        item.id ? (slot) => setWielding(item.id as string, slot) : undefined
-      }
-      wieldingDisabledSlots={getDisabledSlots(item.id)}
-      isWorn={item.id !== undefined && wornArmor?.id === item.id}
-      onWornChange={
-        item.id && item.group === 'Armadura'
-          ? (worn) => setWornArmor(worn ? (item.id as string) : null)
-          : undefined
-      }
-      onAdjustAmmoUnits={
-        item.isAmmo && item.id
-          ? (delta) => {
-              const next: Equipment = {
-                ...item,
-                unitsRemaining: Math.max(0, (item.unitsRemaining ?? 0) + delta),
-              };
-              updateItem(item.id as string, next);
-            }
-          : undefined
-      }
-    />
-  );
+  /**
+   * Estado de vestimenta do card. Os dois grupos vestíveis guardam a escolha em
+   * lugares diferentes — armadura num id único, vestuário num conjunto de
+   * guardados — mas a UI é a mesma, então a diferença morre aqui.
+   */
+  const buildWornProps = (
+    item: Equipment
+  ): { isWorn: boolean; onWornChange?: (worn: boolean) => void } => {
+    const itemId = item.id;
+    if (!itemId) return { isWorn: false, onWornChange: undefined };
+    if (item.group === 'Armadura') {
+      return {
+        isWorn: wornArmor?.id === itemId,
+        onWornChange: (worn) => setWornArmor(worn ? itemId : null),
+      };
+    }
+    if (item.group === 'Vestuário') {
+      return {
+        isWorn: isClothingWorn(itemId, staged.unwornClothingIds),
+        onWornChange: (worn) => setWornClothing(itemId, worn),
+      };
+    }
+    return { isWorn: false, onWornChange: undefined };
+  };
+
+  const renderItemCard = (item: Equipment) => {
+    const wornProps = buildWornProps(item);
+    return (
+      <BackpackItemCard
+        item={item}
+        isOverflowing={item.id ? totals.overflowItemIds.has(item.id) : false}
+        reorderMode={reorderMode}
+        onEdit={() => handleEdit(item)}
+        onDelete={() => item.id && removeItem(item.id)}
+        onIncrementQuantity={
+          item.group !== 'Armadura' && item.group !== 'Escudo'
+            ? () => item.id && setQuantity(item.id, (item.quantity ?? 1) + 1)
+            : undefined
+        }
+        onDecrementQuantity={
+          item.group !== 'Armadura' && item.group !== 'Escudo'
+            ? () =>
+                item.id &&
+                setQuantity(item.id, Math.max(1, (item.quantity ?? 1) - 1))
+            : undefined
+        }
+        wieldingSlot={getWieldingSlot(item.id, wieldingState)}
+        onWieldingChange={
+          item.id ? (slot) => setWielding(item.id as string, slot) : undefined
+        }
+        wieldingDisabledSlots={getDisabledSlots(item.id)}
+        isWorn={wornProps.isWorn}
+        onWornChange={wornProps.onWornChange}
+        onAdjustAmmoUnits={
+          item.isAmmo && item.id
+            ? (delta) => {
+                const next: Equipment = {
+                  ...item,
+                  unitsRemaining: Math.max(
+                    0,
+                    (item.unitsRemaining ?? 0) + delta
+                  ),
+                };
+                updateItem(item.id as string, next);
+              }
+            : undefined
+        }
+      />
+    );
+  };
 
   // Com um filtro de categoria ativo, "Adicionar item" já abre na aba
   // correspondente — o usuário que filtrou por Armadura quer adicionar uma
@@ -728,6 +776,19 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
             <Typography variant='caption' sx={{ display: 'block', mt: 0.25 }}>
               Enquanto nenhuma estiver marcada como vestida, NENHUMA aplica seu
               bônus de defesa ou penalidade. Use o botão de armadura no card.
+            </Typography>
+          </Alert>
+        )}
+
+        {showClothingHint && (
+          <Alert severity='info' onClose={dismissClothingHint} sx={{ mb: 2 }}>
+            <Typography variant='body2' sx={{ fontWeight: 600 }}>
+              Novidade: agora você veste e guarda peças de Vestuário.
+            </Typography>
+            <Typography variant='caption' sx={{ display: 'block', mt: 0.25 }}>
+              Só o que está vestido aplica bônus. Suas peças atuais já estão
+              vestidas — nada mudou na sua ficha. Use o botão de cabide no card
+              para guardar uma peça.
             </Typography>
           </Alert>
         )}
