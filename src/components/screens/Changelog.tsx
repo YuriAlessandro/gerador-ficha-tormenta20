@@ -99,6 +99,15 @@ const Changelog: React.FC = () => {
                   nenhuma ficha muda de número.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> Ao aplicar o efeito da magia{' '}
+                  <strong>Escudo da Fé</strong>, além dos valores prontos de +2
+                  e +3 na Defesa agora existe a opção{' '}
+                  <strong>Customizado</strong>, com um contador para escolher
+                  quanto de Defesa a magia está dando. O limite acompanha o
+                  atributo-chave de conjuração do personagem, do mesmo jeito que
+                  já acontecia na <em>Armadura Arcana</em>.
+                </li>
+                <li>
                   <strong>Correção:</strong> Ao adicionar um efeito manualmente
                   pelo gerenciador de efeitos, os aprimoramentos do poder não
                   são mais ligados todos de uma vez: a Inspiração do bardo só
@@ -147,6 +156,15 @@ const Changelog: React.FC = () => {
                   Mimética, Canto da Sereia e Pirata Oceânico para{' '}
                   <strong>Sereia</strong>, e Magia Ofídica para o{' '}
                   <strong>Moreau da Serpente</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Égide da Fé</strong> do clérigo não fazia nada. Agora,
+                  com ele na ficha, aplicar o efeito da magia{' '}
+                  <strong>Escudo da Fé</strong> também concede os{' '}
+                  <strong>5 PV temporários para cada +1 na Defesa</strong> — 10
+                  PV no bônus de +2, 15 no de +3, e acompanhando o contador no
+                  valor customizado.
                 </li>
               </ul>
               <h3>4.30.2</h3>
