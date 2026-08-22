@@ -45,6 +45,10 @@ import {
 import { buildPowerAbilityMeta } from '@/functions/rollAbilityMeta';
 import { reorderPowersWithinGroup } from '@/functions/powers/reorderPowersWithinGroup';
 import { normalizeSearch } from '@/functions/stringUtils';
+import {
+  countTormentaPowers,
+  listTormentaPowers,
+} from '@/functions/randomUtils';
 import { getActivePowerForSheetEntry } from '@/premium/data/activePowers';
 import { getComplicationPowerWarning } from '@/premium/functions/complications';
 import { getAgeBracket } from '@/premium/data/ageBrackets';
@@ -69,6 +73,9 @@ import {
 
 const COMPLICATION_ORIGIN: PowerOrigin = { kind: 'complication' };
 const AGE_ORIGIN: PowerOrigin = { kind: 'age' };
+
+/** Chave do grupo de origem "Poder da Tormenta" (ver `powerOrigins.ts`). */
+const TORMENTA_GROUP_KEY = 'generalTormenta';
 
 const PowersDisplay: React.FC<{
   sheetHistory: SheetActionHistoryEntry[];
@@ -189,6 +196,50 @@ const PowersDisplay: React.FC<{
     () => classifyPowers(collected.sources),
     [collected.sources]
   );
+
+  // Contagem REAL de poderes da Tormenta, ao lado da contagem do grupo.
+  //
+  // Os dois números são diferentes de propósito e viviam confundindo: o do
+  // cabeçalho conta as linhas listadas ali (poderes GERAIS do tipo TORMENTA),
+  // enquanto a regra — perda de Carisma, pré-requisito `PODER_TORMENTA`, escala
+  // de Antenas/Carapaça/Corpo Aberrante — usa `countTormentaPowers`, que também
+  // enxerga poder concedido, de origem, de classe e personalizado marcado com
+  // `countAsTormentaPower`, além das perícias da Deformidade do Lefou. O chip
+  // mostra o número que as regras usam, e o tooltip diz de onde ele vem.
+  const tormentaSummary = useMemo(() => {
+    if (!sheet) return null;
+    const total = countTormentaPowers(sheet);
+    if (total === 0) return null;
+
+    const entries = listTormentaPowers(sheet);
+    const deformidadeSkills = sheet.lefouDeformidadeSkills?.length ?? 0;
+    const penalty = Object.entries(sheet.tormentaAttributePenalties ?? {}) as [
+      string,
+      number
+    ][];
+
+    const lines = [
+      `${total} ${
+        total === 1 ? 'poder conta' : 'poderes contam'
+      } para a Tormenta:`,
+      ...entries.map((entry) => `• ${entry.name} (${entry.origin})`),
+      ...(deformidadeSkills > 0
+        ? [`• ${deformidadeSkills}× bônus de perícia da Deformidade do Lefou`]
+        : []),
+      ...penalty
+        .filter(([, value]) => value > 0)
+        .map(([attr, value]) => `→ ${attr} −${value}`),
+    ];
+
+    return {
+      total,
+      tooltip: (
+        <Box sx={{ whiteSpace: 'pre-line', fontSize: 12 }}>
+          {lines.join('\n')}
+        </Box>
+      ),
+    };
+  }, [sheet]);
 
   // Agrupamento da lista COMPLETA (sem busca nem filtro de origem). É o que o
   // modo reordenar renderiza e o que reconstrói `powersOrder` — usar `groups`,
@@ -583,6 +634,17 @@ const PowersDisplay: React.FC<{
       <Typography variant='caption' sx={GROUP_COUNT_SX}>
         {count}
       </Typography>
+      {key === TORMENTA_GROUP_KEY && tormentaSummary && (
+        <Tooltip title={tormentaSummary.tooltip} arrow>
+          <Chip
+            size='small'
+            variant='outlined'
+            color='error'
+            label={`${tormentaSummary.total} na conta da Tormenta`}
+            sx={{ height: 20, fontSize: 11, cursor: 'help' }}
+          />
+        </Tooltip>
+      )}
     </Box>
   );
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Stack, Box, Tooltip, useTheme } from '@mui/material';
+import WhatshotIcon from '@mui/icons-material/Whatshot';
 
 import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
@@ -14,6 +15,7 @@ import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
 import { getConditionAttributeModifier } from '../../premium/functions/conditionAttributeModifier';
 import { getAttributeDelta } from '../../functions/effectiveAttributes';
+import { getCharismaPenaltyPowerCount } from '../../functions/tormentaCharismaPenalty';
 
 type Props = {
   attributes: CharacterAttributes;
@@ -30,6 +32,14 @@ const AttributeDisplay = ({
 }: Props) => {
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
+
+  // Perda de atributo por poderes da Tormenta. Ao contrário de condições e
+  // efeitos ativos, esta penalidade é PERMANENTE e já está embutida em
+  // `atributos[attr].value` — por isso ela não entra no `totalDelta` (entraria
+  // como desconto em dobro na tela), e aparece só como marcador + explicação.
+  // Sem isso não há como saber, olhando a ficha, se a regra foi aplicada.
+  const tormentaPenalties = sheet?.tormentaAttributePenalties;
+  const tormentaPowersQtd = sheet ? getCharismaPenaltyPowerCount(sheet) : 0;
 
   const Title = styled.span`
     font-family: 'Tfont';
@@ -136,6 +146,17 @@ const AttributeDisplay = ({
         const totalDelta = conditionPenalty + effectBonus;
         const displayedValue = value.value + totalDelta;
         const hasDelta = totalDelta !== 0;
+        const tormentaPenalty = tormentaPenalties?.[attribute as Atributo] ?? 0;
+        const tormentaNote =
+          tormentaPenalty > 0
+            ? `Inclui −${tormentaPenalty} por ${tormentaPowersQtd} ${
+                tormentaPowersQtd === 1
+                  ? 'poder da Tormenta'
+                  : 'poderes da Tormenta'
+              } (sem a Tormenta seria ${addSign(
+                value.value + tormentaPenalty + totalDelta
+              )}).`
+            : '';
         const deltaColor =
           totalDelta < 0
             ? theme.palette.error.main
@@ -170,6 +191,14 @@ const AttributeDisplay = ({
                   conditions={attrConditions}
                   fontSize='inherit'
                 />
+                {tormentaPenalty > 0 && (
+                  <Tooltip title={tormentaNote} arrow>
+                    <WhatshotIcon
+                      sx={{ fontSize: 12, color: 'error.main' }}
+                      aria-label={tormentaNote}
+                    />
+                  </Tooltip>
+                )}
                 <Title>{label}</Title>
               </Box>
             </FancyBox>
@@ -177,7 +206,7 @@ const AttributeDisplay = ({
               <Tooltip
                 title={`Base ${addSign(value.value)} → ${addSign(
                   displayedValue
-                )}`}
+                )}${tormentaNote ? ` ${tormentaNote}` : ''}`}
                 arrow
               >
                 <Box

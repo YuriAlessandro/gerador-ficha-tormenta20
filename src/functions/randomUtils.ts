@@ -155,43 +155,60 @@ export interface CountTormentaPowersOptions {
   forCharismaPenalty?: boolean;
 }
 
+export interface TormentaPowerEntry {
+  /** Nome canônico do poder. */
+  name: string;
+  /** Balde de onde a cópia que valeu veio, para exibição. */
+  origin: string;
+}
+
 /**
- * Total de poderes da Tormenta da ficha — ponto único de verdade.
+ * Os poderes que REALMENTE contam para a Tormenta nesta ficha, na ordem em que
+ * foram encontrados. `countTormentaPowers` é o `length` disto (mais as perícias
+ * da Deformidade do Lefou, que não vivem em balde de poder nenhum).
  *
  * Conta tanto os poderes cujo `type` é TORMENTA quanto os de qualquer outro
  * tipo marcados com `countAsTormentaPower`, varrendo TODOS os baldes onde um
  * poder pode viver (poder concedido, por exemplo, vive só em `devoto.poderes`).
- * A dedução por nome existe porque poderes concedidos são copiados entre
- * baldes — ver `sheetHasPowerNamed` para o mesmo problema.
+ * A dedup por nome existe porque poderes concedidos são copiados entre baldes —
+ * ver `sheetHasPowerNamed` para o mesmo problema.
+ *
+ * Existe separado da contagem porque a interface precisa EXPLICAR o número: o
+ * cabeçalho do grupo "Poder da Tormenta" na aba de poderes lista só os poderes
+ * gerais do tipo TORMENTA, então quem tem um poder concedido ou de origem
+ * marcado com `countAsTormentaPower` vê dois números diferentes na mesma tela.
  */
-export function countTormentaPowers(
+export function listTormentaPowers(
   sheet: CharacterSheet,
   options?: CountTormentaPowersOptions
-): number {
+): TormentaPowerEntry[] {
   const forCharismaPenalty = options?.forCharismaPenalty ?? false;
 
-  const buckets: TormentaCountable[][] = [
-    sheet.generalPowers ?? [],
-    sheet.customPowers ?? [],
-    sheet.customGrantedPowers ?? [],
-    sheet.classPowers ?? [],
-    sheet.origin?.powers ?? [],
-    sheet.devoto?.poderes ?? [],
+  const buckets: [string, TormentaCountable[]][] = [
+    ['poder geral', sheet.generalPowers ?? []],
+    ['poder personalizado', sheet.customPowers ?? []],
+    ['poder concedido', sheet.customGrantedPowers ?? []],
+    ['poder de classe', sheet.classPowers ?? []],
+    ['origem', sheet.origin?.powers ?? []],
+    ['devoção', sheet.devoto?.poderes ?? []],
   ];
 
   // Dedup por nome ANTES de decidir se conta: se o mesmo poder aparece em dois
   // baldes, a primeira cópia é a que vale (senão uma cópia sem a ressalva de
   // Carisma reintroduziria o poder que a outra acabou de descartar).
-  const byName = new Map<string, TormentaCountable>();
-  buckets.forEach((bucket) => {
+  const byName = new Map<
+    string,
+    { power: TormentaCountable; origin: string }
+  >();
+  buckets.forEach(([origin, bucket]) => {
     bucket.forEach((power) => {
       if (!power || byName.has(power.name)) return;
-      byName.set(power.name, power);
+      byName.set(power.name, { power, origin });
     });
   });
 
-  let tormentaPowersQtd = 0;
-  byName.forEach((power) => {
+  const entries: TormentaPowerEntry[] = [];
+  byName.forEach(({ power, origin }) => {
     if (forCharismaPenalty && power.tormentaCountExcludesCharisma) return;
     // Deformidade do Lefou: "Esta habilidade não causa perda de Carisma".
     // O poder trocado entra em `generalPowers` como TORMENTA puro, então a
@@ -204,8 +221,22 @@ export function countTormentaPowers(
     const isTormenta =
       power.type === GeneralPowerType.TORMENTA ||
       power.countAsTormentaPower === true;
-    if (isTormenta) tormentaPowersQtd += 1;
+    if (isTormenta) entries.push({ name: power.name, origin });
   });
+
+  return entries;
+}
+
+/**
+ * Total de poderes da Tormenta da ficha — ponto único de verdade.
+ * Ver `listTormentaPowers` para a varredura e as ressalvas.
+ */
+export function countTormentaPowers(
+  sheet: CharacterSheet,
+  options?: CountTormentaPowersOptions
+): number {
+  const forCharismaPenalty = options?.forCharismaPenalty ?? false;
+  let tormentaPowersQtd = listTormentaPowers(sheet, options).length;
 
   // A outra metade da Deformidade: "Você recebe +2 em duas perícias a sua
   // escolha. CADA UM desses bônus conta como um poder da Tormenta." Os bônus

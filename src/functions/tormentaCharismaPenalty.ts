@@ -37,6 +37,42 @@ function seedLegacyLedger(
 }
 
 /**
+ * Quantos poderes da Tormenta CONTAM para a perda de atributo.
+ *
+ * É a conta bruta menos a ressalva de "Afinidade com a Tormenta" (poder
+ * concedido de Aharadak: "seu primeiro poder da Tormenta não conta para perda
+ * de Carisma"). `sheetHasPowerNamed` é obrigatório aqui — poder concedido pode
+ * viver SÓ em `devoto.poderes`, que um `generalPowers.some(...)` não enxergaria.
+ *
+ * Exportada porque a interface precisa do MESMO número para explicar o desconto
+ * no card do atributo; duplicar a expressão lá é como as duas metades saem de
+ * sincronia.
+ */
+export function getCharismaPenaltyPowerCount(sheet: CharacterSheet): number {
+  const rawQtd = countTormentaPowers(sheet, { forCharismaPenalty: true });
+  const hasAfinidade = sheetHasPowerNamed(sheet, 'Afinidade com a Tormenta');
+  return Math.max(0, rawQtd - (hasAfinidade ? 1 : 0));
+}
+
+/**
+ * A ficha tem poder da Tormenta mas nunca passou pela regra?
+ *
+ * Abrir uma ficha não dispara recálculo, então personagem criado antes de a
+ * regra existir no motor do assistente (v4.30) fica sem o desconto até o jogador
+ * editar qualquer coisa — o que, da cadeira dele, parece que o desconto
+ * simplesmente não funciona. Quem consome isto dispara UM recálculo na abertura.
+ *
+ * Só olha a ausência do ledger: depois da primeira passagem o campo existe
+ * (mesmo vazio, por design de `applyTormentaAttributePenalty`), então a condição
+ * nunca mais dispara e não há risco de descontar duas vezes.
+ */
+export function needsTormentaPenaltyBackfill(sheet: CharacterSheet): boolean {
+  if (sheet.tormentaAttributePenalties) return false;
+  if (!sheet.atributos) return false;
+  return getCharismaPenaltyPowerCount(sheet) > 0;
+}
+
+/**
  * "Ao escolher um poder da Tormenta você perde 1 ponto de Carisma. Para cada
  * dois outros poderes da Tormenta, perde mais 1 ponto de Carisma."
  *
@@ -80,16 +116,7 @@ export function applyTormentaAttributePenalty(
   sheet.tormentaAttributePenalties = ledger;
 
   // 2. Recalcula a penalidade do zero.
-  const rawQtd = countTormentaPowers(sheet, {
-    forCharismaPenalty: true,
-  });
-
-  // "Afinidade com a Tormenta" (poder concedido de Aharadak): "seu primeiro
-  // poder da Tormenta não conta para perda de Carisma". `sheetHasPowerNamed` é
-  // obrigatório aqui — poder concedido pode viver SÓ em `devoto.poderes`, que
-  // um `generalPowers.some(...)` não enxergaria.
-  const hasAfinidade = sheetHasPowerNamed(sheet, 'Afinidade com a Tormenta');
-  const tormentaPowersQtd = Math.max(0, rawQtd - (hasAfinidade ? 1 : 0));
+  const tormentaPowersQtd = getCharismaPenaltyPowerCount(sheet);
 
   const totalPenalty = Math.floor((tormentaPowersQtd + 1) / 2);
   if (totalPenalty <= 0) return subSteps;

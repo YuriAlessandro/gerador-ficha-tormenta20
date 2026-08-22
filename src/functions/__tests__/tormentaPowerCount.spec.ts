@@ -15,8 +15,12 @@ import _ from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
 import { normalizeSheet } from '../sheetNormalizer';
 import generateRandomSheet from '../general';
-import { countTormentaPowers } from '../randomUtils';
+import { countTormentaPowers, listTormentaPowers } from '../randomUtils';
 import { sheetHasPowerNamed } from '../powers/hasPowerNamed';
+import {
+  getCharismaPenaltyPowerCount,
+  needsTormentaPenaltyBackfill,
+} from '../tormentaCharismaPenalty';
 import { isPowerAvailable } from '../powers';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -133,6 +137,105 @@ describe('countTormentaPowers', () => {
     ];
 
     expect(countTormentaPowers(sheet)).toBe(0);
+  });
+});
+
+/**
+ * `listTormentaPowers` é a varredura; `countTormentaPowers` é o `length` dela
+ * (mais as perícias da Deformidade do Lefou). Os dois não podem divergir — a
+ * interface mostra a LISTA para explicar o NÚMERO.
+ */
+describe('listTormentaPowers', () => {
+  it('bate com a contagem e diz de onde cada poder veio', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS];
+    sheet.customPowers = [escolhidoDeAharadak()];
+    sheet.classPowers = [
+      { name: 'Corrupção Rubra', text: 'x', countAsTormentaPower: true },
+    ];
+
+    const entries = listTormentaPowers(sheet);
+    expect(entries).toHaveLength(countTormentaPowers(sheet));
+    expect(entries).toEqual([
+      { name: 'Antenas', origin: 'poder geral' },
+      { name: 'Escolhido de Aharadak', origin: 'poder personalizado' },
+      { name: 'Corrupção Rubra', origin: 'poder de classe' },
+    ]);
+  });
+
+  it('honra a ressalva de Carisma como a contagem', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS];
+    sheet.classPowers = [
+      {
+        name: 'Forma Aberrante',
+        text: 'x',
+        countAsTormentaPower: true,
+        tormentaCountExcludesCharisma: true,
+      },
+    ];
+
+    expect(listTormentaPowers(sheet)).toHaveLength(2);
+    expect(
+      listTormentaPowers(sheet, { forCharismaPenalty: true })
+    ).toHaveLength(1);
+  });
+
+  it('não inclui as perícias da Deformidade (não são poder)', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS];
+    sheet.lefouDeformidadeSkills = [Skill.PERCEPCAO, Skill.FURTIVIDADE];
+
+    expect(listTormentaPowers(sheet)).toHaveLength(1);
+    expect(countTormentaPowers(sheet)).toBe(3);
+  });
+});
+
+describe('getCharismaPenaltyPowerCount', () => {
+  it('desconta o primeiro poder quando há Afinidade com a Tormenta', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS, CARAPACA];
+    expect(getCharismaPenaltyPowerCount(sheet)).toBe(2);
+
+    sheet.devoto = {
+      divindade: { name: 'Aharadak' },
+      poderes: [{ name: 'Afinidade com a Tormenta', description: 'x' }],
+    } as unknown as CharacterSheet['devoto'];
+    expect(getCharismaPenaltyPowerCount(sheet)).toBe(1);
+  });
+});
+
+/**
+ * O relato do usuário ("não desconta automático") vem daqui: abrir uma ficha
+ * não dispara recálculo, então personagem criado antes da v4.30 fica sem o
+ * desconto até editar alguma coisa.
+ */
+describe('needsTormentaPenaltyBackfill', () => {
+  it('é true só para ficha com poder da Tormenta e sem ledger', () => {
+    const semPoder = createMockCharacterSheet();
+    expect(needsTormentaPenaltyBackfill(semPoder)).toBe(false);
+
+    const comPoder = createMockCharacterSheet();
+    comPoder.generalPowers = [ANTENAS];
+    expect(needsTormentaPenaltyBackfill(comPoder)).toBe(true);
+  });
+
+  it('nunca mais dispara depois do primeiro recálculo', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS];
+    const recalculado = recalculateSheet(sheet);
+
+    expect(needsTormentaPenaltyBackfill(recalculado)).toBe(false);
+    // E o desconto de verdade aconteceu uma vez só.
+    expect(carisma(recalculado)).toBe(carisma(sheet) - 1);
+    expect(carisma(recalculateSheet(recalculado))).toBe(carisma(recalculado));
+  });
+
+  it('também para de disparar quando o ledger fica vazio', () => {
+    // Ficha que TEVE poder da Tormenta e não tem mais: o ledger existe vazio.
+    const sheet = recalculateSheet(createMockCharacterSheet());
+    expect(sheet.tormentaAttributePenalties).toEqual({});
+    expect(needsTormentaPenaltyBackfill(sheet)).toBe(false);
   });
 });
 

@@ -131,6 +131,7 @@ import {
 } from '@/premium/functions/animalCompanionEffects';
 import { reconcileAutoPowerEffects } from '@/premium/functions/autoPowerEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
+import { needsTormentaPenaltyBackfill } from '@/functions/tormentaCharismaPenalty';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
 import {
   buildEffectOffer,
@@ -681,8 +682,19 @@ const Result: React.FC<ResultProps> = (props) => {
       : currentSheet;
     const auto = reconcileAutoPowerEffects(base);
     const nextEffects = auto ?? companions;
-    if (!nextEffects) return;
-    applyRecalculatedSheet({ ...currentSheet, activeEffects: nextEffects });
+    // Terceiro reconciliador, mesma forma: ficha criada antes de a perda de
+    // Carisma por poderes da Tormenta existir no motor do assistente (v4.30)
+    // nunca recebeu o desconto, porque ABRIR uma ficha não dispara recálculo.
+    // Um recálculo aqui aplica a regra; `applyTormentaAttributePenalty` grava o
+    // ledger (mesmo vazio), então a condição não dispara de novo — não há como
+    // descontar duas vezes.
+    const needsTormentaBackfill = needsTormentaPenaltyBackfill(currentSheet);
+    if (!nextEffects && !needsTormentaBackfill) return;
+    applyRecalculatedSheet(
+      nextEffects
+        ? { ...currentSheet, activeEffects: nextEffects }
+        : currentSheet
+    );
   }, [currentSheet, onSheetUpdate, applyRecalculatedSheet]);
 
   const handleConditionsChange = useCallback(
