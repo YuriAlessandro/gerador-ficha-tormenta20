@@ -1,46 +1,26 @@
 import CharacterSheet from '../../interfaces/CharacterSheet';
-import { getClassLevel } from '../multiclass';
+import { getBrigaDice, updateUnarmedRolls } from '../unarmedDamage';
 
 /**
- * Tabela oficial de dano desarmado da Briga (Lutador/Atleta), por nível de
- * classe: 1º-4º 1d6, 5º-8º 1d8, 9º-12º 1d10, 13º-16º 1d12, 17º-19º 2d8,
- * 20º 2d10 (Dono da Rua / Corpo Ideal).
- */
-export function getBrigaDice(classLevel: number): string {
-  if (classLevel >= 20) return '2d10';
-  if (classLevel >= 17) return '2d8';
-  if (classLevel >= 13) return '1d12';
-  if (classLevel >= 9) return '1d10';
-  if (classLevel >= 5) return '1d8';
-  return '1d6';
-}
-
-/**
- * Ajusta o roll de dano da habilidade Briga em `sheet.classe.abilities` para
- * o dado correspondente ao nível na classe que concede a habilidade
- * (multiclasse usa o nível de classe, não o nível do personagem). Substitui
- * os objetos da habilidade em vez de mutá-los, preservando
- * `classe.originalAbilities`.
+ * Camada de compatibilidade da Briga (Lutador/Atleta).
  *
- * Retorna o novo dado quando houve mudança, ou null caso contrário.
+ * A regra deixou de ser exclusiva do Lutador: `unarmedDamage.ts` é o ponto
+ * único de dano desarmado da ficha, e a Briga passou a ser só uma das fontes
+ * do dado BASE — junto do 1d3 padrão e de `Estilo Desarmado` — sobre o qual
+ * incidem os passos de tamanho e de `Corpo Aberrante`.
+ *
+ * `getBrigaDice` (a tabela oficial por nível de classe) continua morando lá e é
+ * reexportado aqui para não quebrar quem já importava deste caminho.
+ */
+export { getBrigaDice };
+
+/**
+ * @deprecated Use `updateUnarmedRolls` de `functions/unarmedDamage`. Mantido
+ * pelo contrato de retorno (o dado quando mudou, `null` quando não) que o
+ * passo-a-passo de level-up consome.
  */
 export function updateBrigaRolls(sheet: CharacterSheet): string | null {
-  let changedDice: string | null = null;
-
-  sheet.classe.abilities = sheet.classe.abilities.map((ability) => {
-    if (ability.name !== 'Briga' || !ability.rolls?.length) return ability;
-
-    const className = ability.sourceClassName ?? sheet.classe.name;
-    const dice = getBrigaDice(getClassLevel(sheet, className));
-
-    if (ability.rolls.every((roll) => roll.dice === dice)) return ability;
-
-    changedDice = dice;
-    return {
-      ...ability,
-      rolls: ability.rolls.map((roll) => ({ ...roll, dice })),
-    };
-  });
-
-  return changedDice;
+  return updateUnarmedRolls(sheet);
 }
+
+export default updateBrigaRolls;

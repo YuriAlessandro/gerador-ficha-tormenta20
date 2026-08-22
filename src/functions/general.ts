@@ -200,7 +200,7 @@ import {
   MoreauHeritageName,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
-import { updateBrigaRolls } from './powers/lutador-special';
+import { updateUnarmedRolls } from './unarmedDamage';
 import {
   captureUserAbilityFields,
   restoreUserAbilityFields,
@@ -3853,9 +3853,6 @@ function applyClassAbilities(
     (ability) => ability.nivel <= sheet.nivel
   );
 
-  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
-  updateBrigaRolls(sheetClone);
-
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(sheetClone);
 
@@ -4222,13 +4219,13 @@ function levelUp(
     applyOptionChosenTexts(updatedSheet);
   }
 
-  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
-  const newBrigaDice = updateBrigaRolls(updatedSheet);
-  if (newBrigaDice) {
+  // Dano desarmado (Briga, Estilo Desarmado, Corpo Aberrante).
+  const newUnarmedDice = updateUnarmedRolls(updatedSheet);
+  if (newUnarmedDice) {
     updatedSheet.steps.push({
       type: 'Poderes',
-      label: 'Briga',
-      value: [{ name: 'Dano desarmado aumenta', value: newBrigaDice }],
+      label: 'Dano Desarmado',
+      value: [{ name: 'Dano desarmado aumenta', value: newUnarmedDice }],
     });
   }
 
@@ -5881,6 +5878,11 @@ export default function generateRandomSheet(
   // que é quem filtra `sheetBonuses` por `isBonusActive` — bakear antes
   // aplicaria bônus condicionalmente inativos.
   charSheet = reapplyEnhancementsAndWeaponBonuses(charSheet);
+
+  // Passo 16: dano desarmado. Espelha o Step 11.8 do `recalculateSheet`. Roda
+  // no fim porque precisa do `size` final e dos bônus `UnarmedDamageStep` já
+  // filtrados por `isBonusActive` no passo 14.
+  updateUnarmedRolls(charSheet);
 
   return charSheet;
 }

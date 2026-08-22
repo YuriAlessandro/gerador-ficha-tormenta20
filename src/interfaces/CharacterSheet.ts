@@ -493,6 +493,22 @@ export type StatModifierTarget =
       proficiencyRequired?: boolean;
     }
   | {
+      /**
+       * Passo de dado do ATAQUE DESARMADO (Corpo Aberrante, e o que mais vier).
+       *
+       * Estritamente disjunto de `WeaponDamageStep`: aquele só é bakeado nas
+       * armas de `bag.equipments.Arma`, e ataque desarmado NÃO é uma arma da
+       * mochila — não existe item "Desarmado" no catálogo. Manter os dois alvos
+       * separados é o que impede o passo de tamanho de ser contado duas vezes:
+       * o Step 11.7 emite o de tamanho como `WeaponDamageStep`, e
+       * `unarmedDamage.ts` lê o tamanho direto de `sheet.size`.
+       *
+       * Por isso vale a regra: NUNCA emitir um `UnarmedDamageStep` cuja
+       * `source` seja `{ type: 'size' }`.
+       */
+      type: 'UnarmedDamageStep';
+    }
+  | {
       type: 'HPAttributeReplacement';
       newAttribute: Atributo;
     }

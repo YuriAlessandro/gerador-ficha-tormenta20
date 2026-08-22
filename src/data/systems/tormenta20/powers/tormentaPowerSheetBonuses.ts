@@ -64,3 +64,21 @@ export const BOLSOES_INSANOS_SHEET_BONUSES: SheetBonus[] = [
     },
   },
 ];
+
+/**
+ * Corpo Aberrante: "Seu dano desarmado aumenta em um passo, mais um passo para
+ * cada quatro OUTROS poderes da Tormenta que você possui."
+ *
+ * O alvo é `UnarmedDamageStep`, não `WeaponDamageStep`: ataque desarmado não é
+ * uma arma da mochila (ver `functions/unarmedDamage.ts`).
+ */
+export const CORPO_ABERRANTE_SHEET_BONUSES: SheetBonus[] = [
+  {
+    source: { type: 'power', name: 'Corpo Aberrante' },
+    target: { type: 'UnarmedDamageStep' },
+    modifier: {
+      type: 'TormentaPowersCalc',
+      formula: '1 + Math.floor(({tPowQtd} - 1) / 4)',
+    },
+  },
+];

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   stepUpDamage,
   addFlatDamageBonus,
+  damageAverage,
 } from '../../functions/weaponDamageStep';
 
 describe('stepUpDamage — linear ladder', () => {
@@ -99,5 +100,81 @@ describe('addFlatDamageBonus — dual-mode aware flat bonus', () => {
     expect(addFlatDamageBonus('1d8', 0)).toBe('1d8');
     expect(addFlatDamageBonus('-', 5)).toBe('-');
     expect(addFlatDamageBonus('', 5)).toBe('');
+  });
+});
+
+/**
+ * Ramo `2dX` da Tabela 3-2 (JDA p. 145, linhas 7-8): 1d10 | 2d6 | 2d8 | 2d10 |
+ * 3d10 | 4d10 | 4d12.
+ *
+ * É OPT-IN. A escala principal escolheu o outro caminho da tabela (1d10 → 1d12
+ * → 3d6), e ligar o ramo por padrão mudaria o dano de armas 2dX já na mochila
+ * de todo personagem Grande — decisão que o Step 11.7 do `recalculateSheet`
+ * deferiu de propósito. Hoje só o ataque desarmado consome, porque a tabela da
+ * Briga (2d8 no 17º, 2d10 no 20º) obriga uma resposta.
+ */
+describe('stepUpDamage — ramo 2dX (opt-in)', () => {
+  const alt = { allowAltLadder: true };
+
+  it('sobe pela cadeia alternativa', () => {
+    expect(stepUpDamage('2d6', 1, alt)).toBe('2d8');
+    expect(stepUpDamage('2d8', 1, alt)).toBe('2d10');
+    expect(stepUpDamage('2d10', 1, alt)).toBe('3d10');
+    expect(stepUpDamage('3d10', 1, alt)).toBe('4d10');
+    expect(stepUpDamage('4d10', 1, alt)).toBe('4d12');
+  });
+
+  it('satura em 4d12', () => {
+    expect(stepUpDamage('4d10', 5, alt)).toBe('4d12');
+  });
+
+  it('desce de volta para a cadeia canônica', () => {
+    expect(stepUpDamage('2d6', -1, alt)).toBe('1d10');
+    expect(stepUpDamage('2d8', -1, alt)).toBe('2d6');
+    expect(stepUpDamage('2d10', -3, alt)).toBe('1d10');
+  });
+
+  it('acumula passos', () => {
+    expect(stepUpDamage('2d6', 2, alt)).toBe('2d10');
+  });
+
+  it('a escala principal ganha nos dados que existem nas duas', () => {
+    // 1d10 vive nas duas cadeias. Uma arma 1d10 é uma arma normal: +1 passo
+    // continua sendo 1d12, não 2d6.
+    expect(stepUpDamage('1d10', 1, alt)).toBe('1d12');
+    expect(stepUpDamage('1d12', 1, alt)).toBe('3d6');
+  });
+
+  it('não muda nada sem o opt-in', () => {
+    expect(stepUpDamage('2d6', 1)).toBe('2d6');
+    expect(stepUpDamage('2d8', 1)).toBe('2d8');
+    expect(stepUpDamage('2d10', 1)).toBe('2d10');
+  });
+
+  it('2d4 e 3d4 continuam fora das duas cadeias', () => {
+    // A tabela lista os dois só como EQUIVALENTES de 1d8/1d12, nunca como
+    // degrau próprio — mapeá-los é outra decisão.
+    expect(stepUpDamage('2d4', 1, alt)).toBe('2d4');
+    expect(stepUpDamage('3d4', 1, alt)).toBe('3d4');
+  });
+});
+
+describe('damageAverage', () => {
+  it('ordena degraus que vivem em ramos diferentes', () => {
+    // O comparador do dado base do ataque desarmado: 2d8 tem índice MENOR que
+    // 1d12 na escada, mas vale mais.
+    expect(damageAverage('2d8')).toBeGreaterThan(damageAverage('1d12'));
+    expect(damageAverage('1d3')).toBe(2);
+    expect(damageAverage('2d6')).toBe(7);
+  });
+
+  it('lê só o primeiro modo e ignora o modificador', () => {
+    expect(damageAverage('1d8+3')).toBe(4.5);
+    expect(damageAverage('1d8/1d10')).toBe(4.5);
+  });
+
+  it('devolve 0 para dano não parsável', () => {
+    expect(damageAverage('-')).toBe(0);
+    expect(damageAverage('')).toBe(0);
   });
 });

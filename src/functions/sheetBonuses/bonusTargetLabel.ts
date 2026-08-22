@@ -83,6 +83,8 @@ export function describeBonusTarget(
       return { label: 'Dano com armas', numeric: true };
     case 'WeaponDamageStep':
       return { label: 'Dano com armas (aumenta o dado)', numeric: true };
+    case 'UnarmedDamageStep':
+      return { label: 'Dano desarmado (aumenta o dado)', numeric: true };
     case 'WeaponThreatMargin':
       return { label: 'Margem de ameaça', numeric: true };
     case 'WeaponCriticalMultiplier':

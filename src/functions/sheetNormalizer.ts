@@ -34,8 +34,10 @@ import {
 import {
   BOLSOES_INSANOS_SHEET_BONUSES,
   CARAPACA_CORROMPIDA_SHEET_BONUSES,
+  CORPO_ABERRANTE_SHEET_BONUSES,
   PELE_CORROMPIDA_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/tormentaPowerSheetBonuses';
+import { updateUnarmedRolls } from './unarmedDamage';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
 
@@ -56,6 +58,10 @@ const GRANTED_POWERS_BY_NAME = new Map(
 //   RD sem este refresh.
 // - Bolsões Insanos era `Fixed: 2`, ignorando o "+1 para cada outro poder da
 //   Tormenta"; sem o refresh a cópia errada fica travada para sempre.
+// - Corpo Aberrante nunca teve automação NENHUMA (era texto puro). A cópia
+//   embutida é o que `collectUnarmedStepBonuses` lê quando a ficha ainda não
+//   passou por um recálculo, então sem o refresh o poder continua inerte em
+//   toda ficha já salva.
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
@@ -64,6 +70,7 @@ const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Carapaça Corrompida', CARAPACA_CORROMPIDA_SHEET_BONUSES],
   ['Pele Corrompida', PELE_CORROMPIDA_SHEET_BONUSES],
   ['Bolsões Insanos', BOLSOES_INSANOS_SHEET_BONUSES],
+  ['Corpo Aberrante', CORPO_ABERRANTE_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<
@@ -727,6 +734,14 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // em ficha que TEM anotação e ainda NÃO tem diário, e não apaga o texto
   // original — ver `migrateNotesToJournal`.
   migrateNotesToJournal(sheet);
+
+  // Dano desarmado. Precisa rodar AQUI, e não só no recálculo: abrir uma ficha
+  // não dispara recálculo, e a rolagem de Corpo Aberrante/Briga tem que mostrar
+  // o dado certo já na primeira abertura. Vem por último de propósito — depende
+  // do `size` restaurado logo acima e dos `sheetBonuses` refrescados no topo.
+  // É idempotente (derivação absoluta), então rodar aqui e de novo no próximo
+  // recálculo dá o mesmo resultado.
+  updateUnarmedRolls(sheet);
 }
 
 export default normalizeSheet;

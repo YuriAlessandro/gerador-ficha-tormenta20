@@ -164,6 +164,11 @@ export interface SimpleModifierContext {
   classLevels?: Map<string, number>;
   /** `bonus.source`; só o `className` (fontes do tipo `power`) é lido. */
   source?: SheetChangeSource;
+  /**
+   * Total de poderes da Tormenta da ficha (`countTormentaPowers`), para os
+   * modificadores `TormentaPowersCalc`. Ausente = 0, como no motor completo.
+   */
+  tPowQtd?: number;
 }
 
 /**
@@ -183,8 +188,8 @@ const resolveClassLevel = (
 /**
  * Avaliador leve de modificador para o cálculo por modo e para o texto de
  * efeitos em Weapon.tsx, onde não há acesso à resolução completa de fonte/nível
- * de classe do recalculateSheet. Suporta `Fixed`, `Attribute`, `CappedAttribute`
- * e `LevelCalc`.
+ * de classe do recalculateSheet. Suporta `Fixed`, `Attribute`, `CappedAttribute`,
+ * `LevelCalc` e `TormentaPowersCalc`.
  *
  * `LevelCalc` usa `evaluateFormula` (parser próprio, sem `eval`) porque este
  * módulo é importado por componentes que renderizam conteúdo homebrew. Fórmulas
@@ -211,11 +216,15 @@ export function evaluateSimpleModifier(
       modifier.capBy === 'classLevel' ? resolveClassLevel(nivel, ctx) : nivel;
     return Math.max(0, Math.min(attrValue, cap));
   }
-  if (modifier.type === 'LevelCalc' && modifier.formula) {
+  if (
+    (modifier.type === 'LevelCalc' || modifier.type === 'TormentaPowersCalc') &&
+    modifier.formula
+  ) {
     try {
       return evaluateFormula(modifier.formula, {
         level: nivel,
         classLevel: resolveClassLevel(nivel, ctx),
+        tPowQtd: ctx?.tPowQtd ?? 0,
       });
     } catch {
       // Fórmula reprovada pela whitelist (ternários oficiais, homebrew inválido).

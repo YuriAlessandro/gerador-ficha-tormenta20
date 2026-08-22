@@ -5,7 +5,10 @@ import {
   GeneralPowerType,
   RequirementType,
 } from '../../../../interfaces/Poderes';
-import { PELE_CORROMPIDA_SHEET_BONUSES } from './tormentaPowerSheetBonuses';
+import {
+  CORPO_ABERRANTE_SHEET_BONUSES,
+  PELE_CORROMPIDA_SHEET_BONUSES,
+} from './tormentaPowerSheetBonuses';
 
 const tormentaPowers: Record<string, GeneralPower> = {
   ANATOMIA_INSANA: {
@@ -179,6 +182,16 @@ const tormentaPowers: Record<string, GeneralPower> = {
           value: 1,
         },
       ],
+    ],
+    sheetBonuses: CORPO_ABERRANTE_SHEET_BONUSES,
+    // O dado é reescrito a cada recálculo por `updateUnarmedRolls`; este é só o
+    // valor de partida (o dano desarmado base de uma criatura Média).
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Desarmado',
+        dice: '1d3',
+      },
     ],
   },
   CUSPIR_ENXAME: {

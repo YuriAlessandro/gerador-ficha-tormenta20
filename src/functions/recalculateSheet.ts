@@ -48,7 +48,7 @@ import {
   findClassDescription,
 } from './multiclass';
 import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
-import { updateBrigaRolls } from './powers/lutador-special';
+import { updateUnarmedRolls } from './unarmedDamage';
 import {
   captureUserAbilityFields,
   restoreUserAbilityFields,
@@ -1203,9 +1203,6 @@ function applyClassAbilities(
   allAbilities = restoreUserAbilityFields(allAbilities, userAbilityFields);
 
   sheetClone.classe.abilities = allAbilities;
-
-  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
-  updateBrigaRolls(sheetClone);
 
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(sheetClone);
@@ -2666,6 +2663,21 @@ export function recalculateSheet(
       modifier: { type: 'Fixed', value: sizeDamageStep },
     });
   }
+
+  // Step 11.8: dano desarmado (Briga, Estilo Desarmado, Corpo Aberrante).
+  //
+  // Depois do Step 11.5/11.7 porque lê o `size` FINAL, e depois do Step 2
+  // porque precisa dos bônus `UnarmedDamageStep` já em `sheetBonuses`. Antes
+  // rodava lá em cima, dentro de `applyClassAbilities`, onde nenhuma das duas
+  // coisas existia ainda — por isso a Briga ignorava tamanho.
+  //
+  // O passo de tamanho NÃO vem do bônus do Step 11.7 (aquele é
+  // `WeaponDamageStep`, e só é bakeado nas armas da mochila): `unarmedDamage`
+  // lê `sheet.size` direto. Os dois alvos são disjuntos justamente para isso.
+  //
+  // Derivação absoluta (base → melhor dado → passos), então é idempotente sem
+  // snapshot de base, ao contrário do baking de armas.
+  updateUnarmedRolls(updatedSheet);
 
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
   updatedSheet = applyHPAttributeReplacement(updatedSheet);
