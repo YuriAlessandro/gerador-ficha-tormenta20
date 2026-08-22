@@ -164,6 +164,31 @@ const Changelog: React.FC = () => {
                   <em>−N por X poderes da Tormenta</em>.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> A tela de{' '}
+                  <strong>editar poderes e habilidades foi refeita</strong>. Ela
+                  virou uma janela com dois lados: à esquerda o catálogo, à
+                  direita o que já está na ficha. Os sanfonados que era preciso
+                  abrir um a um deram lugar a uma lista corrida com cabeçalho de
+                  cada grupo, e cada tipo de poder ganhou{' '}
+                  <strong>ícone e cor próprios</strong>. A{' '}
+                  <strong>busca</strong> agora procura em tudo — inclusive nas
+                  habilidades de raça e de classe, que antes ela ignorava — e
+                  mostra o resultado numa lista só, com o termo destacado e o
+                  casamento exato em primeiro: procurar o nome de um poder traz
+                  ele na tela, e não um sanfonado fechado para você abrir. Dá
+                  para filtrar por categoria e ligar{' '}
+                  <em>Só os que posso pegar</em> para esconder o que está fora
+                  de alcance. Ao abrir um poder, os{' '}
+                  <strong>pré-requisitos aparecem um a um</strong>, cada um com{' '}
+                  <em>✓</em> ou <em>✗</em> e, quando dá para medir, o quanto
+                  você tem — <em>✗ Força 15 — você tem 12</em> —, no lugar de
+                  apenas pintar o poder de vermelho. As habilidades automáticas
+                  de classe e raça saíram do meio da lista de escolhidos e foram
+                  para um bloco <em>Automáticos</em> à parte, já que não são
+                  removíveis. Salvar e Cancelar ficam sempre visíveis no rodapé,
+                  sem precisar rolar centenas de poderes para chegar neles.
+                </li>
+                <li>
                   <strong>Correção:</strong> Ao adicionar um efeito manualmente
                   pelo gerenciador de efeitos, os aprimoramentos do poder não
                   são mais ligados todos de uma vez: a Inspiração do bardo só
@@ -275,6 +300,14 @@ const Changelog: React.FC = () => {
                   personagem criado antes disso ficava sem o desconto até você
                   editar qualquer coisa. Agora a ficha se acerta sozinha ao ser
                   aberta, uma única vez.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No editor de poderes, alguns{' '}
+                  <strong>poderes de classe apareciam como liberados</strong>{' '}
+                  mesmo sem você cumprir o pré-requisito. Poder que exigia uma
+                  classe específica ou proficiência em qualquer arma passava
+                  batido na checagem e era mostrado como disponível. Agora os
+                  dois casos são conferidos de verdade.
                 </li>
               </ul>
               <h3>4.30.2</h3>
