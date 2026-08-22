@@ -13,6 +13,7 @@ import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-
 import {
   KAIJIN_CHARISMA_EXEMPT_POWER_NAMES,
   KAIJIN_REFRESHED_DESCRIPTIONS,
+  TERROR_VIVO_ABILITY_NAME,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
 import {
   CENTAURO_REFRESHED_DESCRIPTIONS,
@@ -179,6 +180,44 @@ function refreshCharismaExemption<
   if (!CHARISMA_EXEMPT_POWER_NAMES.has(power.name)) return power;
   if (power.tormentaCountExcludesCharisma) return power;
   return { ...power, tormentaCountExcludesCharisma: true };
+}
+
+/**
+ * Terror Vivo (Kaijin): "recebe um poder da Tormenta à sua escolha, que não
+ * conta para perda de Carisma".
+ *
+ * Diferente de Couraça Rúbea e Disforme, o poder isento VARIA por ficha — não
+ * dá para carimbar por nome como o `refreshCharismaExemption` acima. Quem diz
+ * qual foi é o `sheetActionHistory`: o handler de `getGeneralPower` grava uma
+ * entrada com `powerName: 'Terror Vivo'` e um recibo `PowerAdded` por poder
+ * concedido.
+ *
+ * Sem isto a correção do dado só alcançaria ficha nova: o objeto empurrado para
+ * `generalPowers` é a cópia do catálogo da época, sem a flag — e o Kaijin
+ * seguiria perdendo Carisma por uma habilidade que o livro isenta.
+ */
+function refreshTerrorVivoCharismaExemption(sheet: CharacterSheet): void {
+  if (!sheet.generalPowers?.length || !sheet.sheetActionHistory?.length) return;
+
+  const granted = new Set<string>();
+  sheet.sheetActionHistory.forEach((entry) => {
+    const fromTerrorVivo =
+      entry?.powerName === TERROR_VIVO_ABILITY_NAME ||
+      (entry?.source?.type === 'power' &&
+        entry.source.name === TERROR_VIVO_ABILITY_NAME);
+    if (!fromTerrorVivo) return;
+    entry.changes?.forEach((change) => {
+      if (change?.type === 'PowerAdded') granted.add(change.powerName);
+    });
+  });
+
+  if (granted.size === 0) return;
+
+  sheet.generalPowers = sheet.generalPowers.map((power) =>
+    granted.has(power.name) && !power.tormentaCountExcludesCharisma
+      ? { ...power, tormentaCountExcludesCharisma: true }
+      : power
+  );
 }
 
 // Poderes de ORIGEM cujos `sheetBonuses` DEIXARAM de valer sempre. Ao contrário
@@ -734,6 +773,8 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // em ficha que TEM anotação e ainda NÃO tem diário, e não apaga o texto
   // original — ver `migrateNotesToJournal`.
   migrateNotesToJournal(sheet);
+
+  refreshTerrorVivoCharismaExemption(sheet);
 
   // Dano desarmado. Precisa rodar AQUI, e não só no recálculo: abrir uma ficha
   // não dispara recálculo, e a rolagem de Corpo Aberrante/Briga tem que mostrar

@@ -2,12 +2,15 @@ import KAIJIN, {
   COURACA_RUBEA_POWER,
   DISFORME_POWER,
   KAIJIN_REFRESHED_DESCRIPTIONS,
+  TERROR_VIVO_ABILITY_NAME,
+  TERROR_VIVO_POWERS,
 } from '../../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
 import { countTormentaPowers } from '../randomUtils';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import { normalizeSheet } from '../sheetNormalizer';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { GeneralPowerType } from '../../interfaces/Poderes';
+import tormentaPowers from '../../data/systems/tormenta20/powers/tormentaPowers';
 
 const getAbility = (name: string) => {
   const ability = KAIJIN.abilities.find((a) => a.name === name);
@@ -109,5 +112,108 @@ describe('normalizeSheet — refresh das habilidades do Kaijin', () => {
     normalizeSheet(sheet);
 
     expect(sheet.raca.abilities.map((a) => a.description)).toEqual(original);
+  });
+});
+
+/**
+ * "Terror Vivo: ...recebe um poder da Tormenta à sua escolha, QUE NÃO CONTA
+ * PARA PERDA DE CARISMA."
+ *
+ * O poder isento varia por ficha, então a ressalva não pode ser carimbada por
+ * nome como a de Couraça Rúbea/Disforme: ela vai nas cópias oferecidas pela
+ * habilidade, e o `sheetActionHistory` é o que permite curar ficha antiga.
+ */
+describe('Terror Vivo — poder da Tormenta isento de Carisma', () => {
+  const terrorVivo = getAbility(TERROR_VIVO_ABILITY_NAME);
+
+  test('oferece cópias isentas, não os objetos crus do catálogo', () => {
+    const action = terrorVivo.sheetActions?.[0]?.action;
+    if (action?.type !== 'getGeneralPower') {
+      throw new Error('Terror Vivo deveria conceder um poder geral');
+    }
+
+    expect(action.availablePowers.length).toBeGreaterThan(0);
+    expect(
+      action.availablePowers.every(
+        (power) => power.tormentaCountExcludesCharisma === true
+      )
+    ).toBe(true);
+  });
+
+  test('não contamina o catálogo de poderes da Tormenta', () => {
+    // `getGeneralPower` empurra o objeto oferecido direto para a ficha; se a
+    // flag fosse carimbada no singleton do catálogo, todo poder da Tormenta
+    // escolhido por QUALQUER caminho pararia de cobrar Carisma.
+    const antenas = TERROR_VIVO_POWERS.find((p) => p.name === 'Antenas');
+    expect(antenas?.tormentaCountExcludesCharisma).toBe(true);
+    expect(
+      tormentaPowers.ANTENAS.tormentaCountExcludesCharisma
+    ).toBeUndefined();
+  });
+
+  test('o poder concedido conta para a escala, mas não para o Carisma', () => {
+    const sheet = createMockCharacterSheet();
+    const concedido = TERROR_VIVO_POWERS.find((p) => p.name === 'Antenas');
+    if (!concedido) throw new Error('Antenas não está no catálogo');
+    sheet.generalPowers = [{ ...concedido }];
+
+    expect(countTormentaPowers(sheet)).toBe(1);
+    expect(countTormentaPowers(sheet, { forCharismaPenalty: true })).toBe(0);
+  });
+
+  test('normalizeSheet cura ficha antiga pelo histórico de ações', () => {
+    const sheet = createMockCharacterSheet();
+    // Cópia como as fichas salvas guardam: o objeto cru do catálogo, sem flag.
+    sheet.generalPowers = [{ ...tormentaPowers.ANTENAS }];
+    sheet.sheetActionHistory = [
+      {
+        source: { type: 'power', name: TERROR_VIVO_ABILITY_NAME },
+        powerName: TERROR_VIVO_ABILITY_NAME,
+        changes: [{ type: 'PowerAdded', powerName: 'Antenas' }],
+      },
+    ];
+
+    expect(countTormentaPowers(sheet, { forCharismaPenalty: true })).toBe(1);
+
+    normalizeSheet(sheet);
+
+    expect(countTormentaPowers(sheet)).toBe(1);
+    expect(countTormentaPowers(sheet, { forCharismaPenalty: true })).toBe(0);
+  });
+
+  test('só isenta o poder que veio do Terror Vivo', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [
+      { ...tormentaPowers.ANTENAS },
+      { ...tormentaPowers.CARAPACA },
+    ];
+    sheet.sheetActionHistory = [
+      {
+        source: { type: 'power', name: TERROR_VIVO_ABILITY_NAME },
+        powerName: TERROR_VIVO_ABILITY_NAME,
+        changes: [{ type: 'PowerAdded', powerName: 'Antenas' }],
+      },
+    ];
+
+    normalizeSheet(sheet);
+
+    expect(countTormentaPowers(sheet)).toBe(2);
+    expect(countTormentaPowers(sheet, { forCharismaPenalty: true })).toBe(1);
+  });
+
+  test('não isenta poder concedido por outra habilidade', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [{ ...tormentaPowers.ANTENAS }];
+    sheet.sheetActionHistory = [
+      {
+        source: { type: 'power', name: 'Versátil' },
+        powerName: 'Versátil',
+        changes: [{ type: 'PowerAdded', powerName: 'Antenas' }],
+      },
+    ];
+
+    normalizeSheet(sheet);
+
+    expect(countTormentaPowers(sheet, { forCharismaPenalty: true })).toBe(1);
   });
 });
