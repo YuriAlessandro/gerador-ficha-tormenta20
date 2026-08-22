@@ -186,7 +186,7 @@ export const POWER_ORIGIN_ORDER: PowerOriginKind[] = (
 ).sort((a, b) => POWER_ORIGINS[a].order - POWER_ORIGINS[b].order);
 
 /** O tipo do poder geral decide o grupo; `OriginPower.type` NÃO serve aqui. */
-const GENERAL_TYPE_TO_KIND: Record<GeneralPowerType, PowerOriginKind> = {
+export const GENERAL_TYPE_TO_KIND: Record<GeneralPowerType, PowerOriginKind> = {
   [GeneralPowerType.COMBATE]: 'generalCombate',
   [GeneralPowerType.DESTINO]: 'generalDestino',
   [GeneralPowerType.MAGIA]: 'generalMagia',

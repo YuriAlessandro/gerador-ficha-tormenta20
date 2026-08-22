@@ -107,7 +107,7 @@ function refreshDescription<T extends { name: string; description?: string }>(
  * Refresh dos hooks de pré-requisito das habilidades do CENTAURO. Diferente do
  * refresh de descrição acima, este não é cosmético: os valores errados liberavam
  * poderes de verdade na ficha (ver `CENTAURO_REFRESHED_PREREQ_HOOKS`), e
- * `isPowerAvailable`/`PowersEditDrawer` leem a cópia embutida na ficha, nunca o
+ * `isPowerAvailable`/`PowersEditor` leem a cópia embutida na ficha, nunca o
  * catálogo — sem isto a correção só alcançaria fichas novas.
  *
  * Gated pelo nome da raça (e não por um mapa global por nome de habilidade, como

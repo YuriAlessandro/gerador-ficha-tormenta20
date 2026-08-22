@@ -52,7 +52,7 @@ const UNAVAILABLE_LABEL: Record<
  * Escolha dos pares deus maior + poder concedido do Poder Capturado
  * (Usurpador, 4º nível).
  *
- * Drawer próprio em vez de estender o `PowersEditDrawer`: a seção de deus de lá
+ * Drawer próprio em vez de estender o `PowersEditor`: a seção de deus de lá
  * é acoplada a `sheet.devoto`, que o Usurpador por regra nunca tem.
  */
 const PoderCapturadoEditDrawer: React.FC<PoderCapturadoEditDrawerProps> = ({

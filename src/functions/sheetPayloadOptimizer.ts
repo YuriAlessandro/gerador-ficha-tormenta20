@@ -352,7 +352,7 @@ export function computeSheetDelta(
  * If the sheet was not stripped (old format), returns it as-is for backward compatibility.
  *
  * Reconstructs:
- * - classe.powers: Full class powers catalog (needed for PowersEditDrawer to show available powers)
+ * - classe.powers: Full class powers catalog (needed for PowersEditor to show available powers)
  * - classe.periciasbasicas, periciasrestantes: Static definitions
  * - classe.proficiencias: união da lista da classe com as armazenadas na ficha e
  *   as registradas no `sheetActionHistory` (cura fichas gravadas quando o strip

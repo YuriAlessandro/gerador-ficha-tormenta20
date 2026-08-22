@@ -183,7 +183,7 @@ import { BackpackModal } from './BackpackModal';
 import { commitWielding, WieldingSlot } from './BackpackModal/wielding';
 import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
 import { findAmmoStack } from './BackpackModal/ammo';
-import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
+import PowersEditorModal from './EditDrawers/PowersEditor';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
@@ -3506,7 +3506,7 @@ const Result: React.FC<ResultProps> = (props) => {
             initialCategoryFilters={backpackInitialFilter}
           />
 
-          <PowersEditDrawer
+          <PowersEditorModal
             open={powersDrawerOpen}
             onClose={() => setPowersDrawerOpen(false)}
             sheet={currentSheet}
