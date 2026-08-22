@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            21/08/2026 (v4.31).
+            22/08/2026 (v4.31).
           </p>
 
           <p>
@@ -152,6 +152,18 @@ const Changelog: React.FC = () => {
                   exemplo, enquanto a armadura estiver vestida).
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> Ficou visível{' '}
+                  <strong>quantos poderes da Tormenta a ficha tem</strong> e o
+                  que isso está cobrando. Na aba de poderes, ao lado do grupo{' '}
+                  <em>Poder da Tormenta</em>, uma etiqueta mostra o total que as
+                  regras usam — que inclui poder concedido, de origem, de classe
+                  e personalizado marcado como poder da Tormenta, e por isso
+                  costuma ser maior que a contagem da lista. Passando o mouse,
+                  ela lista um a um e mostra o desconto de atributo. O atributo
+                  afetado também ganhou uma marca explicando o{' '}
+                  <em>−N por X poderes da Tormenta</em>.
+                </li>
+                <li>
                   <strong>Correção:</strong> Ao adicionar um efeito manualmente
                   pelo gerenciador de efeitos, os aprimoramentos do poder não
                   são mais ligados todos de uma vez: a Inspiração do bardo só
@@ -227,6 +239,42 @@ const Changelog: React.FC = () => {
                   conseguia ativar <em>Pedra de Amolar</em>,{' '}
                   <em>Ajuste de Mira</em> nem <em>Oficina de Campo</em>, que são
                   poderes de inventor.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Corpo Aberrante</strong> não fazia nada — era só
+                  texto. Agora ele{' '}
+                  <strong>aumenta mesmo o seu dano desarmado</strong>, em um
+                  passo mais um a cada quatro outros poderes da Tormenta, e o
+                  card do poder ganhou um{' '}
+                  <strong>botão de rolagem com o dado já calculado</strong>.
+                  Vale para qualquer classe: quem não é lutador parte de 1d3, o
+                  poder <em>Estilo Desarmado</em> sobe para 1d6 e a habilidade{' '}
+                  <strong>Briga</strong> do lutador usa a tabela dela. De
+                  quebra, a Briga passou a respeitar o{' '}
+                  <strong>tamanho do personagem</strong> (minúsculo desce um
+                  passo, grande e enorme sobem um, colossal sobe dois), que
+                  antes era ignorado, e o dano desarmado de lutadores do 17º
+                  nível em diante finalmente sobe de dado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Terror Vivo</strong> do <strong>Kaijin</strong> diz
+                  que o poder da Tormenta que ela concede{' '}
+                  <em>não conta para perda de Carisma</em>, mas ele estava
+                  cobrando normalmente. Agora a ressalva vale: o poder continua
+                  contando para a escala dos outros poderes da Tormenta e para
+                  pré-requisitos, só não pesa no Carisma. Fichas de Kaijin já
+                  existentes se acertam sozinhas ao serem abertas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A{' '}
+                  <strong>perda de Carisma por poderes da Tormenta</strong> não
+                  chegava em fichas antigas. A regra passou a valer para todo
+                  mundo na v4.30, mas abrir uma ficha não recalcula nada — então
+                  personagem criado antes disso ficava sem o desconto até você
+                  editar qualquer coisa. Agora a ficha se acerta sozinha ao ser
+                  aberta, uma única vez.
                 </li>
               </ul>
               <h3>4.30.2</h3>
