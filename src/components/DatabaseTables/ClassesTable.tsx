@@ -15,11 +15,15 @@ import {
   Divider,
   Chip,
   Grid,
+  ToggleButton,
+  ToggleButtonGroup,
   useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import SearchInput from './SearchInput';
@@ -32,10 +36,15 @@ import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, ClassWithSupplement } from '../../data/registry';
 import { normalizeSearch } from '../../functions/stringUtils';
+import ClassPowerTreesView from '../PowerTrees/ClassPowerTreesView';
+
+type PowersView = 'lista' | 'arvore';
 
 interface IProps {
   classe: ClassWithSupplement;
   defaultOpen: boolean;
+  /** Suplementos ligados na enciclopédia, repassados para a view de árvore. */
+  supplements: SupplementId[];
 }
 
 const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => (
@@ -52,9 +61,10 @@ const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => (
   />
 );
 
-const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
+const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const [powersView, setPowersView] = useState<PowersView>('lista');
 
   useEffect(() => {
     setOpen(defaultOpen);
@@ -382,74 +392,113 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
               <Divider sx={{ my: 3 }} />
 
               {/* Powers */}
-              <Typography
-                variant='h6'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif', fontSize: '1.2rem' }}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  mb: 1,
+                }}
               >
-                Poderes de {classe.name}
-              </Typography>
-              {classe.powers.map((power) => (
-                <Box key={power.name} sx={{ mb: 3 }}>
-                  <Typography
-                    variant='h6'
-                    color='primary'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      fontSize: '1rem',
-                      mb: 1,
-                    }}
-                  >
-                    {power.name}
-                  </Typography>
-                  <Typography
-                    variant='body1'
-                    sx={{
-                      marginBottom: '16px',
-                    }}
-                  >
-                    {power.text}
-                  </Typography>
-                  {power.requirements && power.requirements.length > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant='body2' gutterBottom>
-                        <strong>Requisitos:</strong>
-                      </Typography>
-                      {power.requirements.map((reqGroup, reqIndex) => (
-                        <Box
-                          key={`power-${power.name}-reqGroup-${reqGroup
-                            .map((r) => r.name || r.text)
-                            .join('-')}`}
-                          sx={{ mb: 1 }}
-                        >
-                          {reqGroup.map((req, _reqSubIndex) => (
-                            <Req
-                              key={`power-${power.name}-req-${
-                                req.name || req.text
-                              }-${req.value || 'novalue'}`}
-                              requirement={req}
-                            />
-                          ))}
-                          {power.requirements &&
-                            power.requirements.length > 1 &&
-                            reqIndex + 1 < power.requirements.length && (
-                              <Typography
-                                variant='body2'
-                                sx={{ my: 1, fontStyle: 'italic' }}
-                              >
-                                ou
-                              </Typography>
-                            )}
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
-                  {power.name !==
-                    classe.powers[classe.powers.length - 1]?.name && (
-                    <Divider sx={{ my: 2 }} />
-                  )}
-                </Box>
-              ))}
+                <Typography
+                  variant='h6'
+                  sx={{ fontFamily: 'Tfont, serif', fontSize: '1.2rem' }}
+                >
+                  Poderes de {classe.name}
+                </Typography>
+                {/* Duas leituras da mesma lista: o texto das regras e o desenho
+                    de quem exige quem. */}
+                <ToggleButtonGroup
+                  size='small'
+                  exclusive
+                  value={powersView}
+                  onChange={(_event, next) => {
+                    if (next) setPowersView(next as PowersView);
+                  }}
+                  aria-label='Como ver os poderes'
+                >
+                  <ToggleButton value='lista' aria-label='Ver em lista'>
+                    <FormatListBulletedIcon fontSize='small' sx={{ mr: 0.5 }} />
+                    Lista
+                  </ToggleButton>
+                  <ToggleButton value='arvore' aria-label='Ver em árvore'>
+                    <AccountTreeIcon fontSize='small' sx={{ mr: 0.5 }} />
+                    Árvore
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
+
+              {powersView === 'arvore' && (
+                <ClassPowerTreesView
+                  classe={classe}
+                  supplements={supplements}
+                />
+              )}
+
+              {powersView === 'lista' &&
+                classe.powers.map((power) => (
+                  <Box key={power.name} sx={{ mb: 3 }}>
+                    <Typography
+                      variant='h6'
+                      color='primary'
+                      sx={{
+                        fontFamily: 'Tfont, serif',
+                        fontSize: '1rem',
+                        mb: 1,
+                      }}
+                    >
+                      {power.name}
+                    </Typography>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        marginBottom: '16px',
+                      }}
+                    >
+                      {power.text}
+                    </Typography>
+                    {power.requirements && power.requirements.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant='body2' gutterBottom>
+                          <strong>Requisitos:</strong>
+                        </Typography>
+                        {power.requirements.map((reqGroup, reqIndex) => (
+                          <Box
+                            key={`power-${power.name}-reqGroup-${reqGroup
+                              .map((r) => r.name || r.text)
+                              .join('-')}`}
+                            sx={{ mb: 1 }}
+                          >
+                            {reqGroup.map((req, _reqSubIndex) => (
+                              <Req
+                                key={`power-${power.name}-req-${
+                                  req.name || req.text
+                                }-${req.value || 'novalue'}`}
+                                requirement={req}
+                              />
+                            ))}
+                            {power.requirements &&
+                              power.requirements.length > 1 &&
+                              reqIndex + 1 < power.requirements.length && (
+                                <Typography
+                                  variant='body2'
+                                  sx={{ my: 1, fontStyle: 'italic' }}
+                                >
+                                  ou
+                                </Typography>
+                              )}
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                    {power.name !==
+                      classe.powers[classe.powers.length - 1]?.name && (
+                      <Divider sx={{ my: 2 }} />
+                    )}
+                  </Box>
+                ))}
             </Box>
           </Collapse>
         </TableCell>
@@ -657,6 +706,7 @@ const ClassesTable: React.FC = () => {
                     key={cl.name}
                     classe={cl}
                     defaultOpen={classes.length === 1}
+                    supplements={selectedSupplements}
                   />
                 ))
               )}

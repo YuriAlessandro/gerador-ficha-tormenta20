@@ -62,11 +62,6 @@ export const SEO_CONFIG = {
       description:
         'Todas as magias arcanas e divinas de Tormenta 20, do 1º ao 5º círculo.',
     },
-    powerTrees: {
-      title: 'Árvores de Poderes de Tormenta 20',
-      description:
-        'Veja em forma de árvore quais poderes de cada classe destravam outros poderes e planeje a progressão da sua build.',
-    },
     rewards: {
       title: 'Rolador de Recompensas',
       description:

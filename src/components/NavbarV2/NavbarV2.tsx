@@ -165,11 +165,6 @@ const buildNavCategories = (isAuthenticated: boolean): NavCategory[] => {
           link: '/database/magias',
           icon: <AutoFixHighIcon fontSize='small' />,
         },
-        {
-          label: 'Árvores de Poderes',
-          link: '/arvores-de-poderes',
-          icon: <AccountTreeIcon fontSize='small' />,
-        },
       ],
     },
     {
