@@ -117,6 +117,7 @@ import {
   CosmeticsNudgeDialog,
   getFeatureFlags,
   MapaDeArtonPage,
+  PowerTreesPage,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
 import { safeTop } from './theme/safeArea';
@@ -415,6 +416,9 @@ function ThemedApp(): JSX.Element {
                                     </Route>
                                     <Route path='/database'>
                                       <Database />
+                                    </Route>
+                                    <Route path='/arvores-de-poderes/:className?'>
+                                      <PowerTreesPage />
                                     </Route>
                                     <Route path='/caverna-do-saber'>
                                       <CavernaDoSaber />

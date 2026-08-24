@@ -435,6 +435,12 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                 Enciclopédia de Tanah-Toh
               </Typography>
             </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/arvores-de-poderes')}>
+              <ListItemIcon>
+                <AccountTreeIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Árvores de Poderes</Typography>
+            </StyledMenuItem>
             <StyledMenuItem onClick={() => navigateTo('/caverna-do-saber')}>
               <ListItemIcon>
                 <BookIcon />
