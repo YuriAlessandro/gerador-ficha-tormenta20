@@ -14,9 +14,16 @@ gerada mostra `1d6` em qualquer nível.
 | 1º–4º             | 1d6            |
 | 5º–8º             | 1d8            |
 | 9º–12º            | 1d10           |
-| 13º–16º           | 1d12           |
+| 13º–16º           | 2d6            |
 | 17º–19º           | 2d8            |
 | 20º (Dono da Rua) | 2d10           |
+
+Valores conferidos contra a tabela de classe do livro (transcrição do SRD:
+`Briga (1d6)` no 1º, `Briga (1d8)` no 5º, `Briga (1d10)` no 9º,
+`Briga (2d6)` no 13º, `Briga (2d8)` no 17º, `Dono da rua (2d10)` no 20º).
+O 13º–16º já foi implementado errado uma vez como `1d12` — o dano do Lutador
+NÃO segue a escala genérica de passo de dado de `weaponDamageStep.ts`
+(que vai `1d10 → 1d12 → 3d6`); é uma tabela própria da classe.
 
 A variante Atleta reutiliza a habilidade Briga e tem a mesma progressão
 (Corpo Ideal no 20º também leva a 2d10). Em multiclasse, vale o nível na

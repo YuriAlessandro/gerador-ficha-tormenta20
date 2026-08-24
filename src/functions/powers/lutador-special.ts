@@ -3,13 +3,13 @@ import { getClassLevel } from '../multiclass';
 
 /**
  * Tabela oficial de dano desarmado da Briga (Lutador/Atleta), por nível de
- * classe: 1º-4º 1d6, 5º-8º 1d8, 9º-12º 1d10, 13º-16º 1d12, 17º-19º 2d8,
+ * classe: 1º-4º 1d6, 5º-8º 1d8, 9º-12º 1d10, 13º-16º 2d6, 17º-19º 2d8,
  * 20º 2d10 (Dono da Rua / Corpo Ideal).
  */
 export function getBrigaDice(classLevel: number): string {
   if (classLevel >= 20) return '2d10';
   if (classLevel >= 17) return '2d8';
-  if (classLevel >= 13) return '1d12';
+  if (classLevel >= 13) return '2d6';
   if (classLevel >= 9) return '1d10';
   if (classLevel >= 5) return '1d8';
   return '1d6';

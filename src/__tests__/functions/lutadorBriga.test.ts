@@ -1,6 +1,6 @@
 /**
  * Tests for Briga (Lutador) unarmed damage scaling with class level.
- * Official table: 1º-4º 1d6, 5º-8º 1d8, 9º-12º 1d10, 13º-16º 1d12,
+ * Official table: 1º-4º 1d6, 5º-8º 1d8, 9º-12º 1d10, 13º-16º 2d6,
  * 17º-19º 2d8, 20º 2d10 (Dono da Rua).
  */
 import { describe, it, expect } from 'vitest';
@@ -89,9 +89,9 @@ describe('getBrigaDice — official damage table', () => {
     expect(getBrigaDice(12)).toBe('1d10');
   });
 
-  it('returns 1d12 from level 13 to 16', () => {
-    expect(getBrigaDice(13)).toBe('1d12');
-    expect(getBrigaDice(16)).toBe('1d12');
+  it('returns 2d6 from level 13 to 16', () => {
+    expect(getBrigaDice(13)).toBe('2d6');
+    expect(getBrigaDice(16)).toBe('2d6');
   });
 
   it('returns 2d8 from level 17 to 19', () => {
@@ -144,7 +144,7 @@ describe('updateBrigaRolls', () => {
       (a) => a.name === 'Briga'
     );
     expect(originalBriga?.rolls?.[0]?.dice).toBe('1d6');
-    expect(getBrigaRollDice(sheet)).toBe('1d12');
+    expect(getBrigaRollDice(sheet)).toBe('2d6');
   });
 
   it('uses the class level, not the character level, for multiclass', () => {
