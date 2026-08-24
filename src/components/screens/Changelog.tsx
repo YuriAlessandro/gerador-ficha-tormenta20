@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            22/08/2026 (v4.31).
+            24/08/2026 (v4.31).
           </p>
 
           <p>
@@ -133,6 +133,25 @@ const Changelog: React.FC = () => {
                   efeitos: não precisa recomprar o item.
                 </li>
                 <li>
+                  <strong>Novo:</strong> A <strong>Enciclopédia</strong> ganhou
+                  uma <strong>árvore de poderes</strong> para cada classe. Em{' '}
+                  <em>Consulta → Enciclopédia → Classes</em>, ao abrir uma
+                  classe, a seção <em>Poderes de [classe]</em> passou a ter um
+                  botão <strong>Lista | Árvore</strong>. A lista continua sendo
+                  o texto das regras; a árvore desenha{' '}
+                  <strong>quem exige quem</strong> — dá para ver de relance que{' '}
+                  <em>Forma Selvagem</em> destrava dez poderes do druida, ou
+                  qual é o caminho até <em>Mestre Alquimista</em>. Cada linha de
+                  progressão fica em um sanfonado próprio (a maior já abre), os
+                  poderes que não exigem nem destravam nada ficam separados em{' '}
+                  <em>Poderes avulsos</em>, e clicar em um poder abre um painel
+                  com o texto, os pré-requisitos e atalhos para o que vem antes
+                  e depois. Caminhos alternativos (quando dá para chegar por
+                  mais de um pré-requisito) aparecem tracejados, e o cartão
+                  mostra a partir de que nível o poder é alcançável levando em
+                  conta a cadeia inteira, não só o que está escrito nele.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Ao aplicar o efeito da magia{' '}
                   <strong>Escudo da Fé</strong>, além dos valores prontos de +2
                   e +3 na Defesa agora existe a opção{' '}
@@ -187,6 +206,17 @@ const Changelog: React.FC = () => {
                   para um bloco <em>Automáticos</em> à parte, já que não são
                   removíveis. Salvar e Cancelar ficam sempre visíveis no rodapé,
                   sem precisar rolar centenas de poderes para chegar neles.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>Diário do Jogador</strong> ficou{' '}
+                  <strong>muito mais leve para navegar no celular</strong>.
+                  Arrastar o mapa de blocos travava e engasgava: o diário
+                  inteiro era redesenhado a cada pixel que o dedo andava, e cada
+                  bloco na tela refazia sozinho as contas de conexões, cor e
+                  brilho no meio do movimento. Agora arrastar o fundo e mover um
+                  bloco são contínuos, e o efeito piora bem menos conforme o
+                  diário cresce.
                 </li>
                 <li>
                   <strong>Correção:</strong> Ao adicionar um efeito manualmente
