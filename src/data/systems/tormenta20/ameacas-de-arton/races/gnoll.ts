@@ -57,7 +57,7 @@ const GNOLL: Race = {
     {
       name: 'Rendição',
       description:
-        'Quando um inimigo se rende, você recebe 1d PM temporários cumulativos. Da mesma forma, quando é reduzido a um quarto de seus PV ou menos, seu instinto é se render. Caso continue lutando, fica abalroado.',
+        'Quando um inimigo se rende, você recebe 1d4 PM temporários cumulativos. Da mesma forma, quando é reduzido a um quarto de seus PV ou menos, seu instinto é se render. Caso continue lutando, fica Alquebrado.',
     },
   ],
 };
