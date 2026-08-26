@@ -38,7 +38,7 @@ import {
   getCurrentPlateau,
   getDeityMaxSpellCircleFor,
 } from '@/functions/powers/general';
-import { isClassOrVariantOf } from '@/functions/general';
+import { applyPower, isClassOrVariantOf } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
   getClassLevel,
@@ -1435,6 +1435,54 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             ...(nextSheet.generalPowers || []),
             currentLevelSelection.selectedGeneralPower,
           ];
+        }
+
+        // Aplica as habilidades de classe que estreiam neste nível ao sheet
+        // simulado. Sem isto, poderes concedidos por habilidade (ex.:
+        // "Alquimista Iniciado" via grantSpecificClassPower) e pré-requisitos
+        // de HABILIDADE (ex.: "Duelo" p/ "Cavaleiro Bandido") nunca aparecem
+        // satisfeitos durante uma criação de múltiplos níveis — só depois que
+        // a ficha já está instanciada, quando `applyManualLevelUp` reaplica
+        // tudo de verdade a partir do zero.
+        const abilitiesThisLevel = getAbilitiesForCurrentLevel();
+        abilitiesThisLevel.forEach((ability) => {
+          const [abilitySheet] = applyPower(
+            nextSheet,
+            { ...ability, sourceClassName: selectedClassName },
+            currentLevelSelection.abilityEffectSelections?.[ability.name]
+          );
+          if (abilitySheet) {
+            nextSheet.classPowers = abilitySheet.classPowers;
+            nextSheet.generalPowers = abilitySheet.generalPowers;
+            nextSheet.spells = abilitySheet.spells;
+            nextSheet.sheetActionHistory = abilitySheet.sheetActionHistory;
+            nextSheet.skills = abilitySheet.skills;
+            nextSheet.completeSkills = abilitySheet.completeSkills;
+            nextSheet.sheetBonuses = abilitySheet.sheetBonuses;
+            nextSheet.atributos = abilitySheet.atributos;
+            nextSheet.classe = {
+              ...nextSheet.classe,
+              proficiencias: abilitySheet.classe.proficiencias,
+            };
+          }
+        });
+
+        if (abilitiesThisLevel.length > 0) {
+          const originalAbilities =
+            nextSheet.classe.originalAbilities || nextSheet.classe.abilities;
+          const newPrimaryClassLevel = getClassLevel(
+            nextSheet,
+            nextSheet.classe.name
+          );
+          const allAvailableAbilities = originalAbilities.filter(
+            (ability) => ability.nivel <= newPrimaryClassLevel
+          );
+          // Multiclasse: habilidades de classe secundária não estão em
+          // `originalAbilities` (que é só da classe primária) — anexa direto.
+          if (selectedClassName !== nextSheet.classe.name) {
+            allAvailableAbilities.push(...abilitiesThisLevel);
+          }
+          nextSheet.classe.abilities = allAvailableAbilities;
         }
 
         // Add selected spells to the simulated sheet
