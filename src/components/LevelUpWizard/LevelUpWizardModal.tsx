@@ -205,6 +205,73 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     nivel: currentLevel,
   };
 
+  // Habilidades da classe que está subindo de nível. As injetadas no setup
+  // (linhagens do Feiticeiro) vivem na FICHA, não na entrada do registry — por
+  // isso a mescla. Fonte única do passo "Efeitos de Habilidades": detecção,
+  // render e validação.
+  const getMergedClassAbilities = (): ClassAbility[] => [
+    ...getBaseAbilitiesForLevelUp(
+      simulatedSheet.classe,
+      selectedClassDesc,
+      selectedClassName
+    ),
+    ...getClassSetupAbilities(
+      selectedClassName,
+      currentLevelSelection.classSetup
+    ),
+  ];
+
+  // Só as que estreiam neste nível de CLASSE (importa na multiclasse).
+  const getAbilitiesForCurrentLevel = (): ClassAbility[] =>
+    getMergedClassAbilities().filter(
+      (ability) => ability.nivel === selectedClassLevel
+    );
+
+  const getSheetWithCurrentLevelAbilities = (
+    baseSheet: CharacterSheet
+  ): CharacterSheet => {
+    const abilitiesThisLevel = getAbilitiesForCurrentLevel();
+    if (abilitiesThisLevel.length === 0) return baseSheet;
+
+    let nextSheet = baseSheet;
+
+    abilitiesThisLevel.forEach((ability) => {
+      const requirements = getPowerSelectionRequirements(ability);
+      if (requirements !== null) return;
+
+      const [abilitySheet] = applyPower(nextSheet, {
+        ...ability,
+        sourceClassName: selectedClassName,
+      });
+      if (abilitySheet) {
+        nextSheet = {
+          ...abilitySheet,
+          classe: {
+            ...abilitySheet.classe,
+            abilities: nextSheet.classe.abilities,
+          },
+        };
+      }
+    });
+
+    const knownAbilityNames = new Set(
+      (nextSheet.classe.abilities || []).map((ability) => ability.name)
+    );
+    const projectedAbilities = abilitiesThisLevel.filter(
+      (ability) => !knownAbilityNames.has(ability.name)
+    );
+
+    if (projectedAbilities.length === 0) return nextSheet;
+
+    return {
+      ...nextSheet,
+      classe: {
+        ...nextSheet.classe,
+        abilities: [...nextSheet.classe.abilities, ...projectedAbilities],
+      },
+    };
+  };
+
   // Companheiro com os truques pendentes da OUTRA razão (auto/power) deste
   // nível projetados sobre os truques já refletidos no simulatedSheet — evita
   // escolher o mesmo truque não-repetível nos dois steps do mesmo nível
@@ -242,6 +309,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     generalPowers: GeneralPower[];
     unavailableGeneralPowers: string[];
   } => {
+    const sheetForPowerSelection =
+      getSheetWithCurrentLevelAbilities(sheetForCurrentLevel);
+
     // Get class with merged supplement powers from registry
     // Use the SELECTED class for power filtering (multiclass support)
     const classNameForPowers = selectedClassName;
@@ -254,18 +324,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const classForFiltering = classWithSupplementPowers || selectedClassDesc;
     const sheetForFiltering: CharacterSheet = classForFiltering
       ? {
-          ...sheetForCurrentLevel,
+          ...sheetForPowerSelection,
           classe: {
-            ...sheetForCurrentLevel.classe,
+            ...sheetForPowerSelection.classe,
             name: classNameForPowers,
             powers: classForFiltering.powers,
             proficiencias:
-              sheetForCurrentLevel.classe.proficiencias ||
+              sheetForPowerSelection.classe.proficiencias ||
               classForFiltering.proficiencias ||
               [],
           },
         }
-      : sheetForCurrentLevel;
+      : sheetForPowerSelection;
 
     // Get class powers using the selected class's powers.
     // Sempre usar getAllowedClassPowers na lista manual: a ponderação do
@@ -289,12 +359,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       ...allPowers.MAGIA,
       ...allPowers.TORMENTA,
       ...allPowers.RACA.filter((power) =>
-        isPowerAvailable(sheetForCurrentLevel, power)
+        isPowerAvailable(sheetForFiltering, power)
       ),
     ];
 
     // Track which powers are unavailable (requirements not met)
-    const existingGeneralPowers = sheetForCurrentLevel.generalPowers;
+    const existingGeneralPowers = sheetForFiltering.generalPowers;
     const unavailableGeneralPowers: string[] = [];
     const generalPowers = allGeneralPowers.filter((power) => {
       const isRepeatedPower = existingGeneralPowers.find(
@@ -305,7 +375,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return true; // Keep in list; isPowerKnown handles disable in UI
       }
 
-      if (!isPowerAvailable(sheetForCurrentLevel, power)) {
+      if (!isPowerAvailable(sheetForFiltering, power)) {
         unavailableGeneralPowers.push(power.name);
       }
       return true; // Always include
@@ -493,28 +563,6 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const requirements = getPowerSelectionRequirements(power);
     return requirements !== null && requirements.requirements.length > 0;
   };
-
-  // Habilidades da classe que está subindo de nível. As injetadas no setup
-  // (linhagens do Feiticeiro) vivem na FICHA, não na entrada do registry — por
-  // isso a mescla. Fonte única do passo "Efeitos de Habilidades": detecção,
-  // render e validação.
-  const getMergedClassAbilities = (): ClassAbility[] => [
-    ...getBaseAbilitiesForLevelUp(
-      simulatedSheet.classe,
-      selectedClassDesc,
-      selectedClassName
-    ),
-    ...getClassSetupAbilities(
-      selectedClassName,
-      currentLevelSelection.classSetup
-    ),
-  ];
-
-  // Só as que estreiam neste nível de CLASSE (importa na multiclasse).
-  const getAbilitiesForCurrentLevel = (): ClassAbility[] =>
-    getMergedClassAbilities().filter(
-      (ability) => ability.nivel === selectedClassLevel
-    );
 
   // Check if class abilities for this level need effect selections
   const needsAbilityEffectSelections = (): boolean =>
@@ -936,20 +984,22 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       case 'Escolha de Poder': {
         const { classPowers, generalPowers, unavailableGeneralPowers } =
           getAvailablePowers();
+        const sheetForPowerSelection =
+          getSheetWithCurrentLevelAbilities(sheetForCurrentLevel);
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
-          simulatedSheet.classPowers?.map((p) => p.name) || [];
+          sheetForPowerSelection.classPowers?.map((p) => p.name) || [];
         const knownGeneralPowers = [
-          ...(simulatedSheet.generalPowers?.map((p) => p.name) || []),
-          ...(simulatedSheet.raca.abilities?.map((a) => a.name) || []),
+          ...(sheetForPowerSelection.generalPowers?.map((p) => p.name) || []),
+          ...(sheetForPowerSelection.raca.abilities?.map((a) => a.name) || []),
         ];
 
         // Alma Livre detection: check if the character has a pre-selected power
         // that hasn't been acquired yet
-        const almaLivrePower = simulatedSheet.almaLivrePower || null;
-        const almaLivreClassName = simulatedSheet.almaLivreClass;
-        const almaLivrePowerAcquired = simulatedSheet.classPowers?.some(
+        const almaLivrePower = sheetForPowerSelection.almaLivrePower || null;
+        const almaLivreClassName = sheetForPowerSelection.almaLivreClass;
+        const almaLivrePowerAcquired = sheetForPowerSelection.classPowers?.some(
           (p) => p.name === almaLivrePower?.name
         );
         const showAlmaLivre =
@@ -959,7 +1009,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         let almaLivrePowerAvailable = false;
         if (showAlmaLivre && almaLivrePower) {
           const almaLivreSheet = {
-            ...simulatedSheet,
+            ...sheetForPowerSelection,
             nivel: Math.max(1, currentLevel - 4),
           };
           almaLivrePowerAvailable = isPowerAvailable(
