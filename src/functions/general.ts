@@ -6540,8 +6540,7 @@ export function generateEmptySheet(
   // Step: Trained Skills (from class and wizard selection)
   if (emptySheet.skills.length > 0) {
     const skillSubsteps: SubStep[] = emptySheet.skills.map((skill) => ({
-      name: skill,
-      value: 'Treinada',
+      value: skill,
     }));
 
     emptySheet.steps.push({
