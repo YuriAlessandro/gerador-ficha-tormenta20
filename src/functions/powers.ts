@@ -90,6 +90,22 @@ export function applyRequirementNot(rule: Requirement, met: boolean): boolean {
   return rule.not ? !met : met;
 }
 
+function getTrainedSkillNames(sheet: CharacterSheet): string[] {
+  const skillNames = new Set<string>();
+  const completeSkillNames = new Set<string>();
+
+  sheet.completeSkills?.forEach((skill) => {
+    completeSkillNames.add(skill.name);
+    if ((skill.training ?? 0) > 0) skillNames.add(skill.name);
+  });
+
+  sheet.skills
+    .filter((skill) => !completeSkillNames.has(skill))
+    .forEach((skill) => skillNames.add(skill));
+
+  return [...skillNames];
+}
+
 /** Avalia um único requisito, ignorando a flag `not` (aplicada por quem chama). */
 function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
   switch (rule.type) {
@@ -123,14 +139,16 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       return !!rule.name && sheet.atributos[attr].value >= (rule?.value || 0);
     }
     case RequirementType.PERICIA: {
+      const trainedSkills = getTrainedSkillNames(sheet);
+
       if (isGenericOficio(rule.name)) {
         // isOficioSkill (e não a lista fechada) para que um Ofício
         // customizado também satisfaça o pré-requisito genérico
-        return sheet.skills.some(isOficioSkill);
+        return trainedSkills.some(isOficioSkill);
       }
 
       const pericia = rule.name as Skill;
-      if (rule.name && sheet.skills.includes(pericia)) return true;
+      if (rule.name && trainedSkills.includes(pericia)) return true;
 
       // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
       // específico para fins de pré-requisito.
@@ -140,7 +158,7 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
         );
         if (
           hasArtesaoCriativo &&
-          sheet.skills.includes(Skill.OFICIO_ARTESANATO)
+          trainedSkills.includes(Skill.OFICIO_ARTESANATO)
         ) {
           return true;
         }
