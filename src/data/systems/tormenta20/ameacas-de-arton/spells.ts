@@ -49,7 +49,7 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
       {
         addPm: 1,
         text: 'aumenta o dano em +1d6.',
-        damageBonus: [{ dicePerActivation: '1d6' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 1,
@@ -122,7 +122,7 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
       {
         addPm: 2,
         text: 'aumenta o dano do sopro em +1d6+1.',
-        damageBonus: [{ dicePerActivation: '1d6+1' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 1 }],
       },
       {
         addPm: 2,
@@ -170,8 +170,8 @@ const AMEACAS_ARTON_DIVINE_SPELLS: Spell[] = [
         addPm: 3,
         text: 'aumenta o dano em +2d8 (ou +2d12 contra mortos-vivos).',
         damageBonus: [
-          { targetRollLabel: 'normal', dicePerActivation: '2d8' },
-          { targetRollLabel: 'mortos-vivos', dicePerActivation: '2d12' },
+          { targetRollLabel: 'normal', diceCount: 2 },
+          { targetRollLabel: 'mortos-vivos', diceCount: 2 },
         ],
       },
       {
@@ -213,10 +213,10 @@ const AMEACAS_ARTON_UNIVERSAL_SPELLS: Spell[] = [
         addPm: 3,
         text: 'aumenta o dano em +1 dado do mesmo tipo.',
         damageBonus: [
-          { targetRollLabel: 'chuva ácida', dicePerActivation: '1d4' },
-          { targetRollLabel: 'neblina venenosa', dicePerActivation: '1d12' },
-          { targetRollLabel: 'raios escarlates', dicePerActivation: '1d8' },
-          { targetRollLabel: 'pesadelos reais', dicePerActivation: '1d6' },
+          { targetRollLabel: 'chuva ácida', diceCount: 1 },
+          { targetRollLabel: 'neblina venenosa', diceCount: 1 },
+          { targetRollLabel: 'raios escarlates', diceCount: 1 },
+          { targetRollLabel: 'pesadelos reais', diceCount: 1 },
         ],
       },
       {

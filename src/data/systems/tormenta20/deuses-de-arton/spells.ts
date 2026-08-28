@@ -229,8 +229,8 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
         addPm: 4,
         text: 'aumenta o dano psíquico e de luz em +1d6 cada.',
         damageBonus: [
-          { targetRollLabel: 'psíquico', dicePerActivation: '1d6' },
-          { targetRollLabel: 'luz', dicePerActivation: '1d6' },
+          { targetRollLabel: 'psíquico', diceCount: 1 },
+          { targetRollLabel: 'luz', diceCount: 1 },
         ],
       },
       {
@@ -533,9 +533,9 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
         addPm: 1,
         text: 'aumenta o dano em +1d6.',
         damageBonus: [
-          { targetRollLabel: 'sem armadura', dicePerActivation: '1d6' },
-          { targetRollLabel: 'armadura leve', dicePerActivation: '1d6' },
-          { targetRollLabel: 'armadura pesada', dicePerActivation: '1d6' },
+          { targetRollLabel: 'sem armadura', diceCount: 1 },
+          { targetRollLabel: 'armadura leve', diceCount: 1 },
+          { targetRollLabel: 'armadura pesada', diceCount: 1 },
         ],
       },
       {
@@ -702,7 +702,7 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 2,
         text: 'aumenta o dano em +2d8.',
-        damageBonus: [{ dicePerActivation: '2d8' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 2,
