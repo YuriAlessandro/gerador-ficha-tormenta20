@@ -173,6 +173,43 @@ describe('augmentSpellRolls — vínculo estruturado', () => {
     expect(result[0].isAugmented).toBe(true);
   });
 
+  test('substitui o rótulo da rolagem junto com dano e tipo', () => {
+    const base = [{ ...roll('Dano de Corte', '4d6'), damageType: 'corte' }];
+    const variant = apr('muda o dano de corte para impacto.', {
+      damageBonus: [
+        {
+          replaceWith: '3d6',
+          replaceDamageType: 'impacto',
+          replaceLabel: 'Dano de Impacto',
+        },
+      ],
+    });
+    const result = augmentSpellRolls(base, [select(variant, 1)]);
+
+    expect(result[0].dice).toBe('3d6');
+    expect(result[0].damageType).toBe('impacto');
+    expect(result[0].label).toBe('Dano de Impacto');
+  });
+
+  test('adiciona uma rolagem extra criada pelo aprimoramento', () => {
+    const base = [roll('Dano Base', '1d6')];
+    const bonus = apr('adiciona um efeito que causa 3d8.', {
+      damageBonus: [
+        {
+          additionalRoll: {
+            id: 'extra-roll',
+            label: 'Dano Extra',
+            dice: '3d8',
+          },
+        },
+      ],
+    });
+    const result = augmentSpellRolls(base, [select(bonus, 1)]);
+
+    expect(result.map((r) => r.dice)).toEqual(['1d6', '3d8']);
+    expect(result[1].label).toBe('Dano Extra');
+  });
+
   test('flatPerActivation soma modificador fixo', () => {
     const base = [roll('Dano', '6d6')];
     const bonus = apr('aumenta o dano em 10.', {
@@ -354,6 +391,7 @@ describe('integridade das anotações damageBonus em generalSpells', () => {
       (spell.aprimoramentos ?? []).forEach((aprimoramento) => {
         (aprimoramento.damageBonus ?? []).forEach((bonus) => {
           const rolls = spell.rolls ?? [];
+          if (bonus.additionalRoll) return;
           if (bonus.targetRollLabel) {
             const needle = normalizeLabel(bonus.targetRollLabel);
             const matched = rolls.some((r) =>
@@ -402,6 +440,33 @@ describe('integração com dados reais (generalSpells)', () => {
     expect(result[0].isAugmented).toBe(true);
   });
 
+  test('Bola de Fogo: esfera flamejante substitui o dano por 3d6', () => {
+    const spell = findByNome(spellsCircle2, 'Bola de Fogo');
+    const sel = selectApr(spell, (a) => /esfera flamejante/.test(a.text));
+    const result = augmentSpellRolls(spell.rolls ?? [], [sel]);
+    expect(result[0].dice).toBe('3d6');
+  });
+
+  test('Seta de Talude: lanças substituem o dado das setas', () => {
+    const spell = findByNome(spellsCircle1, 'Seta Infalível de Talude');
+    const sel = selectApr(spell, (a) => /muda as setas/.test(a.text));
+    const result = augmentSpellRolls(spell.rolls ?? [], [sel]);
+    expect(result.map((r) => r.dice).sort()).toEqual(['1d8+1', '2d8+2']);
+  });
+
+  test('Enxame: formas maiores substituem a quantidade de dados', () => {
+    const spell = findByNome(spellsCircle2, 'Enxame de Pestes');
+    const larger = selectApr(spell, (a) => /criaturas maiores/.test(a.text));
+    const elemental = selectApr(spell, (a) =>
+      /criaturas elementais/.test(a.text)
+    );
+
+    expect(augmentSpellRolls(spell.rolls ?? [], [larger])[0].dice).toBe('3d12');
+    expect(augmentSpellRolls(spell.rolls ?? [], [elemental])[0].dice).toBe(
+      '5d12'
+    );
+  });
+
   test('Flecha Ácida: um aprimoramento aumenta as duas rolagens (dado real)', () => {
     const spell = findByNome(spellsCircle2, 'Flecha Ácida');
     const sel = selectApr(spell, (a) => (a.damageBonus?.length ?? 0) === 2);
@@ -425,6 +490,32 @@ describe('integração com dados reais (generalSpells)', () => {
     const result = augmentSpellRolls(spell.rolls ?? [], [sel]);
 
     expect(result.map((r) => r.dice).sort()).toEqual(['12d6', '12d8']);
+  });
+
+  test('Tempestade Divina: aprimoramentos adicionam rolagens opcionais', () => {
+    const spell = findByNome(spellsCircle2, 'Tempestade Divina');
+    const selections = (spell.aprimoramentos ?? [])
+      .filter((a) => /fazer um raio|granizo|causar neve/.test(a.text))
+      .map((aprimoramento) => ({ aprimoramento, count: 1 }));
+    const result = augmentSpellRolls(spell.rolls ?? [], selections);
+
+    expect(result.map((r) => r.dice).sort()).toEqual(['2d6', '2d6', '3d8']);
+  });
+
+  test('Marca da Obediência e Controlar Madeira adicionam danos opcionais', () => {
+    const mark = findByNome(spellsCircle2, 'Marca da Obediência');
+    const wood = findByNome(spellsCircle2, 'Controlar Madeira');
+    const markSelection = selectApr(mark, (a) =>
+      /marca causa 3d6/.test(a.text)
+    );
+    const woodSelection = selectApr(wood, (a) => /vegetação.*1d6/.test(a.text));
+
+    expect(
+      augmentSpellRolls(mark.rolls ?? [], [markSelection]).at(-1)?.dice
+    ).toBe('3d6');
+    expect(
+      augmentSpellRolls(wood.rolls ?? [], [woodSelection]).at(-1)?.dice
+    ).toBe('1d6');
   });
 
   test('Chuva de Meteoros ganhou rolagens de dano', () => {

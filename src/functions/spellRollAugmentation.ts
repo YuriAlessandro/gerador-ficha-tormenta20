@@ -270,6 +270,10 @@ export function augmentSpellRolls(
   const replacementDamageTypes: Array<string | undefined> = baseRolls.map(
     () => undefined
   );
+  const replacementLabels: Array<string | undefined> = baseRolls.map(
+    () => undefined
+  );
+  const additionalRolls: AugmentedRoll[] = [];
 
   selections.forEach(({ aprimoramento, count }) => {
     if (count <= 0) return;
@@ -278,7 +282,16 @@ export function augmentSpellRolls(
     bonuses.forEach((bonus) => {
       const targetIndexes = resolveTargetIndexes(baseRolls, bonus);
 
-      if (bonus.replaceWith || bonus.replaceDamageType) {
+      if (bonus.additionalRoll) {
+        additionalRolls.push({
+          ...bonus.additionalRoll,
+          baseDice: bonus.additionalRoll.dice,
+          isAugmented: false,
+        });
+        return;
+      }
+
+      if (bonus.replaceWith || bonus.replaceDamageType || bonus.replaceLabel) {
         targetIndexes.forEach((index) => {
           if (bonus.replaceWith) {
             const replacement = parseDamage(bonus.replaceWith);
@@ -293,6 +306,9 @@ export function augmentSpellRolls(
           }
           if (bonus.replaceDamageType) {
             replacementDamageTypes[index] = bonus.replaceDamageType;
+          }
+          if (bonus.replaceLabel) {
+            replacementLabels[index] = bonus.replaceLabel;
           }
           replacementApplied[index] = true;
         });
@@ -324,37 +340,41 @@ export function augmentSpellRolls(
     });
   });
 
-  return baseRolls.map((roll, index) => {
-    const added = addedAcc[index];
-    const isAugmented = replacementApplied[index] || hasAny(added);
+  return [
+    ...baseRolls.map((roll, index) => {
+      const added = addedAcc[index];
+      const isAugmented = replacementApplied[index] || hasAny(added);
 
-    const total = newAccumulator();
-    addGroups(total, accToGroups(baseAcc[index]), baseAcc[index].modifier);
-    addGroups(total, accToGroups(added), added.modifier);
+      const total = newAccumulator();
+      addGroups(total, accToGroups(baseAcc[index]), baseAcc[index].modifier);
+      addGroups(total, accToGroups(added), added.modifier);
 
-    let addedSummary: string | undefined;
-    if (isAugmented) {
-      const summary = composeNotation(added);
-      if (hasAny(added)) {
-        addedSummary =
-          summary.startsWith('+') || summary.startsWith('-')
-            ? summary
-            : `+${summary}`;
+      let addedSummary: string | undefined;
+      if (isAugmented) {
+        const summary = composeNotation(added);
+        if (hasAny(added)) {
+          addedSummary =
+            summary.startsWith('+') || summary.startsWith('-')
+              ? summary
+              : `+${summary}`;
+        }
       }
-    }
 
-    return {
-      ...roll,
-      baseDice: roll.dice,
-      dice: isAugmented ? composeNotation(total) : roll.dice,
-      damageType: replacementDamageTypes[index] ?? roll.damageType,
-      replacementDice: replacementApplied[index]
-        ? composeNotation(baseAcc[index])
-        : undefined,
-      isAugmented,
-      addedSummary,
-    };
-  });
+      return {
+        ...roll,
+        baseDice: roll.dice,
+        dice: isAugmented ? composeNotation(total) : roll.dice,
+        damageType: replacementDamageTypes[index] ?? roll.damageType,
+        label: replacementLabels[index] ?? roll.label,
+        replacementDice: replacementApplied[index]
+          ? composeNotation(baseAcc[index])
+          : undefined,
+        isAugmented,
+        addedSummary,
+      };
+    }),
+    ...additionalRolls,
+  ];
 }
 
 // Reexport para testes que queiram varrer todos os tokens de dado num texto.
