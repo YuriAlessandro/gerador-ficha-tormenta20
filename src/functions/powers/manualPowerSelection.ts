@@ -1022,8 +1022,25 @@ export function getFilteredAvailableOptions(
     }
 
     case 'meioElfoAmbicaoHerdada': {
-      // Options are handled dynamically by AmbicaoHerdadaSelectionField
-      return availableOptions;
+      // Options are handled dynamically by AmbicaoHerdadaSelectionField.
+      // Return the eligible general powers as a fallback so the requirement
+      // isn't mistaken for "no options left" and skipped by the wizard.
+      const allPowersForAmbicao =
+        dataRegistry.getPowersBySupplements(supplements);
+      const allGeneralPowersForAmbicao =
+        Object.values(allPowersForAmbicao).flat();
+      const existingGeneralPowersForAmbicao = sheet.generalPowers || [];
+      return allGeneralPowersForAmbicao
+        .filter((power) => {
+          const isRepeatedPower = existingGeneralPowersForAmbicao.find(
+            (existingPower) => existingPower.name === power.name
+          );
+          if (isRepeatedPower) {
+            return power.allowSeveralPicks;
+          }
+          return isPowerAvailable(sheet, power);
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
 
     case 'learnClassAbility': {
