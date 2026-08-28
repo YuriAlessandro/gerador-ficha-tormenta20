@@ -339,6 +339,19 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      // Handle Ambição Herdada special action for Meio-Elfo
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'meioElfoAmbicaoHerdada'
+      ) {
+        requirements.push({
+          type: 'meioElfoAmbicaoHerdada',
+          availableOptions: [], // Populated dynamically by the component
+          pick: 1, // 1 poder geral OU 1 poder único de origem
+          label: 'Selecione o poder geral ou poder único de origem',
+        });
+      }
+
       // Handle Alma Livre special action
       if (
         action.type === 'special' &&
@@ -1008,6 +1021,11 @@ export function getFilteredAvailableOptions(
       );
     }
 
+    case 'meioElfoAmbicaoHerdada': {
+      // Options are handled dynamically by AmbicaoHerdadaSelectionField
+      return availableOptions;
+    }
+
     case 'learnClassAbility': {
       // Devolve NOMES DE CLASSE (não pares classe+habilidade): `renderRequirement`
       // aborta o passo quando a lista vem vazia, e a lista de habilidades depende
@@ -1122,6 +1140,12 @@ export function countRequirementSelections(
       const powerCount = selections?.powers?.length ?? 0;
       const abilityCount = selections?.raceAbilities?.length ?? 0;
       return skillCount + powerCount + abilityCount > 0 ? 1 : 0;
+    }
+
+    // Ambição Herdada (Meio-Elfo): 1 poder geral OU 1 poder único de origem.
+    case 'meioElfoAmbicaoHerdada': {
+      const powerCount = selections?.powers?.length ?? 0;
+      return powerCount > 0 || selections?.originPower ? 1 : 0;
     }
 
     default:
@@ -1281,6 +1305,17 @@ export function validateSelections(
         break;
       }
 
+      case 'meioElfoAmbicaoHerdada': {
+        // 1 poder geral OU 1 poder único de origem
+        const ambicaoPowers = selections.powers || [];
+        selectedCount =
+          ambicaoPowers.length > 0 || selections.originPower ? 1 : 0;
+        selectedItems = selections.originPower
+          ? [...ambicaoPowers, selections.originPower]
+          : ambicaoPowers;
+        break;
+      }
+
       default:
         // Handle unknown types
         break;
@@ -1296,7 +1331,8 @@ export function validateSelections(
     // Tipos cuja lista de opções é montada pelo próprio componente (o
     // `getFilteredAvailableOptions` devolve vazio de propósito). Conferir
     // disponibilidade aqui reprovaria toda escolha válida.
-    if (type === 'almaLivreSelectClass') return;
+    if (type === 'almaLivreSelectClass' || type === 'meioElfoAmbicaoHerdada')
+      return;
 
     // Check if selections are available
     const availableOptions = getFilteredAvailableOptions(

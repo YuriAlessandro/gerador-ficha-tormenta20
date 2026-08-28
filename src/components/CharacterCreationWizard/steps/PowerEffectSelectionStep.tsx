@@ -49,6 +49,7 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
+import originPowers from '@/data/systems/tormenta20/powers/originPowers';
 import MECHANICAL_MARVELS from '@/data/systems/tormenta20/ameacas-de-arton/powers/mechanicalMarvels';
 import { normalizeSearch } from '@/functions/stringUtils';
 import VersatilSelectionField from './VersatilSelectionField';
@@ -58,6 +59,7 @@ import YidishanNaturezaOrganicaSelectionField from './YidishanNaturezaOrganicaSe
 import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import ClassAbilitySelectionField from './ClassAbilitySelectionField';
 import MashinSelectionField from './MashinSelectionField';
+import AmbicaoHerdadaSelectionField from './AmbicaoHerdadaSelectionField';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -1513,6 +1515,53 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             availableRaces={availableRacesForMP}
             availableSkills={availableSkillsForMP}
             availablePowers={availablePowersForMP}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // Render Ambição Herdada (Meio-Elfo) selection with custom component
+    if (type === 'meioElfoAmbicaoHerdada') {
+      const allPowersForAH = dataRegistry.getPowersBySupplements(supplements);
+      const allGeneralPowersForAH = Object.values(allPowersForAH).flat();
+      const existingGeneralPowersForAH = sheetForFiltering.generalPowers || [];
+      const availableGeneralPowersForAH = allGeneralPowersForAH.filter(
+        (power) => {
+          const isRepeatedPower = existingGeneralPowersForAH.find(
+            (existingPower) => existingPower.name === power.name
+          );
+          if (isRepeatedPower) {
+            return power.allowSeveralPicks;
+          }
+          return isPowerAvailable(sheetForFiltering, power);
+        }
+      );
+
+      const existingOriginPowers = sheetForFiltering.origin?.powers || [];
+      const availableOriginPowersForAH = Object.values(originPowers).filter(
+        (power) =>
+          !existingOriginPowers.some(
+            (existingPower) => existingPower.name === power.name
+          )
+      );
+
+      return (
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
+          <AmbicaoHerdadaSelectionField
+            availableGeneralPowers={availableGeneralPowersForAH}
+            availableOriginPowers={availableOriginPowersForAH}
             selections={powerSelections}
             onChange={(newSelections) => {
               onChange({

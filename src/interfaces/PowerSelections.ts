@@ -1,7 +1,7 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { ClassPower } from './Class';
 import Equipment from './Equipment';
-import { GeneralPower } from './Poderes';
+import { GeneralPower, OriginPower } from './Poderes';
 import { Spell } from './Spells';
 import { GolpePessoalBuild } from '../data/systems/tormenta20/golpePessoal';
 
@@ -30,6 +30,7 @@ export interface SelectionOptions {
   diferentaoPower?: ClassPower; // Poder escolhido pelo poder Diferentão
   alchemyItems?: Equipment[]; // Selected alchemy items for addAlchemyItems action
   golpePessoalBuild?: GolpePessoalBuild; // Build do Golpe Pessoal montado no assistente
+  originPower?: OriginPower; // Poder único de origem escolhido pela Ambição Herdada (Meio-Elfo)
 }
 
 /**
@@ -81,7 +82,8 @@ export interface PowerSelectionRequirement {
     | 'yidishanNaturezaOrganica'
     | 'chooseFromOptions'
     | 'almaLivreSelectClass'
-    | 'mashinChassi';
+    | 'mashinChassi'
+    | 'meioElfoAmbicaoHerdada';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;
