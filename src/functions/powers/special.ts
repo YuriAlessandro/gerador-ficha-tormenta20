@@ -576,14 +576,16 @@ export function applyMeioElfoAmbicaoHerdada(
 ): SubStep[] {
   const substeps: SubStep[] = [];
 
-  const hasManualPowers =
+  const hasManualGeneralPower =
     manualSelections?.powers && manualSelections.powers.length > 0;
+  const hasManualOriginPower = !!manualSelections?.originPower;
+  const hasManualSelection = hasManualGeneralPower || hasManualOriginPower;
 
   // DETERMINISTIC PATH: If selection was already stored, replay it
   if (
     sheet.meioElfoAmbicaoType &&
     sheet.meioElfoAmbicaoPower &&
-    !hasManualPowers
+    !hasManualSelection
   ) {
     if (sheet.meioElfoAmbicaoType === 'generalPower') {
       if (
@@ -636,7 +638,7 @@ export function applyMeioElfoAmbicaoHerdada(
   }
 
   // MANUAL or RANDOM PATH: First-time generation
-  if (hasManualPowers) {
+  if (hasManualGeneralPower) {
     const selectedPower = manualSelections.powers![0];
     sheet.generalPowers.push(selectedPower as GeneralPower);
     sheet.meioElfoAmbicaoType = 'generalPower';
@@ -645,6 +647,28 @@ export function applyMeioElfoAmbicaoHerdada(
       name: 'Ambição Herdada',
       value: `Poder geral recebido (${selectedPower.name})`,
     });
+  } else if (hasManualOriginPower) {
+    const selectedOriginPower = manualSelections!.originPower!;
+    if (
+      sheet.origin &&
+      !sheet.origin.powers.some((p) => p.name === selectedOriginPower.name)
+    ) {
+      sheet.origin.powers.push(selectedOriginPower);
+    }
+    sheet.meioElfoAmbicaoType = 'originPower';
+    sheet.meioElfoAmbicaoPower = selectedOriginPower.name;
+    substeps.push({
+      name: 'Ambição Herdada',
+      value: `Poder único de origem recebido (${selectedOriginPower.name})`,
+    });
+
+    const [newSheet] = applyPower(sheet, selectedOriginPower);
+    sheet.skills = newSheet.skills;
+    sheet.spells = newSheet.spells;
+    sheet.sheetBonuses = newSheet.sheetBonuses;
+    sheet.sheetActionHistory = newSheet.sheetActionHistory;
+    sheet.atributos = newSheet.atributos;
+    sheet.sentidos = newSheet.sentidos;
   } else {
     // Random selection for initial generation
     const shouldGetGeneralPower = Math.random() > 0.5;
