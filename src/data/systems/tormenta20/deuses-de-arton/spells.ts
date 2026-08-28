@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { Spell, spellsCircles } from '../../../../interfaces/Spells';
 import { SupplementSpells } from '../core';
 
@@ -227,10 +228,28 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 4,
         text: 'aumenta o dano psíquico e de luz em +1d6 cada.',
+        damageBonus: [
+          { targetRollLabel: 'psíquico', dicePerActivation: '1d6' },
+          { targetRollLabel: 'luz', dicePerActivation: '1d6' },
+        ],
       },
       {
         addPm: 0,
         text: '(Apenas Devotos de Lin-Wu): muda o alvo para 1 criatura inteligente (Int –3 ou maior).',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Psíquico',
+        dice: '1d6',
+        damageType: 'psíquico',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Luz',
+        dice: '1d6',
+        damageType: 'luz',
       },
     ],
   },
@@ -513,6 +532,11 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 1,
         text: 'aumenta o dano em +1d6.',
+        damageBonus: [
+          { targetRollLabel: 'sem armadura', dicePerActivation: '1d6' },
+          { targetRollLabel: 'armadura leve', dicePerActivation: '1d6' },
+          { targetRollLabel: 'armadura pesada', dicePerActivation: '1d6' },
+        ],
       },
       {
         addPm: 1,
@@ -525,6 +549,26 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 1,
         text: '(Apenas Devotos de Azgher): além do normal, criaturas que falhem na resistência ficam em chamas e sangrando.',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano (sem armadura)',
+        dice: '3d6',
+        damageType: 'corte',
+      },
+      {
+        id: uuid(),
+        label: 'Dano (armadura leve)',
+        dice: '2d6',
+        damageType: 'corte',
+      },
+      {
+        id: uuid(),
+        label: 'Dano (armadura pesada)',
+        dice: '1d6',
+        damageType: 'corte',
       },
     ],
   },
@@ -657,6 +701,7 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 2,
         text: 'aumenta o dano em +2d8.',
+        damageBonus: [{ dicePerActivation: '2d8' }],
       },
       {
         addPm: 2,
@@ -665,6 +710,14 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 3,
         text: 'muda o alvo para criaturas escolhidas. Requer 3º círculo.',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Impacto',
+        dice: '6d8',
+        damageType: 'impacto',
       },
     ],
   },
@@ -722,6 +775,7 @@ const DEUSES_ARTON_UNIVERSAL_SPELLS: Spell[] = [
       {
         addPm: 2,
         text: 'aumenta o dano em +1d8+1.',
+        damageBonus: [{ dicePerActivation: '1d8+1' }],
       },
       {
         addPm: 2,
@@ -742,6 +796,13 @@ const DEUSES_ARTON_UNIVERSAL_SPELLS: Spell[] = [
       {
         addPm: 2,
         text: '(Apenas Divinos): além do normal, para cada alvo que falhar na resistência, o próximo aliado que causar dano a ele recebe uma quantidade de PV temporários igual à metade do dano causado pela magia. Requer 2º círculo.',
+      },
+    ],
+    rolls: [
+      {
+        label: 'Dano de Luz',
+        dice: '2d8+2',
+        damageType: 'luz',
       },
     ],
   },
@@ -787,6 +848,21 @@ const DEUSES_ARTON_UNIVERSAL_SPELLS: Spell[] = [
       {
         addPm: 3,
         text: 'muda a resistência para nenhuma. Requer 3º círculo.',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano por Círculo de Magia',
+        dice: '1d8',
+        damageType: 'essência',
+        description: 'Role uma vez por círculo de magia afetando o alvo.',
+      },
+      {
+        id: uuid(),
+        label: 'Dano (Velocidade e Voo)',
+        dice: '5d8',
+        damageType: 'essência',
       },
     ],
   },

@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { Spell, spellsCircles } from '../../../../interfaces/Spells';
 import { SupplementSpells } from '../core';
 
@@ -25,6 +26,13 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
         text: 'aumenta o número de alvos em +1 (total de alvos limitado pelo círculo máximo de magia que você pode lançar).',
       },
     ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '2d6',
+      },
+    ],
   },
   {
     nome: 'Dardo Gélido',
@@ -41,10 +49,18 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
       {
         addPm: 1,
         text: 'aumenta o dano em +1d6.',
+        damageBonus: [{ dicePerActivation: '1d6' }],
       },
       {
         addPm: 1,
         text: 'aumenta o número de alvos em +1 (total de alvos limitado pelo círculo máximo de magia que você pode lançar).',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Frio',
+        dice: '2d6',
       },
     ],
   },
@@ -60,6 +76,13 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
     description:
       'Você dispara um jato, que causa 2d6 pontos de dano de ácido às criaturas na área. Contra construtos e objetos soltos, a magia causa +1 ponto de dano por dado.',
     aprimoramentos: [],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Ácido',
+        dice: '2d6',
+      },
+    ],
   },
 
   // 2º CÍRCULO (1 magia)
@@ -99,6 +122,7 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
       {
         addPm: 2,
         text: 'aumenta o dano do sopro em +1d6+1.',
+        damageBonus: [{ dicePerActivation: '1d6+1' }],
       },
       {
         addPm: 2,
@@ -115,6 +139,13 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
       {
         addPm: 3,
         text: 'o bônus em atributos se torna +4.',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Sopro Dracônico',
+        dice: '8d6+8',
       },
     ],
   },
@@ -138,10 +169,26 @@ const AMEACAS_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 3,
         text: 'aumenta o dano em +2d8 (ou +2d12 contra mortos-vivos).',
+        damageBonus: [
+          { targetRollLabel: 'normal', dicePerActivation: '2d8' },
+          { targetRollLabel: 'mortos-vivos', dicePerActivation: '2d12' },
+        ],
       },
       {
         addPm: 6,
         text: 'muda a área para uma linha de 120m ou quatro linhas de 30m em direções opostas, formando um "X".',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Luz (normal)',
+        dice: '12d8',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Luz (mortos-vivos)',
+        dice: '12d12',
       },
     ],
   },
@@ -165,6 +212,12 @@ const AMEACAS_ARTON_UNIVERSAL_SPELLS: Spell[] = [
       {
         addPm: 3,
         text: 'aumenta o dano em +1 dado do mesmo tipo.',
+        damageBonus: [
+          { targetRollLabel: 'chuva ácida', dicePerActivation: '1d4' },
+          { targetRollLabel: 'neblina venenosa', dicePerActivation: '1d12' },
+          { targetRollLabel: 'raios escarlates', dicePerActivation: '1d8' },
+          { targetRollLabel: 'pesadelos reais', dicePerActivation: '1d6' },
+        ],
       },
       {
         addPm: 5,
@@ -173,6 +226,32 @@ const AMEACAS_ARTON_UNIVERSAL_SPELLS: Spell[] = [
       {
         addPm: 5,
         text: '(Apenas Devotos de Aharadak): muda a área para círculo de 1km de raio.',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Chuva Ácida',
+        dice: '6d4',
+        damageType: 'ácido',
+      },
+      {
+        id: uuid(),
+        label: 'Neblina Venenosa',
+        dice: '2d12',
+        damageType: 'veneno',
+      },
+      {
+        id: uuid(),
+        label: 'Raios Escarlates',
+        dice: '6d8',
+        damageType: 'eletricidade',
+      },
+      {
+        id: uuid(),
+        label: 'Pesadelos Reais',
+        dice: '4d6',
+        damageType: 'psíquico',
       },
     ],
   },
