@@ -28,6 +28,10 @@ export interface AprimoramentoDamageBonus {
   replaceWith?: string;
   /** Tipo de dano que substitui o tipo da rolagem base enquanto ativo. */
   replaceDamageType?: string;
+  /** Rótulo que substitui o nome da rolagem enquanto o aprimoramento está ativo. */
+  replaceLabel?: string;
+  /** Rolagem extra criada pelo aprimoramento, em vez de alterar a rolagem base. */
+  additionalRoll?: DiceRoll;
 }
 
 export interface Aprimoramento {

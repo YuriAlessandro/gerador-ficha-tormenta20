@@ -1649,6 +1649,16 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'muda as setas para lanças de energia que surgem e caem do céu. Cada lança causa 1d8+1 pontos de dano de essência. Requer 2º círculo.',
+        damageBonus: [
+          {
+            targetRollLabel: '1 seta',
+            replaceWith: '1d8+1',
+          },
+          {
+            targetRollLabel: '2 setas',
+            replaceWith: '2d8+2',
+          },
+        ],
       },
       {
         addPm: 2,
@@ -2296,6 +2306,16 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 3,
         text: 'sempre que o alvo fizer o teste de Vontade e falhar, a marca causa 3d6 pontos de dano psíquico. Requer 3º círculo.',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano Psíquico (marca)',
+              dice: '3d6',
+              damageType: 'psíquico',
+            },
+          },
+        ],
       },
     ],
   },
@@ -2326,6 +2346,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'muda a área para efeito de esfera flamejante com tamanho Médio e a duração para cena. Em vez do normal, cria uma esfera flamejante com 1,5m de diâmetro que causa 3d6 pontos de dano a qualquer criatura no mesmo espaço. Você pode gastar uma ação de movimento para fazer a esfera voar 9m em qualquer direção. Ela é imune a dano, mas pode ser apagada com água. Uma criatura só pode sofrer dano da esfera uma vez por rodada.',
+        damageBonus: [{ replaceWith: '3d6' }],
       },
       {
         addPm: 3,
@@ -2611,6 +2632,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'muda o alcance para pessoal, o alvo para você e a duração para cena. Em vez do normal, a cada rodada você pode gastar uma ação padrão para tocar 1 criatura e causar 3d6 pontos de dano. Você recupera pontos de vida iguais à metade do dano causado. Requer 3º círculo.',
+        damageBonus: [{ replaceWith: '3d6' }],
       },
     ],
   },
@@ -2887,6 +2909,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 3,
         text: 'muda a resistência para Reflexos reduz à metade e o enxame para criaturas maiores, como gatos, guaxinins, compsognatos ou kobolds. Ele causa 3d12 pontos de dano (a sua escolha entre corte, impacto ou perfuração). O resto da magia segue normal.',
+        damageBonus: [{ replaceWith: '3d12' }],
       },
       {
         addPm: 5,
@@ -2895,6 +2918,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 7,
         text: 'muda a resistência para Reflexos reduz à metade e o enxame para criaturas elementais. Ele causa 5d12 pontos do dano (a sua escolha entre ácido, eletricidade, fogo ou frio). O resto da magia segue normal. Requer 4º círculo.',
+        damageBonus: [{ replaceWith: '5d12' }],
       },
     ],
   },
@@ -3122,6 +3146,16 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 1,
         text: 'além do normal, uma vez por rodada você pode gastar uma ação padrão para fazer um raio cair sobre um alvo na área, causando 3d8 pontos de dano de eletricidade (Reflexos reduz à metade).',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano de Eletricidade (raio)',
+              dice: '3d8',
+              damageType: 'eletricidade',
+            },
+          },
+        ],
       },
       {
         addPm: 2,
@@ -3134,10 +3168,30 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 3,
         text: 'se escolheu causar granizo, muda o dano para 2d6 por rodada.',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano de Impacto (granizo)',
+              dice: '2d6',
+              damageType: 'impacto',
+            },
+          },
+        ],
       },
       {
         addPm: 3,
         text: 'se escolheu causar neve, criaturas na área sofrem 2d6 pontos de dano de frio no início de seus turnos.',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano de Frio (neve)',
+              dice: '2d6',
+              damageType: 'frio',
+            },
+          },
+        ],
       },
       {
         addPm: 3,
@@ -3242,6 +3296,16 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 3,
         text: 'muda o alvo para área de quadrado com 9m de lado e a duração para cena. Em vez do normal, qualquer vegetação na área fica rígida e afiada. A área é considerada terreno difícil e criaturas que andem nela sofrem 1d6 pontos de dano de corte para cada 1,5m que avancem.',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano de Corte (vegetação)',
+              dice: '1d6',
+              damageType: 'corte',
+            },
+          },
+        ],
       },
       {
         addPm: 7,
@@ -3590,6 +3654,18 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 4,
         text: 'muda a área para cilindro com 6m de raio e 6m de altura e a duração para sustentada. Em vez do normal, a magia cria uma tempestade de granizo que causa 3d6 pontos de dano de impacto e 3d6 pontos de dano de frio em todas as criaturas na área (sem teste de resistência). A tempestade fornece camuflagem leve às criaturas dentro dela e deixa o piso escorregadio. Piso escorregadio conta como terreno difícil e obriga criaturas na área a fazer testes de Acrobacia para equilíbrio (veja o Capítulo 2). Requer 4º círculo.',
+        damageBonus: [
+          {
+            targetRollLabel: 'corte',
+            replaceWith: '3d6',
+            replaceDamageType: 'impacto',
+            replaceLabel: 'Dano de Impacto',
+          },
+          {
+            targetRollLabel: 'frio',
+            replaceWith: '3d6',
+          },
+        ],
       },
     ],
   },
