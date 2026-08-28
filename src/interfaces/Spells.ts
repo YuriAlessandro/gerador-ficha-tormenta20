@@ -18,10 +18,16 @@ export interface AprimoramentoDamageBonus {
    * (o vínculo resolve para ela automaticamente).
    */
   targetRollLabel?: string;
-  /** Dado somado por ativação, ex.: "1d6", "2d6", "1d8+2". */
-  dicePerActivation: string;
+  /** Dado literal somado por ativação, ex.: "1d6", "2d6", "1d8+2". */
+  dicePerActivation?: string;
+  /** Quantidade de dados usando o tipo de dado vigente na rolagem. */
+  diceCount?: number;
   /** Bônus fixo por ativação, para "aumenta o dano em 10" (sem dado). */
   flatPerActivation?: number;
+  /** Notação completa que substitui a rolagem base enquanto o aprimoramento está ativo. */
+  replaceWith?: string;
+  /** Tipo de dano que substitui o tipo da rolagem base enquanto ativo. */
+  replaceDamageType?: string;
 }
 
 export interface Aprimoramento {

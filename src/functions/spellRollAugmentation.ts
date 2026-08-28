@@ -29,6 +29,8 @@ export interface AugmentedRoll extends DiceRoll {
   isAugmented: boolean;
   /** Resumo do que foi somado, ex.: "+2d6" (undefined quando não aumentada). */
   addedSummary?: string;
+  /** Notação resultante de uma substituição, antes dos bônus aditivos. */
+  replacementDice?: string;
 }
 
 interface DiceAccumulator {
@@ -101,6 +103,12 @@ function hasAny(acc: DiceAccumulator): boolean {
     if (count > 0) hasDice = true;
   });
   return hasDice || acc.modifier !== 0;
+}
+
+function getSingleDieSides(acc?: DiceAccumulator): number | undefined {
+  if (!acc) return undefined;
+  const groups = accToGroups(acc);
+  return groups.length === 1 ? groups[0].sides : undefined;
 }
 
 function extractLabel(part: string): string | undefined {
@@ -258,13 +266,49 @@ export function augmentSpellRolls(
     return acc;
   });
   const addedAcc = baseRolls.map(() => newAccumulator());
+  const replacementApplied = baseRolls.map(() => false);
+  const replacementDamageTypes: Array<string | undefined> = baseRolls.map(
+    () => undefined
+  );
 
   selections.forEach(({ aprimoramento, count }) => {
     if (count <= 0) return;
     const bonuses = resolveBonuses(aprimoramento);
 
     bonuses.forEach((bonus) => {
-      const parsedBonus = parseDamage(bonus.dicePerActivation);
+      const targetIndexes = resolveTargetIndexes(baseRolls, bonus);
+
+      if (bonus.replaceWith || bonus.replaceDamageType) {
+        targetIndexes.forEach((index) => {
+          if (bonus.replaceWith) {
+            const replacement = parseDamage(bonus.replaceWith);
+            if (replacement) {
+              baseAcc[index] = newAccumulator();
+              addGroups(
+                baseAcc[index],
+                replacement.diceGroups,
+                replacement.modifier
+              );
+            }
+          }
+          if (bonus.replaceDamageType) {
+            replacementDamageTypes[index] = bonus.replaceDamageType;
+          }
+          replacementApplied[index] = true;
+        });
+      }
+
+      const activeDieSides = bonus.diceCount
+        ? getSingleDieSides(baseAcc[targetIndexes[0]])
+        : undefined;
+      const literalDice = bonus.dicePerActivation ?? '';
+      const parsedBonus =
+        bonus.diceCount && activeDieSides
+          ? {
+              diceGroups: [{ count: bonus.diceCount, sides: activeDieSides }],
+              modifier: 0,
+            }
+          : parseDamage(literalDice);
       const perActivationModifier =
         (parsedBonus?.modifier ?? 0) + (bonus.flatPerActivation ?? 0);
       const scaledGroups = (parsedBonus?.diceGroups ?? []).map((group) => ({
@@ -276,7 +320,6 @@ export function augmentSpellRolls(
       // Nada a somar (ex.: bônus só de texto não numérico).
       if (scaledGroups.length === 0 && scaledModifier === 0) return;
 
-      const targetIndexes = resolveTargetIndexes(baseRolls, bonus);
       targetIndexes.forEach((index) => {
         addGroups(addedAcc[index], scaledGroups, scaledModifier);
       });
@@ -285,7 +328,7 @@ export function augmentSpellRolls(
 
   return baseRolls.map((roll, index) => {
     const added = addedAcc[index];
-    const isAugmented = hasAny(added);
+    const isAugmented = replacementApplied[index] || hasAny(added);
 
     const total = newAccumulator();
     addGroups(total, accToGroups(baseAcc[index]), baseAcc[index].modifier);
@@ -294,16 +337,22 @@ export function augmentSpellRolls(
     let addedSummary: string | undefined;
     if (isAugmented) {
       const summary = composeNotation(added);
-      addedSummary =
-        summary.startsWith('+') || summary.startsWith('-')
-          ? summary
-          : `+${summary}`;
+      if (hasAny(added)) {
+        addedSummary =
+          summary.startsWith('+') || summary.startsWith('-')
+            ? summary
+            : `+${summary}`;
+      }
     }
 
     return {
       ...roll,
       baseDice: roll.dice,
       dice: isAugmented ? composeNotation(total) : roll.dice,
+      damageType: replacementDamageTypes[index] ?? roll.damageType,
+      replacementDice: replacementApplied[index]
+        ? composeNotation(baseAcc[index])
+        : undefined,
       isAugmented,
       addedSummary,
     };
