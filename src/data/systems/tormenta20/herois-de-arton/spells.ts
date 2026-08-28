@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { Spell, spellsCircles } from '../../../../interfaces/Spells';
 import { SupplementSpells } from '../core';
 
@@ -114,6 +115,7 @@ const HEROIS_ARTON_ARCANE_SPELLS: Spell[] = [
       {
         addPm: 2,
         text: 'aumenta o dano em um dado do mesmo tipo (total de dados limitado pelo círculo máximo de magia que você pode lançar).',
+        damageBonus: [{ dicePerActivation: '1d6' }],
       },
       {
         addPm: 2,
@@ -126,6 +128,15 @@ const HEROIS_ARTON_ARCANE_SPELLS: Spell[] = [
       {
         addPm: 3,
         text: '(Apenas Golem [energia elemental], Qareen ou Kallyanach): muda o dado de dano para d8 e o tipo de dano para o tipo escolhido para sua habilidade racial elemental.',
+        damageBonus: [{ replaceWith: '1d8+1', replaceDamageType: 'elemental' }],
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Perfuração',
+        dice: '1d6+1',
+        damageType: 'perfuração',
       },
     ],
   },

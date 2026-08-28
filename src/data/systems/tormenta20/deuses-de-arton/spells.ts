@@ -541,6 +541,7 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 1,
         text: 'muda o tipo de dano para luz.',
+        damageBonus: [{ replaceDamageType: 'luz' }],
       },
       {
         addPm: 1,
@@ -771,11 +772,12 @@ const DEUSES_ARTON_UNIVERSAL_SPELLS: Spell[] = [
       {
         addPm: 1,
         text: 'muda o alvo para uma criatura que tenha causado dano a você ou a seus aliados na última rodada e os dados de dano da magia para d10.',
+        damageBonus: [{ replaceWith: '2d10+2' }],
       },
       {
         addPm: 2,
         text: 'aumenta o dano em +1d8+1.',
-        damageBonus: [{ dicePerActivation: '1d8+1' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 1 }],
       },
       {
         addPm: 2,
@@ -792,6 +794,7 @@ const DEUSES_ARTON_UNIVERSAL_SPELLS: Spell[] = [
       {
         addPm: 1,
         text: '(Apenas Elfos): muda o alvo para 1 duyshidakk ou 1 devoto de Aharadak, Tauron ou Thwor. Muda os dados de dano para d10.',
+        damageBonus: [{ replaceWith: '2d10+2' }],
       },
       {
         addPm: 2,

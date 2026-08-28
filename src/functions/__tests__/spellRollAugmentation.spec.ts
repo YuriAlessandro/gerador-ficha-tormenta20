@@ -122,6 +122,57 @@ describe('augmentSpellRolls — vínculo estruturado', () => {
     expect(result[0].dice).toBe('8d6+1');
   });
 
+  test('substitui a notação base sem somar a versão anterior', () => {
+    const base = [roll('Dano de Luz', '2d8+2')];
+    const variant = apr('muda os dados de dano para d10.', {
+      damageBonus: [{ replaceWith: '2d10+2' }],
+    });
+    const result = augmentSpellRolls(base, [select(variant, 1)]);
+
+    expect(result[0].dice).toBe('2d10+2');
+    expect(result[0].baseDice).toBe('2d8+2');
+    expect(result[0].replacementDice).toBe('2d10+2');
+    expect(result[0].isAugmented).toBe(true);
+  });
+
+  test('usa o dado substituído para aumentos por quantidade de dados', () => {
+    const base = [roll('Dano de Luz', '2d8+2')];
+    const replacement = apr('muda os dados de dano para d10.', {
+      damageBonus: [{ replaceWith: '2d10+2' }],
+    });
+    const increase = apr('aumenta o dano em um dado e +1.', {
+      damageBonus: [{ diceCount: 1, flatPerActivation: 1 }],
+    });
+    const result = augmentSpellRolls(base, [
+      select(replacement, 1),
+      select(increase, 1),
+    ]);
+
+    expect(result[0].dice).toBe('3d10+3');
+  });
+
+  test('mantém suporte ao aumento literal quando necessário', () => {
+    const base = [roll('Dano', '2d10')];
+    const bonus = apr('aumenta o dano em +1d8+2.', {
+      damageBonus: [{ dicePerActivation: '1d8+2' }],
+    });
+    const result = augmentSpellRolls(base, [select(bonus, 1)]);
+
+    expect(result[0].dice).toBe('2d10+1d8+2');
+  });
+
+  test('substitui o tipo de dano mantendo a notação', () => {
+    const base = [{ ...roll('Dano', '3d6'), damageType: 'corte' }];
+    const variant = apr('muda o tipo de dano para luz.', {
+      damageBonus: [{ replaceDamageType: 'luz' }],
+    });
+    const result = augmentSpellRolls(base, [select(variant, 1)]);
+
+    expect(result[0].dice).toBe('3d6');
+    expect(result[0].damageType).toBe('luz');
+    expect(result[0].isAugmented).toBe(true);
+  });
+
   test('flatPerActivation soma modificador fixo', () => {
     const base = [roll('Dano', '6d6')];
     const bonus = apr('aumenta o dano em 10.', {
