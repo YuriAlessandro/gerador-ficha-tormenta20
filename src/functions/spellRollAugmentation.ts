@@ -277,6 +277,41 @@ export function augmentSpellRolls(
 
   selections.forEach(({ aprimoramento, count }) => {
     if (count <= 0) return;
+    resolveBonuses(aprimoramento).forEach((bonus) => {
+      if (
+        !bonus.replaceWith &&
+        !bonus.replaceDamageType &&
+        !bonus.replaceLabel
+      ) {
+        return;
+      }
+
+      const targetIndexes = resolveTargetIndexes(baseRolls, bonus);
+      targetIndexes.forEach((index) => {
+        if (bonus.replaceWith) {
+          const replacement = parseDamage(bonus.replaceWith);
+          if (replacement) {
+            baseAcc[index] = newAccumulator();
+            addGroups(
+              baseAcc[index],
+              replacement.diceGroups,
+              replacement.modifier
+            );
+          }
+        }
+        if (bonus.replaceDamageType) {
+          replacementDamageTypes[index] = bonus.replaceDamageType;
+        }
+        if (bonus.replaceLabel) {
+          replacementLabels[index] = bonus.replaceLabel;
+        }
+        replacementApplied[index] = true;
+      });
+    });
+  });
+
+  selections.forEach(({ aprimoramento, count }) => {
+    if (count <= 0) return;
     const bonuses = resolveBonuses(aprimoramento);
 
     bonuses.forEach((bonus) => {
@@ -292,26 +327,7 @@ export function augmentSpellRolls(
       }
 
       if (bonus.replaceWith || bonus.replaceDamageType || bonus.replaceLabel) {
-        targetIndexes.forEach((index) => {
-          if (bonus.replaceWith) {
-            const replacement = parseDamage(bonus.replaceWith);
-            if (replacement) {
-              baseAcc[index] = newAccumulator();
-              addGroups(
-                baseAcc[index],
-                replacement.diceGroups,
-                replacement.modifier
-              );
-            }
-          }
-          if (bonus.replaceDamageType) {
-            replacementDamageTypes[index] = bonus.replaceDamageType;
-          }
-          if (bonus.replaceLabel) {
-            replacementLabels[index] = bonus.replaceLabel;
-          }
-          replacementApplied[index] = true;
-        });
+        return;
       }
 
       targetIndexes.forEach((index) => {

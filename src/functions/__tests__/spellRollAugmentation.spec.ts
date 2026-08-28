@@ -151,6 +151,22 @@ describe('augmentSpellRolls — vínculo estruturado', () => {
     expect(result[0].dice).toBe('3d10+3');
   });
 
+  test('usa o dado substituído mesmo quando o aumento foi selecionado antes', () => {
+    const base = [roll('Dano de Luz', '2d8+2')];
+    const replacement = apr('muda os dados de dano para d10.', {
+      damageBonus: [{ replaceWith: '2d10+2' }],
+    });
+    const increase = apr('aumenta o dano em um dado e +1.', {
+      damageBonus: [{ diceCount: 1, flatPerActivation: 1 }],
+    });
+    const result = augmentSpellRolls(base, [
+      select(increase, 1),
+      select(replacement, 1),
+    ]);
+
+    expect(result[0].dice).toBe('3d10+3');
+  });
+
   test('mantém suporte ao aumento literal quando necessário', () => {
     const base = [roll('Dano', '2d10')];
     const bonus = apr('aumenta o dano em +1d8+2.', {
