@@ -115,7 +115,7 @@ const HEROIS_ARTON_ARCANE_SPELLS: Spell[] = [
       {
         addPm: 2,
         text: 'aumenta o dano em um dado do mesmo tipo (total de dados limitado pelo círculo máximo de magia que você pode lançar).',
-        damageBonus: [{ dicePerActivation: '1d6' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 2,

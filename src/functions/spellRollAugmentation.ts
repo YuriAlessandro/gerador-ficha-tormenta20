@@ -298,29 +298,27 @@ export function augmentSpellRolls(
         });
       }
 
-      const activeDieSides = bonus.diceCount
-        ? getSingleDieSides(baseAcc[targetIndexes[0]])
-        : undefined;
-      const literalDice = bonus.dicePerActivation ?? '';
-      const parsedBonus =
-        bonus.diceCount && activeDieSides
-          ? {
-              diceGroups: [{ count: bonus.diceCount, sides: activeDieSides }],
-              modifier: 0,
-            }
-          : parseDamage(literalDice);
-      const perActivationModifier =
-        (parsedBonus?.modifier ?? 0) + (bonus.flatPerActivation ?? 0);
-      const scaledGroups = (parsedBonus?.diceGroups ?? []).map((group) => ({
-        count: group.count * count,
-        sides: group.sides,
-      }));
-      const scaledModifier = perActivationModifier * count;
-
-      // Nada a somar (ex.: bônus só de texto não numérico).
-      if (scaledGroups.length === 0 && scaledModifier === 0) return;
-
       targetIndexes.forEach((index) => {
+        const activeDieSides = bonus.diceCount
+          ? getSingleDieSides(baseAcc[index])
+          : undefined;
+        const parsedBonus =
+          bonus.diceCount && activeDieSides
+            ? {
+                diceGroups: [{ count: bonus.diceCount, sides: activeDieSides }],
+                modifier: 0,
+              }
+            : parseDamage(bonus.dicePerActivation ?? '');
+        const perActivationModifier =
+          (parsedBonus?.modifier ?? 0) + (bonus.flatPerActivation ?? 0);
+        const scaledGroups = (parsedBonus?.diceGroups ?? []).map((group) => ({
+          count: group.count * count,
+          sides: group.sides,
+        }));
+        const scaledModifier = perActivationModifier * count;
+
+        // Nada a somar (ex.: bônus só de texto não numérico).
+        if (scaledGroups.length === 0 && scaledModifier === 0) return;
         addGroups(addedAcc[index], scaledGroups, scaledModifier);
       });
     });

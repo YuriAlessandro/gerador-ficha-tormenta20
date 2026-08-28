@@ -411,6 +411,22 @@ describe('integração com dados reais (generalSpells)', () => {
     expect(dice).toEqual(['3d6', '5d6']);
   });
 
+  test('Raio Solar: o aumento acompanha o dado de cada variante', () => {
+    const spell = findByNome(spellsCircle2, 'Raio Solar');
+    const sel = selectApr(spell, (a) => /aumenta o dano/i.test(a.text));
+    const result = augmentSpellRolls(spell.rolls ?? [], [sel]);
+
+    expect(result.map((r) => r.dice).sort()).toEqual(['5d12', '5d8']);
+  });
+
+  test('Cólera de Azgher: o aumento acompanha o dado de mortos-vivos', () => {
+    const spell = findByNome(spellsCircle4, 'Cólera de Azgher');
+    const sel = selectApr(spell, (a) => /aumenta o dano/i.test(a.text));
+    const result = augmentSpellRolls(spell.rolls ?? [], [sel]);
+
+    expect(result.map((r) => r.dice).sort()).toEqual(['12d6', '12d8']);
+  });
+
   test('Chuva de Meteoros ganhou rolagens de dano', () => {
     const spell = findByNome(spellsCircle5, 'Chuva de Meteoros');
     expect((spell.rolls ?? []).length).toBeGreaterThan(0);
