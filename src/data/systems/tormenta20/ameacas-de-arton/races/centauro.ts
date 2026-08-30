@@ -12,6 +12,7 @@ const cascos: Equipment = {
   // perfuração desde que a raça foi adicionada.
   tipo: 'Impac.',
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 // Os textos de Cascos e Ginete Natural foram escritos sem transcrever o livro:

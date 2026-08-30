@@ -4,6 +4,7 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import Race from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { getRaceSize } from '@/data/systems/tormenta20/races/functions/functions';
 
 import {
   recalculateSheet,
@@ -67,9 +68,10 @@ export function applyRaceCustomizationToSheet(
   if (newRace.getDisplacement) {
     working.displacement = newRace.getDisplacement(newRace);
   }
-  if (newRace.size) {
-    working.size = newRace.size;
-  }
+  // `getRaceSize` cobre tanto `race.size` fixo (Duende, Golem Desperto) quanto
+  // `race.getSize` dinâmico (Moreau: heranças como Urso são Grande) — checar só
+  // `newRace.size` deixava o tamanho do Moreau Urso preso em Médio.
+  working.size = getRaceSize(newRace);
   if (metadata) {
     Object.assign(working, metadata);
   }

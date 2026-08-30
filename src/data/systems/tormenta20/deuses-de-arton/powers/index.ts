@@ -111,6 +111,13 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
         'Para você, armas naturais são armas favoritas de Megalokk. Você recebe +2 em rolagens de dano com elas, pode usar Abençoar Arma nelas e, quando usa esse poder ou a magia Armamento da Natureza, pode aplicar seus benefícios a todas as suas armas naturais (sem custo adicional).',
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [[{ type: RequirementType.DEVOTO, name: 'Megalokk' }]],
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Armas da Selvageria' },
+          target: { type: 'WeaponDamage', weaponTags: ['natural'] },
+          modifier: { type: 'Fixed', value: 2 },
+        },
+      ],
     },
     {
       name: 'Aventureiro Inquieto',

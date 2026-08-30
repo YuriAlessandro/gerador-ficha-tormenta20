@@ -10,6 +10,7 @@ const mordida: Equipment = {
   critico: 'x2',
   tipo: 'Corte',
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const NEZUMI: Race = {

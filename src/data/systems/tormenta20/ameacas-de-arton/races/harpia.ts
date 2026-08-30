@@ -10,6 +10,7 @@ const garras: Equipment = {
   critico: 'x2',
   tipo: 'Cort.',
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const HARPIA: Race = {
