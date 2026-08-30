@@ -333,6 +333,22 @@ const DRUIDA: ClassDescription = {
       name: 'Presas Afiadas',
       text: 'A margem de ameaça de suas armas naturais aumenta em +2.',
       requirements: [[{ type: RequirementType.PODER, name: 'Forma Selvagem' }]],
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Presas Afiadas',
+          },
+          target: {
+            type: 'WeaponThreatMargin',
+            weaponTags: ['natural'],
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Segredos da Natureza',
