@@ -143,6 +143,27 @@ const racePowers: Record<string, GeneralPower> = {
         modifier: { type: 'Fixed', value: 2 },
       },
     ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Asas de Aço' },
+        action: {
+          type: 'addEquipment',
+          equipment: {
+            Arma: [{
+              group: 'Arma',
+              nome: 'Asas de Aço',
+              dano: '2d4',
+              critico: 'x2',
+              tipo: 'Impacto',
+              preco: 0,
+              weaponTags: ['natural'],
+            }]
+          },
+          description:
+            'Asas de Aço podem ser usadas como ataque extra.',
+        },
+      },
+    ],
   },
   ASAS_EXTRAPLANARES: {
     name: 'Asas Extraplanares',
@@ -723,6 +744,35 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.RACA, name: 'Dahllan' },
         { type: RequirementType.NIVEL, value: 5 },
       ],
+    ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Gavinhas' },
+        action: {
+          type: 'addEquipment',
+          equipment: {
+            Arma: [{
+              group: 'Arma',
+              nome: 'Gavinha',
+              dano: '1d4',
+              critico: 'x2',
+              tipo: 'Impacto',
+              preco: 0,
+              weaponTags: ['natural'],
+            }, {
+              group: 'Arma',
+              nome: 'Gavinha',
+              dano: '1d4',
+              critico: 'x2',
+              tipo: 'Impacto',
+              preco: 0,
+              weaponTags: ['natural'],
+            }],
+          },
+          description:
+            'Gavinhas podem ser usadas como ataque extra.',
+        },
+      },
     ],
   },
   GINETE_DE_JAVALI: {
