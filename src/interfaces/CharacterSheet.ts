@@ -509,6 +509,15 @@ export type StatModifierTarget =
       type: 'UnarmedDamageStep';
     }
   | {
+      /**
+       * Bônus FIXO (+N) na rolagem de dano do ataque desarmado — não mexe no
+       * dado, só soma um número (ex.: "+2 em rolagens de dano com... ataques
+       * desarmados", Ossos Afiados/Tocado pelo Indomável). Complementar a
+       * `UnarmedDamageStep`, que aumenta o dado em vez de somar um fixo.
+       */
+      type: 'UnarmedDamage';
+    }
+  | {
       type: 'HPAttributeReplacement';
       newAttribute: Atributo;
     }

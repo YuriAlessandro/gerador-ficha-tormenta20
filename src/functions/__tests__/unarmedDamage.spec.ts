@@ -190,6 +190,36 @@ describe('passo de tamanho', () => {
   });
 });
 
+describe('bônus fixo `UnarmedDamage` (Ossos Afiados, Tocado pelo Indomável)', () => {
+  const OSSOS_AFIADOS_LIKE: GeneralPower = {
+    name: 'Poder de Teste',
+    description: '',
+    type: CORPO_ABERRANTE.type,
+    requirements: [],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Poder de Teste' },
+        target: { type: 'UnarmedDamage' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
+  };
+
+  it('soma ao dado sem alterá-lo, ao contrário de `UnarmedDamageStep`', () => {
+    const breakdown = computeUnarmedDamage(sheetWith([OSSOS_AFIADOS_LIKE]));
+    expect(breakdown.totalSteps).toBe(0);
+    expect(breakdown.flatBonus).toBe(2);
+    expect(breakdown.dice).toBe('1d3+2');
+  });
+
+  it('compõe com o passo de tamanho', () => {
+    const sheet = sheetWith([OSSOS_AFIADOS_LIKE]);
+    sheet.size = RACE_SIZES.GRANDE;
+    const breakdown = computeUnarmedDamage(sheet);
+    expect(breakdown.dice).toBe('1d4+2');
+  });
+});
+
 describe('integração com o motor de recálculo', () => {
   const corpoAberranteRoll = (sheet: CharacterSheet) =>
     sheet.generalPowers
