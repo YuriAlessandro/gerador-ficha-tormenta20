@@ -239,6 +239,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
                 tipo: 'Corte',
                 spaces: 0,
                 preco: 0,
+                weaponTags: ['natural'],
               },
             ],
           },

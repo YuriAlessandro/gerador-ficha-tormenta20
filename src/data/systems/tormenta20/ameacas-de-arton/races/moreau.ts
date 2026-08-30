@@ -7,6 +7,8 @@ import {
 } from './moreau-heritages';
 import { Atributo } from '../../atributos';
 import RACE_COUNTS_AS from '../../races/raceCountsAs';
+import { RACE_SIZES } from '../../races/raceSizes/raceSizes';
+import { getDefaultSize } from '../../races/functions/functions';
 
 /**
  * Aplica customização ao Moreau
@@ -83,6 +85,14 @@ const MOREAU: Race = {
       }
     }
     return 9; // Default displacement
+  },
+  // Herança do Urso: "Você é Grande" (Abraço de Urso). As demais heranças ficam
+  // no tamanho padrão (Médio).
+  getSize(race) {
+    if (race.heritage === 'Urso') {
+      return RACE_SIZES.GRANDE;
+    }
+    return getDefaultSize(race);
   },
   getAttributes() {
     // This will be called after setup, so heritage should be set

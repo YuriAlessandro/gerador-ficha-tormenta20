@@ -898,6 +898,11 @@ const racePowers: Record<string, GeneralPower> = {
         target: { type: 'Skill', name: Skill.INTIMIDACAO },
         modifier: { type: 'Fixed', value: 2 },
       },
+      {
+        source: { type: 'power', name: 'Ossos Afiados' },
+        target: { type: 'WeaponDamage', weaponTags: ['natural'] },
+        modifier: { type: 'Fixed', value: 2 },
+      },
     ],
   },
   PIRATA_OCEANICO: {
