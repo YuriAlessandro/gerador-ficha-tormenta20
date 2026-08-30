@@ -1325,7 +1325,24 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Você é treinado em Atletismo e recebe +2 em rolagens de dano com armas naturais e ataques desarmados.',
     type: ORIGIN_POWER_TYPE,
-    sheetBonuses: [],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tocado pelo Indomável (Moreania)',
+        },
+        target: { type: 'WeaponDamage', weaponTags: ['natural'] },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tocado pelo Indomável (Moreania)',
+        },
+        target: { type: 'UnarmedDamage' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   TRADICIONALISTA_SVALANO: {
     name: 'Tradicionalista Svalano',

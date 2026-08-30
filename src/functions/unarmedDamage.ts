@@ -9,7 +9,11 @@ import { isBonusActive } from './bonusConditions';
 import { getClassLevel, getClassLevelsMap } from './multiclass';
 import { sheetHasPowerNamed } from './powers/hasPowerNamed';
 import { countTormentaPowers } from './randomUtils';
-import { damageAverage, stepUpDamage } from './weaponDamageStep';
+import {
+  damageAverage,
+  stepUpDamage,
+  addFlatDamageBonus,
+} from './weaponDamageStep';
 import { evaluateSimpleModifier } from './weaponBonusScope';
 
 /**
@@ -80,7 +84,9 @@ export interface UnarmedDamageBreakdown {
   bonusSteps: number;
   /** `sizeStep + bonusSteps`. */
   totalSteps: number;
-  /** Dado final. */
+  /** Soma dos bônus `UnarmedDamage` (fixo, não mexe no dado). */
+  flatBonus: number;
+  /** Dado final, já com `flatBonus` somado (ex.: "1d6+2"). */
   dice: string;
 }
 
@@ -132,7 +138,8 @@ export function getUnarmedBaseDamage(sheet: CharacterSheet): {
 }
 
 /**
- * Bônus `UnarmedDamageStep` válidos para esta ficha.
+ * Bônus de um alvo de dano desarmado (`UnarmedDamageStep` ou `UnarmedDamage`)
+ * válidos para esta ficha.
  *
  * Lê `sheet.sheetBonuses` (o caminho normal, pós-recálculo) e TAMBÉM as cópias
  * embutidas nos poderes da ficha. A segunda metade existe porque abrir uma
@@ -142,12 +149,15 @@ export function getUnarmedBaseDamage(sheet: CharacterSheet): {
  * NUNCA considera bônus de fonte `size`: o passo de tamanho entra uma vez só,
  * lido direto de `sheet.size` em `getUnarmedDamageSteps`.
  */
-function collectUnarmedStepBonuses(sheet: CharacterSheet): SheetBonus[] {
+function collectUnarmedBonuses(
+  sheet: CharacterSheet,
+  targetType: 'UnarmedDamageStep' | 'UnarmedDamage'
+): SheetBonus[] {
   const collected: SheetBonus[] = [];
   const seen = new Set<string>();
 
   const push = (bonus: SheetBonus) => {
-    if (bonus?.target?.type !== 'UnarmedDamageStep') return;
+    if (bonus?.target?.type !== targetType) return;
     if (bonus.source?.type === 'size') return;
     const key = `${bonus.source?.type ?? '?'}:${
       (bonus.source as { name?: string })?.name ?? '?'
@@ -174,20 +184,19 @@ function collectUnarmedStepBonuses(sheet: CharacterSheet): SheetBonus[] {
   return collected;
 }
 
-/** Passo de tamanho + soma dos bônus `UnarmedDamageStep`. */
-export function getUnarmedDamageSteps(sheet: CharacterSheet): {
-  sizeStep: number;
-  bonusSteps: number;
-} {
-  const sizeStep = SIZE_DAMAGE_STEP[getRaceSizeKey(sheet.size)] ?? 0;
-
+/** Soma os bônus de um alvo de dano desarmado, resolvendo cada modificador. */
+function sumUnarmedBonuses(
+  sheet: CharacterSheet,
+  targetType: 'UnarmedDamageStep' | 'UnarmedDamage'
+): number {
   // `normalizeSheet` chama isto em ficha corrompida da nuvem, que pode não ter
   // `classe` — `getClassLevelsMap` lê `sheet.classe.name` sem guarda.
   const classLevels = sheet.classe
     ? getClassLevelsMap(sheet)
     : new Map<string, number>();
   const tPowQtd = countTormentaPowers(sheet);
-  const bonusSteps = collectUnarmedStepBonuses(sheet).reduce(
+
+  return collectUnarmedBonuses(sheet, targetType).reduce(
     (total, bonus) =>
       total +
       evaluateSimpleModifier(
@@ -202,8 +211,22 @@ export function getUnarmedDamageSteps(sheet: CharacterSheet): {
       ),
     0
   );
+}
+
+/** Passo de tamanho + soma dos bônus `UnarmedDamageStep`. */
+export function getUnarmedDamageSteps(sheet: CharacterSheet): {
+  sizeStep: number;
+  bonusSteps: number;
+} {
+  const sizeStep = SIZE_DAMAGE_STEP[getRaceSizeKey(sheet.size)] ?? 0;
+  const bonusSteps = sumUnarmedBonuses(sheet, 'UnarmedDamageStep');
 
   return { sizeStep, bonusSteps };
+}
+
+/** Soma dos bônus `UnarmedDamage` (fixo — Ossos Afiados, Tocado pelo Indomável). */
+export function getUnarmedDamageFlatBonus(sheet: CharacterSheet): number {
+  return sumUnarmedBonuses(sheet, 'UnarmedDamage');
 }
 
 /** Detalhamento completo, para exibição e para os testes. */
@@ -213,6 +236,12 @@ export function computeUnarmedDamage(
   const { dice: base, source: baseSource } = getUnarmedBaseDamage(sheet);
   const { sizeStep, bonusSteps } = getUnarmedDamageSteps(sheet);
   const totalSteps = sizeStep + bonusSteps;
+  const flatBonus = getUnarmedDamageFlatBonus(sheet);
+
+  // `allowAltLadder`: a Briga do Lutador 17º+ é 2d8/2d10, degraus que só
+  // existem no ramo alternativo da Tabela 3-2. Sem isso, Corpo Aberrante
+  // não faria nada exatamente para quem mais bate desarmado.
+  const stepped = stepUpDamage(base, totalSteps, { allowAltLadder: true });
 
   return {
     base,
@@ -220,10 +249,8 @@ export function computeUnarmedDamage(
     sizeStep,
     bonusSteps,
     totalSteps,
-    // `allowAltLadder`: a Briga do Lutador 17º+ é 2d8/2d10, degraus que só
-    // existem no ramo alternativo da Tabela 3-2. Sem isso, Corpo Aberrante
-    // não faria nada exatamente para quem mais bate desarmado.
-    dice: stepUpDamage(base, totalSteps, { allowAltLadder: true }),
+    flatBonus,
+    dice: flatBonus !== 0 ? addFlatDamageBonus(stepped, flatBonus) : stepped,
   };
 }
 
