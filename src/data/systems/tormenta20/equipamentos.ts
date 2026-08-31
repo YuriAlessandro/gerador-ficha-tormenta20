@@ -130,6 +130,22 @@ export const Armas = catalog({
     group: 'Arma',
     preco: 4,
   },
+  // Unidade base do ataque desarmado — preço/espaço 0, dano/crítico mantidos
+  // vivos por `updateDesarmadoTaggedWeaponsDano` (ver `unarmedDamage.ts`), que
+  // reescreve qualquer arma com `weaponTags: ['desarmado']` (esta e a Manopla)
+  // a cada recálculo. NÃO faz parte de `armasSimples`/`ARMAS_SIMPLES_E_MARCIAIS`
+  // de propósito — entraria nos pools de "arma simples aleatória" das origens.
+  ATAQUE_DESARMADO: {
+    nome: 'Ataque Desarmado',
+    dano: '1d3',
+    critico: 'x2',
+    spaces: 0,
+    tipo: 'Impacto',
+    alcance: '-',
+    group: 'Arma',
+    preco: 0,
+    weaponTags: ['desarmado'],
+  },
   MANOPLA: {
     nome: 'Manopla',
     weaponCategory: 'simple',
@@ -140,6 +156,11 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 10,
+    // Dano "-" é a convenção do livro pra "usa o dano desarmado" — a Manopla
+    // conta como ataque desarmado (dano letal em vez do não-letal padrão).
+    // O "-" é só o placeholder de catálogo: `updateDesarmadoTaggedWeaponsDano`
+    // sobrescreve com o dado desarmado vivo assim que a arma entra na mochila.
+    weaponTags: ['desarmado'],
   },
   CLAVA: {
     nome: 'Clava',

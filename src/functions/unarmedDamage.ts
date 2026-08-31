@@ -19,16 +19,26 @@ import { evaluateSimpleModifier } from './weaponBonusScope';
 /**
  * Dano desarmado — ponto ÚNICO de verdade.
  *
- * O app não tem entidade de ataque desarmado: não existe arma "Desarmado" no
- * catálogo nem na mochila. O dano desarmado só aparece como `rolls` em três
- * lugares — a habilidade `Briga` (Lutador/Atleta) e os poderes `Estilo
- * Desarmado` e `Corpo Aberrante` — e este módulo é quem mantém os três em dia.
+ * O dano desarmado aparece em dois lugares: como `rolls` em três poderes — a
+ * habilidade `Briga` (Lutador/Atleta) e os poderes `Estilo Desarmado` e
+ * `Corpo Aberrante` — e agora também como uma arma de verdade na mochila
+ * ("Ataque Desarmado", concedida automaticamente por `Briga`/`Estilo
+ * Desarmado`, e a Manopla, que usa a mesma tag). Este módulo mantém os dois
+ * em dia.
  *
  * A derivação é ABSOLUTA (base → melhor dado → passos), nunca incremental. É
  * isso que a torna idempotente sem precisar de um snapshot tipo `baseDano`: os
  * `rolls` são um campo do USUÁRIO, preservados e reinjetados a cada recálculo
  * por `restoreUserAbilityFields`, então somar um passo "por cima" do valor
  * corrente faria o dado subir sozinho a cada save.
+ *
+ * `updateDesarmadoTaggedWeaponsDano` escreve só o DADO-BASE (melhor de: 1d3
+ * padrão, Estilo Desarmado, escada da Briga) nas armas `weaponTags:
+ * ['desarmado']` — o passo de tamanho e futuros bônus por tag chegam pelo
+ * bake genérico de armas (`recalculateSheet` Step 17), que já se aplica a
+ * qualquer arma da mochila. Incluir o tamanho aqui TAMBÉM duplicaria o passo,
+ * já que o Step 11.7 empurra um `WeaponDamageStep` sem filtro de tag para
+ * toda arma da mochila.
  */
 
 /** JDA, cap. 3: "1d3 pontos de dano para criaturas Pequenas e Médias". */
@@ -333,6 +343,44 @@ export function updateUnarmedRolls(sheet: CharacterSheet): string | null {
   });
 
   return changed ? dice : null;
+}
+
+/**
+ * Reescreve dano/crítico das armas marcadas `weaponTags: ['desarmado']`
+ * (Ataque Desarmado, Manopla) com o dado-base vivo (`getUnarmedBaseDamage`).
+ *
+ * Muta `sheet.bag.equipments.Arma` no lugar, no mesmo estilo do bake de armas
+ * em `recalculateSheet.ts` (substitui o array, nunca muta os itens). Precisa
+ * rodar ANTES do bake genérico de armas (`reapplyEnhancementsAndWeaponBonuses`
+ * / Step 17), pra esse passo aplicar o degrau de tamanho por cima do dado-base
+ * fresco em vez de sobre um valor desatualizado.
+ *
+ * Respeita `hasManualEdits` e modificações/encantamentos — mesma regra que
+ * `resetWeaponToBase` usa pra não sobrescrever edição do jogador.
+ */
+export function updateDesarmadoTaggedWeaponsDano(sheet: CharacterSheet): void {
+  const { dice } = getUnarmedBaseDamage(sheet);
+
+  sheet.bag.equipments.Arma = sheet.bag.equipments.Arma.map((weapon) => {
+    if (!weapon.weaponTags?.includes('desarmado')) return weapon;
+    if (weapon.hasManualEdits) return weapon;
+    if (weapon.modifications?.length || weapon.enchantments?.length) {
+      return weapon;
+    }
+
+    // "-" é só o placeholder de catálogo (Manopla) pra "usa o dano
+    // desarmado" — um crítico real definido pelo jogador nunca é tocado.
+    const critico = weapon.critico === '-' ? 'x2' : weapon.critico;
+    if (weapon.dano === dice && weapon.critico === critico) return weapon;
+
+    return {
+      ...weapon,
+      dano: dice,
+      baseDano: dice,
+      critico,
+      baseCritico: critico,
+    };
+  });
 }
 
 export default computeUnarmedDamage;

@@ -1,4 +1,6 @@
-import EQUIPAMENTOS from '../../../data/systems/tormenta20/equipamentos';
+import EQUIPAMENTOS, {
+  Armas,
+} from '../../../data/systems/tormenta20/equipamentos';
 import { GENERAL_EQUIPMENT } from '../../../data/systems/tormenta20/equipamentos-gerais';
 import Equipment, {
   DefenseEquipment,
@@ -24,7 +26,14 @@ export interface CatalogCategory {
 }
 
 const armasSubgroups: CatalogSubgroup[] = [
-  { key: 'simples', label: 'Simples', items: EQUIPAMENTOS.armasSimples },
+  {
+    key: 'simples',
+    label: 'Simples',
+    // Ataque Desarmado fica fora de `EQUIPAMENTOS.armasSimples` (não deve
+    // entrar nos pools de "arma simples aleatória" das origens) — prepended
+    // só aqui, na lista que o modal de adicionar item de fato renderiza.
+    items: [Armas.ATAQUE_DESARMADO, ...EQUIPAMENTOS.armasSimples],
+  },
   { key: 'marciais', label: 'Marciais', items: EQUIPAMENTOS.armasMarciais },
   { key: 'exoticas', label: 'Exóticas', items: EQUIPAMENTOS.armasExoticas },
   { key: 'fogo', label: 'De Fogo', items: EQUIPAMENTOS.armasDeFogo },

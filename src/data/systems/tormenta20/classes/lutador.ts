@@ -4,6 +4,7 @@ import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import { Armas } from '../equipamentos';
 
 const LUTADOR: ClassDescription = {
   name: 'Lutador',
@@ -44,6 +45,16 @@ const LUTADOR: ClassDescription = {
           id: uuid(),
           label: 'Dano Desarmado (base)',
           dice: '1d6',
+        },
+      ],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Briga' },
+          action: {
+            type: 'addEquipment',
+            equipment: { Arma: [Armas.ATAQUE_DESARMADO] },
+            description: 'Ataque Desarmado pode ser usado como arma.',
+          },
         },
       ],
     },

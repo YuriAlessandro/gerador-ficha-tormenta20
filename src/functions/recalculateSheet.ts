@@ -48,7 +48,10 @@ import {
   findClassDescription,
 } from './multiclass';
 import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
-import { updateUnarmedRolls } from './unarmedDamage';
+import {
+  updateUnarmedRolls,
+  updateDesarmadoTaggedWeaponsDano,
+} from './unarmedDamage';
 import {
   captureUserAbilityFields,
   restoreUserAbilityFields,
@@ -2678,6 +2681,14 @@ export function recalculateSheet(
   // Derivação absoluta (base → melhor dado → passos), então é idempotente sem
   // snapshot de base, ao contrário do baking de armas.
   updateUnarmedRolls(updatedSheet);
+
+  // Step 11.9: dano-base das armas `weaponTags: ['desarmado']` (Ataque
+  // Desarmado, Manopla). Roda ANTES dos Steps 17/17.5 (bake de armas) de
+  // propósito — o degrau de tamanho do Step 11.7 é um `WeaponDamageStep` sem
+  // filtro de tag, então já se aplica a qualquer arma da mochila; escrever o
+  // dado-base aqui evita duplicar esse degrau (ver comentário no topo de
+  // `unarmedDamage.ts`).
+  updateDesarmadoTaggedWeaponsDano(updatedSheet);
 
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
   updatedSheet = applyHPAttributeReplacement(updatedSheet);

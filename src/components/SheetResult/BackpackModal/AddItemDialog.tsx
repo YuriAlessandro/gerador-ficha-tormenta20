@@ -232,7 +232,13 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   const renderSubgroup = (sub: CatalogSubgroup) => {
     const filtered = sub.items.filter((it) => matches(it, debouncedSearch));
     if (filtered.length === 0) return null;
-    const sorted = [...filtered].sort((a, b) => a.nome.localeCompare(b.nome));
+    // "Ataque Desarmado" fica fixo como primeiro item da categoria "Simples"
+    // (unidade base do ataque desarmado) — os demais seguem alfabéticos.
+    const sorted = [...filtered].sort((a, b) => {
+      if (a.nome === 'Ataque Desarmado') return -1;
+      if (b.nome === 'Ataque Desarmado') return 1;
+      return a.nome.localeCompare(b.nome);
+    });
     return (
       <Box key={sub.key} sx={{ mb: 1.5 }}>
         <Typography
