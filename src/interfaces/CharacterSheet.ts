@@ -494,17 +494,21 @@ export type StatModifierTarget =
     }
   | {
       /**
-       * Passo de dado do ATAQUE DESARMADO (Corpo Aberrante, e o que mais vier).
+       * Passo de dado do ATAQUE DESARMADO ABSTRATO (Corpo Aberrante, e o que
+       * mais vier) — alimenta só o detalhamento/`rolls` de `unarmedDamage.ts`
+       * (as fichas de Briga/Estilo Desarmado/Corpo Aberrante), não a mochila.
        *
-       * Estritamente disjunto de `WeaponDamageStep`: aquele só é bakeado nas
-       * armas de `bag.equipments.Arma`, e ataque desarmado NÃO é uma arma da
-       * mochila — não existe item "Desarmado" no catálogo. Manter os dois alvos
-       * separados é o que impede o passo de tamanho de ser contado duas vezes:
-       * o Step 11.7 emite o de tamanho como `WeaponDamageStep`, e
-       * `unarmedDamage.ts` lê o tamanho direto de `sheet.size`.
-       *
-       * Por isso vale a regra: NUNCA emitir um `UnarmedDamageStep` cuja
-       * `source` seja `{ type: 'size' }`.
+       * Existe também um item real "Ataque Desarmado" na mochila (e a
+       * Manopla), marcado `weaponTags: ['desarmado']` — bônus que devem
+       * alcançá-lo usam `WeaponDamageStep`/`WeaponDamage` com esse escopo,
+       * bakeados normalmente pelo Step 17. Os dois alvos continuam
+       * ESTRITAMENTE disjuntos quanto ao passo de TAMANHO: o Step 11.7 emite
+       * um `WeaponDamageStep` sem filtro de tag (alcança qualquer arma da
+       * mochila, incluindo as `desarmado`), e `unarmedDamage.ts` lê o tamanho
+       * direto de `sheet.size` pro detalhamento abstrato — por isso vale a
+       * regra: NUNCA emitir um `UnarmedDamageStep` cuja `source` seja
+       * `{ type: 'size' }`, e nunca dar `weaponTags` a um bônus PRÓPRIO de
+       * tamanho (senão o passo conta duas vezes na arma real).
        */
       type: 'UnarmedDamageStep';
     }

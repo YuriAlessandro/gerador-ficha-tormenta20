@@ -149,18 +149,19 @@ const racePowers: Record<string, GeneralPower> = {
         action: {
           type: 'addEquipment',
           equipment: {
-            Arma: [{
-              group: 'Arma',
-              nome: 'Asas de Aço',
-              dano: '2d4',
-              critico: 'x2',
-              tipo: 'Impacto',
-              preco: 0,
-              weaponTags: ['natural'],
-            }]
+            Arma: [
+              {
+                group: 'Arma',
+                nome: 'Asas de Aço',
+                dano: '2d4',
+                critico: 'x2',
+                tipo: 'Impacto',
+                preco: 0,
+                weaponTags: ['natural'],
+              },
+            ],
           },
-          description:
-            'Asas de Aço podem ser usadas como ataque extra.',
+          description: 'Asas de Aço podem ser usadas como ataque extra.',
         },
       },
     ],
@@ -751,26 +752,28 @@ const racePowers: Record<string, GeneralPower> = {
         action: {
           type: 'addEquipment',
           equipment: {
-            Arma: [{
-              group: 'Arma',
-              nome: 'Gavinha',
-              dano: '1d4',
-              critico: 'x2',
-              tipo: 'Impacto',
-              preco: 0,
-              weaponTags: ['natural'],
-            }, {
-              group: 'Arma',
-              nome: 'Gavinha',
-              dano: '1d4',
-              critico: 'x2',
-              tipo: 'Impacto',
-              preco: 0,
-              weaponTags: ['natural'],
-            }],
+            Arma: [
+              {
+                group: 'Arma',
+                nome: 'Gavinha',
+                dano: '1d4',
+                critico: 'x2',
+                tipo: 'Impacto',
+                preco: 0,
+                weaponTags: ['natural'],
+              },
+              {
+                group: 'Arma',
+                nome: 'Gavinha',
+                dano: '1d4',
+                critico: 'x2',
+                tipo: 'Impacto',
+                preco: 0,
+                weaponTags: ['natural'],
+              },
+            ],
           },
-          description:
-            'Gavinhas podem ser usadas como ataque extra.',
+          description: 'Gavinhas podem ser usadas como ataque extra.',
         },
       },
     ],
@@ -953,9 +956,18 @@ const racePowers: Record<string, GeneralPower> = {
         target: { type: 'WeaponDamage', weaponTags: ['natural'] },
         modifier: { type: 'Fixed', value: 2 },
       },
+      // Ataques desarmados: mesmo +2, em dois alvos — `UnarmedDamage`
+      // alimenta o detalhamento abstrato (`unarmedDamage.ts`) e
+      // `WeaponDamage weaponTags:['desarmado']` bakeia no item real da
+      // mochila (Ataque Desarmado, Manopla).
       {
         source: { type: 'power', name: 'Ossos Afiados' },
         target: { type: 'UnarmedDamage' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Ossos Afiados' },
+        target: { type: 'WeaponDamage', weaponTags: ['desarmado'] },
         modifier: { type: 'Fixed', value: 2 },
       },
     ],

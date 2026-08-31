@@ -69,13 +69,24 @@ export const BOLSOES_INSANOS_SHEET_BONUSES: SheetBonus[] = [
  * Corpo Aberrante: "Seu dano desarmado aumenta em um passo, mais um passo para
  * cada quatro OUTROS poderes da Tormenta que você possui."
  *
- * O alvo é `UnarmedDamageStep`, não `WeaponDamageStep`: ataque desarmado não é
- * uma arma da mochila (ver `functions/unarmedDamage.ts`).
+ * Dois alvos pelo mesmo motivo do +2 de Ossos Afiados: `UnarmedDamageStep`
+ * alimenta o detalhamento abstrato (`unarmedDamage.ts`), e
+ * `WeaponDamageStep weaponTags:['desarmado']` bakeia no item real da mochila
+ * (Ataque Desarmado, Manopla) — sem duplicar o passo de tamanho, que é uma
+ * fonte totalmente separada (Step 11.7).
  */
 export const CORPO_ABERRANTE_SHEET_BONUSES: SheetBonus[] = [
   {
     source: { type: 'power', name: 'Corpo Aberrante' },
     target: { type: 'UnarmedDamageStep' },
+    modifier: {
+      type: 'TormentaPowersCalc',
+      formula: '1 + Math.floor(({tPowQtd} - 1) / 4)',
+    },
+  },
+  {
+    source: { type: 'power', name: 'Corpo Aberrante' },
+    target: { type: 'WeaponDamageStep', weaponTags: ['desarmado'] },
     modifier: {
       type: 'TormentaPowersCalc',
       formula: '1 + Math.floor(({tPowQtd} - 1) / 4)',
