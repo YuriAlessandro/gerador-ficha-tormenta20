@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Autocomplete,
   Box,
   Button,
   Checkbox,
@@ -12,6 +13,7 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
@@ -72,6 +74,8 @@ import {
   ATTACK_ATTRIBUTE_DEFAULT_LABEL,
   WEAPON_ATTRIBUTE_OPTIONS,
 } from './weaponAttributeOptions';
+import { parseDamageTypes } from './damageTypeSelect';
+import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
 
 export interface ItemEditorDialogProps {
   open: boolean;
@@ -146,6 +150,9 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
     damageAttribute: baseDamageAttribute,
     attackAttribute: item?.attackAttribute ?? '',
     weaponCategory: item?.weaponCategory ?? '',
+    damageTypes: parseDamageTypes(item?.tipo),
+    damageTypesTouched: false,
+    weaponTags: item?.weaponTags ?? [],
     actionDamageAttributes,
     actionAttackAttributes,
     defenseBonusText:
@@ -734,6 +741,59 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                       ))}
                     </Select>
                   </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo de dano</InputLabel>
+                    <Select
+                      multiple
+                      label='Tipo de dano'
+                      value={form.damageTypes}
+                      onChange={(e) => {
+                        const { value } = e.target;
+                        setForm((f) => ({
+                          ...f,
+                          damageTypes:
+                            typeof value === 'string'
+                              ? (value.split(',') as DamageType[])
+                              : value,
+                          damageTypesTouched: true,
+                        }));
+                      }}
+                      renderValue={(selected) =>
+                        (selected as DamageType[]).join(' ou ') || '—'
+                      }
+                    >
+                      {DAMAGE_TYPES.map((t) => (
+                        <MenuItem key={t} value={t}>
+                          <Checkbox checked={form.damageTypes.includes(t)} />
+                          <ListItemText primary={t} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    multiple
+                    freeSolo
+                    size='small'
+                    options={WEAPON_TAG_SUGGESTIONS.map((t) => t.value)}
+                    getOptionLabel={weaponTagLabel}
+                    value={form.weaponTags}
+                    onChange={(_, newValue) =>
+                      setForm((f) => ({ ...f, weaponTags: newValue }))
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...params}
+                        label='Tags'
+                        placeholder='Adicionar tag'
+                        helperText='Ex.: Natural, Desarmado, Heredrimm... — pode digitar qualquer valor.'
+                      />
+                    )}
+                  />
                 </Grid>
                 {item.specialActions && item.specialActions.length > 0 && (
                   <Grid size={{ xs: 12 }}>
