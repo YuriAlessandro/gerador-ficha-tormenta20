@@ -6,6 +6,7 @@ import {
   RequirementType,
 } from '../../../../interfaces/Poderes';
 import PROFICIENCIAS from '../proficiencias';
+import { Armas } from '../equipamentos';
 import {
   ESTILO_DE_DISPARO_SHEET_BONUSES,
   INEXPUGNAVEL_SHEET_BONUSES,
@@ -353,6 +354,16 @@ const combatPowers: Record<string, GeneralPower> = {
         id: uuid(),
         label: 'Dano Desarmado',
         dice: '1d6',
+      },
+    ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Estilo Desarmado' },
+        action: {
+          type: 'addEquipment',
+          equipment: { Arma: [Armas.ATAQUE_DESARMADO] },
+          description: 'Ataque Desarmado pode ser usado como arma.',
+        },
       },
     ],
   },

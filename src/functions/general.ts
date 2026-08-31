@@ -200,7 +200,10 @@ import {
   MoreauHeritageName,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
-import { updateUnarmedRolls } from './unarmedDamage';
+import {
+  updateUnarmedRolls,
+  updateDesarmadoTaggedWeaponsDano,
+} from './unarmedDamage';
 import {
   captureUserAbilityFields,
   restoreUserAbilityFields,
@@ -5870,6 +5873,13 @@ export default function generateRandomSheet(
   // Passo 14: Aplicar modificadores de atributos
   charSheet = applyStatModifiers(charSheet);
 
+  // Passo 14.5: dano-base das armas `weaponTags: ['desarmado']` (Ataque
+  // Desarmado, Manopla). Espelha o Step 11.9 do `recalculateSheet` — precisa
+  // rodar ANTES do bake de armas do passo 15, senão o degrau de tamanho
+  // (aplicado no bake, sem filtro de tag) ficaria por cima de um dado-base
+  // desatualizado em vez de ser aplicado uma vez só sobre o fresco.
+  updateDesarmadoTaggedWeaponsDano(charSheet);
+
   // Passo 15: Bakear os bônus de arma (ataque/dano/margem/crítico) vindos de
   // habilidades e poderes — o mesmo que `recalculateSheet` faz nos Steps 17/17.5.
   // `applyStatModifiers` não tem ramo para alvos de arma, então sem isto um
@@ -5879,9 +5889,9 @@ export default function generateRandomSheet(
   // aplicaria bônus condicionalmente inativos.
   charSheet = reapplyEnhancementsAndWeaponBonuses(charSheet);
 
-  // Passo 16: dano desarmado. Espelha o Step 11.8 do `recalculateSheet`. Roda
-  // no fim porque precisa do `size` final e dos bônus `UnarmedDamageStep` já
-  // filtrados por `isBonusActive` no passo 14.
+  // Passo 16: dano desarmado (rolls dos poderes). Espelha o Step 11.8 do
+  // `recalculateSheet`. Roda no fim porque precisa do `size` final e dos
+  // bônus `UnarmedDamageStep` já filtrados por `isBonusActive` no passo 14.
   updateUnarmedRolls(charSheet);
 
   return charSheet;
