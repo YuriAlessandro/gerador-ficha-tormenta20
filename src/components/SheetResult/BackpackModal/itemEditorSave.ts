@@ -20,6 +20,7 @@ import {
   withMaterialSnapshot,
 } from '../../../functions/itemEnhancements/snapshot';
 import { isDefenseGroup } from './equipmentCatalog';
+import { formatDamageTypes } from './damageTypeSelect';
 
 /**
  * Campos que o jogador pode sobrescrever à mão no editor, congelando o
@@ -58,6 +59,13 @@ export interface ItemEditorFormState {
   // '' = herda a categoria do catálogo (via getEffectiveWeaponCategory);
   // para itens custom, '' = sem categoria = sempre proficiente.
   weaponCategory: WeaponCategory | '';
+  damageTypes: DamageType[];
+  // Só grava `tipo` a partir de `damageTypes` quando o jogador de fato mexeu
+  // no seletor — o parser de `tipo` legado (string livre) pode não reconhecer
+  // todos os tokens, e sobrescrever sem essa guarda perderia dado ao salvar
+  // uma edição que nem tocou no tipo (ex.: só mudou o Dano).
+  damageTypesTouched: boolean;
+  weaponTags: string[];
   actionDamageAttributes: Record<string, DamageAttribute>;
   actionAttackAttributes: Record<string, AttackAttribute | ''>;
   defenseBonusText: string;
@@ -191,6 +199,10 @@ export function buildSavedItem(
     next.attackAttribute = form.attackAttribute || undefined;
     next.weaponCategory =
       form.weaponCategory === '' ? undefined : form.weaponCategory;
+    if (form.damageTypesTouched) {
+      next.tipo = formatDamageTypes(form.damageTypes);
+    }
+    next.weaponTags = form.weaponTags.length > 0 ? form.weaponTags : undefined;
     if (item.specialActions && item.specialActions.length > 0) {
       next.specialActions = item.specialActions.map((action) => {
         const damageOverride = form.actionDamageAttributes[action.id];

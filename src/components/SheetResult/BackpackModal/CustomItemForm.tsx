@@ -1,28 +1,39 @@
 import React, { useState } from 'react';
 import {
+  Autocomplete,
   Box,
   Button,
   Checkbox,
   FormControl,
   FormControlLabel,
   Grid,
+  IconButton,
   InputLabel,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuid } from 'uuid';
 
 import Equipment, {
+  DamageType,
+  DAMAGE_TYPES,
   DefenseEquipment,
   equipGroup,
+  ExtraDamage,
   WeaponCategory,
 } from '../../../interfaces/Equipment';
 import Skill from '../../../interfaces/Skills';
 import { CATEGORY_ORDER } from './itemTypeStyles';
 import { isDefenseGroup } from './equipmentCatalog';
 import { WEAPON_CATEGORY_LABELS } from '../../../functions/proficiencies';
+import { parseDamageTypes, formatDamageTypes } from './damageTypeSelect';
+import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
 
 export interface CustomItemFormProps {
   /** Optional initial values when editing an existing custom item. */
@@ -64,6 +75,23 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
   );
   const [weaponCategory, setWeaponCategory] = useState<WeaponCategory | ''>(
     initial?.weaponCategory ?? ''
+  );
+  const [damageTypes, setDamageTypes] = useState<DamageType[]>(
+    parseDamageTypes(initial?.tipo)
+  );
+  const [weaponTags, setWeaponTags] = useState<string[]>(
+    initial?.weaponTags ?? []
+  );
+  const [extraDamage, setExtraDamage] = useState<
+    { id: string; dice: string; damageType: DamageType }[]
+  >(
+    (initial?.extraDamage ?? [])
+      .filter((e) => e.source === 'user')
+      .map((e) => ({
+        id: e.id ?? uuid(),
+        dice: e.dice,
+        damageType: e.damageType,
+      }))
   );
 
   // Defense fields
@@ -138,6 +166,18 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
       baseItem.baseAtkBonus = baseItem.atkBonus;
       baseItem.baseCritico = baseItem.critico;
       baseItem.twoHanded = twoHanded ? true : undefined;
+      baseItem.tipo = formatDamageTypes(damageTypes);
+      baseItem.weaponTags = weaponTags.length > 0 ? weaponTags : undefined;
+      const persistedExtraDamage: ExtraDamage[] = extraDamage
+        .filter((e) => e.dice.trim().length > 0)
+        .map((e) => ({
+          id: e.id,
+          dice: e.dice.trim(),
+          damageType: e.damageType,
+          source: 'user' as const,
+        }));
+      baseItem.extraDamage =
+        persistedExtraDamage.length > 0 ? persistedExtraDamage : undefined;
     } else if (isDefenseGroup(group)) {
       const defenseBonus = parseInt(defenseBonusText, 10);
       const armorPenalty = parseInt(armorPenaltyText, 10);
@@ -288,6 +328,141 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                   ))}
                 </Select>
               </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de dano</InputLabel>
+                <Select
+                  multiple
+                  label='Tipo de dano'
+                  value={damageTypes}
+                  onChange={(e) => {
+                    const { value } = e.target;
+                    setDamageTypes(
+                      typeof value === 'string'
+                        ? (value.split(',') as DamageType[])
+                        : value
+                    );
+                  }}
+                  renderValue={(selected) =>
+                    (selected as DamageType[]).join(' ou ') || '—'
+                  }
+                >
+                  {DAMAGE_TYPES.map((t) => (
+                    <MenuItem key={t} value={t}>
+                      <Checkbox checked={damageTypes.includes(t)} />
+                      <ListItemText primary={t} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid size={12}>
+              <Autocomplete
+                multiple
+                freeSolo
+                size='small'
+                options={WEAPON_TAG_SUGGESTIONS.map((t) => t.value)}
+                getOptionLabel={weaponTagLabel}
+                value={weaponTags}
+                onChange={(_, newValue) => setWeaponTags(newValue)}
+                renderInput={(params) => (
+                  <TextField
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...params}
+                    label='Tags'
+                    placeholder='Adicionar tag'
+                    helperText='Ex.: Natural, Desarmado, Heredrimm... — pode digitar qualquer valor.'
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={12}>
+              <Stack
+                direction='row'
+                sx={{
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
+              >
+                <Typography variant='subtitle2'>
+                  Danos extras ({extraDamage.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<AddIcon />}
+                  onClick={() =>
+                    setExtraDamage((prev) => [
+                      ...prev,
+                      { id: uuid(), dice: '1d6', damageType: 'Fogo' },
+                    ])
+                  }
+                >
+                  Adicionar
+                </Button>
+              </Stack>
+              <Stack spacing={1}>
+                {extraDamage.map((entry, idx) => (
+                  <Stack
+                    key={entry.id}
+                    direction='row'
+                    spacing={1}
+                    sx={{ alignItems: 'center' }}
+                  >
+                    <TextField
+                      size='small'
+                      label='Dado'
+                      value={entry.dice}
+                      onChange={(e) =>
+                        setExtraDamage((prev) =>
+                          prev.map((x, i) =>
+                            i === idx ? { ...x, dice: e.target.value } : x
+                          )
+                        )
+                      }
+                      sx={{ width: 120 }}
+                      placeholder='1d6'
+                    />
+                    <FormControl size='small' sx={{ flex: 1, minWidth: 120 }}>
+                      <InputLabel>Tipo</InputLabel>
+                      <Select
+                        label='Tipo'
+                        value={entry.damageType}
+                        onChange={(e) =>
+                          setExtraDamage((prev) =>
+                            prev.map((x, i) =>
+                              i === idx
+                                ? {
+                                    ...x,
+                                    damageType: e.target.value as DamageType,
+                                  }
+                                : x
+                            )
+                          )
+                        }
+                      >
+                        {DAMAGE_TYPES.map((t) => (
+                          <MenuItem key={t} value={t}>
+                            {t}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <IconButton
+                      size='small'
+                      aria-label='Remover dano extra'
+                      onClick={() =>
+                        setExtraDamage((prev) =>
+                          prev.filter((_, i) => i !== idx)
+                        )
+                      }
+                    >
+                      <DeleteIcon fontSize='small' />
+                    </IconButton>
+                  </Stack>
+                ))}
+              </Stack>
             </Grid>
             <Grid size={12}>
               <FormControlLabel
