@@ -52,7 +52,11 @@ export function getPowerCountInCurrentTier(
 }
 
 /**
- * Reúne todos os poderes que o personagem possui (gerais, de origem e de classe).
+ * Reúne todos os poderes que o personagem possui (gerais, de origem, de
+ * classe escolhidos e habilidades de classe concedidas automaticamente —
+ * ex.: Briga do Lutador, referenciada como pré-requisito PODER em Briga de
+ * Rua). `classe.abilities` já vem filtrada pelo nível da classe em
+ * `applyClassAbilities`, então não inclui habilidades futuras.
  * Retorna apenas o que os checadores de requisito consomem (o nome).
  */
 function getAllCharacterPowers(sheet: CharacterSheet): { name: string }[] {
@@ -60,6 +64,7 @@ function getAllCharacterPowers(sheet: CharacterSheet): { name: string }[] {
     ...sheet.generalPowers,
     ...(sheet.origin?.powers || []),
     ...(sheet.classPowers || []),
+    ...(sheet.classe.abilities || []),
   ];
 }
 
