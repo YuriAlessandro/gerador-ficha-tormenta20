@@ -2,9 +2,8 @@ import Origin, {
   Items,
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
-import Skill, { ALL_SPECIFIC_OFICIOS } from '../../../../../interfaces/Skills';
+import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
-import { skillChoice } from '../../originSkillHelpers';
 import { itemChoice } from '../../originItemHelpers';
 import { Armas, Escudos } from '../../equipamentos';
 import { esotericItems } from '../../equipamentos-gerais';
@@ -36,8 +35,11 @@ const MADEIRA_TOLLON_POOL = [
  */
 function getAllRegionalBenefits(): OriginBenefits {
   return {
-    skills: [],
-    skillChoices: [skillChoice('oficio', 'Ofício', ALL_SPECIFIC_OFICIOS)],
+    // Fixo, não "à escolha": o poder de origem já dá +5 especificamente em
+    // Ofício (Artesão) (`originPowers.ts`), então o treinamento tem que ser
+    // nessa mesma perícia — senão o bônus do poder cairia numa perícia que o
+    // personagem nem é treinado.
+    skills: [Skill.OFICIO_ARTESANATO],
     powers: {
       origin: [atlasOriginPowers.LENHADOR_DE_TOLLON],
       general: [],
@@ -47,7 +49,7 @@ function getAllRegionalBenefits(): OriginBenefits {
 
 const LENHADOR_DE_TOLLON: Origin = {
   name: 'Lenhador de Tollon (Tollon)',
-  pericias: [Skill.OFICIO],
+  pericias: [Skill.OFICIO_ARTESANATO],
   poderes: [atlasOriginPowers.LENHADOR_DE_TOLLON],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
