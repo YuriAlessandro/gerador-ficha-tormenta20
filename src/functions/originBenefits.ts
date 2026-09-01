@@ -11,7 +11,6 @@ import {
   OriginItemChoices,
   removeGrantedOriginItems,
 } from './originItems';
-import { OriginSkillChoices, resolveOriginSkillChoices } from './originSkills';
 
 /**
  * Mantém as escolhas de item quando o jogador só editou os benefícios da MESMA
@@ -23,19 +22,6 @@ function carryOverItemChoices(
 ): OriginItemChoices | undefined {
   return sheet.origin?.name === origin.name
     ? sheet.origin?.itemChoices
-    : undefined;
-}
-
-/**
- * Mantém as escolhas de perícia quando o jogador só editou os benefícios da
- * MESMA origem; ao trocar de origem, as escolhas antigas não fazem mais sentido.
- */
-function carryOverSkillChoices(
-  sheet: CharacterSheet,
-  origin: Origin
-): OriginSkillChoices | undefined {
-  return sheet.origin?.name === origin.name
-    ? sheet.origin?.skillChoices
     : undefined;
 }
 
@@ -195,8 +181,7 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
 export function applyOriginBenefits(
   sheet: CharacterSheet,
   origin: Origin,
-  selectedBenefits: OriginBenefit[],
-  skillChoices?: OriginSkillChoices
+  selectedBenefits: OriginBenefit[]
 ): CharacterSheet {
   const updatedSheet = { ...sheet };
 
@@ -276,18 +261,6 @@ export function applyOriginBenefits(
     choices: itemChoices,
   });
 
-  // Perícias cujo valor final o jogador escolhe (ex.: qual Ofício).
-  const resolvedSkillChoices =
-    skillChoices ?? carryOverSkillChoices(sheet, origin);
-  resolveOriginSkillChoices(
-    originBenefits.skillChoices,
-    resolvedSkillChoices
-  ).forEach((skill) => {
-    if (!updatedSheet.skills.includes(skill)) {
-      updatedSheet.skills = [...updatedSheet.skills, skill];
-    }
-  });
-
   // Update origin with powers and selected benefits
   updatedSheet.origin = {
     name: origin.name,
@@ -295,7 +268,6 @@ export function applyOriginBenefits(
     selectedBenefits,
     itemChoices,
     grantedItemIds,
-    skillChoices: resolvedSkillChoices,
   };
 
   return updatedSheet;
@@ -306,8 +278,7 @@ export function applyOriginBenefits(
  */
 export function applyRegionalOriginBenefits(
   sheet: CharacterSheet,
-  origin: Origin,
-  skillChoices?: OriginSkillChoices
+  origin: Origin
 ): CharacterSheet {
   if (!origin.isRegional) {
     throw new Error(
@@ -355,18 +326,6 @@ export function applyRegionalOriginBenefits(
     choices: itemChoices,
   });
 
-  // Perícias cujo valor final o jogador escolhe (ex.: qual Ofício).
-  const resolvedSkillChoices =
-    skillChoices ?? carryOverSkillChoices(sheet, origin);
-  resolveOriginSkillChoices(
-    originBenefits.skillChoices,
-    resolvedSkillChoices
-  ).forEach((skill) => {
-    if (!updatedSheet.skills.includes(skill)) {
-      updatedSheet.skills = [...updatedSheet.skills, skill];
-    }
-  });
-
   // Set origin with all powers
   updatedSheet.origin = {
     name: origin.name,
@@ -374,7 +333,6 @@ export function applyRegionalOriginBenefits(
     // Regional origins don't need selectedBenefits since all are granted
     itemChoices,
     grantedItemIds,
-    skillChoices: resolvedSkillChoices,
   };
 
   return updatedSheet;

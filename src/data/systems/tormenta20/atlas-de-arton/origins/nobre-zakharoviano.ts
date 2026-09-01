@@ -2,12 +2,11 @@ import Origin, {
   Items,
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
-import Skill, { ALL_SPECIFIC_OFICIOS } from '../../../../../interfaces/Skills';
+import Skill from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { TODAS_AS_ARMAS } from '../../equipamentos';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import { itemChoice } from '../../originItemHelpers';
-import { skillChoice } from '../../originSkillHelpers';
 import { weaponsModifications } from '../../../../rewards/items';
 
 // Melhorias de arma elegíveis pro sorteio: exclui "Material especial" (o
@@ -25,8 +24,9 @@ const ELIGIBLE_MELHORIAS = weaponsModifications
  */
 function getAllRegionalBenefits(): OriginBenefits {
   return {
-    skills: [],
-    skillChoices: [skillChoice('oficio', 'Ofício', ALL_SPECIFIC_OFICIOS)],
+    // Fixo, não "à escolha": o poder de origem já diz "treinado em Ofício
+    // (armeiro)" (`originPowers.ts`) — não é um ofício qualquer.
+    skills: [Skill.OFICIO_ARMEIRO],
     powers: {
       origin: [atlasOriginPowers.NOBRE_ZAKHAROVIANO],
       general: [],
@@ -36,7 +36,7 @@ function getAllRegionalBenefits(): OriginBenefits {
 
 const NOBRE_ZAKHAROVIANO: Origin = {
   name: 'Nobre Zakharoviano (Zakharov)',
-  pericias: [Skill.OFICIO],
+  pericias: [Skill.OFICIO_ARMEIRO],
   poderes: [atlasOriginPowers.NOBRE_ZAKHAROVIANO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,

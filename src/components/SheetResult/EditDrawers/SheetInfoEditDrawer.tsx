@@ -97,7 +97,6 @@ import {
   originHasItemChoices,
   OriginItemChoices,
 } from '@/functions/originItems';
-import { OriginSkillChoices } from '@/functions/originSkills';
 import { GeneralPower } from '@/interfaces/Poderes';
 import {
   isMulticlass,
@@ -1423,22 +1422,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       if (newOrigin) {
         // Regional origins: auto-grant all benefits
         if (newOrigin.isRegional) {
-          // Origem com item ou perícia à escolha (ex.: Nobre Zakharoviano, com
-          // arma e Ofício à escolha; Lenhador de Tollon, com item de madeira
-          // Tollon à escolha) precisa do drawer — sem ele, item e perícia
-          // seriam sorteados sem pergunta.
-          const regionalBenefits = newOrigin.getPowersAndSkills
-            ? newOrigin.getPowersAndSkills(sheet.skills, newOrigin)
-            : { powers: { origin: [], general: [] }, skills: [] };
-          const needsChoice =
-            originHasItemChoices(newOrigin) ||
-            (regionalBenefits.skillChoices?.length ?? 0) > 0;
-
-          if (needsChoice) {
+          // Origem com item à escolha (ex.: Nobre Zakharoviano, com arma à
+          // escolha; Lenhador de Tollon, com item de madeira Tollon à escolha)
+          // precisa do drawer — sem ele, o item seria sorteado sem pergunta.
+          if (originHasItemChoices(newOrigin)) {
             setPendingUpdates(updates);
             setPendingOrigin(newOrigin);
             setOriginEditDrawerOpen(true);
-            return; // Don't save yet, wait for item/skill selection
+            return; // Don't save yet, wait for item selection
           }
 
           // Remove old origin benefits first
@@ -1666,8 +1657,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   // Handle origin benefit selection
   const handleOriginBenefitsSave = (
     selectedBenefits: OriginBenefit[],
-    itemChoices: OriginItemChoices,
-    skillChoices: OriginSkillChoices
+    itemChoices: OriginItemChoices
   ) => {
     if (!pendingOrigin) return;
 
@@ -1675,18 +1665,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     let updatedSheet = removeOriginBenefits(sheet);
 
     // Origem regional concede tudo automaticamente (sem os 2 benefícios
-    // escolhidos) — só o item/perícia à escolha vêm do jogador.
+    // escolhidos) — só o item à escolha vem do jogador.
     updatedSheet = pendingOrigin.isRegional
       ? applyRegionalOriginBenefits(
           { ...updatedSheet, ...pendingUpdates },
-          pendingOrigin,
-          skillChoices
+          pendingOrigin
         )
       : applyOriginBenefits(
           { ...updatedSheet, ...pendingUpdates },
           pendingOrigin,
-          selectedBenefits,
-          skillChoices
+          selectedBenefits
         );
 
     // Escolhas de item do jogador (troca a arma concedida, se houver)

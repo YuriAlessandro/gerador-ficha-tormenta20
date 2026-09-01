@@ -126,7 +126,6 @@ import {
   convertOriginItemsToBagEquipments,
   grantOriginItemsToBag,
 } from './originItems';
-import { resolveOriginSkillChoices } from './originSkills';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -6862,17 +6861,6 @@ export function generateEmptySheet(
               skills: selectedOrigin.pericias,
             };
 
-        // Perícias cujo valor final o jogador escolhe (ex.: qual Ofício).
-        // Sem escolha do wizard (geração 100% aleatória), sorteia.
-        resolveOriginSkillChoices(
-          originBenefits.skillChoices,
-          wizardSelections?.originSkillChoices
-        ).forEach((skill) => {
-          if (!emptySheet.skills.includes(skill)) {
-            emptySheet.skills.push(skill);
-          }
-        });
-
         // Add all origin skills
         originBenefits.skills.forEach((skill) => {
           if (!emptySheet.skills.includes(skill as Skill)) {
@@ -6974,7 +6962,6 @@ export function generateEmptySheet(
         selectedBenefits: wizardSelections?.originBenefits,
         itemChoices,
         grantedItemIds,
-        skillChoices: wizardSelections?.originSkillChoices,
       };
     }
   }
