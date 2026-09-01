@@ -227,6 +227,34 @@ describe('augmentSpellRolls — vínculo estruturado', () => {
     expect(result[1].label).toBe('Dano Extra');
   });
 
+  test('bônus sem label continua mirando a rolagem base com um additionalRoll ativo', () => {
+    const base = [roll('Dano de Fogo', '4d6')];
+    const extra = apr('além do normal, cria um efeito que causa 2d8.', {
+      damageBonus: [
+        {
+          additionalRoll: {
+            id: 'extra-roll',
+            label: 'Dano Extra',
+            dice: '2d8',
+          },
+        },
+      ],
+    });
+    // Sem `targetRollLabel`: o alvo tem que continuar sendo a única rolagem
+    // BASE, sem contar as criadas por `additionalRoll`.
+    const bonus = apr('aumenta o dano em +2d6.', {
+      damageBonus: [{ diceCount: 2 }],
+    });
+
+    expect(augmentSpellRolls(base, [select(bonus, 1)])[0].dice).toBe('6d6');
+
+    const comExtra = augmentSpellRolls(base, [
+      select(extra, 1),
+      select(bonus, 1),
+    ]);
+    expect(comExtra.map((r) => r.dice)).toEqual(['6d6', '2d8']);
+  });
+
   test('flatPerActivation soma modificador fixo', () => {
     const base = [roll('Dano', '6d6')];
     const bonus = apr('aumenta o dano em 10.', {

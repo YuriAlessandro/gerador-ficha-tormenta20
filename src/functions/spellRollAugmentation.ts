@@ -360,7 +360,13 @@ export function augmentSpellRolls(
         return;
       }
 
-      const targetIndexes = resolveIndexesByLabel(combinedLabels, bonus);
+      // Bônus COM label pode mirar tanto uma rolagem base quanto uma criada
+      // por `additionalRoll`. Sem label, o fallback "cai na única rolagem"
+      // continua escopado às rolagens base: contar as extras aqui faria o
+      // bônus deixar de aplicar assim que um `additionalRoll` ficasse ativo.
+      const targetIndexes = bonus.targetRollLabel
+        ? resolveIndexesByLabel(combinedLabels, bonus)
+        : resolveTargetIndexes(baseRolls, bonus);
 
       targetIndexes.forEach((index) => {
         const acc =
