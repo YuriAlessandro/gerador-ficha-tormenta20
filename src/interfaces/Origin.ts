@@ -49,6 +49,23 @@ export interface OriginItemChoice {
   label: string;
   /** Mesmo par do `Items.equipment`: item do catálogo ou texto livre. */
   options: (Equipment | string)[];
+  /**
+   * Material especial aplicado automaticamente ao item escolhido (ex.:
+   * "madeira Tollon", Lenhador de Tollon). Grava a mesma `AppliedModification`
+   * que o editor de itens gravaria; o efeito numérico (quando o material tem
+   * um modelado em `materialEffects.ts`) é calculado por
+   * `applyItemEnhancements` a cada recálculo — materiais sem modelo numérico
+   * (caso de "madeira Tollon") ficam só descritivos, como já é o caso ao
+   * aplicá-los manualmente pelo editor.
+   */
+  specialMaterial?: string;
+  /**
+   * Melhoria ("modificação de item superior") aplicada automaticamente ao
+   * item escolhido (ex.: "Certeira", Nobre Zakharoviano). Diferente de
+   * `specialMaterial`: é uma `AppliedModification` comum, resolvida por
+   * `modificationEffects`/`TEXT_ONLY_MODIFICATIONS`.
+   */
+  modification?: string;
 }
 
 export interface Items {

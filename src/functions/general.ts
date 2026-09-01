@@ -4504,7 +4504,12 @@ export function applyManualLevelUp(
     getPlateauByLevel(updatedSheet.nivel) >
     getPlateauByLevel(updatedSheet.nivel - 1)
   ) {
-    const scalingPowers = (updatedSheet.generalPowers || []).filter((power) =>
+    // Poderes concedidos por divindade (ex.: Biblioteca Divina) NÃO ficam em
+    // `generalPowers` — moram em `devoto.poderes`, um campo separado.
+    const scalingPowers = [
+      ...(updatedSheet.generalPowers || []),
+      ...(updatedSheet.devoto?.poderes || []),
+    ].filter((power) =>
       power.sheetActions?.some(
         (sa) =>
           sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante

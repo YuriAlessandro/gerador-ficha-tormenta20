@@ -566,7 +566,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const newPlateau = getCurrentPlateau(sheetForCurrentLevel);
     if (newPlateau <= oldPlateau) return [];
 
-    return (simulatedSheet.generalPowers || []).filter((power) =>
+    // Poderes concedidos por divindade (ex.: Biblioteca Divina) NÃO ficam em
+    // `generalPowers` — moram em `devoto.poderes`, um campo separado.
+    return [
+      ...(simulatedSheet.generalPowers || []),
+      ...(simulatedSheet.devoto?.poderes || []),
+    ].filter((power) =>
       power.sheetActions?.some(
         (sa) =>
           sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante
