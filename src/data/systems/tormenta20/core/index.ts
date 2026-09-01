@@ -18,6 +18,7 @@ import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { Spell } from '../../../../interfaces/Spells';
 import Origin from '../../../../interfaces/Origin';
 import Divindade from '../../../../interfaces/Divindade';
+import { Sincretismo } from '../../../../interfaces/Sincretismo';
 import { ItemE, ItemMod } from '../../../../interfaces/Rewards';
 import { SpecialMaterial } from '../../../../interfaces/SpecialMaterials';
 import { GolpePessoalEffect } from '../golpePessoal';
@@ -72,6 +73,12 @@ export interface SupplementData {
   origins?: Origin[];
   /** Divindades adicionais (ex.: homebrew). Core usa o enum estático. */
   divindades?: Divindade[];
+  /**
+   * Sincretismos — pares de deuses maiores que habilitam a Devoção Dupla.
+   * A presença de ao menos um sincretismo entre os suplementos ativos é o que
+   * libera a regra na UI (ver `useDualDevotionAvailable`).
+   */
+  sincretismos?: Sincretismo[];
   improvements?: SupplementImprovements;
   /** Materiais especiais adicionais (ex.: Ameaças de Arton) */
   specialMaterials?: SpecialMaterial[];

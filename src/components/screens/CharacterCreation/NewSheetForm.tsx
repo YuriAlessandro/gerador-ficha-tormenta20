@@ -30,6 +30,11 @@ import {
 import getSelectTheme from '../../../functions/style';
 import { raceHasOrigin } from '../../../data/systems/tormenta20/origins';
 import { useOptionalRulesAvailable } from '../../../hooks/useOptionalRules';
+import {
+  useDualDevotionAvailable,
+  useSincretismos,
+} from '../../../hooks/useDualDevotion';
+import { normalizeDeityName } from '../../../functions/deityName';
 
 type SelectedOption = {
   value: string;
@@ -115,6 +120,8 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const optionalRulesAvailable = useOptionalRulesAvailable();
+  const dualDevotionAvailable = useDualDevotionAvailable();
+  const sincretismos = useSincretismos();
 
   const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
@@ -151,6 +158,11 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
       ...selectedOptions,
       classe: classe?.value ?? '',
       devocao: { label: 'Não devoto', value: '--' },
+      // A devoção é resetada porque a lista de deuses permitidos depende da
+      // classe; a segunda divindade e o sincretismo têm que ir junto, senão
+      // sobra um par órfão apontando para um deus que a classe nova não serve.
+      devocaoSecundaria: undefined,
+      sincretismo: undefined,
     });
   };
 
@@ -158,13 +170,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     onSelectedOptionsChange({
       ...selectedOptions,
       origin: origin?.value ?? '',
-    });
-  };
-
-  const inSelectDivindade = (divindade: SelectedOption | null) => {
-    onSelectedOptionsChange({
-      ...selectedOptions,
-      devocao: divindade ?? { label: 'Não devoto', value: '--' },
     });
   };
 
@@ -273,6 +278,114 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     CLASSES,
     userSupplements,
   ]);
+
+  /**
+   * Sincretismo do catálogo que corresponde a um par de opções de divindade.
+   * O par é NÃO-ORDENADO, e a comparação passa por `normalizeDeityName` porque
+   * as opções carregam a chave do enum (`TANNATOH`) enquanto o sincretismo
+   * carrega o nome formatado (`Tanna-Toh`).
+   */
+  /** Só faz sentido oferecer devoção dupla se já houver uma devoção. */
+  const isDevoto =
+    !!selectedOptions.devocao?.value && selectedOptions.devocao.value !== '--';
+
+  /**
+   * A regra exige estar na lista de devotos permitidos dos DOIS deuses, então
+   * a segunda lista sai da mesma lista filtrada por classe — só sem o deus já
+   * escolhido como primário.
+   */
+  const divindadesSecundarias = React.useMemo(
+    () =>
+      divindades.filter(
+        (option) => option.value !== selectedOptions.devocao?.value
+      ),
+    [divindades, selectedOptions.devocao]
+  );
+
+  const sincretismoOptions = React.useMemo(
+    () => sincretismos.map((s) => ({ value: s.name, label: s.name })),
+    [sincretismos]
+  );
+
+  const sincretismoAtual = React.useMemo(
+    () =>
+      sincretismos.find((s) => s.name === selectedOptions.sincretismo?.value),
+    [sincretismos, selectedOptions.sincretismo]
+  );
+
+  const findSincretismo = React.useCallback(
+    (a?: string, b?: string) => {
+      if (!a || !b) return undefined;
+      const [na, nb] = [normalizeDeityName(a), normalizeDeityName(b)];
+      return sincretismos.find((sincretismo) => {
+        const [d1, d2] = sincretismo.deities.map(normalizeDeityName);
+        return (d1 === na && d2 === nb) || (d1 === nb && d2 === na);
+      });
+    },
+    [sincretismos]
+  );
+
+  /** Opção de divindade equivalente a um nome vindo de um sincretismo. */
+  const deityOptionFor = React.useCallback(
+    (name: string) => {
+      const normalized = normalizeDeityName(name);
+      return (
+        divindades.find(
+          (option) =>
+            normalizeDeityName(option.value) === normalized ||
+            normalizeDeityName(option.label) === normalized
+        ) ?? { value: name, label: name }
+      );
+    },
+    [divindades]
+  );
+
+  const inSelectDivindade = (divindade: SelectedOption | null) => {
+    const devocao = divindade ?? { label: 'Não devoto', value: '--' };
+    const sincretismo = findSincretismo(
+      devocao.value,
+      selectedOptions.devocaoSecundaria?.value
+    );
+    onSelectedOptionsChange({
+      ...selectedOptions,
+      devocao,
+      // Re-resolve o sincretismo pelo par. Não achar é um estado VÁLIDO — a
+      // regra permite um par criado pelo mestre e pelo jogador.
+      sincretismo: sincretismo
+        ? { value: sincretismo.name, label: sincretismo.name }
+        : undefined,
+    });
+  };
+
+  const inSelectDivindadeSecundaria = (divindade: SelectedOption | null) => {
+    const sincretismo = findSincretismo(
+      selectedOptions.devocao?.value,
+      divindade?.value
+    );
+    onSelectedOptionsChange({
+      ...selectedOptions,
+      devocaoSecundaria: divindade ?? undefined,
+      sincretismo: sincretismo
+        ? { value: sincretismo.name, label: sincretismo.name }
+        : undefined,
+    });
+  };
+
+  /** Escolher o sincretismo preenche as DUAS divindades — o outro sentido. */
+  const inSelectSincretismo = (option: SelectedOption | null) => {
+    if (!option) {
+      onSelectedOptionsChange({ ...selectedOptions, sincretismo: undefined });
+      return;
+    }
+    const sincretismo = sincretismos.find((s) => s.name === option.value);
+    if (!sincretismo) return;
+    onSelectedOptionsChange({
+      ...selectedOptions,
+      sincretismo: option,
+      devocao: deityOptionFor(sincretismo.deities[0]),
+      devocaoSecundaria: deityOptionFor(sincretismo.deities[1]),
+    });
+  };
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
@@ -472,7 +585,97 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
               }
             />
           )}
+          {dualDevotionAvailable && isDevoto && (
+            <FormControlLabel
+              sx={{ mt: 0.5, ml: 0 }}
+              control={
+                <Switch
+                  size='small'
+                  checked={!!selectedOptions.dualDevotion}
+                  onChange={(_e, checked) =>
+                    onSelectedOptionsChange({
+                      ...selectedOptions,
+                      dualDevotion: checked,
+                      // Desligar a regra não pode deixar o par para trás.
+                      ...(checked
+                        ? {}
+                        : {
+                            devocaoSecundaria: undefined,
+                            sincretismo: undefined,
+                          }),
+                    })
+                  }
+                />
+              }
+              label={
+                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                  Devoção Dupla{' '}
+                  <Tooltip title='Regra opcional de Sincretismos de Arton: o personagem conta como devoto de dois deuses maiores. Ele NÃO ganha poderes concedidos adicionais — escolhe os que já teria das listas dos dois deuses, mais o poder único do sincretismo. Precisa seguir as obrigações e restrições de ambos, e estar na lista de devotos permitidos dos dois. Não é possível ser devoto duplo e fundamentalista ao mesmo tempo.'>
+                    <HelpOutlineIcon
+                      fontSize='inherit'
+                      sx={{ verticalAlign: 'middle' }}
+                    />
+                  </Tooltip>
+                </Typography>
+              }
+            />
+          )}
         </Grid>
+
+        {/* Devoção Dupla: segunda divindade + sincretismo (bidirecionais) */}
+        {dualDevotionAvailable && isDevoto && selectedOptions.dualDevotion && (
+          <>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
+                Segunda divindade
+              </Typography>
+              <Select
+                placeholder='Selecione...'
+                options={divindadesSecundarias}
+                formatOptionLabel={formatOptionLabel}
+                isSearchable
+                isClearable
+                value={selectedOptions.devocaoSecundaria ?? null}
+                onChange={inSelectDivindadeSecundaria}
+                styles={selectStyles}
+                menuPortalTarget={document.body}
+                theme={(selectTheme) => ({
+                  ...selectTheme,
+                  colors: { ...formThemeColors },
+                })}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
+                Sincretismo
+              </Typography>
+              <Select
+                placeholder='Sincretismo próprio'
+                options={sincretismoOptions}
+                isSearchable
+                isClearable
+                value={selectedOptions.sincretismo ?? null}
+                onChange={inSelectSincretismo}
+                styles={selectStyles}
+                menuPortalTarget={document.body}
+                theme={(selectTheme) => ({
+                  ...selectTheme,
+                  colors: { ...formThemeColors },
+                })}
+              />
+              {!sincretismoAtual && (
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}
+                >
+                  Nenhum sincretismo do livro cobre esse par — vale como um
+                  criado pelo mestre e pelo jogador.
+                </Typography>
+              )}
+            </Grid>
+          </>
+        )}
 
         {/* Level Selection */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>

@@ -163,6 +163,7 @@ import '../../assets/css/result.css';
 import Spells from './SpellsTab/SpellsDisplay';
 import SkillTable from './SkillTable';
 import LabelDisplay from './LabelDisplay';
+import { getDevotionLabel } from '../../functions/powers/deityNames';
 import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
@@ -2297,8 +2298,15 @@ const Result: React.FC<ResultProps> = (props) => {
                     )}
                     {devoto && (
                       <LabelDisplay
-                        title='Divindade'
-                        text={devoto.divindade.name}
+                        title={
+                          devoto.divindadeSecundaria
+                            ? 'Devoção dupla'
+                            : 'Divindade'
+                        }
+                        text={
+                          getDevotionLabel(currentSheet) ||
+                          devoto.divindade.name
+                        }
                         size='small'
                       />
                     )}

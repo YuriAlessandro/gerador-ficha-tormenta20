@@ -10,10 +10,22 @@ import {
 import { ClassDescription } from '@/interfaces/Class';
 import Divindade from '@/interfaces/Divindade';
 import { GeneralPower } from '@/interfaces/Poderes';
+import {
+  getPowerDeityNames,
+  isDualDevotionPower,
+} from '@/functions/powers/grantedPowerPool';
 
 interface DeityPowerStepProps {
   classe: ClassDescription;
   deity: Divindade | null;
+  /** Devoção Dupla: a segunda divindade, quando houver. */
+  secondaryDeity?: Divindade | null;
+  /**
+   * Piscina de onde escolher — a união das listas dos deuses da devoção, já
+   * montada pelo assistente. A QUANTIDADE escolhível não muda com a devoção
+   * dupla, só a origem das opções.
+   */
+  powerPool: GeneralPower[];
   selectedPowers: string[];
   onChange: (powers: string[]) => void;
 }
@@ -21,6 +33,8 @@ interface DeityPowerStepProps {
 const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
   classe,
   deity,
+  secondaryDeity = null,
+  powerPool,
   selectedPowers,
   onChange,
 }) => {
@@ -46,7 +60,7 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
 
   // If 'all', grant all powers automatically
   if (qtdPoderesConcedidos === 'all') {
-    const allPowerNames = deity.poderes.map((p) => p.name);
+    const allPowerNames = powerPool.map((p) => p.name);
 
     // Auto-select all powers if not already selected
     if (selectedPowers.length !== allPowerNames.length) {
@@ -61,7 +75,10 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
             color: 'text.secondary',
           }}
         >
-          A classe {classe.name} concede todos os poderes de {deity.name}
+          A classe {classe.name} concede todos os poderes de{' '}
+          {[deity.name, ...(secondaryDeity ? [secondaryDeity.name] : [])].join(
+            ' e '
+          )}{' '}
           automaticamente.
         </Typography>
         <Alert severity='success'>
@@ -76,7 +93,12 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
     typeof qtdPoderesConcedidos === 'number' ? qtdPoderesConcedidos : 1;
   const isLimitReached = selectedPowers.length >= maxPowers;
 
-  const availablePowers = deity.poderes;
+  const availablePowers = powerPool;
+  const deityNames = [
+    deity.name,
+    ...(secondaryDeity ? [secondaryDeity.name] : []),
+  ];
+  const deityLabel = deityNames.join(' e ');
 
   const handleToggle = (power: GeneralPower) => {
     const isSelected = selectedPowers.includes(power.name);
@@ -97,7 +119,7 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
         }}
       >
         Selecione até {maxPowers} {maxPowers === 1 ? 'poder' : 'poderes'}{' '}
-        {maxPowers === 1 ? 'concedido' : 'concedidos'} por {deity.name}. Esta
+        {maxPowers === 1 ? 'concedido' : 'concedidos'} por {deityLabel}. Esta
         etapa é opcional.
       </Typography>
       <Typography
@@ -125,7 +147,22 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
                 }
                 label={
                   <Box>
-                    <Typography variant='subtitle1'>{power.name}</Typography>
+                    <Typography variant='subtitle1'>
+                      {power.name}
+                      {secondaryDeity && (
+                        <Typography
+                          component='span'
+                          variant='caption'
+                          sx={{ ml: 1, color: 'text.secondary' }}
+                        >
+                          {isDualDevotionPower(power)
+                            ? '· exclusivo do sincretismo'
+                            : `· ${getPowerDeityNames(power, deityNames).join(
+                                ' e '
+                              )}`}
+                        </Typography>
+                      )}
+                    </Typography>
                     <Typography
                       variant='body2'
                       sx={{

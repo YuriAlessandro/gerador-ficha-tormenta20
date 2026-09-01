@@ -717,8 +717,22 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   if (sheet.devoto) {
     if (!sheet.devoto.divindade?.name) {
       delete sheet.devoto;
-    } else if (!Array.isArray(sheet.devoto.poderes)) {
-      sheet.devoto.poderes = [];
+    } else {
+      if (!Array.isArray(sheet.devoto.poderes)) {
+        sheet.devoto.poderes = [];
+      }
+      // Devoção Dupla: os dois campos são NOMES resolvidos no registry a cada
+      // uso, então qualquer coisa que não seja string é lixo. Secundária igual
+      // à primária seria uma devoção dupla degenerada — some.
+      if (
+        typeof sheet.devoto.divindadeSecundaria !== 'string' ||
+        sheet.devoto.divindadeSecundaria === sheet.devoto.divindade.name
+      ) {
+        delete sheet.devoto.divindadeSecundaria;
+      }
+      if (typeof sheet.devoto.sincretismo !== 'string') {
+        delete sheet.devoto.sincretismo;
+      }
     }
   }
 

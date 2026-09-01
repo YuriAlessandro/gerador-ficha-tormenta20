@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -16,11 +16,18 @@ import CloseIcon from '@mui/icons-material/Close';
 import Divindade from '@/interfaces/Divindade';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { GeneralPower } from '@/interfaces/Poderes';
+import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
+import { useContentSupplements } from '@/hooks/useContentSupplements';
 
 interface DeityPowerEditDrawerProps {
   open: boolean;
   onClose: () => void;
   deity: Divindade;
+  /**
+   * Devoção Dupla: nome da segunda divindade. A piscina de escolha passa a ser
+   * a união das duas listas — a QUANTIDADE escolhível não muda.
+   */
+  secondaryDeityName?: string;
   sheet: CharacterSheet;
   onSave: (selectedPowers: GeneralPower[]) => void;
 }
@@ -29,12 +36,28 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
   open,
   onClose,
   deity,
+  secondaryDeityName,
   sheet,
   onSave,
 }) => {
   // Check if class auto-grants all deity powers
   const { qtdPoderesConcedidos } = sheet.classe;
   const getsAllPowers = qtdPoderesConcedidos === 'all';
+  const supplements = useContentSupplements();
+
+  const availablePowers: GeneralPower[] = useMemo(() => {
+    const names = [deity.name];
+    if (secondaryDeityName && secondaryDeityName !== deity.name) {
+      names.push(secondaryDeityName);
+    }
+    const pool = getGrantedPowerPool(names, supplements);
+    return pool.length > 0 ? pool : deity.poderes;
+  }, [deity, secondaryDeityName, supplements]);
+
+  const deityLabel =
+    secondaryDeityName && secondaryDeityName !== deity.name
+      ? `${deity.name} e ${secondaryDeityName}`
+      : deity.name;
 
   const [selectedPowers, setSelectedPowers] = useState<GeneralPower[]>([]);
 
@@ -43,7 +66,7 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
     if (open) {
       // If class gets all powers, select them all
       if (getsAllPowers) {
-        setSelectedPowers(deity.poderes);
+        setSelectedPowers(availablePowers);
       } else if (
         sheet.devoto?.poderes &&
         sheet.devoto.divindade.name === deity.name
@@ -54,7 +77,7 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
         setSelectedPowers([]);
       }
     }
-  }, [open, deity.name, deity.poderes, getsAllPowers, sheet.devoto]);
+  }, [open, deity.name, availablePowers, getsAllPowers, sheet.devoto]);
 
   const handleSave = () => {
     onSave(selectedPowers);
@@ -64,7 +87,7 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
   const handleCancel = () => {
     // Reset to original selections
     if (getsAllPowers) {
-      setSelectedPowers(deity.poderes);
+      setSelectedPowers(availablePowers);
     } else if (
       sheet.devoto?.poderes &&
       sheet.devoto.divindade.name === deity.name
@@ -114,7 +137,7 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
             }}
           >
             Como {sheet.classe.name}, você recebe todos os poderes concedidos
-            por {deity.name} automaticamente.
+            por {deityLabel} automaticamente.
           </Typography>
 
           <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 3 }}>
@@ -122,7 +145,7 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
               Poderes Concedidos Automaticamente:
             </Typography>
 
-            {deity.poderes.map((power) => (
+            {availablePowers.map((power) => (
               <Box key={power.name} sx={{ mb: 2 }}>
                 <Typography
                   variant='subtitle2'
@@ -211,7 +234,7 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
             mb: 2,
           }}
         >
-          Selecione os poderes concedidos por {deity.name} desejados:
+          Selecione os poderes concedidos por {deityLabel} desejados:
         </Typography>
 
         <Typography
@@ -224,7 +247,7 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
 
         <Box sx={{ maxHeight: '60vh', overflow: 'auto', mb: 3 }}>
           <Paper sx={{ p: 2 }}>
-            {deity.poderes.map((power) => {
+            {availablePowers.map((power) => {
               const isSelected = selectedPowers.some(
                 (p) => p.name === power.name
               );

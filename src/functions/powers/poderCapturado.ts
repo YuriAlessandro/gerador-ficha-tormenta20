@@ -4,6 +4,7 @@ import { GeneralPower, RequirementType } from '../../interfaces/Poderes';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
 import { isPowerAvailable } from '../powers';
+import { isDualDevotionPower } from './grantedPowerPool';
 
 /**
  * Poder Capturado — Usurpador, 4º nível (Heróis de Arton).
@@ -83,7 +84,7 @@ export interface CapturablePower {
   power: GeneralPower;
   available: boolean;
   /** Por que está indisponível (só quando `available` é falso). */
-  reason?: 'class-exclusive' | 'requirements';
+  reason?: 'class-exclusive' | 'requirements' | 'dual-devotion-only';
 }
 
 /**
@@ -98,6 +99,18 @@ export function getCapturablePowers(
   const syntheticSheet = buildSyntheticDevoteSheet(sheet, deity);
 
   return (deity.poderes ?? []).map((power) => {
+    // "Clérigos usurpadores não têm acesso aos poderes concedidos únicos de
+    // uma devoção dupla — pois só podem ser considerados devotos de um deus
+    // de cada vez." A ficha sintética tem exatamente um deus, então o AND de
+    // dois DEVOTO já reprovaria; marcamos o motivo explicitamente para a UI
+    // poder explicar em vez de dizer "requisitos não cumpridos".
+    if (isDualDevotionPower(power)) {
+      return {
+        power,
+        available: false,
+        reason: 'dual-devotion-only' as const,
+      };
+    }
     if (isClassExclusivePower(power)) {
       return { power, available: false, reason: 'class-exclusive' as const };
     }

@@ -4,6 +4,7 @@ import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
 import originPowersCatalog from '@/data/systems/tormenta20/powers/originPowers';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { dataRegistry } from '@/data/registry';
+import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import CharacterSheet, {
   SheetActionHistoryEntry,
@@ -808,11 +809,17 @@ export function usePowersEditor({
   const isDevoto = !!sheet.devoto;
   const storedDeity = sheet.devoto?.divindade;
   const deityPowers = useMemo(() => {
-    const enriched = storedDeity
-      ? dataRegistry.getDeityByName(storedDeity.name, allSupplements)
-      : undefined;
-    return enriched?.poderes || storedDeity?.poderes || [];
-  }, [allSupplements, storedDeity]);
+    if (!storedDeity) return [];
+    // Devoção Dupla: a piscina é a união das listas dos dois deuses (mais o
+    // poder único do sincretismo). Resolve pelo registry — o objeto gravado na
+    // ficha tem o catálogo esvaziado por `stripSheetForStorage`.
+    const names = [storedDeity.name];
+    const secundaria = sheet.devoto?.divindadeSecundaria;
+    if (secundaria && secundaria !== storedDeity.name) names.push(secundaria);
+
+    const pool = getGrantedPowerPool(names, allSupplements);
+    return pool.length > 0 ? pool : storedDeity.poderes || [];
+  }, [allSupplements, storedDeity, sheet.devoto?.divindadeSecundaria]);
 
   const isDeityPowerSelected = useCallback(
     (power: GeneralPower) =>

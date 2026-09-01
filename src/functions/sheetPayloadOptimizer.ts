@@ -292,6 +292,12 @@ export function stripSheetForStorage(
   ) {
     stripped.devoto = {
       poderes: sheet.devoto.poderes,
+      // Devoção Dupla: guardados por NOME justamente para caberem aqui sem
+      // custo. Este objeto é remontado campo a campo (não é um spread), então
+      // qualquer campo novo de `devoto` que não for listado SOME ao salvar na
+      // nuvem — é o mesmo tipo de bug que já derrubou campos novos de `Race`.
+      divindadeSecundaria: sheet.devoto.divindadeSecundaria,
+      sincretismo: sheet.devoto.sincretismo,
       divindade: {
         name: sheet.devoto.divindade.name,
         poderes: [],

@@ -22,6 +22,8 @@ import {
   hasFanatico,
 } from './powers/heavyArmorPowers';
 import { getCarapacaKappaBonuses } from './powers/kappaCarapaca';
+import { getGrantedPowerPool } from './powers/grantedPowerPool';
+import { normalizeDeityName } from './deityName';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
 import {
@@ -251,10 +253,6 @@ export interface RaceCustomization {
   moreauHeritage?: string;
   moreauBonusAttributes?: Atributo[];
 }
-
-// Helper function to normalize deity names for comparison (removes hyphens and spaces)
-const normalizeDeityName = (name: string): string =>
-  name.toLowerCase().replace(/[-\s]/g, '');
 
 // Inventor Specializations System
 export enum InventorSpecialization {
@@ -7018,6 +7016,7 @@ export function generateEmptySheet(
   if (wizardSelections?.deathByOldAge) usedOptionalRules.deathByOldAge = true;
   if (selectedOptions.openDeities) usedOptionalRules.openDeities = true;
   if (wizardSelections?.openRaces) usedOptionalRules.openRaces = true;
+  if (selectedOptions.dualDevotion) usedOptionalRules.dualDevotion = true;
   // Só registra a variante de atributos quando ela NÃO é a do livro básico —
   // toda ficha usa algum método, mas só as opcionais interessam à auditoria.
   if (
@@ -7039,6 +7038,28 @@ export function generateEmptySheet(
       (deity) => normalizeDeityName(deity.name) === normalizedSearch
     );
     if (selectedDeity) {
+      // Devoção Dupla: a segunda divindade é guardada por NOME e resolvida no
+      // registry a cada uso. Só vale quando resolve para um deus diferente do
+      // primário — senão seria uma devoção dupla degenerada.
+      const secondarySearch = selectedOptions.dualDevotion
+        ? selectedOptions.devocaoSecundaria?.value
+        : undefined;
+      const secondaryDeity = secondarySearch
+        ? deities.find(
+            (deity) =>
+              normalizeDeityName(deity.name) ===
+              normalizeDeityName(secondarySearch)
+          )
+        : undefined;
+      const hasSecondary =
+        !!secondaryDeity && secondaryDeity.name !== selectedDeity.name;
+
+      // A piscina de escolha é a união das duas listas; a QUANTIDADE que o
+      // personagem escolhe não muda (regra explícita do livro).
+      const deityNames = [selectedDeity.name];
+      if (hasSecondary) deityNames.push(secondaryDeity!.name);
+      const grantedPool = getGrantedPowerPool(deityNames, supplements);
+
       // Determine which deity powers to add based on wizard selections
       let deityPowers: import('../interfaces/Poderes').GeneralPower[] = [];
 
@@ -7047,7 +7068,7 @@ export function generateEmptySheet(
         wizardSelections.deityPowers.length > 0
       ) {
         // Use wizard selections
-        deityPowers = selectedDeity.poderes.filter((p) =>
+        deityPowers = grantedPool.filter((p) =>
           wizardSelections.deityPowers?.includes(p.name)
         );
       } else {
@@ -7060,7 +7081,9 @@ export function generateEmptySheet(
           : 1; // Default to 1 if undefined
 
         deityPowers = getPoderesConcedidos(
-          selectedDeity,
+          // Sorteio automático também escolhe da união — `getPoderesConcedidos`
+          // só lê `poderes`, então basta trocar a lista.
+          { ...selectedDeity, poderes: grantedPool },
           todosPoderes,
           generatedClass,
           qtdPoderesConcedidos
@@ -7070,6 +7093,12 @@ export function generateEmptySheet(
       emptySheet.devoto = {
         divindade: selectedDeity,
         poderes: deityPowers,
+        ...(hasSecondary
+          ? {
+              divindadeSecundaria: secondaryDeity!.name,
+              sincretismo: selectedOptions.sincretismo?.value || undefined,
+            }
+          : {}),
       };
     }
   }

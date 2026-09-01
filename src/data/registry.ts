@@ -51,6 +51,7 @@ import {
   divineSpellsCircle5,
 } from './systems/tormenta20/magias/divine';
 import Divindade from '../interfaces/Divindade';
+import { Sincretismo } from '../interfaces/Sincretismo';
 import { DIVINDADES } from './systems/tormenta20/divindades';
 import { ItemE, ItemMod } from '../interfaces/Rewards';
 import { SpecialMaterial } from '../interfaces/SpecialMaterials';
@@ -142,6 +143,8 @@ class DataRegistry {
   private enchantmentsCache: CacheEntry<ResolvedEnchantments> | null = null;
 
   private specialMaterialsCache: CacheEntry<SpecialMaterial[]> | null = null;
+
+  private sincretismosCache: CacheEntry<Sincretismo[]> | null = null;
 
   private currentSystem: SystemId = SystemId.TORMENTA20;
 
@@ -1371,6 +1374,68 @@ class DataRegistry {
   }
 
   /**
+   * Sincretismos (pares de deuses maiores para a Devoção Dupla) trazidos pelos
+   * suplementos ativos. O core não tem nenhum: a regra só existe quando um
+   * suplemento a traz, e é essa lista vazia/não-vazia que serve de gate na UI.
+   */
+  getSincretismosBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Sincretismo[] {
+    const supplements = this.ensureCore(supplementIds, systemId);
+
+    if (this.isCacheValid(this.sincretismosCache, supplements, systemId)) {
+      return this.sincretismosCache!.data;
+    }
+
+    const systemData = this.getResolvedSystemData(systemId);
+    const result: Sincretismo[] = [];
+    if (systemData) {
+      supplements.forEach((id) => {
+        const list = systemData.supplements[id]?.sincretismos;
+        if (!list) return;
+        list.forEach((sincretismo) => {
+          if (!result.some((s) => s.name === sincretismo.name)) {
+            result.push(sincretismo);
+          }
+        });
+      });
+    }
+
+    this.sincretismosCache = { system: systemId, supplements, data: result };
+    return result;
+  }
+
+  getSincretismoByName(
+    name: string,
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Sincretismo | undefined {
+    return this.getSincretismosBySupplements(supplementIds, systemId).find(
+      (s) => s.name === name
+    );
+  }
+
+  /**
+   * Sincretismo que corresponde a um par de deuses. O par é NÃO-ORDENADO: a
+   * UI deixa o jogador escolher as duas divindades em qualquer ordem, e o
+   * mesmo sincretismo tem que ser encontrado nos dois sentidos.
+   */
+  getSincretismoForDeities(
+    deityA: string,
+    deityB: string,
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Sincretismo | undefined {
+    return this.getSincretismosBySupplements(supplementIds, systemId).find(
+      (sincretismo) =>
+        (sincretismo.deities[0] === deityA &&
+          sincretismo.deities[1] === deityB) ||
+        (sincretismo.deities[0] === deityB && sincretismo.deities[1] === deityA)
+    );
+  }
+
+  /**
    * Helper: Retorna magias arcanas do core por círculo
    * Usa cloneDeep para evitar mutação dos arrays originais
    */
@@ -1464,6 +1529,7 @@ class DataRegistry {
     this.improvementsCache = null;
     this.enchantmentsCache = null;
     this.specialMaterialsCache = null;
+    this.sincretismosCache = null;
   }
 
   /**

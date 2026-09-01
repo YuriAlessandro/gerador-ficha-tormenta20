@@ -737,6 +737,13 @@ export interface SheetOptionalRules {
    * Informativo: os atributos já saem calculados, isto só registra a origem.
    */
   attributeMethodVariant?: string;
+  /**
+   * Devoção Dupla (Sincretismos de Arton): devoto de dois deuses maiores. É a
+   * única regra deste bloco que não vem de Heróis de Arton. O dado de verdade
+   * fica em `devoto.divindadeSecundaria`; esta flag é o registro de auditoria,
+   * uniforme com as demais.
+   */
+  dualDevotion?: boolean;
 }
 
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.

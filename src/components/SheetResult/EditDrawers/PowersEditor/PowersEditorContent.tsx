@@ -22,6 +22,7 @@ import CatalogPanel from './CatalogPanel';
 import SelectedPanel, { SelectedGroup } from './SelectedPanel';
 import { CatalogEntry, usePowerCatalog } from './usePowerCatalog';
 import { usePowersEditor } from './usePowersEditor';
+import { getDevotionLabel } from '../../../../functions/powers/deityNames';
 import { CATALOG_MIN_WIDTH, SELECTED_PANEL_WIDTH } from './powersEditorStyles';
 
 const ALWAYS_AVAILABLE: PowerAvailability = {
@@ -277,8 +278,8 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
     push(
       'deityPower',
       'deityPower',
-      sheet.devoto
-        ? `Concedidos por ${sheet.devoto.divindade.name}`
+      getDevotionLabel(sheet)
+        ? `Concedidos por ${getDevotionLabel(sheet)}`
         : POWER_ORIGINS.deityPower.label(),
       dedupe(selectedDeityPowers, editor.handleDeityPowerRemove, 'deityPower')
     );

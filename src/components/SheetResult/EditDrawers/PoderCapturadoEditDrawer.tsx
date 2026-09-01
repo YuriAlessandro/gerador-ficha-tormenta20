@@ -46,6 +46,9 @@ const UNAVAILABLE_LABEL: Record<
   'class-exclusive':
     'Poder exclusivo de uma classe — a regra proíbe capturá-lo.',
   requirements: 'Você não cumpre os pré-requisitos deste poder.',
+  'dual-devotion-only':
+    'Poder exclusivo de devoção dupla — o usurpador só conta como devoto de ' +
+    'um deus de cada vez.',
 };
 
 /**

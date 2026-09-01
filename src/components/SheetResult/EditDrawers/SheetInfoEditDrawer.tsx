@@ -110,9 +110,11 @@ import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
 
-// Helper function to normalize deity names for comparison (removes hyphens and spaces)
-const normalizeDeityName = (name: string): string =>
-  name.toLowerCase().replace(/[-\s]/g, '');
+import { normalizeDeityName } from '../../../functions/deityName';
+import {
+  useDualDevotionAvailable,
+  useSincretismos,
+} from '../../../hooks/useDualDevotion';
 
 // Reconstrói (best-effort) os Dons de um Duende legado a partir dos atributos já
 // "assados" na raça, quando o campo dedicado `duendeBonusAttributes` não existe.
@@ -198,6 +200,10 @@ interface EditedData {
   className: string;
   originName: string;
   deityName: string;
+  /** Devoção Dupla: nome da segunda divindade ('' = devoção simples). */
+  secondaryDeityName: string;
+  /** Sincretismo do catálogo; '' é válido (par próprio do mestre e jogador). */
+  sincretismoName: string;
   attributes: CharacterAttributes;
   raceAttributeChoices: Atributo[]; // Manual choices for 'any' race attributes
   selectedAttributeVariant: AttributeVariant | undefined; // Selected attribute variant
@@ -294,6 +300,22 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const CLASSES = dataRegistry.getClassesBySupplements(userSupplements);
   const ORIGINS_WITH_INFO =
     dataRegistry.getOriginsBySupplements(userSupplements);
+  const dualDevotionAvailable = useDualDevotionAvailable();
+  const sincretismos = useSincretismos();
+
+  /** Sincretismo do catálogo para um par NÃO-ORDENADO de divindades. */
+  const findSincretismoByPair = useMemo(
+    () => (a?: string, b?: string) => {
+      if (!a || !b) return undefined;
+      const [na, nb] = [normalizeDeityName(a), normalizeDeityName(b)];
+      return sincretismos.find((item) => {
+        const [d1, d2] = item.deities.map(normalizeDeityName);
+        return (d1 === na && d2 === nb) || (d1 === nb && d2 === na);
+      });
+    },
+    [sincretismos]
+  );
+
   // Os 20 deuses maiores mais as divindades dos suplementos ativos. Precisa ser
   // a MESMA lista usada pelo <Select> e pelas buscas por nome abaixo: oferecer
   // no dropdown um deus que a busca não resolve dispara o aviso de "Divindade
@@ -334,6 +356,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name || '',
+    secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
+    sincretismoName: sheet.devoto?.sincretismo || '',
     attributes: { ...sheet.atributos },
     raceAttributeChoices: sheet.raceAttributeChoices || [],
     selectedAttributeVariant: sheet.selectedAttributeVariant,
@@ -346,6 +370,22 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
     imageUrl: sheet.imageUrl || '',
   });
+
+  /**
+   * Campos de Devoção Dupla a gravar em `devoto`. A secundária só vale se
+   * resolver para um deus DIFERENTE do primário; o sincretismo pode ficar
+   * vazio — par próprio do mestre e do jogador é um estado válido.
+   */
+  const buildDualDevotionFields = (
+    primaryName: string
+  ): { divindadeSecundaria?: string; sincretismo?: string } => {
+    const secondary = editedData.secondaryDeityName;
+    if (!secondary || secondary === primaryName) return {};
+    return {
+      divindadeSecundaria: secondary,
+      sincretismo: editedData.sincretismoName || undefined,
+    };
+  };
 
   // State for image preview error
   const [imagePreviewError, setImagePreviewError] = useState(false);
@@ -420,6 +460,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
+      secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
+      sincretismoName: sheet.devoto?.sincretismo || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
       selectedAttributeVariant: sheet.selectedAttributeVariant,
@@ -1440,6 +1482,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           updates.devoto = {
             divindade: newDeity,
             poderes: newDeity.poderes,
+            ...buildDualDevotionFields(newDeity.name),
           };
         } else {
           // Other classes need to select powers - open drawer
@@ -1461,12 +1504,30 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
     } else if (!editedData.deityName && sheet.devoto) {
       updates.devoto = undefined;
+    } else if (sheet.devoto) {
+      // Primário inalterado: só a devoção dupla mudou (segunda divindade ou
+      // sincretismo). Não passa pelo drawer de poderes — a piscina muda, mas
+      // os poderes já escolhidos continuam válidos até serem reeditados.
+      const dual = buildDualDevotionFields(sheet.devoto.divindade.name);
+      const changed =
+        (dual.divindadeSecundaria || '') !==
+          (sheet.devoto.divindadeSecundaria || '') ||
+        (dual.sincretismo || '') !== (sheet.devoto.sincretismo || '');
+      if (changed) {
+        updates.devoto = {
+          divindade: sheet.devoto.divindade,
+          poderes: sheet.devoto.poderes,
+          ...dual,
+        };
+      }
     }
 
     // Use recalculation for full sheet update if attributes, race, deity, or level changed
     const raceChanged = editedData.raceName !== sheet.raca.name;
     const deityChanged =
-      editedData.deityName !== (sheet.devoto?.divindade.name || '');
+      editedData.deityName !== (sheet.devoto?.divindade.name || '') ||
+      editedData.secondaryDeityName !==
+        (sheet.devoto?.divindadeSecundaria || '');
     const levelChanged = editedData.nivel !== sheet.nivel;
     const heritageChanged =
       editedData.raceName === 'Moreau' &&
@@ -1557,6 +1618,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
+      secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
+      sincretismoName: sheet.devoto?.sincretismo || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
       selectedAttributeVariant: sheet.selectedAttributeVariant,
@@ -1667,6 +1730,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       devoto: {
         divindade: pendingDeity,
         poderes: selectedPowers,
+        ...buildDualDevotionFields(pendingDeity.name),
       },
     };
 
@@ -3008,6 +3072,83 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       ))}
                     </Select>
                   </FormControl>
+
+                  {/* Devoção Dupla. Fica editável em fichas que JÁ usam a
+                      regra mesmo sem o suplemento ativo — senão o usuário
+                      ficaria preso a uma segunda divindade que não consegue
+                      remover. */}
+                  {!!editedData.deityName &&
+                    (dualDevotionAvailable ||
+                      !!sheet.devoto?.divindadeSecundaria) && (
+                      <>
+                        <FormControl fullWidth>
+                          <InputLabel>Segunda divindade</InputLabel>
+                          <Select
+                            value={editedData.secondaryDeityName}
+                            label='Segunda divindade'
+                            onChange={(e) =>
+                              setEditedData({
+                                ...editedData,
+                                secondaryDeityName: e.target.value,
+                                // Re-resolve o sincretismo pelo par novo; não
+                                // achar nenhum é um estado válido.
+                                sincretismoName:
+                                  findSincretismoByPair(
+                                    editedData.deityName,
+                                    e.target.value
+                                  )?.name || '',
+                              })
+                            }
+                          >
+                            <MenuItem value=''>
+                              Nenhuma (devoção simples)
+                            </MenuItem>
+                            {DIVINDADES_DISPONIVEIS.filter(
+                              (deity: Divindade) =>
+                                deity.name !== editedData.deityName
+                            ).map((deity: Divindade) => (
+                              <MenuItem key={deity.name} value={deity.name}>
+                                {deity.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+
+                        {!!editedData.secondaryDeityName && (
+                          <FormControl fullWidth>
+                            <InputLabel>Sincretismo</InputLabel>
+                            <Select
+                              value={editedData.sincretismoName}
+                              label='Sincretismo'
+                              onChange={(e) => {
+                                const chosen = sincretismos.find(
+                                  (item) => item.name === e.target.value
+                                );
+                                setEditedData({
+                                  ...editedData,
+                                  sincretismoName: e.target.value,
+                                  // O outro sentido: escolher o sincretismo
+                                  // preenche as duas divindades.
+                                  ...(chosen
+                                    ? {
+                                        deityName: chosen.deities[0],
+                                        secondaryDeityName: chosen.deities[1],
+                                      }
+                                    : {}),
+                                });
+                              }}
+                            >
+                              <MenuItem value=''>Sincretismo próprio</MenuItem>
+                              {sincretismos.map((item) => (
+                                <MenuItem key={item.name} value={item.name}>
+                                  {item.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        )}
+                      </>
+                    )}
                 </Stack>
               </AccordionDetails>
             </Accordion>
@@ -3351,6 +3492,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
             setPendingUpdates({});
           }}
           deity={pendingDeity}
+          secondaryDeityName={
+            editedData.secondaryDeityName !== pendingDeity.name
+              ? editedData.secondaryDeityName
+              : undefined
+          }
           sheet={sheet}
           onSave={handleDeityPowersSave}
         />

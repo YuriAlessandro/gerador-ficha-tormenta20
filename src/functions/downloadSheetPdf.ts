@@ -16,6 +16,7 @@ import {
   getWeaponNonProficiencyPenalty,
 } from './proficiencies';
 import { collectSheetPowers } from './powers/collectSheetPowers';
+import { getDevotionLabel } from './powers/deityNames';
 import { serializeJournalForPdf } from './playerJournal';
 import { getPowerDisplayName, getPowerDisplayText } from './powers/powerText';
 import {
@@ -324,7 +325,8 @@ export const fillSheetPdf: (
   // O nível também vive dentro da string de `Classe` (é o formato do template
   // impresso), mas o campo próprio existe e ficava vazio.
   levelField.setText(sheet.nivel.toString());
-  deytiField.setText(sanitizeForWinAnsi(sheet.devoto?.divindade.name));
+  // Devoção dupla cabe no mesmo campo de texto do template: "A / B".
+  deytiField.setText(sanitizeForWinAnsi(getDevotionLabel(sheet, ' / ')));
   // Atributos BASE de propósito — aqui e nas perícias/armas mais abaixo. Mesma
   // política já adotada para o bônus de dano de efeito ativo (ver
   // `weaponSkill.ts`): estado transitório de combate (efeito ativo, condição,

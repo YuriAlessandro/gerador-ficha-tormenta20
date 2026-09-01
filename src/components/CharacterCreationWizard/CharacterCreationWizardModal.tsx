@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
+import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
 import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
@@ -407,6 +408,37 @@ const CharacterCreationWizardModal: React.FC<
     return deityWithPowers || baseDeity;
   }, [selectedOptions.devocao?.value, supplements]);
 
+  /**
+   * Devoção Dupla: a segunda divindade escolhida no formulário. Guardada por
+   * nome, resolvida aqui pelo registry como a primária.
+   */
+  const secondaryDeity: Divindade | null = useMemo(() => {
+    if (!selectedOptions.dualDevotion) return null;
+    const value = selectedOptions.devocaoSecundaria?.value;
+    if (!value) return null;
+    const base =
+      DivindadeEnum[value as keyof typeof DivindadeEnum]?.name ?? value;
+    const resolved = dataRegistry.getDeityByName(base, supplements);
+    return resolved && resolved.name !== deity?.name ? resolved : null;
+  }, [
+    selectedOptions.dualDevotion,
+    selectedOptions.devocaoSecundaria?.value,
+    supplements,
+    deity,
+  ]);
+
+  /**
+   * Piscina de poderes concedidos: a união das listas dos deuses da devoção,
+   * mais o poder único do sincretismo. A QUANTIDADE que o personagem escolhe
+   * não muda — segue saindo de `classe.qtdPoderesConcedidos`.
+   */
+  const grantedPowerPool = useMemo(() => {
+    if (!deity) return [];
+    const names = [deity.name];
+    if (secondaryDeity) names.push(secondaryDeity.name);
+    return getGrantedPowerPool(names, supplements);
+  }, [deity, secondaryDeity, supplements]);
+
   // Sexo efetivo para atributos raciais (dimorfismo sexual, ex: Nagah)
   const sexForAttributes = resolveSexForAttributes(
     selections.characterGender,
@@ -568,7 +600,7 @@ const CharacterCreationWizardModal: React.FC<
 
     // Check deity granted powers (selected in previous step)
     if (deity && selections.deityPowers && selections.deityPowers.length > 0) {
-      const selectedDeityPowers = deity.poderes.filter((p) =>
+      const selectedDeityPowers = grantedPowerPool.filter((p) =>
         selections.deityPowers?.includes(p.name)
       );
       const hasDeityRequirements = selectedDeityPowers.some((power) => {
@@ -1651,6 +1683,8 @@ const CharacterCreationWizardModal: React.FC<
           <DeityPowerStep
             classe={classe}
             deity={deity}
+            secondaryDeity={secondaryDeity}
+            powerPool={grantedPowerPool}
             selectedPowers={selections.deityPowers || []}
             onChange={(powers) =>
               setSelections({ ...selections, deityPowers: powers })
@@ -1744,6 +1778,7 @@ const CharacterCreationWizardModal: React.FC<
             classe={classe}
             origin={origin}
             deity={deity}
+            deityPowerPool={grantedPowerPool}
             selectedDeityPowers={selections.deityPowers}
             selections={selections.powerEffectSelections || {}}
             onChange={(effectSelections) =>
@@ -2108,7 +2143,7 @@ const CharacterCreationWizardModal: React.FC<
           selections.deityPowers &&
           selections.deityPowers.length > 0
         ) {
-          deity.poderes
+          grantedPowerPool
             .filter((p) => selections.deityPowers?.includes(p.name))
             .forEach(collectRequirements);
         }

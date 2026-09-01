@@ -21,6 +21,7 @@ import {
 } from './general';
 import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
+import { getSheetDeityNames } from './powers/deityNames';
 
 export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
 
@@ -221,9 +222,14 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
     }
     case RequirementType.DEVOTO: {
       const godName = rule.name;
+      // Avalia contra o CONJUNTO de deuses da ficha (ver `getSheetDeityNames`):
+      // com Devoção Dupla são dois, e é isso que faz um grupo de requisitos
+      // `[[{DEVOTO, A}, {DEVOTO, B}]]` — o poder único de um sincretismo —
+      // reprovar devoto simples e aprovar devoto duplo, sem tipo novo.
+      const deityNames = getSheetDeityNames(sheet);
       // 'any' significa que o personagem deve ser devoto de qualquer divindade
-      if (godName === 'any') return !!sheet.devoto?.divindade;
-      return sheet.devoto?.divindade.name === godName;
+      if (godName === 'any') return deityNames.length > 0;
+      return !!godName && deityNames.includes(godName);
     }
     case RequirementType.RACA: {
       // Aceita variantes e "considerado um X para efeitos relacionados a raça"

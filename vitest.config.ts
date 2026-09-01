@@ -25,12 +25,14 @@ const premiumAvailable = isPremiumAvailable(ROOT_DIR);
 // rodando as 187. A lista só pode causar cobertura a MENOS no fork, nunca um
 // verde falso na main.
 const PREMIUM_DEPENDENT_TESTS = [
+  'src/functions/__tests__/devocaoDupla.spec.ts',
   'src/functions/__tests__/homebrewChoiceBonus.spec.ts',
   'src/functions/__tests__/homebrewClass.spec.ts',
   'src/functions/__tests__/homebrewCollection.spec.ts',
   'src/functions/__tests__/homebrewDeity.spec.ts',
   'src/functions/__tests__/homebrewItemEnhancements.spec.ts',
   'src/functions/__tests__/homebrewItemPackage.spec.ts',
+  'src/functions/__tests__/homebrewNative.spec.ts',
   'src/functions/__tests__/homebrewNaturalWeaponAttributes.spec.ts',
   'src/functions/__tests__/homebrewOrigin.spec.ts',
   'src/functions/__tests__/homebrewPowerPack.spec.ts',

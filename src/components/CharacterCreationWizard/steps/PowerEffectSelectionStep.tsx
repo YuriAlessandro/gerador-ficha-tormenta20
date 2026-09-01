@@ -66,6 +66,12 @@ interface PowerEffectSelectionStepProps {
   classe: ClassDescription;
   origin?: Origin;
   deity?: Divindade | null;
+  /**
+   * Piscina de poderes concedidos (união dos deuses, com Devoção Dupla). Sem
+   * ela um poder escolhido da lista da SEGUNDA divindade não seria encontrado
+   * aqui, e as escolhas que ele exige nunca apareceriam.
+   */
+  deityPowerPool?: GeneralPower[];
   selectedDeityPowers?: string[];
   // Each power has its own SelectionOptions keyed by power name
   selections: ManualPowerSelections;
@@ -96,6 +102,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   classe,
   origin,
   deity,
+  deityPowerPool,
   selectedDeityPowers,
   selections,
   onChange,
@@ -207,7 +214,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
   // Check deity granted powers (if selected)
   if (deity && selectedDeityPowers && selectedDeityPowers.length > 0) {
-    const deityPowers = deity.poderes.filter((p) =>
+    const deityPowers = (deityPowerPool ?? deity.poderes).filter((p) =>
       selectedDeityPowers.includes(p.name)
     );
     // Use 'origin' as source type for deity powers (closest match)
@@ -373,7 +380,14 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     if (Object.keys(updates).length > 0) {
       onChange({ ...selections, ...updates });
     }
-  }, [race.name, classe.name, origin?.name, deity?.name, selectedDeityPowers]);
+  }, [
+    race.name,
+    classe.name,
+    origin?.name,
+    deity?.name,
+    deityPowerPool,
+    selectedDeityPowers,
+  ]);
 
   // If no requirements, show message
   if (allRequirements.length === 0) {
