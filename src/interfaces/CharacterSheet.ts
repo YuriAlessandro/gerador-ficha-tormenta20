@@ -829,9 +829,6 @@ export default interface CharacterSheet {
         // Ids, na mochila, dos itens concedidos pela origem. É o que permite
         // trocar/remover esses itens sem mexer no resto do inventário.
         grantedItemIds?: string[];
-        // Perícias da origem escolhidas pelo jogador: `choice.key` -> nome da
-        // perícia (ex.: qual Ofício). Permite reeditar a escolha depois da criação.
-        skillChoices?: Record<string, string>;
       }
     | undefined;
   spells: Spell[];
