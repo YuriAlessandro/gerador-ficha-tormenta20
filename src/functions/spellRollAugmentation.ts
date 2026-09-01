@@ -382,9 +382,11 @@ export function augmentSpellRolls(
         dice: isAugmented ? composeNotation(total) : roll.dice,
         damageType: replacementDamageTypes[index] ?? roll.damageType,
         label: replacementLabels[index] ?? roll.label,
-        replacementDice: replacementApplied[index]
-          ? composeNotation(baseAcc[index])
-          : undefined,
+        replacementDice:
+          replacementApplied[index] &&
+          composeNotation(baseAcc[index]) !== roll.dice
+            ? composeNotation(baseAcc[index])
+            : undefined,
         isAugmented,
         addedSummary,
       };
