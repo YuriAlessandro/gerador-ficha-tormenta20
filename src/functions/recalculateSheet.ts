@@ -2005,10 +2005,21 @@ export function recalculateSheet(
       (name) => !newOriginPowerNames.includes(name)
     );
 
+    // Find removed deity (granted) powers. `devoto.poderes` é um campo
+    // separado de `generalPowers` — sem checá-lo aqui, remover um poder
+    // concedido (ex.: Biblioteca Divina) nunca reverte as perícias que ele deu.
+    const originalDeityPowers = originalSheet.devoto?.poderes || [];
+    const newDeityPowers = updatedSheet.devoto?.poderes || [];
+    const removedDeityPowers = getRemovedPowers(
+      originalDeityPowers,
+      newDeityPowers
+    );
+
     removedPowerNames = [
       ...removedGeneralPowers,
       ...removedClassPowers,
       ...removedOriginPowers,
+      ...removedDeityPowers,
     ];
 
     // Complicação (Heróis de Arton) removida ou trocada: reverte as

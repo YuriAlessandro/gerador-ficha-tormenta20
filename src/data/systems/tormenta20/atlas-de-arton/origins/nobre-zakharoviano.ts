@@ -8,6 +8,16 @@ import { TODAS_AS_ARMAS } from '../../equipamentos';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import { itemChoice } from '../../originItemHelpers';
 import { skillChoice } from '../../originSkillHelpers';
+import { weaponsModifications } from '../../../../rewards/items';
+
+// Melhorias de arma elegíveis pro sorteio: exclui "Material especial" (o
+// poder do livro concede uma melhoria "exceto material especial") e qualquer
+// melhoria com pré-requisito — a origem concede só UMA melhoria, então uma
+// que dependa de outra já aplicada (ex.: Atroz exige Cruel, Pungente exige
+// Certeira) nunca seria válida sozinha.
+const ELIGIBLE_MELHORIAS = weaponsModifications
+  .filter((mod) => mod.mod !== 'Material especial' && !mod.prerequisite)
+  .map((mod) => mod.mod);
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -34,22 +44,16 @@ const NOBRE_ZAKHAROVIANO: Origin = {
     // O Atlas lista só "Traje da corte" em Itens; a arma vem do Benefício
     // ("recebe uma arma superior com uma melhoria, exceto material especial"),
     // que não restringe a categoria — daí o pool completo.
-    const melhorias = [
-      'Acurada',
-      'Ágil',
-      'Equilibrada',
-      'Letal',
-      'Poderosa',
-      'Precisa',
-    ];
-
-    const melhoria = getRandomItemFromArray(melhorias);
+    const melhoria = getRandomItemFromArray(ELIGIBLE_MELHORIAS);
 
     return [
       itemChoice(
         'arma',
         `Arma superior com melhoria: ${melhoria}`,
-        TODAS_AS_ARMAS
+        TODAS_AS_ARMAS,
+        {
+          modification: melhoria,
+        }
       ),
       {
         equipment: 'Traje da corte',

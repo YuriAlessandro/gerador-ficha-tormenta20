@@ -5,6 +5,30 @@ import Origin, {
 import Skill, { ALL_SPECIFIC_OFICIOS } from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
 import { skillChoice } from '../../originSkillHelpers';
+import { itemChoice } from '../../originItemHelpers';
+import { Armas, Escudos } from '../../equipamentos';
+import { esotericItems } from '../../equipamentos-gerais';
+
+// Regra exata (Atlas de Arton): "Apenas armas de madeira — arcos, bordões,
+// clavas, lanças, piques e tacapes —, escudos leves e esotéricos podem ser
+// feitos com madeira Tollon." Nem toda arma serve (só as de madeira listadas),
+// nem qualquer escudo (só o leve), e Armadura fica de fora inteiramente.
+const MADEIRA_TOLLON_WEAPONS = [
+  Armas.ARCOCURTO,
+  Armas.ARCO_LONGO,
+  Armas.BORDAO,
+  Armas.CLAVA,
+  Armas.LANCA,
+  Armas.LANCA_MONTADA,
+  Armas.PIQUE,
+  Armas.TACAPE,
+];
+
+const MADEIRA_TOLLON_POOL = [
+  ...MADEIRA_TOLLON_WEAPONS,
+  Escudos.ESCUDOLEVE,
+  ...esotericItems,
+];
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -28,12 +52,12 @@ const LENHADOR_DE_TOLLON: Origin = {
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
   getItems: (): Items[] => [
-    {
-      equipment: 'Item superior de madeira Tollon',
-      qtd: 1,
-      description:
-        'Pode ser um arco, uma lança, um escudo ou outro item de madeira de qualidade superior',
-    },
+    itemChoice(
+      'item-madeira-tollon',
+      'Item superior de madeira Tollon (arco, bordão, clava, lança, pique, tacape, escudo leve ou item esotérico)',
+      MADEIRA_TOLLON_POOL,
+      { qtd: 1, specialMaterial: 'madeira Tollon' }
+    ),
   ],
 };
 

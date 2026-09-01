@@ -122,11 +122,13 @@ export function usePowersEditor({
     requirements: PowerSelectionRequirements | null;
     powerToAdd: GeneralPower | ClassPower | null;
     isClassPower: boolean;
+    isDeityPower: boolean;
   }>({
     open: false,
     requirements: null,
     powerToAdd: null,
     isClassPower: false,
+    isDeityPower: false,
   });
 
   const [golpePessoalDialog, setGolpePessoalDialog] = useState<{
@@ -449,6 +451,7 @@ export function usePowersEditor({
           requirements,
           powerToAdd: power,
           isClassPower: false,
+          isDeityPower: false,
         });
         return;
       }
@@ -565,6 +568,7 @@ export function usePowersEditor({
           requirements,
           powerToAdd: power,
           isClassPower: true,
+          isDeityPower: false,
         });
         return;
       }
@@ -642,7 +646,7 @@ export function usePowersEditor({
   // ── Diálogo de seleção ──────────────────────────────────────────────────
   const handleSelectionConfirm = useCallback(
     (selections: SelectionOptions) => {
-      const { powerToAdd, isClassPower } = selectionDialog;
+      const { powerToAdd, isClassPower, isDeityPower } = selectionDialog;
 
       if (powerToAdd) {
         setManualSelections((prev) => ({
@@ -659,6 +663,11 @@ export function usePowersEditor({
             ...prev,
             getOriginalClassPowerWithRolls(powerToAdd as ClassPower),
           ]);
+        } else if (isDeityPower) {
+          setSelectedDeityPowers((prev) => [
+            ...prev,
+            getOriginalPowerWithRolls(powerToAdd as GeneralPower),
+          ]);
         } else {
           setSelectedPowers((prev) => [
             ...prev,
@@ -672,6 +681,7 @@ export function usePowersEditor({
         requirements: null,
         powerToAdd: null,
         isClassPower: false,
+        isDeityPower: false,
       });
     },
     [getOriginalClassPowerWithRolls, getOriginalPowerWithRolls, selectionDialog]
@@ -683,6 +693,7 @@ export function usePowersEditor({
       requirements: null,
       powerToAdd: null,
       isClassPower: false,
+      isDeityPower: false,
     });
   }, []);
 
@@ -844,13 +855,63 @@ export function usePowersEditor({
       }
       if (!isDeityPowerAvailable(power)) return;
 
-      setSelectedDeityPowers((prev) =>
-        prev.some((p) => p.name === power.name)
-          ? prev.filter((p) => p.name !== power.name)
-          : [...prev, power]
+      const isSelected = selectedDeityPowers.some((p) => p.name === power.name);
+      if (isSelected) {
+        setSelectedDeityPowers((prev) =>
+          prev.filter((p) => p.name !== power.name)
+        );
+        setManualSelections((prev) => {
+          const updated = { ...prev };
+          delete updated[power.name];
+          return updated;
+        });
+        return;
+      }
+
+      // Mesmo fluxo de `addGeneralPower`: poderes concedidos com `sheetActions`
+      // que exigem escolha (ex.: Biblioteca Divina) também precisam do diálogo
+      // — sem isso o poder era adicionado direto e a escolha nunca acontecia.
+      const requirements = getPowerSelectionRequirements(power);
+
+      if (!requirements) {
+        setSelectedDeityPowers((prev) => [...prev, power]);
+        return;
+      }
+
+      if (requiresUserInput(requirements, sheet, supplements)) {
+        setSelectionDialog({
+          open: true,
+          requirements,
+          powerToAdd: power,
+          isClassPower: false,
+          isDeityPower: true,
+        });
+        return;
+      }
+
+      const autoSelections = resolveAutoSelections(
+        requirements,
+        sheet,
+        supplements
       );
+      setManualSelections((prev) => ({
+        ...prev,
+        [power.name]: mergeSelections(
+          prev[power.name],
+          autoSelections,
+          isRepeatablePower(power)
+        ),
+      }));
+      setSelectedDeityPowers((prev) => [...prev, power]);
     },
-    [handlePowerToggle, isDeityPowerAvailable, isDevoto]
+    [
+      handlePowerToggle,
+      isDeityPowerAvailable,
+      isDevoto,
+      selectedDeityPowers,
+      sheet,
+      supplements,
+    ]
   );
 
   const handleDeityPowerRemove = useCallback(

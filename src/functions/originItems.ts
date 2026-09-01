@@ -10,6 +10,11 @@ import {
   Armas,
   Escudos,
 } from '../data/systems/tormenta20/equipamentos';
+import { esotericItems } from '../data/systems/tormenta20/equipamentos-gerais';
+import {
+  applyModification,
+  applySpecialMaterial,
+} from '../data/systems/tormenta20/originItemHelpers';
 
 /**
  * Escolhas de item da origem: `choice.key` -> nome do item escolhido.
@@ -79,12 +84,17 @@ export function convertOriginItemsToBagEquipments(
         }
         equipments.Escudo.push(equipValue as DefenseEquipment);
       }
-      // Arma ou item geral, conforme o grupo
+      // Arma, esotérico ou item geral, conforme o grupo
       else if (equipValue.group === 'Arma') {
         if (!equipments.Arma) {
           equipments.Arma = [];
         }
         equipments.Arma.push(equipValue);
+      } else if (equipValue.group === 'Esotérico') {
+        if (!equipments.Esotérico) {
+          equipments.Esotérico = [];
+        }
+        equipments.Esotérico.push(equipValue);
       } else {
         equipments['Item Geral']?.push(equipValue);
       }
@@ -105,6 +115,7 @@ function findEquipmentByName(name: string): Equipment | undefined {
     ...Object.values(Armas),
     ...Object.values(Armaduras),
     ...Object.values(Escudos),
+    ...esotericItems,
   ].find((equipment) => equipment.nome === name);
 }
 
@@ -125,15 +136,32 @@ export function resolveOriginItems(
     const chosenName = choices[item.choice.key];
     if (!chosenName) return item;
 
+    const { specialMaterial, modification } = item.choice;
+    const withExtras = (equipment: Equipment | string) =>
+      applyModification(
+        applySpecialMaterial(equipment, specialMaterial),
+        modification
+      );
+
     const chosen = item.choice.options.find(
       (option) => getOriginItemOptionName(option) === chosenName
     );
-    if (chosen) return { ...item, equipment: chosen };
+    if (chosen) {
+      return {
+        ...item,
+        equipment: withExtras(chosen),
+      };
+    }
 
     // Fora do pool atual: preserva o item do jogador se ele ainda existir no
     // catálogo. Só cai no sorteio quando o nome não resolve em lugar nenhum.
     const fromCatalog = findEquipmentByName(chosenName);
-    if (fromCatalog) return { ...item, equipment: fromCatalog };
+    if (fromCatalog) {
+      return {
+        ...item,
+        equipment: withExtras(fromCatalog),
+      };
+    }
 
     return item;
   });

@@ -87,6 +87,21 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
     [sheetHistory, power.name]
   );
 
+  // Perícias treinadas concedidas por `learnSkill` (ex.: Biblioteca Divina).
+  // Diferente de `markedSkills`, estas SÃO perícias novas na ficha — sem essa
+  // lista, não dava pra saber quais delas vieram deste poder específico.
+  const learnedSkills = useMemo(
+    () =>
+      sheetHistory
+        .filter((entry) => entry.powerName === power.name)
+        .flatMap((entry) =>
+          entry.changes
+            .filter((c) => c.type === 'SkillsAdded')
+            .flatMap((c) => (c.type === 'SkillsAdded' ? c.skills : []))
+        ),
+    [sheetHistory, power.name]
+  );
+
   const historySources = useMemo(
     () =>
       sheetHistory
@@ -233,6 +248,19 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
             ? 'Perícias escolhidas: '
             : 'Perícia escolhida: '}
           {markedSkills.join(', ')}
+        </Typography>
+      )}
+
+      {learnedSkills.length > 0 && (
+        <Typography
+          variant='caption'
+          color='primary'
+          sx={{ display: 'block', mb: 1, fontWeight: 'bold' }}
+        >
+          {learnedSkills.length > 1
+            ? 'Perícias aprendidas: '
+            : 'Perícia aprendida: '}
+          {learnedSkills.join(', ')}
         </Typography>
       )}
 
