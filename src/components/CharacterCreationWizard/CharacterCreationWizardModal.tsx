@@ -570,7 +570,7 @@ const CharacterCreationWizardModal: React.FC<
     !!origin && originItems().some((item) => item.choice);
 
   // Perícias da origem cujo valor final o jogador escolhe (ex.: qual Ofício
-  // específico em Lenhador de Tollon). Origens regionais ignoram o argumento
+  // específico em Nobre Zakharoviano). Origens regionais ignoram o argumento
   // de perícias já usadas, então `[]` basta — nenhuma origem hoje precisa da
   // lista real para decidir suas `skillChoices`.
   const originSkillChoicesList = (): OriginSkillChoice[] => {

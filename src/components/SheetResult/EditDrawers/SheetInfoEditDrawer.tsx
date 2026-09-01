@@ -1424,8 +1424,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         // Regional origins: auto-grant all benefits
         if (newOrigin.isRegional) {
           // Origem com item ou perícia à escolha (ex.: Nobre Zakharoviano, com
-          // arma à escolha; Lenhador de Tollon, com Ofício à escolha) precisa
-          // do drawer — sem ele, item e perícia seriam sorteados sem pergunta.
+          // arma e Ofício à escolha; Lenhador de Tollon, com item de madeira
+          // Tollon à escolha) precisa do drawer — sem ele, item e perícia
+          // seriam sorteados sem pergunta.
           const regionalBenefits = newOrigin.getPowersAndSkills
             ? newOrigin.getPowersAndSkills(sheet.skills, newOrigin)
             : { powers: { origin: [], general: [] }, skills: [] };
