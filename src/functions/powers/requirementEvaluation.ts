@@ -91,6 +91,14 @@ const ARTESAO_CRIATIVO = 'Artesão Criativo';
 /**
  * Todos os nomes de poder que valem como "o personagem tem X", somando a ficha
  * salva e o que está marcado na sessão do editor.
+ *
+ * Inclui as habilidades de classe concedidas automaticamente: alguns poderes
+ * são cadastrados pedindo `PODER` com o nome de uma habilidade (Briga de Rua e
+ * Chuva de Golpes exigem "Briga", que é habilidade de 1º nível do Lutador).
+ * `classe.abilities` já vem filtrada pelo nível em `applyClassAbilities`, então
+ * não vaza habilidade futura. Espelha `getAllCharacterPowers` de
+ * `functions/powers.ts` — os dois avaliadores precisam concordar, senão o
+ * assistente oferece um poder que o editor marca como indisponível.
  */
 function hasPowerNamed(name: string | undefined, ctx: RequirementContext) {
   if (!name) return false;
@@ -99,7 +107,8 @@ function hasPowerNamed(name: string | undefined, ctx: RequirementContext) {
     pendingGeneralPowers.some((p) => p.name === name) ||
     pendingClassPowers.some((p) => p.name === name) ||
     (sheet.generalPowers?.some((p) => p.name === name) ?? false) ||
-    (sheet.classPowers?.some((p) => p.name === name) ?? false)
+    (sheet.classPowers?.some((p) => p.name === name) ?? false) ||
+    (sheet.classe.abilities?.some((a) => a.name === name) ?? false)
   );
 }
 

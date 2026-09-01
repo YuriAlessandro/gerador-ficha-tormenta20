@@ -137,6 +137,22 @@ describe('evaluatePowerRequirements', () => {
       expect(result.available).toBe(true);
     });
 
+    it('habilidade de classe concedida automaticamente conta como ter o poder', () => {
+      // Briga de Rua e Chuva de Golpes (Heróis de Arton) pedem "Briga", que é
+      // habilidade de 1º nível do Lutador, não um poder escolhível. Sem isto o
+      // assistente de evolução libera o poder e o editor o marca indisponível.
+      const sheet = createMockCharacterSheet();
+      sheet.classe = {
+        ...sheet.classe,
+        abilities: [{ name: 'Ataque Poderoso', text: '', nivel: 1 }],
+      };
+
+      expect(
+        evaluatePowerRequirements(requiresAtaquePoderoso, ctxOf(sheet))
+          .available
+      ).toBe(true);
+    });
+
     it('habilidade racial com grantsPowerRequirements conta como ter o poder', () => {
       const sheet = createMockCharacterSheet();
       sheet.raca.abilities = [
