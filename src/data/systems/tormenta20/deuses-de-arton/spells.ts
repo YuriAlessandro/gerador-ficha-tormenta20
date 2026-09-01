@@ -541,7 +541,11 @@ const DEUSES_ARTON_DIVINE_SPELLS: Spell[] = [
       {
         addPm: 1,
         text: 'muda o tipo de dano para luz.',
-        damageBonus: [{ replaceDamageType: 'luz' }],
+        damageBonus: [
+          { targetRollLabel: 'sem armadura', replaceDamageType: 'luz' },
+          { targetRollLabel: 'armadura leve', replaceDamageType: 'luz' },
+          { targetRollLabel: 'armadura pesada', replaceDamageType: 'luz' },
+        ],
       },
       {
         addPm: 1,
@@ -803,6 +807,7 @@ const DEUSES_ARTON_UNIVERSAL_SPELLS: Spell[] = [
     ],
     rolls: [
       {
+        id: uuid(),
         label: 'Dano de Luz',
         dice: '2d8+2',
         damageType: 'luz',

@@ -12,6 +12,7 @@ import {
   spellsCircle4,
   spellsCircle5,
 } from '@/data/systems/tormenta20/magias/generalSpells';
+import DEUSES_ARTON_SPELLS from '@/data/systems/tormenta20/deuses-de-arton/spells';
 import {
   AprimoramentoSelection,
   augmentSpellRolls,
@@ -537,5 +538,18 @@ describe('integração com dados reais (generalSpells)', () => {
   test('Chuva de Meteoros ganhou rolagens de dano', () => {
     const spell = findByNome(spellsCircle5, 'Chuva de Meteoros');
     expect((spell.rolls ?? []).length).toBeGreaterThan(0);
+  });
+
+  test('Siroco de Azgher: muda o tipo de dano das três rolagens para luz', () => {
+    const spell = (DEUSES_ARTON_SPELLS.divine ?? []).find(
+      (s) => s.nome === 'Siroco de Azgher'
+    );
+    if (!spell) throw new Error('Magia "Siroco de Azgher" não encontrada');
+    const sel = selectApr(spell, (a) => /muda o tipo de dano/.test(a.text));
+
+    const result = augmentSpellRolls(spell.rolls ?? [], [sel]);
+
+    expect(result).toHaveLength(3);
+    result.forEach((r) => expect(r.damageType).toBe('luz'));
   });
 });
