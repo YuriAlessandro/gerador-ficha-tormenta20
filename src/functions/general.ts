@@ -218,6 +218,7 @@ import { applyMoreauCustomization } from '../data/systems/tormenta20/ameacas-de-
 import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
+  getPlateauByLevel,
   getTradicaoPerdidaPmValue,
   isClassSpellcastingPmBonus,
   getDeusMenorPmBonus,
@@ -4492,6 +4493,33 @@ export function applyManualLevelUp(
           spellNames: selections.spellsLearned.map((spell) => spell.nome),
         },
       ],
+    });
+  }
+
+  // Poderes concedidos já na ficha que ganham mais perícias por patamar (ex.:
+  // Biblioteca Divina). Ao cruzar um patamar, aplica a escolha do jogador
+  // nesta mesma passada — sem isso, o recálculo final concederia a perícia
+  // sorteada aleatoriamente (por falta de manualSelections).
+  if (
+    getPlateauByLevel(updatedSheet.nivel) >
+    getPlateauByLevel(updatedSheet.nivel - 1)
+  ) {
+    const scalingPowers = (updatedSheet.generalPowers || []).filter((power) =>
+      power.sheetActions?.some(
+        (sa) =>
+          sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante
+      )
+    );
+    scalingPowers.forEach((power) => {
+      const powerSelections = selections.powerEffectSelections?.[power.name];
+      if (!powerSelections) return;
+      const [newSheet, newSubSteps] = applyPower(
+        updatedSheet,
+        power,
+        powerSelections
+      );
+      updatedSheet = newSheet;
+      subSteps.push(...newSubSteps);
     });
   }
 

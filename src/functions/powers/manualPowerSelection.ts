@@ -145,6 +145,28 @@ function isAllSpellsOfCircle(spells: Spell[]): {
 }
 
 /**
+ * Quantidade real de perícias de um requisito `learnSkill` escalado por
+ * patamar (ex.: Biblioteca Divina). `requirement.pick` é só o piso, declarado
+ * para o patamar Iniciante — usado por qualquer consumidor que tenha a ficha
+ * (editor de poderes, level-up) ou só o nível-alvo (assistente de criação).
+ */
+export function resolveLearnSkillPick(
+  requirement: PowerSelectionRequirement,
+  plateau: number
+): number {
+  if (
+    requirement.type === 'learnSkill' &&
+    requirement.metadata?.perTierAboveIniciante
+  ) {
+    return (
+      requirement.pick +
+      requirement.metadata.perTierAboveIniciante * (plateau - 1)
+    );
+  }
+  return requirement.pick;
+}
+
+/**
  * Check if a power requires manual selection from the user
  */
 export function getPowerSelectionRequirements(
@@ -1161,12 +1183,10 @@ export function validateSelections(
       case 'learnSkill':
         // Biblioteca Divina e similares: escala com o patamar do nível atual
         // da ficha, com piso `pick` (declarado para o patamar Iniciante).
-        if (requirement.metadata?.perTierAboveIniciante) {
-          expectedPick =
-            pick +
-            requirement.metadata.perTierAboveIniciante *
-              (getCurrentPlateau(sheet) - 1);
-        }
+        expectedPick = resolveLearnSkillPick(
+          requirement,
+          getCurrentPlateau(sheet)
+        );
         selectedItems = selections.skills || [];
         selectedCount = selectedItems.length;
         break;

@@ -31,11 +31,13 @@ import {
   getFilteredAvailableOptions,
   countRequirementSelections,
   resolvePowerRequirements,
+  resolveLearnSkillPick,
   ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import {
   getCurrentPlateau,
+  getPlateauByLevel,
   getDeityMaxSpellCircleFor,
 } from '@/functions/powers/general';
 import { isClassOrVariantOf } from '@/functions/general';
@@ -556,6 +558,22 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     return result;
   };
 
+  // Poderes concedidos já na ficha que ganham mais perícias por patamar (ex.:
+  // Biblioteca Divina). Só relevante quando ESTE nível cruza um patamar —
+  // fora disso o poder não tem nada de novo pra oferecer.
+  const getScalingPowersForLevelUp = (): GeneralPower[] => {
+    const oldPlateau = getPlateauByLevel(simulatedSheet.nivel);
+    const newPlateau = getCurrentPlateau(sheetForCurrentLevel);
+    if (newPlateau <= oldPlateau) return [];
+
+    return (simulatedSheet.generalPowers || []).filter((power) =>
+      power.sheetActions?.some(
+        (sa) =>
+          sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante
+      )
+    );
+  };
+
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
@@ -605,6 +623,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
     if (getRaceLevelUpPicks().length > 0) {
       steps.push('Escolhas de Raça');
+    }
+
+    if (getScalingPowersForLevelUp().length > 0) {
+      steps.push('Perícias por Patamar');
     }
 
     const spellInfo = getSpellInfo();
@@ -658,7 +680,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     allSelections: ManualPowerSelections
   ): boolean =>
     requirements.every(({ selectionKey, requirement: req }) => {
-      const { type, pick } = req;
+      const { type } = req;
       const effectSelections = allSelections[selectionKey] || {};
 
       // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
@@ -677,8 +699,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       );
       if (availableOptions.length === 0) return true;
 
-      // If fewer options than required, adjust the effective pick count
-      const effectivePick = Math.min(pick, availableOptions.length);
+      // If fewer options than required, adjust the effective pick count.
+      // `resolveLearnSkillPick` escala o piso declarado pelo patamar atual
+      // (Biblioteca Divina e similares); para os demais tipos devolve `pick`.
+      const effectivePick = Math.min(
+        resolveLearnSkillPick(req, getCurrentPlateau(sheetForCurrentLevel)),
+        availableOptions.length
+      );
 
       const count = countRequirementSelections(req, effectSelections);
       // Tipo não contável: não bloquear o assistente
@@ -763,6 +790,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         );
 
         return areRequirementsSatisfied(requirements, allEffectSelections);
+      }
+
+      case 'Perícias por Patamar': {
+        const allEffectSelections =
+          currentLevelSelection.powerEffectSelections || {};
+        return getScalingPowersForLevelUp().every((power) => {
+          const requirements = resolvePowerRequirements(
+            power,
+            allEffectSelections
+          );
+          return areRequirementsSatisfied(requirements, allEffectSelections);
+        });
       }
 
       case 'Efeitos de Habilidades': {
@@ -1044,6 +1083,41 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             skipRaceAbilities
             supplements={supplements}
           />
+        );
+      }
+
+      case 'Perícias por Patamar': {
+        const scalingPowers = getScalingPowersForLevelUp();
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography variant='h6' gutterBottom>
+              Perícias por Patamar
+            </Typography>
+            <Typography variant='body2' sx={{ color: 'text.secondary', mb: 2 }}>
+              Você cruzou um patamar e ganhou mais perícias de um poder já
+              concedido.
+            </Typography>
+            {scalingPowers.map((power) => (
+              <PowerEffectSelectionStep
+                key={power.name}
+                race={simulatedSheet.raca}
+                classe={simulatedSheet.classe}
+                origin={undefined}
+                selectedPower={power}
+                powerSource='general'
+                selections={currentLevelSelection.powerEffectSelections || {}}
+                onChange={(selections) =>
+                  setCurrentLevelSelection({
+                    ...currentLevelSelection,
+                    powerEffectSelections: selections,
+                  })
+                }
+                actualSheet={sheetForCurrentLevel}
+                skipRaceAbilities
+                supplements={supplements}
+              />
+            ))}
+          </Box>
         );
       }
 

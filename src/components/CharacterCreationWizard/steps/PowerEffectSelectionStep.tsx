@@ -40,7 +40,9 @@ import {
   getChosenOptionNestedRequirements,
   getFilteredAvailableOptions,
   getGrantedPowerRequirements,
+  resolveLearnSkillPick,
 } from '@/functions/powers/manualPowerSelection';
+import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
 import { isPowerAvailable } from '@/functions/powers';
@@ -87,6 +89,11 @@ interface PowerEffectSelectionStepProps {
   // requisitos de `pick` dinâmico, como o markTrainedSkills da Especialista.
   // No level-up vem de `actualSheet`; na criação, do assistente.
   attributeModifiers?: Partial<Record<Atributo, number>>;
+  // Patamar usado por requisitos `learnSkill` escalados (ex.: Biblioteca
+  // Divina). No level-up vem de `actualSheet` (patamar já correto, calculado
+  // por padrão); na criação, do nível-alvo escolhido no assistente — a ficha
+  // mock usada como fallback (`sheetForFiltering`) sempre teria patamar 1.
+  targetPlateau?: number;
 }
 
 const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
@@ -106,6 +113,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   supplements = [SupplementId.TORMENTA20_CORE],
   usedSkills = [],
   attributeModifiers,
+  targetPlateau,
 }) => {
   // Search query state for each requirement (keyed by requirement index)
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
@@ -624,8 +632,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     );
 
     // `markTrainedSkills` (Especialista) tem quantidade dinâmica: o modificador
-    // do atributo, com piso `minPick`. O `pick` declarado é só o piso, porque
-    // `getPowerSelectionRequirements` não conhece a ficha.
+    // do atributo, com piso `minPick`. `learnSkill` com `perTierAboveIniciante`
+    // (Biblioteca Divina) também é dinâmico: escala com o patamar. Em ambos os
+    // casos o `pick` declarado é só o piso, porque `getPowerSelectionRequirements`
+    // não conhece a ficha.
     const declaredPick =
       type === 'markTrainedSkills'
         ? Math.max(
@@ -634,7 +644,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               ? resolvedAttributeModifiers[requirement.metadata.pickByAttribute]
               : undefined) ?? 0
           )
-        : pick;
+        : resolveLearnSkillPick(
+            requirement,
+            targetPlateau ?? getCurrentPlateau(sheetForFiltering)
+          );
 
     // Adjust pick when some options were filtered out (e.g., class already has the proficiency)
     const effectivePick = Math.min(declaredPick, allAvailableOptions.length);
