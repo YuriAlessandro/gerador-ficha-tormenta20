@@ -40,7 +40,7 @@ import {
   getChosenOptionNestedRequirements,
   getFilteredAvailableOptions,
   getGrantedPowerRequirements,
-  resolveLearnSkillPick,
+  resolveLearnSkillRemainingPick,
 } from '@/functions/powers/manualPowerSelection';
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
@@ -649,9 +649,9 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
     // `markTrainedSkills` (Especialista) tem quantidade dinâmica: o modificador
     // do atributo, com piso `minPick`. `learnSkill` com `perTierAboveIniciante`
-    // (Biblioteca Divina) também é dinâmico: escala com o patamar. Em ambos os
-    // casos o `pick` declarado é só o piso, porque `getPowerSelectionRequirements`
-    // não conhece a ficha.
+    // (Biblioteca Divina) também é dinâmico: escala com o patamar, mas só pelo
+    // que AINDA falta escolher — sem isso, subir um patamar reoferecia o total
+    // cumulativo inteiro em vez do incremento daquele patamar.
     const declaredPick =
       type === 'markTrainedSkills'
         ? Math.max(
@@ -660,9 +660,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               ? resolvedAttributeModifiers[requirement.metadata.pickByAttribute]
               : undefined) ?? 0
           )
-        : resolveLearnSkillPick(
+        : resolveLearnSkillRemainingPick(
             requirement,
-            targetPlateau ?? getCurrentPlateau(sheetForFiltering)
+            targetPlateau ?? getCurrentPlateau(sheetForFiltering),
+            sheetForFiltering,
+            powerName
           );
 
     // Adjust pick when some options were filtered out (e.g., class already has the proficiency)

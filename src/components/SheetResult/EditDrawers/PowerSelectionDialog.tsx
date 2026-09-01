@@ -23,7 +23,7 @@ import {
 } from '@/interfaces/PowerSelections';
 import {
   getFilteredAvailableOptions,
-  resolveLearnSkillPick,
+  resolveLearnSkillRemainingPick,
   validateSelections,
 } from '@/functions/powers/manualPowerSelection';
 import { getCurrentPlateau } from '@/functions/powers/general';
@@ -304,10 +304,17 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
   const renderRequirement = (requirement: any, index: number) => {
     const { type, label } = requirement;
     // Biblioteca Divina e similares: `requirement.pick` é só o piso (patamar
-    // Iniciante) — a quantidade real escala com o patamar atual da ficha.
+    // Iniciante) — a quantidade real escala com o patamar atual da ficha,
+    // menos o que o histórico já concedeu (só oferece mais de uma perícia se
+    // ainda não tiver escolhido nenhuma).
     const pick =
       type === 'learnSkill'
-        ? resolveLearnSkillPick(requirement, getCurrentPlateau(sheet))
+        ? resolveLearnSkillRemainingPick(
+            requirement,
+            getCurrentPlateau(sheet),
+            sheet,
+            requirements.powerName
+          )
         : requirement.pick;
     const availableOptions = getFilteredAvailableOptions(
       requirement,
