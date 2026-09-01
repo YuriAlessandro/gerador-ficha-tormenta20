@@ -31,7 +31,10 @@ import {
 } from '@/data/systems/tormenta20/magias/divine';
 import { SupplementId } from '@/types/supplement.types';
 import { isPhysicalIncreaseBlockedByAge } from '@/premium/functions/ages';
-import { getAttributeIncreasesInSamePlateau } from './general';
+import {
+  getAttributeIncreasesInSamePlateau,
+  getCurrentPlateau,
+} from './general';
 import { getFuturaLendaClassPowers, isPowerAvailable } from '../powers';
 import { isClassOrVariantOf } from '../general';
 
@@ -162,6 +165,9 @@ export function getPowerSelectionRequirements(
           label: `Selecione ${action.pick} perícia${
             action.pick > 1 ? 's' : ''
           }`,
+          metadata: action.perTierAboveIniciante
+            ? { perTierAboveIniciante: action.perTierAboveIniciante }
+            : undefined,
         });
       }
 
@@ -1194,6 +1200,14 @@ export function validateSelections(
 
     switch (type) {
       case 'learnSkill':
+        // Biblioteca Divina e similares: escala com o patamar do nível atual
+        // da ficha, com piso `pick` (declarado para o patamar Iniciante).
+        if (requirement.metadata?.perTierAboveIniciante) {
+          expectedPick =
+            pick +
+            requirement.metadata.perTierAboveIniciante *
+              (getCurrentPlateau(sheet) - 1);
+        }
         selectedItems = selections.skills || [];
         selectedCount = selectedItems.length;
         break;
