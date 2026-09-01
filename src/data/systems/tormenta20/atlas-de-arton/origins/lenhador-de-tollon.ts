@@ -8,7 +8,7 @@ import { itemChoice } from '../../originItemHelpers';
 import { Armas, Escudos } from '../../equipamentos';
 import { esotericItems } from '../../equipamentos-gerais';
 
-// Regra exata (Atlas de Arton): "Apenas armas de madeira — arcos, bordões,
+// Regra exata (Tormenta JdA, p. 167): "Apenas armas de madeira — arcos, bordões,
 // clavas, lanças, piques e tacapes —, escudos leves e esotéricos podem ser
 // feitos com madeira Tollon." Nem toda arma serve (só as de madeira listadas),
 // nem qualquer escudo (só o leve), e Armadura fica de fora inteiramente.

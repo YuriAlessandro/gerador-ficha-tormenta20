@@ -9,6 +9,9 @@ import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
+import { dataRegistry } from '../data/registry';
+import { SupplementId } from '../types/supplement.types';
+import { GeneralPower } from '../interfaces/Poderes';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import {
   KAIJIN_CHARISMA_EXEMPT_POWER_NAMES,
@@ -42,9 +45,29 @@ import { updateUnarmedRolls } from './unarmedDamage';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
 
-const GRANTED_POWERS_BY_NAME = new Map(
-  Object.values(GRANTED_POWERS).map((power) => [power.name, power])
-);
+// Todos os suplementos, não só os ativos na ficha: este mapa serve só de
+// lookup por nome para o refresh abaixo, então incluir suplementos inativos
+// não vaza nada — só garante que um poder concedido por um suplemento (ex.:
+// Biblioteca Divina, em Deuses de Arton) seja encontrado independentemente de
+// quais suplementos a ficha tinha ativos quando foi salva.
+//
+// Lazy (e não no topo do módulo): `dataRegistry` ainda não terminou de
+// inicializar no momento em que este módulo é avaliado (import circular via
+// `general.ts`), então chamar `getPowersBySupplements` de cara quebra com
+// "Cannot read properties of undefined".
+let grantedPowersByNameCache: Map<string, GeneralPower> | null = null;
+function getGrantedPowersByName(): Map<string, GeneralPower> {
+  if (!grantedPowersByNameCache) {
+    grantedPowersByNameCache = new Map(
+      [
+        ...Object.values(GRANTED_POWERS),
+        ...dataRegistry.getPowersBySupplements(Object.values(SupplementId))
+          .CONCEDIDOS,
+      ].map((power) => [power.name, power])
+    );
+  }
+  return grantedPowersByNameCache;
+}
 
 // Poderes cujos `sheetBonuses` passaram a existir depois de já haver fichas
 // salvas com a cópia embutida SEM automação (Arqueiro, Esgrimista, Estilo de
@@ -492,12 +515,17 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     sheet.devoto.poderes = sheet.devoto.poderes
       .filter((p) => p && typeof p.name === 'string')
       .map((p) => {
-        const current = GRANTED_POWERS_BY_NAME.get(p.name);
+        const current = getGrantedPowersByName().get(p.name);
         if (!current) return p;
         return {
           ...p,
           description: current.description,
           sheetBonuses: current.sheetBonuses,
+          // `sheetActions` carrega `perTierAboveIniciante` (ex.: Biblioteca
+          // Divina): sem refrescar isto também, uma ficha salva antes desse
+          // campo existir fica travada na perícia-piso para sempre, mesmo
+          // depois da correção do catálogo.
+          sheetActions: current.sheetActions,
         };
       });
   }

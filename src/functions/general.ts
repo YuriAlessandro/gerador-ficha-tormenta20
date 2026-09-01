@@ -2009,9 +2009,13 @@ export const applyPower = (
         const remainingPick = totalPick - alreadyGranted.length;
         if (remainingPick <= 0) return;
 
-        const pickedSkills =
-          (manualSelections?.skills as Skill[]) ||
-          pickFromAllowed(action.availableSkills, remainingPick, sheet.skills);
+        const pickedSkills = manualSelections?.skills
+          ? (manualSelections.skills as Skill[]).slice(0, remainingPick)
+          : pickFromAllowed(
+              action.availableSkills,
+              remainingPick,
+              sheet.skills
+            );
 
         sheet.skills.push(...pickedSkills);
 
@@ -5925,6 +5929,38 @@ export default function generateRandomSheet(
 
   for (let index = 2; index <= targetLevel; index += 1) {
     charSheet = levelUp(charSheet, supplements);
+  }
+
+  // Passo 13.45: Perícias de poderes que escalam por patamar (ex.: Biblioteca
+  // Divina) foram concedidas no Passo 11, com `charSheet.nivel` ainda em 1 —
+  // `getCurrentPlateau` só enxerga o patamar Iniciante ali, então uma ficha
+  // gerada direto num nível alto ganhava só a perícia-piso. `applyPower`
+  // já sabe conceder só a diferença entre o patamar final e o já concedido
+  // (mesma lógica do cruzamento de patamar em level-up manual), então
+  // reaplicar aqui — sem `manualSelections`, sorteando as que faltam — fecha
+  // a lacuna sem duplicar o que já foi concedido.
+  const scalingSkillPowers = [
+    ...(charSheet.generalPowers || []),
+    ...(charSheet.devoto?.poderes || []),
+  ].filter((power) =>
+    power.sheetActions?.some(
+      (sa) => sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante
+    )
+  );
+  if (scalingSkillPowers.length) {
+    const scalingSubSteps: SubStep[] = [];
+    scalingSkillPowers.forEach((power) => {
+      const [newSheet, newSubSteps] = applyPower(charSheet, power);
+      charSheet = newSheet;
+      scalingSubSteps.push(...newSubSteps);
+    });
+    if (scalingSubSteps.length) {
+      charSheet.steps.push({
+        type: 'Poderes',
+        label: GRANTED_POWERS_STEP_LABEL,
+        value: scalingSubSteps,
+      });
+    }
   }
 
   // Passo 13.5: Perda de atributo por poderes da Tormenta ("ao escolher um poder
