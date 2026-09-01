@@ -13,8 +13,8 @@ import {
   Paper,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import Origin from '@/interfaces/Origin';
-import Skill from '@/interfaces/Skills';
+import Origin, { OriginSkillChoice } from '@/interfaces/Origin';
+import Skill, { isOficioSkill } from '@/interfaces/Skills';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { ORIGIN_POWER_TYPE } from '@/data/systems/tormenta20/powers/originPowers';
@@ -22,7 +22,9 @@ import {
   getOriginItemOptionName,
   OriginItemChoices,
 } from '@/functions/originItems';
+import { OriginSkillChoices } from '@/functions/originSkills';
 import SelectableItemGrid from '@/components/CharacterCreationWizard/steps/SelectableItemGrid';
+import OficioPicker from '@/components/common/OficioPicker';
 
 interface OriginEditDrawerProps {
   open: boolean;
@@ -31,7 +33,8 @@ interface OriginEditDrawerProps {
   sheet: CharacterSheet;
   onSave: (
     selectedBenefits: OriginBenefit[],
-    itemChoices: OriginItemChoices
+    itemChoices: OriginItemChoices,
+    skillChoices: OriginSkillChoices
   ) => void;
 }
 
@@ -45,6 +48,7 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
   const REQUIRED_SELECTIONS = 2;
   const [selectedBenefits, setSelectedBenefits] = useState<OriginBenefit[]>([]);
   const [itemChoices, setItemChoices] = useState<OriginItemChoices>({});
+  const [skillChoices, setSkillChoices] = useState<OriginSkillChoices>({});
 
   // Get used skills from the character sheet
   const usedSkills: Skill[] = sheet.skills;
@@ -80,11 +84,17 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
           ? sheet.origin?.itemChoices || {}
           : {}
       );
+
+      setSkillChoices(
+        sheet.origin?.name === origin.name
+          ? sheet.origin?.skillChoices || {}
+          : {}
+      );
     }
   }, [open, origin.name, sheet.origin]);
 
   const handleSave = () => {
-    onSave(selectedBenefits, itemChoices);
+    onSave(selectedBenefits, itemChoices, skillChoices);
     onClose();
   };
 
@@ -120,6 +130,43 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
               }))
             }
           />
+        </Paper>
+      );
+    });
+
+  const renderSkillChoices = (skillChoicesList: OriginSkillChoice[]) =>
+    skillChoicesList.map((choice) => {
+      const selected = skillChoices[choice.key]
+        ? [skillChoices[choice.key] as Skill]
+        : [];
+
+      return (
+        <Paper key={choice.key} sx={{ p: 2, mb: 3 }}>
+          <Typography variant='h6' gutterBottom>
+            {choice.label}
+          </Typography>
+          {choice.options.every((option) => isOficioSkill(option)) ? (
+            <OficioPicker
+              selected={selected}
+              options={choice.options}
+              multiple={false}
+              allowCustom
+              onSelect={(skill) =>
+                setSkillChoices((prev) => ({ ...prev, [choice.key]: skill }))
+              }
+              onDeselect={() =>
+                setSkillChoices((prev) => {
+                  const next = { ...prev };
+                  delete next[choice.key];
+                  return next;
+                })
+              }
+            />
+          ) : (
+            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+              {choice.options.join(', ')}
+            </Typography>
+          )}
         </Paper>
       );
     });
@@ -243,6 +290,8 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
               </Box>
             )}
           </Paper>
+
+          {renderSkillChoices(originBenefits.skillChoices || [])}
 
           {renderItemChoices()}
 
@@ -419,6 +468,9 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
               })}
             </Paper>
           )}
+
+          {/* Perícias com escolha — concedidas de graça, fora dos 2 benefícios */}
+          {renderSkillChoices(originBenefits.skillChoices || [])}
 
           {/* Itens com escolha — concedidos de graça, fora dos 2 benefícios */}
           {renderItemChoices()}

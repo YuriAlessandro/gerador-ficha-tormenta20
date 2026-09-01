@@ -50,6 +50,7 @@ import {
   getPowerSelectionRequirements,
   countRequirementSelections,
   resolvePowerRequirements,
+  resolveLearnSkillPick,
   ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
 import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
@@ -999,8 +1000,10 @@ const CharacterCreationWizardModal: React.FC<
     if (req.type === 'learnSkill' && req.metadata?.perTierAboveIniciante) {
       // Biblioteca Divina e similares: `pick` declarado é o piso (patamar
       // Iniciante); o restante escala com o patamar do nível-alvo da ficha.
-      const plateau = getPlateauByLevel(selectedOptions.nivel || 1);
-      return req.pick + req.metadata.perTierAboveIniciante * (plateau - 1);
+      return resolveLearnSkillPick(
+        req,
+        getPlateauByLevel(selectedOptions.nivel || 1)
+      );
     }
     if (req.type !== 'markTrainedSkills') return req.pick;
     const attributeMod =
@@ -1819,6 +1822,7 @@ const CharacterCreationWizardModal: React.FC<
             supplements={supplements}
             usedSkills={getAllUsedSkills()}
             attributeModifiers={finalAttributeModifiers}
+            targetPlateau={getPlateauByLevel(selectedOptions.nivel || 1)}
           />
         );
 

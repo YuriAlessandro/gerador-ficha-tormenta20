@@ -23,8 +23,10 @@ import {
 } from '@/interfaces/PowerSelections';
 import {
   getFilteredAvailableOptions,
+  resolveLearnSkillPick,
   validateSelections,
 } from '@/functions/powers/manualPowerSelection';
+import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
@@ -300,7 +302,13 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderRequirement = (requirement: any, index: number) => {
-    const { type, pick, label } = requirement;
+    const { type, label } = requirement;
+    // Biblioteca Divina e similares: `requirement.pick` é só o piso (patamar
+    // Iniciante) — a quantidade real escala com o patamar atual da ficha.
+    const pick =
+      type === 'learnSkill'
+        ? resolveLearnSkillPick(requirement, getCurrentPlateau(sheet))
+        : requirement.pick;
     const availableOptions = getFilteredAvailableOptions(
       requirement,
       sheet,
