@@ -25,7 +25,11 @@ import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race, { AttributeVariant } from '@/interfaces/Race';
 import { ClassDescription, SpellPath } from '@/interfaces/Class';
 import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
-import Origin, { Items, OriginBenefits } from '@/interfaces/Origin';
+import Origin, {
+  Items,
+  OriginBenefits,
+  OriginSkillChoice,
+} from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
 import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
@@ -60,6 +64,7 @@ import {
   resolveSexForAttributes,
 } from '@/functions/general';
 import { getOriginBagEquipments } from '@/functions/originItems';
+import { getPlateauByLevel } from '@/functions/powers/general';
 import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
 import { rollAttributePool } from '@/functions/attributeMethods';
 import {
@@ -119,6 +124,7 @@ import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 import ClassEquipmentStep from './steps/ClassEquipmentStep';
 import OriginItemStep from './steps/OriginItemStep';
+import OriginSkillStep from './steps/OriginSkillStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
 import MoreauSapienciaSpellStep from './steps/MoreauSapienciaSpellStep';
 import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
@@ -530,6 +536,21 @@ const CharacterCreationWizardModal: React.FC<
   const needsOriginItemChoice = (): boolean =>
     !!origin && originItems().some((item) => item.choice);
 
+  // Perícias da origem cujo valor final o jogador escolhe (ex.: qual Ofício
+  // específico em Lenhador de Tollon). Origens regionais ignoram o argumento
+  // de perícias já usadas, então `[]` basta — nenhuma origem hoje precisa da
+  // lista real para decidir suas `skillChoices`.
+  const originSkillChoicesList = (): OriginSkillChoice[] => {
+    if (!origin) return [];
+    const benefits = origin.getPowersAndSkills
+      ? origin.getPowersAndSkills([], origin, true)
+      : { skills: origin.pericias, powers: { origin: [], general: [] } };
+    return benefits.skillChoices || [];
+  };
+
+  const needsOriginSkillChoice = (): boolean =>
+    originSkillChoicesList().length > 0;
+
   const needsCompanionCreation = (): boolean => classe?.name === 'Treinador';
 
   const needsPowerEffectSelections = (): boolean => {
@@ -822,6 +843,7 @@ const CharacterCreationWizardModal: React.FC<
     if (needsClassPowers()) stepsArray.push('Poderes da Classe');
     if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
     if (needsCompanionCreation()) stepsArray.push('Melhor Amigo');
+    if (needsOriginSkillChoice()) stepsArray.push('Perícias da Origem');
     if (needsOriginItemChoice()) stepsArray.push('Itens da Origem');
     if (classe) stepsArray.push('Equipamento Inicial');
     stepsArray.push('Mercado'); // Always show as final step
@@ -942,6 +964,12 @@ const CharacterCreationWizardModal: React.FC<
    * ficha, então declara só o piso e deixa o atributo no metadata.
    */
   const resolveRequirementPick = (req: PowerSelectionRequirement): number => {
+    if (req.type === 'learnSkill' && req.metadata?.perTierAboveIniciante) {
+      // Biblioteca Divina e similares: `pick` declarado é o piso (patamar
+      // Iniciante); o restante escala com o patamar do nível-alvo da ficha.
+      const plateau = getPlateauByLevel(selectedOptions.nivel || 1);
+      return req.pick + req.metadata.perTierAboveIniciante * (plateau - 1);
+    }
     if (req.type !== 'markTrainedSkills') return req.pick;
     const attributeMod =
       req.metadata?.pickByAttribute === Atributo.INTELIGENCIA
@@ -1799,6 +1827,19 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
+      case 'Perícias da Origem':
+        if (!origin) return null;
+        return (
+          <OriginSkillStep
+            origin={origin}
+            skillChoices={originSkillChoicesList()}
+            choices={selections.originSkillChoices}
+            onChange={(originSkillChoices) =>
+              setSelections((prev) => ({ ...prev, originSkillChoices }))
+            }
+          />
+        );
+
       case 'Itens da Origem':
         if (!origin) return null;
         return (
@@ -2200,6 +2241,11 @@ const CharacterCreationWizardModal: React.FC<
           hasTricks &&
           hasSpiritEnergy
         );
+      }
+
+      case 'Perícias da Origem': {
+        const chosen = selections.originSkillChoices || {};
+        return originSkillChoicesList().every((choice) => !!chosen[choice.key]);
       }
 
       case 'Itens da Origem': {

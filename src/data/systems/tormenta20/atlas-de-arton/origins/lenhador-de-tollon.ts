@@ -2,8 +2,9 @@ import Origin, {
   Items,
   OriginBenefits,
 } from '../../../../../interfaces/Origin';
-import Skill from '../../../../../interfaces/Skills';
+import Skill, { ALL_SPECIFIC_OFICIOS } from '../../../../../interfaces/Skills';
 import atlasOriginPowers from '../powers/originPowers';
+import { skillChoice } from '../../originSkillHelpers';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -11,7 +12,8 @@ import atlasOriginPowers from '../powers/originPowers';
  */
 function getAllRegionalBenefits(): OriginBenefits {
   return {
-    skills: [Skill.OFICIO],
+    skills: [],
+    skillChoices: [skillChoice('oficio', 'Ofício', ALL_SPECIFIC_OFICIOS)],
     powers: {
       origin: [atlasOriginPowers.LENHADOR_DE_TOLLON],
       general: [],

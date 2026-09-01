@@ -124,6 +124,7 @@ import {
   convertOriginItemsToBagEquipments,
   grantOriginItemsToBag,
 } from './originItems';
+import { resolveOriginSkillChoices } from './originSkills';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -1979,6 +1980,54 @@ export const applyPower = (
               )
           );
         }
+      }
+
+      // learnSkill com escalonamento por patamar (ex.: Biblioteca Divina):
+      // bypassa o guard genérico abaixo porque ele bloquearia qualquer
+      // perícia extra depois da primeira aplicação. Em vez disso, compara o
+      // total esperado no patamar atual com o que já está no histórico e
+      // concede só a diferença — permitindo que subir de patamar numa ficha
+      // já criada complete a escolha que falta.
+      if (
+        sheetAction.action.type === 'learnSkill' &&
+        sheetAction.action.perTierAboveIniciante
+      ) {
+        const { action } = sheetAction;
+        const totalPick =
+          action.pick +
+          (action.perTierAboveIniciante ?? 0) * (getCurrentPlateau(sheet) - 1);
+
+        const alreadyGranted = sheet.sheetActionHistory
+          .filter((entry) => entry.powerName === powerOrAbility.name)
+          .flatMap((entry) => entry.changes)
+          .filter((change) => change.type === 'SkillsAdded')
+          .flatMap((change) =>
+            change.type === 'SkillsAdded' ? change.skills : []
+          );
+
+        const remainingPick = totalPick - alreadyGranted.length;
+        if (remainingPick <= 0) return;
+
+        const pickedSkills =
+          (manualSelections?.skills as Skill[]) ||
+          pickFromAllowed(action.availableSkills, remainingPick, sheet.skills);
+
+        sheet.skills.push(...pickedSkills);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [{ type: 'SkillsAdded', skills: pickedSkills }],
+        });
+
+        pickedSkills.forEach((skill) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aprende a perícia ${skill}`,
+          });
+        });
+
+        return;
       }
 
       // Skip if this action was already applied (prevents duplication during recalculation)
@@ -6773,6 +6822,17 @@ export function generateEmptySheet(
               skills: selectedOrigin.pericias,
             };
 
+        // Perícias cujo valor final o jogador escolhe (ex.: qual Ofício).
+        // Sem escolha do wizard (geração 100% aleatória), sorteia.
+        resolveOriginSkillChoices(
+          originBenefits.skillChoices,
+          wizardSelections?.originSkillChoices
+        ).forEach((skill) => {
+          if (!emptySheet.skills.includes(skill)) {
+            emptySheet.skills.push(skill);
+          }
+        });
+
         // Add all origin skills
         originBenefits.skills.forEach((skill) => {
           if (!emptySheet.skills.includes(skill as Skill)) {
@@ -6874,6 +6934,7 @@ export function generateEmptySheet(
         selectedBenefits: wizardSelections?.originBenefits,
         itemChoices,
         grantedItemIds,
+        skillChoices: wizardSelections?.originSkillChoices,
       };
     }
   }

@@ -153,6 +153,7 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
             type: 'learnSkill',
             availableSkills: SKILLS_WITHOUT_OFICIO_QUALQUER,
             pick: 1,
+            perTierAboveIniciante: 1,
           },
         },
       ],

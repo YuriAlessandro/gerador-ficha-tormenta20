@@ -107,6 +107,10 @@ export interface PowerSelectionRequirement {
     // piso `minPick`. Só quem tem a ficha consegue resolver.
     pickByAttribute?: Atributo;
     minPick?: number;
+    // For learnSkill: perícias adicionais por patamar acima de Iniciante (ex.:
+    // Biblioteca Divina). O `pick` real depende do nível do personagem, com
+    // piso `pick` — só quem sabe o nível-alvo consegue resolver.
+    perTierAboveIniciante?: number;
   };
 }
 

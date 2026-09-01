@@ -160,6 +160,10 @@ export interface WizardSelections {
   // Escolhas de item da origem: `choice.key` -> nome do item escolhido.
   originItemChoices?: Record<string, string>;
 
+  // Escolhas de perícia da origem: `choice.key` -> nome da perícia escolhida
+  // (ex.: qual Ofício específico).
+  originSkillChoices?: Record<string, string>;
+
   // Origin power selections (if origin powers need selection)
   originPowerSelections?: SelectionOptions;
 

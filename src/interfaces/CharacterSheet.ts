@@ -89,6 +89,10 @@ export type SheetActionStep =
       type: 'learnSkill';
       availableSkills: Skill[]; // Maybe modify this to be more flexible or to pick from random
       pick: number; // Number of skills to learn
+      // Perícias adicionais por patamar acima de Iniciante (ex.: Biblioteca
+      // Divina). Recalculado a cada `recalculateSheet`, concedendo só a
+      // diferença em relação ao que já está no histórico (ver `applyPower`).
+      perTierAboveIniciante?: number;
     }
   | {
       type: 'learnSpell';
@@ -825,6 +829,9 @@ export default interface CharacterSheet {
         // Ids, na mochila, dos itens concedidos pela origem. É o que permite
         // trocar/remover esses itens sem mexer no resto do inventário.
         grantedItemIds?: string[];
+        // Perícias da origem escolhidas pelo jogador: `choice.key` -> nome da
+        // perícia (ex.: qual Ofício). Permite reeditar a escolha depois da criação.
+        skillChoices?: Record<string, string>;
       }
     | undefined;
   spells: Spell[];

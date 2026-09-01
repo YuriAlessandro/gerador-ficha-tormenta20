@@ -15,9 +15,26 @@ export interface OriginBenefits {
     generalPowers?: GeneralPower[];
   };
   skills: Skill[];
+  // Perícias concedidas cujo valor final o jogador escolhe (ex.: qual Ofício
+  // específico), em vez de uma perícia fixa em `skills`.
+  skillChoices?: OriginSkillChoice[];
   // Tipo de poder que conta como UM único slot (escolha entre muitos).
   // Ex.: COMBATE para Gladiador/Soldado, TORMENTA para Assistente de Laboratório.
   limitedPowerType?: GeneralPowerType;
+}
+
+/**
+ * Escolha de perícia concedida pela origem ("Ofício qualquer" -> jogador
+ * escolhe qual). Espelha `OriginItemChoice`: a fonte da verdade é a escolha do
+ * jogador, resolvida por `resolveOriginSkillChoices`.
+ */
+export interface OriginSkillChoice {
+  /** Chave estável dentro da origem (ex.: 'oficio'), casa a escolha do jogador. */
+  key: string;
+  /** Rótulo exibido ao jogador: "Ofício". */
+  label: string;
+  /** Perícias entre as quais o jogador escolhe. */
+  options: Skill[];
 }
 
 /**
