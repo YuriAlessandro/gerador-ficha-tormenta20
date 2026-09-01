@@ -231,22 +231,33 @@ function resolveBonuses(
 }
 
 /**
- * Índices das rolagens base atingidas por um bônus: casa por label
- * (substring normalizada); sem label, cai na única rolagem existente; se houver
- * mais de uma e nenhum label casar, o bônus é ignorado (nunca chuta).
+ * Índices dos labels atingidos por um bônus: casa por label (substring
+ * normalizada); sem label, cai no único candidato existente; se houver mais
+ * de um e nenhum label casar, o bônus é ignorado (nunca chuta).
  */
-function resolveTargetIndexes(
-  baseRolls: DiceRoll[],
+function resolveIndexesByLabel(
+  labels: string[],
   bonus: AprimoramentoDamageBonus
 ): number[] {
   if (bonus.targetRollLabel) {
     const needle = normalizeLabel(bonus.targetRollLabel);
-    return baseRolls.reduce<number[]>((acc, roll, index) => {
-      if (normalizeLabel(roll.label).includes(needle)) acc.push(index);
+    return labels.reduce<number[]>((acc, label, index) => {
+      if (normalizeLabel(label).includes(needle)) acc.push(index);
       return acc;
     }, []);
   }
-  return baseRolls.length === 1 ? [0] : [];
+  return labels.length === 1 ? [0] : [];
+}
+
+/** Índices das rolagens base (sem contar `additionalRoll`) atingidas por um bônus. */
+function resolveTargetIndexes(
+  baseRolls: DiceRoll[],
+  bonus: AprimoramentoDamageBonus
+): number[] {
+  return resolveIndexesByLabel(
+    baseRolls.map((roll) => roll.label),
+    bonus
+  );
 }
 
 /**
@@ -273,8 +284,6 @@ export function augmentSpellRolls(
   const replacementLabels: Array<string | undefined> = baseRolls.map(
     () => undefined
   );
-  const additionalRolls: AugmentedRoll[] = [];
-
   selections.forEach(({ aprimoramento, count }) => {
     if (count <= 0) return;
     resolveBonuses(aprimoramento).forEach((bonus) => {
@@ -310,29 +319,61 @@ export function augmentSpellRolls(
     });
   });
 
+  // Rolagens extras criadas por `additionalRoll` (ex.: o raio da Tempestade
+  // Divina) não existem em `baseRolls` — coletamos todas primeiro, antes do
+  // passe de aumento, para que outros aprimoramentos selecionados na mesma
+  // magia (ex.: "aumenta o dano de raios em +1d8") consigam mirar nelas
+  // independentemente da ordem de seleção.
+  interface AdditionalRollDef {
+    roll: DiceRoll;
+    acc: DiceAccumulator;
+    addedAcc: DiceAccumulator;
+  }
+  const additionalDefs: AdditionalRollDef[] = [];
+  selections.forEach(({ aprimoramento, count }) => {
+    if (count <= 0) return;
+    resolveBonuses(aprimoramento).forEach((bonus) => {
+      if (!bonus.additionalRoll) return;
+      const parsed = parseDamage(bonus.additionalRoll.dice);
+      const acc = newAccumulator();
+      if (parsed) addGroups(acc, parsed.diceGroups, parsed.modifier);
+      additionalDefs.push({
+        roll: bonus.additionalRoll,
+        acc,
+        addedAcc: newAccumulator(),
+      });
+    });
+  });
+
+  const combinedLabels = [
+    ...baseRolls.map((roll) => roll.label),
+    ...additionalDefs.map((def) => def.roll.label),
+  ];
+
   selections.forEach(({ aprimoramento, count }) => {
     if (count <= 0) return;
     const bonuses = resolveBonuses(aprimoramento);
 
     bonuses.forEach((bonus) => {
-      const targetIndexes = resolveTargetIndexes(baseRolls, bonus);
-
-      if (bonus.additionalRoll) {
-        additionalRolls.push({
-          ...bonus.additionalRoll,
-          baseDice: bonus.additionalRoll.dice,
-          isAugmented: false,
-        });
-        return;
-      }
-
+      if (bonus.additionalRoll) return;
       if (bonus.replaceWith || bonus.replaceDamageType || bonus.replaceLabel) {
         return;
       }
 
+      const targetIndexes = resolveIndexesByLabel(combinedLabels, bonus);
+
       targetIndexes.forEach((index) => {
+        const acc =
+          index < baseRolls.length
+            ? baseAcc[index]
+            : additionalDefs[index - baseRolls.length].acc;
+        const targetAddedAcc =
+          index < baseRolls.length
+            ? addedAcc[index]
+            : additionalDefs[index - baseRolls.length].addedAcc;
+
         const activeDieSides = bonus.diceCount
-          ? getSingleDieSides(baseAcc[index])
+          ? getSingleDieSides(acc)
           : undefined;
         const parsedBonus =
           bonus.diceCount && activeDieSides
@@ -351,7 +392,7 @@ export function augmentSpellRolls(
 
         // Nada a somar (ex.: bônus só de texto não numérico).
         if (scaledGroups.length === 0 && scaledModifier === 0) return;
-        addGroups(addedAcc[index], scaledGroups, scaledModifier);
+        addGroups(targetAddedAcc, scaledGroups, scaledModifier);
       });
     });
   });
@@ -391,7 +432,31 @@ export function augmentSpellRolls(
         addedSummary,
       };
     }),
-    ...additionalRolls,
+    ...additionalDefs.map((def) => {
+      const added = def.addedAcc;
+      const isAugmented = hasAny(added);
+
+      const total = newAccumulator();
+      addGroups(total, accToGroups(def.acc), def.acc.modifier);
+      addGroups(total, accToGroups(added), added.modifier);
+
+      let addedSummary: string | undefined;
+      if (isAugmented) {
+        const summary = composeNotation(added);
+        addedSummary =
+          summary.startsWith('+') || summary.startsWith('-')
+            ? summary
+            : `+${summary}`;
+      }
+
+      return {
+        ...def.roll,
+        baseDice: def.roll.dice,
+        dice: isAugmented ? composeNotation(total) : def.roll.dice,
+        isAugmented,
+        addedSummary,
+      };
+    }),
   ];
 }
 

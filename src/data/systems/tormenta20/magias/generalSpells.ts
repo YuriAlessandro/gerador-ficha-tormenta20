@@ -3160,6 +3160,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano de raios (veja acima) em +1d8.',
+        damageBonus: [{ targetRollLabel: 'raio', dicePerActivation: '1d8' }],
       },
       {
         addPm: 3,

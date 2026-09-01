@@ -405,9 +405,20 @@ describe('integridade das anotações damageBonus em generalSpells', () => {
     const problems: string[] = [];
 
     allSpells.forEach((spell) => {
+      // Rótulos das rolagens base + das criadas por `additionalRoll` de
+      // qualquer aprimoramento da mesma magia (ex.: o raio da Tempestade
+      // Divina), já que um bônus de outro aprimoramento pode mirar nelas.
+      const rolls = [
+        ...(spell.rolls ?? []),
+        ...(spell.aprimoramentos ?? []).flatMap((a) =>
+          (a.damageBonus ?? [])
+            .map((b) => b.additionalRoll)
+            .filter((r): r is DiceRoll => Boolean(r))
+        ),
+      ];
+
       (spell.aprimoramentos ?? []).forEach((aprimoramento) => {
         (aprimoramento.damageBonus ?? []).forEach((bonus) => {
-          const rolls = spell.rolls ?? [];
           if (bonus.additionalRoll) return;
           if (bonus.targetRollLabel) {
             const needle = normalizeLabel(bonus.targetRollLabel);
@@ -517,6 +528,20 @@ describe('integração com dados reais (generalSpells)', () => {
     const result = augmentSpellRolls(spell.rolls ?? [], selections);
 
     expect(result.map((r) => r.dice).sort()).toEqual(['2d6', '2d6', '3d8']);
+  });
+
+  test('Tempestade Divina: "aumenta o dano de raios" alcança a rolagem criada pelo raio', () => {
+    const spell = findByNome(spellsCircle2, 'Tempestade Divina');
+    const raioSel = selectApr(spell, (a) => /fazer um raio/.test(a.text));
+    const bonusSel = selectApr(spell, (a) =>
+      /aumenta o dano de raios/.test(a.text)
+    );
+
+    const result = augmentSpellRolls(spell.rolls ?? [], [raioSel, bonusSel]);
+    const raio = result.find((r) => /raio/i.test(r.label));
+
+    expect(raio?.dice).toBe('4d8');
+    expect(raio?.isAugmented).toBe(true);
   });
 
   test('Marca da Obediência e Controlar Madeira adicionam danos opcionais', () => {
