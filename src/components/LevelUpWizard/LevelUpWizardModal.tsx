@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -272,6 +272,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     };
   };
 
+  // O cálculo acima faz um `cloneDeep` da ficha por habilidade (via
+  // `applyPower`); memoizado para não rodar duas vezes no mesmo render
+  // (aqui e em `getAvailablePowers`) nem a cada re-render sem mudança real.
+  const sheetWithCurrentLevelAbilities = useMemo(
+    () => getSheetWithCurrentLevelAbilities(sheetForCurrentLevel),
+    [sheetForCurrentLevel, selectedClassName, selectedClassLevel]
+  );
+
   // Companheiro com os truques pendentes da OUTRA razão (auto/power) deste
   // nível projetados sobre os truques já refletidos no simulatedSheet — evita
   // escolher o mesmo truque não-repetível nos dois steps do mesmo nível
@@ -304,14 +312,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     classNeedsFirstLevelSetup(selectedClassDesc);
 
   // Get available powers for current simulated sheet
-  const getAvailablePowers = (): {
+  const getAvailablePowers = (
+    sheetForPowerSelection: CharacterSheet
+  ): {
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
     unavailableGeneralPowers: string[];
   } => {
-    const sheetForPowerSelection =
-      getSheetWithCurrentLevelAbilities(sheetForCurrentLevel);
-
     // Get class with merged supplement powers from registry
     // Use the SELECTED class for power filtering (multiclass support)
     const classNameForPowers = selectedClassName;
@@ -982,10 +989,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Escolha de Poder': {
+        const sheetForPowerSelection = sheetWithCurrentLevelAbilities;
         const { classPowers, generalPowers, unavailableGeneralPowers } =
-          getAvailablePowers();
-        const sheetForPowerSelection =
-          getSheetWithCurrentLevelAbilities(sheetForCurrentLevel);
+          getAvailablePowers(sheetForPowerSelection);
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
