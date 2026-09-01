@@ -167,6 +167,34 @@ export function resolveLearnSkillPick(
 }
 
 /**
+ * Quantidade de perícias AINDA por escolher de um requisito `learnSkill`
+ * escalado por patamar (ex.: Biblioteca Divina): o total cumulativo do
+ * patamar atual, menos as que o histórico da ficha já concedeu.
+ *
+ * Sem isso, subir um único patamar (ex.: 1 → 2) reoferecia o total
+ * cumulativo inteiro (2 perícias) em vez de só o incremento (1) — o jogador
+ * só deveria ver mais de uma opção se ainda não tivesse escolhido nenhuma
+ * (poder concedido depois da criação, sem histórico prévio).
+ */
+export function resolveLearnSkillRemainingPick(
+  requirement: PowerSelectionRequirement,
+  plateau: number,
+  sheet?: CharacterSheet,
+  powerName?: string
+): number {
+  const totalPick = resolveLearnSkillPick(requirement, plateau);
+  if (!sheet || !powerName) return totalPick;
+
+  const alreadyGranted = (sheet.sheetActionHistory || [])
+    .filter((entry) => entry.powerName === powerName)
+    .flatMap((entry) => entry.changes)
+    .filter((change) => change.type === 'SkillsAdded')
+    .flatMap((change) => (change.type === 'SkillsAdded' ? change.skills : []));
+
+  return Math.max(totalPick - alreadyGranted.length, 0);
+}
+
+/**
  * Check if a power requires manual selection from the user
  */
 export function getPowerSelectionRequirements(

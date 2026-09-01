@@ -31,7 +31,7 @@ import {
   getFilteredAvailableOptions,
   countRequirementSelections,
   resolvePowerRequirements,
-  resolveLearnSkillPick,
+  resolveLearnSkillRemainingPick,
   ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
@@ -684,7 +684,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     requirements: ResolvedRequirement[],
     allSelections: ManualPowerSelections
   ): boolean =>
-    requirements.every(({ selectionKey, requirement: req }) => {
+    requirements.every(({ selectionKey, ownerName, requirement: req }) => {
       const { type } = req;
       const effectSelections = allSelections[selectionKey] || {};
 
@@ -705,10 +705,16 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       if (availableOptions.length === 0) return true;
 
       // If fewer options than required, adjust the effective pick count.
-      // `resolveLearnSkillPick` escala o piso declarado pelo patamar atual
-      // (Biblioteca Divina e similares); para os demais tipos devolve `pick`.
+      // `resolveLearnSkillRemainingPick` escala o piso declarado pelo patamar
+      // atual e subtrai o que o histórico já concedeu (Biblioteca Divina e
+      // similares); para os demais tipos devolve `pick`.
       const effectivePick = Math.min(
-        resolveLearnSkillPick(req, getCurrentPlateau(sheetForCurrentLevel)),
+        resolveLearnSkillRemainingPick(
+          req,
+          getCurrentPlateau(sheetForCurrentLevel),
+          sheetForCurrentLevel,
+          ownerName
+        ),
         availableOptions.length
       );
 
