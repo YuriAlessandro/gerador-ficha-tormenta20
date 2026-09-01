@@ -92,16 +92,17 @@ export function applyRequirementNot(rule: Requirement, met: boolean): boolean {
 
 function getTrainedSkillNames(sheet: CharacterSheet): string[] {
   const skillNames = new Set<string>();
-  const completeSkillNames = new Set<string>();
+
+  // Base da criação de personagem. Vários caminhos (poderes raciais, origens,
+  // escolhas de classe) fazem `skills.push` sem tocar em `completeSkills`.
+  sheet.skills.forEach((skill) => skillNames.add(skill));
 
   sheet.completeSkills?.forEach((skill) => {
-    completeSkillNames.add(skill.name);
+    // Treino manual pelo SkillsEditDrawer, que só escreve em `completeSkills`.
     if ((skill.training ?? 0) > 0) skillNames.add(skill.name);
+    // Destreino manual explícito vence a base da criação.
+    else if (skill.manuallyUntrained) skillNames.delete(skill.name);
   });
-
-  sheet.skills
-    .filter((skill) => !completeSkillNames.has(skill))
-    .forEach((skill) => skillNames.add(skill));
 
   return [...skillNames];
 }
