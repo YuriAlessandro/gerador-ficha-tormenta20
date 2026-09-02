@@ -211,6 +211,19 @@ const Changelog: React.FC = () => {
                   <strong>1d4</strong> PM temporários (não &quot;1d&quot;) e a
                   condição é <strong>Alquebrado</strong>, não abalroado.
                 </li>
+                <li>
+                  <strong>Correção:</strong> O{' '}
+                  <strong>Companheiro Animal</strong> do tipo{' '}
+                  <strong>Ajudante</strong> nunca perguntava quais perícias ele
+                  eleva — e, sem essa escolha, o bônus não aparecia em lugar
+                  nenhum da ficha. Agora o painel de companheiros avisa enquanto
+                  a escolha estiver faltando e o diálogo de edição traz o campo{' '}
+                  <strong>Perícias do bônus</strong>; o que você escolher entra
+                  na coluna <em>outros</em> das perícias. A escolha continua
+                  valendo quando o companheiro sobe de grau (você só completa as
+                  novas), e fichas aleatórias já saem com as perícias sorteadas.
+                  Obrigado a <strong>@GustavoAC</strong> pela correção!
+                </li>
               </ul>
               <h3>4.31</h3>
               <ul>
