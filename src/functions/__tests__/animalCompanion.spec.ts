@@ -8,6 +8,8 @@ import {
   getAnimalCompanionActivatedPowers,
   getAnimalCompanionTier,
   getCompanionDisplayName,
+  getCompanionSkillChoiceSlots,
+  hasPendingSkillChoices,
   isAnimalCompanionPowerKey,
   reconcileAnimalCompanionEffects,
 } from '../../premium/functions/animalCompanionEffects';
@@ -263,5 +265,107 @@ describe('benefícios ativados', () => {
       companion({ archetype: 'fortao', resting: true }),
     ]);
     expect(getAnimalCompanionActivatedPowers(sheet)).toEqual([]);
+  });
+});
+
+describe('Ajudante — perícias à escolha do jogador', () => {
+  const ajudante = (skillChoices?: Record<string, string[]>) =>
+    companion({ archetype: 'ajudante', skillChoices });
+
+  it('expõe um slot de escolha com as perícias elegíveis', () => {
+    const [slot, ...rest] = getCompanionSkillChoiceSlots(ajudante(), 5);
+    expect(rest).toHaveLength(0);
+    expect(slot.pick).toBe(2);
+    expect(slot.selected).toEqual([]);
+    // Bônus de perícia jamais em Luta/Pontaria.
+    expect(slot.options).not.toContain(Skill.LUTA);
+    expect(slot.options).not.toContain(Skill.PONTARIA);
+    expect(slot.options).toContain(Skill.DIPLOMACIA);
+  });
+
+  it('sem escolha, nenhum bônus é aplicado (e o painel avisa)', () => {
+    expect(buildAnimalCompanionEffect(ajudante(), 5)).toBeNull();
+    expect(hasPendingSkillChoices(ajudante(), 5)).toBe(true);
+  });
+
+  it('a escolha vira bônus de perícia na ficha', () => {
+    const slot = getCompanionSkillChoiceSlots(ajudante(), 5)[0];
+    const chosen = ajudante({
+      [slot.key]: [Skill.DIPLOMACIA, Skill.PERCEPCAO],
+    });
+    expect(hasPendingSkillChoices(chosen, 5)).toBe(false);
+
+    const base = recalculateSheet(druidSheet(5));
+    const sheet = druidSheet(5, [chosen]);
+    sheet.activeEffects = reconcileAnimalCompanionEffects(sheet)!;
+    const out = recalculateSheet(sheet);
+
+    expect(
+      skillOthers(out, Skill.DIPLOMACIA) - skillOthers(base, Skill.DIPLOMACIA)
+    ).toBe(2);
+    expect(
+      skillOthers(out, Skill.PERCEPCAO) - skillOthers(base, Skill.PERCEPCAO)
+    ).toBe(2);
+  });
+
+  it('a escolha sobrevive à subida de grau, que só muda quantidade/valor', () => {
+    const slot = getCompanionSkillChoiceSlots(ajudante(), 5)[0];
+    const chosen = ajudante({
+      [slot.key]: [Skill.DIPLOMACIA, Skill.PERCEPCAO, Skill.FURTIVIDADE],
+    });
+
+    // Mestre: +4 em três perícias. Mesma chave, nada de reescolher.
+    const [mestreSlot] = getCompanionSkillChoiceSlots(chosen, 15);
+    expect(mestreSlot.key).toBe(slot.key);
+    expect(mestreSlot.pick).toBe(3);
+    expect(hasPendingSkillChoices(chosen, 15)).toBe(false);
+
+    const effect = buildAnimalCompanionEffect(chosen, 15);
+    expect(effect!.bonuses).toHaveLength(3);
+    expect(
+      effect!.bonuses.every(
+        (b) => b.target.type === 'Skill' && b.modifier.type === 'Fixed'
+      )
+    ).toBe(true);
+  });
+
+  it('respeita o limite de escolhas do grau', () => {
+    const slot = getCompanionSkillChoiceSlots(ajudante(), 5)[0];
+    // Três perícias guardadas, mas iniciante só eleva duas.
+    const chosen = ajudante({
+      [slot.key]: [Skill.DIPLOMACIA, Skill.PERCEPCAO, Skill.FURTIVIDADE],
+    });
+    expect(buildAnimalCompanionEffect(chosen, 5)!.bonuses).toHaveLength(2);
+  });
+
+  it('Lendário dobra o bônus escolhido', () => {
+    const slot = getCompanionSkillChoiceSlots(ajudante(), 5)[0];
+    const effect = buildAnimalCompanionEffect(
+      companion({
+        archetype: 'ajudante',
+        legendary: true,
+        skillChoices: { [slot.key]: [Skill.DIPLOMACIA, Skill.PERCEPCAO] },
+      }),
+      5
+    );
+    expect(
+      effect!.bonuses.map((b) =>
+        b.modifier.type === 'Fixed' ? b.modifier.value : 0
+      )
+    ).toEqual([4, 4]);
+  });
+
+  it('como segundo tipo, tem chave própria', () => {
+    const dual = companion({
+      archetype: 'perseguidor',
+      secondaryArchetype: 'ajudante',
+    });
+    const slots = getCompanionSkillChoiceSlots(dual, 5);
+    expect(slots).toHaveLength(1);
+    expect(slots[0].key.startsWith('ajudante:')).toBe(true);
+
+    // Sem escolha, o companheiro ainda entrega os bônus do tipo primário.
+    const effect = buildAnimalCompanionEffect(dual, 5);
+    expect(effect!.bonuses).toHaveLength(2);
   });
 });
