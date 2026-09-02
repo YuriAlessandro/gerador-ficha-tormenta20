@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { recalculateSheet } from '../recalculateSheet';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -5,6 +6,7 @@ import Skill from '../../interfaces/Skills';
 import type { SheetAnimalCompanion } from '../../premium/interfaces/AnimalCompanion';
 import {
   buildAnimalCompanionEffect,
+  generateRandomAnimalCompanion,
   getAnimalCompanionActivatedPowers,
   getAnimalCompanionTier,
   getCompanionDisplayName,
@@ -353,6 +355,25 @@ describe('Ajudante — perícias à escolha do jogador', () => {
         b.modifier.type === 'Fixed' ? b.modifier.value : 0
       )
     ).toEqual([4, 4]);
+  });
+
+  it('ficha aleatória sai completa em QUALQUER grau, não só no iniciante', () => {
+    // O sorteio da ficha aleatória não passa pelo diálogo. Sortear pelo grau
+    // iniciante (2 perícias) deixaria um druida de nível 7+ com uma escolha
+    // faltando — e o alerta do painel numa ficha recém-gerada.
+    // Math.random fixo em 0: `ajudante` é o primeiro dos arquétipos do druida,
+    // então o sorteio cai nele sem depender de sorte.
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const drawn = generateRandomAnimalCompanion('rand-1');
+    random.mockRestore();
+
+    expect(drawn.archetype).toBe('ajudante');
+    [1, 6, 7, 14, 15, 20].forEach((level) => {
+      expect(hasPendingSkillChoices(drawn, level)).toBe(false);
+    });
+    // O excedente do grau máximo não vaza para os graus menores.
+    expect(buildAnimalCompanionEffect(drawn, 6)!.bonuses).toHaveLength(2);
+    expect(buildAnimalCompanionEffect(drawn, 15)!.bonuses).toHaveLength(3);
   });
 
   it('como segundo tipo, tem chave própria', () => {
