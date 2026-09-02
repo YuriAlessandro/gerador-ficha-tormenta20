@@ -107,6 +107,9 @@ export interface PowerSelectionRequirement {
     // piso `minPick`. Só quem tem a ficha consegue resolver.
     pickByAttribute?: Atributo;
     minPick?: number;
+    // For increaseAttribute: `false` quando a fonte não tem a restrição de
+    // 1×/patamar do poder Aumento de Atributo (ex.: Aspirante a Herói).
+    oncePerTier?: boolean;
   };
 }
 

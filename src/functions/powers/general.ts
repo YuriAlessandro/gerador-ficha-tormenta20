@@ -144,6 +144,16 @@ export function getDeitySpellCircleWarning(
   );
 }
 
+/**
+ * Fichas criadas antes do campo `oncePerTier` no histórico: nelas o aumento
+ * destes poderes foi gravado igual ao do Aumento de Atributo e bloqueava
+ * indevidamente o atributo no patamar. Identificados pelo nome do poder.
+ */
+const LEGACY_UNRESTRICTED_INCREASE_POWERS = [
+  'Aspirante a Herói',
+  'Herança de Al-Gazara',
+];
+
 export function getAttributeIncreasesInSamePlateau(
   sheet: CharacterSheet
 ): Atributo[] {
@@ -151,9 +161,15 @@ export function getAttributeIncreasesInSamePlateau(
 
   const attibutesIncreasedInSamePlateau: Atributo[] = [];
   sheet.sheetActionHistory.forEach((sah) => {
+    if (
+      sah.powerName &&
+      LEGACY_UNRESTRICTED_INCREASE_POWERS.includes(sah.powerName)
+    )
+      return;
     sah.changes.forEach((change) => {
       if (
         change.type === 'AttributeIncreasedByAumentoDeAtributo' &&
+        change.oncePerTier !== false &&
         change.plateau === plateau
       ) {
         attibutesIncreasedInSamePlateau.push(change.attribute);

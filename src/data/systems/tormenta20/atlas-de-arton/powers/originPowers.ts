@@ -126,7 +126,9 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     sheetActions: [
       {
         source: { type: 'power', name: 'Aspirante a Herói' },
-        action: { type: 'increaseAttribute' },
+        // Não é o poder Aumento de Atributo: pode cair no mesmo atributo que
+        // já recebeu o aumento do patamar.
+        action: { type: 'increaseAttribute', oncePerTier: false },
       },
     ],
   },
