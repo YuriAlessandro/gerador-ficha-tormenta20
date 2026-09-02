@@ -274,6 +274,11 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Will be populated dynamically in getFilteredAvailableOptions
           pick: 1, // Always pick 1 attribute
           label: 'Selecione 1 atributo para aumentar',
+          metadata: {
+            // Fontes sem a restrição de 1×/patamar (ex.: Aspirante a Herói)
+            // podem repetir um atributo já aumentado no patamar.
+            oncePerTier: action.oncePerTier !== false,
+          },
         });
       }
 
@@ -879,8 +884,13 @@ export function getFilteredAvailableOptions(
     }
 
     case 'increaseAttribute': {
-      // Get attributes that haven't been increased in the current plateau
-      const usedAttributes = getAttributeIncreasesInSamePlateau(sheet);
+      // Get attributes that haven't been increased in the current plateau.
+      // Só vale para fontes com a restrição do poder Aumento de Atributo —
+      // Aspirante a Herói e afins listam todos os atributos.
+      const usedAttributes =
+        requirement.metadata?.oncePerTier === false
+          ? []
+          : getAttributeIncreasesInSamePlateau(sheet);
       // Idades Variadas (Heróis de Arton, p. 290): Velhos e Anciões "não podem
       // escolher o poder Aumento de Atributo para nenhum atributo físico".
       // Filtrar aqui cobre de uma vez o assistente de criação, o de evolução e

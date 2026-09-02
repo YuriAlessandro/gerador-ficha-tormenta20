@@ -113,6 +113,9 @@ export interface PowerSelectionRequirement {
     // Biblioteca Divina). O `pick` real depende do nível do personagem, com
     // piso `pick` — só quem sabe o nível-alvo consegue resolver.
     perTierAboveIniciante?: number;
+    // For increaseAttribute: `false` quando a fonte não tem a restrição de
+    // 1×/patamar do poder Aumento de Atributo (ex.: Aspirante a Herói).
+    oncePerTier?: boolean;
   };
 }
 

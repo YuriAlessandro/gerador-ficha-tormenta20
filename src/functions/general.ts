@@ -2526,6 +2526,9 @@ export const applyPower = (
                 type: 'AttributeIncreasedByAumentoDeAtributo',
                 attribute: targetAttribute,
                 plateau: getCurrentPlateau(sheet),
+                // Aumentos sem a restrição (ex.: Aspirante a Herói) não podem
+                // bloquear o atributo para o Aumento de Atributo do patamar.
+                oncePerTier,
               },
             ],
           });

@@ -200,6 +200,9 @@ export const SURAGEL_ALTERNATIVE_ABILITIES: SuragelAlternativeAbility[] = [
         source: { type: 'power', name: 'Herança de Al-Gazara' },
         action: {
           type: 'increaseAttribute',
+          // Bônus racial, não o poder Aumento de Atributo: não disputa a
+          // restrição de 1×/patamar.
+          oncePerTier: false,
         },
       },
     ],

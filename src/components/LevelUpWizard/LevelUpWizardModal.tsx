@@ -1678,6 +1678,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             const plateau = getCurrentPlateau({
               nivel: currentLevel,
             } as CharacterSheet);
+            // Aumentos de fontes sem a restrição de 1×/patamar não podem
+            // bloquear o atributo para o poder Aumento de Atributo.
+            const oncePerTier = !selectedPower.sheetActions?.some(
+              (sheetAction) =>
+                sheetAction.action.type === 'increaseAttribute' &&
+                sheetAction.action.oncePerTier === false
+            );
             const newHistoryEntries: SheetActionHistoryEntry[] =
               powerEffects.attributes.map((attr) => ({
                 source: { type: 'power' as const, name: selectedPower.name },
@@ -1687,6 +1694,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                     type: 'AttributeIncreasedByAumentoDeAtributo' as const,
                     attribute: attr as Atributo,
                     plateau,
+                    oncePerTier,
                   },
                 ],
               }));

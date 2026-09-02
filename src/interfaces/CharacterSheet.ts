@@ -329,6 +329,10 @@ export type SheetActionReceipt =
       type: 'AttributeIncreasedByAumentoDeAtributo';
       attribute: Atributo;
       plateau: number; // Plateau number for the increase
+      // `false` quando o aumento veio de uma fonte sem a restrição de 1×/patamar
+      // do poder Aumento de Atributo (ex.: Aspirante a Herói). Ausente em fichas
+      // antigas e nos aumentos do próprio Aumento de Atributo — ambos contam.
+      oncePerTier?: boolean;
     }
   | {
       type: 'ClassAbilityLearned';
