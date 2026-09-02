@@ -224,6 +224,55 @@ const Changelog: React.FC = () => {
                   novas), e fichas aleatórias já saem com as perícias sorteadas.
                   Obrigado a <strong>@GustavoAC</strong> pela correção!
                 </li>
+                <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Biblioteca Divina</strong> (Tanna-Toh) só dava{' '}
+                  <strong>uma</strong> perícia treinada, ignorando o &quot;a
+                  cada patamar acima de iniciante, recebe mais uma&quot;. Agora
+                  ele escala de verdade: um personagem criado no 11º nível sai
+                  com <strong>três</strong> perícias, e ao{' '}
+                  <strong>cruzar um patamar</strong> o assistente de evolução
+                  abre o passo <em>Perícias por Patamar</em> pedindo{' '}
+                  <strong>só a perícia nova</strong> — antes ele nem aparecia, e
+                  quando apareceu chegou a pedir o total acumulado. Vale nos
+                  quatro caminhos: criação pelo assistente, ficha aleatória,
+                  subir de nível e adicionar o poder pelo editor de poderes.
+                  Remover o poder agora também <strong>devolve</strong> as
+                  perícias que ele deu (elas ficavam órfãs na ficha para
+                  sempre), o card do poder passou a listar quais perícias vieram
+                  dele, e <strong>fichas antigas</strong>, salvas antes desta
+                  correção, também passam a receber o que faltava. Obrigado a{' '}
+                  <strong>@GustavoAC</strong> pela correção!
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Lenhador de Tollon</strong> entregava um &quot;item
+                  superior de madeira Tollon&quot; que era só um texto fixo, sem
+                  escolha e sem efeito. Agora ela abre a tela de escolha do item
+                  — e o catálogo respeita o livro: apenas{' '}
+                  <strong>armas de madeira</strong> (arco, bordão, clava, lança,
+                  pique e tacape), <strong>escudo leve</strong> ou{' '}
+                  <strong>item esotérico</strong>, nunca armadura. O item
+                  escolhido já vem com o material especial{' '}
+                  <em>madeira Tollon</em> aplicado. A perícia da origem também
+                  foi acertada para <em>Ofício (artesão)</em>, que é a mesma que
+                  o poder da origem dá +5 — antes era um &quot;Ofício&quot;
+                  genérico, e o bônus caía numa perícia em que o personagem nem
+                  era treinado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Nobre Zakharoviano</strong> dava uma arma superior
+                  cuja &quot;melhoria&quot; era puramente decorativa: o nome
+                  vinha de uma lista em que <strong>quatro das seis</strong>{' '}
+                  melhorias nem existem no jogo, e nada era aplicado à arma.
+                  Agora a melhoria é sorteada entre as{' '}
+                  <strong>melhorias reais do livro</strong> e{' '}
+                  <strong>aplicada de fato</strong>, aparecendo nos números da
+                  arma. A perícia virou <em>Ofício (armeiro)</em>, como manda o
+                  texto oficial, e a tela de escolha da arma ganhou uma{' '}
+                  <strong>busca</strong> — a lista tem quase 40 opções.
+                </li>
               </ul>
               <h3>4.31</h3>
               <ul>
