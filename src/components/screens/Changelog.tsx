@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            24/08/2026 (v4.31).
+            02/09/2026 (v4.32).
           </p>
 
           <p>
@@ -74,6 +74,144 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.32</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Devoção Dupla</strong>, a regra
+                  opcional de <em>Sincretismos de Arton</em>. No assistente de
+                  criação, logo abaixo da divindade, apareceu a caixinha{' '}
+                  <strong>Devoção Dupla</strong>: ao marcá-la você escolhe uma{' '}
+                  <strong>segunda divindade</strong> (ou o{' '}
+                  <strong>sincretismo</strong> direto pelo nome — os dois campos
+                  se completam sozinhos). O personagem passa a contar como
+                  devoto dos dois deuses ao mesmo tempo: ele{' '}
+                  <strong>não</strong> ganha poderes concedidos a mais, mas
+                  escolhe os dele na união das duas listas e ainda recebe o{' '}
+                  <strong>poder único daquele par</strong>. A ficha, a
+                  enciclopédia e o editor de poderes passam a tratar
+                  pré-requisitos de devoto olhando para as duas divindades, e o{' '}
+                  <em>Poder Capturado</em> do Usurpador avisa quando um poder é
+                  exclusivo de devoção dupla.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O <strong>ataque desarmado</strong>{' '}
+                  agora é uma <strong>arma de verdade na mochila</strong>. Antes
+                  ele só existia como um número solto na ficha; agora existe o
+                  item <em>Ataque Desarmado</em> (custo 0, espaço 0), concedido
+                  automaticamente por <em>Briga</em> (Lutador e Atleta) e por{' '}
+                  <em>Estilo Desarmado</em>, e disponível para adicionar à mão
+                  na categoria <em>Simples</em>. Ele aparece na lista de ataques
+                  com o dado certo, recalculado sozinho conforme seus poderes e
+                  seu tamanho, e recebe os bônus de poderes desarmados na
+                  própria linha.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O <strong>editor de armas</strong> da
+                  mochila ganhou <strong>tipo de dano</strong> (dá para marcar
+                  mais de um: Corte, Perfuração, Impacto e os elementais),{' '}
+                  <strong>tags</strong> com sugestões (Natural, Desarmado,
+                  Heredrimm…) e o campo de <strong>danos extras</strong>, que
+                  antes só existia ao editar um item já na mochila — agora
+                  também aparece na criação de item personalizado.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Os{' '}
+                  <strong>aprimoramentos de magia</strong> agora sabem{' '}
+                  <strong>trocar e criar rolagens de dano</strong>, e não só
+                  somar dados. Aprimoramentos que substituem a magia inteira (a{' '}
+                  <em>Chuva de Setas</em> que vira lanças de energia, a{' '}
+                  <em>Bola de Fogo</em> que vira esfera flamejante) trocam a
+                  rolagem para a notação certa; aprimoramentos que acrescentam
+                  um efeito novo (a marca de <em>dano psíquico</em>) criam uma{' '}
+                  <strong>rolagem própria</strong> em vez de bagunçar a
+                  original. O diálogo de conjuração mostra a rolagem já
+                  atualizada, com o rótulo e o tipo de dano corretos.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As <strong>armas naturais</strong>{' '}
+                  (mordidas, garras, chifres, cascos…) passaram a ser
+                  reconhecidas como tal pela ficha, e com isso vários poderes
+                  que prometiam bônus no texto e não entregavam passaram a
+                  funcionar de verdade: <em>Armas da Selvageria</em> (Megalokk)
+                  e <em>Ossos Afiados</em> (Osteon) agora somam o dano
+                  prometido, <em>Asas de Aço</em> e <em>Gavinhas</em> ganharam
+                  suas armas naturais, as armas naturais do <em>Druida</em>{' '}
+                  recebem o bônus de margem de ameaça, o <em>Abraço Gélido</em>{' '}
+                  do Soterrado aplica seu dano extra,{' '}
+                  <em>Tocado pelo Indomável</em> (Moreania) soma no desarmado e
+                  o <em>Machado de Pedra</em> (variante do Bárbaro) ganhou o +1
+                  de ataque e dano que faltava.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Mais magias de{' '}
+                  <strong>Ameaças de Arton</strong> e{' '}
+                  <strong>Deuses de Arton</strong> ganharam{' '}
+                  <strong>rolagens de dano prontas</strong> — antes era preciso
+                  ler o texto e montar a rolagem na mão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Moreau Urso</strong>{' '}
+                  agora fica <strong>Grande</strong> automaticamente e a mordida
+                  dele para de ser inflada: o dado de tamanho estava sendo
+                  aplicado duas vezes e a mordida saía 1d10 em vez de 1d8.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Meio-elfo</strong> não
+                  oferece mais <strong>Constituição</strong> entre os atributos
+                  livres (a raça já dá +1 fixo nela) e a{' '}
+                  <em>Ambição Herdada</em> voltou a permitir escolher um{' '}
+                  <strong>poder único de origem</strong>, não só um poder geral
+                  — a lista aparecia vazia e a escolha simplesmente sumia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>perícias treinadas</strong> voltaram a aparecer no
+                  bloco <em>Passo a Passo</em> da ficha. A seção existia, mas
+                  vinha sem os nomes das perícias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes que exigem uma{' '}
+                  <strong>habilidade de classe</strong> como pré-requisito agora
+                  liberam corretamente. <em>Briga de Rua</em> e{' '}
+                  <em>Chuva de Golpes</em> pedem <em>Briga</em>, que o Lutador
+                  recebe automaticamente no 1º nível — mesmo assim os dois
+                  ficavam eternamente indisponíveis. O assistente de evolução e
+                  o drawer <em>Editar poderes</em> também estavam discordando
+                  entre si: um oferecia o poder e o outro marcava como
+                  indisponível.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Pré-requisitos de{' '}
+                  <strong>perícia</strong> passam a respeitar treinos feitos{' '}
+                  <strong>na mão</strong>. Treinar Religião manualmente já
+                  liberava <em>Cavaleiro Sagrado</em> na sua cabeça, mas não na
+                  ficha — e destreinar uma perícia continuava liberando o poder.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No{' '}
+                  <strong>assistente de evolução</strong>, as habilidades de
+                  classe do nível que você acabou de concluir passam a contar
+                  para os pré-requisitos do próximo passo. Criar um personagem
+                  em vários níveis de uma vez escondia poderes como{' '}
+                  <em>Alquimista Exímio</em> e <em>Cavaleiro Bandido</em>, que
+                  dependem de algo ganho no nível anterior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Aprimoramentos que atingem uma
+                  rolagem <strong>criada por outro aprimoramento</strong> agora
+                  funcionam — o caso do raio da <em>Tempestade Divina</em>. Além
+                  disso, o <em>Siroco de Azgher</em> tinha um aprimoramento que
+                  não achava a rolagem certa e sumia em silêncio, e o chip de
+                  troca de dado exibia coisas como <em>3d6 → 3d6</em> quando
+                  nada mudava de fato.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade <em>Rendição</em> do{' '}
+                  <strong>Gnoll</strong> estava com o texto errado: são{' '}
+                  <strong>1d4</strong> PM temporários (não &quot;1d&quot;) e a
+                  condição é <strong>Alquebrado</strong>, não abalroado.
+                </li>
+              </ul>
               <h3>4.31</h3>
               <ul>
                 <li>
