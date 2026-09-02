@@ -5955,11 +5955,24 @@ export default function generateRandomSheet(
       scalingSubSteps.push(...newSubSteps);
     });
     if (scalingSubSteps.length) {
-      charSheet.steps.push({
-        type: 'Poderes',
-        label: GRANTED_POWERS_STEP_LABEL,
-        value: scalingSubSteps,
-      });
+      // Anexa ao step que o Passo 11 já criou, em vez de empurrar um segundo
+      // com o mesmo rótulo: o passo a passo exibe um por vez, e dois
+      // "Poderes Concedidos" apareceriam como seções repetidas. Só cria um
+      // novo se a ficha ainda não tiver esse step (poder escalável que não
+      // veio da divindade).
+      const grantedStep = charSheet.steps.find(
+        (step) =>
+          step.type === 'Poderes' && step.label === GRANTED_POWERS_STEP_LABEL
+      );
+      if (grantedStep) {
+        grantedStep.value.push(...scalingSubSteps);
+      } else {
+        charSheet.steps.push({
+          type: 'Poderes',
+          label: GRANTED_POWERS_STEP_LABEL,
+          value: scalingSubSteps,
+        });
+      }
     }
   }
 

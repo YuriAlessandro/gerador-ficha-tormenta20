@@ -1251,10 +1251,18 @@ export function validateSelections(
     switch (type) {
       case 'learnSkill':
         // Biblioteca Divina e similares: escala com o patamar do nível atual
-        // da ficha, com piso `pick` (declarado para o patamar Iniciante).
-        expectedPick = resolveLearnSkillPick(
+        // da ficha, com piso `pick` (declarado para o patamar Iniciante), e
+        // desconta o que o histórico já concedeu. Tem que ser a MESMA conta do
+        // `PowerSelectionDialog`, que renderiza as vagas por
+        // `resolveLearnSkillRemainingPick`: com o total cumulativo aqui, uma
+        // ficha que já recebeu as perícias (poder desmarcado e remarcado no
+        // editor, sem salvar) abria o diálogo com zero vagas e o Confirmar
+        // rejeitava para sempre.
+        expectedPick = resolveLearnSkillRemainingPick(
           requirement,
-          getCurrentPlateau(sheet)
+          getCurrentPlateau(sheet),
+          sheet,
+          requirements.powerName
         );
         selectedItems = selections.skills || [];
         selectedCount = selectedItems.length;
