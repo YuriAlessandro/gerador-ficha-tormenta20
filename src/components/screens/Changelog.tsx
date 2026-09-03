@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            02/09/2026 (v4.32).
+            03/09/2026 (v4.32).
           </p>
 
           <p>
@@ -272,6 +272,22 @@ const Changelog: React.FC = () => {
                   arma. A perícia virou <em>Ofício (armeiro)</em>, como manda o
                   texto oficial, e a tela de escolha da arma ganhou uma{' '}
                   <strong>busca</strong> — a lista tem quase 40 opções.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Aspirante a Herói</strong> (Atlas de Arton) disputava
+                  o atributo com o poder <strong>Aumento de Atributo</strong>. O
+                  +1 da origem é livre — não é o poder e não segue a regra de{' '}
+                  &quot;um atributo diferente por patamar&quot; —, mas o
+                  atributo escolhido em um sumia da lista do outro, impedindo
+                  concentrar os dois no mesmo lugar. Agora os dois oferecem
+                  todos os atributos, em qualquer ordem de escolha, e fichas
+                  aleatórias também somam os dois no mesmo atributo. Vale
+                  igualmente para a herança{' '}
+                  <strong>Herança de Al-Gazara</strong> do Suragel, que é um
+                  bônus racial pelo mesmo motivo, e{' '}
+                  <strong>fichas antigas</strong> destravam sozinhas. Obrigado a{' '}
+                  <strong>@GustavoAC</strong> pela correção!
                 </li>
               </ul>
               <h3>4.31</h3>
