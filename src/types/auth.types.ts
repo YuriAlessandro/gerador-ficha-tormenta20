@@ -28,6 +28,7 @@ export interface DbUser {
   termsAcceptedVersion?: number;
   isModerator?: boolean;
   isEditor?: boolean;
+  isAdmin?: boolean;
 }
 
 export interface AuthState {

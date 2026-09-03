@@ -33,8 +33,6 @@ import {
   getSupporterGlowColor,
 } from '../../types/subscription.types';
 
-const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
-
 const TYPE_COLORS = {
   blog: '#29b6f6',
   build: '#7c4dff',
@@ -163,8 +161,7 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const { user } = useAuth();
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  const { user, isAdmin } = useAuth();
   const canCreateBlogPost = isAdmin || user?.isEditor === true;
 
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
