@@ -31,7 +31,11 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  ClassLevelEntry,
+  Step,
+  SubStep,
+} from '@/interfaces/CharacterSheet';
 import { AttributeVariant } from '@/interfaces/Race';
 import { dataRegistry } from '@/data/registry';
 import Divindade from '@/interfaces/Divindade';
@@ -105,6 +109,7 @@ import {
   calculateMulticlassPM,
   findClassDescription,
   reconcileClassLevels,
+  setClassLevelCounts,
 } from '@/functions/multiclass';
 import NumberField from '@/components/common/NumberField';
 import OriginEditDrawer from './OriginEditDrawer';
@@ -216,6 +221,9 @@ interface EditedData {
   manualMaxPM: number | undefined; // Manual max PM override
   tradicaoPerdidaPmAttribute: Atributo | undefined; // Tradição Perdida: atributo do PM (undefined = atributo da classe)
   imageUrl: string;
+  // Só em fichas multiclasse: distribuição de níveis por classe, editável campo
+  // a campo. `nivel` acompanha o total.
+  classLevels: ClassLevelEntry[] | undefined;
 }
 
 // Detecta se a configuração do Duende foi de fato editada em relação ao estado
@@ -370,6 +378,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     manualMaxPM: sheet.manualMaxPM,
     tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
     imageUrl: sheet.imageUrl || '',
+    classLevels: sheet.classLevels,
   });
 
   /**
@@ -474,6 +483,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
+      classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
     setNameSuggestions(
@@ -830,6 +840,37 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     onClose();
   };
 
+  // Contagem de níveis por classe da ficha multiclasse, na ordem em que as
+  // classes aparecem (a primeira é a primária, a única que soma o PV base).
+  const classLevelCounts = React.useMemo(() => {
+    const counts = new Map<string, number>();
+    (editedData.classLevels ?? []).forEach((cl) => {
+      counts.set(cl.className, (counts.get(cl.className) ?? 0) + 1);
+    });
+    return counts;
+  }, [editedData.classLevels]);
+
+  const handleClassLevelChange = (className: string, value: number | null) => {
+    const current = editedData.classLevels;
+    if (!current) return;
+
+    const next = new Map(classLevelCounts);
+    // Mínimo 1: zerar uma classe a removeria da ficha sem reverter o que ela
+    // concedeu (habilidades, magias, perícias). Remoção de classe é trabalho do
+    // assistente, não deste campo.
+    next.set(className, Math.max(value ?? 1, 1));
+
+    const total = Array.from(next.values()).reduce((sum, n) => sum + n, 0);
+    if (total > 20) return;
+
+    const rebuilt = setClassLevelCounts(current, next);
+    setEditedData((prev) => ({
+      ...prev,
+      classLevels: rebuilt,
+      nivel: rebuilt.length,
+    }));
+  };
+
   const handleSave = () => {
     // Escolha embutida da herança de Suraggel. Gravar em `optionChoices` ANTES do
     // recálculo é o que faz a escolha valer: o replay de `chooseFromOptions`
@@ -1111,12 +1152,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const attributesChanged =
       JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos);
 
-    // Check if custom PV/PM values changed
+    // Check if custom PV/PM values changed.
+    // `bonusPV`/`bonusPM` são semeados no editedData como `sheet.bonusX || 0`,
+    // então comparar direto com o sheet acusa mudança em toda ficha que tem o
+    // campo `undefined` — abrir e salvar sem editar nada já disparava recálculo.
     const customPVPMChanged =
       editedData.customPVPerLevel !== sheet.customPVPerLevel ||
       editedData.customPMPerLevel !== sheet.customPMPerLevel ||
-      editedData.bonusPV !== sheet.bonusPV ||
-      editedData.bonusPM !== sheet.bonusPM;
+      editedData.bonusPV !== (sheet.bonusPV || 0) ||
+      editedData.bonusPM !== (sheet.bonusPM || 0);
 
     // Track custom PV/PM changes in steps
     if (customPVPMChanged) {
@@ -1201,44 +1245,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
     }
 
-    // Recalculate level-dependent values if level changed
+    // Recalculate level-dependent values if level changed.
+    // PV/PM ficam por conta do `recalculateSheet` no fim do save: `recalculatePV`
+    // e `recalculatePM` só sabem a fórmula mono-classe (classe primária × nível
+    // total) e devolveriam o número errado numa ficha multiclasse.
     if (editedData.nivel !== sheet.nivel) {
       updates.completeSkills = recalculateSkills(editedData.nivel);
-      updates.pv = recalculatePV(
-        editedData.nivel,
-        editedData.className,
-        editedData.attributes,
-        editedData.customPVPerLevel,
-        editedData.bonusPV
-      );
-      updates.pm = recalculatePM(
-        editedData.nivel,
-        editedData.className,
-        editedData.attributes,
-        editedData.customPMPerLevel,
-        editedData.bonusPM
-      );
-    }
-
-    // Recalculate PV/PM if attributes or custom values changed (even if level didn't change)
-    if (
-      (attributesChanged || customPVPMChanged) &&
-      editedData.nivel === sheet.nivel
-    ) {
-      updates.pv = recalculatePV(
-        editedData.nivel,
-        editedData.className,
-        editedData.attributes,
-        editedData.customPVPerLevel,
-        editedData.bonusPV
-      );
-      updates.pm = recalculatePM(
-        editedData.nivel,
-        editedData.className,
-        editedData.attributes,
-        editedData.customPMPerLevel,
-        editedData.bonusPM
-      );
     }
 
     // Find and update race if changed OR sex changed (for sex-dependent races like Nagah) OR heritage changed (for Moreau) OR Golem Desperto customization changed OR Suraggel ability changed
@@ -1543,10 +1555,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const heritageChanged =
       editedData.raceName === 'Moreau' &&
       editedData.raceHeritage !== sheet.raceHeritage;
-    // Mantém classLevels em sincronia com o nível editado (multiclasse).
-    // Sem isso, baixar o nível deixaria entradas a mais, que um level-up futuro
-    // transformaria num nível fantasma da classe primária.
-    if (levelChanged && sheet.classLevels) {
+    // Numa ficha multiclasse a distribuição vem dos campos por classe — que já
+    // mantêm `nivel` como a soma. Vale também quando o total não muda (trocar um
+    // nível de uma classe por outra).
+    const classLevelsChanged =
+      sheetIsMulticlass &&
+      JSON.stringify(editedData.classLevels) !==
+        JSON.stringify(sheet.classLevels);
+
+    if (classLevelsChanged) {
+      updates.classLevels = editedData.classLevels;
+    } else if (levelChanged && sheet.classLevels) {
+      // Mono-classe (ou ficha com classLevels de uma classe só): mantém
+      // classLevels em sincronia com o nível editado. Sem isso, baixar o nível
+      // deixaria entradas a mais, que um level-up futuro transformaria num
+      // nível fantasma da classe primária.
       updates.classLevels = reconcileClassLevels(
         sheet.classLevels,
         editedData.nivel,
@@ -1572,7 +1595,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceChanged ||
       deityChanged ||
       levelChanged ||
+      classLevelsChanged ||
       manualMaxChanged ||
+      customPVPMChanged ||
       heritageChanged ||
       suragelChanged ||
       moreauSapienciaSpellChanged ||
@@ -1642,6 +1667,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
+      classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
     setNameSuggestions(
@@ -2167,6 +2193,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       }
                       min={1}
                       max={20}
+                      disabled={sheetIsMulticlass}
+                      helperText={
+                        sheetIsMulticlass
+                          ? 'Ajuste os níveis por classe abaixo'
+                          : undefined
+                      }
                     />
                     <Tooltip
                       title={
@@ -2191,6 +2223,50 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       </span>
                     </Tooltip>
                   </Stack>
+
+                  {sheetIsMulticlass && (
+                    <Box>
+                      <Typography
+                        variant='caption'
+                        sx={{ color: 'text.secondary' }}
+                      >
+                        Níveis por classe (o nível total é a soma)
+                      </Typography>
+                      <Stack
+                        direction='row'
+                        spacing={1}
+                        sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}
+                      >
+                        {Array.from(classLevelCounts.entries()).map(
+                          ([className, count]) => (
+                            <NumberField
+                              key={className}
+                              label={className}
+                              value={count}
+                              onValueChange={(v) =>
+                                handleClassLevelChange(className, v)
+                              }
+                              min={1}
+                              max={20}
+                              sx={{ minWidth: 140, flex: '1 1 140px' }}
+                            />
+                          )
+                        )}
+                      </Stack>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          display: 'block',
+                          mt: 1,
+                          color: 'text.secondary',
+                        }}
+                      >
+                        Ajuste manual: não concede habilidades, magias nem
+                        poderes novos. Para subir de nível de verdade, use o
+                        Subir Nível.
+                      </Typography>
+                    </Box>
+                  )}
 
                   <FormControl fullWidth>
                     <InputLabel>Gênero</InputLabel>

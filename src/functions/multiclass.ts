@@ -104,6 +104,45 @@ export function reconcileClassLevels(
 }
 
 /**
+ * Reconstrói `classLevels` a partir da quantidade desejada de níveis por classe.
+ *
+ * Preserva a ordem original das entradas (e, com ela, a classe primária — a
+ * primeira entrada, a única que soma o PV base). Quando uma classe encolhe, saem
+ * os níveis mais altos dela; quando cresce, os novos entram no fim.
+ *
+ * Usado pelo editor de níveis por classe da ficha multiclasse.
+ */
+export function setClassLevelCounts(
+  classLevels: ClassLevelEntry[],
+  counts: Map<string, number>
+): ClassLevelEntry[] {
+  const kept: ClassLevelEntry[] = [];
+  const keptPerClass = new Map<string, number>();
+
+  classLevels.forEach((cl) => {
+    const target = counts.get(cl.className) ?? 0;
+    const soFar = keptPerClass.get(cl.className) ?? 0;
+    if (soFar < target) {
+      kept.push(cl);
+      keptPerClass.set(cl.className, soFar + 1);
+    }
+  });
+
+  counts.forEach((target, className) => {
+    const existing = classLevels.find((cl) => cl.className === className);
+    for (let i = keptPerClass.get(className) ?? 0; i < target; i += 1) {
+      kept.push({
+        level: 0, // renumerado abaixo
+        className,
+        classSubname: existing?.classSubname,
+      });
+    }
+  });
+
+  return kept.map((cl, i) => ({ ...cl, level: i + 1 }));
+}
+
+/**
  * Retorna string de display para multiclasse.
  * Ex: "Arcanista 3 / Paladino 1" ou "Guerreiro 5" (mono-classe).
  */
