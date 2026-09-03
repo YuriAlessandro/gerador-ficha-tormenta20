@@ -77,6 +77,32 @@ const Changelog: React.FC = () => {
               <h3>4.32</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Os{' '}
+                  <strong>encontros preparados</strong> da mesa virtual ganharam{' '}
+                  <strong>organização</strong>. Cada encontro agora aceita{' '}
+                  <strong>tags livres</strong> (<em>Capítulo 2</em>,{' '}
+                  <em>Arco da Tormenta</em>, <em>chefe</em>…), e a lista ganhou
+                  uma barra com <strong>busca por nome ou notas</strong> e{' '}
+                  <strong>filtro por tag</strong>. Dá também para{' '}
+                  <strong>agrupar a lista em seções que abrem e fecham</strong>,
+                  escolhendo a tag que serve de divisória — feito para campanha
+                  longa, quando os encontros passam de algumas dezenas. As
+                  seções lembram quais você deixou fechadas, e os capítulos saem
+                  na ordem certa (<em>Capítulo 9</em> antes de{' '}
+                  <em>Capítulo 10</em>).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Agora dá para{' '}
+                  <strong>editar um encontro preparado</strong> já criado. O
+                  botão de lápis no card abre o mesmo formulário da criação, já
+                  preenchido: dá para trocar o nome, as notas, as tags e as
+                  ameaças — o{' '}
+                  <strong>Nível de Desafio é recalculado sozinho</strong> — sem
+                  precisar apagar e refazer o encontro. Se alguma ameaça do
+                  encontro tiver sido removida da mesa desde que ele foi
+                  montado, o formulário avisa quais são e oferece tirá-las.
+                </li>
+                <li>
                   <strong>Novo:</strong> <strong>Devoção Dupla</strong>, a regra
                   opcional de <em>Sincretismos de Arton</em>. No assistente de
                   criação, logo abaixo da divindade, apareceu a caixinha{' '}
