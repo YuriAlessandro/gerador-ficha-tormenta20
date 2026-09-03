@@ -47,8 +47,6 @@ import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { APP_VERSION } from '../../utils/appVersion';
 
-const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
-
 interface SidebarV2Props {
   visible: boolean;
   onCloseSidebar: () => void;
@@ -91,8 +89,7 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   onChangeTheme,
 }) => {
   const history = useHistory();
-  const { isAuthenticated, user } = useAuth();
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  const { isAuthenticated, user, isAdmin } = useAuth();
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
   const { requestLogout } = useAuthContext();
   // const { settings, updateSettings } = useDice3D();
