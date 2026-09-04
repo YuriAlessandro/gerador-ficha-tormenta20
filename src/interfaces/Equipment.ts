@@ -214,6 +214,18 @@ export interface WeaponActionTrigger {
 
 export type WeaponCategory = 'simple' | 'martial' | 'exotic' | 'firearm';
 
+/**
+ * Estatísticas de combate que o jogador pode sobrescrever no editor de item.
+ * `spaces` fica de fora de propósito: tem a sua própria flag
+ * (`hasManualSpaces`) e não pertence ao grupo congelado por `hasManualEdits`.
+ */
+export type ManualStatField =
+  | 'dano'
+  | 'atkBonus'
+  | 'critico'
+  | 'defenseBonus'
+  | 'armorPenalty';
+
 export interface WeaponAction {
   id: string;
   label: string;
@@ -276,6 +288,17 @@ export default interface Equipment {
   // Flag to indicate if this weapon has manual user edits
   // When true, recalculateSheet will preserve user edits instead of resetting
   hasManualEdits?: boolean;
+
+  /**
+   * QUAIS estatísticas o jogador digitou à mão. `hasManualEdits` congela o
+   * grupo inteiro (é o que o motor precisa saber), mas a ficha marca só o campo
+   * de fato editado — daí a lista.
+   *
+   * Ausente num item com `hasManualEdits` = item gravado antes deste campo
+   * existir: nesse caso todo o grupo é tratado como editado (ver
+   * `getManualStatFields`).
+   */
+  manualStatFields?: ManualStatField[];
 
   /**
    * O jogador editou `spaces` à mão — o pipeline de aprimoramentos para de
