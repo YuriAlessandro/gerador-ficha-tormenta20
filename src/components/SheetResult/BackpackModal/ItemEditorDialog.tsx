@@ -49,6 +49,7 @@ import { ItemE, ItemMod } from '../../../interfaces/Rewards';
 import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { SupplementId } from '../../../types/supplement.types';
 import { applyItemEnhancements } from '../../../functions/itemEnhancements/applyEnhancements';
+import { getManualStatFields } from '../../../functions/manualStats';
 import {
   MaterialContext,
   toAppliedEnchantment,
@@ -187,6 +188,13 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const [manualEditedFields, setManualEditedFields] = useState<Set<StatField>>(
     new Set()
   );
+  /**
+   * Campos digitados NESTA abertura do editor. Separado de
+   * `manualEditedFields`, que ao reabrir um item já congelado volta com o grupo
+   * inteiro (para o preview não sobrescrever valor gravado): sem esta segunda
+   * lista, reabrir e salvar transformaria "editei o dano" em "editei os três".
+   */
+  const [touchedFields, setTouchedFields] = useState<Set<StatField>>(new Set());
   const [rollsOpen, setRollsOpen] = useState(false);
   const [modError, setModError] = useState('');
   const [enchError, setEnchError] = useState('');
@@ -214,15 +222,12 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       setForm(buildInitial(item));
       // Preserve prior manual edits when reopening an item that already had
       // the flag set — otherwise the live-preview effect below would silently
-      // recompute over the user's persisted values.
-      const restored = new Set<StatField>();
-      if (item?.hasManualEdits) {
-        restored.add('dano');
-        restored.add('atkBonus');
-        restored.add('critico');
-        restored.add('defenseBonus');
-        restored.add('armorPenalty');
-      }
+      // recompute over the user's persisted values. `getManualStatFields` já
+      // resolve o item legado (flag sem lista) como "grupo inteiro editado".
+      const restored = new Set<StatField>(
+        item ? [...getManualStatFields(item)] : []
+      );
+      setTouchedFields(new Set());
       // Flag independente: reabrir um item com espaço manual não pode perder o
       // congelamento só porque o jogador não tocou no campo desta vez.
       if (item?.hasManualSpaces) restored.add('spaces');
@@ -333,13 +338,20 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     manualEditedFields,
   ]);
 
-  const markManualEdit = (field: StatField) =>
+  const markManualEdit = (field: StatField) => {
+    setTouchedFields((s) => {
+      if (s.has(field)) return s;
+      const next = new Set(s);
+      next.add(field);
+      return next;
+    });
     setManualEditedFields((s) => {
       if (s.has(field)) return s;
       const next = new Set(s);
       next.add(field);
       return next;
     });
+  };
 
   // Existe um espaço "automático" para voltar? Ou o pipeline de aprimoramentos
   // já capturou um base, ou é munição (espaço vem das unidades restantes).
@@ -391,6 +403,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const handleResetToBase = () => {
     if (!baseSnapshot) return;
     setManualEditedFields(new Set());
+    setTouchedFields(new Set());
     setForm((f) => ({
       ...f,
       spacesText:
@@ -445,7 +458,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     // arremesso). Pipeline is idempotent — when all enhancements are cleared it
     // restores stats from `base*` snapshots automatically.
     const finalItem = applyItemEnhancements(
-      buildSavedItem(item, form, manualEditedFields)
+      buildSavedItem(item, form, manualEditedFields, touchedFields)
     );
 
     onSave(finalItem);

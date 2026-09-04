@@ -21,9 +21,11 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import Equipment, {
   AmmoType,
   DamageAttribute,
+  ManualStatField,
   WeaponAction,
   WeaponOverride,
 } from '../interfaces/Equipment';
+import { getManualStatFields } from '../functions/manualStats';
 import type { SheetBonus } from '../interfaces/CharacterSheet';
 import { AMMO_LABELS } from './SheetResult/BackpackModal/ammo';
 import { parseCritical, parseDualModeDamage } from '../functions/diceRoller';
@@ -434,6 +436,33 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     return { lines: [...lines, ...inactiveLines], hasActiveEffect };
   }, [sheetBonuses, equipment, atributos, nivel, classLevels, isNonProficient]);
 
+  // Estatísticas digitadas à mão pelo jogador neste item. Ficam sublinhadas em
+  // pontilhado na linha da arma: nelas o motor não aplica melhorias nem bônus
+  // de poder, e sem a marca o número parece simplesmente errado.
+  const manualStatFields = useMemo(
+    () => getManualStatFields(equipment),
+    [equipment]
+  );
+
+  const withManualMark = (field: ManualStatField, content: React.ReactNode) => {
+    if (!manualStatFields.has(field)) return content;
+    return (
+      <Tooltip title='Modificado manualmente — melhorias e bônus automáticos não se aplicam a este valor'>
+        <Box
+          component='span'
+          sx={{
+            textDecoration: 'underline dotted',
+            textUnderlineOffset: '3px',
+            cursor: 'help',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {content}
+        </Box>
+      </Tooltip>
+    );
+  };
+
   const damage = getWeaponDisplayDamage(
     equipment,
     atributos,
@@ -835,7 +864,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
             </Tooltip>
           )}
           {customSkill && ` (${customSkill})`}{' '}
-          {`${baseAtk >= 0 ? '+' : ''}${baseAtk}`} • {damage} • ({critico})
+          {withManualMark('atkBonus', `${baseAtk >= 0 ? '+' : ''}${baseAtk}`)} •{' '}
+          {withManualMark('dano', damage)} • (
+          {withManualMark('critico', critico)})
           {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
           {(equipment.extraDamage ?? []).map((extra) => (
             <Box

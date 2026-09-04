@@ -264,3 +264,87 @@ describe('buildSavedItem — espaços editados à mão', () => {
     expect(result.spaces).toBe(0);
   });
 });
+
+/**
+ * `manualStatFields` diz QUAIS estatísticas o jogador digitou. `hasManualEdits`
+ * continua congelando o grupo inteiro (é o que o motor lê), mas a ficha só
+ * sublinha o campo de fato editado.
+ */
+describe('buildSavedItem — manualStatFields', () => {
+  const espada: Equipment = {
+    nome: 'Espada Longa',
+    group: 'Arma',
+    dano: '1d8',
+    critico: 'x2',
+    atkBonus: 0,
+    spaces: 1,
+  };
+
+  it('grava só o campo digitado', () => {
+    const result = buildSavedItem(
+      espada,
+      mkForm({ danoText: '1d10', criticoText: 'x2', atkBonusText: '0' }),
+      new Set<StatField>(['dano'])
+    );
+
+    expect(result.hasManualEdits).toBe(true);
+    expect(result.manualStatFields).toEqual(['dano']);
+  });
+
+  it('reabrir e salvar não promove o grupo inteiro a manual', () => {
+    // Ao reabrir um item congelado o editor restaura o grupo em
+    // `manualEditedFields` (para o preview não sobrescrever o valor gravado),
+    // mas nada foi digitado desta vez.
+    const jaEditada: Equipment = {
+      ...espada,
+      hasManualEdits: true,
+      manualStatFields: ['dano'],
+    };
+
+    const result = buildSavedItem(
+      jaEditada,
+      mkForm({ danoText: '1d10' }),
+      new Set<StatField>(['dano', 'atkBonus', 'critico']),
+      new Set<StatField>()
+    );
+
+    expect(result.manualStatFields).toEqual(['dano']);
+  });
+
+  it('acumula o campo digitado numa segunda edição', () => {
+    const jaEditada: Equipment = {
+      ...espada,
+      hasManualEdits: true,
+      manualStatFields: ['dano'],
+    };
+
+    const result = buildSavedItem(
+      jaEditada,
+      mkForm({ danoText: '1d10', criticoText: '19/x2' }),
+      new Set<StatField>(['dano', 'atkBonus', 'critico']),
+      new Set<StatField>(['critico'])
+    );
+
+    expect(result.manualStatFields).toEqual(['dano', 'critico']);
+  });
+
+  it('item legado (flag sem lista) conta como grupo inteiro editado', () => {
+    const legado: Equipment = { ...espada, hasManualEdits: true };
+
+    const result = buildSavedItem(
+      legado,
+      mkForm({ danoText: '1d10' }),
+      new Set<StatField>(['dano', 'atkBonus', 'critico']),
+      new Set<StatField>()
+    );
+
+    expect(result.manualStatFields).toEqual(['dano', 'atkBonus', 'critico']);
+  });
+
+  it('sem edição manual nenhuma, o campo some do item', () => {
+    const result = buildSavedItem(espada, mkForm(), new Set<StatField>());
+
+    expect(result.hasManualEdits).toBeUndefined();
+    expect(result.manualStatFields).toBeUndefined();
+  });
+});

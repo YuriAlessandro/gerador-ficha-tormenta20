@@ -1,6 +1,7 @@
 import Equipment, {
   AppliedEnchantment,
   AppliedModification,
+  ManualStatField,
   AttackAttribute,
   DamageAttribute,
   DamageType,
@@ -20,6 +21,7 @@ import {
   withMaterialSnapshot,
 } from '../../../functions/itemEnhancements/snapshot';
 import { isDefenseGroup } from './equipmentCatalog';
+import { getManualStatFields } from '../../../functions/manualStats';
 
 /**
  * Campos que o jogador pode sobrescrever à mão no editor, congelando o
@@ -92,10 +94,30 @@ export interface ItemEditorFormState {
  * flag `hasManualSpaces` (que faz `applyDelta` parar de reescrever o espaço a
  * partir de `baseSpaces`) só é ligada quando o jogador mexeu no campo.
  */
+/**
+ * Lista de estatísticas editadas à mão depois deste save: o que já estava
+ * marcado no item mais o que o jogador digitou agora.
+ */
+function mergeManualStatFields(
+  item: Equipment,
+  group: ManualStatField[],
+  touchedFields: Set<StatField>
+): ManualStatField[] {
+  const previous = getManualStatFields(item);
+  return group.filter(
+    (field) => previous.has(field) || touchedFields.has(field)
+  );
+}
+
 export function buildSavedItem(
   item: Equipment,
   form: ItemEditorFormState,
-  manualEditedFields: Set<StatField>
+  manualEditedFields: Set<StatField>,
+  // Campos digitados nesta sessão do editor. Só eles ENTRAM na lista
+  // `manualStatFields` (o que a ficha marca); `manualEditedFields` inclui o
+  // grupo restaurado ao reabrir um item já congelado. Sem argumento, os dois
+  // são a mesma coisa — é o caso de quem chama fora do editor.
+  touchedFields: Set<StatField> = manualEditedFields
 ): Equipment {
   const isWeapon = item.group === 'Arma';
   const isDefense = isDefenseGroup(item.group);
@@ -204,6 +226,15 @@ export function buildSavedItem(
       });
     }
     next.hasManualEdits = weaponStatTouched ? true : undefined;
+    // A flag congela o grupo inteiro, mas a ficha marca só o campo digitado —
+    // por isso a lista é gravada além dela.
+    next.manualStatFields = weaponStatTouched
+      ? mergeManualStatFields(
+          item,
+          ['dano', 'atkBonus', 'critico'],
+          touchedFields
+        )
+      : undefined;
   }
 
   let finalItem: Equipment = next;
@@ -224,6 +255,13 @@ export function buildSavedItem(
         : armorPenalty;
     }
     defenseNext.hasManualEdits = defenseStatTouched ? true : undefined;
+    defenseNext.manualStatFields = defenseStatTouched
+      ? mergeManualStatFields(
+          item,
+          ['defenseBonus', 'armorPenalty'],
+          touchedFields
+        )
+      : undefined;
     finalItem = defenseNext;
   }
 
