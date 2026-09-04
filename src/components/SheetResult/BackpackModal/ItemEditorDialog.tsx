@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -402,6 +403,25 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     }));
   };
 
+  /**
+   * As estatísticas travadas por edição manual são invisíveis para o pipeline
+   * de melhorias: `applyItemEnhancements` roda com `preserveManualStats` e o
+   * `applyWeaponBonuses` do recálculo nem toca na arma. Sem este aviso o
+   * jogador aplica Maciça, não vê o crítico mudar e conclui que a melhoria não
+   * funciona — foi exatamente como o problema chegou.
+   */
+  const statsLockedWarning =
+    isWeapon &&
+    (manualEditedFields.has('dano') ||
+      manualEditedFields.has('atkBonus') ||
+      manualEditedFields.has('critico')) ? (
+      <Alert severity='warning' icon={false}>
+        Dano, bônus de ataque e crítico estão travados por edição manual —
+        melhorias, encantos e bônus de poderes não vão alterá-los. Use
+        “Resetar”, na aba Estatísticas, para voltar ao cálculo automático.
+      </Alert>
+    ) : null;
+
   const spacesAreManual = manualEditedFields.has('spaces');
   let spacesHelperText: React.ReactNode;
   if (spacesAreManual && hasAutomaticSpaces) {
@@ -560,6 +580,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'stats' && hasStatsTab && (
           <Stack spacing={2}>
+            {statsLockedWarning}
             <Stack
               direction='row'
               sx={{
@@ -1004,6 +1025,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'modificacoes' && hasModificationsTab && modItemType && (
           <Stack spacing={2}>
+            {statsLockedWarning}
             <Typography
               variant='caption'
               sx={{
@@ -1042,6 +1064,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'encantamentos' && hasEnchantmentsTab && enchItemType && (
           <Stack spacing={2}>
+            {statsLockedWarning}
             <Typography
               variant='caption'
               sx={{
