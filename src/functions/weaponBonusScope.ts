@@ -245,6 +245,13 @@ export interface LiveWeaponBonusContext {
    * exibição é o modo corpo a corpo, coerente com `getWeaponSkill`.
    */
   thrownMode?: boolean;
+  /**
+   * O personagem é proficiente com esta arma? Bônus marcados com
+   * `proficiencyRequired` (Armas da Ambição, Armas da Destruição) só valem
+   * quando `true`. `undefined` = quem chamou não sabe → trata como proficiente,
+   * mesma falha segura de `isProficientWithWeapon` para arma sem categoria.
+   */
+  isProficient?: boolean;
 }
 
 /**
@@ -268,9 +275,14 @@ export function sumLiveWeaponBonuses(
 
   return bonuses.reduce((sum, bonus) => {
     if (bonus.target.type !== targetType) return sum;
-    const scope = bonus.target as WeaponBonusScope;
+    const scope = bonus.target as WeaponBonusScope & {
+      proficiencyRequired?: boolean;
+    };
     if (!isLiveWeaponBonus(weapon, scope, bonus.source.type)) return sum;
     if (!weaponMatchesScope(weapon, scope)) return sum;
+    // Espelha a checagem de `weaponMatchesBonus` (recalculateSheet): sem ela o
+    // caminho vivo aplicaria um bônus que o baking recusa.
+    if (scope.proficiencyRequired && ctx.isProficient === false) return sum;
 
     if (isModeScopedForWeapon(weapon, scope)) {
       const appliesInMode = thrown

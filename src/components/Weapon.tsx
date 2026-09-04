@@ -210,8 +210,17 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         nivel: nivel ?? 1,
         classLevels,
         thrownMode: isThrownAction(action),
+        isProficient: !isNonProficient,
       }),
-    [sheetBonuses, equipment, isThrownAction, atributos, nivel, classLevels]
+    [
+      sheetBonuses,
+      equipment,
+      isThrownAction,
+      atributos,
+      nivel,
+      classLevels,
+      isNonProficient,
+    ]
   );
 
   const liveDamageBonus = useCallback(
@@ -333,6 +342,10 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     hasActiveEffect: boolean;
   }>(() => {
     const lines: string[] = [];
+    // Bônus que casam com a arma mas estão desligados por falta de
+    // proficiência: vão para o fim da lista, marcados, em vez de sumirem — o
+    // jogador precisa saber por que o número não mudou.
+    const inactiveLines: string[] = [];
     let hasActiveEffect = false;
     if (!sheetBonuses) return { lines, hasActiveEffect };
 
@@ -353,16 +366,25 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         targetType !== 'WeaponAttack' &&
         targetType !== 'WeaponDamage' &&
         targetType !== 'WeaponDamageStep' &&
-        targetType !== 'WeaponThreatMargin'
+        targetType !== 'WeaponThreatMargin' &&
+        targetType !== 'WeaponCriticalMultiplier'
       ) {
         return;
       }
       // Casamento estático arma × escopo pela fonte única (weaponMatchesScope) —
       // cobre name/tags/categorias/melee/ranged/thrown/firing/leve-ágil/2-mãos.
-      const scope = b.target as WeaponBonusScope;
+      const scope = b.target as WeaponBonusScope & {
+        proficiencyRequired?: boolean;
+      };
       if (!weaponMatchesScope(equipment, scope)) {
         return;
       }
+      // Bônus que exigem proficiência (Armas da Ambição, Armas da Destruição)
+      // não são aplicados pelo recálculo numa arma em que o personagem não é
+      // proficiente — o caso clássico é a pistola, que é arma de fogo.
+      const requiresMissingProficiency = !!(
+        scope.proficiencyRequired && isNonProficient
+      );
       const value = evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1, {
         classLevels,
         source: b.source,
@@ -380,28 +402,37 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       } else if (equipment.arremesso && scope.meleeOnly) {
         suffix = ' (corpo a corpo)';
       }
+      let line: string | null = null;
       if (targetType === 'WeaponAttack') {
-        lines.push(`${sourceName}: ${signed} no ataque${suffix}`);
+        line = `${sourceName}: ${signed} no ataque${suffix}`;
       } else if (targetType === 'WeaponDamage') {
-        lines.push(`${sourceName}: ${signed} no dano${suffix}`);
+        line = `${sourceName}: ${signed} no dano${suffix}`;
       } else if (targetType === 'WeaponDamageStep') {
-        lines.push(
-          `${sourceName}: ${signed} passo${
-            Math.abs(value) > 1 ? 's' : ''
-          } de dano`
-        );
+        line = `${sourceName}: ${signed} passo${
+          Math.abs(value) > 1 ? 's' : ''
+        } de dano`;
       } else if (targetType === 'WeaponThreatMargin') {
-        lines.push(
+        line =
           b.target.mode === 'set'
             ? `${sourceName}: margem de ameaça ${value}`
-            : `${sourceName}: ${signed} na margem de ameaça`
-        );
+            : `${sourceName}: ${signed} na margem de ameaça`;
+      } else if (targetType === 'WeaponCriticalMultiplier') {
+        line =
+          b.target.mode === 'set'
+            ? `${sourceName}: multiplicador de crítico x${value}`
+            : `${sourceName}: ${signed} no multiplicador de crítico`;
       }
+      if (!line) return;
+      if (requiresMissingProficiency) {
+        inactiveLines.push(`${line} (inativo: sem proficiência)`);
+        return;
+      }
+      lines.push(line);
       hasActiveEffect = hasActiveEffect || isActiveEffect;
     });
 
-    return { lines, hasActiveEffect };
-  }, [sheetBonuses, equipment, atributos, nivel, classLevels]);
+    return { lines: [...lines, ...inactiveLines], hasActiveEffect };
+  }, [sheetBonuses, equipment, atributos, nivel, classLevels, isNonProficient]);
 
   const damage = getWeaponDisplayDamage(
     equipment,

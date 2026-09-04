@@ -425,6 +425,39 @@ describe('isLiveWeaponBonus / sumLiveWeaponBonuses', () => {
     );
   });
 
+  it('bônus com proficiencyRequired some quando a ficha não é proficiente', () => {
+    // Armas da Destruição (Arsenal): +1 no dano "com armas nas quais é
+    // proficiente". Numa arma editada manualmente o bônus não é bakeado pelo
+    // recálculo, então quem tinha que respeitar a proficiência era o caminho
+    // vivo — e ele ignorava a flag.
+    const armasDaDestruicao = [
+      mkBonus({ type: 'WeaponDamage', proficiencyRequired: true }, 1, {
+        type: 'activeEffect',
+        powerKey: 'concedido:armas-da-destruicao',
+        name: 'Armas da Destruição',
+      }),
+    ];
+    const editada: Equipment = { ...espadaLonga, hasManualEdits: true };
+
+    expect(
+      sumLiveWeaponBonuses(editada, armasDaDestruicao, 'WeaponDamage', {
+        ...ctx,
+        isProficient: false,
+      })
+    ).toBe(0);
+    expect(
+      sumLiveWeaponBonuses(editada, armasDaDestruicao, 'WeaponDamage', {
+        ...ctx,
+        isProficient: true,
+      })
+    ).toBe(1);
+    // Sem informação de proficiência (caminhos que não a passam), falha segura:
+    // trata como proficiente.
+    expect(
+      sumLiveWeaponBonuses(editada, armasDaDestruicao, 'WeaponDamage', ctx)
+    ).toBe(1);
+  });
+
   it('escopo que não casa com a arma continua fora, mesmo sendo vivo', () => {
     // Estilo de Duas Mãos: `twoHandedOnly` — a Lança não é de duas mãos.
     const estiloDuasMaos = [
