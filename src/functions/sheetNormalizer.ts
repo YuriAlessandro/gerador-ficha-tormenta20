@@ -517,7 +517,7 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
       .map((p) => {
         const current = getGrantedPowersByName().get(p.name);
         if (!current) return p;
-        return {
+        const refreshed = {
           ...p,
           description: current.description,
           sheetBonuses: current.sheetBonuses,
@@ -527,6 +527,16 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
           // depois da correção do catálogo.
           sheetActions: current.sheetActions,
         };
+        // "Conta como o poder X para pré-requisitos": campo novo, ausente das
+        // cópias antigas. Segue o dado atual nos dois sentidos.
+        if (current.grantsPowerRequirements) {
+          refreshed.grantsPowerRequirements = [
+            ...current.grantsPowerRequirements,
+          ];
+        } else {
+          delete refreshed.grantsPowerRequirements;
+        }
+        return refreshed;
       });
   }
 

@@ -191,6 +191,10 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
         'Enquanto está montado sobre um cavalo, você recebe +2 em testes de ataque e em Cavalgar. Além disso, você passa automaticamente em testes de Cavalgar para não cair do cavalo quando sofre dano e não sofre penalidades para atacar à distância ou lançar magias quando montado em cavalos. Este poder conta como o poder Ginete para efeitos de pré-requisitos de outras habilidades. Se você é um centauro, os benefícios deste poder mudam para: você pode fazer investidas em terreno difícil e não sofre a penalidade de –2 na Defesa por fazer uma investida. Por fim, recebe +2 nas rolagens de dano com armas em investidas.',
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [[{ type: RequirementType.DEVOTO, name: 'Hippion' }]],
+      // "Este poder conta como o poder Ginete para efeitos de pré-requisitos
+      // de outras habilidades" — libera Carga de Cavalaria, Catafractário,
+      // Combate Montado e Dois Como Um sem ter o poder Ginete.
+      grantsPowerRequirements: ['Ginete'],
     },
     {
       name: 'Guardei para Você',

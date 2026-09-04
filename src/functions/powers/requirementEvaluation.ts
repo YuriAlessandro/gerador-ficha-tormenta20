@@ -13,6 +13,7 @@ import Skill, {
 } from '../../interfaces/Skills';
 import { isClassOrVariantOf, isRaceOrVariantOf } from '../general';
 import { applyRequirementNot } from '../powers';
+import { PowerLike, sheetSatisfiesPowerRequirement } from './hasPowerNamed';
 import { formatRequirement } from '../requirementText';
 
 /**
@@ -49,9 +50,9 @@ export type PowerKind = 'general' | 'class';
 export interface RequirementContext {
   sheet: CharacterSheet;
   /** Poderes gerais marcados no editor e ainda não salvos. */
-  pendingGeneralPowers?: { name: string }[];
+  pendingGeneralPowers?: PowerLike[];
   /** Poderes de classe marcados no editor e ainda não salvos. */
-  pendingClassPowers?: { name: string }[];
+  pendingClassPowers?: PowerLike[];
 }
 
 export interface EvaluatedRequirement {
@@ -103,11 +104,17 @@ const ARTESAO_CRIATIVO = 'Artesão Criativo';
 function hasPowerNamed(name: string | undefined, ctx: RequirementContext) {
   if (!name) return false;
   const { sheet, pendingGeneralPowers = [], pendingClassPowers = [] } = ctx;
+  const satisfies = (p: PowerLike) =>
+    p.name === name || !!p.grantsPowerRequirements?.includes(name);
   return (
-    pendingGeneralPowers.some((p) => p.name === name) ||
-    pendingClassPowers.some((p) => p.name === name) ||
-    (sheet.generalPowers?.some((p) => p.name === name) ?? false) ||
-    (sheet.classPowers?.some((p) => p.name === name) ?? false) ||
+    pendingGeneralPowers.some(satisfies) ||
+    pendingClassPowers.some(satisfies) ||
+    // Cobre os baldes salvos da ficha — inclusive `devoto.poderes`, onde um
+    // poder concedido pode viver sozinho — e o hook `grantsPowerRequirements`
+    // ("Ginete Altivo", de Hippion, conta como "Ginete").
+    sheetSatisfiesPowerRequirement(sheet, name) ||
+    // `classe.abilities` fica FORA de `sheetSatisfiesPowerRequirement` de
+    // propósito (ver `hasPowerNamed.ts`), então continua checada aqui.
     (sheet.classe.abilities?.some((a) => a.name === name) ?? false)
   );
 }
@@ -157,11 +164,6 @@ function isRequirementMet(
     case RequirementType.PODER:
       return (
         hasPowerNamed(req.name as string, ctx) ||
-        // Habilidades raciais que contam como possuir um poder
-        // (hoje só raças de homebrew usam este hook)
-        (sheet.raca.abilities ?? []).some((a) =>
-          a.grantsPowerRequirements?.includes(req.name ?? '')
-        ) ||
         (sheet.sheetActionHistory?.some((entry) =>
           entry.changes.some(
             (change) =>

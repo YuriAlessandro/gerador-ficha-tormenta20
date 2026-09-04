@@ -390,6 +390,60 @@ describe('evaluatePowerRequirements', () => {
     });
   });
 
+  describe('PODER concedido / "conta como o poder X"', () => {
+    it('enxerga poder concedido, que vive só em devoto.poderes', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.devoto = {
+        divindade: { name: 'Hippion' },
+        poderes: [{ name: 'Ginete Altivo' }],
+      } as never;
+
+      const result = evaluatePowerRequirements(
+        power([[{ type: RequirementType.PODER, name: 'Ginete Altivo' }]]),
+        ctxOf(sheet)
+      );
+
+      expect(result.available).toBe(true);
+    });
+
+    it('Ginete Altivo (Hippion) satisfaz o pré-requisito do poder Ginete', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.devoto = {
+        divindade: { name: 'Hippion' },
+        poderes: [
+          { name: 'Ginete Altivo', grantsPowerRequirements: ['Ginete'] },
+        ],
+      } as never;
+
+      const result = evaluatePowerRequirements(
+        power(
+          [[{ type: RequirementType.PODER, name: 'Ginete' }]],
+          'Combate Montado'
+        ),
+        ctxOf(sheet)
+      );
+
+      expect(result.available).toBe(true);
+    });
+
+    it('não vaza para um poder de nome diferente do declarado', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.devoto = {
+        divindade: { name: 'Hippion' },
+        poderes: [
+          { name: 'Ginete Altivo', grantsPowerRequirements: ['Ginete'] },
+        ],
+      } as never;
+
+      const result = evaluatePowerRequirements(
+        power([[{ type: RequirementType.PODER, name: 'Encouraçado' }]]),
+        ctxOf(sheet)
+      );
+
+      expect(result.available).toBe(false);
+    });
+  });
+
   describe('bypass racial', () => {
     it('dispensa os pré-requisitos e não devolve nada para exibir', () => {
       const sheet = createMockCharacterSheet();
