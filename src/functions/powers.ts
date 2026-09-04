@@ -1,10 +1,10 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
-import generalPowers from '../data/poderes';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
 import {
   GeneralPower,
+  GeneralPowerType,
   Requirement,
   RequirementType,
 } from '../interfaces/Poderes';
@@ -23,6 +23,8 @@ import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
 import { getSheetDeityNames } from './powers/deityNames';
 import { sheetSatisfiesPowerRequirement } from './powers/hasPowerNamed';
+import { dataRegistry } from '../data/registry';
+import { SupplementId } from '../types/supplement.types';
 
 export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
 
@@ -279,24 +281,54 @@ export function isPowerAvailable(
   return true;
 }
 
+/**
+ * Tipos que um "poder geral" pode ter quando é SORTEADO ou oferecido como
+ * escolha livre. CONCEDIDOS e RACA ficam de fora: concedido vem da divindade e
+ * poder de raça vem da raça, nenhum dos dois é escolha de poder geral. Sem este
+ * filtro, um devoto de Khalmyr podia receber "Espada Justiceira" como poder
+ * geral de subida de nível — o catálogo é um só, e todo concedido tem
+ * pré-requisito DEVOTO, que o próprio devoto satisfaz.
+ */
+const PICKABLE_GENERAL_POWER_TYPES = [
+  GeneralPowerType.COMBATE,
+  GeneralPowerType.DESTINO,
+  GeneralPowerType.MAGIA,
+  GeneralPowerType.TORMENTA,
+];
+
+/**
+ * Poderes gerais que a ficha pode receber agora.
+ *
+ * `supplements` é opcional porque boa parte das chamadas vem de dentro de
+ * handlers de `applyPower` (Humano Versátil, Memória Póstuma…), que não
+ * recebem a lista. Nesses casos vale o `sheet.supplements` carimbado na
+ * criação; ficha antiga, sem carimbo, cai no core.
+ *
+ * Antes daqui a função lia o catálogo `generalPowers` (o módulo marcado como
+ * deprecated, que é só o core), então NENHUM poder geral de suplemento entrava
+ * em ficha aleatória, com qualquer combinação de suplementos ligada.
+ */
 export function getPowersAllowedByRequirements(
-  sheet: CharacterSheet
+  sheet: CharacterSheet,
+  supplements?: SupplementId[]
 ): GeneralPower[] {
   const existingGeneralPowers = sheet.generalPowers;
+  const scope = supplements ??
+    sheet.supplements ?? [SupplementId.TORMENTA20_CORE];
 
-  return Object.values(generalPowers)
-    .flat()
-    .filter((power) => {
-      const isRepeatedPower = existingGeneralPowers.find(
-        (existingPower) => existingPower.name === power.name
-      );
+  return dataRegistry.getAllPowersBySupplements(scope).filter((power) => {
+    if (!PICKABLE_GENERAL_POWER_TYPES.includes(power.type)) return false;
 
-      if (isRepeatedPower) {
-        return power.allowSeveralPicks;
-      }
+    const isRepeatedPower = existingGeneralPowers.find(
+      (existingPower) => existingPower.name === power.name
+    );
 
-      return isPowerAvailable(sheet, power);
-    });
+    if (isRepeatedPower) {
+      return power.allowSeveralPicks;
+    }
+
+    return isPowerAvailable(sheet, power);
+  });
 }
 
 /**

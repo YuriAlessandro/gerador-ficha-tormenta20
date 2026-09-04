@@ -128,7 +128,6 @@ import {
 } from './originItems';
 import {
   GeneralPower,
-  GeneralPowerType,
   OriginPower,
   PowerGetter,
   PowersGetters,
@@ -174,7 +173,6 @@ import {
   getFuturaLendaClassPowers,
   getPowersAllowedByRequirements,
   getWeightedInventorClassPowers,
-  isPowerAvailable,
 } from './powers';
 import {
   addOrCheapenRandomSpells,
@@ -4145,7 +4143,10 @@ function levelUp(
   const allowedPowers = isClassOrVariantOf(updatedSheet.classe, 'Inventor')
     ? getWeightedInventorClassPowers(updatedSheet)
     : getAllowedClassPowers(updatedSheet);
-  const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
+  const allowedGeneralPowers = getPowersAllowedByRequirements(
+    updatedSheet,
+    supplements
+  );
   if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
     const newPower = getRandomItemFromArray(allowedPowers);
@@ -5703,6 +5704,9 @@ export default function generateRandomSheet(
 
   let charSheet: CharacterSheet = {
     id: uuid(),
+    // Carimbo dos suplementos ativos: o que permite consultar o catálogo certo
+    // depois da criação, de dentro de handlers que não recebem a lista.
+    supplements,
     nome,
     sexo: finalSex === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
@@ -5747,16 +5751,9 @@ export default function generateRandomSheet(
 
   // Propósito de Criação for Golem races (no origin)
   if (!origin && !raceHasOrigin(race.name)) {
-    const allPowers = dataRegistry.getAllPowersBySupplements(supplements);
-    const validTypes = [
-      GeneralPowerType.COMBATE,
-      GeneralPowerType.DESTINO,
-      GeneralPowerType.MAGIA,
-      GeneralPowerType.TORMENTA,
-    ];
-    const eligiblePowers = allPowers.filter(
-      (power) =>
-        validTypes.includes(power.type) && isPowerAvailable(charSheet, power)
+    const eligiblePowers = getPowersAllowedByRequirements(
+      charSheet,
+      supplements
     );
 
     if (eligiblePowers.length > 0) {
@@ -6100,6 +6097,9 @@ export function generateEmptySheet(
 
   let emptySheet: CharacterSheet = {
     id: uuid(),
+    // Mesmo carimbo do gerador aleatório: o assistente também precisa que o
+    // catálogo consultado depois da criação inclua os suplementos escolhidos.
+    supplements,
     nome: '',
     sexo: '',
     nivel: 1,
