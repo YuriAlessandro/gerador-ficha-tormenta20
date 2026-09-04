@@ -18,6 +18,7 @@ import type { SheetAge } from '../premium/interfaces/Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { DiceRoll } from './DiceRoll';
 import type { PlayerJournal } from './PlayerJournal';
+import type { SupplementId } from '../types/supplement.types';
 
 export type SheetChangeSource =
   | {
@@ -760,6 +761,17 @@ export default interface CharacterSheet {
    * bloquear desativação/carregamento quando o conteúdo runtime some.
    */
   usedSupplements?: string[];
+  /**
+   * Suplementos ativos quando a ficha foi criada. Carimbado pelo gerador e
+   * lido por quem precisa consultar o catálogo DEPOIS da criação sem receber a
+   * lista por parâmetro — hoje `getPowersAllowedByRequirements`, chamada de
+   * dentro de handlers de `applyPower` (Humano Versátil, Memória Póstuma,
+   * Natureza Orgânica, Ambição Herdada) que não têm como propagá-la.
+   *
+   * Distinto de `usedSupplements`, que registra só ids de runtime/homebrew para
+   * bloquear desativação. Ausente em ficha antiga: quem lê cai no core.
+   */
+  supplements?: SupplementId[];
   /**
    * Escolhas persistidas de ações `chooseFromOptions`, indexadas por `optionKey`
    * → nomes das opções escolhidas (com repetição quando a opção é repetível ou
