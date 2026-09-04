@@ -143,7 +143,8 @@ const normalizeProficiencyName = (value: unknown): string =>
  * - Marciais: exigem 'Armas Marciais'; se a arma tem alcance (incluindo
  *   arremesso), 'Armas Marciais de Distância' também satisfaz. A proficiência
  *   é da arma, não do modo de ataque — vale igualmente em Luta e Pontaria.
- * - Exóticas: exigem 'Armas Exóticas'. De fogo: exigem 'Armas de Fogo'.
+ * - Exóticas: exigem 'Armas Exóticas'. De fogo: exigem 'Armas de Fogo' — ou,
+ *   se não forem de duas mãos, 'Armas de Fogo de Uma Mão' (Escola de Tiro).
  * - Sem categoria resolvível (custom/homebrew): proficiente (falha segura).
  *
  * Use `getSheetProficiencias(sheet)` para obter a lista efetiva da ficha.
@@ -172,7 +173,12 @@ export function isProficientWithWeapon(
   }
   if (category === 'exotic')
     return proficiencias.includes(PROFICIENCIAS.EXOTICAS);
-  return proficiencias.includes(PROFICIENCIAS.FOGO);
+  // De fogo: 'Armas de Fogo' cobre todas; 'Armas de Fogo de Uma Mão' (Escola de
+  // Tiro do Duelista) cobre as que não são de duas mãos.
+  if (proficiencias.includes(PROFICIENCIAS.FOGO)) return true;
+  return (
+    !weapon.twoHanded && proficiencias.includes(PROFICIENCIAS.FOGO_UMA_MAO)
+  );
 }
 
 /** Penalidade de não proficiência da arma: 0 ou -5 nos testes de ataque. */
