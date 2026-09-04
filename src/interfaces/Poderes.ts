@@ -65,6 +65,13 @@ export interface GeneralPower extends CountsAsTormentaPower {
   description: string;
   name: string;
   requirements: Requirement[][];
+  /**
+   * Nomes de poderes que este poder SUBSTITUI como pré-requisito — a cláusula
+   * "conta como o poder X para efeitos de pré-requisitos" (ex.: o concedido
+   * "Ginete Altivo", de Hippion, conta como Ginete). Mesmo hook das habilidades
+   * raciais (`RaceAbility.grantsPowerRequirements`).
+   */
+  grantsPowerRequirements?: string[];
   allowSeveralPicks?: boolean;
   canRepeat?: boolean;
   sheetActions?: SheetAction[];

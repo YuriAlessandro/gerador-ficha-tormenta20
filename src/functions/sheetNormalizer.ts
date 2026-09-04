@@ -8,7 +8,9 @@ import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import { GeneralPower, GeneralPowerType } from '../interfaces/Poderes';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
+import DEUSES_MENORES_POWERS from '../data/systems/tormenta20/deuses-menores/powers';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import {
   KAIJIN_CHARISMA_EXEMPT_POWER_NAMES,
@@ -42,8 +44,14 @@ import { updateUnarmedRolls } from './unarmedDamage';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
 
-const GRANTED_POWERS_BY_NAME = new Map(
-  Object.values(GRANTED_POWERS).map((power) => [power.name, power])
+// Os concedidos dos deuses menores entram junto: eles também vivem embutidos em
+// `devoto.poderes` e precisam do mesmo refresh (foi por aqui que "Ginete
+// Altivo" ganhou `grantsPowerRequirements` em fichas já salvas).
+const GRANTED_POWERS_BY_NAME = new Map<string, GeneralPower>(
+  [
+    ...Object.values(GRANTED_POWERS),
+    ...DEUSES_MENORES_POWERS[GeneralPowerType.CONCEDIDOS],
+  ].map((power) => [power.name, power])
 );
 
 // Poderes cujos `sheetBonuses` passaram a existir depois de já haver fichas
@@ -494,11 +502,21 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
       .map((p) => {
         const current = GRANTED_POWERS_BY_NAME.get(p.name);
         if (!current) return p;
-        return {
+        const refreshed = {
           ...p,
           description: current.description,
           sheetBonuses: current.sheetBonuses,
         };
+        // "Conta como o poder X para pré-requisitos": campo novo, ausente das
+        // cópias antigas. Segue o dado atual nos dois sentidos.
+        if (current.grantsPowerRequirements) {
+          refreshed.grantsPowerRequirements = [
+            ...current.grantsPowerRequirements,
+          ];
+        } else {
+          delete refreshed.grantsPowerRequirements;
+        }
+        return refreshed;
       });
   }
 

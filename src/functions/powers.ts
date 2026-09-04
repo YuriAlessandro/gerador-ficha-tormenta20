@@ -21,6 +21,7 @@ import {
 } from './general';
 import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
+import { sheetSatisfiesPowerRequirement } from './powers/hasPowerNamed';
 
 export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
 
@@ -94,21 +95,11 @@ export function applyRequirementNot(rule: Requirement, met: boolean): boolean {
 function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
   switch (rule.type) {
     case RequirementType.PODER: {
-      const allPowers = getAllCharacterPowers(sheet);
-
-      const foundInPowers = allPowers.some(
-        (currPower) => currPower.name === rule.name
-      );
-      if (foundInPowers) return true;
-
-      // Habilidades raciais que contam como possuir um poder
-      // Nenhuma raça do core usa mais este hook (o Centauro usava, mas o livro dá
-      // um bypass de poder específico, não o poder Ginete); ele sobrevive para
-      // raças de homebrew — ver `compileRace`.
-      const grantedByRace = (sheet.raca.abilities ?? []).some((a) =>
-        a.grantsPowerRequirements?.includes(rule.name ?? '')
-      );
-      if (grantedByRace) return true;
+      // Varre TODOS os baldes de poder (inclusive `devoto.poderes`, onde um
+      // poder concedido pode viver sozinho) e respeita o hook
+      // `grantsPowerRequirements` — de habilidade racial (homebrew, via
+      // `compileRace`) ou de poder ("Ginete Altivo" conta como "Ginete").
+      if (sheetSatisfiesPowerRequirement(sheet, rule.name)) return true;
 
       // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
       return (sheet.sheetActionHistory ?? []).some((entry) =>
