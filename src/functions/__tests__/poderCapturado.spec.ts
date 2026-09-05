@@ -180,6 +180,38 @@ describe('Usurpador — Poder Capturado', () => {
     });
   });
 
+  it('escolher a próxima captura ignora a captura já ativa', () => {
+    // Regressão: `getSheetDeityNames` dá precedência ao deus capturado sobre a
+    // devoção, então a ficha sintética precisa limpar o efeito ativo — senão a
+    // lista de poderes de Valkaria seria avaliada contra o deus anterior e
+    // quase tudo apareceria como "requisitos não cumpridos".
+    const sheet = buildUsurpador(10);
+    const valkaria = findDeity('Valkaria');
+
+    const antes = getCapturablePowers(sheet, valkaria).filter(
+      (c) => c.available
+    ).length;
+    expect(antes).toBeGreaterThan(0);
+
+    sheet.activeEffects = [
+      {
+        instanceId: 'x',
+        powerKey: PODER_CAPTURADO_KEY,
+        name: 'Poder Capturado',
+        sourceLabel: 'Usurpador · Poder Capturado',
+        optionId: `Khalmyr|${GRANTED_POWERS.ESPADA_JUSTICEIRA.name}`,
+        optionLabel: 'Espada Justiceira (Khalmyr)',
+        bonuses: [],
+        appliedAt: '2026-08-11T00:00:00.000Z',
+      },
+    ];
+
+    const depois = getCapturablePowers(sheet, valkaria).filter(
+      (c) => c.available
+    ).length;
+    expect(depois).toBe(antes);
+  });
+
   it('conta como devoto do deus roubado enquanto o efeito está ativo', () => {
     const sheet = buildUsurpador(10);
     expect(getEffectiveDeityName(sheet)).toBeUndefined();

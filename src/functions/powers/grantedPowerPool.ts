@@ -27,7 +27,43 @@ export function isDualDevotionPower(power: GeneralPower): boolean {
 }
 
 /**
- * União deduplicada (por nome) dos poderes concedidos dos deuses informados.
+ * As cláusulas DEVOTO do poder são satisfeitas por este conjunto de deuses?
+ *
+ * Filtro necessário porque `getDeitiesWithSupplementPowers` anexa um poder a
+ * TODA divindade citada em seus requisitos: o poder de Thyatis + Sszzaas entra
+ * na lista de Sszzaas, e a união ingênua o ofereceria a um devoto de
+ * Oceano + Sszzaas — que não cumpre a metade Thyatis.
+ *
+ * A regra: todos os poderes de cada deus, e apenas o poder exclusivo do par
+ * efetivamente escolhido.
+ *
+ * Só as cláusulas DEVOTO são avaliadas. Classe, nível e afins seguem a cargo
+ * de `isPowerAvailable` — a piscina responde "de quais deuses posso escolher",
+ * não "eu qualifico para este poder".
+ */
+function deityClausesSatisfied(
+  power: GeneralPower,
+  deityNames: string[]
+): boolean {
+  const groups = power.requirements;
+  if (!groups || groups.length === 0) return true;
+
+  return groups.some((group) =>
+    group
+      .filter((req) => req.type === RequirementType.DEVOTO && req.name)
+      .every((req) => {
+        const satisfied =
+          req.name === 'any'
+            ? deityNames.length > 0
+            : deityNames.includes(req.name as string);
+        return req.not ? !satisfied : satisfied;
+      })
+  );
+}
+
+/**
+ * União deduplicada (por nome) dos poderes concedidos dos deuses informados,
+ * restrita aos que a devoção realmente satisfaz.
  *
  * Resolve cada deus pelo registry — nunca pelo array estático — senão poderes
  * vindos de suplementos (Deuses de Arton, Deuses Menores, homebrew) somem da
@@ -44,6 +80,7 @@ export function getGrantedPowerPool(
     const deity = dataRegistry.getDeityByName(name, supplements);
     deity?.poderes?.forEach((power) => {
       if (seen.has(power.name)) return;
+      if (!deityClausesSatisfied(power, deityNames)) return;
       seen.add(power.name);
       pool.push(power);
     });

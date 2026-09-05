@@ -5,6 +5,7 @@ import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
 import { isPowerAvailable } from '../powers';
 import { isDualDevotionPower } from './grantedPowerPool';
+import { PODER_CAPTURADO_KEY } from './poderCapturadoKey';
 
 /**
  * Poder Capturado — Usurpador, 4º nível (Heróis de Arton).
@@ -77,7 +78,17 @@ export function buildSyntheticDevoteSheet(
   sheet: CharacterSheet,
   deity: Divindade
 ): CharacterSheet {
-  return { ...sheet, devoto: { divindade: deity, poderes: [] } };
+  return {
+    ...sheet,
+    devoto: { divindade: deity, poderes: [] },
+    // Remove uma captura JÁ ativa. Esta ficha é a hipótese "e se eu fosse
+    // devoto deste deus": `getSheetDeityNames` dá precedência ao deus
+    // capturado sobre a devoção, então deixar o efeito aqui faria a lista de
+    // poderes de Valkaria ser avaliada contra o deus da captura anterior.
+    activeEffects: sheet.activeEffects?.filter(
+      (effect) => effect.powerKey !== PODER_CAPTURADO_KEY
+    ),
+  };
 }
 
 export interface CapturablePower {

@@ -192,6 +192,27 @@ describe('Devoção Dupla', () => {
       expect(nomes).toContain(PODER_UNICO);
     });
 
+    it('traz APENAS o poder único do par escolhido', () => {
+      // Sszzaas participa de 4 sincretismos. Um devoto de Oceano + Sszzaas só
+      // pode receber o poder do par Oceano + Sszzaas — os outros três exigem
+      // uma terceira divindade que ele não tem.
+      const nomes = getGrantedPowerPool(['Oceano', 'Sszzaas'], SUPPLEMENTS).map(
+        (p) => p.name
+      );
+
+      expect(nomes).toContain('Começar o Motim'); // Oceano + Sszzaas
+      expect(nomes).not.toContain('Amigo Secreto'); // Thyatis + Sszzaas
+      expect(nomes).not.toContain('Tutela do Enganador'); // Lena + Sszzaas
+      expect(nomes).not.toContain('Entrar no Personagem'); // Marah + Sszzaas
+    });
+
+    it('devoto simples não recebe poder de sincretismo nenhum', () => {
+      const pool = getGrantedPowerPool(['Sszzaas'], SUPPLEMENTS);
+      expect(pool.filter(isDualDevotionPower)).toEqual([]);
+      // ...mas continua com os poderes concedidos normais do seu deus.
+      expect(pool.length).toBeGreaterThan(0);
+    });
+
     it('sem o suplemento ativo o poder único não aparece', () => {
       const pool = getGrantedPowerPool([DEUS_A, DEUS_B], CORE_ONLY);
       expect(pool.map((p) => p.name)).not.toContain(PODER_UNICO);

@@ -1407,7 +1407,14 @@ function getReligiosidade(
     ? classe.qtdPoderesConcedidos
     : 0;
   const poderes = getPoderesConcedidos(
-    divindade,
+    // Piscina filtrada, não `divindade.poderes` cru: o registry anexa um poder
+    // a TODA divindade citada nos requisitos, então a lista de um deus carrega
+    // os poderes de sincretismo que ele divide com outros. A ficha aleatória
+    // nunca tem devoção dupla, logo nenhum deles é elegível aqui.
+    {
+      ...divindade,
+      poderes: getGrantedPowerPool([divindade.name], supplements),
+    },
     todosPoderes,
     classe,
     qtdPoderesConcedidos
