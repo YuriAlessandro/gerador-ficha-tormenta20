@@ -158,7 +158,22 @@ export default defineConfig({
         importScripts: ['push-sw.js'],
         // Exclude HTML from precache - let it be handled by NetworkFirst runtime caching
         // This ensures users always get the latest HTML on navigation
-        globPatterns: ['**/*.{js,css,ico,png,svg,json,wasm}'],
+        //
+        // Só o app shell. O glob antigo (`**/*.{js,css,ico,png,svg,json,wasm}`)
+        // pegava tudo: 129 arquivos, 31 MB — os 24 chunks de tela lazy, o
+        // dice-box inteiro e 9,7 MB de PNG, sendo 7,9 MB em três imagens
+        // decorativas. Isso significava 31 MB baixados a cada versão nova, e
+        // uma janela de vários minutos, a cada deploy, em que o SW disputava
+        // banda com as próprias telas que o usuário estava tentando abrir.
+        //
+        // As telas lazy continuam funcionando offline — só que pelo cache de
+        // runtime, a partir da primeira visita naquela versão, em vez de
+        // adiantado.
+        globPatterns: [
+          'assets/index-*.js',
+          'assets/index-*.css',
+          '*.{ico,png,svg,txt}',
+        ],
         // `_routes.json` é config de deploy do Cloudflare Pages (define quais
         // caminhos invocam a Function), não asset da aplicação. O glob de .json
         // acima o pegaria e o service worker o precachearia à toa.
@@ -230,6 +245,37 @@ export default defineConfig({
                 maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
               },
+              plugins: [
+                {
+                  // Guarda contra envenenamento do cache local.
+                  //
+                  // O `_redirects` do Pages termina em `/* /index.html 200`, e
+                  // o Pages não aceita 404 em `_redirects` — então um asset que
+                  // falte por um instante (janela de propagação de um deploy)
+                  // não dá 404: dá 200 com o HTML do SPA. Sem este guard o SWR
+                  // guardava esse HTML sob a URL do `.js` por 7 dias, e o
+                  // aparelho ficava com "Failed to fetch dynamically imported
+                  // module" em toda navegação — só naquele dispositivo, com o
+                  // servidor íntegro o tempo todo.
+                  //
+                  // Precisa ser livre de closure: o workbox-build serializa a
+                  // função para dentro do `sw.js` gerado.
+                  cacheWillUpdate: async ({
+                    request,
+                    response,
+                  }: {
+                    request: Request;
+                    response: Response;
+                  }) => {
+                    const type = response.headers.get('content-type') || '';
+                    const wantsCode =
+                      request.destination === 'script' ||
+                      request.destination === 'style';
+                    if (wantsCode && type.includes('text/html')) return null;
+                    return response;
+                  },
+                },
+              ],
             },
           },
         ],

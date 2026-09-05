@@ -12,7 +12,16 @@
   X-XSS-Protection: 1; mode=block
 
 # Assets com hash de conteúdo gerados pelo Vite. O hash muda quando o conteúdo
-# muda, então cache imutável de 1 ano é seguro.
+# muda, então cache de 1 ano é seguro.
+#
+# Sem `immutable`, de propósito. `immutable` promete que a resposta nunca muda e
+# faz o navegador não revalidar nem em reload — o que é verdade para o conteúdo,
+# mas não para os acidentes: se o catch-all do `_redirects` devolver o HTML do
+# SPA sob a URL de um `.js` durante a janela de propagação de um deploy, essa
+# resposta fica presa no cache do navegador por um ano e nem F5 tira. Sem o
+# `immutable` o arquivo continua sendo servido do cache em navegação normal
+# (mesmo max-age), e um reload passa a revalidar — 304 barato, já que a URL é
+# hasheada, e vira uma saída para o usuário preso.
 #
 # O `Access-Control-Allow-Origin` é load-bearing, não higiene: módulos ES e web
 # fonts são sempre buscados com CORS, e num embed em iframe sandbox sem
@@ -20,7 +29,7 @@
 # bloqueado sem ele — tela branca na extensão do Owlbear. Assets são públicos e
 # sem credencial, então `*` é seguro.
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=31536000
   Access-Control-Allow-Origin: *
 
 # Assets da raiz que NÃO têm hash no nome (ícones, PDF da ficha, imagem de

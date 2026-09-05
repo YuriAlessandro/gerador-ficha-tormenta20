@@ -18,6 +18,7 @@ import { AttackResult, CharacterAttack } from 't20-sheet-builder';
 import { SkillRollResult } from 't20-sheet-builder/build/domain/entities/Skill/SheetSkill';
 import { CssVarsProvider } from './theme/CssVarsProvider';
 import { createTormentaTheme } from './theme/theme';
+import retryImport from './utils/retryImport';
 
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
@@ -109,58 +110,64 @@ import SafeAreaScrim from './components/SafeAreaScrim';
 //
 // LandingPageV2 fica de fora de propósito: é a rota catch-all (a home), então
 // adiar seu chunk só trocaria conteúdo por um spinner no primeiro paint.
-const CavernaDoSaber = React.lazy(
+// Toda tela lazy passa por `retryImport`: um GET de chunk que falha por rede
+// (ou por o documento em memória ser de antes do último deploy) vira tela de
+// erro sem isso — o módulo está íntegro no servidor, só faltou tentar de novo.
+const lazyScreen: typeof React.lazy = (factory) =>
+  React.lazy(retryImport(factory));
+
+const CavernaDoSaber = lazyScreen(
   () => import('./components/screens/CavernaDoSaber')
 );
-const Changelog = React.lazy(() => import('./components/screens/Changelog'));
-const Database = React.lazy(() => import('./components/screens/Database'));
-const TermsOfUse = React.lazy(() => import('./components/screens/TermsOfUse'));
-const MainScreen = React.lazy(() => import('./components/screens/MainScreen'));
-const MyCharactersPage = React.lazy(
+const Changelog = lazyScreen(() => import('./components/screens/Changelog'));
+const Database = lazyScreen(() => import('./components/screens/Database'));
+const TermsOfUse = lazyScreen(() => import('./components/screens/TermsOfUse'));
+const MainScreen = lazyScreen(() => import('./components/screens/MainScreen'));
+const MyCharactersPage = lazyScreen(
   () => import('./components/screens/MyCharactersPage')
 );
-const Rewards = React.lazy(() => import('./components/screens/Rewards'));
-const SheetBuilderPage = React.lazy(
+const Rewards = lazyScreen(() => import('./components/screens/Rewards'));
+const SheetBuilderPage = lazyScreen(
   () => import('./components/screens/SheetBuilderPage')
 );
-const SheetList = React.lazy(() => import('./components/screens/SheetList'));
-const SuperiorItems = React.lazy(
+const SheetList = lazyScreen(() => import('./components/screens/SheetList'));
+const SuperiorItems = lazyScreen(
   () => import('./components/screens/SuperiorItems')
 );
-const MagicalItems = React.lazy(
+const MagicalItems = lazyScreen(
   () => import('./components/screens/MagicalItems')
 );
-const ProfilePage = React.lazy(
+const ProfilePage = lazyScreen(
   () => import('./components/screens/ProfilePage')
 );
-const SheetViewPage = React.lazy(
+const SheetViewPage = lazyScreen(
   () => import('./components/screens/SheetViewPage')
 );
-const OwlbearSheetEmbedPage = React.lazy(
+const OwlbearSheetEmbedPage = lazyScreen(
   () => import('./components/screens/OwlbearSheetEmbedPage')
 );
-const InstallPage = React.lazy(
+const InstallPage = lazyScreen(
   () => import('./components/screens/InstallPage')
 );
-const ThreatGeneratorScreen = React.lazy(
+const ThreatGeneratorScreen = lazyScreen(
   () => import('./components/ThreatGenerator/ThreatGeneratorScreen')
 );
-const ThreatHistory = React.lazy(
+const ThreatHistory = lazyScreen(
   () => import('./components/ThreatGenerator/ThreatHistory')
 );
-const ThreatViewWrapper = React.lazy(
+const ThreatViewWrapper = lazyScreen(
   () => import('./components/ThreatGenerator/ThreatViewWrapper')
 );
-const ThreatViewCloudWrapper = React.lazy(
+const ThreatViewCloudWrapper = lazyScreen(
   () => import('./components/ThreatGenerator/ThreatViewCloudWrapper')
 );
-const SupportPage = React.lazy(
+const SupportPage = lazyScreen(
   () => import('./components/Premium/SupportPage')
 );
-const SupportSuccessPage = React.lazy(
+const SupportSuccessPage = lazyScreen(
   () => import('./components/Premium/SupportSuccessPage')
 );
-const WyrtScreen = React.lazy(() =>
+const WyrtScreen = lazyScreen(() =>
   import('./premium/components/Wyrt').then((m) => ({ default: m.WyrtScreen }))
 );
 
