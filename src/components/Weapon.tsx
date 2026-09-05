@@ -131,6 +131,13 @@ interface WeaponProps {
   onSemanticsChange?: (next: WeaponOverride) => void;
 }
 
+/** Rótulo da mão na linha da arma. `null` (não empunhada) não rende texto. */
+const WIELDING_LABELS: Record<Exclude<WieldingSlot, null>, string> = {
+  main: '🤚 Principal',
+  off: '✋ Secundária',
+  both: '🤝 Duas mãos',
+};
+
 interface RollContext {
   action?: WeaponAction;
   useTrigger: boolean;
@@ -907,24 +914,68 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               />
             </Tooltip>
           )}
-          {customSkill && ` (${customSkill})`}{' '}
-          {withManualMark('atkBonus', `${baseAtk >= 0 ? '+' : ''}${baseAtk}`)} •{' '}
-          {withManualMark('dano', damage)} • (
-          {withManualMark('critico', critico)})
-          {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
-          {(equipment.extraDamage ?? []).map((extra) => (
-            <Box
-              key={extra.id ?? `${extra.dice}-${extra.damageType}`}
-              component='span'
-              sx={{ color: 'text.secondary', fontSize: '0.85em', ml: 0.5 }}
-            >
-              {' '}
-              + {extra.dice} {extra.damageType}
+          {/* As estatísticas moram num único item flex, com cada valor e seus
+              acompanhantes (separador, parênteses) num grupo `nowrap`.
+              O container desta linha é `display: flex`, e num flex container
+              cada TRECHO DE TEXTO contíguo vira um item anônimo: com as marcas
+              de edição manual quebrando o texto em vários elementos, o `(`, o
+              `)` e os `•` viravam itens próprios, encolhiam e quebravam linha
+              cada um por conta — no mobile os parênteses e pontos apareciam
+              soltos e desalinhados dos números. */}
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'baseline',
+              flexWrap: 'wrap',
+              columnGap: 0.5,
+              ml: 0.5,
+            }}
+          >
+            {customSkill && (
+              <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+                ({customSkill})
+              </Box>
+            )}
+            <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+              {withManualMark(
+                'atkBonus',
+                `${baseAtk >= 0 ? '+' : ''}${baseAtk}`
+              )}
             </Box>
-          ))}
-          {wieldingSlot === 'main' && ' · 🤚 Principal'}
-          {wieldingSlot === 'off' && ' · ✋ Secundária'}
-          {wieldingSlot === 'both' && ' · 🤝 Duas mãos'}
+            {/* O separador viaja junto do valor que ele introduz: numa quebra
+                de linha ele desce com o número, em vez de ficar órfão no fim
+                da linha anterior. */}
+            <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+              • {withManualMark('dano', damage)}
+            </Box>
+            <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+              • ({withManualMark('critico', critico)})
+            </Box>
+            {equipment.tipo && equipment.tipo !== '-' && (
+              <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+                • {equipment.tipo}
+              </Box>
+            )}
+            {(equipment.extraDamage ?? []).map((extra) => (
+              <Box
+                key={extra.id ?? `${extra.dice}-${extra.damageType}`}
+                component='span'
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.85em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                + {extra.dice} {extra.damageType}
+              </Box>
+            ))}
+            {wieldingSlot && WIELDING_LABELS[wieldingSlot] && (
+              <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+                · {WIELDING_LABELS[wieldingSlot]}
+              </Box>
+            )}
+          </Box>
           {(onWieldingChange || onSemanticsChange) && (
             <Box
               sx={{

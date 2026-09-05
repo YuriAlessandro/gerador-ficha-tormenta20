@@ -131,4 +131,47 @@ describe('Weapon — marcação de estatística editada à mão', () => {
       expect(onRowClick).not.toHaveBeenCalled();
     });
   });
+
+  /**
+   * A linha é um flex container, e nele cada trecho de texto contíguo vira um
+   * item anônimo. Com as marcas de edição manual quebrando o texto em vários
+   * elementos, os `•` e os parênteses do crítico viravam itens próprios e
+   * quebravam linha soltos dos números (visível no mobile). Cada valor e seus
+   * acompanhantes precisam viver num mesmo nó `nowrap`.
+   */
+  describe('agrupamento das estatísticas', () => {
+    it('o crítico viaja junto do separador e dos parênteses', () => {
+      const { container } = renderRow(
+        espada({ hasManualEdits: true, manualStatFields: ['critico'] }),
+        onRowClick
+      );
+
+      // Um único nó carrega separador + parênteses + valor, então nenhuma
+      // quebra de linha consegue separá-los.
+      const grupos = Array.from(container.querySelectorAll('span')).filter(
+        (el) => (el.textContent ?? '').trim() === '• (19)'
+      );
+
+      expect(grupos.length).toBeGreaterThan(0);
+    });
+
+    it('nenhum separador vira item flex solto na linha', () => {
+      const { container } = renderRow(
+        espada({ hasManualEdits: true }),
+        onRowClick
+      );
+
+      // A linha é `display: flex`, e nela cada trecho de TEXTO CRU contíguo
+      // vira um item anônimo que encolhe e quebra por conta própria. Era assim
+      // que `•`, `(` e `)` se soltavam dos números. Nenhum filho direto da
+      // linha pode ser um texto solto de separadores.
+      const linha = container.querySelector('p');
+      const textosSoltos = Array.from(linha?.childNodes ?? [])
+        .filter((no) => no.nodeType === Node.TEXT_NODE)
+        .map((no) => (no.textContent ?? '').trim())
+        .filter((texto) => texto.length > 0);
+
+      expect(textosSoltos.filter((t) => /[•()·]/.test(t))).toEqual([]);
+    });
+  });
 });
