@@ -37,6 +37,16 @@ describe('adjustCriticoMult', () => {
   test('does not drop below x2', () => {
     expect(adjustCriticoMult('x2', -5)).toBe('x2');
   });
+
+  // Regressão: "19" é margem de ameaça com multiplicador x2 implícito (Besta
+  // pesada), não multiplicador x19 — Maciça precisa levá-la a 19/x3.
+  test('treats a bare number as the threat range, not the multiplier', () => {
+    expect(adjustCriticoMult('19', 1)).toBe('19/x3');
+  });
+
+  test('leaves a weapon without critical untouched', () => {
+    expect(adjustCriticoMult('-', 1)).toBe('-');
+  });
 });
 
 describe('adjustCriticoThreat', () => {
@@ -46,6 +56,30 @@ describe('adjustCriticoThreat', () => {
 
   test('widens an explicit threat range', () => {
     expect(adjustCriticoThreat('18/x2', 1)).toBe('17/x2');
+  });
+
+  test('widens a bare threat range', () => {
+    expect(adjustCriticoThreat('19', 1)).toBe('18/x2');
+  });
+
+  test('leaves a weapon without critical untouched', () => {
+    expect(adjustCriticoThreat('-', 1)).toBe('-');
+  });
+});
+
+describe('Maciça + Precisa on a bare-threat weapon', () => {
+  test('Besta pesada (19) becomes 18/x3', () => {
+    const besta: Equipment = {
+      nome: 'Besta pesada',
+      group: 'Arma',
+      dano: '1d12',
+      critico: '19',
+      atkBonus: 0,
+      spaces: 2,
+      modifications: [{ mod: 'Maciça' }, { mod: 'Precisa' }],
+    };
+
+    expect(applyModificationsToEquipment(besta).critico).toBe('18/x3');
   });
 });
 
