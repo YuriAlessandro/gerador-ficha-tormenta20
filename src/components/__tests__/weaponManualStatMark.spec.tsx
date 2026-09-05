@@ -91,4 +91,44 @@ describe('Weapon — marcação de estatística editada à mão', () => {
 
     expect(onRowClick).toHaveBeenCalled();
   });
+
+  /**
+   * O sublinhado pontilhado é visível no mobile, mas a explicação dele não: sem
+   * hover, o tooltip do MUI só abre com long-press — e como ele não cancela o
+   * clique sintético que vem depois, o gesto rolaria o ataque junto. A
+   * explicação sai por um ícone próprio, que pode parar a propagação.
+   */
+  describe('afordância de toque', () => {
+    it('mostra o ícone com os campos marcados quando há edição manual', () => {
+      renderRow(
+        espada({ hasManualEdits: true, manualStatFields: ['dano'] }),
+        onRowClick
+      );
+
+      expect(
+        screen.getByLabelText('Estatísticas modificadas manualmente')
+      ).toBeInTheDocument();
+    });
+
+    it('não mostra o ícone em arma sem edição manual', () => {
+      renderRow(espada(), onRowClick);
+
+      expect(
+        screen.queryByLabelText('Estatísticas modificadas manualmente')
+      ).not.toBeInTheDocument();
+    });
+
+    it('clicar no ícone não rola o ataque', () => {
+      renderRow(
+        espada({ hasManualEdits: true, manualStatFields: ['dano'] }),
+        onRowClick
+      );
+
+      fireEvent.click(
+        screen.getByLabelText('Estatísticas modificadas manualmente')
+      );
+
+      expect(onRowClick).not.toHaveBeenCalled();
+    });
+  });
 });
