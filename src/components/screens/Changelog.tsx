@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            03/09/2026 (v4.32).
+            05/09/2026 (v4.32).
           </p>
 
           <p>
@@ -154,6 +154,24 @@ const Changelog: React.FC = () => {
                   atualizada, com o rótulo e o tipo de dano corretos.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Os{' '}
+                  <strong>poderes de montaria de Ameaças de Arton</strong>{' '}
+                  entraram no jogo: <em>Combate Montado</em>,{' '}
+                  <em>Resistência Montada</em>, <em>Adestrar Montaria</em> e{' '}
+                  <em>Dois Como Um</em>. Nenhum deles existia no gerador — o
+                  suplemento estava sem nenhum poder de Combate cadastrado. O +2
+                  em Adestramento de <em>Adestrar Montaria</em> já entra sozinho
+                  na ficha. Obrigado a <strong>@GustavoAC</strong>!
+                </li>
+                <li>
+                  <strong>Novo:</strong> O poder{' '}
+                  <strong>Coração de Dragão</strong> (Ameaças de Arton), que
+                  também estava faltando: +2 PV e +2 PM aplicados
+                  automaticamente, e a regra de que um dragão jovem conta como
+                  um único parceiro para o seu limite de parceiros. Obrigado a{' '}
+                  <strong>@GustavoAC</strong>!
+                </li>
+                <li>
                   <strong>Melhoria:</strong> As <strong>armas naturais</strong>{' '}
                   (mordidas, garras, chifres, cascos…) passaram a ser
                   reconhecidas como tal pela ficha, e com isso vários poderes
@@ -174,6 +192,33 @@ const Changelog: React.FC = () => {
                   <strong>Deuses de Arton</strong> ganharam{' '}
                   <strong>rolagens de dano prontas</strong> — antes era preciso
                   ler o texto e montar a rolagem na mão.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A <strong>ficha aleatória</strong>{' '}
+                  passou a sortear{' '}
+                  <strong>poderes gerais dos suplementos</strong>. Ela lia um
+                  catálogo antigo que só tinha o Livro Básico, então nenhum
+                  poder de <em>Heróis de Arton</em>, <em>Ameaças de Arton</em>{' '}
+                  ou <em>Atlas de Arton</em> jamais aparecia numa ficha
+                  sorteada, por mais suplementos que você marcasse. Agora
+                  aparecem — as fichas aleatórias saem bem mais variadas.
+                  Obrigado a <strong>@GustavoAC</strong>!
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Em ficha{' '}
+                  <strong>multiclasse</strong>, a tela de{' '}
+                  <strong>Informações Básicas</strong> troca o campo de nível
+                  único por <strong>um campo para cada classe</strong>. Dá para
+                  ajustar a distribuição dos níveis — e o total — sem que todos
+                  os níveis novos caiam na classe primária, que era o que
+                  acontecia antes, em silêncio. Obrigado a{' '}
+                  <strong>@GustavoAC</strong>!
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os tópicos do{' '}
+                  <strong>fórum</strong> agora mostram um{' '}
+                  <strong>chip de status</strong> assim que entram em andamento,
+                  para você acompanhar o que já foi pego para resolver.
                 </li>
                 <li>
                   <strong>Correção:</strong> O <strong>Moreau Urso</strong>{' '}
@@ -314,6 +359,39 @@ const Changelog: React.FC = () => {
                   bônus racial pelo mesmo motivo, e{' '}
                   <strong>fichas antigas</strong> destravam sozinhas. Obrigado a{' '}
                   <strong>@GustavoAC</strong> pela correção!
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Ginete Altivo</strong> (Hippion) não valia como{' '}
+                  <em>Ginete</em> para pré-requisitos, apesar de o livro dizer
+                  que conta. Por baixo disso havia um problema maior:{' '}
+                  <strong>nenhum poder concedido</strong> satisfazia
+                  pré-requisito de poder — nem pelo próprio nome. Agora
+                  satisfaz, tanto no assistente quanto no editor de poderes, e{' '}
+                  <strong>fichas antigas</strong> passam a valer também.
+                  Obrigado a <strong>@GustavoAC</strong> pela correção!
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao subir de nível numa ficha
+                  aleatória, um devoto podia receber um{' '}
+                  <strong>poder concedido da própria divindade</strong> (como{' '}
+                  <em>Espada Justiceira</em>) no lugar de um poder geral. O
+                  sorteio agora só oferece poderes de Combate, Destino, Magia e
+                  Tormenta. Obrigado a <strong>@GustavoAC</strong> pela
+                  correção!
+                </li>
+                <li>
+                  <strong>Correção:</strong> Abrir{' '}
+                  <strong>Informações Básicas</strong> de uma ficha{' '}
+                  <strong>multiclasse</strong> e salvar — mesmo sem editar nada
+                  — corrompia o <strong>PV e o PM</strong>, que pulavam para o
+                  valor da fórmula de classe única. Obrigado a{' '}
+                  <strong>@GustavoAC</strong> pela correção!
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder do <strong>Anão</strong>{' '}
+                  estava com o nome errado: é <em>Duro como Pedra</em>. Obrigado
+                  a <strong>@GustavoAC</strong> pela correção!
                 </li>
               </ul>
               <h3>4.31</h3>
