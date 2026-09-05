@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            05/09/2026 (v4.32).
+            05/09/2026 (v4.32.1).
           </p>
 
           <p>
@@ -74,6 +74,14 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.32.1</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> Corrigido crash na tela de criar
+                  personagem.
+                </li>
+              </ul>
+
               <h3>4.32</h3>
               <ul>
                 <li>
