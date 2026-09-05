@@ -455,7 +455,6 @@ const Weapon: React.FC<WeaponProps> = (props) => {
             textUnderlineOffset: '3px',
             cursor: 'help',
           }}
-          onClick={(e) => e.stopPropagation()}
         >
           {content}
         </Box>

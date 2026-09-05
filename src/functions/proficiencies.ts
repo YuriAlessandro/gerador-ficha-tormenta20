@@ -101,6 +101,34 @@ const WEAPON_CATEGORY_BY_NAME = new Map<string, WeaponCategory>();
   });
 });
 
+// Mesma história do mapa acima, para `twoHanded`: o campo só existe no catálogo
+// desde 02/05/2026 e `refreshBagItemsFromCatalog` não o recarimba, então um
+// Mosquete copiado para a mochila antes disso chega aqui sem ele — e passaria
+// como arma de uma mão para 'Armas de Fogo de Uma Mão'.
+const WEAPON_TWO_HANDED_BY_NAME = new Map<string, boolean>();
+(
+  [
+    ...EQUIPAMENTOS.armasSimples,
+    ...EQUIPAMENTOS.armasMarciais,
+    ...EQUIPAMENTOS.armasExoticas,
+    ...EQUIPAMENTOS.armasDeFogo,
+    ...Object.values(AMEACAS_ARTON_WEAPONS),
+    ...Object.values(HEROIS_ARTON_WEAPONS),
+  ] as Equipment[]
+).forEach((weapon) => {
+  WEAPON_TWO_HANDED_BY_NAME.set(weapon.nome, Boolean(weapon.twoHanded));
+});
+
+/**
+ * `twoHanded` da arma, com fallback pelo catálogo para cópias legadas gravadas
+ * antes do campo existir. Mantém o `false` explícito do item quando ele traz o
+ * campo — override manual do usuário vence o catálogo.
+ */
+function isTwoHandedWeapon(weapon: Equipment): boolean {
+  if (weapon.twoHanded !== undefined) return weapon.twoHanded;
+  return WEAPON_TWO_HANDED_BY_NAME.get(weapon.nome) ?? false;
+}
+
 /** Categoria de catálogo de uma arma pelo nome (core + suplementos). */
 export function getCatalogWeaponCategoryByName(
   nome: string
@@ -177,7 +205,8 @@ export function isProficientWithWeapon(
   // Tiro do Duelista) cobre as que não são de duas mãos.
   if (proficiencias.includes(PROFICIENCIAS.FOGO)) return true;
   return (
-    !weapon.twoHanded && proficiencias.includes(PROFICIENCIAS.FOGO_UMA_MAO)
+    !isTwoHandedWeapon(weapon) &&
+    proficiencias.includes(PROFICIENCIAS.FOGO_UMA_MAO)
   );
 }
 

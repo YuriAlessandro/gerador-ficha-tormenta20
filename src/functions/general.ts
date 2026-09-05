@@ -5163,6 +5163,17 @@ export const applyStatModifiers = (
         name: subStepName,
         value: `Modifica atributo de ${skillName} para ${attribute}`,
       });
+    } else if (bonus.target.type === 'Proficiency') {
+      // Espelho do ramo de `applyPower` (e do Step 8 do `recalculateSheet`).
+      // Sem isto, proficiência concedida por escolha de habilidade de classe
+      // (ex.: Escola de Tiro do Duelista, que empurra o bônus direto para
+      // `sheet.sheetBonuses` via `chooseFromOptions`) nunca chegava na ficha
+      // aleatória — que não passa por `recalculateSheet` — e a arma seguia
+      // com o -5 de não-proficiência.
+      const { proficiency } = bonus.target;
+      if (proficiency && !sheet.classe.proficiencias.includes(proficiency)) {
+        sheet.classe.proficiencias.push(proficiency);
+      }
     } else {
       // console.warn('bonus não implementado', bonus);
     }
