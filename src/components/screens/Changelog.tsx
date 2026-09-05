@@ -103,23 +103,6 @@ const Changelog: React.FC = () => {
                   montado, o formulário avisa quais são e oferece tirá-las.
                 </li>
                 <li>
-                  <strong>Novo:</strong> <strong>Devoção Dupla</strong>, a regra
-                  opcional de <em>Sincretismos de Arton</em>. No assistente de
-                  criação, logo abaixo da divindade, apareceu a caixinha{' '}
-                  <strong>Devoção Dupla</strong>: ao marcá-la você escolhe uma{' '}
-                  <strong>segunda divindade</strong> (ou o{' '}
-                  <strong>sincretismo</strong> direto pelo nome — os dois campos
-                  se completam sozinhos). O personagem passa a contar como
-                  devoto dos dois deuses ao mesmo tempo: ele{' '}
-                  <strong>não</strong> ganha poderes concedidos a mais, mas
-                  escolhe os dele na união das duas listas e ainda recebe o{' '}
-                  <strong>poder único daquele par</strong>. A ficha, a
-                  enciclopédia e o editor de poderes passam a tratar
-                  pré-requisitos de devoto olhando para as duas divindades, e o{' '}
-                  <em>Poder Capturado</em> do Usurpador avisa quando um poder é
-                  exclusivo de devoção dupla.
-                </li>
-                <li>
                   <strong>Novo:</strong> O <strong>ataque desarmado</strong>{' '}
                   agora é uma <strong>arma de verdade na mochila</strong>. Antes
                   ele só existia como um número solto na ficha; agora existe o
@@ -161,15 +144,14 @@ const Changelog: React.FC = () => {
                   <em>Dois Como Um</em>. Nenhum deles existia no gerador — o
                   suplemento estava sem nenhum poder de Combate cadastrado. O +2
                   em Adestramento de <em>Adestrar Montaria</em> já entra sozinho
-                  na ficha. Obrigado a <strong>@GustavoAC</strong>!
+                  na ficha.
                 </li>
                 <li>
                   <strong>Novo:</strong> O poder{' '}
                   <strong>Coração de Dragão</strong> (Ameaças de Arton), que
                   também estava faltando: +2 PV e +2 PM aplicados
                   automaticamente, e a regra de que um dragão jovem conta como
-                  um único parceiro para o seu limite de parceiros. Obrigado a{' '}
-                  <strong>@GustavoAC</strong>!
+                  um único parceiro para o seu limite de parceiros.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> As <strong>armas naturais</strong>{' '}
@@ -202,7 +184,6 @@ const Changelog: React.FC = () => {
                   ou <em>Atlas de Arton</em> jamais aparecia numa ficha
                   sorteada, por mais suplementos que você marcasse. Agora
                   aparecem — as fichas aleatórias saem bem mais variadas.
-                  Obrigado a <strong>@GustavoAC</strong>!
                 </li>
                 <li>
                   <strong>Melhoria:</strong> Em ficha{' '}
@@ -211,14 +192,7 @@ const Changelog: React.FC = () => {
                   único por <strong>um campo para cada classe</strong>. Dá para
                   ajustar a distribuição dos níveis — e o total — sem que todos
                   os níveis novos caiam na classe primária, que era o que
-                  acontecia antes, em silêncio. Obrigado a{' '}
-                  <strong>@GustavoAC</strong>!
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> Os tópicos do{' '}
-                  <strong>fórum</strong> agora mostram um{' '}
-                  <strong>chip de status</strong> assim que entram em andamento,
-                  para você acompanhar o que já foi pego para resolver.
+                  acontecia antes, em silêncio.
                 </li>
                 <li>
                   <strong>Correção:</strong> O <strong>Moreau Urso</strong>{' '}
@@ -293,7 +267,6 @@ const Changelog: React.FC = () => {
                   na coluna <em>outros</em> das perícias. A escolha continua
                   valendo quando o companheiro sobe de grau (você só completa as
                   novas), e fichas aleatórias já saem com as perícias sorteadas.
-                  Obrigado a <strong>@GustavoAC</strong> pela correção!
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder concedido{' '}
@@ -312,8 +285,7 @@ const Changelog: React.FC = () => {
                   perícias que ele deu (elas ficavam órfãs na ficha para
                   sempre), o card do poder passou a listar quais perícias vieram
                   dele, e <strong>fichas antigas</strong>, salvas antes desta
-                  correção, também passam a receber o que faltava. Obrigado a{' '}
-                  <strong>@GustavoAC</strong> pela correção!
+                  correção, também passam a receber o que faltava.
                 </li>
                 <li>
                   <strong>Correção:</strong> A origem{' '}
@@ -357,8 +329,7 @@ const Changelog: React.FC = () => {
                   igualmente para a herança{' '}
                   <strong>Herança de Al-Gazara</strong> do Suragel, que é um
                   bônus racial pelo mesmo motivo, e{' '}
-                  <strong>fichas antigas</strong> destravam sozinhas. Obrigado a{' '}
-                  <strong>@GustavoAC</strong> pela correção!
+                  <strong>fichas antigas</strong> destravam sozinhas.
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder concedido{' '}
@@ -369,7 +340,6 @@ const Changelog: React.FC = () => {
                   pré-requisito de poder — nem pelo próprio nome. Agora
                   satisfaz, tanto no assistente quanto no editor de poderes, e{' '}
                   <strong>fichas antigas</strong> passam a valer também.
-                  Obrigado a <strong>@GustavoAC</strong> pela correção!
                 </li>
                 <li>
                   <strong>Correção:</strong> Ao subir de nível numa ficha
@@ -377,21 +347,18 @@ const Changelog: React.FC = () => {
                   <strong>poder concedido da própria divindade</strong> (como{' '}
                   <em>Espada Justiceira</em>) no lugar de um poder geral. O
                   sorteio agora só oferece poderes de Combate, Destino, Magia e
-                  Tormenta. Obrigado a <strong>@GustavoAC</strong> pela
-                  correção!
+                  Tormenta.
                 </li>
                 <li>
                   <strong>Correção:</strong> Abrir{' '}
                   <strong>Informações Básicas</strong> de uma ficha{' '}
                   <strong>multiclasse</strong> e salvar — mesmo sem editar nada
                   — corrompia o <strong>PV e o PM</strong>, que pulavam para o
-                  valor da fórmula de classe única. Obrigado a{' '}
-                  <strong>@GustavoAC</strong> pela correção!
+                  valor da fórmula de classe única.
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder do <strong>Anão</strong>{' '}
-                  estava com o nome errado: é <em>Duro como Pedra</em>. Obrigado
-                  a <strong>@GustavoAC</strong> pela correção!
+                  estava com o nome errado: é <em>Duro como Pedra</em>.
                 </li>
               </ul>
               <h3>4.31</h3>
