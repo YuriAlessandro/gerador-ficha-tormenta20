@@ -53,7 +53,14 @@ describe('homebrew nativo', () => {
     const sincretismos = dataRegistry.getSincretismosBySupplements([
       SOURCE_ID as SupplementId,
     ]);
-    expect(sincretismos.length).toBeGreaterThan(0);
+    // Contagem travada: o Volume 1 tem 38 sincretismos, e é essa lista que a
+    // página pública do homebrew exibe. Uma transcrição que perca entradas
+    // passaria despercebida sem isto.
+    expect(sincretismos).toHaveLength(38);
+    sincretismos.forEach((sincretismo) => {
+      expect(sincretismo.deities).toHaveLength(2);
+      expect(sincretismo.name.length).toBeGreaterThan(0);
+    });
 
     // O rótulo da fonte sai do `displayName`, e não do id cru.
     expect(dataRegistry.getSupplementLabel(SOURCE_ID).name).toBe(
