@@ -18,6 +18,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import TuneIcon from '@mui/icons-material/Tune';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import Equipment, {
   AmmoType,
   DamageAttribute,
@@ -444,10 +445,32 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [equipment]
   );
 
+  const manualMarkTitle =
+    'Modificado manualmente — melhorias e bônus automáticos não se aplicam a este valor';
+
+  const MANUAL_FIELD_LABELS: Record<ManualStatField, string> = {
+    atkBonus: 'ataque',
+    dano: 'dano',
+    critico: 'crítico',
+    defenseBonus: 'defesa',
+    armorPenalty: 'penalidade de armadura',
+  };
+
+  // Quais estatísticas a marca cobre, na ordem em que aparecem na linha.
+  const manualFieldNames = (
+    ['atkBonus', 'dano', 'critico'] as ManualStatField[]
+  )
+    .filter((field) => manualStatFields.has(field))
+    .map((field) => MANUAL_FIELD_LABELS[field]);
+
   const withManualMark = (field: ManualStatField, content: React.ReactNode) => {
     if (!manualStatFields.has(field)) return content;
+    // `disableTouchListener`: no toque o tooltip do MUI só abre com long-press e
+    // ele não cancela o clique sintético que vem depois — o gesto abriria a
+    // explicação E rolaria o ataque. No mobile a explicação sai pelo ícone de
+    // lápis, que é afordância própria e pode parar a propagação sem custo.
     return (
-      <Tooltip title='Modificado manualmente — melhorias e bônus automáticos não se aplicam a este valor'>
+      <Tooltip title={manualMarkTitle} disableTouchListener>
         <Box
           component='span'
           sx={{
@@ -812,6 +835,28 @@ const Weapon: React.FC<WeaponProps> = (props) => {
                   color: bonusEffects.hasActiveEffect
                     ? ACTIVE_EFFECT_COLOR
                     : theme.palette.primary.main,
+                  cursor: 'help',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          )}
+          {manualFieldNames.length > 0 && (
+            <Tooltip
+              title={`${manualMarkTitle} (${manualFieldNames.join(', ')}).`}
+              arrow
+              enterTouchDelay={0}
+              leaveTouchDelay={4000}
+            >
+              {/* No desktop o sublinhado pontilhado já explica no hover; este
+                  ícone existe pelo mobile, onde não há hover e o long-press
+                  sobre o número rolaria o ataque junto. */}
+              <EditNoteIcon
+                aria-label='Estatísticas modificadas manualmente'
+                sx={{
+                  fontSize: 15,
+                  ml: 0.5,
+                  color: 'text.secondary',
                   cursor: 'help',
                 }}
                 onClick={(e) => e.stopPropagation()}
