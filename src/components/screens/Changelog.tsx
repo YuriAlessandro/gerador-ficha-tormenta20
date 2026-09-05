@@ -154,6 +154,20 @@ const Changelog: React.FC = () => {
                   um único parceiro para o seu limite de parceiros.
                 </li>
                 <li>
+                  <strong>Novo:</strong> A linha da arma na ficha agora{' '}
+                  <strong>mostra o que você editou à mão</strong>. Ataque, dano
+                  e crítico digitados manualmente no editor da mochila aparecem{' '}
+                  <strong>sublinhados em pontilhado</strong>, e um ícone{' '}
+                  <strong>ℹ️</strong> no fim da linha explica o porquê: enquanto
+                  o valor estiver travado assim, melhorias, materiais e bônus de
+                  poderes <strong>não mexem nele</strong>. Só o campo que você
+                  realmente digitou fica marcado, e o próprio editor de item
+                  passou a avisar quando um número está nesse estado — antes a
+                  única pista era o botão <em>Resetar</em> resolver o problema.
+                  No celular a explicação abre no primeiro toque, sem atrapalhar
+                  o clique que rola o ataque.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> As <strong>armas naturais</strong>{' '}
                   (mordidas, garras, chifres, cascos…) passaram a ser
                   reconhecidas como tal pela ficha, e com isso vários poderes
@@ -359,6 +373,46 @@ const Changelog: React.FC = () => {
                 <li>
                   <strong>Correção:</strong> O poder do <strong>Anão</strong>{' '}
                   estava com o nome errado: é <em>Duro como Pedra</em>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Armas com o crítico anotado só como{' '}
+                  <strong>margem de ameaça</strong> (o <em>19</em> da Adaga, da
+                  Espada Longa, da Besta Pesada e de mais 27 armas) eram lidas
+                  pelas <strong>melhorias e encantos</strong> como se o número
+                  fosse o <strong>multiplicador</strong>. Uma Besta Pesada com{' '}
+                  <em>Maciça</em> e <em>Precisa</em> virava <em>19/x20</em> em
+                  vez de <em>18/x3</em> — e o crítico rolava x20 de verdade.
+                  Valia também para <em>Ameaçadora</em> e para o material{' '}
+                  <em>mitral</em>. As fichas já afetadas se{' '}
+                  <strong>corrigem sozinhas</strong> no próximo recálculo; quem
+                  tiver editado o crítico à mão precisa clicar em{' '}
+                  <em>Resetar</em> no editor do item.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A opção{' '}
+                  <strong>Escola de Tiro</strong> (Escola de Duelo do{' '}
+                  <strong>Duelista</strong>, 2º nível) era só texto: o
+                  personagem continuava levando o{' '}
+                  <strong>−5 de falta de proficiência</strong> na pistola e
+                  perdia os bônus de poderes como <em>Armas da Ambição</em>.
+                  Agora ela concede de fato a proficiência com{' '}
+                  <strong>armas de fogo de uma mão</strong> (Pistola e Garrucha
+                  — não o Mosquete nem o Canhão portátil), tanto na ficha criada
+                  pelo assistente quanto na <strong>ficha aleatória</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O tooltip <strong>✨</strong> da
+                  linha da arma{' '}
+                  <strong>
+                    prometia bônus de crítico que não estavam sendo aplicados
+                  </strong>
+                  . <em>Armas da Ambição</em> aparecia listada numa Pistola
+                  mesmo sem a proficiência exigida, enquanto o crítico não
+                  mudava — agora esses casos vêm marcados como{' '}
+                  <em>(inativo: sem proficiência)</em>. Além disso, bônus de{' '}
+                  <strong>multiplicador de crítico</strong> passaram a aparecer
+                  no tooltip: <em>Armas da Destruição</em> era invisível na
+                  ficha.
                 </li>
               </ul>
               <h3>4.31</h3>
