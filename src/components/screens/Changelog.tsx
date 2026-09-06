@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            05/09/2026 (v4.32.1).
+            06/09/2026 (v4.32.2).
           </p>
 
           <p>
@@ -74,6 +74,26 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.32.2</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Os tópicos do fórum agora aparecem num{' '}
+                  <strong>quadro de acompanhamento</strong> na administração,
+                  com as colunas <strong>Novo</strong>,{' '}
+                  <strong>Em progresso</strong>, <strong>Feito</strong> e{' '}
+                  <strong>Publicado</strong>. A partir de{' '}
+                  <strong>Em progresso</strong>, o status fica visível para quem
+                  abriu o tópico, então dá para acompanhar o andamento do que
+                  você reportou sem precisar perguntar.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Tópicos criados por{' '}
+                  <strong>apoiadores</strong> passam a ter prioridade na fila de
+                  atendimento, e quanto maior o nível de apoio, mais alto o
+                  tópico aparece.
+                </li>
+              </ul>
+
               <h3>4.32.1</h3>
               <ul>
                 <li>
