@@ -52,6 +52,7 @@ import {
 import { getActivePowerForSheetEntry } from '@/premium/data/activePowers';
 import { getComplicationPowerWarning } from '@/premium/functions/complications';
 import { getAgeBracket } from '@/premium/data/ageBrackets';
+import { getBaseAgeStage } from '@/functions/ages';
 import type {
   ActivePowerDefinition,
   ActiveEffectUsageOption,
@@ -548,22 +549,37 @@ const PowersDisplay: React.FC<{
       }
     : null;
 
-  // Idades Variadas: a faixa etária e cada complicação de idade viram
-  // pseudo-poderes no mesmo esquema da Complicação — fora de `uniquePowers`,
-  // portanto fora do drag-and-drop e de `powersOrder`.
+  // Idade: a faixa etária (ou o estágio de envelhecimento do livro básico) e
+  // cada complicação de idade viram pseudo-poderes no mesmo esquema da
+  // Complicação — fora de `uniquePowers`, portanto fora do drag-and-drop e de
+  // `powersOrder`.
+  //
+  // O estágio base só aparece quando altera alguma coisa: um personagem jovem
+  // não tem por que carregar um card explicando que não tem modificador.
   const agePowers: SheetPower[] = useMemo(() => {
     if (!sheet?.age) return [];
+
     const bracket = getAgeBracket(sheet.age.bracket);
-    if (!bracket) return [];
+    if (bracket) {
+      return [
+        {
+          name: `Faixa Etária: ${bracket.label}`,
+          description: bracket.description,
+        },
+        ...sheet.age.complications.map((complication) => ({
+          name: complication.name,
+          description: complication.description,
+        })),
+      ];
+    }
+
+    const stage = getBaseAgeStage(sheet.age.stage);
+    if (!stage || stage.attributeModifiers.length === 0) return [];
     return [
       {
-        name: `Faixa Etária: ${bracket.label}`,
-        description: bracket.description,
+        name: `Envelhecimento: ${stage.label}`,
+        description: `${stage.summary}\n\n${stage.description}`,
       },
-      ...sheet.age.complications.map((complication) => ({
-        name: complication.name,
-        description: complication.description,
-      })),
     ];
   }, [sheet?.age]);
 

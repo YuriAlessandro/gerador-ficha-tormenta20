@@ -14,7 +14,7 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
-import type { SheetAge } from '../premium/interfaces/Age';
+import type { SheetAge } from './Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { DiceRoll } from './DiceRoll';
 import type { PlayerJournal } from './PlayerJournal';
