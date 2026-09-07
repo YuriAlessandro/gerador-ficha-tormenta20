@@ -13,6 +13,7 @@ import type {
   AgeRange,
   BaseAgeStage,
   BaseAgeStageId,
+  AgeBracketId,
   InitialAgeGroup,
   SheetAge,
 } from '../interfaces/Age';
@@ -273,4 +274,28 @@ export function getStageEntryAge(
   const group = getInitialAgeGroup(classDescription);
   const { multiplier } = getRaceAgeScaling(raceName);
   return Math.max(1, Math.round((group.qtdDados + group.bonus) * multiplier));
+}
+
+/**
+ * Modificadores de idade a partir do estado do ASSISTENTE, onde a ficha ainda
+ * não existe e a idade é só um punhado de campos soltos.
+ *
+ * O estágio é derivado dos anos na hora em vez de lido do estado: no assistente
+ * a raça ainda muda, e com ela a escala dos marcos.
+ */
+export function getAgeAttributeTotalsForSelection(
+  selection:
+    | { years?: number; variedAges?: boolean; bracket?: AgeBracketId }
+    | undefined,
+  raceName: string | undefined
+): AgeAttributeModifier[] {
+  if (!selection) return [];
+
+  return getAgeAttributeTotals({
+    years: selection.years,
+    stage: getBaseAgeStageForYears(selection.years, raceName),
+    bracket: selection.variedAges ? selection.bracket : undefined,
+    complications: [],
+    extraLevels: 0,
+  });
 }

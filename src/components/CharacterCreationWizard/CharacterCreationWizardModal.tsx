@@ -50,6 +50,7 @@ import {
   ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
 import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
+import { getAgeAttributeTotalsForSelection } from '@/functions/ages';
 import {
   applyAttributeVariant,
   buildClassEquipmentsFromChoices,
@@ -509,14 +510,32 @@ const CharacterCreationWizardModal: React.FC<
         : undefined
     );
 
-  // Modificadores finais dos seis atributos (base + raciais). Necessários pelos
-  // passos que filtram poderes antes de a ficha existir — sem eles a ficha-mock
-  // usa valores falsos e todo pré-requisito de atributo passa de graça.
+  /**
+   * Modificadores que a idade aplica com a raça e a regra escolhidas AGORA.
+   *
+   * Vive aqui em cima porque a idade é decidida no primeiro passo e todo o
+   * resto do assistente depende dela: um personagem maduro tem Int +1 e, com
+   * isso, uma perícia extra e poderes a mais ao alcance.
+   */
+  const ageAttributeModifiers = getAgeAttributeTotalsForSelection(
+    {
+      years: selections.ageYears,
+      variedAges: selections.variedAges,
+      bracket: selections.ageBracket,
+    },
+    raceForAttributes?.name
+  );
+
+  // Modificadores finais dos seis atributos (base + raciais + idade).
+  // Necessários pelos passos que filtram poderes antes de a ficha existir — sem
+  // eles a ficha-mock usa valores falsos e todo pré-requisito de atributo passa
+  // de graça.
   const finalAttributeModifiers = computeFinalAttributeModifiers(
     raceForAttributes,
     sexForAttributes,
     selections.baseAttributes,
-    selections.raceAttributes
+    selections.raceAttributes,
+    ageAttributeModifiers
   );
 
   // Helper to calculate intelligence modifier (including racial modifiers)
@@ -1167,6 +1186,7 @@ const CharacterCreationWizardModal: React.FC<
             sexForAttributes={sexForAttributes}
             baseAttributes={selections.baseAttributes || zeroedAttributes}
             raceAttributeChoices={selections.raceAttributes}
+            ageModifiers={ageAttributeModifiers}
             method={selections.attributeMethod || 'free'}
             dicePool={selections.attributeDicePool}
             dicePoolLabels={selections.attributeDicePoolLabels}

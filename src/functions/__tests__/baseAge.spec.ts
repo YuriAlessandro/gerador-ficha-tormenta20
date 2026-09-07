@@ -3,8 +3,10 @@ import { Atributo } from '../../data/systems/tormenta20/atributos';
 import SelectedOptions from '../../interfaces/SelectedOptions';
 import { WizardSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
-import { generateEmptySheet } from '../general';
+import { computeFinalAttributeModifiers, generateEmptySheet } from '../general';
+import { dataRegistry } from '../../data/registry';
 import {
+  getAgeAttributeTotalsForSelection,
   getBaseAgeAttributeModifiers,
   getBaseAgeStageForYears,
   getBaseAgeStages,
@@ -296,5 +298,88 @@ describe('Longevidade máxima', () => {
 
   test('escala com a longevidade da raça', () => {
     expect(getMaxLongevityRange('Elfo')).toEqual({ minAge: 360, maxAge: 550 });
+  });
+});
+
+describe('Idade integrada aos atributos do assistente', () => {
+  /**
+   * A idade é escolhida no primeiro passo, mas os modificadores dela só
+   * existiam quando a ficha era montada, no fim de tudo. No meio ficavam os
+   * passos que LEEM os atributos: quantas perícias a Inteligência concede e
+   * quais poderes passam no pré-requisito. Um personagem maduro tem Int +1 e
+   * precisa ver isso desde o passo de atributos.
+   */
+  const humano = dataRegistry
+    .getRacesBySupplements([SupplementId.TORMENTA20_CORE])
+    .find((r) => r.name === 'Humano');
+
+  test('os modificadores da idade entram no total do assistente', () => {
+    const base = { [Atributo.INTELIGENCIA]: 1, [Atributo.FORCA]: 3 };
+
+    const jovem = computeFinalAttributeModifiers(
+      humano,
+      undefined,
+      base,
+      [Atributo.INTELIGENCIA, Atributo.FORCA, Atributo.DESTREZA],
+      []
+    );
+    const maduro = computeFinalAttributeModifiers(
+      humano,
+      undefined,
+      base,
+      [Atributo.INTELIGENCIA, Atributo.FORCA, Atributo.DESTREZA],
+      getBaseAgeAttributeModifiers('maduro')
+    );
+
+    expect(maduro[Atributo.INTELIGENCIA]).toBe(
+      jovem[Atributo.INTELIGENCIA] + 1
+    );
+    expect(maduro[Atributo.FORCA]).toBe(jovem[Atributo.FORCA] - 1);
+  });
+
+  test('sem idade informada o total é o mesmo de antes', () => {
+    const args = [
+      humano,
+      undefined,
+      { [Atributo.FORCA]: 2 },
+      undefined,
+    ] as const;
+
+    expect(
+      computeFinalAttributeModifiers(args[0], args[1], args[2], args[3], [])
+    ).toEqual(
+      computeFinalAttributeModifiers(args[0], args[1], args[2], args[3])
+    );
+  });
+
+  test('a seleção do assistente escala pela raça antes de virar modificador', () => {
+    const selection = { years: 50, variedAges: false };
+
+    // 50 anos é Maduro para um humano e ainda Jovem para um elfo.
+    expect(getAgeAttributeTotalsForSelection(selection, 'Humano')).toEqual(
+      getBaseAgeAttributeModifiers('maduro')
+    );
+    expect(getAgeAttributeTotalsForSelection(selection, 'Elfo')).toEqual([]);
+  });
+});
+
+describe('Ficha aleatória nasce sempre jovem', () => {
+  /**
+   * Vale para toda raça e toda classe, e não por acaso: o teto da rolagem de
+   * idade inicial é 27 × multiplicador da raça, e o piso do estágio Maduro é
+   * 45 × o MESMO multiplicador. Como 27 < 45, nenhuma combinação alcança o
+   * primeiro marco — por isso a geração aleatória não precisa integrar os
+   * modificadores de idade aos passos que leem atributos.
+   */
+  const RACES = ['Humano', 'Elfo', 'Anão', 'Goblin', 'Qareen', 'Trog'];
+  const CLASSES = ['Bárbaro', 'Guerreiro', 'Arcanista'];
+
+  test.each(RACES)('%s: toda rolagem de toda classe cai em Jovem', (raca) => {
+    CLASSES.forEach((name) => {
+      for (let i = 0; i < 100; i += 1) {
+        const age = rollInitialAge({ name: name as never }, raca);
+        expect(getBaseAgeStageForYears(age, raca)).toBe('jovem');
+      }
+    });
   });
 });
