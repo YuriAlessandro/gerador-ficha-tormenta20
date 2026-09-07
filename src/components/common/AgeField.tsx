@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   Box,
   Button,
   FormControl,
@@ -41,6 +42,14 @@ interface AgeFieldProps {
   onChange: (next: AgeSelection) => void;
   /** Idades Variadas (Heróis de Arton) disponíveis para esta conta. */
   variedAgesAvailable?: boolean;
+  /**
+   * Oferecer a rolagem de idade inicial.
+   *
+   * Só na CRIAÇÃO: a tabela do livro sorteia a idade com que o personagem
+   * começa a aventurar-se, e num personagem que já existe isso não é uma
+   * pergunta em aberto — sortear a idade dele seria reescrever quem ele é.
+   */
+  allowRoll?: boolean;
 }
 
 /** Altura de um input MUI de tamanho padrão — alinha o botão com os campos. */
@@ -70,6 +79,7 @@ const AgeField: React.FC<AgeFieldProps> = ({
   value,
   onChange,
   variedAgesAvailable = false,
+  allowRoll = true,
 }) => {
   const { years, variedAges, bracket, deathByOldAge } = value;
 
@@ -170,27 +180,28 @@ const AgeField: React.FC<AgeFieldProps> = ({
           </FormControl>
         )}
 
-        <Tooltip
-          title={`Rolar a idade inicial da classe (${initialGroup.formula})`}
-        >
-          <Button
-            variant='outlined'
-            onClick={() => setYears(rollInitialAge(classDescription, raceName))}
-            sx={{ minWidth: 'auto', height: INPUT_HEIGHT, px: 2 }}
-            aria-label='Rolar idade'
+        {allowRoll && (
+          <Tooltip
+            title={`Rolar a idade inicial da classe (${initialGroup.formula})`}
           >
-            <CasinoIcon />
-          </Button>
-        </Tooltip>
+            <Button
+              variant='outlined'
+              onClick={() =>
+                setYears(rollInitialAge(classDescription, raceName))
+              }
+              sx={{ minWidth: 'auto', height: INPUT_HEIGHT, px: 2 }}
+              aria-label='Rolar idade'
+            >
+              <CasinoIcon />
+            </Button>
+          </Tooltip>
+        )}
       </Box>
 
       {!variedAges && stage && stage.attributeModifiers.length > 0 && (
-        <Typography
-          variant='caption'
-          sx={{ display: 'block', color: 'text.secondary', mt: 0.75 }}
-        >
-          {stage.summary}
-        </Typography>
+        <Alert severity='info' sx={{ mt: 1.5 }}>
+          <strong>{stage.label}:</strong> {stage.summary}
+        </Alert>
       )}
 
       {variedAgesAvailable && (
