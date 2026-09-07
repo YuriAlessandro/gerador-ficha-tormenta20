@@ -116,7 +116,12 @@ import {
   toOpenRaceVariant,
 } from '../premium/functions/openRaces';
 import { getAgeBracket } from '../premium/data/ageBrackets';
-import { getAgeAttributeModifiers } from '../premium/functions/ages';
+import {
+  getAgeAttributeTotals,
+  getBaseAgeStage,
+  getBaseAgeStageForYears,
+  rollInitialAge,
+} from './ages';
 import {
   getRaceDisplacement,
   getRaceSize,
@@ -7101,74 +7106,95 @@ export function generateEmptySheet(
     });
   }
 
-  // Idades Variadas (Heróis de Arton) — regra opcional.
+  // Idade — duas regras no mesmo bloco.
   //
-  // Jovem é a faixa padrão e não altera nada, então nem chega a ser gravada: uma
-  // ficha sem `age` e uma ficha Jovem são a mesma coisa para o motor.
-  if (wizardSelections?.ageBracket && wizardSelections.ageBracket !== 'jovem') {
-    const bracket = getAgeBracket(wizardSelections.ageBracket);
-    if (bracket) {
-      emptySheet.age = {
-        bracket: wizardSelections.ageBracket,
-        years: wizardSelections.ageYears,
-        complications: wizardSelections.ageComplications ?? [],
-        grantedPowerName: wizardSelections.agePower?.name,
-        // Congelado aqui: trocar a faixa etária depois NÃO reescreve o nível.
-        extraLevels: bracket.extraLevels,
-      };
+  // O envelhecimento do livro básico (T20, p. 108) vale para TODA ficha e não
+  // depende de suplemento: a idade em anos decide o estágio, e o estágio aplica
+  // modificadores de atributo de verdade. As Idades Variadas de Heróis de Arton
+  // são opcionais e, quando ligadas, SUBSTITUEM esses modificadores pelos da
+  // faixa escolhida — quem resolve essa exclusão é `getAgeAttributeTotals`.
+  //
+  // Ficha aleatória (sem assistente) rola a idade inicial da classe; todos os
+  // resultados possíveis caem no estágio Jovem, que não altera atributo nenhum.
+  const variedAges =
+    !!wizardSelections?.variedAges && !!wizardSelections.ageBracket;
+  const ageBracketId = variedAges ? wizardSelections?.ageBracket : undefined;
+  const ageYears =
+    wizardSelections?.ageYears ??
+    (wizardSelections
+      ? undefined
+      : rollInitialAge(emptySheet.classe, emptySheet.raca.name));
 
-      // Modificadores de atributo da faixa: permanentes, somados aqui uma única
-      // vez — exatamente como os raciais. O recálculo não os reaplica, e trocar
-      // a faixa pelo drawer aplica só o delta (`getAgeAttributeDelta`).
-      const ageAttributeSubSteps: SubStep[] = [];
-      getAgeAttributeModifiers(wizardSelections.ageBracket).forEach(
-        ({ attribute, value }) => {
-          emptySheet.atributos[attribute].value += value;
-          ageAttributeSubSteps.push({
-            name: bracket.label,
-            value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
-          });
-        }
-      );
-      if (ageAttributeSubSteps.length > 0) {
-        emptySheet.steps.push({
-          label: 'Atributos Modificados (idade)',
-          type: 'Atributos',
-          value: ageAttributeSubSteps,
-        });
-      }
+  if (ageYears !== undefined || ageBracketId) {
+    const bracket = getAgeBracket(ageBracketId);
+    const stage =
+      (variedAges ? undefined : wizardSelections?.ageStage) ??
+      getBaseAgeStageForYears(ageYears, emptySheet.raca.name);
 
-      const { agePower } = wizardSelections;
-      if (agePower) {
-        if (!emptySheet.generalPowers.some((p) => p.name === agePower.name)) {
-          emptySheet.generalPowers.push(agePower);
-        }
-      }
+    emptySheet.age = {
+      years: ageYears,
+      stage,
+      bracket: ageBracketId,
+      complications: variedAges ? wizardSelections?.ageComplications ?? [] : [],
+      grantedPowerName: variedAges
+        ? wizardSelections?.agePower?.name
+        : undefined,
+      // Congelado aqui: trocar a idade depois NÃO reescreve o nível.
+      extraLevels: bracket?.extraLevels ?? 0,
+    };
 
+    // Modificadores de atributo da idade: permanentes, somados aqui uma única
+    // vez — exatamente como os raciais. O recálculo não os reaplica, e editar a
+    // idade aplica só o delta (`getAgeAttributeTotalsDelta`).
+    const ageAttributeSubSteps: SubStep[] = [];
+    const ageLabel = bracket?.label ?? getBaseAgeStage(stage)?.label ?? 'Idade';
+    getAgeAttributeTotals(emptySheet.age).forEach(({ attribute, value }) => {
+      emptySheet.atributos[attribute].value += value;
+      ageAttributeSubSteps.push({
+        name: ageLabel,
+        value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
+      });
+    });
+    if (ageAttributeSubSteps.length > 0) {
       emptySheet.steps.push({
-        label: 'Idade',
+        label: 'Atributos Modificados (idade)',
         type: 'Atributos',
-        value: [
-          { name: 'Faixa etária', value: bracket.label },
-          ...(wizardSelections.ageYears
-            ? [{ name: 'Idade', value: `${wizardSelections.ageYears} anos` }]
-            : []),
-          ...(emptySheet.age.complications.length > 0
-            ? [
-                {
-                  name: 'Complicações de idade',
-                  value: emptySheet.age.complications
-                    .map((c) => c.name)
-                    .join(', '),
-                },
-              ]
-            : []),
-          ...(wizardSelections.agePower
-            ? [{ name: 'Já Vi Coisas', value: wizardSelections.agePower.name }]
-            : []),
-        ],
+        value: ageAttributeSubSteps,
       });
     }
+
+    const agePower = variedAges ? wizardSelections?.agePower : undefined;
+    if (
+      agePower &&
+      !emptySheet.generalPowers.some((p) => p.name === agePower.name)
+    ) {
+      emptySheet.generalPowers.push(agePower);
+    }
+
+    emptySheet.steps.push({
+      label: 'Idade',
+      type: 'Atributos',
+      value: [
+        ...(ageYears !== undefined
+          ? [{ name: 'Idade', value: `${ageYears} anos` }]
+          : []),
+        {
+          name: variedAges ? 'Faixa etária' : 'Envelhecimento',
+          value: ageLabel,
+        },
+        ...(emptySheet.age.complications.length > 0
+          ? [
+              {
+                name: 'Complicações de idade',
+                value: emptySheet.age.complications
+                  .map((c) => c.name)
+                  .join(', '),
+              },
+            ]
+          : []),
+        ...(agePower ? [{ name: 'Já Vi Coisas', value: agePower.name }] : []),
+      ],
+    });
   }
 
   // Regras opcionais de Heróis de Arton em uso. Só grava o que estiver ligado —

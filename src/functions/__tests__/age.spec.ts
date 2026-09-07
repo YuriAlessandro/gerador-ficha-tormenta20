@@ -33,9 +33,15 @@ const BASE_OPTIONS: SelectedOptions = {
   ],
 };
 
+/**
+ * Idades Variadas é regra OPCIONAL desde que o envelhecimento do livro básico
+ * passou a valer sempre: escolher uma faixa só tem efeito com o interruptor
+ * ligado, então o helper liga junto sempre que a chamada informa uma faixa.
+ */
 function buildSheet(selections: WizardSelections): CharacterSheet {
   return generateEmptySheet(BASE_OPTIONS, {
     baseAttributes: { ...ZEROED },
+    ...(selections.ageBracket ? { variedAges: true } : {}),
     ...selections,
   });
 }
@@ -50,10 +56,21 @@ function attributeDelta(
 }
 
 describe('Idades Variadas — gravação na ficha', () => {
-  test('Jovem é a faixa padrão e não é gravada (equivale a regra desligada)', () => {
-    const sheet = buildSheet({ ageBracket: 'jovem' });
+  test('sem idade informada e sem a regra opcional, não grava bloco de idade', () => {
+    const sheet = buildSheet({});
 
     expect(sheet.age).toBeUndefined();
+  });
+
+  test('Jovem é a faixa padrão e não altera atributo nenhum', () => {
+    const baseline = buildSheet({});
+    const jovem = buildSheet({ ageBracket: 'jovem' });
+
+    expect(jovem.age?.bracket).toBe('jovem');
+    expect(jovem.age?.extraLevels).toBe(0);
+    Object.values(Atributo).forEach((attr) => {
+      expect(attributeDelta(jovem, baseline, attr)).toBe(0);
+    });
   });
 
   test('grava faixa, anos, complicações e níveis extras congelados', () => {
@@ -259,15 +276,24 @@ describe('Idades Variadas — Aumento de Atributo bloqueado', () => {
 });
 
 describe('Idades Variadas — normalização de fichas antigas', () => {
-  test('descarta idade com faixa etária desconhecida', () => {
-    const sheet = buildSheet({ ageBracket: 'velho' });
+  test('descarta só a faixa desconhecida, preservando idade e níveis já construídos', () => {
+    const sheet = buildSheet({ ageBracket: 'velho', ageYears: 320 });
     const corrupted = {
       ...sheet,
       age: { ...sheet.age!, bracket: 'inexistente' },
     } as unknown as CharacterSheet;
 
     normalizeSheet(corrupted);
-    expect(corrupted.age).toBeUndefined();
+
+    expect(corrupted.age?.bracket).toBeUndefined();
+    expect(corrupted.age?.complications).toEqual([]);
+    // A idade em anos e o estágio do livro básico não dependem da faixa, e os
+    // níveis extras já estão construídos na progressão — nada disso se perde.
+    expect(corrupted.age?.years).toBe(320);
+    // Elfo escala os marcos do livro básico ×5: Maduro começa aos 225 e Velho
+    // só aos 350, então 320 anos ainda é um elfo maduro.
+    expect(corrupted.age?.stage).toBe('maduro');
+    expect(corrupted.age?.extraLevels).toBe(2);
   });
 
   test('refresca a descrição das complicações de idade pelo catálogo', () => {

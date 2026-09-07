@@ -4,4 +4,3 @@ import { NullComponent } from '../_inert';
 
 export const AgeBracketField = NullComponent;
 export const AgeComplicationsStep = NullComponent;
-export const AgeEditDrawer = NullComponent;

@@ -19,20 +19,14 @@ import {
   getEffectiveRaceAttrs,
   raceHasSexDimorphism,
 } from '@/functions/general';
-import { AgeBracketField } from '@/premium/components/Ages';
-import type { AgeBracketId } from '@/premium/interfaces/Age';
+import AgeField, { AgeSelection } from '@/components/common/AgeField';
+import type { ClassDescription } from '@/interfaces/Class';
 
 interface CharacterBasicInfo {
   name?: string;
   gender?: 'Masculino' | 'Feminino' | 'Outro';
   imageUrl?: string;
   dimorphismChoice?: 'Masculino' | 'Feminino';
-}
-
-interface AgeSelection {
-  bracket: AgeBracketId;
-  years?: number;
-  deathByOldAge?: boolean;
 }
 
 interface CharacterBasicInfoStepProps {
@@ -42,12 +36,17 @@ interface CharacterBasicInfoStepProps {
   race?: Race;
   supplements: SupplementId[];
   /**
-   * Idades Variadas (Heróis de Arton). A faixa etária é decidida aqui porque
-   * tudo que ela altera vem depois: benefícios de origem, complicações de idade
-   * e os níveis extras que definem o alvo do assistente de evolução.
+   * Idade. Decidida aqui porque tudo que ela altera vem depois: modificadores
+   * de atributo do envelhecimento e, com Idades Variadas ligadas, benefícios de
+   * origem, complicações de idade e os níveis extras que definem o alvo do
+   * assistente de evolução.
    */
   ageSelection?: AgeSelection;
   onAgeChange?: (age: AgeSelection) => void;
+  /** Classe escolhida — define a rolagem de idade inicial (T20, p. 108). */
+  classDescription?: Pick<ClassDescription, 'name' | 'baseClassName'>;
+  /** Idades Variadas (Heróis de Arton) disponíveis para esta conta. */
+  variedAgesAvailable?: boolean;
 }
 
 const formatAttrSet = (race: Race, sex: 'Masculino' | 'Feminino'): string =>
@@ -67,6 +66,8 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
   supplements,
   ageSelection,
   onAgeChange,
+  classDescription,
+  variedAgesAvailable,
 }) => {
   const [nameSuggestions, setNameSuggestions] = useState<string[]>(() =>
     getNameSuggestions(raceName, basicInfo.gender || 'Masculino', supplements)
@@ -234,12 +235,12 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
         </FormControl>
       )}
       {onAgeChange && (
-        <AgeBracketField
+        <AgeField
           raceName={race?.name ?? raceName}
-          bracket={ageSelection?.bracket}
-          years={ageSelection?.years}
-          deathByOldAge={ageSelection?.deathByOldAge}
+          classDescription={classDescription}
+          value={ageSelection ?? {}}
           onChange={onAgeChange}
+          variedAgesAvailable={variedAgesAvailable}
         />
       )}
       {isComplete ? (
