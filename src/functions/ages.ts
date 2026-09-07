@@ -252,3 +252,25 @@ export function getAgeAttributeTotalsDelta(
     .filter(([, value]) => value !== 0)
     .map(([attribute, value]) => ({ attribute, value }));
 }
+
+/**
+ * Idade com que um personagem ENTRA num estágio, para quando o jogador escolhe
+ * o estágio em vez de digitar os anos.
+ *
+ * O estágio Jovem começa em zero, e "0 anos" não é uma resposta útil — ali a
+ * idade de entrada é a menor que a rolagem da classe pode dar, que é justamente
+ * a idade com que aventureiros daquela classe costumam começar. Nos demais
+ * estágios, o piso do próprio estágio.
+ */
+export function getStageEntryAge(
+  stageId: BaseAgeStageId | undefined,
+  raceName: string | undefined,
+  classDescription: Pick<ClassDescription, 'name' | 'baseClassName'> | undefined
+): number {
+  const range = getBaseAgeStageRange(stageId, raceName);
+  if (range && range.minAge > 0) return range.minAge;
+
+  const group = getInitialAgeGroup(classDescription);
+  const { multiplier } = getRaceAgeScaling(raceName);
+  return Math.max(1, Math.round((group.qtdDados + group.bonus) * multiplier));
+}

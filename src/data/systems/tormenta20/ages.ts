@@ -77,7 +77,10 @@ export const BASE_AGE_STAGES: BaseAgeStage[] = [
     id: 'velho',
     label: 'Velho',
     minAge: 70,
-    summary: 'For −2, Des −2, Con −2, Int +1, Sab +1, Car +1 (adicionais)',
+    // O resumo mostra o TOTAL, igual a `attributeModifiers`: é o que a ficha
+    // aplica de fato. O livro descreve −2/+1 adicionais sobre o Maduro, e a
+    // soma dos dois é exatamente isto.
+    summary: 'For −3, Des −3, Con −3, Int +2, Sab +2, Car +2',
     description:
       'Os modificadores da idade são cumulativos. Um personagem velho recebe ' +
       'um total de For −3, Des −3, Con −3, Int +2, Sab +2, Car +2 em relação a ' +
