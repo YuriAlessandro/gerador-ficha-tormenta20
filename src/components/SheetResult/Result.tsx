@@ -60,7 +60,6 @@ import {
   calculateCurrencySpaces,
 } from '@/functions/general';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
-import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import {
   isMulticlass,
@@ -95,7 +94,6 @@ import { ComplicationEditDrawer } from '@/premium/components/Complications';
 import { AttributeModifiersDrawer } from '@/premium/components/Attributes';
 import { SupplementId } from '@/types/supplement.types';
 import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import socketService, {
   type PowerEffectBonusPayload,
   type RollAbilityMeta,
@@ -143,7 +141,6 @@ import {
   updatePowerAcrossSheet,
   PowerUserPatch,
 } from '@/functions/powers/updatePowerAcrossSheet';
-import AgeEditDrawer from './AgeEditDrawer';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
@@ -292,7 +289,6 @@ const Result: React.FC<ResultProps> = (props) => {
   >(undefined);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [complicationDrawerOpen, setComplicationDrawerOpen] = useState(false);
-  const [ageDrawerOpen, setAgeDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
@@ -339,7 +335,6 @@ const Result: React.FC<ResultProps> = (props) => {
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
   const complicationsFeature = useFeatureAccess('complications');
-  const optionalRulesAvailable = useOptionalRulesAvailable();
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
   // forma); este componente precisa ficar transparente para não cobri-lo.
@@ -2568,27 +2563,6 @@ const Result: React.FC<ResultProps> = (props) => {
                         </IconButton>
                       </Tooltip>
                     )}
-                  {/* Idade é do livro básico: toda ficha pode editá-la, sem
-                      suplemento nem assinatura. O que o acesso decide é só se o
-                      painel de Idades Variadas aparece dentro do drawer. */}
-                  {onSheetUpdate && (
-                    <Tooltip title='Idade'>
-                      <IconButton
-                        size='small'
-                        sx={{
-                          backgroundColor: theme.palette.primary.main,
-                          color: 'white',
-                          borderRadius: 1,
-                          '&:hover': {
-                            backgroundColor: theme.palette.primary.dark,
-                          },
-                        }}
-                        onClick={() => setAgeDrawerOpen(true)}
-                      >
-                        <HourglassBottomIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
                   {activeSheetTab === 'defesa' && onSheetUpdate && (
                     <Tooltip title='Configurações de defesa' arrow>
                       <IconButton
@@ -3524,16 +3498,6 @@ const Result: React.FC<ResultProps> = (props) => {
               sheet={currentSheet}
               supplements={userSupplements}
               onSave={handlePowersUpdate}
-            />
-          )}
-
-          {onSheetUpdate && (
-            <AgeEditDrawer
-              open={ageDrawerOpen}
-              onClose={() => setAgeDrawerOpen(false)}
-              sheet={currentSheet}
-              onSave={handlePowersUpdate}
-              variedAgesAvailable={optionalRulesAvailable}
             />
           )}
 
