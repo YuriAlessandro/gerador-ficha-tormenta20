@@ -116,6 +116,7 @@ import {
   toOpenRaceVariant,
 } from '../premium/functions/openRaces';
 import { getAgeBracket } from '../premium/data/ageBrackets';
+import type { AgeAttributeModifier } from '../interfaces/Age';
 import {
   getAgeAttributeTotals,
   getBaseAgeStage,
@@ -685,14 +686,33 @@ export function computeFinalAttributeModifiers(
   race: Race | undefined,
   sexForAttributes: 'Masculino' | 'Feminino' | undefined,
   baseAttributes: Partial<Record<Atributo, number>> | undefined,
-  raceAttributeChoices: (Atributo | undefined)[] | undefined
+  raceAttributeChoices: (Atributo | undefined)[] | undefined,
+  /**
+   * Modificadores da idade (envelhecimento ou faixa de Idades Variadas).
+   *
+   * Entram aqui, e não só na hora de montar a ficha, porque o assistente decide
+   * coisas a partir destes números MUITO antes disso: quantas perícias extras a
+   * Inteligência concede e quais poderes passam no pré-requisito de atributo.
+   * Um personagem maduro com Int +1 tem direito à perícia extra desde o passo
+   * de atributos, e não só quando a ficha existe.
+   */
+  ageModifiers?: AgeAttributeModifier[]
 ): Record<Atributo, number> {
   const modifiers = Object.values(Atributo).reduce(
     (acc, attr) => ({ ...acc, [attr]: baseAttributes?.[attr] ?? 0 }),
     {} as Record<Atributo, number>
   );
 
-  if (!race) return modifiers;
+  const applyAge = () => {
+    ageModifiers?.forEach(({ attribute, value }) => {
+      modifiers[attribute] += value;
+    });
+  };
+
+  if (!race) {
+    applyAge();
+    return modifiers;
+  }
 
   let anyIndex = 0;
   getEffectiveRaceAttrs(race, sexForAttributes).forEach((attr) => {
@@ -704,6 +724,8 @@ export function computeFinalAttributeModifiers(
       modifiers[attr.attr] += attr.mod;
     }
   });
+
+  applyAge();
 
   return modifiers;
 }
