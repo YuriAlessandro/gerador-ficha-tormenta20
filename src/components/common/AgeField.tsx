@@ -1,24 +1,26 @@
 import React from 'react';
 import {
-  Alert,
   Box,
   Button,
+  FormControl,
   FormControlLabel,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Switch,
   Tooltip,
   Typography,
 } from '@mui/material';
 import CasinoIcon from '@mui/icons-material/Casino';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import NumberField from '@/components/common/NumberField';
-import { AgeBracketField } from '@/premium/components/Ages';
+import { AgeBracketDetails, AgeBracketSelect } from '@/premium/components/Ages';
 import { getAgeBracketForYears } from '@/premium/functions/ages';
 import {
   getBaseAgeStageForYears,
   getBaseAgeStages,
   getInitialAgeGroup,
-  getMaxLongevityRange,
+  getStageEntryAge,
   rollInitialAge,
 } from '@/functions/ages';
 import type { AgeBracketId, BaseAgeStageId } from '@/interfaces/Age';
@@ -41,23 +43,26 @@ interface AgeFieldProps {
   variedAgesAvailable?: boolean;
 }
 
+/** Altura de um input MUI de tamanho padrão — alinha o botão com os campos. */
+const INPUT_HEIGHT = 56;
+
 /**
- * Idade do personagem — campo único para as duas regras que a governam.
+ * Idade do personagem.
  *
- * O envelhecimento do livro básico (T20, p. 108) NÃO é opcional: toda ficha tem
- * idade, e passar dos marcos de Maduro e Velho aplica modificadores de atributo
- * de verdade. As Idades Variadas de Heróis de Arton (p. 288) entram por cima,
- * atrás de um interruptor, e então substituem esses modificadores pelas suas
- * sete faixas.
+ * Envelhecer é regra padrão: toda ficha tem idade, e passar dos marcos aplica
+ * modificadores de atributo. As Idades Variadas de Heróis de Arton são o caso
+ * incomum, e por isso ficam recolhidas numa caixa própria, atrás de um
+ * interruptor.
  *
- * A idade em ANOS é o dado primário, e tudo mais é derivado dela: digitar 52
- * seleciona sozinho o estágio Maduro e, com Idades Variadas ligadas, a faixa
- * correspondente. É por isso que o campo numérico fica aqui em cima, fora do
- * painel opcional.
+ * A idade em ANOS é o dado primário, e a faixa é derivada dela. Mas a leitura
+ * inversa também precisa funcionar: sem o seletor de faixa ao lado, os marcos
+ * (que mudam com a longevidade da raça) só apareceriam para quem já sabe qual
+ * número digitar. Por isso os dois controles ficam lado a lado e se
+ * alimentam — digitar a idade move a faixa, escolher a faixa move a idade.
  *
- * Mora em "Informações Básicas" porque a idade precisa estar decidida antes de
- * tudo que ela altera: benefícios de origem, complicações de idade e,
- * principalmente, os níveis extras que definem o alvo do assistente de evolução.
+ * Quando Idades Variadas está ligada, o seletor das sete faixas ocupa o LUGAR
+ * do seletor de envelhecimento: as duas regras nunca valem juntas, e manter os
+ * dois na tela colocaria dois controles disputando o mesmo significado.
  */
 const AgeField: React.FC<AgeFieldProps> = ({
   raceName,
@@ -71,9 +76,6 @@ const AgeField: React.FC<AgeFieldProps> = ({
   const stages = getBaseAgeStages(raceName);
   const stageId = getBaseAgeStageForYears(years, raceName);
   const stage = stages.find((s) => s.id === stageId);
-
-  const initialGroup = getInitialAgeGroup(classDescription);
-  const longevity = getMaxLongevityRange(raceName);
 
   /**
    * Toda mudança de idade reprojeta os derivados de uma vez. Recalcular estágio
@@ -89,8 +91,6 @@ const AgeField: React.FC<AgeFieldProps> = ({
     });
   };
 
-  const handleRoll = () => setYears(rollInitialAge(classDescription, raceName));
-
   const toggleVariedAges = (checked: boolean) => {
     onChange({
       ...value,
@@ -101,23 +101,19 @@ const AgeField: React.FC<AgeFieldProps> = ({
     });
   };
 
-  const stageRangeLabel = stage
-    ? `${stage.minAge}${
-        stage.maxAge === undefined ? '+' : `-${stage.maxAge}`
-      } anos`
-    : '';
+  const stageRangeLabel = (index: number): string => {
+    const { minAge, maxAge } = stages[index];
+    if (maxAge === undefined) return `${minAge}+ anos`;
+    // O primeiro estágio começa em zero, e "0-44 anos" sugere que a idade de um
+    // recém-nascido é uma escolha razoável de personagem.
+    if (index === 0) return `até ${maxAge} anos`;
+    return `${minAge}-${maxAge} anos`;
+  };
+
+  const initialGroup = getInitialAgeGroup(classDescription);
 
   return (
-    <Paper variant='outlined' sx={{ p: 2 }}>
-      <Typography variant='subtitle2' sx={{ mb: 0.5 }}>
-        Idade
-      </Typography>
-      <Typography variant='body2' sx={{ color: 'text.secondary', mb: 1.5 }}>
-        Não há idade certa para viver aventuras. Conforme envelhecem,
-        personagens recebem modificadores de atributo (Tormenta20, p. 108) — e
-        os marcos acompanham a longevidade da raça.
-      </Typography>
-
+    <Box>
       <Box
         sx={{
           display: 'flex',
@@ -127,88 +123,106 @@ const AgeField: React.FC<AgeFieldProps> = ({
         }}
       >
         <NumberField
-          size='small'
-          label='Idade (anos)'
+          label='Idade'
           min={1}
           value={years ?? null}
           onValueChange={(next) => setYears(next ?? undefined)}
-          sx={{ width: 160 }}
-          helperText={stage ? `${stage.label} · ${stageRangeLabel}` : undefined}
+          sx={{ width: 120 }}
         />
+
+        {variedAges ? (
+          <AgeBracketSelect
+            raceName={raceName}
+            bracket={bracket}
+            sx={{ minWidth: 220, flex: 1 }}
+            onChange={(next) =>
+              onChange({
+                ...value,
+                bracket: next.bracket,
+                years: next.years,
+                stage: getBaseAgeStageForYears(next.years, raceName),
+              })
+            }
+          />
+        ) : (
+          <FormControl sx={{ minWidth: 220, flex: 1 }}>
+            <InputLabel id='age-stage-label'>Faixa etária</InputLabel>
+            <Select
+              labelId='age-stage-label'
+              label='Faixa etária'
+              value={stageId}
+              onChange={(e) =>
+                setYears(
+                  getStageEntryAge(
+                    e.target.value as BaseAgeStageId,
+                    raceName,
+                    classDescription
+                  )
+                )
+              }
+            >
+              {stages.map((option, index) => (
+                <MenuItem key={option.id} value={option.id}>
+                  {option.label} · {stageRangeLabel(index)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
         <Tooltip
-          title={`Idade inicial da classe: ${initialGroup.formula}${
-            raceName ? `, ajustado para a longevidade de ${raceName}` : ''
-          }`}
+          title={`Rolar a idade inicial da classe (${initialGroup.formula})`}
         >
           <Button
-            size='small'
             variant='outlined'
-            startIcon={<CasinoIcon />}
-            onClick={handleRoll}
-            sx={{ mt: 0.5 }}
+            onClick={() => setYears(rollInitialAge(classDescription, raceName))}
+            sx={{ minWidth: 'auto', height: INPUT_HEIGHT, px: 2 }}
+            aria-label='Rolar idade'
           >
-            Rolar idade
+            <CasinoIcon />
           </Button>
         </Tooltip>
       </Box>
 
-      <Typography
-        variant='caption'
-        sx={{ color: 'text.secondary', display: 'block', mt: 1 }}
-      >
-        Longevidade máxima: cerca de {longevity.minAge} a {longevity.maxAge}{' '}
-        anos.
-      </Typography>
-
       {!variedAges && stage && stage.attributeModifiers.length > 0 && (
-        <Alert severity='info' sx={{ mt: 1.5 }}>
-          <strong>{stage.label}:</strong> {stage.summary}
-        </Alert>
+        <Typography
+          variant='caption'
+          sx={{ display: 'block', color: 'text.secondary', mt: 0.75 }}
+        >
+          {stage.summary}
+        </Typography>
       )}
 
       {variedAgesAvailable && (
-        <FormControlLabel
-          sx={{ mt: 1, ml: 0 }}
-          control={
-            <Switch
-              size='small'
-              checked={!!variedAges}
-              onChange={(_e, checked) => toggleVariedAges(checked)}
-            />
-          }
-          label={
-            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-              Idades Variadas{' '}
-              <Tooltip title='Regra opcional de Heróis de Arton (p. 288): sete faixas etárias com níveis extras, complicações de idade e benefícios de origem alterados. Substitui os modificadores de envelhecimento do livro básico.'>
-                <HelpOutlineIcon
-                  fontSize='inherit'
-                  sx={{ verticalAlign: 'middle' }}
-                />
-              </Tooltip>
-            </Typography>
-          }
-        />
-      )}
+        <Paper variant='outlined' sx={{ p: 1.5, mt: 2 }}>
+          <FormControlLabel
+            sx={{ ml: 0 }}
+            control={
+              <Switch
+                size='small'
+                checked={!!variedAges}
+                onChange={(_e, checked) => toggleVariedAges(checked)}
+              />
+            }
+            label={
+              <Typography variant='body2'>
+                Idades Variadas (Heróis de Arton)
+              </Typography>
+            }
+          />
 
-      {variedAges && (
-        <AgeBracketField
-          raceName={raceName}
-          bracket={bracket}
-          deathByOldAge={deathByOldAge}
-          onChange={(next) =>
-            onChange({
-              ...value,
-              bracket: next.bracket,
-              // `years` ausente = a mudança não move a idade (ex.: ligar Morte
-              // por Velhice); manter o que o jogador digitou.
-              years: next.years ?? years,
-              stage: getBaseAgeStageForYears(next.years ?? years, raceName),
-              deathByOldAge: next.deathByOldAge,
-            })
-          }
-        />
+          {variedAges && (
+            <AgeBracketDetails
+              bracket={bracket}
+              deathByOldAge={deathByOldAge}
+              onDeathByOldAgeChange={(next) =>
+                onChange({ ...value, deathByOldAge: next })
+              }
+            />
+          )}
+        </Paper>
       )}
-    </Paper>
+    </Box>
   );
 };
 

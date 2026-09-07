@@ -74,7 +74,7 @@ function openAndSave(sheet: CharacterSheet, edit: () => void) {
 }
 
 function typeAge(years: string) {
-  const input = screen.getByLabelText(/Idade \(anos\)/i);
+  const input = screen.getByLabelText(/^Idade$/i);
   fireEvent.change(input, { target: { value: years } });
   fireEvent.blur(input);
 }
