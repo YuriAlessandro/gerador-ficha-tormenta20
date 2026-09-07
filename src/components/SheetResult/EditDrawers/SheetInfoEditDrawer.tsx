@@ -2409,6 +2409,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     variedAgesAvailable={
                       variedAgesAvailable || !!sheet.age?.bracket
                     }
+                    // Personagem já criado: a rolagem de idade inicial é uma
+                    // pergunta que já foi respondida.
+                    allowRoll={false}
                   />
 
                   {requiredAgeComplications > 0 && editedData.age.bracket && (
