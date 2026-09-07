@@ -52,7 +52,16 @@ import {
 } from '@/functions/general';
 import { getTradicaoPerdidaPmCap } from '@/functions/powers/general';
 import getNameSuggestions from '@/functions/nameSuggestions';
+import {
+  getAgeAttributeTotalsDelta,
+  getBaseAgeStageForYears,
+} from '@/functions/ages';
+import { getRequiredAgeComplications } from '@/premium/functions/ages';
+import { AgeComplicationsStep } from '@/premium/components/Ages';
+import AgeField, { AgeSelection } from '@/components/common/AgeField';
+import type { AgeComplication, SheetAge } from '@/interfaces/Age';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
+import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import { SupplementId } from '@/types/supplement.types';
 import {
   MOREAU_HERITAGES,
@@ -185,6 +194,17 @@ interface SheetInfoEditDrawerProps {
   onSave: (updates: Partial<CharacterSheet> | CharacterSheet) => void;
 }
 
+/** Estado de idade da ficha traduzido para o formato do campo de edição. */
+function seedAge(sheet: CharacterSheet): AgeSelection {
+  return {
+    years: sheet.age?.years,
+    stage: sheet.age?.stage,
+    variedAges: !!sheet.age?.bracket,
+    bracket: sheet.age?.bracket,
+    deathByOldAge: sheet.optionalRules?.deathByOldAge,
+  };
+}
+
 interface EditedData {
   nome: string;
   nivel: number;
@@ -221,6 +241,15 @@ interface EditedData {
   manualMaxPM: number | undefined; // Manual max PM override
   tradicaoPerdidaPmAttribute: Atributo | undefined; // Tradição Perdida: atributo do PM (undefined = atributo da classe)
   imageUrl: string;
+  /**
+   * Idade. O envelhecimento do livro básico (T20, p. 108) vale para toda
+   * ficha, então este campo vive aqui, junto de nome e gênero, e não atrás de
+   * suplemento. As Idades Variadas de Heróis de Arton entram pelo interruptor
+   * do próprio campo, quando a conta tem acesso.
+   */
+  age: AgeSelection;
+  /** Complicações de idade escolhidas (só com Idades Variadas ligadas). */
+  ageComplications: AgeComplication[];
   // Só em fichas multiclasse: distribuição de níveis por classe, editável campo
   // a campo. `nivel` acompanha o total.
   classLevels: ClassLevelEntry[] | undefined;
@@ -282,6 +311,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   onSave,
 }) => {
   const sheetIsMulticlass = isMulticlass(sheet);
+  const variedAgesAvailable = useOptionalRulesAvailable();
 
   // A Tradição Perdida só faz sentido para conjuradores (a contribuição de PM do
   // atributo-chave vem da habilidade "Magias"). Mostra o seletor só quando a
@@ -378,6 +408,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     manualMaxPM: sheet.manualMaxPM,
     tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
     imageUrl: sheet.imageUrl || '',
+    age: seedAge(sheet),
+    ageComplications: sheet.age?.complications ?? [],
     classLevels: sheet.classLevels,
   });
 
@@ -396,6 +428,34 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sincretismo: editedData.sincretismoName || undefined,
     };
   };
+
+  /**
+   * Idade a gravar, montada a cada render a partir do que está editado.
+   *
+   * O ESTÁGIO é recalculado a partir dos anos e da raça EDITADA, e não do que
+   * está gravado: trocar a raça muda a escala dos marcos, e um humano de 50
+   * anos que vira elfo deixa de ser Maduro. Sem isso, a troca de raça manteria
+   * um estágio que a nova longevidade não justifica.
+   */
+  const requiredAgeComplications = getRequiredAgeComplications(
+    editedData.age.bracket
+  );
+
+  const nextAge: SheetAge = {
+    years: editedData.age.years,
+    stage: getBaseAgeStageForYears(editedData.age.years, editedData.raceName),
+    bracket: editedData.age.bracket,
+    complications: editedData.age.bracket ? editedData.ageComplications : [],
+    grantedPowerName: sheet.age?.grantedPowerName,
+    // Preservado: o nível já foi construído com base nele.
+    extraLevels: sheet.age?.extraLevels ?? 0,
+  };
+
+  const ageAttributeDelta = getAgeAttributeTotalsDelta(sheet.age, nextAge);
+  const ageChanged =
+    ageAttributeDelta.length > 0 ||
+    !_.isEqual(seedAge(sheet), editedData.age) ||
+    !_.isEqual(sheet.age?.complications ?? [], editedData.ageComplications);
 
   // State for image preview error
   const [imagePreviewError, setImagePreviewError] = useState(false);
@@ -483,6 +543,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
+      age: seedAge(sheet),
+      ageComplications: sheet.age?.complications ?? [],
       classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
@@ -1590,7 +1652,49 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       (editedData.suragelAbility !== sheet.suragelAbility ||
         editedData.suragelAbilityChoice !== getSeedSuragelAbilityChoice(sheet));
 
+    // Idade. Roda por ÚLTIMO entre as mudanças de atributo porque o caminho de
+    // troca de raça reescreve `updates.atributos` inteiro — o delta da idade
+    // precisa cair em cima do resultado final, não ser sobrescrito por ele.
+    //
+    // Os modificadores de idade são permanentes e já estão somados em
+    // `atributos`, então só a DIFERENÇA entre o total antigo e o novo se
+    // aplica; comparar totais também cobre ligar ou desligar Idades Variadas
+    // numa ficha pronta, em que as duas pontas usam tabelas diferentes.
+    if (ageChanged) {
+      if (ageAttributeDelta.length > 0) {
+        const withAge = { ...(updates.atributos ?? editedData.attributes) };
+        ageAttributeDelta.forEach(({ attribute, value }) => {
+          withAge[attribute] = {
+            ...withAge[attribute],
+            value: withAge[attribute].value + value,
+          };
+        });
+        updates.atributos = withAge;
+
+        newSteps.push({
+          label: 'Edição Manual - Idade',
+          type: 'Atributos',
+          value: ageAttributeDelta.map(({ attribute, value }) => ({
+            name: attribute,
+            value: `${value > 0 ? '+' : ''}${value}`,
+          })),
+        });
+      }
+
+      // Idade em branco e sem faixa é o estado "não informado" — a ficha volta
+      // a não ter bloco de idade nenhum, como as criadas antes desta regra.
+      updates.age =
+        nextAge.years === undefined && !nextAge.bracket ? undefined : nextAge;
+
+      const optionalRules = { ...(sheet.optionalRules ?? {}) };
+      if (editedData.age.deathByOldAge) optionalRules.deathByOldAge = true;
+      else delete optionalRules.deathByOldAge;
+      updates.optionalRules =
+        Object.keys(optionalRules).length > 0 ? optionalRules : undefined;
+    }
+
     const shouldUseRecalculateSheet =
+      ageChanged ||
       attributesChanged ||
       raceChanged ||
       deityChanged ||
@@ -1667,6 +1771,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
+      age: seedAge(sheet),
+      ageComplications: sheet.age?.complications ?? [],
       classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
@@ -2283,6 +2389,41 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       <MenuItem value='Outro'>Outro</MenuItem>
                     </Select>
                   </FormControl>
+
+                  <AgeField
+                    raceName={editedData.raceName}
+                    classDescription={sheet.classe}
+                    value={editedData.age}
+                    onChange={(next) =>
+                      setEditedData({
+                        ...editedData,
+                        age: next,
+                        // Mudar de faixa muda quantas complicações são
+                        // exigidas; as antigas não sobrevivem à troca.
+                        ageComplications:
+                          next.bracket === editedData.age.bracket
+                            ? editedData.ageComplications
+                            : [],
+                      })
+                    }
+                    variedAgesAvailable={
+                      variedAgesAvailable || !!sheet.age?.bracket
+                    }
+                  />
+
+                  {requiredAgeComplications > 0 && editedData.age.bracket && (
+                    <AgeComplicationsStep
+                      bracket={editedData.age.bracket}
+                      selected={editedData.ageComplications}
+                      onChange={(ageComplications) =>
+                        setEditedData({ ...editedData, ageComplications })
+                      }
+                      // Fora da criação não há como conceder o poder de "Já Vi
+                      // Coisas" sem reabrir o seletor de poderes; a complicação
+                      // do Adulto passa a ser exigida como nas demais faixas.
+                      tookOptionalPower
+                    />
+                  )}
 
                   <FormControl fullWidth>
                     <InputLabel>Raça</InputLabel>
@@ -3532,6 +3673,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               variant='contained'
               onClick={handleSave}
               disabled={
+                // A faixa etária exige um número exato de complicações de
+                // idade; salvar no meio da escolha deixaria a ficha sem os
+                // efeitos que pagam pelos níveis extras.
+                editedData.ageComplications.length !==
+                  requiredAgeComplications ||
                 (editedData.raceName === 'Moreau' &&
                   editedData.raceHeritage === 'Coruja' &&
                   !editedData.moreauSapienciaSpell) ||
