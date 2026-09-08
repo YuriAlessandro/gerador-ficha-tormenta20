@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import LevelUpWizardModal from '@/components/LevelUpWizard/LevelUpWizardModal';
 import { dataRegistry } from '@/data/registry';
@@ -46,7 +46,16 @@ describe('LevelUpWizardModal — pré-requisitos do nível atual', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Próximo' }));
 
-    expect(screen.getByText('Alquimista Exímio')).toBeInTheDocument();
-    expect(screen.queryByText('Indisponível')).not.toBeInTheDocument();
+    const nomeDoPoder = screen.getByText('Alquimista Exímio');
+    expect(nomeDoPoder).toBeInTheDocument();
+
+    // A asserção é ESCOPADA no card do poder: a lista de poderes de classe
+    // agora também mostra os reprovados por pré-requisito, marcados
+    // "Indisponível", então um `queryByText` global pegaria os vizinhos.
+    const card = nomeDoPoder.closest('.MuiPaper-root');
+    expect(card).not.toBeNull();
+    expect(
+      within(card as HTMLElement).queryByText('Indisponível')
+    ).not.toBeInTheDocument();
   });
 });

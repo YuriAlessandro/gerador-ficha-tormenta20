@@ -213,6 +213,43 @@ describe('evaluatePowerRequirements', () => {
         ).available
       ).toBe(true);
     });
+
+    it('a substituição do Artesão Criativo alcança Ofício customizado', () => {
+      // Ofício fora de ALL_SPECIFIC_OFICIOS (criado em runtime por
+      // `buildCustomOficio`, ou vindo de homebrew). O poder diz "qualquer
+      // outro Ofício", então a lista fechada não pode ser o critério.
+      const sheet = createMockCharacterSheet();
+      train(sheet, Skill.OFICIO_ARTESANATO);
+      const req = power([
+        [
+          {
+            type: RequirementType.PERICIA,
+            name: 'Ofício (Marceneiro)' as Skill,
+          },
+        ],
+      ]);
+
+      expect(evaluatePowerRequirements(req, ctxOf(sheet)).available).toBe(
+        false
+      );
+
+      expect(
+        evaluatePowerRequirements(
+          req,
+          ctxOf(sheet, { pendingGeneralPowers: [{ name: 'Artesão Criativo' }] })
+        ).available
+      ).toBe(true);
+    });
+
+    it('Ofício genérico continua fora da substituição (qualquer Ofício já basta)', () => {
+      const sheet = createMockCharacterSheet();
+      train(sheet, Skill.OFICIO_ARTESANATO);
+      const req = power([
+        [{ type: RequirementType.PERICIA, name: Skill.OFICIO }],
+      ]);
+
+      expect(evaluatePowerRequirements(req, ctxOf(sheet)).available).toBe(true);
+    });
   });
 
   describe('PROFICIENCIA', () => {

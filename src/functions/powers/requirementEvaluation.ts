@@ -6,14 +6,11 @@ import {
   Requirement,
   RequirementType,
 } from '../../interfaces/Poderes';
-import Skill, {
-  ALL_SPECIFIC_OFICIOS,
-  isGenericOficio,
-  isOficioSkill,
-} from '../../interfaces/Skills';
+import Skill, { isGenericOficio, isOficioSkill } from '../../interfaces/Skills';
 import { isClassOrVariantOf, isRaceOrVariantOf } from '../general';
 import { applyRequirementNot } from '../powers';
 import { PowerLike, sheetSatisfiesPowerRequirement } from './hasPowerNamed';
+import { ARTESAO_CRIATIVO } from '../../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
 import { formatRequirement } from '../requirementText';
 
 /**
@@ -86,8 +83,6 @@ export interface PowerAvailability {
 type RequirablePower = Pick<GeneralPower | ClassPower, 'name'> & {
   requirements?: Requirement[][];
 };
-
-const ARTESAO_CRIATIVO = 'Artesão Criativo';
 
 /**
  * Todos os nomes de poder que valem como "o personagem tem X", somando a ficha
@@ -186,8 +181,11 @@ function isRequirementMet(
       if (isTrainedIn(sheet, req.name as string)) return true;
 
       // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
-      // específico para fins de pré-requisito.
-      if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
+      // para fins de pré-requisito ("qualquer outro Ofício", diz o poder), o
+      // que inclui os Ofícios customizados criados em runtime por
+      // `buildCustomOficio` — por isso `isOficioSkill` e não a lista fechada
+      // `ALL_SPECIFIC_OFICIOS`. Espelha o mesmo trecho em `functions/powers.ts`.
+      if (isOficioSkill(req.name) && !isGenericOficio(req.name)) {
         return (
           hasPowerNamed(ARTESAO_CRIATIVO, ctx) &&
           isTrainedIn(sheet, Skill.OFICIO_ARTESANATO)

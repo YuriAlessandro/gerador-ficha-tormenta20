@@ -30,6 +30,7 @@ interface PowerSelectionStepProps {
   className: string;
   knownClassPowers?: string[];
   knownGeneralPowers?: string[];
+  unavailableClassPowers?: string[];
   unavailableGeneralPowers?: string[];
   almaLivrePower?: ClassPower | null;
   almaLivreClassName?: string;
@@ -49,6 +50,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   className,
   knownClassPowers = [],
   knownGeneralPowers = [],
+  unavailableClassPowers = [],
   unavailableGeneralPowers = [],
   almaLivrePower = null,
   almaLivreClassName,
@@ -56,7 +58,12 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const hasClassPowers = classPowers.length > 0;
+  // Só os SELECIONÁVEIS habilitam a aba: `classPowers` agora também traz os
+  // reprovados por pré-requisito (listados desabilitados, para mostrar o
+  // motivo), e sem isso a aba abriria sem nenhuma opção escolhível.
+  const hasClassPowers = classPowers.some(
+    (power) => !unavailableClassPowers.includes(power.name)
+  );
   const hasGeneralPowers = generalPowers.length > 0;
 
   // Helper to check if power is already known and cannot be repeated
@@ -197,25 +204,27 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
           <Stack spacing={2}>
             {filteredClassPowers.map((power) => {
               const isKnown = isPowerKnown(power.name, true);
+              const isUnavailable = unavailableClassPowers.includes(power.name);
+              const isDisabled = isKnown || isUnavailable;
               return (
                 <Card
                   key={power.name}
                   variant='outlined'
                   sx={{
-                    cursor: isKnown ? 'not-allowed' : 'pointer',
+                    cursor: isDisabled ? 'not-allowed' : 'pointer',
                     border: selectedClassPower?.name === power.name ? 2 : 1,
                     borderColor:
                       selectedClassPower?.name === power.name
                         ? 'primary.main'
                         : 'divider',
-                    opacity: isKnown ? 0.5 : 1,
+                    opacity: isDisabled ? 0.5 : 1,
                     '&:hover': {
-                      borderColor: isKnown ? 'divider' : 'primary.light',
-                      bgcolor: isKnown ? 'inherit' : 'action.hover',
+                      borderColor: isDisabled ? 'divider' : 'primary.light',
+                      bgcolor: isDisabled ? 'inherit' : 'action.hover',
                     },
                   }}
                   onClick={() => {
-                    if (!isKnown) {
+                    if (!isDisabled) {
                       onClassPowerSelect(power);
                     }
                   }}
@@ -241,6 +250,13 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                             label='Já Conhecido'
                             size='small'
                             color='default'
+                          />
+                        )}
+                        {isUnavailable && (
+                          <Chip
+                            label='Indisponível'
+                            size='small'
+                            color='warning'
                           />
                         )}
                         {power.canRepeat && (

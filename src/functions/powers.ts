@@ -8,11 +8,7 @@ import {
   Requirement,
   RequirementType,
 } from '../interfaces/Poderes';
-import Skill, {
-  ALL_SPECIFIC_OFICIOS,
-  isGenericOficio,
-  isOficioSkill,
-} from '../interfaces/Skills';
+import Skill, { isGenericOficio, isOficioSkill } from '../interfaces/Skills';
 import {
   INVENTOR_SPECIALIZATIONS,
   InventorSpecialization,
@@ -22,7 +18,11 @@ import {
 import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
 import { getSheetDeityNames } from './powers/deityNames';
-import { sheetSatisfiesPowerRequirement } from './powers/hasPowerNamed';
+import {
+  sheetHasPowerNamed,
+  sheetSatisfiesPowerRequirement,
+} from './powers/hasPowerNamed';
+import { ARTESAO_CRIATIVO } from '../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 
@@ -158,13 +158,13 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       if (rule.name && trainedSkills.includes(pericia)) return true;
 
       // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
-      // específico para fins de pré-requisito.
-      if (ALL_SPECIFIC_OFICIOS.includes(pericia)) {
-        const hasArtesaoCriativo = getAllCharacterPowers(sheet).some(
-          (p) => p.name === 'Artesão Criativo'
-        );
+      // para fins de pré-requisito ("qualquer outro Ofício", diz o poder), o
+      // que inclui os Ofícios customizados criados em runtime por
+      // `buildCustomOficio` — por isso `isOficioSkill` e não a lista fechada
+      // `ALL_SPECIFIC_OFICIOS`.
+      if (isOficioSkill(pericia) && !isGenericOficio(pericia)) {
         if (
-          hasArtesaoCriativo &&
+          sheetHasPowerNamed(sheet, ARTESAO_CRIATIVO) &&
           trainedSkills.includes(Skill.OFICIO_ARTESANATO)
         ) {
           return true;

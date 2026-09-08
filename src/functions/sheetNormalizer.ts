@@ -7,6 +7,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
+import { migrateLegacyOficioArtesao } from './migrateSheet';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { dataRegistry } from '../data/registry';
@@ -700,6 +701,15 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   }
 
   if (!Array.isArray(sheet.skills)) sheet.skills = [];
+
+  // Exceção consciente ao "só preenche o que falta": renomear valor LEGADO não
+  // é sobrescrever dado do usuário, é a mesma perícia com o nome do livro.
+  // Precisa rodar aqui (e não só em `migrateSheet`, que o Histórico e Meus
+  // Personagens chamam) porque ficha da nuvem/embed/mesa virtual só passa por
+  // `normalizeSheet` — e com o nome antigo nenhum pré-requisito de Ofício
+  // (Artesão) casava, quebrando também a substituição do Artesão Criativo.
+  migrateLegacyOficioArtesao(sheet);
+
   if (!Array.isArray(sheet.spells)) sheet.spells = [];
   if (!Array.isArray(sheet.generalPowers)) sheet.generalPowers = [];
   if (!Array.isArray(sheet.sheetBonuses)) sheet.sheetBonuses = [];

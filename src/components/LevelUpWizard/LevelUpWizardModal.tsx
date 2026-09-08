@@ -16,13 +16,14 @@ import CharacterSheet, {
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
-import { GeneralPower } from '@/interfaces/Poderes';
+import { GeneralPower, RequirementType } from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
   isPowerAvailable,
+  resolveClassPowerCatalog,
 } from '@/functions/powers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
@@ -100,6 +101,30 @@ const getTreinoEspecializadoChoice = (
   sel: LevelUpSelections
 ): string | undefined =>
   sel.abilityEffectSelections?.[TREINO_ESPECIALIZADO]?.chosenOption?.[0];
+
+/**
+ * O poder tem algum grupo de pré-requisitos cuja exigência de NÍVEL já está
+ * cumprida?
+ *
+ * Usado para decidir quais poderes de classe reprovados ainda vale a pena
+ * listar como "Indisponível": os travados só pelo nível ficam de fora, senão a
+ * lista de um personagem de 2º nível viraria o catálogo inteiro da classe até
+ * o 20º. Grupo sem requisito de NÍVEL conta como alcançável.
+ */
+const hasReachableLevelRequirement = (
+  power: ClassPower,
+  classLevel: number
+): boolean => {
+  const groups = power.requirements;
+  if (!groups || groups.length === 0) return true;
+
+  return groups.some((group) =>
+    group.every(
+      (rule) =>
+        rule.type !== RequirementType.NIVEL || (rule.value ?? 0) <= classLevel
+    )
+  );
+};
 
 const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   open,
@@ -319,6 +344,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   ): {
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
+    unavailableClassPowers: string[];
     unavailableGeneralPowers: string[];
   } => {
     // Get class with merged supplement powers from registry
@@ -356,6 +382,32 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       classLevel: selectedClassLevel,
     });
 
+    // Poder de classe reprovado por pré-requisito continua na lista, apenas
+    // desabilitado e com o requisito à mostra — igual ao tratamento dos poderes
+    // gerais logo abaixo. Antes ele simplesmente sumia, sem nenhum sinal do
+    // motivo: foi assim que a substituição de Ofício do Artesão Criativo
+    // falhando em silêncio chegou como "não dá pra pegar, tem que pôr manual".
+    const allowedClassPowerNames = new Set(classPowers.map((p) => p.name));
+    const knownClassPowerNames = new Set(
+      (sheetForFiltering.classPowers || []).map((p) => p.name)
+    );
+    const unavailableClassPowers: string[] = [];
+    const blockedClassPowers = resolveClassPowerCatalog(
+      sheetForFiltering
+    ).filter((power) => {
+      if (allowedClassPowerNames.has(power.name)) return false;
+      // Já conhecido e não repetível some, como sempre — quem sinaliza isso é
+      // o chip "Já Conhecido" dos poderes que continuam na lista.
+      if (knownClassPowerNames.has(power.name) && !power.canRepeat) {
+        return false;
+      }
+      if (!hasReachableLevelRequirement(power, selectedClassLevel)) {
+        return false;
+      }
+      unavailableClassPowers.push(power.name);
+      return true;
+    });
+
     // Use dataRegistry to get powers from all active supplements.
     // Inclui os 5 tipos de poderes gerais, mais os poderes de raça (ex.: Glamour)
     // que o personagem qualifica — poderes de raça só aparecem para quem atende
@@ -391,8 +443,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     });
 
     // Sort powers alphabetically
-    const sortedClassPowers = [...classPowers].sort((a, b) =>
-      a.name.localeCompare(b.name, 'pt-BR')
+    const sortedClassPowers = [...classPowers, ...blockedClassPowers].sort(
+      (a, b) => a.name.localeCompare(b.name, 'pt-BR')
     );
     const sortedGeneralPowers = [...generalPowers].sort((a, b) =>
       a.name.localeCompare(b.name, 'pt-BR')
@@ -401,6 +453,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     return {
       classPowers: sortedClassPowers,
       generalPowers: sortedGeneralPowers,
+      unavailableClassPowers,
       unavailableGeneralPowers,
     };
   };
@@ -1040,8 +1093,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
       case 'Escolha de Poder': {
         const sheetForPowerSelection = sheetWithCurrentLevelAbilities;
-        const { classPowers, generalPowers, unavailableGeneralPowers } =
-          getAvailablePowers(sheetForPowerSelection);
+        const {
+          classPowers,
+          generalPowers,
+          unavailableClassPowers,
+          unavailableGeneralPowers,
+        } = getAvailablePowers(sheetForPowerSelection);
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
@@ -1115,6 +1172,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             className={selectedClassName}
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
+            unavailableClassPowers={unavailableClassPowers}
             unavailableGeneralPowers={unavailableGeneralPowers}
             almaLivrePower={showAlmaLivre ? almaLivrePower : null}
             almaLivreClassName={showAlmaLivre ? almaLivreClassName : undefined}

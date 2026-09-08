@@ -68,7 +68,6 @@ import generateRandomSheet, {
   applyManualLevelUp,
   restoreSpellPath,
 } from '../../functions/general';
-import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
 import { recalculateSheet } from '../../functions/recalculateSheet';
 import { applyRaceCustomizationToSheet } from '../../functions/applyRaceCustomizationToSheet';
 import {
