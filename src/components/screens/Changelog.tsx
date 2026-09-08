@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            06/09/2026 (v4.32.2).
+            08/09/2026 (v4.33).
           </p>
 
           <p>
@@ -74,6 +74,41 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.33</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> Ao <strong>subir de nível</strong>,
+                  os <strong>poderes de classe</strong> que você ainda não
+                  cumpre passam a aparecer na lista marcados como{' '}
+                  <strong>Indisponível</strong>, com o pré-requisito que está
+                  faltando à mostra — antes eles simplesmente sumiam, sem
+                  nenhuma pista do motivo. É o mesmo comportamento que os
+                  poderes gerais já tinham.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Artesão Criativo</strong> (Inventor) volta a fazer{' '}
+                  <strong>Ofício (Artesão)</strong> valer no lugar de qualquer
+                  outro Ofício nos pré-requisitos. Poderes como{' '}
+                  <strong>Couraceiro</strong>, <strong>Ferreiro</strong> e{' '}
+                  <strong>Estilista</strong> agora aparecem normalmente ao subir
+                  de nível, sem precisar adicioná-los à mão pelo editor de
+                  poderes. A substituição também passa a valer para{' '}
+                  <strong>Ofícios personalizados</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas antigas que ainda guardavam
+                  a perícia com o nome antigo{' '}
+                  <strong>&quot;Ofício (Artesanato)&quot;</strong> são
+                  corrigidas automaticamente para{' '}
+                  <strong>&quot;Ofício (Artesão)&quot;</strong> ao serem
+                  abertas. O nome antigo não era reconhecido em nenhum
+                  pré-requisito de Ofício, e a correção só rodava no Histórico e
+                  em Meus Personagens — fichas salvas na nuvem continuavam
+                  quebradas.
+                </li>
+              </ul>
+
               <h3>4.32.2</h3>
               <ul>
                 <li>
