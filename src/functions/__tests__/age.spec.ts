@@ -7,6 +7,10 @@ import { generateEmptySheet } from '../general';
 import { recalculateSheet } from '../recalculateSheet';
 import { normalizeSheet } from '../sheetNormalizer';
 import { getFilteredAvailableOptions } from '../powers/manualPowerSelection';
+import {
+  getAgeBracketForYears,
+  getAgeRanges,
+} from '../../premium/functions/ages';
 import type { PowerSelectionRequirement } from '../../interfaces/PowerSelections';
 import type CharacterSheet from '../../interfaces/CharacterSheet';
 
@@ -33,9 +37,15 @@ const BASE_OPTIONS: SelectedOptions = {
   ],
 };
 
+/**
+ * Idades Variadas é regra OPCIONAL desde que o envelhecimento do livro básico
+ * passou a valer sempre: escolher uma faixa só tem efeito com o interruptor
+ * ligado, então o helper liga junto sempre que a chamada informa uma faixa.
+ */
 function buildSheet(selections: WizardSelections): CharacterSheet {
   return generateEmptySheet(BASE_OPTIONS, {
     baseAttributes: { ...ZEROED },
+    ...(selections.ageBracket ? { variedAges: true } : {}),
     ...selections,
   });
 }
@@ -50,10 +60,21 @@ function attributeDelta(
 }
 
 describe('Idades Variadas — gravação na ficha', () => {
-  test('Jovem é a faixa padrão e não é gravada (equivale a regra desligada)', () => {
-    const sheet = buildSheet({ ageBracket: 'jovem' });
+  test('sem idade informada e sem a regra opcional, não grava bloco de idade', () => {
+    const sheet = buildSheet({});
 
     expect(sheet.age).toBeUndefined();
+  });
+
+  test('Jovem é a faixa padrão e não altera atributo nenhum', () => {
+    const baseline = buildSheet({});
+    const jovem = buildSheet({ ageBracket: 'jovem' });
+
+    expect(jovem.age?.bracket).toBe('jovem');
+    expect(jovem.age?.extraLevels).toBe(0);
+    Object.values(Atributo).forEach((attr) => {
+      expect(attributeDelta(jovem, baseline, attr)).toBe(0);
+    });
   });
 
   test('grava faixa, anos, complicações e níveis extras congelados', () => {
@@ -259,15 +280,24 @@ describe('Idades Variadas — Aumento de Atributo bloqueado', () => {
 });
 
 describe('Idades Variadas — normalização de fichas antigas', () => {
-  test('descarta idade com faixa etária desconhecida', () => {
-    const sheet = buildSheet({ ageBracket: 'velho' });
+  test('descarta só a faixa desconhecida, preservando idade e níveis já construídos', () => {
+    const sheet = buildSheet({ ageBracket: 'velho', ageYears: 320 });
     const corrupted = {
       ...sheet,
       age: { ...sheet.age!, bracket: 'inexistente' },
     } as unknown as CharacterSheet;
 
     normalizeSheet(corrupted);
-    expect(corrupted.age).toBeUndefined();
+
+    expect(corrupted.age?.bracket).toBeUndefined();
+    expect(corrupted.age?.complications).toEqual([]);
+    // A idade em anos e o estágio do livro básico não dependem da faixa, e os
+    // níveis extras já estão construídos na progressão — nada disso se perde.
+    expect(corrupted.age?.years).toBe(320);
+    // Elfo escala os marcos do livro básico ×5: Maduro começa aos 225 e Velho
+    // só aos 350, então 320 anos ainda é um elfo maduro.
+    expect(corrupted.age?.stage).toBe('maduro');
+    expect(corrupted.age?.extraLevels).toBe(2);
   });
 
   test('refresca a descrição das complicações de idade pelo catálogo', () => {
@@ -296,5 +326,85 @@ describe('Idades Variadas — normalização de fichas antigas', () => {
 
     normalizeSheet(corrupted);
     expect(corrupted.age?.complications).toHaveLength(1);
+  });
+});
+
+describe('Idades Variadas SUBSTITUI o envelhecimento do livro básico', () => {
+  const PHYSICAL = [Atributo.FORCA, Atributo.DESTREZA, Atributo.CONSTITUICAO];
+  const MENTAL = [Atributo.INTELIGENCIA, Atributo.SABEDORIA, Atributo.CARISMA];
+
+  test('elfo de 320 anos com a regra ligada usa a faixa, não o estágio base', () => {
+    const baseline = buildSheet({});
+    // 320 anos é Maduro pelo livro básico (−1 físico, +1 mental) e Velho pela
+    // Tabela 4-2 de Heróis de Arton (−1 físico, nada nos mentais). Com a regra
+    // ligada, só a segunda vale — as duas jamais somam.
+    const sheet = buildSheet({
+      ageYears: 320,
+      variedAges: true,
+      ageBracket: 'velho',
+      ageComplications: [
+        { name: 'Catarata', description: '' },
+        { name: 'Melancólico', description: '' },
+        { name: 'Teimoso', description: '' },
+      ],
+    });
+
+    PHYSICAL.forEach((attr) => {
+      expect(attributeDelta(sheet, baseline, attr)).toBe(-1);
+    });
+    MENTAL.forEach((attr) => {
+      expect(attributeDelta(sheet, baseline, attr)).toBe(0);
+    });
+  });
+
+  test('escolher a faixa sem ligar a regra não aplica a faixa', () => {
+    const baseline = buildSheet({});
+    const sheet = generateEmptySheet(BASE_OPTIONS, {
+      baseAttributes: { ...ZEROED },
+      ageYears: 250,
+      ageBracket: 'anciao',
+    });
+
+    expect(sheet.age?.bracket).toBeUndefined();
+    // Sem o interruptor, vale o livro básico: 250 anos é um elfo Maduro.
+    expect(attributeDelta(sheet, baseline, Atributo.FORCA)).toBe(-1);
+  });
+});
+
+describe('Sem buracos entre as faixas etárias', () => {
+  /**
+   * O bug que motivou a mudança: escalar piso e teto de forma independente
+   * deixava um elfo de 40 anos acima do teto de Jovem (24) e abaixo do piso de
+   * Adulto (125), sem faixa nenhuma para cair.
+   */
+  const RACES = ['Humano', 'Elfo', 'Anão', 'Goblin'];
+
+  test.each(RACES)(
+    'todo ano de 9 a 600 tem exatamente uma faixa (%s)',
+    (raca) => {
+      const ranges = getAgeRanges(raca);
+      for (let years = 9; years <= 600; years += 1) {
+        const matches = ranges.filter(
+          (r) =>
+            years >= r.minAge && (r.maxAge === undefined || years <= r.maxAge)
+        );
+        expect(matches).toHaveLength(1);
+      }
+    }
+  );
+
+  test('elfo de 40 anos cai em Jovem, e não num buraco', () => {
+    expect(getAgeBracketForYears(40, 'Elfo')).toBe('jovem');
+  });
+
+  test('os marcos do livro seguem valendo para as faixas escaladas', () => {
+    const min = (raca: string, id: string) =>
+      getAgeRanges(raca).find((r) => r.id === id)?.minAge;
+
+    // Exemplos citados no box "Idades das Raças" (Heróis de Arton, p. 289).
+    expect(min('Anão', 'adulto')).toBe(50);
+    expect(min('Elfo', 'adulto')).toBe(125);
+    expect(min('Goblin', 'crianca')).toBe(6);
+    expect(min('Goblin', 'adulto')).toBe(18);
   });
 });

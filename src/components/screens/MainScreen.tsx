@@ -775,7 +775,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       // Idades Variadas (Heróis de Arton): Maduro, Velho e Ancião começam com
       // níveis adicionais em relação ao resto do grupo. O alvo do assistente de
       // evolução passa a ser o nível pedido + os extras da faixa (teto 20).
-      const ageExtraLevels = getAgeExtraLevels(wizardSelections.ageBracket);
+      // Só a regra opcional concede níveis; o envelhecimento do livro básico
+      // mexe em atributos e nada mais.
+      const ageExtraLevels = wizardSelections.variedAges
+        ? getAgeExtraLevels(wizardSelections.ageBracket)
+        : 0;
       const effectiveLevel = Math.min(
         MAX_LEVEL,
         selectedOptions.nivel + ageExtraLevels

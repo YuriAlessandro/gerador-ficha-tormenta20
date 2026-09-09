@@ -55,6 +55,12 @@ const OVERRIDES = {
   },
   // somado a um atributo no card e na rolagem: undefined viraria NaN
   getActiveEffectAttributeModifier: { expr: '() => 0' },
+  // Idade existe em toda ficha (envelhecimento do livro básico), então o código
+  // público chama isto; sem o submódulo não há Idades Variadas para ligar, e a
+  // faixa padrão é a resposta certa.
+  getAgeBracketForYears: { expr: "() => 'jovem'" },
+  // consumido com `.find` e `.map` na lista de faixas
+  getAgeRanges: { expr: '() => []' },
   // ENVOLVE a tela da ficha inteira: NullComponent (o default para
   // /components) faria a ficha sumir sem o submódulo premium.
   WildShapeSkin: { expr: 'PassthroughProvider' },

@@ -116,7 +116,13 @@ import {
   toOpenRaceVariant,
 } from '../premium/functions/openRaces';
 import { getAgeBracket } from '../premium/data/ageBrackets';
-import { getAgeAttributeModifiers } from '../premium/functions/ages';
+import type { AgeAttributeModifier, SheetAge } from '../interfaces/Age';
+import {
+  getAgeAttributeTotals,
+  getBaseAgeStage,
+  getBaseAgeStageForYears,
+  rollInitialAge,
+} from './ages';
 import {
   getRaceDisplacement,
   getRaceSize,
@@ -680,14 +686,33 @@ export function computeFinalAttributeModifiers(
   race: Race | undefined,
   sexForAttributes: 'Masculino' | 'Feminino' | undefined,
   baseAttributes: Partial<Record<Atributo, number>> | undefined,
-  raceAttributeChoices: (Atributo | undefined)[] | undefined
+  raceAttributeChoices: (Atributo | undefined)[] | undefined,
+  /**
+   * Modificadores da idade (envelhecimento ou faixa de Idades Variadas).
+   *
+   * Entram aqui, e não só na hora de montar a ficha, porque o assistente decide
+   * coisas a partir destes números MUITO antes disso: quantas perícias extras a
+   * Inteligência concede e quais poderes passam no pré-requisito de atributo.
+   * Um personagem maduro com Int +1 tem direito à perícia extra desde o passo
+   * de atributos, e não só quando a ficha existe.
+   */
+  ageModifiers?: AgeAttributeModifier[]
 ): Record<Atributo, number> {
   const modifiers = Object.values(Atributo).reduce(
     (acc, attr) => ({ ...acc, [attr]: baseAttributes?.[attr] ?? 0 }),
     {} as Record<Atributo, number>
   );
 
-  if (!race) return modifiers;
+  const applyAge = () => {
+    ageModifiers?.forEach(({ attribute, value }) => {
+      modifiers[attribute] += value;
+    });
+  };
+
+  if (!race) {
+    applyAge();
+    return modifiers;
+  }
 
   let anyIndex = 0;
   getEffectiveRaceAttrs(race, sexForAttributes).forEach((attr) => {
@@ -699,6 +724,8 @@ export function computeFinalAttributeModifiers(
       modifiers[attr.attr] += attr.mod;
     }
   });
+
+  applyAge();
 
   return modifiers;
 }
@@ -5623,6 +5650,40 @@ export default function generateRandomSheet(
 
   // Os substeps da origem serão adicionados depois que getSkillsAndPowersByClassAndOrigin for chamado
 
+  // Passo 6.05: Idade.
+  //
+  // Antes de tudo que deriva de atributo (carga, PV, perícias por Inteligência)
+  // porque o envelhecimento os modifica. Na prática a rolagem sempre cai no
+  // estágio Jovem — o teto dela é 27 e o piso de Maduro é 45 × o multiplicador
+  // da raça, que nunca é menor que 0,7 — mas a ordem certa é a que continua
+  // valendo se a tabela mudar.
+  const ageYears = rollInitialAge(classe);
+  const ageStage = getBaseAgeStageForYears(ageYears, race.name);
+  const age: SheetAge = {
+    years: ageYears,
+    stage: ageStage,
+    complications: [],
+    extraLevels: 0,
+  };
+
+  const ageAttributeSubSteps: SubStep[] = [];
+  getAgeAttributeTotals(age).forEach(({ attribute, value }) => {
+    atributos[attribute].value += value;
+    ageAttributeSubSteps.push({
+      name: getBaseAgeStage(ageStage)?.label ?? 'Idade',
+      value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
+    });
+  });
+
+  steps.push({
+    label: 'Idade',
+    type: 'Atributos',
+    value: [
+      { name: 'Idade', value: `${ageYears} anos` },
+      ...ageAttributeSubSteps,
+    ],
+  });
+
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxSpaces = calculateMaxSpaces(atributos.Força.value);
   // Guardado à parte: poderes de origem/raça/classe (aplicados só no Passo 11)
@@ -5729,6 +5790,7 @@ export default function generateRandomSheet(
     sexo: finalSex === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
     atributos,
+    age,
     maxSpaces,
     raca: race,
     raceHeritage: race.heritage,
@@ -7101,74 +7163,93 @@ export function generateEmptySheet(
     });
   }
 
-  // Idades Variadas (Heróis de Arton) — regra opcional.
+  // Idade — duas regras no mesmo bloco.
   //
-  // Jovem é a faixa padrão e não altera nada, então nem chega a ser gravada: uma
-  // ficha sem `age` e uma ficha Jovem são a mesma coisa para o motor.
-  if (wizardSelections?.ageBracket && wizardSelections.ageBracket !== 'jovem') {
-    const bracket = getAgeBracket(wizardSelections.ageBracket);
-    if (bracket) {
-      emptySheet.age = {
-        bracket: wizardSelections.ageBracket,
-        years: wizardSelections.ageYears,
-        complications: wizardSelections.ageComplications ?? [],
-        grantedPowerName: wizardSelections.agePower?.name,
-        // Congelado aqui: trocar a faixa etária depois NÃO reescreve o nível.
-        extraLevels: bracket.extraLevels,
-      };
+  // O envelhecimento do livro básico (T20, p. 108) vale para TODA ficha e não
+  // depende de suplemento: a idade em anos decide o estágio, e o estágio aplica
+  // modificadores de atributo de verdade. As Idades Variadas de Heróis de Arton
+  // são opcionais e, quando ligadas, SUBSTITUEM esses modificadores pelos da
+  // faixa escolhida — quem resolve essa exclusão é `getAgeAttributeTotals`.
+  //
+  // Ficha aleatória (sem assistente) rola a idade inicial da classe; todos os
+  // resultados possíveis caem no estágio Jovem, que não altera atributo nenhum.
+  const variedAges =
+    !!wizardSelections?.variedAges && !!wizardSelections.ageBracket;
+  const ageBracketId = variedAges ? wizardSelections?.ageBracket : undefined;
+  // Só o assistente chama `generateEmptySheet` — a ficha aleatória tem motor
+  // próprio (`generateRandomSheet`), e é lá que a idade é rolada.
+  const ageYears = wizardSelections?.ageYears;
 
-      // Modificadores de atributo da faixa: permanentes, somados aqui uma única
-      // vez — exatamente como os raciais. O recálculo não os reaplica, e trocar
-      // a faixa pelo drawer aplica só o delta (`getAgeAttributeDelta`).
-      const ageAttributeSubSteps: SubStep[] = [];
-      getAgeAttributeModifiers(wizardSelections.ageBracket).forEach(
-        ({ attribute, value }) => {
-          emptySheet.atributos[attribute].value += value;
-          ageAttributeSubSteps.push({
-            name: bracket.label,
-            value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
-          });
-        }
-      );
-      if (ageAttributeSubSteps.length > 0) {
-        emptySheet.steps.push({
-          label: 'Atributos Modificados (idade)',
-          type: 'Atributos',
-          value: ageAttributeSubSteps,
-        });
-      }
+  if (ageYears !== undefined || ageBracketId) {
+    const bracket = getAgeBracket(ageBracketId);
+    const stage =
+      (variedAges ? undefined : wizardSelections?.ageStage) ??
+      getBaseAgeStageForYears(ageYears, emptySheet.raca.name);
 
-      const { agePower } = wizardSelections;
-      if (agePower) {
-        if (!emptySheet.generalPowers.some((p) => p.name === agePower.name)) {
-          emptySheet.generalPowers.push(agePower);
-        }
-      }
+    emptySheet.age = {
+      years: ageYears,
+      stage,
+      bracket: ageBracketId,
+      complications: variedAges ? wizardSelections?.ageComplications ?? [] : [],
+      grantedPowerName: variedAges
+        ? wizardSelections?.agePower?.name
+        : undefined,
+      // Congelado aqui: trocar a idade depois NÃO reescreve o nível.
+      extraLevels: bracket?.extraLevels ?? 0,
+    };
 
+    // Modificadores de atributo da idade: permanentes, somados aqui uma única
+    // vez — exatamente como os raciais. O recálculo não os reaplica, e editar a
+    // idade aplica só o delta (`getAgeAttributeTotalsDelta`).
+    const ageAttributeSubSteps: SubStep[] = [];
+    const ageLabel = bracket?.label ?? getBaseAgeStage(stage)?.label ?? 'Idade';
+    getAgeAttributeTotals(emptySheet.age).forEach(({ attribute, value }) => {
+      emptySheet.atributos[attribute].value += value;
+      ageAttributeSubSteps.push({
+        name: ageLabel,
+        value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
+      });
+    });
+    if (ageAttributeSubSteps.length > 0) {
       emptySheet.steps.push({
-        label: 'Idade',
+        label: 'Atributos Modificados (idade)',
         type: 'Atributos',
-        value: [
-          { name: 'Faixa etária', value: bracket.label },
-          ...(wizardSelections.ageYears
-            ? [{ name: 'Idade', value: `${wizardSelections.ageYears} anos` }]
-            : []),
-          ...(emptySheet.age.complications.length > 0
-            ? [
-                {
-                  name: 'Complicações de idade',
-                  value: emptySheet.age.complications
-                    .map((c) => c.name)
-                    .join(', '),
-                },
-              ]
-            : []),
-          ...(wizardSelections.agePower
-            ? [{ name: 'Já Vi Coisas', value: wizardSelections.agePower.name }]
-            : []),
-        ],
+        value: ageAttributeSubSteps,
       });
     }
+
+    const agePower = variedAges ? wizardSelections?.agePower : undefined;
+    if (
+      agePower &&
+      !emptySheet.generalPowers.some((p) => p.name === agePower.name)
+    ) {
+      emptySheet.generalPowers.push(agePower);
+    }
+
+    emptySheet.steps.push({
+      label: 'Idade',
+      type: 'Atributos',
+      value: [
+        ...(ageYears !== undefined
+          ? [{ name: 'Idade', value: `${ageYears} anos` }]
+          : []),
+        {
+          name: variedAges ? 'Faixa etária' : 'Envelhecimento',
+          value: ageLabel,
+        },
+        ...(emptySheet.age.complications.length > 0
+          ? [
+              {
+                name: 'Complicações de idade',
+                value: emptySheet.age.complications
+                  .map((c) => c.name)
+                  .join(', '),
+              },
+            ]
+          : []),
+        ...(agePower ? [{ name: 'Já Vi Coisas', value: agePower.name }] : []),
+      ],
+    });
   }
 
   // Regras opcionais de Heróis de Arton em uso. Só grava o que estiver ligado —

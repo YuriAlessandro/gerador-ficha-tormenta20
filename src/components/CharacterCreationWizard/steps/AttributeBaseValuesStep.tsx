@@ -21,6 +21,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import CasinoIcon from '@mui/icons-material/Casino';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import Race, { RaceAttributeAbility } from '@/interfaces/Race';
+import type { AgeAttributeModifier } from '@/interfaces/Age';
 import {
   getPointBuyCost,
   getRemainingPoints,
@@ -42,6 +43,14 @@ interface AttributeBaseValuesStepProps {
   sexForAttributes?: 'Masculino' | 'Feminino'; // Dimorfismo sexual (ex: Nagah)
   baseAttributes: Record<Atributo, number>;
   raceAttributeChoices?: Atributo[]; // For races with 'any' attributes
+  /**
+   * Modificadores da idade (envelhecimento ou faixa de Idades Variadas).
+   *
+   * Aparecem numa linha própria, e não somados ao racial, porque vêm de uma
+   * escolha diferente: o jogador precisa enxergar que o −1 de Força é a idade,
+   * e não a raça, para poder voltar um passo e mudar de ideia.
+   */
+  ageModifiers?: AgeAttributeModifier[];
   method: AttributeMethod;
   dicePool?: number[];
   diceAssignment?: (number | null)[];
@@ -75,6 +84,7 @@ const formatMod = (mod: number): string => {
 const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
   race,
   sexForAttributes,
+  ageModifiers,
   baseAttributes,
   raceAttributeChoices,
   method,
@@ -180,6 +190,13 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
 
     return modifier;
   };
+
+  const getAgeModifier = (atributo: Atributo): number =>
+    ageModifiers
+      ?.filter((mod) => mod.attribute === atributo)
+      .reduce((total, mod) => total + mod.value, 0) ?? 0;
+
+  const hasAgeModifiers = (ageModifiers?.length ?? 0) > 0;
 
   // Helper to get color for racial modifier
   const getRacialModifierColor = (mod: number): string => {
@@ -364,7 +381,8 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
         {allAttributes.map((atributo, attrIndex) => {
           const baseModifier = baseAttributes[atributo] ?? 0;
           const racialModifier = getRacialModifier(atributo);
-          const finalValue = baseModifier + racialModifier;
+          const ageModifier = getAgeModifier(atributo);
+          const finalValue = baseModifier + racialModifier + ageModifier;
 
           const selectedPoolIndex = diceAssignment?.[attrIndex] ?? null;
           const addCost =
@@ -510,6 +528,36 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   {formatMod(racialModifier)}
                 </Typography>
               </Box>
+              {hasAgeModifiers && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    Mod. Idade:
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    color={getRacialModifierColor(ageModifier)}
+                    sx={{
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    {formatMod(ageModifier)}
+                  </Typography>
+                </Box>
+              )}
               <Divider sx={{ my: 0.5 }} />
               <Box
                 sx={{

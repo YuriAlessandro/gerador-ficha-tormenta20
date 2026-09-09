@@ -17,7 +17,7 @@ import {
   SpiritEnergyType,
 } from './Companion';
 import type { Complication } from '../premium/interfaces/Complication';
-import type { AgeBracketId, AgeComplication } from '../premium/interfaces/Age';
+import type { AgeBracketId, AgeComplication, BaseAgeStageId } from './Age';
 
 export interface ClassEquipmentSelections {
   simpleWeapon?: Equipment;
@@ -219,10 +219,19 @@ export interface WizardSelections {
   // Poder geral adicional concedido pela complicação
   complicationPower?: GeneralPower;
 
-  // Idades Variadas (Heróis de Arton). `ageBracket` ausente = regra desligada;
-  // 'jovem' é a faixa padrão, escolhida explicitamente mas sem efeito nenhum.
-  ageBracket?: AgeBracketId;
+  // Idade em anos. Sempre presente nas fichas novas: o envelhecimento do livro
+  // básico (T20, p. 108) não é regra opcional, e é desta idade que saem tanto o
+  // estágio base quanto a faixa de Idades Variadas.
   ageYears?: number;
+  // Estágio de envelhecimento do livro básico, derivado de `ageYears` e da
+  // longevidade da raça. Guardado (e não recalculado na hora de gerar a ficha)
+  // para que a origem do modificador fique explícita nos steps.
+  ageStage?: BaseAgeStageId;
+  // Idades Variadas (Heróis de Arton): regra OPCIONAL, ligada pelo jogador.
+  // `variedAges` é o interruptor; `ageBracket` só é lido quando ele está ligado,
+  // e a faixa então SUBSTITUI os modificadores de `ageStage`.
+  variedAges?: boolean;
+  ageBracket?: AgeBracketId;
   // Complicações de idade escolhidas (1 para Adulto, ..., 4 para Ancião)
   ageComplications?: AgeComplication[];
   // "Já Vi Coisas": poder geral opcional do Adulto. O booleano é separado do

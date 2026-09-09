@@ -50,6 +50,7 @@ import {
   ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
 import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
+import { getAgeAttributeTotalsForSelection } from '@/functions/ages';
 import {
   applyAttributeVariant,
   buildClassEquipmentsFromChoices,
@@ -478,15 +479,24 @@ const CharacterCreationWizardModal: React.FC<
         )
       : undefined;
 
+  // Idades Variadas ligadas nesta ficha? A idade em si existe sempre (o
+  // envelhecimento do livro básico não é opcional), mas só a regra de Heróis de
+  // Arton mexe em benefícios de origem, complicações e níveis extras.
+  const variedAges =
+    optionalRulesAvailable &&
+    !!selections.variedAges &&
+    !!selections.ageBracket;
+
   // Quantos benefícios de origem a faixa etária concede: Criança 0 ("Sem
   // Origem"), Adolescente 1 ("Origem em Construção"), demais 2.
-  const ageOriginBenefits = optionalRulesAvailable
+  const ageOriginBenefits = variedAges
     ? getAgeOriginBenefits(selections.ageBracket)
     : 2;
 
   // "Já Vi Coisas" só existe no Adulto; nas demais faixas o poder não é opcional
   // (não existe), então o toggle nunca vale.
   const tookAgeOptionalPower =
+    variedAges &&
     !!selections.ageOptionalPowerTaken &&
     !!getAgeBracket(selections.ageBracket)?.optionalGeneralPower;
 
@@ -500,14 +510,32 @@ const CharacterCreationWizardModal: React.FC<
         : undefined
     );
 
-  // Modificadores finais dos seis atributos (base + raciais). Necessários pelos
-  // passos que filtram poderes antes de a ficha existir — sem eles a ficha-mock
-  // usa valores falsos e todo pré-requisito de atributo passa de graça.
+  /**
+   * Modificadores que a idade aplica com a raça e a regra escolhidas AGORA.
+   *
+   * Vive aqui em cima porque a idade é decidida no primeiro passo e todo o
+   * resto do assistente depende dela: um personagem maduro tem Int +1 e, com
+   * isso, uma perícia extra e poderes a mais ao alcance.
+   */
+  const ageAttributeModifiers = getAgeAttributeTotalsForSelection(
+    {
+      years: selections.ageYears,
+      variedAges: selections.variedAges,
+      bracket: selections.ageBracket,
+    },
+    raceForAttributes?.name
+  );
+
+  // Modificadores finais dos seis atributos (base + raciais + idade).
+  // Necessários pelos passos que filtram poderes antes de a ficha existir — sem
+  // eles a ficha-mock usa valores falsos e todo pré-requisito de atributo passa
+  // de graça.
   const finalAttributeModifiers = computeFinalAttributeModifiers(
     raceForAttributes,
     sexForAttributes,
     selections.baseAttributes,
-    selections.raceAttributes
+    selections.raceAttributes,
+    ageAttributeModifiers
   );
 
   // Helper to calculate intelligence modifier (including racial modifiers)
@@ -693,8 +721,7 @@ const CharacterCreationWizardModal: React.FC<
   // não têm complicação de idade). Para o Adulto ele aparece mesmo assim,
   // porque é lá que mora o toggle de "Já Vi Coisas".
   const needsAgeComplications = (): boolean =>
-    optionalRulesAvailable &&
-    getRequiredAgeComplications(selections.ageBracket) > 0;
+    variedAges && getRequiredAgeComplications(selections.ageBracket) > 0;
 
   const needsAgePower = (): boolean =>
     needsAgeComplications() && tookAgeOptionalPower;
@@ -907,6 +934,7 @@ const CharacterCreationWizardModal: React.FC<
     classe,
     origin,
     deity,
+    selections.variedAges,
     selections.ageBracket,
     selections.ageOptionalPowerTaken,
   ]);
@@ -1103,30 +1131,30 @@ const CharacterCreationWizardModal: React.FC<
             raceName={selectedOptions.raca}
             race={race}
             supplements={supplements}
-            ageSelection={
-              optionalRulesAvailable
-                ? {
-                    bracket: selections.ageBracket ?? 'jovem',
-                    years: selections.ageYears,
-                    deathByOldAge: selections.deathByOldAge,
-                  }
-                : undefined
-            }
-            onAgeChange={
-              optionalRulesAvailable
-                ? (age) =>
-                    setSelections({
-                      ...selections,
-                      ageBracket: age.bracket,
-                      ageYears: age.years,
-                      deathByOldAge: age.deathByOldAge,
-                      // Trocar de faixa muda quantas complicações são exigidas e
-                      // se o poder opcional existe — as escolhas antigas não
-                      // sobrevivem à troca.
-                      ageComplications: [],
-                      agePower: undefined,
-                    })
-                : undefined
+            classDescription={classe}
+            variedAgesAvailable={optionalRulesAvailable}
+            ageSelection={{
+              years: selections.ageYears,
+              stage: selections.ageStage,
+              variedAges: selections.variedAges,
+              bracket: selections.ageBracket,
+              deathByOldAge: selections.deathByOldAge,
+            }}
+            onAgeChange={(age) =>
+              setSelections({
+                ...selections,
+                ageYears: age.years,
+                ageStage: age.stage,
+                variedAges: age.variedAges,
+                ageBracket: age.bracket,
+                deathByOldAge: age.deathByOldAge,
+                // Mudar de faixa muda quantas complicações são exigidas e se o
+                // poder opcional existe — as escolhas antigas não sobrevivem à
+                // troca. Desligar a regra as descarta pelo mesmo motivo.
+                ageComplications: [],
+                agePower: undefined,
+                ageOptionalPowerTaken: undefined,
+              })
             }
           />
         );
@@ -1158,6 +1186,7 @@ const CharacterCreationWizardModal: React.FC<
             sexForAttributes={sexForAttributes}
             baseAttributes={selections.baseAttributes || zeroedAttributes}
             raceAttributeChoices={selections.raceAttributes}
+            ageModifiers={ageAttributeModifiers}
             method={selections.attributeMethod || 'free'}
             dicePool={selections.attributeDicePool}
             dicePoolLabels={selections.attributeDicePoolLabels}
@@ -1961,7 +1990,7 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Complicações de Idade':
         return isAgeSelectionComplete(
-          selections.ageBracket,
+          variedAges ? selections.ageBracket : undefined,
           (selections.ageComplications ?? []).length,
           tookAgeOptionalPower
         );

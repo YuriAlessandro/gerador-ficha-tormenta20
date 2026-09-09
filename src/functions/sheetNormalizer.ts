@@ -25,6 +25,7 @@ import {
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
+import { getBaseAgeStage, getBaseAgeStageForYears } from './ages';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import { RETIRED_ACTIVE_POWER_KEYS } from '../premium/data/activePowers';
 import { CustomPower } from '../interfaces/CustomPower';
@@ -739,9 +740,29 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     delete sheet.complication;
   }
 
-  // Idade com faixa etária desconhecida não resolve no catálogo — nem os
-  // bônus nem o rótulo saem de pé, então descarta o bloco inteiro.
-  if (sheet.age && !getAgeBracket(sheet.age.bracket)) {
+  // Faixa de Idades Variadas desconhecida não resolve no catálogo — nem os
+  // bônus nem o rótulo saem de pé. Só a FAIXA é descartada: a idade em anos e o
+  // estágio de envelhecimento do livro básico continuam válidos sem ela.
+  if (sheet.age?.bracket && !getAgeBracket(sheet.age.bracket)) {
+    delete sheet.age.bracket;
+    sheet.age.complications = [];
+    delete sheet.age.grantedPowerName;
+  }
+  // Estágio ausente ou inválido é reconstruído a partir dos anos — fichas
+  // gravadas antes do envelhecimento do livro básico só têm `years`.
+  if (sheet.age && !getBaseAgeStage(sheet.age.stage)) {
+    sheet.age.stage = getBaseAgeStageForYears(
+      sheet.age.years,
+      sheet.raca?.name
+    );
+  }
+  // Bloco de idade sem anos, sem faixa e sem nada a dizer é ruído: some.
+  if (
+    sheet.age &&
+    sheet.age.years === undefined &&
+    !sheet.age.bracket &&
+    !sheet.age.extraLevels
+  ) {
     delete sheet.age;
   }
   if (sheet.age && typeof sheet.age.extraLevels !== 'number') {
