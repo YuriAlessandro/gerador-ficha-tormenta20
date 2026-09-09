@@ -264,6 +264,10 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
       );
     });
 
+    // Origem regional concede o poder sozinha, então o jogador nunca faz o
+    // toggle — o lápis é o único jeito de refazer a escolha do Cosmopolita e do
+    // Citadino Abastado depois da criação ("uma vez por aventura, pode trocar
+    // esse poder por outro").
     push(
       'originPower',
       'originPower',
@@ -272,7 +276,13 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
         selectedOriginPowers,
         editor.handleOriginPowerToggle,
         'originPower'
-      )
+      ).map((item) => {
+        const power = selectedOriginPowers.find((p) => p.name === item.name);
+        if (!power || !editor.getOriginPowerChoiceRequirements(power)) {
+          return item;
+        }
+        return { ...item, onEdit: () => editor.handleOriginPowerEdit(power) };
+      })
     );
 
     push(
@@ -485,6 +495,8 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
           onClose={editor.handleSelectionCancel}
           onConfirm={editor.handleSelectionConfirm}
           requirements={editor.selectionDialog.requirements}
+          initialSelections={editor.selectionDialog.initialSelections}
+          ownerPower={editor.selectionDialog.powerToAdd ?? undefined}
           sheet={sheet}
         />
       )}

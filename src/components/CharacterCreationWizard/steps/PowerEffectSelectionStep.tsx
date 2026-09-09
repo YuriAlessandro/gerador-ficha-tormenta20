@@ -29,6 +29,7 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import {
   PowerSelectionRequirement,
   ManualPowerSelections,
+  SelectionOptions,
 } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
@@ -38,6 +39,7 @@ import Divindade from '@/interfaces/Divindade';
 import {
   getPowerSelectionRequirements,
   getChosenOptionNestedRequirements,
+  getOptionBranchSelectionKeys,
   getFilteredAvailableOptions,
   getGrantedPowerRequirements,
   resolveLearnSkillRemainingPick,
@@ -165,6 +167,13 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   // Junta os requisitos fixos do poder com os que só existem depois de uma
   // escolha de `chooseFromOptions` (ex.: Herança de Werra → "Duas Armas
   // Exóticas" pede 2 proficiências).
+  // Guarda o poder por nome para que a troca de ramo de um `chooseFromOptions`
+  // consiga zerar as respostas do ramo anterior (ver `handleSelection`).
+  const powersByName = new Map<
+    string,
+    Parameters<typeof getPowerSelectionRequirements>[0]
+  >();
+
   const collectRequirements = (
     powerOrAbility: Parameters<typeof getPowerSelectionRequirements>[0],
     source: 'race' | 'class' | 'origin'
@@ -176,6 +185,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     );
     const requirements = [...(reqs?.requirements ?? []), ...nested];
     if (requirements.length === 0) return;
+    powersByName.set(powerOrAbility.name, powerOrAbility);
     allRequirements.push({
       powerName: powerOrAbility.name,
       source,
@@ -532,13 +542,29 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       });
     }
 
+    const nextPowerSelections: SelectionOptions = {
+      ...powerSelections,
+      [updateKey]: newItems,
+    };
+
+    // Trocar o ramo de um `chooseFromOptions` tem que zerar o que o ramo
+    // ANTERIOR respondeu — senão o handler do ramo novo consome a resposta
+    // velha. Ver `getOptionBranchSelectionKeys`: só as chaves dos requisitos
+    // aninhados nas opções são limpas, as respostas dos requisitos irmãos do
+    // próprio poder ficam.
+    if (updateKey === 'chosenOption') {
+      const power = powersByName.get(powerName);
+      if (power) {
+        getOptionBranchSelectionKeys(power).forEach((key) => {
+          delete nextPowerSelections[key];
+        });
+      }
+    }
+
     // Update selections for this specific power
     onChange({
       ...selections,
-      [powerName]: {
-        ...powerSelections,
-        [updateKey]: newItems,
-      },
+      [powerName]: nextPowerSelections,
     });
   };
 

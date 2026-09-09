@@ -332,6 +332,30 @@ export function getPowersAllowedByRequirements(
 }
 
 /**
+ * Catálogo cru de poderes gerais restrito a algumas categorias, com os
+ * suplementos ativos.
+ *
+ * Serve a `getGeneralPower.availableTypes`: um poder que oferece "um poder geral
+ * qualquer" não pode congelar a lista no arquivo de dado — com import estático,
+ * nenhum poder geral de suplemento entraria na oferta. NÃO filtra pré-requisito
+ * nem o que a ficha já tem: cada chamador aplica o filtro que lhe cabe (a UI
+ * honra `ignorePrerequisites`, o gerador passa por
+ * `getPowersAllowedByRequirements`).
+ */
+export function getGeneralPowerCatalogByTypes(
+  sheet: CharacterSheet,
+  types: GeneralPowerType[],
+  supplements?: SupplementId[]
+): GeneralPower[] {
+  const scope = supplements ??
+    sheet.supplements ?? [SupplementId.TORMENTA20_CORE];
+
+  return dataRegistry
+    .getAllPowersBySupplements(scope)
+    .filter((power) => types.includes(power.type));
+}
+
+/**
  * Catálogo de poderes da classe da ficha, com fallback no registro.
  *
  * `stripSheetForStorage` zera `classe.powers` e `rehydrateSheet` só o restaura

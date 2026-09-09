@@ -1,6 +1,9 @@
 import { shuffle, cloneDeep } from 'lodash';
 import { v4 as uuid } from 'uuid';
-import { OriginPower } from '../../../../../interfaces/Poderes';
+import {
+  GeneralPowerType,
+  OriginPower,
+} from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { spellsCircle1 } from '../../magias/generalSpells';
 import { allArcaneSpellsCircle1 } from '../../magias/arcane';
@@ -194,6 +197,63 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Escolha um poder geral ou de uma classe na qual você tenha pelo menos dois níveis, e cujos requisitos você cumpra (exceto poderes concedidos ou da Tormenta). Você recebe esse poder. Uma vez por aventura, após concluir um descanso (oito horas de sono), pode trocar esse poder por outro.',
     type: ORIGIN_POWER_TYPE,
+    // A troca "uma vez por aventura" vira uma re-escolha oferecida a cada
+    // subida de nível (e, a qualquer momento, pelo editor de poderes).
+    swappableAtLevelUp: true,
+    sheetActions: [
+      {
+        source: { type: 'origin', originName: 'Cosmopolita (Valkaria)' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: 'cosmopolitaPoder',
+          pick: 1,
+          options: [
+            {
+              name: 'Poder geral',
+              text: 'Um poder geral cujos requisitos você cumpra (exceto concedidos ou da Tormenta).',
+              sheetActions: [
+                {
+                  source: {
+                    type: 'origin',
+                    originName: 'Cosmopolita (Valkaria)',
+                  },
+                  action: {
+                    type: 'getGeneralPower',
+                    // Piscina por categoria: ver `availableTypes`. Lista
+                    // estática aqui deixaria de fora todo poder geral de
+                    // suplemento, mesmo com o suplemento ligado.
+                    availablePowers: [],
+                    availableTypes: [
+                      GeneralPowerType.COMBATE,
+                      GeneralPowerType.DESTINO,
+                      GeneralPowerType.MAGIA,
+                    ],
+                    pick: 1,
+                  },
+                },
+              ],
+            },
+            {
+              name: 'Poder de classe',
+              text: 'Um poder de uma classe na qual você tenha pelo menos dois níveis.',
+              sheetActions: [
+                {
+                  source: {
+                    type: 'origin',
+                    originName: 'Cosmopolita (Valkaria)',
+                  },
+                  // Mesmo tratamento da Futura Lenda: requisitos avaliados no
+                  // 2º nível FIXO. O benefício é ganho no 1º nível e precisa
+                  // render a mesma lista em qualquer recálculo — inclusive ao
+                  // criar um personagem já em nível alto.
+                  action: { type: 'getClassPower', minLevel: 2 },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
   },
   CRIA_DA_FAVELA: {
     name: 'Cria da Favela',

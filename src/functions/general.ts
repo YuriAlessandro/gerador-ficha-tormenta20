@@ -126,6 +126,7 @@ import {
   convertOriginItemsToBagEquipments,
   grantOriginItemsToBag,
 } from './originItems';
+import { resetOriginPowerChoice } from './originBenefits';
 import {
   GeneralPower,
   OriginPower,
@@ -2318,11 +2319,23 @@ export const applyPower = (
           value: sheetAction.action.description,
         });
       } else if (sheetAction.action.type === 'getGeneralPower') {
+        const { availableTypes } = sheetAction.action;
+        // Piscina por categoria (ex.: Cosmopolita, "um poder geral qualquer"):
+        // resolvida agora pelos suplementos ativos. Passa por
+        // `getPowersAllowedByRequirements` porque `pickFromAllowed` NÃO checa
+        // pré-requisito — com uma piscina de centenas de poderes, o sorteio cru
+        // entregaria poderes que o personagem não pode ter.
+        const availablePool = availableTypes
+          ? getPowersAllowedByRequirements(sheet).filter((power) =>
+              availableTypes.includes(power.type)
+            )
+          : sheetAction.action.availablePowers;
+
         // Use manual selections if provided, otherwise random
         const pickedPowers =
           manualSelections?.powers ||
           pickFromAllowed(
-            sheetAction.action.availablePowers,
+            availablePool,
             sheetAction.action.pick,
             sheet.generalPowers
           );
@@ -2995,10 +3008,17 @@ export const applyPower = (
 
         subSteps.push(...currentSteps);
       } else if (sheetAction.action.type === 'getClassPower') {
-        const { minLevel = 2 } = sheetAction.action;
+        const { minLevel = 2, levelSource = 'fixed' } = sheetAction.action;
+        // 'sheet' avalia no nível atual (poder re-escolhido a cada aventura,
+        // ex.: Citadino Abastado); 'fixed' congela em `minLevel` para render a
+        // mesma lista em qualquer recálculo (Futura Lenda, Cosmopolita).
+        const effectiveLevel = levelSource === 'sheet' ? sheet.nivel : minLevel;
 
         // Filter class powers by minimum level and requirements
-        const availablePowers = getFuturaLendaClassPowers(sheet, minLevel);
+        const availablePowers = getFuturaLendaClassPowers(
+          sheet,
+          effectiveLevel
+        );
 
         if (availablePowers.length === 0) {
           // Sem catálogo resolvível (classe homebrew/variante de suplemento
@@ -3008,7 +3028,7 @@ export const applyPower = (
           // volta a ser aplicada quando o suplemento/classe retornar.
           subSteps.push({
             name: getSourceName(sheetAction.source),
-            value: `Nenhum poder de classe elegível (nível mínimo ${minLevel})`,
+            value: `Nenhum poder de classe elegível (nível ${effectiveLevel})`,
           });
         } else {
           // Select power (manual or random)
@@ -4339,6 +4359,40 @@ export function applyManualLevelUp(
       }
     );
     updatedSheet.optionChoices = merged;
+  }
+
+  // Troca do poder escolhido por uma origem que permite re-escolher entre
+  // aventuras (Cosmopolita, Citadino Abastado). Zera a escolha anterior antes
+  // de reaplicar: o replay do `chooseFromOptions` prioriza `optionChoices` e
+  // ignora a seleção manual, e `isActionAlreadyApplied` casa `getClassPower`
+  // com `PowerAdded` — sem o reset a troca não acontece. Ver
+  // `resetOriginPowerChoice`.
+  if (selections.originPowerSwaps) {
+    Object.entries(selections.originPowerSwaps).forEach(
+      ([powerName, powerSelections]) => {
+        const originPower = updatedSheet.origin?.powers?.find(
+          (power) => power.name === powerName
+        );
+        // Troca começada pela metade (ramo escolhido, poder não) é descartada:
+        // sem `powers` o `applyPower` sortearia um poder em silêncio.
+        if (!originPower || !powerSelections.powers?.length) return;
+
+        resetOriginPowerChoice(updatedSheet, originPower);
+        const [swapped, swapSubSteps] = applyPower(
+          updatedSheet,
+          originPower,
+          powerSelections
+        );
+        updatedSheet = swapped;
+        if (swapSubSteps.length > 0) {
+          updatedSheet.steps.push({
+            type: 'Poderes',
+            label: `Benefício da Origem (${originPower.name})`,
+            value: swapSubSteps,
+          });
+        }
+      }
+    );
   }
 
   // Multiclass: resolve selected class for this level

@@ -101,6 +101,16 @@ export type OriginPower = CountsAsTormentaPower & {
   // `applyPower` deduplica sheetActions pelo `sheetActionHistory`, mas
   // empilharia os `sheetBonuses` duas vezes.
   allowSeveralPicks?: boolean;
+  /**
+   * A escolha deste poder pode ser REFEITA a cada subida de nível.
+   *
+   * Marca só os poderes cujo texto prevê a troca — Cosmopolita ("uma vez por
+   * aventura … pode trocar esse poder por outro") e Citadino Abastado ("até o
+   * fim da aventura, ou até usar esta habilidade novamente"). Sem esse marcador
+   * o assistente reabriria também escolhas permanentes como Futura Lenda e
+   * Duplo Feérico, que o jogador faz uma vez só.
+   */
+  swappableAtLevelUp?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário

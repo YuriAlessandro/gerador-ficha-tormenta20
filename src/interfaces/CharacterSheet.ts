@@ -1,5 +1,5 @@
 import { ClassDescription, ClassPower, CrossTraditionRules } from './Class';
-import { GeneralPower, OriginPower } from './Poderes';
+import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
 import Bag from './Bag';
 import { Spell, SpellSchool } from './Spells';
@@ -110,6 +110,12 @@ export type SheetActionStep =
   | {
       type: 'getGeneralPower';
       availablePowers: GeneralPower[]; // List of available powers
+      // Piscina por CATEGORIA, resolvida na hora pelo `dataRegistry` com os
+      // suplementos ativos (ver `resolveGeneralPowerPool`). Quando presente,
+      // `availablePowers` é ignorado — passe `[]`. Existe porque um poder que
+      // oferece "um poder geral qualquer" não pode congelar a lista no dado:
+      // com import estático, nenhum poder de suplemento entraria na oferta.
+      availableTypes?: GeneralPowerType[];
       pick: number; // Number of powers to learn
       // Concessões que valem apesar dos pré-requisitos dos poderes ofertados.
       // Linhagem Abençoada (Deuses de Arton, pág. 33) dá um poder concedido
@@ -205,6 +211,12 @@ export type SheetActionStep =
       // Nível em que os requisitos são avaliados (default: 2). Ver
       // getFuturaLendaClassPowers.
       minLevel?: number;
+      // De onde sai esse nível. 'fixed' (padrão) usa `minLevel` e rende a mesma
+      // lista em qualquer recálculo — é o caso de um benefício ganho no 1º
+      // nível (Futura Lenda, Cosmopolita). 'sheet' avalia no nível ATUAL do
+      // personagem: para poderes re-escolhidos a cada aventura (Citadino
+      // Abastado), cuja oferta acompanha o crescimento do personagem.
+      levelSource?: 'fixed' | 'sheet';
     }
   | {
       type: 'grantSpecificClassPower';

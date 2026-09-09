@@ -157,6 +157,19 @@ function deduplicateHistory(
     // Include powerName to differentiate entries from different abilities with the same source
     if (action.powerName) {
       key += `-pn:${action.powerName}`;
+      // …e o TIPO das mudanças, porque um mesmo poder pode gravar mais de uma
+      // entrada em uma única aplicação. O Cosmopolita grava `OptionChosen`
+      // (o ramo escolhido) e, logo depois, `PowerAdded` (o poder concedido pelo
+      // ramo): com a chave só em source+powerName as duas colidiam e a segunda
+      // era descartada — o `isActionAlreadyApplied` deixava de enxergar a
+      // concessão e o recálculo seguinte concedia o poder DE NOVO.
+      // Não é o mesmo que a chave do source `power` logo acima, que serializa
+      // as mudanças inteiras para separar instâncias repetidas (Aumento de
+      // Atributo); aqui basta o tipo.
+      const changeTypes = (action.changes ?? [])
+        .map((change) => change.type)
+        .join(',');
+      if (changeTypes) key += `-ct:${changeTypes}`;
     }
 
     // Nota: `divinity` não tem ramo próprio de propósito. Acrescentar

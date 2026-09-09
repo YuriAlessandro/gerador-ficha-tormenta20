@@ -35,7 +35,11 @@ import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
 } from './general';
-import { getFuturaLendaClassPowers, isPowerAvailable } from '../powers';
+import {
+  getFuturaLendaClassPowers,
+  getGeneralPowerCatalogByTypes,
+  isPowerAvailable,
+} from '../powers';
 import { isClassOrVariantOf } from '../general';
 
 /** Força, Destreza e Constituição — os atributos "físicos" de T20. */
@@ -240,7 +244,10 @@ export function getPowerSelectionRequirements(
           label: `Selecione ${action.pick} poder${
             action.pick > 1 ? 'es' : ''
           } geral${action.pick > 1 ? 'is' : ''}`,
-          metadata: { ignorePrerequisites: action.ignorePrerequisites },
+          metadata: {
+            ignorePrerequisites: action.ignorePrerequisites,
+            availableTypes: action.availableTypes,
+          },
         });
       }
 
@@ -481,6 +488,7 @@ export function getPowerSelectionRequirements(
           label: 'Selecione um poder de classe',
           metadata: {
             minLevel: action.minLevel ?? 2,
+            levelSource: action.levelSource ?? 'fixed',
           },
         });
       }
@@ -552,6 +560,61 @@ export function getChosenOptionNestedRequirements(
   });
 
   return nested;
+}
+
+/** Chave de `SelectionOptions` onde as respostas de cada requisito moram. */
+const REQUIREMENT_SELECTION_KEY: Record<string, keyof SelectionOptions> = {
+  learnSkill: 'skills',
+  markTrainedSkills: 'skills',
+  addProficiency: 'proficiencies',
+  getGeneralPower: 'powers',
+  getClassPower: 'powers',
+  learnSpell: 'spells',
+  learnAnySpellFromHighestCircle: 'spells',
+  increaseAttribute: 'attributes',
+  selectWeaponSpecialization: 'weapons',
+  selectFamiliar: 'familiars',
+  selectAnimalTotem: 'animalTotems',
+  learnClassAbility: 'classAbilities',
+  chooseFromOptions: 'chosenOption',
+  buildGolpePessoal: 'golpePessoalBuild',
+};
+
+/**
+ * Chaves de `SelectionOptions` que os RAMOS de um `chooseFromOptions` escrevem.
+ *
+ * Serve para zerar a resposta do ramo anterior quando o jogador troca de ramo.
+ * Sem isso a resposta velha sobrevive e o handler do ramo novo a consome: no
+ * Cosmopolita, o poder geral escolhido antes continuava em `powers`, o
+ * `getClassPower` não o achava entre os poderes de classe e caía no
+ * `getRandomItemFromArray` — concedendo um poder de classe ALEATÓRIO em
+ * silêncio.
+ *
+ * Devolve só as chaves dos requisitos ANINHADOS nas opções; as respostas dos
+ * requisitos próprios do poder (irmãos do `chooseFromOptions`) não entram e
+ * portanto são preservadas pelo chamador.
+ */
+export function getOptionBranchSelectionKeys(
+  power: GeneralPower | ClassPower | RaceAbility | OriginPower
+): Array<keyof SelectionOptions> {
+  const keys = new Set<keyof SelectionOptions>();
+
+  (power.sheetActions ?? []).forEach((sheetAction) => {
+    if (sheetAction.action.type !== 'chooseFromOptions') return;
+    sheetAction.action.options.forEach((option) => {
+      if (!option.sheetActions || option.sheetActions.length === 0) return;
+      const nested = getPowerSelectionRequirements({
+        ...power,
+        sheetActions: option.sheetActions,
+      });
+      nested?.requirements.forEach((requirement) => {
+        const key = REQUIREMENT_SELECTION_KEY[requirement.type];
+        if (key) keys.add(key);
+      });
+    });
+  });
+
+  return Array.from(keys);
 }
 
 /**
@@ -693,7 +756,13 @@ export function getFilteredAvailableOptions(
     }
 
     case 'getGeneralPower': {
-      const powers = availableOptions as GeneralPower[];
+      // Piscina por categoria: o dado ofertou tipos, não uma lista fechada, e o
+      // catálogo sai dos suplementos ativos (ver `getGeneralPowerCatalogByTypes`).
+      const types = requirement.metadata?.availableTypes;
+      const powers =
+        types && types.length > 0
+          ? getGeneralPowerCatalogByTypes(sheet, types, supplements)
+          : (availableOptions as GeneralPower[]);
       // Concessões marcadas com `ignorePrerequisites` valem apesar dos
       // pré-requisitos dos poderes ofertados (Linhagem Abençoada dá um poder
       // concedido "sem precisar ser devoto"). Sem isso, o requisito DEVOTO
@@ -1132,10 +1201,13 @@ export function getFilteredAvailableOptions(
     case 'getClassPower': {
       // Poderes de classe elegíveis (ex.: origem "Futura Lenda"), filtrados por
       // nível mínimo e disponibilidade. Mesma lógica usada pelo gerador.
-      return getFuturaLendaClassPowers(
-        sheet,
-        requirement.metadata?.minLevel ?? 2
-      ).sort((a, b) => a.name.localeCompare(b.name));
+      const classPowerLevel =
+        requirement.metadata?.levelSource === 'sheet'
+          ? sheet.nivel
+          : requirement.metadata?.minLevel ?? 2;
+      return getFuturaLendaClassPowers(sheet, classPowerLevel).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
     }
 
     default:

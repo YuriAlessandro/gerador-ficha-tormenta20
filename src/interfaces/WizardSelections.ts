@@ -50,6 +50,11 @@ export interface LevelUpSelections {
   // das opções escolhidas NESTE nível. São anexados a `sheet.optionChoices` para
   // que o recálculo final reproduza o conjunto acumulado.
   levelUpOptionPicks?: Record<string, string[]>;
+  // Troca do poder escolhido por uma origem que permite re-escolher entre
+  // aventuras (Cosmopolita, Citadino Abastado). Indexado pelo NOME do poder de
+  // origem. Só entra aqui o que o jogador trocou NESTE nível; ausente = mantém
+  // a escolha vigente.
+  originPowerSwaps?: ManualPowerSelections;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
   // Truques do parceiro (Treinador). Pode conter múltiplas entradas:

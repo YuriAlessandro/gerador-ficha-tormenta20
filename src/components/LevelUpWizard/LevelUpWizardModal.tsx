@@ -16,7 +16,11 @@ import CharacterSheet, {
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
-import { GeneralPower, RequirementType } from '@/interfaces/Poderes';
+import {
+  GeneralPower,
+  OriginPower,
+  RequirementType,
+} from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import {
@@ -65,6 +69,7 @@ import {
   getCompanionTrickDefinition,
   getTrickAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import OriginPowerSwapStep from './steps/OriginPowerSwapStep';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
@@ -687,6 +692,19 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     );
   };
 
+  /**
+   * Poderes de origem cujo texto prevê trocar o poder escolhido entre
+   * aventuras (Cosmopolita, Citadino Abastado). Gateado pelo marcador
+   * `swappableAtLevelUp` e não por "tem requisito": Futura Lenda e Duplo
+   * Feérico também escolhem, mas de forma permanente.
+   */
+  const getSwappableOriginPowers = (): OriginPower[] =>
+    (simulatedSheet.origin?.powers ?? []).filter(
+      (power) =>
+        power.swappableAtLevelUp &&
+        getPowerSelectionRequirements(power) !== null
+    );
+
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
@@ -740,6 +758,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
     if (getScalingPowersForLevelUp().length > 0) {
       steps.push('Perícias por Patamar');
+    }
+
+    if (getSwappableOriginPowers().length > 0) {
+      steps.push('Benefício da Origem');
     }
 
     const spellInfo = getSpellInfo();
@@ -910,6 +932,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return areRequirementsSatisfied(requirements, allEffectSelections);
       }
+
+      // Passo opcional: quem não quer trocar segue direto. Uma troca começada
+      // pela metade é descartada no apply (exige `powers` preenchido).
+      case 'Benefício da Origem':
+        return true;
 
       case 'Perícias por Patamar': {
         const allEffectSelections =
@@ -1210,6 +1237,21 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           />
         );
       }
+
+      case 'Benefício da Origem':
+        return (
+          <OriginPowerSwapStep
+            sheet={sheetForCurrentLevel}
+            powers={getSwappableOriginPowers()}
+            selections={currentLevelSelection.originPowerSwaps || {}}
+            onChange={(originPowerSwaps) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                originPowerSwaps,
+              })
+            }
+          />
+        );
 
       case 'Perícias por Patamar': {
         const scalingPowers = getScalingPowersForLevelUp();
