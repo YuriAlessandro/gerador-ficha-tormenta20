@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            08/09/2026 (v4.33).
+            09/09/2026 (v4.33).
           </p>
 
           <p>
@@ -77,6 +77,24 @@ const Changelog: React.FC = () => {
               <h3>4.33</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> As origens que deixam{' '}
+                  <strong>trocar o poder escolhido entre aventuras</strong> —{' '}
+                  <strong>Cosmopolita</strong> e{' '}
+                  <strong>Citadino Abastado</strong> — ganharam um passo{' '}
+                  <strong>Benefício da Origem</strong> ao subir de nível, onde
+                  você pode trocar o poder por outro. O passo é opcional: se não
+                  quiser mexer, é só seguir adiante.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No{' '}
+                  <strong>editor de poderes</strong>, os poderes de origem que
+                  envolvem uma escolha agora têm um{' '}
+                  <strong>botão de editar</strong>, para refazer a escolha a
+                  qualquer momento. Antes, como a origem concede o poder
+                  sozinha, a escolha ficava congelada para sempre depois da
+                  criação da ficha.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Ao <strong>subir de nível</strong>,
                   os <strong>poderes de classe</strong> que você ainda não
                   cumpre passam a aparecer na lista marcados como{' '}
@@ -84,6 +102,27 @@ const Changelog: React.FC = () => {
                   faltando à mostra — antes eles simplesmente sumiam, sem
                   nenhuma pista do motivo. É o mesmo comportamento que os
                   poderes gerais já tinham.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As origens{' '}
+                  <strong>Cosmopolita (Valkaria)</strong> e{' '}
+                  <strong>Citadino Abastado</strong> nunca perguntavam qual
+                  poder você queria — nem na criação da ficha, nem ao subir de
+                  nível, nem na edição. Agora a escolha aparece normalmente, com
+                  as duas opções que o livro prevê:{' '}
+                  <strong>um poder geral</strong> ou{' '}
+                  <strong>um poder de classe</strong> (só de combate ou destino,
+                  no caso do Citadino).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Um poder concedido pela escolha de
+                  uma origem podia ser <strong>concedido de novo</strong> a cada
+                  recálculo da ficha, aparecendo duplicado na lista de poderes.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao{' '}
+                  <strong>trocar de origem</strong>, um poder geral concedido
+                  pela origem anterior continuava na ficha para sempre.
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder{' '}
