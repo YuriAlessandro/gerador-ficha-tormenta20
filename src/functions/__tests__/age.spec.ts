@@ -7,6 +7,10 @@ import { generateEmptySheet } from '../general';
 import { recalculateSheet } from '../recalculateSheet';
 import { normalizeSheet } from '../sheetNormalizer';
 import { getFilteredAvailableOptions } from '../powers/manualPowerSelection';
+import {
+  getAgeBracketForYears,
+  getAgeRanges,
+} from '../../premium/functions/ages';
 import type { PowerSelectionRequirement } from '../../interfaces/PowerSelections';
 import type CharacterSheet from '../../interfaces/CharacterSheet';
 
@@ -322,5 +326,85 @@ describe('Idades Variadas — normalização de fichas antigas', () => {
 
     normalizeSheet(corrupted);
     expect(corrupted.age?.complications).toHaveLength(1);
+  });
+});
+
+describe('Idades Variadas SUBSTITUI o envelhecimento do livro básico', () => {
+  const PHYSICAL = [Atributo.FORCA, Atributo.DESTREZA, Atributo.CONSTITUICAO];
+  const MENTAL = [Atributo.INTELIGENCIA, Atributo.SABEDORIA, Atributo.CARISMA];
+
+  test('elfo de 320 anos com a regra ligada usa a faixa, não o estágio base', () => {
+    const baseline = buildSheet({});
+    // 320 anos é Maduro pelo livro básico (−1 físico, +1 mental) e Velho pela
+    // Tabela 4-2 de Heróis de Arton (−1 físico, nada nos mentais). Com a regra
+    // ligada, só a segunda vale — as duas jamais somam.
+    const sheet = buildSheet({
+      ageYears: 320,
+      variedAges: true,
+      ageBracket: 'velho',
+      ageComplications: [
+        { name: 'Catarata', description: '' },
+        { name: 'Melancólico', description: '' },
+        { name: 'Teimoso', description: '' },
+      ],
+    });
+
+    PHYSICAL.forEach((attr) => {
+      expect(attributeDelta(sheet, baseline, attr)).toBe(-1);
+    });
+    MENTAL.forEach((attr) => {
+      expect(attributeDelta(sheet, baseline, attr)).toBe(0);
+    });
+  });
+
+  test('escolher a faixa sem ligar a regra não aplica a faixa', () => {
+    const baseline = buildSheet({});
+    const sheet = generateEmptySheet(BASE_OPTIONS, {
+      baseAttributes: { ...ZEROED },
+      ageYears: 250,
+      ageBracket: 'anciao',
+    });
+
+    expect(sheet.age?.bracket).toBeUndefined();
+    // Sem o interruptor, vale o livro básico: 250 anos é um elfo Maduro.
+    expect(attributeDelta(sheet, baseline, Atributo.FORCA)).toBe(-1);
+  });
+});
+
+describe('Sem buracos entre as faixas etárias', () => {
+  /**
+   * O bug que motivou a mudança: escalar piso e teto de forma independente
+   * deixava um elfo de 40 anos acima do teto de Jovem (24) e abaixo do piso de
+   * Adulto (125), sem faixa nenhuma para cair.
+   */
+  const RACES = ['Humano', 'Elfo', 'Anão', 'Goblin'];
+
+  test.each(RACES)(
+    'todo ano de 9 a 600 tem exatamente uma faixa (%s)',
+    (raca) => {
+      const ranges = getAgeRanges(raca);
+      for (let years = 9; years <= 600; years += 1) {
+        const matches = ranges.filter(
+          (r) =>
+            years >= r.minAge && (r.maxAge === undefined || years <= r.maxAge)
+        );
+        expect(matches).toHaveLength(1);
+      }
+    }
+  );
+
+  test('elfo de 40 anos cai em Jovem, e não num buraco', () => {
+    expect(getAgeBracketForYears(40, 'Elfo')).toBe('jovem');
+  });
+
+  test('os marcos do livro seguem valendo para as faixas escaladas', () => {
+    const min = (raca: string, id: string) =>
+      getAgeRanges(raca).find((r) => r.id === id)?.minAge;
+
+    // Exemplos citados no box "Idades das Raças" (Heróis de Arton, p. 289).
+    expect(min('Anão', 'adulto')).toBe(50);
+    expect(min('Elfo', 'adulto')).toBe(125);
+    expect(min('Goblin', 'crianca')).toBe(6);
+    expect(min('Goblin', 'adulto')).toBe(18);
   });
 });

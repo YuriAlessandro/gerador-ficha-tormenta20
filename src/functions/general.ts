@@ -116,7 +116,7 @@ import {
   toOpenRaceVariant,
 } from '../premium/functions/openRaces';
 import { getAgeBracket } from '../premium/data/ageBrackets';
-import type { AgeAttributeModifier } from '../interfaces/Age';
+import type { AgeAttributeModifier, SheetAge } from '../interfaces/Age';
 import {
   getAgeAttributeTotals,
   getBaseAgeStage,
@@ -5650,6 +5650,40 @@ export default function generateRandomSheet(
 
   // Os substeps da origem serão adicionados depois que getSkillsAndPowersByClassAndOrigin for chamado
 
+  // Passo 6.05: Idade.
+  //
+  // Antes de tudo que deriva de atributo (carga, PV, perícias por Inteligência)
+  // porque o envelhecimento os modifica. Na prática a rolagem sempre cai no
+  // estágio Jovem — o teto dela é 27 e o piso de Maduro é 45 × o multiplicador
+  // da raça, que nunca é menor que 0,7 — mas a ordem certa é a que continua
+  // valendo se a tabela mudar.
+  const ageYears = rollInitialAge(classe);
+  const ageStage = getBaseAgeStageForYears(ageYears, race.name);
+  const age: SheetAge = {
+    years: ageYears,
+    stage: ageStage,
+    complications: [],
+    extraLevels: 0,
+  };
+
+  const ageAttributeSubSteps: SubStep[] = [];
+  getAgeAttributeTotals(age).forEach(({ attribute, value }) => {
+    atributos[attribute].value += value;
+    ageAttributeSubSteps.push({
+      name: getBaseAgeStage(ageStage)?.label ?? 'Idade',
+      value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
+    });
+  });
+
+  steps.push({
+    label: 'Idade',
+    type: 'Atributos',
+    value: [
+      { name: 'Idade', value: `${ageYears} anos` },
+      ...ageAttributeSubSteps,
+    ],
+  });
+
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxSpaces = calculateMaxSpaces(atributos.Força.value);
   // Guardado à parte: poderes de origem/raça/classe (aplicados só no Passo 11)
@@ -5756,6 +5790,7 @@ export default function generateRandomSheet(
     sexo: finalSex === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
     atributos,
+    age,
     maxSpaces,
     raca: race,
     raceHeritage: race.heritage,
@@ -7141,11 +7176,9 @@ export function generateEmptySheet(
   const variedAges =
     !!wizardSelections?.variedAges && !!wizardSelections.ageBracket;
   const ageBracketId = variedAges ? wizardSelections?.ageBracket : undefined;
-  const ageYears =
-    wizardSelections?.ageYears ??
-    (wizardSelections
-      ? undefined
-      : rollInitialAge(emptySheet.classe, emptySheet.raca.name));
+  // Só o assistente chama `generateEmptySheet` — a ficha aleatória tem motor
+  // próprio (`generateRandomSheet`), e é lá que a idade é rolada.
+  const ageYears = wizardSelections?.ageYears;
 
   if (ageYears !== undefined || ageBracketId) {
     const bracket = getAgeBracket(ageBracketId);

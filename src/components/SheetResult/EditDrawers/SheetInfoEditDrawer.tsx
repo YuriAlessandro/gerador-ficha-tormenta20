@@ -56,7 +56,7 @@ import {
   getAgeAttributeTotalsDelta,
   getBaseAgeStageForYears,
 } from '@/functions/ages';
-import { getRequiredAgeComplications } from '@/premium/functions/ages';
+import { getAgeBracket } from '@/premium/functions/ages';
 import { AgeComplicationsStep } from '@/premium/components/Ages';
 import AgeField, { AgeSelection } from '@/components/common/AgeField';
 import type { AgeComplication, SheetAge } from '@/interfaces/Age';
@@ -437,9 +437,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
    * anos que vira elfo deixa de ser Maduro. Sem isso, a troca de raça manteria
    * um estágio que a nova longevidade não justifica.
    */
-  const requiredAgeComplications = getRequiredAgeComplications(
-    editedData.age.bracket
-  );
+  /**
+   * Complicações de idade que a faixa exige DESTA ficha.
+   *
+   * O Adulto é o único caso condicional: "Já Vi Coisas" é opcional, e a
+   * complicação só é cobrada de quem levou o poder. Fora da criação não há como
+   * conceder esse poder, então quem não o tem não deve nada — cobrar mesmo
+   * assim deixava o Salvar permanentemente desabilitado numa ficha Adulto sem o
+   * poder, travando até a edição do nome.
+   */
+  const ageOptionalPowerTaken = !!sheet.age?.grantedPowerName;
+  const ageBracketData = getAgeBracket(editedData.age.bracket);
+  const requiredAgeComplications =
+    ageBracketData?.optionalGeneralPower && !ageOptionalPowerTaken
+      ? 0
+      : ageBracketData?.requiredComplications ?? 0;
 
   const nextAge: SheetAge = {
     years: editedData.age.years,
@@ -2421,10 +2433,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       onChange={(ageComplications) =>
                         setEditedData({ ...editedData, ageComplications })
                       }
-                      // Fora da criação não há como conceder o poder de "Já Vi
-                      // Coisas" sem reabrir o seletor de poderes; a complicação
-                      // do Adulto passa a ser exigida como nas demais faixas.
-                      tookOptionalPower
+                      tookOptionalPower={ageOptionalPowerTaken}
                     />
                   )}
 
@@ -3676,11 +3685,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               variant='contained'
               onClick={handleSave}
               disabled={
-                // A faixa etária exige um número exato de complicações de
+                // A faixa etária exige um número MÍNIMO de complicações de
                 // idade; salvar no meio da escolha deixaria a ficha sem os
-                // efeitos que pagam pelos níveis extras.
-                editedData.ageComplications.length !==
-                  requiredAgeComplications ||
+                // efeitos que pagam pelos níveis extras. Comparação por `<`, e
+                // não por `!==`: uma ficha que já traz mais complicações que o
+                // exigido (homebrew, dados antigos) não tem por que travar.
+                editedData.ageComplications.length < requiredAgeComplications ||
                 (editedData.raceName === 'Moreau' &&
                   editedData.raceHeritage === 'Coruja' &&
                   !editedData.moreauSapienciaSpell) ||

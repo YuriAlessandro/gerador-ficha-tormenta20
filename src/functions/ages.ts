@@ -3,8 +3,6 @@ import {
   DEFAULT_INITIAL_AGE_GROUP,
   INITIAL_AGE_GROUPS,
   INITIAL_AGE_GROUP_BY_CLASS,
-  MAX_LONGEVITY_BASE,
-  MAX_LONGEVITY_DICE,
   getRaceAgeScaling,
 } from '../data/systems/tormenta20/ages';
 import type { Atributo } from '../data/systems/tormenta20/atributos';
@@ -162,48 +160,24 @@ export function getInitialAgeGroup(
 }
 
 /**
- * Idade inicial rolada (p. 108), já escalada pela longevidade da raça.
+ * Idade inicial rolada (p. 108).
  *
- * A rolagem do livro é humana; multiplicá-la mantém a proporção — um elfo
- * "recém-aventureiro" sai com a idade élfica equivalente. Todos os resultados
- * possíveis caem dentro do estágio Jovem, então rolar a idade nunca aplica
- * modificador de atributo sem o jogador pedir.
+ * NÃO escala pela longevidade da raça, e o livro é explícito: o box "Raças
+ * Longevas" diz que essas raças usam a MESMA idade inicial, multiplicando
+ * apenas as categorias de envelhecimento e a longevidade máxima. Heróis de
+ * Arton reforça a leitura — "tanto humanos quanto elfos serão crianças dos 9
+ * aos 12, adolescentes dos 13 aos 17 e jovens a partir dos 18".
+ *
+ * A distinção não é cosmética: escalar punha um elfo arcanista em ~110 anos e,
+ * como a faixa é derivada dos anos, ele caía sozinho na faixa Adulto —
+ * arrastando o passo de complicações de idade que o jogador não pediu.
  */
 export function rollInitialAge(
-  classDescription:
-    | Pick<ClassDescription, 'name' | 'baseClassName'>
-    | undefined,
-  raceName: string | undefined
+  classDescription: Pick<ClassDescription, 'name' | 'baseClassName'> | undefined
 ): number {
   const group = getInitialAgeGroup(classDescription);
-  const rolled = rollDice(group.qtdDados, group.numFaces) + group.bonus;
-  const { multiplier } = getRaceAgeScaling(raceName);
 
-  return Math.max(1, Math.round(rolled * multiplier));
-}
-
-/**
- * Longevidade máxima (p. 108): 70 + 2d20 anos, escalada pela longevidade da
- * raça. Puramente descritiva — nenhuma mecânica da ficha depende dela.
- */
-export function rollMaxLongevity(raceName: string | undefined): number {
-  const { multiplier } = getRaceAgeScaling(raceName);
-  const rolled =
-    MAX_LONGEVITY_BASE +
-    rollDice(MAX_LONGEVITY_DICE.qtdDados, MAX_LONGEVITY_DICE.numFaces);
-
-  return Math.round(rolled * multiplier);
-}
-
-/** Intervalo possível da longevidade máxima, para exibição. */
-export function getMaxLongevityRange(raceName: string | undefined): AgeRange {
-  const { multiplier } = getRaceAgeScaling(raceName);
-  const { qtdDados, numFaces } = MAX_LONGEVITY_DICE;
-
-  return {
-    minAge: Math.round((MAX_LONGEVITY_BASE + qtdDados) * multiplier),
-    maxAge: Math.round((MAX_LONGEVITY_BASE + qtdDados * numFaces) * multiplier),
-  };
+  return rollDice(group.qtdDados, group.numFaces) + group.bonus;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -271,9 +245,10 @@ export function getStageEntryAge(
   const range = getBaseAgeStageRange(stageId, raceName);
   if (range && range.minAge > 0) return range.minAge;
 
+  // A menor rolagem possível da classe — e sem escalar pela raça, pelo mesmo
+  // motivo de `rollInitialAge`: a idade inicial é igual para todas as raças.
   const group = getInitialAgeGroup(classDescription);
-  const { multiplier } = getRaceAgeScaling(raceName);
-  return Math.max(1, Math.round((group.qtdDados + group.bonus) * multiplier));
+  return group.qtdDados + group.bonus;
 }
 
 /**
