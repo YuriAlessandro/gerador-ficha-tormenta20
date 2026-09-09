@@ -3,7 +3,10 @@ import { Atributo } from '../../data/systems/tormenta20/atributos';
 import SelectedOptions from '../../interfaces/SelectedOptions';
 import { WizardSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
-import { computeFinalAttributeModifiers, generateEmptySheet } from '../general';
+import generateRandomSheet, {
+  computeFinalAttributeModifiers,
+  generateEmptySheet,
+} from '../general';
 import { dataRegistry } from '../../data/registry';
 import {
   getAgeAttributeTotalsForSelection,
@@ -11,13 +14,8 @@ import {
   getBaseAgeStageForYears,
   getBaseAgeStages,
   getInitialAgeGroup,
-  getMaxLongevityRange,
   rollInitialAge,
 } from '../ages';
-import {
-  getAgeBracketForYears,
-  getAgeRanges,
-} from '../../premium/functions/ages';
 import type CharacterSheet from '../../interfaces/CharacterSheet';
 
 const ZEROED: Record<Atributo, number> = {
@@ -172,41 +170,6 @@ describe('Envelhecimento — efeito real na ficha, sem suplemento nenhum', () =>
   });
 });
 
-describe('Idades Variadas SUBSTITUI o envelhecimento do livro básico', () => {
-  test('elfo de 320 anos com a regra ligada usa a faixa, não o estágio base', () => {
-    const baseline = buildSheet({});
-    // 320 anos é Maduro pelo livro básico (−1 físico, +1 mental) e Velho pela
-    // Tabela 4-2 de Heróis de Arton (−1 físico, nada nos mentais). Com a regra
-    // ligada, só a segunda vale — as duas jamais somam.
-    const sheet = buildSheet({
-      ageYears: 320,
-      variedAges: true,
-      ageBracket: 'velho',
-      ageComplications: [
-        { name: 'Catarata', description: '' },
-        { name: 'Melancólico', description: '' },
-        { name: 'Teimoso', description: '' },
-      ],
-    });
-
-    PHYSICAL.forEach((attr) => {
-      expect(attributeDelta(sheet, baseline, attr)).toBe(-1);
-    });
-    MENTAL.forEach((attr) => {
-      expect(attributeDelta(sheet, baseline, attr)).toBe(0);
-    });
-  });
-
-  test('escolher a faixa sem ligar a regra não aplica a faixa', () => {
-    const baseline = buildSheet({});
-    const sheet = buildSheet({ ageYears: 250, ageBracket: 'anciao' });
-
-    expect(sheet.age?.bracket).toBeUndefined();
-    // Sem o interruptor, vale o livro básico: 250 anos é um elfo Maduro.
-    expect(attributeDelta(sheet, baseline, Atributo.FORCA)).toBe(-1);
-  });
-});
-
 describe('Idade inicial rolada', () => {
   test('cada grupo de classe usa a rolagem do livro', () => {
     expect(getInitialAgeGroup({ name: 'Bárbaro' }).formula).toBe('1d6+15');
@@ -223,26 +186,50 @@ describe('Idade inicial rolada', () => {
 
   test('humano rola entre 16 e 27 anos, sempre dentro do estágio Jovem', () => {
     for (let i = 0; i < 200; i += 1) {
-      const age = rollInitialAge({ name: 'Arcanista' }, 'Humano');
+      const age = rollInitialAge({ name: 'Arcanista' });
       expect(age).toBeGreaterThanOrEqual(17);
       expect(age).toBeLessThanOrEqual(27);
       expect(getBaseAgeStageForYears(age, 'Humano')).toBe('jovem');
     }
   });
 
-  test('ficha aleatória (sem assistente) já sai com idade', () => {
-    const sheet = generateEmptySheet(options('Elfo'));
+  /**
+   * Pelo motor ALEATÓRIO, e não por `generateEmptySheet` sem seleções — este é
+   * um caminho que a produção nunca toma (o único chamador é o assistente, e
+   * ele sempre passa as seleções). Os dois motores de derivação deste repo
+   * divergem em silêncio, e testar o que a produção não executa dá uma
+   * cobertura que não existe.
+   */
+  test.each(['Humano', 'Elfo', 'Goblin'])(
+    'ficha aleatória de %s já sai com idade, sempre jovem',
+    (raca) => {
+      const sheet = generateRandomSheet(options(raca));
 
-    expect(sheet.age?.years).toBeGreaterThan(0);
-    expect(sheet.age?.stage).toBe('jovem');
+      expect(sheet.age?.years).toBeGreaterThan(0);
+      expect(sheet.age?.stage).toBe('jovem');
+      expect(getBaseAgeStageForYears(sheet.age?.years, raca)).toBe('jovem');
+    }
+  );
+
+  test('a idade da ficha aleatória entra no passo-a-passo', () => {
+    const sheet = generateRandomSheet(options('Humano'));
+    const step = sheet.steps.find((s) => s.label === 'Idade');
+
+    expect(step?.value).toContainEqual({
+      name: 'Idade',
+      value: `${sheet.age?.years} anos`,
+    });
   });
 });
 
-describe('Sem buracos entre as faixas de idade', () => {
+describe('Sem buracos entre os estágios de envelhecimento', () => {
   /**
    * O bug que motivou a mudança: escalar piso e teto de forma independente
    * deixava a idade de um elfo de 40 anos acima do teto de Jovem (24) e abaixo
-   * do piso de Adulto (125), sem faixa nenhuma para cair.
+   * do piso de Adulto (125), sem faixa nenhuma para cair. A varredura das
+   * FAIXAS de Idades Variadas vive em `age.spec.ts`, a suíte que já depende do
+   * submódulo privado — aqui ficam só os estágios do livro básico, que são
+   * justamente o código público desta mudança.
    */
   const RACES = ['Humano', 'Elfo', 'Anão', 'Goblin'];
 
@@ -252,52 +239,17 @@ describe('Sem buracos entre as faixas de idade', () => {
       const stages = getBaseAgeStages(raca);
       for (let years = 1; years <= 600; years += 1) {
         const matches = stages.filter(
-          (s) =>
-            years >= s.minAge && (s.maxAge === undefined || years <= s.maxAge)
+          (st) =>
+            years >= st.minAge &&
+            (st.maxAge === undefined || years <= st.maxAge)
         );
         expect(matches).toHaveLength(1);
       }
     }
   );
 
-  test.each(RACES)(
-    'todo ano de 9 a 600 tem exatamente uma faixa de Idades Variadas (%s)',
-    (raca) => {
-      const ranges = getAgeRanges(raca);
-      for (let years = 9; years <= 600; years += 1) {
-        const matches = ranges.filter(
-          (r) =>
-            years >= r.minAge && (r.maxAge === undefined || years <= r.maxAge)
-        );
-        expect(matches).toHaveLength(1);
-      }
-    }
-  );
-
-  test('elfo de 40 anos cai em Jovem, e não num buraco', () => {
-    expect(getAgeBracketForYears(40, 'Elfo')).toBe('jovem');
+  test('elfo de 40 anos cai no estágio Jovem, e não num buraco', () => {
     expect(getBaseAgeStageForYears(40, 'Elfo')).toBe('jovem');
-  });
-
-  test('os marcos do livro seguem valendo para as faixas escaladas', () => {
-    const min = (raca: string, id: string) =>
-      getAgeRanges(raca).find((r) => r.id === id)?.minAge;
-
-    // Exemplos citados no box "Idades das Raças" (Heróis de Arton, p. 289).
-    expect(min('Anão', 'adulto')).toBe(50);
-    expect(min('Elfo', 'adulto')).toBe(125);
-    expect(min('Goblin', 'crianca')).toBe(6);
-    expect(min('Goblin', 'adulto')).toBe(18);
-  });
-});
-
-describe('Longevidade máxima', () => {
-  test('humano: 72 a 110 anos (70 + 2d20)', () => {
-    expect(getMaxLongevityRange('Humano')).toEqual({ minAge: 72, maxAge: 110 });
-  });
-
-  test('escala com a longevidade da raça', () => {
-    expect(getMaxLongevityRange('Elfo')).toEqual({ minAge: 360, maxAge: 550 });
   });
 });
 
@@ -377,7 +329,7 @@ describe('Ficha aleatória nasce sempre jovem', () => {
   test.each(RACES)('%s: toda rolagem de toda classe cai em Jovem', (raca) => {
     CLASSES.forEach((name) => {
       for (let i = 0; i < 100; i += 1) {
-        const age = rollInitialAge({ name: name as never }, raca);
+        const age = rollInitialAge({ name: name as never });
         expect(getBaseAgeStageForYears(age, raca)).toBe('jovem');
       }
     });

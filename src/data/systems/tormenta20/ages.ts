@@ -91,13 +91,6 @@ export const BASE_AGE_STAGES: BaseAgeStage[] = [
 
 export const DEFAULT_BASE_AGE_STAGE = 'jovem';
 
-/**
- * Longevidade máxima (p. 108): 70 + 2d20 anos, em referência humana. Escala
- * pela longevidade da raça como qualquer outro marco etário.
- */
-export const MAX_LONGEVITY_BASE = 70;
-export const MAX_LONGEVITY_DICE = { qtdDados: 2, numFaces: 20 };
-
 /* -------------------------------------------------------------------------- */
 /* Idade inicial                                                               */
 /* -------------------------------------------------------------------------- */

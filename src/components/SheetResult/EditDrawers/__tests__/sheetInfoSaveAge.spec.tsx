@@ -160,6 +160,36 @@ describe('SheetInfoEditDrawer: idade', () => {
     });
   });
 
+  /**
+   * "Já Vi Coisas" é opcional, e a complicação do Adulto só é cobrada de quem
+   * levou o poder. Cobrar dela mesmo assim desabilitava o Salvar para sempre —
+   * a ficha ficava sem poder editar nem o nome, e as saídas eram aceitar uma
+   * complicação que a regra não pede ou desligar Idades Variadas inteira.
+   */
+  it('ficha Adulto sem "Já Vi Coisas" continua editável', () => {
+    const sheet = baseSheet();
+    sheet.age = {
+      years: 30,
+      stage: 'jovem',
+      bracket: 'adulto',
+      complications: [],
+      extraLevels: 0,
+    };
+
+    render(
+      <Provider store={fakeStore}>
+        <SheetInfoEditDrawer
+          open
+          onClose={vi.fn()}
+          sheet={sheet}
+          onSave={vi.fn()}
+        />
+      </Provider>
+    );
+
+    expect(screen.getByRole('button', { name: /^Salvar$/ })).not.toBeDisabled();
+  });
+
   it('salvar sem mexer na idade não altera atributo nenhum', () => {
     const sheet = baseSheet();
     sheet.age = {

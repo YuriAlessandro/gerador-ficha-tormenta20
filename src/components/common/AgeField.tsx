@@ -186,9 +186,7 @@ const AgeField: React.FC<AgeFieldProps> = ({
           >
             <Button
               variant='outlined'
-              onClick={() =>
-                setYears(rollInitialAge(classDescription, raceName))
-              }
+              onClick={() => setYears(rollInitialAge(classDescription))}
               sx={{ minWidth: 'auto', height: INPUT_HEIGHT, px: 2 }}
               aria-label='Rolar idade'
             >
