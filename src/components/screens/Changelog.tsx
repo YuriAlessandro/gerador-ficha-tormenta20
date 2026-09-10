@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            09/09/2026 (v4.33).
+            10/09/2026 (v4.33).
           </p>
 
           <p>
@@ -84,6 +84,14 @@ const Changelog: React.FC = () => {
                   <strong>Benefício da Origem</strong> ao subir de nível, onde
                   você pode trocar o poder por outro. O passo é opcional: se não
                   quiser mexer, é só seguir adiante.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Ao criar um{' '}
+                  <strong>pacote de poderes da comunidade</strong>, agora dá
+                  para exigir <strong>uma raça</strong> ou{' '}
+                  <strong>ser devoto de uma divindade</strong> como
+                  pré-requisito do poder. Sem isso, um poder de raça ou
+                  concedido aparecia para qualquer personagem ao subir de nível.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> No{' '}
@@ -145,6 +153,14 @@ const Changelog: React.FC = () => {
                   pré-requisito de Ofício, e a correção só rodava no Histórico e
                   em Meus Personagens — fichas salvas na nuvem continuavam
                   quebradas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Num{' '}
+                  <strong>pacote de poderes da comunidade</strong>, um poder
+                  endereçado a uma <strong>classe variante</strong> (como{' '}
+                  <strong>Alquimista</strong>) nunca aparecia ao subir de nível.
+                  A classe podia ser escolhida normalmente no editor e o poder
+                  era salvo, mas sumia na hora de usar.
                 </li>
               </ul>
 
