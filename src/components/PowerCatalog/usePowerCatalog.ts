@@ -8,13 +8,38 @@ import {
 } from '@/functions/powers/powerOrigins';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { CustomPower } from '@/interfaces/CustomPower';
-import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
-import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
 import {
-  ClassAbilitySet,
-  ClassPowerSet,
-  PowerCategory,
-} from './usePowersEditor';
+  GeneralPower,
+  GeneralPowerType,
+  OriginPower,
+} from '@/interfaces/Poderes';
+import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
+
+export interface PowerCategory {
+  /** Chave estável do grupo. `type` não serve: Destino tem até 3 categorias. */
+  key: string;
+  type: GeneralPowerType | 'ORIGEM';
+  kind: PowerOriginKind;
+  name: string;
+  powers: (GeneralPower | OriginPower)[];
+}
+
+export interface ClassPowerSet {
+  className: string;
+  powers: ClassPower[];
+  /**
+   * Poder que destravou o conjunto, em classes às quais o personagem NÃO
+   * pertence. Entra na chave do grupo: senão colidiria com o conjunto real de
+   * um multiclasse da mesma classe.
+   */
+  unlockedBy?: string;
+}
+
+export interface ClassAbilitySet {
+  className: string;
+  classLevel: number;
+  abilities: ClassAbility[];
+}
 
 /**
  * O catálogo navegável: agrupamento, busca e filtros.
@@ -73,6 +98,15 @@ interface UsePowerCatalogArgs {
    * que não cabem no avaliador de pré-requisitos.
    */
   resolveAvailability: (entry: CatalogEntry) => PowerAvailability;
+  /**
+   * Estado inicial do filtro "Só os que eu posso pegar".
+   *
+   * Falso no editor da ficha, que é uma ferramenta de EDIÇÃO — quem abre lá
+   * costuma querer ver o catálogo inteiro, inclusive o que ainda não alcança.
+   * Verdadeiro na subida de nível, onde a pergunta é só "o que posso escolher
+   * agora?" e o resto é ruído.
+   */
+  initialOnlyAvailable?: boolean;
 }
 
 /** Espera o usuário parar de digitar antes de refiltrar centenas de itens. */
@@ -95,10 +129,11 @@ export function usePowerCatalog({
   raceAbilities,
   customPowers,
   resolveAvailability,
+  initialOnlyAvailable = false,
 }: UsePowerCatalogArgs) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeGroups, setActiveGroups] = useState<Set<string>>(new Set());
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
+  const [onlyAvailable, setOnlyAvailable] = useState(initialOnlyAvailable);
 
   const debouncedSearch = useDebounced(searchTerm);
 
@@ -109,22 +144,31 @@ export function usePowerCatalog({
     const descriptorFor = (kind: PowerOriginKind) => POWER_ORIGINS[kind];
 
     // Poderes de classe, um grupo por classe (multiclasse).
-    classPowerSets.forEach(({ className, powers }) => {
+    classPowerSets.forEach(({ className, powers, unlockedBy }) => {
       const kind: PowerOriginKind = 'classPower';
       const descriptor = descriptorFor(kind);
       result.push({
-        key: `classPower:${className}`,
-        label: descriptor.label(className),
+        // `unlockedBy` na chave: conjunto destravado e conjunto real coexistem.
+        key: `classPower:${className}${unlockedBy ? `:${unlockedBy}` : ''}`,
+        label: unlockedBy
+          ? `${descriptor.label(className)} (via ${unlockedBy})`
+          : descriptor.label(className),
         kind,
         entries: powers.map((power) => ({
-          id: `classPower:${className}:${power.name}`,
+          id: `classPower:${className}${unlockedBy ? `:${unlockedBy}` : ''}:${
+            power.name
+          }`,
           name: power.name,
           description: getPowerDisplayText(power),
           kind,
           icon: descriptor.icon,
           color: descriptor.color,
-          groupKey: `classPower:${className}`,
-          groupLabel: descriptor.label(className),
+          groupKey: `classPower:${className}${
+            unlockedBy ? `:${unlockedBy}` : ''
+          }`,
+          groupLabel: unlockedBy
+            ? `${descriptor.label(className)} (via ${unlockedBy})`
+            : descriptor.label(className),
           readOnly: false,
           repeatable: !!power.canRepeat,
           badge: power.supplementName,

@@ -3,6 +3,7 @@ import { ClassPower } from '../../interfaces/Class';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
+  PrerequisiteWaiver,
   Requirement,
   RequirementType,
 } from '../../interfaces/Poderes';
@@ -14,6 +15,11 @@ import Skill, {
 import { isClassOrVariantOf, isRaceOrVariantOf } from '../general';
 import { applyRequirementNot } from '../powers';
 import { PowerLike, sheetSatisfiesPowerRequirement } from './hasPowerNamed';
+import {
+  findWaiverForPower,
+  getActiveWaivers,
+  isRequirementWaived,
+} from './prerequisiteWaivers';
 import { formatRequirement } from '../requirementText';
 
 /**
@@ -53,11 +59,19 @@ export interface RequirementContext {
   pendingGeneralPowers?: PowerLike[];
   /** Poderes de classe marcados no editor e ainda não salvos. */
   pendingClassPowers?: PowerLike[];
+  /** Classe dona do poder, quando for poder de CLASSE. */
+  className?: string;
+  /** Waivers resolvidos. Passe ao filtrar catálogo inteiro (custo por item). */
+  waivers?: PrerequisiteWaiver[];
 }
 
 export interface EvaluatedRequirement {
   requirement: Requirement;
   met: boolean;
+  /** Não cumprido, e sim DISPENSADO por um poder. Conta como `met`. */
+  waived?: boolean;
+  /** Poder que dispensou. Só existe com `waived`. */
+  waivedReason?: string;
   /** Texto pronto do requisito, via `formatRequirement` (respeita `not`). */
   label: string;
   /**
@@ -262,14 +276,20 @@ export function evaluatePowerRequirements(
   ctx: RequirementContext,
   kind: PowerKind = 'general'
 ): PowerAvailability {
-  // Habilidades raciais podem dispensar todos os pré-requisitos de certos
-  // poderes (ex.: Centauro "Ginete Natural" → poder "Carga de Cavalaria").
-  // O casamento é por SUBSTRING do nome, então os termos cadastrados precisam
-  // ser específicos o bastante para não pegar poderes vizinhos.
-  const bypassed = (ctx.sheet.raca.abilities ?? []).some((a) =>
-    a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
-  );
-  if (bypassed) return { available: true, bypassed: true, groups: [] };
+  // Ver `prerequisiteWaivers`.
+  const waivers =
+    ctx.waivers ??
+    getActiveWaivers(ctx.sheet, {
+      generalPowers: ctx.pendingGeneralPowers,
+      classPowers: ctx.pendingClassPowers,
+    });
+  const waiver = findWaiverForPower(power, waivers, ctx.className);
+
+  // Waiver TOTAL (sem `requirementTypes`) não deixa requisito para exibir — é o
+  // comportamento histórico de `bypassPrereqForPowersNamed`.
+  const waivesEverything =
+    !!waiver && !waiver.requirementTypes && !!power.requirements?.length;
+  if (waivesEverything) return { available: true, bypassed: true, groups: [] };
 
   if (!power.requirements || power.requirements.length === 0) {
     return { available: true, bypassed: false, groups: [] };
@@ -277,13 +297,23 @@ export function evaluatePowerRequirements(
 
   const groups = power.requirements.map((group) => {
     const requirements = group.map((requirement) => {
-      const met = applyRequirementNot(
+      const { waived, reason } = isRequirementWaived(
         requirement,
-        isRequirementMet(requirement, ctx, kind)
+        power,
+        waivers,
+        ctx.className
       );
+      const met =
+        waived ||
+        applyRequirementNot(
+          requirement,
+          isRequirementMet(requirement, ctx, kind)
+        );
       return {
         requirement,
         met,
+        waived: waived || undefined,
+        waivedReason: waived ? reason : undefined,
         label: formatRequirement(requirement),
         current: met ? undefined : currentValueFor(requirement, ctx),
       };

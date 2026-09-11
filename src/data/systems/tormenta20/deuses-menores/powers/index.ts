@@ -142,6 +142,49 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
       requirements: [
         [{ type: RequirementType.DEVOTO, name: 'O Deus do Medo' }],
       ],
+      /**
+       * "Relacionado a efeitos de medo" = causa, se beneficia de ou amplifica
+       * as condições abalado e apavorado (descritor Medo). Curadoria:
+       *
+       * - Intimidação sozinha não basta: "Golpe Semântico", "Jurista Divino" e
+       *   "Armadura de Ossos" só tocam a perícia, não o efeito.
+       * - Anti-medo fica de fora ("Coragem Total"): imunidade a medo inverte a
+       *   intenção da bênção.
+       * - Lista fechada, sem prefixo: `Brado:` pegaria `Brado: Sísmico`, que
+       *   não tem o descritor.
+       *
+       * Requisitos `PODER` continuam valendo, então "Brado: Assombroso" e
+       * "Estampido Ensurdecedor" só abrem via Alma Livre e afins. Ficam na
+       * lista para que essa porta exista.
+       */
+      waivesPrerequisites: [
+        {
+          reason: 'Domínio do Medo',
+          requirementTypes: [RequirementType.CLASSE, RequirementType.DEVOTO],
+          unlocksOtherClassPowers: true,
+          targets: {
+            names: [
+              // Concedidos de outros deuses (Tormenta 20 e Deuses de Arton).
+              'Aura de Medo',
+              'Olhar Amedrontador',
+              'Alimentar-se do Pavor',
+              'Temor Arcano',
+              'Terror Profundo',
+            ],
+            classPowers: [
+              { className: 'Bucaneiro', name: 'Flagelo dos Mares' },
+              { className: 'Bucaneiro', name: 'Abusar dos Fracos' },
+              { className: 'Bucaneiro', name: 'Estampido Ensurdecedor' },
+              { className: 'Bardo', name: 'Música: Canção Assustadora' },
+              { className: 'Bárbaro', name: 'Alma Inabalável' },
+              { className: 'Bárbaro', name: 'Brado: Assombroso' },
+              { className: 'Bárbaro', name: 'Brado: Retardante' },
+              { className: 'Ladino', name: 'Ameaça Brutal' },
+              { className: 'Cavaleiro', name: 'Presença de Muralha' },
+            ],
+          },
+        },
+      ],
     },
     {
       name: 'Ego',

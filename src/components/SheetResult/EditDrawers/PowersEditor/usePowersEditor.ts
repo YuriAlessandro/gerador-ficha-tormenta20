@@ -5,6 +5,7 @@ import originPowersCatalog from '@/data/systems/tormenta20/powers/originPowers';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { dataRegistry } from '@/data/registry';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
+import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import CharacterSheet, {
   SheetActionHistoryEntry,
@@ -34,7 +35,15 @@ import {
   evaluatePowerRequirements,
   PowerAvailability,
 } from '@/functions/powers/requirementEvaluation';
-import { resolveClassPowerCatalog } from '@/functions/powers';
+import {
+  getWaivedClassPowers,
+  resolveClassPowerCatalog,
+} from '@/functions/powers';
+import {
+  ClassAbilitySet,
+  ClassPowerSet,
+  PowerCategory,
+} from '@/components/PowerCatalog/usePowerCatalog';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   findClassDescription,
@@ -62,26 +71,6 @@ import {
  * estado num hook consumido por dentro do `Dialog`, nada disso roda enquanto o
  * editor está fechado.
  */
-
-export interface PowerCategory {
-  /** Chave estável do grupo. `type` não serve: Destino tem até 3 categorias. */
-  key: string;
-  type: GeneralPowerType | 'ORIGEM';
-  kind: PowerOriginKind;
-  name: string;
-  powers: (GeneralPower | OriginPower)[];
-}
-
-export interface ClassPowerSet {
-  className: string;
-  powers: ClassPower[];
-}
-
-export interface ClassAbilitySet {
-  className: string;
-  classLevel: number;
-  abilities: ClassAbility[];
-}
 
 interface UsePowersEditorArgs {
   open: boolean;
@@ -244,6 +233,18 @@ export function usePowersEditor({
     [allSupplements]
   );
 
+  // ── Dispensas de pré-requisito (ver `prerequisiteWaivers`) ──────────────
+  // Resolvidas uma vez: senão cada item do catálogo varre a ficha. Os poderes
+  // MARCADOS entram junto, para a dispensa valer na mesma visita.
+  const waivers = useMemo(
+    () =>
+      getActiveWaivers(sheet, {
+        generalPowers: [...selectedPowers, ...selectedDeityPowers],
+        classPowers: selectedClassPowers,
+      }),
+    [sheet, selectedPowers, selectedDeityPowers, selectedClassPowers]
+  );
+
   const classPowerSets = useMemo<ClassPowerSet[]>(() => {
     const sets: ClassPowerSet[] = [];
 
@@ -281,6 +282,36 @@ export function usePowersEditor({
 
     return sets;
   }, [sheet, allSupplements]);
+
+  /**
+   * Poderes de classe destravados por waiver, agrupados por classe de origem.
+   * A resolução é a de `getWaivedClassPowers`, a mesma que o motor usa.
+   */
+  const unlockedClassPowerSets = useMemo<ClassPowerSet[]>(() => {
+    const sets = new Map<string, ClassPowerSet>();
+
+    getWaivedClassPowers(sheet, waivers).forEach((power) => {
+      const className = power.className as string;
+      const existing = sets.get(className);
+      if (existing) {
+        existing.powers.push(power);
+        return;
+      }
+      sets.set(className, {
+        className,
+        powers: [power],
+        unlockedBy: power.unlockedBy,
+      });
+    });
+
+    return [...sets.values()];
+  }, [waivers, sheet]);
+
+  /** Conjuntos das classes do personagem, seguidos dos destravados por waiver. */
+  const allClassPowerSets = useMemo<ClassPowerSet[]>(
+    () => [...classPowerSets, ...unlockedClassPowerSets],
+    [classPowerSets, unlockedClassPowerSets]
+  );
 
   const classAbilitySets = useMemo<ClassAbilitySet[]>(() => {
     const sets: ClassAbilitySet[] = [];
@@ -405,15 +436,17 @@ export function usePowersEditor({
   // na ordenação e de novo em cada linha renderizada.
   const availabilityCache = useMemo(
     () => new Map<string, PowerAvailability>(),
-    [selectedPowers, selectedClassPowers, sheet]
+    [selectedPowers, selectedClassPowers, selectedDeityPowers, sheet]
   );
 
   const getAvailability = useCallback(
     (
       power: { name: string; requirements?: GeneralPower['requirements'] },
-      kind: 'general' | 'class' = 'general'
+      kind: 'general' | 'class' = 'general',
+      className?: string
     ): PowerAvailability => {
-      const cacheKey = `${kind}:${power.name}`;
+      // A classe entra na chave: o mesmo nome existe em classes diferentes.
+      const cacheKey = `${kind}:${className ?? ''}:${power.name}`;
       const cached = availabilityCache.get(cacheKey);
       if (cached) return cached;
 
@@ -421,15 +454,24 @@ export function usePowersEditor({
         power,
         {
           sheet,
-          pendingGeneralPowers: selectedPowers,
+          pendingGeneralPowers: [...selectedPowers, ...selectedDeityPowers],
           pendingClassPowers: selectedClassPowers,
+          className,
+          waivers,
         },
         kind
       );
       availabilityCache.set(cacheKey, result);
       return result;
     },
-    [availabilityCache, sheet, selectedPowers, selectedClassPowers]
+    [
+      availabilityCache,
+      sheet,
+      selectedPowers,
+      selectedClassPowers,
+      selectedDeityPowers,
+      waivers,
+    ]
   );
 
   // ── Poderes gerais ──────────────────────────────────────────────────────
@@ -1249,7 +1291,7 @@ export function usePowersEditor({
     selectedCustomGrantedPowers,
     // catálogo
     powerCategories,
-    classPowerSets,
+    classPowerSets: allClassPowerSets,
     classAbilitySets,
     allSupplements,
     getOriginForPower,

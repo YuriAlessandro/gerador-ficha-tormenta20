@@ -5,6 +5,7 @@ import { ClassPower } from '../interfaces/Class';
 import {
   GeneralPower,
   GeneralPowerType,
+  PrerequisiteWaiver,
   Requirement,
   RequirementType,
 } from '../interfaces/Poderes';
@@ -23,6 +24,10 @@ import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
 import { getSheetDeityNames } from './powers/deityNames';
 import { sheetSatisfiesPowerRequirement } from './powers/hasPowerNamed';
+import {
+  getActiveWaivers,
+  isRequirementWaived,
+} from './powers/prerequisiteWaivers';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 
@@ -259,22 +264,28 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
   }
 }
 
+export interface PowerAvailabilityOptions {
+  /** Classe dona do poder, quando for poder de CLASSE. */
+  className?: string;
+  /** Waivers resolvidos. Passe ao filtrar catálogo inteiro (custo por item). */
+  waivers?: PrerequisiteWaiver[];
+}
+
 export function isPowerAvailable(
   sheet: CharacterSheet,
-  power: GeneralPower | ClassPower
+  power: GeneralPower | ClassPower,
+  options?: PowerAvailabilityOptions
 ): boolean {
-  // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
-  // (ex.: Centauro "Ginete Natural" → poder "Carga de Cavalaria").
-  // Atenção: o casamento é por SUBSTRING do nome do poder, então os termos aqui
-  // precisam ser específicos o bastante para não pegar poderes vizinhos.
-  const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
-    a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
-  );
-  if (raceBypass) return true;
+  // Ver `powers/prerequisiteWaivers`.
+  const waivers = options?.waivers ?? getActiveWaivers(sheet);
 
   if (power.requirements && power.requirements.length > 0) {
     return power.requirements.some((req) =>
-      req.every((rule) => applyRequirementNot(rule, evaluateRule(sheet, rule)))
+      req.every(
+        (rule) =>
+          isRequirementWaived(rule, power, waivers, options?.className)
+            .waived || applyRequirementNot(rule, evaluateRule(sheet, rule))
+      )
     );
   }
 
@@ -349,6 +360,55 @@ export function resolveClassPowerCatalog(sheet: CharacterSheet): ClassPower[] {
   return fullClass?.powers ?? [];
 }
 
+/**
+ * Poderes de classe de OUTRAS classes que um waiver destrava, com a classe de
+ * origem carimbada em `className`.
+ *
+ * Ponto único dos três consumidores (motor de criação, assistente de subida de
+ * nível e editor): o catálogo de poderes de classe é o da classe da ficha, e
+ * sem isto o poder destravado nunca chega ao avaliador. Classes que o
+ * personagem JÁ tem ficam de fora — os poderes delas já estão no catálogo
+ * normal e apareceriam duas vezes.
+ */
+export function getWaivedClassPowers(
+  sheet: CharacterSheet,
+  waivers: PrerequisiteWaiver[]
+): ClassPower[] {
+  const unlocking = waivers.filter((waiver) => waiver.unlocksOtherClassPowers);
+  if (unlocking.length === 0) return [];
+
+  const ownClasses = new Set(
+    [
+      sheet.classe?.name,
+      ...(sheet.classLevels ?? []).map((entry) => entry.className),
+    ].filter(Boolean)
+  );
+
+  const powers: ClassPower[] = [];
+  const seen = new Set<string>();
+
+  unlocking.forEach((waiver) => {
+    (waiver.targets.classPowers ?? []).forEach(({ className, name }) => {
+      if (ownClasses.has(className)) return;
+
+      const key = `${className}:${name}`;
+      if (seen.has(key)) return;
+
+      const found = findClassDescription(
+        className,
+        undefined,
+        sheet.supplements
+      )?.powers?.find((power) => power.name === name);
+      if (!found) return;
+
+      seen.add(key);
+      powers.push({ ...found, className, unlockedBy: waiver.reason });
+    });
+  });
+
+  return powers;
+}
+
 export function getAllowedClassPowers(
   sheet: CharacterSheet,
   options?: { classLevel?: number }
@@ -360,7 +420,13 @@ export function getAllowedClassPowers(
       ? { ...sheet, nivel: options.classLevel }
       : sheet;
 
-  return resolveClassPowerCatalog(sheet).filter((power) => {
+  const waivers = getActiveWaivers(sheet);
+  const catalog = [
+    ...resolveClassPowerCatalog(sheet),
+    ...getWaivedClassPowers(sheet, waivers),
+  ];
+
+  return catalog.filter((power) => {
     const existingClassPowers = sheet.classPowers || [];
     const isRepeatedPower = existingClassPowers.find(
       (existingPower) => existingPower.name === power.name
@@ -370,7 +436,10 @@ export function getAllowedClassPowers(
       return power.canRepeat;
     }
 
-    return isPowerAvailable(sheetForCheck, power);
+    return isPowerAvailable(sheetForCheck, power, {
+      className: power.className,
+      waivers,
+    });
   });
 }
 
