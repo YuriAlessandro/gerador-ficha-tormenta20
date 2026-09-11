@@ -1,24 +1,21 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { Box, Typography } from '@mui/material';
+import CatalogPanel from '@/components/PowerCatalog/CatalogPanel';
 import {
-  Box,
-  Typography,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  Card,
-  CardContent,
-  Checkbox,
-  Chip,
-  Stack,
-  TextField,
-  InputAdornment,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+  CatalogEntry,
+  ClassPowerSet,
+  PowerCategory,
+  usePowerCatalog,
+} from '@/components/PowerCatalog/usePowerCatalog';
+import { PowerOriginKind } from '@/functions/powers/powerOrigins';
+import { evaluatePowerRequirements } from '@/functions/powers/requirementEvaluation';
+import type { PowerAvailability } from '@/functions/powers/requirementEvaluation';
+import CharacterSheet from '@/interfaces/CharacterSheet';
 import { ClassPower } from '@/interfaces/Class';
-import { GeneralPower } from '@/interfaces/Poderes';
-import { formatRequirements } from '@/functions/requirementText';
+import { GeneralPower, GeneralPowerType } from '@/interfaces/Poderes';
 
 interface PowerSelectionStepProps {
+  sheet: CharacterSheet;
   classPowers: ClassPower[];
   generalPowers: GeneralPower[];
   selectedPowerChoice: 'class' | 'general' | 'almaLivre' | null;
@@ -31,50 +28,102 @@ interface PowerSelectionStepProps {
   className: string;
   knownClassPowers?: string[];
   knownGeneralPowers?: string[];
-  unavailableClassPowers?: string[];
   unavailableGeneralPowers?: string[];
   almaLivrePower?: ClassPower | null;
   almaLivreClassName?: string;
   almaLivrePowerAvailable?: boolean;
-  /**
-   * Opt-in do jogador para escolher poderes fora dos pré-requisitos. Desligado,
-   * os reprovados ficam escondidos enquanto se navega (a busca ainda os
-   * encontra, desabilitados); ligado, aparecem sempre e ficam escolhíveis.
-   */
-  allowOutOfRequirements?: boolean;
-  onAllowOutOfRequirementsChange?: (allow: boolean) => void;
+}
+
+const ALMA_LIVRE = 'Alma Livre';
+
+const AVAILABLE: PowerAvailability = {
+  available: true,
+  bypassed: true,
+  groups: [],
+};
+const UNAVAILABLE: PowerAvailability = {
+  available: false,
+  bypassed: true,
+  groups: [],
+};
+
+/** Um grupo por origem real do poder, e não um balde só com o nome da classe. */
+function groupClassPowers(
+  powers: ClassPower[],
+  ownClassName: string
+): ClassPowerSet[] {
+  const sets = new Map<string, ClassPowerSet>();
+
+  powers.forEach((power) => {
+    // `className`/`unlockedBy` vêm carimbados por `getWaivedClassPowers`. Um
+    // poder de Bárbaro pego via Domínio do Medo não é um poder de Bucaneiro.
+    const origin = power.className ?? ownClassName;
+    const key = `${origin}:${power.unlockedBy ?? ''}`;
+    const existing = sets.get(key);
+    if (existing) {
+      existing.powers.push(power);
+      return;
+    }
+    sets.set(key, {
+      className: origin,
+      powers: [power],
+      unlockedBy: power.unlockedBy,
+    });
+  });
+
+  return [...sets.values()];
+}
+
+const GENERAL_KINDS: Record<string, PowerOriginKind> = {
+  [GeneralPowerType.COMBATE]: 'generalCombate',
+  [GeneralPowerType.DESTINO]: 'generalDestino',
+  [GeneralPowerType.MAGIA]: 'generalMagia',
+  [GeneralPowerType.CONCEDIDOS]: 'generalConcedidos',
+  [GeneralPowerType.TORMENTA]: 'generalTormenta',
+  [GeneralPowerType.RACA]: 'generalRaca',
+};
+
+const GENERAL_LABELS: Record<string, string> = {
+  [GeneralPowerType.COMBATE]: 'Poderes de Combate',
+  [GeneralPowerType.DESTINO]: 'Poderes de Destino',
+  [GeneralPowerType.MAGIA]: 'Poderes de Magia',
+  [GeneralPowerType.CONCEDIDOS]: 'Poderes Concedidos',
+  [GeneralPowerType.TORMENTA]: 'Poderes de Tormenta',
+  [GeneralPowerType.RACA]: 'Poderes de Raça',
+};
+
+function groupGeneralPowers(powers: GeneralPower[]): PowerCategory[] {
+  const byType = new Map<GeneralPowerType, GeneralPower[]>();
+  powers.forEach((power) => {
+    const list = byType.get(power.type);
+    if (list) list.push(power);
+    else byType.set(power.type, [power]);
+  });
+
+  return [...byType.entries()].map(([type, list]) => ({
+    key: type,
+    type,
+    kind: GENERAL_KINDS[type] ?? 'generalCombate',
+    name: GENERAL_LABELS[type] ?? 'Poderes Gerais',
+    powers: list,
+  }));
 }
 
 /**
- * Opt-in discreto para escolher poderes fora dos pré-requisitos — a filosofia
- * "te mostro como seguir a regra, mas quebre se quiser". Mesmo idioma visual do
- * "Só os que posso pegar" do editor de poderes da ficha pronta.
+ * A escolha de poder da subida de nível, sobre o mesmo catálogo do editor de
+ * poderes da ficha.
+ *
+ * Antes eram três listas separadas atrás de um RadioGroup ("Poder de Classe" /
+ * "Poder Geral" / "Alma Livre"), cada uma com busca própria e nenhuma com
+ * filtro de disponibilidade. Pior: a lista de classe usava um cabeçalho único
+ * com o nome da classe do personagem, então um poder de Bárbaro destravado por
+ * "Domínio do Medo" aparecia sob "Poderes de Bucaneiro".
+ *
+ * Aqui o tipo da escolha é DERIVADO do item clicado, em vez de ser um passo
+ * anterior: o grupo do catálogo já diz de onde o poder vem.
  */
-const OutOfRequirementsToggle: React.FC<{
-  checked: boolean;
-  onChange: (allow: boolean) => void;
-}> = ({ checked, onChange }) => (
-  <FormControlLabel
-    sx={{ ml: 0, mr: 0, mb: 2, gap: 1 }}
-    control={
-      <Checkbox
-        size='small'
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        slotProps={{
-          input: { 'aria-label': 'Mostrar poderes fora dos requisitos' },
-        }}
-      />
-    }
-    label={
-      <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-        Mostrar poderes fora dos requisitos
-      </Typography>
-    }
-  />
-);
-
 const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
+  sheet,
   classPowers,
   generalPowers,
   selectedPowerChoice,
@@ -87,581 +136,203 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   className,
   knownClassPowers = [],
   knownGeneralPowers = [],
-  unavailableClassPowers = [],
   unavailableGeneralPowers = [],
   almaLivrePower = null,
   almaLivreClassName,
   almaLivrePowerAvailable = false,
-  allowOutOfRequirements = false,
-  onAllowOutOfRequirementsChange,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const classPowerSets = useMemo(() => {
+    const sets = groupClassPowers(classPowers, className);
 
-  // Só os SELECIONÁVEIS entram na contagem do rótulo: `classPowers`/
-  // `generalPowers` também trazem os reprovados por pré-requisito (para
-  // mostrar o motivo), e o rótulo dos poderes gerais prometia ~300 opções onde
-  // havia ~50. Com o opt-in ligado, os reprovados passam a contar.
-  const selectableOf = <T extends ClassPower | GeneralPower>(
-    powers: T[],
-    unavailable: string[]
-  ): T[] =>
-    allowOutOfRequirements
-      ? powers
-      : powers.filter((power) => !unavailable.includes(power.name));
-
-  const selectableClassPowers = selectableOf(
-    classPowers,
-    unavailableClassPowers
-  );
-  const selectableGeneralPowers = selectableOf(
-    generalPowers,
-    unavailableGeneralPowers
-  );
-  // A aba, porém, abre com QUALQUER poder no catálogo, mesmo que nenhum seja
-  // escolhível: é lá dentro que mora o opt-in "fora dos requisitos". Travar o
-  // radio pela contagem de escolhíveis deixaria a escape hatch inalcançável
-  // justamente em quem mais precisa dela.
-  const hasClassPowers = classPowers.length > 0;
-  const hasGeneralPowers = generalPowers.length > 0;
-
-  // Helper to check if power is already known and cannot be repeated
-  const isPowerKnown = (powerName: string, isClassPower: boolean): boolean => {
-    if (isClassPower) {
-      if (!knownClassPowers.includes(powerName)) return false;
-      // Power is known - check if it can repeat
-      const power = classPowers.find((p) => p.name === powerName);
-      return !power?.canRepeat;
+    // Alma Livre é a mesma ideia de um waiver — "escolha um poder dessa classe
+    // como se pertencesse a ela" — então ganha o mesmo tratamento visual.
+    if (almaLivrePower && almaLivreClassName) {
+      sets.push({
+        className: almaLivreClassName,
+        powers: [almaLivrePower],
+        unlockedBy: ALMA_LIVRE,
+      });
     }
-    if (!knownGeneralPowers.includes(powerName)) return false;
-    // Power is known - check if it can be picked several times
-    const power = generalPowers.find((p) => p.name === powerName);
-    return !power?.allowSeveralPicks;
-  };
 
-  // Filter powers by search query
-  const filterPowers = <T extends ClassPower | GeneralPower>(
-    powers: T[]
-  ): T[] => {
-    if (!searchQuery) return powers;
+    return sets;
+  }, [classPowers, className, almaLivrePower, almaLivreClassName]);
 
-    const lowerQuery = searchQuery.toLowerCase();
-    return powers.filter((power) => {
-      const name = power.name.toLowerCase();
-      const description =
-        'text' in power
-          ? power.text.toLowerCase()
-          : power.description.toLowerCase();
-      return name.includes(lowerQuery) || description.includes(lowerQuery);
-    });
-  };
-
-  // Escondidos só enquanto se NAVEGA. Com busca digitada a lista volta a
-  // mostrar os reprovados (acinzentados, com o requisito à vista), pra ninguém
-  // procurar um poder pelo nome e concluir que ele não existe.
-  const visiblePowers = <T extends ClassPower | GeneralPower>(
-    all: T[],
-    selectablePowers: T[]
-  ): T[] => filterPowers(searchQuery ? all : selectablePowers);
-
-  const filteredClassPowers = visiblePowers(classPowers, selectableClassPowers);
-  const filteredGeneralPowers = visiblePowers(
-    generalPowers,
-    selectableGeneralPowers
+  const powerCategories = useMemo(
+    () => groupGeneralPowers(generalPowers),
+    [generalPowers]
   );
 
-  const hasAlmaLivre = almaLivrePower !== null;
+  const isAlmaLivreEntry = useCallback(
+    (entry: CatalogEntry) =>
+      entry.source.type === 'class' &&
+      !!almaLivrePower &&
+      entry.source.power.name === almaLivrePower.name &&
+      entry.groupKey.includes(ALMA_LIVRE),
+    [almaLivrePower]
+  );
 
-  // Determine if step is complete
+  const resolveAvailability = useCallback(
+    (entry: CatalogEntry): PowerAvailability => {
+      if (isAlmaLivreEntry(entry)) {
+        return almaLivrePowerAvailable ? AVAILABLE : UNAVAILABLE;
+      }
+
+      if (entry.source.type === 'class') {
+        const { power } = entry.source;
+        // A lista de classe já vem filtrada por `getAllowedClassPowers`; o que
+        // sobra decidir é o poder já conhecido e não repetível.
+        if (knownClassPowers.includes(power.name) && !power.canRepeat) {
+          return UNAVAILABLE;
+        }
+        return evaluatePowerRequirements(
+          power,
+          { sheet, className: entry.source.className },
+          'class'
+        );
+      }
+
+      if (entry.source.type === 'general') {
+        const { power } = entry.source;
+        if (
+          knownGeneralPowers.includes(power.name) &&
+          !power.allowSeveralPicks
+        ) {
+          return UNAVAILABLE;
+        }
+        if (unavailableGeneralPowers.includes(power.name)) return UNAVAILABLE;
+        return evaluatePowerRequirements(power, { sheet }, 'general');
+      }
+
+      return AVAILABLE;
+    },
+    [
+      sheet,
+      isAlmaLivreEntry,
+      almaLivrePowerAvailable,
+      knownClassPowers,
+      knownGeneralPowers,
+      unavailableGeneralPowers,
+    ]
+  );
+
+  const catalog = usePowerCatalog({
+    powerCategories,
+    classPowerSets,
+    classAbilitySets: [],
+    raceName: sheet.raca.name,
+    raceAbilities: [],
+    customPowers: [],
+    resolveAvailability,
+  });
+
+  const isSelected = useCallback(
+    (entry: CatalogEntry) => {
+      if (isAlmaLivreEntry(entry)) return selectedPowerChoice === 'almaLivre';
+      if (entry.source.type === 'class') {
+        return (
+          selectedPowerChoice === 'class' &&
+          selectedClassPower?.name === entry.source.power.name &&
+          selectedClassPower?.className === entry.source.power.className
+        );
+      }
+      if (entry.source.type === 'general') {
+        return (
+          selectedPowerChoice === 'general' &&
+          selectedGeneralPower?.name === entry.source.power.name
+        );
+      }
+      return false;
+    },
+    [
+      isAlmaLivreEntry,
+      selectedPowerChoice,
+      selectedClassPower,
+      selectedGeneralPower,
+    ]
+  );
+
+  // Escolha única: clicar num item troca a seleção inteira, e o TIPO da escolha
+  // sai do grupo do item — o RadioGroup anterior virou redundante.
+  const onToggle = useCallback(
+    (entry: CatalogEntry) => {
+      if (!resolveAvailability(entry).available) return;
+
+      if (entry.source.type === 'class') {
+        if (isAlmaLivreEntry(entry) && onAlmaLivrePowerSelect) {
+          onPowerChoiceChange('almaLivre');
+          onAlmaLivrePowerSelect(entry.source.power);
+          return;
+        }
+        onPowerChoiceChange('class');
+        onClassPowerSelect(entry.source.power);
+        return;
+      }
+
+      if (entry.source.type === 'general') {
+        onPowerChoiceChange('general');
+        onGeneralPowerSelect(entry.source.power);
+      }
+    },
+    [
+      resolveAvailability,
+      isAlmaLivreEntry,
+      onAlmaLivrePowerSelect,
+      onPowerChoiceChange,
+      onClassPowerSelect,
+      onGeneralPowerSelect,
+    ]
+  );
+
+  const counts = useMemo(() => {
+    const map = new Map<string, number>();
+    [...knownClassPowers, ...knownGeneralPowers].forEach((name) =>
+      map.set(name, (map.get(name) ?? 0) + 1)
+    );
+    return map;
+  }, [knownClassPowers, knownGeneralPowers]);
+
+  const hasAnyPower =
+    classPowers.length > 0 || generalPowers.length > 0 || !!almaLivrePower;
+
   const isComplete =
     (selectedPowerChoice === 'class' && selectedClassPower !== null) ||
     (selectedPowerChoice === 'general' && selectedGeneralPower !== null) ||
-    (selectedPowerChoice === 'almaLivre' &&
-      hasAlmaLivre &&
-      almaLivrePowerAvailable);
+    (selectedPowerChoice === 'almaLivre' && almaLivrePowerAvailable);
+
+  if (!hasAnyPower) {
+    return (
+      <Typography variant='body2' color='error'>
+        Nenhum poder disponível para este nível. Isso não deveria acontecer -
+        por favor, reporte este bug.
+      </Typography>
+    );
+  }
 
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Typography variant='h6' gutterBottom>
         Escolha um Poder
       </Typography>
-      <Typography
-        variant='body2'
-        sx={{
-          color: 'text.secondary',
-          mb: 3,
-        }}
-      >
+      <Typography variant='body2' sx={{ color: 'text.secondary', mb: 2 }}>
         A cada nível, você pode escolher um poder de classe ou um poder geral.
-        {hasAlmaLivre &&
-          ' Você também pode escolher o poder de Alma Livre.'}{' '}
-        Selecione o tipo de poder e depois escolha qual poder deseja adicionar.
+        Os grupos abaixo dizem de onde cada poder vem.
       </Typography>
-      {/* Step 1: Choose power type */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant='subtitle1' gutterBottom>
-          Tipo de Poder
-        </Typography>
-        <RadioGroup
-          value={selectedPowerChoice || ''}
-          onChange={(e) =>
-            onPowerChoiceChange(
-              e.target.value as 'class' | 'general' | 'almaLivre'
-            )
-          }
-        >
-          <FormControlLabel
-            value='class'
-            control={<Radio />}
-            label={`Poder de ${className} (${selectableClassPowers.length} disponíveis)`}
-            disabled={!hasClassPowers}
-          />
-          <FormControlLabel
-            value='general'
-            control={<Radio />}
-            label={`Poder Geral (${selectableGeneralPowers.length} disponíveis)`}
-            disabled={!hasGeneralPowers}
-          />
-          {hasAlmaLivre && almaLivreClassName && (
-            <FormControlLabel
-              value='almaLivre'
-              control={<Radio />}
-              label={`Poder de Alma Livre — ${almaLivreClassName} (${
-                almaLivrePower!.name
-              })`}
-            />
-          )}
-        </RadioGroup>
+
+      {/* Altura limitada: o catálogo rola por dentro, com busca e filtros
+          grudados no topo, em vez de esticar o corpo do assistente. */}
+      <Box sx={{ height: { xs: 380, sm: 460 }, minHeight: 0 }}>
+        <CatalogPanel
+          catalog={catalog}
+          counts={counts}
+          isSelected={isSelected}
+          onToggle={onToggle}
+          canAddAnother={() => false}
+          onAddAnother={() => undefined}
+        />
       </Box>
-      {/* Step 2: Show available powers based on choice */}
-      {selectedPowerChoice === 'class' && hasClassPowers && (
-        <Box>
-          <Typography variant='subtitle1' gutterBottom>
-            Poderes de {className} Disponíveis
-          </Typography>
 
-          {/* Search field */}
-          <TextField
-            fullWidth
-            size='small'
-            placeholder='Buscar poderes por nome ou descrição...'
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ mb: 2 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-
-          {onAllowOutOfRequirementsChange && (
-            <OutOfRequirementsToggle
-              checked={allowOutOfRequirements}
-              onChange={onAllowOutOfRequirementsChange}
-            />
-          )}
-
-          {filteredClassPowers.length === 0 &&
-            !searchQuery &&
-            !allowOutOfRequirements && (
-              <Typography
-                variant='body2'
-                sx={{
-                  color: 'text.secondary',
-                  mb: 2,
-                }}
-              >
-                Nenhum poder de classe cujos pré-requisitos você cumpra. Marque
-                a opção acima para escolher fora dos requisitos.
-              </Typography>
-            )}
-
-          {filteredClassPowers.length === 0 && searchQuery && (
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'text.secondary',
-                mb: 2,
-              }}
-            >
-              Nenhum poder encontrado para &quot;{searchQuery}&quot;
-            </Typography>
-          )}
-
-          <Stack spacing={2}>
-            {filteredClassPowers.map((power) => {
-              const isKnown = isPowerKnown(power.name, true);
-              const isUnavailable = unavailableClassPowers.includes(power.name);
-              const isUnlocked = isUnavailable && allowOutOfRequirements;
-              const isDisabled = isKnown || (isUnavailable && !isUnlocked);
-              return (
-                <Card
-                  key={power.name}
-                  variant='outlined'
-                  sx={{
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    border: selectedClassPower?.name === power.name ? 2 : 1,
-                    borderColor:
-                      selectedClassPower?.name === power.name
-                        ? 'primary.main'
-                        : 'divider',
-                    opacity: isDisabled ? 0.5 : 1,
-                    '&:hover': {
-                      borderColor: isDisabled ? 'divider' : 'primary.light',
-                      bgcolor: isDisabled ? 'inherit' : 'action.hover',
-                    },
-                  }}
-                  onClick={() => {
-                    if (!isDisabled) {
-                      onClassPowerSelect(power);
-                    }
-                  }}
-                >
-                  <CardContent>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        mb: 1,
-                      }}
-                    >
-                      <Typography
-                        variant='subtitle2'
-                        sx={{ fontWeight: 'bold' }}
-                      >
-                        {power.name}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        {isKnown && (
-                          <Chip
-                            label='Já Conhecido'
-                            size='small'
-                            color='default'
-                          />
-                        )}
-                        {isUnavailable && (
-                          <Chip
-                            label={
-                              isUnlocked
-                                ? 'Fora dos pré-requisitos'
-                                : 'Indisponível'
-                            }
-                            size='small'
-                            color={isUnlocked ? 'default' : 'warning'}
-                            variant={isUnlocked ? 'outlined' : 'filled'}
-                          />
-                        )}
-                        {power.canRepeat && (
-                          <Chip label='Repetível' size='small' color='info' />
-                        )}
-                      </Box>
-                    </Box>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        color: 'text.secondary',
-                        whiteSpace: 'pre-wrap',
-                      }}
-                    >
-                      {power.text}
-                    </Typography>
-                    {power.requirements && power.requirements.length > 0 && (
-                      <Box sx={{ mt: 1 }}>
-                        <Typography
-                          variant='caption'
-                          sx={{
-                            color: 'text.secondary',
-                          }}
-                        >
-                          Pré-requisitos:{' '}
-                          {formatRequirements(power.requirements)}
-                        </Typography>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </Stack>
-        </Box>
-      )}
-      {selectedPowerChoice === 'general' && hasGeneralPowers && (
-        <Box>
-          <Typography variant='subtitle1' gutterBottom>
-            Poderes Gerais Disponíveis
-          </Typography>
-
-          {/* Search field */}
-          <TextField
-            fullWidth
-            size='small'
-            placeholder='Buscar poderes por nome ou descrição...'
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ mb: 2 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-
-          {onAllowOutOfRequirementsChange && (
-            <OutOfRequirementsToggle
-              checked={allowOutOfRequirements}
-              onChange={onAllowOutOfRequirementsChange}
-            />
-          )}
-
-          {filteredGeneralPowers.length === 0 &&
-            !searchQuery &&
-            !allowOutOfRequirements && (
-              <Typography
-                variant='body2'
-                sx={{
-                  color: 'text.secondary',
-                  mb: 2,
-                }}
-              >
-                Nenhum poder geral cujos pré-requisitos você cumpra. Marque a
-                opção acima para escolher fora dos requisitos.
-              </Typography>
-            )}
-
-          {filteredGeneralPowers.length === 0 && searchQuery && (
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'text.secondary',
-                mb: 2,
-              }}
-            >
-              Nenhum poder encontrado para &quot;{searchQuery}&quot;
-            </Typography>
-          )}
-
-          <Stack spacing={2}>
-            {filteredGeneralPowers.map((power) => {
-              const isKnown = isPowerKnown(power.name, false);
-              const isUnavailable = unavailableGeneralPowers.includes(
-                power.name
-              );
-              const isUnlocked = isUnavailable && allowOutOfRequirements;
-              const isDisabled = isKnown || (isUnavailable && !isUnlocked);
-              return (
-                <Card
-                  key={power.name}
-                  variant='outlined'
-                  sx={{
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    border: selectedGeneralPower?.name === power.name ? 2 : 1,
-                    borderColor:
-                      selectedGeneralPower?.name === power.name
-                        ? 'primary.main'
-                        : 'divider',
-                    opacity: isDisabled ? 0.5 : 1,
-                    '&:hover': {
-                      borderColor: isDisabled ? 'divider' : 'primary.light',
-                      bgcolor: isDisabled ? 'inherit' : 'action.hover',
-                    },
-                  }}
-                  onClick={() => {
-                    if (!isDisabled) {
-                      onGeneralPowerSelect(power);
-                    }
-                  }}
-                >
-                  <CardContent>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        mb: 1,
-                      }}
-                    >
-                      <Typography
-                        variant='subtitle2'
-                        sx={{ fontWeight: 'bold' }}
-                      >
-                        {power.name}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        {isKnown && (
-                          <Chip
-                            label='Já Conhecido'
-                            size='small'
-                            color='default'
-                          />
-                        )}
-                        {isUnavailable && (
-                          <Chip
-                            label={
-                              isUnlocked
-                                ? 'Fora dos pré-requisitos'
-                                : 'Indisponível'
-                            }
-                            size='small'
-                            color={isUnlocked ? 'default' : 'warning'}
-                            variant={isUnlocked ? 'outlined' : 'filled'}
-                          />
-                        )}
-                        {power.allowSeveralPicks && (
-                          <Chip label='Repetível' size='small' color='info' />
-                        )}
-                      </Box>
-                    </Box>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        color: 'text.secondary',
-                        whiteSpace: 'pre-wrap',
-                      }}
-                    >
-                      {power.description}
-                    </Typography>
-                    {power.requirements && power.requirements.length > 0 && (
-                      <Box sx={{ mt: 1 }}>
-                        <Typography
-                          variant='caption'
-                          sx={{
-                            color: 'text.secondary',
-                          }}
-                        >
-                          Pré-requisitos:{' '}
-                          {formatRequirements(power.requirements)}
-                        </Typography>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </Stack>
-        </Box>
-      )}
-      {selectedPowerChoice === 'almaLivre' &&
-        hasAlmaLivre &&
-        almaLivreClassName && (
-          <Box>
-            <Typography variant='subtitle1' gutterBottom>
-              Poder de Alma Livre — {almaLivreClassName}
-            </Typography>
-
-            <Card
-              variant='outlined'
-              sx={{
-                cursor: almaLivrePowerAvailable ? 'pointer' : 'not-allowed',
-                border: 2,
-                borderColor: almaLivrePowerAvailable
-                  ? 'primary.main'
-                  : 'divider',
-                opacity: almaLivrePowerAvailable ? 1 : 0.5,
-                '&:hover': {
-                  borderColor: almaLivrePowerAvailable
-                    ? 'primary.light'
-                    : 'divider',
-                  bgcolor: almaLivrePowerAvailable ? 'action.hover' : 'inherit',
-                },
-              }}
-              onClick={() => {
-                if (almaLivrePowerAvailable && onAlmaLivrePowerSelect) {
-                  onAlmaLivrePowerSelect(almaLivrePower!);
-                }
-              }}
-            >
-              <CardContent>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant='subtitle2' sx={{ fontWeight: 'bold' }}>
-                    {almaLivrePower!.name}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    {!almaLivrePowerAvailable && (
-                      <Chip
-                        label='Requisitos não atendidos'
-                        size='small'
-                        color='warning'
-                      />
-                    )}
-                    <Chip
-                      label='Alma Livre'
-                      size='small'
-                      color='secondary'
-                      variant='outlined'
-                    />
-                  </Box>
-                </Box>
-                <Typography
-                  variant='body2'
-                  sx={{
-                    color: 'text.secondary',
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-                  {almaLivrePower!.text}
-                </Typography>
-                {almaLivrePower!.requirements &&
-                  almaLivrePower!.requirements.length > 0 && (
-                    <Box sx={{ mt: 1 }}>
-                      <Typography
-                        variant='caption'
-                        sx={{
-                          color: 'text.secondary',
-                        }}
-                      >
-                        Pré-requisitos:{' '}
-                        {formatRequirements(almaLivrePower!.requirements, {
-                          levelSuffix: ' (efetivo: nível −4)',
-                        })}
-                      </Typography>
-                    </Box>
-                  )}
-                {!almaLivrePowerAvailable && (
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: 'warning.main',
-                      mt: 1,
-                    }}
-                  >
-                    Você ainda não atende aos requisitos deste poder (nível
-                    efetivo = seu nível − 4).
-                  </Typography>
-                )}
-              </CardContent>
-            </Card>
-          </Box>
-        )}
-      {!hasClassPowers && !hasGeneralPowers && !hasAlmaLivre && (
-        <Typography variant='body2' color='error'>
-          Nenhum poder disponível para este nível. Isso não deveria acontecer -
-          por favor, reporte este bug.
-        </Typography>
-      )}
       {selectedPowerChoice && !isComplete && (
-        <Typography
-          variant='body2'
-          sx={{
-            color: 'warning.main',
-            mt: 2,
-          }}
-        >
+        <Typography variant='body2' sx={{ color: 'warning.main', mt: 2 }}>
           Selecione um poder para continuar.
         </Typography>
       )}

@@ -426,7 +426,7 @@ export function getWaivedClassPowers(
       if (!found) return;
 
       seen.add(key);
-      powers.push({ ...found, className });
+      powers.push({ ...found, className, unlockedBy: waiver.reason });
     });
   });
 

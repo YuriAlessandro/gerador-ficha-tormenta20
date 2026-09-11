@@ -1198,6 +1198,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return (
           <PowerSelectionStep
+            sheet={sheetForPowerSelection}
             classPowers={classPowers}
             generalPowers={generalPowers}
             selectedPowerChoice={currentLevelSelection.powerChoice}
