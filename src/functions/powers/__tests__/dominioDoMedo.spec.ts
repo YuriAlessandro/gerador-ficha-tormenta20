@@ -10,8 +10,13 @@ import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Skill from '../../../interfaces/Skills';
 import { SupplementId } from '../../../types/supplement.types';
 import { createMockCharacterSheet } from '../../../__mocks__/characterSheet';
-import { isPowerAvailable } from '../../powers';
-import { getWaivedGrantedPowers } from '../grantedPowerPool';
+import { dataRegistry } from '../../../data/registry';
+import {
+  getAllowedClassPowers,
+  getWaivedClassPowers,
+  isPowerAvailable,
+} from '../../powers';
+import { getGrantedPowerPool } from '../grantedPowerPool';
 import {
   collectWaiversFrom,
   isRequirementWaived,
@@ -60,22 +65,44 @@ describe('Domínio do Medo', () => {
       RequirementType.DEVOTO,
     ]);
     expect(waiver.unlocksOtherClassPowers).toBe(true);
-    expect(waiver.unlocksOtherDeityPowers).toBe(true);
   });
 
   describe('concedidos de outros deuses', () => {
-    it('destrava exatamente os cinco concedidos de medo', () => {
-      const unlocked = getWaivedGrantedPowers(ALL_SUPPLEMENTS, waivers)
+    it('dispensa a cláusula DEVOTO dos cinco concedidos de medo, e só deles', () => {
+      const concedidos = dataRegistry
+        .getPowersBySupplements(ALL_SUPPLEMENTS)
+        [GeneralPowerType.CONCEDIDOS].filter(
+          (power) => power.name !== 'Domínio do Medo'
+        );
+
+      const liberados = concedidos
+        .filter(
+          (power) =>
+            isPowerAvailable(devotoDoMedo(), power) &&
+            !isPowerAvailable(createMockCharacterSheet(), power)
+        )
         .map((power) => power.name)
         .sort();
 
-      expect(unlocked).toEqual([
+      expect(liberados).toEqual([
         'Alimentar-se do Pavor',
         'Aura de Medo',
         'Olhar Amedrontador',
         'Temor Arcano',
         'Terror Profundo',
       ]);
+    });
+
+    it('não entra nas VAGAS de poder concedido do próprio deus', () => {
+      // As vagas (`qtdPoderesConcedidos`) são preenchidas só com poderes do
+      // deus da ficha. O Domínio do Medo libera ESCOLHA via poder geral, não
+      // uma vaga de devoção a mais — senão um clérigo do Deus do Medo, que só
+      // tem um concedido para oferecer, ganharia a segunda vaga de outro deus.
+      const pool = getGrantedPowerPool(['O Deus do Medo'], ALL_SUPPLEMENTS).map(
+        (power) => power.name
+      );
+
+      expect(pool).toEqual(['Domínio do Medo']);
     });
 
     it('dispensa a cláusula DEVOTO de outro deus', () => {
@@ -230,6 +257,43 @@ describe('Domínio do Medo', () => {
       expect(
         isPowerAvailable(devotoDoMedo(), brado, { className: 'Bárbaro' })
       ).toBe(false);
+    });
+
+    it('entra em getAllowedClassPowers, que alimenta criação e subida de nível', () => {
+      // O bug original: a dispensa só valia no editor de poderes. O motor de
+      // criação (`general.ts`) e o assistente de subida de nível leem daqui,
+      // e o catálogo de poderes de classe é o da classe da ficha.
+      const sheet = devotoDoMedo();
+      sheet.nivel = 2;
+
+      const nomes = getAllowedClassPowers(sheet).map((power) => power.name);
+
+      expect(nomes).toContain('Ameaça Brutal');
+      expect(nomes).toContain('Presença de Muralha');
+      // Sem a dispensa, nenhum poder de outra classe aparece.
+      const base = createMockCharacterSheet();
+      base.nivel = 2;
+      expect(getAllowedClassPowers(base).map((p) => p.name)).not.toContain(
+        'Ameaça Brutal'
+      );
+    });
+
+    it('carimba a classe de origem, para agrupamento e avaliação', () => {
+      const encontrado = getWaivedClassPowers(devotoDoMedo(), waivers).find(
+        (power) => power.name === 'Alma Inabalável'
+      );
+
+      expect(encontrado?.className).toBe('Bárbaro');
+    });
+
+    it('não duplica poder de classe que o personagem já tem', () => {
+      // Um bárbaro devoto do Deus do Medo já vê Alma Inabalável no catálogo
+      // normal; o waiver não pode devolvê-la de novo.
+      const barbaro = devotoDoMedo();
+      barbaro.classe = { ...barbaro.classe, name: 'Bárbaro' } as never;
+
+      const nomes = getWaivedClassPowers(barbaro, waivers).map((p) => p.name);
+      expect(nomes).not.toContain('Alma Inabalável');
     });
 
     it('não vaza para a mesma classe quando o nome não está na lista', () => {

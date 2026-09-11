@@ -17,7 +17,6 @@ import Divindade from '@/interfaces/Divindade';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
-import { collectWaiversFrom } from '@/functions/powers/prerequisiteWaivers';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 
 interface DeityPowerEditDrawerProps {
@@ -51,18 +50,9 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
     if (secondaryDeityName && secondaryDeityName !== deity.name) {
       names.push(secondaryDeityName);
     }
-    // Duas passadas: um concedido já escolhido pode dispensar pré-requisitos
-    // de outros. Ver `prerequisiteWaivers`.
-    const basePool = getGrantedPowerPool(names, supplements);
-    const waivers = collectWaiversFrom(
-      basePool.filter((power) =>
-        (sheet.devoto?.poderes ?? []).some((p) => p.name === power.name)
-      )
-    );
-
-    const pool = getGrantedPowerPool(names, supplements, waivers);
+    const pool = getGrantedPowerPool(names, supplements);
     return pool.length > 0 ? pool : deity.poderes;
-  }, [deity, secondaryDeityName, supplements, sheet.devoto?.poderes]);
+  }, [deity, secondaryDeityName, supplements]);
 
   const deityLabel =
     secondaryDeityName && secondaryDeityName !== deity.name

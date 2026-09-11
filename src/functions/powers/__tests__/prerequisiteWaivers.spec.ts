@@ -26,7 +26,6 @@ const DOMINIO_DO_MEDO: PrerequisiteWaiver = {
   },
   requirementTypes: [RequirementType.CLASSE, RequirementType.DEVOTO],
   unlocksOtherClassPowers: true,
-  unlocksOtherDeityPowers: true,
   reason: 'Domínio do Medo',
 };
 
@@ -231,7 +230,7 @@ describe('findWaiverForPower', () => {
       DOMINIO_DO_MEDO,
     ]);
 
-    expect(waiver?.unlocksOtherDeityPowers).toBe(true);
+    expect(waiver?.unlocksOtherClassPowers).toBe(true);
     expect(waiver?.reason).toBe('Domínio do Medo');
   });
 

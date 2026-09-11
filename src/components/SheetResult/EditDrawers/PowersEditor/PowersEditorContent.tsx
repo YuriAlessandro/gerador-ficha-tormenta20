@@ -105,10 +105,15 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
           ? ALWAYS_AVAILABLE
           : UNAVAILABLE;
       case 'general':
-        if (entry.kind === 'generalConcedidos' && isDevoto) {
-          return isDeityPowerAvailable(entry.source.power)
-            ? ALWAYS_AVAILABLE
-            : UNAVAILABLE;
+        // Concedido do PRÓPRIO deus: liberado pela devoção, sem passar pelo
+        // avaliador. Os demais caem na regra geral — é por lá que um waiver
+        // ("Domínio do Medo") dispensa a cláusula DEVOTO de outro deus.
+        if (
+          entry.kind === 'generalConcedidos' &&
+          isDevoto &&
+          isDeityPowerAvailable(entry.source.power)
+        ) {
+          return ALWAYS_AVAILABLE;
         }
         return getAvailability(entry.source.power, 'general');
       default:
