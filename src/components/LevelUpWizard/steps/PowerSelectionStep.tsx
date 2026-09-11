@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Box, Typography } from '@mui/material';
 import CatalogPanel from '@/components/PowerCatalog/CatalogPanel';
 import {
@@ -223,6 +224,9 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
     raceAbilities: [],
     customPowers: [],
     resolveAvailability,
+    // Na subida de nível a pergunta é "o que posso escolher agora?" — o que
+    // não dá para pegar é ruído. No editor da ficha o padrão segue o oposto.
+    initialOnlyAvailable: true,
   });
 
   const isSelected = useCallback(
@@ -294,10 +298,25 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   const hasAnyPower =
     classPowers.length > 0 || generalPowers.length > 0 || !!almaLivrePower;
 
-  const isComplete =
-    (selectedPowerChoice === 'class' && selectedClassPower !== null) ||
-    (selectedPowerChoice === 'general' && selectedGeneralPower !== null) ||
-    (selectedPowerChoice === 'almaLivre' && almaLivrePowerAvailable);
+  // Nome do que está escolhido agora, ou `null` enquanto nada válido estiver.
+  // Substitui o antigo `isComplete`, que era só um booleano para o aviso.
+  const selectedPowerName = useMemo(() => {
+    if (selectedPowerChoice === 'class')
+      return selectedClassPower?.name ?? null;
+    if (selectedPowerChoice === 'general') {
+      return selectedGeneralPower?.name ?? null;
+    }
+    if (selectedPowerChoice === 'almaLivre' && almaLivrePowerAvailable) {
+      return almaLivrePower?.name ?? null;
+    }
+    return null;
+  }, [
+    selectedPowerChoice,
+    selectedClassPower,
+    selectedGeneralPower,
+    almaLivrePower,
+    almaLivrePowerAvailable,
+  ]);
 
   if (!hasAnyPower) {
     return (
@@ -313,14 +332,44 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
       <Typography variant='h6' gutterBottom>
         Escolha um Poder
       </Typography>
-      <Typography variant='body2' sx={{ color: 'text.secondary', mb: 2 }}>
+      <Typography variant='body2' sx={{ color: 'text.secondary', mb: 1.5 }}>
         A cada nível, você pode escolher um poder de classe ou um poder geral.
         Os grupos abaixo dizem de onde cada poder vem.
       </Typography>
 
+      {/*
+        O estado da escolha fica ACIMA do catálogo, não depois dele. Embaixo,
+        ele caía atrás da lista de altura fixa e só aparecia no fim da rolagem
+        do assistente — parecia um texto solto no meio da tela. Aqui ocupa a
+        mesma linha esteja ou não completo, então não empurra o catálogo
+        quando o usuário seleciona.
+      */}
+      <Box
+        sx={{
+          minHeight: 32,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          mb: 1,
+        }}
+      >
+        {selectedPowerName ? (
+          <>
+            <CheckCircleIcon fontSize='small' color='success' />
+            <Typography variant='body2' sx={{ color: 'success.main' }}>
+              Selecionado: <strong>{selectedPowerName}</strong>
+            </Typography>
+          </>
+        ) : (
+          <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+            Selecione um poder para continuar.
+          </Typography>
+        )}
+      </Box>
+
       {/* Altura limitada: o catálogo rola por dentro, com busca e filtros
           grudados no topo, em vez de esticar o corpo do assistente. */}
-      <Box sx={{ height: { xs: 380, sm: 460 }, minHeight: 0 }}>
+      <Box sx={{ height: { xs: 340, sm: 460 }, minHeight: 0 }}>
         <CatalogPanel
           catalog={catalog}
           counts={counts}
@@ -330,12 +379,6 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
           onAddAnother={() => undefined}
         />
       </Box>
-
-      {selectedPowerChoice && !isComplete && (
-        <Typography variant='body2' sx={{ color: 'warning.main', mt: 2 }}>
-          Selecione um poder para continuar.
-        </Typography>
-      )}
     </Box>
   );
 };
