@@ -109,22 +109,31 @@ export function usePowerCatalog({
     const descriptorFor = (kind: PowerOriginKind) => POWER_ORIGINS[kind];
 
     // Poderes de classe, um grupo por classe (multiclasse).
-    classPowerSets.forEach(({ className, powers }) => {
+    classPowerSets.forEach(({ className, powers, unlockedBy }) => {
       const kind: PowerOriginKind = 'classPower';
       const descriptor = descriptorFor(kind);
       result.push({
-        key: `classPower:${className}`,
-        label: descriptor.label(className),
+        // `unlockedBy` na chave: conjunto destravado e conjunto real coexistem.
+        key: `classPower:${className}${unlockedBy ? `:${unlockedBy}` : ''}`,
+        label: unlockedBy
+          ? `${descriptor.label(className)} (via ${unlockedBy})`
+          : descriptor.label(className),
         kind,
         entries: powers.map((power) => ({
-          id: `classPower:${className}:${power.name}`,
+          id: `classPower:${className}${unlockedBy ? `:${unlockedBy}` : ''}:${
+            power.name
+          }`,
           name: power.name,
           description: getPowerDisplayText(power),
           kind,
           icon: descriptor.icon,
           color: descriptor.color,
-          groupKey: `classPower:${className}`,
-          groupLabel: descriptor.label(className),
+          groupKey: `classPower:${className}${
+            unlockedBy ? `:${unlockedBy}` : ''
+          }`,
+          groupLabel: unlockedBy
+            ? `${descriptor.label(className)} (via ${unlockedBy})`
+            : descriptor.label(className),
           readOnly: false,
           repeatable: !!power.canRepeat,
           badge: power.supplementName,
