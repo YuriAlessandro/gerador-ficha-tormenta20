@@ -40,6 +40,8 @@ const DESTRAVADO = classPower('Alma Inabalável', {
 
 interface Overrides {
   knownClassPowers?: string[];
+  selectedPowerChoice?: 'class' | 'general' | 'almaLivre' | null;
+  selectedClassPower?: ClassPower | null;
   almaLivrePower?: ClassPower | null;
   almaLivreClassName?: string;
   almaLivrePowerAvailable?: boolean;
@@ -56,8 +58,8 @@ const renderStep = (overrides: Overrides = {}) => {
       sheet={sheet}
       classPowers={[PROPRIO, DESTRAVADO]}
       generalPowers={[generalPower('Ataque Poderoso')]}
-      selectedPowerChoice={null}
-      selectedClassPower={null}
+      selectedPowerChoice={overrides.selectedPowerChoice ?? null}
+      selectedClassPower={overrides.selectedClassPower ?? null}
       selectedGeneralPower={null}
       onPowerChoiceChange={onPowerChoiceChange}
       onClassPowerSelect={onClassPowerSelect}
@@ -112,9 +114,36 @@ describe('PowerSelectionStep', () => {
       knownClassPowers: ['Alma Inabalável'],
     });
 
+    // Com o filtro desligado ele reaparece, mas continua não selecionável.
+    fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
     fireEvent.click(screen.getByLabelText('Selecionar Alma Inabalável'));
 
     expect(onClassPowerSelect).not.toHaveBeenCalled();
+  });
+
+  it('já abre com "só os que eu posso pegar" ligado', () => {
+    // Na subida de nível a pergunta é "o que posso escolher agora?". Um poder
+    // já conhecido e não repetível não é resposta — some da lista até o
+    // usuário desligar o filtro.
+    renderStep({ knownClassPowers: ['Alma Inabalável'] });
+
+    expect(screen.queryByText('Alma Inabalável')).not.toBeInTheDocument();
+    expect(screen.getByText('Abusar dos Fracos')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
+    expect(screen.getByText('Alma Inabalável')).toBeInTheDocument();
+  });
+
+  it('mostra o que está selecionado acima do catálogo', () => {
+    renderStep({
+      selectedPowerChoice: 'class',
+      selectedClassPower: DESTRAVADO,
+    });
+
+    expect(screen.getByText(/Selecionado:/)).toBeInTheDocument();
+    expect(
+      screen.queryByText('Selecione um poder para continuar.')
+    ).not.toBeInTheDocument();
   });
 
   it('Alma Livre vira um grupo próprio, não um poder da classe do personagem', () => {

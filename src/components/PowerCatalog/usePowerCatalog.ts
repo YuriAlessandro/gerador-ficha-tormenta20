@@ -98,6 +98,15 @@ interface UsePowerCatalogArgs {
    * que não cabem no avaliador de pré-requisitos.
    */
   resolveAvailability: (entry: CatalogEntry) => PowerAvailability;
+  /**
+   * Estado inicial do filtro "Só os que eu posso pegar".
+   *
+   * Falso no editor da ficha, que é uma ferramenta de EDIÇÃO — quem abre lá
+   * costuma querer ver o catálogo inteiro, inclusive o que ainda não alcança.
+   * Verdadeiro na subida de nível, onde a pergunta é só "o que posso escolher
+   * agora?" e o resto é ruído.
+   */
+  initialOnlyAvailable?: boolean;
 }
 
 /** Espera o usuário parar de digitar antes de refiltrar centenas de itens. */
@@ -120,10 +129,11 @@ export function usePowerCatalog({
   raceAbilities,
   customPowers,
   resolveAvailability,
+  initialOnlyAvailable = false,
 }: UsePowerCatalogArgs) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeGroups, setActiveGroups] = useState<Set<string>>(new Set());
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
+  const [onlyAvailable, setOnlyAvailable] = useState(initialOnlyAvailable);
 
   const debouncedSearch = useDebounced(searchTerm);
 
