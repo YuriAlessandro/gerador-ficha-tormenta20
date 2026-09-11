@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import type { SvgIconComponent } from '@mui/icons-material';
 import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
-import { DETAIL_TIMEOUT } from '../../common/listStyles';
+import { DETAIL_TIMEOUT } from '@/components/SheetResult/common/listStyles';
 import PowerRequirements from './PowerRequirements';
 import {
   CATALOG_NAME_SX,
@@ -23,7 +23,7 @@ import {
   EDITOR_CHIP_SX,
   HIGHLIGHT_SX,
   ROW_BUTTON_SX,
-} from './powersEditorStyles';
+} from './powerCatalogStyles';
 
 export interface PowerCatalogRowProps {
   name: string;

@@ -3,7 +3,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Chip, Typography } from '@mui/material';
 import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
-import { REQUIREMENT_CHIP_SX } from './powersEditorStyles';
+import { REQUIREMENT_CHIP_SX } from './powerCatalogStyles';
 
 interface PowerRequirementsProps {
   availability: PowerAvailability;

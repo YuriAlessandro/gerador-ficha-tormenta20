@@ -42,6 +42,11 @@ import {
   getWaivedClassPowers,
   resolveClassPowerCatalog,
 } from '@/functions/powers';
+import {
+  ClassAbilitySet,
+  ClassPowerSet,
+  PowerCategory,
+} from '@/components/PowerCatalog/usePowerCatalog';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   findClassDescription,
@@ -69,32 +74,6 @@ import {
  * estado num hook consumido por dentro do `Dialog`, nada disso roda enquanto o
  * editor está fechado.
  */
-
-export interface PowerCategory {
-  /** Chave estável do grupo. `type` não serve: Destino tem até 3 categorias. */
-  key: string;
-  type: GeneralPowerType | 'ORIGEM';
-  kind: PowerOriginKind;
-  name: string;
-  powers: (GeneralPower | OriginPower)[];
-}
-
-export interface ClassPowerSet {
-  className: string;
-  powers: ClassPower[];
-  /**
-   * Poder que destravou o conjunto, em classes às quais o personagem NÃO
-   * pertence. Entra na chave do grupo: senão colidiria com o conjunto real de
-   * um multiclasse da mesma classe.
-   */
-  unlockedBy?: string;
-}
-
-export interface ClassAbilitySet {
-  className: string;
-  classLevel: number;
-  abilities: ClassAbility[];
-}
 
 interface UsePowersEditorArgs {
   open: boolean;

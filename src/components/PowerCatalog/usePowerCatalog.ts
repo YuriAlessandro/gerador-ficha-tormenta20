@@ -8,13 +8,38 @@ import {
 } from '@/functions/powers/powerOrigins';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { CustomPower } from '@/interfaces/CustomPower';
-import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
-import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
 import {
-  ClassAbilitySet,
-  ClassPowerSet,
-  PowerCategory,
-} from './usePowersEditor';
+  GeneralPower,
+  GeneralPowerType,
+  OriginPower,
+} from '@/interfaces/Poderes';
+import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
+
+export interface PowerCategory {
+  /** Chave estável do grupo. `type` não serve: Destino tem até 3 categorias. */
+  key: string;
+  type: GeneralPowerType | 'ORIGEM';
+  kind: PowerOriginKind;
+  name: string;
+  powers: (GeneralPower | OriginPower)[];
+}
+
+export interface ClassPowerSet {
+  className: string;
+  powers: ClassPower[];
+  /**
+   * Poder que destravou o conjunto, em classes às quais o personagem NÃO
+   * pertence. Entra na chave do grupo: senão colidiria com o conjunto real de
+   * um multiclasse da mesma classe.
+   */
+  unlockedBy?: string;
+}
+
+export interface ClassAbilitySet {
+  className: string;
+  classLevel: number;
+  abilities: ClassAbility[];
+}
 
 /**
  * O catálogo navegável: agrupamento, busca e filtros.
