@@ -5,6 +5,7 @@ import { ClassPower } from '../interfaces/Class';
 import {
   GeneralPower,
   GeneralPowerType,
+  PrerequisiteWaiver,
   Requirement,
   RequirementType,
 } from '../interfaces/Poderes';
@@ -23,6 +24,10 @@ import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
 import { getSheetDeityNames } from './powers/deityNames';
 import { sheetSatisfiesPowerRequirement } from './powers/hasPowerNamed';
+import {
+  getActiveWaivers,
+  isRequirementWaived,
+} from './powers/prerequisiteWaivers';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 
@@ -259,22 +264,28 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
   }
 }
 
+export interface PowerAvailabilityOptions {
+  /** Classe dona do poder, quando for poder de CLASSE. */
+  className?: string;
+  /** Waivers resolvidos. Passe ao filtrar catálogo inteiro (custo por item). */
+  waivers?: PrerequisiteWaiver[];
+}
+
 export function isPowerAvailable(
   sheet: CharacterSheet,
-  power: GeneralPower | ClassPower
+  power: GeneralPower | ClassPower,
+  options?: PowerAvailabilityOptions
 ): boolean {
-  // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
-  // (ex.: Centauro "Ginete Natural" → poder "Carga de Cavalaria").
-  // Atenção: o casamento é por SUBSTRING do nome do poder, então os termos aqui
-  // precisam ser específicos o bastante para não pegar poderes vizinhos.
-  const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
-    a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
-  );
-  if (raceBypass) return true;
+  // Ver `powers/prerequisiteWaivers`.
+  const waivers = options?.waivers ?? getActiveWaivers(sheet);
 
   if (power.requirements && power.requirements.length > 0) {
     return power.requirements.some((req) =>
-      req.every((rule) => applyRequirementNot(rule, evaluateRule(sheet, rule)))
+      req.every(
+        (rule) =>
+          isRequirementWaived(rule, power, waivers, options?.className)
+            .waived || applyRequirementNot(rule, evaluateRule(sheet, rule))
+      )
     );
   }
 

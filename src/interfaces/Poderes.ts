@@ -45,6 +45,49 @@ export interface Requirement {
 }
 
 /**
+ * Quais poderes um `PrerequisiteWaiver` alcança. Todo modo é EXPLÍCITO: um
+ * seletor por padrão textual herdaria conteúdo novo de suplemento em silêncio.
+ */
+export interface PowerSelector {
+  /** Nomes exatos de poderes gerais, concedidos, de origem ou de raça. */
+  names?: string[];
+  /** Poderes de CLASSE — o nome deles não é único entre classes. */
+  classPowers?: { className: string; name: string }[];
+  /** Casa com `PowerTaggable.tags` declarada no próprio poder-alvo. */
+  tags?: string[];
+  /**
+   * Casamento por SUBSTRING, só para o `bypassPrereqForPowersNamed` legado.
+   * **Não use em dados novos**: pega poder vizinho sem ninguém perceber.
+   */
+  nameIncludes?: string[];
+}
+
+/**
+ * "Este personagem pode pegar tais poderes ignorando tais pré-requisitos."
+ * Declarado no poder que CONCEDE a exceção. Ver `functions/powers/prerequisiteWaivers`.
+ */
+export interface PrerequisiteWaiver {
+  /** Quais poderes este waiver alcança. */
+  targets: PowerSelector;
+  /** Tipos ignorados na avaliação. `undefined` = TODOS. */
+  requirementTypes?: RequirementType[];
+  /** Traz poderes de OUTRAS classes para o catálogo de escolha. */
+  unlocksOtherClassPowers?: boolean;
+  /** Traz concedidos de OUTROS deuses para a piscina de escolha. */
+  unlocksOtherDeityPowers?: boolean;
+  /** Poder que concede a exceção, exibido como "dispensado por X". */
+  reason: string;
+}
+
+/**
+ * Categorias que um `PowerSelector` alcança sem listar nome por nome. Opt-in:
+ * conteúdo novo só entra se alguém escrever a tag.
+ */
+export interface PowerTaggable {
+  tags?: string[];
+}
+
+/**
  * Faz o poder somar em `countTormentaPowers` mesmo que seu `type` não seja
  * TORMENTA. Ex.: o poder da origem "Escolhido dos Deuses" (Aharadak), ou
  * qualquer poder homebrew/personalizado que o mestre declare como tal.
@@ -60,7 +103,7 @@ export interface CountsAsTormentaPower {
   tormentaCountExcludesCharisma?: boolean;
 }
 
-export interface GeneralPower extends CountsAsTormentaPower {
+export interface GeneralPower extends CountsAsTormentaPower, PowerTaggable {
   type: GeneralPowerType;
   description: string;
   name: string;
@@ -72,6 +115,8 @@ export interface GeneralPower extends CountsAsTormentaPower {
    * raciais (`RaceAbility.grantsPowerRequirements`).
    */
   grantsPowerRequirements?: string[];
+  /** Pré-requisitos que ESTE poder dispensa em outros. Ver `PrerequisiteWaiver`. */
+  waivesPrerequisites?: PrerequisiteWaiver[];
   allowSeveralPicks?: boolean;
   canRepeat?: boolean;
   sheetActions?: SheetAction[];

@@ -7,7 +7,7 @@ import { ClassDescription } from './Class';
 import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
 import Origin from './Origin';
-import { OriginPower, GeneralPower } from './Poderes';
+import { OriginPower, GeneralPower, PrerequisiteWaiver } from './Poderes';
 import Bag from './Bag';
 import Skill from './Skills';
 import { Spell } from './Spells';
@@ -83,8 +83,11 @@ export type RaceAbility = {
   customDescription?: string;
   // Satisfaz um requisito `PODER: <name>` como se o personagem tivesse esses poderes
   grantsPowerRequirements?: string[];
-  // Ignora TODOS os pré-requisitos de poderes cujo nome inclua qualquer destes termos
+  // Ignora TODOS os pré-requisitos de poderes cujo nome inclua qualquer destes
+  // termos. Açúcar legado, normalizado para um waiver em `getActiveWaivers`;
+  // dados novos devem usar `waivesPrerequisites`, que casa por nome exato.
   bypassPrereqForPowersNamed?: string[];
+  waivesPrerequisites?: PrerequisiteWaiver[]; // Ver `PrerequisiteWaiver`
 };
 
 export interface RaceHeritage {

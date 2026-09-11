@@ -95,7 +95,11 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
   const resolveAvailability = (entry: CatalogEntry): PowerAvailability => {
     switch (entry.source.type) {
       case 'class':
-        return getAvailability(entry.source.power, 'class');
+        return getAvailability(
+          entry.source.power,
+          'class',
+          entry.source.className
+        );
       case 'origin':
         return sheet.origin?.name === getOriginForPower(entry.source.power)
           ? ALWAYS_AVAILABLE

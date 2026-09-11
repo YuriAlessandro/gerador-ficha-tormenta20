@@ -47,23 +47,43 @@ const PowerRequirements: React.FC<PowerRequirementsProps> = ({
               ou
             </Typography>
           )}
-          {group.requirements.map((req) => (
-            <Chip
-              key={`${req.label}-${req.met}`}
-              size='small'
-              variant='outlined'
-              color={req.met ? 'success' : 'error'}
-              sx={REQUIREMENT_CHIP_SX}
-              icon={
-                req.met ? (
-                  <CheckIcon fontSize='small' />
-                ) : (
-                  <CloseIcon fontSize='small' />
-                )
-              }
-              label={req.current ? `${req.label} — ${req.current}` : req.label}
-            />
-          ))}
+          {group.requirements.map((req) => {
+            // Dispensado conta como atendido, mas dizer por quê evita a
+            // leitura de que o app errou.
+            if (req.waived) {
+              return (
+                <Chip
+                  key={`${req.label}-waived`}
+                  size='small'
+                  variant='outlined'
+                  color='success'
+                  sx={REQUIREMENT_CHIP_SX}
+                  icon={<CheckIcon fontSize='small' />}
+                  label={`${req.label} — dispensado por ${req.waivedReason}`}
+                />
+              );
+            }
+
+            return (
+              <Chip
+                key={`${req.label}-${req.met}`}
+                size='small'
+                variant='outlined'
+                color={req.met ? 'success' : 'error'}
+                sx={REQUIREMENT_CHIP_SX}
+                icon={
+                  req.met ? (
+                    <CheckIcon fontSize='small' />
+                  ) : (
+                    <CloseIcon fontSize='small' />
+                  )
+                }
+                label={
+                  req.current ? `${req.label} — ${req.current}` : req.label
+                }
+              />
+            );
+          })}
         </Box>
       ))}
     </Box>
