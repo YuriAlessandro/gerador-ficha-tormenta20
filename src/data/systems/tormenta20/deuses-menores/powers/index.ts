@@ -162,7 +162,6 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
           reason: 'Domínio do Medo',
           requirementTypes: [RequirementType.CLASSE, RequirementType.DEVOTO],
           unlocksOtherClassPowers: true,
-          unlocksOtherDeityPowers: true,
           targets: {
             names: [
               // Concedidos de outros deuses (Tormenta 20 e Deuses de Arton).

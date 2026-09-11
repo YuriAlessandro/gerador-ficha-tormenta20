@@ -20,7 +20,6 @@ import {
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
-import { collectWaiversFrom } from '@/functions/powers/prerequisiteWaivers';
 import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
@@ -439,16 +438,8 @@ const CharacterCreationWizardModal: React.FC<
     if (!deity) return [];
     const names = [deity.name];
     if (secondaryDeity) names.push(secondaryDeity.name);
-
-    // Duas passadas: um concedido pode dispensar pré-requisitos de outros, e
-    // ele mesmo vem da piscina. Ver `prerequisiteWaivers`.
-    const basePool = getGrantedPowerPool(names, supplements);
-    const chosen = basePool.filter((power) =>
-      selections.deityPowers?.includes(power.name)
-    );
-
-    return getGrantedPowerPool(names, supplements, collectWaiversFrom(chosen));
-  }, [deity, secondaryDeity, supplements, selections.deityPowers]);
+    return getGrantedPowerPool(names, supplements);
+  }, [deity, secondaryDeity, supplements]);
 
   // Sexo efetivo para atributos raciais (dimorfismo sexual, ex: Nagah)
   const sexForAttributes = resolveSexForAttributes(

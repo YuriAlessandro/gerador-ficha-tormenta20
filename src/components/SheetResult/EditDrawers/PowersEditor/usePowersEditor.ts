@@ -6,9 +6,8 @@ import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { dataRegistry } from '@/data/registry';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
 import {
+  findWaiverForPower,
   getActiveWaivers,
-  getClassUnlockingWaivers,
-  selectorMatches,
 } from '@/functions/powers/prerequisiteWaivers';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import CharacterSheet, {
@@ -39,7 +38,10 @@ import {
   evaluatePowerRequirements,
   PowerAvailability,
 } from '@/functions/powers/requirementEvaluation';
-import { resolveClassPowerCatalog } from '@/functions/powers';
+import {
+  getWaivedClassPowers,
+  resolveClassPowerCatalog,
+} from '@/functions/powers';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   findClassDescription,
@@ -306,38 +308,28 @@ export function usePowersEditor({
   }, [sheet, allSupplements]);
 
   /**
-   * Poderes de classe de OUTRAS classes que um waiver destrava — o eixo de
-   * catálogo de `unlocksOtherClassPowers` (ver `prerequisiteWaivers`). Classes
-   * que o personagem JÁ tem ficam de fora: apareceriam duas vezes.
+   * Poderes de classe destravados por waiver, agrupados por classe de origem.
+   * A resolução é a de `getWaivedClassPowers`, a mesma que o motor usa.
    */
   const unlockedClassPowerSets = useMemo<ClassPowerSet[]>(() => {
-    const unlocking = getClassUnlockingWaivers(waivers);
-    if (unlocking.length === 0) return [];
-
-    const ownClasses = new Set(getClassLevelsMap(sheet).keys());
     const sets = new Map<string, ClassPowerSet>();
 
-    unlocking.forEach((waiver) => {
-      (waiver.targets.classPowers ?? []).forEach(({ className }) => {
-        if (ownClasses.has(className)) return;
-        if (sets.has(className)) return;
-
-        const powers = (
-          findClassDescription(className, undefined, allSupplements)?.powers ??
-          []
-        ).filter((power) => selectorMatches(waiver.targets, power, className));
-        if (powers.length === 0) return;
-
-        sets.set(className, {
-          className,
-          powers,
-          unlockedBy: waiver.reason,
-        });
+    getWaivedClassPowers(sheet, waivers).forEach((power) => {
+      const className = power.className as string;
+      const existing = sets.get(className);
+      if (existing) {
+        existing.powers.push(power);
+        return;
+      }
+      sets.set(className, {
+        className,
+        powers: [power],
+        unlockedBy: findWaiverForPower(power, waivers, className)?.reason,
       });
     });
 
     return [...sets.values()];
-  }, [waivers, sheet, allSupplements]);
+  }, [waivers, sheet]);
 
   /** Conjuntos das classes do personagem, seguidos dos destravados por waiver. */
   const allClassPowerSets = useMemo<ClassPowerSet[]>(
@@ -902,9 +894,9 @@ export function usePowersEditor({
     const secundaria = sheet.devoto?.divindadeSecundaria;
     if (secundaria && secundaria !== storedDeity.name) names.push(secundaria);
 
-    const pool = getGrantedPowerPool(names, allSupplements, waivers);
+    const pool = getGrantedPowerPool(names, allSupplements);
     return pool.length > 0 ? pool : storedDeity.poderes || [];
-  }, [allSupplements, storedDeity, sheet.devoto?.divindadeSecundaria, waivers]);
+  }, [allSupplements, storedDeity, sheet.devoto?.divindadeSecundaria]);
 
   const isDeityPowerSelected = useCallback(
     (power: GeneralPower) =>

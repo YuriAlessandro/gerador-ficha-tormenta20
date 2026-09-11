@@ -8,18 +8,9 @@
  * escolher não muda — continua saindo de `classe.qtdPoderesConcedidos` — o que
  * muda é de onde ele escolhe.
  */
-import {
-  GeneralPower,
-  GeneralPowerType,
-  PrerequisiteWaiver,
-  RequirementType,
-} from '../../interfaces/Poderes';
+import { GeneralPower, RequirementType } from '../../interfaces/Poderes';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
-import {
-  getDeityUnlockingWaivers,
-  selectorMatches,
-} from './prerequisiteWaivers';
 
 /**
  * Um poder é exclusivo de devoção dupla quando exige DOIS deuses no MESMO
@@ -78,29 +69,9 @@ function deityClausesSatisfied(
  * vindos de suplementos (Deuses de Arton, Deuses Menores, homebrew) somem da
  * lista.
  */
-/**
- * Concedidos de OUTROS deuses que um waiver destrava — o eixo de catálogo de
- * `unlocksOtherDeityPowers` (ver `prerequisiteWaivers`). Varre o catálogo de
- * CONCEDIDOS, e não deus a deus, porque o waiver nomeia o PODER.
- */
-export function getWaivedGrantedPowers(
-  supplements: SupplementId[],
-  waivers: PrerequisiteWaiver[]
-): GeneralPower[] {
-  const unlocking = getDeityUnlockingWaivers(waivers);
-  if (unlocking.length === 0) return [];
-
-  return dataRegistry
-    .getPowersBySupplements(supplements)
-    [GeneralPowerType.CONCEDIDOS].filter((power) =>
-      unlocking.some((waiver) => selectorMatches(waiver.targets, power))
-    );
-}
-
 export function getGrantedPowerPool(
   deityNames: string[],
-  supplements: SupplementId[],
-  waivers: PrerequisiteWaiver[] = []
+  supplements: SupplementId[]
 ): GeneralPower[] {
   const pool: GeneralPower[] = [];
   const seen = new Set<string>();
@@ -113,12 +84,6 @@ export function getGrantedPowerPool(
       seen.add(power.name);
       pool.push(power);
     });
-  });
-
-  getWaivedGrantedPowers(supplements, waivers).forEach((power) => {
-    if (seen.has(power.name)) return;
-    seen.add(power.name);
-    pool.push(power);
   });
 
   return pool;

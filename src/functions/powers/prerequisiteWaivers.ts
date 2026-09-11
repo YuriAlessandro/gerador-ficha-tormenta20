@@ -7,10 +7,9 @@
  *
  * 1. **Avaliação** — `isRequirementWaived` faz `isPowerAvailable` (motor) e
  *    `evaluatePowerRequirements` (editor) ignorarem certos tipos de requisito.
- * 2. **Catálogo** — `unlocksOtherClassPowers` / `unlocksOtherDeityPowers`
- *    trazem o poder para a lista de escolha. Sem isso não há o que avaliar:
- *    concedido sai da piscina da divindade da ficha e poder de classe sai do
- *    catálogo da classe da ficha, então nunca chegam ao avaliador.
+ * 2. **Catálogo** — `unlocksOtherClassPowers` traz poderes de outras classes
+ *    para a lista de escolha. Sem isso não há o que avaliar: o catálogo de
+ *    poderes de classe é o da classe da ficha.
  *
  * O `bypassPrereqForPowersNamed` das habilidades raciais é normalizado para um
  * waiver aqui, em vez de seguir como um segundo caminho de decisão — eram duas
@@ -170,11 +169,4 @@ export function getClassUnlockingWaivers(
   waivers: PrerequisiteWaiver[]
 ): PrerequisiteWaiver[] {
   return waivers.filter((waiver) => waiver.unlocksOtherClassPowers);
-}
-
-/** Idem, para concedidos de outros deuses. */
-export function getDeityUnlockingWaivers(
-  waivers: PrerequisiteWaiver[]
-): PrerequisiteWaiver[] {
-  return waivers.filter((waiver) => waiver.unlocksOtherDeityPowers);
 }

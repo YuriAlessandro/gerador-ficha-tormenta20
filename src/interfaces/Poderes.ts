@@ -71,10 +71,14 @@ export interface PrerequisiteWaiver {
   targets: PowerSelector;
   /** Tipos ignorados na avaliação. `undefined` = TODOS. */
   requirementTypes?: RequirementType[];
-  /** Traz poderes de OUTRAS classes para o catálogo de escolha. */
+  /**
+   * Traz poderes de OUTRAS classes para o catálogo de escolha. Necessário
+   * porque o catálogo de poderes de classe é o da classe da ficha — sem isto o
+   * poder nunca chega ao avaliador. Concedidos NÃO precisam do equivalente: o
+   * catálogo de poderes gerais já traz todos, só barrados pelo requisito
+   * DEVOTO. E as VAGAS de poder concedido continuam sendo do deus da ficha.
+   */
   unlocksOtherClassPowers?: boolean;
-  /** Traz concedidos de OUTROS deuses para a piscina de escolha. */
-  unlocksOtherDeityPowers?: boolean;
   /** Poder que concede a exceção, exibido como "dispensado por X". */
   reason: string;
 }

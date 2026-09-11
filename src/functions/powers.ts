@@ -360,6 +360,55 @@ export function resolveClassPowerCatalog(sheet: CharacterSheet): ClassPower[] {
   return fullClass?.powers ?? [];
 }
 
+/**
+ * Poderes de classe de OUTRAS classes que um waiver destrava, com a classe de
+ * origem carimbada em `className`.
+ *
+ * Ponto único dos três consumidores (motor de criação, assistente de subida de
+ * nível e editor): o catálogo de poderes de classe é o da classe da ficha, e
+ * sem isto o poder destravado nunca chega ao avaliador. Classes que o
+ * personagem JÁ tem ficam de fora — os poderes delas já estão no catálogo
+ * normal e apareceriam duas vezes.
+ */
+export function getWaivedClassPowers(
+  sheet: CharacterSheet,
+  waivers: PrerequisiteWaiver[]
+): ClassPower[] {
+  const unlocking = waivers.filter((waiver) => waiver.unlocksOtherClassPowers);
+  if (unlocking.length === 0) return [];
+
+  const ownClasses = new Set(
+    [
+      sheet.classe?.name,
+      ...(sheet.classLevels ?? []).map((entry) => entry.className),
+    ].filter(Boolean)
+  );
+
+  const powers: ClassPower[] = [];
+  const seen = new Set<string>();
+
+  unlocking.forEach((waiver) => {
+    (waiver.targets.classPowers ?? []).forEach(({ className, name }) => {
+      if (ownClasses.has(className)) return;
+
+      const key = `${className}:${name}`;
+      if (seen.has(key)) return;
+
+      const found = findClassDescription(
+        className,
+        undefined,
+        sheet.supplements
+      )?.powers?.find((power) => power.name === name);
+      if (!found) return;
+
+      seen.add(key);
+      powers.push({ ...found, className });
+    });
+  });
+
+  return powers;
+}
+
 export function getAllowedClassPowers(
   sheet: CharacterSheet,
   options?: { classLevel?: number }
@@ -371,7 +420,13 @@ export function getAllowedClassPowers(
       ? { ...sheet, nivel: options.classLevel }
       : sheet;
 
-  return resolveClassPowerCatalog(sheet).filter((power) => {
+  const waivers = getActiveWaivers(sheet);
+  const catalog = [
+    ...resolveClassPowerCatalog(sheet),
+    ...getWaivedClassPowers(sheet, waivers),
+  ];
+
+  return catalog.filter((power) => {
     const existingClassPowers = sheet.classPowers || [];
     const isRepeatedPower = existingClassPowers.find(
       (existingPower) => existingPower.name === power.name
@@ -381,7 +436,10 @@ export function getAllowedClassPowers(
       return power.canRepeat;
     }
 
-    return isPowerAvailable(sheetForCheck, power);
+    return isPowerAvailable(sheetForCheck, power, {
+      className: power.className,
+      waivers,
+    });
   });
 }
 
