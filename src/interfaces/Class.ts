@@ -90,6 +90,8 @@ export type ClassPower = CountsAsTormentaPower & {
   supplementId?: SupplementId; // Suplemento de origem do poder
   supplementName?: string; // Nome do suplemento de origem
   className?: string; // Multiclasse: qual classe concedeu este poder
+  /** Waiver que destravou o poder numa classe que não é a do personagem. */
+  unlockedBy?: string;
   tags?: string[]; // Ver `PowerTaggable`
   waivesPrerequisites?: PrerequisiteWaiver[]; // Ver `PrerequisiteWaiver`
 };

@@ -5,10 +5,7 @@ import originPowersCatalog from '@/data/systems/tormenta20/powers/originPowers';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { dataRegistry } from '@/data/registry';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
-import {
-  findWaiverForPower,
-  getActiveWaivers,
-} from '@/functions/powers/prerequisiteWaivers';
+import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import CharacterSheet, {
   SheetActionHistoryEntry,
@@ -303,7 +300,7 @@ export function usePowersEditor({
       sets.set(className, {
         className,
         powers: [power],
-        unlockedBy: findWaiverForPower(power, waivers, className)?.reason,
+        unlockedBy: power.unlockedBy,
       });
     });
 
