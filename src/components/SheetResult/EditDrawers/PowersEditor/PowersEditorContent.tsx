@@ -14,16 +14,22 @@ import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { POWER_ORIGINS } from '@/functions/powers/powerOrigins';
 import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
+import CatalogPanel from '@/components/PowerCatalog/CatalogPanel';
+import {
+  CatalogEntry,
+  usePowerCatalog,
+} from '@/components/PowerCatalog/usePowerCatalog';
+import {
+  CATALOG_MIN_WIDTH,
+  SELECTED_PANEL_WIDTH,
+} from '@/components/PowerCatalog/powerCatalogStyles';
 import CustomPowerDialog from '../CustomPowerDialog';
 import EnsinarTruqueDialog from '../EnsinarTruqueDialog';
 import GolpePessoalBuilder from '../GolpePessoalBuilder';
 import PowerSelectionDialog from '../PowerSelectionDialog';
-import CatalogPanel from './CatalogPanel';
 import SelectedPanel, { SelectedGroup } from './SelectedPanel';
-import { CatalogEntry, usePowerCatalog } from './usePowerCatalog';
 import { usePowersEditor } from './usePowersEditor';
 import { getDevotionLabel } from '../../../../functions/powers/deityNames';
-import { CATALOG_MIN_WIDTH, SELECTED_PANEL_WIDTH } from './powersEditorStyles';
 
 const ALWAYS_AVAILABLE: PowerAvailability = {
   available: true,

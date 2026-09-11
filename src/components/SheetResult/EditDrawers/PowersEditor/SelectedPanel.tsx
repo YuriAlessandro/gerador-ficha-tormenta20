@@ -18,7 +18,7 @@ import {
   EDITOR_CHIP_SX,
   EMPTY_SX,
   SELECTED_GROUP_SX,
-} from './powersEditorStyles';
+} from '@/components/PowerCatalog/powerCatalogStyles';
 
 /** Uma linha do painel: um poder na ficha, com ou sem botão de remover. */
 export interface SelectedItem {
