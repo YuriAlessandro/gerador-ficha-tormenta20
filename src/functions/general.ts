@@ -2289,14 +2289,20 @@ export const applyPower = (
           });
         });
       } else if (sheetAction.action.type === 'learnSkill') {
-        // Use manual selections if provided, otherwise random
-        const pickedSkills =
-          (manualSelections?.skills as Skill[]) ||
-          pickFromAllowed(
-            sheetAction.action.availableSkills,
-            sheetAction.action.pick,
-            sheet.skills
-          );
+        // Use manual selections if provided, otherwise random.
+        // O ramo manual também precisa deduplicar: o aleatório já é protegido
+        // por `pickFromAllowed`, mas uma seleção do assistente pode ter ficado
+        // obsoleta (voltar um passo e treinar a mesma perícia pela classe).
+        // Ternário, e não `||`: com `||` um filtro que legitimamente devolve
+        // `[]` cairia no ramo aleatório.
+        const manualSkills = manualSelections?.skills as Skill[] | undefined;
+        const pickedSkills = manualSkills
+          ? manualSkills.filter((skill) => !sheet.skills.includes(skill))
+          : pickFromAllowed(
+              sheetAction.action.availableSkills,
+              sheetAction.action.pick,
+              sheet.skills
+            );
 
         sheet.skills.push(...pickedSkills);
 

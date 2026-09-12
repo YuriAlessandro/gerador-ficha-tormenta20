@@ -23,6 +23,7 @@ import {
   CENTAURO_REFRESHED_DESCRIPTIONS,
   CENTAURO_REFRESHED_PREREQ_HOOKS,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/centauro';
+import { HOBGOBLIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/hobgoblin';
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
@@ -118,6 +119,7 @@ function refreshPowerBonuses<
 const REFRESHED_DESCRIPTIONS_BY_NAME = new Map<string, string>([
   ...Object.entries(KAIJIN_REFRESHED_DESCRIPTIONS),
   ...Object.entries(CENTAURO_REFRESHED_DESCRIPTIONS),
+  ...Object.entries(HOBGOBLIN_REFRESHED_DESCRIPTIONS),
 ]);
 
 function refreshDescription<T extends { name: string; description?: string }>(

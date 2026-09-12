@@ -310,6 +310,13 @@ const Changelog: React.FC = () => {
                   os intervalos são contíguos e qualquer idade resolve para
                   exatamente uma faixa.
                 </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Arte da Guerra</strong> do <strong>Hobgoblin</strong>{' '}
+                  agora deixa você <strong>treinado em Guerra</strong>, como diz
+                  o livro. Antes ela dava um <strong>+2 na perícia</strong> e
+                  deixava Guerra destreinada na ficha.
+                </li>
               </ul>
 
               <h3>4.32.2</h3>

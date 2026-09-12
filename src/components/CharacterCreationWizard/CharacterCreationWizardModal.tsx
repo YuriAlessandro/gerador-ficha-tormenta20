@@ -2209,6 +2209,24 @@ const CharacterCreationWizardModal: React.FC<
             effectivePick = Math.min(pick, filteredCount);
           }
 
+          // Mesmo ajuste para perícias: `getFilteredAvailableOptions` remove do
+          // passo as perícias que o personagem JÁ treinou nos passos anteriores
+          // ("Perícias da Classe" e "por Inteligência" vêm antes de "Efeitos de
+          // Poderes"). Sem este clamp, um Hobgoblin que treinou Guerra pela
+          // classe fica com a lista de Arte da Guerra vazia — o passo mostra o
+          // aviso "você já possui todas as opções" e o "Próximo" trava sem nada
+          // para clicar.
+          // `Math.min(effectivePick, ...)` (e não `pick`, como no ramo de
+          // proficiência) para compor com o escalonamento por patamar de
+          // `resolveRequirementPick` (Biblioteca Divina).
+          if (type === 'learnSkill' && req.availableOptions) {
+            const used = new Set(getAllUsedSkills());
+            const filteredCount = (req.availableOptions as Skill[]).filter(
+              (skill) => !used.has(skill)
+            ).length;
+            effectivePick = Math.min(effectivePick, filteredCount);
+          }
+
           // A habilidade aprendida (Duplo Feérico) pode ter escolha própria —
           // ex.: Especialista do Ladino pede perícias. As sub-escolhas ficam na
           // MESMA entrada de seleções do poder de origem.
