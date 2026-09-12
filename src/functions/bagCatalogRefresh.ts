@@ -66,6 +66,28 @@ function refreshItem(item: Equipment, catalogItem: Equipment): void {
     item.descricao = catalogItem.descricao;
   }
 
+  // Classificação da arma (corpo a corpo / arremesso / disparo + munição).
+  // Preenche só o que está AUSENTE, como a `descricao` acima: um item que já
+  // tem `alcance` — inclusive '-' — carrega escolha explícita, do catálogo ou
+  // do jogador no editor, e é intocável.
+  //
+  // Existe porque a mochila é snapshot congelado: um arco comprado antes destes
+  // campos existirem rolaria Luta e somaria Força para sempre, mesmo depois do
+  // catálogo (ou do pacote homebrew, que recompila a cada load) ser corrigido.
+  //
+  // Fica ANTES do early-return de `hasEnhancementOwnership` de propósito: são
+  // campos de classificação, não de bônus, e uma arma encantada precisa da cura
+  // tanto quanto uma limpa. `specialActions` fica de fora — é reconstruído de
+  // `baseSpecialActions` pelo pipeline de aprimoramentos, e escrever aqui
+  // brigaria com ele.
+  if (item.alcance === undefined && catalogItem.alcance !== undefined) {
+    item.alcance = catalogItem.alcance;
+    if (catalogItem.arremesso) item.arremesso = true;
+  }
+  if (item.ammoType === undefined && catalogItem.ammoType !== undefined) {
+    item.ammoType = catalogItem.ammoType;
+  }
+
   if (hasEnhancementOwnership(item)) return;
 
   if (catalogItem.sheetBonuses) {

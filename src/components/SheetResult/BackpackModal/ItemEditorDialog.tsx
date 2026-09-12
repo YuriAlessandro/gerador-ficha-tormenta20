@@ -31,6 +31,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ResetIcon from '@mui/icons-material/RestartAlt';
 
 import Equipment, {
+  AmmoType,
   AppliedEnchantment,
   AppliedModification,
   AttackAttribute,
@@ -41,6 +42,15 @@ import Equipment, {
   WeaponCategory,
 } from '../../../interfaces/Equipment';
 import { resolveDamageAttribute } from '../../../functions/weaponSkill';
+import {
+  getWeaponPurpose,
+  getWeaponReach,
+  WEAPON_PURPOSE_OPTIONS,
+  WEAPON_REACH_OPTIONS,
+  WeaponPurpose,
+  WeaponReach,
+} from '../../../functions/weaponPurpose';
+import { AMMO_LABELS, AMMO_TYPE_OPTIONS } from './ammo';
 import {
   getCatalogWeaponCategoryByName,
   WEAPON_CATEGORY_LABELS,
@@ -154,6 +164,12 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
     weaponCategory: item?.weaponCategory ?? '',
     damageTypes: parseDamageTypes(item?.tipo),
     damageTypesTouched: false,
+    purpose: getWeaponPurpose(item ?? {}),
+    reach: getWeaponReach(item ?? {}),
+    ammoType: item?.ammoType ?? '',
+    purposeTouched: false,
+    ammoPackSizeText: String(item?.ammoPackSize ?? 20),
+    ammoUnitsPerSpaceText: String(item?.ammoUnitsPerSpace ?? 20),
     weaponTags: item?.weaponTags ?? [],
     actionDamageAttributes,
     actionAttackAttributes,
@@ -208,6 +224,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const userSupplements: SupplementId[] = useContentSupplements();
 
   const isWeapon = item?.group === 'Arma';
+  // Munição vive no grupo 'Arma' (convenção do catálogo), mas não tem dano,
+  // crítico nem propósito — a aba de stats troca de conteúdo para ela.
+  const isAmmoItem = !!item?.isAmmo;
   const isDefense = item ? isDefenseGroup(item.group) : false;
   const hasStatsTab = isWeapon || isDefense;
   // Label da opção "Padrão" do Select de categoria: mostra a categoria de
@@ -627,7 +646,74 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
               </Tooltip>
             </Stack>
 
-            {isWeapon && (
+            {isWeapon && isAmmoItem && (
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo de munição</InputLabel>
+                    <Select
+                      label='Tipo de munição'
+                      value={form.ammoType}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          ammoType: e.target.value as AmmoType,
+                        }))
+                      }
+                    >
+                      <MenuItem value=''>
+                        <em>Nenhum (não vincula a arma)</em>
+                      </MenuItem>
+                      {AMMO_TYPE_OPTIONS.map((t) => (
+                        <MenuItem key={t} value={t}>
+                          {AMMO_LABELS[t]}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <TextField
+                    label='Unidades por pacote'
+                    fullWidth
+                    value={form.ammoPackSizeText}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        ammoPackSizeText: e.target.value,
+                      }))
+                    }
+                    helperText='Padrão do livro: 20'
+                    slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <TextField
+                    label='Unidades por espaço'
+                    fullWidth
+                    value={form.ammoUnitsPerSpaceText}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        ammoUnitsPerSpaceText: e.target.value,
+                      }))
+                    }
+                    helperText='Quantos projéteis cabem em 1 espaço'
+                    slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+                  />
+                </Grid>
+                {!form.ammoType && (
+                  <Grid size={12}>
+                    <Alert severity='info'>
+                      Sem tipo definido, esta munição não se vincula a nenhuma
+                      arma — o contador e o desconto por ataque não aparecem.
+                    </Alert>
+                  </Grid>
+                )}
+              </Grid>
+            )}
+
+            {isWeapon && !isAmmoItem && (
               <Grid container spacing={2}>
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <TextField
@@ -689,6 +775,104 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                     </Select>
                   </FormControl>
                 </Grid>
+
+                {/*
+                  Tipo de ataque / Alcance / Munição. NÃO chamam markManualEdit:
+                  são campos semânticos, da mesma classe de `customSkill` e
+                  `weaponCategory`, e não devem congelar dano/atk/crítico.
+                */}
+                <Grid size={{ xs: 12, sm: form.purpose === 'melee' ? 6 : 4 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo de ataque</InputLabel>
+                    <Select
+                      label='Tipo de ataque'
+                      value={form.purpose}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          purpose: e.target.value as WeaponPurpose,
+                          purposeTouched: true,
+                        }))
+                      }
+                    >
+                      {WEAPON_PURPOSE_OPTIONS.map((p) => (
+                        <MenuItem key={p.value} value={p.value}>
+                          {p.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{ display: 'block', mt: 0.5 }}
+                  >
+                    {
+                      WEAPON_PURPOSE_OPTIONS.find(
+                        (p) => p.value === form.purpose
+                      )?.hint
+                    }
+                  </Typography>
+                </Grid>
+                {form.purpose !== 'melee' && (
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Alcance</InputLabel>
+                      <Select
+                        label='Alcance'
+                        value={form.reach}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            reach: e.target.value as WeaponReach,
+                            purposeTouched: true,
+                          }))
+                        }
+                      >
+                        {WEAPON_REACH_OPTIONS.map((r) => (
+                          <MenuItem key={r.value} value={r.value}>
+                            {r.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+                {form.purpose === 'firing' && (
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Munição</InputLabel>
+                      <Select
+                        label='Munição'
+                        value={form.ammoType}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            ammoType: e.target.value as AmmoType,
+                          }))
+                        }
+                      >
+                        <MenuItem value=''>
+                          <em>Nenhuma</em>
+                        </MenuItem>
+                        {AMMO_TYPE_OPTIONS.map((t) => (
+                          <MenuItem key={t} value={t}>
+                            {AMMO_LABELS[t]}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+                {form.purpose === 'firing' && !form.ammoType && (
+                  <Grid size={12}>
+                    <Alert severity='info'>
+                      Arma de disparo sem munição vinculada — o contador e o
+                      aviso de consumo não aparecem na aba Ataques.
+                    </Alert>
+                  </Grid>
+                )}
+
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <FormControl fullWidth>
                     <InputLabel>Atributo no ataque</InputLabel>

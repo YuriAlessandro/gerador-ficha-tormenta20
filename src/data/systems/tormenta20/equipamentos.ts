@@ -51,6 +51,11 @@ export const Armas = catalog({
     ammoType: 'Flechas',
     ammoPackSize: 20,
   },
+  // Munição genérica da tabela de tesouro (`rewards/items.ts`). Sem `ammoType`
+  // de propósito: a linha do livro não diz de que tipo é, e cravar um aqui
+  // decidiria a regra em silêncio. Sem tipo ela ainda conta espaços, recarrega
+  // e mostra unidades — só não auto-vincula a uma arma, e o jogador escolhe o
+  // tipo no editor da mochila.
   MUNICAO: {
     nome: 'Munição (20)',
     dano: '-',
@@ -60,6 +65,9 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 10,
+    isAmmo: true,
+    ammoPackSize: 20,
+    ammoUnitsPerSpace: 20,
   },
   VIROTES: {
     nome: 'Virotes (20)',

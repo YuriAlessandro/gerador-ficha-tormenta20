@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            10/09/2026 (v4.33).
+            12/09/2026 (v4.33).
           </p>
 
           <p>
@@ -94,6 +94,25 @@ const Changelog: React.FC = () => {
                   concedido aparecia para qualquer personagem ao subir de nível.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Armas à distância criadas por você
+                  agora funcionam de verdade. O editor de item ganhou{' '}
+                  <strong>Tipo de ataque</strong> — corpo a corpo,{' '}
+                  <strong>arremesso</strong> ou <strong>disparo</strong> —, mais{' '}
+                  <strong>alcance</strong> e <strong>munição</strong>. Com isso
+                  a arma passa a rolar <strong>Pontaria</strong>, para de somar
+                  Força no dano, recebe os poderes de ataque à distância (como{' '}
+                  <strong>Estilo de Disparo</strong>) e mostra o contador de
+                  munição, descontando um projétil a cada ataque. Antes não
+                  havia onde dizer que o item era um arco, então ele nascia como
+                  arma corpo a corpo.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Dá para criar seus próprios{' '}
+                  <strong>pacotes de munição</strong> — com preço, tamanho de
+                  pacote e espaço próprios —, tanto como item personalizado na
+                  mochila quanto num pacote de itens da comunidade.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> No{' '}
                   <strong>editor de poderes</strong>, os poderes de origem que
                   envolvem uma escolha agora têm um{' '}
@@ -110,6 +129,20 @@ const Changelog: React.FC = () => {
                   faltando à mostra — antes eles simplesmente sumiam, sem
                   nenhuma pista do motivo. É o mesmo comportamento que os
                   poderes gerais já tinham.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Uma arma do catálogo que já estava
+                  na mochila de uma ficha antiga podia ter ficado sem a
+                  classificação de alcance — e aí um <strong>Arco Curto</strong>{' '}
+                  rolava Luta e somava Força no dano. Agora a ficha se corrige
+                  sozinha ao ser aberta, sem desfazer nenhum ajuste que você
+                  tenha feito à mão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Munição (20)</strong>{' '}
+                  genérica, que vem como tesouro, não contava unidades nem
+                  ocupava espaço como as outras munições. Agora conta — e você
+                  pode dizer no editor de qual tipo ela é.
                 </li>
                 <li>
                   <strong>Correção:</strong> As origens{' '}

@@ -4,6 +4,23 @@ import Equipment, {
   equipGroup,
 } from '../../../interfaces/Equipment';
 
+/**
+ * Os tipos de munição do livro (JDA, Tabela 3-4) mais a Bola de Ferro de Heróis
+ * de Arton, na ordem em que aparecem nos seletores de autoria de item.
+ *
+ * Munição autoral é expressa como um ITEM de um destes tipos — "Virotes de
+ * prata (10)" tem `ammoType: 'Virotes'` com preço e pacote próprios — e não
+ * como um tipo novo, para que arma e munição continuem se encontrando por um
+ * vocabulário fechado.
+ */
+export const AMMO_TYPE_OPTIONS: AmmoType[] = [
+  'Flechas',
+  'Virotes',
+  'Balas',
+  'Pedras',
+  'Bola de Ferro',
+];
+
 /** Display-friendly labels for each ammo type. Used in dialogs and sub-rows. */
 export const AMMO_LABELS: Record<AmmoType, string> = {
   Flechas: 'Flechas',
@@ -20,8 +37,12 @@ export const AMMO_LABELS: Record<AmmoType, string> = {
  */
 export const AMMO_BY_LEGACY_NAME: Record<
   string,
-  { ammoType: AmmoType; ammoPackSize: number; ammoUnitsPerSpace: number }
+  { ammoType?: AmmoType; ammoPackSize: number; ammoUnitsPerSpace: number }
 > = {
+  // Munição genérica da tabela de tesouro. `ammoType` ausente de propósito: a
+  // linha do livro não tem tipo. Ela ganha contador e espaços como as outras;
+  // só não auto-vincula a uma arma até o jogador escolher o tipo no editor.
+  'Munição (20)': { ammoPackSize: 20, ammoUnitsPerSpace: 20 },
   'Flechas (20)': {
     ammoType: 'Flechas',
     ammoPackSize: 20,
@@ -106,7 +127,9 @@ export function seedAmmoUnits(bagEquipments: BagEquipments): void {
       const legacyMatch = AMMO_BY_LEGACY_NAME[item.nome];
       if (legacyMatch && !item.isAmmo) {
         item.isAmmo = true;
-        item.ammoType = legacyMatch.ammoType;
+        // Guardado: a munição genérica não tem tipo, e escrever `undefined`
+        // por cima apagaria um tipo que o jogador já tivesse escolhido à mão.
+        if (legacyMatch.ammoType) item.ammoType = legacyMatch.ammoType;
         item.ammoPackSize = legacyMatch.ammoPackSize;
         item.ammoUnitsPerSpace = legacyMatch.ammoUnitsPerSpace;
       }
@@ -146,6 +169,12 @@ function forEachItem(
  * Finds the ammo stack on the bag matching a weapon's ammo type.
  * Returns the first matching item (a player should normally only have one
  * stack per type, since ADD_ITEM merges by name).
+ *
+ * LIMITAÇÃO CONHECIDA: com mais de uma pilha do mesmo tipo — munição autoral
+ * ("Virotes de prata (10)") ao lado da oficial, ou duas pilhas `isCustom`, que
+ * nunca empilham entre si — a arma consome sempre a PRIMEIRA encontrada. Não há
+ * como o jogador escolher qual gastar. Resolver isso exige um seletor de pilha
+ * no diálogo de munição de `Weapon.tsx`, não uma mudança aqui.
  */
 export function findAmmoStack(
   bagEquipments: BagEquipments,

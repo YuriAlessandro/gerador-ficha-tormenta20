@@ -31,6 +31,12 @@ const mkForm = (
   weaponCategory: '',
   damageTypes: [],
   damageTypesTouched: false,
+  purpose: 'melee',
+  reach: 'Curto',
+  ammoType: '',
+  purposeTouched: false,
+  ammoPackSizeText: '20',
+  ammoUnitsPerSpaceText: '20',
   weaponTags: [],
   actionDamageAttributes: {},
   actionAttackAttributes: {},
@@ -349,5 +355,125 @@ describe('buildSavedItem — manualStatFields', () => {
 
     expect(result.hasManualEdits).toBeUndefined();
     expect(result.manualStatFields).toBeUndefined();
+  });
+});
+
+/**
+ * `applyItemEnhancements` restaura `arremesso` e `specialActions` a partir de
+ * `baseArremesso`/`baseSpecialActions`, congelados na PRIMEIRA passagem do
+ * pipeline. Numa arma que já teve melhoria ou encanto esses snapshots já
+ * existem, então trocar o tipo de ataque no editor sem reescrevê-los seria
+ * revertido em silêncio no save.
+ */
+describe('buildSavedItem — tipo de ataque sobrevive ao pipeline de aprimoramentos', () => {
+  const adagaEncantada: Equipment = {
+    nome: 'Adaga',
+    group: 'Arma',
+    dano: '1d4',
+    critico: '19',
+    spaces: 1,
+    alcance: 'Curto',
+    arremesso: true,
+    specialActions: [
+      { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      {
+        id: 'arremessar',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Força',
+      },
+    ],
+    // Snapshots já congelados por uma passagem anterior do pipeline.
+    baseArremesso: true,
+    baseSpecialActions: [
+      { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      {
+        id: 'arremessar',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Força',
+      },
+    ],
+    baseSheetBonuses: [],
+  };
+
+  it('trocar arremesso → disparo não é revertido pelo pipeline', () => {
+    const result = save(
+      adagaEncantada,
+      mkForm({
+        purpose: 'firing',
+        reach: 'Médio',
+        ammoType: 'Flechas',
+        purposeTouched: true,
+      })
+    );
+
+    expect(result.alcance).toBe('Médio');
+    expect(result.arremesso).toBeUndefined();
+    expect(result.specialActions).toBeUndefined();
+    expect(result.ammoType).toBe('Flechas');
+    // Os snapshots acompanham, senão o próximo recálculo reverteria.
+    expect(result.baseArremesso).toBe(false);
+    expect(result.baseSpecialActions).toEqual([]);
+  });
+
+  it('trocar disparo → corpo a corpo também sobrevive', () => {
+    const arco: Equipment = {
+      nome: 'Arco Curto',
+      group: 'Arma',
+      dano: '1d6',
+      alcance: 'Médio',
+      ammoType: 'Flechas',
+      baseArremesso: false,
+      baseSpecialActions: [],
+      baseSheetBonuses: [],
+    };
+
+    const result = save(
+      arco,
+      mkForm({ purpose: 'melee', purposeTouched: true })
+    );
+
+    expect(result.alcance).toBe('-');
+    expect(result.arremesso).toBeUndefined();
+    // Munição some junto: corpo a corpo não atira nada.
+    expect(result.ammoType).toBeUndefined();
+  });
+
+  it('sem purposeTouched, a classificação da arma fica intacta', () => {
+    const result = save(adagaEncantada, mkForm({ purpose: 'firing' }));
+
+    expect(result.alcance).toBe('Curto');
+    expect(result.arremesso).toBe(true);
+    expect(result.specialActions).toHaveLength(2);
+  });
+
+  it('editar item de munição grava tipo e tamanho de pacote', () => {
+    const flechas: Equipment = {
+      nome: 'Flechas élficas',
+      group: 'Arma',
+      isAmmo: true,
+      isCustom: true,
+      ammoType: 'Flechas',
+      ammoPackSize: 20,
+    };
+
+    const result = save(
+      flechas,
+      mkForm({
+        ammoType: 'Virotes',
+        ammoPackSizeText: '10',
+        ammoUnitsPerSpaceText: '5',
+        // Munição ignora o propósito mesmo se ele vier marcado.
+        purpose: 'firing',
+        purposeTouched: true,
+      })
+    );
+
+    expect(result.ammoType).toBe('Virotes');
+    expect(result.ammoPackSize).toBe(10);
+    expect(result.ammoUnitsPerSpace).toBe(5);
+    // Munição não vira arma de disparo.
+    expect(result.alcance).toBeUndefined();
   });
 });

@@ -139,6 +139,41 @@ describe('seedAmmoUnits (legacy migration)', () => {
     expect(item.quantity).toBe(1);
   });
 
+  test('migra a Munição genérica do tesouro SEM inventar um ammoType', () => {
+    // 'Munição (20)' sai da tabela de tesouro e a linha do livro não diz de que
+    // tipo é. Ela ganha contador e espaços como as outras, mas cravar um tipo
+    // aqui decidiria a regra em silêncio — quem escolhe é o jogador, no editor.
+    const bag = emptyBag();
+    bag.Arma = [
+      {
+        id: 'm',
+        nome: 'Munição (20)',
+        group: 'Arma',
+        quantity: 1,
+      },
+    ];
+    seedAmmoUnits(bag);
+    const item = bag.Arma[0];
+    expect(item.isAmmo).toBe(true);
+    expect(item.ammoType).toBeUndefined();
+    expect(item.ammoPackSize).toBe(20);
+    expect(item.unitsRemaining).toBe(20);
+  });
+
+  test('não apaga um ammoType que o jogador já escolheu para a Munição genérica', () => {
+    const bag = emptyBag();
+    bag.Arma = [
+      {
+        id: 'm',
+        nome: 'Munição (20)',
+        group: 'Arma',
+        ammoType: 'Balas',
+      },
+    ];
+    seedAmmoUnits(bag);
+    expect(bag.Arma[0].ammoType).toBe('Balas');
+  });
+
   test('handles Bola de ferro legacy with packSize=1, unitsPerSpace=2', () => {
     const bag = emptyBag();
     bag.Arma = [
