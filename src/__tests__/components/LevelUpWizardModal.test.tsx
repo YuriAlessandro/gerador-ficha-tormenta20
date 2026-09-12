@@ -49,9 +49,10 @@ describe('LevelUpWizardModal — pré-requisitos do nível atual', () => {
     const nomeDoPoder = screen.getByText('Alquimista Exímio');
     expect(nomeDoPoder).toBeInTheDocument();
 
-    // A asserção é ESCOPADA no card do poder: a lista de poderes de classe
-    // agora também mostra os reprovados por pré-requisito, marcados
-    // "Indisponível", então um `queryByText` global pegaria os vizinhos.
+    // A asserção é ESCOPADA no card do poder: com o opt-in "mostrar poderes
+    // fora dos requisitos" marcado — ou com uma busca digitada — a lista
+    // também traz os reprovados, marcados "Indisponível", então um
+    // `queryByText` global pegaria os vizinhos.
     const card = nomeDoPoder.closest('.MuiPaper-root');
     expect(card).not.toBeNull();
     expect(

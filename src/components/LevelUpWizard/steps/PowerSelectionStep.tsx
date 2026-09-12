@@ -7,6 +7,7 @@ import {
   Radio,
   Card,
   CardContent,
+  Checkbox,
   Chip,
   Stack,
   TextField,
@@ -35,7 +36,43 @@ interface PowerSelectionStepProps {
   almaLivrePower?: ClassPower | null;
   almaLivreClassName?: string;
   almaLivrePowerAvailable?: boolean;
+  /**
+   * Opt-in do jogador para escolher poderes fora dos pré-requisitos. Desligado,
+   * os reprovados ficam escondidos enquanto se navega (a busca ainda os
+   * encontra, desabilitados); ligado, aparecem sempre e ficam escolhíveis.
+   */
+  allowOutOfRequirements?: boolean;
+  onAllowOutOfRequirementsChange?: (allow: boolean) => void;
 }
+
+/**
+ * Opt-in discreto para escolher poderes fora dos pré-requisitos — a filosofia
+ * "te mostro como seguir a regra, mas quebre se quiser". Mesmo idioma visual do
+ * "Só os que posso pegar" do editor de poderes da ficha pronta.
+ */
+const OutOfRequirementsToggle: React.FC<{
+  checked: boolean;
+  onChange: (allow: boolean) => void;
+}> = ({ checked, onChange }) => (
+  <FormControlLabel
+    sx={{ ml: 0, mr: 0, mb: 2, gap: 1 }}
+    control={
+      <Checkbox
+        size='small'
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        slotProps={{
+          input: { 'aria-label': 'Mostrar poderes fora dos requisitos' },
+        }}
+      />
+    }
+    label={
+      <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+        Mostrar poderes fora dos requisitos
+      </Typography>
+    }
+  />
+);
 
 const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   classPowers,
@@ -55,15 +92,36 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   almaLivrePower = null,
   almaLivreClassName,
   almaLivrePowerAvailable = false,
+  allowOutOfRequirements = false,
+  onAllowOutOfRequirementsChange,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Só os SELECIONÁVEIS habilitam a aba: `classPowers` agora também traz os
-  // reprovados por pré-requisito (listados desabilitados, para mostrar o
-  // motivo), e sem isso a aba abriria sem nenhuma opção escolhível.
-  const hasClassPowers = classPowers.some(
-    (power) => !unavailableClassPowers.includes(power.name)
+  // Só os SELECIONÁVEIS entram na contagem do rótulo: `classPowers`/
+  // `generalPowers` também trazem os reprovados por pré-requisito (para
+  // mostrar o motivo), e o rótulo dos poderes gerais prometia ~300 opções onde
+  // havia ~50. Com o opt-in ligado, os reprovados passam a contar.
+  const selectableOf = <T extends ClassPower | GeneralPower>(
+    powers: T[],
+    unavailable: string[]
+  ): T[] =>
+    allowOutOfRequirements
+      ? powers
+      : powers.filter((power) => !unavailable.includes(power.name));
+
+  const selectableClassPowers = selectableOf(
+    classPowers,
+    unavailableClassPowers
   );
+  const selectableGeneralPowers = selectableOf(
+    generalPowers,
+    unavailableGeneralPowers
+  );
+  // A aba, porém, abre com QUALQUER poder no catálogo, mesmo que nenhum seja
+  // escolhível: é lá dentro que mora o opt-in "fora dos requisitos". Travar o
+  // radio pela contagem de escolhíveis deixaria a escape hatch inalcançável
+  // justamente em quem mais precisa dela.
+  const hasClassPowers = classPowers.length > 0;
   const hasGeneralPowers = generalPowers.length > 0;
 
   // Helper to check if power is already known and cannot be repeated
@@ -97,8 +155,19 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
     });
   };
 
-  const filteredClassPowers = filterPowers(classPowers);
-  const filteredGeneralPowers = filterPowers(generalPowers);
+  // Escondidos só enquanto se NAVEGA. Com busca digitada a lista volta a
+  // mostrar os reprovados (acinzentados, com o requisito à vista), pra ninguém
+  // procurar um poder pelo nome e concluir que ele não existe.
+  const visiblePowers = <T extends ClassPower | GeneralPower>(
+    all: T[],
+    selectablePowers: T[]
+  ): T[] => filterPowers(searchQuery ? all : selectablePowers);
+
+  const filteredClassPowers = visiblePowers(classPowers, selectableClassPowers);
+  const filteredGeneralPowers = visiblePowers(
+    generalPowers,
+    selectableGeneralPowers
+  );
 
   const hasAlmaLivre = almaLivrePower !== null;
 
@@ -143,13 +212,13 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
           <FormControlLabel
             value='class'
             control={<Radio />}
-            label={`Poder de ${className} (${classPowers.length} disponíveis)`}
+            label={`Poder de ${className} (${selectableClassPowers.length} disponíveis)`}
             disabled={!hasClassPowers}
           />
           <FormControlLabel
             value='general'
             control={<Radio />}
-            label={`Poder Geral (${generalPowers.length} disponíveis)`}
+            label={`Poder Geral (${selectableGeneralPowers.length} disponíveis)`}
             disabled={!hasGeneralPowers}
           />
           {hasAlmaLivre && almaLivreClassName && (
@@ -189,6 +258,28 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
             }}
           />
 
+          {onAllowOutOfRequirementsChange && (
+            <OutOfRequirementsToggle
+              checked={allowOutOfRequirements}
+              onChange={onAllowOutOfRequirementsChange}
+            />
+          )}
+
+          {filteredClassPowers.length === 0 &&
+            !searchQuery &&
+            !allowOutOfRequirements && (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
+                Nenhum poder de classe cujos pré-requisitos você cumpra. Marque
+                a opção acima para escolher fora dos requisitos.
+              </Typography>
+            )}
+
           {filteredClassPowers.length === 0 && searchQuery && (
             <Typography
               variant='body2'
@@ -205,7 +296,8 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
             {filteredClassPowers.map((power) => {
               const isKnown = isPowerKnown(power.name, true);
               const isUnavailable = unavailableClassPowers.includes(power.name);
-              const isDisabled = isKnown || isUnavailable;
+              const isUnlocked = isUnavailable && allowOutOfRequirements;
+              const isDisabled = isKnown || (isUnavailable && !isUnlocked);
               return (
                 <Card
                   key={power.name}
@@ -254,9 +346,14 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                         )}
                         {isUnavailable && (
                           <Chip
-                            label='Indisponível'
+                            label={
+                              isUnlocked
+                                ? 'Fora dos pré-requisitos'
+                                : 'Indisponível'
+                            }
                             size='small'
-                            color='warning'
+                            color={isUnlocked ? 'default' : 'warning'}
+                            variant={isUnlocked ? 'outlined' : 'filled'}
                           />
                         )}
                         {power.canRepeat && (
@@ -318,6 +415,28 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
             }}
           />
 
+          {onAllowOutOfRequirementsChange && (
+            <OutOfRequirementsToggle
+              checked={allowOutOfRequirements}
+              onChange={onAllowOutOfRequirementsChange}
+            />
+          )}
+
+          {filteredGeneralPowers.length === 0 &&
+            !searchQuery &&
+            !allowOutOfRequirements && (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
+                Nenhum poder geral cujos pré-requisitos você cumpra. Marque a
+                opção acima para escolher fora dos requisitos.
+              </Typography>
+            )}
+
           {filteredGeneralPowers.length === 0 && searchQuery && (
             <Typography
               variant='body2'
@@ -336,7 +455,8 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
               const isUnavailable = unavailableGeneralPowers.includes(
                 power.name
               );
-              const isDisabled = isKnown || isUnavailable;
+              const isUnlocked = isUnavailable && allowOutOfRequirements;
+              const isDisabled = isKnown || (isUnavailable && !isUnlocked);
               return (
                 <Card
                   key={power.name}
@@ -385,9 +505,14 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                         )}
                         {isUnavailable && (
                           <Chip
-                            label='Indisponível'
+                            label={
+                              isUnlocked
+                                ? 'Fora dos pré-requisitos'
+                                : 'Indisponível'
+                            }
                             size='small'
-                            color='warning'
+                            color={isUnlocked ? 'default' : 'warning'}
+                            variant={isUnlocked ? 'outlined' : 'filled'}
                           />
                         )}
                         {power.allowSeveralPicks && (

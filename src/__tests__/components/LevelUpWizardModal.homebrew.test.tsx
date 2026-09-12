@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import LevelUpWizardModal from '@/components/LevelUpWizard/LevelUpWizardModal';
 import { dataRegistry } from '@/data/registry';
@@ -107,6 +107,21 @@ const chooseGeneralPowers = () => {
   fireEvent.click(screen.getByRole('radio', { name: /Poder Geral/ }));
 };
 
+const searchPowers = (query: string) => {
+  fireEvent.change(
+    screen.getByPlaceholderText('Buscar poderes por nome ou descrição...'),
+    { target: { value: query } }
+  );
+};
+
+const toggleOutOfRequirements = () => {
+  fireEvent.click(
+    screen.getByRole('checkbox', {
+      name: 'Mostrar poderes fora dos requisitos',
+    })
+  );
+};
+
 describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', () => {
   afterEach(() => {
     dataRegistry.clearRuntimeSupplements();
@@ -184,7 +199,7 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     expect(screen.queryByText('Fúria Anã')).not.toBeInTheDocument();
   });
 
-  it('marca poder concedido homebrew como indisponível para não-devoto', () => {
+  const registerBencaoProibida = () => {
     registerHomebrew({
       powers: {
         ...emptyPowers(),
@@ -195,13 +210,54 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
         ],
       },
     });
+  };
 
+  const nonDevotoSheet = () => {
     const sheet = elfoSheetOfClass('Guerreiro');
     sheet.devoto = undefined;
-    openPowerSelection(sheet);
+    return sheet;
+  };
+
+  it('esconde poder concedido de não-devoto, mas a busca ainda o encontra como indisponível', () => {
+    registerBencaoProibida();
+
+    openPowerSelection(nonDevotoSheet());
     chooseGeneralPowers();
 
-    expect(screen.getByText('Bênção Proibida')).toBeInTheDocument();
-    expect(screen.getAllByText('Indisponível').length).toBeGreaterThan(0);
+    // Navegando, o reprovado nem aparece: é o que enxuga a lista de 300+.
+    expect(screen.queryByText('Bênção Proibida')).not.toBeInTheDocument();
+
+    // Procurando pelo nome, ele reaparece com o motivo à vista — ninguém
+    // conclui que o poder não existe.
+    searchPowers('Bênção Proibida');
+    const card = screen.getByText('Bênção Proibida').closest('.MuiPaper-root');
+    expect(card).not.toBeNull();
+    expect(
+      within(card as HTMLElement).getByText('Indisponível')
+    ).toBeInTheDocument();
+  });
+
+  it('opt-in mostra e libera a escolha do poder fora dos requisitos', () => {
+    registerBencaoProibida();
+
+    openPowerSelection(nonDevotoSheet());
+    chooseGeneralPowers();
+    toggleOutOfRequirements();
+
+    const nome = screen.getByText('Bênção Proibida');
+    const card = nome.closest('.MuiPaper-root') as HTMLElement;
+    expect(
+      within(card).getByText('Fora dos pré-requisitos')
+    ).toBeInTheDocument();
+
+    // O estado do opt-in mora no modal, então a escolha vale de verdade: o
+    // aviso de passo incompleto só sai se o clique tiver selecionado o poder.
+    expect(
+      screen.getByText('Selecione um poder para continuar.')
+    ).toBeInTheDocument();
+    fireEvent.click(nome);
+    expect(
+      screen.queryByText('Selecione um poder para continuar.')
+    ).not.toBeInTheDocument();
   });
 });

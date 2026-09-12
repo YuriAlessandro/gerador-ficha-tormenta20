@@ -169,6 +169,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Current step within this level
   const [activeStep, setActiveStep] = useState(0);
 
+  // Opt-in "quebre a regra": mostra e libera a escolha de poderes fora dos
+  // pré-requisitos. Mora aqui, e não no PowerSelectionStep, porque o switch de
+  // renderStepContent DESMONTA o passo a cada navegação (é por isso que a busca
+  // também se perde) — em estado local, voltar de "Efeitos do Poder" re-travaria
+  // um poder já escolhido. Persiste entre os níveis do mesmo level-up e volta a
+  // false quando o assistente reabre.
+  const [allowOutOfRequirements, setAllowOutOfRequirements] = useState(false);
+
   // Confirmation dialog state for cancel action
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
@@ -196,6 +204,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         powerChoice: 'class',
       });
       setActiveStep(0);
+      setAllowOutOfRequirements(false);
       setTrickStepCompanionIndex({ auto: 0, power: 0 });
       // Initialize classLevels if not present
       const sheetWithClassLevels = initialSheet.classLevels
@@ -345,7 +354,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (
-    sheetForPowerSelection: CharacterSheet
+    sheetForPowerSelection: CharacterSheet,
+    { allowAll = false }: { allowAll?: boolean } = {}
   ): {
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
@@ -406,7 +416,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       if (knownClassPowerNames.has(power.name) && !power.canRepeat) {
         return false;
       }
-      if (!hasReachableLevelRequirement(power, selectedClassLevel)) {
+      // Com o opt-in ligado o corte de nível sai também: meio-quebrar a regra
+      // (liberar atributo/perícia mas não nível) confunde mais que quebrar
+      // inteiro. Desligado, segue escondendo o catálogo até o 20º nível.
+      if (
+        !allowAll &&
+        !hasReachableLevelRequirement(power, selectedClassLevel)
+      ) {
         return false;
       }
       unavailableClassPowers.push(power.name);
@@ -1125,7 +1141,29 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           generalPowers,
           unavailableClassPowers,
           unavailableGeneralPowers,
-        } = getAvailablePowers(sheetForPowerSelection);
+        } = getAvailablePowers(sheetForPowerSelection, {
+          allowAll: allowOutOfRequirements,
+        });
+
+        // Desmarcar o opt-in com um poder fora dos requisitos já escolhido
+        // deixaria a seleção inválida sobreviver até o apply. Zera só nesse caso.
+        const handleAllowOutOfRequirementsChange = (allow: boolean) => {
+          setAllowOutOfRequirements(allow);
+          if (allow) return;
+          const general = currentLevelSelection.selectedGeneralPower;
+          const classPower = currentLevelSelection.selectedClassPower;
+          const dropGeneral =
+            !!general && unavailableGeneralPowers.includes(general.name);
+          const dropClass =
+            !!classPower && unavailableClassPowers.includes(classPower.name);
+          if (dropGeneral || dropClass) {
+            setCurrentLevelSelection({
+              ...currentLevelSelection,
+              selectedGeneralPower: dropGeneral ? undefined : general,
+              selectedClassPower: dropClass ? undefined : classPower,
+            });
+          }
+        };
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
@@ -1201,6 +1239,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             knownGeneralPowers={knownGeneralPowers}
             unavailableClassPowers={unavailableClassPowers}
             unavailableGeneralPowers={unavailableGeneralPowers}
+            allowOutOfRequirements={allowOutOfRequirements}
+            onAllowOutOfRequirementsChange={handleAllowOutOfRequirementsChange}
             almaLivrePower={showAlmaLivre ? almaLivrePower : null}
             almaLivreClassName={showAlmaLivre ? almaLivreClassName : undefined}
             almaLivrePowerAvailable={almaLivrePowerAvailable}
