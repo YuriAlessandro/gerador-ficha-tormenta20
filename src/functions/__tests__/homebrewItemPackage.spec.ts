@@ -488,29 +488,53 @@ describe('homebrew item package — armas de disparo e munição', () => {
     expect(result.errors.join(' ')).toContain('Tipo de munição');
   });
 
-  it('tipo de munição fora do vocabulário fechado é reprovado', () => {
+  it('tipo de munição AUTORAL é aceito e chega compilado na arma', () => {
+    // Vocabulário aberto: o autor cunha a família nova no pacote de munição e
+    // aponta a arma para o mesmo nome. É o que permite uma pistola a vapor
+    // que não consome nenhuma das cinco munições do livro.
+    const steampunk: HomebrewItemPackContent = {
+      items: [
+        {
+          category: 'ammo',
+          name: 'Cartuchos a vapor (6)',
+          price: 60,
+          spaces: 1,
+          ammoType: 'Cartuchos a vapor',
+          ammoPackSize: 6,
+          ammoUnitsPerSpace: 6,
+        },
+        {
+          category: 'weapon',
+          name: 'Pistola a vapor',
+          price: 300,
+          spaces: 1,
+          damage: '2d6',
+          critMultiplier: 3,
+          threatMargin: 19,
+          damageType: 'Perfuração',
+          weaponCategory: 'firearm',
+          range: 'Curto',
+          ammoType: 'Cartuchos a vapor',
+        },
+      ],
+    };
+
     const result = validateHomebrew({
       type: 'itemPackage',
       editorMode: 'advanced',
       schemaVersion: HOMEBREW_SCHEMA_VERSION,
-      name: 'Tipo inventado',
+      name: 'Arsenal a Vapor',
       description: '',
-      content: {
-        type: 'itemPackage',
-        data: {
-          items: [
-            {
-              category: 'ammo',
-              name: 'Cartuchos a vapor',
-              price: 1,
-              spaces: 1,
-              ammoType: 'Cartuchos' as never,
-            },
-          ],
-        },
-      },
+      content: { type: 'itemPackage', data: steampunk },
     });
-    expect(result.valid).toBe(false);
+    expect(result.errors).toEqual([]);
+
+    const [ammo, pistol] = steampunk.items.map(compileItem);
+    expect(ammo.isAmmo).toBe(true);
+    expect(ammo.ammoType).toBe('Cartuchos a vapor');
+    expect(pistol.ammoType).toBe('Cartuchos a vapor');
+    // O vínculo é igualdade de string — é só isso que precisa bater.
+    expect(pistol.ammoType).toBe(ammo.ammoType);
   });
 
   /**

@@ -1,28 +1,25 @@
 import Equipment, {
   AmmoType,
   BagEquipments,
+  CORE_AMMO_TYPES,
+  CoreAmmoType,
   equipGroup,
 } from '../../../interfaces/Equipment';
 
 /**
- * Os tipos de munição do livro (JDA, Tabela 3-4) mais a Bola de Ferro de Heróis
- * de Arton, na ordem em que aparecem nos seletores de autoria de item.
- *
- * Munição autoral é expressa como um ITEM de um destes tipos — "Virotes de
- * prata (10)" tem `ammoType: 'Virotes'` com preço e pacote próprios — e não
- * como um tipo novo, para que arma e munição continuem se encontrando por um
- * vocabulário fechado.
+ * Tipos SUGERIDOS nos seletores de autoria. É a base a que
+ * `getAmmoTypeSuggestions` acrescenta o que já existe na mochila e no catálogo
+ * — o vocabulário em si é aberto (ver `AmmoType`).
  */
-export const AMMO_TYPE_OPTIONS: AmmoType[] = [
-  'Flechas',
-  'Virotes',
-  'Balas',
-  'Pedras',
-  'Bola de Ferro',
-];
+export const AMMO_TYPE_OPTIONS: readonly CoreAmmoType[] = CORE_AMMO_TYPES;
 
-/** Display-friendly labels for each ammo type. Used in dialogs and sub-rows. */
-export const AMMO_LABELS: Record<AmmoType, string> = {
+/**
+ * Rótulos dos tipos CONHECIDOS. Tipado em `CoreAmmoType` de propósito: com
+ * `AmmoType` aberto isto viraria um índice de string e um tipo autoral
+ * devolveria `undefined` em silêncio. Use `ammoTypeLabel`, nunca este mapa
+ * direto.
+ */
+export const AMMO_LABELS: Record<CoreAmmoType, string> = {
   Flechas: 'Flechas',
   Virotes: 'Virotes',
   Balas: 'Balas',
@@ -31,13 +28,21 @@ export const AMMO_LABELS: Record<AmmoType, string> = {
 };
 
 /**
+ * Rótulo de exibição de um tipo de munição. Tipo autoral não tem entrada em
+ * `AMMO_LABELS`, e aí o próprio nome cunhado pelo autor é o rótulo.
+ */
+export function ammoTypeLabel(ammoType: AmmoType): string {
+  return AMMO_LABELS[ammoType as CoreAmmoType] ?? ammoType;
+}
+
+/**
  * Catalog flags for the legacy ammo items that already existed before the
  * ammo system was added. When a bag is rehydrated and an item matches one of
  * these names, we enrich it with the ammo metadata so migration can proceed.
  */
 export const AMMO_BY_LEGACY_NAME: Record<
   string,
-  { ammoType?: AmmoType; ammoPackSize: number; ammoUnitsPerSpace: number }
+  { ammoType?: CoreAmmoType; ammoPackSize: number; ammoUnitsPerSpace: number }
 > = {
   // Munição genérica da tabela de tesouro. `ammoType` ausente de propósito: a
   // linha do livro não tem tipo. Ela ganha contador e espaços como as outras;
@@ -71,7 +76,7 @@ export const AMMO_BY_LEGACY_NAME: Record<
  * legacy bags (weapons that already exist on a sheet but lack the new
  * `ammoType` flag because they were added before the ammo system).
  */
-export const WEAPON_AMMO_BY_LEGACY_NAME: Record<string, AmmoType> = {
+export const WEAPON_AMMO_BY_LEGACY_NAME: Record<string, CoreAmmoType> = {
   // Core
   'Besta Leve': 'Virotes',
   Funda: 'Pedras',
@@ -166,15 +171,10 @@ function forEachItem(
 }
 
 /**
- * Finds the ammo stack on the bag matching a weapon's ammo type.
- * Returns the first matching item (a player should normally only have one
- * stack per type, since ADD_ITEM merges by name).
+ * Primeira pilha de munição do tipo pedido, tenha ela unidades ou não.
  *
- * LIMITAÇÃO CONHECIDA: com mais de uma pilha do mesmo tipo — munição autoral
- * ("Virotes de prata (10)") ao lado da oficial, ou duas pilhas `isCustom`, que
- * nunca empilham entre si — a arma consome sempre a PRIMEIRA encontrada. Não há
- * como o jogador escolher qual gastar. Resolver isso exige um seletor de pilha
- * no diálogo de munição de `Weapon.tsx`, não uma mudança aqui.
+ * Use para IDENTIDADE (existe munição desse tipo? qual o nome dela?). Para
+ * gastar um projétil use `findConsumableAmmoStack`, que pula pilha vazia.
  */
 export function findAmmoStack(
   bagEquipments: BagEquipments,
@@ -188,13 +188,71 @@ export function findAmmoStack(
   return found;
 }
 
-/** Returns remaining individual rounds for a given ammo type (0 when no stack). */
+/**
+ * Pilha de onde tirar o próximo projétil: a primeira do tipo que ainda tenha
+ * unidades.
+ *
+ * Existe porque pilhas do mesmo tipo convivem — munição autoral ("Virotes de
+ * prata (10)") ao lado da oficial, e duas pilhas `isCustom`, que nunca empilham
+ * entre si. Usar a primeira pilha sem checar o saldo fazia o ataque virar um
+ * no-op silencioso assim que ela zerava, mesmo com munição na pilha seguinte.
+ */
+export function findConsumableAmmoStack(
+  bagEquipments: BagEquipments,
+  ammoType: AmmoType
+): Equipment | undefined {
+  let found: Equipment | undefined;
+  forEachItem(bagEquipments, (item) => {
+    if (found) return;
+    if (item.isAmmo && item.ammoType === ammoType) {
+      if ((item.unitsRemaining ?? 0) > 0) found = item;
+    }
+  });
+  return found;
+}
+
+/**
+ * Total de projéteis do tipo na mochila, somando TODAS as pilhas — é o número
+ * que o contador da aba Ataques mostra, e mostrar só o da primeira pilha
+ * escondia metade do estoque de quem tem munição autoral junto da oficial.
+ */
 export function getAmmoUnits(
   bagEquipments: BagEquipments,
   ammoType: AmmoType
 ): number {
-  const stack = findAmmoStack(bagEquipments, ammoType);
-  return stack?.unitsRemaining ?? 0;
+  let total = 0;
+  forEachItem(bagEquipments, (item) => {
+    if (item.isAmmo && item.ammoType === ammoType) {
+      total += item.unitsRemaining ?? 0;
+    }
+  });
+  return total;
+}
+
+/**
+ * Tipos de munição oferecidos nos seletores de autoria: os cinco do livro mais
+ * todo tipo já presente na mochila e no catálogo ativo (pacotes de munição
+ * homebrew inclusos).
+ *
+ * É o que permite criar "Cartuchos a vapor" e depois apontar uma arma para ele
+ * escolhendo na lista em vez de redigitar — um erro de digitação quebraria o
+ * vínculo arma↔munição em silêncio.
+ */
+export function getAmmoTypeSuggestions(
+  ...sources: (BagEquipments | Equipment[] | undefined)[]
+): AmmoType[] {
+  const seen = new Set<AmmoType>(CORE_AMMO_TYPES);
+  const collect = (item: Equipment) => {
+    if (item?.isAmmo && item.ammoType) seen.add(item.ammoType);
+  };
+
+  sources.forEach((source) => {
+    if (!source) return;
+    if (Array.isArray(source)) source.forEach(collect);
+    else forEachItem(source, collect);
+  });
+
+  return [...seen];
 }
 
 /** Returns the space cost of an ammo item using the ceil(units / unitsPerSpace) rule. */

@@ -28,7 +28,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import debounce from 'lodash/debounce';
 
-import Equipment, { equipGroup } from '../../../interfaces/Equipment';
+import Equipment, { AmmoType, equipGroup } from '../../../interfaces/Equipment';
 import { SupplementId } from '../../../types/supplement.types';
 import { dataRegistry } from '../../../data/registry';
 import { useContentSupplements } from '../../../hooks/useContentSupplements';
@@ -44,6 +44,8 @@ export interface AddItemDialogProps {
   open: boolean;
   onClose: () => void;
   onAddItem: (item: Equipment, options?: { quantity?: number }) => void;
+  /** Tipos de munição sugeridos ao criar item. Ver `getAmmoTypeSuggestions`. */
+  ammoTypeSuggestions?: AmmoType[];
   /** Currency available for the affordability hint (no blocking). */
   availableTibares?: number;
   /** Whether auto-deduct is on (changes the affordability label). */
@@ -75,6 +77,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   autoDeductMoney = false,
   onToggleAutoDeductMoney,
   defaultCategory,
+  ammoTypeSuggestions = [],
 }) => {
   const userSupplements: SupplementId[] = useContentSupplements();
   const equipmentCatalog = useMemo(
@@ -281,6 +284,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           <Box sx={{ p: 2 }}>
             <CustomItemForm
               defaultGroup={CATEGORY_ORDER[tabIndex]}
+              ammoTypeSuggestions={ammoTypeSuggestions}
               onCancel={() => setShowCustomForm(false)}
               onSubmit={(item) => {
                 onAddItem(item);

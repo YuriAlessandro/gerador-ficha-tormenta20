@@ -50,7 +50,7 @@ import {
   WeaponPurpose,
   WeaponReach,
 } from '../../../functions/weaponPurpose';
-import { AMMO_LABELS, AMMO_TYPE_OPTIONS } from './ammo';
+import AmmoTypeField from './AmmoTypeField';
 import {
   getCatalogWeaponCategoryByName,
   WEAPON_CATEGORY_LABELS,
@@ -94,6 +94,8 @@ export interface ItemEditorDialogProps {
   onClose: () => void;
   item: Equipment | null;
   onSave: (next: Equipment) => void;
+  /** Tipos de munição sugeridos. Ver `getAmmoTypeSuggestions`. */
+  ammoTypeSuggestions?: AmmoType[];
 }
 
 type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos';
@@ -205,6 +207,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   onClose,
   item,
   onSave,
+  ammoTypeSuggestions = [],
 }) => {
   const [tab, setTab] = useState<TabKey>('geral');
   const [form, setForm] = useState(buildInitial(item));
@@ -649,28 +652,15 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
             {isWeapon && isAmmoItem && (
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 4 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Tipo de munição</InputLabel>
-                    <Select
-                      label='Tipo de munição'
-                      value={form.ammoType}
-                      onChange={(e) =>
-                        setForm((f) => ({
-                          ...f,
-                          ammoType: e.target.value as AmmoType,
-                        }))
-                      }
-                    >
-                      <MenuItem value=''>
-                        <em>Nenhum (não vincula a arma)</em>
-                      </MenuItem>
-                      {AMMO_TYPE_OPTIONS.map((t) => (
-                        <MenuItem key={t} value={t}>
-                          {AMMO_LABELS[t]}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <AmmoTypeField
+                    label='Tipo de munição'
+                    value={form.ammoType}
+                    onChange={(next) =>
+                      setForm((f) => ({ ...f, ammoType: next }))
+                    }
+                    options={ammoTypeSuggestions}
+                    helperText='Escolha da lista ou digite um tipo novo'
+                  />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 4 }}>
                   <TextField
@@ -840,28 +830,14 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 )}
                 {form.purpose === 'firing' && (
                   <Grid size={{ xs: 6, sm: 4 }}>
-                    <FormControl fullWidth>
-                      <InputLabel>Munição</InputLabel>
-                      <Select
-                        label='Munição'
-                        value={form.ammoType}
-                        onChange={(e) =>
-                          setForm((f) => ({
-                            ...f,
-                            ammoType: e.target.value as AmmoType,
-                          }))
-                        }
-                      >
-                        <MenuItem value=''>
-                          <em>Nenhuma</em>
-                        </MenuItem>
-                        {AMMO_TYPE_OPTIONS.map((t) => (
-                          <MenuItem key={t} value={t}>
-                            {AMMO_LABELS[t]}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    <AmmoTypeField
+                      label='Munição'
+                      value={form.ammoType}
+                      onChange={(next) =>
+                        setForm((f) => ({ ...f, ammoType: next }))
+                      }
+                      options={ammoTypeSuggestions}
+                    />
                   </Grid>
                 )}
                 {form.purpose === 'firing' && !form.ammoType && (

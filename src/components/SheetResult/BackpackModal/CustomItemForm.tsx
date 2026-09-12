@@ -35,7 +35,7 @@ import { isDefenseGroup } from './equipmentCatalog';
 import { WEAPON_CATEGORY_LABELS } from '../../../functions/proficiencies';
 import { parseDamageTypes, formatDamageTypes } from './damageTypeSelect';
 import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
-import { AMMO_LABELS, AMMO_TYPE_OPTIONS } from './ammo';
+import AmmoTypeField from './AmmoTypeField';
 import {
   buildWeaponPurposeFields,
   getWeaponPurpose,
@@ -53,6 +53,8 @@ export interface CustomItemFormProps {
   defaultGroup?: equipGroup;
   onCancel: () => void;
   onSubmit: (item: Equipment) => void;
+  /** Tipos de munição oferecidos na lista. Ver `getAmmoTypeSuggestions`. */
+  ammoTypeSuggestions?: AmmoType[];
 }
 
 const ALL_SKILLS = Object.values(Skill);
@@ -62,6 +64,7 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
   defaultGroup,
   onCancel,
   onSubmit,
+  ammoTypeSuggestions = [],
 }) => {
   const [nome, setNome] = useState(initial?.nome ?? '');
   const [group, setGroup] = useState<equipGroup>(
@@ -325,23 +328,13 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
         {group === 'Arma' && isAmmoItem && (
           <>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <FormControl fullWidth>
-                <InputLabel>Tipo de munição</InputLabel>
-                <Select
-                  label='Tipo de munição'
-                  value={ammoType}
-                  onChange={(e) => setAmmoType(e.target.value as AmmoType)}
-                >
-                  <MenuItem value=''>
-                    <em>Nenhum (não vincula a arma)</em>
-                  </MenuItem>
-                  {AMMO_TYPE_OPTIONS.map((t) => (
-                    <MenuItem key={t} value={t}>
-                      {AMMO_LABELS[t]}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <AmmoTypeField
+                label='Tipo de munição'
+                value={ammoType}
+                onChange={setAmmoType}
+                options={ammoTypeSuggestions}
+                helperText='Escolha da lista ou digite um tipo novo'
+              />
             </Grid>
             <Grid size={{ xs: 6, sm: 4 }}>
               <TextField
@@ -465,23 +458,12 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
             )}
             {purpose === 'firing' && (
               <Grid size={{ xs: 6, sm: 4 }}>
-                <FormControl fullWidth>
-                  <InputLabel>Munição</InputLabel>
-                  <Select
-                    label='Munição'
-                    value={ammoType}
-                    onChange={(e) => setAmmoType(e.target.value as AmmoType)}
-                  >
-                    <MenuItem value=''>
-                      <em>Nenhuma</em>
-                    </MenuItem>
-                    {AMMO_TYPE_OPTIONS.map((t) => (
-                      <MenuItem key={t} value={t}>
-                        {AMMO_LABELS[t]}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <AmmoTypeField
+                  label='Munição'
+                  value={ammoType}
+                  onChange={setAmmoType}
+                  options={ammoTypeSuggestions}
+                />
               </Grid>
             )}
             <Grid size={{ xs: 12, sm: 6 }}>

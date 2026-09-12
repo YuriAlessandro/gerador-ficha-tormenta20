@@ -181,7 +181,7 @@ import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
 import { commitWielding, WieldingSlot } from './BackpackModal/wielding';
 import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
-import { findAmmoStack } from './BackpackModal/ammo';
+import { findConsumableAmmoStack } from './BackpackModal/ammo';
 import PowersEditorModal from './EditDrawers/PowersEditor';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
@@ -1474,8 +1474,11 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleConsumeAmmo = useCallback(
     (ammoType: AmmoType) => {
-      const stack = findAmmoStack(bagEquipments, ammoType);
-      if (!stack || !stack.id || (stack.unitsRemaining ?? 0) <= 0) return;
+      // Pilha CONSUMÍVEL, não a primeira: com munição autoral ao lado da
+      // oficial, usar a primeira fazia o ataque virar um no-op silencioso
+      // assim que ela zerava, mesmo com projéteis na pilha seguinte.
+      const stack = findConsumableAmmoStack(bagEquipments, ammoType);
+      if (!stack || !stack.id) return;
 
       const nextEquipments: typeof bagEquipments = { ...bagEquipments };
       (Object.keys(nextEquipments) as (keyof typeof nextEquipments)[]).forEach(

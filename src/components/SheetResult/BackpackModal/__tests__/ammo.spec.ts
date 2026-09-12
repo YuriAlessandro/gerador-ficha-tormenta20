@@ -1,7 +1,10 @@
 import {
   AMMO_LABELS,
+  ammoTypeLabel,
   calcAmmoSpaces,
   findAmmoStack,
+  findConsumableAmmoStack,
+  getAmmoTypeSuggestions,
   getAmmoUnits,
   seedAmmoUnits,
 } from '../ammo';
@@ -232,5 +235,123 @@ describe('seedAmmoUnits (legacy migration)', () => {
     ];
     seedAmmoUnits(bag);
     expect(bag.Arma[0].unitsRemaining).toBe(17);
+  });
+});
+
+/**
+ * Munição autoral convive com a oficial: "Flechas élficas (10)" ao lado de
+ * "Flechas (20)". Pilhas `isCustom` também nunca empilham entre si. Tratar só a
+ * primeira escondia metade do estoque e, pior, fazia o ataque virar um no-op
+ * silencioso assim que ela zerava.
+ */
+describe('várias pilhas do mesmo tipo', () => {
+  const twoStacks = (
+    firstUnits: number,
+    secondUnits: number
+  ): BagEquipments => {
+    const b = emptyBag();
+    b.Arma = [
+      {
+        id: 'a',
+        nome: 'Flechas (20)',
+        group: 'Arma',
+        isAmmo: true,
+        ammoType: 'Flechas',
+        unitsRemaining: firstUnits,
+      },
+      {
+        id: 'b',
+        nome: 'Flechas élficas (10)',
+        group: 'Arma',
+        isAmmo: true,
+        isCustom: true,
+        ammoType: 'Flechas',
+        unitsRemaining: secondUnits,
+      },
+    ];
+    return b;
+  };
+
+  test('o contador SOMA todas as pilhas do tipo', () => {
+    expect(getAmmoUnits(twoStacks(20, 10), 'Flechas')).toBe(30);
+  });
+
+  test('a pilha consumível pula a que está vazia', () => {
+    const bag = twoStacks(0, 10);
+    // `findAmmoStack` segue devolvendo a primeira (é o leitor de identidade)…
+    expect(findAmmoStack(bag, 'Flechas')?.id).toBe('a');
+    // …mas quem gasta projétil pega a que ainda tem saldo.
+    expect(findConsumableAmmoStack(bag, 'Flechas')?.id).toBe('b');
+  });
+
+  test('sem saldo em nenhuma pilha, não há de onde consumir', () => {
+    expect(findConsumableAmmoStack(twoStacks(0, 0), 'Flechas')).toBeUndefined();
+    expect(getAmmoUnits(twoStacks(0, 0), 'Flechas')).toBe(0);
+  });
+});
+
+describe('vocabulário aberto de tipos de munição', () => {
+  test('ammoTypeLabel cai no próprio nome para tipo autoral', () => {
+    expect(ammoTypeLabel('Flechas')).toBe('Flechas');
+    expect(ammoTypeLabel('Bola de Ferro')).toBe('Bolas de Ferro');
+    expect(ammoTypeLabel('Cartuchos a vapor')).toBe('Cartuchos a vapor');
+  });
+
+  test('uma arma encontra a pilha de um tipo autoral', () => {
+    const bag = emptyBag();
+    bag.Arma = [
+      {
+        id: 'c',
+        nome: 'Cartuchos a vapor (6)',
+        group: 'Arma',
+        isAmmo: true,
+        isCustom: true,
+        ammoType: 'Cartuchos a vapor',
+        unitsRemaining: 6,
+      },
+    ];
+    expect(getAmmoUnits(bag, 'Cartuchos a vapor')).toBe(6);
+    expect(findConsumableAmmoStack(bag, 'Cartuchos a vapor')?.id).toBe('c');
+  });
+
+  test('as sugestões trazem os 5 do livro mais os tipos da mochila', () => {
+    const bag = emptyBag();
+    bag.Arma = [
+      {
+        id: 'c',
+        nome: 'Cartuchos a vapor (6)',
+        group: 'Arma',
+        isAmmo: true,
+        ammoType: 'Cartuchos a vapor',
+      },
+      // Arma apontando para um tipo NÃO entra: quem define o vocabulário é o
+      // pacote de munição, senão um typo na arma viraria sugestão.
+      {
+        id: 'w',
+        nome: 'Pistola a vapor',
+        group: 'Arma',
+        ammoType: 'Cartuxos a vapor',
+      },
+    ];
+    const suggestions = getAmmoTypeSuggestions(bag);
+    expect(suggestions).toContain('Flechas');
+    expect(suggestions).toContain('Bola de Ferro');
+    expect(suggestions).toContain('Cartuchos a vapor');
+    expect(suggestions).not.toContain('Cartuxos a vapor');
+  });
+
+  test('as sugestões não repetem um tipo do livro já presente na mochila', () => {
+    const bag = emptyBag();
+    bag.Arma = [
+      {
+        id: 'a',
+        nome: 'Flechas (20)',
+        group: 'Arma',
+        isAmmo: true,
+        ammoType: 'Flechas',
+      },
+    ];
+    const suggestions = getAmmoTypeSuggestions(bag);
+    expect(suggestions.filter((t) => t === 'Flechas')).toHaveLength(1);
   });
 });
