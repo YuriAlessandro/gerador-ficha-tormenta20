@@ -77,6 +77,19 @@ const Changelog: React.FC = () => {
               <h3>4.33</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Na mesa virtual, as{' '}
+                  <strong>ameaças agora gastam PM automaticamente</strong>. Ao
+                  abrir a ficha de um combatente pelo card dele e clicar no nome
+                  de uma <strong>magia</strong> ou{' '}
+                  <strong>habilidade com custo em PM</strong>, o custo é
+                  descontado daquela criatura (com desfazer) e os dados rolam
+                  como antes. O cabeçalho da ficha passa a mostrar o PM atual da
+                  criatura, e habilidades que custam PM mas não rolam dados
+                  também ficam clicáveis. Se não houver PM suficiente, a ação é
+                  recusada — e os botões de rolagem ao lado do nome continuam
+                  repetindo só os dados, sem cobrar de novo.
+                </li>
+                <li>
                   <strong>Novo:</strong> Ao subir de nível, as listas de{' '}
                   <strong>poderes gerais</strong> e{' '}
                   <strong>poderes de classe</strong> ganharam a opção{' '}
