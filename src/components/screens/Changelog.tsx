@@ -119,6 +119,34 @@ const Changelog: React.FC = () => {
                   escolher.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Toda ficha agora tem{' '}
+                  <strong>idade em anos</strong>, e envelhecer passou a valer de
+                  verdade: aos <strong>45 anos</strong> o personagem fica{' '}
+                  <strong>Maduro</strong> (For −1, Des −1, Con −1, Int +1, Sab
+                  +1, Car +1) e aos <strong>70</strong> fica{' '}
+                  <strong>Velho</strong>, acumulando os dois (For −3, Des −3,
+                  Con −3, Int +2, Sab +2, Car +2). É regra do livro básico
+                  (Tormenta20, p. 108), então vale para qualquer personagem, sem
+                  depender de suplemento. Os marcos acompanham a longevidade da
+                  raça: um elfo só fica Maduro aos 225 anos.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A idade virou um campo comum em{' '}
+                  <strong>Informações Básicas</strong>, ao lado de nome e
+                  gênero, tanto na criação quanto na edição da ficha. Ao lado
+                  dele há um <strong>seletor de faixa etária</strong> que já
+                  mostra os intervalos escalados pela sua raça, e os dois se
+                  alimentam: digitar a idade move a faixa, escolher a faixa move
+                  a idade. Na criação também há um{' '}
+                  <strong>botão de rolar</strong> a idade inicial da sua classe
+                  (1d6+15, 2d4+15 ou 2d6+15, conforme a tabela do livro).
+                </li>
+                <li>
+                  <strong>Novo:</strong> A <strong>ficha aleatória</strong> já
+                  nasce com a idade inicial rolada pela classe, e o passo a
+                  passo mostra qual foi.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> No{' '}
                   <strong>editor de poderes</strong>, os poderes de origem que
                   envolvem uma escolha agora têm um{' '}
@@ -135,6 +163,36 @@ const Changelog: React.FC = () => {
                   faltando à mostra — antes eles simplesmente sumiam, sem
                   nenhuma pista do motivo. É o mesmo comportamento que os
                   poderes gerais já tinham.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No assistente de criação, os{' '}
+                  <strong>modificadores da idade</strong> passam a valer já no{' '}
+                  <strong>passo de atributos</strong>, numa linha própria
+                  (&quot;Mod. Idade&quot;), separada da racial. Com isso a{' '}
+                  <strong>perícia extra por Inteligência</strong> e os{' '}
+                  <strong>pré-requisitos de poder</strong> enxergam o bônus
+                  desde o começo — antes eles só apareciam quando a ficha já
+                  estava pronta.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As{' '}
+                  <strong>Idades Variadas (Heróis de Arton)</strong> viraram um{' '}
+                  <strong>interruptor</strong> dentro do próprio campo de idade,
+                  no mesmo padrão de Raças Abertas e Devoções Abertas. Ligadas,
+                  as sete faixas <strong>substituem</strong> os modificadores do
+                  livro básico — as duas tabelas nunca somam —, e só elas
+                  concedem níveis extras e complicações de idade. O botão de
+                  ampulheta saiu da ficha: a idade agora se edita num lugar só.
+                  Fichas já salvas não mudam sozinhas — ficam sem idade até você
+                  preencher.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao apontar o{' '}
+                  <strong>tipo de munição</strong> de uma arma, a lista agora
+                  mostra <strong>quais pacotes</strong> cada tipo alcança e
+                  separa o que está <strong>na sua mochila</strong> dos demais
+                  tipos. Antes ela mostrava só os cinco nomes do livro, e quem
+                  tinha criado um pacote próprio achava que ele havia sumido.
                 </li>
                 <li>
                   <strong>Correção:</strong> Com{' '}
@@ -210,6 +268,14 @@ const Changelog: React.FC = () => {
                   <strong>Alquimista</strong>) nunca aparecia ao subir de nível.
                   A classe podia ser escolhida normalmente no editor e o poder
                   era salvo, mas sumia na hora de usar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Nas <strong>raças longevas</strong>{' '}
+                  havia um buraco entre as faixas etárias: um{' '}
+                  <strong>elfo de 40 anos</strong> ficava acima do teto de Jovem
+                  e abaixo do piso de Adulto, sem faixa nenhuma para cair. Agora
+                  os intervalos são contíguos e qualquer idade resolve para
+                  exatamente uma faixa.
                 </li>
               </ul>
 
