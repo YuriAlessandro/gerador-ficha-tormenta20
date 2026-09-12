@@ -77,6 +77,20 @@ const Changelog: React.FC = () => {
               <h3>4.33</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Ao subir de nível, as listas de{' '}
+                  <strong>poderes gerais</strong> e{' '}
+                  <strong>poderes de classe</strong> ganharam a opção{' '}
+                  <strong>Mostrar poderes fora dos requisitos</strong>.
+                  Desmarcada (como vem), a lista mostra só o que você pode pegar
+                  de verdade — eram 300+ poderes gerais com frequentemente menos
+                  de 50 escolhíveis. Marcada, o catálogo inteiro aparece e você{' '}
+                  <strong>
+                    pode escolher mesmo sem cumprir o pré-requisito
+                  </strong>
+                  . E, mesmo desmarcada, buscar um poder pelo nome continua
+                  encontrando ele, com o requisito que está faltando à vista.
+                </li>
+                <li>
                   <strong>Novo:</strong> As origens que deixam{' '}
                   <strong>trocar o poder escolhido entre aventuras</strong> —{' '}
                   <strong>Cosmopolita</strong> e{' '}
@@ -145,6 +159,12 @@ const Changelog: React.FC = () => {
                   <strong>Novo:</strong> A <strong>ficha aleatória</strong> já
                   nasce com a idade inicial rolada pela classe, e o passo a
                   passo mostra qual foi.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A contagem no rótulo (&quot;Poder
+                  Geral (X disponíveis)&quot;) passou a contar só os poderes que
+                  você pode escolher. Antes ela somava os indisponíveis e
+                  prometia centenas de opções onde havia poucas dezenas.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> No{' '}
