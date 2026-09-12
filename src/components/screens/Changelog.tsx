@@ -174,6 +174,19 @@ const Changelog: React.FC = () => {
                   passo mostra qual foi.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Chegou o{' '}
+                  <strong>Paladino de Marah</strong> (Deuses de Arton). Um
+                  paladino devoto da Deusa da Paz ganha um passo próprio na
+                  criação, onde pode trocar{' '}
+                  <strong>Golpe Divino por Mensagem de Paz</strong> e trocar{' '}
+                  <strong>Luta por Diplomacia</strong> entre as perícias
+                  iniciais. <strong>Atuação</strong> e <strong>Luta</strong>{' '}
+                  também passam a contar como perícias de classe. As duas trocas
+                  são opcionais, valem para devoto duplo com Marah como segunda
+                  divindade, e a habilidade pode ser trocada depois pelo editor
+                  da ficha.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> A contagem no rótulo (&quot;Poder
                   Geral (X disponíveis)&quot;) passou a contar só os poderes que
                   você pode escolher. Antes ela somava os indisponíveis e
@@ -226,6 +239,18 @@ const Changelog: React.FC = () => {
                   separa o que está <strong>na sua mochila</strong> dos demais
                   tipos. Antes ela mostrava só os cinco nomes do livro, e quem
                   tinha criado um pacote próprio achava que ele havia sumido.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Duplo Feérico</strong> não oferecia as{' '}
+                  <strong>classes variantes</strong> de Heróis de Arton na hora
+                  de escolher a habilidade de 1º nível — ficavam de fora
+                  Necromante, Duelista, Santo, Usurpador e as outras, cada uma
+                  com habilidades próprias que a classe base não tem. Agora
+                  todas aparecem (com o suplemento ativo). Junto disso, a regra
+                  &quot;uma classe que não seja a sua&quot; passou a valer nos
+                  dois sentidos: um Guerreiro não pega mais habilidade de
+                  Inovador, que é uma variante da própria classe dele.
                 </li>
                 <li>
                   <strong>Correção:</strong> Com{' '}
