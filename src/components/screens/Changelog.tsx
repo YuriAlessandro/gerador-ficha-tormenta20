@@ -110,7 +110,13 @@ const Changelog: React.FC = () => {
                   <strong>Novo:</strong> Dá para criar seus próprios{' '}
                   <strong>pacotes de munição</strong> — com preço, tamanho de
                   pacote e espaço próprios —, tanto como item personalizado na
-                  mochila quanto num pacote de itens da comunidade.
+                  mochila quanto num pacote de itens da comunidade. E o tipo de
+                  munição deixou de ser uma lista fechada: além dos cinco do
+                  livro, você pode <strong>inventar uma família nova</strong>{' '}
+                  (&quot;Cartuchos a vapor&quot;, &quot;Dardos de
+                  zarabatana&quot;) e apontar uma arma para ela. Ao criar a
+                  arma, os tipos que você já tem aparecem na lista, então é só
+                  escolher.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> No{' '}
@@ -129,6 +135,16 @@ const Changelog: React.FC = () => {
                   faltando à mostra — antes eles simplesmente sumiam, sem
                   nenhuma pista do motivo. É o mesmo comportamento que os
                   poderes gerais já tinham.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Com{' '}
+                  <strong>mais de uma pilha do mesmo tipo</strong> de munição na
+                  mochila (flechas comuns e flechas especiais, por exemplo), o
+                  contador mostrava só a primeira e escondia o resto do estoque
+                  — e, pior, quando aquela primeira zerava o ataque parava de
+                  descontar munição em silêncio, mesmo com projéteis na outra
+                  pilha. Agora o contador soma tudo e o gasto vai para a
+                  primeira pilha que ainda tenha munição.
                 </li>
                 <li>
                   <strong>Correção:</strong> Uma arma do catálogo que já estava
