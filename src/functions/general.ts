@@ -4,6 +4,7 @@ import {
   SelectionOptions,
   ManualPowerSelections,
 } from '@/interfaces/PowerSelections';
+import { getClassFamilyName, isSameClassFamily } from './classFamily';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { dataRegistry } from '../data/registry';
@@ -968,6 +969,11 @@ export function isClassOrVariantOf(
     (classe.isVariant === true && classe.baseClassName === className)
   );
 }
+
+// Reexportados aqui porque a maior parte do código já importa os predicados de
+// classe deste módulo; a definição vive em `classFamily.ts`, que é folha para
+// poder ser usada também de dentro de `data/`.
+export { getClassFamilyName, isSameClassFamily };
 
 /**
  * Análogo racial de `isClassOrVariantOf`. Além do nome próprio, aceita as
@@ -2802,10 +2808,15 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'learnClassAbility') {
         const { availableClasses: classNames, level } = sheetAction.action;
 
+        // `availableClasses` lista FAMÍLIAS de classe: uma variante entra pela
+        // base (Necromante pela entrada 'Arcanista'), porque ela redefine o
+        // array `abilities` inteiro e portanto tem habilidades de 1º nível
+        // próprias — não é uma repetição da base.
         const isEligible = (cls: ClassDescription) =>
-          classNames.includes(cls.name) &&
-          // "uma classe que não seja a sua" — variante conta como a base
-          !isClassOrVariantOf(sheet.classe, cls.name) &&
+          classNames.includes(getClassFamilyName(cls)) &&
+          // "uma classe que não seja a sua" — a família inteira conta como a
+          // sua, nos dois sentidos (Guerreiro não pega do Inovador nem vice-versa)
+          !isSameClassFamily(sheet.classe, cls) &&
           cls.abilities.some((ability) => ability.nivel === level);
 
         // Sorteio automático: só o livro básico. Uma ficha gerada

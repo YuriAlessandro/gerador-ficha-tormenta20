@@ -40,7 +40,7 @@ import {
   getGeneralPowerCatalogByTypes,
   isPowerAvailable,
 } from '../powers';
-import { isClassOrVariantOf } from '../general';
+import { getClassFamilyName, isSameClassFamily } from '../general';
 
 /** Força, Destreza e Constituição — os atributos "físicos" de T20. */
 const PHYSICAL_ATTRIBUTES: Atributo[] = [
@@ -1188,9 +1188,13 @@ export function getFilteredAvailableOptions(
       return (
         dataRegistry
           .getClassesBySupplements(supplements)
-          .filter((cls) => whitelist.includes(cls.name))
-          // "uma classe que não seja a sua" — variante conta como a base
-          .filter((cls) => !isClassOrVariantOf(sheet.classe, cls.name))
+          // A whitelist lista FAMÍLIAS: a variante entra pela base (Necromante
+          // pela entrada 'Arcanista'). Ela redefine `abilities` por inteiro, então
+          // tem habilidades de 1º nível próprias — não repete as da base.
+          .filter((cls) => whitelist.includes(getClassFamilyName(cls)))
+          // "uma classe que não seja a sua" — a família inteira conta como a sua,
+          // nos dois sentidos (Guerreiro não pega do Inovador nem vice-versa)
+          .filter((cls) => !isSameClassFamily(sheet.classe, cls))
           // classe sem habilidade no nível pedido não tem o que oferecer
           .filter((cls) => cls.abilities.some((a) => a.nivel === level))
           .map((cls) => cls.name)

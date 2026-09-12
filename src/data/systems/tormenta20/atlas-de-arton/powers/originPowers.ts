@@ -425,8 +425,12 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         source: { type: 'origin', originName: 'Duplo Feérico (Pondsmânia)' },
         action: {
           type: 'learnClassAbility',
-          // Classes base apenas: as variantes repetem as habilidades de 1º
-          // nível da classe base, então listá-las seria só ruído
+          // Lista de FAMÍLIAS de classe, não de nomes exatos: as variantes
+          // (Necromante, Duelista, Santo...) entram automaticamente pela base,
+          // porque redefinem o array `abilities` inteiro e portanto têm
+          // habilidades de 1º nível próprias. Quem faz essa expansão é
+          // `getClassFamilyName`, em `getFilteredAvailableOptions` e no
+          // `isEligible` da aplicação na ficha.
           availableClasses: [
             'Arcanista',
             'Bárbaro',
