@@ -4,7 +4,7 @@ import {
   calcAmmoSpaces,
   findAmmoStack,
   findConsumableAmmoStack,
-  getAmmoTypeSuggestions,
+  getAmmoTypeOptions,
   getAmmoUnits,
   seedAmmoUnits,
 } from '../ammo';
@@ -314,7 +314,7 @@ describe('vocabulário aberto de tipos de munição', () => {
     expect(findConsumableAmmoStack(bag, 'Cartuchos a vapor')?.id).toBe('c');
   });
 
-  test('as sugestões trazem os 5 do livro mais os tipos da mochila', () => {
+  test('as opções trazem os 5 do livro mais os tipos da mochila', () => {
     const bag = emptyBag();
     bag.Arma = [
       {
@@ -323,6 +323,7 @@ describe('vocabulário aberto de tipos de munição', () => {
         group: 'Arma',
         isAmmo: true,
         ammoType: 'Cartuchos a vapor',
+        unitsRemaining: 6,
       },
       // Arma apontando para um tipo NÃO entra: quem define o vocabulário é o
       // pacote de munição, senão um typo na arma viraria sugestão.
@@ -333,14 +334,70 @@ describe('vocabulário aberto de tipos de munição', () => {
         ammoType: 'Cartuxos a vapor',
       },
     ];
-    const suggestions = getAmmoTypeSuggestions(bag);
-    expect(suggestions).toContain('Flechas');
-    expect(suggestions).toContain('Bola de Ferro');
-    expect(suggestions).toContain('Cartuchos a vapor');
-    expect(suggestions).not.toContain('Cartuxos a vapor');
+    const types = getAmmoTypeOptions(bag).map((o) => o.type);
+    expect(types).toContain('Flechas');
+    expect(types).toContain('Bola de Ferro');
+    expect(types).toContain('Cartuchos a vapor');
+    expect(types).not.toContain('Cartuxos a vapor');
   });
 
-  test('as sugestões não repetem um tipo do livro já presente na mochila', () => {
+  test('cada opção carrega os PACOTES que a resolvem', () => {
+    // É o que responde, na lista, "essa opção acha a munição que eu criei?".
+    const bag = emptyBag();
+    bag.Arma = [
+      {
+        id: 'b',
+        nome: 'Bolas de metal pesado',
+        group: 'Arma',
+        isAmmo: true,
+        isCustom: true,
+        ammoType: 'Bola de Ferro',
+        unitsRemaining: 12,
+      },
+    ];
+    const bolaDeFerro = getAmmoTypeOptions(bag).find(
+      (o) => o.type === 'Bola de Ferro'
+    );
+    expect(bolaDeFerro?.packs).toEqual([
+      { nome: 'Bolas de metal pesado', units: 12 },
+    ]);
+    expect(bolaDeFerro?.totalUnits).toBe(12);
+
+    // Tipo do livro sem pacote na mochila continua ofertado, mas vazio.
+    const flechas = getAmmoTypeOptions(bag).find((o) => o.type === 'Flechas');
+    expect(flechas?.packs).toEqual([]);
+  });
+
+  test('duas pilhas do mesmo tipo aparecem juntas na mesma opção', () => {
+    const bag = emptyBag();
+    bag.Arma = [
+      {
+        id: 'a',
+        nome: 'Flechas (20)',
+        group: 'Arma',
+        isAmmo: true,
+        ammoType: 'Flechas',
+        unitsRemaining: 20,
+      },
+      {
+        id: 'b',
+        nome: 'Flechas élficas (10)',
+        group: 'Arma',
+        isAmmo: true,
+        isCustom: true,
+        ammoType: 'Flechas',
+        unitsRemaining: 10,
+      },
+    ];
+    const flechas = getAmmoTypeOptions(bag).find((o) => o.type === 'Flechas');
+    expect(flechas?.packs.map((p) => p.nome)).toEqual([
+      'Flechas (20)',
+      'Flechas élficas (10)',
+    ]);
+    expect(flechas?.totalUnits).toBe(30);
+  });
+
+  test('um tipo do livro não é duplicado quando a mochila já o tem', () => {
     const bag = emptyBag();
     bag.Arma = [
       {
@@ -351,7 +408,7 @@ describe('vocabulário aberto de tipos de munição', () => {
         ammoType: 'Flechas',
       },
     ];
-    const suggestions = getAmmoTypeSuggestions(bag);
-    expect(suggestions.filter((t) => t === 'Flechas')).toHaveLength(1);
+    const types = getAmmoTypeOptions(bag).map((o) => o.type);
+    expect(types.filter((t) => t === 'Flechas')).toHaveLength(1);
   });
 });

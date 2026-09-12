@@ -229,21 +229,58 @@ export function getAmmoUnits(
   return total;
 }
 
+/** Um pacote de munição concreto, para o seletor mostrar o que o jogador tem. */
+export interface AmmoPackSummary {
+  nome: string;
+  /** Unidades restantes. Ausente fora da mochila (ex.: editor de homebrew). */
+  units?: number;
+}
+
 /**
- * Tipos de munição oferecidos nos seletores de autoria: os cinco do livro mais
- * todo tipo já presente na mochila e no catálogo ativo (pacotes de munição
- * homebrew inclusos).
+ * Uma opção do seletor de munição: o tipo mais os pacotes que o resolvem.
  *
- * É o que permite criar "Cartuchos a vapor" e depois apontar uma arma para ele
- * escolhendo na lista em vez de redigitar — um erro de digitação quebraria o
- * vínculo arma↔munição em silêncio.
+ * Os pacotes existem para a lista responder à pergunta que o jogador de fato
+ * faz — "essa opção vai achar a munição que eu criei?". Mostrando só o tipo
+ * abstrato, quem criou "Bolas de metal pesado" não tinha como saber que é
+ * "Bolas de Ferro" que aponta para ela.
  */
-export function getAmmoTypeSuggestions(
+export interface AmmoTypeOption {
+  type: AmmoType;
+  packs: AmmoPackSummary[];
+  totalUnits: number;
+}
+
+/**
+ * Opções do seletor de munição: os cinco tipos do livro mais todo tipo já
+ * presente nas fontes passadas (mochila, itens irmãos de um pacote homebrew),
+ * cada um com os pacotes que o resolvem.
+ *
+ * Só item com `isAmmo` contribui: quem define o vocabulário é o PACOTE de
+ * munição. Uma arma apontando para um tipo não entra, senão um typo na arma
+ * viraria sugestão e se propagaria.
+ */
+export function getAmmoTypeOptions(
   ...sources: (BagEquipments | Equipment[] | undefined)[]
-): AmmoType[] {
-  const seen = new Set<AmmoType>(CORE_AMMO_TYPES);
+): AmmoTypeOption[] {
+  const byType = new Map<AmmoType, AmmoTypeOption>();
+  CORE_AMMO_TYPES.forEach((type) => {
+    byType.set(type, { type, packs: [], totalUnits: 0 });
+  });
+
   const collect = (item: Equipment) => {
-    if (item?.isAmmo && item.ammoType) seen.add(item.ammoType);
+    if (!item?.isAmmo || !item.ammoType) return;
+    const entry = byType.get(item.ammoType) ?? {
+      type: item.ammoType,
+      packs: [],
+      totalUnits: 0,
+    };
+    const units = item.unitsRemaining;
+    entry.packs.push({
+      nome: item.customDisplayName || item.nome,
+      units,
+    });
+    entry.totalUnits += units ?? 0;
+    byType.set(item.ammoType, entry);
   };
 
   sources.forEach((source) => {
@@ -252,7 +289,7 @@ export function getAmmoTypeSuggestions(
     else forEachItem(source, collect);
   });
 
-  return [...seen];
+  return [...byType.values()];
 }
 
 /** Returns the space cost of an ammo item using the ceil(units / unitsPerSpace) rule. */

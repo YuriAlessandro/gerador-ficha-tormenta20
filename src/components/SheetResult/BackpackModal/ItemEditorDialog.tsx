@@ -31,7 +31,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ResetIcon from '@mui/icons-material/RestartAlt';
 
 import Equipment, {
-  AmmoType,
   AppliedEnchantment,
   AppliedModification,
   AttackAttribute,
@@ -51,6 +50,7 @@ import {
   WeaponReach,
 } from '../../../functions/weaponPurpose';
 import AmmoTypeField from './AmmoTypeField';
+import { AmmoTypeOption } from './ammo';
 import {
   getCatalogWeaponCategoryByName,
   WEAPON_CATEGORY_LABELS,
@@ -94,8 +94,8 @@ export interface ItemEditorDialogProps {
   onClose: () => void;
   item: Equipment | null;
   onSave: (next: Equipment) => void;
-  /** Tipos de munição sugeridos. Ver `getAmmoTypeSuggestions`. */
-  ammoTypeSuggestions?: AmmoType[];
+  /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
+  ammoTypeOptions?: AmmoTypeOption[];
 }
 
 type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos';
@@ -207,7 +207,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   onClose,
   item,
   onSave,
-  ammoTypeSuggestions = [],
+  ammoTypeOptions = [],
 }) => {
   const [tab, setTab] = useState<TabKey>('geral');
   const [form, setForm] = useState(buildInitial(item));
@@ -658,7 +658,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                     onChange={(next) =>
                       setForm((f) => ({ ...f, ammoType: next }))
                     }
-                    options={ammoTypeSuggestions}
+                    options={ammoTypeOptions}
                     helperText='Escolha da lista ou digite um tipo novo'
                   />
                 </Grid>
@@ -836,7 +836,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                       onChange={(next) =>
                         setForm((f) => ({ ...f, ammoType: next }))
                       }
-                      options={ammoTypeSuggestions}
+                      options={ammoTypeOptions}
                     />
                   </Grid>
                 )}

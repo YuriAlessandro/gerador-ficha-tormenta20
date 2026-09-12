@@ -51,7 +51,7 @@ import { recalculateSheet } from '../../../functions/recalculateSheet';
 import { ignoresEncumbrance } from '../../../functions/encumbrance';
 import BackpackItemCard from './BackpackItemCard';
 import BackpackToolbar from './BackpackToolbar';
-import { getAmmoTypeSuggestions } from './ammo';
+import { getAmmoTypeOptions } from './ammo';
 import AddItemDialog from './AddItemDialog';
 import ItemEditorDialog from './ItemEditorDialog';
 import { useBackpackState } from './useBackpackState';
@@ -562,8 +562,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
   // sugerirem munição autoral ("Cartuchos a vapor") além dos cinco do livro.
   // Sai da mochila ENCENADA, e não da salva, para um pacote criado e uma arma
   // criada na mesma sessão já se encontrarem sem fechar o modal.
-  const ammoTypeSuggestions = useMemo(
-    () => getAmmoTypeSuggestions(staged.equipments),
+  const ammoTypeOptions = useMemo(
+    () => getAmmoTypeOptions(staged.equipments),
     [staged.equipments]
   );
 
@@ -1224,7 +1224,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         autoDeductMoney={staged.autoDeductMoney}
         onToggleAutoDeductMoney={setAutoDeductMoney}
         defaultCategory={addDialogCategory}
-        ammoTypeSuggestions={ammoTypeSuggestions}
+        ammoTypeOptions={ammoTypeOptions}
       />
       <ItemEditorDialog
         open={editorOpen}
@@ -1234,7 +1234,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         }}
         item={editingItem}
         onSave={handleEditorSave}
-        ammoTypeSuggestions={ammoTypeSuggestions}
+        ammoTypeOptions={ammoTypeOptions}
       />
     </Dialog>
   );

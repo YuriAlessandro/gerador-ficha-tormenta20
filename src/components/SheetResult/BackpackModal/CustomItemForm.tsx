@@ -36,6 +36,7 @@ import { WEAPON_CATEGORY_LABELS } from '../../../functions/proficiencies';
 import { parseDamageTypes, formatDamageTypes } from './damageTypeSelect';
 import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
 import AmmoTypeField from './AmmoTypeField';
+import { AmmoTypeOption } from './ammo';
 import {
   buildWeaponPurposeFields,
   getWeaponPurpose,
@@ -53,8 +54,8 @@ export interface CustomItemFormProps {
   defaultGroup?: equipGroup;
   onCancel: () => void;
   onSubmit: (item: Equipment) => void;
-  /** Tipos de munição oferecidos na lista. Ver `getAmmoTypeSuggestions`. */
-  ammoTypeSuggestions?: AmmoType[];
+  /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
+  ammoTypeOptions?: AmmoTypeOption[];
 }
 
 const ALL_SKILLS = Object.values(Skill);
@@ -64,7 +65,7 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
   defaultGroup,
   onCancel,
   onSubmit,
-  ammoTypeSuggestions = [],
+  ammoTypeOptions = [],
 }) => {
   const [nome, setNome] = useState(initial?.nome ?? '');
   const [group, setGroup] = useState<equipGroup>(
@@ -332,7 +333,7 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                 label='Tipo de munição'
                 value={ammoType}
                 onChange={setAmmoType}
-                options={ammoTypeSuggestions}
+                options={ammoTypeOptions}
                 helperText='Escolha da lista ou digite um tipo novo'
               />
             </Grid>
@@ -462,7 +463,7 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                   label='Munição'
                   value={ammoType}
                   onChange={setAmmoType}
-                  options={ammoTypeSuggestions}
+                  options={ammoTypeOptions}
                 />
               </Grid>
             )}

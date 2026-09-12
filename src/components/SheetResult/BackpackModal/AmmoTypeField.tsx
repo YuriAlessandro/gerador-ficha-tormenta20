@@ -1,18 +1,25 @@
 import React from 'react';
-import { Autocomplete, TextField } from '@mui/material';
+import { Autocomplete, Box, TextField, Typography } from '@mui/material';
 
 import { AmmoType } from '../../../interfaces/Equipment';
-import { ammoTypeLabel } from './ammo';
+import { ammoTypeLabel, AmmoTypeOption } from './ammo';
 
 export interface AmmoTypeFieldProps {
   label: string;
   value: AmmoType | '';
   onChange: (next: AmmoType | '') => void;
-  /** Tipos oferecidos na lista. Vem de `getAmmoTypeSuggestions`. */
-  options: AmmoType[];
+  /** Tipos + pacotes que os resolvem. Vem de `getAmmoTypeOptions`. */
+  options: AmmoTypeOption[];
   helperText?: string;
   size?: 'small' | 'medium';
-  fullWidth?: boolean;
+}
+
+/** "Bolas de metal pesado · 12" — o que aquele tipo acha na mochila. */
+function describePacks(option: AmmoTypeOption): string {
+  if (option.packs.length === 0) return '';
+  return option.packs
+    .map((p) => (p.units === undefined ? p.nome : `${p.nome} · ${p.units}`))
+    .join(' | ');
 }
 
 /**
@@ -21,10 +28,12 @@ export interface AmmoTypeFieldProps {
  *
  * É `freeSolo` porque o vocabulário de `AmmoType` é ABERTO: além dos cinco do
  * livro, o autor cunha famílias próprias ("Cartuchos a vapor") ao criar um
- * pacote de munição. As sugestões existem justamente para que apontar uma arma
- * para esse tipo seja uma ESCOLHA e não uma redigitação — arma e munição se
- * encontram por igualdade de string, então um typo quebraria o vínculo em
- * silêncio.
+ * pacote de munição.
+ *
+ * Cada opção mostra os PACOTES que a resolvem, e não só o nome do tipo. Sem
+ * isso, quem criou "Bolas de metal pesado" abria a lista, via cinco tipos
+ * abstratos e concluía que o pacote dele tinha sumido — quando na verdade é
+ * "Bolas de Ferro" que aponta para ele.
  */
 const AmmoTypeField: React.FC<AmmoTypeFieldProps> = ({
   label,
@@ -33,22 +42,56 @@ const AmmoTypeField: React.FC<AmmoTypeFieldProps> = ({
   options,
   helperText,
   size = 'medium',
-  fullWidth = true,
 }) => (
   <Autocomplete
     freeSolo
     size={size}
-    fullWidth={fullWidth}
+    fullWidth
     options={options}
     value={value || null}
-    // `onChange` cobre escolher da lista e limpar; `onInputChange` cobre a
-    // digitação livre. Sem os dois, um tipo novo só seria gravado se o usuário
-    // apertasse Enter.
-    onChange={(_, next) => onChange((next as AmmoType) ?? '')}
+    // Ordena os tipos que você TEM na frente: são os que respondem à pergunta
+    // "com o que essa arma atira?" para quem já montou o inventário.
+    groupBy={(option) =>
+      (option as AmmoTypeOption).packs.length > 0
+        ? 'Na sua mochila'
+        : 'Outros tipos'
+    }
+    getOptionLabel={(option) =>
+      typeof option === 'string'
+        ? ammoTypeLabel(option)
+        : ammoTypeLabel(option.type)
+    }
+    isOptionEqualToValue={(option, selected) =>
+      (option as AmmoTypeOption).type === selected
+    }
+    onChange={(_, next) => {
+      if (next === null) onChange('');
+      else if (typeof next === 'string') onChange(next as AmmoType);
+      else onChange(next.type);
+    }}
+    // Cobre a digitação livre de um tipo novo; sem isto o valor só seria
+    // gravado ao apertar Enter.
     onInputChange={(_, next, reason) => {
       if (reason === 'input') onChange(next.trim() as AmmoType);
     }}
-    getOptionLabel={(option) => ammoTypeLabel(option as AmmoType)}
+    renderOption={(props, option) => {
+      const packs = describePacks(option as AmmoTypeOption);
+      return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <Box component='li' {...props} key={(option as AmmoTypeOption).type}>
+          <Box>
+            <Typography variant='body2'>
+              {ammoTypeLabel((option as AmmoTypeOption).type)}
+            </Typography>
+            {packs && (
+              <Typography variant='caption' color='text.secondary'>
+                {packs}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      );
+    }}
     renderInput={(params) => (
       <TextField
         // eslint-disable-next-line react/jsx-props-no-spreading
