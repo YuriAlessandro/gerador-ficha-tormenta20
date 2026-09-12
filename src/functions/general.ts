@@ -68,6 +68,10 @@ import Race, {
 import { ClassDescription, ClassPower } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
+  applyDeityClassVariant,
+  getDeityClassVariant,
+} from '../data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
+import {
   countTormentaPowers,
   getRandomItemFromArray,
   getVirtudePaladinescaPMBonus,
@@ -6238,13 +6242,33 @@ export function generateEmptySheet(
 
   const size = getRaceSize(race);
   const classes = dataRegistry.getClassesBySupplements(supplements);
-  const generatedClass = classes.find((classe) =>
+  const catalogClass = classes.find((classe) =>
     classByName(classe, selectedOptions.classe)
   );
 
-  if (!generatedClass) {
+  if (!catalogClass) {
     throw new Error(`Classe ${selectedOptions.classe} não encontrada`);
   }
+
+  // Variante de classe por divindade (Deuses de Arton): "Paladino de Marah"
+  // troca Golpe Divino por Mensagem de Paz e remaneja perícias.
+  //
+  // Aplicada AQUI, e não junto do `emptySheet.classe` lá embaixo, porque as
+  // perícias iniciais são lidas de `generatedClass.periciasbasicas` na própria
+  // montagem do objeto da ficha — depois já seria tarde para a troca
+  // Luta → Diplomacia.
+  const deityChoiceNames = [
+    selectedOptions.devocao?.value,
+    selectedOptions.dualDevotion
+      ? selectedOptions.devocaoSecundaria?.value
+      : undefined,
+  ].filter((name): name is string => !!name && name !== '--');
+
+  const generatedClass = applyDeityClassVariant(
+    catalogClass,
+    getDeityClassVariant(deityChoiceNames, catalogClass, supplements),
+    wizardSelections?.deityClassChoices
+  );
 
   let emptySheet: CharacterSheet = {
     id: uuid(),
@@ -6370,6 +6394,19 @@ export function generateEmptySheet(
       emptySheet.raca = modifiedRace;
       emptySheet.suragelAbility = wizardSelections.suragelAbility;
     }
+  }
+
+  // Variante de classe por divindade: guarda a escolha para o recálculo poder
+  // reaplicar a troca de habilidade (`classe.abilities` é reconstruído sempre).
+  // Só grava se a classe realmente mudou — senão uma escolha órfã (jogador
+  // trocou de classe depois de responder o passo) ficaria na ficha para sempre.
+  if (
+    wizardSelections?.deityClassChoices &&
+    generatedClass !== catalogClass &&
+    (wizardSelections.deityClassChoices.alternativeAbility ||
+      wizardSelections.deityClassChoices.swapInitialSkill)
+  ) {
+    emptySheet.deityClassChoices = wizardSelections.deityClassChoices;
   }
 
   // Apply Qareen element selection from wizard
@@ -6684,6 +6721,24 @@ export function generateEmptySheet(
         },
       ],
     });
+  }
+
+  // Step: variante de classe por divindade (Paladino de Marah)
+  if (emptySheet.deityClassChoices) {
+    const { alternativeAbility, swapInitialSkill } =
+      emptySheet.deityClassChoices;
+    const value = [
+      ...(alternativeAbility
+        ? [{ name: 'Habilidade Escolhida', value: alternativeAbility }]
+        : []),
+      ...(swapInitialSkill
+        ? [{ name: 'Perícia Inicial', value: 'Luta trocada por Diplomacia' }]
+        : []),
+    ];
+
+    if (value.length > 0) {
+      emptySheet.steps.push({ label: 'Paladino de Marah', value });
+    }
   }
 
   // Step: Qareen element selection

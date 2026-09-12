@@ -84,6 +84,7 @@ import {
   getSuragelAbilityChoiceAction,
   getSuragelDefaultAbilityName,
 } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import { getDeityClassVariant } from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
 import {
   DUENDE_SIZES,
   DUENDE_SIZE_NAMES,
@@ -224,6 +225,11 @@ interface EditedData {
   duendeTabuSkill: string | undefined; // For Duende (skill with -5 penalty)
   duendeBonusAttributes: Atributo[] | undefined; // For Duende (Dons +1 attrs; 3rd entry only when Animal)
   className: string;
+  /**
+   * Variante de classe por divindade (Deuses de Arton): nome da habilidade
+   * alternativa escolhida. `undefined` = habilidade padrão do livro básico.
+   */
+  deityClassAbility: string | undefined;
   originName: string;
   deityName: string;
   /** Devoção Dupla: nome da segunda divindade ('' = devoção simples). */
@@ -393,6 +399,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         ? getSeedDuendeBonusAttributes(sheet)
         : sheet.raceAttributeChoices,
     className: sheet.classe.name,
+    deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name || '',
     secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
@@ -540,6 +547,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           ? getSeedDuendeBonusAttributes(sheet)
           : sheet.raceAttributeChoices,
       className: sheet.classe.name,
+      deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
       secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
@@ -600,6 +608,30 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
 
   // Escolha embutida da herança de Suraggel selecionada (se houver)
+  /**
+   * Variante de classe por divindade (Deuses de Arton) aplicável à combinação
+   * classe × divindade ATUALMENTE editada — hoje só "Paladino de Marah".
+   *
+   * Só a troca de habilidade é editável depois da criação: as perícias iniciais
+   * já foram gravadas em `sheet.pericias` e mexer nelas aqui seria uma segunda
+   * regra de negócio, não uma edição.
+   */
+  const deityClassVariant = useMemo(
+    () =>
+      getDeityClassVariant(
+        [editedData.deityName, editedData.secondaryDeityName].filter(Boolean),
+        CLASSES.find((c) => c.name === editedData.className),
+        userSupplements
+      ),
+    [
+      editedData.deityName,
+      editedData.secondaryDeityName,
+      editedData.className,
+      CLASSES,
+      userSupplements,
+    ]
+  );
+
   const suragelAbilityChoiceAction = getSuragelAbilityChoiceAction(
     editedData.suragelAbility
   );
@@ -978,6 +1010,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceEnergySource: editedData.raceEnergySource,
       raceSizeCategory: editedData.raceSizeCategory,
       suragelAbility: editedData.suragelAbility,
+      // A variante deixa de valer se a classe ou a divindade mudarem: sem o
+      // gate a escolha ficaria órfã na ficha e o recálculo a ignoraria em
+      // silêncio, dando a impressão de que a edição não salvou.
+      deityClassChoices: deityClassVariant
+        ? {
+            ...sheet.deityClassChoices,
+            alternativeAbility: editedData.deityClassAbility,
+          }
+        : undefined,
       duendeNature: editedData.duendeNature,
       duendePresentes: editedData.duendePresentes,
       duendeTabuSkill: editedData.duendeTabuSkill,
@@ -1705,7 +1746,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         Object.keys(optionalRules).length > 0 ? optionalRules : undefined;
     }
 
+    // A troca de habilidade por divindade reescreve `classe.abilities`, que só
+    // `recalculateSheet` reconstrói. Nem Golpe Divino nem Mensagem de Paz têm
+    // `sheetActions`/`sheetBonuses`, então não há nada a reverter à mão.
+    const deityClassAbilityChanged =
+      editedData.deityClassAbility !==
+      sheet.deityClassChoices?.alternativeAbility;
+
     const shouldUseRecalculateSheet =
+      deityClassAbilityChanged ||
       ageChanged ||
       attributesChanged ||
       raceChanged ||
@@ -1768,6 +1817,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           ? getSeedDuendeBonusAttributes(sheet)
           : sheet.raceAttributeChoices,
       className: sheet.classe.name,
+      deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
       secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
@@ -3240,6 +3290,70 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                             </Box>
                           </MenuItem>
                         ))}
+                      </Select>
+                    </FormControl>
+                  )}
+
+                  {/* Variante de classe por divindade (Deuses de Arton):
+                      "Paladino de Marah" troca Golpe Divino por Mensagem de Paz.
+                      Só a habilidade é editável aqui — as perícias iniciais já
+                      foram gravadas na criação. */}
+                  {deityClassVariant?.alternativeAbility && (
+                    <FormControl fullWidth>
+                      <InputLabel>
+                        Habilidade de {deityClassVariant.className} de{' '}
+                        {deityClassVariant.deity}
+                      </InputLabel>
+                      <Select
+                        value={editedData.deityClassAbility || ''}
+                        label={`Habilidade de ${deityClassVariant.className} de ${deityClassVariant.deity}`}
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            deityClassAbility: e.target.value || undefined,
+                          })
+                        }
+                      >
+                        <MenuItem value=''>
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{ alignItems: 'center' }}
+                          >
+                            <span>
+                              {deityClassVariant.alternativeAbility.replaces}
+                            </span>
+                            <Chip
+                              label='Padrão'
+                              size='small'
+                              sx={{ fontSize: '0.7rem', height: '20px' }}
+                            />
+                          </Stack>
+                        </MenuItem>
+                        <MenuItem
+                          value={
+                            deityClassVariant.alternativeAbility.ability.name
+                          }
+                        >
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{ alignItems: 'center' }}
+                          >
+                            <span>
+                              {
+                                deityClassVariant.alternativeAbility.ability
+                                  .name
+                              }
+                            </span>
+                            <Chip
+                              label='Deuses de Arton'
+                              size='small'
+                              color='primary'
+                              sx={{ fontSize: '0.65rem', height: '18px' }}
+                            />
+                          </Stack>
+                        </MenuItem>
                       </Select>
                     </FormControl>
                   )}

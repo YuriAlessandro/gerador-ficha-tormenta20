@@ -12,6 +12,11 @@ import CharacterSheet, {
   SubStep,
 } from '@/interfaces/CharacterSheet';
 import { calculateCompanionStats } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import {
+  applyDeityClassAbilitySwap,
+  findDeityClassVariant,
+} from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
+import { getPersistentDeityNames } from '@/functions/powers/deityNames';
 import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import Skill, {
@@ -1213,6 +1218,20 @@ function applyClassAbilities(
     );
     allAbilities = [...availableAbilities, ...secondaryAbilities];
   }
+
+  // Variante de classe por divindade (Deuses de Arton): "Paladino de Marah"
+  // troca Golpe Divino por Mensagem de Paz. Precisa rodar a CADA recálculo
+  // porque `classe.abilities` é reconstruído do zero aqui — e também porque
+  // fichas sem `originalAbilities` caem no fallback do catálogo lá em cima,
+  // que devolve a classe crua do livro básico.
+  allAbilities = applyDeityClassAbilitySwap(
+    allAbilities,
+    findDeityClassVariant(
+      getPersistentDeityNames(sheetClone),
+      sheetClone.classe
+    ),
+    sheetClone.deityClassChoices?.alternativeAbility
+  );
 
   // Reaplica os campos do usuário preservados sobre a lista reconstruída
   // (cobre habilidades primárias e secundárias de multiclasse).

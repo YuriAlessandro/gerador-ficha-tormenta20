@@ -45,6 +45,29 @@ export function getSheetDeityNames(sheet: CharacterSheet): string[] {
   return names;
 }
 
+/**
+ * Deuses da devoção PERMANENTE da ficha — primária e secundária, sem o Poder
+ * Capturado.
+ *
+ * O Poder Capturado é estado transitório de combate; deixá-lo entrar aqui faria
+ * a variante de classe por divindade ("Paladino de Marah") trocar de habilidade
+ * no meio de uma cena. Use esta função para tudo que molda a FICHA, e
+ * `getSheetDeityNames` para o que avalia a devoção no momento.
+ */
+export function getPersistentDeityNames(sheet: CharacterSheet): string[] {
+  const devoto = sheet?.devoto;
+  if (!devoto?.divindade?.name) return [];
+
+  const names = [devoto.divindade.name];
+  if (
+    devoto.divindadeSecundaria &&
+    devoto.divindadeSecundaria !== devoto.divindade.name
+  ) {
+    names.push(devoto.divindadeSecundaria);
+  }
+  return names;
+}
+
 /** A ficha é devota (de pelo menos um deus)? */
 export function isDevoto(sheet: CharacterSheet): boolean {
   return getSheetDeityNames(sheet).length > 0;

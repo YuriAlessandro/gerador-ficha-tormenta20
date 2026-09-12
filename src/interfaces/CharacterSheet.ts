@@ -923,6 +923,18 @@ export default interface CharacterSheet {
   raceEnergySource?: string; // For Golem Desperto
   raceSizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
   suragelAbility?: string; // For Suraggel (Aggelus/Sulfure) alternative abilities
+  /**
+   * Escolhas opcionais da variante de classe por divindade (Deuses de Arton) —
+   * hoje só "Paladino de Marah". Ausente = regra do livro básico.
+   *
+   * Só `alternativeAbility` importa depois da criação: a troca é reaplicada a
+   * cada recálculo em `applyClassAbilities`. `swapInitialSkill` é consumido na
+   * geração e vive daí em diante em `sheet.pericias`.
+   */
+  deityClassChoices?: {
+    alternativeAbility?: string;
+    swapInitialSkill?: boolean;
+  };
   duendeNature?: string; // For Duende (animal/vegetal/mineral)
   duendePresentes?: string[]; // For Duende (3 selected powers)
   duendeTabuSkill?: string; // For Duende (skill with -5 penalty)

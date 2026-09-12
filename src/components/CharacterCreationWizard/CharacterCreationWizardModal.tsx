@@ -104,6 +104,10 @@ import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import type { GeneralPower } from '@/interfaces/Poderes';
 import { getCompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import {
+  applyDeityClassVariant,
+  getDeityClassVariant,
+} from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
 import RaceAttributeStep from './steps/RaceAttributeStep';
@@ -119,6 +123,7 @@ import InitialSpellSelectionStep from './steps/InitialSpellSelectionStep';
 import ArcanistSubtypeSelectionStep from './steps/ArcanistSubtypeSelectionStep';
 import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelectionStep';
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
+import DeityClassVariantStep from './steps/DeityClassVariantStep';
 import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 import ClassEquipmentStep from './steps/ClassEquipmentStep';
@@ -323,11 +328,60 @@ const CharacterCreationWizardModal: React.FC<
     [race, selections.attributeVariant]
   );
 
-  // Memoize classe to prevent infinite re-renders (used as useEffect dependency)
-  const classe: ClassDescription | undefined = useMemo(() => {
+  /**
+   * Divindades escolhidas no formulário, antes do assistente abrir. Alimentam a
+   * variante de classe por divindade (Deuses de Arton).
+   */
+  const deityChoiceNames = useMemo(
+    () =>
+      [
+        selectedOptions.devocao?.value,
+        selectedOptions.dualDevotion
+          ? selectedOptions.devocaoSecundaria?.value
+          : undefined,
+      ].filter((name): name is string => !!name && name !== '--'),
+    [
+      selectedOptions.devocao?.value,
+      selectedOptions.dualDevotion,
+      selectedOptions.devocaoSecundaria?.value,
+    ]
+  );
+
+  const catalogClasse: ClassDescription | undefined = useMemo(() => {
     const classes = dataRegistry.getClassesBySupplements(supplements);
     return classes.find((c) => c.name === selectedOptions.classe);
   }, [supplements, selectedOptions.classe]);
+
+  /**
+   * Variante de classe por divindade — hoje só "Paladino de Marah". Define o
+   * passo e o que ele oferece; `undefined` = o passo não existe nesta ficha.
+   */
+  const deityClassVariant = useMemo(
+    () => getDeityClassVariant(deityChoiceNames, catalogClasse, supplements),
+    [deityChoiceNames, catalogClasse, supplements]
+  );
+
+  /** Rótulo do passo. Dinâmico, então getStepContent/canProceed o comparam fora do switch. */
+  const deityClassVariantStepLabel = deityClassVariant
+    ? `${deityClassVariant.className} de ${deityClassVariant.deity}`
+    : undefined;
+
+  // Memoize classe to prevent infinite re-renders (used as useEffect dependency)
+  //
+  // A variante entra AQUI para que todos os passos abaixo (Perícias da Classe,
+  // Efeitos de Poderes, Equipamento) já vejam a classe customizada — mesmo
+  // padrão do `applySuragelAlternativeAbility` no memo de `race`.
+  const classe: ClassDescription | undefined = useMemo(
+    () =>
+      catalogClasse
+        ? applyDeityClassVariant(
+            catalogClasse,
+            deityClassVariant,
+            selections.deityClassChoices
+          )
+        : undefined,
+    [catalogClasse, deityClassVariant, selections.deityClassChoices]
+  );
 
   // Expand Ofício (Qualquer) in base skills to specific Ofício variants
   const expandedBasicas = useMemo(
@@ -859,6 +913,9 @@ const CharacterCreationWizardModal: React.FC<
     if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
     if (needsQareenElementSelection()) stepsArray.push('Elemento do Qareen');
     if (needsMoreauSapienciaSelection()) stepsArray.push('Magia da Sapiência');
+    // Antes de 'Perícias da Classe': a troca Luta → Diplomacia precisa estar
+    // decidida quando o jogador escolhe as perícias restantes.
+    if (deityClassVariantStepLabel) stepsArray.push(deityClassVariantStepLabel);
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
     if (needsAlchemyItemSelection()) stepsArray.push('Itens Alquímicos');
@@ -1108,6 +1165,25 @@ const CharacterCreationWizardModal: React.FC<
   // Get current step content
   const getStepContent = (stepIndex: number): React.ReactNode => {
     const stepName = steps[stepIndex];
+
+    // Rótulo dinâmico ("Paladino de Marah"), portanto fora do switch.
+    if (
+      deityClassVariantStepLabel &&
+      stepName === deityClassVariantStepLabel &&
+      deityClassVariant &&
+      catalogClasse
+    ) {
+      return (
+        <DeityClassVariantStep
+          variant={deityClassVariant}
+          classAbilities={catalogClasse.abilities}
+          choices={selections.deityClassChoices}
+          onChange={(deityClassChoices) =>
+            setSelections({ ...selections, deityClassChoices })
+          }
+        />
+      );
+    }
 
     switch (stepName) {
       case 'Informações Básicas':
@@ -1942,6 +2018,12 @@ const CharacterCreationWizardModal: React.FC<
   // Validation for each step
   const canProceed = (): boolean => {
     const stepName = steps[activeStep];
+
+    // Variante de classe por divindade: sempre válido — o padrão do livro
+    // básico já é uma resposta completa, as duas trocas são opcionais.
+    if (deityClassVariantStepLabel && stepName === deityClassVariantStepLabel) {
+      return true;
+    }
 
     switch (stepName) {
       case 'Informações Básicas':

@@ -199,6 +199,12 @@ export interface WizardSelections {
   // Suraggel ability selection (replaces Luz Sagrada or Sombra Profana)
   suragelAbility?: string;
 
+  // Variante de classe por divindade (Deuses de Arton) — "Paladino de Marah"
+  deityClassChoices?: {
+    alternativeAbility?: string;
+    swapInitialSkill?: boolean;
+  };
+
   // Qareen element selection (determines elemental resistance)
   qareenElement?: DamageType;
 
