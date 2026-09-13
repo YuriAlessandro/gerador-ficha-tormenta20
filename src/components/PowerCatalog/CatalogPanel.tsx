@@ -22,7 +22,7 @@ import {
   GROUP_TITLE_SX,
   STICKY_GROUP_HEADER_SX,
   TOOLBAR_SX,
-} from './powersEditorStyles';
+} from './powerCatalogStyles';
 
 type Catalog = ReturnType<typeof usePowerCatalog>;
 

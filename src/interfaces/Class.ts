@@ -3,7 +3,11 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { SheetBonus, SheetAction } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
-import { CountsAsTormentaPower, Requirement } from './Poderes';
+import {
+  CountsAsTormentaPower,
+  PrerequisiteWaiver,
+  Requirement,
+} from './Poderes';
 import Skill from './Skills';
 import { SpellSchool } from './Spells';
 import { SupplementId } from '../types/supplement.types';
@@ -86,6 +90,10 @@ export type ClassPower = CountsAsTormentaPower & {
   supplementId?: SupplementId; // Suplemento de origem do poder
   supplementName?: string; // Nome do suplemento de origem
   className?: string; // Multiclasse: qual classe concedeu este poder
+  /** Waiver que destravou o poder numa classe que não é a do personagem. */
+  unlockedBy?: string;
+  tags?: string[]; // Ver `PowerTaggable`
+  waivesPrerequisites?: PrerequisiteWaiver[]; // Ver `PrerequisiteWaiver`
 };
 
 /**

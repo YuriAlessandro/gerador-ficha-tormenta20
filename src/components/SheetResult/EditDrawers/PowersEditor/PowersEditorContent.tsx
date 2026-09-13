@@ -14,16 +14,22 @@ import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { POWER_ORIGINS } from '@/functions/powers/powerOrigins';
 import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
+import CatalogPanel from '@/components/PowerCatalog/CatalogPanel';
+import {
+  CatalogEntry,
+  usePowerCatalog,
+} from '@/components/PowerCatalog/usePowerCatalog';
+import {
+  CATALOG_MIN_WIDTH,
+  SELECTED_PANEL_WIDTH,
+} from '@/components/PowerCatalog/powerCatalogStyles';
 import CustomPowerDialog from '../CustomPowerDialog';
 import EnsinarTruqueDialog from '../EnsinarTruqueDialog';
 import GolpePessoalBuilder from '../GolpePessoalBuilder';
 import PowerSelectionDialog from '../PowerSelectionDialog';
-import CatalogPanel from './CatalogPanel';
 import SelectedPanel, { SelectedGroup } from './SelectedPanel';
-import { CatalogEntry, usePowerCatalog } from './usePowerCatalog';
 import { usePowersEditor } from './usePowersEditor';
 import { getDevotionLabel } from '../../../../functions/powers/deityNames';
-import { CATALOG_MIN_WIDTH, SELECTED_PANEL_WIDTH } from './powersEditorStyles';
 
 const ALWAYS_AVAILABLE: PowerAvailability = {
   available: true,
@@ -95,16 +101,25 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
   const resolveAvailability = (entry: CatalogEntry): PowerAvailability => {
     switch (entry.source.type) {
       case 'class':
-        return getAvailability(entry.source.power, 'class');
+        return getAvailability(
+          entry.source.power,
+          'class',
+          entry.source.className
+        );
       case 'origin':
         return sheet.origin?.name === getOriginForPower(entry.source.power)
           ? ALWAYS_AVAILABLE
           : UNAVAILABLE;
       case 'general':
-        if (entry.kind === 'generalConcedidos' && isDevoto) {
-          return isDeityPowerAvailable(entry.source.power)
-            ? ALWAYS_AVAILABLE
-            : UNAVAILABLE;
+        // Concedido do PRÓPRIO deus: liberado pela devoção, sem passar pelo
+        // avaliador. Os demais caem na regra geral — é por lá que um waiver
+        // ("Domínio do Medo") dispensa a cláusula DEVOTO de outro deus.
+        if (
+          entry.kind === 'generalConcedidos' &&
+          isDevoto &&
+          isDeityPowerAvailable(entry.source.power)
+        ) {
+          return ALWAYS_AVAILABLE;
         }
         return getAvailability(entry.source.power, 'general');
       default:

@@ -36,6 +36,7 @@ import {
   getCurrentPlateau,
 } from './general';
 import { getFuturaLendaClassPowers, isPowerAvailable } from '../powers';
+import { getActiveWaivers } from './prerequisiteWaivers';
 import { isClassOrVariantOf } from '../general';
 
 /** Força, Destreza e Constituição — os atributos "físicos" de T20. */
@@ -1096,6 +1097,8 @@ export function getFilteredAvailableOptions(
       const allGeneralPowersForAmbicao =
         Object.values(allPowersForAmbicao).flat();
       const existingGeneralPowersForAmbicao = sheet.generalPowers || [];
+      // Resolvidos uma vez para o catálogo inteiro — ver `prerequisiteWaivers`.
+      const waiversForAmbicao = getActiveWaivers(sheet);
       return allGeneralPowersForAmbicao
         .filter((power) => {
           const isRepeatedPower = existingGeneralPowersForAmbicao.find(
@@ -1104,7 +1107,9 @@ export function getFilteredAvailableOptions(
           if (isRepeatedPower) {
             return power.allowSeveralPicks;
           }
-          return isPowerAvailable(sheet, power);
+          return isPowerAvailable(sheet, power, {
+            waivers: waiversForAmbicao,
+          });
         })
         .sort((a, b) => a.name.localeCompare(b.name));
     }
