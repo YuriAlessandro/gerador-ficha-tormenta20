@@ -149,7 +149,13 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
        * - Intimidação sozinha não basta: "Golpe Semântico", "Jurista Divino" e
        *   "Armadura de Ossos" só tocam a perícia, não o efeito.
        * - Anti-medo fica de fora ("Coragem Total"): imunidade a medo inverte a
-       *   intenção da bênção.
+       *   intenção da bênção. A exceção deliberada é "Senhor do Submundo", que
+       *   dá imunidade mas TAMBÉM deixa apavorado — entra pela metade que
+       *   causa medo.
+       * - "Palavras Afiadas" (Nobre) apavora via Intimidação e caberia, mas é
+       *   HABILIDADE de classe (2º nível, automática), não poder escolhível:
+       *   não há o que dispensar. Fica fora por impossibilidade, não por
+       *   critério.
        * - Lista fechada, sem prefixo: `Brado:` pegaria `Brado: Sísmico`, que
        *   não tem o descritor.
        *
@@ -180,6 +186,7 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
               { className: 'Bárbaro', name: 'Brado: Assombroso' },
               { className: 'Bárbaro', name: 'Brado: Retardante' },
               { className: 'Ladino', name: 'Ameaça Brutal' },
+              { className: 'Ladino', name: 'Senhor do Submundo' },
               { className: 'Cavaleiro', name: 'Presença de Muralha' },
             ],
           },

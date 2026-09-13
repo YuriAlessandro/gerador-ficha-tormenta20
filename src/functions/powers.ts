@@ -326,6 +326,9 @@ export function getPowersAllowedByRequirements(
   const existingGeneralPowers = sheet.generalPowers;
   const scope = supplements ??
     sheet.supplements ?? [SupplementId.TORMENTA20_CORE];
+  // Uma vez para o catálogo inteiro: `getActiveWaivers` varre todos os baldes
+  // de poder da ficha, e sem isto cada item da lista pagaria essa varredura.
+  const waivers = getActiveWaivers(sheet);
 
   return dataRegistry.getAllPowersBySupplements(scope).filter((power) => {
     if (!PICKABLE_GENERAL_POWER_TYPES.includes(power.type)) return false;
@@ -338,7 +341,7 @@ export function getPowersAllowedByRequirements(
       return power.allowSeveralPicks;
     }
 
-    return isPowerAvailable(sheet, power);
+    return isPowerAvailable(sheet, power, { waivers });
   });
 }
 
@@ -490,6 +493,7 @@ export function getFuturaLendaClassPowers(
   minLevel = 2
 ): ClassPower[] {
   const sheetForCheck: CharacterSheet = { ...sheet, nivel: minLevel };
+  const waivers = getActiveWaivers(sheet);
 
   return resolveClassPowerCatalog(sheet).filter((power) => {
     // Check if power already exists and if it can be repeated
@@ -501,7 +505,10 @@ export function getFuturaLendaClassPowers(
       return false;
     }
 
-    return isPowerAvailable(sheetForCheck, power);
+    return isPowerAvailable(sheetForCheck, power, {
+      className: power.className,
+      waivers,
+    });
   });
 }
 

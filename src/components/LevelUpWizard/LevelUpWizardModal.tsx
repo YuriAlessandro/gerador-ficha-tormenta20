@@ -361,6 +361,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     generalPowers: GeneralPower[];
     unavailableClassPowers: string[];
     unavailableGeneralPowers: string[];
+    /**
+     * A ficha contra a qual os poderes foram filtrados. Sai junto para o passo
+     * reavaliar os requisitos com ela: em multiclasse ela difere da ficha de
+     * seleção (leva a classe escolhida e suas proficiências), e avaliar com a
+     * outra faria as duas pontas discordarem sobre o mesmo poder.
+     */
+    sheetForFiltering: CharacterSheet;
   } => {
     // Get class with merged supplement powers from registry
     // Use the SELECTED class for power filtering (multiclass support)
@@ -476,6 +483,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       generalPowers: sortedGeneralPowers,
       unavailableClassPowers,
       unavailableGeneralPowers,
+      sheetForFiltering,
     };
   };
 
@@ -1141,6 +1149,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           generalPowers,
           unavailableClassPowers,
           unavailableGeneralPowers,
+          sheetForFiltering,
         } = getAvailablePowers(sheetForPowerSelection, {
           allowAll: allowOutOfRequirements,
         });
@@ -1198,7 +1207,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return (
           <PowerSelectionStep
-            sheet={sheetForPowerSelection}
+            sheet={sheetForFiltering}
             classPowers={classPowers}
             generalPowers={generalPowers}
             selectedPowerChoice={currentLevelSelection.powerChoice}

@@ -278,6 +278,16 @@ describe('Domínio do Medo', () => {
       );
     });
 
+    it('inclui Senhor do Submundo, apesar de também dar imunidade a medo', () => {
+      // Decisão explícita: entra pela metade que CAUSA medo (deixa apavorado).
+      // A regra de excluir anti-medo vale para poder que só protege.
+      const nomes = getWaivedClassPowers(devotoDoMedo(), waivers).map(
+        (power) => power.name
+      );
+
+      expect(nomes).toContain('Senhor do Submundo');
+    });
+
     it('carimba a classe de origem, para agrupamento e avaliação', () => {
       const encontrado = getWaivedClassPowers(devotoDoMedo(), waivers).find(
         (power) => power.name === 'Alma Inabalável'

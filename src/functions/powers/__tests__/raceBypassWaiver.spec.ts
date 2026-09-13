@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import CENTAURO from '../../../data/systems/tormenta20/ameacas-de-arton/races/centauro';
 import combatPowers from '../../../data/systems/tormenta20/powers/combatPowers';
-import { GeneralPower } from '../../../interfaces/Poderes';
+import { GeneralPower, RequirementType } from '../../../interfaces/Poderes';
 import { createMockCharacterSheet } from '../../../__mocks__/characterSheet';
 import { isPowerAvailable } from '../../powers';
 import { evaluatePowerRequirements } from '../requirementEvaluation';
@@ -46,6 +46,26 @@ describe('bypass racial normalizado para waiver', () => {
     expect(result.available).toBe(true);
     expect(result.bypassed).toBe(true);
     expect(result.groups).toEqual([]);
+  });
+
+  it('waiver total não dispensa requisito NEGADO, e os dois motores concordam', () => {
+    // O atalho do waiver total devolvia `available` sem olhar requisito nenhum,
+    // então uma PROIBIÇÃO (`not`) também acabava dispensada — enquanto
+    // `isPowerAvailable`, que decide regra a regra, continuava negando.
+    const sheet = centauro();
+    const comProibicao = {
+      name: 'Carga de Cavalaria',
+      description: '',
+      type: CARGA_DE_CAVALARIA.type,
+      requirements: [
+        [{ type: RequirementType.RACA, name: 'Centauro', not: true }],
+      ],
+    };
+
+    expect(isPowerAvailable(sheet, comProibicao)).toBe(false);
+    expect(evaluatePowerRequirements(comProibicao, { sheet }).available).toBe(
+      false
+    );
   });
 
   it('não vaza para outros poderes do catálogo', () => {
