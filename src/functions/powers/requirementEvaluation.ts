@@ -287,8 +287,21 @@ export function evaluatePowerRequirements(
 
   // Waiver TOTAL (sem `requirementTypes`) não deixa requisito para exibir — é o
   // comportamento histórico de `bypassPrereqForPowersNamed`.
+  //
+  // Só que requisito NEGADO nunca é dispensado (ver `isRequirementWaived`): ele
+  // PROÍBE uma combinação, e ignorá-lo inverteria a regra. O atalho é portanto
+  // limitado a poderes sem negação — do contrário este avaliador liberaria um
+  // poder que `isPowerAvailable`, que decide regra a regra, continua negando.
+  // Nenhum dado de hoje cai nesse caso; a trava existe para os dois motores não
+  // divergirem em silêncio quando cair.
+  const hasNegatedRequirement = power.requirements?.some((group) =>
+    group.some((requirement) => requirement.not)
+  );
   const waivesEverything =
-    !!waiver && !waiver.requirementTypes && !!power.requirements?.length;
+    !!waiver &&
+    !waiver.requirementTypes &&
+    !!power.requirements?.length &&
+    !hasNegatedRequirement;
   if (waivesEverything) return { available: true, bypassed: true, groups: [] };
 
   if (!power.requirements || power.requirements.length === 0) {

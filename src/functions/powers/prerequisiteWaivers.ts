@@ -125,15 +125,24 @@ export function selectorMatches(
   return false;
 }
 
+/** Todos os waivers que alcançam este poder. */
+export function findWaiversForPower(
+  power: WaivablePower,
+  waivers: PrerequisiteWaiver[],
+  className?: string
+): PrerequisiteWaiver[] {
+  return waivers.filter((waiver) =>
+    selectorMatches(waiver.targets, power, className)
+  );
+}
+
 /** O primeiro waiver que alcança este poder. Inteiro: quem chama usa `reason` e `unlocks*`. */
 export function findWaiverForPower(
   power: WaivablePower,
   waivers: PrerequisiteWaiver[],
   className?: string
 ): PrerequisiteWaiver | undefined {
-  return waivers.find((waiver) =>
-    selectorMatches(waiver.targets, power, className)
-  );
+  return findWaiversForPower(power, waivers, className)[0];
 }
 
 /** `requirementTypes` ausente significa "todos os tipos". */
@@ -156,10 +165,14 @@ export function isRequirementWaived(
 ): { waived: boolean; reason?: string } {
   if (requirement.not) return { waived: false };
 
-  const waiver = findWaiverForPower(power, waivers, className);
-  if (!waiver || !waiverCovers(waiver, requirement.type)) {
-    return { waived: false };
-  }
+  // Entre os waivers que alcançam o poder, vale o primeiro que cobre ESTE
+  // tipo de requisito — e não o primeiro que alcança o poder. Com dois
+  // waivers sobre o mesmo poder (um total e um por tipo, ou dois por tipos
+  // diferentes), parar no primeiro deixaria o segundo sem ser consultado.
+  const waiver = findWaiversForPower(power, waivers, className).find((entry) =>
+    waiverCovers(entry, requirement.type)
+  );
+  if (!waiver) return { waived: false };
 
   return { waived: true, reason: waiver.reason };
 }

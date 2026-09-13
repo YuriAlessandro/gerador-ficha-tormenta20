@@ -224,6 +224,44 @@ describe('isRequirementWaived', () => {
   });
 });
 
+describe('vários waivers sobre o mesmo poder', () => {
+  // `find` parava no primeiro que ALCANÇAVA o poder; se ele não cobrisse o tipo
+  // do requisito, o segundo nunca era consultado.
+  const soDevoto: PrerequisiteWaiver = {
+    targets: { names: ['Terror Profundo'] },
+    requirementTypes: [RequirementType.DEVOTO],
+    reason: 'Waiver A',
+  };
+  const soClasse: PrerequisiteWaiver = {
+    targets: { names: ['Terror Profundo'] },
+    requirementTypes: [RequirementType.CLASSE],
+    reason: 'Waiver B',
+  };
+  const alvo = { name: 'Terror Profundo' };
+
+  it('consulta o segundo waiver quando o primeiro não cobre o tipo', () => {
+    const result = isRequirementWaived(
+      { type: RequirementType.CLASSE, name: 'Bárbaro' },
+      alvo,
+      [soDevoto, soClasse]
+    );
+
+    expect(result.waived).toBe(true);
+    // E o `reason` vem de quem efetivamente cobriu, não do primeiro que casou.
+    expect(result.reason).toBe('Waiver B');
+  });
+
+  it('segue negando quando nenhum dos dois cobre o tipo', () => {
+    expect(
+      isRequirementWaived(
+        { type: RequirementType.PERICIA, name: 'Intimidação' },
+        alvo,
+        [soDevoto, soClasse]
+      ).waived
+    ).toBe(false);
+  });
+});
+
 describe('findWaiverForPower', () => {
   it('devolve o waiver inteiro, para a UI e para o eixo de catálogo', () => {
     const waiver = findWaiverForPower({ name: 'Terror Profundo' }, [

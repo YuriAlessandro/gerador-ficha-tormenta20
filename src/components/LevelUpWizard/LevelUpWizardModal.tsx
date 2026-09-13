@@ -320,6 +320,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
     unavailableGeneralPowers: string[];
+    /**
+     * A ficha contra a qual os poderes foram filtrados. Sai junto para o passo
+     * reavaliar os requisitos com ela: em multiclasse ela difere da ficha de
+     * seleção (leva a classe escolhida e suas proficiências), e avaliar com a
+     * outra faria as duas pontas discordarem sobre o mesmo poder.
+     */
+    sheetForFiltering: CharacterSheet;
   } => {
     // Get class with merged supplement powers from registry
     // Use the SELECTED class for power filtering (multiclass support)
@@ -402,6 +409,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       classPowers: sortedClassPowers,
       generalPowers: sortedGeneralPowers,
       unavailableGeneralPowers,
+      sheetForFiltering,
     };
   };
 
@@ -1040,8 +1048,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
       case 'Escolha de Poder': {
         const sheetForPowerSelection = sheetWithCurrentLevelAbilities;
-        const { classPowers, generalPowers, unavailableGeneralPowers } =
-          getAvailablePowers(sheetForPowerSelection);
+        const {
+          classPowers,
+          generalPowers,
+          unavailableGeneralPowers,
+          sheetForFiltering,
+        } = getAvailablePowers(sheetForPowerSelection);
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
@@ -1076,7 +1088,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return (
           <PowerSelectionStep
-            sheet={sheetForPowerSelection}
+            sheet={sheetForFiltering}
             classPowers={classPowers}
             generalPowers={generalPowers}
             selectedPowerChoice={currentLevelSelection.powerChoice}
