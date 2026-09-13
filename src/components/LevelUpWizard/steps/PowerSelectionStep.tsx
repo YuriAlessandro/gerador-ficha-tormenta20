@@ -30,6 +30,12 @@ interface PowerSelectionStepProps {
   knownClassPowers?: string[];
   knownGeneralPowers?: string[];
   unavailableGeneralPowers?: string[];
+  /**
+   * Poderes de classe listados porém bloqueados por pré-requisito. Quem decide
+   * é o modal, contra a ficha do nível-alvo — este passo respeita em vez de
+   * recalcular, para as duas pontas não divergirem.
+   */
+  unavailableClassPowers?: string[];
   almaLivrePower?: ClassPower | null;
   almaLivreClassName?: string;
   almaLivrePowerAvailable?: boolean;
@@ -138,6 +144,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   knownClassPowers = [],
   knownGeneralPowers = [],
   unavailableGeneralPowers = [],
+  unavailableClassPowers = [],
   almaLivrePower = null,
   almaLivreClassName,
   almaLivrePowerAvailable = false,
@@ -180,16 +187,20 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
 
       if (entry.source.type === 'class') {
         const { power } = entry.source;
-        // A lista de classe já vem filtrada por `getAllowedClassPowers`; o que
-        // sobra decidir é o poder já conhecido e não repetível.
         if (knownClassPowers.includes(power.name) && !power.canRepeat) {
           return UNAVAILABLE;
         }
-        return evaluatePowerRequirements(
+        // O veredito do modal manda; a avaliação aqui só serve para MOSTRAR
+        // qual requisito falhou, que é o motivo de o poder ficar listado.
+        const evaluated = evaluatePowerRequirements(
           power,
           { sheet, className: entry.source.className },
           'class'
         );
+        if (unavailableClassPowers.includes(power.name)) {
+          return { ...evaluated, available: false };
+        }
+        return evaluated;
       }
 
       if (entry.source.type === 'general') {
@@ -213,6 +224,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
       knownClassPowers,
       knownGeneralPowers,
       unavailableGeneralPowers,
+      unavailableClassPowers,
     ]
   );
 
@@ -224,9 +236,6 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
     raceAbilities: [],
     customPowers: [],
     resolveAvailability,
-    // Na subida de nível a pergunta é "o que posso escolher agora?" — o que
-    // não dá para pegar é ruído. No editor da ficha o padrão segue o oposto.
-    initialOnlyAvailable: true,
   });
 
   const isSelected = useCallback(

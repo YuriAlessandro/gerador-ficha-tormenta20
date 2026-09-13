@@ -16,14 +16,18 @@ import CharacterSheet, {
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
-import { GeneralPower } from '@/interfaces/Poderes';
+import { GeneralPower, RequirementType } from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getWaivedClassPowers,
   isPowerAvailable,
+  resolveClassPowerCatalog,
 } from '@/functions/powers';
+import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
+import { evaluatePowerRequirements } from '@/functions/powers/requirementEvaluation';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
@@ -79,6 +83,32 @@ import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCre
 import RaceLevelUpPickStep, {
   RaceLevelUpPick,
 } from './steps/RaceLevelUpPickStep';
+
+/**
+ * O poder está fora de alcance só por causa do nível?
+ *
+ * Separa "você ainda não chegou lá" de "falta alguma coisa que você pode
+ * providenciar". O primeiro caso não vira linha na lista — seria a progressão
+ * inteira da classe; o segundo entra desabilitado, com o requisito à mostra.
+ */
+function isBlockedOnlyByLevel(
+  power: ClassPower,
+  sheet: CharacterSheet
+): boolean {
+  const { available, groups } = evaluatePowerRequirements(
+    power,
+    { sheet },
+    'class'
+  );
+  if (available || groups.length === 0) return false;
+
+  // Todo caminho alternativo esbarra no nível: não há o que fazer hoje.
+  return groups.every((group) =>
+    group.requirements.some(
+      (entry) => !entry.met && entry.requirement.type === RequirementType.NIVEL
+    )
+  );
+}
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -320,6 +350,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
     unavailableGeneralPowers: string[];
+    /** Poderes de classe listados porém bloqueados por pré-requisito. */
+    unavailableClassPowers: string[];
     /**
      * A ficha contra a qual os poderes foram filtrados. Sai junto para o passo
      * reavaliar os requisitos com ela: em multiclasse ela difere da ficha de
@@ -359,9 +391,41 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     // duplicadas, o que só faz sentido em sorteio aleatório — numa seleção
     // manual geraria poderes repetidos. Cobre Inventor e suas variantes
     // (ex.: Alquimista) via sheetForFiltering.classe.powers.
-    const classPowers = getAllowedClassPowers(sheetForFiltering, {
+    const availableClassPowers = getAllowedClassPowers(sheetForFiltering, {
       classLevel: selectedClassLevel,
     });
+
+    // Poder de classe reprovado por pré-requisito entra na lista mesmo assim,
+    // DESABILITADO: é o único lugar onde o jogador descobre o que falta para
+    // destravá-lo. Quando sumia em silêncio, o relato chegava como "não dá pra
+    // pegar" em vez de "falta a perícia X".
+    //
+    // A exceção é o poder travado APENAS pelo nível: esse não tem nada a fazer
+    // agora, e listá-lo só encheria a lista com o resto da progressão.
+    const sheetAtClassLevel: CharacterSheet = {
+      ...sheetForFiltering,
+      nivel: selectedClassLevel,
+    };
+    const availableNames = new Set(availableClassPowers.map((p) => p.name));
+    const unavailableClassPowerEntries = [
+      ...resolveClassPowerCatalog(sheetForFiltering),
+      ...getWaivedClassPowers(
+        sheetForFiltering,
+        getActiveWaivers(sheetForFiltering)
+      ),
+    ].filter(
+      (power) =>
+        !availableNames.has(power.name) &&
+        !isBlockedOnlyByLevel(power, sheetAtClassLevel)
+    );
+
+    const classPowers = [
+      ...availableClassPowers,
+      ...unavailableClassPowerEntries,
+    ];
+    const unavailableClassPowers = unavailableClassPowerEntries.map(
+      (power) => power.name
+    );
 
     // Use dataRegistry to get powers from all active supplements.
     // Inclui os 5 tipos de poderes gerais, mais os poderes de raça (ex.: Glamour)
@@ -409,6 +473,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       classPowers: sortedClassPowers,
       generalPowers: sortedGeneralPowers,
       unavailableGeneralPowers,
+      unavailableClassPowers,
       sheetForFiltering,
     };
   };
@@ -1052,6 +1117,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           classPowers,
           generalPowers,
           unavailableGeneralPowers,
+          unavailableClassPowers,
           sheetForFiltering,
         } = getAvailablePowers(sheetForPowerSelection);
 
@@ -1129,6 +1195,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
             unavailableGeneralPowers={unavailableGeneralPowers}
+            unavailableClassPowers={unavailableClassPowers}
             almaLivrePower={showAlmaLivre ? almaLivrePower : null}
             almaLivreClassName={showAlmaLivre ? almaLivreClassName : undefined}
             almaLivrePowerAvailable={almaLivrePowerAvailable}
