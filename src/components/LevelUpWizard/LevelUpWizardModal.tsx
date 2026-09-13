@@ -26,9 +26,11 @@ import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getWaivedClassPowers,
   isPowerAvailable,
   resolveClassPowerCatalog,
 } from '@/functions/powers';
+import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
@@ -414,9 +416,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       (sheetForFiltering.classPowers || []).map((p) => p.name)
     );
     const unavailableClassPowers: string[] = [];
-    const blockedClassPowers = resolveClassPowerCatalog(
-      sheetForFiltering
-    ).filter((power) => {
+    // Entram na varredura também os poderes de OUTRA classe alcançados por um
+    // waiver (ex.: Domínio do Medo), que não estão no catálogo da classe.
+    const blockedClassPowers = [
+      ...resolveClassPowerCatalog(sheetForFiltering),
+      ...getWaivedClassPowers(
+        sheetForFiltering,
+        getActiveWaivers(sheetForFiltering)
+      ),
+    ].filter((power) => {
       if (allowedClassPowerNames.has(power.name)) return false;
       // Já conhecido e não repetível some, como sempre — quem sinaliza isso é
       // o chip "Já Conhecido" dos poderes que continuam na lista.

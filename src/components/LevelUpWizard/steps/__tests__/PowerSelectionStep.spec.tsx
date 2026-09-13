@@ -40,6 +40,7 @@ const DESTRAVADO = classPower('Alma Inabalável', {
 
 interface Overrides {
   knownClassPowers?: string[];
+  unavailableClassPowers?: string[];
   selectedPowerChoice?: 'class' | 'general' | 'almaLivre' | null;
   selectedClassPower?: ClassPower | null;
   almaLivrePower?: ClassPower | null;
@@ -66,6 +67,7 @@ const renderStep = (overrides: Overrides = {}) => {
       onGeneralPowerSelect={onGeneralPowerSelect}
       className='Bucaneiro'
       knownClassPowers={overrides.knownClassPowers}
+      unavailableClassPowers={overrides.unavailableClassPowers}
       almaLivrePower={overrides.almaLivrePower}
       almaLivreClassName={overrides.almaLivreClassName}
       almaLivrePowerAvailable={overrides.almaLivrePowerAvailable}
@@ -114,24 +116,31 @@ describe('PowerSelectionStep', () => {
       knownClassPowers: ['Alma Inabalável'],
     });
 
-    // Com o filtro desligado ele reaparece, mas continua não selecionável.
-    fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
     fireEvent.click(screen.getByLabelText('Selecionar Alma Inabalável'));
 
     expect(onClassPowerSelect).not.toHaveBeenCalled();
   });
 
-  it('já abre com "só os que eu posso pegar" ligado', () => {
-    // Na subida de nível a pergunta é "o que posso escolher agora?". Um poder
-    // já conhecido e não repetível não é resposta — some da lista até o
-    // usuário desligar o filtro.
-    renderStep({ knownClassPowers: ['Alma Inabalável'] });
+  it('lista o poder bloqueado em vez de escondê-lo', () => {
+    // O filtro "Só os que posso pegar" começa DESLIGADO: é na subida de nível
+    // que o jogador descobre o que falta para destravar a opção, e um poder que
+    // some em silêncio vira "não dá pra pegar" em vez de "falta a perícia X".
+    renderStep({ unavailableClassPowers: ['Alma Inabalável'] });
 
-    expect(screen.queryByText('Alma Inabalável')).not.toBeInTheDocument();
-    expect(screen.getByText('Abusar dos Fracos')).toBeInTheDocument();
+    expect(screen.getByText('Alma Inabalável')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
-    expect(screen.getByText('Alma Inabalável')).toBeInTheDocument();
+    expect(screen.queryByText('Alma Inabalável')).not.toBeInTheDocument();
+  });
+
+  it('não seleciona poder que o modal marcou como bloqueado', () => {
+    const { onClassPowerSelect } = renderStep({
+      unavailableClassPowers: ['Alma Inabalável'],
+    });
+
+    fireEvent.click(screen.getByLabelText('Selecionar Alma Inabalável'));
+
+    expect(onClassPowerSelect).not.toHaveBeenCalled();
   });
 
   it('mostra o que está selecionado acima do catálogo', () => {

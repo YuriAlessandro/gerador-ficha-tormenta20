@@ -99,12 +99,9 @@ interface UsePowerCatalogArgs {
    */
   resolveAvailability: (entry: CatalogEntry) => PowerAvailability;
   /**
-   * Estado inicial do filtro "Só os que eu posso pegar".
-   *
-   * Falso no editor da ficha, que é uma ferramenta de EDIÇÃO — quem abre lá
-   * costuma querer ver o catálogo inteiro, inclusive o que ainda não alcança.
-   * Verdadeiro na subida de nível, onde a pergunta é só "o que posso escolher
-   * agora?" e o resto é ruído.
+   * Estado inicial do filtro "Só os que posso pegar". O padrão é DESLIGADO:
+   * o item reprovado por pré-requisito precisa ficar visível para dizer o que
+   * falta — ele some quando o filtro liga, e some em silêncio.
    */
   initialOnlyAvailable?: boolean;
 }
