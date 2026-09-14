@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import generateRandomSheet from '@/functions/general';
+import generateRandomSheet, { applyManualLevelUp } from '@/functions/general';
+import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import SelectOptions from '@/interfaces/SelectedOptions';
 import { findClassDescription } from '@/functions/multiclass';
 import { SupplementId } from '@/types/supplement.types';
@@ -108,5 +109,48 @@ describe('ficha aleatória de Vassalo', () => {
   ])('no nível %i já tem %s, concedido automaticamente', (nivel, powerName) => {
     const nomes = (gerar(nivel).classPowers ?? []).map((power) => power.name);
     expect(nomes).toContain(powerName);
+  });
+
+  describe('subindo de nível a partir de uma ficha pronta', () => {
+    // Gerar direto no nível e subir até ele são fluxos DIFERENTES: o primeiro
+    // passa por `levelUp`, o segundo por `applyManualLevelUp`. Uma concessão
+    // ligada só no primeiro passa despercebida até o jogador subir de nível.
+    const subir = (sheet: ReturnType<typeof gerar>) =>
+      applyManualLevelUp(sheet, {} as unknown as LevelUpSelections);
+
+    it.each([
+      [7, 'Escudeiro'],
+      [8, 'Autoridade Feudal'],
+      [9, 'Título'],
+    ])(
+      'subindo do %iº nível, tem %s ao chegar no seguinte',
+      (nivelAnterior, powerName) => {
+        // Sem pré-condição de ausência: os três são poderes de Cavaleiro e o
+        // Vassalo pode tê-los ESCOLHIDO antes, nas concessões de 2 a 7. Nesse
+        // caso a concessão automática vira no-op — o que importa é o estado
+        // final, e que ela não duplique.
+        const depois = subir(gerar(nivelAnterior));
+
+        expect(depois.nivel).toBe(nivelAnterior + 1);
+        const nomes = (depois.classPowers ?? []).map((power) => power.name);
+        expect(nomes).toContain(powerName);
+        expect(nomes.filter((name) => name === powerName)).toHaveLength(1);
+      }
+    );
+
+    it('subindo do 7º, ganha Golpe Divino do Paladino', () => {
+      const nomes = (subir(gerar(7)).classPowers ?? []).map(
+        (power) => power.name
+      );
+      expect(nomes).toContain('Golpe Divino (Paladino)');
+    });
+
+    it('subir para nível sem concessão não adiciona poder de classe', () => {
+      // O 11º nível do Vassalo não concede poder nenhum.
+      const nivel10 = gerar(10);
+      const antes = (nivel10.classPowers ?? []).length;
+
+      expect(subir(nivel10).classPowers ?? []).toHaveLength(antes);
+    });
   });
 });
