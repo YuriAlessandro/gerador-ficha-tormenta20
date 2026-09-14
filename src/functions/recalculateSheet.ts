@@ -146,6 +146,13 @@ function deduplicateHistory(
       key += `-${action.source.originName}`;
     } else if (action.source.type === 'levelUp' && 'level' in action.source) {
       key += `-${action.source.level}`;
+      // Um mesmo nível registra mais de uma concessão: o poder escolhido E as
+      // habilidades de classe que entram naquele nível. Sem as mudanças na
+      // chave, todas colapsavam na primeira e as demais perdiam a origem — o
+      // card exibia "Vindo de: Origem não identificada" para a habilidade.
+      if (action.changes && action.changes.length > 0) {
+        key += `-${JSON.stringify(action.changes)}`;
+      }
     } else if (action.source.type === 'power' && 'name' in action.source) {
       key += `-${action.source.name}`;
       // For powers with multiple instances (like Aumento de Atributo), include changes in key

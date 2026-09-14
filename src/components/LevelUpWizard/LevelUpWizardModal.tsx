@@ -450,10 +450,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const fullClassCatalog = grant
       ? // Numa concessão emprestada o catálogo completo é o das classes de
         // origem; avaliar contra o da ficha listaria poder de outra classe.
-        grant.fromClasses.flatMap(
-          (className) =>
+        // `className` carimbado aqui também, e não só nos disponíveis: sem
+        // ele o agrupamento cai no nome da classe da FICHA, e um poder de
+        // Cavaleiro que o Vassalo não alcança aparecia sob "Poder de Vassalo".
+        grant.fromClasses.flatMap((className) =>
+          (
             findClassDescription(className, undefined, supplements)?.powers ??
             []
+          ).map((power) => ({ ...power, className }))
         )
       : [
           ...resolveClassPowerCatalog(sheetForFiltering),
