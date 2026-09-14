@@ -39,7 +39,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
-import { resolveCavaleiroCaminho } from './powers/cavaleiroCaminho';
+import { syncCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   isMulticlass,
   calculateMulticlassPV,
@@ -1215,7 +1215,7 @@ function applyClassAbilities(
     const abilitySelections = manualSelections?.[ability.name];
     const [newAcc] = applyPower(acc, ability, abilitySelections);
 
-    resolveCavaleiroCaminho(newAcc, ability.name);
+    syncCavaleiroCaminho(newAcc);
 
     return newAcc;
   }, sheetClone);

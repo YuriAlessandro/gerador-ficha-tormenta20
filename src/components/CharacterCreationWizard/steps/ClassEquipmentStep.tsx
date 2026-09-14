@@ -30,7 +30,13 @@ const ClassEquipmentStep: React.FC<ClassEquipmentStepProps> = ({
   const hasHeavyArmor = classe.proficiencias.includes(PROFICIENCIAS.PESADAS);
   const hasShield = classe.proficiencias.includes(PROFICIENCIAS.ESCUDOS);
   const isArcanista = classe.name === 'Arcanista';
-  const needsLightArmor = !hasHeavyArmor && !isArcanista;
+  // Arcanista é o único que não recebe armadura inicial. Os demais escolhem —
+  // inclusive quem tem proficiência com pesadas: o livro permite começar com
+  // a pesada, não obriga.
+  const needsArmor = !isArcanista;
+  const armorOptions: DefenseEquipment[] = hasHeavyArmor
+    ? [Armaduras.BRUNEA, ...EQUIPAMENTOS.armadurasLeves]
+    : EQUIPAMENTOS.armadurasLeves;
   const isBard = isClassOrVariantOf(classe, 'Bardo');
 
   const current = selections || {};
@@ -48,9 +54,6 @@ const ClassEquipmentStep: React.FC<ClassEquipmentStepProps> = ({
   );
 
   const fixedItems: (Equipment | DefenseEquipment)[] = [];
-  if (hasHeavyArmor) {
-    fixedItems.push(Armaduras.BRUNEA);
-  }
   if (hasShield) {
     fixedItems.push(Escudos.ESCUDOLEVE);
   }
@@ -58,7 +61,7 @@ const ClassEquipmentStep: React.FC<ClassEquipmentStepProps> = ({
   const isComplete =
     !!current.simpleWeapon &&
     (!needsMartialWeapon || !!current.martialWeapon) &&
-    (!needsLightArmor || !!current.armor) &&
+    (!needsArmor || !!current.armor) &&
     (!isBard || !!current.instrument);
 
   return (
@@ -97,19 +100,18 @@ const ClassEquipmentStep: React.FC<ClassEquipmentStepProps> = ({
         </>
       )}
 
-      {/* Armadura leve (se não usa pesada e não é Arcanista) */}
-      {needsLightArmor && (
+      {/* Armadura inicial (todos menos o Arcanista) */}
+      {needsArmor && (
         <>
           <Divider />
           <Box>
             <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              Armadura leve — escolha 1:
+              {hasHeavyArmor
+                ? 'Armadura — escolha 1 (você tem proficiência com pesadas):'
+                : 'Armadura leve — escolha 1:'}
             </Typography>
-            {renderSelectableItems(
-              EQUIPAMENTOS.armadurasLeves,
-              current.armor?.nome,
-              (item) =>
-                onChange({ ...current, armor: item as DefenseEquipment })
+            {renderSelectableItems(armorOptions, current.armor?.nome, (item) =>
+              onChange({ ...current, armor: item as DefenseEquipment })
             )}
           </Box>
         </>

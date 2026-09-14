@@ -5,6 +5,27 @@ import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
+export const CAMINHO_DO_CAVALEIRO = 'Caminho do Cavaleiro';
+export const CAMINHO_OPTION_KEY = 'caminhoDoCavaleiro';
+
+/**
+ * As duas metades do Caminho do Cavaleiro, como opções escolhíveis.
+ *
+ * Eram só prosa dentro do texto da habilidade: a escolha do livro não chegava
+ * ao jogador e o efeito do Bastião (RD 5) dependia de um campo que ninguém
+ * preenchia. Como `chooseFromOptions`, o assistente pergunta, a ficha aleatória
+ * sorteia e `applyOptionChosenTexts` passa a exibir só o caminho escolhido.
+ */
+export const CAMINHO_BASTIAO = {
+  name: 'Bastião',
+  text: 'Se estiver usando armadura pesada, você recebe redução de dano 5 (cumulativa com a RD fornecida por Especialização em Armadura).',
+};
+
+export const CAMINHO_MONTARIA = {
+  name: 'Montaria',
+  text: 'Você recebe um cavalo de guerra com o qual possui +5 em testes de Adestramento e Cavalgar. Ele fornece os benefícios de um parceiro veterano de seu tipo. No 11º nível, passa a fornecer os benefícios de um parceiro mestre. De acordo com o mestre, você pode receber outro tipo de montaria. Caso a montaria morra, você pode comprar outra pelo preço normal e treiná-la para receber os benefícios desta habilidade com uma semana de trabalho.',
+};
+
 const CAVALEIRO: ClassDescription = {
   name: 'Cavaleiro',
   pv: 20,
@@ -56,9 +77,19 @@ const CAVALEIRO: ClassDescription = {
       nivel: 2,
     },
     {
-      name: 'Caminho do Cavaleiro',
+      name: CAMINHO_DO_CAVALEIRO,
       text: 'Escolha entre Bastião ou Montaria. Bastião: Se estiver usando armadura pesada, você recebe redução de dano 5 (cumulativa com a RD fornecida por Especialização em Armadura). Montaria: Você recebe um cavalo de guerra com o qual possui +5 em testes de Adestramento e Cavalgar. Ele fornece os benefícios de um parceiro veterano de seu tipo. No 11º nível, passa a fornecer os benefícios de um parceiro mestre. De acordo com o mestre, você pode receber outro tipo de montaria. Veja a lista de montarias na página 261. Caso a montaria morra, você pode comprar outra pelo preço normal e treiná-la para receber os benefícios desta habilidade com uma semana de trabalho.',
       nivel: 5,
+      sheetActions: [
+        {
+          source: { type: 'power', name: CAMINHO_DO_CAVALEIRO },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: CAMINHO_OPTION_KEY,
+            options: [CAMINHO_BASTIAO, CAMINHO_MONTARIA],
+          },
+        },
+      ],
     },
     {
       name: 'Resoluto',

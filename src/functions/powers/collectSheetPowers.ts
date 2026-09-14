@@ -15,32 +15,6 @@ import { PowerSourceArrays, SheetPower } from './powerOrigins';
  * novo deve entrar por aqui em vez de repetir a concatenação.
  */
 
-const CAMINHO_DO_CAVALEIRO = 'Caminho do Cavaleiro';
-
-/**
- * Recorta o texto da habilidade para o caminho escolhido.
- *
- * O texto do livro é "Escolha entre Bastião ou Montaria. Bastião: ... Montaria:
- * ...". Fatiar pelos rótulos evita duplicar a descrição aqui — se o texto do
- * dado mudar, o recorte acompanha. Sem casamento, devolve `undefined` e a
- * habilidade segue com o texto completo.
- */
-function getCaminhoDoCavaleiroDynamicText(
-  text: string,
-  caminho: 'Bastião' | 'Montaria'
-): string | undefined {
-  const outro = caminho === 'Bastião' ? 'Montaria' : 'Bastião';
-  const inicio = text.indexOf(`${caminho}:`);
-  if (inicio < 0) return undefined;
-
-  const fim = text.indexOf(`${outro}:`, inicio);
-  const trecho = (fim > inicio ? text.slice(inicio, fim) : text.slice(inicio))
-    .trim()
-    .replace(/\s+$/, '');
-
-  return `[${caminho}] ${trecho.slice(caminho.length + 1).trim()}`;
-}
-
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
   return array.filter((item) => {
@@ -79,7 +53,6 @@ export function buildPowerSources(sheet: CharacterSheet): PowerSourceArrays {
     customGrantedPowers: sheet.customGrantedPowers || [],
     className: sheet.classe.name,
     raceName: sheet.raca.name,
-    cavaleiroCaminho: sheet.cavaleiroCaminho,
   };
 }
 
@@ -105,25 +78,11 @@ export function collectPowers(
     return power;
   });
 
-  // Caminho do Cavaleiro: o texto do livro descreve Bastião E Montaria. Só o
-  // caminho escolhido interessa na ficha — mesmo tratamento de Autoridade
-  // Eclesiástica, que também tem texto dependente de uma escolha.
-  const processedClassAbilities = sources.classAbilities.map((ability) => {
-    if (ability.name !== CAMINHO_DO_CAVALEIRO || !sources.cavaleiroCaminho) {
-      return ability;
-    }
-    const dynamicText = getCaminhoDoCavaleiroDynamicText(
-      ability.text,
-      sources.cavaleiroCaminho
-    );
-    return dynamicText ? { ...ability, dynamicText } : ability;
-  });
-
   // Habilidade de classe cujo nome já existe como poder de classe é a MESMA
   // coisa (ex.: a habilidade "Alquimista Iniciado" auto-concede o poder de
   // mesmo nome) — listar as duas duplicaria a linha.
   const classPowerNames = new Set(processedClassPowers.map((p) => p.name));
-  const filteredClassAbilities = processedClassAbilities.filter(
+  const filteredClassAbilities = sources.classAbilities.filter(
     (ability) => !classPowerNames.has(ability.name)
   );
 

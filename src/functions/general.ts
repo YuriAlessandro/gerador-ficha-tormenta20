@@ -153,7 +153,7 @@ import {
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
 } from './multiclass';
-import { resolveCavaleiroCaminho } from './powers/cavaleiroCaminho';
+import { syncCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   resolveSchoolChoice,
   buildSpellPool,
@@ -1248,11 +1248,18 @@ export function buildClassEquipmentsFromChoices(
   const shields = getShields(classe);
 
   const armors: DefenseEquipment[] = [];
-  if (!currentBag?.equipments?.Armadura?.length) {
-    if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
-      armors.push(Armaduras.BRUNEA);
-    } else if (choices.armor && classe.name !== 'Arcanista') {
+  if (
+    !currentBag?.equipments?.Armadura?.length &&
+    classe.name !== 'Arcanista'
+  ) {
+    // A escolha do jogador manda. O livro diz que, com proficiência, ele PODE
+    // começar com armadura pesada — não que seja obrigado —, então o
+    // assistente oferece as leves também. A pesada segue como padrão para quem
+    // não escolheu (ficha antiga, ou passo pulado).
+    if (choices.armor) {
       armors.push(choices.armor);
+    } else if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
+      armors.push(Armaduras.BRUNEA);
     }
   }
 
@@ -4390,13 +4397,7 @@ function levelUp(
       updatedSheet = newSheet;
       abilitySubSteps.push(...newSubSteps);
 
-      const caminho = resolveCavaleiroCaminho(updatedSheet, ability.name);
-      if (caminho) {
-        abilitySubSteps.push({
-          name: 'Caminho do Cavaleiro',
-          value: caminho,
-        });
-      }
+      syncCavaleiroCaminho(updatedSheet);
     });
 
     if (abilitySubSteps.length) {
@@ -4877,13 +4878,7 @@ export function applyManualLevelUp(
       }
       abilitySubSteps.push(...newSubSteps);
 
-      const caminho = resolveCavaleiroCaminho(updatedSheet, ability.name);
-      if (caminho) {
-        abilitySubSteps.push({
-          name: 'Caminho do Cavaleiro',
-          value: caminho,
-        });
-      }
+      syncCavaleiroCaminho(updatedSheet);
 
       // Treinador: aplicar efeitos de Treino Especializado no level-up
       if (

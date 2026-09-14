@@ -169,7 +169,6 @@ const PowersDisplay: React.FC<{
           customGrantedPowers,
           className,
           raceName,
-          cavaleiroCaminho: sheet?.cavaleiroCaminho,
         },
         sheet?.powersOrder,
         deityName
