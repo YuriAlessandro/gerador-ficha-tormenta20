@@ -271,7 +271,13 @@ describe('proficiencies', () => {
   });
 
   describe('isProficientWithDefense', () => {
-    it('armadura leve exige Armaduras Leves', () => {
+    it('armadura leve aceita Leves OU Pesadas', () => {
+      // A asserção original exigia `LEVES` e recusava `PESADAS`. Nenhuma classe
+      // do acervo declara pesadas sem leves, então a distinção nunca aparecia —
+      // até o Vassalo, que começa só com armas marciais e escudos e recebe
+      // pesadas no 3º nível. A armadura leve com que ele começa passava a dar
+      // penalidade justamente ao ficar MAIS treinado. Ver
+      // `isProficientWithDefense`.
       expect(
         isProficientWithDefense(Armaduras.ARMADURADECOURO, [
           PROFICIENCIAS.LEVES,
@@ -281,7 +287,7 @@ describe('proficiencies', () => {
         isProficientWithDefense(Armaduras.ARMADURADECOURO, [
           PROFICIENCIAS.PESADAS,
         ])
-      ).toBe(false);
+      ).toBe(true);
     });
 
     it('armadura pesada exige Armaduras Pesadas (fallback por nome)', () => {

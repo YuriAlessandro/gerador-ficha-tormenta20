@@ -231,9 +231,18 @@ export function isProficientWithDefense(
 ): boolean {
   if (item.group === 'Escudo')
     return proficiencias.includes(PROFICIENCIAS.ESCUDOS);
-  return isHeavyArmor(item)
-    ? proficiencias.includes(PROFICIENCIAS.PESADAS)
-    : proficiencias.includes(PROFICIENCIAS.LEVES);
+
+  if (isHeavyArmor(item)) return proficiencias.includes(PROFICIENCIAS.PESADAS);
+
+  // Proficiência com armaduras PESADAS inclui as leves: quem treinou para usar
+  // a categoria mais restritiva não desaprende a mais simples. Sem isto, um
+  // Vassalo — cujas proficiências iniciais são só armas marciais e escudos, e
+  // que recebe pesadas no 3º nível — passava a sofrer penalidade de armadura
+  // vestindo a armadura leve com que começou.
+  return (
+    proficiencias.includes(PROFICIENCIAS.LEVES) ||
+    proficiencias.includes(PROFICIENCIAS.PESADAS)
+  );
 }
 
 /**
