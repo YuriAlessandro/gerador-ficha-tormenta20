@@ -57,6 +57,12 @@ export interface Supplement {
  * Usado para exibir informações na UI
  * Note: Legacy IDs map to same string values, so only new IDs are used
  */
+/**
+ * As contagens das descrições são verificadas contra os dados reais em
+ * `supplementMetadata.spec.ts` — elas envelheciam em silêncio a cada edição de
+ * conteúdo (Ameaças de Arton adiciona poderes desde sempre e a descrição não
+ * dizia; o número de equipamentos estava trocado com o de outro suplemento).
+ */
 export const SUPPLEMENT_METADATA: Partial<
   Record<SupplementId, Omit<Supplement, 'enabled'>>
 > = {
@@ -74,7 +80,7 @@ export const SUPPLEMENT_METADATA: Partial<
     systemId: SystemId.TORMENTA20,
     name: 'Ameaças de Arton',
     abbreviation: 'AdA',
-    description: '29 novas raças; 67 novos equipamentos; 7 novas magias',
+    description: '29 raças; 31 poderes; 64 equipamentos; 7 magias',
     releaseDate: '2020',
     requiresPremium: false,
   },
@@ -83,7 +89,7 @@ export const SUPPLEMENT_METADATA: Partial<
     systemId: SystemId.TORMENTA20,
     name: 'Atlas de Arton',
     abbreviation: 'AA',
-    description: '70 origens regionais de Arton',
+    description: '66 origens regionais de Arton; 1 poder',
     releaseDate: '2021',
     requiresPremium: false,
   },
@@ -93,7 +99,7 @@ export const SUPPLEMENT_METADATA: Partial<
     name: 'Deuses de Arton',
     abbreviation: 'DA',
     description:
-      '1 nova classe; 76 poderes concedidos; 28 magias; 22 habilidades de Suraggel',
+      '1 classe; 75 poderes concedidos; 29 magias; 67 equipamentos; habilidades alternativas de Suraggel',
     releaseDate: '2024',
     requiresPremium: false,
   },
@@ -103,7 +109,7 @@ export const SUPPLEMENT_METADATA: Partial<
     name: 'Heróis de Arton',
     abbreviation: 'HA',
     description:
-      '5 raças; 1 classe; 30 origens; 59 poderes gerais; poderes de classe para 14 classes',
+      '5 raças; 1 classe; 14 variantes; 30 origens; 149 poderes; 288 poderes de classe; 22 magias',
     releaseDate: '2025',
     requiresPremium: false,
   },

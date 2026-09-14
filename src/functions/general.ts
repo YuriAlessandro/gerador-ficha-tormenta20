@@ -165,7 +165,7 @@ import {
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
 } from './multiclass';
-import { syncCavaleiroCaminho } from './powers/cavaleiroCaminho';
+import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   resolveSchoolChoice,
   buildSpellPool,
@@ -4460,8 +4460,6 @@ function levelUp(
       const [newSheet, newSubSteps] = applyPower(updatedSheet, ability);
       updatedSheet = newSheet;
       abilitySubSteps.push(...newSubSteps);
-
-      syncCavaleiroCaminho(updatedSheet);
     });
 
     if (abilitySubSteps.length) {
@@ -4975,8 +4973,6 @@ export function applyManualLevelUp(
         updatedSheet = newSheet;
       }
       abilitySubSteps.push(...newSubSteps);
-
-      syncCavaleiroCaminho(updatedSheet);
 
       // Treinador: aplicar efeitos de Treino Especializado no level-up
       if (
@@ -5575,7 +5571,7 @@ export const applyStatModifiers = (
   }
 
   // Cavaleiro: Bastião (RD Geral 5, armadura pesada)
-  if (sheet.cavaleiroCaminho === 'Bastião' && hasHeavyArmor) {
+  if (getCavaleiroCaminho(sheet) === 'Bastião' && hasHeavyArmor) {
     if (!sheet.reducaoDeDano) {
       sheet.reducaoDeDano = {};
     }

@@ -75,15 +75,11 @@ export type ClassAbility = {
 /** Concessão de poder num nível específico, para classes fora do padrão. */
 export interface ClassPowerGrant {
   level: number;
-  /** Classes de onde o poder pode vir. */
   fromClasses: string[];
-  /** Rótulo do grupo na escolha ("Poder de Cavaleiro"). */
   label?: string;
   /**
-   * Poderes que NÃO entram na escolha, tipicamente porque a própria classe já
-   * os concede automaticamente no mesmo nível. Sem isto o personagem pode
-   * escolher o que vai ganhar de graça logo em seguida, e acaba com o poder
-   * duplicado.
+   * Fora da escolha — em geral porque o nível já concede o poder de graça.
+   * Ex.: Lorde (Vassalo 9) e Autoridade Feudal.
    */
   excludePowers?: string[];
 }
@@ -106,8 +102,7 @@ export type ClassPower = CountsAsTormentaPower & {
   supplementId?: SupplementId; // Suplemento de origem do poder
   supplementName?: string; // Nome do suplemento de origem
   className?: string; // Multiclasse: qual classe concedeu este poder
-  /** Waiver que destravou o poder numa classe que não é a do personagem. */
-  unlockedBy?: string;
+  unlockedBy?: string; // Waiver que destravou o poder em outra classe
   tags?: string[]; // Ver `PowerTaggable`
   waivesPrerequisites?: PrerequisiteWaiver[]; // Ver `PrerequisiteWaiver`
 };
@@ -184,15 +179,8 @@ export interface ClassDescription {
   abilities: ClassAbility[];
   powers: ClassPower[];
   /**
-   * Níveis em que a classe concede escolha de poder, e de quais classes os
-   * poderes vêm. AUSENTE é o comportamento padrão de T20: todo nível a partir
-   * do 2º concede um poder da própria classe.
-   *
-   * Existe para o Vassalo, que não segue esse padrão: ele não tem catálogo
-   * próprio (`excludeAllBasePowers`) e ganha poder só em níveis específicos,
-   * emprestados de Cavaleiro/Guerreiro/Nobre. Sem isto o assistente oferecia
-   * uma escolha de poder em TODO nível — vazia do lado da classe, e indevida
-   * nos níveis em que a classe não concede nada.
+   * Níveis que concedem escolha de poder, e de quais classes. AUSENTE = padrão
+   * de T20 (todo nível a partir do 2º, da própria classe). Ex.: Vassalo.
    */
   powerGrants?: ClassPowerGrant[];
   probDevoto: number;

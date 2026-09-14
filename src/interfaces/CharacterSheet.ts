@@ -79,13 +79,9 @@ export type SheetAction = {
   source: SheetChangeSource;
   action: SheetActionStep;
   /**
-   * Quando presente, a ação só é aplicada se a condição for satisfeita — as
-   * mesmas cláusulas de `SheetBonus.condition`.
-   *
-   * Existe para a ação que depende de uma bifurcação feita ANTES: o Vassalo
-   * escolhe Caminho do Soldado ou do Governante no 9º nível e recebe pontos de
-   * atributo diferentes no 17º. Sem isto, a única saída seria repetir a
-   * pergunta do caminho, que poderia divergir da resposta original.
+   * Só aplica a ação se a condição passar — mesmas cláusulas de
+   * `SheetBonus.condition`. Ex.: Rei Mercenário (Vassalo 17), que depende do
+   * caminho escolhido no 9º.
    */
   condition?: BonusCondition;
 };
@@ -153,19 +149,10 @@ export type SheetActionStep =
       oncePerTier?: boolean; // Limitar a mesma escolha a 1×/patamar (padrão true).
       // Persiste a escolha do jogador (replay sem manualSelections, ex.: homebrew).
       optionKey?: string;
-      /**
-       * Restringe quais atributos podem receber o aumento. Ausente = todos.
-       * Ex.: Rei Mercenário do Vassalo distribui em Força/Destreza/Constituição
-       * OU em Inteligência/Sabedoria/Carisma, conforme o caminho.
-       */
+      /** Restringe o pool. Ausente = todos. Ex.: Rei Mercenário (Vassalo 17). */
       allowedAttributes?: Atributo[];
-      /** Quantos aumentos aplicar (padrão 1). */
       pick?: number;
-      /**
-       * Permite repetir o mesmo atributo entre os `pick`. Padrão `false` —
-       * "+1 em dois atributos DIFERENTES" (Imperador) é o caso comum; "3 pontos
-       * para distribuir como quiser" (Rei Mercenário) é o que precisa de `true`.
-       */
+      /** Repetir o mesmo atributo entre os `pick`. Padrão `false`. */
       allowRepeats?: boolean;
     }
   | {
@@ -242,36 +229,24 @@ export type SheetActionStep =
       // Abastado), cuja oferta acompanha o crescimento do personagem.
       levelSource?: 'fixed' | 'sheet';
       /**
-       * Classes de onde o poder vem, quando NÃO é a da ficha — "você recebe um
-       * poder de cavaleiro a sua escolha" (Vassalo). Os requisitos são
-       * avaliados como se o personagem fosse daquela classe.
+       * Poder vindo de outra classe, avaliado como se o personagem fosse dela.
+       * Ex.: Valete (Vassalo 2), "um poder de cavaleiro a sua escolha".
        */
       fromClasses?: string[];
-      /**
-       * Avalia os requisitos no nível do PERSONAGEM em vez de `minLevel`, para
-       * a cláusula "como um guerreiro de nível igual ao seu".
-       */
+      /** Avalia no nível do personagem em vez de `minLevel`. */
       atCharacterLevel?: boolean;
-      /** Rótulo da escolha na UI ("Poder de Cavaleiro"). */
       label?: string;
     }
   | {
       type: 'grantSpecificClassPower';
       powerName: string; // Name of the specific class power to grant automatically
-      /**
-       * Classe dona do poder, quando não é a da ficha. O Vassalo recebe
-       * "Escudeiro", "Autoridade Feudal" e "Título", que são poderes de
-       * Cavaleiro — e ele não herda o catálogo da classe base
-       * (`excludeAllBasePowers`), então não há onde procurar sem isto.
-       */
+      /** Classe dona do poder, quando não é a da ficha. Ex.: Barão (Vassalo 10). */
       fromClass?: string;
     }
   | {
       /**
-       * Concede uma habilidade NOMEADA de outra classe. `learnClassAbility`
-       * não serve: ele oferece todas as habilidades de um nível para o jogador
-       * escolher, e aqui a habilidade é determinada ("você recebe a habilidade
-       * Golpe Divino, como um paladino de nível igual ao seu").
+       * Habilidade NOMEADA de outra classe — `learnClassAbility` deixa o
+       * jogador escolher. Ex.: Capitão do Reino (Vassalo 8), Golpe Divino.
        */
       type: 'grantSpecificClassAbility';
       abilityName: string;
@@ -741,11 +716,8 @@ export type BonusConditionClause = (
   | { kind: 'devoteOf'; value: string }
   | { kind: 'isRace'; value: string }
   /**
-   * Uma opção de `chooseFromOptions` foi escolhida (lida do
-   * `sheetActionHistory`, onde a escolha vive como `OptionChosen`). É o que
-   * permite um benefício de nível alto depender de uma bifurcação feita antes
-   * — ex.: o Caminho do Soldado/Governante do Vassalo, escolhido no 9º nível e
-   * cobrado nos níveis 11 e 13.
+   * Opção de `chooseFromOptions` já escolhida (lida do histórico). Ex.: o
+   * Caminho do Soldado/Governante do Vassalo, cobrado nos níveis 11 e 13.
    */
   | { kind: 'optionChosen'; value: string }
 ) & { negate?: boolean };

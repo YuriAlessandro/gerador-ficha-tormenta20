@@ -44,7 +44,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
-import { syncCavaleiroCaminho } from './powers/cavaleiroCaminho';
+import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   isMulticlass,
   calculateMulticlassPV,
@@ -1253,8 +1253,6 @@ function applyClassAbilities(
   sheetClone = allAbilities.reduce((acc, ability) => {
     const abilitySelections = manualSelections?.[ability.name];
     const [newAcc] = applyPower(acc, ability, abilitySelections);
-
-    syncCavaleiroCaminho(newAcc);
 
     return newAcc;
   }, sheetClone);
@@ -2793,7 +2791,7 @@ export function recalculateSheet(
   }
 
   // Cavaleiro: Bastião (RD Geral 5, requer armadura pesada)
-  if (updatedSheet.cavaleiroCaminho === 'Bastião' && heavyArmor) {
+  if (getCavaleiroCaminho(updatedSheet) === 'Bastião' && heavyArmor) {
     computedRd.Geral = (computedRd.Geral ?? 0) + 5;
   }
 

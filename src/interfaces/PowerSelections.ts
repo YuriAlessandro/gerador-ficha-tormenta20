@@ -107,12 +107,8 @@ export interface PowerSelectionRequirement {
     // For getGeneralPower: piscina por categoria, resolvida pelo `dataRegistry`
     // com os suplementos ativos em vez de vir congelada em `availableOptions`.
     availableTypes?: GeneralPowerType[];
-    // For getClassPower: classes de onde o poder vem, quando não é a da ficha
-    // ("um poder de cavaleiro a sua escolha", do Vassalo).
-    fromClasses?: string[];
-    // For getClassPower: avalia no nível do personagem em vez de `minLevel`
-    // ("como um guerreiro de nível igual ao seu").
-    atCharacterLevel?: boolean;
+    fromClasses?: string[]; // getClassPower: poder vindo de outra classe
+    atCharacterLevel?: boolean; // getClassPower: avalia no nível do personagem
     abilityLevel?: number; // For learnClassAbility: nível das habilidades elegíveis
     // For getGeneralPower: a concessão vale apesar dos pré-requisitos dos
     // poderes ofertados (ex.: Linhagem Abençoada, "sem precisar ser devoto").
