@@ -464,10 +464,94 @@ export function getAllowedClassPowers(
  * Mesma lógica usada pelo gerador em applyPower (getClassPower), extraída para
  * ser reaproveitada pela UI de seleção manual (assistente de criação).
  */
+export interface ClassPowerGrantOptions {
+  /**
+   * Classes de onde o poder pode vir, quando NÃO é a da ficha. É a cláusula
+   * "você recebe um poder de cavaleiro a sua escolha" do Vassalo, e o "como um
+   * guerreiro de nível igual ao seu para propósitos de pré-requisitos" que a
+   * acompanha: os requisitos são avaliados contra uma ficha sintética daquela
+   * classe, senão um `RequirementType.CLASSE` reprovaria sempre.
+   *
+   * Mesmo truque de `buildSyntheticDevoteSheet` (Poder Capturado).
+   */
+  fromClasses?: string[];
+}
+
+/**
+ * Ficha "como se fosse da classe X", para avaliar pré-requisitos de um poder
+ * emprestado. Só troca o que o avaliador lê: nome da classe e proficiências.
+ */
+function buildSyntheticClassSheet(
+  sheet: CharacterSheet,
+  className: string,
+  nivel: number
+): CharacterSheet {
+  const description = findClassDescription(
+    className,
+    undefined,
+    sheet.supplements
+  );
+  return {
+    ...sheet,
+    nivel,
+    classe: {
+      ...sheet.classe,
+      name: className,
+      subname: undefined,
+      powers: description?.powers ?? [],
+      proficiencias: [
+        ...(sheet.classe.proficiencias ?? []),
+        ...(description?.proficiencias ?? []),
+      ],
+    },
+  } as CharacterSheet;
+}
+
+/**
+ * Poderes de OUTRAS classes elegíveis para uma concessão, com a classe de
+ * origem carimbada em `className` — o mesmo carimbo de `getWaivedClassPowers`,
+ * que faz o catálogo da UI agrupar por origem em vez de mentir o nome.
+ */
+export function getForeignClassPowers(
+  sheet: CharacterSheet,
+  classNames: string[],
+  nivel: number
+): ClassPower[] {
+  const taken = new Set((sheet.classPowers ?? []).map((power) => power.name));
+  const seen = new Set<string>();
+  const result: ClassPower[] = [];
+
+  classNames.forEach((className) => {
+    const syntheticSheet = buildSyntheticClassSheet(sheet, className, nivel);
+    const waivers = getActiveWaivers(syntheticSheet);
+
+    (
+      findClassDescription(className, undefined, sheet.supplements)?.powers ??
+      []
+    ).forEach((power) => {
+      const key = `${className}:${power.name}`;
+      if (seen.has(key)) return;
+      if (taken.has(power.name) && !power.canRepeat) return;
+      if (!isPowerAvailable(syntheticSheet, power, { className, waivers })) {
+        return;
+      }
+      seen.add(key);
+      result.push({ ...power, className });
+    });
+  });
+
+  return result;
+}
+
 export function getFuturaLendaClassPowers(
   sheet: CharacterSheet,
-  minLevel = 2
+  minLevel = 2,
+  options?: ClassPowerGrantOptions
 ): ClassPower[] {
+  if (options?.fromClasses?.length) {
+    return getForeignClassPowers(sheet, options.fromClasses, minLevel);
+  }
+
   const sheetForCheck: CharacterSheet = { ...sheet, nivel: minLevel };
   const waivers = getActiveWaivers(sheet);
 

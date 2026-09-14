@@ -101,6 +101,12 @@ export interface PowerSelectionRequirement {
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
     immediateClassPower?: boolean; // Diferentão grants the selected power now
     minLevel?: number; // For getClassPower: nível em que os requisitos são avaliados
+    // For getClassPower: classes de onde o poder vem, quando não é a da ficha
+    // ("um poder de cavaleiro a sua escolha", do Vassalo).
+    fromClasses?: string[];
+    // For getClassPower: avalia no nível do personagem em vez de `minLevel`
+    // ("como um guerreiro de nível igual ao seu").
+    atCharacterLevel?: boolean;
     abilityLevel?: number; // For learnClassAbility: nível das habilidades elegíveis
     // For getGeneralPower: a concessão vale apesar dos pré-requisitos dos
     // poderes ofertados (ex.: Linhagem Abençoada, "sem precisar ser devoto").

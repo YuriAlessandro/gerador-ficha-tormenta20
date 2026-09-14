@@ -2995,10 +2995,22 @@ export const applyPower = (
 
         subSteps.push(...currentSteps);
       } else if (sheetAction.action.type === 'getClassPower') {
-        const { minLevel = 2 } = sheetAction.action;
+        const {
+          minLevel = 2,
+          fromClasses,
+          atCharacterLevel,
+        } = sheetAction.action;
+
+        // "como um guerreiro de nível igual ao seu": o nível de avaliação é o
+        // do personagem, não o `minLevel` fixo da origem Futura Lenda.
+        const evaluationLevel = atCharacterLevel ? sheet.nivel : minLevel;
 
         // Filter class powers by minimum level and requirements
-        const availablePowers = getFuturaLendaClassPowers(sheet, minLevel);
+        const availablePowers = getFuturaLendaClassPowers(
+          sheet,
+          evaluationLevel,
+          { fromClasses }
+        );
 
         if (availablePowers.length === 0) {
           // Sem catálogo resolvível (classe homebrew/variante de suplemento
@@ -3078,14 +3090,17 @@ export const applyPower = (
           });
         }
       } else if (sheetAction.action.type === 'grantSpecificClassPower') {
-        const { powerName: targetPowerName } = sheetAction.action;
+        const { powerName: targetPowerName, fromClass } = sheetAction.action;
 
         // Multiclasse: o poder concedido pertence à classe que concedeu a
         // habilidade (`sourceClassName`), que não é necessariamente a classe
         // primária da ficha — ex.: Alquimista 2 concede "Alquimista Iniciado"
         // numa ficha cuja `sheet.classe` é Ladino.
         const { sourceClassName } = powerOrAbility;
-        const ownerClassName = sourceClassName ?? sheet.classe.name;
+        // `fromClass` tem precedência: é a declaração explícita de que o poder
+        // vem de outra classe (Vassalo → poderes de Cavaleiro).
+        const ownerClassName =
+          fromClass ?? sourceClassName ?? sheet.classe.name;
         const isForeignClass = ownerClassName !== sheet.classe.name;
 
         let targetPower = isForeignClass

@@ -205,10 +205,30 @@ export type SheetActionStep =
       // Nível em que os requisitos são avaliados (default: 2). Ver
       // getFuturaLendaClassPowers.
       minLevel?: number;
+      /**
+       * Classes de onde o poder vem, quando NÃO é a da ficha — "você recebe um
+       * poder de cavaleiro a sua escolha" (Vassalo). Os requisitos são
+       * avaliados como se o personagem fosse daquela classe.
+       */
+      fromClasses?: string[];
+      /**
+       * Avalia os requisitos no nível do PERSONAGEM em vez de `minLevel`, para
+       * a cláusula "como um guerreiro de nível igual ao seu".
+       */
+      atCharacterLevel?: boolean;
+      /** Rótulo da escolha na UI ("Poder de Cavaleiro"). */
+      label?: string;
     }
   | {
       type: 'grantSpecificClassPower';
       powerName: string; // Name of the specific class power to grant automatically
+      /**
+       * Classe dona do poder, quando não é a da ficha. O Vassalo recebe
+       * "Escudeiro", "Autoridade Feudal" e "Título", que são poderes de
+       * Cavaleiro — e ele não herda o catálogo da classe base
+       * (`excludeAllBasePowers`), então não há onde procurar sem isto.
+       */
+      fromClass?: string;
     }
   | {
       type: 'addAlchemyItems';
@@ -673,6 +693,14 @@ export type BonusConditionClause = (
   | { kind: 'hasSkill'; value: Skill }
   | { kind: 'devoteOf'; value: string }
   | { kind: 'isRace'; value: string }
+  /**
+   * Uma opção de `chooseFromOptions` foi escolhida (lida do
+   * `sheetActionHistory`, onde a escolha vive como `OptionChosen`). É o que
+   * permite um benefício de nível alto depender de uma bifurcação feita antes
+   * — ex.: o Caminho do Soldado/Governante do Vassalo, escolhido no 9º nível e
+   * cobrado nos níveis 11 e 13.
+   */
+  | { kind: 'optionChosen'; value: string }
 ) & { negate?: boolean };
 
 /**
