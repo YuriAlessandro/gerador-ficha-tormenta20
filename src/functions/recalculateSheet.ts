@@ -39,6 +39,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
+import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   isMulticlass,
   calculateMulticlassPV,
@@ -145,6 +146,13 @@ function deduplicateHistory(
       key += `-${action.source.originName}`;
     } else if (action.source.type === 'levelUp' && 'level' in action.source) {
       key += `-${action.source.level}`;
+      // Um mesmo nível registra mais de uma concessão: o poder escolhido E as
+      // habilidades de classe que entram naquele nível. Sem as mudanças na
+      // chave, todas colapsavam na primeira e as demais perdiam a origem — o
+      // card exibia "Vindo de: Origem não identificada" para a habilidade.
+      if (action.changes && action.changes.length > 0) {
+        key += `-${JSON.stringify(action.changes)}`;
+      }
     } else if (action.source.type === 'power' && 'name' in action.source) {
       key += `-${action.source.name}`;
       // For powers with multiple instances (like Aumento de Atributo), include changes in key
@@ -1213,6 +1221,7 @@ function applyClassAbilities(
   sheetClone = allAbilities.reduce((acc, ability) => {
     const abilitySelections = manualSelections?.[ability.name];
     const [newAcc] = applyPower(acc, ability, abilitySelections);
+
     return newAcc;
   }, sheetClone);
 
@@ -2750,7 +2759,7 @@ export function recalculateSheet(
   }
 
   // Cavaleiro: Bastião (RD Geral 5, requer armadura pesada)
-  if (updatedSheet.cavaleiroCaminho === 'Bastião' && heavyArmor) {
+  if (getCavaleiroCaminho(updatedSheet) === 'Bastião' && heavyArmor) {
     computedRd.Geral = (computedRd.Geral ?? 0) + 5;
   }
 

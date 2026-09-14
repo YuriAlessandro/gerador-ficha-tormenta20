@@ -78,6 +78,12 @@ export type SheetChangeSource =
 export type SheetAction = {
   source: SheetChangeSource;
   action: SheetActionStep;
+  /**
+   * Só aplica a ação se a condição passar — mesmas cláusulas de
+   * `SheetBonus.condition`. Ex.: Rei Mercenário (Vassalo 17), que depende do
+   * caminho escolhido no 9º.
+   */
+  condition?: BonusCondition;
 };
 
 export type SheetActionStep =
@@ -137,6 +143,11 @@ export type SheetActionStep =
       oncePerTier?: boolean; // Limitar a mesma escolha a 1×/patamar (padrão true).
       // Persiste a escolha do jogador (replay sem manualSelections, ex.: homebrew).
       optionKey?: string;
+      /** Restringe o pool. Ausente = todos. Ex.: Rei Mercenário (Vassalo 17). */
+      allowedAttributes?: Atributo[];
+      pick?: number;
+      /** Repetir o mesmo atributo entre os `pick`. Padrão `false`. */
+      allowRepeats?: boolean;
     }
   | {
       type: 'setMaxSpacesAttribute';
@@ -205,10 +216,29 @@ export type SheetActionStep =
       // Nível em que os requisitos são avaliados (default: 2). Ver
       // getFuturaLendaClassPowers.
       minLevel?: number;
+      /**
+       * Poder vindo de outra classe, avaliado como se o personagem fosse dela.
+       * Ex.: Valete (Vassalo 2), "um poder de cavaleiro a sua escolha".
+       */
+      fromClasses?: string[];
+      /** Avalia no nível do personagem em vez de `minLevel`. */
+      atCharacterLevel?: boolean;
+      label?: string;
     }
   | {
       type: 'grantSpecificClassPower';
       powerName: string; // Name of the specific class power to grant automatically
+      /** Classe dona do poder, quando não é a da ficha. Ex.: Barão (Vassalo 10). */
+      fromClass?: string;
+    }
+  | {
+      /**
+       * Habilidade NOMEADA de outra classe — `learnClassAbility` deixa o
+       * jogador escolher. Ex.: Capitão do Reino (Vassalo 8), Golpe Divino.
+       */
+      type: 'grantSpecificClassAbility';
+      abilityName: string;
+      fromClass: string;
     }
   | {
       type: 'addAlchemyItems';
@@ -673,6 +703,11 @@ export type BonusConditionClause = (
   | { kind: 'hasSkill'; value: Skill }
   | { kind: 'devoteOf'; value: string }
   | { kind: 'isRace'; value: string }
+  /**
+   * Opção de `chooseFromOptions` já escolhida (lida do histórico). Ex.: o
+   * Caminho do Soldado/Governante do Vassalo, cobrado nos níveis 11 e 13.
+   */
+  | { kind: 'optionChosen'; value: string }
 ) & { negate?: boolean };
 
 /**

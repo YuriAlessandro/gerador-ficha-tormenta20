@@ -14,7 +14,7 @@ import {
 } from './recalculateSheet';
 import { normalizeSheet } from './sheetNormalizer';
 import { refreshBagItemsFromCatalog } from './bagCatalogRefresh';
-import { isBonusActive } from './bonusConditions';
+import { isBonusActive, evaluateBonusCondition } from './bonusConditions';
 import { getSheetWornArmor, isWearingHeavyArmor } from './wornArmor';
 import { ignoresEncumbrance } from './encumbrance';
 import {
@@ -153,6 +153,7 @@ import {
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
 } from './multiclass';
+import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   resolveSchoolChoice,
   buildSpellPool,
@@ -170,6 +171,7 @@ import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getForeignClassPowers,
   getFuturaLendaClassPowers,
   getPowersAllowedByRequirements,
   getWeightedInventorClassPowers,
@@ -1195,7 +1197,8 @@ function getArmors(classe: ClassDescription, currentBag?: Bag) {
   const armors = [];
   if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
     armors.push(Armaduras.BRUNEA);
-  } else if (classe.name !== 'Arcanista') {
+  } else if (!isClassOrVariantOf(classe, 'Arcanista')) {
+    // Variante conta: o Necromante é Arcanista e também não recebe armadura.
     armors.push(getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves));
   }
 
@@ -1246,11 +1249,18 @@ export function buildClassEquipmentsFromChoices(
   const shields = getShields(classe);
 
   const armors: DefenseEquipment[] = [];
-  if (!currentBag?.equipments?.Armadura?.length) {
-    if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
-      armors.push(Armaduras.BRUNEA);
-    } else if (choices.armor && classe.name !== 'Arcanista') {
+  if (
+    !currentBag?.equipments?.Armadura?.length &&
+    !isClassOrVariantOf(classe, 'Arcanista')
+  ) {
+    // A escolha do jogador manda. O livro diz que, com proficiência, ele PODE
+    // começar com armadura pesada — não que seja obrigado —, então o
+    // assistente oferece as leves também. A pesada segue como padrão para quem
+    // não escolheu (ficha antiga, ou passo pulado).
+    if (choices.armor) {
       armors.push(choices.armor);
+    } else if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
+      armors.push(Armaduras.BRUNEA);
     }
   }
 
@@ -1808,6 +1818,14 @@ export const applyPower = (
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
+      // Ação condicionada a uma escolha anterior (ver `SheetAction.condition`).
+      if (
+        sheetAction.condition &&
+        !evaluateBonusCondition(sheet, sheetAction.condition)
+      ) {
+        return;
+      }
+
       // Unified handling for selectWeaponSpecialization (handles new instances,
       // recalculation, and override-on-change in a single block — bypassing the
       // generic isActionAlreadyApplied short-circuit below).
@@ -2476,12 +2494,20 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'increaseAttribute') {
         const incValue = sheetAction.action.value ?? 1;
         const oncePerTier = sheetAction.action.oncePerTier !== false;
-        const { optionKey } = sheetAction.action;
+        const { optionKey, allowedAttributes, allowRepeats } =
+          sheetAction.action;
+        const picks = sheetAction.action.pick ?? 1;
         // 1×/patamar (opcional): exclui atributos já aumentados no patamar.
         const usedAttributes = oncePerTier
           ? getAttributeIncreasesInSamePlateau(sheet)
           : [];
-        const availableAttributes = Object.values(Atributo).filter(
+        // `allowedAttributes` restringe o pool ("3 pontos em Força, Destreza
+        // ou Constituição"). Ausente = todos os atributos.
+        const pool = allowedAttributes ?? Object.values(Atributo);
+        // Aumentos já aplicados por ESTA ação, para os `pick` não repetirem o
+        // mesmo atributo quando `allowRepeats` é falso.
+        const chosenHere: Atributo[] = [];
+        const availableAttributes = pool.filter(
           (attr) => !usedAttributes.includes(attr)
         );
 
@@ -2499,7 +2525,13 @@ export const applyPower = (
         // de classe → aleatório entre os disponíveis.
         if (
           manualSelections?.attributes &&
-          manualSelections.attributes.length > 0
+          manualSelections.attributes.length > 0 &&
+          // A escolha manual ainda precisa caber no pool permitido: o jogador
+          // não pode pôr em Carisma um ponto que a regra manda pôr em Força,
+          // Destreza ou Constituição.
+          availableAttributes.includes(
+            manualSelections.attributes[0] as Atributo
+          )
         ) {
           targetAttribute = manualSelections.attributes[0] as Atributo;
         } else if (persisted) {
@@ -2513,6 +2545,7 @@ export const applyPower = (
 
         // Only apply if we found a valid target attribute
         if (targetAttribute && sheet.atributos[targetAttribute]) {
+          chosenHere.push(targetAttribute);
           sheet.atributos[targetAttribute].value += incValue;
 
           // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
@@ -2541,6 +2574,43 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Aumenta o atributo ${targetAttribute} por +${incValue}`,
           });
+
+          // Pontos restantes da mesma ação (ex.: "3 pontos para distribuir").
+          for (let pickIndex = 1; pickIndex < picks; pickIndex += 1) {
+            const remaining = availableAttributes.filter(
+              (attr) => allowRepeats || !chosenHere.includes(attr)
+            );
+            if (remaining.length === 0) break;
+
+            const manual = manualSelections?.attributes?.[pickIndex] as
+              | Atributo
+              | undefined;
+            const next =
+              manual && remaining.includes(manual)
+                ? manual
+                : sheet.classe.attrPriority.find((attr) =>
+                    remaining.includes(attr)
+                  ) ?? getRandomItemFromArray(remaining);
+
+            chosenHere.push(next);
+            sheet.atributos[next].value += incValue;
+            sheet.sheetActionHistory.push({
+              source: sheetAction.source,
+              powerName: powerOrAbility.name,
+              changes: [
+                {
+                  type: 'AttributeIncreasedByAumentoDeAtributo',
+                  attribute: next,
+                  plateau: getCurrentPlateau(sheet),
+                  oncePerTier,
+                },
+              ],
+            });
+            subSteps.push({
+              name: getSourceName(sheetAction.source),
+              value: `Aumenta o atributo ${next} por +${incValue}`,
+            });
+          }
         } else {
           // Skip this attribute increase if no valid target found
           // eslint-disable-next-line no-console
@@ -2995,10 +3065,22 @@ export const applyPower = (
 
         subSteps.push(...currentSteps);
       } else if (sheetAction.action.type === 'getClassPower') {
-        const { minLevel = 2 } = sheetAction.action;
+        const {
+          minLevel = 2,
+          fromClasses,
+          atCharacterLevel,
+        } = sheetAction.action;
+
+        // "como um guerreiro de nível igual ao seu": o nível de avaliação é o
+        // do personagem, não o `minLevel` fixo da origem Futura Lenda.
+        const evaluationLevel = atCharacterLevel ? sheet.nivel : minLevel;
 
         // Filter class powers by minimum level and requirements
-        const availablePowers = getFuturaLendaClassPowers(sheet, minLevel);
+        const availablePowers = getFuturaLendaClassPowers(
+          sheet,
+          evaluationLevel,
+          { fromClasses }
+        );
 
         if (availablePowers.length === 0) {
           // Sem catálogo resolvível (classe homebrew/variante de suplemento
@@ -3077,15 +3159,68 @@ export const applyPower = (
             ],
           });
         }
+      } else if (sheetAction.action.type === 'grantSpecificClassAbility') {
+        const { abilityName, fromClass } = sheetAction.action;
+        const sourceClass = findClassDescription(fromClass, undefined);
+        const ability = sourceClass?.abilities.find(
+          (entry) => entry.name === abilityName
+        );
+
+        if (!ability) {
+          throw new Error(
+            `Habilidade "${abilityName}" não encontrada na classe ${fromClass}`
+          );
+        }
+
+        // Entra como PODER de classe, e não em `classe.abilities`: aquele array
+        // é reconstruído da descrição da classe a cada recálculo, e a
+        // concessão sumiria. Mesmo caminho de `learnClassAbility`.
+        const composedName = `${ability.name} (${fromClass})`;
+        if (!sheet.classPowers) sheet.classPowers = [];
+
+        const alreadyHasAbility = sheet.classPowers.some(
+          (entry) => entry.name === composedName
+        );
+        if (!alreadyHasAbility) {
+          const grantedBonuses = ability.sheetBonuses ?? [];
+          sheet.classPowers.push({
+            name: composedName,
+            text: ability.text,
+            sheetActions: ability.sheetActions,
+            sheetBonuses: grantedBonuses,
+            rolls: ability.rolls,
+          });
+          sheet.sheetBonuses.push(...grantedBonuses);
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Habilidade concedida: ${composedName}`,
+          });
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'ClassAbilityLearned',
+                className: fromClass,
+                abilityName,
+              },
+            ],
+          });
+        }
       } else if (sheetAction.action.type === 'grantSpecificClassPower') {
-        const { powerName: targetPowerName } = sheetAction.action;
+        const { powerName: targetPowerName, fromClass } = sheetAction.action;
 
         // Multiclasse: o poder concedido pertence à classe que concedeu a
         // habilidade (`sourceClassName`), que não é necessariamente a classe
         // primária da ficha — ex.: Alquimista 2 concede "Alquimista Iniciado"
         // numa ficha cuja `sheet.classe` é Ladino.
         const { sourceClassName } = powerOrAbility;
-        const ownerClassName = sourceClassName ?? sheet.classe.name;
+        // `fromClass` tem precedência: é a declaração explícita de que o poder
+        // vem de outra classe (Vassalo → poderes de Cavaleiro).
+        const ownerClassName =
+          fromClass ?? sourceClassName ?? sheet.classe.name;
         const isForeignClass = ownerClassName !== sheet.classe.name;
 
         let targetPower = isForeignClass
@@ -3838,16 +3973,6 @@ function applyClassAbilities(
     );
     subSteps.push(...newSubSteps);
 
-    // Cavaleiro: random path selection for Caminho do Cavaleiro
-    if (ability.name === 'Caminho do Cavaleiro' && !newAcc.cavaleiroCaminho) {
-      const caminho = getRandomItemFromArray(['Bastião', 'Montaria'] as const);
-      newAcc.cavaleiroCaminho = caminho;
-      subSteps.push({
-        name: 'Caminho do Cavaleiro',
-        value: caminho,
-      });
-    }
-
     // Treinador: gerar Melhor Amigo aleatório
     if (ability.name === 'Melhor Amigo' && !newAcc.companions?.length) {
       const trainerCharisma = newAcc.atributos[Atributo.CARISMA]?.value ?? 0;
@@ -4145,16 +4270,44 @@ function levelUp(
     value: subSteps,
   });
 
+  // Classes com `powerGrants` (Vassalo) só recebem poder em certos níveis, e
+  // sempre emprestado de outra classe. Fora desses níveis não há poder nenhum
+  // a sortear — nem de classe, nem geral, já que o poder geral é a TROCA do
+  // poder de classe.
+  const classDescForGrants = findClassDescription(
+    updatedSheet.classe.name,
+    updatedSheet.classe.subname,
+    supplements
+  );
+  const powerGrants = classDescForGrants?.powerGrants;
+  const levelGrant = powerGrants?.find(
+    (grant) => grant.level === updatedSheet.nivel
+  );
+  // Fora de um nível com concessão, não há poder nenhum a sortear.
+  const grantsPowerThisLevel = !powerGrants || !!levelGrant;
+
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
-  const allowedPowers = isClassOrVariantOf(updatedSheet.classe, 'Inventor')
-    ? getWeightedInventorClassPowers(updatedSheet)
-    : getAllowedClassPowers(updatedSheet);
+  let allowedPowers: ClassPower[];
+  if (levelGrant) {
+    allowedPowers = getForeignClassPowers(
+      updatedSheet,
+      levelGrant.fromClasses,
+      updatedSheet.nivel,
+      levelGrant.excludePowers
+    );
+  } else if (isClassOrVariantOf(updatedSheet.classe, 'Inventor')) {
+    allowedPowers = getWeightedInventorClassPowers(updatedSheet);
+  } else {
+    allowedPowers = getAllowedClassPowers(updatedSheet);
+  }
   const allowedGeneralPowers = getPowersAllowedByRequirements(
     updatedSheet,
     supplements
   );
-  if (randomNumber <= 0.7 && allowedPowers.length > 0) {
+  if (!grantsPowerThisLevel) {
+    // Nada a fazer: a classe não concede poder neste nível.
+  } else if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
     const newPower = getRandomItemFromArray(allowedPowers);
     if (updatedSheet.classPowers) {
@@ -5321,7 +5474,7 @@ export const applyStatModifiers = (
   }
 
   // Cavaleiro: Bastião (RD Geral 5, armadura pesada)
-  if (sheet.cavaleiroCaminho === 'Bastião' && hasHeavyArmor) {
+  if (getCavaleiroCaminho(sheet) === 'Bastião' && hasHeavyArmor) {
     if (!sheet.reducaoDeDano) {
       sheet.reducaoDeDano = {};
     }

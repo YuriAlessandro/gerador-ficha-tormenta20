@@ -200,6 +200,18 @@ describe('buildClassEquipmentsFromChoices', () => {
     expect(result.Escudo.map((s) => s.nome)).toEqual(['Escudo Leve']);
   });
 
+  it('classe com pesadas pode escolher armadura leve', () => {
+    // "Se tiver proficiência PODE começar com armadura pesada" — não é
+    // obrigatório. Antes a Brunea era imposta e a escolha era ignorada.
+    const result = buildClassEquipmentsFromChoices(getClass('Guerreiro'), {
+      simpleWeapon: Armas.ADAGA,
+      martialWeapon: Armas.ESPADA_LONGA,
+      armor: Armaduras.ARMADURADECOURO,
+    });
+
+    expect(result.Armadura.map((a) => a.nome)).toEqual(['Armadura de couro']);
+  });
+
   it('ignora arma marcial se a classe não é proficiente', () => {
     const result = buildClassEquipmentsFromChoices(getClass('Arcanista'), {
       simpleWeapon: Armas.ADAGA,

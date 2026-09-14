@@ -15,13 +15,19 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
-import { ClassAbility, ClassPower } from '@/interfaces/Class';
+import {
+  ClassAbility,
+  ClassDescription,
+  ClassPower,
+  ClassPowerGrant,
+} from '@/interfaces/Class';
 import { GeneralPower, RequirementType } from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getForeignClassPowers,
   getWaivedClassPowers,
   isPowerAvailable,
   resolveClassPowerCatalog,
@@ -108,6 +114,29 @@ function isBlockedOnlyByLevel(
       (entry) => !entry.met && entry.requirement.type === RequirementType.NIVEL
     )
   );
+}
+
+/**
+ * A concessão de poder da classe neste nível.
+ *
+ * `powerGrants` ausente = padrão de T20 (todo nível a partir do 2º concede um
+ * poder da própria classe), representado por `undefined` aqui e tratado como
+ * "concede, da própria classe" por quem chama.
+ */
+export function findPowerGrant(
+  classDesc: ClassDescription | undefined,
+  level: number
+): ClassPowerGrant | undefined {
+  return classDesc?.powerGrants?.find((grant) => grant.level === level);
+}
+
+/** A classe concede escolha de poder neste nível? */
+export function classGrantsPowerAtLevel(
+  classDesc: ClassDescription | undefined,
+  level: number
+): boolean {
+  if (!classDesc?.powerGrants) return true;
+  return !!findPowerGrant(classDesc, level);
 }
 
 interface LevelUpWizardModalProps {
@@ -391,9 +420,20 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     // duplicadas, o que só faz sentido em sorteio aleatório — numa seleção
     // manual geraria poderes repetidos. Cobre Inventor e suas variantes
     // (ex.: Alquimista) via sheetForFiltering.classe.powers.
-    const availableClassPowers = getAllowedClassPowers(sheetForFiltering, {
-      classLevel: selectedClassLevel,
-    });
+    // Concessão declarada pela classe (Vassalo): os poderes vêm do catálogo de
+    // OUTRA classe, avaliados no nível do personagem. Sem declaração, vale o
+    // catálogo da própria classe, como em toda classe padrão.
+    const grant = findPowerGrant(selectedClassDesc, selectedClassLevel);
+    const availableClassPowers = grant
+      ? getForeignClassPowers(
+          sheetForFiltering,
+          grant.fromClasses,
+          sheetForPowerSelection.nivel,
+          grant.excludePowers
+        )
+      : getAllowedClassPowers(sheetForFiltering, {
+          classLevel: selectedClassLevel,
+        });
 
     // Poder de classe reprovado por pré-requisito entra na lista mesmo assim,
     // DESABILITADO: é o único lugar onde o jogador descobre o que falta para
@@ -407,13 +447,27 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       nivel: selectedClassLevel,
     };
     const availableNames = new Set(availableClassPowers.map((p) => p.name));
-    const unavailableClassPowerEntries = [
-      ...resolveClassPowerCatalog(sheetForFiltering),
-      ...getWaivedClassPowers(
-        sheetForFiltering,
-        getActiveWaivers(sheetForFiltering)
-      ),
-    ].filter(
+    const fullClassCatalog = grant
+      ? // Numa concessão emprestada o catálogo completo é o das classes de
+        // origem; avaliar contra o da ficha listaria poder de outra classe.
+        // `className` carimbado aqui também, e não só nos disponíveis: sem
+        // ele o agrupamento cai no nome da classe da FICHA, e um poder de
+        // Cavaleiro que o Vassalo não alcança aparecia sob "Poder de Vassalo".
+        grant.fromClasses.flatMap((className) =>
+          (
+            findClassDescription(className, undefined, supplements)?.powers ??
+            []
+          ).map((power) => ({ ...power, className }))
+        )
+      : [
+          ...resolveClassPowerCatalog(sheetForFiltering),
+          ...getWaivedClassPowers(
+            sheetForFiltering,
+            getActiveWaivers(sheetForFiltering)
+          ),
+        ];
+
+    const unavailableClassPowerEntries = fullClassCatalog.filter(
       (power) =>
         !availableNames.has(power.name) &&
         !isBlockedOnlyByLevel(power, sheetAtClassLevel)
@@ -729,8 +783,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       steps.push('Melhor Amigo');
     }
 
-    // First level in a new class (multiclass) grants no power
-    if (!isFirstLevelInNewClass) {
+    // First level in a new class (multiclass) grants no power.
+    // Classes com `powerGrants` (Vassalo) só concedem poder em certos níveis —
+    // nos demais o passo não deve nem aparecer.
+    if (
+      !isFirstLevelInNewClass &&
+      classGrantsPowerAtLevel(selectedClassDesc, selectedClassLevel)
+    ) {
       steps.push('Escolha de Poder');
 
       if (needsPowerEffectSelections()) {
