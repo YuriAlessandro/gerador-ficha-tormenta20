@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import VASSALO, { CAMINHO_GOVERNANTE, CAMINHO_SOLDADO } from '../vassalo';
 import CAVALEIRO from '../../../classes/cavaleiro';
 import { ClassAbility } from '../../../../../../interfaces/Class';
+import { Atributo } from '../../../atributos';
 import { createMockCharacterSheet } from '../../../../../../__mocks__/characterSheet';
 import { getForeignClassPowers } from '../../../../../../functions/powers';
 
@@ -100,6 +101,86 @@ describe('Vassalo', () => {
       const nomes = CAVALEIRO.powers.map((power) => power.name);
       expect(nomes).toEqual(
         expect.arrayContaining(['Escudeiro', 'Autoridade Feudal', 'Título'])
+      );
+    });
+  });
+
+  describe('concessões dos níveis altos', () => {
+    it('Capitão do Reino concede Golpe Divino, do Paladino', () => {
+      expect(actionsOf('Capitão do Reino')).toContainEqual(
+        expect.objectContaining({
+          type: 'grantSpecificClassAbility',
+          abilityName: 'Golpe Divino',
+          fromClass: 'Paladino',
+        })
+      );
+    });
+
+    it.each([
+      ['Conselheiro Real', 4],
+      ['Imperador', 5],
+    ])('%s aprende magia divina até o %iº círculo', (ability, maxCircle) => {
+      const spellAction = actionsOf(ability).find(
+        (action) => action.type === 'learnSpell'
+      ) as { availableSpells: { spellCircle: string }[]; pick: number };
+
+      expect(spellAction.pick).toBe(1);
+      // Nenhuma magia acima do círculo permitido no pool.
+      const circulos = new Set(
+        spellAction.availableSpells.map((spell) => spell.spellCircle)
+      );
+      expect(circulos.size).toBe(maxCircle);
+      expect(circulos.has(`${maxCircle + 1}º Circulo`)).toBe(false);
+    });
+
+    it('Rei Mercenário ramifica os 3 pontos pelo caminho', () => {
+      const acoes = actionsOf('Rei Mercenário');
+      expect(acoes).toHaveLength(2);
+
+      acoes.forEach((action) =>
+        expect(action).toMatchObject({
+          type: 'increaseAttribute',
+          pick: 3,
+          // "distribuir como quiser" permite empilhar no mesmo atributo.
+          allowRepeats: true,
+        })
+      );
+
+      const [soldado, governante] = acoes as {
+        allowedAttributes: string[];
+      }[];
+      expect(soldado.allowedAttributes).toEqual([
+        Atributo.FORCA,
+        Atributo.DESTREZA,
+        Atributo.CONSTITUICAO,
+      ]);
+      expect(governante.allowedAttributes).toEqual([
+        Atributo.INTELIGENCIA,
+        Atributo.SABEDORIA,
+        Atributo.CARISMA,
+      ]);
+    });
+
+    it('as duas metades do Rei Mercenário são condicionadas ao caminho', () => {
+      const entries = byName('Rei Mercenário').sheetActions ?? [];
+
+      expect(entries[0].condition?.clauses).toContainEqual({
+        kind: 'optionChosen',
+        value: CAMINHO_SOLDADO,
+      });
+      expect(entries[1].condition?.clauses).toContainEqual({
+        kind: 'optionChosen',
+        value: CAMINHO_GOVERNANTE,
+      });
+    });
+
+    it('Imperador dá +1 em dois atributos DIFERENTES', () => {
+      expect(actionsOf('Imperador')).toContainEqual(
+        expect.objectContaining({
+          type: 'increaseAttribute',
+          pick: 2,
+          allowRepeats: false,
+        })
       );
     });
   });

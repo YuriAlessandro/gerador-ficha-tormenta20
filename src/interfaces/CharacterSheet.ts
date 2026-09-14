@@ -78,6 +78,16 @@ export type SheetChangeSource =
 export type SheetAction = {
   source: SheetChangeSource;
   action: SheetActionStep;
+  /**
+   * Quando presente, a ação só é aplicada se a condição for satisfeita — as
+   * mesmas cláusulas de `SheetBonus.condition`.
+   *
+   * Existe para a ação que depende de uma bifurcação feita ANTES: o Vassalo
+   * escolhe Caminho do Soldado ou do Governante no 9º nível e recebe pontos de
+   * atributo diferentes no 17º. Sem isto, a única saída seria repetir a
+   * pergunta do caminho, que poderia divergir da resposta original.
+   */
+  condition?: BonusCondition;
 };
 
 export type SheetActionStep =
@@ -137,6 +147,20 @@ export type SheetActionStep =
       oncePerTier?: boolean; // Limitar a mesma escolha a 1×/patamar (padrão true).
       // Persiste a escolha do jogador (replay sem manualSelections, ex.: homebrew).
       optionKey?: string;
+      /**
+       * Restringe quais atributos podem receber o aumento. Ausente = todos.
+       * Ex.: Rei Mercenário do Vassalo distribui em Força/Destreza/Constituição
+       * OU em Inteligência/Sabedoria/Carisma, conforme o caminho.
+       */
+      allowedAttributes?: Atributo[];
+      /** Quantos aumentos aplicar (padrão 1). */
+      pick?: number;
+      /**
+       * Permite repetir o mesmo atributo entre os `pick`. Padrão `false` —
+       * "+1 em dois atributos DIFERENTES" (Imperador) é o caso comum; "3 pontos
+       * para distribuir como quiser" (Rei Mercenário) é o que precisa de `true`.
+       */
+      allowRepeats?: boolean;
     }
   | {
       type: 'setMaxSpacesAttribute';
@@ -229,6 +253,17 @@ export type SheetActionStep =
        * (`excludeAllBasePowers`), então não há onde procurar sem isto.
        */
       fromClass?: string;
+    }
+  | {
+      /**
+       * Concede uma habilidade NOMEADA de outra classe. `learnClassAbility`
+       * não serve: ele oferece todas as habilidades de um nível para o jogador
+       * escolher, e aqui a habilidade é determinada ("você recebe a habilidade
+       * Golpe Divino, como um paladino de nível igual ao seu").
+       */
+      type: 'grantSpecificClassAbility';
+      abilityName: string;
+      fromClass: string;
     }
   | {
       type: 'addAlchemyItems';

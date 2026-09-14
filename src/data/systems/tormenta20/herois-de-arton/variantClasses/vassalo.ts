@@ -3,6 +3,14 @@ import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import PROFICIENCIAS from '../../proficiencias';
 import CAVALEIRO from '../../classes/cavaleiro';
+import { Spell } from '../../../../../interfaces/Spells';
+import {
+  allDivineSpellsCircle1,
+  allDivineSpellsCircle2,
+  allDivineSpellsCircle3,
+  allDivineSpellsCircle4,
+  allDivineSpellsCircle5,
+} from '../../magias/divine';
 
 const codigoDeHonra = CAVALEIRO.abilities.find(
   (a) => a.name === 'Código de Honra'
@@ -16,6 +24,23 @@ const baluarte = CAVALEIRO.abilities.find((a) => a.name === 'Baluarte')!;
  */
 export const CAMINHO_SOLDADO = 'Caminho do Soldado';
 export const CAMINHO_GOVERNANTE = 'Caminho do Governante';
+
+/**
+ * Magias divinas até o círculo informado. O Vassalo aprende "uma magia divina
+ * de até 4º círculo" no 16º nível e de até 5º no 20º, com Carisma como
+ * atributo-chave — não é conjurador, então o pool não vem de uma spellPath.
+ */
+function divineSpellsUpTo(maxCircle: number): Spell[] {
+  return [
+    allDivineSpellsCircle1,
+    allDivineSpellsCircle2,
+    allDivineSpellsCircle3,
+    allDivineSpellsCircle4,
+    allDivineSpellsCircle5,
+  ]
+    .slice(0, maxCircle)
+    .flat();
+}
 
 /** Cláusulas prontas para os benefícios que dependem do caminho do 9º nível. */
 const soldado = {
@@ -176,6 +201,14 @@ const VASSALO: VariantClassOverrides = {
             fromClass: 'Cavaleiro',
           },
         },
+        {
+          source: { type: 'power', name: 'Capitão do Reino' },
+          action: {
+            type: 'grantSpecificClassAbility',
+            abilityName: 'Golpe Divino',
+            fromClass: 'Paladino',
+          },
+        },
       ],
     },
     {
@@ -281,11 +314,55 @@ const VASSALO: VariantClassOverrides = {
       name: 'Conselheiro Real',
       text: 'A partir do 16º nível, você se torna um dos conselheiros do rei e passa a partilhar do poder de Sua Majestade. Você recebe um poder de cavaleiro a sua escolha e aprende e pode lançar uma magia divina de até 4º círculo a sua escolha (atributo-chave Carisma).',
       nivel: 16,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Conselheiro Real' },
+          action: {
+            type: 'learnSpell',
+            availableSpells: divineSpellsUpTo(4),
+            pick: 1,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
     {
       name: 'Rei Mercenário',
       text: 'No 17º nível, você dá seus primeiros passos rumo à majestade, e a terra responde às suas aspirações. Se escolheu o Caminho do Soldado, você recebe 3 pontos de atributo para distribuir como quiser em Força, Destreza e Constituição. Se escolheu o Caminho do Governante, recebe 3 pontos de atributo para distribuir como quiser em Inteligência, Sabedoria e Carisma.',
       nivel: 17,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Rei Mercenário' },
+          condition: { combinator: 'AND', clauses: [soldado] },
+          action: {
+            type: 'increaseAttribute',
+            allowedAttributes: [
+              Atributo.FORCA,
+              Atributo.DESTREZA,
+              Atributo.CONSTITUICAO,
+            ],
+            pick: 3,
+            // "distribuir como quiser": pode empilhar no mesmo atributo.
+            allowRepeats: true,
+            oncePerTier: false,
+          },
+        },
+        {
+          source: { type: 'power', name: 'Rei Mercenário' },
+          condition: { combinator: 'AND', clauses: [governante] },
+          action: {
+            type: 'increaseAttribute',
+            allowedAttributes: [
+              Atributo.INTELIGENCIA,
+              Atributo.SABEDORIA,
+              Atributo.CARISMA,
+            ],
+            pick: 3,
+            allowRepeats: true,
+            oncePerTier: false,
+          },
+        },
+      ],
     },
     {
       name: 'Rei',
@@ -311,6 +388,28 @@ const VASSALO: VariantClassOverrides = {
       name: 'Imperador',
       text: 'No 20º nível, você chegou ao ápice político de Arton. Talvez tenha colonizado um continente desconhecido. Talvez tenha conquistado o Império de Tauron ou o Reinado. De qualquer forma, você agora é um grande imperador, respeitado e temido por todos. Sua fama não tem limites e as pessoas atribuem a você os mais variados poderes. Você recebe +1 em dois atributos diferentes a sua escolha e aprende e pode lançar uma magia divina de até 5º círculo a sua escolha (atributo-chave Carisma).',
       nivel: 20,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Imperador' },
+          action: {
+            type: 'increaseAttribute',
+            pick: 2,
+            // "dois atributos DIFERENTES" — o padrão já é não repetir, mas
+            // deixar explícito evita que uma mudança de padrão altere a regra.
+            allowRepeats: false,
+            oncePerTier: false,
+          },
+        },
+        {
+          source: { type: 'power', name: 'Imperador' },
+          action: {
+            type: 'learnSpell',
+            availableSpells: divineSpellsUpTo(5),
+            pick: 1,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
   ],
 };

@@ -14,7 +14,7 @@ import {
 } from './recalculateSheet';
 import { normalizeSheet } from './sheetNormalizer';
 import { refreshBagItemsFromCatalog } from './bagCatalogRefresh';
-import { isBonusActive } from './bonusConditions';
+import { isBonusActive, evaluateBonusCondition } from './bonusConditions';
 import { getSheetWornArmor, isWearingHeavyArmor } from './wornArmor';
 import { ignoresEncumbrance } from './encumbrance';
 import {
@@ -1809,6 +1809,14 @@ export const applyPower = (
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
+      // Ação condicionada a uma escolha anterior (ver `SheetAction.condition`).
+      if (
+        sheetAction.condition &&
+        !evaluateBonusCondition(sheet, sheetAction.condition)
+      ) {
+        return;
+      }
+
       // Unified handling for selectWeaponSpecialization (handles new instances,
       // recalculation, and override-on-change in a single block — bypassing the
       // generic isActionAlreadyApplied short-circuit below).
@@ -2477,12 +2485,20 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'increaseAttribute') {
         const incValue = sheetAction.action.value ?? 1;
         const oncePerTier = sheetAction.action.oncePerTier !== false;
-        const { optionKey } = sheetAction.action;
+        const { optionKey, allowedAttributes, allowRepeats } =
+          sheetAction.action;
+        const picks = sheetAction.action.pick ?? 1;
         // 1×/patamar (opcional): exclui atributos já aumentados no patamar.
         const usedAttributes = oncePerTier
           ? getAttributeIncreasesInSamePlateau(sheet)
           : [];
-        const availableAttributes = Object.values(Atributo).filter(
+        // `allowedAttributes` restringe o pool ("3 pontos em Força, Destreza
+        // ou Constituição"). Ausente = todos os atributos.
+        const pool = allowedAttributes ?? Object.values(Atributo);
+        // Aumentos já aplicados por ESTA ação, para os `pick` não repetirem o
+        // mesmo atributo quando `allowRepeats` é falso.
+        const chosenHere: Atributo[] = [];
+        const availableAttributes = pool.filter(
           (attr) => !usedAttributes.includes(attr)
         );
 
@@ -2500,7 +2516,13 @@ export const applyPower = (
         // de classe → aleatório entre os disponíveis.
         if (
           manualSelections?.attributes &&
-          manualSelections.attributes.length > 0
+          manualSelections.attributes.length > 0 &&
+          // A escolha manual ainda precisa caber no pool permitido: o jogador
+          // não pode pôr em Carisma um ponto que a regra manda pôr em Força,
+          // Destreza ou Constituição.
+          availableAttributes.includes(
+            manualSelections.attributes[0] as Atributo
+          )
         ) {
           targetAttribute = manualSelections.attributes[0] as Atributo;
         } else if (persisted) {
@@ -2514,6 +2536,7 @@ export const applyPower = (
 
         // Only apply if we found a valid target attribute
         if (targetAttribute && sheet.atributos[targetAttribute]) {
+          chosenHere.push(targetAttribute);
           sheet.atributos[targetAttribute].value += incValue;
 
           // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
@@ -2542,6 +2565,43 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Aumenta o atributo ${targetAttribute} por +${incValue}`,
           });
+
+          // Pontos restantes da mesma ação (ex.: "3 pontos para distribuir").
+          for (let pickIndex = 1; pickIndex < picks; pickIndex += 1) {
+            const remaining = availableAttributes.filter(
+              (attr) => allowRepeats || !chosenHere.includes(attr)
+            );
+            if (remaining.length === 0) break;
+
+            const manual = manualSelections?.attributes?.[pickIndex] as
+              | Atributo
+              | undefined;
+            const next =
+              manual && remaining.includes(manual)
+                ? manual
+                : sheet.classe.attrPriority.find((attr) =>
+                    remaining.includes(attr)
+                  ) ?? getRandomItemFromArray(remaining);
+
+            chosenHere.push(next);
+            sheet.atributos[next].value += incValue;
+            sheet.sheetActionHistory.push({
+              source: sheetAction.source,
+              powerName: powerOrAbility.name,
+              changes: [
+                {
+                  type: 'AttributeIncreasedByAumentoDeAtributo',
+                  attribute: next,
+                  plateau: getCurrentPlateau(sheet),
+                  oncePerTier,
+                },
+              ],
+            });
+            subSteps.push({
+              name: getSourceName(sheetAction.source),
+              value: `Aumenta o atributo ${next} por +${incValue}`,
+            });
+          }
         } else {
           // Skip this attribute increase if no valid target found
           // eslint-disable-next-line no-console
@@ -3086,6 +3146,56 @@ export const applyPower = (
               {
                 type: 'ClassPowerAdded',
                 powerName: selectedPower.name,
+              },
+            ],
+          });
+        }
+      } else if (sheetAction.action.type === 'grantSpecificClassAbility') {
+        const { abilityName, fromClass } = sheetAction.action;
+        const sourceClass = findClassDescription(fromClass, undefined);
+        const ability = sourceClass?.abilities.find(
+          (entry) => entry.name === abilityName
+        );
+
+        if (!ability) {
+          throw new Error(
+            `Habilidade "${abilityName}" não encontrada na classe ${fromClass}`
+          );
+        }
+
+        // Entra como PODER de classe, e não em `classe.abilities`: aquele array
+        // é reconstruído da descrição da classe a cada recálculo, e a
+        // concessão sumiria. Mesmo caminho de `learnClassAbility`.
+        const composedName = `${ability.name} (${fromClass})`;
+        if (!sheet.classPowers) sheet.classPowers = [];
+
+        const alreadyHasAbility = sheet.classPowers.some(
+          (entry) => entry.name === composedName
+        );
+        if (!alreadyHasAbility) {
+          const grantedBonuses = ability.sheetBonuses ?? [];
+          sheet.classPowers.push({
+            name: composedName,
+            text: ability.text,
+            sheetActions: ability.sheetActions,
+            sheetBonuses: grantedBonuses,
+            rolls: ability.rolls,
+          });
+          sheet.sheetBonuses.push(...grantedBonuses);
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Habilidade concedida: ${composedName}`,
+          });
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'ClassAbilityLearned',
+                className: fromClass,
+                abilityName,
               },
             ],
           });
