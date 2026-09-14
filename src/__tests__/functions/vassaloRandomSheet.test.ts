@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import generateRandomSheet, { applyManualLevelUp } from '@/functions/general';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
+import { getCavaleiroCaminho } from '@/functions/powers/cavaleiroCaminho';
 import SelectOptions from '@/interfaces/SelectedOptions';
 import { findClassDescription } from '@/functions/multiclass';
 import { SupplementId } from '@/types/supplement.types';
@@ -77,11 +78,11 @@ describe('ficha aleatória de Vassalo', () => {
     expect(nomes).toContain('Golpe Divino (Paladino)');
   });
 
-  it('no 5º nível o Caminho do Cavaleiro fica marcado como Montaria', () => {
+  it('no 5º nível o Caminho do Cavaleiro resolve como Montaria', () => {
     // Não é escolha: "você recebe a habilidade Montaria (como Caminho do
-    // Cavaleiro)". Reusa o mesmo campo do Cavaleiro.
-    expect(gerar(5).cavaleiroCaminho).toBe('Montaria');
-    expect(gerar(4).cavaleiroCaminho).toBeUndefined();
+    // Cavaleiro)". A habilidade tem uma opção só.
+    expect(getCavaleiroCaminho(gerar(5))).toBe('Montaria');
+    expect(getCavaleiroCaminho(gerar(4))).toBeUndefined();
   });
 
   it('no 16º nível já aprendeu uma magia divina', () => {

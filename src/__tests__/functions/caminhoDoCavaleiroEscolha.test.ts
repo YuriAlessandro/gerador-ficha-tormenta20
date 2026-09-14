@@ -6,6 +6,7 @@ import CAVALEIRO, {
 import VASSALO from '@/data/systems/tormenta20/herois-de-arton/variantClasses/vassalo';
 import generateRandomSheet from '@/functions/general';
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
+import { getCavaleiroCaminho } from '@/functions/powers/cavaleiroCaminho';
 import SelectOptions from '@/interfaces/SelectedOptions';
 import { SupplementId } from '@/types/supplement.types';
 
@@ -60,12 +61,12 @@ describe('Caminho do Cavaleiro como escolha', () => {
     expect(escolha?.availableOptions).toHaveLength(1);
   });
 
-  it('a ficha fica com o caminho preenchido nos dois casos', () => {
-    // É o campo que a RD do Bastião lê em `recalculateSheet`.
+  it('o caminho é derivado da escolha nos dois casos', () => {
+    // É o que a RD do Bastião lê, em `recalculateSheet` e `general`.
     expect(['Bastião', 'Montaria']).toContain(
-      gerar('Cavaleiro').cavaleiroCaminho
+      getCavaleiroCaminho(gerar('Cavaleiro'))
     );
-    expect(gerar('Vassalo').cavaleiroCaminho).toBe('Montaria');
+    expect(getCavaleiroCaminho(gerar('Vassalo'))).toBe('Montaria');
   });
 
   it('a habilidade exibe só o caminho escolhido', () => {
@@ -73,9 +74,9 @@ describe('Caminho do Cavaleiro como escolha', () => {
     const texto =
       abilityOf(cavaleiro.classe.abilities, CAMINHO_DO_CAVALEIRO)?.text ?? '';
 
-    expect(texto).toContain(cavaleiro.cavaleiroCaminho!);
-    const outro =
-      cavaleiro.cavaleiroCaminho === 'Bastião' ? 'Montaria' : 'Bastião';
+    const caminho = getCavaleiroCaminho(cavaleiro)!;
+    expect(texto).toContain(caminho);
+    const outro = caminho === 'Bastião' ? 'Montaria' : 'Bastião';
     expect(texto).not.toContain(outro);
   });
 });

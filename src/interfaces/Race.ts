@@ -84,8 +84,7 @@ export type RaceAbility = {
   // Satisfaz um requisito `PODER: <name>` como se o personagem tivesse esses poderes
   grantsPowerRequirements?: string[];
   // Ignora TODOS os pré-requisitos de poderes cujo nome inclua qualquer destes
-  // termos. Açúcar legado, normalizado para um waiver em `getActiveWaivers`;
-  // dados novos devem usar `waivesPrerequisites`, que casa por nome exato.
+  // termos. Legado: dados novos usam `waivesPrerequisites`, por nome exato.
   bypassPrereqForPowersNamed?: string[];
   waivesPrerequisites?: PrerequisiteWaiver[]; // Ver `PrerequisiteWaiver`
 };
