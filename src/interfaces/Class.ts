@@ -79,6 +79,13 @@ export interface ClassPowerGrant {
   fromClasses: string[];
   /** Rótulo do grupo na escolha ("Poder de Cavaleiro"). */
   label?: string;
+  /**
+   * Poderes que NÃO entram na escolha, tipicamente porque a própria classe já
+   * os concede automaticamente no mesmo nível. Sem isto o personagem pode
+   * escolher o que vai ganhar de graça logo em seguida, e acaba com o poder
+   * duplicado.
+   */
+  excludePowers?: string[];
 }
 
 export type ClassPower = CountsAsTormentaPower & {

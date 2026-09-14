@@ -4248,7 +4248,8 @@ function levelUp(
     allowedPowers = getForeignClassPowers(
       updatedSheet,
       levelGrant.fromClasses,
-      updatedSheet.nivel
+      updatedSheet.nivel,
+      levelGrant.excludePowers
     );
   } else if (isClassOrVariantOf(updatedSheet.classe, 'Inventor')) {
     allowedPowers = getWeightedInventorClassPowers(updatedSheet);
