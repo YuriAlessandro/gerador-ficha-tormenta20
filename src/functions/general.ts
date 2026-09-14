@@ -4975,6 +4975,14 @@ export function applyManualLevelUp(
       }
       abilitySubSteps.push(...newSubSteps);
 
+      const caminho = resolveCavaleiroCaminho(updatedSheet, ability.name);
+      if (caminho) {
+        abilitySubSteps.push({
+          name: 'Caminho do Cavaleiro',
+          value: caminho,
+        });
+      }
+
       // Treinador: aplicar efeitos de Treino Especializado no level-up
       if (
         ability.name === 'Treino Especializado' &&
