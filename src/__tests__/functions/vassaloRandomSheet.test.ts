@@ -69,6 +69,31 @@ describe('ficha aleatória de Vassalo', () => {
     );
   });
 
+  it('no 8º nível ganha Golpe Divino, do Paladino', () => {
+    // Entra como poder de classe, e não em `classe.abilities`: aquele array é
+    // reconstruído da descrição da classe a cada recálculo.
+    const nomes = (gerar(8).classPowers ?? []).map((power) => power.name);
+    expect(nomes).toContain('Golpe Divino (Paladino)');
+  });
+
+  it('no 16º nível já aprendeu uma magia divina', () => {
+    // O Vassalo não é conjurador: a magia só pode vir das concessões de 16/20.
+    expect(gerar(16).spells.length).toBeGreaterThan(0);
+  });
+
+  it('no 20º nível os pontos de atributo do 17 e do 20 foram aplicados', () => {
+    const sheet = gerar(20);
+    const aumentos = sheet.sheetActionHistory.filter((entry) =>
+      entry.changes.some(
+        (change) => change.type === 'AttributeIncreasedByAumentoDeAtributo'
+      )
+    );
+
+    // 3 pontos do Rei Mercenário (17) + 2 do Imperador (20). Pode haver mais,
+    // vindos do poder Aumento de Atributo escolhido nas concessões.
+    expect(aumentos.length).toBeGreaterThanOrEqual(5);
+  });
+
   it.each([
     [8, 'Escudeiro'],
     [9, 'Autoridade Feudal'],
