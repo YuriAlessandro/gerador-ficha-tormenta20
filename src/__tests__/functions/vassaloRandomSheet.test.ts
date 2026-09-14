@@ -76,6 +76,13 @@ describe('ficha aleatória de Vassalo', () => {
     expect(nomes).toContain('Golpe Divino (Paladino)');
   });
 
+  it('no 5º nível o Caminho do Cavaleiro fica marcado como Montaria', () => {
+    // Não é escolha: "você recebe a habilidade Montaria (como Caminho do
+    // Cavaleiro)". Reusa o mesmo campo do Cavaleiro.
+    expect(gerar(5).cavaleiroCaminho).toBe('Montaria');
+    expect(gerar(4).cavaleiroCaminho).toBeUndefined();
+  });
+
   it('no 16º nível já aprendeu uma magia divina', () => {
     // O Vassalo não é conjurador: a magia só pode vir das concessões de 16/20.
     expect(gerar(16).spells.length).toBeGreaterThan(0);
