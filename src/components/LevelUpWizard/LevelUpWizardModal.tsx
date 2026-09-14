@@ -428,7 +428,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       ? getForeignClassPowers(
           sheetForFiltering,
           grant.fromClasses,
-          sheetForPowerSelection.nivel
+          sheetForPowerSelection.nivel,
+          grant.excludePowers
         )
       : getAllowedClassPowers(sheetForFiltering, {
           classLevel: selectedClassLevel,

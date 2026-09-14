@@ -51,7 +51,13 @@ const VASSALO: VariantClassOverrides = {
     // Lorde: o caminho escolhido NESTE nível decide entre guerreiro e nobre.
     // Como a escolha acontece no mesmo level-up, a lista oferece os dois — o
     // texto da habilidade é quem diz ao jogador qual vale.
-    { level: 9, fromClasses: ['Guerreiro', 'Nobre'] },
+    {
+      level: 9,
+      fromClasses: ['Guerreiro', 'Nobre'],
+      // O próprio Lorde concede Autoridade Feudal neste nível; oferecê-la
+      // também na escolha deixava o personagem com o poder duplicado.
+      excludePowers: ['Autoridade Feudal'],
+    },
     { level: 12, fromClasses: ['Cavaleiro'] },
     { level: 14, fromClasses: ['Cavaleiro'] },
     { level: 16, fromClasses: ['Cavaleiro'] },

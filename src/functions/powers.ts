@@ -515,9 +515,13 @@ function buildSyntheticClassSheet(
 export function getForeignClassPowers(
   sheet: CharacterSheet,
   classNames: string[],
-  nivel: number
+  nivel: number,
+  excludePowers: string[] = []
 ): ClassPower[] {
-  const taken = new Set((sheet.classPowers ?? []).map((power) => power.name));
+  const taken = new Set([
+    ...(sheet.classPowers ?? []).map((power) => power.name),
+    ...excludePowers,
+  ]);
   const seen = new Set<string>();
   const result: ClassPower[] = [];
 
