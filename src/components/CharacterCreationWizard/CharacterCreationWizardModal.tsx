@@ -2394,10 +2394,12 @@ const CharacterCreationWizardModal: React.FC<
         ) {
           return false;
         }
-        const needsLightArmor =
-          !classe.proficiencias.includes(PROFICIENCIAS.PESADAS) &&
-          classe.name !== 'Arcanista';
-        if (needsLightArmor && !eq.armor) return false;
+        // Espelha o `needsArmor` do `ClassEquipmentStep`: todos escolhem
+        // armadura, menos Arcanista e variantes. Divergir aqui deixaria o
+        // passo incompleto para sempre — ele não oferece o que esta validação
+        // exige.
+        const needsArmor = !isClassOrVariantOf(classe, 'Arcanista');
+        if (needsArmor && !eq.armor) return false;
         if (isClassOrVariantOf(classe, 'Bardo') && !eq.instrument) return false;
         return true;
       }
