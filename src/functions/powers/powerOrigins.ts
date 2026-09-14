@@ -218,6 +218,12 @@ export interface PowerSourceArrays {
   customGrantedPowers?: CustomPower[];
   className: string;
   raceName: string;
+  /**
+   * Caminho do Cavaleiro escolhido no 5º nível. A habilidade descreve as DUAS
+   * opções no texto do livro; sem saber qual foi escolhida, a ficha mostra as
+   * duas e o jogador não tem como saber qual é a sua.
+   */
+  cavaleiroCaminho?: 'Bastião' | 'Montaria';
 }
 
 /**

@@ -153,6 +153,7 @@ import {
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
 } from './multiclass';
+import { resolveCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   resolveSchoolChoice,
   buildSpellPool,
@@ -3964,16 +3965,6 @@ function applyClassAbilities(
     );
     subSteps.push(...newSubSteps);
 
-    // Cavaleiro: random path selection for Caminho do Cavaleiro
-    if (ability.name === 'Caminho do Cavaleiro' && !newAcc.cavaleiroCaminho) {
-      const caminho = getRandomItemFromArray(['Bastião', 'Montaria'] as const);
-      newAcc.cavaleiroCaminho = caminho;
-      subSteps.push({
-        name: 'Caminho do Cavaleiro',
-        value: caminho,
-      });
-    }
-
     // Treinador: gerar Melhor Amigo aleatório
     if (ability.name === 'Melhor Amigo' && !newAcc.companions?.length) {
       const trainerCharisma = newAcc.atributos[Atributo.CARISMA]?.value ?? 0;
@@ -4398,6 +4389,14 @@ function levelUp(
       const [newSheet, newSubSteps] = applyPower(updatedSheet, ability);
       updatedSheet = newSheet;
       abilitySubSteps.push(...newSubSteps);
+
+      const caminho = resolveCavaleiroCaminho(updatedSheet, ability.name);
+      if (caminho) {
+        abilitySubSteps.push({
+          name: 'Caminho do Cavaleiro',
+          value: caminho,
+        });
+      }
     });
 
     if (abilitySubSteps.length) {
