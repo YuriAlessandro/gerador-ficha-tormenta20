@@ -1,55 +1,39 @@
 import CharacterSheet from '../../interfaces/CharacterSheet';
-import { getRandomItemFromArray } from '../randomUtils';
+import { CAMINHO_OPTION_KEY } from '../../data/systems/tormenta20/classes/cavaleiro';
 
 /**
  * Caminho do Cavaleiro (5º nível): Bastião ou Montaria.
  *
- * A escolha vive em `sheet.cavaleiroCaminho` e é consumida pela RD do Bastião
- * (em `recalculateSheet`) e pelo texto exibido da habilidade (em
- * `collectSheetPowers`).
+ * A escolha em si é um `chooseFromOptions` na habilidade — é ela que faz o
+ * assistente perguntar e a ficha aleatória sortear. Esta função só ESPELHA o
+ * resultado em `sheet.cavaleiroCaminho`, que é o campo que a RD do Bastião lê
+ * (em `recalculateSheet`).
  *
- * Existe como função porque os fluxos que aplicam habilidades de classe são
- * mais de um — o laço de habilidades novas do `levelUp`, o do level-up manual
- * e a reconstrução do `recalculateSheet`. Antes havia um bloco solto em
- * `general.ts` que, por estar no laço errado, nunca chegava a rodar: aquele
- * caminho filtra `classe.abilities` por nível e a habilidade de 5º nível já
- * não estava lá na subida para o 5º.
+ * O espelho existe porque o consumidor é antigo e lê o campo, não o histórico;
+ * derivar aqui evita espalhar a leitura de `OptionChosen` pelo cálculo de RD.
+ *
+ * Chamada dos três fluxos que aplicam habilidades de classe — o laço de
+ * habilidades novas do `levelUp`, o do level-up manual e a reconstrução do
+ * `recalculateSheet` —, porque cada um aplica a habilidade por conta própria.
  */
-const CAMINHO_DO_CAVALEIRO = 'Caminho do Cavaleiro';
+export function syncCavaleiroCaminho(sheet: CharacterSheet): void {
+  if (sheet.cavaleiroCaminho) return;
 
-/**
- * Vassalo 5: "você recebe a habilidade Montaria (como Caminho do Cavaleiro)".
- * Não é escolha — o caminho vem determinado pela classe.
- */
-const VIGILANTE_DE_ESTRADAS = 'Vigilante de Estradas';
+  const escolha = (sheet.sheetActionHistory ?? [])
+    .flatMap((entry) => entry.changes)
+    .find(
+      (change) =>
+        change.type === 'OptionChosen' &&
+        change.optionKey === CAMINHO_OPTION_KEY
+    );
 
-/**
- * Define `cavaleiroCaminho` quando a habilidade aplicada for a que o concede.
- * Não sobrescreve escolha já feita. Muta a ficha recebida, como os demais
- * passos de aplicação de habilidade.
- */
-export function resolveCavaleiroCaminho(
-  sheet: CharacterSheet,
-  abilityName: string
-): 'Bastião' | 'Montaria' | undefined {
-  if (sheet.cavaleiroCaminho) return undefined;
-
-  if (abilityName === VIGILANTE_DE_ESTRADAS) {
-    // eslint-disable-next-line no-param-reassign
-    sheet.cavaleiroCaminho = 'Montaria';
-    return sheet.cavaleiroCaminho;
+  if (escolha && escolha.type === 'OptionChosen') {
+    const nome = escolha.chosenName;
+    if (nome === 'Bastião' || nome === 'Montaria') {
+      // eslint-disable-next-line no-param-reassign
+      sheet.cavaleiroCaminho = nome;
+    }
   }
-
-  if (abilityName === CAMINHO_DO_CAVALEIRO) {
-    // eslint-disable-next-line no-param-reassign
-    sheet.cavaleiroCaminho = getRandomItemFromArray([
-      'Bastião',
-      'Montaria',
-    ] as const);
-    return sheet.cavaleiroCaminho;
-  }
-
-  return undefined;
 }
 
-export default resolveCavaleiroCaminho;
+export default syncCavaleiroCaminho;

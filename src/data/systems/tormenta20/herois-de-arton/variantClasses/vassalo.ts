@@ -2,7 +2,11 @@ import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import PROFICIENCIAS from '../../proficiencias';
-import CAVALEIRO from '../../classes/cavaleiro';
+import CAVALEIRO, {
+  CAMINHO_DO_CAVALEIRO,
+  CAMINHO_MONTARIA,
+  CAMINHO_OPTION_KEY,
+} from '../../classes/cavaleiro';
 import { Spell } from '../../../../../interfaces/Spells';
 import {
   allDivineSpellsCircle1,
@@ -174,6 +178,25 @@ const VASSALO: VariantClassOverrides = {
           action: {
             type: 'trainSkillOrBonus',
             skills: [Skill.PERCEPCAO],
+          },
+        },
+      ],
+    },
+    {
+      // O Vassalo tem o Caminho do Cavaleiro, mas sem escolha: o Vigilante de
+      // Estradas já determina Montaria. Entra como habilidade própria, com uma
+      // ÚNICA opção — o assistente resolve sozinho quando só há uma, então ele
+      // vê o caminho na ficha sem ser perguntado.
+      name: CAMINHO_DO_CAVALEIRO,
+      text: 'Você recebe o Caminho do Cavaleiro: Montaria.',
+      nivel: 5,
+      sheetActions: [
+        {
+          source: { type: 'power', name: CAMINHO_DO_CAVALEIRO },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: CAMINHO_OPTION_KEY,
+            options: [CAMINHO_MONTARIA],
           },
         },
       ],
