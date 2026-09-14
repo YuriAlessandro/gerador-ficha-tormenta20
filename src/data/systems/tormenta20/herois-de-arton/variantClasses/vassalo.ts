@@ -33,6 +33,30 @@ const VASSALO: VariantClassOverrides = {
   baseClassName: 'Cavaleiro',
   proficiencias: [PROFICIENCIAS.MARCIAIS, PROFICIENCIAS.ESCUDOS],
   excludeAllBasePowers: true,
+  /**
+   * O Vassalo não ganha poder todo nível: ganha nos níveis abaixo, e sempre
+   * emprestado de outra classe. Nos demais níveis o assistente não deve nem
+   * oferecer a escolha.
+   *
+   * A regra geral de trocar o poder de classe por um poder geral continua
+   * valendo nesses níveis — quem monta a lista é `getAvailablePowers`.
+   */
+  powerGrants: [
+    { level: 2, fromClasses: ['Cavaleiro'] },
+    { level: 4, fromClasses: ['Cavaleiro'] },
+    { level: 6, fromClasses: ['Cavaleiro'] },
+    // "poder de cavaleiro ou de guerreiro (como um guerreiro de nível igual
+    // ao seu para propósitos de pré-requisitos)".
+    { level: 7, fromClasses: ['Cavaleiro', 'Guerreiro'] },
+    // Lorde: o caminho escolhido NESTE nível decide entre guerreiro e nobre.
+    // Como a escolha acontece no mesmo level-up, a lista oferece os dois — o
+    // texto da habilidade é quem diz ao jogador qual vale.
+    { level: 9, fromClasses: ['Guerreiro', 'Nobre'] },
+    { level: 12, fromClasses: ['Cavaleiro'] },
+    { level: 14, fromClasses: ['Cavaleiro'] },
+    { level: 16, fromClasses: ['Cavaleiro'] },
+    { level: 18, fromClasses: ['Cavaleiro'] },
+  ],
   abilities: [
     codigoDeHonra,
     baluarte,
@@ -65,15 +89,6 @@ const VASSALO: VariantClassOverrides = {
           action: {
             type: 'trainSkillOrBonus',
             skills: [Skill.DIPLOMACIA, Skill.NOBREZA],
-          },
-        },
-        {
-          source: { type: 'power', name: 'Valete' },
-          action: {
-            type: 'getClassPower',
-            fromClasses: ['Cavaleiro'],
-            atCharacterLevel: true,
-            label: 'Selecione um poder de cavaleiro',
           },
         },
       ],
@@ -116,15 +131,6 @@ const VASSALO: VariantClassOverrides = {
             skills: [Skill.INTUICAO],
           },
         },
-        {
-          source: { type: 'power', name: 'Guarda do Castelo' },
-          action: {
-            type: 'getClassPower',
-            fromClasses: ['Cavaleiro'],
-            atCharacterLevel: true,
-            label: 'Selecione um poder de cavaleiro',
-          },
-        },
       ],
     },
     {
@@ -145,35 +151,11 @@ const VASSALO: VariantClassOverrides = {
       name: 'Cavaleiro do Reino',
       text: 'No 6º nível, você recebe o título de sir ou dame e atinge o grau mais baixo da nobreza. Você recebe uma arma, armadura ou escudo superior com duas melhorias a sua escolha e recebe um poder de cavaleiro a sua escolha.',
       nivel: 6,
-      sheetActions: [
-        {
-          source: { type: 'power', name: 'Cavaleiro do Reino' },
-          action: {
-            type: 'getClassPower',
-            fromClasses: ['Cavaleiro'],
-            atCharacterLevel: true,
-            label: 'Selecione um poder de cavaleiro',
-          },
-        },
-      ],
     },
     {
       name: 'Sargento do Reino',
       text: 'No 7º nível, você adquire uma posição no exército do reino. Você recebe um poder de cavaleiro ou de guerreiro a sua escolha (como um guerreiro de nível igual ao seu para propósitos de pré-requisitos).',
       nivel: 7,
-      sheetActions: [
-        {
-          source: { type: 'power', name: 'Sargento do Reino' },
-          action: {
-            type: 'getClassPower',
-            // "como um guerreiro de nível igual ao seu para propósitos de
-            // pré-requisitos" — vale para os dois lados da escolha.
-            fromClasses: ['Cavaleiro', 'Guerreiro'],
-            atCharacterLevel: true,
-            label: 'Selecione um poder de cavaleiro ou de guerreiro',
-          },
-        },
-      ],
     },
     {
       name: 'Capitão do Reino',
@@ -265,17 +247,6 @@ const VASSALO: VariantClassOverrides = {
       name: 'Conde',
       text: 'A partir do 12º nível, você é um alto nobre e tem acesso a equipamentos poderosos. No início de cada aventura, você recebe um "orçamento" de T$ 30.000 que pode gastar em itens mágicos. Esses itens devem ser devolvidos ou reembolsados no fim da aventura. Além disso, recebe um poder de cavaleiro ou geral a sua escolha.',
       nivel: 12,
-      sheetActions: [
-        {
-          source: { type: 'power', name: 'Conde' },
-          action: {
-            type: 'getClassPower',
-            fromClasses: ['Cavaleiro'],
-            atCharacterLevel: true,
-            label: 'Selecione um poder de cavaleiro',
-          },
-        },
-      ],
     },
     {
       name: 'Marquês',
@@ -294,17 +265,6 @@ const VASSALO: VariantClassOverrides = {
       name: 'Duque',
       text: 'No 14º nível, você se tornou um dos mais altos nobres do reino. Quando você usa Autoridade Feudal, o nível do parceiro convocado aumenta em um passo. Além disso, você recebe um poder de cavaleiro a sua escolha.',
       nivel: 14,
-      sheetActions: [
-        {
-          source: { type: 'power', name: 'Duque' },
-          action: {
-            type: 'getClassPower',
-            fromClasses: ['Cavaleiro'],
-            atCharacterLevel: true,
-            label: 'Selecione um poder de cavaleiro',
-          },
-        },
-      ],
     },
     {
       name: 'Arquiduque',
@@ -315,17 +275,6 @@ const VASSALO: VariantClassOverrides = {
       name: 'Conselheiro Real',
       text: 'A partir do 16º nível, você se torna um dos conselheiros do rei e passa a partilhar do poder de Sua Majestade. Você recebe um poder de cavaleiro a sua escolha e aprende e pode lançar uma magia divina de até 4º círculo a sua escolha (atributo-chave Carisma).',
       nivel: 16,
-      sheetActions: [
-        {
-          source: { type: 'power', name: 'Conselheiro Real' },
-          action: {
-            type: 'getClassPower',
-            fromClasses: ['Cavaleiro'],
-            atCharacterLevel: true,
-            label: 'Selecione um poder de cavaleiro',
-          },
-        },
-      ],
     },
     {
       name: 'Rei Mercenário',
@@ -343,15 +292,6 @@ const VASSALO: VariantClassOverrides = {
             type: 'ModifyAttribute',
             attribute: Atributo.CARISMA,
             value: 1,
-          },
-        },
-        {
-          source: { type: 'power', name: 'Rei' },
-          action: {
-            type: 'getClassPower',
-            fromClasses: ['Cavaleiro'],
-            atCharacterLevel: true,
-            label: 'Selecione um poder de cavaleiro',
           },
         },
       ],
