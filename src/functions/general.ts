@@ -3056,16 +3056,24 @@ export const applyPower = (
 
         subSteps.push(...currentSteps);
       } else if (sheetAction.action.type === 'getClassPower') {
-        const { minLevel = 2, levelSource = 'fixed' } = sheetAction.action;
+        const {
+          minLevel = 2,
+          levelSource = 'fixed',
+          fromClasses,
+          atCharacterLevel,
+        } = sheetAction.action;
         // 'sheet' avalia no nível atual (poder re-escolhido a cada aventura,
-        // ex.: Citadino Abastado); 'fixed' congela em `minLevel` para render a
-        // mesma lista em qualquer recálculo (Futura Lenda, Cosmopolita).
-        const effectiveLevel = levelSource === 'sheet' ? sheet.nivel : minLevel;
+        // ex.: Citadino Abastado; "como um guerreiro de nível igual ao seu", do
+        // Vassalo); 'fixed' congela em `minLevel` para render a mesma lista em
+        // qualquer recálculo (Futura Lenda, Cosmopolita).
+        const effectiveLevel =
+          levelSource === 'sheet' || atCharacterLevel ? sheet.nivel : minLevel;
 
         // Filter class powers by minimum level and requirements
         const availablePowers = getFuturaLendaClassPowers(
           sheet,
-          effectiveLevel
+          effectiveLevel,
+          { fromClasses }
         );
 
         if (availablePowers.length === 0) {
@@ -3146,14 +3154,17 @@ export const applyPower = (
           });
         }
       } else if (sheetAction.action.type === 'grantSpecificClassPower') {
-        const { powerName: targetPowerName } = sheetAction.action;
+        const { powerName: targetPowerName, fromClass } = sheetAction.action;
 
         // Multiclasse: o poder concedido pertence à classe que concedeu a
         // habilidade (`sourceClassName`), que não é necessariamente a classe
         // primária da ficha — ex.: Alquimista 2 concede "Alquimista Iniciado"
         // numa ficha cuja `sheet.classe` é Ladino.
         const { sourceClassName } = powerOrAbility;
-        const ownerClassName = sourceClassName ?? sheet.classe.name;
+        // `fromClass` tem precedência: é a declaração explícita de que o poder
+        // vem de outra classe (Vassalo → poderes de Cavaleiro).
+        const ownerClassName =
+          fromClass ?? sourceClassName ?? sheet.classe.name;
         const isForeignClass = ownerClassName !== sheet.classe.name;
 
         let targetPower = isForeignClass

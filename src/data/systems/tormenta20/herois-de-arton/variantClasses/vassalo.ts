@@ -9,6 +9,24 @@ const codigoDeHonra = CAVALEIRO.abilities.find(
 )!;
 const baluarte = CAVALEIRO.abilities.find((a) => a.name === 'Baluarte')!;
 
+/**
+ * Os dois caminhos do 9º nível. Ficam em constante porque os benefícios de 11,
+ * 13 e 17 dependem de qual foi escolhido — e são lidos do `sheetActionHistory`
+ * pela `optionKey` `caminhoDoVassalo`.
+ */
+export const CAMINHO_SOLDADO = 'Caminho do Soldado';
+export const CAMINHO_GOVERNANTE = 'Caminho do Governante';
+
+/** Cláusulas prontas para os benefícios que dependem do caminho do 9º nível. */
+const soldado = {
+  kind: 'optionChosen' as const,
+  value: CAMINHO_SOLDADO,
+};
+const governante = {
+  kind: 'optionChosen' as const,
+  value: CAMINHO_GOVERNANTE,
+};
+
 const VASSALO: VariantClassOverrides = {
   name: 'Vassalo',
   isVariant: true,
@@ -47,6 +65,15 @@ const VASSALO: VariantClassOverrides = {
           action: {
             type: 'trainSkillOrBonus',
             skills: [Skill.DIPLOMACIA, Skill.NOBREZA],
+          },
+        },
+        {
+          source: { type: 'power', name: 'Valete' },
+          action: {
+            type: 'getClassPower',
+            fromClasses: ['Cavaleiro'],
+            atCharacterLevel: true,
+            label: 'Selecione um poder de cavaleiro',
           },
         },
       ],
@@ -89,6 +116,15 @@ const VASSALO: VariantClassOverrides = {
             skills: [Skill.INTUICAO],
           },
         },
+        {
+          source: { type: 'power', name: 'Guarda do Castelo' },
+          action: {
+            type: 'getClassPower',
+            fromClasses: ['Cavaleiro'],
+            atCharacterLevel: true,
+            label: 'Selecione um poder de cavaleiro',
+          },
+        },
       ],
     },
     {
@@ -109,46 +145,166 @@ const VASSALO: VariantClassOverrides = {
       name: 'Cavaleiro do Reino',
       text: 'No 6º nível, você recebe o título de sir ou dame e atinge o grau mais baixo da nobreza. Você recebe uma arma, armadura ou escudo superior com duas melhorias a sua escolha e recebe um poder de cavaleiro a sua escolha.',
       nivel: 6,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Cavaleiro do Reino' },
+          action: {
+            type: 'getClassPower',
+            fromClasses: ['Cavaleiro'],
+            atCharacterLevel: true,
+            label: 'Selecione um poder de cavaleiro',
+          },
+        },
+      ],
     },
     {
       name: 'Sargento do Reino',
       text: 'No 7º nível, você adquire uma posição no exército do reino. Você recebe um poder de cavaleiro ou de guerreiro a sua escolha (como um guerreiro de nível igual ao seu para propósitos de pré-requisitos).',
       nivel: 7,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Sargento do Reino' },
+          action: {
+            type: 'getClassPower',
+            // "como um guerreiro de nível igual ao seu para propósitos de
+            // pré-requisitos" — vale para os dois lados da escolha.
+            fromClasses: ['Cavaleiro', 'Guerreiro'],
+            atCharacterLevel: true,
+            label: 'Selecione um poder de cavaleiro ou de guerreiro',
+          },
+        },
+      ],
     },
     {
       name: 'Capitão do Reino',
       text: 'No 8º nível, você se torna um oficial no exército, respeitado e prestigiado por militares, nobres e plebeus. Você recebe o poder Escudeiro e a habilidade Golpe Divino, como um paladino de nível igual ao seu. Esta não é uma habilidade mágica e provém de seu senso de justiça e determinação em combate.',
       nivel: 8,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Capitão do Reino' },
+          action: {
+            type: 'grantSpecificClassPower',
+            powerName: 'Escudeiro',
+            fromClass: 'Cavaleiro',
+          },
+        },
+      ],
     },
     {
       name: 'Lorde',
       text: 'No 9º nível você ascende dentro da nobreza, recebendo um feudo — e muitas responsabilidades. Você recebe o poder Autoridade Feudal. Se já possui esse poder, as pessoas convocadas passam a contar como um parceiro veterano. Além disso, escolha um dos caminhos a seguir. Caminho do Soldado: você recebe um poder de guerreiro (como um guerreiro de nível igual ao seu) a sua escolha. Caminho do Governante: você recebe um poder de nobre (como um nobre de nível igual ao seu) a sua escolha.',
       nivel: 9,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Lorde' },
+          action: {
+            type: 'grantSpecificClassPower',
+            powerName: 'Autoridade Feudal',
+            fromClass: 'Cavaleiro',
+          },
+        },
+        {
+          // O caminho escolhido aqui decide os benefícios de 11, 13 e 17, que
+          // por isso leem `OptionChosen` com esta mesma `optionKey`.
+          source: { type: 'power', name: 'Lorde' },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: 'caminhoDoVassalo',
+            options: [
+              {
+                name: CAMINHO_SOLDADO,
+                text: 'Você recebe um poder de guerreiro (como um guerreiro de nível igual ao seu) a sua escolha.',
+              },
+              {
+                name: CAMINHO_GOVERNANTE,
+                text: 'Você recebe um poder de nobre (como um nobre de nível igual ao seu) a sua escolha.',
+              },
+            ],
+          },
+        },
+      ],
     },
     {
       name: 'Barão',
       text: 'No 10º nível, você ascende dentro da nobreza e passa a receber impostos de seus plebeus. Você recebe o poder Título e um domínio de nível 1. Se já tiver um domínio, em vez disso ele recebe uma construção gratuita (cujos pré-requisitos seu domínio cumpra).',
       nivel: 10,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Barão' },
+          action: {
+            type: 'grantSpecificClassPower',
+            powerName: 'Título',
+            fromClass: 'Cavaleiro',
+          },
+        },
+      ],
     },
     {
       name: 'Visconde',
       text: 'No 11º nível, você adquire um título mais alto. Se escolheu o Caminho do Soldado, recebe +1 PV por nível de vassalo. Se escolheu o Caminho do Governante, recebe +1 em Inteligência.',
       nivel: 11,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Visconde' },
+          target: { type: 'PV' },
+          // "+1 PV por nível de vassalo": `{classLevel}` é o nível NA classe,
+          // que é o que a regra pede (e difere do nível do personagem em
+          // multiclasse).
+          modifier: { type: 'LevelCalc', formula: '{classLevel}' },
+          condition: { combinator: 'AND', clauses: [soldado] },
+        },
+        {
+          source: { type: 'power', name: 'Visconde' },
+          target: { type: 'Attribute', attribute: Atributo.INTELIGENCIA },
+          modifier: { type: 'Fixed', value: 1 },
+          condition: { combinator: 'AND', clauses: [governante] },
+        },
+      ],
     },
     {
       name: 'Conde',
       text: 'A partir do 12º nível, você é um alto nobre e tem acesso a equipamentos poderosos. No início de cada aventura, você recebe um "orçamento" de T$ 30.000 que pode gastar em itens mágicos. Esses itens devem ser devolvidos ou reembolsados no fim da aventura. Além disso, recebe um poder de cavaleiro ou geral a sua escolha.',
       nivel: 12,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Conde' },
+          action: {
+            type: 'getClassPower',
+            fromClasses: ['Cavaleiro'],
+            atCharacterLevel: true,
+            label: 'Selecione um poder de cavaleiro',
+          },
+        },
+      ],
     },
     {
       name: 'Marquês',
       text: 'No 13º nível, seus feitos alçam-no a um título ainda mais alto. Se escolheu o Caminho do Soldado, você recebe redução de dano 5 e +2 na Defesa. Se escolheu o Caminho do Governante, você passa a somar seu Carisma em seus testes de resistência.',
       nivel: 13,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Marquês' },
+          target: { type: 'Defense' },
+          modifier: { type: 'Fixed', value: 2 },
+          condition: { combinator: 'AND', clauses: [soldado] },
+        },
+      ],
     },
     {
       name: 'Duque',
       text: 'No 14º nível, você se tornou um dos mais altos nobres do reino. Quando você usa Autoridade Feudal, o nível do parceiro convocado aumenta em um passo. Além disso, você recebe um poder de cavaleiro a sua escolha.',
       nivel: 14,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Duque' },
+          action: {
+            type: 'getClassPower',
+            fromClasses: ['Cavaleiro'],
+            atCharacterLevel: true,
+            label: 'Selecione um poder de cavaleiro',
+          },
+        },
+      ],
     },
     {
       name: 'Arquiduque',
@@ -159,6 +315,17 @@ const VASSALO: VariantClassOverrides = {
       name: 'Conselheiro Real',
       text: 'A partir do 16º nível, você se torna um dos conselheiros do rei e passa a partilhar do poder de Sua Majestade. Você recebe um poder de cavaleiro a sua escolha e aprende e pode lançar uma magia divina de até 4º círculo a sua escolha (atributo-chave Carisma).',
       nivel: 16,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Conselheiro Real' },
+          action: {
+            type: 'getClassPower',
+            fromClasses: ['Cavaleiro'],
+            atCharacterLevel: true,
+            label: 'Selecione um poder de cavaleiro',
+          },
+        },
+      ],
     },
     {
       name: 'Rei Mercenário',
@@ -176,6 +343,15 @@ const VASSALO: VariantClassOverrides = {
             type: 'ModifyAttribute',
             attribute: Atributo.CARISMA,
             value: 1,
+          },
+        },
+        {
+          source: { type: 'power', name: 'Rei' },
+          action: {
+            type: 'getClassPower',
+            fromClasses: ['Cavaleiro'],
+            atCharacterLevel: true,
+            label: 'Selecione um poder de cavaleiro',
           },
         },
       ],
