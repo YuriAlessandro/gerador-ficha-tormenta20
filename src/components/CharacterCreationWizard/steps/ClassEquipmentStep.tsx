@@ -29,7 +29,8 @@ const ClassEquipmentStep: React.FC<ClassEquipmentStepProps> = ({
   );
   const hasHeavyArmor = classe.proficiencias.includes(PROFICIENCIAS.PESADAS);
   const hasShield = classe.proficiencias.includes(PROFICIENCIAS.ESCUDOS);
-  const isArcanista = classe.name === 'Arcanista';
+  // Variante conta: o Necromante é Arcanista e também não recebe armadura.
+  const isArcanista = isClassOrVariantOf(classe, 'Arcanista');
   // Arcanista é o único que não recebe armadura inicial. Os demais escolhem —
   // inclusive quem tem proficiência com pesadas: o livro permite começar com
   // a pesada, não obriga.
