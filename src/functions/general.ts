@@ -1197,7 +1197,8 @@ function getArmors(classe: ClassDescription, currentBag?: Bag) {
   const armors = [];
   if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
     armors.push(Armaduras.BRUNEA);
-  } else if (classe.name !== 'Arcanista') {
+  } else if (!isClassOrVariantOf(classe, 'Arcanista')) {
+    // Variante conta: o Necromante é Arcanista e também não recebe armadura.
     armors.push(getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves));
   }
 
@@ -1250,7 +1251,7 @@ export function buildClassEquipmentsFromChoices(
   const armors: DefenseEquipment[] = [];
   if (
     !currentBag?.equipments?.Armadura?.length &&
-    classe.name !== 'Arcanista'
+    !isClassOrVariantOf(classe, 'Arcanista')
   ) {
     // A escolha do jogador manda. O livro diz que, com proficiência, ele PODE
     // começar com armadura pesada — não que seja obrigado —, então o
