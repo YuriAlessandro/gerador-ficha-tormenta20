@@ -72,6 +72,15 @@ export type ClassAbility = {
   customDescription?: string;
 };
 
+/** Concessão de poder num nível específico, para classes fora do padrão. */
+export interface ClassPowerGrant {
+  level: number;
+  /** Classes de onde o poder pode vir. */
+  fromClasses: string[];
+  /** Rótulo do grupo na escolha ("Poder de Cavaleiro"). */
+  label?: string;
+}
+
 export type ClassPower = CountsAsTormentaPower & {
   name: string;
   text: string;
@@ -167,6 +176,18 @@ export interface ClassDescription {
   proficiencias: string[];
   abilities: ClassAbility[];
   powers: ClassPower[];
+  /**
+   * Níveis em que a classe concede escolha de poder, e de quais classes os
+   * poderes vêm. AUSENTE é o comportamento padrão de T20: todo nível a partir
+   * do 2º concede um poder da própria classe.
+   *
+   * Existe para o Vassalo, que não segue esse padrão: ele não tem catálogo
+   * próprio (`excludeAllBasePowers`) e ganha poder só em níveis específicos,
+   * emprestados de Cavaleiro/Guerreiro/Nobre. Sem isto o assistente oferecia
+   * uma escolha de poder em TODO nível — vazia do lado da classe, e indevida
+   * nos níveis em que a classe não concede nada.
+   */
+  powerGrants?: ClassPowerGrant[];
   probDevoto: number;
   qtdPoderesConcedidos?: string | number;
   faithProbability?: FaithProbability;

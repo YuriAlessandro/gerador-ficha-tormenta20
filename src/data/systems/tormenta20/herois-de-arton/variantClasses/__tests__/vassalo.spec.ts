@@ -25,44 +25,58 @@ const actionsOf = (name: string) =>
   (byName(name).sheetActions ?? []).map((entry) => entry.action);
 
 describe('Vassalo', () => {
-  describe('concessões de poder de cavaleiro', () => {
-    // Os sete níveis cujo texto diz "recebe um poder de cavaleiro a sua
-    // escolha". Cada um precisa de uma ação `getClassPower` apontando para
-    // Cavaleiro — o Vassalo não herda o catálogo da classe base.
-    const niveis = [
-      'Valete',
-      'Guarda do Castelo',
-      'Cavaleiro do Reino',
-      'Conde',
-      'Duque',
-      'Conselheiro Real',
-      'Rei',
-    ];
+  describe('concessões de poder por nível', () => {
+    // O Vassalo não ganha poder todo nível. A concessão é declarada na CLASSE
+    // (`powerGrants`) e não como ação da habilidade: como ação, ela virava um
+    // SEGUNDO passo de escolha, além do passo normal do nível — que por sua
+    // vez aparecia vazio, já que a classe não tem catálogo próprio.
+    const grants = VASSALO.powerGrants ?? [];
 
-    it.each(niveis)('%s entrega um poder de cavaleiro', (name) => {
-      const grant = actionsOf(name).find(
-        (action) => action.type === 'getClassPower'
-      );
-
-      expect(grant).toBeDefined();
-      expect(grant).toMatchObject({
-        fromClasses: ['Cavaleiro'],
-        atCharacterLevel: true,
-      });
+    it('concede poder exatamente nos níveis do livro', () => {
+      expect(grants.map((grant) => grant.level)).toEqual([
+        2, 4, 6, 7, 9, 12, 14, 16, 18,
+      ]);
     });
 
-    it('Sargento do Reino aceita cavaleiro OU guerreiro', () => {
-      const grant = actionsOf('Sargento do Reino').find(
-        (action) => action.type === 'getClassPower'
+    it('nenhuma habilidade concede poder por ação, para não duplicar o passo', () => {
+      const comAcaoDePoder = abilities.filter((ability) =>
+        (ability.sheetActions ?? []).some(
+          (entry) => entry.action.type === 'getClassPower'
+        )
       );
 
-      expect(grant).toMatchObject({
-        fromClasses: ['Cavaleiro', 'Guerreiro'],
-        // "como um guerreiro de nível igual ao seu para propósitos de
-        // pré-requisitos".
-        atCharacterLevel: true,
-      });
+      expect(comAcaoDePoder).toEqual([]);
     });
+
+    it.each([2, 4, 6, 12, 14, 16, 18])(
+      'no nível %i o poder vem do Cavaleiro',
+      (level) => {
+        expect(
+          grants.find((grant) => grant.level === level)?.fromClasses
+        ).toEqual(['Cavaleiro']);
+      }
+    );
+
+    it('no 7º nível aceita cavaleiro ou guerreiro', () => {
+      expect(grants.find((grant) => grant.level === 7)?.fromClasses).toEqual([
+        'Cavaleiro',
+        'Guerreiro',
+      ]);
+    });
+
+    it('no 9º nível aceita guerreiro ou nobre, os dois caminhos', () => {
+      expect(grants.find((grant) => grant.level === 9)?.fromClasses).toEqual([
+        'Guerreiro',
+        'Nobre',
+      ]);
+    });
+
+    it.each([1, 3, 5, 8, 10, 11, 13, 15, 17, 19, 20])(
+      'no nível %i não concede poder nenhum',
+      (level) => {
+        expect(grants.some((grant) => grant.level === level)).toBe(false);
+      }
+    );
   });
 
   describe('concessões de poder específico', () => {

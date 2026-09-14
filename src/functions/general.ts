@@ -170,6 +170,7 @@ import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getForeignClassPowers,
   getFuturaLendaClassPowers,
   getPowersAllowedByRequirements,
   getWeightedInventorClassPowers,
@@ -4160,16 +4161,43 @@ function levelUp(
     value: subSteps,
   });
 
+  // Classes com `powerGrants` (Vassalo) só recebem poder em certos níveis, e
+  // sempre emprestado de outra classe. Fora desses níveis não há poder nenhum
+  // a sortear — nem de classe, nem geral, já que o poder geral é a TROCA do
+  // poder de classe.
+  const classDescForGrants = findClassDescription(
+    updatedSheet.classe.name,
+    updatedSheet.classe.subname,
+    supplements
+  );
+  const powerGrants = classDescForGrants?.powerGrants;
+  const levelGrant = powerGrants?.find(
+    (grant) => grant.level === updatedSheet.nivel
+  );
+  // Fora de um nível com concessão, não há poder nenhum a sortear.
+  const grantsPowerThisLevel = !powerGrants || !!levelGrant;
+
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
-  const allowedPowers = isClassOrVariantOf(updatedSheet.classe, 'Inventor')
-    ? getWeightedInventorClassPowers(updatedSheet)
-    : getAllowedClassPowers(updatedSheet);
+  let allowedPowers: ClassPower[];
+  if (levelGrant) {
+    allowedPowers = getForeignClassPowers(
+      updatedSheet,
+      levelGrant.fromClasses,
+      updatedSheet.nivel
+    );
+  } else if (isClassOrVariantOf(updatedSheet.classe, 'Inventor')) {
+    allowedPowers = getWeightedInventorClassPowers(updatedSheet);
+  } else {
+    allowedPowers = getAllowedClassPowers(updatedSheet);
+  }
   const allowedGeneralPowers = getPowersAllowedByRequirements(
     updatedSheet,
     supplements
   );
-  if (randomNumber <= 0.7 && allowedPowers.length > 0) {
+  if (!grantsPowerThisLevel) {
+    // Nada a fazer: a classe não concede poder neste nível.
+  } else if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
     const newPower = getRandomItemFromArray(allowedPowers);
     if (updatedSheet.classPowers) {
