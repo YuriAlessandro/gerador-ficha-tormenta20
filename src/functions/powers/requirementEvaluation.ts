@@ -215,6 +215,13 @@ function isRequirementMet(
     case RequirementType.DEVOTO: {
       const godName = req.name;
       if (!godName || godName === 'any') return !!sheet.devoto?.divindade;
+      // Array: exige ser devoto de uma dentre várias divindades
+      if (Array.isArray(godName)) {
+        const deityName = sheet.devoto?.divindade.name.toLowerCase();
+        return (
+          !!deityName && godName.some((n) => n.toLowerCase() === deityName)
+        );
+      }
       return (
         sheet.devoto?.divindade.name.toLowerCase() === godName.toLowerCase()
       );

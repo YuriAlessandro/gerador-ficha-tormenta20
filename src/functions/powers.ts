@@ -229,6 +229,9 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       const deityNames = getSheetDeityNames(sheet);
       // 'any' significa que o personagem deve ser devoto de qualquer divindade
       if (godName === 'any') return deityNames.length > 0;
+      // Array: exige ser devoto de uma dentre várias divindades
+      if (Array.isArray(godName))
+        return deityNames.some((name) => godName.includes(name));
       return !!godName && deityNames.includes(godName);
     }
     case RequirementType.RACA: {

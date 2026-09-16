@@ -35,8 +35,17 @@ const CAVALEIRO_POWERS: ClassPower[] = [
       [
         { type: RequirementType.PERICIA, name: Skill.RELIGIAO },
         {
-          type: RequirementType.TEXT,
-          text: 'Devoto de uma divindade que aceite paladinos',
+          type: RequirementType.DEVOTO,
+          name: [
+            'Azgher',
+            'Khalmyr',
+            'Lena',
+            'Lin-Wu',
+            'Marah',
+            'Tanna-Toh',
+            'Thyatis',
+            'Valkaria',
+          ],
         },
       ],
     ],
