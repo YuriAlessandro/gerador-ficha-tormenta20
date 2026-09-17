@@ -4,7 +4,7 @@ import CharacterSheet, {
 } from '@/interfaces/CharacterSheet';
 import Skill from '@/interfaces/Skills';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
-import { GeneralPower } from '@/interfaces/Poderes';
+import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { allSpellSchools } from '@/interfaces/Spells';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
 import originPowers from '@/data/systems/tormenta20/powers/originPowers';
@@ -570,6 +570,30 @@ export function applyYidishanNaturezaOrganica(
   return subSteps;
 }
 
+/**
+ * O poder escolhido em Ambição Herdada (Meio-Elfo) mora em `origin.powers`, e
+ * quem aplica essa lista é `applyPowerGetters` — que roda ANTES das habilidades
+ * de raça em todo recálculo. Por isso só aplicamos os efeitos aqui quando o
+ * poder acabou de entrar na lista; do contrário os `sheetBonuses` entrariam
+ * duas vezes.
+ */
+function isInOriginPowers(sheet: CharacterSheet, powerName: string): boolean {
+  return !!sheet.origin?.powers.some((p) => p.name === powerName);
+}
+
+function applyOriginPowerEffects(
+  sheet: CharacterSheet,
+  power: OriginPower
+): void {
+  const [newSheet] = applyPower(sheet, power);
+  sheet.skills = newSheet.skills;
+  sheet.spells = newSheet.spells;
+  sheet.sheetBonuses = newSheet.sheetBonuses;
+  sheet.sheetActionHistory = newSheet.sheetActionHistory;
+  sheet.atributos = newSheet.atributos;
+  sheet.sentidos = newSheet.sentidos;
+}
+
 export function applyMeioElfoAmbicaoHerdada(
   sheet: CharacterSheet,
   manualSelections?: SelectionOptions
@@ -609,19 +633,17 @@ export function applyMeioElfoAmbicaoHerdada(
         (p) => p.name === sheet.meioElfoAmbicaoPower
       );
       if (storedOriginPower) {
-        if (
-          sheet.origin &&
-          !sheet.origin.powers.some((p) => p.name === storedOriginPower.name)
-        ) {
+        const alreadyInOrigin = isInOriginPowers(sheet, storedOriginPower.name);
+        if (sheet.origin && !alreadyInOrigin) {
           sheet.origin.powers.push(storedOriginPower);
         }
-        const [newSheet] = applyPower(sheet, storedOriginPower);
-        sheet.skills = newSheet.skills;
-        sheet.spells = newSheet.spells;
-        sheet.sheetBonuses = newSheet.sheetBonuses;
-        sheet.sheetActionHistory = newSheet.sheetActionHistory;
-        sheet.atributos = newSheet.atributos;
-        sheet.sentidos = newSheet.sentidos;
+        // Já estava em `origin.powers`: o passo de benefícios da origem
+        // (`applyPowerGetters`) roda antes das habilidades de raça e já aplicou
+        // os efeitos. Aplicar de novo duplicaria os `sheetBonuses` (ex.: +3 PM
+        // do Coração Heroico contado duas vezes).
+        if (!alreadyInOrigin) {
+          applyOriginPowerEffects(sheet, storedOriginPower);
+        }
       }
       substeps.push({
         name: 'Ambição Herdada',
@@ -649,10 +671,8 @@ export function applyMeioElfoAmbicaoHerdada(
     });
   } else if (hasManualOriginPower) {
     const selectedOriginPower = manualSelections!.originPower!;
-    if (
-      sheet.origin &&
-      !sheet.origin.powers.some((p) => p.name === selectedOriginPower.name)
-    ) {
+    const alreadyInOrigin = isInOriginPowers(sheet, selectedOriginPower.name);
+    if (sheet.origin && !alreadyInOrigin) {
       sheet.origin.powers.push(selectedOriginPower);
     }
     sheet.meioElfoAmbicaoType = 'originPower';
@@ -662,13 +682,9 @@ export function applyMeioElfoAmbicaoHerdada(
       value: `Poder único de origem recebido (${selectedOriginPower.name})`,
     });
 
-    const [newSheet] = applyPower(sheet, selectedOriginPower);
-    sheet.skills = newSheet.skills;
-    sheet.spells = newSheet.spells;
-    sheet.sheetBonuses = newSheet.sheetBonuses;
-    sheet.sheetActionHistory = newSheet.sheetActionHistory;
-    sheet.atributos = newSheet.atributos;
-    sheet.sentidos = newSheet.sentidos;
+    if (!alreadyInOrigin) {
+      applyOriginPowerEffects(sheet, selectedOriginPower);
+    }
   } else {
     // Random selection for initial generation
     const shouldGetGeneralPower = Math.random() > 0.5;
@@ -690,7 +706,8 @@ export function applyMeioElfoAmbicaoHerdada(
       // Get a random origin power
       const allOriginPowers = Object.values(originPowers);
       const randomOriginPower = getRandomItemFromArray(allOriginPowers);
-      if (sheet.origin) {
+      const alreadyInOrigin = isInOriginPowers(sheet, randomOriginPower.name);
+      if (sheet.origin && !alreadyInOrigin) {
         sheet.origin.powers.push(randomOriginPower);
       }
       sheet.meioElfoAmbicaoType = 'originPower';
@@ -700,14 +717,9 @@ export function applyMeioElfoAmbicaoHerdada(
         value: `Poder único de origem recebido (${randomOriginPower.name})`,
       });
 
-      // Apply the origin power's effects
-      const [newSheet] = applyPower(sheet, randomOriginPower);
-      sheet.skills = newSheet.skills;
-      sheet.spells = newSheet.spells;
-      sheet.sheetBonuses = newSheet.sheetBonuses;
-      sheet.sheetActionHistory = newSheet.sheetActionHistory;
-      sheet.atributos = newSheet.atributos;
-      sheet.sentidos = newSheet.sentidos;
+      if (!alreadyInOrigin) {
+        applyOriginPowerEffects(sheet, randomOriginPower);
+      }
     }
   }
 

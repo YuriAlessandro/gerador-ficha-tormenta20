@@ -22,8 +22,18 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
       'Um açoite de fogo surge em uma de suas mãos com a qual possa empunhar uma arma (essa mão fica ocupada pela duração da magia). Você pode usar uma ação padrão para causar 2d6 pontos de dano de fogo com o açoite em uma criatura em alcance curto e deixá-la em chamas e enredada enquanto estiver em chamas dessa forma. Passar na resistência reduz o dano à metade e evita as chamas.',
     aprimoramentos: [
       {
-        addPm: 1,
-        text: 'aumenta o número de alvos em +1 (total de alvos limitado pelo círculo máximo de magia que você pode lançar).',
+        addPm: 2,
+        text: 'muda a execução para movimento.',
+      },
+      {
+        addPm: 2,
+        text: 'muda o dano para 4d6. Requer 2º círculo.',
+        damageBonus: [{ replaceWith: '4d6' }],
+      },
+      {
+        addPm: 5,
+        text: 'muda o dano para 6d6. Requer 3º círculo.',
+        damageBonus: [{ replaceWith: '6d6' }],
       },
     ],
     rolls: [
