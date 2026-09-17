@@ -85,7 +85,17 @@ const AMEACAS_ARTON_ARCANE_SPELLS: Spell[] = [
     school: 'Evoc',
     description:
       'Você dispara um jato, que causa 2d6 pontos de dano de ácido às criaturas na área. Contra construtos e objetos soltos, a magia causa +1 ponto de dano por dado.',
-    aprimoramentos: [],
+    aprimoramentos: [
+      {
+        addPm: 1,
+        text: 'aumenta o dano em +1d6.',
+        damageBonus: [{ diceCount: 1 }],
+      },
+      {
+        addPm: 1,
+        text: 'muda a resistência para Reflexos parcial. Se passar, a criatura reduz o dano à metade; se falhar, fica vulnerável.',
+      },
+    ],
     rolls: [
       {
         id: uuid(),
@@ -174,7 +184,7 @@ const AMEACAS_ARTON_DIVINE_SPELLS: Spell[] = [
     spellCircle: spellsCircles.c5,
     school: 'Evoc',
     description:
-      'Um golpe vindo dos céus risca o campo de batalha. Se escolher duas linhas, cada uma deve seguir em uma direção diferente. Criaturas na área sofrem 12d8 pontos de dano de luz (ou 12d12, se forem mortos-vivos) e ficam cegas e surdas até o fim da cena (Reflexos reduz à metade e evita as condições).',
+      'Um golpe vindo dos céus risca o campo de batalha. Se escolher duas linhas, cada uma deve seguir em uma direção diferente, criando um corte em "V". Criaturas na área sofrem 12d8 pontos de dano de luz (ou 12d12, se forem mortos-vivos) e ficam cegas e surdas até o fim da cena (Reflexos reduz à metade e evita as condições).',
     aprimoramentos: [
       {
         addPm: 3,
@@ -217,7 +227,7 @@ const AMEACAS_ARTON_UNIVERSAL_SPELLS: Spell[] = [
     spellCircle: spellsCircles.c2,
     school: 'Conv',
     description:
-      'Uma nuvem rubra surge acima do conjurador. Uma vez por turno, você pode gastar uma ação padrão para fazer a nuvem manifestar um dos fenômenos a seguir.\n\nChuva ácida. Gotas corrosivas causam 6d4 pontos de dano de ácido em todas as criaturas na área.\n\nNeblina venenosa. Uma neblina faz com que todas as criaturas na área percam 2d12 PV por veneno (Fortitude evita).\n\nRaios escarlates. Até 6 inimigos aleatórios na área sofrem 6d8 pontos de dano de eletricidade (Reflexos reduz à metade).\n\nPesadelos reais. Cada criatura na área sofre 4d6 pontos de dano psíquico e perde 1d4 PM (Vontade reduz o dano à metade e evita a perda de PM).\n\nComponente Material: uma peça de couro de dragão ou uma escama de dragão no valor de T$ 1.000.\n\nEsta magia só pode ser aprendida e lançada por conjuradores que tenham observado uma área de Tormenta pelo menos uma vez. Sua divulgação é proibida e seu uso é permitido apenas em áreas controladas na Academia Arcana e outros lugares restritos, para estudar o fenômeno da Tormenta. Usar esta magia em qualquer outro ponto do Reinado é um crime enquadrado na décima-primeira infração do Vigintílogo.',
+      'Uma nuvem rubra surge acima do conjurador. Uma vez por turno, você pode gastar uma ação de movimento para fazer a nuvem manifestar um dos fenômenos a seguir.\n\nChuva ácida. Gotas corrosivas causam 6d4 pontos de dano de ácido em todas as criaturas na área.\n\nNeblina venenosa. Uma neblina faz com que todas as criaturas na área percam 2d12 PV por veneno (Fortitude evita).\n\nRaios escarlates. Até 6 inimigos aleatórios na área sofrem 6d8 pontos de dano de eletricidade (Reflexos reduz à metade).\n\nPesadelos reais. Cada criatura na área sofre 4d6 pontos de dano psíquico e perde 1d4 PM (Vontade reduz o dano à metade e evita a perda de PM).\n\nEsta magia só pode ser aprendida e lançada por conjuradores que tenham observado uma área de Tormenta pelo menos uma vez. Sua divulgação é proibida e seu uso é permitido apenas em áreas controladas na Academia Arcana e outros lugares restritos, para estudar o fenômeno da Tormenta. Usar esta magia em qualquer outro ponto do Reinado é um crime enquadrado na décima-primeira infração do Vigintílogo.',
     aprimoramentos: [
       {
         addPm: 3,
