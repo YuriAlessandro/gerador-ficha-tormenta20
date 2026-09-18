@@ -91,8 +91,9 @@ primeiro `:`, só decide qual card mostrar.
 ### Regras do estado (reducers do slice `pocketGrimoire`)
 
 - `addItem(grimoireId, itemId)`: não duplica. Atualiza `updatedAt`.
-- `removeItem(grimoireId, itemId)`.
-- `toggleItemInActive(itemId)`: é o que o botão 📖+/✓ chama.
+- `removeItem(grimoireId, itemId)`. O botão 📖+/✓ usa este par com o id
+  explícito do grimório, para o "Desfazer" agir sobre o mesmo grimório mesmo
+  que o ativo mude no meio do caminho.
 - `createGrimoire(name)`: o id (uuid) e as datas são gerados no `prepare` do
   action creator, então quem faz o dispatch lê `action.payload.id`. O reducer
   continua puro. Não vira o ativo automaticamente: o balão da enciclopédia faz
@@ -107,8 +108,9 @@ primeiro `:`, só decide qual card mostrar.
 - `importGrimoire(parsed)`: acrescenta um grimório já validado (ver
   "Exportar e importar").
 
-**Invariantes**, garantidas por um `ensureValidState` aplicado na reidratação
-do persist e ao final de cada reducer:
+**Invariantes.** Os reducers as preservam por construção, e os testes
+verificam isso. O que vem de fora (o `localStorage`) passa por
+`ensureValidState` no `migrate` do redux-persist e no estado inicial:
 
 - existe exatamente um grimório com id `default`;
 - `activeId` aponta para um grimório que existe;
@@ -138,8 +140,11 @@ das fatias já registradas em `src/store/index.ts`.
   - `{ kind: 'generic', entry }`: habilidades e poderes de classe, raça, origem
     e divindade. Usa `entry.title`, `entry.subtitle` e `entry.description`.
   - `{ kind: 'summary', entry }`: classe, raça, origem ou divindade inteira.
-  - `{ kind: 'missing', id, name? }`: id que não está no índice. `name` vem do
-    arquivo importado, quando houver.
+  - `{ kind: 'missing', id, name }`: id que não está no índice. `name` é
+    extraído do próprio id por `nameFromId`, que tira o prefixo e, nos ids de
+    três partes, o dono. Por exemplo, `class-power:Cavaleiro:Postura de
+Combate: Aríete` vira "Postura de Combate: Aríete". Assim nenhum nome
+    precisa ser guardado no estado.
 - `groupResolvedItems(items)` agrupa e ordena para a página de consulta:
 
   1. Magias por círculo (1º a 5º), depois por nome;
@@ -163,12 +168,16 @@ funcionar no celular (breakpoints do MUI) e no tema claro e escuro.
 
 ### `AddToGrimoireButton`
 
-- Props: `itemId: string`, `itemName: string`.
-- Ícone `BookmarkAddOutlined` quando o item não está no ativo e
+- Props: `itemId: string`, `itemName: string` e `grimoireId?: string`. Sem
+  `grimoireId`, o botão age sobre o grimório ativo. A página de consulta passa
+  o grimório aberto, que pode não ser o ativo.
+- Ícone `BookmarkAddOutlined` quando o item não está no grimório e
   `BookmarkAdded` (verde) quando está. Clicar alterna.
-- Tooltip: "Adicionar a <ativo>" / "Remover de <ativo>".
-- Notificação do notistack: "<item> adicionado a <ativo>" com o botão
-  **Desfazer**.
+- Tooltip: "Adicionar a <grimório>" / "Remover de <grimório>".
+- Notificação do notistack: "<item> adicionado a <grimório>" com o botão
+  **Desfazer** e `autoHideDuration: 4000`. O provider global usa `null`, que
+  nunca esconde. Fica ancorada **embaixo, à esquerda**, porque o provider
+  ancora à direita, onde fica o botão flutuante.
 - `event.stopPropagation()`, para não abrir nem fechar a linha da tabela.
 - **Inserido** ao lado do `CopyUrlButton` no card de magia
   (`UnifiedSpellsTable.tsx`) e no de poder geral (`PowersTable.tsx`), e em cada
@@ -201,11 +210,11 @@ funcionar no celular (breakpoints do MUI) e no tema claro e escuro.
 - Um card por grimório: nome, selo **ativo**, quantidade de itens e data da
   última edição. Clicar abre `/grimorio/:id`.
 - Menu ⋮ com ícones:
-  - Tornar ativo (`CheckCircleOutline`);
+  - Tornar ativo (`CheckCircleOutlined`);
   - Renomear (`DriveFileRenameOutline`);
   - Exportar (`FileDownloadOutlined`);
   - Duplicar (`ContentCopyOutlined`);
-  - Excluir (`DeleteOutline`, em vermelho, desativado no Padrão, com diálogo de
+  - Excluir (`DeleteOutlined`, em vermelho, desativado no Padrão, com diálogo de
     confirmação).
 - Aviso fixo: "Grimórios ficam só neste navegador. Exporte para fazer backup ou
   levar para outro aparelho."
@@ -239,7 +248,7 @@ funcionar no celular (breakpoints do MUI) e no tema claro e escuro.
   - `GrimoirePowerCard`: nome, tipo, pré-requisitos e descrição.
   - `GrimoireGenericCard`: nome, subtítulo e descrição.
   - `GrimoireSummaryCard`: nome, subtítulo e o link "Ver na enciclopédia".
-  - `GrimoireMissingCard`: "<nome ou id> não existe mais na enciclopédia",
+  - `GrimoireMissingCard`: "<nome> não existe mais na enciclopédia",
     com botão de remover.
   - Todos os cards têm botão de remover do grimório.
 - Id de grimório que não existe na rota: "Grimório não encontrado", com link
@@ -302,7 +311,7 @@ encontrado. A importação usa apenas o `id`.
 - Diálogo com duas abas: **Arquivo** (`<input type="file" accept=".json,application/json">`)
   e **Colar texto**.
 - `parseGrimoireImport(text)` devolve
-  `{ ok: true, value: { name, itemIds, names } } | { ok: false, error }`:
+  `{ ok: true, value: { name, itemIds } } | { ok: false, error }`:
 
 | Situação                                  | Mensagem                                                             |
 | ----------------------------------------- | -------------------------------------------------------------------- |
@@ -330,7 +339,6 @@ teste pode depender de `src/premium`, porque eles precisam passar no fork.
 - **Slice:**
   - adicionar sem duplicar;
   - remover;
-  - alternar item no ativo;
   - criar, renomear (com validação do nome) e duplicar;
   - não excluir o Padrão;
   - excluir o ativo faz o ativo voltar ao Padrão;
@@ -349,8 +357,11 @@ teste pode depender de `src/premium`, porque eles precisam passar no fork.
   - magia arcana e divina vira um item só;
   - id inválido vira `missing`;
   - a ordem de `groupResolvedItems` está correta.
-- **Proteção contra regressão:** todo id do índice completo (3042 hoje)
-  resolve para algo diferente de `missing`, e os ids do índice são únicos.
+- **Proteção contra regressão:**
+  - toda magia e todo poder geral do índice completo resolvem com os dados
+    detalhados (`spell` e `power`), e não como card genérico;
+  - todo poder geral tem um id `power:<power.type>:<nome>` que existe no
+    índice, que é como a tabela de poderes monta o id do botão.
 
 **Componentes:**
 
