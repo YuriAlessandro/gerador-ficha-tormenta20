@@ -282,12 +282,21 @@ export function isPowerAvailable(
 }
 
 /**
- * Tipos que um "poder geral" pode ter quando é SORTEADO ou oferecido como
- * escolha livre. CONCEDIDOS e RACA ficam de fora: concedido vem da divindade e
- * poder de raça vem da raça, nenhum dos dois é escolha de poder geral. Sem este
- * filtro, um devoto de Khalmyr podia receber "Espada Justiceira" como poder
- * geral de subida de nível — o catálogo é um só, e todo concedido tem
- * pré-requisito DEVOTO, que o próprio devoto satisfaz.
+ * Tipos que entram no SORTEIO de um poder geral.
+ *
+ * Pela regra, poder concedido e poder de raça SÃO poderes gerais, e as listas
+ * de escolha manual (LevelUpWizard, Versátil, Memória Póstuma, Natureza
+ * Orgânica, complicação, Propósito de Criação) oferecem os seis tipos — quem
+ * fecha o acesso a eles é o requisito (DEVOTO / RACA), não a categoria.
+ *
+ * Aqui eles ficam de fora por CURADORIA, não por regra: o catálogo é um só e
+ * todo concedido tem pré-requisito DEVOTO, que o próprio devoto satisfaz, então
+ * incluí-los faria a ficha aleatória de um devoto de Khalmyr sortear "Espada
+ * Justiceira" como poder geral — o que muda bastante a cara da geração
+ * aleatória. Decisão consciente de manter o sorteio conservador; se um dia for
+ * revista, o `isRepeatedPower` abaixo precisa passar a olhar `devoto.poderes`
+ * também (ver `getOwnedGeneralPowers`), senão o sorteio repete um concedido que
+ * o devoto já tem pela devoção.
  */
 const PICKABLE_GENERAL_POWER_TYPES = [
   GeneralPowerType.COMBATE,
@@ -295,6 +304,18 @@ const PICKABLE_GENERAL_POWER_TYPES = [
   GeneralPowerType.MAGIA,
   GeneralPowerType.TORMENTA,
 ];
+
+/**
+ * Poderes gerais que a ficha JÁ possui, para as listas de escolha MANUAL.
+ *
+ * Inclui `devoto.poderes` porque poder concedido é poder geral e vive naquele
+ * balde: sem isso, um devoto de Khalmyr enxerga "Espada Justiceira" — que ele
+ * já recebeu pela devoção — oferecida de novo na subida de nível ou num
+ * Versátil, e acaba com o mesmo poder duas vezes na ficha.
+ */
+export function getOwnedGeneralPowers(sheet: CharacterSheet): GeneralPower[] {
+  return [...(sheet.generalPowers ?? []), ...(sheet.devoto?.poderes ?? [])];
+}
 
 /**
  * Poderes gerais que a ficha pode receber agora.

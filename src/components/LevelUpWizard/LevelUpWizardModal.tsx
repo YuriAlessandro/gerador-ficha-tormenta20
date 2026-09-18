@@ -22,6 +22,7 @@ import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getOwnedGeneralPowers,
   isPowerAvailable,
 } from '@/functions/powers';
 import { dataRegistry } from '@/data/registry';
@@ -373,7 +374,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     ];
 
     // Track which powers are unavailable (requirements not met)
-    const existingGeneralPowers = sheetForFiltering.generalPowers;
+    const existingGeneralPowers = getOwnedGeneralPowers(sheetForFiltering);
     const unavailableGeneralPowers: string[] = [];
     const generalPowers = allGeneralPowers.filter((power) => {
       const isRepeatedPower = existingGeneralPowers.find(
@@ -1047,7 +1048,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         const knownClassPowers =
           sheetForPowerSelection.classPowers?.map((p) => p.name) || [];
         const knownGeneralPowers = [
-          ...(sheetForPowerSelection.generalPowers?.map((p) => p.name) || []),
+          ...getOwnedGeneralPowers(sheetForPowerSelection).map((p) => p.name),
           ...(sheetForPowerSelection.raca.abilities?.map((a) => a.name) || []),
         ];
 

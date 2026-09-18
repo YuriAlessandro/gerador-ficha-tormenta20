@@ -45,7 +45,7 @@ import {
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
-import { isPowerAvailable } from '@/functions/powers';
+import { getOwnedGeneralPowers, isPowerAvailable } from '@/functions/powers';
 import Skill from '@/interfaces/Skills';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
@@ -1430,7 +1430,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available powers for Versátil using dataRegistry
       const allPowers = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowers = Object.values(allPowers).flat();
-      const existingGeneralPowers = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowers = getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForVersatil = allGeneralPowers.filter((power) => {
         const isRepeatedPower = existingGeneralPowers.find(
           (existingPower) => existingPower.name === power.name
@@ -1510,7 +1510,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available general powers
       const allPowersForMP = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowersForMP = Object.values(allPowersForMP).flat();
-      const existingGeneralPowersForMP = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowersForMP =
+        getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForMP = allGeneralPowersForMP.filter((power) => {
         const isRepeatedPower = existingGeneralPowersForMP.find(
           (existingPower) => existingPower.name === power.name
@@ -1560,7 +1561,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     if (type === 'meioElfoAmbicaoHerdada') {
       const allPowersForAH = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowersForAH = Object.values(allPowersForAH).flat();
-      const existingGeneralPowersForAH = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowersForAH =
+        getOwnedGeneralPowers(sheetForFiltering);
       const availableGeneralPowersForAH = allGeneralPowersForAH.filter(
         (power) => {
           const isRepeatedPower = existingGeneralPowersForAH.find(
@@ -1610,7 +1612,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available general powers (filtered by requirements/existing)
       const allPowersForYNO = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowersForYNO = Object.values(allPowersForYNO).flat();
-      const existingGeneralPowersForYNO = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowersForYNO =
+        getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForYNO = allGeneralPowersForYNO.filter((power) => {
         const isRepeatedPower = existingGeneralPowersForYNO.find(
           (existingPower) => existingPower.name === power.name
