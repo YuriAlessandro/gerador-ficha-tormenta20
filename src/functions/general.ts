@@ -7956,3 +7956,55 @@ export function restoreSpellPath(
     });
   }
 }
+
+/**
+ * Repassa para os PV/PM atuais o que o personagem ganhou de máximo: os pontos
+ * novos nascem cheios, e não "gastos". Sem isso, um personagem em 7/7 que sobe
+ * de nível aparece em 7/10, e um Aumento de Atributo em Constituição rende PV
+ * máximo que o personagem não tem.
+ *
+ * Deve ser chamada com a ficha ANTES da mudança e a ficha DEPOIS do
+ * `recalculateSheet` (é o recálculo que fecha o máximo final). Ganho negativo é
+ * ignorado — máximo que cai é tratado pelo teto do próprio recálculo, que não
+ * deve devolver pontos gastos.
+ */
+export function applyMaxPointsGainToCurrent(
+  before: CharacterSheet,
+  after: CharacterSheet
+): CharacterSheet {
+  const gainPV = Math.max(0, after.pv - before.pv);
+  const gainPM = Math.max(0, after.pm - before.pm);
+
+  if (gainPV === 0 && gainPM === 0) return after;
+
+  const currentPV = after.currentPV ?? after.pv;
+  const currentPM = after.currentPM ?? after.pm;
+
+  return {
+    ...after,
+    currentPV: Math.min(after.pv, currentPV + gainPV),
+    currentPM: Math.min(after.pm, currentPM + gainPM),
+  };
+}
+
+/**
+ * Adiciona pontos ao valor atual transbordando para os temporários o que passar
+ * do máximo: quem já está cheio e recebe +2 PM fica com 2 PM temporários, em vez
+ * de perder os pontos no teto.
+ *
+ * O transbordo mora aqui, no momento em que o jogador adiciona os pontos,
+ * porque só aqui existe a intenção de ganhar pontos. O `recalculateSheet` não
+ * tem como saber disso: para ele, atual acima do máximo é só um máximo que
+ * encolheu, e virar temporário ali dava pontos de graça a quem só teve a ficha
+ * recalculada.
+ */
+export function addPointsOverflowingToTemp(
+  amount: number,
+  current: number,
+  max: number,
+  temp: number
+): { current: number; temp: number } {
+  const target = current + amount;
+  if (target <= max) return { current: target, temp };
+  return { current: max, temp: temp + (target - max) };
+}

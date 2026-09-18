@@ -2274,20 +2274,6 @@ export function recalculateSheet(
       }
     }
 
-    // Initialize current PV if not set (first time or reset)
-    if (updatedSheet.currentPV === undefined) {
-      updatedSheet.currentPV = updatedSheet.pv;
-    }
-
-    // Migrate old over-max PV to temp PV
-    if (
-      updatedSheet.currentPV > updatedSheet.pv &&
-      updatedSheet.tempPV === undefined
-    ) {
-      updatedSheet.tempPV = updatedSheet.currentPV - updatedSheet.pv;
-      updatedSheet.currentPV = updatedSheet.pv;
-    }
-
     // Initialize increment if not set
     if (updatedSheet.pvIncrement === undefined) {
       updatedSheet.pvIncrement = 1;
@@ -2327,20 +2313,6 @@ export function recalculateSheet(
     // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
     if (!hasManualMaxPM) {
       updatedSheet.pm += getVirtudePaladinescaPMBonus(updatedSheet.classPowers);
-    }
-
-    // Initialize current PM if not set (first time or reset)
-    if (updatedSheet.currentPM === undefined) {
-      updatedSheet.currentPM = updatedSheet.pm;
-    }
-
-    // Migrate old over-max PM to temp PM
-    if (
-      updatedSheet.currentPM > updatedSheet.pm &&
-      updatedSheet.tempPM === undefined
-    ) {
-      updatedSheet.tempPM = updatedSheet.currentPM - updatedSheet.pm;
-      updatedSheet.currentPM = updatedSheet.pm;
     }
 
     // Initialize increment if not set
@@ -2744,6 +2716,33 @@ export function recalculateSheet(
 
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
   updatedSheet = applyHPAttributeReplacement(updatedSheet);
+
+  // Step 12.5: PV/PM atuais. Tem que rodar DEPOIS de todo mundo que mexe nos
+  // máximos (Step 8 soma os bônus de atributo-chave — o Carisma do "Abençoado"
+  // do paladino, por exemplo — e o Step 12 recalcula PV). Rodando antes, uma
+  // ficha nova nascia com o atual igual à base da classe (paladino nv1 com
+  // Carisma 4: 3/7).
+  //
+  // O recálculo NUNCA move o atual por conta própria: quem gastou PM continua
+  // com o que sobrou, e quem ganhou máximo (nível novo, Aumento de Atributo)
+  // recebe o ganho no atual pelos chamadores, via
+  // `applyMaxPointsGainToCurrent`. A única correção feita aqui é o teto —
+  // quando o máximo cai (atributo reduzido à mão, poder removido), o atual
+  // desce junto. Excedente vira teto, e não pontos temporários: converter em
+  // temporário dava PM de graça a quem só teve o máximo recalculado.
+  if (!options?.skipPVRecalc) {
+    updatedSheet.currentPV = Math.min(
+      updatedSheet.currentPV ?? updatedSheet.pv,
+      updatedSheet.pv
+    );
+  }
+
+  if (!options?.skipPMRecalc) {
+    updatedSheet.currentPM = Math.min(
+      updatedSheet.currentPM ?? updatedSheet.pm,
+      updatedSheet.pm
+    );
+  }
 
   // Step 14: Calculate Damage Reduction from sheetBonuses + manual
   const computedRd: DamageReduction = {};

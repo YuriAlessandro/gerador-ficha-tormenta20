@@ -49,6 +49,7 @@ import {
 import {
   modifyAttributesBasedOnRace,
   applyManualLevelUp,
+  applyMaxPointsGainToCurrent,
 } from '@/functions/general';
 import { getTradicaoPerdidaPmCap } from '@/functions/powers/general';
 import getNameSuggestions from '@/functions/nameSuggestions';
@@ -942,6 +943,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updatedSheet = applyManualLevelUp(updatedSheet, sel);
     });
     updatedSheet = recalculateSheet(updatedSheet);
+    // Os PV/PM ganhos no nível novo entram cheios também no atual.
+    updatedSheet = applyMaxPointsGainToCurrent(sheet, updatedSheet);
     onSave(updatedSheet);
     onClose();
   };
