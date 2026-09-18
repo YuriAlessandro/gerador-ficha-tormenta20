@@ -496,6 +496,18 @@ const CharacterCreationWizardModal: React.FC<
     return getGrantedPowerPool(names, supplements);
   }, [deity, secondaryDeity, supplements]);
 
+  /**
+   * Poderes concedidos já escolhidos no passo "Poderes da Divindade". Entram na
+   * ficha-mock dos passos de poder (complicação / idade) para que o requisito
+   * DEVOTO e os requisitos do tipo PODER enxerguem a devoção já montada.
+   */
+  const chosenDeityPowers = useMemo(() => {
+    if (!deity || !selections.deityPowers?.length) return [];
+    return grantedPowerPool.filter((p) =>
+      selections.deityPowers?.includes(p.name)
+    );
+  }, [deity, grantedPowerPool, selections.deityPowers]);
+
   // Sexo efetivo para atributos raciais (dimorfismo sexual, ex: Nagah)
   const sexForAttributes = resolveSexForAttributes(
     selections.characterGender,
@@ -1560,6 +1572,9 @@ const CharacterCreationWizardModal: React.FC<
             race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
+            deity={deity}
+            secondaryDeityName={secondaryDeity?.name}
+            deityPowers={chosenDeityPowers}
             usedSkills={getAllUsedSkills()}
             supplements={supplements}
           />
@@ -1606,6 +1621,7 @@ const CharacterCreationWizardModal: React.FC<
         if (selections.propositoCriacaoPower) {
           knownPowers.push(selections.propositoCriacaoPower);
         }
+        knownPowers.push(...chosenDeityPowers);
 
         const complicationPowerName = selections.complicationPower?.name;
         return (
@@ -1649,6 +1665,9 @@ const CharacterCreationWizardModal: React.FC<
             race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
+            deity={deity}
+            secondaryDeityName={secondaryDeity?.name}
+            deityPowers={chosenDeityPowers}
             usedSkills={getAllUsedSkills()}
             supplements={supplements}
           />
@@ -1691,6 +1710,7 @@ const CharacterCreationWizardModal: React.FC<
         if (selections.propositoCriacaoPower) {
           knownPowers.push(selections.propositoCriacaoPower);
         }
+        knownPowers.push(...chosenDeityPowers);
         if (selections.complicationPower) {
           knownPowers.push(selections.complicationPower);
         }
@@ -1736,6 +1756,9 @@ const CharacterCreationWizardModal: React.FC<
             race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
+            deity={deity}
+            secondaryDeityName={secondaryDeity?.name}
+            deityPowers={chosenDeityPowers}
             usedSkills={getAllUsedSkills()}
             supplements={supplements}
           />
