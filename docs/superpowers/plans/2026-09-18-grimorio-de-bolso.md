@@ -4346,3 +4346,11 @@ Capture de novo `/database/magias` e `/database/poderes` e compare com as imagen
 git add -A src
 git commit -m "fix(grimorio): ajustes da verificação final"
 ```
+
+---
+
+## Desvios registrados durante a execução
+
+- **Tarefa 7, `powerItemId`:** o teste de ids da tabela de poderes encontrou um dado inconsistente no projeto original. "Magia Acelerada" (`src/data/systems/tormenta20/powers/spellPowers.ts`) está na lista de poderes de Magia, mas tem `type: GeneralPowerType.DESTINO`. Montar o id com `power.type` geraria `power:DESTINO:Magia Acelerada`, que não existe no índice. A solução foi `powerItemId(power)` em `resolveItems.ts`, que busca o id pelo nome (os nomes de poderes gerais são únicos). A `PowersTable` usa `itemId={powerItemId(power)}` e também importa `powerItemId`. O dado não foi corrigido: ele alimenta o gerador de fichas e está fora do escopo.
+- **Tarefa 5:** `HelpOutline` não existe no MUI v9; o ícone usado é `HelpOutlined`. No teste "magia fechada…", o botão de expandir é encontrado por `{ expanded: false }`, porque `/Bola de Fogo/` também casava com o botão de remover.
+- **Tarefa 2:** `prepare` de `createGrimoire` usa `itemIds: [] as string[]` para o tipo do payload bater.

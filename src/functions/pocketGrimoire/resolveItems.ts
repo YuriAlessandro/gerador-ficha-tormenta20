@@ -45,6 +45,8 @@ interface GrimoireCatalog {
   spells: Map<string, GrimoireSpell>;
   /** Pelo id do índice (`power:<tipo>:<nome>`). */
   powers: Map<string, GeneralPowerWithSupplement>;
+  /** Nome do poder geral → id do índice (nomes são únicos entre os tipos). */
+  powerIdByName: Map<string, string>;
 }
 
 /**
@@ -127,14 +129,31 @@ let catalog: GrimoireCatalog | null = null;
 export function getGrimoireCatalog(): GrimoireCatalog {
   if (!catalog) {
     const index = buildEncyclopediaIndex(ALL_SUPPLEMENTS);
+    const powers = collectPowers();
     catalog = {
       index,
       byId: new Map(index.map((entry) => [entry.id, entry])),
       spells: collectSpells(),
-      powers: collectPowers(),
+      powers,
+      powerIdByName: new Map(
+        Array.from(powers.entries()).map(([id, power]) => [power.name, id])
+      ),
     };
   }
   return catalog;
+}
+
+/**
+ * Id do índice para um poder geral. O índice agrupa pela lista em que o poder
+ * está, que nem sempre bate com o campo `type` (ex.: "Magia Acelerada" está
+ * entre os poderes de Magia mas tem `type: DESTINO`), então quem só tem o
+ * objeto do poder deve montar o id por aqui, não com `power.type`.
+ */
+export function powerItemId(power: { name: string; type: string }): string {
+  return (
+    getGrimoireCatalog().powerIdByName.get(power.name) ??
+    `power:${power.type}:${power.name}`
+  );
 }
 
 export const getFullEncyclopediaIndex = (): EncyclopediaEntry[] =>

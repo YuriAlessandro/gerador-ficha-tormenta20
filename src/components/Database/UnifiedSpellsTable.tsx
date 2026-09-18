@@ -43,6 +43,7 @@ import AdvancedSpellFilter from './AdvancedSpellFilter';
 import TormentaTitle from './TormentaTitle';
 import SearchInput from '../DatabaseTables/SearchInput';
 import CopyUrlButton from './CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
 import { useAuth } from '../../hooks/useAuth';
 import {
   SupplementId,
@@ -210,6 +211,10 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
                   sx={{ ml: 1 }}
                 />
               )}
+            <AddToGrimoireButton
+              itemId={`spell:${spell.nome}`}
+              itemName={spell.nome}
+            />
             <CopyUrlButton
               itemName={spell.nome}
               itemType='magia'
