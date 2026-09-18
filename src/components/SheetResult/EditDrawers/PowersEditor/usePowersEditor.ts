@@ -35,6 +35,7 @@ import {
   PowerAvailability,
 } from '@/functions/powers/requirementEvaluation';
 import { resolveClassPowerCatalog } from '@/functions/powers';
+import { applyMaxPointsGainToCurrent } from '@/functions/general';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   findClassDescription,
@@ -1177,7 +1178,14 @@ export function usePowersEditor({
       };
 
       // A ficha inteira, já recalculada — é o que o `Result` espera receber.
-      onSave(recalculateSheet(updatedSheet, sheet, manualSelections));
+      // Máximo que subiu (Aumento de Atributo, poderes que dão PV/PM) entra
+      // cheio também no atual; máximo que caiu é aparado pelo recálculo.
+      const recalculated = recalculateSheet(
+        updatedSheet,
+        sheet,
+        manualSelections
+      );
+      onSave(applyMaxPointsGainToCurrent(sheet, recalculated));
       onClose();
     },
     [

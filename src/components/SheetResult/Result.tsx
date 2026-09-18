@@ -57,6 +57,8 @@ import { getPoderCapturadoDefinition } from '@/functions/powers/poderCapturadoEf
 import { ignoresEncumbrance } from '@/functions/encumbrance';
 import {
   applyManualLevelUp,
+  applyMaxPointsGainToCurrent,
+  addPointsOverflowingToTemp,
   calculateCurrencySpaces,
 } from '@/functions/general';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
@@ -812,6 +814,8 @@ const Result: React.FC<ResultProps> = (props) => {
           updatedSheet = applyManualLevelUp(updatedSheet, sel);
         });
         updatedSheet = recalculateSheet(updatedSheet);
+        // Os PV/PM ganhos no nível novo entram cheios também no atual.
+        updatedSheet = applyMaxPointsGainToCurrent(currentSheet, updatedSheet);
         if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
           updatedSheet.bag = Bag.fromStored(updatedSheet.bag);
         }
@@ -1024,9 +1028,18 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handlePVHeal = useCallback(
     (amount: number) => {
-      const currentPVVal = currentSheet.currentPV ?? currentSheet.pv;
-      const newCurrent = Math.min(currentSheet.pv, currentPVVal + amount);
-      const updatedSheet = { ...currentSheet, currentPV: newCurrent };
+      // Acima do máximo, o excedente vira PV temporário em vez de sumir no teto.
+      const { current, temp } = addPointsOverflowingToTemp(
+        amount,
+        currentSheet.currentPV ?? currentSheet.pv,
+        currentSheet.pv,
+        currentSheet.tempPV ?? 0
+      );
+      const updatedSheet = {
+        ...currentSheet,
+        currentPV: current,
+        tempPV: temp,
+      };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -1037,9 +1050,18 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handlePMHeal = useCallback(
     (amount: number) => {
-      const currentPMVal = currentSheet.currentPM ?? currentSheet.pm;
-      const newCurrent = Math.min(currentSheet.pm, currentPMVal + amount);
-      const updatedSheet = { ...currentSheet, currentPM: newCurrent };
+      // Acima do máximo, o excedente vira PM temporário em vez de sumir no teto.
+      const { current, temp } = addPointsOverflowingToTemp(
+        amount,
+        currentSheet.currentPM ?? currentSheet.pm,
+        currentSheet.pm,
+        currentSheet.tempPM ?? 0
+      );
+      const updatedSheet = {
+        ...currentSheet,
+        currentPM: current,
+        tempPM: temp,
+      };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
