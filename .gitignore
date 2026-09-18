@@ -43,3 +43,6 @@ yarn-error.log*
 
 # Extrações de conteúdo de livros usadas para gerar dados (mesmo motivo de /livros)
 /deuses_menores.csv
+
+# Mockups do brainstorming (superpowers)
+.superpowers/
