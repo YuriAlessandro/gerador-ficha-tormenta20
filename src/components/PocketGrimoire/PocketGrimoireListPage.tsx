@@ -53,7 +53,12 @@ const PocketGrimoireListPage: React.FC = () => {
           Meus grimórios
         </TormentaTitle>
 
-        <Stack direction='row' spacing={1} sx={{ mb: 2 }} flexWrap='wrap'>
+        <Stack
+          direction='row'
+          spacing={1}
+          useFlexGap
+          sx={{ mb: 2, flexWrap: 'wrap' }}
+        >
           <Button
             variant='contained'
             startIcon={<AddIcon />}

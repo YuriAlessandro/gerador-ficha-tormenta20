@@ -152,12 +152,14 @@ const PocketGrimoirePage: React.FC = () => {
           label='Buscar no grimório ou adicionar'
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon fontSize='small' />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon fontSize='small' />
+                </InputAdornment>
+              ),
+            },
           }}
           sx={{ mb: 1.5 }}
         />
@@ -199,8 +201,7 @@ const PocketGrimoirePage: React.FC = () => {
             direction='row'
             spacing={1}
             useFlexGap
-            flexWrap='wrap'
-            sx={{ mb: 2 }}
+            sx={{ mb: 2, flexWrap: 'wrap' }}
           >
             {presentFilters.map((option) => (
               <Chip

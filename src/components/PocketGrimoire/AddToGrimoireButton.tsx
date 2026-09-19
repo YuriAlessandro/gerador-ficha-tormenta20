@@ -37,6 +37,7 @@ const AddToGrimoireButton: React.FC<Props> = ({
   const notify = (message: string, undo: () => void) => {
     enqueueSnackbar(message, {
       ...GRIMOIRE_SNACKBAR,
+      variant: 'default',
       action: (key) => (
         <Button
           color='inherit'

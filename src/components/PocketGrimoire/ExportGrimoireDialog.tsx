@@ -78,7 +78,9 @@ const ExportGrimoireDialog: React.FC<Props> = ({ open, grimoire, onClose }) => {
           maxRows={14}
           value={json}
           label='JSON do grimório'
-          InputProps={{ readOnly: true, sx: { fontFamily: 'monospace' } }}
+          slotProps={{
+            input: { readOnly: true, sx: { fontFamily: 'monospace' } },
+          }}
         />
       </DialogContent>
       <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>

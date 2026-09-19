@@ -153,7 +153,7 @@ const ImportGrimoireDialog: React.FC<Props> = ({ open, onClose }) => {
               setText(event.target.value);
               setError('');
             }}
-            InputProps={{ sx: { fontFamily: 'monospace' } }}
+            slotProps={{ input: { sx: { fontFamily: 'monospace' } } }}
           />
         )}
         {error && (

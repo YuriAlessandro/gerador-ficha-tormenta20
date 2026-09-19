@@ -68,7 +68,10 @@ const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
   const handleDelete = () => {
     setDialog(null);
     dispatch(deleteGrimoire(grimoire.id));
-    enqueueSnackbar(`${grimoire.name} excluído.`, GRIMOIRE_SNACKBAR);
+    enqueueSnackbar(`${grimoire.name} excluído.`, {
+      ...GRIMOIRE_SNACKBAR,
+      variant: 'default',
+    });
     onDeleted?.();
   };
 

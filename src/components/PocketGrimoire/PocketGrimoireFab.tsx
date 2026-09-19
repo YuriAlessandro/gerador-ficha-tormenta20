@@ -161,11 +161,13 @@ const PocketGrimoireFab: React.FC = () => {
           open={open}
           onOpen={() => setOpen(true)}
           onClose={() => setOpen(false)}
-          PaperProps={{
-            sx: {
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
-              pb: safeBottom(8),
+          slotProps={{
+            paper: {
+              sx: {
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                pb: safeBottom(8),
+              },
             },
           }}
         >

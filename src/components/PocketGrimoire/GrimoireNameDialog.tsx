@@ -52,7 +52,7 @@ const GrimoireNameDialog: React.FC<Props> = ({
             label='Nome'
             value={name}
             onChange={(event) => setName(event.target.value)}
-            inputProps={{ maxLength: GRIMOIRE_NAME_MAX_LENGTH }}
+            slotProps={{ htmlInput: { maxLength: GRIMOIRE_NAME_MAX_LENGTH } }}
             helperText={`${name.length}/${GRIMOIRE_NAME_MAX_LENGTH}`}
           />
         </DialogContent>
