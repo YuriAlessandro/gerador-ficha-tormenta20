@@ -86,6 +86,7 @@ export function presentItem(item: ResolvedItem): ItemPresentation {
         subtitle: item.entry.subtitle ?? item.entry.categoryLabel,
         summary: item.entry.subtitle,
         description: item.entry.description,
+        footer: item.entry.categoryLabel,
         chips: [item.entry.categoryLabel],
         accent: item.kind === 'summary' ? 'entity' : 'feature',
       };

@@ -13,11 +13,15 @@ import {
   Paper,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StorageIcon from '@mui/icons-material/Storage';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   removeItem,
@@ -41,6 +45,9 @@ import { SEO } from '../SEO';
 import GrimoireItemCard from './cards/GrimoireItemCard';
 import GrimoireMenu from './GrimoireMenu';
 import AddToGrimoireButton from './AddToGrimoireButton';
+import GrimoireCollectibleCard from './cards/GrimoireCollectibleCard';
+import GrimoireCardViewer from './cards/GrimoireCardViewer';
+import { GrimoireViewMode, useGrimoireViewMode } from './useGrimoireViewMode';
 
 /** Grimórios pequenos (uma one-shot) já abrem com tudo à vista. */
 export const AUTO_OPEN_MAX_ITEMS = 5;
@@ -62,6 +69,8 @@ const PocketGrimoirePage: React.FC = () => {
   const activeId = useAppSelector(selectActiveId);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<GrimoireFilter>('all');
+  const [viewMode, setViewMode] = useGrimoireViewMode();
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const itemIds = grimoire?.itemIds;
   const resolved = useMemo(() => resolveItems(itemIds ?? []), [itemIds]);
@@ -88,6 +97,17 @@ const PocketGrimoirePage: React.FC = () => {
       ),
     [resolved, filter, normalizedQuery]
   );
+
+  // Ordem em que as cartas aparecem: é a ordem das setas ‹ › da carta ampliada.
+  const orderedItems = useMemo(
+    () => groups.flatMap((group) => group.items),
+    [groups]
+  );
+  // Ao remover a última carta, o visualizador recua; sem cartas, fecha.
+  const openIndex =
+    viewerIndex === null || orderedItems.length === 0
+      ? null
+      : Math.min(viewerIndex, orderedItems.length - 1);
 
   const searchResults = useMemo(
     () =>
@@ -216,23 +236,53 @@ const PocketGrimoirePage: React.FC = () => {
           </Paper>
         )}
 
-        {presentFilters.length > 2 && (
-          <Stack
-            direction='row'
-            spacing={1}
-            useFlexGap
-            sx={{ mb: 2, flexWrap: 'wrap' }}
+        {grimoire.itemIds.length > 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 1,
+              mb: 2,
+            }}
           >
-            {presentFilters.map((option) => (
-              <Chip
-                key={option.value}
-                label={option.label}
-                clickable
-                color={filter === option.value ? 'primary' : 'default'}
-                onClick={() => setFilter(option.value)}
-              />
-            ))}
-          </Stack>
+            <Stack
+              direction='row'
+              spacing={1}
+              useFlexGap
+              sx={{ flexWrap: 'wrap' }}
+            >
+              {presentFilters.length > 2 &&
+                presentFilters.map((option) => (
+                  <Chip
+                    key={option.value}
+                    label={option.label}
+                    clickable
+                    color={filter === option.value ? 'primary' : 'default'}
+                    onClick={() => setFilter(option.value)}
+                  />
+                ))}
+            </Stack>
+            <ToggleButtonGroup
+              size='small'
+              exclusive
+              value={viewMode}
+              onChange={(_event, next: GrimoireViewMode | null) => {
+                if (next) setViewMode(next);
+              }}
+              aria-label='Como ver o grimório'
+            >
+              <ToggleButton value='list'>
+                <FormatListBulletedIcon fontSize='small' sx={{ mr: 0.5 }} />
+                Lista
+              </ToggleButton>
+              <ToggleButton value='cards'>
+                <ViewModuleIcon fontSize='small' sx={{ mr: 0.5 }} />
+                Cartas
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
         )}
 
         {grimoire.itemIds.length === 0 && (
@@ -254,17 +304,47 @@ const PocketGrimoirePage: React.FC = () => {
             >
               {group.label}
             </Typography>
-            {group.items.map((item) => (
-              <GrimoireItemCard
-                key={item.id}
-                item={item}
-                defaultOpen={defaultOpen}
-                onRemove={handleRemove}
-              />
-            ))}
+            {viewMode === 'list' ? (
+              group.items.map((item) => (
+                <GrimoireItemCard
+                  key={item.id}
+                  item={item}
+                  defaultOpen={defaultOpen}
+                  onRemove={handleRemove}
+                />
+              ))
+            ) : (
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: 'repeat(3, 1fr)',
+                    sm: 'repeat(4, 1fr)',
+                    md: 'repeat(6, 1fr)',
+                  },
+                  gap: 1,
+                }}
+              >
+                {group.items.map((item) => (
+                  <GrimoireCollectibleCard
+                    key={item.id}
+                    item={item}
+                    onOpen={() => setViewerIndex(orderedItems.indexOf(item))}
+                  />
+                ))}
+              </Box>
+            )}
           </Box>
         ))}
       </Container>
+
+      <GrimoireCardViewer
+        items={orderedItems}
+        index={openIndex}
+        onIndexChange={setViewerIndex}
+        onClose={() => setViewerIndex(null)}
+        onRemove={handleRemove}
+      />
     </>
   );
 };

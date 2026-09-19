@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import PocketGrimoirePage from '../PocketGrimoirePage';
 import PocketGrimoireListPage from '../PocketGrimoireListPage';
 import { renderWithProviders } from './renderWithProviders';
@@ -81,6 +81,57 @@ describe('PocketGrimoirePage', () => {
       path: '/grimorio/:id',
     });
     expect(screen.getByText('Grimório não encontrado')).toBeInTheDocument();
+  });
+});
+
+describe('PocketGrimoirePage — modo cartas', () => {
+  const THREE = [
+    'spell:Bola de Fogo',
+    'spell:Seta Infalível de Talude',
+    'power:MAGIA:Magia Acelerada',
+  ];
+
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('alterna para cartas e lembra a escolha', () => {
+    renderPage(THREE);
+    fireEvent.click(screen.getByRole('button', { name: /Cartas/ }));
+    expect(
+      screen.getByRole('button', { name: /Abrir carta Bola de Fogo/ })
+    ).toBeInTheDocument();
+    expect(window.localStorage.getItem('fdn-grimoire-view')).toBe('cards');
+  });
+
+  it('abre a carta ampliada e navega com as setas', () => {
+    window.localStorage.setItem('fdn-grimoire-view', 'cards');
+    renderPage(THREE);
+    fireEvent.click(
+      screen.getByRole('button', { name: /Abrir carta Seta Infalível/ })
+    );
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveTextContent('Seta Infalível de Talude');
+    expect(dialog).toHaveTextContent(/1 de 3/);
+    fireEvent.click(screen.getByRole('button', { name: 'Próxima carta' }));
+    expect(screen.getByRole('dialog')).toHaveTextContent('Bola de Fogo');
+    expect(screen.getByRole('dialog')).toHaveTextContent('Aprimoramentos');
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowLeft' });
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'Seta Infalível de Talude'
+    );
+  });
+
+  it('remover pela carta ampliada tira o item do grimório', () => {
+    window.localStorage.setItem('fdn-grimoire-view', 'cards');
+    const { store } = renderPage(THREE);
+    fireEvent.click(screen.getByRole('button', { name: /Abrir carta Bola/ }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remover do grimório' })
+    );
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).not.toContain(
+      'spell:Bola de Fogo'
+    );
   });
 });
 
