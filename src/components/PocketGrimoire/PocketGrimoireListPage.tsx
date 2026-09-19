@@ -138,6 +138,10 @@ const PocketGrimoireListPage: React.FC = () => {
           setCreating(false);
           history.push(`/grimorio/${action.payload.id}`);
         }}
+        onImport={() => {
+          setCreating(false);
+          setImporting(true);
+        }}
       />
       <ImportGrimoireDialog
         open={importing}

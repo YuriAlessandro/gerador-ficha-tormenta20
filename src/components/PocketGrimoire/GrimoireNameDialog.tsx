@@ -7,6 +7,7 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material';
+import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import { normalizeGrimoireName } from '../../functions/pocketGrimoire/state';
 import { GRIMOIRE_NAME_MAX_LENGTH } from '../../interfaces/PocketGrimoire';
 
@@ -17,6 +18,8 @@ interface Props {
   initialName?: string;
   onClose: () => void;
   onConfirm: (name: string) => void;
+  /** Oferece "Importar" em vez de criar um grimório vazio. */
+  onImport?: () => void;
 }
 
 const GrimoireNameDialog: React.FC<Props> = ({
@@ -26,6 +29,7 @@ const GrimoireNameDialog: React.FC<Props> = ({
   initialName = '',
   onClose,
   onConfirm,
+  onImport,
 }) => {
   const [name, setName] = useState(initialName);
 
@@ -57,6 +61,15 @@ const GrimoireNameDialog: React.FC<Props> = ({
           />
         </DialogContent>
         <DialogActions>
+          {onImport && (
+            <Button
+              startIcon={<FileUploadOutlinedIcon />}
+              onClick={onImport}
+              sx={{ mr: 'auto' }}
+            >
+              Importar
+            </Button>
+          )}
           <Button onClick={onClose}>Cancelar</Button>
           <Button type='submit' variant='contained' disabled={!normalized}>
             {confirmLabel}

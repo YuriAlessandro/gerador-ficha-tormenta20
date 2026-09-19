@@ -34,6 +34,12 @@ interface RenamePayload {
   now: string;
 }
 
+interface ReplacePayload {
+  id: string;
+  itemIds: string[];
+  now: string;
+}
+
 interface DuplicatePayload {
   id: string;
   now: string;
@@ -152,6 +158,20 @@ export const pocketGrimoireSlice = createSlice({
         return { payload: { id: uuid(), now: isoNow(), sourceId } };
       },
     },
+    /** "Importar e substituir": troca os itens, mantém nome e id. */
+    replaceItems: {
+      reducer(state, action: PayloadAction<ReplacePayload>) {
+        const { id, itemIds, now } = action.payload;
+        const grimoire = findGrimoire(state, id);
+        if (grimoire) {
+          grimoire.itemIds = Array.from(new Set(itemIds));
+          grimoire.updatedAt = now;
+        }
+      },
+      prepare(id: string, itemIds: string[]) {
+        return { payload: { id, itemIds, now: isoNow() } };
+      },
+    },
     deleteGrimoire(state, action: PayloadAction<string>) {
       const id = action.payload;
       // Sempre sobra pelo menos um grimório.
@@ -175,6 +195,7 @@ export const {
   importGrimoire,
   renameGrimoire,
   duplicateGrimoire,
+  replaceItems,
   deleteGrimoire,
   setActive,
 } = pocketGrimoireSlice.actions;

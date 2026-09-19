@@ -30,6 +30,87 @@ describe('GrimoireNameDialog', () => {
   });
 });
 
+const FILE_TWO_ITEMS = JSON.stringify({
+  formato: 'fichas-de-nimb/grimorio-de-bolso',
+  versao: 1,
+  exportadoEm: '2026-09-18T00:00:00.000Z',
+  grimorio: {
+    nome: 'Do arquivo',
+    itens: [{ id: 'spell:Bola de Fogo' }, { id: 'spell:Teia' }],
+  },
+});
+
+describe('GrimoireNameDialog com importar', () => {
+  it('oferece importar em vez de criar vazio', () => {
+    const onImport = vi.fn();
+    renderWithProviders(
+      <GrimoireNameDialog
+        open
+        title='Novo grimório'
+        confirmLabel='Criar'
+        onClose={vi.fn()}
+        onConfirm={vi.fn()}
+        onImport={onImport}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Importar/ }));
+    expect(onImport).toHaveBeenCalled();
+  });
+});
+
+describe('ImportGrimoireDialog substituindo', () => {
+  it('confirma, substitui os itens mantendo o nome e permite desfazer', async () => {
+    const state = createInitialState();
+    state.grimoires[0].itemIds = ['spell:Velha'];
+    const onClose = vi.fn();
+    // Como no app: fechar o diálogo de fato (senão o modal esconde a
+    // notificação dos leitores de tela).
+    const Harness = () => {
+      const [open, setOpen] = React.useState(true);
+      return (
+        <ImportGrimoireDialog
+          open={open}
+          onClose={() => {
+            onClose();
+            setOpen(false);
+          }}
+          replaceTarget={state.grimoires[0]}
+        />
+      );
+    };
+    const { store } = renderWithProviders(<Harness />, {
+      preloadedState: state,
+    });
+    expect(
+      screen.getByRole('heading', { name: 'Importar e substituir' })
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Colar texto' }));
+    fireEvent.change(screen.getByLabelText('JSON do grimório'), {
+      target: { value: FILE_TWO_ITEMS },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Importar' }));
+    expect(
+      screen.getByText(
+        /O conteúdo atual de “Padrão” \(1 item\) será trocado pelos 2 itens do arquivo/
+      )
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Substituir' }));
+
+    const { grimoires } = store.getState().pocketGrimoire;
+    expect(grimoires).toHaveLength(1);
+    expect(grimoires[0]).toMatchObject({
+      name: 'Padrão',
+      itemIds: ['spell:Bola de Fogo', 'spell:Teia'],
+    });
+    expect(onClose).toHaveBeenCalled();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Desfazer' }));
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).toEqual([
+      'spell:Velha',
+    ]);
+  });
+});
+
 describe('ImportGrimoireDialog', () => {
   const pasteAndImport = (text: string) => {
     fireEvent.click(screen.getByRole('tab', { name: 'Colar texto' }));
@@ -104,6 +185,21 @@ describe('GrimoireMenu', () => {
     expect(
       screen.getByRole('menuitem', { name: /Excluir/ })
     ).not.toHaveAttribute('aria-disabled');
+  });
+
+  it('Importar e substituir abre a importação no modo substituir', () => {
+    const state = createInitialState();
+    renderWithProviders(
+      <GrimoireMenu grimoire={state.grimoires[0]} isActive />,
+      { preloadedState: state }
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Opções de Padrão' }));
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: /Importar e substituir/ })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Importar e substituir' })
+    ).toBeInTheDocument();
   });
 
   it('Duplicar cria uma cópia', () => {

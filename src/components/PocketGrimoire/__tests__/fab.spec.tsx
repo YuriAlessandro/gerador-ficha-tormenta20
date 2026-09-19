@@ -63,6 +63,34 @@ describe('PocketGrimoireFab', () => {
     );
   });
 
+  it('novo grimório pode vir de uma importação, e vira o ativo', async () => {
+    const { store } = renderWithProviders(<PocketGrimoireFab />, {
+      preloadedState: stateWithItems(),
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Grimório de bolso/ }));
+    fireEvent.mouseDown(
+      screen.getByRole('combobox', { name: /Grimório ativo/ })
+    );
+    fireEvent.click(screen.getByRole('option', { name: /Novo grimório/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Importar/ }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Colar texto' }));
+    fireEvent.change(screen.getByLabelText('JSON do grimório'), {
+      target: {
+        value: JSON.stringify({
+          formato: 'fichas-de-nimb/grimorio-de-bolso',
+          versao: 1,
+          exportadoEm: '2026-09-18T00:00:00.000Z',
+          grimorio: { nome: 'Trazido', itens: [{ id: 'spell:Teia' }] },
+        }),
+      },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Importar' }));
+    const { grimoires, activeId } = store.getState().pocketGrimoire;
+    const imported = grimoires.find((g) => g.name === 'Trazido');
+    expect(imported?.itemIds).toEqual(['spell:Teia']);
+    expect(activeId).toBe(imported?.id);
+  });
+
   it('troca o ativo pelo seletor', () => {
     const { store } = renderWithProviders(<PocketGrimoireFab />, {
       preloadedState: stateWithItems(),

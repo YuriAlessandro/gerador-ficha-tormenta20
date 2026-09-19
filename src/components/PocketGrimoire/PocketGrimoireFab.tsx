@@ -33,6 +33,7 @@ import {
 import { safeBottom, safeRight } from '../../theme/safeArea';
 import GrimoireItemList from './GrimoireItemList';
 import GrimoireNameDialog from './GrimoireNameDialog';
+import ImportGrimoireDialog from './ImportGrimoireDialog';
 
 const NEW_OPTION = '__novo__';
 const TITLE_ID = 'pocket-grimoire-panel-title';
@@ -49,6 +50,7 @@ const PocketGrimoireFab: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const groups = useMemo(
     () => groupResolvedItems(resolveItems(active.itemIds)),
@@ -205,6 +207,15 @@ const PocketGrimoireFab: React.FC = () => {
           dispatch(setActive(action.payload.id));
           setCreating(false);
         }}
+        onImport={() => {
+          setCreating(false);
+          setImporting(true);
+        }}
+      />
+      <ImportGrimoireDialog
+        open={importing}
+        onClose={() => setImporting(false)}
+        onImported={(id) => dispatch(setActive(id))}
       />
     </>
   );

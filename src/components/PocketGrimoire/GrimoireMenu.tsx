@@ -16,6 +16,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { useSnackbar } from 'notistack';
@@ -30,6 +31,7 @@ import {
 import { PocketGrimoire } from '../../interfaces/PocketGrimoire';
 import GrimoireNameDialog from './GrimoireNameDialog';
 import ExportGrimoireDialog from './ExportGrimoireDialog';
+import ImportGrimoireDialog from './ImportGrimoireDialog';
 import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
 
 interface Props {
@@ -39,7 +41,7 @@ interface Props {
   onDeleted?: () => void;
 }
 
-type OpenDialog = 'rename' | 'export' | 'delete' | null;
+type OpenDialog = 'rename' | 'export' | 'replace' | 'delete' | null;
 
 const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
   const dispatch = useAppDispatch();
@@ -109,6 +111,12 @@ const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
           </ListItemIcon>
           <ListItemText>Exportar</ListItemText>
         </MenuItem>
+        <MenuItem onClick={() => openDialog('replace')}>
+          <ListItemIcon>
+            <FileUploadOutlinedIcon fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>Importar e substituir</ListItemText>
+        </MenuItem>
         <MenuItem onClick={handleDuplicate}>
           <ListItemIcon>
             <ContentCopyOutlinedIcon fontSize='small' />
@@ -143,6 +151,11 @@ const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
       <ExportGrimoireDialog
         open={dialog === 'export'}
         grimoire={grimoire}
+        onClose={() => setDialog(null)}
+      />
+      <ImportGrimoireDialog
+        open={dialog === 'replace'}
+        replaceTarget={grimoire}
         onClose={() => setDialog(null)}
       />
       <Dialog open={dialog === 'delete'} onClose={() => setDialog(null)}>

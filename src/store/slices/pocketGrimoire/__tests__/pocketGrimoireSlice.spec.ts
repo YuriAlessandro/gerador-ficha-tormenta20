@@ -8,6 +8,7 @@ import reducer, {
   migratePocketGrimoire,
   removeItem,
   renameGrimoire,
+  replaceItems,
   selectActiveGrimoire,
   selectGrimoireById,
   setActive,
@@ -155,6 +156,26 @@ describe('importar', () => {
     const action = importGrimoire('', []);
     const state = reducer(initial(), action);
     expect(nameOf(state, action.payload.id)).toBe('Grimório importado');
+  });
+});
+
+describe('substituir itens', () => {
+  it('troca os itens, sem duplicatas, e mantém nome e id', () => {
+    const { state: s1, id } = withGrimoire('Mago');
+    let state = reducer(s1, addItem(id, 'spell:Velha'));
+    state = reducer(state, replaceItems(id, ['spell:A', 'spell:A', 'spell:B']));
+    const grimoire = selectGrimoireById(id)({ pocketGrimoire: state });
+    expect(grimoire).toMatchObject({
+      id,
+      name: 'Mago',
+      itemIds: ['spell:A', 'spell:B'],
+    });
+    expect(state.grimoires).toHaveLength(2);
+  });
+
+  it('ignora grimório inexistente', () => {
+    const state = reducer(initial(), replaceItems('fantasma', ['spell:A']));
+    expect(state).toEqual(initial());
   });
 });
 

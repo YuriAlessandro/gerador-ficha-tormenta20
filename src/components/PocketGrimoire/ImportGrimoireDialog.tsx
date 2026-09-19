@@ -18,23 +18,46 @@ import { useStore } from 'react-redux';
 import { useAppDispatch } from '../../store/hooks';
 import {
   importGrimoire,
+  replaceItems,
   selectGrimoireById,
   setActive,
   WithPocketGrimoire,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 import { parseGrimoireImport } from '../../functions/pocketGrimoire/exchange';
 import { resolveItem } from '../../functions/pocketGrimoire/resolveItems';
+import { PocketGrimoire } from '../../interfaces/PocketGrimoire';
 import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  /**
+   * Com ele, o arquivo substitui os itens deste grimório (mantendo o nome),
+   * depois de uma confirmação. Sem ele, a importação cria um grimório novo.
+   */
+  replaceTarget?: PocketGrimoire;
+  /** Chamado com o id do grimório novo (só no modo criar). */
+  onImported?: (id: string) => void;
 }
 
 const plural = (count: number, one: string, many: string) =>
   `${count} ${count === 1 ? one : many}`;
 
-const ImportGrimoireDialog: React.FC<Props> = ({ open, onClose }) => {
+const missingNote = (itemIds: string[]) => {
+  const missing = itemIds.filter(
+    (itemId) => resolveItem(itemId).kind === 'missing'
+  ).length;
+  return missing > 0
+    ? ` (${plural(missing, 'não encontrado', 'não encontrados')})`
+    : '';
+};
+
+const ImportGrimoireDialog: React.FC<Props> = ({
+  open,
+  onClose,
+  replaceTarget,
+  onImported,
+}) => {
   const dispatch = useAppDispatch();
   const store = useStore<WithPocketGrimoire>();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -42,6 +65,8 @@ const ImportGrimoireDialog: React.FC<Props> = ({ open, onClose }) => {
   const [text, setText] = useState('');
   const [fileName, setFileName] = useState('');
   const [error, setError] = useState('');
+  /** Itens lidos do arquivo, esperando a confirmação da substituição. */
+  const [pending, setPending] = useState<string[] | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -49,6 +74,7 @@ const ImportGrimoireDialog: React.FC<Props> = ({ open, onClose }) => {
       setText('');
       setFileName('');
       setError('');
+      setPending(null);
     }
   }, [open]);
 
@@ -61,53 +87,114 @@ const ImportGrimoireDialog: React.FC<Props> = ({ open, onClose }) => {
     }
   };
 
+  const importAsNew = (name: string, itemIds: string[]) => {
+    const action = dispatch(importGrimoire(name, itemIds));
+    const { id } = action.payload;
+    const created = selectGrimoireById(id)(store.getState());
+    enqueueSnackbar(
+      `${created?.name ?? 'Grimório'} importado: ${plural(
+        itemIds.length,
+        'item',
+        'itens'
+      )}${missingNote(itemIds)}.`,
+      {
+        ...GRIMOIRE_SNACKBAR,
+        variant: 'success',
+        action: onImported
+          ? undefined
+          : (key) => (
+              <Button
+                color='inherit'
+                size='small'
+                onClick={() => {
+                  dispatch(setActive(id));
+                  closeSnackbar(key);
+                }}
+              >
+                Tornar ativo
+              </Button>
+            ),
+      }
+    );
+    onImported?.(id);
+    onClose();
+  };
+
+  const confirmReplace = () => {
+    if (!replaceTarget || !pending) return;
+    const current = selectGrimoireById(replaceTarget.id)(store.getState());
+    const previous = current?.itemIds ?? [];
+    dispatch(replaceItems(replaceTarget.id, pending));
+    enqueueSnackbar(
+      `"${replaceTarget.name}" substituído: ${plural(
+        pending.length,
+        'item',
+        'itens'
+      )}${missingNote(pending)}.`,
+      {
+        ...GRIMOIRE_SNACKBAR,
+        variant: 'success',
+        action: (key) => (
+          <Button
+            color='inherit'
+            size='small'
+            onClick={() => {
+              dispatch(replaceItems(replaceTarget.id, previous));
+              closeSnackbar(key);
+            }}
+          >
+            Desfazer
+          </Button>
+        ),
+      }
+    );
+    onClose();
+  };
+
   const handleImport = () => {
     const result = parseGrimoireImport(text);
-    if (!result.ok) {
-      setError(result.error);
-    } else {
-      const action = dispatch(
-        importGrimoire(result.value.name, result.value.itemIds)
-      );
-      const { id } = action.payload;
-      const created = selectGrimoireById(id)(store.getState());
-      const missing = result.value.itemIds.filter(
-        (itemId) => resolveItem(itemId).kind === 'missing'
-      ).length;
-      const missingText =
-        missing > 0
-          ? ` (${plural(missing, 'não encontrado', 'não encontrados')})`
-          : '';
-      enqueueSnackbar(
-        `${created?.name ?? 'Grimório'} importado: ${plural(
-          result.value.itemIds.length,
-          'item',
-          'itens'
-        )}${missingText}.`,
-        {
-          ...GRIMOIRE_SNACKBAR,
-          variant: 'success',
-          action: (key) => (
-            <Button
-              color='inherit'
-              size='small'
-              onClick={() => {
-                dispatch(setActive(id));
-                closeSnackbar(key);
-              }}
-            >
-              Tornar ativo
-            </Button>
-          ),
-        }
-      );
-      onClose();
-    }
+    if (!result.ok) setError(result.error);
+    else if (replaceTarget) setPending(result.value.itemIds);
+    else importAsNew(result.value.name, result.value.itemIds);
   };
+
+  const title = replaceTarget ? 'Importar e substituir' : 'Importar grimório';
+
+  if (replaceTarget && pending) {
+    const currentCount =
+      selectGrimoireById(replaceTarget.id)(store.getState())?.itemIds.length ??
+      0;
+    return (
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth='xs'>
+        <DialogTitle>Substituir “{replaceTarget.name}”?</DialogTitle>
+        <DialogContent>
+          <Typography variant='body2'>
+            O conteúdo atual de “{replaceTarget.name}” (
+            {plural(currentCount, 'item', 'itens')}) será trocado pelos{' '}
+            {plural(pending.length, 'item', 'itens')} do arquivo. O nome do
+            grimório não muda.
+          </Typography>
+          <Typography
+            variant='caption'
+            sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}
+          >
+            Logo depois, dá para desfazer pela notificação. Para guardar o
+            conteúdo atual de vez, exporte antes.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPending(null)}>Voltar</Button>
+          <Button color='error' variant='contained' onClick={confirmReplace}>
+            Substituir
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth='sm'>
-      <DialogTitle>Importar grimório</DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <Tabs
           value={tab}
@@ -165,7 +252,9 @@ const ImportGrimoireDialog: React.FC<Props> = ({ open, onClose }) => {
           variant='caption'
           sx={{ display: 'block', mt: 2, color: 'text.secondary' }}
         >
-          A importação sempre cria um grimório novo. Nada é sobrescrito.
+          {replaceTarget
+            ? `Os itens de “${replaceTarget.name}” serão trocados pelos do arquivo; o nome é mantido. Você confirma antes.`
+            : 'A importação sempre cria um grimório novo. Nada é sobrescrito.'}
         </Typography>
       </DialogContent>
       <DialogActions>
