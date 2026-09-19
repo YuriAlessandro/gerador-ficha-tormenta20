@@ -1,9 +1,10 @@
 import React from 'react';
+import { Chip } from '@mui/material';
 import { ResolvedItem } from '../../../functions/pocketGrimoire/resolveItems';
-import GrimoireSpellCard from './GrimoireSpellCard';
-import GrimoirePowerCard from './GrimoirePowerCard';
-import GrimoireEntryCard from './GrimoireEntryCard';
+import GrimoireCardShell from './GrimoireCardShell';
+import GrimoireItemDetails from './GrimoireItemDetails';
 import GrimoireMissingCard from './GrimoireMissingCard';
+import { presentItem } from './itemPresentation';
 
 interface Props {
   item: ResolvedItem;
@@ -11,40 +12,35 @@ interface Props {
   onRemove: (itemId: string) => void;
 }
 
-/** Escolhe o card pelo tipo resolvido do item. */
+/** Card expansível do modo lista. */
 const GrimoireItemCard: React.FC<Props> = ({ item, defaultOpen, onRemove }) => {
   const handleRemove = () => onRemove(item.id);
 
-  switch (item.kind) {
-    case 'spell':
-      return (
-        <GrimoireSpellCard
-          spell={item.spell}
-          defaultOpen={defaultOpen}
-          onRemove={handleRemove}
-        />
-      );
-    case 'power':
-      return (
-        <GrimoirePowerCard
-          entry={item.entry}
-          power={item.power}
-          defaultOpen={defaultOpen}
-          onRemove={handleRemove}
-        />
-      );
-    case 'missing':
-      return <GrimoireMissingCard name={item.name} onRemove={handleRemove} />;
-    default:
-      return (
-        <GrimoireEntryCard
-          entry={item.entry}
-          isSummary={item.kind === 'summary'}
-          defaultOpen={defaultOpen}
-          onRemove={handleRemove}
-        />
-      );
+  if (item.kind === 'missing') {
+    return <GrimoireMissingCard name={item.name} onRemove={handleRemove} />;
   }
+
+  const view = presentItem(item);
+  return (
+    <GrimoireCardShell
+      title={view.title}
+      summary={view.summary}
+      chips={view.chips.map((label) => (
+        <Chip
+          key={label}
+          label={label}
+          size='small'
+          variant='outlined'
+          color={label === 'Divina' ? 'secondary' : 'primary'}
+          sx={{ height: 20, fontSize: '0.7rem' }}
+        />
+      ))}
+      defaultOpen={defaultOpen}
+      onRemove={handleRemove}
+    >
+      <GrimoireItemDetails item={item} />
+    </GrimoireCardShell>
+  );
 };
 
 export default GrimoireItemCard;
