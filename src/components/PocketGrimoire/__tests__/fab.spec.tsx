@@ -45,6 +45,24 @@ describe('PocketGrimoireFab', () => {
     ).toBeInTheDocument();
   });
 
+  it('marca cada item com a cor do tipo, como as cartas', () => {
+    const state = stateWithItems();
+    state.grimoires[0].itemIds = [
+      'spell:Bola de Fogo',
+      'power:MAGIA:Magia Acelerada',
+    ];
+    renderWithProviders(<PocketGrimoireFab />, { preloadedState: state });
+    fireEvent.click(screen.getByRole('button', { name: /Grimório de bolso/ }));
+    const panel = screen.getByRole('dialog', { name: 'Grimório de bolso' });
+    expect(
+      within(panel).getByTitle('Magia arcana · 2º círculo')
+    ).toHaveAttribute('data-accent', 'arcane');
+    expect(within(panel).getByTitle('Poder geral')).toHaveAttribute(
+      'data-accent',
+      'power'
+    );
+  });
+
   it('troca o ativo pelo seletor', () => {
     const { store } = renderWithProviders(<PocketGrimoireFab />, {
       preloadedState: stateWithItems(),

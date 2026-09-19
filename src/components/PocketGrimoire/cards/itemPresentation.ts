@@ -39,6 +39,15 @@ const ACCENT_LABELS: Record<ItemAccent, string> = {
 export const accentLabel = (accent: ItemAccent): string =>
   ACCENT_LABELS[accent];
 
+/** Dica do tipo, igual na carta e no balão: "Magia arcana · 2º círculo". */
+export const typeLabel = (view: {
+  accent: ItemAccent;
+  circle?: number;
+}): string =>
+  `${accentLabel(view.accent)}${
+    view.circle ? ` · ${view.circle}º círculo` : ''
+  }`;
+
 /** Estatística de mesa, exibida com ícone (como no Baralho de Magias). */
 export type ItemStatKind =
   | 'execution'

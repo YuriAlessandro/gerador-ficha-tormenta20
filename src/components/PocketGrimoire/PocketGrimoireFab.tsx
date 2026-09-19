@@ -103,7 +103,13 @@ const PocketGrimoireFab: React.FC = () => {
         </MenuItem>
       </TextField>
 
-      <Box sx={{ maxHeight: isMobile ? '45vh' : 320, overflowY: 'auto' }}>
+      <Box
+        sx={{
+          maxHeight: isMobile ? '45vh' : 320,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+        }}
+      >
         {groups.length === 0 ? (
           <Typography variant='body2' sx={{ color: 'text.secondary', py: 1 }}>
             Seu grimório está vazio. Use o ícone de marcador nos cards de magias

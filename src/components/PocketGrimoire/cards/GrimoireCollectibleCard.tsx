@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, ButtonBase, Tooltip, Typography, useTheme } from '@mui/material';
 import { ResolvedItem } from '../../../functions/pocketGrimoire/resolveItems';
-import { accentLabel, presentItem } from './itemPresentation';
+import { presentItem, typeLabel } from './itemPresentation';
 import { STAT_META } from './statIcons';
 import { accentFrame } from './accentColor';
 
@@ -18,9 +18,7 @@ const GrimoireCollectibleCard: React.FC<Props> = ({ item, onOpen }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const view = presentItem(item);
-  const tooltip = `${accentLabel(view.accent)}${
-    view.circle ? ` · ${view.circle}º círculo` : ''
-  }`;
+  const tooltip = typeLabel(view);
   const ink = isDark ? '#efe6d6' : '#2a221d';
   const costColor = isDark
     ? theme.palette.primary.light
