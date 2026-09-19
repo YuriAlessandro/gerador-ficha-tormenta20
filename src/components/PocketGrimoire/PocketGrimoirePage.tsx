@@ -47,6 +47,8 @@ import GrimoireMenu from './GrimoireMenu';
 import AddToGrimoireButton from './AddToGrimoireButton';
 import GrimoireCollectibleCard from './cards/GrimoireCollectibleCard';
 import GrimoireCardViewer from './cards/GrimoireCardViewer';
+import GrimoireCardLegend from './cards/GrimoireCardLegend';
+import { presentItem } from './cards/itemPresentation';
 import { GrimoireViewMode, useGrimoireViewMode } from './useGrimoireViewMode';
 
 /** Grimórios pequenos (uma one-shot) já abrem com tudo à vista. */
@@ -318,11 +320,11 @@ const PocketGrimoirePage: React.FC = () => {
                 sx={{
                   display: 'grid',
                   gridTemplateColumns: {
-                    xs: 'repeat(3, 1fr)',
-                    sm: 'repeat(4, 1fr)',
-                    md: 'repeat(6, 1fr)',
+                    xs: 'repeat(2, 1fr)',
+                    sm: 'repeat(3, 1fr)',
+                    md: 'repeat(4, 1fr)',
                   },
-                  gap: 1,
+                  gap: 1.5,
                 }}
               >
                 {group.items.map((item) => (
@@ -336,6 +338,12 @@ const PocketGrimoirePage: React.FC = () => {
             )}
           </Box>
         ))}
+
+        {viewMode === 'cards' && (
+          <GrimoireCardLegend
+            accents={orderedItems.map((item) => presentItem(item).accent)}
+          />
+        )}
       </Container>
 
       <GrimoireCardViewer

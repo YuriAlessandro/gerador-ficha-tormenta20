@@ -122,6 +122,19 @@ describe('PocketGrimoirePage — modo cartas', () => {
     );
   });
 
+  it('legenda mostra só os tipos presentes, e só no modo cartas', () => {
+    window.localStorage.setItem('fdn-grimoire-view', 'cards');
+    renderPage(THREE);
+    const legend = screen.getByRole('region', { name: 'Legenda das cartas' });
+    expect(legend).toHaveTextContent('Magia arcana');
+    expect(legend).toHaveTextContent('Poder geral');
+    expect(legend).not.toHaveTextContent('Magia divina');
+    fireEvent.click(screen.getByRole('button', { name: /Lista/ }));
+    expect(
+      screen.queryByRole('region', { name: 'Legenda das cartas' })
+    ).not.toBeInTheDocument();
+  });
+
   it('remover pela carta ampliada tira o item do grimório', () => {
     window.localStorage.setItem('fdn-grimoire-view', 'cards');
     const { store } = renderPage(THREE);

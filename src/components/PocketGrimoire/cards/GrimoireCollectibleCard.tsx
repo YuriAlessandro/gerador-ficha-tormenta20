@@ -1,78 +1,136 @@
 import React from 'react';
-import { Box, ButtonBase, Typography, useTheme } from '@mui/material';
+import { Box, ButtonBase, Tooltip, Typography, useTheme } from '@mui/material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import FlareIcon from '@mui/icons-material/Flare';
+import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
+import CropFreeIcon from '@mui/icons-material/CropFree';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import LockIcon from '@mui/icons-material/Lock';
 import { ResolvedItem } from '../../../functions/pocketGrimoire/resolveItems';
-import { presentItem } from './itemPresentation';
-import { accentColor } from './accentColor';
+import { accentLabel, ItemStatKind, presentItem } from './itemPresentation';
+import { accentFrame } from './accentColor';
 
 interface Props {
   item: ResolvedItem;
   onOpen: () => void;
 }
 
-/** Carta compacta do modo cartas: o essencial para reconhecer o item. */
+const STAT_META: Record<
+  ItemStatKind,
+  { label: string; Icon: typeof PlayArrowIcon; wide: boolean }
+> = {
+  execution: { label: 'Execução', Icon: PlayArrowIcon, wide: false },
+  range: { label: 'Alcance', Icon: FlareIcon, wide: false },
+  duration: { label: 'Duração', Icon: HourglassBottomIcon, wide: false },
+  target: { label: 'Alvo', Icon: GpsFixedIcon, wide: false },
+  area: { label: 'Área', Icon: CropFreeIcon, wide: true },
+  resistance: { label: 'Resistência', Icon: FavoriteIcon, wide: true },
+  requirement: { label: 'Pré-requisito', Icon: LockIcon, wide: true },
+};
+
+/**
+ * Carta do modo cartas, inspirada no Baralho de Magias: moldura na cor do
+ * tipo, selo com o círculo e um "pergaminho" com estatísticas em ícones.
+ */
 const GrimoireCollectibleCard: React.FC<Props> = ({ item, onOpen }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const view = presentItem(item);
-  const color = accentColor(theme, view.accent);
+  const tooltip = `${accentLabel(view.accent)}${
+    view.circle ? ` · ${view.circle}º círculo` : ''
+  }`;
+  const ink = isDark ? '#efe6d6' : '#2a221d';
+  const costColor = isDark
+    ? theme.palette.primary.light
+    : theme.palette.primary.dark;
 
   return (
-    <ButtonBase
-      onClick={onOpen}
-      aria-label={`Abrir carta ${view.title}`}
-      sx={{
-        width: '100%',
-        aspectRatio: '5 / 7',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'stretch',
-        justifyContent: 'flex-start',
-        textAlign: 'left',
-        borderRadius: 2,
-        overflow: 'hidden',
-        bgcolor: 'background.paper',
-        border: 1,
-        borderColor: 'divider',
-        borderTop: `4px solid ${color}`,
-        boxShadow: 1,
-        borderStyle: view.accent === 'missing' ? 'dashed' : 'solid',
-        transition: 'transform 0.15s, box-shadow 0.15s',
-        '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
-      }}
-    >
-      <Box
+    <Tooltip title={tooltip} describeChild placement='top' enterDelay={400}>
+      <ButtonBase
+        onClick={onOpen}
+        aria-label={`Abrir carta ${view.title}`}
         sx={{
-          p: 1,
+          width: '100%',
+          aspectRatio: '5 / 7',
           display: 'flex',
           flexDirection: 'column',
-          gap: 0.5,
-          flex: 1,
-          minHeight: 0,
+          alignItems: 'stretch',
+          justifyContent: 'flex-start',
+          textAlign: 'left',
+          // <button> não herda a fonte da página.
+          fontFamily: theme.typography.fontFamily,
+          p: 1,
+          borderRadius: 3,
+          overflow: 'hidden',
+          position: 'relative',
+          background: accentFrame(theme, view.accent),
+          outline:
+            view.accent === 'missing'
+              ? `2px dashed ${theme.palette.divider}`
+              : 'none',
+          boxShadow: 3,
+          transition: 'transform 0.15s, box-shadow 0.15s',
+          '&:hover': { transform: 'translateY(-3px)', boxShadow: 8 },
+          // Textura sutil da moldura, só em CSS.
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            background:
+              'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 6px, transparent 6px 14px)',
+          },
         }}
       >
-        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-start' }}>
-          <Typography
-            sx={{
-              flex: 1,
-              fontFamily: 'Tfont, serif',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              lineHeight: 1.2,
-            }}
-          >
-            {view.title}
-          </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 0.75,
+            px: 0.5,
+            pb: 1,
+            position: 'relative',
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontFamily: 'Tfont, serif',
+                color: 'common.white',
+                fontSize: '0.9rem',
+                lineHeight: 1.1,
+                textTransform: 'uppercase',
+                textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+              }}
+            >
+              {view.title}
+            </Typography>
+            {view.subtitle && (
+              <Typography
+                sx={{
+                  color: 'rgba(255,255,255,0.75)',
+                  fontSize: '0.62rem',
+                  fontWeight: 600,
+                  mt: 0.25,
+                }}
+              >
+                {view.subtitle}
+              </Typography>
+            )}
+          </Box>
           {view.circle && (
             <Box
-              title={`${view.circle}º círculo`}
               sx={{
                 flex: 'none',
-                width: 18,
-                height: 18,
+                width: 32,
+                height: 32,
                 borderRadius: '50%',
-                bgcolor: color,
+                border: '2px dashed rgba(255,255,255,0.85)',
+                bgcolor: 'rgba(0,0,0,0.2)',
                 color: 'common.white',
-                fontSize: '0.65rem',
-                fontWeight: 800,
+                fontWeight: 900,
+                fontSize: '0.95rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -82,66 +140,106 @@ const GrimoireCollectibleCard: React.FC<Props> = ({ item, onOpen }) => {
             </Box>
           )}
         </Box>
-        {view.subtitle && (
-          <Typography
-            variant='caption'
-            sx={{
-              color: 'text.secondary',
-              lineHeight: 1.2,
-              fontSize: '0.65rem',
-            }}
-          >
-            {view.subtitle}
-          </Typography>
-        )}
-        {view.metaLine && (
-          <Typography
-            sx={{
-              fontSize: '0.65rem',
-              bgcolor: 'action.hover',
-              borderRadius: 1,
-              px: 0.5,
-              py: 0.25,
-            }}
-          >
-            {view.metaLine}
-          </Typography>
-        )}
-        {/* Ocupa só o espaço que sobra (o título pode quebrar em várias
-            linhas numa carta estreita) e some em degradê, sem invadir o
-            rodapé — um corte por número fixo de linhas não se adapta. */}
-        <Typography
+
+        <Box
           sx={{
-            flex: '1 1 0',
+            flex: 1,
             minHeight: 0,
-            fontSize: '0.68rem',
-            lineHeight: 1.3,
-            color: 'text.secondary',
-            overflow: 'hidden',
-            maskImage: 'linear-gradient(to bottom, black 65%, transparent)',
-            WebkitMaskImage:
-              'linear-gradient(to bottom, black 65%, transparent)',
+            position: 'relative',
+            borderRadius: 1.5,
+            px: 1,
+            py: 0.75,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5,
+            color: ink,
+            background: isDark
+              ? 'linear-gradient(180deg, #3a302a, #2b231e)'
+              : 'linear-gradient(180deg, #fbf7ef, #efe6d6)',
+            boxShadow: 'inset 0 0 12px rgba(120, 90, 50, 0.25)',
           }}
         >
-          {view.description}
-        </Typography>
-        {view.footer && (
-          <Typography
+          {view.stats.length > 0 && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '2px 8px',
+                pb: 0.5,
+                borderBottom: 1,
+                borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#d9ccb8',
+              }}
+            >
+              {view.stats.map((stat) => {
+                const { label, Icon, wide } = STAT_META[stat.kind];
+                return (
+                  <Box
+                    key={stat.kind}
+                    title={`${label}: ${stat.value}`}
+                    sx={{
+                      gridColumn: wide ? '1 / -1' : 'auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      minWidth: 0,
+                      fontSize: '0.66rem',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    <Icon
+                      titleAccess={label}
+                      sx={{
+                        fontSize: '0.8rem',
+                        color: costColor,
+                        flex: 'none',
+                      }}
+                    />
+                    <Box
+                      component='span'
+                      sx={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {stat.value}
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+
+          {/* O texto ocupa o espaço que sobra e some em degradê. */}
+          <Box
             sx={{
-              flex: 'none',
-              fontSize: '0.62rem',
-              fontWeight: 700,
-              color,
-              whiteSpace: 'nowrap',
+              flex: '1 1 0',
+              minHeight: 0,
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              fontSize: '0.68rem',
+              lineHeight: 1.35,
+              maskImage: 'linear-gradient(to bottom, black 75%, transparent)',
+              WebkitMaskImage:
+                'linear-gradient(to bottom, black 75%, transparent)',
+              '& p': { m: 0, mb: 0.5 },
             }}
           >
-            {view.footer}
-          </Typography>
-        )}
-      </Box>
-    </ButtonBase>
+            <p>{view.description}</p>
+            {view.aprimoramentos.map((apr) => (
+              <p key={`${apr.cost}-${apr.text.slice(0, 30)}`}>
+                <Box
+                  component='strong'
+                  sx={{ color: costColor, fontWeight: 700 }}
+                >
+                  {apr.cost}:
+                </Box>{' '}
+                {apr.text}
+              </p>
+            ))}
+          </Box>
+        </Box>
+      </ButtonBase>
+    </Tooltip>
   );
 };
 
