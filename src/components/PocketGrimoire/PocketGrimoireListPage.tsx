@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { Link as RouterLink, useHistory } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
+import StorageIcon from '@mui/icons-material/Storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   createGrimoire,
@@ -50,7 +51,7 @@ const PocketGrimoireListPage: React.FC = () => {
       />
       <Container maxWidth='md' sx={{ py: 3 }}>
         <TormentaTitle variant='h4' centered gradient sx={{ mb: 3 }}>
-          Meus grimórios
+          Meus grimórios de bolso
         </TormentaTitle>
 
         <Stack
@@ -72,6 +73,14 @@ const PocketGrimoireListPage: React.FC = () => {
             onClick={() => setImporting(true)}
           >
             Importar
+          </Button>
+          <Button
+            component={RouterLink}
+            to='/database'
+            startIcon={<StorageIcon />}
+            sx={{ ml: { sm: 'auto' } }}
+          >
+            Ir para a enciclopédia
           </Button>
         </Stack>
 

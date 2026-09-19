@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import StorageIcon from '@mui/icons-material/Storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   removeItem,
@@ -119,15 +120,34 @@ const PocketGrimoirePage: React.FC = () => {
     <>
       <SEO title={`${grimoire.name} · Grimório de bolso`} url='/grimorio' />
       <Container maxWidth='md' sx={{ py: 3 }}>
-        <Link
-          component={RouterLink}
-          to='/grimorio'
-          underline='hover'
-          sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: 1 }}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1,
+            mb: 1,
+          }}
         >
-          <ArrowBackIcon fontSize='small' />
-          Meus grimórios
-        </Link>
+          <Link
+            component={RouterLink}
+            to='/grimorio'
+            underline='hover'
+            sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+          >
+            <ArrowBackIcon fontSize='small' />
+            Meus grimórios de bolso
+          </Link>
+          <Link
+            component={RouterLink}
+            to='/database'
+            underline='hover'
+            sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+          >
+            <StorageIcon fontSize='small' />
+            Ir para a enciclopédia
+          </Link>
+        </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <Typography
