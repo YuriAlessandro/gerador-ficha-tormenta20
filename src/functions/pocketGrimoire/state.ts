@@ -89,8 +89,8 @@ function sanitizeGrimoire(raw: unknown, now: string): PocketGrimoire | null {
 
 /**
  * Transforma qualquer coisa vinda de fora (localStorage, versão antiga do app,
- * edição manual) num estado que respeita as invariantes: o Padrão existe, o
- * ativo existe, nenhum id se repete.
+ * edição manual) num estado que respeita as invariantes: existe pelo menos um
+ * grimório, o ativo existe, nenhum id se repete.
  */
 export function ensureValidState(
   input: unknown,
@@ -109,16 +109,15 @@ export function ensureValidState(
     }
   });
 
-  if (!seen.has(DEFAULT_GRIMOIRE_ID)) {
-    grimoires.unshift(createDefaultGrimoire(now));
-  }
+  // Sempre há pelo menos um grimório — e ele nasce como o "Padrão".
+  if (grimoires.length === 0) grimoires.push(createDefaultGrimoire(now));
 
   const requestedActive = isRecord(input) ? input.activeId : undefined;
   const activeId =
     typeof requestedActive === 'string' &&
     grimoires.some((g) => g.id === requestedActive)
       ? requestedActive
-      : DEFAULT_GRIMOIRE_ID;
+      : grimoires[0].id;
 
   return { grimoires, activeId };
 }

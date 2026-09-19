@@ -1,4 +1,7 @@
-/** Id fixo do grimório que sempre existe e não pode ser excluído. */
+/**
+ * Id e nome do primeiro grimório de um usuário novo. Ele não tem regra
+ * especial: pode ser renomeado e excluído (desde que sobre outro).
+ */
 export const DEFAULT_GRIMOIRE_ID = 'default';
 export const DEFAULT_GRIMOIRE_NAME = 'Padrão';
 export const GRIMOIRE_NAME_MAX_LENGTH = 60;

@@ -74,7 +74,7 @@ describe('ImportGrimoireDialog', () => {
 });
 
 describe('GrimoireMenu', () => {
-  it('Excluir fica desativado no Padrão', () => {
+  it('Excluir fica desativado quando é o único grimório', () => {
     const state = createInitialState();
     renderWithProviders(
       <GrimoireMenu grimoire={state.grimoires[0]} isActive />,
@@ -85,6 +85,25 @@ describe('GrimoireMenu', () => {
       'aria-disabled',
       'true'
     );
+  });
+
+  it('Excluir fica liberado no Padrão quando há outro grimório', () => {
+    const state = createInitialState();
+    state.grimoires.push({
+      id: 'outro',
+      name: 'Outro',
+      itemIds: [],
+      createdAt: '',
+      updatedAt: '',
+    });
+    renderWithProviders(
+      <GrimoireMenu grimoire={state.grimoires[0]} isActive />,
+      { preloadedState: state }
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Opções de Padrão' }));
+    expect(
+      screen.getByRole('menuitem', { name: /Excluir/ })
+    ).not.toHaveAttribute('aria-disabled');
   });
 
   it('Duplicar cria uma cópia', () => {

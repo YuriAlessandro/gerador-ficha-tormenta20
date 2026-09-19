@@ -19,7 +19,7 @@ Tanah-Toh que o jogador monta uma vez e consulta na mesa, no celular ou no PC.
 
 - Vários grimórios, guardados só no navegador (`localStorage`), para qualquer
   usuário.
-- Um grimório **Padrão** que sempre existe.
+- Sempre existe **pelo menos um** grimório. Um usuário novo começa com um grimório vazio chamado "Padrão", que não tem regra especial: pode ser renomeado e excluído (desde que sobre outro).
 - Qualquer item do índice da enciclopédia: magias e poderes (o foco), mas
   também habilidades, classes, raças, origens e divindades.
 - Adicionar pela enciclopédia (um clique, no grimório ativo) e por uma busca
@@ -58,7 +58,7 @@ Tanah-Toh que o jogador monta uma vez e consulta na mesa, no celular ou no PC.
 ```ts
 // src/interfaces/PocketGrimoire.ts
 export interface PocketGrimoire {
-  id: string; // uuid; o Padrão usa o id fixo DEFAULT_GRIMOIRE_ID = 'default'
+  id: string; // uuid; o primeiro grimório de um usuário novo usa 'default'
   name: string;
   itemIds: string[]; // ids do índice da enciclopédia, sem repetição
   createdAt: string; // ISO 8601
@@ -102,8 +102,8 @@ primeiro `:`, só decide qual card mostrar.
 - `renameGrimoire(id, name)`: nome sem espaços nas pontas, não vazio, com no
   máximo 60 caracteres.
 - `duplicateGrimoire(id)`: cria "<nome> (cópia)" com os mesmos itens.
-- `deleteGrimoire(id)`: **não faz nada com o Padrão**. Se o excluído era o
-  ativo, `activeId` volta a ser o Padrão.
+- `deleteGrimoire(id)`: **não faz nada se for o último grimório**. Se o
+  excluído era o ativo, `activeId` passa para o primeiro restante.
 - `setActive(id)`: ignora ids que não existem.
 - `importGrimoire(parsed)`: acrescenta um grimório já validado (ver
   "Exportar e importar").
@@ -112,11 +112,11 @@ primeiro `:`, só decide qual card mostrar.
 verificam isso. O que vem de fora (o `localStorage`) passa por
 `ensureValidState` no `migrate` do redux-persist e no estado inicial:
 
-- existe exatamente um grimório com id `default`;
+- existe pelo menos um grimório;
 - `activeId` aponta para um grimório que existe;
 - nenhum grimório tem ids repetidos.
 
-Estado ausente ou corrompido vira `{ grimoires: [Padrão vazio], activeId: 'default' }`.
+Estado ausente, corrompido ou sem grimórios vira `{ grimoires: [Padrão vazio], activeId: 'default' }`. Um `activeId` inválido passa para o primeiro grimório.
 
 **Persistência:** redux-persist com `key: 'pocketGrimoire'`, no mesmo padrão
 das fatias já registradas em `src/store/index.ts`.
@@ -214,7 +214,7 @@ funcionar no celular (breakpoints do MUI) e no tema claro e escuro.
   - Renomear (`DriveFileRenameOutline`);
   - Exportar (`FileDownloadOutlined`);
   - Duplicar (`ContentCopyOutlined`);
-  - Excluir (`DeleteOutlined`, em vermelho, desativado no Padrão, com diálogo de
+  - Excluir (`DeleteOutlined`, em vermelho, desativado quando é o único grimório, com diálogo de
     confirmação).
 - Aviso fixo: "Grimórios ficam só neste navegador. Exporte para fazer backup ou
   levar para outro aparelho."
@@ -340,10 +340,10 @@ teste pode depender de `src/premium`, porque eles precisam passar no fork.
   - adicionar sem duplicar;
   - remover;
   - criar, renomear (com validação do nome) e duplicar;
-  - não excluir o Padrão;
-  - excluir o ativo faz o ativo voltar ao Padrão;
+  - não excluir o último grimório; excluir o Padrão quando há outro;
+  - excluir o ativo passa o ativo para o primeiro restante;
   - `setActive` com id inexistente;
-  - `ensureValidState` com estado vazio, corrompido e sem o Padrão.
+  - `ensureValidState` com estado vazio, corrompido e sem grimórios.
 - **Exportar e importar:**
   - exportar e importar devolve o mesmo grimório;
   - cada linha da tabela de erros;

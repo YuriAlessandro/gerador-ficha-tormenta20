@@ -19,17 +19,15 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { useSnackbar } from 'notistack';
-import { useAppDispatch } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   deleteGrimoire,
   duplicateGrimoire,
   renameGrimoire,
+  selectGrimoires,
   setActive,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
-import {
-  DEFAULT_GRIMOIRE_ID,
-  PocketGrimoire,
-} from '../../interfaces/PocketGrimoire';
+import { PocketGrimoire } from '../../interfaces/PocketGrimoire';
 import GrimoireNameDialog from './GrimoireNameDialog';
 import ExportGrimoireDialog from './ExportGrimoireDialog';
 import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
@@ -48,7 +46,8 @@ const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
   const { enqueueSnackbar } = useSnackbar();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [dialog, setDialog] = useState<OpenDialog>(null);
-  const isDefault = grimoire.id === DEFAULT_GRIMOIRE_ID;
+  // Sempre precisa sobrar pelo menos um grimório.
+  const isLast = useAppSelector(selectGrimoires).length <= 1;
 
   const closeMenu = () => setAnchorEl(null);
   const openDialog = (which: OpenDialog) => {
@@ -117,7 +116,7 @@ const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
           <ListItemText>Duplicar</ListItemText>
         </MenuItem>
         <MenuItem
-          disabled={isDefault}
+          disabled={isLast}
           onClick={() => openDialog('delete')}
           sx={{ color: 'error.main' }}
         >
@@ -125,7 +124,7 @@ const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
             <DeleteOutlinedIcon fontSize='small' color='error' />
           </ListItemIcon>
           <ListItemText>
-            {isDefault ? 'Excluir (o Padrão não pode)' : 'Excluir'}
+            {isLast ? 'Excluir (crie outro grimório antes)' : 'Excluir'}
           </ListItemText>
         </MenuItem>
       </Menu>

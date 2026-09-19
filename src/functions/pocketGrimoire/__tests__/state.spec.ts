@@ -67,7 +67,7 @@ describe('ensureValidState', () => {
     );
   });
 
-  it('recria o Padrão quando falta, no início da lista', () => {
+  it('não exige o Padrão: basta existir pelo menos um grimório', () => {
     const result = ensureValidState(
       {
         grimoires: [
@@ -77,11 +77,14 @@ describe('ensureValidState', () => {
       },
       NOW
     );
-    expect(result.grimoires.map((g) => g.id)).toEqual([
-      DEFAULT_GRIMOIRE_ID,
-      'x',
-    ]);
+    expect(result.grimoires.map((g) => g.id)).toEqual(['x']);
     expect(result.activeId).toBe('x');
+  });
+
+  it('lista vazia ganha um grimório novo, ativo', () => {
+    expect(ensureValidState({ grimoires: [], activeId: 'x' }, NOW)).toEqual(
+      createInitialState(NOW)
+    );
   });
 
   it('remove ids repetidos e não-strings dos itens', () => {
@@ -113,15 +116,21 @@ describe('ensureValidState', () => {
       },
       NOW
     );
-    expect(result.grimoires.map((g) => g.name)).toEqual(['Padrão', 'Primeiro']);
+    expect(result.grimoires.map((g) => g.name)).toEqual(['Primeiro']);
   });
 
-  it('activeId inexistente volta para o Padrão', () => {
+  it('activeId inexistente vai para o primeiro grimório', () => {
     const result = ensureValidState(
-      { grimoires: [], activeId: 'fantasma' },
+      {
+        grimoires: [
+          { id: 'a', name: 'A', itemIds: [] },
+          { id: 'b', name: 'B', itemIds: [] },
+        ],
+        activeId: 'fantasma',
+      },
       NOW
     );
-    expect(result.activeId).toBe(DEFAULT_GRIMOIRE_ID);
+    expect(result.activeId).toBe('a');
   });
 
   it('nome vazio ganha nome padrão', () => {
@@ -129,6 +138,6 @@ describe('ensureValidState', () => {
       { grimoires: [{ id: 'x', name: '  ', itemIds: [] }], activeId: 'x' },
       NOW
     );
-    expect(result.grimoires[1].name).toBe('Grimório sem nome');
+    expect(result.grimoires[0].name).toBe('Grimório sem nome');
   });
 });

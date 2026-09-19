@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PersistedState } from 'redux-persist';
 import { v4 as uuid } from 'uuid';
 import {
-  DEFAULT_GRIMOIRE_ID,
   PocketGrimoire,
   PocketGrimoireState,
 } from '../../../interfaces/PocketGrimoire';
@@ -155,9 +154,10 @@ export const pocketGrimoireSlice = createSlice({
     },
     deleteGrimoire(state, action: PayloadAction<string>) {
       const id = action.payload;
-      if (id !== DEFAULT_GRIMOIRE_ID) {
+      // Sempre sobra pelo menos um grimório.
+      if (state.grimoires.length > 1 && findGrimoire(state, id)) {
         state.grimoires = state.grimoires.filter((g) => g.id !== id);
-        if (state.activeId === id) state.activeId = DEFAULT_GRIMOIRE_ID;
+        if (state.activeId === id) state.activeId = state.grimoires[0].id;
       }
     },
     setActive(state, action: PayloadAction<string>) {

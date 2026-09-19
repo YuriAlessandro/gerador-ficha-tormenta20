@@ -103,12 +103,19 @@ describe('criar, renomear, duplicar', () => {
 });
 
 describe('excluir e ativar', () => {
-  it('não exclui o Padrão', () => {
+  it('não exclui o último grimório', () => {
     const state = reducer(initial(), deleteGrimoire(DEFAULT_GRIMOIRE_ID));
     expect(state.grimoires).toHaveLength(1);
   });
 
-  it('excluir o ativo volta o ativo para o Padrão', () => {
+  it('exclui o Padrão quando existe outro grimório', () => {
+    const { state: s1, id } = withGrimoire('Mago');
+    const state = reducer(s1, deleteGrimoire(DEFAULT_GRIMOIRE_ID));
+    expect(state.grimoires.map((g) => g.id)).toEqual([id]);
+    expect(state.activeId).toBe(id);
+  });
+
+  it('excluir o ativo passa o ativo para o primeiro restante', () => {
     const { state: s1, id } = withGrimoire('Mago');
     let state = reducer(s1, setActive(id));
     expect(state.activeId).toBe(id);
