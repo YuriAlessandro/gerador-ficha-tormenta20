@@ -1,10 +1,33 @@
 import React from 'react';
-import { Chip } from '@mui/material';
+import { Box, Chip } from '@mui/material';
 import { ResolvedItem } from '../../../functions/pocketGrimoire/resolveItems';
 import GrimoireCardShell from './GrimoireCardShell';
 import GrimoireItemDetails from './GrimoireItemDetails';
 import GrimoireMissingCard from './GrimoireMissingCard';
-import { presentItem } from './itemPresentation';
+import { ItemPresentation, presentItem } from './itemPresentation';
+import { STAT_META } from './statIcons';
+
+/** Estatísticas que cabem no resumo de uma linha do card fechado. */
+const SUMMARY_STATS = ['execution', 'range', 'duration'];
+
+/** Magia: ▶ Padrão  ✺ Médio  ⧗ Instantânea. Demais itens: o subtítulo. */
+const summaryOf = (view: ItemPresentation): React.ReactNode => {
+  const stats = view.stats.filter((stat) => SUMMARY_STATS.includes(stat.kind));
+  if (stats.length === 0) return view.summary;
+  return stats.map((stat) => {
+    const { label, Icon } = STAT_META[stat.kind];
+    return (
+      <Box
+        component='span'
+        key={stat.kind}
+        sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}
+      >
+        <Icon titleAccess={label} sx={{ fontSize: '0.85rem' }} />
+        {stat.value}
+      </Box>
+    );
+  });
+};
 
 interface Props {
   item: ResolvedItem;
@@ -24,7 +47,7 @@ const GrimoireItemCard: React.FC<Props> = ({ item, defaultOpen, onRemove }) => {
   return (
     <GrimoireCardShell
       title={view.title}
-      summary={view.summary}
+      summary={summaryOf(view)}
       chips={view.chips.map((label) => (
         <Chip
           key={label}

@@ -35,9 +35,52 @@ describe('GrimoireItemCard', () => {
       />
     );
     expect(screen.queryByText('Aprimoramentos')).not.toBeInTheDocument();
-    expect(screen.getByText(/Evoc · Padrão · Médio/)).toBeInTheDocument();
+    // Resumo com os ícones de execução, alcance e duração.
+    const summary = screen.getByTestId('grimoire-card-summary');
+    expect(summary).toHaveTextContent('Padrão');
+    expect(summary).toHaveTextContent('Médio');
+    expect(summary).toHaveTextContent('Instantânea');
+    expect(summary.querySelectorAll('svg')).toHaveLength(3);
     fireEvent.click(screen.getByRole('button', { expanded: false }));
     expect(screen.getByText('Aprimoramentos')).toBeInTheDocument();
+  });
+
+  it('detalhe da magia explica os termos com ⓘ', async () => {
+    renderWithProviders(
+      <GrimoireItemCard
+        item={resolveItem('spell:Bola de Fogo')}
+        defaultOpen
+        onRemove={vi.fn()}
+      />
+    );
+    const info = screen.getByRole('button', {
+      name: 'O que significa "Médio"?',
+    });
+    fireEvent.mouseOver(info);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('30m');
+    expect(
+      screen.getByRole('button', {
+        name: 'O que significa "Reflexos reduz à metade"?',
+      })
+    ).toBeInTheDocument();
+    // Área não tem termo padronizado: sem ⓘ.
+    expect(
+      screen.queryByRole('button', {
+        name: 'O que significa "Esfera com 6m de raio"?',
+      })
+    ).not.toBeInTheDocument();
+  });
+
+  it('classe inteira mostra o resumo dos dados', () => {
+    renderWithProviders(
+      <GrimoireItemCard
+        item={resolveItem('class:Arcanista')}
+        defaultOpen
+        onRemove={vi.fn()}
+      />
+    );
+    expect(screen.getByText('Pontos de vida')).toBeInTheDocument();
+    expect(screen.getByText('Habilidades')).toBeInTheDocument();
   });
 
   it('botão de remover chama onRemove com o id', () => {

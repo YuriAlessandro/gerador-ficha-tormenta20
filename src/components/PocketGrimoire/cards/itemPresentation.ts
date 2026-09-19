@@ -1,5 +1,9 @@
 import { ResolvedItem } from '../../../functions/pocketGrimoire/resolveItems';
 import { formatRequirement } from '../../../functions/requirementText';
+import {
+  EntityFact,
+  entityFacts,
+} from '../../../functions/pocketGrimoire/entitySummary';
 
 /** Tom da moldura/destaque de um item (mapeado para cores do tema na UI). */
 export type ItemAccent =
@@ -66,6 +70,8 @@ export interface ItemPresentation {
   /** Texto de regra. */
   description: string;
   aprimoramentos: ItemAprimoramento[];
+  /** Resumo de classe/raça/origem/divindade inteira (vem dos dados). */
+  facts: EntityFact[];
   /** Círculo da magia, para o selo da carta. */
   circle?: number;
   /** Rótulos em chip ao lado do título no modo lista. */
@@ -103,6 +109,7 @@ export function presentItem(item: ResolvedItem): ItemPresentation {
           cost: apr.trick ? 'Truque' : `+${apr.addPm} PM`,
           text: apr.text,
         })),
+        facts: [],
         circle: spell.circle,
         chips: spell.spellTypes,
         accent: spellAccent(spell.spellTypes),
@@ -120,6 +127,7 @@ export function presentItem(item: ResolvedItem): ItemPresentation {
         stats: requirement ? [{ kind: 'requirement', value: requirement }] : [],
         description: item.power.description,
         aprimoramentos: [],
+        facts: [],
         chips: [],
         accent: 'power',
       };
@@ -131,6 +139,7 @@ export function presentItem(item: ResolvedItem): ItemPresentation {
         stats: [],
         description: `${item.name} não existe mais na enciclopédia.`,
         aprimoramentos: [],
+        facts: [],
         chips: [],
         accent: 'missing',
       };
@@ -142,6 +151,7 @@ export function presentItem(item: ResolvedItem): ItemPresentation {
         stats: [],
         description: item.entry.description,
         aprimoramentos: [],
+        facts: item.kind === 'summary' ? entityFacts(item.id) : [],
         chips: [item.entry.categoryLabel],
         accent: item.kind === 'summary' ? 'entity' : 'feature',
       };

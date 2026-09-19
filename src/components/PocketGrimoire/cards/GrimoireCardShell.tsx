@@ -13,8 +13,8 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 
 interface Props {
   title: string;
-  /** Linha curta exibida com o card fechado (ex.: "Evoc · Padrão · Médio"). */
-  summary?: string;
+  /** Linha curta exibida com o card fechado (texto ou ícones + valores). */
+  summary?: React.ReactNode;
   /** Chips ao lado do título (tipo de magia, tipo de poder…). */
   chips?: React.ReactNode;
   defaultOpen: boolean;
@@ -82,7 +82,14 @@ const GrimoireCardShell: React.FC<Props> = ({
               <Typography
                 component='span'
                 variant='caption'
-                sx={{ color: 'text.secondary', display: 'block' }}
+                data-testid='grimoire-card-summary'
+                sx={{
+                  color: 'text.secondary',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  columnGap: 1.25,
+                }}
               >
                 {summary}
               </Typography>

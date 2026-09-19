@@ -4,80 +4,93 @@ import { Box, Chip, Divider, Link, Typography } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
   encyclopediaPath,
-  GrimoireSpell,
   ResolvedItem,
 } from '../../../functions/pocketGrimoire/resolveItems';
 import { GeneralPowerWithSupplement } from '../../../data/registry';
 import { formatRequirement } from '../../../functions/requirementText';
+import { explainTerm } from '../../../functions/pocketGrimoire/spellGlossary';
+import { ItemPresentation, ItemStat, presentItem } from './itemPresentation';
+import { STAT_META } from './statIcons';
+import TermInfo from './TermInfo';
 
-const SpellDetails: React.FC<{ spell: GrimoireSpell }> = ({ spell }) => {
-  const stats = [
-    { label: 'Execução', value: spell.execucao },
-    { label: 'Alcance', value: spell.alcance },
-    { label: 'Alvo', value: spell.alvo },
-    { label: 'Área', value: spell.area },
-    { label: 'Duração', value: spell.duracao },
-    { label: 'Resistência', value: spell.resistencia },
-  ].filter((stat) => stat.value);
-
-  return (
-    <>
-      <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-        {spell.circle}º círculo · {spell.school}
-      </Typography>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
-          gap: 1,
-          my: 1.5,
-          p: 1.5,
-          borderRadius: 1,
-          bgcolor: 'action.hover',
-        }}
-      >
-        {stats.map((stat) => (
-          <Box key={stat.label}>
-            <Typography
-              variant='caption'
-              sx={{ color: 'text.secondary', display: 'block' }}
-            >
-              {stat.label}
-            </Typography>
-            <Typography variant='body2' sx={{ fontWeight: 500 }}>
-              {stat.value}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
-      <Typography variant='body2' sx={{ whiteSpace: 'pre-wrap' }}>
-        {spell.description}
-      </Typography>
-      {spell.aprimoramentos && spell.aprimoramentos.length > 0 && (
-        <>
-          <Divider sx={{ my: 1.5 }} />
+/** Estatísticas com ícone e, nos termos padronizados, a explicação ⓘ. */
+const StatGrid: React.FC<{ stats: ItemStat[] }> = ({ stats }) => (
+  <Box
+    sx={{
+      display: 'grid',
+      gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
+      gap: 1,
+      my: 1.5,
+      p: 1.5,
+      borderRadius: 1,
+      bgcolor: 'action.hover',
+    }}
+  >
+    {stats.map((stat) => {
+      const { label, Icon } = STAT_META[stat.kind];
+      const explanation = explainTerm(stat.kind, stat.value);
+      return (
+        <Box key={stat.kind}>
           <Typography
-            variant='subtitle2'
-            color='primary'
-            sx={{ fontFamily: 'Tfont, serif' }}
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
           >
-            Aprimoramentos
+            <Icon sx={{ fontSize: '0.9rem', color: 'primary.main' }} />
+            {label}
           </Typography>
-          <Box component='ul' sx={{ pl: 2, my: 0.5 }}>
-            {spell.aprimoramentos.map((apr) => (
-              <li key={`${apr.addPm}-${apr.text.slice(0, 30)}`}>
-                <Typography variant='body2' component='span'>
-                  <strong>{apr.trick ? 'TRUQUE' : `+${apr.addPm} PM`}:</strong>{' '}
-                  {apr.text}
-                </Typography>
-              </li>
-            ))}
-          </Box>
-        </>
-      )}
-    </>
-  );
-};
+          <Typography
+            variant='body2'
+            component='div'
+            sx={{ fontWeight: 500, display: 'flex', alignItems: 'center' }}
+          >
+            {stat.value}
+            {explanation && (
+              <TermInfo term={stat.value} explanation={explanation} />
+            )}
+          </Typography>
+        </Box>
+      );
+    })}
+  </Box>
+);
+
+const SpellDetails: React.FC<{ view: ItemPresentation }> = ({ view }) => (
+  <>
+    <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+      {view.circle}º círculo · {view.subtitle}
+    </Typography>
+    <StatGrid stats={view.stats} />
+    <Typography variant='body2' sx={{ whiteSpace: 'pre-wrap' }}>
+      {view.description}
+    </Typography>
+    {view.aprimoramentos.length > 0 && (
+      <>
+        <Divider sx={{ my: 1.5 }} />
+        <Typography
+          variant='subtitle2'
+          color='primary'
+          sx={{ fontFamily: 'Tfont, serif' }}
+        >
+          Aprimoramentos
+        </Typography>
+        <Box component='ul' sx={{ pl: 2, my: 0.5 }}>
+          {view.aprimoramentos.map((apr) => (
+            <li key={`${apr.cost}-${apr.text.slice(0, 30)}`}>
+              <Typography variant='body2' component='span'>
+                <strong>{apr.cost}:</strong> {apr.text}
+              </Typography>
+            </li>
+          ))}
+        </Box>
+      </>
+    )}
+  </>
+);
 
 const PowerDetails: React.FC<{
   subtitle?: string;
@@ -135,12 +148,32 @@ const PowerDetails: React.FC<{
   );
 };
 
+/** Resumo de classe/raça/origem/divindade inteira, montado dos dados. */
+const FactList: React.FC<{ view: ItemPresentation }> = ({ view }) => (
+  <Box component='dl' sx={{ m: 0, mt: 1 }}>
+    {view.facts.map((fact) => (
+      <Box key={fact.label} sx={{ mb: 1 }}>
+        <Typography
+          component='dt'
+          variant='caption'
+          sx={{ color: 'primary.main', fontWeight: 700 }}
+        >
+          {fact.label}
+        </Typography>
+        <Typography component='dd' variant='body2' sx={{ m: 0 }}>
+          {fact.value}
+        </Typography>
+      </Box>
+    ))}
+  </Box>
+);
+
 /**
  * Conteúdo completo de um item, sem moldura. Usado dentro do card
  * expansível (modo lista) e na carta ampliada (modo cartas).
  */
 const GrimoireItemDetails: React.FC<{ item: ResolvedItem }> = ({ item }) => {
-  if (item.kind === 'spell') return <SpellDetails spell={item.spell} />;
+  if (item.kind === 'spell') return <SpellDetails view={presentItem(item)} />;
   if (item.kind === 'power') {
     return <PowerDetails subtitle={item.entry.subtitle} power={item.power} />;
   }
@@ -152,6 +185,7 @@ const GrimoireItemDetails: React.FC<{ item: ResolvedItem }> = ({ item }) => {
     );
   }
   const { entry } = item;
+  const view = presentItem(item);
   return (
     <>
       {entry.subtitle && (
@@ -164,6 +198,7 @@ const GrimoireItemDetails: React.FC<{ item: ResolvedItem }> = ({ item }) => {
           {entry.description}
         </Typography>
       )}
+      {view.facts.length > 0 && <FactList view={view} />}
       {item.kind === 'summary' && (
         <Link
           component={RouterLink}
