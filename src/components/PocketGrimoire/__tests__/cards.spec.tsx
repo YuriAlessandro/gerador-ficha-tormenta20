@@ -83,6 +83,42 @@ describe('GrimoireItemCard', () => {
     expect(screen.getByText('Habilidades')).toBeInTheDocument();
   });
 
+  it('chips seguem o estilo das cartas: preenchidos, na cor do tipo', () => {
+    renderWithProviders(
+      <>
+        <GrimoireItemCard
+          item={resolveItem('spell:Bola de Fogo')}
+          defaultOpen={false}
+          onRemove={vi.fn()}
+        />
+        <GrimoireItemCard
+          item={resolveItem('spell:Curar Ferimentos')}
+          defaultOpen={false}
+          onRemove={vi.fn()}
+        />
+        <GrimoireItemCard
+          item={resolveItem('class:Arcanista')}
+          defaultOpen={false}
+          onRemove={vi.fn()}
+        />
+        <GrimoireItemCard
+          item={resolveItem('power:MAGIA:Magia Acelerada')}
+          defaultOpen={false}
+          onRemove={vi.fn()}
+        />
+      </>
+    );
+    const chip = (label: string) =>
+      screen.getByText(label).closest('.MuiChip-root');
+    expect(chip('Arcana')).toHaveClass('MuiChip-filled');
+    expect(chip('Divina')).toHaveClass('MuiChip-filled');
+    expect(chip('Classe')).toHaveClass('MuiChip-filled');
+    expect(chip('Arcana')).toHaveAttribute('data-accent', 'arcane');
+    expect(chip('Divina')).toHaveAttribute('data-accent', 'divine');
+    expect(chip('Classe')).toHaveAttribute('data-accent', 'entity');
+    expect(chip('Poder geral')).toHaveAttribute('data-accent', 'power');
+  });
+
   it('botão de remover chama onRemove com o id', () => {
     const onRemove = vi.fn();
     renderWithProviders(

@@ -1,10 +1,11 @@
 import React from 'react';
-import { Box, Chip } from '@mui/material';
+import { Box, Chip, useTheme } from '@mui/material';
 import { ResolvedItem } from '../../../functions/pocketGrimoire/resolveItems';
 import GrimoireCardShell from './GrimoireCardShell';
 import GrimoireItemDetails from './GrimoireItemDetails';
 import GrimoireMissingCard from './GrimoireMissingCard';
-import { ItemPresentation, presentItem } from './itemPresentation';
+import { ItemAccent, ItemPresentation, presentItem } from './itemPresentation';
+import { accentColor } from './accentColor';
 import { STAT_META } from './statIcons';
 
 /** Estatísticas que cabem no resumo de uma linha do card fechado. */
@@ -29,6 +30,13 @@ const summaryOf = (view: ItemPresentation): React.ReactNode => {
   });
 };
 
+/** Tom do chip: nas magias, o do próprio rótulo (Arcana/Divina). */
+const chipAccent = (label: string, fallback: ItemAccent): ItemAccent => {
+  if (label === 'Arcana') return 'arcane';
+  if (label === 'Divina') return 'divine';
+  return fallback;
+};
+
 interface Props {
   item: ResolvedItem;
   defaultOpen: boolean;
@@ -37,6 +45,7 @@ interface Props {
 
 /** Card expansível do modo lista. */
 const GrimoireItemCard: React.FC<Props> = ({ item, defaultOpen, onRemove }) => {
+  const theme = useTheme();
   const handleRemove = () => onRemove(item.id);
 
   if (item.kind === 'missing') {
@@ -48,16 +57,26 @@ const GrimoireItemCard: React.FC<Props> = ({ item, defaultOpen, onRemove }) => {
     <GrimoireCardShell
       title={view.title}
       summary={summaryOf(view)}
-      chips={view.chips.map((label) => (
-        <Chip
-          key={label}
-          label={label}
-          size='small'
-          variant='outlined'
-          color={label === 'Divina' ? 'secondary' : 'primary'}
-          sx={{ height: 20, fontSize: '0.7rem' }}
-        />
-      ))}
+      chips={view.chips.map((label) => {
+        // Mesmas cores das molduras das cartas e da legenda.
+        const accent = chipAccent(label, view.accent);
+        const color = accentColor(theme, accent);
+        return (
+          <Chip
+            key={label}
+            label={label}
+            size='small'
+            variant='filled'
+            data-accent={accent}
+            sx={{
+              height: 20,
+              fontSize: '0.7rem',
+              bgcolor: color,
+              color: theme.palette.getContrastText(color),
+            }}
+          />
+        );
+      })}
       defaultOpen={defaultOpen}
       onRemove={handleRemove}
     >

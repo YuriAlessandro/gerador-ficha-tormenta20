@@ -128,7 +128,7 @@ export function presentItem(item: ResolvedItem): ItemPresentation {
         description: item.power.description,
         aprimoramentos: [],
         facts: [],
-        chips: [],
+        chips: ['Poder geral'],
         accent: 'power',
       };
     }
