@@ -44,6 +44,7 @@ import TormentaTitle from './TormentaTitle';
 import SearchInput from '../DatabaseTables/SearchInput';
 import CopyUrlButton from './CopyUrlButton';
 import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
 import { useAuth } from '../../hooks/useAuth';
 import {
   SupplementId,
@@ -212,7 +213,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
                 />
               )}
             <AddToGrimoireButton
-              itemId={`spell:${spell.nome}`}
+              itemId={encyclopediaIds.spell(spell.nome)}
               itemName={spell.nome}
             />
             <CopyUrlButton
@@ -253,6 +254,13 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
               >
                 {spell.nome} - {spell.school}
               </Typography>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.spell(spell.nome)}
+                  itemName={spell.nome}
+                  variant='labeled'
+                />
+              </Box>
 
               <Box sx={{ mb: 2 }}>
                 <Typography variant='body2' component='div'>

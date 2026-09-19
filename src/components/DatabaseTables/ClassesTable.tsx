@@ -32,6 +32,11 @@ import { Requirement } from '../../interfaces/Poderes';
 import { formatRequirement } from '../../functions/requirementText';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import {
+  classLabelOf,
+  encyclopediaIds,
+} from '../../functions/encyclopediaSearch';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, ClassWithSupplement } from '../../data/registry';
@@ -149,6 +154,10 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                   }}
                 />
               )}
+              <AddToGrimoireButton
+                itemId={encyclopediaIds.class(classe)}
+                itemName={classLabelOf(classe)}
+              />
             </Box>
             <CopyUrlButton
               itemName={classe.name}
@@ -196,6 +205,13 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                       : 'secondary'
                   }
                   sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.class(classe)}
+                  itemName={classLabelOf(classe)}
+                  variant='labeled'
                 />
               </Box>
 
@@ -373,6 +389,13 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                     }}
                   >
                     {ability.name} ({ability.nivel}º nível)
+                    <AddToGrimoireButton
+                      itemId={encyclopediaIds.classAbility(
+                        classe,
+                        ability.name
+                      )}
+                      itemName={ability.name}
+                    />
                   </Typography>
                   <Typography
                     variant='body1'
@@ -450,6 +473,10 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                       }}
                     >
                       {power.name}
+                      <AddToGrimoireButton
+                        itemId={encyclopediaIds.classPower(classe, power.name)}
+                        itemName={power.name}
+                      />
                     </Typography>
                     <Typography
                       variant='body1'

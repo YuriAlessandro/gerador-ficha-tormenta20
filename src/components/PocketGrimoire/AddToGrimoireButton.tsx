@@ -17,12 +17,19 @@ interface Props {
   itemName: string;
   /** Sem ele, age sobre o grimório ativo. */
   grimoireId?: string;
+  /**
+   * `icon` (padrão): ícone compacto, para linhas e listas.
+   * `labeled`: botão com texto e o nome do grimório de destino, para o
+   * detalhe expandido e cabeçalhos — é o que o usuário não pode deixar de ver.
+   */
+  variant?: 'icon' | 'labeled';
 }
 
 const AddToGrimoireButton: React.FC<Props> = ({
   itemId,
   itemName,
   grimoireId,
+  variant = 'icon',
 }) => {
   const dispatch = useAppDispatch();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -70,6 +77,28 @@ const AddToGrimoireButton: React.FC<Props> = ({
       );
     }
   };
+
+  if (variant === 'labeled') {
+    return (
+      <Tooltip describeChild title={inGrimoire ? 'Clique para remover' : ''}>
+        <Button
+          size='small'
+          variant={inGrimoire ? 'contained' : 'outlined'}
+          color={inGrimoire ? 'success' : 'primary'}
+          startIcon={
+            inGrimoire ? <BookmarkAddedIcon /> : <BookmarkAddOutlinedIcon />
+          }
+          onClick={handleClick}
+          onMouseDown={(event) => event.stopPropagation()}
+          sx={{ textTransform: 'none', maxWidth: '100%' }}
+        >
+          {inGrimoire
+            ? `No grimório "${target.name}"`
+            : `Adicionar ao grimório "${target.name}"`}
+        </Button>
+      </Tooltip>
+    );
+  }
 
   return (
     <Tooltip title={label}>

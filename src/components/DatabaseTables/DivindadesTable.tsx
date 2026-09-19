@@ -28,6 +28,8 @@ import { dataRegistry } from '../../data/registry';
 import { useContentSupplements } from '../../hooks/useContentSupplements';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
 
 interface IProps {
   divindade: Divindade;
@@ -93,6 +95,10 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
                   color='primary'
                 />
               )}
+              <AddToGrimoireButton
+                itemId={encyclopediaIds.deity(divindade.name)}
+                itemName={divindade.name}
+              />
             </Box>
             <CopyUrlButton
               itemName={divindade.name}
@@ -122,6 +128,13 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
               >
                 {divindade.name}
               </Typography>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.deity(divindade.name)}
+                  itemName={divindade.name}
+                  variant='labeled'
+                />
+              </Box>
 
               <Divider sx={{ my: 2 }} />
 
@@ -151,6 +164,13 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
                   >
                     {power.name}
                   </Typography>
+                  <AddToGrimoireButton
+                    itemId={encyclopediaIds.deityPower(
+                      divindade.name,
+                      power.name
+                    )}
+                    itemName={power.name}
+                  />
                   <Typography
                     variant='body1'
                     sx={{

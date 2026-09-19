@@ -17,12 +17,15 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import type { ClassPowerGraph, PowerTreeNode } from '../../functions/powerTree';
 import { formatRequirement } from '../../functions/requirementText';
 import { NODE_SELECTOR, PANEL_CLASS, getNodeKindMeta } from './powerNodeStyle';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
 
 interface PowerDetailDrawerProps {
   node: PowerTreeNode | null;
   graph: ClassPowerGraph;
   onClose: () => void;
   onNavigate: (id: string) => void;
+  /** Id do índice da enciclopédia, quando o nó é um item que dá para guardar. */
+  grimoireItemId?: string;
 }
 
 const RelatedList: React.FC<{
@@ -71,6 +74,7 @@ const PowerDetailDrawer: React.FC<PowerDetailDrawerProps> = ({
   graph,
   onClose,
   onNavigate,
+  grimoireItemId,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -194,6 +198,16 @@ const PowerDetailDrawer: React.FC<PowerDetailDrawerProps> = ({
               />
             )}
           </Stack>
+
+          {grimoireItemId && (
+            <Box sx={{ mb: 2 }}>
+              <AddToGrimoireButton
+                itemId={grimoireItemId}
+                itemName={node.name}
+                variant='labeled'
+              />
+            </Box>
+          )}
 
           {node.kind === 'external' && (
             <Typography

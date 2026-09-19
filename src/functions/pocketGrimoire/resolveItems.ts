@@ -1,6 +1,7 @@
 import {
   buildEncyclopediaIndex,
   EncyclopediaEntry,
+  encyclopediaIds,
 } from '../encyclopediaSearch';
 import { dataRegistry, GeneralPowerWithSupplement } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
@@ -173,6 +174,26 @@ export function resolveItem(id: string): ResolvedItem {
 
   if (SUMMARY_PREFIXES.includes(prefix)) return { kind: 'summary', id, entry };
   return { kind: 'generic', id, entry };
+}
+
+/**
+ * Id do índice para um nó da árvore de poderes de uma classe. Opções de
+ * habilidade e nós externos não são itens da enciclopédia: sem id.
+ */
+export function treeNodeItemId(
+  classe: { name: string; subname?: string },
+  node: { kind: string; name: string }
+): string | undefined {
+  switch (node.kind) {
+    case 'power':
+      return encyclopediaIds.classPower(classe, node.name);
+    case 'ability':
+      return encyclopediaIds.classAbility(classe, node.name);
+    case 'general':
+      return getGrimoireCatalog().powerIdByName.get(node.name);
+    default:
+      return undefined;
+  }
 }
 
 export const resolveItems = (ids: string[]): ResolvedItem[] =>

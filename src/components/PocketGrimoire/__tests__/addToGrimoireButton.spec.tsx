@@ -75,6 +75,26 @@ describe('AddToGrimoireButton', () => {
   });
 });
 
+describe('AddToGrimoireButton variant="labeled"', () => {
+  it('mostra o grimório de destino no texto e alterna', () => {
+    const { store } = renderWithProviders(
+      <AddToGrimoireButton
+        itemId={ID}
+        itemName='Bola de Fogo'
+        variant='labeled'
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /Adicionar ao grimório "Padrão"/ })
+    );
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).toEqual([ID]);
+    fireEvent.click(
+      screen.getByRole('button', { name: /No grimório "Padrão"/ })
+    );
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).toEqual([]);
+  });
+});
+
 describe('ids montados pela tabela de poderes', () => {
   it('powerItemId acha no índice o id de todo poder geral', () => {
     const { byId } = getGrimoireCatalog();

@@ -149,6 +149,13 @@ const Row: React.FC<{
               >
                 {power.name}
               </Typography>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={powerItemId(power)}
+                  itemName={power.name}
+                  variant='labeled'
+                />
+              </Box>
 
               <Typography
                 variant='body1'
