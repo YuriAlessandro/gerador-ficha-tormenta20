@@ -1,0 +1,58 @@
+{
+  "formato": "fichas-de-nimb/grimorio-de-bolso",
+  "versao": 1,
+  "exportadoEm": "2026-09-19T12:00:00.000Z",
+  "grimorio": {
+    "nome": "Brakka — Guerreira anã (nível 4)",
+    "itens": [
+      {
+        "id": "class-ability:Guerreiro:Ataque Especial",
+        "nome": "Ataque Especial"
+      },
+      {
+        "id": "class-ability:Guerreiro:Durão",
+        "nome": "Durão"
+      },
+      {
+        "id": "class-power:Guerreiro:Especialização em Arma",
+        "nome": "Especialização em Arma"
+      },
+      {
+        "id": "class-power:Guerreiro:Ímpeto",
+        "nome": "Ímpeto"
+      },
+      {
+        "id": "power:COMBATE:Ataque Poderoso",
+        "nome": "Ataque Poderoso"
+      },
+      {
+        "id": "power:COMBATE:Estilo de Duas Mãos",
+        "nome": "Estilo de Duas Mãos"
+      },
+      {
+        "id": "power:COMBATE:Trespassar",
+        "nome": "Trespassar"
+      },
+      {
+        "id": "race-ability:Anão:Duro como Pedra",
+        "nome": "Duro como Pedra"
+      },
+      {
+        "id": "race-ability:Anão:Devagar e Sempre",
+        "nome": "Devagar e Sempre"
+      },
+      {
+        "id": "race-ability:Anão:Conhecimento das Rochas",
+        "nome": "Conhecimento das Rochas"
+      },
+      {
+        "id": "origin:Soldado",
+        "nome": "Soldado"
+      },
+      {
+        "id": "origin-power:Soldado:Influência Militar",
+        "nome": "Influência Militar"
+      }
+    ]
+  }
+}
