@@ -75,6 +75,28 @@ describe('PocketGrimoirePage', () => {
     ).toBeGreaterThan(0);
   });
 
+  it('clicar na linha do resultado guarda e devolve o item', () => {
+    const { store } = renderPage([]);
+    fireEvent.change(screen.getByLabelText('Buscar no grimório ou adicionar'), {
+      target: { value: 'bola de fogo' },
+    });
+    const row = screen.getByRole('button', {
+      name: 'Adicionar Bola de Fogo a Padrão',
+    });
+    fireEvent.click(row);
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).toContain(
+      'spell:Bola de Fogo'
+    );
+
+    // A linha espelha o marcador: o segundo clique tira de novo.
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remover Bola de Fogo de Padrão' })
+    );
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).not.toContain(
+      'spell:Bola de Fogo'
+    );
+  });
+
   it('grimório inexistente mostra aviso', () => {
     renderWithProviders(<PocketGrimoirePage />, {
       route: '/grimorio/fantasma',

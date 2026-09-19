@@ -8,8 +8,6 @@ import {
   InputAdornment,
   Link,
   List,
-  ListItem,
-  ListItemText,
   Paper,
   Stack,
   TextField,
@@ -44,7 +42,7 @@ import { normalizeSearch } from '../../functions/stringUtils';
 import { SEO } from '../SEO';
 import GrimoireItemCard from './cards/GrimoireItemCard';
 import GrimoireMenu from './GrimoireMenu';
-import AddToGrimoireButton from './AddToGrimoireButton';
+import AddFromEncyclopediaItem from './AddFromEncyclopediaItem';
 import GrimoireCollectibleCard from './cards/GrimoireCollectibleCard';
 import GrimoireCardViewer from './cards/GrimoireCardViewer';
 import GrimoireCardLegend from './cards/GrimoireCardLegend';
@@ -216,23 +214,15 @@ const PocketGrimoirePage: React.FC = () => {
             </Typography>
             <List dense disablePadding>
               {searchResults.map(({ entry }) => (
-                <ListItem
+                <AddFromEncyclopediaItem
                   key={entry.id}
-                  secondaryAction={
-                    <AddToGrimoireButton
-                      itemId={entry.id}
-                      itemName={entry.title}
-                      grimoireId={grimoire.id}
-                    />
-                  }
-                >
-                  <ListItemText
-                    primary={entry.title}
-                    secondary={`${entry.categoryLabel}${
-                      entry.subtitle ? ` · ${entry.subtitle}` : ''
-                    }`}
-                  />
-                </ListItem>
+                  itemId={entry.id}
+                  itemName={entry.title}
+                  secondary={`${entry.categoryLabel}${
+                    entry.subtitle ? ` · ${entry.subtitle}` : ''
+                  }`}
+                  grimoireId={grimoire.id}
+                />
               ))}
             </List>
           </Paper>
