@@ -7,10 +7,14 @@ name: Deploy frontend (Cloudflare Pages)
 # A integração Git nativa do Pages não serve para este repo: ela não consegue
 # inicializar submódulo privado, e o build depende de `src/premium`. Por isso o
 # build roda aqui e a publicação é por Direct Upload (`wrangler pages deploy`).
+#
+# O gatilho é a branch `production`, não a `main`: push na `main` não publica
+# nada. Deploy = PR `main → production` com merge commit. A `production` é
+# protegida por ruleset (só aceita PR, só merge commit, sem force push).
 
 on:
   push:
-    branches: [main]
+    branches: [production]
   workflow_dispatch:
 
 concurrency:
@@ -19,6 +23,9 @@ concurrency:
 
 jobs:
   deploy:
+    # O dispatch manual aceita qualquer branch; sem isto dava para publicar a
+    # `main` (ou uma feature) por engano.
+    if: github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -73,6 +80,10 @@ jobs:
             exit 1
           fi
 
+      # `--branch=main` é o RÓTULO de branch do Pages, não a branch do Git. A
+      # production branch configurada no projeto `fichas-frontend` é `main`;
+      # trocar para `production` aqui faria o upload virar deploy de preview e o
+      # site não atualizaria.
       - name: Publicar no Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
