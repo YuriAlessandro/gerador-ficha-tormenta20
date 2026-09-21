@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useHistory, useParams } from 'react-router-dom';
 import {
   Alert,
@@ -90,6 +90,10 @@ const PocketGrimoirePage: React.FC = () => {
     showFilters && presentFilters.some((option) => option.value === filter)
       ? filter
       : 'all';
+  // E esquece a escolha: a categoria voltando não reativa o filtro sozinha.
+  useEffect(() => {
+    if (effectiveFilter !== filter) setFilter('all');
+  }, [effectiveFilter, filter]);
 
   const normalizedQuery = normalizeSearch(query).trim();
   const groups = useMemo(

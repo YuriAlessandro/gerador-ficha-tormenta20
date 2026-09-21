@@ -7,7 +7,10 @@ import { renderWithProviders } from './renderWithProviders';
 import { createInitialState } from '../../../functions/pocketGrimoire/state';
 import { getFullEncyclopediaIndex } from '../../../functions/pocketGrimoire/resolveItems';
 import { prefixOf } from '../../../functions/pocketGrimoire/itemId';
-import { removeItem } from '../../../store/slices/pocketGrimoire/pocketGrimoireSlice';
+import {
+  addItem,
+  removeItem,
+} from '../../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 
 const idsWithPrefix = (prefix: string, count: number) =>
   getFullEncyclopediaIndex()
@@ -75,6 +78,20 @@ describe('PocketGrimoirePage', () => {
     expect(
       screen.queryByRole('button', { name: 'Tudo' })
     ).not.toBeInTheDocument();
+  });
+
+  it('filtro que sumiu não volta sozinho quando a categoria reaparece', () => {
+    const [spellId, otherSpellId] = idsWithPrefix('spell', 2);
+    const [powerId] = idsWithPrefix('power', 1);
+    const { store } = renderPage([spellId, powerId]);
+    fireEvent.click(screen.getByRole('button', { name: 'Magias' }));
+    act(() => {
+      store.dispatch(removeItem('default', spellId));
+    });
+    act(() => {
+      store.dispatch(addItem('default', otherSpellId));
+    });
+    expect(screen.getByText('Poderes gerais')).toBeInTheDocument();
   });
 
   it('avisa quando nenhum item do grimório corresponde à busca', () => {
