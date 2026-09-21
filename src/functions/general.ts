@@ -3130,14 +3130,12 @@ export const applyPower = (
           minLevel = 2,
           levelSource = 'fixed',
           fromClasses,
-          atCharacterLevel,
         } = sheetAction.action;
         // 'sheet' avalia no nível atual (poder re-escolhido a cada aventura,
-        // ex.: Citadino Abastado; "como um guerreiro de nível igual ao seu", do
-        // Vassalo); 'fixed' congela em `minLevel` para render a mesma lista em
+        // ex.: Citadino Abastado; ou "como um guerreiro de nível igual ao
+        // seu"); 'fixed' congela em `minLevel` para render a mesma lista em
         // qualquer recálculo (Futura Lenda, Cosmopolita).
-        const effectiveLevel =
-          levelSource === 'sheet' || atCharacterLevel ? sheet.nivel : minLevel;
+        const effectiveLevel = levelSource === 'sheet' ? sheet.nivel : minLevel;
 
         // Filter class powers by minimum level and requirements
         const availablePowers = getFuturaLendaClassPowers(

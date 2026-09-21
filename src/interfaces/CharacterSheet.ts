@@ -233,8 +233,6 @@ export type SheetActionStep =
        * Ex.: Valete (Vassalo 2), "um poder de cavaleiro a sua escolha".
        */
       fromClasses?: string[];
-      /** Avalia no nível do personagem em vez de `minLevel`. */
-      atCharacterLevel?: boolean;
       label?: string;
     }
   | {

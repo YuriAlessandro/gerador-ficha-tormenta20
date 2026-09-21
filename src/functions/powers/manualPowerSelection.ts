@@ -491,7 +491,6 @@ export function getPowerSelectionRequirements(
             minLevel: action.minLevel ?? 2,
             levelSource: action.levelSource ?? 'fixed',
             fromClasses: action.fromClasses,
-            atCharacterLevel: action.atCharacterLevel,
           },
         });
       }
@@ -1212,9 +1211,9 @@ export function getFilteredAvailableOptions(
     case 'getClassPower': {
       // Poderes de classe elegíveis (ex.: origem "Futura Lenda"), filtrados por
       // nível mínimo e disponibilidade. Mesma lógica usada pelo gerador.
-      const { fromClasses, atCharacterLevel } = requirement.metadata ?? {};
+      const { fromClasses } = requirement.metadata ?? {};
       const classPowerLevel =
-        requirement.metadata?.levelSource === 'sheet' || atCharacterLevel
+        requirement.metadata?.levelSource === 'sheet'
           ? sheet.nivel
           : requirement.metadata?.minLevel ?? 2;
       return getFuturaLendaClassPowers(sheet, classPowerLevel, {

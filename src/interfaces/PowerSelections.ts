@@ -108,7 +108,6 @@ export interface PowerSelectionRequirement {
     // com os suplementos ativos em vez de vir congelada em `availableOptions`.
     availableTypes?: GeneralPowerType[];
     fromClasses?: string[]; // getClassPower: poder vindo de outra classe
-    atCharacterLevel?: boolean; // getClassPower: avalia no nível do personagem
     abilityLevel?: number; // For learnClassAbility: nível das habilidades elegíveis
     // For getGeneralPower: a concessão vale apesar dos pré-requisitos dos
     // poderes ofertados (ex.: Linhagem Abençoada, "sem precisar ser devoto").
