@@ -199,6 +199,34 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     expect(screen.queryByText('Fúria Anã')).not.toBeInTheDocument();
   });
 
+  it('um clique no poder geral seleciona, inclusive trocando de um poder de classe', () => {
+    // O tipo da escolha sai do item clicado: o passo chama
+    // `onPowerChoiceChange` e o select no MESMO clique. Com setState não
+    // funcional, o segundo apagava o `powerChoice` do primeiro — e poder geral
+    // nunca ficava selecionado (ou o de classe anterior seguia valendo).
+    registerHomebrew({
+      classPowers: { Guerreiro: [classPower('Golpe Decisivo')] },
+      powers: {
+        ...emptyPowers(),
+        [GeneralPowerType.COMBATE]: [
+          generalPower('Investida Brutal', GeneralPowerType.COMBATE),
+        ],
+      },
+    });
+
+    openPowerSelection(elfoSheetOfClass('Guerreiro'));
+
+    fireEvent.click(screen.getByLabelText('Selecionar Golpe Decisivo'));
+    expect(
+      screen.getByText('Golpe Decisivo', { selector: 'strong' })
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Selecionar Investida Brutal'));
+    expect(
+      screen.getByText('Investida Brutal', { selector: 'strong' })
+    ).toBeInTheDocument();
+  });
+
   const registerBencaoProibida = () => {
     registerHomebrew({
       powers: {

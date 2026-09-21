@@ -1225,32 +1225,37 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             selectedGeneralPower={
               currentLevelSelection.selectedGeneralPower || null
             }
+            // Atualização FUNCIONAL: o passo dispara `onPowerChoiceChange` e o
+            // select do poder no MESMO clique (o tipo da escolha é derivado do
+            // item). Espalhando `currentLevelSelection` da closure, o segundo
+            // setState apagava o `powerChoice` gravado pelo primeiro — e como
+            // ele começa em 'class', nenhum poder geral ficava selecionado.
             onPowerChoiceChange={(choice) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 powerChoice: choice,
                 selectedClassPower: undefined,
                 selectedGeneralPower: undefined,
                 selectedAlmaLivrePower: undefined,
-              })
+              }))
             }
             onClassPowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedClassPower: power,
-              })
+              }))
             }
             onGeneralPowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedGeneralPower: power,
-              })
+              }))
             }
             onAlmaLivrePowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedAlmaLivrePower: power,
-              })
+              }))
             }
             className={selectedClassName}
             knownClassPowers={knownClassPowers}
