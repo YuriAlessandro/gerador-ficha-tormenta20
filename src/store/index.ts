@@ -56,6 +56,8 @@ export const subscriptionPersistConfig = {
 export const pocketGrimoirePersistConfig = {
   key: 'pocketGrimoire',
   storage,
+  // Versão do formato guardado: o `migrate` pode ramificar por ela no futuro.
+  version: 1,
   migrate: migratePocketGrimoire,
 };
 

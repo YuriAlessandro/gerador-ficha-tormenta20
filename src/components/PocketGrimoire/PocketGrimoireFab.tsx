@@ -43,7 +43,7 @@ const countLabel = (count: number) =>
 
 const PocketGrimoireFab: React.FC = () => {
   const dispatch = useAppDispatch();
-  const isMobile = useMediaQuery('(max-width: 720px)');
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const grimoires = useAppSelector(selectGrimoires);
   const active = useAppSelector(selectActiveGrimoire);
   // Estado (não ref) para o Popper reagir quando a âncora existir.

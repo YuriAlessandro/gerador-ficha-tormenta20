@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react';
+import { act, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import PocketGrimoirePage from '../PocketGrimoirePage';
 import PocketGrimoireListPage from '../PocketGrimoireListPage';
@@ -7,6 +7,7 @@ import { renderWithProviders } from './renderWithProviders';
 import { createInitialState } from '../../../functions/pocketGrimoire/state';
 import { getFullEncyclopediaIndex } from '../../../functions/pocketGrimoire/resolveItems';
 import { prefixOf } from '../../../functions/pocketGrimoire/itemId';
+import { removeItem } from '../../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 
 const idsWithPrefix = (prefix: string, count: number) =>
   getFullEncyclopediaIndex()
@@ -60,6 +61,30 @@ describe('PocketGrimoirePage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Poderes' }));
     expect(screen.queryByText('Poderes gerais')).toBeInTheDocument();
     expect(screen.queryByText(/Magias · /)).not.toBeInTheDocument();
+  });
+
+  it('filtro volta para Tudo quando a categoria escolhida some', () => {
+    const [spellId] = idsWithPrefix('spell', 1);
+    const [powerId] = idsWithPrefix('power', 1);
+    const { store } = renderPage([spellId, powerId]);
+    fireEvent.click(screen.getByRole('button', { name: 'Magias' }));
+    act(() => {
+      store.dispatch(removeItem('default', spellId));
+    });
+    expect(screen.getByText('Poderes gerais')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Tudo' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('avisa quando nenhum item do grimório corresponde à busca', () => {
+    renderPage(idsWithPrefix('spell', 2));
+    fireEvent.change(screen.getByLabelText('Buscar no grimório ou adicionar'), {
+      target: { value: 'zzzz' },
+    });
+    expect(
+      screen.getByText('Nenhum item deste grimório corresponde.')
+    ).toBeInTheDocument();
   });
 
   it('busca mostra resultados da enciclopédia para adicionar', () => {

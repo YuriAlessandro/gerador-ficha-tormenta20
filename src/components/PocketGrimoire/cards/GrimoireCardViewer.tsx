@@ -41,7 +41,7 @@ const GrimoireCardViewer: React.FC<Props> = ({
   onRemove,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery('(max-width: 720px)');
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const touchStartX = useRef<number | null>(null);
 
   const item = index === null ? undefined : items[index];

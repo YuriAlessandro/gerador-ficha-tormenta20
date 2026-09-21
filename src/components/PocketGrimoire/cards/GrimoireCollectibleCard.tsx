@@ -216,7 +216,7 @@ const GrimoireCollectibleCard: React.FC<Props> = ({ item, onOpen }) => {
             ))}
             {view.description && <p>{view.description}</p>}
             {view.aprimoramentos.map((apr) => (
-              <p key={`${apr.cost}-${apr.text.slice(0, 30)}`}>
+              <p key={`${apr.cost}-${apr.text}`}>
                 <Box
                   component='strong'
                   sx={{ color: costColor, fontWeight: 700 }}

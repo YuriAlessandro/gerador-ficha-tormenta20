@@ -45,7 +45,8 @@ const ExportGrimoireDialog: React.FC<Props> = ({ open, grimoire, onClose }) => {
     link.href = url;
     link.download = grimoireFileName(grimoire.name);
     link.click();
-    URL.revokeObjectURL(url);
+    // Revogar na hora cancela o download em alguns navegadores.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   const handleCopy = async () => {

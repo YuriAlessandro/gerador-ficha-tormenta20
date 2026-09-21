@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   ButtonBase,
@@ -31,12 +31,9 @@ const GrimoireCardShell: React.FC<Props> = ({
   onRemove,
   children,
 }) => {
+  // Só o estado inicial: adicionar ou remover itens não fecha o que o
+  // jogador está lendo.
   const [open, setOpen] = useState(defaultOpen);
-
-  // Acompanha a regra "abre sozinho com poucos itens" quando a lista muda.
-  useEffect(() => {
-    setOpen(defaultOpen);
-  }, [defaultOpen]);
 
   return (
     <Paper variant='outlined' sx={{ mb: 1, overflow: 'hidden' }}>

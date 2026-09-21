@@ -1,7 +1,8 @@
 # Grimório de bolso — design
 
 **Data:** 18/09/2026
-**Status:** aprovado em brainstorming, aguardando plano de implementação
+**Status:** implementado. O que mudou depois do plano está em "Desvios depois
+da tarefa 10", no fim de `docs/superpowers/plans/2026-09-18-grimorio-de-bolso.md`.
 
 ## Problema
 
@@ -47,7 +48,7 @@ Tanah-Toh que o jogador monta uma vez e consulta na mesa, no celular ou no PC.
 | 1   | Tudo local, com vários grimórios para todos              | O fork não tem backend nem login. Exportar e importar cobrem o backup e a troca de aparelho.                                                                                                                                |
 | 2   | Guardar só o **id do índice** da enciclopédia            | O texto mostrado é sempre o oficial e atual, e o arquivo fica pequeno. Os ids já são estáveis, porque o site os usa nas URLs e no "copiar link".                                                                            |
 | 3   | Todos os tipos do índice são aceitos                     | O índice já é uniforme, então incluir mais tipos custa quase nada.                                                                                                                                                          |
-| 4   | Adicionar pelos cards e por uma busca dentro do grimório | A busca cobre todos os tipos num único lugar. Os botões ficam só nos cards de magia, nos de poder geral e nos resultados da busca unificada.                                                                                |
+| 4   | Adicionar pelos cards e por uma busca dentro do grimório | A busca cobre todos os tipos num único lugar. Implementado com botões em todos os itens da enciclopédia (ver desvios).                                                                                                      |
 | 5   | Um clique adiciona ao **grimório ativo**                 | Montar um grimório é repetitivo. O ativo fica sempre visível no botão flutuante.                                                                                                                                            |
 | 6   | Página própria, mais um balão na enciclopédia            | Endereço direto para consulta na mesa, sem quebrar a grade de abas da enciclopédia no celular.                                                                                                                              |
 | 7   | Cards novos, próprios do grimório                        | Os cards existentes de magia e poder são linhas de tabela (`TableRow`) e não funcionam soltos.                                                                                                                              |
@@ -129,7 +130,8 @@ das fatias já registradas em `src/store/index.ts`.
   `buildEncyclopediaIndex(Object.values(SupplementId))`, ou seja, com todos os
   suplementos. Assim um item continua aparecendo mesmo que o suplemento esteja
   desativado na enciclopédia. O índice padrão da busca tem 2909 itens, e o
-  completo tem 3042, porque inclui o Atlas de Arton.
+  completo tem 3042, porque inclui o Atlas de Arton (3050 depois da correção
+  dos ids de herança; ver desvios).
 - `resolveItems(ids)` devolve `ResolvedItem[]`:
   - `{ kind: 'spell', entry, spell }`: `spell` é o objeto completo, vindo do
     `dataRegistry.getSpellsByCircleAndSupplements` para os círculos 1 a 5, com
@@ -239,7 +241,8 @@ funcionar no celular (breakpoints do MUI) e no tema claro e escuro.
 
 - Cards agrupados conforme `groupResolvedItems`. Começam **fechados**, a menos
   que o grimório tenha **5 itens ou menos**; nesse caso, começam abertos.
-- Cards:
+- Cards (implementados como `presentItem` + `GrimoireItemCard`/`GrimoireItemDetails`,
+  mais um modo "Cartas"; ver desvios):
   - `GrimoireSpellCard`:
     - fechado: nome, escola e execução/alcance;
     - aberto: um bloco de estatísticas em destaque (execução, alcance, alvo,
@@ -325,7 +328,8 @@ encontrado. A importação usa apenas o `id`.
   como "não encontrados".
 - O nome importado vazio vira "Grimório importado". Se colidir com um existente,
   recebe o sufixo " (2)", " (3)"…
-- Sempre cria um grimório **novo**, sem virar o ativo. A notificação diz
+- Por padrão, cria um grimório **novo**, sem virar o ativo (há também
+  "Importar e substituir"; ver desvios). A notificação diz
   "<nome> importado: N itens (M não encontrados)" e tem o botão **Tornar
   ativo**.
 

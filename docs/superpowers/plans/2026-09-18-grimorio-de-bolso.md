@@ -4357,3 +4357,29 @@ git commit -m "fix(grimorio): ajustes da verificação final"
 - **Tarefa 8:** a lista resumida usa `Link` do router (`to={encyclopediaPath(...)}`) em vez de `Link component='button'` com `history.push`, que o ESLint (`jsx-a11y/anchor-is-valid`) rejeita. Ganha também "abrir em nova aba". A prop passou de `onNavigate(path)` para `onItemClick()`, que fecha a folha no celular. O `Fab` usa estado `anchorEl` com ref de callback desde o início.
 - **Tarefa 10, tipos:** o `tsc` filtrado encontrou 9 erros que o Vitest e o ESLint não pegam. No MUI v9, `TextField` usa `slotProps={{ input, htmlInput }}` e `SwipeableDrawer` usa `slotProps={{ paper }}`; `Stack` não aceita `flexWrap` como prop (vai em `sx`). No notistack, o `App.tsx` estende `VariantOverrides`, então toda chamada precisa de `variant` explícito, e `GRIMOIRE_SNACKBAR` deixou de ser `OptionsObject`. Depois disso, o `tsc` voltou a 426 erros, a linha de base, todos do premium ausente.
 - **Tarefa 10, navegador:** a primeira execução mostrou "Invalid hook call". A causa foi o dev server do Vite reotimizando dependências novas (os ícones) no meio da navegação, o que duplica o React; isso só acontece em dev. Na segunda execução: zero erros, todo o fluxo ok no desktop e no celular, e sem rolagem horizontal no celular. Antes/depois: na aba Magias, a coluna Nome ficou ~25px mais larga por causa do ícone nas linhas; fora isso, só o botão flutuante mudou.
+
+## Desvios depois da tarefa 10
+
+Mudanças feitas depois do plano, a pedido, durante a revisão do resultado no navegador. Cada uma tem seu commit.
+
+- **Botões em todos os itens da enciclopédia** (94d14a45). A decisão 4 da spec limitava os botões aos cards de magia, aos de poder geral e à busca unificada. Agora eles aparecem também em classes e suas habilidades e poderes, raças e habilidades de raça e de herança, origens e poderes de origem, divindades e poderes concedidos, e na gaveta da árvore de poderes. Nas linhas expandidas, o botão usa `variant='labeled'`.
+- **Ids do índice numa fonte única** (02359804). O `encyclopediaSearch.ts` passou a montar os ids por `encyclopediaIds`. Isso corrigiu uma colisão nas habilidades de herança (o "Mordida" do Moreau), que antes descartava entradas. O índice completo foi de 3042 para 3050 itens, e a busca da enciclopédia original passa a mostrar essas habilidades. Isso muda o comportamento do projeto original e deve ser citado na descrição do PR.
+- **Entradas na home e no rodapé** (adc02047): `ToolsSidebar` e `JamboFooter`, além do menu lateral previsto.
+- **Apresentação compartilhada** (56edc3a5). Os cards `GrimoireSpellCard`, `GrimoirePowerCard`, `GrimoireGenericCard` e `GrimoireSummaryCard` viraram uma função pura, `presentItem` (`cards/itemPresentation.ts`), e dois componentes, `GrimoireItemCard` (lista) e `GrimoireItemDetails` (corpo). O `GrimoireMissingCard` continua.
+- **Modo Cartas** (63920d38, 63c6cfe8, 61e7a32d). Alterna com a lista e a escolha fica lembrada em `localStorage` (`fdn-grimoire-view`). Traz cartas no estilo do Baralho de Magias (`GrimoireCollectibleCard`), carta ampliada navegável por setas, teclado e deslize (`GrimoireCardViewer`) e uma legenda com os tipos presentes (`GrimoireCardLegend`).
+- **Resumo das entidades e dicas dos termos** (816f353f). `entitySummary.ts` monta fatos de classes, raças, origens e divindades a partir dos dados. `spellGlossary.ts` traz explicações escritas à mão dos termos de regra, que aparecem como dica (`TermInfo`).
+- **Cores por tipo** (da05972c, 61e7a32d): chips da lista e marcas do balão na cor do tipo (`accentColor.ts`).
+- **Pelo menos um grimório** (4f4b7c0b). O "Padrão" deixou de ser fixo: pode ser renomeado e excluído, desde que sobre outro. A spec foi atualizada nesse commit.
+- **Importar substituindo e importar ao criar** (c05539d7). A spec dizia que importar sempre cria um grimório novo. Agora o menu ⋮ tem "Importar e substituir" (ação `replaceItems`, com confirmação e Desfazer), e o diálogo de novo grimório oferece importar em vez de criar vazio.
+- **Linha inteira do resultado da busca adiciona** (f6255208). Espelha o marcador: um segundo clique remove.
+- **Grimórios de exemplo** (86e96169): `docs/grimorios-exemplo/*.json`, para testar a importação.
+
+### Ajustes da revisão de código
+
+- O filtro de categoria volta para "Tudo" quando a categoria escolhida some, e a página avisa "Nenhum item deste grimório corresponde." quando o filtro ou a busca não deixam nada.
+- A importação por arquivo checa o tamanho antes de ler o conteúdo, trata falha de leitura e permite escolher o mesmo arquivo de novo.
+- Os cards só usam `defaultOpen` como estado inicial. Antes, passar de 5 para 6 itens fechava todos os cards abertos, como a spec já dizia ("começam").
+- O breakpoint de celular do balão e da carta ampliada foi de 720px para 768px, o padrão do projeto.
+- A URL do download é revogada no próximo tique, porque alguns navegadores cancelavam o download.
+- A chave dos aprimoramentos usa o texto inteiro. Os 30 primeiros caracteres colidiam em Servo Morto-Vivo e Libertação.
+- `pocketGrimoirePersistConfig` ganhou `version: 1`, para o `migrate` poder ramificar quando o formato guardado mudar (notas por item).

@@ -6,7 +6,10 @@ import ImportGrimoireDialog from '../ImportGrimoireDialog';
 import GrimoireMenu from '../GrimoireMenu';
 import { renderWithProviders } from './renderWithProviders';
 import { createInitialState } from '../../../functions/pocketGrimoire/state';
-import { IMPORT_ERRORS } from '../../../functions/pocketGrimoire/exchange';
+import {
+  IMPORT_ERRORS,
+  MAX_IMPORT_BYTES,
+} from '../../../functions/pocketGrimoire/exchange';
 
 describe('GrimoireNameDialog', () => {
   it('confirma nome limpo e bloqueia vazio', () => {
@@ -124,6 +127,22 @@ describe('ImportGrimoireDialog', () => {
     renderWithProviders(<ImportGrimoireDialog open onClose={vi.fn()} />);
     pasteAndImport('não é json');
     expect(screen.getByText(IMPORT_ERRORS.notJson)).toBeInTheDocument();
+  });
+
+  it('recusa arquivo grande demais sem ler o conteúdo', async () => {
+    const { container } = renderWithProviders(
+      <ImportGrimoireDialog open onClose={vi.fn()} />
+    );
+    const file = new File(['{}'], 'enorme.json', { type: 'application/json' });
+    Object.defineProperty(file, 'size', { value: MAX_IMPORT_BYTES + 1 });
+    const readText = vi.fn();
+    Object.defineProperty(file, 'text', { value: readText });
+    const input = container.ownerDocument.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+    expect(await screen.findByText(IMPORT_ERRORS.tooLarge)).toBeInTheDocument();
+    expect(readText).not.toHaveBeenCalled();
   });
 
   it('importa texto válido como grimório novo', async () => {

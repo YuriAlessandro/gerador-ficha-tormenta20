@@ -23,7 +23,11 @@ import {
   setActive,
   WithPocketGrimoire,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
-import { parseGrimoireImport } from '../../functions/pocketGrimoire/exchange';
+import {
+  IMPORT_ERRORS,
+  MAX_IMPORT_BYTES,
+  parseGrimoireImport,
+} from '../../functions/pocketGrimoire/exchange';
 import { resolveItem } from '../../functions/pocketGrimoire/resolveItems';
 import { PocketGrimoire } from '../../interfaces/PocketGrimoire';
 import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
@@ -79,11 +83,23 @@ const ImportGrimoireDialog: React.FC<Props> = ({
   }, [open]);
 
   const handleFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
-      setError('');
+    const input = event.target;
+    const file = input.files?.[0];
+    // Permite escolher o mesmo arquivo de novo (senão o onChange não dispara).
+    input.value = '';
+    if (!file) return;
+    setFileName(file.name);
+    setText('');
+    // Checa o tamanho antes de ler: um arquivo enorme travaria a aba.
+    if (file.size > MAX_IMPORT_BYTES) {
+      setError(IMPORT_ERRORS.tooLarge);
+      return;
+    }
+    setError('');
+    try {
       setText(await file.text());
+    } catch {
+      setError(IMPORT_ERRORS.notJson);
     }
   };
 

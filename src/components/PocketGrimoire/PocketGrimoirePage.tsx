@@ -84,6 +84,12 @@ const PocketGrimoirePage: React.FC = () => {
       (option) => option.value === 'all' || present.has(option.value)
     );
   }, [resolved]);
+  const showFilters = presentFilters.length > 2;
+  // A categoria escolhida pode sumir (item removido); aí volta a mostrar tudo.
+  const effectiveFilter =
+    showFilters && presentFilters.some((option) => option.value === filter)
+      ? filter
+      : 'all';
 
   const normalizedQuery = normalizeSearch(query).trim();
   const groups = useMemo(
@@ -91,11 +97,11 @@ const PocketGrimoirePage: React.FC = () => {
       groupResolvedItems(
         resolved.filter(
           (item) =>
-            matchesFilter(item, filter) &&
+            matchesFilter(item, effectiveFilter) &&
             normalizeSearch(itemTitle(item)).includes(normalizedQuery)
         )
       ),
-    [resolved, filter, normalizedQuery]
+    [resolved, effectiveFilter, normalizedQuery]
   );
 
   // Ordem em que as cartas aparecem: é a ordem das setas ‹ › da carta ampliada.
@@ -245,13 +251,15 @@ const PocketGrimoirePage: React.FC = () => {
               useFlexGap
               sx={{ flexWrap: 'wrap' }}
             >
-              {presentFilters.length > 2 &&
+              {showFilters &&
                 presentFilters.map((option) => (
                   <Chip
                     key={option.value}
                     label={option.label}
                     clickable
-                    color={filter === option.value ? 'primary' : 'default'}
+                    color={
+                      effectiveFilter === option.value ? 'primary' : 'default'
+                    }
                     onClick={() => setFilter(option.value)}
                   />
                 ))}
@@ -286,6 +294,12 @@ const PocketGrimoirePage: React.FC = () => {
             </Link>
             .
           </Alert>
+        )}
+
+        {grimoire.itemIds.length > 0 && groups.length === 0 && (
+          <Typography sx={{ color: 'text.secondary', mb: 2 }}>
+            Nenhum item deste grimório corresponde.
+          </Typography>
         )}
 
         {groups.map((group) => (
