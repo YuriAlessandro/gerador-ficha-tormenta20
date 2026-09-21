@@ -155,6 +155,15 @@ const PowerCatalogRow: React.FC<PowerCatalogRowProps> = ({
               sx={EDITOR_CHIP_SX}
             />
           )}
+          {availability.outOfRequirements && (
+            <Chip
+              size='small'
+              variant='outlined'
+              color='warning'
+              label='Fora dos pré-requisitos'
+              sx={EDITOR_CHIP_SX}
+            />
+          )}
           {locked && (
             <Tooltip title='Não cumpre os pré-requisitos — você ainda pode escolher'>
               <LockOutlinedIcon

@@ -104,6 +104,12 @@ interface UsePowerCatalogArgs {
    * falta — ele some quando o filtro liga, e some em silêncio.
    */
   initialOnlyAvailable?: boolean;
+  /**
+   * Com busca digitada, o filtro "Só os que posso pegar" deixa de valer: o
+   * nome procurado aparece mesmo travado, com o requisito à vista. Sem isso,
+   * esconder por padrão faria o jogador concluir que o poder não existe.
+   */
+  searchIgnoresOnlyAvailable?: boolean;
 }
 
 /** Espera o usuário parar de digitar antes de refiltrar centenas de itens. */
@@ -127,6 +133,7 @@ export function usePowerCatalog({
   customPowers,
   resolveAvailability,
   initialOnlyAvailable = false,
+  searchIgnoresOnlyAvailable = false,
 }: UsePowerCatalogArgs) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeGroups, setActiveGroups] = useState<Set<string>>(new Set());
@@ -289,7 +296,9 @@ export function usePowerCatalog({
     if (activeGroups.size > 0 && !activeGroups.has(entry.groupKey)) {
       return false;
     }
-    if (onlyAvailable && !availabilityOf(entry).available) return false;
+    const applyOnlyAvailable =
+      onlyAvailable && !(searchIgnoresOnlyAvailable && debouncedSearch);
+    if (applyOnlyAvailable && !availabilityOf(entry).available) return false;
     return true;
   };
 

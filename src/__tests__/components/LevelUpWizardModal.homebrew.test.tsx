@@ -102,14 +102,9 @@ const openPowerSelection = (sheet: CharacterSheet) => {
   fireEvent.click(screen.getByRole('button', { name: 'Próximo' }));
 };
 
-/** A lista de poderes gerais só é montada depois de marcar o tipo no radio. */
-const chooseGeneralPowers = () => {
-  fireEvent.click(screen.getByRole('radio', { name: /Poder Geral/ }));
-};
-
 const searchPowers = (query: string) => {
   fireEvent.change(
-    screen.getByPlaceholderText('Buscar poderes por nome ou descrição...'),
+    screen.getByPlaceholderText('Buscar poder ou habilidade...'),
     { target: { value: query } }
   );
 };
@@ -138,7 +133,6 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     });
 
     openPowerSelection(elfoSheetOfClass('Guerreiro'));
-    chooseGeneralPowers();
 
     expect(screen.getByText('Investida Brutal')).toBeInTheDocument();
   });
@@ -176,7 +170,6 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     });
 
     openPowerSelection(elfoSheetOfClass('Guerreiro'));
-    chooseGeneralPowers();
 
     expect(screen.getByText('Graça Élfica')).toBeInTheDocument();
   });
@@ -194,7 +187,6 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     });
 
     openPowerSelection(elfoSheetOfClass('Guerreiro'));
-    chooseGeneralPowers();
 
     expect(screen.queryByText('Fúria Anã')).not.toBeInTheDocument();
   });
@@ -246,22 +238,21 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     return sheet;
   };
 
-  it('esconde poder concedido de não-devoto, mas a busca ainda o encontra como indisponível', () => {
+  it('esconde poder concedido de não-devoto, mas a busca ainda o encontra como indisponível', async () => {
     registerBencaoProibida();
 
     openPowerSelection(nonDevotoSheet());
-    chooseGeneralPowers();
 
     // Navegando, o reprovado nem aparece: é o que enxuga a lista de 300+.
     expect(screen.queryByText('Bênção Proibida')).not.toBeInTheDocument();
 
     // Procurando pelo nome, ele reaparece com o motivo à vista — ninguém
     // conclui que o poder não existe.
+    // (O nome vem quebrado pelo destaque da busca; o rótulo da linha, não.)
     searchPowers('Bênção Proibida');
-    const card = screen.getByText('Bênção Proibida').closest('.MuiPaper-root');
-    expect(card).not.toBeNull();
+    fireEvent.click(await screen.findByLabelText('Selecionar Bênção Proibida'));
     expect(
-      within(card as HTMLElement).getByText('Indisponível')
+      screen.getByText('Selecione um poder para continuar.')
     ).toBeInTheDocument();
   });
 
@@ -269,13 +260,13 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     registerBencaoProibida();
 
     openPowerSelection(nonDevotoSheet());
-    chooseGeneralPowers();
     toggleOutOfRequirements();
 
-    const nome = screen.getByText('Bênção Proibida');
-    const card = nome.closest('.MuiPaper-root') as HTMLElement;
+    const row = screen
+      .getByText('Bênção Proibida')
+      .closest('button') as HTMLElement;
     expect(
-      within(card).getByText('Fora dos pré-requisitos')
+      within(row).getByText('Fora dos pré-requisitos')
     ).toBeInTheDocument();
 
     // O estado do opt-in mora no modal, então a escolha vale de verdade: o
@@ -283,7 +274,7 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     expect(
       screen.getByText('Selecione um poder para continuar.')
     ).toBeInTheDocument();
-    fireEvent.click(nome);
+    fireEvent.click(screen.getByLabelText('Selecionar Bênção Proibida'));
     expect(
       screen.queryByText('Selecione um poder para continuar.')
     ).not.toBeInTheDocument();

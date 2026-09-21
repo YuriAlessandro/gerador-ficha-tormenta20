@@ -1,8 +1,9 @@
 import React from 'react';
 import { vi } from 'vitest';
-import { render, fireEvent, screen, within } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import { GeneralPower, GeneralPowerType } from '@/interfaces/Poderes';
 import { ClassPower } from '@/interfaces/Class';
+import { createMockCharacterSheet } from '@/__mocks__/characterSheet';
 import PowerSelectionStep from '../PowerSelectionStep';
 
 /**
@@ -28,22 +29,17 @@ const TRAVADO = generalPower('Poder Travado');
 const CLASSE_LIVRE = classPower('Classe Livre');
 const CLASSE_TRAVADO = classPower('Classe Travado');
 
-const setup = (
-  choice: 'class' | 'general',
-  overrides: {
-    onGeneralPowerSelect?: () => void;
-    onClassPowerSelect?: () => void;
-  } = {}
-) => {
-  const onGeneralPowerSelect = overrides.onGeneralPowerSelect ?? vi.fn();
-  const onClassPowerSelect = overrides.onClassPowerSelect ?? vi.fn();
-  let allow = false;
+const setup = () => {
+  const sheet = createMockCharacterSheet();
+  const onGeneralPowerSelect = vi.fn();
+  const onClassPowerSelect = vi.fn();
 
-  const view = render(
+  const renderWith = (allow: boolean) => (
     <PowerSelectionStep
+      sheet={sheet}
       classPowers={[CLASSE_LIVRE, CLASSE_TRAVADO]}
       generalPowers={[LIVRE, TRAVADO]}
-      selectedPowerChoice={choice}
+      selectedPowerChoice={null}
       selectedClassPower={null}
       selectedGeneralPower={null}
       onPowerChoiceChange={vi.fn()}
@@ -57,97 +53,59 @@ const setup = (
     />
   );
 
+  const view = render(renderWith(false));
+
   // O estado real mora no LevelUpWizardModal; aqui re-renderizamos com o novo
   // valor, que é exatamente o que o modal faz ao marcar o checkbox.
-  const toggle = () => {
-    allow = !allow;
-    view.rerender(
-      <PowerSelectionStep
-        classPowers={[CLASSE_LIVRE, CLASSE_TRAVADO]}
-        generalPowers={[LIVRE, TRAVADO]}
-        selectedPowerChoice={choice}
-        selectedClassPower={null}
-        selectedGeneralPower={null}
-        onPowerChoiceChange={vi.fn()}
-        onClassPowerSelect={onClassPowerSelect}
-        onGeneralPowerSelect={onGeneralPowerSelect}
-        className='Guerreiro'
-        unavailableClassPowers={[CLASSE_TRAVADO.name]}
-        unavailableGeneralPowers={[TRAVADO.name]}
-        allowOutOfRequirements={allow}
-        onAllowOutOfRequirementsChange={vi.fn()}
-      />
-    );
-  };
+  const enableOptIn = () => view.rerender(renderWith(true));
 
-  return { onGeneralPowerSelect, onClassPowerSelect, toggle };
+  return { onGeneralPowerSelect, onClassPowerSelect, enableOptIn };
 };
-
-const search = (query: string) => {
-  fireEvent.change(
-    screen.getByPlaceholderText('Buscar poderes por nome ou descrição...'),
-    { target: { value: query } }
-  );
-};
-
-const cardOf = (name: string) =>
-  screen.getByText(name).closest('.MuiPaper-root') as HTMLElement;
 
 describe('PowerSelectionStep — poderes fora dos requisitos', () => {
-  it('esconde o reprovado enquanto navega e conta só os escolhíveis', () => {
-    setup('general');
+  it('esconde o reprovado enquanto navega', () => {
+    setup();
 
     expect(screen.getByText(LIVRE.name)).toBeInTheDocument();
+    expect(screen.getByText(CLASSE_LIVRE.name)).toBeInTheDocument();
     expect(screen.queryByText(TRAVADO.name)).not.toBeInTheDocument();
-    // Guard da contagem: antes o rótulo somava os reprovados e prometia
-    // ~300 opções onde havia ~50.
+    expect(screen.queryByText(CLASSE_TRAVADO.name)).not.toBeInTheDocument();
     expect(
-      screen.getByText(/Poder Geral \(1 disponíveis\)/)
+      screen.getByLabelText('Mostrar poderes fora dos requisitos')
     ).toBeInTheDocument();
   });
 
-  it('busca encontra o reprovado, travado e com o motivo à vista', () => {
-    const { onGeneralPowerSelect } = setup('general');
+  it('busca encontra o reprovado, travado', async () => {
+    const { onGeneralPowerSelect } = setup();
 
-    search(TRAVADO.name);
+    fireEvent.change(
+      screen.getByPlaceholderText('Buscar poder ou habilidade...'),
+      { target: { value: 'Travado' } }
+    );
 
-    const card = cardOf(TRAVADO.name);
-    expect(within(card).getByText('Indisponível')).toBeInTheDocument();
-    fireEvent.click(card);
+    // O filtro "Só os que posso pegar" segue ligado, mas não vale na busca.
+    // (O nome vem quebrado pelo destaque da busca; o rótulo da linha, não.)
+    fireEvent.click(await screen.findByLabelText(`Selecionar ${TRAVADO.name}`));
     expect(onGeneralPowerSelect).not.toHaveBeenCalled();
   });
 
   it('com o opt-in, o reprovado aparece sem busca e fica escolhível', () => {
-    const { onGeneralPowerSelect, toggle } = setup('general');
+    const { onGeneralPowerSelect, enableOptIn } = setup();
 
-    toggle();
+    enableOptIn();
 
-    expect(
-      screen.getByText(/Poder Geral \(2 disponíveis\)/)
-    ).toBeInTheDocument();
-    const card = cardOf(TRAVADO.name);
-    expect(
-      within(card).getByText('Fora dos pré-requisitos')
-    ).toBeInTheDocument();
-    fireEvent.click(card);
+    expect(screen.getByText(TRAVADO.name)).toBeInTheDocument();
+    expect(screen.getAllByText('Fora dos pré-requisitos')).toHaveLength(2);
+    fireEvent.click(screen.getByLabelText(`Selecionar ${TRAVADO.name}`));
     expect(onGeneralPowerSelect).toHaveBeenCalledWith(TRAVADO);
   });
 
-  it('vale igual para a aba de poderes de classe', () => {
-    const { onClassPowerSelect, toggle } = setup('class');
+  it('vale igual para os poderes de classe', () => {
+    const { onClassPowerSelect, enableOptIn } = setup();
 
-    expect(screen.queryByText(CLASSE_TRAVADO.name)).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/Poder de Guerreiro \(1 disponíveis\)/)
-    ).toBeInTheDocument();
+    enableOptIn();
 
-    toggle();
-
-    const card = cardOf(CLASSE_TRAVADO.name);
-    expect(
-      within(card).getByText('Fora dos pré-requisitos')
-    ).toBeInTheDocument();
-    fireEvent.click(card);
+    fireEvent.click(screen.getByLabelText(`Selecionar ${CLASSE_TRAVADO.name}`));
     expect(onClassPowerSelect).toHaveBeenCalledWith(CLASSE_TRAVADO);
   });
 });

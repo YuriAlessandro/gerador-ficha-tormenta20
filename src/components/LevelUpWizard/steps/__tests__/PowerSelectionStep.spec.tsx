@@ -116,21 +116,22 @@ describe('PowerSelectionStep', () => {
       knownClassPowers: ['Alma Inabalável'],
     });
 
+    // Não escolhível, então só aparece com o filtro desligado.
+    fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
     fireEvent.click(screen.getByLabelText('Selecionar Alma Inabalável'));
 
     expect(onClassPowerSelect).not.toHaveBeenCalled();
   });
 
-  it('lista o poder bloqueado em vez de escondê-lo', () => {
-    // O filtro "Só os que posso pegar" começa DESLIGADO: é na subida de nível
-    // que o jogador descobre o que falta para destravar a opção, e um poder que
-    // some em silêncio vira "não dá pra pegar" em vez de "falta a perícia X".
+  it('esconde o poder bloqueado enquanto navega, e o filtro o traz de volta', () => {
+    // "Só os que posso pegar" começa LIGADO na subida de nível; o poder
+    // bloqueado continua a um clique (ou a uma busca) de distância.
     renderStep({ unavailableClassPowers: ['Alma Inabalável'] });
 
-    expect(screen.getByText('Alma Inabalável')).toBeInTheDocument();
+    expect(screen.queryByText('Alma Inabalável')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
-    expect(screen.queryByText('Alma Inabalável')).not.toBeInTheDocument();
+    expect(screen.getByText('Alma Inabalável')).toBeInTheDocument();
   });
 
   it('não seleciona poder que o modal marcou como bloqueado', () => {
@@ -138,6 +139,7 @@ describe('PowerSelectionStep', () => {
       unavailableClassPowers: ['Alma Inabalável'],
     });
 
+    fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
     fireEvent.click(screen.getByLabelText('Selecionar Alma Inabalável'));
 
     expect(onClassPowerSelect).not.toHaveBeenCalled();
