@@ -22,6 +22,14 @@ export const accentColor = (theme: Theme, accent: ItemAccent): string => {
 };
 
 /**
+ * Vermelho do custo em PM dos aprimoramentos de magia, como no livro — fixo,
+ * não a cor de tema, porque é assim que o livro imprime, independente da
+ * capa de cada suplemento.
+ */
+export const aprimoramentoCostColor = (isDark: boolean): string =>
+  isDark ? '#ef5350' : '#b71c1c';
+
+/**
  * Fundo da moldura da carta: a cor do tipo com um brilho no canto e
  * escurecendo para as bordas. "Arcana e divina" mistura as duas cores.
  */

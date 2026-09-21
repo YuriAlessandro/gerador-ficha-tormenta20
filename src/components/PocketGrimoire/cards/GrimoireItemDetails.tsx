@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Box, Chip, Divider, Link, Typography } from '@mui/material';
+import { Box, Chip, Divider, Link, Typography, useTheme } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
   encyclopediaPath,
@@ -12,6 +12,7 @@ import { explainTerm } from '../../../functions/pocketGrimoire/spellGlossary';
 import { ItemPresentation, ItemStat, presentItem } from './itemPresentation';
 import { STAT_META } from './statIcons';
 import TermInfo from './TermInfo';
+import { aprimoramentoCostColor } from './accentColor';
 
 /** Estatísticas com ícone e, nos termos padronizados, a explicação ⓘ. */
 const StatGrid: React.FC<{ stats: ItemStat[] }> = ({ stats }) => (
@@ -59,38 +60,45 @@ const StatGrid: React.FC<{ stats: ItemStat[] }> = ({ stats }) => (
   </Box>
 );
 
-const SpellDetails: React.FC<{ view: ItemPresentation }> = ({ view }) => (
-  <>
-    <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-      {view.circle}º círculo · {view.subtitle}
-    </Typography>
-    <StatGrid stats={view.stats} />
-    <Typography variant='body2' sx={{ whiteSpace: 'pre-wrap' }}>
-      {view.description}
-    </Typography>
-    {view.aprimoramentos.length > 0 && (
-      <>
-        <Divider sx={{ my: 1.5 }} />
-        <Typography
-          variant='subtitle2'
-          color='primary'
-          sx={{ fontFamily: 'Tfont, serif' }}
-        >
-          Aprimoramentos
-        </Typography>
-        <Box component='ul' sx={{ pl: 2, my: 0.5 }}>
-          {view.aprimoramentos.map((apr) => (
-            <li key={`${apr.cost}-${apr.text.slice(0, 30)}`}>
-              <Typography variant='body2' component='span'>
-                <strong>{apr.cost}:</strong> {apr.text}
-              </Typography>
-            </li>
-          ))}
-        </Box>
-      </>
-    )}
-  </>
-);
+const SpellDetails: React.FC<{ view: ItemPresentation }> = ({ view }) => {
+  const theme = useTheme();
+  const costColor = aprimoramentoCostColor(theme.palette.mode === 'dark');
+  return (
+    <>
+      <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+        {view.circle}º círculo · {view.subtitle}
+      </Typography>
+      <StatGrid stats={view.stats} />
+      <Typography variant='body2' sx={{ whiteSpace: 'pre-wrap' }}>
+        {view.description}
+      </Typography>
+      {view.aprimoramentos.length > 0 && (
+        <>
+          <Divider sx={{ my: 1.5 }} />
+          <Typography
+            variant='subtitle2'
+            color='primary'
+            sx={{ fontFamily: 'Tfont, serif' }}
+          >
+            Aprimoramentos
+          </Typography>
+          <Box component='ul' sx={{ pl: 2, my: 0.5 }}>
+            {view.aprimoramentos.map((apr) => (
+              <li key={`${apr.cost}-${apr.text}`}>
+                <Typography variant='body2' component='span'>
+                  <Box component='strong' sx={{ color: costColor }}>
+                    {apr.cost}:
+                  </Box>{' '}
+                  {apr.text}
+                </Typography>
+              </li>
+            ))}
+          </Box>
+        </>
+      )}
+    </>
+  );
+};
 
 const PowerDetails: React.FC<{
   subtitle?: string;
