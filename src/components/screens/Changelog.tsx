@@ -197,6 +197,20 @@ const Changelog: React.FC = () => {
                   classe de origem.
                 </li>
                 <li>
+                  <strong>Novo:</strong> O <strong>Vassalo</strong> (Heróis de
+                  Arton) agora ganha de verdade o que cada nível promete. Os{' '}
+                  <strong>poderes de cavaleiro</strong> (e de guerreiro ou
+                  nobre, onde o livro permite) chegam só nos níveis certos, num
+                  passo único de escolha; <strong>Escudeiro</strong>,{' '}
+                  <strong>Golpe Divino</strong>,{' '}
+                  <strong>Autoridade Feudal</strong> e <strong>Título</strong>{' '}
+                  entram sozinhos; o <strong>Caminho do Soldado</strong> ou{' '}
+                  <strong>do Governante</strong>, escolhido no 9º nível, vale
+                  nos níveis 11, 13 e 17; e as magias divinas do 16º e do 20º
+                  nível, os pontos de atributo e os bônus em atributo também
+                  entram na ficha.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> A tela de{' '}
                   <strong>escolher poder ao subir de nível</strong> foi refeita
                   sobre o mesmo catálogo do editor de poderes: uma lista só, com
@@ -252,6 +266,13 @@ const Changelog: React.FC = () => {
                   separa o que está <strong>na sua mochila</strong> dos demais
                   tipos. Antes ela mostrava só os cinco nomes do livro, e quem
                   tinha criado um pacote próprio achava que ele havia sumido.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Quem tem proficiência com{' '}
+                  <strong>armaduras pesadas</strong> agora escolhe a armadura
+                  inicial no assistente, em vez de receber sempre a pesada — o
+                  livro permite, não obriga. A ficha aleatória continua dando a
+                  pesada.
                 </li>
                 <li>
                   <strong>Correção:</strong> A origem{' '}
@@ -354,6 +375,39 @@ const Changelog: React.FC = () => {
                   agora deixa você <strong>treinado em Guerra</strong>, como diz
                   o livro. Antes ela dava um <strong>+2 na perícia</strong> e
                   deixava Guerra destreinada na ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O{' '}
+                  <strong>Caminho do Cavaleiro</strong> (5º nível) nunca era
+                  escolhido, então a <strong>RD 5 do Bastião</strong> com
+                  armadura pesada nunca aparecia. Agora o assistente pergunta
+                  entre Bastião e Montaria, a ficha aleatória sorteia, e a
+                  habilidade mostra só o caminho escolhido. Fichas já criadas
+                  mantêm o texto com as duas opções.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ter proficiência com{' '}
+                  <strong>armaduras pesadas</strong> passa a incluir as leves.
+                  Antes, ficar mais treinado podia fazer a armadura leve que
+                  você já usava começar a dar penalidade.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Necromante</strong> não
+                  começa mais com armadura, como o Arcanista, e o assistente
+                  deixou de travar pedindo uma armadura que ele não pode
+                  escolher.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Habilidades ganhas no mesmo nível
+                  em que você escolhe um poder não aparecem mais como{' '}
+                  <strong>&quot;Vindo de: Origem não identificada&quot;</strong>{' '}
+                  depois que a ficha é recalculada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As descrições dos suplementos, na
+                  tela de escolher suplementos, passaram a dizer o que cada um
+                  realmente adiciona — algumas contagens de poderes, origens e
+                  magias estavam desatualizadas.
                 </li>
               </ul>
 
