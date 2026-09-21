@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            12/09/2026 (v4.33).
+            21/09/2026 (v4.33).
           </p>
 
           <p>
@@ -90,9 +90,8 @@ const Changelog: React.FC = () => {
                   repetindo só os dados, sem cobrar de novo.
                 </li>
                 <li>
-                  <strong>Novo:</strong> Ao subir de nível, as listas de{' '}
-                  <strong>poderes gerais</strong> e{' '}
-                  <strong>poderes de classe</strong> ganharam a opção{' '}
+                  <strong>Novo:</strong> Ao subir de nível, a escolha de poder
+                  ganhou a opção{' '}
                   <strong>Mostrar poderes fora dos requisitos</strong>.
                   Desmarcada (como vem), a lista mostra só o que você pode pegar
                   de verdade — eram 300+ poderes gerais com frequentemente menos
@@ -187,10 +186,26 @@ const Changelog: React.FC = () => {
                   da ficha.
                 </li>
                 <li>
-                  <strong>Melhoria:</strong> A contagem no rótulo (&quot;Poder
-                  Geral (X disponíveis)&quot;) passou a contar só os poderes que
-                  você pode escolher. Antes ela somava os indisponíveis e
-                  prometia centenas de opções onde havia poucas dezenas.
+                  <strong>Novo:</strong> O poder{' '}
+                  <strong>Domínio do Medo</strong> (Deus do Medo, Guia de Deuses
+                  Menores) agora funciona: quem o tem pode escolher{' '}
+                  <strong>poderes de medo de outras classes</strong> — como{' '}
+                  <strong>Brado: Assombroso</strong> do Bárbaro ou{' '}
+                  <strong>Presença de Muralha</strong> do Cavaleiro — sem
+                  cumprir os pré-requisitos de classe e de devoção. Eles
+                  aparecem ao subir de nível num grupo próprio, com o nome da
+                  classe de origem.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A tela de{' '}
+                  <strong>escolher poder ao subir de nível</strong> foi refeita
+                  sobre o mesmo catálogo do editor de poderes: uma lista só, com
+                  poderes de classe, gerais e Alma Livre agrupados pela origem
+                  real, busca com destaque, filtro{' '}
+                  <strong>Só os que posso pegar</strong> e os{' '}
+                  <strong>pré-requisitos de cada poder</strong> à mostra, um a
+                  um, dizendo o que falta. Não é mais preciso escolher antes
+                  entre &quot;Poder de Classe&quot; e &quot;Poder Geral&quot;.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> No{' '}
@@ -204,11 +219,9 @@ const Changelog: React.FC = () => {
                 <li>
                   <strong>Melhoria:</strong> Ao <strong>subir de nível</strong>,
                   os <strong>poderes de classe</strong> que você ainda não
-                  cumpre passam a aparecer na lista marcados como{' '}
-                  <strong>Indisponível</strong>, com o pré-requisito que está
-                  faltando à mostra — antes eles simplesmente sumiam, sem
-                  nenhuma pista do motivo. É o mesmo comportamento que os
-                  poderes gerais já tinham.
+                  cumpre deixaram de sumir sem explicação: a busca os encontra
+                  travados, com o pré-requisito que está faltando à mostra,
+                  igual aos poderes gerais.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> No assistente de criação, os{' '}
