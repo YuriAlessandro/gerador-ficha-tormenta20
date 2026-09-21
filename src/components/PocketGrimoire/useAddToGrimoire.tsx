@@ -1,6 +1,3 @@
-import React from 'react';
-import { Button } from '@mui/material';
-import { useSnackbar } from 'notistack';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   addItem,
@@ -8,7 +5,7 @@ import {
   selectActiveGrimoire,
   selectGrimoireById,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
-import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
+import { useUndoSnackbar } from './useGrimoireUndo';
 
 export interface AddToGrimoireControl {
   /** Nome do grimório em que o clique mexe: o explícito, ou o ativo. */
@@ -31,30 +28,11 @@ export function useAddToGrimoire(
   grimoireId?: string
 ): AddToGrimoireControl {
   const dispatch = useAppDispatch();
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const notify = useUndoSnackbar();
   const active = useAppSelector(selectActiveGrimoire);
   const explicit = useAppSelector(selectGrimoireById(grimoireId));
   const target = explicit ?? active;
   const inGrimoire = target.itemIds.includes(itemId);
-
-  const notify = (message: string, undo: () => void) => {
-    enqueueSnackbar(message, {
-      ...GRIMOIRE_SNACKBAR,
-      variant: 'default',
-      action: (key) => (
-        <Button
-          color='inherit'
-          size='small'
-          onClick={() => {
-            undo();
-            closeSnackbar(key);
-          }}
-        >
-          Desfazer
-        </Button>
-      ),
-    });
-  };
 
   const toggle = () => {
     const targetId = target.id;

@@ -4383,3 +4383,5 @@ Mudanças feitas depois do plano, a pedido, durante a revisão do resultado no n
 - A URL do download é revogada no próximo tique, porque alguns navegadores cancelavam o download.
 - A chave dos aprimoramentos usa o texto inteiro. Os 30 primeiros caracteres colidiam em Servo Morto-Vivo e Libertação.
 - `pocketGrimoirePersistConfig` ganhou `version: 1`, para o `migrate` poder ramificar quando o formato guardado mudar (notas por item).
+- A escolha de filtro que deixou de existir é zerada, para não se reativar sozinha quando a categoria volta (8a481602).
+- Remover um item (lixeira, carta ampliada, balão) avisa com snackbar e "Desfazer", como adicionar já fazia. O snackbar foi para `useGrimoireUndo.tsx`, compartilhado com `useAddToGrimoire`.

@@ -139,6 +139,23 @@ describe('PocketGrimoirePage', () => {
     );
   });
 
+  it('remover pela lixeira avisa e deixa desfazer', async () => {
+    const { store } = renderPage(['spell:Bola de Fogo', 'spell:Teia']);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remover Bola de Fogo do grimório' })
+    );
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).toEqual([
+      'spell:Teia',
+    ]);
+    expect(
+      await screen.findByText('"Bola de Fogo" saiu de Padrão.')
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Desfazer' }));
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).toContain(
+      'spell:Bola de Fogo'
+    );
+  });
+
   it('grimório inexistente mostra aviso', () => {
     renderWithProviders(<PocketGrimoirePage />, {
       route: '/grimorio/fantasma',

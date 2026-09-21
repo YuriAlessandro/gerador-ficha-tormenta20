@@ -21,7 +21,6 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   createGrimoire,
-  removeItem,
   selectActiveGrimoire,
   selectGrimoires,
   setActive,
@@ -34,6 +33,7 @@ import { safeBottom, safeRight } from '../../theme/safeArea';
 import GrimoireItemList from './GrimoireItemList';
 import GrimoireNameDialog from './GrimoireNameDialog';
 import ImportGrimoireDialog from './ImportGrimoireDialog';
+import { useRemoveFromGrimoire } from './useGrimoireUndo';
 
 const NEW_OPTION = '__novo__';
 const TITLE_ID = 'pocket-grimoire-panel-title';
@@ -43,6 +43,7 @@ const countLabel = (count: number) =>
 
 const PocketGrimoireFab: React.FC = () => {
   const dispatch = useAppDispatch();
+  const removeFromGrimoire = useRemoveFromGrimoire();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const grimoires = useAppSelector(selectGrimoires);
   const active = useAppSelector(selectActiveGrimoire);
@@ -120,7 +121,7 @@ const PocketGrimoireFab: React.FC = () => {
         ) : (
           <GrimoireItemList
             groups={groups}
-            onRemove={(itemId) => dispatch(removeItem(active.id, itemId))}
+            onRemove={(itemId) => removeFromGrimoire(active, itemId)}
             onItemClick={closeOnMobile}
           />
         )}

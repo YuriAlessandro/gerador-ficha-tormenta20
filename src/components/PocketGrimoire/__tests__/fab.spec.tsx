@@ -45,6 +45,21 @@ describe('PocketGrimoireFab', () => {
     ).toBeInTheDocument();
   });
 
+  it('remover pelo balão avisa e deixa desfazer', async () => {
+    const { store } = renderWithProviders(<PocketGrimoireFab />, {
+      preloadedState: stateWithItems(),
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Grimório de bolso/ }));
+    const panel = screen.getByRole('dialog', { name: 'Grimório de bolso' });
+    fireEvent.click(
+      within(panel).getByRole('button', { name: 'Remover Bola de Fogo' })
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Desfazer' }));
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).toEqual([
+      'spell:Bola de Fogo',
+    ]);
+  });
+
   it('marca cada item com a cor do tipo, como as cartas', () => {
     const state = stateWithItems();
     state.grimoires[0].itemIds = [

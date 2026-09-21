@@ -20,9 +20,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StorageIcon from '@mui/icons-material/Storage';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../store/hooks';
 import {
-  removeItem,
   selectActiveId,
   selectGrimoireById,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
@@ -43,6 +42,7 @@ import { SEO } from '../SEO';
 import GrimoireItemCard from './cards/GrimoireItemCard';
 import GrimoireMenu from './GrimoireMenu';
 import AddFromEncyclopediaItem from './AddFromEncyclopediaItem';
+import { useRemoveFromGrimoire } from './useGrimoireUndo';
 import GrimoireCollectibleCard from './cards/GrimoireCollectibleCard';
 import GrimoireCardViewer from './cards/GrimoireCardViewer';
 import GrimoireCardLegend from './cards/GrimoireCardLegend';
@@ -64,7 +64,7 @@ const FILTERS: { value: GrimoireFilter; label: string }[] = [
 const PocketGrimoirePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
-  const dispatch = useAppDispatch();
+  const removeFromGrimoire = useRemoveFromGrimoire();
   const grimoire = useAppSelector(selectGrimoireById(id));
   const activeId = useAppSelector(selectActiveId);
   const [query, setQuery] = useState('');
@@ -143,8 +143,7 @@ const PocketGrimoirePage: React.FC = () => {
   }
 
   const defaultOpen = grimoire.itemIds.length <= AUTO_OPEN_MAX_ITEMS;
-  const handleRemove = (itemId: string) =>
-    dispatch(removeItem(grimoire.id, itemId));
+  const handleRemove = (itemId: string) => removeFromGrimoire(grimoire, itemId);
 
   return (
     <>
