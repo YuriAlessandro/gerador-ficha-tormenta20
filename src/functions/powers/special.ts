@@ -572,10 +572,17 @@ export function applyYidishanNaturezaOrganica(
 
 /**
  * O poder escolhido em Ambição Herdada (Meio-Elfo) mora em `origin.powers`, e
- * quem aplica essa lista é `applyPowerGetters` — que roda ANTES das habilidades
- * de raça em todo recálculo. Por isso só aplicamos os efeitos aqui quando o
- * poder acabou de entrar na lista; do contrário os `sheetBonuses` entrariam
- * duas vezes.
+ * quem aplica essa lista é o passo de poderes de origem. A ordem entre ele e as
+ * habilidades de raça depende do caminho:
+ *
+ * - `getAndApplyPowers` (geração aleatória): `applyPowerGetters` roda ANTES das
+ *   habilidades de raça, então o poder escolhido aqui não é aplicado por ele —
+ *   a habilidade aplica os efeitos por conta própria.
+ * - `recalculateSheet`: é o inverso (raça no Step 4, origem no Step 7), então
+ *   basta garantir o poder na lista e deixar o Step 7 aplicar.
+ *
+ * Aplicar nos dois lugares duplicaria os `sheetBonuses` (o caso que apareceu:
+ * +3 PM do Coração Heroico contado duas vezes no nível 1).
  */
 function isInOriginPowers(sheet: CharacterSheet, powerName: string): boolean {
   return !!sheet.origin?.powers.some((p) => p.name === powerName);
@@ -633,15 +640,17 @@ export function applyMeioElfoAmbicaoHerdada(
         (p) => p.name === sheet.meioElfoAmbicaoPower
       );
       if (storedOriginPower) {
-        const alreadyInOrigin = isInOriginPowers(sheet, storedOriginPower.name);
-        if (sheet.origin && !alreadyInOrigin) {
-          sheet.origin.powers.push(storedOriginPower);
-        }
-        // Já estava em `origin.powers`: o passo de benefícios da origem
-        // (`applyPowerGetters`) roda antes das habilidades de raça e já aplicou
-        // os efeitos. Aplicar de novo duplicaria os `sheetBonuses` (ex.: +3 PM
-        // do Coração Heroico contado duas vezes).
-        if (!alreadyInOrigin) {
+        if (sheet.origin) {
+          // Caminho do recálculo: o Step 7 (poderes de origem) roda DEPOIS das
+          // habilidades de raça e aplica os efeitos. Aqui basta garantir que o
+          // poder esteja na lista — inclusive quando ele acabou de ser montado
+          // pelo assistente de criação, sem o poder dentro.
+          if (!isInOriginPowers(sheet, storedOriginPower.name)) {
+            sheet.origin.powers.push(storedOriginPower);
+          }
+        } else {
+          // Sem origem na ficha o poder não tem onde ser guardado, então
+          // ninguém mais vai aplicá-lo.
           applyOriginPowerEffects(sheet, storedOriginPower);
         }
       }
