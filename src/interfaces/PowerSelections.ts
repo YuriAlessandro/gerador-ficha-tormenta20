@@ -1,7 +1,7 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { ClassPower } from './Class';
 import Equipment from './Equipment';
-import { GeneralPower, OriginPower } from './Poderes';
+import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import { Spell } from './Spells';
 import { GolpePessoalBuild } from '../data/systems/tormenta20/golpePessoal';
 
@@ -101,6 +101,13 @@ export interface PowerSelectionRequirement {
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
     immediateClassPower?: boolean; // Diferentão grants the selected power now
     minLevel?: number; // For getClassPower: nível em que os requisitos são avaliados
+    // For getClassPower: 'fixed' (padrão) avalia em `minLevel`; 'sheet' avalia
+    // no nível atual do personagem.
+    levelSource?: 'fixed' | 'sheet';
+    // For getGeneralPower: piscina por categoria, resolvida pelo `dataRegistry`
+    // com os suplementos ativos em vez de vir congelada em `availableOptions`.
+    availableTypes?: GeneralPowerType[];
+    fromClasses?: string[]; // getClassPower: poder vindo de outra classe
     abilityLevel?: number; // For learnClassAbility: nível das habilidades elegíveis
     // For getGeneralPower: a concessão vale apesar dos pré-requisitos dos
     // poderes ofertados (ex.: Linhagem Abençoada, "sem precisar ser devoto").

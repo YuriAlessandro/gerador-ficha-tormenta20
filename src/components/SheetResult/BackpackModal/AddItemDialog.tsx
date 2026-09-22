@@ -39,11 +39,14 @@ import {
   buildEquipmentCatalog,
 } from './equipmentCatalog';
 import CustomItemForm from './CustomItemForm';
+import { AmmoTypeOption } from './ammo';
 
 export interface AddItemDialogProps {
   open: boolean;
   onClose: () => void;
   onAddItem: (item: Equipment, options?: { quantity?: number }) => void;
+  /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
+  ammoTypeOptions?: AmmoTypeOption[];
   /** Currency available for the affordability hint (no blocking). */
   availableTibares?: number;
   /** Whether auto-deduct is on (changes the affordability label). */
@@ -75,6 +78,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   autoDeductMoney = false,
   onToggleAutoDeductMoney,
   defaultCategory,
+  ammoTypeOptions = [],
 }) => {
   const userSupplements: SupplementId[] = useContentSupplements();
   const equipmentCatalog = useMemo(
@@ -281,6 +285,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           <Box sx={{ p: 2 }}>
             <CustomItemForm
               defaultGroup={CATEGORY_ORDER[tabIndex]}
+              ammoTypeOptions={ammoTypeOptions}
               onCancel={() => setShowCustomForm(false)}
               onSubmit={(item) => {
                 onAddItem(item);

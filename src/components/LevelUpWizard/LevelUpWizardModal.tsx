@@ -15,15 +15,29 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
-import { ClassAbility, ClassPower } from '@/interfaces/Class';
-import { GeneralPower } from '@/interfaces/Poderes';
+import {
+  ClassAbility,
+  ClassDescription,
+  ClassPower,
+  ClassPowerGrant,
+} from '@/interfaces/Class';
+import {
+  GeneralPower,
+  OriginPower,
+  RequirementType,
+} from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getForeignClassPowers,
+  getOwnedGeneralPowers,
+  getWaivedClassPowers,
   isPowerAvailable,
+  resolveClassPowerCatalog,
 } from '@/functions/powers';
+import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
@@ -64,6 +78,7 @@ import {
   getCompanionTrickDefinition,
   getTrickAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import OriginPowerSwapStep from './steps/OriginPowerSwapStep';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
@@ -79,6 +94,29 @@ import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCre
 import RaceLevelUpPickStep, {
   RaceLevelUpPick,
 } from './steps/RaceLevelUpPickStep';
+
+/**
+ * A concessão de poder da classe neste nível.
+ *
+ * `powerGrants` ausente = padrão de T20 (todo nível a partir do 2º concede um
+ * poder da própria classe), representado por `undefined` aqui e tratado como
+ * "concede, da própria classe" por quem chama.
+ */
+export function findPowerGrant(
+  classDesc: ClassDescription | undefined,
+  level: number
+): ClassPowerGrant | undefined {
+  return classDesc?.powerGrants?.find((grant) => grant.level === level);
+}
+
+/** A classe concede escolha de poder neste nível? */
+export function classGrantsPowerAtLevel(
+  classDesc: ClassDescription | undefined,
+  level: number
+): boolean {
+  if (!classDesc?.powerGrants) return true;
+  return !!findPowerGrant(classDesc, level);
+}
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -100,6 +138,30 @@ const getTreinoEspecializadoChoice = (
   sel: LevelUpSelections
 ): string | undefined =>
   sel.abilityEffectSelections?.[TREINO_ESPECIALIZADO]?.chosenOption?.[0];
+
+/**
+ * O poder tem algum grupo de pré-requisitos cuja exigência de NÍVEL já está
+ * cumprida?
+ *
+ * Usado para decidir quais poderes de classe reprovados ainda vale a pena
+ * listar como "Indisponível": os travados só pelo nível ficam de fora, senão a
+ * lista de um personagem de 2º nível viraria o catálogo inteiro da classe até
+ * o 20º. Grupo sem requisito de NÍVEL conta como alcançável.
+ */
+const hasReachableLevelRequirement = (
+  power: ClassPower,
+  classLevel: number
+): boolean => {
+  const groups = power.requirements;
+  if (!groups || groups.length === 0) return true;
+
+  return groups.some((group) =>
+    group.every(
+      (rule) =>
+        rule.type !== RequirementType.NIVEL || (rule.value ?? 0) <= classLevel
+    )
+  );
+};
 
 const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   open,
@@ -139,6 +201,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Current step within this level
   const [activeStep, setActiveStep] = useState(0);
 
+  // Opt-in "quebre a regra": mostra e libera a escolha de poderes fora dos
+  // pré-requisitos. Mora aqui, e não no PowerSelectionStep, porque o switch de
+  // renderStepContent DESMONTA o passo a cada navegação (é por isso que a busca
+  // também se perde) — em estado local, voltar de "Efeitos do Poder" re-travaria
+  // um poder já escolhido. Persiste entre os níveis do mesmo level-up e volta a
+  // false quando o assistente reabre.
+  const [allowOutOfRequirements, setAllowOutOfRequirements] = useState(false);
+
   // Confirmation dialog state for cancel action
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
@@ -166,6 +236,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         powerChoice: 'class',
       });
       setActiveStep(0);
+      setAllowOutOfRequirements(false);
       setTrickStepCompanionIndex({ auto: 0, power: 0 });
       // Initialize classLevels if not present
       const sheetWithClassLevels = initialSheet.classLevels
@@ -315,11 +386,20 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (
-    sheetForPowerSelection: CharacterSheet
+    sheetForPowerSelection: CharacterSheet,
+    { allowAll = false }: { allowAll?: boolean } = {}
   ): {
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
+    unavailableClassPowers: string[];
     unavailableGeneralPowers: string[];
+    /**
+     * A ficha contra a qual os poderes foram filtrados. Sai junto para o passo
+     * reavaliar os requisitos com ela: em multiclasse ela difere da ficha de
+     * seleção (leva a classe escolhida e suas proficiências), e avaliar com a
+     * outra faria as duas pontas discordarem sobre o mesmo poder.
+     */
+    sheetForFiltering: CharacterSheet;
   } => {
     // Get class with merged supplement powers from registry
     // Use the SELECTED class for power filtering (multiclass support)
@@ -352,8 +432,71 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     // duplicadas, o que só faz sentido em sorteio aleatório — numa seleção
     // manual geraria poderes repetidos. Cobre Inventor e suas variantes
     // (ex.: Alquimista) via sheetForFiltering.classe.powers.
-    const classPowers = getAllowedClassPowers(sheetForFiltering, {
-      classLevel: selectedClassLevel,
+    // Concessão declarada pela classe (Vassalo): os poderes vêm do catálogo de
+    // OUTRA classe, avaliados no nível do personagem. Sem declaração, vale o
+    // catálogo da própria classe, como em toda classe padrão.
+    const grant = findPowerGrant(selectedClassDesc, selectedClassLevel);
+    const classPowers = grant
+      ? getForeignClassPowers(
+          sheetForFiltering,
+          grant.fromClasses,
+          sheetForPowerSelection.nivel,
+          grant.excludePowers
+        )
+      : getAllowedClassPowers(sheetForFiltering, {
+          classLevel: selectedClassLevel,
+        });
+
+    // Poder de classe reprovado por pré-requisito continua na lista, apenas
+    // desabilitado e com o requisito à mostra — igual ao tratamento dos poderes
+    // gerais logo abaixo. Antes ele simplesmente sumia, sem nenhum sinal do
+    // motivo: foi assim que a substituição de Ofício do Artesão Criativo
+    // falhando em silêncio chegou como "não dá pra pegar, tem que pôr manual".
+    const allowedClassPowerNames = new Set(classPowers.map((p) => p.name));
+    const knownClassPowerNames = new Set(
+      (sheetForFiltering.classPowers || []).map((p) => p.name)
+    );
+    const unavailableClassPowers: string[] = [];
+    const fullClassCatalog: ClassPower[] = grant
+      ? // Numa concessão emprestada o catálogo completo é o das classes de
+        // origem, avaliado no nível do PERSONAGEM; avaliar contra o da ficha
+        // listaria poder de outra classe. `className` carimbado aqui também, e
+        // não só nos disponíveis: sem ele o agrupamento cai no nome da classe
+        // da FICHA, e um poder de Cavaleiro que o Vassalo não alcança aparecia
+        // sob "Poder de Vassalo".
+        grant.fromClasses.flatMap((className) =>
+          (
+            findClassDescription(className, undefined, supplements)?.powers ??
+            []
+          ).map((power) => ({ ...power, className }))
+        )
+      : // Entram na varredura também os poderes de OUTRA classe alcançados por
+        // um waiver (ex.: Domínio do Medo), que não estão no catálogo da classe.
+        [
+          ...resolveClassPowerCatalog(sheetForFiltering),
+          ...getWaivedClassPowers(
+            sheetForFiltering,
+            getActiveWaivers(sheetForFiltering)
+          ),
+        ];
+    const levelForCut = grant
+      ? sheetForPowerSelection.nivel
+      : selectedClassLevel;
+    const blockedClassPowers = fullClassCatalog.filter((power) => {
+      if (allowedClassPowerNames.has(power.name)) return false;
+      // Já conhecido e não repetível some, como sempre — quem sinaliza isso é
+      // o chip "Já Conhecido" dos poderes que continuam na lista.
+      if (knownClassPowerNames.has(power.name) && !power.canRepeat) {
+        return false;
+      }
+      // Com o opt-in ligado o corte de nível sai também: meio-quebrar a regra
+      // (liberar atributo/perícia mas não nível) confunde mais que quebrar
+      // inteiro. Desligado, segue escondendo o catálogo até o 20º nível.
+      if (!allowAll && !hasReachableLevelRequirement(power, levelForCut)) {
+        return false;
+      }
+      unavailableClassPowers.push(power.name);
+      return true;
     });
 
     // Use dataRegistry to get powers from all active supplements.
@@ -373,7 +516,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     ];
 
     // Track which powers are unavailable (requirements not met)
-    const existingGeneralPowers = sheetForFiltering.generalPowers;
+    const existingGeneralPowers = getOwnedGeneralPowers(sheetForFiltering);
     const unavailableGeneralPowers: string[] = [];
     const generalPowers = allGeneralPowers.filter((power) => {
       const isRepeatedPower = existingGeneralPowers.find(
@@ -391,8 +534,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     });
 
     // Sort powers alphabetically
-    const sortedClassPowers = [...classPowers].sort((a, b) =>
-      a.name.localeCompare(b.name, 'pt-BR')
+    const sortedClassPowers = [...classPowers, ...blockedClassPowers].sort(
+      (a, b) => a.name.localeCompare(b.name, 'pt-BR')
     );
     const sortedGeneralPowers = [...generalPowers].sort((a, b) =>
       a.name.localeCompare(b.name, 'pt-BR')
@@ -401,7 +544,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     return {
       classPowers: sortedClassPowers,
       generalPowers: sortedGeneralPowers,
+      unavailableClassPowers,
       unavailableGeneralPowers,
+      sheetForFiltering,
     };
   };
 
@@ -634,6 +779,19 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     );
   };
 
+  /**
+   * Poderes de origem cujo texto prevê trocar o poder escolhido entre
+   * aventuras (Cosmopolita, Citadino Abastado). Gateado pelo marcador
+   * `swappableAtLevelUp` e não por "tem requisito": Futura Lenda e Duplo
+   * Feérico também escolhem, mas de forma permanente.
+   */
+  const getSwappableOriginPowers = (): OriginPower[] =>
+    (simulatedSheet.origin?.powers ?? []).filter(
+      (power) =>
+        power.swappableAtLevelUp &&
+        getPowerSelectionRequirements(power) !== null
+    );
+
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
@@ -656,8 +814,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       steps.push('Melhor Amigo');
     }
 
-    // First level in a new class (multiclass) grants no power
-    if (!isFirstLevelInNewClass) {
+    // First level in a new class (multiclass) grants no power.
+    // Classes com `powerGrants` (Vassalo) só concedem poder em certos níveis —
+    // nos demais o passo não deve nem aparecer.
+    if (
+      !isFirstLevelInNewClass &&
+      classGrantsPowerAtLevel(selectedClassDesc, selectedClassLevel)
+    ) {
       steps.push('Escolha de Poder');
 
       if (needsPowerEffectSelections()) {
@@ -687,6 +850,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
     if (getScalingPowersForLevelUp().length > 0) {
       steps.push('Perícias por Patamar');
+    }
+
+    if (getSwappableOriginPowers().length > 0) {
+      steps.push('Benefício da Origem');
     }
 
     const spellInfo = getSpellInfo();
@@ -857,6 +1024,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return areRequirementsSatisfied(requirements, allEffectSelections);
       }
+
+      // Passo opcional: quem não quer trocar segue direto. Uma troca começada
+      // pela metade é descartada no apply (exige `powers` preenchido).
+      case 'Benefício da Origem':
+        return true;
 
       case 'Perícias por Patamar': {
         const allEffectSelections =
@@ -1040,14 +1212,41 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
       case 'Escolha de Poder': {
         const sheetForPowerSelection = sheetWithCurrentLevelAbilities;
-        const { classPowers, generalPowers, unavailableGeneralPowers } =
-          getAvailablePowers(sheetForPowerSelection);
+        const {
+          classPowers,
+          generalPowers,
+          unavailableClassPowers,
+          unavailableGeneralPowers,
+          sheetForFiltering,
+        } = getAvailablePowers(sheetForPowerSelection, {
+          allowAll: allowOutOfRequirements,
+        });
+
+        // Desmarcar o opt-in com um poder fora dos requisitos já escolhido
+        // deixaria a seleção inválida sobreviver até o apply. Zera só nesse caso.
+        const handleAllowOutOfRequirementsChange = (allow: boolean) => {
+          setAllowOutOfRequirements(allow);
+          if (allow) return;
+          const general = currentLevelSelection.selectedGeneralPower;
+          const classPower = currentLevelSelection.selectedClassPower;
+          const dropGeneral =
+            !!general && unavailableGeneralPowers.includes(general.name);
+          const dropClass =
+            !!classPower && unavailableClassPowers.includes(classPower.name);
+          if (dropGeneral || dropClass) {
+            setCurrentLevelSelection({
+              ...currentLevelSelection,
+              selectedGeneralPower: dropGeneral ? undefined : general,
+              selectedClassPower: dropClass ? undefined : classPower,
+            });
+          }
+        };
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
           sheetForPowerSelection.classPowers?.map((p) => p.name) || [];
         const knownGeneralPowers = [
-          ...(sheetForPowerSelection.generalPowers?.map((p) => p.name) || []),
+          ...getOwnedGeneralPowers(sheetForPowerSelection).map((p) => p.name),
           ...(sheetForPowerSelection.raca.abilities?.map((a) => a.name) || []),
         ];
 
@@ -1076,6 +1275,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return (
           <PowerSelectionStep
+            sheet={sheetForFiltering}
             classPowers={classPowers}
             generalPowers={generalPowers}
             selectedPowerChoice={currentLevelSelection.powerChoice}
@@ -1085,37 +1285,45 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             selectedGeneralPower={
               currentLevelSelection.selectedGeneralPower || null
             }
+            // Atualização FUNCIONAL: o passo dispara `onPowerChoiceChange` e o
+            // select do poder no MESMO clique (o tipo da escolha é derivado do
+            // item). Espalhando `currentLevelSelection` da closure, o segundo
+            // setState apagava o `powerChoice` gravado pelo primeiro — e como
+            // ele começa em 'class', nenhum poder geral ficava selecionado.
             onPowerChoiceChange={(choice) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 powerChoice: choice,
                 selectedClassPower: undefined,
                 selectedGeneralPower: undefined,
                 selectedAlmaLivrePower: undefined,
-              })
+              }))
             }
             onClassPowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedClassPower: power,
-              })
+              }))
             }
             onGeneralPowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedGeneralPower: power,
-              })
+              }))
             }
             onAlmaLivrePowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedAlmaLivrePower: power,
-              })
+              }))
             }
             className={selectedClassName}
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
+            unavailableClassPowers={unavailableClassPowers}
             unavailableGeneralPowers={unavailableGeneralPowers}
+            allowOutOfRequirements={allowOutOfRequirements}
+            onAllowOutOfRequirementsChange={handleAllowOutOfRequirementsChange}
             almaLivrePower={showAlmaLivre ? almaLivrePower : null}
             almaLivreClassName={showAlmaLivre ? almaLivreClassName : undefined}
             almaLivrePowerAvailable={almaLivrePowerAvailable}
@@ -1152,6 +1360,21 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           />
         );
       }
+
+      case 'Benefício da Origem':
+        return (
+          <OriginPowerSwapStep
+            sheet={sheetForCurrentLevel}
+            powers={getSwappableOriginPowers()}
+            selections={currentLevelSelection.originPowerSwaps || {}}
+            onChange={(originPowerSwaps) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                originPowerSwaps,
+              })
+            }
+          />
+        );
 
       case 'Perícias por Patamar': {
         const scalingPowers = getScalingPowersForLevelUp();

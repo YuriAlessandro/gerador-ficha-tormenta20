@@ -1,5 +1,6 @@
-import { GeneralPowerType } from '../../interfaces/Poderes';
+import { GeneralPowerType, RequirementType } from '../../interfaces/Poderes';
 import { compilePowerPackContent } from '../../premium/functions/compilePowerPackage';
+import { validateHomebrew } from '../../premium/functions/homebrewValidation';
 import { HomebrewPowerPackContent } from '../../premium/interfaces/Homebrew';
 
 /**
@@ -95,5 +96,86 @@ describe('homebrew power pack', () => {
     const doClasse = classPowers.Arcanista?.[0];
     expect(doClasse?.countAsTormentaPower).toBe(true);
     expect(doClasse?.tormentaCountExcludesCharisma).toBe(true);
+  });
+  /**
+   * Poder de raça e poder concedido só ficam restritos a quem deve porque
+   * carregam um pré-requisito RACA/DEVOTO. Sem esses tipos no schema homebrew,
+   * o autor não tinha como escrevê-los e o poder aparecia para todo mundo no
+   * assistente de subir de nível.
+   */
+  describe('pré-requisitos de raça e devoção', () => {
+    const gatedPack = (): HomebrewPowerPackContent => ({
+      powers: [
+        {
+          kind: 'general',
+          generalType: GeneralPowerType.RACA,
+          name: 'Graça Élfica',
+          description: 'Só para elfos.',
+          requirements: [[{ type: 'RACA', name: 'Elfo' }]],
+        },
+        {
+          kind: 'general',
+          generalType: GeneralPowerType.CONCEDIDOS,
+          name: 'Bênção Proibida',
+          description: 'Só para devotos.',
+          requirements: [[{ type: 'DEVOTO', name: 'any' }]],
+        },
+      ],
+    });
+
+    it('compila RACA e DEVOTO para os tipos do motor', () => {
+      const { powers } = compilePowerPackContent(gatedPack());
+
+      const racial = powers[GeneralPowerType.RACA][0];
+      expect(racial.requirements[0][0]).toMatchObject({
+        type: RequirementType.RACA,
+        name: 'Elfo',
+      });
+
+      const concedido = powers[GeneralPowerType.CONCEDIDOS][0];
+      expect(concedido.requirements[0][0]).toMatchObject({
+        type: RequirementType.DEVOTO,
+        name: 'any',
+      });
+    });
+
+    const envelope = {
+      type: 'powerPackage' as const,
+      editorMode: 'advanced' as const,
+      schemaVersion: 1,
+      name: 'Pacote com requisitos',
+      description: 'Poderes restritos.',
+      visibility: 'private' as const,
+    };
+
+    it('valida um pacote com requisitos de raça e devoção', () => {
+      const result = validateHomebrew({
+        ...envelope,
+        content: { type: 'powerPackage', data: gatedPack() },
+      });
+      expect(result.errors).toEqual([]);
+      expect(result.valid).toBe(true);
+    });
+
+    it('rejeita requisito de raça/devoção sem nome', () => {
+      const result = validateHomebrew({
+        ...envelope,
+        content: {
+          type: 'powerPackage',
+          data: {
+            powers: [
+              {
+                kind: 'general',
+                generalType: GeneralPowerType.RACA,
+                name: 'Sem alvo',
+                description: 'Requisito incompleto.',
+                requirements: [[{ type: 'RACA', name: '  ' }]],
+              },
+            ],
+          },
+        },
+      });
+      expect(result.valid).toBe(false);
+    });
   });
 });

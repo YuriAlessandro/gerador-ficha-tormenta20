@@ -21,6 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuid } from 'uuid';
 
 import Equipment, {
+  AmmoType,
   DamageType,
   DAMAGE_TYPES,
   DefenseEquipment,
@@ -34,6 +35,17 @@ import { isDefenseGroup } from './equipmentCatalog';
 import { WEAPON_CATEGORY_LABELS } from '../../../functions/proficiencies';
 import { parseDamageTypes, formatDamageTypes } from './damageTypeSelect';
 import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
+import AmmoTypeField from './AmmoTypeField';
+import { AmmoTypeOption } from './ammo';
+import {
+  buildWeaponPurposeFields,
+  getWeaponPurpose,
+  getWeaponReach,
+  WEAPON_PURPOSE_OPTIONS,
+  WEAPON_REACH_OPTIONS,
+  WeaponPurpose,
+  WeaponReach,
+} from '../../../functions/weaponPurpose';
 
 export interface CustomItemFormProps {
   /** Optional initial values when editing an existing custom item. */
@@ -42,6 +54,8 @@ export interface CustomItemFormProps {
   defaultGroup?: equipGroup;
   onCancel: () => void;
   onSubmit: (item: Equipment) => void;
+  /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
+  ammoTypeOptions?: AmmoTypeOption[];
 }
 
 const ALL_SKILLS = Object.values(Skill);
@@ -51,6 +65,7 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
   defaultGroup,
   onCancel,
   onSubmit,
+  ammoTypeOptions = [],
 }) => {
   const [nome, setNome] = useState(initial?.nome ?? '');
   const [group, setGroup] = useState<equipGroup>(
@@ -81,6 +96,24 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
   );
   const [weaponTags, setWeaponTags] = useState<string[]>(
     initial?.weaponTags ?? []
+  );
+  // Propósito da arma: o que faz `getWeaponSkill` devolver Pontaria, o dano
+  // parar de somar Força e os bônus `rangedOnly`/`firingOnly` acharem a arma.
+  const [purpose, setPurpose] = useState<WeaponPurpose>(
+    getWeaponPurpose(initial ?? {})
+  );
+  const [reach, setReach] = useState<WeaponReach>(
+    getWeaponReach(initial ?? {})
+  );
+  const [ammoType, setAmmoType] = useState<AmmoType | ''>(
+    initial?.ammoType ?? ''
+  );
+  const [isAmmoItem, setIsAmmoItem] = useState(initial?.isAmmo ?? false);
+  const [ammoPackSizeText, setAmmoPackSizeText] = useState(
+    String(initial?.ammoPackSize ?? 20)
+  );
+  const [ammoUnitsPerSpaceText, setAmmoUnitsPerSpaceText] = useState(
+    String(initial?.ammoUnitsPerSpace ?? 20)
   );
   const [extraDamage, setExtraDamage] = useState<
     { id: string; dice: string; damageType: DamageType }[]
@@ -155,7 +188,23 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
       canBeWielded: !naturallyWieldable && canBeWielded ? true : undefined,
     };
 
-    if (group === 'Arma') {
+    if (group === 'Arma' && isAmmoItem) {
+      // Pacote de munição: mesma forma de `Armas.FLECHAS` — vive no grupo Arma,
+      // com os campos de combate zerados em '-'. `unitsRemaining` não é escrito
+      // aqui: `addItemToEquipments` já semeia `ammoPackSize * quantity`.
+      const packSize = parseInt(ammoPackSizeText, 10);
+      const unitsPerSpace = parseInt(ammoUnitsPerSpaceText, 10);
+      baseItem.isAmmo = true;
+      baseItem.ammoType = ammoType || undefined;
+      baseItem.ammoPackSize =
+        Number.isNaN(packSize) || packSize < 1 ? 20 : packSize;
+      baseItem.ammoUnitsPerSpace =
+        Number.isNaN(unitsPerSpace) || unitsPerSpace < 1 ? 20 : unitsPerSpace;
+      baseItem.dano = '-';
+      baseItem.critico = '-';
+      baseItem.tipo = '-';
+      baseItem.alcance = '-';
+    } else if (group === 'Arma') {
       const atkBonus = parseInt(atkBonusText, 10);
       baseItem.dano = dano.trim() || undefined;
       baseItem.atkBonus = Number.isNaN(atkBonus) ? 0 : atkBonus;
@@ -178,6 +227,16 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
         }));
       baseItem.extraDamage =
         persistedExtraDamage.length > 0 ? persistedExtraDamage : undefined;
+
+      // Escritor único do triple alcance/arremesso/specialActions.
+      const purposeFields = buildWeaponPurposeFields(purpose, reach);
+      baseItem.alcance = purposeFields.alcance;
+      baseItem.arremesso = purposeFields.arremesso;
+      baseItem.specialActions = purposeFields.specialActions;
+      // Munição só faz sentido em arma de disparo: arremesso atira a própria
+      // arma e corpo a corpo não atira nada.
+      baseItem.ammoType =
+        purpose === 'firing' ? ammoType || undefined : undefined;
     } else if (isDefenseGroup(group)) {
       const defenseBonus = parseInt(defenseBonusText, 10);
       const armorPenalty = parseInt(armorPenaltyText, 10);
@@ -254,6 +313,60 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
         </Grid>
 
         {group === 'Arma' && (
+          <Grid size={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isAmmoItem}
+                  onChange={(e) => setIsAmmoItem(e.target.checked)}
+                />
+              }
+              label='É munição (pacote de projéteis)'
+            />
+          </Grid>
+        )}
+
+        {group === 'Arma' && isAmmoItem && (
+          <>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <AmmoTypeField
+                label='Tipo de munição'
+                value={ammoType}
+                onChange={setAmmoType}
+                options={ammoTypeOptions}
+                helperText='Escolha da lista ou digite um tipo novo'
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4 }}>
+              <TextField
+                label='Unidades por pacote'
+                fullWidth
+                value={ammoPackSizeText}
+                onChange={(e) => setAmmoPackSizeText(e.target.value)}
+                helperText='Padrão do livro: 20'
+                slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4 }}>
+              <TextField
+                label='Unidades por espaço'
+                fullWidth
+                value={ammoUnitsPerSpaceText}
+                onChange={(e) => setAmmoUnitsPerSpaceText(e.target.value)}
+                helperText='Quantos projéteis cabem em 1 espaço'
+                slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+              />
+            </Grid>
+            <Grid size={12}>
+              <Typography variant='caption' color='text.secondary'>
+                Uma arma de disparo com este mesmo tipo de munição passa a
+                mostrar o contador e a descontar as unidades a cada ataque.
+              </Typography>
+            </Grid>
+          </>
+        )}
+
+        {group === 'Arma' && !isAmmoItem && (
           <>
             <Grid size={{ xs: 6, sm: 3 }}>
               <TextField
@@ -303,6 +416,57 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                 </Select>
               </FormControl>
             </Grid>
+            <Grid size={{ xs: 12, sm: purpose === 'melee' ? 12 : 4 }}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de ataque</InputLabel>
+                <Select
+                  label='Tipo de ataque'
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value as WeaponPurpose)}
+                >
+                  {WEAPON_PURPOSE_OPTIONS.map((p) => (
+                    <MenuItem key={p.value} value={p.value}>
+                      {p.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ display: 'block', mt: 0.5 }}
+              >
+                {WEAPON_PURPOSE_OPTIONS.find((p) => p.value === purpose)?.hint}
+              </Typography>
+            </Grid>
+            {purpose !== 'melee' && (
+              <Grid size={{ xs: 6, sm: 4 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Alcance</InputLabel>
+                  <Select
+                    label='Alcance'
+                    value={reach}
+                    onChange={(e) => setReach(e.target.value as WeaponReach)}
+                  >
+                    {WEAPON_REACH_OPTIONS.map((r) => (
+                      <MenuItem key={r.value} value={r.value}>
+                        {r.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
+            {purpose === 'firing' && (
+              <Grid size={{ xs: 6, sm: 4 }}>
+                <AmmoTypeField
+                  label='Munição'
+                  value={ammoType}
+                  onChange={setAmmoType}
+                  options={ammoTypeOptions}
+                />
+              </Grid>
+            )}
             <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>Categoria de proficiência (opcional)</InputLabel>

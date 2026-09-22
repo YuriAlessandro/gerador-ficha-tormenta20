@@ -12,6 +12,11 @@ import CharacterSheet, {
   SubStep,
 } from '@/interfaces/CharacterSheet';
 import { calculateCompanionStats } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import {
+  applyDeityClassAbilitySwap,
+  findDeityClassVariant,
+} from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
+import { getPersistentDeityNames } from '@/functions/powers/deityNames';
 import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import Skill, {
@@ -39,6 +44,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
+import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   isMulticlass,
   calculateMulticlassPV,
@@ -145,6 +151,13 @@ function deduplicateHistory(
       key += `-${action.source.originName}`;
     } else if (action.source.type === 'levelUp' && 'level' in action.source) {
       key += `-${action.source.level}`;
+      // Um mesmo nível registra mais de uma concessão: o poder escolhido E as
+      // habilidades de classe que entram naquele nível. Sem as mudanças na
+      // chave, todas colapsavam na primeira e as demais perdiam a origem — o
+      // card exibia "Vindo de: Origem não identificada" para a habilidade.
+      if (action.changes && action.changes.length > 0) {
+        key += `-${JSON.stringify(action.changes)}`;
+      }
     } else if (action.source.type === 'power' && 'name' in action.source) {
       key += `-${action.source.name}`;
       // For powers with multiple instances (like Aumento de Atributo), include changes in key
@@ -157,6 +170,19 @@ function deduplicateHistory(
     // Include powerName to differentiate entries from different abilities with the same source
     if (action.powerName) {
       key += `-pn:${action.powerName}`;
+      // …e o TIPO das mudanças, porque um mesmo poder pode gravar mais de uma
+      // entrada em uma única aplicação. O Cosmopolita grava `OptionChosen`
+      // (o ramo escolhido) e, logo depois, `PowerAdded` (o poder concedido pelo
+      // ramo): com a chave só em source+powerName as duas colidiam e a segunda
+      // era descartada — o `isActionAlreadyApplied` deixava de enxergar a
+      // concessão e o recálculo seguinte concedia o poder DE NOVO.
+      // Não é o mesmo que a chave do source `power` logo acima, que serializa
+      // as mudanças inteiras para separar instâncias repetidas (Aumento de
+      // Atributo); aqui basta o tipo.
+      const changeTypes = (action.changes ?? [])
+        .map((change) => change.type)
+        .join(',');
+      if (changeTypes) key += `-ct:${changeTypes}`;
     }
 
     // Nota: `divinity` não tem ramo próprio de propósito. Acrescentar
@@ -1201,6 +1227,20 @@ function applyClassAbilities(
     allAbilities = [...availableAbilities, ...secondaryAbilities];
   }
 
+  // Variante de classe por divindade (Deuses de Arton): "Paladino de Marah"
+  // troca Golpe Divino por Mensagem de Paz. Precisa rodar a CADA recálculo
+  // porque `classe.abilities` é reconstruído do zero aqui — e também porque
+  // fichas sem `originalAbilities` caem no fallback do catálogo lá em cima,
+  // que devolve a classe crua do livro básico.
+  allAbilities = applyDeityClassAbilitySwap(
+    allAbilities,
+    findDeityClassVariant(
+      getPersistentDeityNames(sheetClone),
+      sheetClone.classe
+    ),
+    sheetClone.deityClassChoices?.alternativeAbility
+  );
+
   // Reaplica os campos do usuário preservados sobre a lista reconstruída
   // (cobre habilidades primárias e secundárias de multiclasse).
   allAbilities = restoreUserAbilityFields(allAbilities, userAbilityFields);
@@ -1213,6 +1253,7 @@ function applyClassAbilities(
   sheetClone = allAbilities.reduce((acc, ability) => {
     const abilitySelections = manualSelections?.[ability.name];
     const [newAcc] = applyPower(acc, ability, abilitySelections);
+
     return newAcc;
   }, sheetClone);
 
@@ -2233,20 +2274,6 @@ export function recalculateSheet(
       }
     }
 
-    // Initialize current PV if not set (first time or reset)
-    if (updatedSheet.currentPV === undefined) {
-      updatedSheet.currentPV = updatedSheet.pv;
-    }
-
-    // Migrate old over-max PV to temp PV
-    if (
-      updatedSheet.currentPV > updatedSheet.pv &&
-      updatedSheet.tempPV === undefined
-    ) {
-      updatedSheet.tempPV = updatedSheet.currentPV - updatedSheet.pv;
-      updatedSheet.currentPV = updatedSheet.pv;
-    }
-
     // Initialize increment if not set
     if (updatedSheet.pvIncrement === undefined) {
       updatedSheet.pvIncrement = 1;
@@ -2286,20 +2313,6 @@ export function recalculateSheet(
     // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
     if (!hasManualMaxPM) {
       updatedSheet.pm += getVirtudePaladinescaPMBonus(updatedSheet.classPowers);
-    }
-
-    // Initialize current PM if not set (first time or reset)
-    if (updatedSheet.currentPM === undefined) {
-      updatedSheet.currentPM = updatedSheet.pm;
-    }
-
-    // Migrate old over-max PM to temp PM
-    if (
-      updatedSheet.currentPM > updatedSheet.pm &&
-      updatedSheet.tempPM === undefined
-    ) {
-      updatedSheet.tempPM = updatedSheet.currentPM - updatedSheet.pm;
-      updatedSheet.currentPM = updatedSheet.pm;
     }
 
     // Initialize increment if not set
@@ -2704,6 +2717,33 @@ export function recalculateSheet(
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
   updatedSheet = applyHPAttributeReplacement(updatedSheet);
 
+  // Step 12.5: PV/PM atuais. Tem que rodar DEPOIS de todo mundo que mexe nos
+  // máximos (Step 8 soma os bônus de atributo-chave — o Carisma do "Abençoado"
+  // do paladino, por exemplo — e o Step 12 recalcula PV). Rodando antes, uma
+  // ficha nova nascia com o atual igual à base da classe (paladino nv1 com
+  // Carisma 4: 3/7).
+  //
+  // O recálculo NUNCA move o atual por conta própria: quem gastou PM continua
+  // com o que sobrou, e quem ganhou máximo (nível novo, Aumento de Atributo)
+  // recebe o ganho no atual pelos chamadores, via
+  // `applyMaxPointsGainToCurrent`. A única correção feita aqui é o teto —
+  // quando o máximo cai (atributo reduzido à mão, poder removido), o atual
+  // desce junto. Excedente vira teto, e não pontos temporários: converter em
+  // temporário dava PM de graça a quem só teve o máximo recalculado.
+  if (!options?.skipPVRecalc) {
+    updatedSheet.currentPV = Math.min(
+      updatedSheet.currentPV ?? updatedSheet.pv,
+      updatedSheet.pv
+    );
+  }
+
+  if (!options?.skipPMRecalc) {
+    updatedSheet.currentPM = Math.min(
+      updatedSheet.currentPM ?? updatedSheet.pm,
+      updatedSheet.pm
+    );
+  }
+
   // Step 14: Calculate Damage Reduction from sheetBonuses + manual
   const computedRd: DamageReduction = {};
 
@@ -2750,7 +2790,7 @@ export function recalculateSheet(
   }
 
   // Cavaleiro: Bastião (RD Geral 5, requer armadura pesada)
-  if (updatedSheet.cavaleiroCaminho === 'Bastião' && heavyArmor) {
+  if (getCavaleiroCaminho(updatedSheet) === 'Bastião' && heavyArmor) {
     computedRd.Geral = (computedRd.Geral ?? 0) + 5;
   }
 

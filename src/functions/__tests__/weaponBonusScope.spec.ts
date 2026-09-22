@@ -13,6 +13,11 @@ import {
 import { recalculateSheet } from '../recalculateSheet';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import { isFiringWeapon, isLightOrAgileMeleeWeapon } from '../weaponTraits';
+import {
+  buildWeaponPurposeFields,
+  WeaponPurpose,
+  WeaponReach,
+} from '../weaponPurpose';
 
 const arcoLongo: Equipment = {
   nome: 'Arco Longo',
@@ -312,7 +317,11 @@ describe('evaluateSimpleModifier — LevelCalc', () => {
  * Machadinha, Azagaia, Tridente) não é bakeado em `dano`/`atkBonus` pelo
  * `applyWeaponBonuses` (bakear vazaria para o modo de arremesso), e a linha da
  * arma em `Weapon.tsx` só lia os campos bakeados. Arma criada pelo
- * `CustomItemForm` nunca tem `arremesso`, então sempre era bakeada.
+ * `CustomItemForm` nunca tinha `arremesso`, então sempre era bakeada.
+ *
+ * O "nunca tinha" virou histórico: desde set/2026 o editor oferece "Tipo de
+ * ataque", e uma arma personalizada de arremesso passa pelo MESMO caminho vivo
+ * que a Lança do catálogo. Ver o bloco de escopo por propósito mais abaixo.
  */
 describe('isLiveWeaponBonus / sumLiveWeaponBonuses', () => {
   const atributos: CharacterAttributes = {
@@ -571,5 +580,45 @@ describe('bônus vivo × baking do recalculateSheet', () => {
     expect(
       sumLiveWeaponBonuses(espada, out.sheetBonuses, 'WeaponDamage', ctx)
     ).toBe(0);
+  });
+});
+
+/**
+ * Arma personalizada criada pelo editor agora carrega a classificação, então os
+ * filtros de escopo a enxergam igual às do catálogo. Antes disso ela nunca
+ * casava `rangedOnly`/`firingOnly` (sem `alcance`, era sempre corpo a corpo) e
+ * o jogador perdia Estilo de Disparo e afins em silêncio.
+ */
+describe('weaponMatchesScope — arma personalizada classificada pelo editor', () => {
+  const custom = (purpose: WeaponPurpose, reach: WeaponReach) => ({
+    nome: 'Arma do Fulano',
+    group: 'Arma' as const,
+    dano: '1d6',
+    isCustom: true,
+    ...buildWeaponPurposeFields(purpose, reach),
+  });
+
+  it('disparo casa firingOnly e rangedOnly, e é rejeitada por meleeOnly', () => {
+    const bow = custom('firing', 'Médio');
+    expect(weaponMatchesScope(bow, { firingOnly: true })).toBe(true);
+    expect(weaponMatchesScope(bow, { rangedOnly: true })).toBe(true);
+    expect(weaponMatchesScope(bow, { meleeOnly: true })).toBe(false);
+  });
+
+  it('arremesso casa thrownOnly E meleeOnly, mas não firingOnly', () => {
+    // A regra trata arma de arremesso como usável corpo a corpo também.
+    const javelin = custom('thrown', 'Curto');
+    expect(weaponMatchesScope(javelin, { thrownOnly: true })).toBe(true);
+    expect(weaponMatchesScope(javelin, { meleeOnly: true })).toBe(true);
+    expect(weaponMatchesScope(javelin, { rangedOnly: true })).toBe(true);
+    expect(weaponMatchesScope(javelin, { firingOnly: true })).toBe(false);
+  });
+
+  it('corpo a corpo casa meleeOnly e é rejeitada pelos escopos à distância', () => {
+    const club = custom('melee', 'Curto');
+    expect(weaponMatchesScope(club, { meleeOnly: true })).toBe(true);
+    expect(weaponMatchesScope(club, { rangedOnly: true })).toBe(false);
+    expect(weaponMatchesScope(club, { firingOnly: true })).toBe(false);
+    expect(weaponMatchesScope(club, { thrownOnly: true })).toBe(false);
   });
 });

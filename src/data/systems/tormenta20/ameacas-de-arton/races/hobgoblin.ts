@@ -2,6 +2,19 @@ import Race from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
 import Skill from '../../../../../interfaces/Skills';
 
+const METALURGIA_HOBGOBLIN_DESCRIPTION =
+  'Você recebe +2 em Ofício (armeiro) e, se for treinado nesta perícia, pode fabricar armas e armaduras superiores com uma melhoria. Se aprender a fabricar itens superiores desses tipos por outra habilidade, gasta apenas ¼ do preço das melhorias que aplica nesses itens (em vez de ⅓).';
+
+/**
+ * Habilidades do Hobgoblin cujo texto divergia da fonte oficial (Ameaças de
+ * Arton, cap. 1). Fichas salvas embutem a cópia errada e abrir uma ficha não
+ * dispara recálculo, então a correção do dado sozinha só alcançaria fichas
+ * novas — ver `REFRESHED_DESCRIPTIONS_BY_NAME` no `sheetNormalizer`.
+ */
+export const HOBGOBLIN_REFRESHED_DESCRIPTIONS: Record<string, string> = {
+  'Metalurgia Hobgoblin': METALURGIA_HOBGOBLIN_DESCRIPTION,
+};
+
 const HOBGOBLIN: Race = {
   name: 'Hobgoblin',
   attributes: {
@@ -21,14 +34,18 @@ const HOBGOBLIN: Race = {
       name: 'Arte da Guerra',
       description:
         'Você é treinado em Guerra e recebe proficiência em armas marciais. Se receber essa proficiência novamente, recebe +2 em rolagens de dano com essas armas.',
-      sheetBonuses: [
+      sheetActions: [
+        // "Você é TREINADO em Guerra" — treinamento, não bônus numérico. Era um
+        // `sheetBonuses` de +2 na perícia, que além de errado deixava a perícia
+        // destreinada na ficha.
         {
           source: { type: 'power', name: 'Arte da Guerra' },
-          target: { type: 'Skill', name: Skill.GUERRA },
-          modifier: { type: 'Fixed', value: 2 },
+          action: {
+            type: 'learnSkill',
+            availableSkills: [Skill.GUERRA],
+            pick: 1,
+          },
         },
-      ],
-      sheetActions: [
         {
           source: { type: 'power', name: 'Arte da Guerra' },
           action: {
@@ -41,8 +58,7 @@ const HOBGOBLIN: Race = {
     },
     {
       name: 'Metalurgia Hobgoblin',
-      description:
-        'Você recebe +2 em Ofício (armeiro) e, se for treinado nesta perícia, pode fabricar armas e armaduras superiores com uma melhoria. Se aprender a fabricar itens superiores desses tipos por outra habilidade, gasta apenas ¼ do preço das melhorias que aplica nesses itens (em vez de ½).',
+      description: METALURGIA_HOBGOBLIN_DESCRIPTION,
       sheetBonuses: [
         {
           source: { type: 'power', name: 'Metalurgia Hobgoblin' },

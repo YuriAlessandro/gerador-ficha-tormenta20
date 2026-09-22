@@ -2,8 +2,10 @@ import React from 'react';
 import {
   Box,
   Button,
+  Checkbox,
   FormControlLabel,
   IconButton,
+  ListItemText,
   MenuItem,
   Popover,
   Select,
@@ -14,7 +16,10 @@ import {
 } from '@mui/material';
 import { SpellSchool } from '@/interfaces/Spells';
 import { getSchoolLabel } from '@/components/SpellPicker/schoolLabels';
-import { SpellFilterState } from '@/components/SpellPicker/spellFilters';
+import {
+  SpellFilterState,
+  toggleInArray,
+} from '@/components/SpellPicker/spellFilters';
 import SpellSchoolGlyph from './SpellSchoolGlyph';
 import {
   DETAIL_LABEL_SX,
@@ -76,7 +81,7 @@ const SpellsFilterPopover: React.FC<SpellsFilterPopoverProps> = ({
           </Typography>
           <Box sx={SCHOOL_TOGGLE_ROW_SX}>
             {schools.map((school) => {
-              const active = filters.school === school;
+              const active = filters.schools.includes(school);
               return (
                 <Tooltip key={school} title={getSchoolLabel(school)} arrow>
                   <IconButton
@@ -84,7 +89,7 @@ const SpellsFilterPopover: React.FC<SpellsFilterPopoverProps> = ({
                     onClick={() =>
                       onFiltersChange({
                         ...filters,
-                        school: active ? 'all' : school,
+                        schools: toggleInArray(filters.schools, school),
                       })
                     }
                     sx={{
@@ -96,7 +101,7 @@ const SpellsFilterPopover: React.FC<SpellsFilterPopoverProps> = ({
                   >
                     <SpellSchoolGlyph
                       school={school}
-                      active={active || filters.school === 'all'}
+                      active={active || filters.schools.length === 0}
                       disableTooltip
                     />
                   </IconButton>
@@ -112,18 +117,32 @@ const SpellsFilterPopover: React.FC<SpellsFilterPopoverProps> = ({
           <Typography variant='caption' sx={DETAIL_LABEL_SX}>
             Execução
           </Typography>
-          <Select
-            value={filters.execution}
-            onChange={(e: SelectChangeEvent) =>
-              onFiltersChange({ ...filters, execution: e.target.value })
+          <Select<string[]>
+            multiple
+            displayEmpty
+            value={filters.executions}
+            onChange={(e: SelectChangeEvent<string[]>) => {
+              const next = e.target.value;
+              if (Array.isArray(next)) {
+                onFiltersChange({
+                  ...filters,
+                  executions: executions.filter((ex) => next.includes(ex)),
+                });
+              }
+            }}
+            renderValue={(selected) =>
+              selected.length === 0 ? 'Todas' : selected.join(', ')
             }
             size='small'
             fullWidth
           >
-            <MenuItem value='all'>Todas</MenuItem>
             {executions.map((execution) => (
               <MenuItem key={execution} value={execution}>
-                {execution}
+                <Checkbox
+                  size='small'
+                  checked={filters.executions.includes(execution)}
+                />
+                <ListItemText primary={execution} />
               </MenuItem>
             ))}
           </Select>

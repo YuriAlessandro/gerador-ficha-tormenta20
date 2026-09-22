@@ -22,7 +22,8 @@ problema existia e que a solução funciona, e então:
 2. **NUNCA rodar build** (`npm run build`, `vite build`, `vite preview`): trava o WSL inteiro.
    A validação é `tsc --noEmit` + `eslint` + `vitest`.
 3. **NUNCA fazer push.** Nem para `main`, nem para nenhuma branch, em nenhum repo ou submódulo.
-   Push em `main` é deploy de produção e é sempre feito manualmente pelo usuário.
+   Push é sempre feito manualmente pelo usuário. (Deploy de produção é o merge de PR
+   `main → production`, também feito só pelo usuário.)
 4. **Nunca publique nada no PR sem autorização explícita** do usuário nesta conversa.
 5. **Não mencione o uso de IA/Claude** em nenhum texto que vá para o GitHub (corpo do review,
    comentários inline, mensagem de commit). Escreva em primeira pessoa, como o mantenedor.

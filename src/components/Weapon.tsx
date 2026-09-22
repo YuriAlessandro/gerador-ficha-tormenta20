@@ -28,7 +28,7 @@ import Equipment, {
 } from '../interfaces/Equipment';
 import { getManualStatFields } from '../functions/manualStats';
 import type { SheetBonus } from '../interfaces/CharacterSheet';
-import { AMMO_LABELS } from './SheetResult/BackpackModal/ammo';
+import { ammoTypeLabel } from './SheetResult/BackpackModal/ammo';
 import { parseCritical, parseDualModeDamage } from '../functions/diceRoller';
 import { AttackExtraSpec } from '../functions/attackRoll';
 import {
@@ -777,7 +777,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   // Trigger ammo availability info for the trigger dialog message.
   const triggerAmmoLabel =
     stagedAction?.trigger?.consumesAmmo &&
-    AMMO_LABELS[stagedAction.trigger.consumesAmmo];
+    ammoTypeLabel(stagedAction.trigger.consumesAmmo);
 
   return (
     <>
@@ -1039,7 +1039,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
                 (availableAmmo ?? 0) === 0 ? 'error.main' : 'text.secondary',
             }}
           >
-            🎯 {AMMO_LABELS[equipment.ammoType]}: {availableAmmo ?? 0}
+            🎯 {ammoTypeLabel(equipment.ammoType)}: {availableAmmo ?? 0}
             {(availableAmmo ?? 0) === 0 && ' (sem munição)'}
           </Typography>
         )}
@@ -1230,7 +1230,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
             {equipment.ammoType && (
               <>
                 Você tem <strong>{availableAmmo ?? 0}</strong>{' '}
-                {AMMO_LABELS[equipment.ammoType]} disponível. Como deseja
+                {ammoTypeLabel(equipment.ammoType)} disponível. Como deseja
                 resolver o ataque?
               </>
             )}

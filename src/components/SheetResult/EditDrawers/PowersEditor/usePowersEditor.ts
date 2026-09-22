@@ -5,6 +5,7 @@ import originPowersCatalog from '@/data/systems/tormenta20/powers/originPowers';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { dataRegistry } from '@/data/registry';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
+import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import CharacterSheet, {
   SheetActionHistoryEntry,
@@ -34,7 +35,17 @@ import {
   evaluatePowerRequirements,
   PowerAvailability,
 } from '@/functions/powers/requirementEvaluation';
-import { resolveClassPowerCatalog } from '@/functions/powers';
+import { resetOriginPowerChoice } from '@/functions/originBenefits';
+import {
+  getWaivedClassPowers,
+  resolveClassPowerCatalog,
+} from '@/functions/powers';
+import {
+  ClassAbilitySet,
+  ClassPowerSet,
+  PowerCategory,
+} from '@/components/PowerCatalog/usePowerCatalog';
+import { applyMaxPointsGainToCurrent } from '@/functions/general';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   findClassDescription,
@@ -62,26 +73,6 @@ import {
  * estado num hook consumido por dentro do `Dialog`, nada disso roda enquanto o
  * editor está fechado.
  */
-
-export interface PowerCategory {
-  /** Chave estável do grupo. `type` não serve: Destino tem até 3 categorias. */
-  key: string;
-  type: GeneralPowerType | 'ORIGEM';
-  kind: PowerOriginKind;
-  name: string;
-  powers: (GeneralPower | OriginPower)[];
-}
-
-export interface ClassPowerSet {
-  className: string;
-  powers: ClassPower[];
-}
-
-export interface ClassAbilitySet {
-  className: string;
-  classLevel: number;
-  abilities: ClassAbility[];
-}
 
 interface UsePowersEditorArgs {
   open: boolean;
@@ -120,16 +111,47 @@ export function usePowersEditor({
   const [selectionDialog, setSelectionDialog] = useState<{
     open: boolean;
     requirements: PowerSelectionRequirements | null;
-    powerToAdd: GeneralPower | ClassPower | null;
+    powerToAdd: GeneralPower | ClassPower | OriginPower | null;
     isClassPower: boolean;
     isDeityPower: boolean;
+    isOriginPower: boolean;
+    // Re-escolha de um poder JÁ presente (origem regional concede sozinha, o
+    // jogador nunca liga o poder). Nesse modo o poder não é adicionado de novo
+    // e a concessão anterior é revertida no save.
+    isEdit: boolean;
+    initialSelections?: SelectionOptions;
   }>({
     open: false,
     requirements: null,
     powerToAdd: null,
     isClassPower: false,
     isDeityPower: false,
+    isOriginPower: false,
+    isEdit: false,
   });
+
+  /**
+   * Poderes de origem cuja escolha foi refeita nesta sessão do editor. No save
+   * eles passam por `resetOriginPowerChoice` antes do recálculo — senão o
+   * `optionChoices` e o histórico antigos mantêm o ramo anterior em silêncio.
+   */
+  const [originPowersToReset, setOriginPowersToReset] = useState<OriginPower[]>(
+    []
+  );
+
+  const closeSelectionDialog = useCallback(
+    () =>
+      setSelectionDialog({
+        open: false,
+        requirements: null,
+        powerToAdd: null,
+        isClassPower: false,
+        isDeityPower: false,
+        isOriginPower: false,
+        isEdit: false,
+      }),
+    []
+  );
 
   const [golpePessoalDialog, setGolpePessoalDialog] = useState<{
     open: boolean;
@@ -188,6 +210,7 @@ export function usePowersEditor({
       });
     });
     setManualSelections(initialManualSelections);
+    setOriginPowersToReset([]);
   }, [
     open,
     sheet.generalPowers,
@@ -244,6 +267,18 @@ export function usePowersEditor({
     [allSupplements]
   );
 
+  // ── Dispensas de pré-requisito (ver `prerequisiteWaivers`) ──────────────
+  // Resolvidas uma vez: senão cada item do catálogo varre a ficha. Os poderes
+  // MARCADOS entram junto, para a dispensa valer na mesma visita.
+  const waivers = useMemo(
+    () =>
+      getActiveWaivers(sheet, {
+        generalPowers: [...selectedPowers, ...selectedDeityPowers],
+        classPowers: selectedClassPowers,
+      }),
+    [sheet, selectedPowers, selectedDeityPowers, selectedClassPowers]
+  );
+
   const classPowerSets = useMemo<ClassPowerSet[]>(() => {
     const sets: ClassPowerSet[] = [];
 
@@ -281,6 +316,36 @@ export function usePowersEditor({
 
     return sets;
   }, [sheet, allSupplements]);
+
+  /**
+   * Poderes de classe destravados por waiver, agrupados por classe de origem.
+   * A resolução é a de `getWaivedClassPowers`, a mesma que o motor usa.
+   */
+  const unlockedClassPowerSets = useMemo<ClassPowerSet[]>(() => {
+    const sets = new Map<string, ClassPowerSet>();
+
+    getWaivedClassPowers(sheet, waivers).forEach((power) => {
+      const className = power.className as string;
+      const existing = sets.get(className);
+      if (existing) {
+        existing.powers.push(power);
+        return;
+      }
+      sets.set(className, {
+        className,
+        powers: [power],
+        unlockedBy: power.unlockedBy,
+      });
+    });
+
+    return [...sets.values()];
+  }, [waivers, sheet]);
+
+  /** Conjuntos das classes do personagem, seguidos dos destravados por waiver. */
+  const allClassPowerSets = useMemo<ClassPowerSet[]>(
+    () => [...classPowerSets, ...unlockedClassPowerSets],
+    [classPowerSets, unlockedClassPowerSets]
+  );
 
   const classAbilitySets = useMemo<ClassAbilitySet[]>(() => {
     const sets: ClassAbilitySet[] = [];
@@ -405,15 +470,17 @@ export function usePowersEditor({
   // na ordenação e de novo em cada linha renderizada.
   const availabilityCache = useMemo(
     () => new Map<string, PowerAvailability>(),
-    [selectedPowers, selectedClassPowers, sheet]
+    [selectedPowers, selectedClassPowers, selectedDeityPowers, sheet]
   );
 
   const getAvailability = useCallback(
     (
       power: { name: string; requirements?: GeneralPower['requirements'] },
-      kind: 'general' | 'class' = 'general'
+      kind: 'general' | 'class' = 'general',
+      className?: string
     ): PowerAvailability => {
-      const cacheKey = `${kind}:${power.name}`;
+      // A classe entra na chave: o mesmo nome existe em classes diferentes.
+      const cacheKey = `${kind}:${className ?? ''}:${power.name}`;
       const cached = availabilityCache.get(cacheKey);
       if (cached) return cached;
 
@@ -421,15 +488,24 @@ export function usePowersEditor({
         power,
         {
           sheet,
-          pendingGeneralPowers: selectedPowers,
+          pendingGeneralPowers: [...selectedPowers, ...selectedDeityPowers],
           pendingClassPowers: selectedClassPowers,
+          className,
+          waivers,
         },
         kind
       );
       availabilityCache.set(cacheKey, result);
       return result;
     },
-    [availabilityCache, sheet, selectedPowers, selectedClassPowers]
+    [
+      availabilityCache,
+      sheet,
+      selectedPowers,
+      selectedClassPowers,
+      selectedDeityPowers,
+      waivers,
+    ]
   );
 
   // ── Poderes gerais ──────────────────────────────────────────────────────
@@ -452,6 +528,8 @@ export function usePowersEditor({
           powerToAdd: power,
           isClassPower: false,
           isDeityPower: false,
+          isOriginPower: false,
+          isEdit: false,
         });
         return;
       }
@@ -569,6 +647,8 @@ export function usePowersEditor({
           powerToAdd: power,
           isClassPower: true,
           isDeityPower: false,
+          isOriginPower: false,
+          isEdit: false,
         });
         return;
       }
@@ -644,21 +724,75 @@ export function usePowersEditor({
   );
 
   // ── Diálogo de seleção ──────────────────────────────────────────────────
+
+  /**
+   * O que a escolha atual de um poder concedeu, lido do histórico da ficha.
+   * Usado para tirar da lista o poder do ramo ANTERIOR quando a escolha é
+   * refeita.
+   */
+  const grantedPowerNamesFor = useCallback(
+    (powerName: string) => {
+      const general: string[] = [];
+      const classPowers: string[] = [];
+      (sheet.sheetActionHistory ?? [])
+        .filter((entry) => entry.powerName === powerName)
+        .forEach((entry) =>
+          entry.changes.forEach((change) => {
+            if (change.type === 'PowerAdded') general.push(change.powerName);
+            if (change.type === 'ClassPowerAdded')
+              classPowers.push(change.powerName);
+          })
+        );
+      return { general, class: classPowers };
+    },
+    [sheet.sheetActionHistory]
+  );
+
   const handleSelectionConfirm = useCallback(
     (selections: SelectionOptions) => {
-      const { powerToAdd, isClassPower, isDeityPower } = selectionDialog;
+      const { powerToAdd, isClassPower, isDeityPower, isOriginPower, isEdit } =
+        selectionDialog;
 
       if (powerToAdd) {
         setManualSelections((prev) => ({
           ...prev,
-          [powerToAdd.name]: mergeSelections(
-            prev[powerToAdd.name],
-            selections,
-            isRepeatablePower(powerToAdd)
-          ),
+          // Re-escolha SUBSTITUI: fundir com a resposta antiga manteria o poder
+          // do ramo anterior em `powers` e o `applyPower` do ramo novo o
+          // consumiria.
+          [powerToAdd.name]: isEdit
+            ? selections
+            : mergeSelections(
+                prev[powerToAdd.name],
+                selections,
+                isRepeatablePower(powerToAdd)
+              ),
         }));
 
-        if (isClassPower) {
+        if (isEdit) {
+          // Tira da ficha o que a escolha ANTERIOR concedeu, para o
+          // `recalculateSheet` reverter as ações e reaplicar com a nova.
+          const granted = grantedPowerNamesFor(powerToAdd.name);
+          if (granted.general.length > 0) {
+            setSelectedPowers((prev) =>
+              prev.filter((p) => !granted.general.includes(p.name))
+            );
+          }
+          if (granted.class.length > 0) {
+            setSelectedClassPowers((prev) =>
+              prev.filter((p) => !granted.class.includes(p.name))
+            );
+          }
+          setOriginPowersToReset((prev) =>
+            prev.some((p) => p.name === powerToAdd.name)
+              ? prev
+              : [...prev, powerToAdd as OriginPower]
+          );
+        } else if (isOriginPower) {
+          setSelectedOriginPowers((prev) => [
+            ...prev,
+            getOriginalOriginPowerWithRolls(powerToAdd as OriginPower),
+          ]);
+        } else if (isClassPower) {
           setSelectedClassPowers((prev) => [
             ...prev,
             getOriginalClassPowerWithRolls(powerToAdd as ClassPower),
@@ -676,26 +810,22 @@ export function usePowersEditor({
         }
       }
 
-      setSelectionDialog({
-        open: false,
-        requirements: null,
-        powerToAdd: null,
-        isClassPower: false,
-        isDeityPower: false,
-      });
+      closeSelectionDialog();
     },
-    [getOriginalClassPowerWithRolls, getOriginalPowerWithRolls, selectionDialog]
+    [
+      closeSelectionDialog,
+      getOriginalClassPowerWithRolls,
+      getOriginalOriginPowerWithRolls,
+      getOriginalPowerWithRolls,
+      grantedPowerNamesFor,
+      selectionDialog,
+    ]
   );
 
-  const handleSelectionCancel = useCallback(() => {
-    setSelectionDialog({
-      open: false,
-      requirements: null,
-      powerToAdd: null,
-      isClassPower: false,
-      isDeityPower: false,
-    });
-  }, []);
+  const handleSelectionCancel = useCallback(
+    () => closeSelectionDialog(),
+    [closeSelectionDialog]
+  );
 
   // ── Golpe Pessoal ───────────────────────────────────────────────────────
   const handleGolpePessoalConfirm = useCallback(
@@ -762,12 +892,92 @@ export function usePowersEditor({
         });
         return;
       }
+
+      // Alinhado com `handlePowerToggle`/`handleClassPowerToggle`: um poder de
+      // origem que exige escolha (Cosmopolita, Citadino Abastado, Futura Lenda)
+      // precisa abrir o diálogo, senão entra na ficha com a escolha sorteada.
+      const requirements = getPowerSelectionRequirements(power);
+      if (requirements && requiresUserInput(requirements, sheet, supplements)) {
+        setSelectionDialog({
+          open: true,
+          requirements,
+          powerToAdd: power,
+          isClassPower: false,
+          isDeityPower: false,
+          isOriginPower: true,
+          isEdit: false,
+        });
+        return;
+      }
+
       setSelectedOriginPowers((prev) => [
         ...prev,
         getOriginalOriginPowerWithRolls(power),
       ]);
     },
-    [getOriginalOriginPowerWithRolls, selectedOriginPowers]
+    [getOriginalOriginPowerWithRolls, selectedOriginPowers, sheet, supplements]
+  );
+
+  /**
+   * Poder de origem que oferece escolha e pode ser re-escolhido. Origem
+   * regional concede o poder sozinha, então o jogador nunca faz o toggle — sem
+   * este caminho a escolha do Cosmopolita/Citadino ficaria congelada para
+   * sempre depois da criação.
+   */
+  const getOriginPowerChoiceRequirements = useCallback(
+    (power: OriginPower) => {
+      const requirements = getPowerSelectionRequirements(power);
+      if (!requirements) return null;
+      return requiresUserInput(requirements, sheet, supplements)
+        ? requirements
+        : null;
+    },
+    [sheet, supplements]
+  );
+
+  const handleOriginPowerEdit = useCallback(
+    (power: OriginPower) => {
+      const requirements = getOriginPowerChoiceRequirements(power);
+      if (!requirements) return;
+
+      // Semeia o diálogo com a escolha atual, lida do histórico: o ramo
+      // (`OptionChosen`) e o poder que ele concedeu, recuperado por nome da
+      // própria ficha.
+      const seeded: SelectionOptions = { ...manualSelections[power.name] };
+      const chosen: string[] = [];
+      (sheet.sheetActionHistory ?? [])
+        .filter((entry) => entry.powerName === power.name)
+        .forEach((entry) =>
+          entry.changes.forEach((change) => {
+            if (change.type === 'OptionChosen') chosen.push(change.chosenName);
+            if (change.type === 'PowerAdded') {
+              const found = (sheet.generalPowers ?? []).find(
+                (p) => p.name === change.powerName
+              );
+              if (found) seeded.powers = [found];
+            }
+            if (change.type === 'ClassPowerAdded') {
+              const found = (sheet.classPowers ?? []).find(
+                (p) => p.name === change.powerName
+              );
+              if (found) seeded.powers = [found as unknown as GeneralPower];
+            }
+          })
+        );
+      if (chosen.length > 0) seeded.chosenOption = chosen;
+
+      setSelectionDialog({
+        open: true,
+        requirements,
+        powerToAdd: power,
+        isClassPower: false,
+        isDeityPower: false,
+        isOriginPower: true,
+        isEdit: true,
+        initialSelections: seeded,
+      });
+    },
+    [getOriginPowerChoiceRequirements, manualSelections, sheet]
   );
 
   const getOriginForPower = useCallback((power: OriginPower) => {
@@ -885,6 +1095,8 @@ export function usePowersEditor({
           powerToAdd: power,
           isClassPower: false,
           isDeityPower: true,
+          isOriginPower: false,
+          isEdit: false,
         });
         return;
       }
@@ -1176,14 +1388,31 @@ export function usePowersEditor({
         ],
       };
 
+      // Escolhas de origem refeitas: apaga histórico e `optionChoices` do poder
+      // ANTES do recálculo. O replay do `chooseFromOptions` prioriza
+      // `optionChoices` e ignora a seleção manual, e `isActionAlreadyApplied`
+      // casa `getClassPower` com `PowerAdded` — sem esta limpeza a troca de
+      // ramo não acontece. Ver `resetOriginPowerChoice`.
+      originPowersToReset.forEach((power) =>
+        resetOriginPowerChoice(updatedSheet, power)
+      );
+
       // A ficha inteira, já recalculada — é o que o `Result` espera receber.
-      onSave(recalculateSheet(updatedSheet, sheet, manualSelections));
+      // Máximo que subiu (Aumento de Atributo, poderes que dão PV/PM) entra
+      // cheio também no atual; máximo que caiu é aparado pelo recálculo.
+      const recalculated = recalculateSheet(
+        updatedSheet,
+        sheet,
+        manualSelections
+      );
+      onSave(applyMaxPointsGainToCurrent(sheet, recalculated));
       onClose();
     },
     [
       manualSelections,
       onClose,
       onSave,
+      originPowersToReset,
       selectedClassPowers,
       selectedCustomGrantedPowers,
       selectedCustomPowers,
@@ -1249,7 +1478,7 @@ export function usePowersEditor({
     selectedCustomGrantedPowers,
     // catálogo
     powerCategories,
-    classPowerSets,
+    classPowerSets: allClassPowerSets,
     classAbilitySets,
     allSupplements,
     getOriginForPower,
@@ -1262,6 +1491,8 @@ export function usePowersEditor({
     handleAddRepeatableClassPower,
     handleClassPowerRemove,
     handleOriginPowerToggle,
+    handleOriginPowerEdit,
+    getOriginPowerChoiceRequirements,
     // concedidos
     isDevoto,
     deityPowers,

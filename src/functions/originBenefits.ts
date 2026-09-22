@@ -98,6 +98,14 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
     updatedSheet.classPowers = (sheet.classPowers || []).filter(
       (p) => !classPowersFromOrigin.includes(p.name)
     );
+    // Simétrico: um `PowerAdded` da origem pode ter caído em `generalPowers`
+    // (ex.: o ramo "poder geral" do Cosmopolita). Sem este filtro o poder
+    // sobrevivia à troca de origem para sempre. Seguro para as entradas que o
+    // `applyPowerGetters` sintetiza: elas carimbam os nomes dos PODERES DE
+    // ORIGEM, que nunca moram em `generalPowers`.
+    updatedSheet.generalPowers = (sheet.generalPowers || []).filter(
+      (p) => !classPowersFromOrigin.includes(p.name)
+    );
   }
 
   // Desfaz os `ModifyAttribute` que a origem aplicou (ex.: o +1 Constituição de
@@ -169,6 +177,72 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
   updatedSheet.origin = undefined;
 
   return updatedSheet;
+}
+
+/**
+ * Zera a escolha de um poder de origem para que ela possa ser refeita.
+ *
+ * Existe porque "trocar o poder escolhido" (Cosmopolita, uma vez por aventura;
+ * Citadino Abastado, a cada uso) esbarra em três guardas que, sozinhas, mantêm
+ * a escolha antiga em silêncio:
+ *
+ * 1. O replay do `chooseFromOptions` prioriza `sheet.optionChoices[optionKey]` e
+ *    IGNORA `manualSelections.chosenOption` — sem apagar a chave, trocar de ramo
+ *    (geral ⇄ classe) não muda nada.
+ * 2. `isActionAlreadyApplied` é chaveado por `(powerName, changeType)`, e
+ *    `getClassPower` casa tanto com `ClassPowerAdded` quanto com `PowerAdded`.
+ *    Um `PowerAdded` sobrevivente do ramo geral faz o ramo de classe parecer já
+ *    aplicado. Por isso apagamos TODAS as entradas do poder, não só as do ramo.
+ * 3. O poder concedido continua em `generalPowers`/`classPowers` se ninguém o
+ *    tirar de lá.
+ *
+ * Muta a ficha recebida (como `reverseSheetActionsForPower`); o chamador clona
+ * antes e chama `recalculateSheet` depois.
+ */
+export function resetOriginPowerChoice(
+  sheet: CharacterSheet,
+  power: OriginPower
+): void {
+  const grantedGeneral = new Set<string>();
+  const grantedClass = new Set<string>();
+
+  (sheet.sheetActionHistory ?? [])
+    .filter((entry) => entry.powerName === power.name)
+    .forEach((entry) =>
+      entry.changes.forEach((change) => {
+        if (change.type === 'PowerAdded') grantedGeneral.add(change.powerName);
+        if (change.type === 'ClassPowerAdded')
+          grantedClass.add(change.powerName);
+      })
+    );
+
+  if (grantedGeneral.size > 0) {
+    sheet.generalPowers = (sheet.generalPowers ?? []).filter(
+      (p) => !grantedGeneral.has(p.name)
+    );
+  }
+  if (grantedClass.size > 0) {
+    sheet.classPowers = (sheet.classPowers ?? []).filter(
+      (p) => !grantedClass.has(p.name)
+    );
+  }
+
+  sheet.sheetActionHistory = (sheet.sheetActionHistory ?? []).filter(
+    (entry) => entry.powerName !== power.name
+  );
+
+  const optionKeys = (power.sheetActions ?? [])
+    .map((sheetAction) => sheetAction.action)
+    .filter((action) => action.type === 'chooseFromOptions')
+    .map((action) => (action as { optionKey: string }).optionKey);
+
+  if (sheet.optionChoices && optionKeys.length > 0) {
+    const remaining: Record<string, string[]> = {};
+    Object.entries(sheet.optionChoices).forEach(([key, value]) => {
+      if (!optionKeys.includes(key)) remaining[key] = value;
+    });
+    sheet.optionChoices = remaining;
+  }
 }
 
 /**

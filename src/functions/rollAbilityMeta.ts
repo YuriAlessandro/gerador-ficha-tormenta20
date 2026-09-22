@@ -8,6 +8,8 @@ import type {
   ActivePowerDefinition,
 } from '@/premium/interfaces/ActiveEffect';
 import type { Spell } from '../interfaces/Spells';
+import type { ThreatAbility } from '../interfaces/ThreatSheet';
+import { getThreatPmCost, type ThreatPmSourceKind } from './threatPmUse';
 import {
   getPowerDisplayName,
   getPowerDisplayText,
@@ -74,6 +76,32 @@ export function buildSpellAbilityMeta(
     school: spell.school,
     pmCost: pmCost > 0 ? pmCost : undefined,
     ...truncateAbilityDescription(spell.description),
+  };
+}
+
+/**
+ * Uso de habilidade/magia de uma AMEAÇA na mesa virtual.
+ *
+ * Reusa os `kind` que já existem (`RollAbilityKind` é `'power' | 'spell'`):
+ * magia de ameaça entra como `'spell'`, habilidade como `'power'` com o nome
+ * do combatente no `sourceLabel`. O `RollAbilityBlock` já renderiza o chip de
+ * PM para os dois, e sem `effectOffer` o botão "Ativar na minha ficha" fica
+ * escondido — então não há motivo para um `kind` novo (o tipo vive no
+ * submódulo privado e a meta viaja codificada até o backend).
+ */
+export function buildThreatAbilityMeta(
+  source: ThreatAbility,
+  kind: ThreatPmSourceKind,
+  casterName: string
+): RollAbilityMeta {
+  const cost = getThreatPmCost(source);
+
+  return {
+    kind: kind === 'spell' ? 'spell' : 'power',
+    name: source.name,
+    sourceLabel: kind === 'spell' ? undefined : casterName,
+    pmCost: cost > 0 ? cost : undefined,
+    ...truncateAbilityDescription(source.description),
   };
 }
 

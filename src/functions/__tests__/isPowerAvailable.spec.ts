@@ -9,8 +9,10 @@
  * - Requisito genérico de Ofício continua satisfeito por qualquer Ofício específico.
  */
 import { describe, it, expect } from 'vitest';
-import { isPowerAvailable } from '../powers';
+import { getAllowedClassPowers, isPowerAvailable } from '../powers';
 import INVENTOR_POWERS from '../../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
+import CORE_INVENTOR from '../../data/systems/tormenta20/classes/inventor';
+import { normalizeSheet } from '../sheetNormalizer';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
@@ -81,6 +83,106 @@ describe('Artesão Criativo e Ofício (Artesão)', () => {
     };
 
     expect(isPowerAvailable(sheet, genericOficioPower)).toBe(true);
+  });
+});
+
+describe('Artesão Criativo no caminho real do assistente (getAllowedClassPowers)', () => {
+  const couraceiro = CORE_INVENTOR.powers?.find(
+    (p) => p.name === 'Couraceiro'
+  ) as ClassPower;
+
+  /**
+   * Ficha de Inventor com o catálogo das duas fontes (livro básico + Heróis de
+   * Arton). `classe` é clonada porque o mock devolve um objeto compartilhado
+   * entre todas as fichas de teste.
+   */
+  function createInventorSheet() {
+    const sheet = createMockCharacterSheet();
+    sheet.nivel = 5;
+    sheet.classe = {
+      ...sheet.classe,
+      name: 'Inventor',
+      powers: [...(CORE_INVENTOR.powers ?? []), ...INVENTOR_POWERS],
+    };
+    sheet.atributos[Atributo.CARISMA] = { name: Atributo.CARISMA, value: 1 };
+    return sheet;
+  }
+
+  it('lista os poderes travados por outro Ofício quando tem Artesão Criativo + a perícia', () => {
+    const sheet = createInventorSheet();
+    sheet.skills = [Skill.OFICIO_ARTESANATO]; // sem Alfaiate, sem Armeiro
+    sheet.classPowers = [artesaoCriativo];
+
+    const allowed = getAllowedClassPowers(sheet, { classLevel: 5 }).map(
+      (p) => p.name
+    );
+
+    expect(allowed).toContain('Estilista'); // Heróis de Arton, Ofício (Alfaiate)
+    expect(allowed).toContain('Couraceiro'); // livro básico, Ofício (Armeiro)
+  });
+
+  it('sem Artesão Criativo os mesmos poderes ficam fora da lista', () => {
+    const sheet = createInventorSheet();
+    sheet.skills = [Skill.OFICIO_ARTESANATO];
+    sheet.classPowers = [];
+
+    const allowed = getAllowedClassPowers(sheet, { classLevel: 5 }).map(
+      (p) => p.name
+    );
+
+    expect(allowed).not.toContain('Estilista');
+    expect(allowed).not.toContain('Couraceiro');
+  });
+
+  it('perícia com o nome legado volta a valer depois de normalizeSheet', () => {
+    const sheet = createInventorSheet();
+    // Ficha anterior ao rename de 05/06/2026: guarda "Ofício (Artesanato)".
+    sheet.skills = ['Ofício (Artesanato)' as Skill];
+    sheet.completeSkills = [
+      {
+        name: 'Ofício (Artesanato)' as Skill,
+        halfLevel: 2,
+        training: 2,
+        modAttr: Atributo.INTELIGENCIA,
+        others: 0,
+      },
+    ];
+    sheet.classPowers = [artesaoCriativo];
+
+    expect(isPowerAvailable(sheet, estilista)).toBe(false);
+    expect(isPowerAvailable(sheet, couraceiro)).toBe(false);
+
+    normalizeSheet(sheet);
+
+    expect(sheet.skills).toContain(Skill.OFICIO_ARTESANATO);
+    expect(sheet.completeSkills?.[0].name).toBe(Skill.OFICIO_ARTESANATO);
+    expect(isPowerAvailable(sheet, estilista)).toBe(true);
+    expect(isPowerAvailable(sheet, couraceiro)).toBe(true);
+  });
+
+  it('substitui também um Ofício customizado, fora de ALL_SPECIFIC_OFICIOS', () => {
+    const sheet = createInventorSheet();
+    sheet.skills = [Skill.OFICIO_ARTESANATO];
+    sheet.classPowers = [artesaoCriativo];
+
+    const marceneiro: ClassPower = {
+      name: 'Poder de Teste (Ofício customizado)',
+      text: 'Requer um Ofício que não existe no livro.',
+      requirements: [
+        [
+          {
+            type: RequirementType.PERICIA,
+            name: 'Ofício (Marceneiro)' as Skill,
+          },
+        ],
+      ],
+    };
+
+    expect(isPowerAvailable(sheet, marceneiro)).toBe(true);
+
+    const semPoder = createInventorSheet();
+    semPoder.skills = [Skill.OFICIO_ARTESANATO];
+    expect(isPowerAvailable(semPoder, marceneiro)).toBe(false);
   });
 });
 

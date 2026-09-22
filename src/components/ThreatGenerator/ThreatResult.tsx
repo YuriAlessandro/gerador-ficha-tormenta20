@@ -55,6 +55,16 @@ import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 import { FolderInfo } from './ThreatViewCloudWrapper';
 import { rollD20, rollDamage } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
+import type { RollAbilityMeta } from '../../premium/services/socket.service';
+import { buildThreatAbilityMeta } from '../../functions/rollAbilityMeta';
+import {
+  getThreatPmCost,
+  isPmUseBlocked,
+  formatPmPool,
+  pmUseTooltip,
+  type ThreatPmSourceKind,
+  type ThreatPmUsage,
+} from '../../functions/threatPmUse';
 
 // Styled components for threat sheet (uses theme accent color)
 const ThreatDivisor: React.FC = () => (
@@ -114,6 +124,15 @@ interface ThreatResultProps {
   onApplyAttackCondition?: (attack: ThreatAttack) => void;
   // Same as above, but for spells. Renders next to each spell line.
   onApplySpellCondition?: (spell: ThreatSpell) => void;
+  /**
+   * Identidade de PM do combatente. Presente apenas quando o statblock está
+   * aberto por um participante de encontro na mesa virtual (ver
+   * `ThreatViewDialog`): habilita o gasto automático ao usar habilidade/magia
+   * com custo e troca o PM estático do cabeçalho pelo pool vivo.
+   * Ausente = comportamento de sempre (gerador, bestiário, biblioteca da mesa
+   * e visão do jogador não gastam PM).
+   */
+  pmUsage?: ThreatPmUsage;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
@@ -129,6 +148,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   onApplyAbilityCondition,
   onApplyAttackCondition,
   onApplySpellCondition,
+  pmUsage,
 }) => {
   const threat = React.useMemo(
     () => getEffectiveThreat(rawThreat),
@@ -140,7 +160,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { showConfirm, ConfirmDialog } = useConfirm();
   const { isAuthenticated } = useAuth();
-  const { showDiceResult, showAttackRoll } = useDiceRoll();
+  const { showDiceResult, showAttackRoll, logExternalRoll } = useDiceRoll();
   const [showExportButton, setExportButton] = React.useState<boolean>();
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
   const [loadingPDF, setLoadingPDF] = React.useState(false);
@@ -193,6 +213,14 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     return ability.name;
   };
 
+  // O gasto de PM morre junto com as rolagens: no Bestiário a ficha é só
+  // leitura ("copie a ameaça para usá-la"). Não acoplar a `viewOnly` — o
+  // diálogo de combate passa viewOnly={false} e o da biblioteca o default.
+  const canUsePm = !!pmUsage && !rollsDisabled;
+  // Nome da INSTÂNCIA ("Goblin 2") quando conhecido. Sem ele o histórico da
+  // mesa mostra todas as instâncias como "Goblin".
+  const casterName = pmUsage?.casterName ?? threat.name;
+
   const handleSkillRoll = (skillName: string, modifier: number) => {
     if (rollsDisabled) return;
     const roll = rollD20();
@@ -204,7 +232,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     const diceNotation = `1d20${modifierStr}`;
 
     showDiceResult(
-      `${threat.name}: ${skillName}`,
+      `${casterName}: ${skillName}`,
       [
         {
           label: skillName,
@@ -216,7 +244,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           isFumble,
         },
       ],
-      threat.name
+      casterName
     );
   };
 
@@ -233,7 +261,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     }
 
     showDiceResult(
-      `${threat.name}: ${abilityName}`,
+      `${casterName}: ${abilityName}`,
       [
         {
           label: roll.name,
@@ -243,13 +271,14 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           total: Math.max(1, damageRollResult.total),
         },
       ],
-      threat.name
+      casterName
     );
   };
 
   const handleAbilityNameClick = (
     abilityName: string,
-    rolls: AbilityRoll[]
+    rolls: AbilityRoll[],
+    ability?: RollAbilityMeta
   ) => {
     if (rollsDisabled) return;
     if (!rolls || rolls.length === 0) return;
@@ -275,7 +304,108 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
     if (rollResults.length === 0) return;
 
-    showDiceResult(`${threat.name}: ${abilityName}`, rollResults, threat.name);
+    showDiceResult(
+      `${casterName}: ${abilityName}`,
+      rollResults,
+      casterName,
+      ability
+    );
+  };
+
+  /**
+   * Ponto único de "usar" uma habilidade/magia: gasta o PM (quando há
+   * combatente identificado e custo) e rola os dados.
+   *
+   * REGRA ANTI-GASTO-DUPLO: um uso = um clique no NOME. Os chips de rolagem
+   * ao lado continuam sendo só rolagem, para o mestre repetir um grupo de
+   * dados sem pagar de novo.
+   */
+  const handleUseClick = (source: ThreatAbility, kind: ThreatPmSourceKind) => {
+    if (rollsDisabled) return;
+
+    const cost = getThreatPmCost(source);
+    const spends = canUsePm && cost > 0;
+    let meta: RollAbilityMeta | undefined;
+
+    if (spends && pmUsage) {
+      // Sem PM suficiente a ação é recusada por inteiro — nem gasta, nem
+      // rola. O aviso ao mestre sai no `onUse` (o snackbar é do diálogo).
+      if (isPmUseBlocked(pmUsage, source)) {
+        pmUsage.onUse(source, kind, cost);
+        return;
+      }
+
+      pmUsage.onUse(source, kind, cost);
+      meta = buildThreatAbilityMeta(source, kind, casterName);
+    }
+
+    if (source.rolls && source.rolls.length > 0) {
+      handleAbilityNameClick(source.name, source.rolls, meta);
+    } else if (spends) {
+      // Uso sem dados: `logExternalRoll` aceita `rollGroups: []` de propósito,
+      // justamente para registrar ativações que não rolam nada.
+      logExternalRoll(`${casterName}: ${source.name}`, [], casterName, meta);
+    }
+  };
+
+  // Os chips repetem só os dados. Deixa explícito para o mestre que repetir
+  // uma rolagem não cobra PM de novo (ver a regra em `handleUseClick`).
+  const rollChipTitle = (source: ThreatAbility, roll: AbilityRoll) => {
+    const base = `Rolar ${roll.name}: ${roll.dice}${
+      roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
+    }`;
+    return canUsePm && getThreatPmCost(source) > 0
+      ? `${base} (não gasta PM)`
+      : base;
+  };
+
+  /**
+   * Nome clicável da habilidade/magia. Vira clicável quando há rolagens OU
+   * quando há custo de PM a pagar — habilidades com custo e sem dados eram
+   * inertes antes disso.
+   */
+  const renderSourceName = (
+    source: ThreatAbility,
+    kind: ThreatPmSourceKind
+  ) => {
+    const cost = getThreatPmCost(source);
+    const spends = canUsePm && cost > 0;
+    const blocked = spends && !!pmUsage && isPmUseBlocked(pmUsage, source);
+    const hasRolls = !!source.rolls && source.rolls.length > 0;
+    const clickable = !rollsDisabled && (hasRolls || spends);
+
+    if (!clickable) {
+      return <ThreatText>{formatAbilityName(source)}: </ThreatText>;
+    }
+
+    return (
+      <Box
+        component='span'
+        onClick={() => handleUseClick(source, kind)}
+        sx={{
+          cursor: blocked ? 'not-allowed' : 'pointer',
+          opacity: blocked ? 0.55 : 1,
+          userSelect: 'none',
+          transition: 'all 0.2s ease',
+          borderRadius: 1,
+          px: 0.5,
+          mx: -0.5,
+          '&:hover': blocked
+            ? undefined
+            : {
+                backgroundColor: theme.palette.action.hover,
+                color: theme.palette.primary.main,
+              },
+        }}
+        title={
+          pmUsage && cost > 0
+            ? pmUseTooltip(pmUsage, source)
+            : `Rolar ${source.name}`
+        }
+      >
+        <ThreatText>{formatAbilityName(source)}:</ThreatText>
+      </Box>
+    );
   };
 
   const handleAttackClick = (attack: ThreatAttack) => {
@@ -291,8 +421,8 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     // é do pipeline central — ver src/functions/attackRoll.ts. Dados de dano
     // bônus NÃO são multiplicados em crítico (regra T20).
     showAttackRoll({
-      rollLabel: `${threat.name}: ${attack.name}`,
-      characterName: threat.name,
+      rollLabel: `${casterName}: ${attack.name}`,
+      characterName: casterName,
       attackBonus: attack.attackBonus,
       crit: {
         threshold: attack.criticalThreshold || 20,
@@ -737,13 +867,24 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           </div>
           <div>
             <ThreatText>PV</ThreatText> {threat.combatStats.hitPoints}
-            {threat.combatStats.manaPoints &&
+            {/* Com combatente identificado o PM vira o pool VIVO do
+                participante. O gate estático esconderia o PM de ameaças
+                legadas (ou com hasManaPoints falso) que ainda têm habilidade
+                com custo — por isso `pmUsage` tem precedência. */}
+            {pmUsage ? (
+              <>
+                {' '}
+                | <ThreatText>PM</ThreatText> {formatPmPool(pmUsage)}
+              </>
+            ) : (
+              !!threat.combatStats.manaPoints &&
               threat.combatStats.manaPoints > 0 && (
                 <>
                   {' '}
                   | <ThreatText>PM</ThreatText> {threat.combatStats.manaPoints}
                 </>
-              )}
+              )
+            )}
           </div>
           <div>
             <ThreatText>Deslocamento</ThreatText> {threat.displacement}
@@ -910,35 +1051,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
               {threat.abilities.map((ability) => (
                 <div key={getKey(ability.name)}>
-                  {ability.rolls && ability.rolls.length > 0 ? (
-                    <Box
-                      component='span'
-                      onClick={() =>
-                        handleAbilityNameClick(
-                          ability.name,
-                          ability.rolls || []
-                        )
-                      }
-                      sx={{
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        transition: 'all 0.2s ease',
-                        borderRadius: 1,
-                        px: 0.5,
-                        mx: -0.5,
-                        '&:hover': {
-                          backgroundColor: theme.palette.action.hover,
-                          color: theme.palette.primary.main,
-                        },
-                      }}
-                      title={`Rolar ${ability.name}`}
-                    >
-                      <ThreatText>{formatAbilityName(ability)}:</ThreatText>
-                    </Box>
-                  ) : (
-                    <ThreatText>{formatAbilityName(ability)}: </ThreatText>
-                  )}{' '}
-                  {ability.description}
+                  {renderSourceName(ability, 'ability')} {ability.description}
                   {ability.rolls && ability.rolls.length > 0 && (
                     <Box component='span' sx={{ ml: 1 }}>
                       {ability.rolls.map((roll) => (
@@ -959,9 +1072,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                               color: theme.palette.primary.contrastText,
                             },
                           }}
-                          title={`Rolar ${roll.name}: ${roll.dice}${
-                            roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
-                          }`}
+                          title={rollChipTitle(ability, roll)}
                         >
                           🎲 {roll.name}: {roll.dice}
                           {roll.bonus !== 0 &&
@@ -1040,32 +1151,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               </div>
               {threat.spells.map((spell) => (
                 <div key={getKey(`spell-${spell.name}`)}>
-                  {spell.rolls && spell.rolls.length > 0 ? (
-                    <Box
-                      component='span'
-                      onClick={() =>
-                        handleAbilityNameClick(spell.name, spell.rolls || [])
-                      }
-                      sx={{
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        transition: 'all 0.2s ease',
-                        borderRadius: 1,
-                        px: 0.5,
-                        mx: -0.5,
-                        '&:hover': {
-                          backgroundColor: theme.palette.action.hover,
-                          color: theme.palette.primary.main,
-                        },
-                      }}
-                      title={`Rolar ${spell.name}`}
-                    >
-                      <ThreatText>{formatAbilityName(spell)}:</ThreatText>
-                    </Box>
-                  ) : (
-                    <ThreatText>{formatAbilityName(spell)}: </ThreatText>
-                  )}{' '}
-                  {spell.description}
+                  {renderSourceName(spell, 'spell')} {spell.description}
                   {spell.rolls && spell.rolls.length > 0 && (
                     <Box component='span' sx={{ ml: 1 }}>
                       {spell.rolls.map((roll) => (
@@ -1086,9 +1172,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                               color: theme.palette.primary.contrastText,
                             },
                           }}
-                          title={`Rolar ${roll.name}: ${roll.dice}${
-                            roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
-                          }`}
+                          title={rollChipTitle(spell, roll)}
                         >
                           🎲 {roll.name}: {roll.dice}
                           {roll.bonus !== 0 &&

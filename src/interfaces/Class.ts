@@ -3,7 +3,11 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { SheetBonus, SheetAction } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
-import { CountsAsTormentaPower, Requirement } from './Poderes';
+import {
+  CountsAsTormentaPower,
+  PrerequisiteWaiver,
+  Requirement,
+} from './Poderes';
 import Skill from './Skills';
 import { SpellSchool } from './Spells';
 import { SupplementId } from '../types/supplement.types';
@@ -68,6 +72,18 @@ export type ClassAbility = {
   customDescription?: string;
 };
 
+/** Concessão de poder num nível específico, para classes fora do padrão. */
+export interface ClassPowerGrant {
+  level: number;
+  fromClasses: string[];
+  label?: string;
+  /**
+   * Fora da escolha — em geral porque o nível já concede o poder de graça.
+   * Ex.: Lorde (Vassalo 9) e Autoridade Feudal.
+   */
+  excludePowers?: string[];
+}
+
 export type ClassPower = CountsAsTormentaPower & {
   name: string;
   text: string;
@@ -86,6 +102,9 @@ export type ClassPower = CountsAsTormentaPower & {
   supplementId?: SupplementId; // Suplemento de origem do poder
   supplementName?: string; // Nome do suplemento de origem
   className?: string; // Multiclasse: qual classe concedeu este poder
+  unlockedBy?: string; // Waiver que destravou o poder em outra classe
+  tags?: string[]; // Ver `PowerTaggable`
+  waivesPrerequisites?: PrerequisiteWaiver[]; // Ver `PrerequisiteWaiver`
 };
 
 /**
@@ -159,6 +178,11 @@ export interface ClassDescription {
   proficiencias: string[];
   abilities: ClassAbility[];
   powers: ClassPower[];
+  /**
+   * Níveis que concedem escolha de poder, e de quais classes. AUSENTE = padrão
+   * de T20 (todo nível a partir do 2º, da própria classe). Ex.: Vassalo.
+   */
+  powerGrants?: ClassPowerGrant[];
   probDevoto: number;
   qtdPoderesConcedidos?: string | number;
   faithProbability?: FaithProbability;

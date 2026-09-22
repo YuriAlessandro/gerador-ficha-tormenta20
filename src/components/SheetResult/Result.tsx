@@ -57,6 +57,8 @@ import { getPoderCapturadoDefinition } from '@/functions/powers/poderCapturadoEf
 import { ignoresEncumbrance } from '@/functions/encumbrance';
 import {
   applyManualLevelUp,
+  applyMaxPointsGainToCurrent,
+  addPointsOverflowingToTemp,
   calculateCurrencySpaces,
 } from '@/functions/general';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
@@ -91,11 +93,9 @@ import {
   ActivePowerUseDialog,
 } from '@/premium/components/ActiveEffects';
 import { ComplicationEditDrawer } from '@/premium/components/Complications';
-import { AgeEditDrawer } from '@/premium/components/Ages';
 import { AttributeModifiersDrawer } from '@/premium/components/Attributes';
 import { SupplementId } from '@/types/supplement.types';
 import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import socketService, {
   type PowerEffectBonusPayload,
   type RollAbilityMeta,
@@ -183,7 +183,7 @@ import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
 import { commitWielding, WieldingSlot } from './BackpackModal/wielding';
 import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
-import { findAmmoStack } from './BackpackModal/ammo';
+import { findConsumableAmmoStack } from './BackpackModal/ammo';
 import PowersEditorModal from './EditDrawers/PowersEditor';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
@@ -291,7 +291,6 @@ const Result: React.FC<ResultProps> = (props) => {
   >(undefined);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [complicationDrawerOpen, setComplicationDrawerOpen] = useState(false);
-  const [ageDrawerOpen, setAgeDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
@@ -338,7 +337,6 @@ const Result: React.FC<ResultProps> = (props) => {
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
   const complicationsFeature = useFeatureAccess('complications');
-  const optionalRulesFeature = useFeatureAccess('optionalRules');
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
   // forma); este componente precisa ficar transparente para não cobri-lo.
@@ -812,6 +810,8 @@ const Result: React.FC<ResultProps> = (props) => {
           updatedSheet = applyManualLevelUp(updatedSheet, sel);
         });
         updatedSheet = recalculateSheet(updatedSheet);
+        // Os PV/PM ganhos no nível novo entram cheios também no atual.
+        updatedSheet = applyMaxPointsGainToCurrent(currentSheet, updatedSheet);
         if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
           updatedSheet.bag = Bag.fromStored(updatedSheet.bag);
         }
@@ -1024,9 +1024,18 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handlePVHeal = useCallback(
     (amount: number) => {
-      const currentPVVal = currentSheet.currentPV ?? currentSheet.pv;
-      const newCurrent = Math.min(currentSheet.pv, currentPVVal + amount);
-      const updatedSheet = { ...currentSheet, currentPV: newCurrent };
+      // Acima do máximo, o excedente vira PV temporário em vez de sumir no teto.
+      const { current, temp } = addPointsOverflowingToTemp(
+        amount,
+        currentSheet.currentPV ?? currentSheet.pv,
+        currentSheet.pv,
+        currentSheet.tempPV ?? 0
+      );
+      const updatedSheet = {
+        ...currentSheet,
+        currentPV: current,
+        tempPV: temp,
+      };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -1037,9 +1046,18 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handlePMHeal = useCallback(
     (amount: number) => {
-      const currentPMVal = currentSheet.currentPM ?? currentSheet.pm;
-      const newCurrent = Math.min(currentSheet.pm, currentPMVal + amount);
-      const updatedSheet = { ...currentSheet, currentPM: newCurrent };
+      // Acima do máximo, o excedente vira PM temporário em vez de sumir no teto.
+      const { current, temp } = addPointsOverflowingToTemp(
+        amount,
+        currentSheet.currentPM ?? currentSheet.pm,
+        currentSheet.pm,
+        currentSheet.tempPM ?? 0
+      );
+      const updatedSheet = {
+        ...currentSheet,
+        currentPM: current,
+        tempPM: temp,
+      };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -1478,8 +1496,11 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleConsumeAmmo = useCallback(
     (ammoType: AmmoType) => {
-      const stack = findAmmoStack(bagEquipments, ammoType);
-      if (!stack || !stack.id || (stack.unitsRemaining ?? 0) <= 0) return;
+      // Pilha CONSUMÍVEL, não a primeira: com munição autoral ao lado da
+      // oficial, usar a primeira fazia o ataque virar um no-op silencioso
+      // assim que ela zerava, mesmo com projéteis na pilha seguinte.
+      const stack = findConsumableAmmoStack(bagEquipments, ammoType);
+      if (!stack || !stack.id) return;
 
       const nextEquipments: typeof bagEquipments = { ...bagEquipments };
       (Object.keys(nextEquipments) as (keyof typeof nextEquipments)[]).forEach(
@@ -2567,32 +2588,6 @@ const Result: React.FC<ResultProps> = (props) => {
                         </IconButton>
                       </Tooltip>
                     )}
-                  {onSheetUpdate &&
-                    // Mesma regra da complicação: quem já tem idade na ficha
-                    // continua podendo editá-la (e voltar para Jovem) mesmo sem
-                    // acesso à feature.
-                    (!!currentSheet.age ||
-                      (optionalRulesFeature.hasAccess &&
-                        userSupplements.includes(
-                          SupplementId.TORMENTA20_HEROIS_ARTON
-                        ))) && (
-                      <Tooltip title='Idade (Heróis de Arton)'>
-                        <IconButton
-                          size='small'
-                          sx={{
-                            backgroundColor: theme.palette.primary.main,
-                            color: 'white',
-                            borderRadius: 1,
-                            '&:hover': {
-                              backgroundColor: theme.palette.primary.dark,
-                            },
-                          }}
-                          onClick={() => setAgeDrawerOpen(true)}
-                        >
-                          <HourglassBottomIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
                   {activeSheetTab === 'defesa' && onSheetUpdate && (
                     <Tooltip title='Configurações de defesa' arrow>
                       <IconButton
@@ -3527,15 +3522,6 @@ const Result: React.FC<ResultProps> = (props) => {
               onClose={() => setComplicationDrawerOpen(false)}
               sheet={currentSheet}
               supplements={userSupplements}
-              onSave={handlePowersUpdate}
-            />
-          )}
-
-          {onSheetUpdate && (
-            <AgeEditDrawer
-              open={ageDrawerOpen}
-              onClose={() => setAgeDrawerOpen(false)}
-              sheet={currentSheet}
               onSave={handlePowersUpdate}
             />
           )}

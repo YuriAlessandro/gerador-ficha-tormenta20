@@ -2,12 +2,59 @@ import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import PROFICIENCIAS from '../../proficiencias';
-import CAVALEIRO from '../../classes/cavaleiro';
+import CAVALEIRO, {
+  CAMINHO_DO_CAVALEIRO,
+  CAMINHO_MONTARIA,
+  CAMINHO_OPTION_KEY,
+} from '../../classes/cavaleiro';
+import { Spell } from '../../../../../interfaces/Spells';
+import {
+  allDivineSpellsCircle1,
+  allDivineSpellsCircle2,
+  allDivineSpellsCircle3,
+  allDivineSpellsCircle4,
+  allDivineSpellsCircle5,
+} from '../../magias/divine';
 
 const codigoDeHonra = CAVALEIRO.abilities.find(
   (a) => a.name === 'Código de Honra'
 )!;
 const baluarte = CAVALEIRO.abilities.find((a) => a.name === 'Baluarte')!;
+
+/**
+ * Os dois caminhos do 9º nível. Ficam em constante porque os benefícios de 11,
+ * 13 e 17 dependem de qual foi escolhido — e são lidos do `sheetActionHistory`
+ * pela `optionKey` `caminhoDoVassalo`.
+ */
+export const CAMINHO_SOLDADO = 'Caminho do Soldado';
+export const CAMINHO_GOVERNANTE = 'Caminho do Governante';
+
+/**
+ * Magias divinas até o círculo informado. O Vassalo aprende "uma magia divina
+ * de até 4º círculo" no 16º nível e de até 5º no 20º, com Carisma como
+ * atributo-chave — não é conjurador, então o pool não vem de uma spellPath.
+ */
+function divineSpellsUpTo(maxCircle: number): Spell[] {
+  return [
+    allDivineSpellsCircle1,
+    allDivineSpellsCircle2,
+    allDivineSpellsCircle3,
+    allDivineSpellsCircle4,
+    allDivineSpellsCircle5,
+  ]
+    .slice(0, maxCircle)
+    .flat();
+}
+
+/** Cláusulas prontas para os benefícios que dependem do caminho do 9º nível. */
+const soldado = {
+  kind: 'optionChosen' as const,
+  value: CAMINHO_SOLDADO,
+};
+const governante = {
+  kind: 'optionChosen' as const,
+  value: CAMINHO_GOVERNANTE,
+};
 
 const VASSALO: VariantClassOverrides = {
   name: 'Vassalo',
@@ -15,6 +62,36 @@ const VASSALO: VariantClassOverrides = {
   baseClassName: 'Cavaleiro',
   proficiencias: [PROFICIENCIAS.MARCIAIS, PROFICIENCIAS.ESCUDOS],
   excludeAllBasePowers: true,
+  /**
+   * O Vassalo não ganha poder todo nível: ganha nos níveis abaixo, e sempre
+   * emprestado de outra classe. Nos demais níveis o assistente não deve nem
+   * oferecer a escolha.
+   *
+   * A regra geral de trocar o poder de classe por um poder geral continua
+   * valendo nesses níveis — quem monta a lista é `getAvailablePowers`.
+   */
+  powerGrants: [
+    { level: 2, fromClasses: ['Cavaleiro'] },
+    { level: 4, fromClasses: ['Cavaleiro'] },
+    { level: 6, fromClasses: ['Cavaleiro'] },
+    // "poder de cavaleiro ou de guerreiro (como um guerreiro de nível igual
+    // ao seu para propósitos de pré-requisitos)".
+    { level: 7, fromClasses: ['Cavaleiro', 'Guerreiro'] },
+    // Lorde: o caminho escolhido NESTE nível decide entre guerreiro e nobre.
+    // Como a escolha acontece no mesmo level-up, a lista oferece os dois — o
+    // texto da habilidade é quem diz ao jogador qual vale.
+    {
+      level: 9,
+      fromClasses: ['Guerreiro', 'Nobre'],
+      // O próprio Lorde concede Autoridade Feudal neste nível; oferecê-la
+      // também na escolha deixava o personagem com o poder duplicado.
+      excludePowers: ['Autoridade Feudal'],
+    },
+    { level: 12, fromClasses: ['Cavaleiro'] },
+    { level: 14, fromClasses: ['Cavaleiro'] },
+    { level: 16, fromClasses: ['Cavaleiro'] },
+    { level: 18, fromClasses: ['Cavaleiro'] },
+  ],
   abilities: [
     codigoDeHonra,
     baluarte,
@@ -106,6 +183,25 @@ const VASSALO: VariantClassOverrides = {
       ],
     },
     {
+      // O Vassalo tem o Caminho do Cavaleiro, mas sem escolha: o Vigilante de
+      // Estradas já determina Montaria. Entra como habilidade própria, com uma
+      // ÚNICA opção — o assistente resolve sozinho quando só há uma, então ele
+      // vê o caminho na ficha sem ser perguntado.
+      name: CAMINHO_DO_CAVALEIRO,
+      text: 'Você recebe o Caminho do Cavaleiro: Montaria.',
+      nivel: 5,
+      sheetActions: [
+        {
+          source: { type: 'power', name: CAMINHO_DO_CAVALEIRO },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: CAMINHO_OPTION_KEY,
+            options: [CAMINHO_MONTARIA],
+          },
+        },
+      ],
+    },
+    {
       name: 'Cavaleiro do Reino',
       text: 'No 6º nível, você recebe o título de sir ou dame e atinge o grau mais baixo da nobreza. Você recebe uma arma, armadura ou escudo superior com duas melhorias a sua escolha e recebe um poder de cavaleiro a sua escolha.',
       nivel: 6,
@@ -119,21 +215,95 @@ const VASSALO: VariantClassOverrides = {
       name: 'Capitão do Reino',
       text: 'No 8º nível, você se torna um oficial no exército, respeitado e prestigiado por militares, nobres e plebeus. Você recebe o poder Escudeiro e a habilidade Golpe Divino, como um paladino de nível igual ao seu. Esta não é uma habilidade mágica e provém de seu senso de justiça e determinação em combate.',
       nivel: 8,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Capitão do Reino' },
+          action: {
+            type: 'grantSpecificClassPower',
+            powerName: 'Escudeiro',
+            fromClass: 'Cavaleiro',
+          },
+        },
+        {
+          source: { type: 'power', name: 'Capitão do Reino' },
+          action: {
+            type: 'grantSpecificClassAbility',
+            abilityName: 'Golpe Divino',
+            fromClass: 'Paladino',
+          },
+        },
+      ],
     },
     {
       name: 'Lorde',
       text: 'No 9º nível você ascende dentro da nobreza, recebendo um feudo — e muitas responsabilidades. Você recebe o poder Autoridade Feudal. Se já possui esse poder, as pessoas convocadas passam a contar como um parceiro veterano. Além disso, escolha um dos caminhos a seguir. Caminho do Soldado: você recebe um poder de guerreiro (como um guerreiro de nível igual ao seu) a sua escolha. Caminho do Governante: você recebe um poder de nobre (como um nobre de nível igual ao seu) a sua escolha.',
       nivel: 9,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Lorde' },
+          action: {
+            type: 'grantSpecificClassPower',
+            powerName: 'Autoridade Feudal',
+            fromClass: 'Cavaleiro',
+          },
+        },
+        {
+          // O caminho escolhido aqui decide os benefícios de 11, 13 e 17, que
+          // por isso leem `OptionChosen` com esta mesma `optionKey`.
+          source: { type: 'power', name: 'Lorde' },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: 'caminhoDoVassalo',
+            options: [
+              {
+                name: CAMINHO_SOLDADO,
+                text: 'Você recebe um poder de guerreiro (como um guerreiro de nível igual ao seu) a sua escolha.',
+              },
+              {
+                name: CAMINHO_GOVERNANTE,
+                text: 'Você recebe um poder de nobre (como um nobre de nível igual ao seu) a sua escolha.',
+              },
+            ],
+          },
+        },
+      ],
     },
     {
       name: 'Barão',
       text: 'No 10º nível, você ascende dentro da nobreza e passa a receber impostos de seus plebeus. Você recebe o poder Título e um domínio de nível 1. Se já tiver um domínio, em vez disso ele recebe uma construção gratuita (cujos pré-requisitos seu domínio cumpra).',
       nivel: 10,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Barão' },
+          action: {
+            type: 'grantSpecificClassPower',
+            powerName: 'Título',
+            fromClass: 'Cavaleiro',
+          },
+        },
+      ],
     },
     {
       name: 'Visconde',
       text: 'No 11º nível, você adquire um título mais alto. Se escolheu o Caminho do Soldado, recebe +1 PV por nível de vassalo. Se escolheu o Caminho do Governante, recebe +1 em Inteligência.',
       nivel: 11,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Visconde' },
+          target: { type: 'PV' },
+          // "+1 PV por nível de vassalo": `{classLevel}` é o nível NA classe,
+          // que é o que a regra pede (e difere do nível do personagem em
+          // multiclasse).
+          modifier: { type: 'LevelCalc', formula: '{classLevel}' },
+          condition: { combinator: 'AND', clauses: [soldado] },
+        },
+        {
+          source: { type: 'power', name: 'Visconde' },
+          target: { type: 'Attribute', attribute: Atributo.INTELIGENCIA },
+          modifier: { type: 'Fixed', value: 1 },
+          condition: { combinator: 'AND', clauses: [governante] },
+        },
+      ],
     },
     {
       name: 'Conde',
@@ -144,6 +314,14 @@ const VASSALO: VariantClassOverrides = {
       name: 'Marquês',
       text: 'No 13º nível, seus feitos alçam-no a um título ainda mais alto. Se escolheu o Caminho do Soldado, você recebe redução de dano 5 e +2 na Defesa. Se escolheu o Caminho do Governante, você passa a somar seu Carisma em seus testes de resistência.',
       nivel: 13,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Marquês' },
+          target: { type: 'Defense' },
+          modifier: { type: 'Fixed', value: 2 },
+          condition: { combinator: 'AND', clauses: [soldado] },
+        },
+      ],
     },
     {
       name: 'Duque',
@@ -159,11 +337,55 @@ const VASSALO: VariantClassOverrides = {
       name: 'Conselheiro Real',
       text: 'A partir do 16º nível, você se torna um dos conselheiros do rei e passa a partilhar do poder de Sua Majestade. Você recebe um poder de cavaleiro a sua escolha e aprende e pode lançar uma magia divina de até 4º círculo a sua escolha (atributo-chave Carisma).',
       nivel: 16,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Conselheiro Real' },
+          action: {
+            type: 'learnSpell',
+            availableSpells: divineSpellsUpTo(4),
+            pick: 1,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
     {
       name: 'Rei Mercenário',
       text: 'No 17º nível, você dá seus primeiros passos rumo à majestade, e a terra responde às suas aspirações. Se escolheu o Caminho do Soldado, você recebe 3 pontos de atributo para distribuir como quiser em Força, Destreza e Constituição. Se escolheu o Caminho do Governante, recebe 3 pontos de atributo para distribuir como quiser em Inteligência, Sabedoria e Carisma.',
       nivel: 17,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Rei Mercenário' },
+          condition: { combinator: 'AND', clauses: [soldado] },
+          action: {
+            type: 'increaseAttribute',
+            allowedAttributes: [
+              Atributo.FORCA,
+              Atributo.DESTREZA,
+              Atributo.CONSTITUICAO,
+            ],
+            pick: 3,
+            // "distribuir como quiser": pode empilhar no mesmo atributo.
+            allowRepeats: true,
+            oncePerTier: false,
+          },
+        },
+        {
+          source: { type: 'power', name: 'Rei Mercenário' },
+          condition: { combinator: 'AND', clauses: [governante] },
+          action: {
+            type: 'increaseAttribute',
+            allowedAttributes: [
+              Atributo.INTELIGENCIA,
+              Atributo.SABEDORIA,
+              Atributo.CARISMA,
+            ],
+            pick: 3,
+            allowRepeats: true,
+            oncePerTier: false,
+          },
+        },
+      ],
     },
     {
       name: 'Rei',
@@ -189,6 +411,28 @@ const VASSALO: VariantClassOverrides = {
       name: 'Imperador',
       text: 'No 20º nível, você chegou ao ápice político de Arton. Talvez tenha colonizado um continente desconhecido. Talvez tenha conquistado o Império de Tauron ou o Reinado. De qualquer forma, você agora é um grande imperador, respeitado e temido por todos. Sua fama não tem limites e as pessoas atribuem a você os mais variados poderes. Você recebe +1 em dois atributos diferentes a sua escolha e aprende e pode lançar uma magia divina de até 5º círculo a sua escolha (atributo-chave Carisma).',
       nivel: 20,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Imperador' },
+          action: {
+            type: 'increaseAttribute',
+            pick: 2,
+            // "dois atributos DIFERENTES" — o padrão já é não repetir, mas
+            // deixar explícito evita que uma mudança de padrão altere a regra.
+            allowRepeats: false,
+            oncePerTier: false,
+          },
+        },
+        {
+          source: { type: 'power', name: 'Imperador' },
+          action: {
+            type: 'learnSpell',
+            availableSpells: divineSpellsUpTo(5),
+            pick: 1,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
   ],
 };

@@ -18,12 +18,16 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ClearIcon from '@mui/icons-material/Clear';
+import MultiSelectFilter from '@/components/SpellPicker/MultiSelectFilter';
+import { toggleInArray } from '@/components/SpellPicker/spellFilters';
+
+const CIRCLE_OPTIONS = [1, 2, 3, 4, 5];
 
 interface SpellFilters {
   search: string;
-  circle: number | 'all';
-  school: string | 'all';
-  executionTime: string | 'all';
+  circles: number[];
+  schools: string[];
+  executionTimes: string[];
   spellType: 'arcane' | 'divine' | 'all';
 }
 
@@ -47,45 +51,50 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
 
   const handleClearFilters = () => {
     onFilterChange({
-      circle: 'all',
-      school: 'all',
-      executionTime: 'all',
+      circles: [],
+      schools: [],
+      executionTimes: [],
       spellType: 'all',
     });
   };
 
   const hasActiveFilters =
-    filters.circle !== 'all' ||
-    filters.school !== 'all' ||
-    filters.executionTime !== 'all' ||
+    filters.circles.length > 0 ||
+    filters.schools.length > 0 ||
+    filters.executionTimes.length > 0 ||
     filters.spellType !== 'all';
 
   const getActiveFilterChips = () => {
-    const chips = [];
+    const chips: { label: string; key: string; onDelete: () => void }[] = [];
 
-    if (filters.circle !== 'all') {
+    filters.circles.forEach((circle) =>
       chips.push({
-        label: `${filters.circle}º Círculo`,
-        key: 'circle',
-        onDelete: () => onFilterChange({ circle: 'all' }),
-      });
-    }
+        label: `${circle}º Círculo`,
+        key: `circle-${circle}`,
+        onDelete: () =>
+          onFilterChange({ circles: toggleInArray(filters.circles, circle) }),
+      })
+    );
 
-    if (filters.school !== 'all') {
+    filters.schools.forEach((school) =>
       chips.push({
-        label: filters.school,
-        key: 'school',
-        onDelete: () => onFilterChange({ school: 'all' }),
-      });
-    }
+        label: school,
+        key: `school-${school}`,
+        onDelete: () =>
+          onFilterChange({ schools: toggleInArray(filters.schools, school) }),
+      })
+    );
 
-    if (filters.executionTime !== 'all') {
+    filters.executionTimes.forEach((time) =>
       chips.push({
-        label: filters.executionTime,
-        key: 'execution',
-        onDelete: () => onFilterChange({ executionTime: 'all' }),
-      });
-    }
+        label: time,
+        key: `execution-${time}`,
+        onDelete: () =>
+          onFilterChange({
+            executionTimes: toggleInArray(filters.executionTimes, time),
+          }),
+      })
+    );
 
     if (filters.spellType !== 'all') {
       chips.push({
@@ -219,66 +228,41 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
           <Grid container spacing={isMobile ? 2 : 3}>
             {/* Circle Filter */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth size='small'>
-                <InputLabel id='circle-filter-label'>Círculo</InputLabel>
-                <Select
-                  labelId='circle-filter-label'
-                  value={filters.circle}
-                  onChange={(e) =>
-                    onFilterChange({ circle: e.target.value as number | 'all' })
-                  }
-                  label='Círculo'
-                >
-                  <MenuItem value='all'>Todos os Círculos</MenuItem>
-                  <MenuItem value={1}>1º Círculo</MenuItem>
-                  <MenuItem value={2}>2º Círculo</MenuItem>
-                  <MenuItem value={3}>3º Círculo</MenuItem>
-                  <MenuItem value={4}>4º Círculo</MenuItem>
-                  <MenuItem value={5}>5º Círculo</MenuItem>
-                </Select>
-              </FormControl>
+              <MultiSelectFilter
+                id='circle-filter-label'
+                label='Círculo'
+                emptyLabel='Todos os Círculos'
+                options={CIRCLE_OPTIONS}
+                value={filters.circles}
+                onChange={(circles) => onFilterChange({ circles })}
+                getOptionLabel={(circle) => `${circle}º Círculo`}
+              />
             </Grid>
 
             {/* School Filter */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth size='small'>
-                <InputLabel id='school-filter-label'>Escola</InputLabel>
-                <Select
-                  labelId='school-filter-label'
-                  value={filters.school}
-                  onChange={(e) => onFilterChange({ school: e.target.value })}
-                  label='Escola'
-                >
-                  <MenuItem value='all'>Todas as Escolas</MenuItem>
-                  {availableSchools.map((school) => (
-                    <MenuItem key={school} value={school}>
-                      {school}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <MultiSelectFilter
+                id='school-filter-label'
+                label='Escola'
+                emptyLabel='Todas as Escolas'
+                options={availableSchools}
+                value={filters.schools}
+                onChange={(schools) => onFilterChange({ schools })}
+              />
             </Grid>
 
             {/* Execution Time Filter */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth size='small'>
-                <InputLabel id='execution-filter-label'>Execução</InputLabel>
-                <Select
-                  labelId='execution-filter-label'
-                  value={filters.executionTime}
-                  onChange={(e) =>
-                    onFilterChange({ executionTime: e.target.value })
-                  }
-                  label='Execução'
-                >
-                  <MenuItem value='all'>Todos os Tempos</MenuItem>
-                  {availableExecutionTimes.map((time) => (
-                    <MenuItem key={time} value={time}>
-                      {time}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <MultiSelectFilter
+                id='execution-filter-label'
+                label='Execução'
+                emptyLabel='Todos os Tempos'
+                options={availableExecutionTimes}
+                value={filters.executionTimes}
+                onChange={(executionTimes) =>
+                  onFilterChange({ executionTimes })
+                }
+              />
             </Grid>
 
             {/* Spell Type Filter */}
@@ -319,9 +303,9 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
               }}
             >
               <strong>Dica:</strong> Use os filtros para refinar sua busca. Você
-              pode combinar múltiplos critérios para encontrar exatamente as
-              magias que precisa. A busca por texto funciona no nome, descrição
-              e aprimoramentos das magias.
+              pode marcar várias opções em cada filtro e combinar múltiplos
+              critérios para encontrar exatamente as magias que precisa. A busca
+              por texto funciona no nome, descrição e aprimoramentos das magias.
             </Typography>
           </Box>
         </Box>

@@ -1,4 +1,5 @@
 import Equipment, {
+  AmmoType,
   AppliedEnchantment,
   AppliedModification,
   ManualStatField,
@@ -10,6 +11,11 @@ import Equipment, {
   WeaponAction,
   WeaponCategory,
 } from '../../../interfaces/Equipment';
+import {
+  buildWeaponPurposeFields,
+  WeaponPurpose,
+  WeaponReach,
+} from '../../../functions/weaponPurpose';
 import Skill from '../../../interfaces/Skills';
 import { DiceRoll } from '../../../interfaces/DiceRoll';
 import { ItemE, ItemMod } from '../../../interfaces/Rewards';
@@ -67,6 +73,24 @@ export interface ItemEditorFormState {
   // todos os tokens, e sobrescrever sem essa guarda perderia dado ao salvar
   // uma edição que nem tocou no tipo (ex.: só mudou o Dano).
   damageTypesTouched: boolean;
+  /**
+   * Propósito da arma — corpo a corpo / arremesso / disparo. Projeção de
+   * autoria sobre `alcance`/`arremesso`/`specialActions`; ver
+   * `functions/weaponPurpose.ts`.
+   */
+  purpose: WeaponPurpose;
+  reach: WeaponReach;
+  /** Munição consumida (arma de disparo) ou contida (item de munição). */
+  ammoType: AmmoType | '';
+  /**
+   * Mesma guarda de `damageTypesTouched`: só reescreve a classificação quando o
+   * jogador de fato mexeu no seletor. Sem isso, salvar uma edição que só mudou
+   * o Dano reescreveria `specialActions` de uma arma do catálogo e apagaria os
+   * modos que ela já trazia.
+   */
+  purposeTouched: boolean;
+  ammoPackSizeText: string;
+  ammoUnitsPerSpaceText: string;
   weaponTags: string[];
   actionDamageAttributes: Record<string, DamageAttribute>;
   actionAttackAttributes: Record<string, AttackAttribute | ''>;
@@ -225,7 +249,42 @@ export function buildSavedItem(
       next.tipo = formatDamageTypes(form.damageTypes);
     }
     next.weaponTags = form.weaponTags.length > 0 ? form.weaponTags : undefined;
-    if (item.specialActions && item.specialActions.length > 0) {
+
+    if (item.isAmmo) {
+      // Item de munição: o editor só oferece tipo e tamanho de pacote.
+      const packSize = parseInt(form.ammoPackSizeText, 10);
+      const unitsPerSpace = parseInt(form.ammoUnitsPerSpaceText, 10);
+      next.ammoType = form.ammoType || undefined;
+      if (!Number.isNaN(packSize) && packSize >= 1) {
+        next.ammoPackSize = packSize;
+      }
+      if (!Number.isNaN(unitsPerSpace) && unitsPerSpace >= 1) {
+        next.ammoUnitsPerSpace = unitsPerSpace;
+      }
+    } else {
+      // Munição só faz sentido em arma de disparo.
+      next.ammoType =
+        form.purpose === 'firing' ? form.ammoType || undefined : undefined;
+    }
+
+    if (form.purposeTouched && !item.isAmmo) {
+      const purposeFields = buildWeaponPurposeFields(
+        form.purpose,
+        form.reach,
+        form.damageAttribute
+      );
+      next.alcance = purposeFields.alcance;
+      next.arremesso = purposeFields.arremesso;
+      next.specialActions = purposeFields.specialActions;
+      // OBRIGATÓRIO: `applyItemEnhancements` roda logo depois e restaura
+      // `arremesso`/`specialActions` a partir destes snapshots, congelados na
+      // primeira passagem do pipeline. Sem reescrevê-los, trocar o tipo de
+      // ataque de uma arma que já teve melhoria ou encanto seria revertido em
+      // silêncio no save. Reescrever a lista inteira com os MESMOS ids preserva
+      // o override de `damageAttribute` por modo, que o pipeline reaplica.
+      next.baseArremesso = purposeFields.arremesso ?? false;
+      next.baseSpecialActions = purposeFields.specialActions ?? [];
+    } else if (item.specialActions && item.specialActions.length > 0) {
       next.specialActions = item.specialActions.map((action) => {
         const damageOverride = form.actionDamageAttributes[action.id];
         const attackOverride = form.actionAttackAttributes?.[action.id];

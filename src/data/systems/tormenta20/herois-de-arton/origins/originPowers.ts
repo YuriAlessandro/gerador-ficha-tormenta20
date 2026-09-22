@@ -1,4 +1,7 @@
-import { OriginPower } from '../../../../../interfaces/Poderes';
+import {
+  GeneralPowerType,
+  OriginPower,
+} from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 
 export const ORIGIN_POWER_TYPE = 'ORIGEM';
@@ -112,8 +115,54 @@ const heroisArtonOriginPowers: Record<string, OriginPower> = {
   CITADINO_ABASTADO: {
     name: 'Citadino Abastado',
     description:
-      'Você é treinado em Nobreza e em um Ofício a sua escolha. Se estiver em uma cidade grande, pode gastar T$ 10 x seu nível para aprender algum conhecimento local útil. Se fizer isso, escolha um poder de combate, de destino ou de uma de suas classes cujos pré-requisitos você cumpra. Até o fim da aventura, você pode usar o poder escolhido por uma cena.',
+      'Você é treinado em Nobreza e em um Ofício a sua escolha. Se estiver em uma cidade grande, pode gastar T$ 10 x seu nível para aprender algum conhecimento local útil. Se fizer isso, escolha um poder de combate, de destino ou de uma de suas classes cujos pré-requisitos você cumpra. Até o fim da aventura, ou até usar esta habilidade novamente, você pode usar o poder escolhido por uma cena. (O poder escolhido fica registrado na ficha; troque-o pelo editor de poderes ou ao subir de nível quando usar a habilidade de novo.)',
     type: ORIGIN_POWER_TYPE,
+    // "…ou até usar esta habilidade novamente": a escolha é refeita a cada
+    // aventura, então o assistente reabre a cada subida de nível.
+    swappableAtLevelUp: true,
+    sheetActions: [
+      {
+        source: { type: 'origin', originName: 'Citadino Abastado' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: 'citadinoAbastadoPoder',
+          pick: 1,
+          options: [
+            {
+              name: 'Poder de combate ou destino',
+              text: 'Um poder de combate ou de destino cujos pré-requisitos você cumpra.',
+              sheetActions: [
+                {
+                  source: { type: 'origin', originName: 'Citadino Abastado' },
+                  action: {
+                    type: 'getGeneralPower',
+                    availablePowers: [],
+                    availableTypes: [
+                      GeneralPowerType.COMBATE,
+                      GeneralPowerType.DESTINO,
+                    ],
+                    pick: 1,
+                  },
+                },
+              ],
+            },
+            {
+              name: 'Poder de classe',
+              text: 'Um poder de uma de suas classes cujos pré-requisitos você cumpra.',
+              sheetActions: [
+                {
+                  source: { type: 'origin', originName: 'Citadino Abastado' },
+                  // Diferente do Cosmopolita: o livro não põe cláusula de
+                  // nível e a escolha é refeita a cada aventura, então a oferta
+                  // acompanha o nível atual do personagem.
+                  action: { type: 'getClassPower', levelSource: 'sheet' },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
   },
   COCHEIRO: {
     name: 'Cocheiro',

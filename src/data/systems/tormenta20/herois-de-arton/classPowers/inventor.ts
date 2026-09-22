@@ -3,6 +3,14 @@ import { RequirementType } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 
+/**
+ * Nome do poder que faz Ofício (Artesão) valer por qualquer outro Ofício.
+ * Exportado porque os dois avaliadores de requisito (`functions/powers.ts` e
+ * `functions/powers/requirementEvaluation.ts`) precisam procurar por ele na
+ * ficha — antes era uma string solta duplicada nos dois arquivos.
+ */
+export const ARTESAO_CRIATIVO = 'Artesão Criativo';
+
 const INVENTOR_POWERS: ClassPower[] = [
   {
     name: 'Alquimista Exímio',
@@ -39,7 +47,7 @@ const INVENTOR_POWERS: ClassPower[] = [
     requirements: [[{ type: RequirementType.PODER, name: 'Engenhoqueiro' }]],
   },
   {
-    name: 'Artesão Criativo',
+    name: ARTESAO_CRIATIVO,
     text: 'Você pode usar Ofício (artesão) no lugar de qualquer outro Ofício para qualquer fim (como pré-requisitos, por exemplo).',
     requirements: [
       [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ARTESANATO }],
