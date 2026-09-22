@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            21/09/2026 (v4.33).
+            22/09/2026 (v4.33).
           </p>
 
           <p>
@@ -273,6 +273,16 @@ const Changelog: React.FC = () => {
                   inicial no assistente, em vez de receber sempre a pesada — o
                   livro permite, não obriga. A ficha aleatória continua dando a
                   pesada.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os filtros de magias agora aceitam{' '}
+                  <strong>várias opções ao mesmo tempo</strong>: dá para marcar
+                  mais de uma <strong>escola</strong>, <strong>círculo</strong>{' '}
+                  ou <strong>execução</strong> e combinar tudo — por exemplo,
+                  ver só as magias de 2º círculo das três escolas que você pode
+                  aprender. Vale para a lista de magias, para a escolha de
+                  magias na criação, ao subir de nível e na edição da ficha, e
+                  para os filtros da aba de magias da ficha.
                 </li>
                 <li>
                   <strong>Correção:</strong> A origem{' '}
