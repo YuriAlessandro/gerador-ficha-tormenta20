@@ -13,7 +13,10 @@ import {
   Tooltip,
 } from '@mui/material';
 import { SpellSchool } from '@/interfaces/Spells';
-import { SpellFilterState } from '@/components/SpellPicker/spellFilters';
+import {
+  SpellFilterState,
+  toggleInArray,
+} from '@/components/SpellPicker/spellFilters';
 import {
   CHIP_SCROLLER_SX,
   FILTER_CHIP_SX,
@@ -113,12 +116,12 @@ const SpellsToolbar: React.FC<SpellsToolbarProps> = ({
             label='Todos'
             size='small'
             sx={FILTER_CHIP_SX}
-            color={filters.circle === 'all' ? 'primary' : 'default'}
-            variant={filters.circle === 'all' ? 'filled' : 'outlined'}
-            onClick={() => onFiltersChange({ ...filters, circle: 'all' })}
+            color={filters.circles.length === 0 ? 'primary' : 'default'}
+            variant={filters.circles.length === 0 ? 'filled' : 'outlined'}
+            onClick={() => onFiltersChange({ ...filters, circles: [] })}
           />
           {circleOptions.map((option) => {
-            const active = filters.circle === option.circle;
+            const active = filters.circles.includes(option.circle);
             return (
               <Chip
                 key={option.circle}
@@ -130,7 +133,7 @@ const SpellsToolbar: React.FC<SpellsToolbarProps> = ({
                 onClick={() =>
                   onFiltersChange({
                     ...filters,
-                    circle: active ? 'all' : option.circle,
+                    circles: toggleInArray(filters.circles, option.circle),
                   })
                 }
               />
