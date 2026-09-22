@@ -409,6 +409,21 @@ const Changelog: React.FC = () => {
                   realmente adiciona — algumas contagens de poderes, origens e
                   magias estavam desatualizadas.
                 </li>
+                <li>
+                  <strong>Correção:</strong> No assistente de criação, o poder
+                  geral do <strong>Poder da Complicação</strong>, do{' '}
+                  <strong>Já Vi Coisas</strong> (idade) e do{' '}
+                  <strong>Propósito de Criação</strong> do Golem agora pode ser
+                  um <strong>poder concedido</strong> da sua divindade. O
+                  Propósito de Criação também passou a oferecer os{' '}
+                  <strong>poderes de raça</strong> que você pode pegar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Um poder concedido que você já tem
+                  pela devoção não aparece mais de novo como opção ao subir de
+                  nível ou em escolhas como <strong>Versátil</strong>, evitando
+                  o mesmo poder duas vezes na ficha.
+                </li>
               </ul>
 
               <h3>4.32.2</h3>
