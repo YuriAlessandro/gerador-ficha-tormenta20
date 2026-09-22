@@ -1,8 +1,8 @@
 /**
  * Ambição Herdada (Meio-Elfo) concede um poder geral OU um poder único de
  * origem. Quando é um poder de origem, ele passa a morar em `origin.powers` —
- * lista que `applyPowerGetters` aplica ANTES das habilidades de raça em todo
- * recálculo. Aplicar os efeitos de novo dentro da habilidade duplicaria os
+ * lista que `recalculateSheet` aplica no Step 7, DEPOIS das habilidades de raça
+ * (Step 4). Aplicar os efeitos de novo dentro da habilidade duplicaria os
  * `sheetBonuses` (o caso que apareceu: +3 PM do Coração Heroico contado duas
  * vezes no nível 1).
  */
@@ -50,6 +50,33 @@ describe('Ambição Herdada (Meio-Elfo) com poder de origem', () => {
     const result = recalculateSheet(sheet);
 
     expect(result.pm).toBe(basePM + 3);
+    expect(
+      result.sheetBonuses.filter(
+        (bonus) =>
+          bonus.target.type === 'PM' &&
+          bonus.source.type === 'power' &&
+          bonus.source.name === 'Coração Heroico'
+      )
+    ).toHaveLength(1);
+  });
+
+  it('poder ainda fora de `origin.powers` entra na lista e conta uma vez', () => {
+    // Caminho do assistente de criação: a Ambição roda antes de a origem ser
+    // montada, então o primeiro `recalculateSheet` chega com a escolha
+    // armazenada mas `origin.powers` sem o poder. Ele precisa ser adicionado à
+    // lista e aplicado só pelo Step 7 — aplicar aqui também dava PM 10.
+    const basePM = baselinePM();
+
+    const sheet = makeMeioElfoSheet([]);
+    sheet.meioElfoAmbicaoType = 'originPower';
+    sheet.meioElfoAmbicaoPower = 'Coração Heroico';
+
+    const result = recalculateSheet(sheet);
+
+    expect(result.pm).toBe(basePM + 3);
+    expect(result.origin?.powers.map((power) => power.name)).toContain(
+      'Coração Heroico'
+    );
     expect(
       result.sheetBonuses.filter(
         (bonus) =>
