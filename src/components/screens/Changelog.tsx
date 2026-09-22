@@ -467,6 +467,25 @@ const Changelog: React.FC = () => {
                   prontas. O luminar é um parceiro próprio, então não há tipo de
                   parceiro para escolher.
                 </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Meio-Elfo</strong> que
+                  escolhia um poder de origem pela{' '}
+                  <strong>Ambição Herdada</strong> recebia os bônus desse poder
+                  em dobro — com <strong>Coração Heroico</strong>, eram +6 PM no
+                  nível 1 em vez de +3. Agora o bônus conta uma vez só, tanto na
+                  geração aleatória quanto no assistente de criação.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Magias de{' '}
+                  <strong>Ameaças de Arton</strong>: o{' '}
+                  <strong>Açoite Flamejante</strong> tinha um aprimoramento que
+                  era do Dardo Gélido e ganhou os três corretos; o{' '}
+                  <strong>Jato Corrosivo</strong> ganhou os dois aprimoramentos
+                  que faltavam; a <strong>Katana Celestial</strong> recuperou o
+                  trecho do corte em &quot;V&quot; na descrição; e o{' '}
+                  <strong>Momento de Tormenta</strong> passa a ser ação de
+                  movimento e perdeu um componente material que não era dele.
+                </li>
               </ul>
 
               <h3>4.32.2</h3>
