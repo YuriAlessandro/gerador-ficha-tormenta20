@@ -424,6 +424,17 @@ const Changelog: React.FC = () => {
                   nível ou em escolhas como <strong>Versátil</strong>, evitando
                   o mesmo poder duas vezes na ficha.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Personagens novos nasciam com{' '}
+                  <strong>PV e PM atuais abaixo do máximo</strong> — um paladino
+                  com Carisma 4 começava em 3/7 PM, às vezes com PM temporário
+                  que ninguém concedeu. Agora a ficha nasce cheia, e o PV/PM
+                  ganho ao <strong>subir de nível</strong> ou com{' '}
+                  <strong>Aumento de Atributo</strong> entra direto no atual,
+                  sem curar o que já estava gasto. Curar acima do máximo pelos
+                  botões de <strong>+</strong> também passou a virar{' '}
+                  <strong>pontos temporários</strong>.
+                </li>
               </ul>
 
               <h3>4.32.2</h3>
