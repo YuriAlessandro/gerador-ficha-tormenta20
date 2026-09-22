@@ -458,6 +458,15 @@ const Changelog: React.FC = () => {
                   <strong>Cego</strong> agora pune só as perícias de Força e
                   Destreza.
                 </li>
+                <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Companheiro Celeste</strong> (Lena e Marah) agora
+                  explica o que o <strong>luminar</strong> faz: uma vez por
+                  rodada, gastar 1 PM para curar 2d4 PV ou causar 2d4 de dano
+                  não letal de luz. O poder também ganhou as duas rolagens
+                  prontas. O luminar é um parceiro próprio, então não há tipo de
+                  parceiro para escolher.
+                </li>
               </ul>
 
               <h3>4.32.2</h3>
