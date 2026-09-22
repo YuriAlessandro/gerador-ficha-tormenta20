@@ -17,6 +17,7 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import { isPowerAvailable } from '@/functions/powers';
 import { GeneralPower, GeneralPowerType } from '@/interfaces/Poderes';
 import { ClassDescription } from '@/interfaces/Class';
+import Divindade from '@/interfaces/Divindade';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import Skill from '@/interfaces/Skills';
@@ -31,22 +32,51 @@ interface PropositoCriacaoStepProps {
   race?: Race;
   sexForAttributes?: 'Masculino' | 'Feminino'; // Dimorfismo sexual (ex: Nagah)
   classe?: ClassDescription;
+  /**
+   * Devoção escolhida no formulário. Sem ela o requisito DEVOTO nunca passa e
+   * a seção de Poderes Concedidos some — é o que permite ao devoto gastar o
+   * poder do Propósito de Criação num poder concedido.
+   */
+  deity?: Divindade | null;
+  /** Devoção Dupla (Sincretismos de Arton): NOME da segunda divindade. */
+  secondaryDeityName?: string;
+  /** Poderes concedidos já escolhidos no passo "Poderes da Divindade". */
+  deityPowers?: GeneralPower[];
   usedSkills: Skill[];
   supplements: SupplementId[];
 }
 
+/**
+ * "Recebe um poder geral a sua escolha" (Propósito de Criação): poder de raça e
+ * poder concedido também são poderes gerais, então entram na lista — quem
+ * fecha o acesso a eles é o requisito (RACA / DEVOTO), não a categoria.
+ */
 const VALID_POWER_TYPES = [
   GeneralPowerType.COMBATE,
   GeneralPowerType.DESTINO,
   GeneralPowerType.MAGIA,
+  GeneralPowerType.CONCEDIDOS,
   GeneralPowerType.TORMENTA,
+  GeneralPowerType.RACA,
+];
+
+/**
+ * Tipos fechados por requisito: exibir os indisponíveis só encheria a lista com
+ * poderes de outras raças e de outros deuses. Mesmo critério do LevelUpWizard e
+ * do passo de poder da complicação.
+ */
+const HIDE_WHEN_UNAVAILABLE = [
+  GeneralPowerType.RACA,
+  GeneralPowerType.CONCEDIDOS,
 ];
 
 const POWER_TYPE_LABELS: Record<string, string> = {
   [GeneralPowerType.COMBATE]: 'Poderes de Combate',
   [GeneralPowerType.DESTINO]: 'Poderes de Destino',
   [GeneralPowerType.MAGIA]: 'Poderes de Magia',
+  [GeneralPowerType.CONCEDIDOS]: 'Poderes Concedidos',
   [GeneralPowerType.TORMENTA]: 'Poderes da Tormenta',
+  [GeneralPowerType.RACA]: 'Poderes de Raça',
 };
 
 const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
@@ -57,6 +87,9 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
   race,
   sexForAttributes,
   classe,
+  deity,
+  secondaryDeityName,
+  deityPowers,
   usedSkills,
   supplements,
 }) => {
@@ -106,6 +139,13 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
       raca: race,
       spells: [],
       sheetActionHistory: [],
+      devoto: deity
+        ? {
+            divindade: deity,
+            divindadeSecundaria: secondaryDeityName,
+            poderes: deityPowers ?? [],
+          }
+        : undefined,
     } as unknown as CharacterSheet;
   }, [
     baseAttributes,
@@ -114,6 +154,9 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
     raceAttributes,
     usedSkills,
     classe,
+    deity,
+    secondaryDeityName,
+    deityPowers,
   ]);
 
   // Get all general powers and group by type
@@ -128,11 +171,20 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
       { power: GeneralPower; available: boolean }[]
     > = {};
 
+    // Poder concedido já escolhido no passo da divindade não pode ser pego de
+    // novo aqui — seria o mesmo poder duas vezes na ficha.
+    const alreadyGranted = new Set(
+      (deityPowers ?? []).filter((p) => !p.canRepeat).map((p) => p.name)
+    );
+
     filtered.forEach((power) => {
+      const available =
+        !alreadyGranted.has(power.name) &&
+        (mockSheet ? isPowerAvailable(mockSheet, power) : true);
+      if (HIDE_WHEN_UNAVAILABLE.includes(power.type) && !available) return;
       if (!grouped[power.type]) {
         grouped[power.type] = [];
       }
-      const available = mockSheet ? isPowerAvailable(mockSheet, power) : true;
       grouped[power.type].push({ power, available });
     });
 
@@ -145,7 +197,7 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
     });
 
     return grouped;
-  }, [supplements, mockSheet]);
+  }, [supplements, mockSheet, deityPowers]);
 
   const normalizedFilter = normalizeSearch(searchFilter.trim());
 

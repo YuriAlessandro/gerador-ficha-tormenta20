@@ -142,7 +142,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     const categories: SpellCategory[] = [];
 
     for (let circle = 1; circle <= 5; circle += 1) {
-      if (filters.circle !== 'all' && filters.circle !== circle) {
+      if (filters.circles.length && !filters.circles.includes(circle)) {
         // eslint-disable-next-line no-continue
         continue;
       }

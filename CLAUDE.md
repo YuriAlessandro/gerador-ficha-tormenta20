@@ -78,7 +78,7 @@ npm start           # Start Vite dev server at localhost:5173
 npm run build       # Build for production
 ```
 
-Frontend é deployado automaticamente no **Cloudflare Pages** a cada push em `main`, via GitHub Actions (`.github/workflows/deploy-frontend.yml`).
+Frontend é deployado automaticamente no **Cloudflare Pages** a cada merge na branch `production`, via GitHub Actions (`.github/workflows/deploy-frontend.yml`). **Push em `main` não publica nada** — ver "Fluxo de deploy" abaixo.
 
 ### Backend Development
 
@@ -175,11 +175,24 @@ npx prettier --check <filename>  # Check if files are formatted
 
 ### Infraestrutura
 
-- **Frontend** (este repo): **Cloudflare Pages**, projeto `fichas-frontend`. Push em `main` → GitHub Actions (`.github/workflows/deploy-frontend.yml`) faz `npm run build` e publica via `wrangler pages deploy` (Direct Upload). A integração Git nativa do Pages **não serve**: não clona submódulo privado, e o build depende de `src/premium`.
-- **Backend** (`/backend` submodule): Fly.io `fichas-backend` em região `gru` (São Paulo) — `shared-cpu-2x` 1GB, 1 machine, `auto_stop_machines=off`. Deploy automatizado via GitHub Actions (`.github/workflows/fly-deploy.yml`) no repo do backend. Runbook completo em `backend/docs/runbook.md`.
+- **Frontend** (este repo): **Cloudflare Pages**, projeto `fichas-frontend`. Merge em `production` → GitHub Actions (`.github/workflows/deploy-frontend.yml`) faz `npm run build` e publica via `wrangler pages deploy` (Direct Upload). A integração Git nativa do Pages **não serve**: não clona submódulo privado, e o build depende de `src/premium`.
+- **Backend** (`/backend` submodule): Fly.io `fichas-backend` em região `gru` (São Paulo) — `shared-cpu-2x` 1GB, 1 machine, `auto_stop_machines=off`. Deploy automatizado via GitHub Actions (`.github/workflows/fly-deploy.yml`) no repo do backend, a cada merge em `production`. Runbook completo em `backend/docs/runbook.md`.
 - **Banco**: MongoDB Atlas (externo, fora do GCP).
 - **Auth**: Firebase Auth (no projeto GCP `fichas-de-nimb`). **É a única coisa que ainda vive no GCP** — todo o resto foi decomissionado em 08/08/2026. Não apagar o projeto.
 - **Pagamentos**: Stripe — webhooks vão direto pra `https://fichas-backend.fly.dev/api/webhooks/stripe`.
+
+#### Fluxo de deploy (branch `production`)
+
+Frontend e backend publicam a partir da branch **`production`**, não da `main`. A `main` é branch de integração: pode receber push e PRs à vontade sem ir para o ar.
+
+- **Deploy** = abrir PR `main → production` e mergear com **"Create a merge commit"**. O diff do PR é exatamente o que vai subir.
+- **Só merge commit.** Squash/rebase criam SHAs novos na `production`, e o PR seguinte volta a mostrar commits já publicados e passa a conflitar. O ruleset do frontend só oferece merge commit.
+- **Nunca clicar em "Update branch"** no PR `main → production`: isso mergeia `production` na `main`.
+- **Proteção**: no frontend (repo público), ruleset na `production` — só PR, só merge commit, CI `ci/circleci: build` verde, sem force push/deleção, sem bypass nem para admin. No backend (repo privado, plano Free não tem ruleset), o workflow tem o passo "Exigir merge de PR": push direto em `production` não é bloqueado, mas **não faz deploy** (job vermelho).
+- **Deploy casado**: quando o contrato da API muda, mergear o PR do backend primeiro e o do frontend depois.
+- **Hotfix**: commit na `main` e PR normal. Se a `main` tiver coisa que não pode subir, branch a partir de `production` → PR para `production` → depois mergear `production` de volta na `main`.
+- `--branch=main` no `wrangler pages deploy` é o rótulo de production branch do projeto Pages, não a branch do Git — não trocar.
+- Submódulo premium não tem deploy próprio: o build usa o commit fixado no gitlink, então o premium precisa estar pushado antes do merge.
 
 #### Serving layer (o que era o nginx do Cloud Run)
 

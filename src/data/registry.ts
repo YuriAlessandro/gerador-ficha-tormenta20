@@ -455,10 +455,21 @@ class DataRegistry {
               : baseClass.powers.filter(
                   (p) => !(variant.excludedPowers || []).includes(p.name)
                 );
+            // Poderes de suplemento endereçados à PRÓPRIA variante (ex.: um
+            // pacote homebrew com `targetClass: 'Alquimista'`). Entram depois
+            // de `excludedPowers`/`excludeAllBasePowers` de propósito: esses
+            // campos falam dos poderes herdados da base, não de um poder
+            // escrito explicitamente para a variante.
+            const variantOwnSupplementPowers =
+              additionalClassPowers[variant.name as ClassNames] || [];
             variantClasses.push({
               ...baseClass,
               ...variant,
-              powers: [...inheritedPowers, ...(variant.powers || [])],
+              powers: [
+                ...inheritedPowers,
+                ...(variant.powers || []),
+                ...variantOwnSupplementPowers,
+              ],
             });
           }
         });
@@ -553,10 +564,18 @@ class DataRegistry {
             : baseClass.powers.filter(
                 (p) => !(variant.excludedPowers || []).includes(p.name)
               );
+          // Ver comentário em `getClassesBySupplements`: poderes de suplemento
+          // endereçados à própria variante também entram.
+          const variantOwnSupplementPowers =
+            additionalClassPowers[variant.name as ClassNames] || [];
           classesWithInfo.push({
             ...baseClass,
             ...variant,
-            powers: [...inheritedPowers, ...(variant.powers || [])],
+            powers: [
+              ...inheritedPowers,
+              ...(variant.powers || []),
+              ...variantOwnSupplementPowers,
+            ],
             supplementId,
             supplementName,
           });

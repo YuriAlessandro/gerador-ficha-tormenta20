@@ -7,6 +7,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
+import { migrateLegacyOficioArtesao } from './migrateSheet';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { dataRegistry } from '../data/registry';
@@ -22,9 +23,11 @@ import {
   CENTAURO_REFRESHED_DESCRIPTIONS,
   CENTAURO_REFRESHED_PREREQ_HOOKS,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/centauro';
+import { HOBGOBLIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/hobgoblin';
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
+import { getBaseAgeStage, getBaseAgeStageForYears } from './ages';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import { RETIRED_ACTIVE_POWER_KEYS } from '../premium/data/activePowers';
 import { CustomPower } from '../interfaces/CustomPower';
@@ -116,6 +119,7 @@ function refreshPowerBonuses<
 const REFRESHED_DESCRIPTIONS_BY_NAME = new Map<string, string>([
   ...Object.entries(KAIJIN_REFRESHED_DESCRIPTIONS),
   ...Object.entries(CENTAURO_REFRESHED_DESCRIPTIONS),
+  ...Object.entries(HOBGOBLIN_REFRESHED_DESCRIPTIONS),
 ]);
 
 function refreshDescription<T extends { name: string; description?: string }>(
@@ -700,6 +704,15 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   }
 
   if (!Array.isArray(sheet.skills)) sheet.skills = [];
+
+  // Exceção consciente ao "só preenche o que falta": renomear valor LEGADO não
+  // é sobrescrever dado do usuário, é a mesma perícia com o nome do livro.
+  // Precisa rodar aqui (e não só em `migrateSheet`, que o Histórico e Meus
+  // Personagens chamam) porque ficha da nuvem/embed/mesa virtual só passa por
+  // `normalizeSheet` — e com o nome antigo nenhum pré-requisito de Ofício
+  // (Artesão) casava, quebrando também a substituição do Artesão Criativo.
+  migrateLegacyOficioArtesao(sheet);
+
   if (!Array.isArray(sheet.spells)) sheet.spells = [];
   if (!Array.isArray(sheet.generalPowers)) sheet.generalPowers = [];
   if (!Array.isArray(sheet.sheetBonuses)) sheet.sheetBonuses = [];
@@ -739,9 +752,29 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     delete sheet.complication;
   }
 
-  // Idade com faixa etária desconhecida não resolve no catálogo — nem os
-  // bônus nem o rótulo saem de pé, então descarta o bloco inteiro.
-  if (sheet.age && !getAgeBracket(sheet.age.bracket)) {
+  // Faixa de Idades Variadas desconhecida não resolve no catálogo — nem os
+  // bônus nem o rótulo saem de pé. Só a FAIXA é descartada: a idade em anos e o
+  // estágio de envelhecimento do livro básico continuam válidos sem ela.
+  if (sheet.age?.bracket && !getAgeBracket(sheet.age.bracket)) {
+    delete sheet.age.bracket;
+    sheet.age.complications = [];
+    delete sheet.age.grantedPowerName;
+  }
+  // Estágio ausente ou inválido é reconstruído a partir dos anos — fichas
+  // gravadas antes do envelhecimento do livro básico só têm `years`.
+  if (sheet.age && !getBaseAgeStage(sheet.age.stage)) {
+    sheet.age.stage = getBaseAgeStageForYears(
+      sheet.age.years,
+      sheet.raca?.name
+    );
+  }
+  // Bloco de idade sem anos, sem faixa e sem nada a dizer é ruído: some.
+  if (
+    sheet.age &&
+    sheet.age.years === undefined &&
+    !sheet.age.bracket &&
+    !sheet.age.extraLevels
+  ) {
     delete sheet.age;
   }
   if (sheet.age && typeof sheet.age.extraLevels !== 'number') {

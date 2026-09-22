@@ -145,12 +145,34 @@ export interface ExtraDamage {
   sourceName?: string;
 }
 
-export type AmmoType =
-  | 'Flechas'
-  | 'Virotes'
-  | 'Balas'
-  | 'Pedras'
-  | 'Bola de Ferro';
+/**
+ * Tipos de munição do livro (JDA, Tabela 3-4) mais a Bola de Ferro de Heróis
+ * de Arton. São os tipos CONHECIDOS — não os únicos possíveis, ver `AmmoType`.
+ */
+export const CORE_AMMO_TYPES = [
+  'Flechas',
+  'Virotes',
+  'Balas',
+  'Pedras',
+  'Bola de Ferro',
+] as const;
+
+export type CoreAmmoType = (typeof CORE_AMMO_TYPES)[number];
+
+/**
+ * Tipo de munição. Vocabulário ABERTO: além dos cinco do livro, autores de
+ * conteúdo cunham famílias próprias ("Cartuchos a vapor", "Dardos de
+ * zarabatana") ao criar um pacote de munição, e a arma que os consome aponta
+ * para o mesmo nome.
+ *
+ * O `string & NonNullable<unknown>` (a forma do `string & {}`, escrita como a
+ * regra `ban-types` exige) é o que preserva o autocomplete dos cinco
+ * conhecidos sem fechar a união. Nada no motor faz `switch` sobre este tipo — arma e munição
+ * se encontram por igualdade de string em `findAmmoStack`, e é só isso que
+ * precisa bater. Rótulo de exibição vem de `ammoTypeLabel`, que cai no próprio
+ * valor quando o tipo não é um dos conhecidos.
+ */
+export type AmmoType = CoreAmmoType | (string & NonNullable<unknown>);
 
 /**
  * Atributo aplicável a uma arma (no teste de ataque ou na rolagem de dano).

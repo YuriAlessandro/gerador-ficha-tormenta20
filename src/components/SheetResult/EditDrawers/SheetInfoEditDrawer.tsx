@@ -49,10 +49,20 @@ import {
 import {
   modifyAttributesBasedOnRace,
   applyManualLevelUp,
+  applyMaxPointsGainToCurrent,
 } from '@/functions/general';
 import { getTradicaoPerdidaPmCap } from '@/functions/powers/general';
 import getNameSuggestions from '@/functions/nameSuggestions';
+import {
+  getAgeAttributeTotalsDelta,
+  getBaseAgeStageForYears,
+} from '@/functions/ages';
+import { getAgeBracket } from '@/premium/functions/ages';
+import { AgeComplicationsStep } from '@/premium/components/Ages';
+import AgeField, { AgeSelection } from '@/components/common/AgeField';
+import type { AgeComplication, SheetAge } from '@/interfaces/Age';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
+import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import { SupplementId } from '@/types/supplement.types';
 import {
   MOREAU_HERITAGES,
@@ -75,6 +85,7 @@ import {
   getSuragelAbilityChoiceAction,
   getSuragelDefaultAbilityName,
 } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import { getDeityClassVariant } from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
 import {
   DUENDE_SIZES,
   DUENDE_SIZE_NAMES,
@@ -185,6 +196,17 @@ interface SheetInfoEditDrawerProps {
   onSave: (updates: Partial<CharacterSheet> | CharacterSheet) => void;
 }
 
+/** Estado de idade da ficha traduzido para o formato do campo de edição. */
+function seedAge(sheet: CharacterSheet): AgeSelection {
+  return {
+    years: sheet.age?.years,
+    stage: sheet.age?.stage,
+    variedAges: !!sheet.age?.bracket,
+    bracket: sheet.age?.bracket,
+    deathByOldAge: sheet.optionalRules?.deathByOldAge,
+  };
+}
+
 interface EditedData {
   nome: string;
   nivel: number;
@@ -204,6 +226,11 @@ interface EditedData {
   duendeTabuSkill: string | undefined; // For Duende (skill with -5 penalty)
   duendeBonusAttributes: Atributo[] | undefined; // For Duende (Dons +1 attrs; 3rd entry only when Animal)
   className: string;
+  /**
+   * Variante de classe por divindade (Deuses de Arton): nome da habilidade
+   * alternativa escolhida. `undefined` = habilidade padrão do livro básico.
+   */
+  deityClassAbility: string | undefined;
   originName: string;
   deityName: string;
   /** Devoção Dupla: nome da segunda divindade ('' = devoção simples). */
@@ -221,6 +248,15 @@ interface EditedData {
   manualMaxPM: number | undefined; // Manual max PM override
   tradicaoPerdidaPmAttribute: Atributo | undefined; // Tradição Perdida: atributo do PM (undefined = atributo da classe)
   imageUrl: string;
+  /**
+   * Idade. O envelhecimento do livro básico (T20, p. 108) vale para toda
+   * ficha, então este campo vive aqui, junto de nome e gênero, e não atrás de
+   * suplemento. As Idades Variadas de Heróis de Arton entram pelo interruptor
+   * do próprio campo, quando a conta tem acesso.
+   */
+  age: AgeSelection;
+  /** Complicações de idade escolhidas (só com Idades Variadas ligadas). */
+  ageComplications: AgeComplication[];
   // Só em fichas multiclasse: distribuição de níveis por classe, editável campo
   // a campo. `nivel` acompanha o total.
   classLevels: ClassLevelEntry[] | undefined;
@@ -282,6 +318,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   onSave,
 }) => {
   const sheetIsMulticlass = isMulticlass(sheet);
+  const variedAgesAvailable = useOptionalRulesAvailable();
 
   // A Tradição Perdida só faz sentido para conjuradores (a contribuição de PM do
   // atributo-chave vem da habilidade "Magias"). Mostra o seletor só quando a
@@ -363,6 +400,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         ? getSeedDuendeBonusAttributes(sheet)
         : sheet.raceAttributeChoices,
     className: sheet.classe.name,
+    deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name || '',
     secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
@@ -378,6 +416,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     manualMaxPM: sheet.manualMaxPM,
     tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
     imageUrl: sheet.imageUrl || '',
+    age: seedAge(sheet),
+    ageComplications: sheet.age?.complications ?? [],
     classLevels: sheet.classLevels,
   });
 
@@ -396,6 +436,46 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sincretismo: editedData.sincretismoName || undefined,
     };
   };
+
+  /**
+   * Idade a gravar, montada a cada render a partir do que está editado.
+   *
+   * O ESTÁGIO é recalculado a partir dos anos e da raça EDITADA, e não do que
+   * está gravado: trocar a raça muda a escala dos marcos, e um humano de 50
+   * anos que vira elfo deixa de ser Maduro. Sem isso, a troca de raça manteria
+   * um estágio que a nova longevidade não justifica.
+   */
+  /**
+   * Complicações de idade que a faixa exige DESTA ficha.
+   *
+   * O Adulto é o único caso condicional: "Já Vi Coisas" é opcional, e a
+   * complicação só é cobrada de quem levou o poder. Fora da criação não há como
+   * conceder esse poder, então quem não o tem não deve nada — cobrar mesmo
+   * assim deixava o Salvar permanentemente desabilitado numa ficha Adulto sem o
+   * poder, travando até a edição do nome.
+   */
+  const ageOptionalPowerTaken = !!sheet.age?.grantedPowerName;
+  const ageBracketData = getAgeBracket(editedData.age.bracket);
+  const requiredAgeComplications =
+    ageBracketData?.optionalGeneralPower && !ageOptionalPowerTaken
+      ? 0
+      : ageBracketData?.requiredComplications ?? 0;
+
+  const nextAge: SheetAge = {
+    years: editedData.age.years,
+    stage: getBaseAgeStageForYears(editedData.age.years, editedData.raceName),
+    bracket: editedData.age.bracket,
+    complications: editedData.age.bracket ? editedData.ageComplications : [],
+    grantedPowerName: sheet.age?.grantedPowerName,
+    // Preservado: o nível já foi construído com base nele.
+    extraLevels: sheet.age?.extraLevels ?? 0,
+  };
+
+  const ageAttributeDelta = getAgeAttributeTotalsDelta(sheet.age, nextAge);
+  const ageChanged =
+    ageAttributeDelta.length > 0 ||
+    !_.isEqual(seedAge(sheet), editedData.age) ||
+    !_.isEqual(sheet.age?.complications ?? [], editedData.ageComplications);
 
   // State for image preview error
   const [imagePreviewError, setImagePreviewError] = useState(false);
@@ -468,6 +548,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           ? getSeedDuendeBonusAttributes(sheet)
           : sheet.raceAttributeChoices,
       className: sheet.classe.name,
+      deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
       secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
@@ -483,6 +564,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
+      age: seedAge(sheet),
+      ageComplications: sheet.age?.complications ?? [],
       classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
@@ -526,6 +609,30 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
 
   // Escolha embutida da herança de Suraggel selecionada (se houver)
+  /**
+   * Variante de classe por divindade (Deuses de Arton) aplicável à combinação
+   * classe × divindade ATUALMENTE editada — hoje só "Paladino de Marah".
+   *
+   * Só a troca de habilidade é editável depois da criação: as perícias iniciais
+   * já foram gravadas em `sheet.pericias` e mexer nelas aqui seria uma segunda
+   * regra de negócio, não uma edição.
+   */
+  const deityClassVariant = useMemo(
+    () =>
+      getDeityClassVariant(
+        [editedData.deityName, editedData.secondaryDeityName].filter(Boolean),
+        CLASSES.find((c) => c.name === editedData.className),
+        userSupplements
+      ),
+    [
+      editedData.deityName,
+      editedData.secondaryDeityName,
+      editedData.className,
+      CLASSES,
+      userSupplements,
+    ]
+  );
+
   const suragelAbilityChoiceAction = getSuragelAbilityChoiceAction(
     editedData.suragelAbility
   );
@@ -836,6 +943,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updatedSheet = applyManualLevelUp(updatedSheet, sel);
     });
     updatedSheet = recalculateSheet(updatedSheet);
+    // Os PV/PM ganhos no nível novo entram cheios também no atual.
+    updatedSheet = applyMaxPointsGainToCurrent(sheet, updatedSheet);
     onSave(updatedSheet);
     onClose();
   };
@@ -904,6 +1013,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceEnergySource: editedData.raceEnergySource,
       raceSizeCategory: editedData.raceSizeCategory,
       suragelAbility: editedData.suragelAbility,
+      // A variante deixa de valer se a classe ou a divindade mudarem: sem o
+      // gate a escolha ficaria órfã na ficha e o recálculo a ignoraria em
+      // silêncio, dando a impressão de que a edição não salvou.
+      deityClassChoices: deityClassVariant
+        ? {
+            ...sheet.deityClassChoices,
+            alternativeAbility: editedData.deityClassAbility,
+          }
+        : undefined,
       duendeNature: editedData.duendeNature,
       duendePresentes: editedData.duendePresentes,
       duendeTabuSkill: editedData.duendeTabuSkill,
@@ -1590,7 +1708,57 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       (editedData.suragelAbility !== sheet.suragelAbility ||
         editedData.suragelAbilityChoice !== getSeedSuragelAbilityChoice(sheet));
 
+    // Idade. Roda por ÚLTIMO entre as mudanças de atributo porque o caminho de
+    // troca de raça reescreve `updates.atributos` inteiro — o delta da idade
+    // precisa cair em cima do resultado final, não ser sobrescrito por ele.
+    //
+    // Os modificadores de idade são permanentes e já estão somados em
+    // `atributos`, então só a DIFERENÇA entre o total antigo e o novo se
+    // aplica; comparar totais também cobre ligar ou desligar Idades Variadas
+    // numa ficha pronta, em que as duas pontas usam tabelas diferentes.
+    if (ageChanged) {
+      if (ageAttributeDelta.length > 0) {
+        const withAge = { ...(updates.atributos ?? editedData.attributes) };
+        ageAttributeDelta.forEach(({ attribute, value }) => {
+          withAge[attribute] = {
+            ...withAge[attribute],
+            value: withAge[attribute].value + value,
+          };
+        });
+        updates.atributos = withAge;
+
+        newSteps.push({
+          label: 'Edição Manual - Idade',
+          type: 'Atributos',
+          value: ageAttributeDelta.map(({ attribute, value }) => ({
+            name: attribute,
+            value: `${value > 0 ? '+' : ''}${value}`,
+          })),
+        });
+      }
+
+      // Idade em branco e sem faixa é o estado "não informado" — a ficha volta
+      // a não ter bloco de idade nenhum, como as criadas antes desta regra.
+      updates.age =
+        nextAge.years === undefined && !nextAge.bracket ? undefined : nextAge;
+
+      const optionalRules = { ...(sheet.optionalRules ?? {}) };
+      if (editedData.age.deathByOldAge) optionalRules.deathByOldAge = true;
+      else delete optionalRules.deathByOldAge;
+      updates.optionalRules =
+        Object.keys(optionalRules).length > 0 ? optionalRules : undefined;
+    }
+
+    // A troca de habilidade por divindade reescreve `classe.abilities`, que só
+    // `recalculateSheet` reconstrói. Nem Golpe Divino nem Mensagem de Paz têm
+    // `sheetActions`/`sheetBonuses`, então não há nada a reverter à mão.
+    const deityClassAbilityChanged =
+      editedData.deityClassAbility !==
+      sheet.deityClassChoices?.alternativeAbility;
+
     const shouldUseRecalculateSheet =
+      deityClassAbilityChanged ||
+      ageChanged ||
       attributesChanged ||
       raceChanged ||
       deityChanged ||
@@ -1652,6 +1820,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           ? getSeedDuendeBonusAttributes(sheet)
           : sheet.raceAttributeChoices,
       className: sheet.classe.name,
+      deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
       secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
@@ -1667,6 +1836,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
+      age: seedAge(sheet),
+      ageComplications: sheet.age?.complications ?? [],
       classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
@@ -2283,6 +2454,41 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       <MenuItem value='Outro'>Outro</MenuItem>
                     </Select>
                   </FormControl>
+
+                  <AgeField
+                    raceName={editedData.raceName}
+                    classDescription={sheet.classe}
+                    value={editedData.age}
+                    onChange={(next) =>
+                      setEditedData({
+                        ...editedData,
+                        age: next,
+                        // Mudar de faixa muda quantas complicações são
+                        // exigidas; as antigas não sobrevivem à troca.
+                        ageComplications:
+                          next.bracket === editedData.age.bracket
+                            ? editedData.ageComplications
+                            : [],
+                      })
+                    }
+                    variedAgesAvailable={
+                      variedAgesAvailable || !!sheet.age?.bracket
+                    }
+                    // Personagem já criado: a rolagem de idade inicial é uma
+                    // pergunta que já foi respondida.
+                    allowRoll={false}
+                  />
+
+                  {requiredAgeComplications > 0 && editedData.age.bracket && (
+                    <AgeComplicationsStep
+                      bracket={editedData.age.bracket}
+                      selected={editedData.ageComplications}
+                      onChange={(ageComplications) =>
+                        setEditedData({ ...editedData, ageComplications })
+                      }
+                      tookOptionalPower={ageOptionalPowerTaken}
+                    />
+                  )}
 
                   <FormControl fullWidth>
                     <InputLabel>Raça</InputLabel>
@@ -3091,6 +3297,70 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     </FormControl>
                   )}
 
+                  {/* Variante de classe por divindade (Deuses de Arton):
+                      "Paladino de Marah" troca Golpe Divino por Mensagem de Paz.
+                      Só a habilidade é editável aqui — as perícias iniciais já
+                      foram gravadas na criação. */}
+                  {deityClassVariant?.alternativeAbility && (
+                    <FormControl fullWidth>
+                      <InputLabel>
+                        Habilidade de {deityClassVariant.className} de{' '}
+                        {deityClassVariant.deity}
+                      </InputLabel>
+                      <Select
+                        value={editedData.deityClassAbility || ''}
+                        label={`Habilidade de ${deityClassVariant.className} de ${deityClassVariant.deity}`}
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            deityClassAbility: e.target.value || undefined,
+                          })
+                        }
+                      >
+                        <MenuItem value=''>
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{ alignItems: 'center' }}
+                          >
+                            <span>
+                              {deityClassVariant.alternativeAbility.replaces}
+                            </span>
+                            <Chip
+                              label='Padrão'
+                              size='small'
+                              sx={{ fontSize: '0.7rem', height: '20px' }}
+                            />
+                          </Stack>
+                        </MenuItem>
+                        <MenuItem
+                          value={
+                            deityClassVariant.alternativeAbility.ability.name
+                          }
+                        >
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{ alignItems: 'center' }}
+                          >
+                            <span>
+                              {
+                                deityClassVariant.alternativeAbility.ability
+                                  .name
+                              }
+                            </span>
+                            <Chip
+                              label='Deuses de Arton'
+                              size='small'
+                              color='primary'
+                              sx={{ fontSize: '0.65rem', height: '18px' }}
+                            />
+                          </Stack>
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+
                   <FormControl fullWidth>
                     <InputLabel>Origem</InputLabel>
                     <Select
@@ -3532,6 +3802,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               variant='contained'
               onClick={handleSave}
               disabled={
+                // A faixa etária exige um número MÍNIMO de complicações de
+                // idade; salvar no meio da escolha deixaria a ficha sem os
+                // efeitos que pagam pelos níveis extras. Comparação por `<`, e
+                // não por `!==`: uma ficha que já traz mais complicações que o
+                // exigido (homebrew, dados antigos) não tem por que travar.
+                editedData.ageComplications.length < requiredAgeComplications ||
                 (editedData.raceName === 'Moreau' &&
                   editedData.raceHeritage === 'Coruja' &&
                   !editedData.moreauSapienciaSpell) ||

@@ -3,19 +3,26 @@ import { normalizeSearch } from '@/functions/stringUtils';
 
 export interface SpellFilterState {
   search: string;
-  circle: number | 'all';
-  school: SpellSchool | 'all';
-  execution: string | 'all';
+  /** Vazio = todos os círculos. */
+  circles: number[];
+  /** Vazio = todas as escolas. */
+  schools: SpellSchool[];
+  /** Vazio = todas as execuções. */
+  executions: string[];
   spellType: 'arcane' | 'divine' | 'all';
 }
 
 export const EMPTY_SPELL_FILTERS: SpellFilterState = {
   search: '',
-  circle: 'all',
-  school: 'all',
-  execution: 'all',
+  circles: [],
+  schools: [],
+  executions: [],
   spellType: 'all',
 };
+
+/** Adiciona `value` ao array se ausente, remove se presente. */
+export const toggleInArray = <T>(arr: T[], value: T): T[] =>
+  arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
 export interface SpellFilterOptions {
   schools: SpellSchool[];
@@ -62,8 +69,9 @@ export const deriveSpellFilterOptions = (
 };
 
 /**
- * Pure filter applied to a spell list. Handles text search, circle,
- * school and execution. Arcane/divine is intentionally NOT applied here
+ * Pure filter applied to a spell list. Handles text search, circles,
+ * schools and executions (OR within each list, AND across lists; an
+ * empty list means no restriction). Arcane/divine is intentionally NOT applied here
  * — it is not a field on `Spell` and each picker resolves it at the
  * data source.
  */
@@ -83,17 +91,20 @@ export const applySpellFilters = (
     }
 
     if (
-      filters.circle !== 'all' &&
-      getCircleNumber(spell.spellCircle) !== filters.circle
+      filters.circles.length &&
+      !filters.circles.includes(getCircleNumber(spell.spellCircle))
     ) {
       return false;
     }
 
-    if (filters.school !== 'all' && spell.school !== filters.school) {
+    if (filters.schools.length && !filters.schools.includes(spell.school)) {
       return false;
     }
 
-    if (filters.execution !== 'all' && spell.execucao !== filters.execution) {
+    if (
+      filters.executions.length &&
+      !filters.executions.includes(spell.execucao)
+    ) {
       return false;
     }
 

@@ -205,19 +205,18 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
    * todos os outros e o jogador perderia a noção do que existe.
    */
   const withoutCircle = useMemo(
-    () =>
-      applyToggles(applySpellFilters(spells, { ...filters, circle: 'all' })),
+    () => applyToggles(applySpellFilters(spells, { ...filters, circles: [] })),
     [spells, filters, applyToggles]
   );
 
   const visible = useMemo(
     () =>
-      filters.circle === 'all'
+      filters.circles.length === 0
         ? withoutCircle
-        : withoutCircle.filter(
-            (s) => getCircleNumber(s.spellCircle) === filters.circle
+        : withoutCircle.filter((s) =>
+            filters.circles.includes(getCircleNumber(s.spellCircle))
           ),
-    [withoutCircle, filters.circle]
+    [withoutCircle, filters.circles]
   );
 
   const circleOptions = useMemo<CircleFilterOption[]>(
@@ -252,8 +251,8 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   }, [spells, derived]);
 
   const activeFilterCount =
-    (filters.school !== 'all' ? 1 : 0) +
-    (filters.execution !== 'all' ? 1 : 0) +
+    (filters.schools.length > 0 ? 1 : 0) +
+    (filters.executions.length > 0 ? 1 : 0) +
     (toggles.onlyWithRolls ? 1 : 0) +
     (toggles.onlyMemorized ? 1 : 0);
 
@@ -278,7 +277,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   const isEmpty = spells.length === 0;
   const showToolbar = spells.length >= TOOLBAR_MIN_SPELLS;
   const hasActiveQuery =
-    !!filters.search || filters.circle !== 'all' || activeFilterCount > 0;
+    !!filters.search || filters.circles.length > 0 || activeFilterCount > 0;
 
   return (
     <Box ref={containerRef} sx={{ minWidth: 0 }}>

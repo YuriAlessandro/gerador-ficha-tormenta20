@@ -100,9 +100,9 @@ const getCircleNumber = (spellCircle: spellsCircles): number => {
 
 interface SpellFilters {
   search: string;
-  circle: number | 'all';
-  school: string | 'all';
-  executionTime: string | 'all';
+  circles: number[];
+  schools: string[];
+  executionTimes: string[];
   spellType: 'arcane' | 'divine' | 'all';
 }
 
@@ -413,9 +413,9 @@ const UnifiedSpellsTable: React.FC = () => {
 
   const [filters, setFilters] = useState<SpellFilters>({
     search: '',
-    circle: 'all',
-    school: 'all',
-    executionTime: 'all',
+    circles: [],
+    schools: [],
+    executionTimes: [],
     spellType: 'all',
   });
 
@@ -444,20 +444,24 @@ const UnifiedSpellsTable: React.FC = () => {
     }
 
     // Circle filter
-    if (filters.circle !== 'all') {
-      const targetCircle = getSpellCircleEnum(Number(filters.circle));
-      filtered = filtered.filter((spell) => spell.spellCircle === targetCircle);
+    if (filters.circles.length) {
+      const targetCircles = filters.circles.map(getSpellCircleEnum);
+      filtered = filtered.filter((spell) =>
+        targetCircles.includes(spell.spellCircle)
+      );
     }
 
     // School filter
-    if (filters.school !== 'all') {
-      filtered = filtered.filter((spell) => spell.school === filters.school);
+    if (filters.schools.length) {
+      filtered = filtered.filter((spell) =>
+        filters.schools.includes(spell.school)
+      );
     }
 
     // Execution time filter
-    if (filters.executionTime !== 'all') {
-      filtered = filtered.filter(
-        (spell) => spell.execucao === filters.executionTime
+    if (filters.executionTimes.length) {
+      filtered = filtered.filter((spell) =>
+        filters.executionTimes.includes(spell.execucao)
       );
     }
 

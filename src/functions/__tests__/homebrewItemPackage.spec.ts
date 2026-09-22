@@ -17,6 +17,8 @@ import {
   HomebrewItemPackContent,
 } from '../../premium/interfaces/Homebrew';
 import Skill from '../../interfaces/Skills';
+import { getWeaponSkill, resolveDamageAttribute } from '../weaponSkill';
+import { isFiringWeapon } from '../weaponTraits';
 
 /**
  * Cobre o Pacote de Itens homebrew de ponta a ponta: compilação para
@@ -341,6 +343,247 @@ describe('homebrew item package', () => {
     it('rejects an empty pack', () => {
       const result = validate({ items: [] });
       expect(result.valid).toBe(false);
+    });
+  });
+});
+
+/**
+ * Armas de disparo autorais: o autor escolhe "Tipo de ataque" e "Munição" no
+ * editor, e todo o resto — Pontaria, dano sem atributo, contador de munição —
+ * cai por derivação dos campos que o compilador grava.
+ */
+describe('homebrew item package — armas de disparo e munição', () => {
+  const SOURCE_ID = 'homebrew:test-ranged';
+
+  const rangedContent: HomebrewItemPackContent = {
+    items: [
+      {
+        category: 'weapon',
+        name: 'Arco do Testador',
+        price: 80,
+        spaces: 2,
+        damage: '1d6',
+        critMultiplier: 3,
+        threatMargin: 20,
+        damageType: 'Perfuração',
+        weaponCategory: 'martial',
+        range: 'Médio',
+        ammoType: 'Flechas',
+        twoHanded: true,
+      },
+      {
+        category: 'ammo',
+        name: 'Flechas élficas (10)',
+        description: 'Hastes leves de madeira-canção.',
+        price: 40,
+        spaces: 1,
+        ammoType: 'Flechas',
+        ammoPackSize: 10,
+        ammoUnitsPerSpace: 10,
+      },
+      {
+        category: 'weapon',
+        name: 'Azagaia do Testador',
+        price: 5,
+        spaces: 1,
+        damage: '1d6',
+        critMultiplier: 2,
+        threatMargin: 20,
+        damageType: 'Perfuração',
+        weaponCategory: 'simple',
+        range: 'Curto',
+        thrown: true,
+      },
+    ],
+  };
+
+  it('arma de disparo rola Pontaria e não soma atributo ao dano', () => {
+    const bow = compileItem(rangedContent.items[0]);
+
+    expect(bow.alcance).toBe('Médio');
+    expect(bow.arremesso).toBeUndefined();
+    expect(bow.ammoType).toBe('Flechas');
+    expect(getWeaponSkill(bow)).toBe(Skill.PONTARIA);
+    expect(resolveDamageAttribute(bow)).toBe('Nenhum');
+    expect(isFiringWeapon(bow)).toBe(true);
+  });
+
+  it('arma de arremesso ganha os dois modos de ataque e soma Força', () => {
+    const javelin = compileItem(rangedContent.items[2]);
+
+    expect(javelin.arremesso).toBe(true);
+    expect(javelin.specialActions?.map((a) => a.id)).toEqual([
+      'corpo-a-corpo',
+      'arremessar',
+    ]);
+    expect(resolveDamageAttribute(javelin)).toBe('Força');
+    // Arremesso não consome munição — a arma é o projétil.
+    expect(javelin.ammoType).toBeUndefined();
+  });
+
+  it('pacote de munição compila com isAmmo e pacote próprio', () => {
+    const ammo = compileItem(rangedContent.items[1]);
+
+    expect(ammo.group).toBe('Arma');
+    expect(ammo.isAmmo).toBe(true);
+    expect(ammo.ammoType).toBe('Flechas');
+    expect(ammo.ammoPackSize).toBe(10);
+    expect(ammo.ammoUnitsPerSpace).toBe(10);
+    expect(ammo.dano).toBe('-');
+  });
+
+  it('munição cai no bucket weapons e aparece na aba Arma do catálogo', () => {
+    const equipment = compileItemPackContent(rangedContent);
+    expect(equipment.weapons?.['Flechas élficas (10)']).toBeDefined();
+
+    const data = compileItemPackHomebrew(
+      rangedContent,
+      'Arsenal à Distância',
+      SOURCE_ID
+    );
+    dataRegistry.registerRuntimeSupplement(SOURCE_ID, data);
+    try {
+      const catalog = buildEquipmentCatalog([
+        SupplementId.TORMENTA20_CORE,
+        SOURCE_ID as SupplementId,
+      ]);
+      const armas = catalog.find((c) => c.group === 'Arma');
+      const allItems = armas?.subgroups.flatMap((sg) => sg.items) ?? [];
+      expect(allItems.some((i) => i.nome === 'Flechas élficas (10)')).toBe(
+        true
+      );
+    } finally {
+      dataRegistry.clearRuntimeSupplements();
+    }
+  });
+
+  it('o pacote inteiro passa na validação', () => {
+    const result = validateHomebrew({
+      type: 'itemPackage',
+      editorMode: 'advanced',
+      schemaVersion: HOMEBREW_SCHEMA_VERSION,
+      name: 'Arsenal à Distância',
+      description: '',
+      content: { type: 'itemPackage', data: rangedContent },
+    });
+    expect(result.errors).toEqual([]);
+    expect(result.valid).toBe(true);
+  });
+
+  it('munição sem tipo é reprovada', () => {
+    const result = validateHomebrew({
+      type: 'itemPackage',
+      editorMode: 'advanced',
+      schemaVersion: HOMEBREW_SCHEMA_VERSION,
+      name: 'Sem tipo',
+      description: '',
+      content: {
+        type: 'itemPackage',
+        data: {
+          items: [{ category: 'ammo', name: 'Projéteis', price: 1, spaces: 1 }],
+        },
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.join(' ')).toContain('Tipo de munição');
+  });
+
+  it('tipo de munição AUTORAL é aceito e chega compilado na arma', () => {
+    // Vocabulário aberto: o autor cunha a família nova no pacote de munição e
+    // aponta a arma para o mesmo nome. É o que permite uma pistola a vapor
+    // que não consome nenhuma das cinco munições do livro.
+    const steampunk: HomebrewItemPackContent = {
+      items: [
+        {
+          category: 'ammo',
+          name: 'Cartuchos a vapor (6)',
+          price: 60,
+          spaces: 1,
+          ammoType: 'Cartuchos a vapor',
+          ammoPackSize: 6,
+          ammoUnitsPerSpace: 6,
+        },
+        {
+          category: 'weapon',
+          name: 'Pistola a vapor',
+          price: 300,
+          spaces: 1,
+          damage: '2d6',
+          critMultiplier: 3,
+          threatMargin: 19,
+          damageType: 'Perfuração',
+          weaponCategory: 'firearm',
+          range: 'Curto',
+          ammoType: 'Cartuchos a vapor',
+        },
+      ],
+    };
+
+    const result = validateHomebrew({
+      type: 'itemPackage',
+      editorMode: 'advanced',
+      schemaVersion: HOMEBREW_SCHEMA_VERSION,
+      name: 'Arsenal a Vapor',
+      description: '',
+      content: { type: 'itemPackage', data: steampunk },
+    });
+    expect(result.errors).toEqual([]);
+
+    const [ammo, pistol] = steampunk.items.map(compileItem);
+    expect(ammo.isAmmo).toBe(true);
+    expect(ammo.ammoType).toBe('Cartuchos a vapor');
+    expect(pistol.ammoType).toBe('Cartuchos a vapor');
+    // O vínculo é igualdade de string — é só isso que precisa bater.
+    expect(pistol.ammoType).toBe(ammo.ammoType);
+  });
+
+  /**
+   * O campo `Alcance` era texto livre. Pacotes já publicados podem ter qualquer
+   * string ali, e nem a validação nem o compilador podem fechar em cima deles.
+   */
+  describe('compatibilidade com pacotes já publicados', () => {
+    const withRange = (range: string): HomebrewItemPackContent => ({
+      items: [
+        {
+          category: 'weapon',
+          name: 'Arma Legada',
+          price: 10,
+          spaces: 1,
+          damage: '1d6',
+          critMultiplier: 2,
+          threatMargin: 20,
+          damageType: 'Corte',
+          weaponCategory: 'simple',
+          range,
+        },
+      ],
+    });
+
+    it("alcance irreconhecível ('Curto/Médio') é PRESERVADO e continua à distância", () => {
+      const weapon = compileItem(withRange('Curto/Médio').items[0]);
+      expect(weapon.alcance).toBe('Curto/Médio');
+      expect(getWeaponSkill(weapon)).toBe(Skill.PONTARIA);
+
+      const result = validateHomebrew({
+        type: 'itemPackage',
+        editorMode: 'advanced',
+        schemaVersion: HOMEBREW_SCHEMA_VERSION,
+        name: 'Legado',
+        description: '',
+        content: { type: 'itemPackage', data: withRange('Curto/Médio') },
+      });
+      expect(result.valid).toBe(true);
+    });
+
+    it('alcance escrito em minúsculas é normalizado', () => {
+      expect(compileItem(withRange('medio').items[0]).alcance).toBe('Médio');
+    });
+
+    it("range '-' continua compilando para corpo a corpo", () => {
+      const weapon = compileItem(withRange('-').items[0]);
+      expect(weapon.alcance).toBe('-');
+      expect(getWeaponSkill(weapon)).toBe(Skill.LUTA);
+      expect(resolveDamageAttribute(weapon)).toBe('Força');
     });
   });
 });

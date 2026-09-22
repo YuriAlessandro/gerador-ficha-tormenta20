@@ -110,6 +110,13 @@ function evaluateClause(
       );
     case 'hasPower':
       return sheetHasPowerNamed(sheet, clause.value);
+    case 'optionChosen':
+      return (sheet.sheetActionHistory ?? []).some((entry) =>
+        entry.changes.some(
+          (change) =>
+            change.type === 'OptionChosen' && change.chosenName === clause.value
+        )
+      );
     case 'hasProficiency':
       return getSheetProficiencias(sheet).includes(clause.value);
     case 'hasSkill':
