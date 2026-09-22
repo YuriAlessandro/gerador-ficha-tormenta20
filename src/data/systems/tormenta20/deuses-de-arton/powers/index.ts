@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -189,11 +190,20 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
     {
       name: 'Companheiro Celeste',
       description:
-        'Você possui um luminar que o acompanha como um parceiro iniciante. Se perder esse luminar, você pode receber outro com uma cerimônia que exige 1 dia e T$ 100 em oferendas.',
+        'Você possui um luminar que o acompanha como um parceiro iniciante. Se perder esse luminar, você pode receber outro com uma cerimônia que exige 1 dia e T$ 100 em oferendas. O luminar fornece o seguinte benefício: uma vez por rodada, você pode gastar 1 PM para curar 2d4 PV por luz ou causar 2d4 pontos de dano não letal de luz em uma criatura em alcance curto.',
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [
         [{ type: RequirementType.DEVOTO, name: 'Lena' }],
         [{ type: RequirementType.DEVOTO, name: 'Marah' }],
+      ],
+      rolls: [
+        { id: uuid(), label: 'Cura (luminar)', dice: '2d4' },
+        {
+          id: uuid(),
+          label: 'Dano de luz não letal (luminar)',
+          dice: '2d4',
+          damageType: 'luz',
+        },
       ],
     },
     {
