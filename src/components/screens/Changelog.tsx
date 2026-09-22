@@ -435,6 +435,19 @@ const Changelog: React.FC = () => {
                   botões de <strong>+</strong> também passou a virar{' '}
                   <strong>pontos temporários</strong>.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Na <strong>mesa virtual</strong>,
+                  condições aplicadas a uma <strong>ameaça</strong> no combate
+                  não mudavam nada: uma criatura com Defesa 15 continuava com 15
+                  mesmo <strong>Desprevenida</strong>. Agora a Defesa, os
+                  ataques e as perícias do card, da ordem de iniciativa e da
+                  ficha aberta já saem penalizados, e o valor reduzido fica
+                  destacado. Condições como <strong>Debilitado</strong>,{' '}
+                  <strong>Fraco</strong>, <strong>Surdo</strong> e{' '}
+                  <strong>Exausto</strong> também passaram a afetar ameaças, e{' '}
+                  <strong>Cego</strong> agora pune só as perícias de Força e
+                  Destreza.
+                </li>
               </ul>
 
               <h3>4.32.2</h3>
