@@ -120,6 +120,9 @@ export interface PowerSelectionRequirement {
     // Biblioteca Divina). O `pick` real depende do nível do personagem, com
     // piso `pick` — só quem sabe o nível-alvo consegue resolver.
     perTierAboveIniciante?: number;
+    // For learnSkill vindo de um bônus `PickSkill`: a escolha dá bônus, não
+    // treina a perícia — perícias já treinadas continuam elegíveis.
+    skillBonusOnly?: boolean;
     // For increaseAttribute: `false` quando a fonte não tem a restrição de
     // 1×/patamar do poder Aumento de Atributo (ex.: Aspirante a Herói).
     oncePerTier?: boolean;

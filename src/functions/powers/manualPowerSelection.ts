@@ -508,6 +508,7 @@ export function getPowerSelectionRequirements(
           label: `Selecione ${bonus.target.pick} perícia${
             bonus.target.pick > 1 ? 's' : ''
           }`,
+          metadata: { skillBonusOnly: true },
         });
       }
     });
@@ -724,8 +725,12 @@ export function getFilteredAvailableOptions(
   switch (type) {
     case 'learnSkill': {
       const skills = availableOptions as Skill[];
+      const { skillBonusOnly } = requirement.metadata ?? {};
       return skills
         .filter((skill) => {
+          // Bônus (`PickSkill`) pode ir para perícia já treinada.
+          if (skillBonusOnly) return true;
+
           // Check if skill is already in the skills array
           if (sheet.skills.includes(skill)) {
             return false;
