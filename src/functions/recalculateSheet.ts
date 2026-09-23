@@ -2443,6 +2443,14 @@ export function recalculateSheet(
 
         if (skillsToProcess.length > 0) {
           const selectedSkills = skillsToProcess.slice(0, bonus.target.pick);
+          // Persiste a escolha manual (assistente) para os recálculos
+          // seguintes, que rodam sem `manualSelections`.
+          if (bonus.target.optionKey) {
+            updatedSheet.optionChoices = {
+              ...(updatedSheet.optionChoices || {}),
+              [bonus.target.optionKey]: selectedSkills,
+            };
+          }
           selectedSkills.forEach((skillName: string) => {
             addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
           });

@@ -5446,8 +5446,20 @@ export const applyStatModifiers = (
       } else if (persisted && persisted.length > 0) {
         pickedSkills = persisted.slice(0, bonus.target.pick) as Skill[];
       } else {
-        // Fall back to random selection
-        pickedSkills = pickFromArray(bonus.target.skills, bonus.target.pick);
+        // Sorteio, preferindo perícias já treinadas — um bônus numa perícia
+        // que o personagem não usa (ex.: Ofício não treinado) é desperdiçado.
+        const { skills: options, pick } = bonus.target;
+        const trained = options.filter((skill) => sheet.skills.includes(skill));
+        pickedSkills = pickFromArray(trained, Math.min(pick, trained.length));
+        if (pickedSkills.length < pick) {
+          pickedSkills = [
+            ...pickedSkills,
+            ...pickFromArray(
+              options.filter((skill) => !trained.includes(skill)),
+              pick - pickedSkills.length
+            ),
+          ];
+        }
       }
 
       // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
