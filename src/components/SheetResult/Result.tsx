@@ -326,10 +326,16 @@ const Result: React.FC<ResultProps> = (props) => {
    * é exigido para criar e editar, não para ver — ver `resolveSheetLayoutFor`.
    */
   const { isEnabled: sheetLayoutsEnabled } = useSheetLayoutAccess();
-  const activeLayout: SheetLayout = resolveSheetLayoutFor(sheetLayoutsEnabled, {
-    override: layoutOverride,
-    fromSheet: currentSheet.layout,
-  });
+  // Memoizado: o saneamento devolve um objeto NOVO a cada chamada, e esse
+  // objeto desce para o renderer (que refaz o resolve) e para o editor.
+  const activeLayout: SheetLayout = useMemo(
+    () =>
+      resolveSheetLayoutFor(sheetLayoutsEnabled, {
+        override: layoutOverride,
+        fromSheet: currentSheet.layout,
+      }),
+    [sheetLayoutsEnabled, layoutOverride, currentSheet.layout]
+  );
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
   const [poderCapturadoDrawerOpen, setPoderCapturadoDrawerOpen] =
     useState(false);
