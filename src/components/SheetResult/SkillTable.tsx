@@ -30,6 +30,7 @@ import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
 import { normalizeSearch } from '../../functions/stringUtils';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
+import { useChallengeSkillRollLink } from '../../premium/hooks/useChallengeSkillRollLink';
 import SkillActionsDialog from './SkillActionsDialog';
 import { ConditionMarker } from '../../premium/components/Conditions';
 import { getEffectiveAttributeModifier } from '../../functions/effectiveAttributes';
@@ -63,6 +64,7 @@ const SkillTable: React.FC<IProps> = ({
 }) => {
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
+  const linkSkillRoll = useChallengeSkillRollLink();
   const [actionsDialogOpen, setActionsDialogOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<CompleteSkill | null>(
     null
@@ -167,7 +169,7 @@ const SkillTable: React.FC<IProps> = ({
   }));
 
   const handleSkillRoll = useCallback(
-    (skill: CompleteSkill, skillTotal: number, actionName?: string) => {
+    async (skill: CompleteSkill, skillTotal: number, actionName?: string) => {
       const d20Roll = rollD20();
       const total = Math.max(1, d20Roll + skillTotal);
       const isCritical = d20Roll === 20;
@@ -181,7 +183,7 @@ const SkillTable: React.FC<IProps> = ({
         ? `${skill.name} (${actionName})`
         : `Teste de ${skill.name}`;
 
-      showDiceResult(
+      const final = await showDiceResult(
         label,
         [
           {
@@ -196,8 +198,17 @@ const SkillTable: React.FC<IProps> = ({
         ],
         sheet.nome
       );
+      // Mesa virtual: a rolagem responde o pedido de teste do mestre ou
+      // oferece contar no desafio em andamento. O d20 é o que apareceu na
+      // tela (com 3D, o do dado físico).
+      linkSkillRoll({
+        sheet,
+        skill: skill.name,
+        d20: final?.[0]?.rolls?.[0] ?? d20Roll,
+        modifier: skillTotal,
+      });
     },
-    [showDiceResult, sheet.nome]
+    [showDiceResult, sheet, linkSkillRoll]
   );
 
   const handleSkillNameClick = (
