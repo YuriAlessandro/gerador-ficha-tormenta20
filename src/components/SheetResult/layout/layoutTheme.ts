@@ -21,6 +21,7 @@
  * Quem quiser a própria imagem cola uma URL https — mesmo caminho do avatar de
  * ficha, da foto de perfil e das imagens do blog.
  */
+import type { SxProps, Theme } from '@mui/material/styles';
 import type { SheetLayoutTheme } from '../../../interfaces/SheetLayout';
 
 export interface SheetBackgroundPreset {
@@ -170,4 +171,34 @@ export const layoutBackgroundCss = (
   const customUrl = cssBackgroundUrl(theme?.backgroundImageUrl);
   if (customUrl) return `${customUrl} center/cover`;
   return getBackgroundPreset(theme?.backgroundPresetId)?.css;
+};
+
+/**
+ * Estilo e cor dos cards da ficha, como `sx` para a raiz do renderer.
+ *
+ * Aplicado por seletor, e não card a card, porque os cards da ficha nascem em
+ * vários lugares: o frame de cada seção, o card de abas, a coluna lateral e os
+ * blocos que se desenham sozinhos (Atributos). O `:not(...)` limita ao card de
+ * PRIMEIRO nível: os cards internos (um poder, uma magia) mantêm o contraste
+ * com o card que os contém. Diálogos e drawers vivem em portal, fora da
+ * árvore do DOM, e não são atingidos.
+ */
+export const layoutCardSx = (
+  theme: SheetLayoutTheme | undefined
+): SxProps<Theme> => {
+  const style = theme?.cardStyle ?? 'default';
+  const bg = theme?.cardBackgroundColor;
+  if (style === 'default' && !bg) return {};
+
+  return {
+    '& .MuiCard-root:not(.MuiCard-root .MuiCard-root)': {
+      ...(style === 'flat' ? { boxShadow: 'none' } : {}),
+      ...(style === 'outlined'
+        ? { boxShadow: 'none', border: '1px solid', borderColor: 'divider' }
+        : {}),
+      // `backgroundImage: none` tira o gradiente de elevação que o MUI põe no
+      // Paper do modo escuro — sem isso a cor escolhida sai lavada.
+      ...(bg ? { backgroundColor: bg, backgroundImage: 'none' } : {}),
+    },
+  };
 };

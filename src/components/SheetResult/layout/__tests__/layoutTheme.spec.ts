@@ -4,6 +4,7 @@ import {
   cssBackgroundUrl,
   isSafeBackgroundUrl,
   layoutBackgroundCss,
+  layoutCardSx,
 } from '../layoutTheme';
 
 describe('cssBackgroundUrl — a URL nunca escapa do url() do CSS', () => {
@@ -72,5 +73,36 @@ describe('layoutBackgroundCss', () => {
         backgroundImageUrl: 'https://exemplo.com/a").png',
       })
     ).toBe(preset.css);
+  });
+});
+
+describe('layoutCardSx', () => {
+  const SELECTOR = '& .MuiCard-root:not(.MuiCard-root .MuiCard-root)';
+
+  it('sem escolha, não mexe nos cards', () => {
+    expect(layoutCardSx(undefined)).toEqual({});
+    expect(layoutCardSx({ cardStyle: 'default' })).toEqual({});
+  });
+
+  it('"sem sombra" tira só a sombra', () => {
+    expect(layoutCardSx({ cardStyle: 'flat' })).toEqual({
+      [SELECTOR]: { boxShadow: 'none' },
+    });
+  });
+
+  it('"contornado" troca a sombra por borda', () => {
+    expect(layoutCardSx({ cardStyle: 'outlined' })).toEqual({
+      [SELECTOR]: {
+        boxShadow: 'none',
+        border: '1px solid',
+        borderColor: 'divider',
+      },
+    });
+  });
+
+  it('a cor do card tira o gradiente de elevação do modo escuro', () => {
+    expect(layoutCardSx({ cardBackgroundColor: '#123456' })).toEqual({
+      [SELECTOR]: { backgroundColor: '#123456', backgroundImage: 'none' },
+    });
   });
 });

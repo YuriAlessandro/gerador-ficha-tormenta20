@@ -22,7 +22,7 @@ import ActionMenuTemplate from './templates/ActionMenuTemplate';
 import SinglePageTemplate from './templates/SinglePageTemplate';
 import TabsTemplate from './templates/TabsTemplate';
 import { availableKindsOf, SheetSectionNodeMap } from './sheetSectionTypes';
-import { resolveLayoutFont } from './layoutTheme';
+import { layoutCardSx, resolveLayoutFont } from './layoutTheme';
 
 export interface SheetLayoutRendererProps {
   layout: SheetLayout;
@@ -82,6 +82,7 @@ const SheetLayoutRenderer: React.FC<SheetLayoutRendererProps> = ({
         // O FUNDO do layout é pintado pela raiz do `Result` (ver
         // `layoutBackgroundCss`), para cobrir também as margens da ficha.
         fontFamily: resolveLayoutFont(theme.fontFamily),
+        ...layoutCardSx(theme),
       }}
     >
       <Template layout={resolved} nodes={nodes} sheetId={sheetId} />
