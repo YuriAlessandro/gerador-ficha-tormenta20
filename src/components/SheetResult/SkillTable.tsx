@@ -39,6 +39,10 @@ import { ActiveEffectMarker } from '../../premium/components/ActiveEffects';
 import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
 import { getActiveEffectLabelStyle } from '../../premium/functions/activeEffectHighlights';
 import {
+  getSkillSizeModifier,
+  getSkillTotal,
+} from '../../functions/skills/skillTotal';
+import {
   getSkillOthersBreakdown,
   hasSkillOthersDetail,
   formatBreakdownValue,
@@ -306,18 +310,8 @@ const SkillTable: React.FC<IProps> = ({
                 ? getEffectiveAttributeModifier(sheet, skill.modAttr)
                 : 0;
 
-              // Get size modifier for stealth (Furtividade)
-              const sizeModifier =
-                skill.name === 'Furtividade'
-                  ? sheet.size?.modifiers?.stealth ?? 0
-                  : 0;
-
-              const skillTotal =
-                (skill.halfLevel ?? 0) +
-                (attrValue ?? 0) +
-                (skill.others ?? 0) +
-                (skill.training ?? 0) +
-                sizeModifier;
+              const sizeModifier = getSkillSizeModifier(sheet, skill);
+              const skillTotal = getSkillTotal(sheet, skill);
 
               // "Outros" é um número só: não diz de onde vem (o -1 de
               // Furtividade é armadura? o +2 de Percepção é qual poder?) e
