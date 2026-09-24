@@ -21,6 +21,7 @@ export interface FeatureFlags {
   playerJournal: FeatureFlag;
   portrait: FeatureFlag;
   limitBoost: FeatureFlag;
+  challenges: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -59,4 +60,9 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // `supporterOnly` é ignorado — vale para todo mundo. Default desligado: o
   // admin liga quando quiser anunciar.
   limitBoost: { enabled: false, supporterOnly: false, value: 1.5 },
+  // Desafios da mesa virtual (testes estendidos e armadilhas). `supporterOnly`
+  // trava quem PREPARA e CONDUZ (o mestre); jogadores de qualquer plano
+  // respondem os pedidos — por isso o lado do jogador olha só `isEnabled`.
+  // Default desligado até o rollout.
+  challenges: { enabled: false, supporterOnly: true },
 };
