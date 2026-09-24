@@ -43,10 +43,11 @@ function baseText(req: Requirement, options: FormatRequirementOptions): string {
       return `Herança: ${req.name}`;
     case RequirementType.DEVOTO:
       if (!req.name) return 'Devoto de uma divindade';
-      if (req.name === 'any') return 'Devoto de qualquer divindade';
       if (Array.isArray(req.name))
         return `Devoto de uma destas divindades: ${req.name.join(', ')}`;
-      return `Devoto de ${req.name}`;
+      return req.name === 'any'
+        ? 'Devoto de qualquer divindade'
+        : `Devoto de ${req.name}`;
     case RequirementType.PODER_TORMENTA:
       return `Pelo menos ${req.value} ${
         (req.value || 0) > 1 ? 'poderes' : 'poder'

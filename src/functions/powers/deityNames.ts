@@ -99,10 +99,9 @@ export function hasDualDevotion(sheet: CharacterSheet): boolean {
 }
 
 /**
- * Verifica se um requisito `DEVOTO` é satisfeito pelo conjunto de deuses da
- * ficha. Suporta `string` (uma divindade), `string[]` (uma dentre várias) e
- * `'any'` (qualquer devoção). Usada por `powers.ts`, `requirementEvaluation.ts`,
- * `grantedPowerPool.ts` e `registry.ts` — única fonte de verdade.
+ * Um requisito `DEVOTO` é satisfeito pelo conjunto de deuses da ficha?
+ * Cobre `string`, `string[]` (uma dentre várias) e `'any'`. Comparação
+ * case-insensitive.
  */
 export function deityRequirementMatches(
   reqName: string | string[] | undefined,
@@ -110,7 +109,9 @@ export function deityRequirementMatches(
 ): boolean {
   if (!reqName) return false;
   if (reqName === 'any') return deityNames.length > 0;
-  if (Array.isArray(reqName))
-    return deityNames.some((name) => reqName.includes(name));
-  return deityNames.includes(reqName);
+  const deities = deityNames.map((n) => n.toLowerCase());
+  const wanted = (Array.isArray(reqName) ? reqName : [reqName]).map((n) =>
+    n.toLowerCase()
+  );
+  return wanted.some((n) => deities.includes(n));
 }

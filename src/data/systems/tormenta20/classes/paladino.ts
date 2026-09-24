@@ -4,19 +4,15 @@ import {
   allDivindadeNames,
   divindadeDisplayNames,
   DivindadeNames,
+  FaithProbability,
 } from '../../../../interfaces/Divindade';
-import { FaithProbability } from '../../../../interfaces/Divindade';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import { allDivineSpellsCircle1 } from '../magias/divine';
 
-/**
- * Deuses que aceitam paladinos (lista canônica, única fonte de verdade).
- * Usada tanto pelo `faithProbability` do Paladino quanto pelo requisito
- * de devoto do poder "Cavaleiro Sagrado".
- */
+/** Deuses que aceitam paladinos. Fonte única para faithProbability e Cavaleiro Sagrado. */
 export const PALADIN_DEITY_KEYS: DivindadeNames[] = [
   'AZGHER',
   'KHALMYR',
