@@ -201,12 +201,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Current step within this level
   const [activeStep, setActiveStep] = useState(0);
 
-  // Opt-in "quebre a regra": mostra e libera a escolha de poderes fora dos
-  // pré-requisitos. Mora aqui, e não no PowerSelectionStep, porque o switch de
-  // renderStepContent DESMONTA o passo a cada navegação (é por isso que a busca
-  // também se perde) — em estado local, voltar de "Efeitos do Poder" re-travaria
-  // um poder já escolhido. Persiste entre os níveis do mesmo level-up e volta a
-  // false quando o assistente reabre.
+  // "Quebre a regra": é o filtro "Só os que posso pegar" DESLIGADO na escolha
+  // de poder — mostra e libera poderes fora dos pré-requisitos. Mora aqui, e
+  // não no PowerSelectionStep, porque o switch de renderStepContent DESMONTA o
+  // passo a cada navegação (é por isso que a busca também se perde) — em
+  // estado local, voltar de "Efeitos do Poder" re-travaria um poder já
+  // escolhido. Persiste entre os níveis do mesmo level-up e volta a false
+  // (filtro ligado) quando o assistente reabre.
   const [allowOutOfRequirements, setAllowOutOfRequirements] = useState(false);
 
   // Confirmation dialog state for cancel action
@@ -489,7 +490,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       if (knownClassPowerNames.has(power.name) && !power.canRepeat) {
         return false;
       }
-      // Com o opt-in ligado o corte de nível sai também: meio-quebrar a regra
+      // Com o filtro desligado o corte de nível sai também: meio-quebrar a regra
       // (liberar atributo/perícia mas não nível) confunde mais que quebrar
       // inteiro. Desligado, segue escondendo o catálogo até o 20º nível.
       if (!allowAll && !hasReachableLevelRequirement(power, levelForCut)) {
@@ -1222,7 +1223,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           allowAll: allowOutOfRequirements,
         });
 
-        // Desmarcar o opt-in com um poder fora dos requisitos já escolhido
+        // Religar o filtro com um poder fora dos requisitos já escolhido
         // deixaria a seleção inválida sobreviver até o apply. Zera só nesse caso.
         const handleAllowOutOfRequirementsChange = (allow: boolean) => {
           setAllowOutOfRequirements(allow);

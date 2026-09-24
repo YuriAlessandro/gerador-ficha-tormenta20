@@ -92,8 +92,8 @@ export interface PowerAvailability {
   /** Grupos são OU entre si; requisitos dentro do grupo são E. */
   groups: EvaluatedRequirementGroup[];
   /**
-   * Liberado apesar de reprovar nos pré-requisitos, por opt-in do jogador
-   * ("Mostrar poderes fora dos requisitos" da subida de nível). A UI sinaliza
+   * Liberado apesar de reprovar nos pré-requisitos, por escolha do jogador
+   * ("Só os que posso pegar" desligado na subida de nível). A UI sinaliza
    * em vez de fingir que o requisito foi cumprido.
    */
   outOfRequirements?: boolean;

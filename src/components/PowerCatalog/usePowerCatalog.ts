@@ -110,6 +110,14 @@ interface UsePowerCatalogArgs {
    * esconder por padrão faria o jogador concluir que o poder não existe.
    */
   searchIgnoresOnlyAvailable?: boolean;
+  /**
+   * Filtro "Só os que posso pegar" controlado de fora. Serve a quem precisa
+   * que o estado sobreviva ao desmonte do catálogo (o assistente de subida de
+   * nível desmonta o passo a cada navegação). Ausente, o estado é local e
+   * parte de `initialOnlyAvailable`.
+   */
+  onlyAvailable?: boolean;
+  onOnlyAvailableChange?: (onlyAvailable: boolean) => void;
 }
 
 /** Espera o usuário parar de digitar antes de refiltrar centenas de itens. */
@@ -134,10 +142,15 @@ export function usePowerCatalog({
   resolveAvailability,
   initialOnlyAvailable = false,
   searchIgnoresOnlyAvailable = false,
+  onlyAvailable: controlledOnlyAvailable,
+  onOnlyAvailableChange,
 }: UsePowerCatalogArgs) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeGroups, setActiveGroups] = useState<Set<string>>(new Set());
-  const [onlyAvailable, setOnlyAvailable] = useState(initialOnlyAvailable);
+  const [localOnlyAvailable, setLocalOnlyAvailable] =
+    useState(initialOnlyAvailable);
+  const onlyAvailable = controlledOnlyAvailable ?? localOnlyAvailable;
+  const setOnlyAvailable = onOnlyAvailableChange ?? setLocalOnlyAvailable;
 
   const debouncedSearch = useDebounced(searchTerm);
 
