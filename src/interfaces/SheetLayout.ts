@@ -15,7 +15,31 @@
  * exige subir `SHEET_LAYOUT_SCHEMA_VERSION` e tratar a migração no sanitize.
  */
 
-export const SHEET_LAYOUT_SCHEMA_VERSION = 1;
+/**
+ * v2 (24/09/2026): visibilidade por dispositivo (`showOn`) em regiões e seções
+ * substitui `mobile.regionOverrides`/`mobile.hiddenRegionIds`. O sanitize
+ * converte documentos v1. Subir a versão é o que protege app antigo: ele
+ * recusa o v2 e cai no preset padrão, em vez de ignorar `showOn` e renderizar
+ * as duas cópias de uma seção duplicada ao mesmo tempo.
+ */
+export const SHEET_LAYOUT_SCHEMA_VERSION = 2;
+
+/**
+ * Onde uma região ou seção aparece. Ausente = nos dois. "Celular" é a ficha
+ * ESTREITA (largura do container), não o aparelho.
+ */
+export type DeviceVisibility = 'desktop' | 'mobile';
+
+export const DEVICE_VISIBILITIES: readonly DeviceVisibility[] = [
+  'desktop',
+  'mobile',
+];
+
+/** Visível em `device`, dado o `showOn` do próprio item. */
+export const showsOn = (
+  showOn: DeviceVisibility | undefined,
+  device: DeviceVisibility
+): boolean => !showOn || showOn === device;
 
 export type SheetTemplateKind = 'single' | 'tabs' | 'actionMenu';
 
@@ -128,6 +152,12 @@ export interface LayoutSection {
   iconKey?: SheetIconKey;
   /** `#rrggbb`; qualquer outra coisa é descartada no sanitize. */
   titleColor?: string;
+  /**
+   * Só em um dispositivo. É o que permite DUPLICAR uma seção (Ataques numa aba
+   * no computador e noutra no celular): a regra de unicidade vale por
+   * dispositivo, não por documento.
+   */
+  showOn?: DeviceVisibility;
 }
 
 export interface LayoutRegion {
@@ -136,6 +166,8 @@ export interface LayoutRegion {
   /** Nome da aba/tela. Obrigatório quando `role === 'surface'`. */
   label?: string;
   iconKey?: SheetIconKey;
+  /** Região inteira só em um dispositivo (ex.: a aba Perícias do celular). */
+  showOn?: DeviceVisibility;
   /** A ordem do array é a ordem de render. */
   sections: LayoutSection[];
 }
@@ -155,18 +187,16 @@ export interface SheetLayoutTheme {
 }
 
 /**
- * Overrides aplicados quando o CONTAINER é estreito — não o viewport.
+ * Ajustes globais quando o CONTAINER é estreito — não o viewport.
  *
- * Um layout com override, e não dois documentos: o código já fazia exatamente
- * isso, e em um lugar só (Perícias saía das abas no desktop). Dois documentos
- * independentes dobrariam o payload de compartilhamento e criariam a pergunta
- * insolúvel "adicionei uma seção no desktop, aparece no mobile?".
+ * Um layout só, e não dois documentos: dois dobrariam o payload e criariam a
+ * pergunta insolúvel "adicionei uma seção no desktop, aparece no mobile?". O
+ * que muda de lugar entre dispositivos é expresso por `showOn` nas regiões e
+ * seções (v2); os antigos `regionOverrides`/`hiddenRegionIds` (v1) eram
+ * invisíveis no editor e são convertidos pelo sanitize.
  */
 export interface MobileLayoutOverride {
   template?: SheetTemplateKind;
-  /** `sectionId` → `regionId` de destino no estreito. */
-  regionOverrides?: Record<string, string>;
-  hiddenRegionIds?: string[];
   /** Força `width: 'full'` no estreito. Default: `true`. */
   forceFullWidth?: boolean;
 }

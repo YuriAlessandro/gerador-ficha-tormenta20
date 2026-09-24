@@ -144,8 +144,9 @@ describe('sanitizeSheetLayout — nunca lança', () => {
     expect(sanitizeSheetLayout(layout).theme.backgroundOpacity).toBe(0);
   });
 
-  it('remove override de mobile que aponta para região inexistente', () => {
-    const layout = clone(minimal());
+  it('descarta celular v1 que aponta para região inexistente', () => {
+    const layout = clone(minimal()) as unknown as Record<string, unknown>;
+    layout.schemaVersion = 1;
     layout.mobile = {
       regionOverrides: { s1: 'regiao-que-nao-existe' },
       hiddenRegionIds: ['tambem-nao-existe'],
@@ -153,8 +154,10 @@ describe('sanitizeSheetLayout — nunca lança', () => {
 
     const sanitized = sanitizeSheetLayout(layout);
 
-    expect(sanitized.mobile?.regionOverrides).toBeUndefined();
-    expect(sanitized.mobile?.hiddenRegionIds).toBeUndefined();
+    expect(sanitized.mobile).toBeUndefined();
+    expect(
+      sanitized.regions.flatMap((r) => r.sections).some((s) => s.showOn)
+    ).toBe(false);
   });
 
   it('é idempotente', () => {
@@ -474,12 +477,24 @@ describe('aviso de problema e convite de apoio travados no rodapé', () => {
         { id: 'b', payload: { kind: 'bugReport' }, width: 'full' },
       ],
     });
-    raw.mobile = {
+    // Formato v1 (celular por override) e v2 (showOn) — nenhum pode tirar as
+    // travadas do rodapé nem esconder o rodapé.
+    (raw as unknown as Record<string, unknown>).mobile = {
       hiddenRegionIds: ['rod'],
       regionOverrides: { a: 'r1' },
     };
+    raw.regions[1].showOn = 'desktop';
+    raw.regions[1].sections[1].showOn = 'mobile';
 
-    expect(sanitizeSheetLayout(raw).mobile).toBeUndefined();
+    const layout = sanitizeSheetLayout(raw);
+    const footer = layout.regions.find((r) => r.id === 'rod');
+
+    expect(footer?.showOn).toBeUndefined();
+    expect(footer?.sections.map((s) => s.showOn)).toEqual([
+      undefined,
+      undefined,
+    ]);
+    expect(kindsOf(layout, 'r1')).toEqual(['identity']);
   });
 
   it('é idempotente com o conserto', () => {
@@ -489,5 +504,126 @@ describe('aviso de problema e convite de apoio travados no rodapé', () => {
 
   it('os presets já cumprem a regra (o saneamento não os altera)', () => {
     expect(sanitizeSheetLayout(clone(PRESET_TABS))).toEqual(PRESET_TABS);
+  });
+});
+
+describe('v2 — visibilidade por dispositivo', () => {
+  it('converte o preset de abas da v1 para regiões e cópias por dispositivo', () => {
+    // O PRESET_TABS como ele era na v1: Perícias movida por override para a
+    // aba do celular, coluna lateral escondida no celular.
+    const v1 = {
+      schemaVersion: 1,
+      id: 'meu',
+      name: 'Meu',
+      template: 'tabs',
+      theme: {},
+      regions: [
+        {
+          id: 'main',
+          role: 'main',
+          sections: [
+            { id: 'id', payload: { kind: 'identity' }, width: 'full' },
+          ],
+        },
+        {
+          id: 'aside',
+          role: 'aside',
+          sections: [{ id: 'sk', payload: { kind: 'skills' }, width: 'full' }],
+        },
+        {
+          id: 'aba-pericias',
+          role: 'surface',
+          label: 'Perícias',
+          sections: [],
+        },
+      ],
+      mobile: {
+        regionOverrides: { sk: 'aba-pericias' },
+        hiddenRegionIds: ['aside'],
+      },
+    };
+
+    const layout = sanitizeSheetLayout(v1);
+    const aside = layout.regions.find((r) => r.id === 'aside');
+    const aba = layout.regions.find((r) => r.id === 'aba-pericias');
+
+    expect(layout.schemaVersion).toBe(2);
+    expect(layout.mobile).toBeUndefined();
+    expect(aside?.showOn).toBe('desktop');
+    expect(aside?.sections[0]).toMatchObject({ id: 'sk', showOn: 'desktop' });
+    expect(aba?.sections).toHaveLength(1);
+    expect(aba?.sections[0]).toMatchObject({
+      payload: { kind: 'skills' },
+      showOn: 'mobile',
+    });
+    expect(aba?.sections[0].id).not.toBe('sk');
+    expect(validateSheetLayout(layout).ok).toBe(true);
+  });
+
+  it('recusa documento de versão maior que 2', () => {
+    const raw = clone(minimal()) as unknown as Record<string, unknown>;
+    raw.schemaVersion = 3;
+    expect(codes(raw)).toContain('schema-version-ahead');
+  });
+
+  it('aceita a mesma seção uma vez em cada dispositivo', () => {
+    const raw = clone(minimal());
+    raw.regions[0].sections.push(
+      {
+        id: 'a1',
+        payload: { kind: 'attacks' },
+        width: 'full',
+        showOn: 'desktop',
+      },
+      {
+        id: 'a2',
+        payload: { kind: 'attacks' },
+        width: 'full',
+        showOn: 'mobile',
+      }
+    );
+    expect(validateSheetLayout(raw).ok).toBe(true);
+  });
+
+  it('recusa a mesma seção duas vezes no mesmo dispositivo', () => {
+    const raw = clone(minimal());
+    raw.regions[0].sections.push(
+      { id: 'a1', payload: { kind: 'attacks' }, width: 'full' },
+      {
+        id: 'a2',
+        payload: { kind: 'attacks' },
+        width: 'full',
+        showOn: 'mobile',
+      }
+    );
+    expect(codes(raw)).toContain('duplicate-section-kind');
+  });
+
+  it('conta a visibilidade da REGIÃO, não só a da seção', () => {
+    const raw = clone(minimal());
+    raw.regions.push(
+      {
+        id: 'pc',
+        role: 'main',
+        showOn: 'desktop',
+        sections: [{ id: 'a1', payload: { kind: 'attacks' }, width: 'full' }],
+      },
+      {
+        id: 'cel',
+        role: 'surface',
+        label: 'Ataques',
+        showOn: 'mobile',
+        sections: [{ id: 'a2', payload: { kind: 'attacks' }, width: 'full' }],
+      }
+    );
+    expect(validateSheetLayout(raw).ok).toBe(true);
+  });
+
+  it('descarta valor desconhecido de showOn', () => {
+    const raw = clone(minimal()) as unknown as {
+      regions: { showOn?: string }[];
+    };
+    raw.regions[0].showOn = 'tablet';
+    expect(sanitizeSheetLayout(raw).regions[0].showOn).toBeUndefined();
   });
 });

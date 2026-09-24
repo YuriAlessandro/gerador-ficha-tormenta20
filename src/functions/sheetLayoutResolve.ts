@@ -15,11 +15,12 @@
  *    seção — senão trocar de classe destruiria o design do usuário.
  */
 import {
+  DeviceVisibility,
   LayoutRegion,
-  LayoutSection,
   ResolvedLayout,
   SheetLayout,
   SheetSectionKind,
+  showsOn,
 } from '../interfaces/SheetLayout';
 
 /** Espelha o `MOBILE_MEDIA_QUERY` histórico do `Result` (`max-width: 768px`). */
@@ -39,42 +40,32 @@ const cloneRegion = (region: LayoutRegion): LayoutRegion => ({
   sections: [...region.sections],
 });
 
+/** Rótulo de uma tela nascida de uma área de corpo/coluna sem nome. */
+const fallbackScreenLabel = (region: LayoutRegion): string =>
+  region.role === 'aside' ? 'Lateral' : 'Geral';
+
 /**
- * Move as seções listadas em `regionOverrides` para as regiões de destino.
- * Rodar ANTES de descartar as regiões ocultas: no preset de abas, Perícias sai
- * da coluna direita (que só então fica vazia e é descartada) e entra na aba.
+ * O menu de ação só desenha topo, telas e rodapé. Áreas de corpo e coluna
+ * lateral viram TELAS aqui — senão o conteúdo delas simplesmente não aparecia
+ * (o editor já converte ao trocar de modelo; isto cobre documentos antigos e
+ * um `mobile.template` de menu sobre um layout de abas). Sem topo, a área da
+ * identidade é promovida, como faz o `applyTemplate`.
  */
-const applyRegionOverrides = (
-  regions: LayoutRegion[],
-  overrides: Record<string, string>
-): LayoutRegion[] => {
-  const moved = new Map<string, LayoutSection>();
+const adaptForActionMenu = (regions: LayoutRegion[]): LayoutRegion[] => {
+  const hasHeader = regions.some((r) => r.role === 'header');
+  const identityRegionId = hasHeader
+    ? undefined
+    : regions.find((r) => r.sections.some((s) => s.payload.kind === 'identity'))
+        ?.id;
 
-  const withoutMoved = regions.map((region) => {
-    const kept: LayoutSection[] = [];
-    region.sections.forEach((section) => {
-      const target = overrides[section.id];
-      if (target && target !== region.id) {
-        moved.set(section.id, section);
-      } else {
-        kept.push(section);
-      }
-    });
-    return { ...region, sections: kept };
-  });
-
-  if (moved.size === 0) return withoutMoved;
-
-  return withoutMoved.map((region) => {
-    const incoming = Object.entries(overrides)
-      .filter(
-        ([sectionId, target]) => target === region.id && moved.has(sectionId)
-      )
-      .map(([sectionId]) => moved.get(sectionId) as LayoutSection);
-
-    if (incoming.length === 0) return region;
-    // Entram na frente: o caso real é Perícias virando a PRIMEIRA aba.
-    return { ...region, sections: [...incoming, ...region.sections] };
+  return regions.map((region) => {
+    if (region.id === identityRegionId) return { ...region, role: 'header' };
+    if (region.role !== 'main' && region.role !== 'aside') return region;
+    return {
+      ...region,
+      role: 'surface',
+      label: region.label ?? fallbackScreenLabel(region),
+    };
   });
 };
 
@@ -85,24 +76,23 @@ export function resolveLayout(
   const { width, fallbackNarrow, available } = opts;
   const isNarrow =
     width > 0 ? width <= SHEET_NARROW_BREAKPOINT : fallbackNarrow;
+  const device: DeviceVisibility = isNarrow ? 'mobile' : 'desktop';
 
   const mobile = layout.mobile ?? {};
   const template = isNarrow
     ? mobile.template ?? layout.template
     : layout.template;
 
-  let regions = layout.regions.map(cloneRegion);
+  // O que é de outro dispositivo sai antes de tudo — inclusive as cópias
+  // "só celular" de seções que no computador moram noutro lugar.
+  let regions = layout.regions
+    .filter((region) => showsOn(region.showOn, device))
+    .map((region) => ({
+      ...cloneRegion(region),
+      sections: region.sections.filter((s) => showsOn(s.showOn, device)),
+    }));
 
   if (isNarrow) {
-    if (mobile.regionOverrides) {
-      regions = applyRegionOverrides(regions, mobile.regionOverrides);
-    }
-
-    if (mobile.hiddenRegionIds?.length) {
-      const hidden = new Set(mobile.hiddenRegionIds);
-      regions = regions.filter((region) => !hidden.has(region.id));
-    }
-
     // Coluna lateral não existe no estreito: o que sobrou nela vira conteúdo
     // normal do corpo, em vez de sumir.
     regions = regions.map((region) =>
@@ -119,6 +109,8 @@ export function resolveLayout(
       }));
     }
   }
+
+  if (template === 'actionMenu') regions = adaptForActionMenu(regions);
 
   // Filtra o que esta ficha não tem, e então descarta regiões que ficaram sem
   // nada — uma aba vazia não deve virar uma aba clicável e em branco.

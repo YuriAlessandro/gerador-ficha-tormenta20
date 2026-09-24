@@ -13,8 +13,8 @@ describe('SheetLayoutWireframe', () => {
 
     expect(screen.getAllByText('Ataques').length).toBeGreaterThan(0);
     expect(screen.getByText('Identidade')).toBeInTheDocument();
-    // A aba "Diário" só existe no estreito e chega vazia: o único "Diário"
-    // na miniatura é o bloco da coluna direita.
+    // As abas "só celular" (Perícias, Diário) ficam fora da miniatura: o
+    // único "Diário" é o bloco da coluna direita.
     expect(screen.getAllByText('Diário')).toHaveLength(1);
   });
 

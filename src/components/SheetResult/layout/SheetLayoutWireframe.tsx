@@ -14,6 +14,7 @@ import {
   LayoutSection,
   SheetLayout,
   SheetSectionKind,
+  showsOn,
 } from '../../../interfaces/SheetLayout';
 import { sanitizeSheetLayout } from '../../../functions/sheetLayoutValidation';
 import SheetIcon from '../../icons/SheetIcon';
@@ -111,11 +112,17 @@ const SheetLayoutWireframe: React.FC<SheetLayoutWireframeProps> = ({
   const { cardBackgroundColor: cardBg, titleColor } = theme;
   const accent = theme.accentColor ?? undefined;
 
-  const regions = layout.regions.filter((r) => r.role !== 'footer');
+  // A miniatura mostra a visão de COMPUTADOR: as cópias "só celular" de uma
+  // seção duplicada apareceriam em dobro.
+  const regions = layout.regions
+    .filter((r) => r.role !== 'footer' && showsOn(r.showOn, 'desktop'))
+    .map((r) => ({
+      ...r,
+      sections: r.sections.filter((s) => showsOn(s.showOn, 'desktop')),
+    }));
   const main = regions.filter((r) => r.role === 'main' || r.role === 'header');
   const aside = regions.filter((r) => r.role === 'aside');
   const surfaces = regions.filter((r) => r.role === 'surface');
-  // A aba que só existe no estreito (Perícias no preset) chega vazia aqui.
   const shownSurfaces = surfaces.filter((s) => visibleSections(s).length > 0);
 
   const blocks = (list: LayoutRegion[]) =>

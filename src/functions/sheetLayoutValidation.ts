@@ -31,7 +31,10 @@ import {
   SHEET_SECTION_KINDS,
   SHEET_TEMPLATE_KINDS,
   FOOTER_LOCKED_KINDS,
+  DEVICE_VISIBILITIES,
+  DeviceVisibility,
   isFooterLockedKind,
+  showsOn,
   isPresetLayoutId,
 } from '../interfaces/SheetLayout';
 import { DEFAULT_SHEET_LAYOUT } from '../interfaces/sheetLayoutPresets';
@@ -83,6 +86,9 @@ const asIconKey = (v: unknown): string | undefined => {
 
 const asWidth = (v: unknown): SheetSectionWidth =>
   v === 'half' ? 'half' : 'full';
+
+const asShowOn = (v: unknown): DeviceVisibility | undefined =>
+  v === 'desktop' || v === 'mobile' ? v : undefined;
 
 const asId = (v: unknown): string | undefined => {
   const s = asString(v);
@@ -154,6 +160,9 @@ const sanitizeSection = (raw: unknown): LayoutSection | null => {
   const titleColor = asColor(raw.titleColor);
   if (titleColor) section.titleColor = titleColor;
 
+  const showOn = asShowOn(raw.showOn);
+  if (showOn) section.showOn = showOn;
+
   return section;
 };
 
@@ -183,6 +192,9 @@ const sanitizeRegion = (raw: unknown): LayoutRegion | null => {
 
   const iconKey = asIconKey(raw.iconKey);
   if (iconKey) region.iconKey = iconKey;
+
+  const showOn = asShowOn(raw.showOn);
+  if (showOn) region.showOn = showOn;
 
   return region;
 };
@@ -250,12 +262,84 @@ const enforceFooterLock = (regions: LayoutRegion[]): LayoutRegion[] => {
     additions.push({ id, payload: { kind }, width: 'full' });
   });
 
-  if (additions.length === 0) return cleaned;
-  cleaned[footerIdx] = {
-    ...footer,
-    sections: [...footer.sections, ...additions],
-  };
+  // Visíveis em todo dispositivo: nem a seção nem o rodapé podem ser "só
+  // computador" ou "só celular".
+  const sections = [...footer.sections, ...additions].map((s) => {
+    if (!isFooterLockedKind(s.payload.kind) || !s.showOn) return s;
+    const visibleEverywhere = { ...s };
+    delete visibleEverywhere.showOn;
+    return visibleEverywhere;
+  });
+  const nextFooter: LayoutRegion = { ...footer, sections };
+  delete nextFooter.showOn;
+  cleaned[footerIdx] = nextFooter;
   return cleaned;
+};
+
+/**
+ * Converte o celular da v1 para `showOn` (v2).
+ *
+ * - `hiddenRegionIds` → a região vira "só computador".
+ * - `regionOverrides` (seção X vai para a região Y no estreito) → a seção fica
+ *   "só computador" onde está e ganha uma CÓPIA "só celular" na frente da
+ *   região Y — exatamente onde o resolve da v1 a punha.
+ */
+const migrateV1Mobile = (
+  regions: LayoutRegion[],
+  rawMobile: Record<string, unknown> | undefined
+): LayoutRegion[] => {
+  if (!rawMobile) return regions;
+  const regionIds = new Set(regions.map((r) => r.id));
+  const sectionIds = new Set(
+    regions.flatMap((r) => r.sections.map((s) => s.id))
+  );
+
+  const hidden = new Set(
+    Array.isArray(rawMobile.hiddenRegionIds)
+      ? rawMobile.hiddenRegionIds
+          .map(asString)
+          .filter((id): id is string => !!id)
+      : []
+  );
+
+  const overrides = isRecord(rawMobile.regionOverrides)
+    ? Object.entries(rawMobile.regionOverrides)
+        .map(([sectionId, target]) => [sectionId, asString(target)] as const)
+        .filter(
+          (e): e is readonly [string, string] =>
+            !!e[1] && sectionIds.has(e[0]) && regionIds.has(e[1])
+        )
+    : [];
+
+  const movedToDesktop = new Set<string>();
+  const incoming = new Map<string, LayoutSection[]>();
+  overrides.forEach(([sectionId, target]) => {
+    const home = regions.find((r) =>
+      r.sections.some((s) => s.id === sectionId)
+    );
+    const section = home?.sections.find((s) => s.id === sectionId);
+    if (!home || !section || home.id === target) return;
+    movedToDesktop.add(sectionId);
+    const copyId = freshId(`${sectionId}-mobile`, sectionIds);
+    sectionIds.add(copyId);
+    const list = incoming.get(target) ?? [];
+    list.push({ ...section, id: copyId, showOn: 'mobile' });
+    incoming.set(target, list);
+  });
+
+  if (hidden.size === 0 && movedToDesktop.size === 0) return regions;
+
+  return regions.map((region) => {
+    const sections = region.sections.map((s) =>
+      movedToDesktop.has(s.id) ? { ...s, showOn: 'desktop' as const } : s
+    );
+    const next: LayoutRegion = {
+      ...region,
+      sections: [...(incoming.get(region.id) ?? []), ...sections],
+    };
+    if (hidden.has(region.id)) next.showOn = 'desktop';
+    return next;
+  });
 };
 
 /** Por que um payload é irrecuperável. Vira código de erro na validação. */
@@ -319,16 +403,10 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
     return { layout: null, rejection: 'missing-required-section' };
   }
 
-  // Aviso de problema e convite de apoio: sempre no rodapé.
-  const lockedRegions = enforceFooterLock(regions);
-  const footerId = lockedRegions.find((r) => r.role === 'footer')?.id;
-  const lockedSectionIds = new Set(
-    lockedRegions.flatMap((r) =>
-      r.sections
-        .filter((s) => isFooterLockedKind(s.payload.kind))
-        .map((s) => s.id)
-    )
-  );
+  const rawMobile = isRecord(raw.mobile) ? raw.mobile : undefined;
+  // v1 → v2 primeiro (as cópias do celular nascem aqui), depois a trava do
+  // rodapé — que também tira `showOn` das seções travadas.
+  const lockedRegions = enforceFooterLock(migrateV1Mobile(regions, rawMobile));
 
   const rawTheme = isRecord(raw.theme) ? raw.theme : {};
   const theme: SheetLayout['theme'] = {};
@@ -373,50 +451,12 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
     theme,
   };
 
-  const rawMobile = isRecord(raw.mobile) ? raw.mobile : undefined;
   if (rawMobile) {
-    const regionIds = new Set(lockedRegions.map((r) => r.id));
-    const sectionIds = new Set(
-      lockedRegions.flatMap((r) => r.sections.map((s) => s.id))
-    );
-
     const mobile: NonNullable<SheetLayout['mobile']> = {};
 
     const mobileTemplate = asString(rawMobile.template);
     if (mobileTemplate && TEMPLATE_SET.has(mobileTemplate)) {
       mobile.template = mobileTemplate as SheetTemplateKind;
-    }
-
-    if (isRecord(rawMobile.regionOverrides)) {
-      const overrides: Record<string, string> = {};
-      Object.entries(rawMobile.regionOverrides).forEach(
-        ([sectionId, target]) => {
-          const t = asString(target);
-          // Override apontando para região/seção que não existe mais é lixo de
-          // uma edição anterior — some sem alarde.
-          // Seção travada não tem destino alternativo no celular: fica no
-          // rodapé como no desktop.
-          if (
-            t &&
-            sectionIds.has(sectionId) &&
-            regionIds.has(t) &&
-            !lockedSectionIds.has(sectionId)
-          ) {
-            overrides[sectionId] = t;
-          }
-        }
-      );
-      if (Object.keys(overrides).length > 0) mobile.regionOverrides = overrides;
-    }
-
-    if (Array.isArray(rawMobile.hiddenRegionIds)) {
-      const hidden = rawMobile.hiddenRegionIds
-        .map(asString)
-        // O rodapé com as seções travadas não pode sumir no celular.
-        .filter(
-          (id): id is string => !!id && regionIds.has(id) && id !== footerId
-        );
-      if (hidden.length > 0) mobile.hiddenRegionIds = hidden;
     }
 
     if (rawMobile.forceFullWidth === false) mobile.forceFullWidth = false;
@@ -502,7 +542,12 @@ export function validateSheetLayout(raw: unknown): ValidateLayoutResult {
     });
   }
 
-  const seenKinds = new Set<SheetSectionKind>();
+  // Unicidade POR DISPOSITIVO: Ataques pode estar numa aba no computador e
+  // noutra no celular, mas nunca duas vezes no mesmo — as seções montam ids
+  // fixos de DOM e, no caso de Poderes, um DragDropContext próprio.
+  const seenByDevice = new Map<DeviceVisibility, Set<SheetSectionKind>>(
+    DEVICE_VISIBILITIES.map((d) => [d, new Set<SheetSectionKind>()])
+  );
   layout.regions.forEach((region) => {
     if (region.role === 'surface' && !region.label) {
       issues.push({
@@ -527,20 +572,26 @@ export function validateSheetLayout(raw: unknown): ValidateLayoutResult {
     region.sections.forEach((section) => {
       const { kind } = section.payload;
       // `note` é a única que pode repetir: é conteúdo do usuário, não um bloco
-      // da ficha. As demais montam DragDropContext e ids fixos de DOM, e
-      // duplicar quebraria a reordenação de poderes.
+      // da ficha.
       if (kind === 'note') return;
 
-      if (seenKinds.has(kind)) {
+      const clash = DEVICE_VISIBILITIES.some((device) => {
+        if (!showsOn(region.showOn, device) || !showsOn(section.showOn, device))
+          return false;
+        const seen = seenByDevice.get(device) as Set<SheetSectionKind>;
+        if (seen.has(kind)) return true;
+        seen.add(kind);
+        return false;
+      });
+      if (clash) {
         issues.push({
           level: 'error',
           code: 'duplicate-section-kind',
-          message: 'Cada seção só pode aparecer uma vez no layout.',
+          message:
+            'Cada seção só pode aparecer uma vez no computador e uma vez no celular. Marque as cópias como "só computador" ou "só celular".',
           sectionId: section.id,
           regionId: region.id,
         });
-      } else {
-        seenKinds.add(kind);
       }
     });
   });

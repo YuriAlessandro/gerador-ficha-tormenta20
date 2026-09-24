@@ -247,6 +247,23 @@ existindo.
   importar e link — não precisa de ficha e não carrega URL externa.
 - Diário do Jogador (veio da `main`) virou a seção `journal`.
 
+### Esquema v2 — visibilidade por dispositivo (24/09)
+
+- `showOn?: 'desktop' | 'mobile'` em regiões e seções substitui
+  `mobile.regionOverrides`/`hiddenRegionIds`, que o editor não mostrava (a aba
+  Perícias parecia vazia). O sanitize converte v1: região escondida vira "só
+  computador"; override vira a seção "só computador" + uma CÓPIA "só celular"
+  na frente da região de destino.
+- Unicidade agora é **por dispositivo**: a mesma seção pode aparecer uma vez no
+  computador e uma no celular ("Duplicar para o outro dispositivo" no editor).
+- `SHEET_LAYOUT_SCHEMA_VERSION = 2` para app antigo recusar o documento (cai
+  no preset) em vez de ignorar `showOn` e renderizar as duas cópias.
+- Editor ciente do modelo: Aba / Grupo (página única) / Tela (menu de ação).
+  O menu de ação converte corpo e coluna lateral em telas (o template não os
+  desenhava — o conteúdo sumia).
+- Página única: a coluna lateral deixou de ser escondida no celular (em v1 a
+  página única ficava sem Perícias no celular).
+
 ### Regras que não são óbvias
 
 - **Usar layout de terceiro direto na ficha** não ocupa vaga nem conta cópia;

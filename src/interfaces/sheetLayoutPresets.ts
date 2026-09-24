@@ -64,6 +64,9 @@ export const PRESET_SECTION_IDS = {
   partners: sectionId('partners'),
   animalCompanions: sectionId('animalCompanions'),
   journal: sectionId('journal'),
+  /** As cópias do celular (v2): mesmas seções, em regiões só do celular. */
+  skillsMobile: 's-skills-mobile',
+  journalMobile: 's-journal-mobile',
   creationSteps: sectionId('creationSteps'),
   supportCta: sectionId('supportCta'),
   bugReport: sectionId('bugReport'),
@@ -96,6 +99,22 @@ const surface = (
   sections: kinds.map((k) => sec(k)),
 });
 
+/** Aba que só existe no celular, com a cópia móvel de uma seção. */
+const mobileSurface = (
+  id: string,
+  label: string,
+  iconKey: string,
+  kind: Exclude<SheetSectionKind, 'note'>,
+  copyId: string
+): LayoutRegion => ({
+  id,
+  role: 'surface',
+  label,
+  iconKey,
+  showOn: 'mobile',
+  sections: [{ id: copyId, payload: { kind }, width: 'full' }],
+});
+
 /** Seções fixas do topo, comuns aos três modelos. */
 const headerSections = (): LayoutSection[] => [
   sec('identity'),
@@ -122,8 +141,10 @@ const footerRegion = (): LayoutRegion => ({
  * - coluna direita (só no largo): Perícias e, abaixo, o Diário do Jogador;
  * - abas: Ataques, Defesa, Poderes, Magias, Equip.
  *
- * No estreito, Perícias sai da coluna direita e vira a PRIMEIRA aba, e o Diário
- * vira a ÚLTIMA — que é o que `Result.tsx` fazia com `if`s cravados no render.
+ * No estreito, Perícias vira a PRIMEIRA aba e o Diário a ÚLTIMA — o que
+ * `Result.tsx` fazia com `if`s cravados no render. Em v2 isso é dado visível:
+ * a coluna lateral é "só computador" e as duas abas são "só celular", cada uma
+ * com a sua cópia da seção.
  */
 export const PRESET_TABS: SheetLayout = {
   schemaVersion: SHEET_LAYOUT_SCHEMA_VERSION,
@@ -140,11 +161,16 @@ export const PRESET_TABS: SheetLayout = {
     {
       id: PRESET_REGION_IDS.aside,
       role: 'aside',
+      showOn: 'desktop',
       sections: [sec('skills'), sec('journal')],
     },
-    // A aba de Perícias só existe no estreito; no largo ela fica vazia e o
-    // resolve a descarta, então nunca aparece no desktop.
-    surface(PRESET_REGION_IDS.skills, 'Perícias', 'mui:Psychology', []),
+    mobileSurface(
+      PRESET_REGION_IDS.skills,
+      'Perícias',
+      'mui:Psychology',
+      'skills',
+      PRESET_SECTION_IDS.skillsMobile
+    ),
     surface(PRESET_REGION_IDS.attacks, 'Ataques', 'mui:Colorize', ['attacks']),
     surface(PRESET_REGION_IDS.defense, 'Defesa', 'mui:Shield', ['defense']),
     surface(PRESET_REGION_IDS.powers, 'Poderes', 'mui:AutoAwesome', ['powers']),
@@ -152,8 +178,13 @@ export const PRESET_TABS: SheetLayout = {
     surface(PRESET_REGION_IDS.equipment, 'Equip.', 'mui:Backpack', [
       'equipment',
     ]),
-    // Mesma lógica da aba de Perícias: só existe no estreito.
-    surface(PRESET_REGION_IDS.journal, 'Diário', 'mui:MenuBook', []),
+    mobileSurface(
+      PRESET_REGION_IDS.journal,
+      'Diário',
+      'mui:MenuBook',
+      'journal',
+      PRESET_SECTION_IDS.journalMobile
+    ),
     {
       id: PRESET_REGION_IDS.mainBottom,
       role: 'main',
@@ -162,15 +193,6 @@ export const PRESET_TABS: SheetLayout = {
     footerRegion(),
   ],
   theme: {},
-  // `forceFullWidth` não é declarado: `true` é o default, e o saneamento
-  // normaliza o documento removendo o que é redundante.
-  mobile: {
-    regionOverrides: {
-      [PRESET_SECTION_IDS.skills]: PRESET_REGION_IDS.skills,
-      [PRESET_SECTION_IDS.journal]: PRESET_REGION_IDS.journal,
-    },
-    hiddenRegionIds: [PRESET_REGION_IDS.aside],
-  },
 };
 
 /* ------------------------------------------------------------------ *
@@ -213,10 +235,10 @@ export const PRESET_SINGLE: SheetLayout = {
     },
     footerRegion(),
   ],
+  // A coluna lateral NÃO é "só computador" aqui: no estreito ela vira corpo e
+  // Perícias/Diário seguem na rolagem. Em v1 ela era escondida no celular, e a
+  // página única ficava sem Perícias no celular.
   theme: {},
-  mobile: {
-    hiddenRegionIds: [PRESET_REGION_IDS.aside],
-  },
 };
 
 /* ------------------------------------------------------------------ *
