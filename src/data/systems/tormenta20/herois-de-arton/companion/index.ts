@@ -357,9 +357,10 @@ export function getCompanionSkillTrainingBonus(trainerLevel: number): number {
 /**
  * Recalcula todos os stats derivados do parceiro.
  *
- * `statLevel` é o nível usado para PV, Defesa e perícias: o nível de
- * Treinador, ou o de personagem com o poder Treinador Eclético. Truques,
- * Treino Intensivo e Treinamento Marcial seguem sempre o nível de Treinador.
+ * `statLevel` é o nível usado para PV (inclusive o +4/nível do Treino
+ * Intensivo), Defesa e perícias: o nível de Treinador, ou o de personagem com
+ * o poder Treinador Eclético. Truques, a RD do Treino Intensivo e o
+ * Treinamento Marcial seguem sempre o nível de Treinador.
  */
 export function calculateCompanionStats(
   companion: CompanionSheet,
@@ -399,9 +400,10 @@ export function calculateCompanionStats(
   // PV base
   let pv = calculateCompanionPV(statLevel, attrs[Atributo.CONSTITUICAO]);
 
-  // Treino Intensivo: +4 PV por nível
+  // Treino Intensivo: +4 PV por nível (parte do cálculo de PV, então segue o
+  // statLevel com Treinador Eclético)
   if (companion.treinoIntensivo) {
-    pv += 4 * trainerLevel;
+    pv += 4 * statLevel;
   }
 
   // RD base (truques) + Treino Intensivo

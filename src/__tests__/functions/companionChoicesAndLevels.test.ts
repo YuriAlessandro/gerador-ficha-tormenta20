@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   calculateCompanionPV,
+  calculateCompanionStats,
   createCompanion,
   generateRandomCompanion,
   isTrickChoiceComplete,
@@ -15,6 +16,7 @@ import {
   SOPRO_ELEMENTS,
   formatTrickChoices,
   getCompanionTrickDefinition,
+  getTrickAvailability,
 } from '../../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import { getCompanionLevels } from '../../functions/companionLevels';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
@@ -140,5 +142,71 @@ describe('calculateCompanionStats — statLevel (Treinador Eclético)', () => {
     expect(eclectic.pv).toBe(calculateCompanionPV(10, con));
     // Defesa soma metade do nível: 6 → +3, 10 → +5
     expect(eclectic.defesa - treinador.defesa).toBe(2);
+  });
+});
+
+describe('limites de repetição (Heróis de Arton)', () => {
+  const availability = (
+    name: string,
+    trainerLevel: number,
+    existing: { name: string }[]
+  ) =>
+    getTrickAvailability(
+      getCompanionTrickDefinition(name)!,
+      trainerLevel,
+      'Animal',
+      'Médio',
+      existing,
+      1,
+      false
+    );
+
+  it('Condicionamento Especial: uma vez por patamar', () => {
+    const one = [{ name: 'Condicionamento Especial' }];
+    expect(availability('Condicionamento Especial', 4, one).available).toBe(
+      false
+    );
+    expect(availability('Condicionamento Especial', 5, one).available).toBe(
+      true
+    );
+    expect(
+      availability('Condicionamento Especial', 10, [...one, ...one]).available
+    ).toBe(false);
+    expect(
+      availability('Condicionamento Especial', 17, [...one, ...one, ...one])
+        .available
+    ).toBe(true);
+  });
+
+  it('Deslocamento Especial: no máximo duas vezes', () => {
+    const one = [{ name: 'Deslocamento Especial' }];
+    expect(availability('Deslocamento Especial', 1, one).available).toBe(true);
+    expect(
+      availability('Deslocamento Especial', 20, [...one, ...one]).available
+    ).toBe(false);
+  });
+});
+
+describe('Treino Intensivo com Treinador Eclético', () => {
+  it('o +4 PV por nível segue o statLevel', () => {
+    const base = createCompanion({
+      type: 'Animal',
+      size: 'Médio',
+      weaponDamageType: 'Corte',
+      skills: [Skill.LUTA, Skill.PERCEPCAO, Skill.FURTIVIDADE],
+      tricks: [{ name: 'Amigo Feroz' }, { name: 'Amigo Protetor' }],
+      trainerLevel: 6,
+      trainerCharisma: 2,
+      statLevel: 10,
+    });
+    const intensivo = calculateCompanionStats(
+      { ...base, treinoIntensivo: true },
+      6,
+      2,
+      10
+    );
+    expect(intensivo.pv - base.pv).toBe(40);
+    // RD do Treino Intensivo continua pelo nível de Treinador (6 → RD 5)
+    expect(intensivo.reducaoDeDano).toBe(5);
   });
 });

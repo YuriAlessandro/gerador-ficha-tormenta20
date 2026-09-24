@@ -2,6 +2,7 @@ import { ClassDescription } from '../../../../../interfaces/Class';
 import { RequirementType } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
+import { spellsCircle2, spellsCircle2Names } from '../../magias/generalSpells';
 
 /**
  * Mascotes do Treinador (quadro "Mascotes", Heróis de Arton).
@@ -173,6 +174,17 @@ const TREINADOR: ClassDescription = {
       name: 'Convocar Enxame',
       text: 'Você aprende e pode lançar Enxame de Pestes (atributo-chave Carisma) e pode usar seus aprimoramentos como se tivesse acesso aos mesmos círculos de magia que um clérigo de seu nível. Esta não é uma habilidade mágica e provém de sua capacidade de atrair criaturas.',
       requirements: [[{ type: RequirementType.NIVEL, value: 5 }]],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Convocar Enxame' },
+          action: {
+            type: 'learnSpell',
+            availableSpells: [spellsCircle2[spellsCircle2Names.enxameDePestes]],
+            pick: 1,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
     {
       name: 'Coração Grande',

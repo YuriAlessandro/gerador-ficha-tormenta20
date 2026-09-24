@@ -12,6 +12,10 @@ export interface CompanionTrickRequirements {
   minNaturalWeapons?: number;
   creationOnly?: boolean;
   canRepeat?: boolean;
+  /** Limite de vezes para truques repetíveis */
+  maxCount?: number;
+  /** Repetível no máximo uma vez por patamar do treinador */
+  oncePerPlateau?: boolean;
 }
 
 /** Sopro: tipos de energia disponíveis */
@@ -125,6 +129,7 @@ const COMPANION_TRICKS: CompanionTrickDefinition[] = [
     subChoiceType: 'attribute',
     requirements: {
       canRepeat: true,
+      oncePerPlateau: true,
     },
   },
   {
@@ -134,6 +139,7 @@ const COMPANION_TRICKS: CompanionTrickDefinition[] = [
     subChoiceType: 'movement',
     requirements: {
       canRepeat: true,
+      maxCount: 2,
     },
   },
   {
@@ -219,6 +225,13 @@ export interface TrickWithAvailability {
   unmetReasons: string[];
 }
 
+function getPlateausReached(trainerLevel: number): number {
+  if (trainerLevel >= 17) return 4;
+  if (trainerLevel >= 11) return 3;
+  if (trainerLevel >= 5) return 2;
+  return 1;
+}
+
 export function getTrickAvailability(
   trick: CompanionTrickDefinition,
   trainerLevel: number,
@@ -258,6 +271,18 @@ export function getTrickAvailability(
   // truques sem bloco de requirements — a ausência de canRepeat = único)
   if (!reqs?.canRepeat && existingTricks.some((t) => t.name === trick.name))
     unmetReasons.push('Já aprendido (não pode repetir)');
+
+  const timesLearned = existingTricks.filter(
+    (t) => t.name === trick.name
+  ).length;
+  if (reqs?.maxCount && timesLearned >= reqs.maxCount)
+    unmetReasons.push(`Já aprendido ${reqs.maxCount} vezes (limite)`);
+  // Patamares: iniciante (1–4), veterano (5–10), campeão (11–16), lenda (17+)
+  if (reqs?.oncePerPlateau) {
+    const plateausReached = getPlateausReached(trainerLevel);
+    if (timesLearned >= plateausReached)
+      unmetReasons.push('Limite de uma vez por patamar atingido');
+  }
 
   return { available: unmetReasons.length === 0, unmetReasons };
 }

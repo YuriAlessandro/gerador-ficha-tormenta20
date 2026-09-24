@@ -2,9 +2,9 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import { getClassLevel } from './multiclass';
 
 export interface CompanionLevels {
-  /** Nível de Treinador: truques, Treino Intensivo, Treinamento Marcial */
+  /** Nível de Treinador: truques, RD do Treino Intensivo, Treinamento Marcial */
   trainerLevel: number;
-  /** Nível para PV, Defesa e perícias do melhor amigo */
+  /** Nível para PV (inclusive o +4/nível do Treino Intensivo), Defesa e perícias */
   statLevel: number;
 }
 
