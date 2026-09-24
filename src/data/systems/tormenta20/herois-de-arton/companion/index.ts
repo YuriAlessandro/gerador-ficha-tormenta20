@@ -19,12 +19,16 @@ import COMPANION_TRICKS, {
   getCompanionTrickDefinition,
   getTrickAvailability,
   getTricksWithAvailability,
+  isTrickChoiceComplete,
+  COMPANION_MANEUVERS,
+  SOPRO_ELEMENTS,
 } from './companionTricks';
 import { Spell } from '../../../../../interfaces/Spells';
 import { findInnateSpell, getInnateSpellOptions } from './innateSpells';
 
 export {
   COMPANION_TRICKS,
+  isTrickChoiceComplete,
   getAvailableTricks,
   getCompanionTrickDefinition,
   getTrickAvailability,
@@ -350,11 +354,18 @@ export function getCompanionSkillTrainingBonus(trainerLevel: number): number {
   return 2;
 }
 
-/** Recalcula todos os stats derivados do parceiro */
+/**
+ * Recalcula todos os stats derivados do parceiro.
+ *
+ * `statLevel` é o nível usado para PV, Defesa e perícias: o nível de
+ * Treinador, ou o de personagem com o poder Treinador Eclético. Truques,
+ * Treino Intensivo e Treinamento Marcial seguem sempre o nível de Treinador.
+ */
 export function calculateCompanionStats(
   companion: CompanionSheet,
   trainerLevel: number,
-  trainerCharisma: number
+  trainerCharisma: number,
+  statLevel: number = trainerLevel
 ): CompanionSheet {
   const typeDef = getCompanionTypeDefinition(companion.companionType);
   const attrs = computeAttributes(typeDef, companion.tricks);
@@ -368,7 +379,7 @@ export function calculateCompanionStats(
   let defesa = calculateCompanionDefense(
     attrs[Atributo.DESTREZA],
     trainerCharisma,
-    trainerLevel,
+    statLevel,
     hasFullLevelDefense
   );
 
@@ -386,7 +397,7 @@ export function calculateCompanionStats(
     : 0;
 
   // PV base
-  let pv = calculateCompanionPV(trainerLevel, attrs[Atributo.CONSTITUICAO]);
+  let pv = calculateCompanionPV(statLevel, attrs[Atributo.CONSTITUICAO]);
 
   // Treino Intensivo: +4 PV por nível
   if (companion.treinoIntensivo) {
@@ -507,7 +518,8 @@ export function calculateCompanionStats(
 export function revertCompanionToOriginal(
   companion: CompanionSheet,
   trainerLevel: number,
-  trainerCharisma: number
+  trainerCharisma: number,
+  statLevel: number = trainerLevel
 ): CompanionSheet {
   if (!companion.originalAutoState) return companion;
   const restored: CompanionSheet = {
@@ -518,7 +530,12 @@ export function revertCompanionToOriginal(
     originalAutoState: companion.originalAutoState,
     manualOverrides: undefined,
   };
-  return calculateCompanionStats(restored, trainerLevel, trainerCharisma);
+  return calculateCompanionStats(
+    restored,
+    trainerLevel,
+    trainerCharisma,
+    statLevel
+  );
 }
 
 export interface CreateCompanionOptions {
@@ -531,6 +548,8 @@ export interface CreateCompanionOptions {
   tricks: CompanionTrick[];
   trainerLevel: number;
   trainerCharisma: number;
+  /** Nível para PV/Defesa/perícias (Treinador Eclético); padrão: trainerLevel */
+  statLevel?: number;
 }
 
 /** Cria um parceiro a partir das seleções do wizard */
@@ -563,7 +582,8 @@ export function createCompanion(
   return calculateCompanionStats(
     baseCompanion,
     options.trainerLevel,
-    options.trainerCharisma
+    options.trainerCharisma,
+    options.statLevel
   );
 }
 
@@ -672,6 +692,18 @@ export function generateRandomCompanion(
         const chosen =
           spellOptions[Math.floor(Math.random() * spellOptions.length)];
         if (chosen) trickEntry.choices = { spell: chosen.nome };
+      } else if (trick.subChoiceType === 'element') {
+        trickEntry.choices = {
+          element:
+            SOPRO_ELEMENTS[Math.floor(Math.random() * SOPRO_ELEMENTS.length)],
+        };
+      } else if (trick.subChoiceType === 'maneuver') {
+        trickEntry.choices = {
+          maneuver:
+            COMPANION_MANEUVERS[
+              Math.floor(Math.random() * COMPANION_MANEUVERS.length)
+            ],
+        };
       }
     }
 

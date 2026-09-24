@@ -103,7 +103,7 @@ import {
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import type { GeneralPower } from '@/interfaces/Poderes';
-import { getCompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import { isTrickChoiceComplete } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import {
   applyDeityClassVariant,
   getDeityClassVariant,
@@ -2378,15 +2378,7 @@ const CharacterCreationWizardModal: React.FC<
         const hasTricks =
           tricks.length === 2 &&
           // Sub-escolhas do truque (atributos, deslocamento, Magia Inata)
-          tricks.every((t) => {
-            const def = getCompanionTrickDefinition(t.name);
-            if (!def?.hasSubChoice) return true;
-            if (def.subChoiceType === 'attribute')
-              return !!t.choices?.primary && !!t.choices?.secondary;
-            if (def.subChoiceType === 'movement') return !!t.choices?.type;
-            if (def.subChoiceType === 'spell') return !!t.choices?.spell;
-            return true;
-          });
+          tricks.every(isTrickChoiceComplete);
         const hasSpiritEnergy =
           selections.companionType !== 'Espírito' ||
           !!selections.companionSpiritEnergyType;

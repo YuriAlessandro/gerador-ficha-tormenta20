@@ -46,6 +46,7 @@ import {
   COMPANION_WEAPON_DAMAGE_TYPES,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
+  formatTrickChoices,
   getCompanionTrickDefinition,
   getTricksWithAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
@@ -56,6 +57,7 @@ import {
 } from '@/data/systems/tormenta20/atributos';
 import Skill from '@/interfaces/Skills';
 import NumberField from '@/components/common/NumberField';
+import CompanionTrickChoiceFields from './CompanionTrickChoiceFields';
 
 const COMPANION_TYPES: CompanionType[] = [
   'Animal',
@@ -67,22 +69,13 @@ const COMPANION_TYPES: CompanionType[] = [
 
 const ALL_SIZES: CompanionSize[] = ['Pequeno', 'Médio', 'Grande', 'Enorme'];
 
-// Condicionamento Especial: qualquer atributo, exceto Inteligência
-const CONDITIONING_ATTRIBUTES: Atributo[] = [
-  Atributo.FORCA,
-  Atributo.DESTREZA,
-  Atributo.CONSTITUICAO,
-  Atributo.SABEDORIA,
-  Atributo.CARISMA,
-];
-
-const SPECIAL_MOVEMENTS = ['Escalada', 'Natação'];
-
 interface CompanionEditDialogProps {
   open: boolean;
   onClose: () => void;
   companion: CompanionSheet;
   trainerLevel: number;
+  /** Nível para PV/Defesa/perícias (Treinador Eclético); padrão: trainerLevel */
+  statLevel?: number;
   trainerCharisma: number;
   onSave: (updated: CompanionSheet) => void;
 }
@@ -124,6 +117,7 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
   onClose,
   companion,
   trainerLevel,
+  statLevel = trainerLevel,
   trainerCharisma,
   onSave,
 }) => {
@@ -168,9 +162,10 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
     return calculateCompanionStats(
       draftCompanion,
       trainerLevel,
-      trainerCharisma
+      trainerCharisma,
+      statLevel
     );
-  }, [draft, companion, trainerLevel, trainerCharisma]);
+  }, [draft, companion, trainerLevel, trainerCharisma, statLevel]);
 
   const autoStateForDisplay = previewCompanion.originalAutoState;
 
@@ -225,21 +220,31 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
     const recalculated = calculateCompanionStats(
       updatedCompanion,
       trainerLevel,
-      trainerCharisma
+      trainerCharisma,
+      statLevel
     );
     onSave(recalculated);
     onClose();
-  }, [companion, draft, trainerLevel, trainerCharisma, onSave, onClose]);
+  }, [
+    companion,
+    draft,
+    trainerLevel,
+    trainerCharisma,
+    statLevel,
+    onSave,
+    onClose,
+  ]);
 
   const handleConfirmReset = useCallback(() => {
     const restored = revertCompanionToOriginal(
       companion,
       trainerLevel,
-      trainerCharisma
+      trainerCharisma,
+      statLevel
     );
     setDraft(buildInitialDraft(restored));
     setConfirmResetOpen(false);
-  }, [companion, trainerLevel, trainerCharisma]);
+  }, [companion, trainerLevel, trainerCharisma, statLevel]);
 
   const hasOverrides = Object.keys(draft.overrides).length > 0;
   const canReset = !!companion.originalAutoState;
@@ -1095,7 +1100,14 @@ const TricksTab: React.FC<{
     setDraft((p) => ({ ...p, tricks: [...p.tricks, { name: trickName }] }));
   };
 
-  // Sub-escolhas (magia, atributos, deslocamento): grava/limpa no truque do draft.
+  const setTrickChoices = (idx: number, choices: Record<string, string>) => {
+    setDraft((p) => ({
+      ...p,
+      tricks: p.tricks.map((t, i) => (i === idx ? { ...t, choices } : t)),
+    }));
+  };
+
+  // Magia Inata: grava/limpa a magia escolhida no truque do draft.
   const setTrickChoice = (
     idx: number,
     key: string,
@@ -1171,10 +1183,7 @@ const TricksTab: React.FC<{
                       color: 'text.secondary',
                     }}
                   >
-                    Escolhas:{' '}
-                    {Object.entries(trick.choices)
-                      .map(([k, v]) => `${k}: ${v}`)
-                      .join(', ')}
+                    Escolhas: {formatTrickChoices(trick)}
                   </Typography>
                 )}
                 {def?.text && (
@@ -1214,78 +1223,12 @@ const TricksTab: React.FC<{
                     sx={{ mt: 1, maxWidth: 360 }}
                   />
                 )}
-                {def?.subChoiceType === 'attribute' && (
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={1}
-                    sx={{ mt: 1 }}
-                  >
-                    <FormControl size='small' sx={{ minWidth: 160 }}>
-                      <InputLabel>+2 em</InputLabel>
-                      <Select
-                        label='+2 em'
-                        value={trick.choices?.primary || ''}
-                        onChange={(e) => {
-                          const value = e.target.value as string;
-                          setTrickChoice(idx, 'primary', value || undefined);
-                          if (value && value === trick.choices?.secondary) {
-                            setTrickChoice(idx, 'secondary', undefined);
-                          }
-                        }}
-                      >
-                        {CONDITIONING_ATTRIBUTES.map((attr) => (
-                          <MenuItem key={attr} value={attr}>
-                            {attr}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <FormControl size='small' sx={{ minWidth: 160 }}>
-                      <InputLabel>+1 em</InputLabel>
-                      <Select
-                        label='+1 em'
-                        value={trick.choices?.secondary || ''}
-                        onChange={(e) =>
-                          setTrickChoice(
-                            idx,
-                            'secondary',
-                            (e.target.value as string) || undefined
-                          )
-                        }
-                      >
-                        {CONDITIONING_ATTRIBUTES.filter(
-                          (attr) => attr !== trick.choices?.primary
-                        ).map((attr) => (
-                          <MenuItem key={attr} value={attr}>
-                            {attr}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Stack>
-                )}
-                {def?.subChoiceType === 'movement' && (
-                  <FormControl size='small' sx={{ mt: 1, minWidth: 160 }}>
-                    <InputLabel>Deslocamento</InputLabel>
-                    <Select
-                      label='Deslocamento'
-                      value={trick.choices?.type || ''}
-                      onChange={(e) =>
-                        setTrickChoice(
-                          idx,
-                          'type',
-                          (e.target.value as string) || undefined
-                        )
-                      }
-                    >
-                      {SPECIAL_MOVEMENTS.map((movement) => (
-                        <MenuItem key={movement} value={movement}>
-                          {movement}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
+                <Box sx={{ mt: 1 }}>
+                  <CompanionTrickChoiceFields
+                    trick={trick}
+                    onChoicesChange={(choices) => setTrickChoices(idx, choices)}
+                  />
+                </Box>
               </Box>
               <IconButton
                 size='small'
@@ -1332,7 +1275,8 @@ const TricksTab: React.FC<{
         }}
       >
         Truques com sub-escolha (Magia Inata, Condicionamento Especial,
-        Deslocamento Especial) mostram os seletores no próprio truque, acima.
+        Deslocamento Especial, Sopro, Manobra Ensaiada) mostram os seletores no
+        próprio truque, acima.
       </Typography>
     </Stack>
   );

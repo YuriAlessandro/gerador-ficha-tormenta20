@@ -77,6 +77,7 @@ import {
   createCompanion,
   getCompanionTrickDefinition,
   getTrickAvailability,
+  isTrickChoiceComplete,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import OriginPowerSwapStep from './steps/OriginPowerSwapStep';
 import PowerSelectionStep from './steps/PowerSelectionStep';
@@ -1110,16 +1111,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           false
         );
         if (!available) return false;
-        if (trickDef.hasSubChoice) {
-          if (trickDef.subChoiceType === 'attribute')
-            return (
-              !!entry.trick.choices?.primary && !!entry.trick.choices?.secondary
-            );
-          if (trickDef.subChoiceType === 'movement')
-            return !!entry.trick.choices?.type;
-          if (trickDef.subChoiceType === 'spell') return !!entry.spell;
-        }
-        return true;
+        if (trickDef.subChoiceType === 'spell') return !!entry.spell;
+        return isTrickChoiceComplete(entry.trick);
       }
 
       case 'Melhor Amigo':
@@ -1138,16 +1131,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           return false;
         if (!companionSkills || companionSkills.length !== 3) return false;
         if (!companionTricks || companionTricks.length !== 2) return false;
-        return companionTricks.every((t) => {
-          const def = getCompanionTrickDefinition(t.name);
-          if (!def?.hasSubChoice) return true;
-          if (def.subChoiceType === 'attribute')
-            return !!t.choices?.primary && !!t.choices?.secondary;
-          if (def.subChoiceType === 'movement') return !!t.choices?.type;
-          // Magia Inata: sem a magia escolhida o truque não concede nada
-          if (def.subChoiceType === 'spell') return !!t.choices?.spell;
-          return true;
-        });
+        return companionTricks.every(isTrickChoiceComplete);
       }
 
       default:

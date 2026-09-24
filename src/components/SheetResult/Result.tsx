@@ -69,6 +69,7 @@ import {
   getClassLevelsMap,
   getClassLevel,
 } from '@/functions/multiclass';
+import { getCompanionLevels } from '@/functions/companionLevels';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
@@ -351,10 +352,10 @@ const Result: React.FC<ResultProps> = (props) => {
     () => getActiveEffectHighlights(currentSheet),
     [currentSheet]
   );
-  // Melhor Amigo escala com o nível de Treinador, não com o de personagem
-  // (mesma regra do recalculateSheet — importa na multiclasse)
-  const trainerLevel =
-    getClassLevel(currentSheet, 'Treinador') || currentSheet.nivel;
+  // Melhor Amigo escala com o nível de Treinador (ou o de personagem, para
+  // PV/Defesa/perícias, com Treinador Eclético) — mesma regra do recalculateSheet
+  const { trainerLevel, statLevel: companionStatLevel } =
+    getCompanionLevels(currentSheet);
   // O painel de companheiros só aparece para quem tem a ver com ele: druidas
   // com o poder Companheiro Animal, ou qualquer ficha que já tenha um
   // companheiro salvo (não esconder dados existentes se o poder for removido).
@@ -3631,6 +3632,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 onClose={() => setCompanionModalOpen(false)}
                 companion={currentCompanion}
                 trainerLevel={trainerLevel}
+                statLevel={companionStatLevel}
                 trainerName={currentSheet.nome}
                 trainerCharismaMod={
                   currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
@@ -3692,6 +3694,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   }}
                   companion={currentCompanion}
                   trainerLevel={trainerLevel}
+                  statLevel={companionStatLevel}
                   trainerCharisma={
                     currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
                   }
@@ -3713,6 +3716,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 setCompanionModalOpen(true);
               }}
               trainerLevel={trainerLevel}
+              statLevel={companionStatLevel}
               trainerCharisma={
                 currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
               }

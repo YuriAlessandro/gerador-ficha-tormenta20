@@ -28,7 +28,10 @@ import {
   getCompanionTypeDefinition,
   CompanionTypeDefinition,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTypes';
-import { getCompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import {
+  formatTrickChoices,
+  getCompanionTrickDefinition,
+} from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import { getCompanionSkillTrainingBonus } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
   Atributo,
@@ -44,6 +47,8 @@ interface CompanionSheetModalProps {
   onClose: () => void;
   companion: CompanionSheet;
   trainerLevel: number;
+  /** Nível para PV/Defesa/perícias (Treinador Eclético); padrão: trainerLevel */
+  statLevel?: number;
   trainerName?: string;
   trainerCharismaMod?: number;
   pendingEnsinarTruqueCount?: number;
@@ -141,6 +146,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   onClose,
   companion,
   trainerLevel,
+  statLevel = trainerLevel,
   trainerName,
   trainerCharismaMod,
   pendingEnsinarTruqueCount,
@@ -222,8 +228,9 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
     [showDiceResult, displayName]
   );
 
-  const halfTrainerLevel = Math.floor(trainerLevel / 2);
-  const skillTrainingBonus = getCompanionSkillTrainingBonus(trainerLevel);
+  // Perícias (e ataques, testes de Luta/Pontaria) usam o nível de atributos
+  const halfTrainerLevel = Math.floor(statLevel / 2);
+  const skillTrainingBonus = getCompanionSkillTrainingBonus(statLevel);
   const forMod = companion.attributes[Atributo.FORCA];
   const companionAtkBonus = companion.attackBonus || 0;
   const companionDmgBonus = companion.damageBonus || 0;
@@ -806,10 +813,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                               color: 'text.secondary',
                             }}
                           >
-                            Escolhas:{' '}
-                            {Object.entries(trick.choices)
-                              .map(([key, val]) => `${key}: ${val}`)
-                              .join(', ')}
+                            Escolhas: {formatTrickChoices(trick)}
                           </Typography>
                         </Box>
                       )}
@@ -921,6 +925,8 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           }}
         >
           Nível do Treinador: {trainerLevel}
+          {statLevel !== trainerLevel &&
+            ` · PV, Defesa e perícias pelo nível ${statLevel} (Treinador Eclético)`}
         </Typography>
       </DialogContent>
       <Dialog
