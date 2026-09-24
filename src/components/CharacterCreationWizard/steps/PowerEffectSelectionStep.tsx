@@ -29,6 +29,7 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import {
   PowerSelectionRequirement,
   ManualPowerSelections,
+  SelectionOptions,
 } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
@@ -38,6 +39,7 @@ import Divindade from '@/interfaces/Divindade';
 import {
   getPowerSelectionRequirements,
   getChosenOptionNestedRequirements,
+  getOptionBranchSelectionKeys,
   getFilteredAvailableOptions,
   getGrantedPowerRequirements,
   resolveLearnSkillRemainingPick,
@@ -45,7 +47,7 @@ import {
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
-import { isPowerAvailable } from '@/functions/powers';
+import { getOwnedGeneralPowers, isPowerAvailable } from '@/functions/powers';
 import Skill from '@/interfaces/Skills';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
@@ -165,6 +167,13 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   // Junta os requisitos fixos do poder com os que só existem depois de uma
   // escolha de `chooseFromOptions` (ex.: Herança de Werra → "Duas Armas
   // Exóticas" pede 2 proficiências).
+  // Guarda o poder por nome para que a troca de ramo de um `chooseFromOptions`
+  // consiga zerar as respostas do ramo anterior (ver `handleSelection`).
+  const powersByName = new Map<
+    string,
+    Parameters<typeof getPowerSelectionRequirements>[0]
+  >();
+
   const collectRequirements = (
     powerOrAbility: Parameters<typeof getPowerSelectionRequirements>[0],
     source: 'race' | 'class' | 'origin'
@@ -176,6 +185,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     );
     const requirements = [...(reqs?.requirements ?? []), ...nested];
     if (requirements.length === 0) return;
+    powersByName.set(powerOrAbility.name, powerOrAbility);
     allRequirements.push({
       powerName: powerOrAbility.name,
       source,
@@ -532,13 +542,29 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       });
     }
 
+    const nextPowerSelections: SelectionOptions = {
+      ...powerSelections,
+      [updateKey]: newItems,
+    };
+
+    // Trocar o ramo de um `chooseFromOptions` tem que zerar o que o ramo
+    // ANTERIOR respondeu — senão o handler do ramo novo consome a resposta
+    // velha. Ver `getOptionBranchSelectionKeys`: só as chaves dos requisitos
+    // aninhados nas opções são limpas, as respostas dos requisitos irmãos do
+    // próprio poder ficam.
+    if (updateKey === 'chosenOption') {
+      const power = powersByName.get(powerName);
+      if (power) {
+        getOptionBranchSelectionKeys(power).forEach((key) => {
+          delete nextPowerSelections[key];
+        });
+      }
+    }
+
     // Update selections for this specific power
     onChange({
       ...selections,
-      [powerName]: {
-        ...powerSelections,
-        [updateKey]: newItems,
-      },
+      [powerName]: nextPowerSelections,
     });
   };
 
@@ -1430,7 +1456,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available powers for Versátil using dataRegistry
       const allPowers = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowers = Object.values(allPowers).flat();
-      const existingGeneralPowers = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowers = getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForVersatil = allGeneralPowers.filter((power) => {
         const isRepeatedPower = existingGeneralPowers.find(
           (existingPower) => existingPower.name === power.name
@@ -1510,7 +1536,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available general powers
       const allPowersForMP = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowersForMP = Object.values(allPowersForMP).flat();
-      const existingGeneralPowersForMP = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowersForMP =
+        getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForMP = allGeneralPowersForMP.filter((power) => {
         const isRepeatedPower = existingGeneralPowersForMP.find(
           (existingPower) => existingPower.name === power.name
@@ -1560,7 +1587,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     if (type === 'meioElfoAmbicaoHerdada') {
       const allPowersForAH = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowersForAH = Object.values(allPowersForAH).flat();
-      const existingGeneralPowersForAH = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowersForAH =
+        getOwnedGeneralPowers(sheetForFiltering);
       const availableGeneralPowersForAH = allGeneralPowersForAH.filter(
         (power) => {
           const isRepeatedPower = existingGeneralPowersForAH.find(
@@ -1610,7 +1638,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available general powers (filtered by requirements/existing)
       const allPowersForYNO = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowersForYNO = Object.values(allPowersForYNO).flat();
-      const existingGeneralPowersForYNO = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowersForYNO =
+        getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForYNO = allGeneralPowersForYNO.filter((power) => {
         const isRepeatedPower = existingGeneralPowersForYNO.find(
           (existingPower) => existingPower.name === power.name

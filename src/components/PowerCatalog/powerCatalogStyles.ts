@@ -1,4 +1,4 @@
-import { EASE_OUT } from '../../common/listStyles';
+import { EASE_OUT } from '@/components/SheetResult/common/listStyles';
 
 /**
  * O que é próprio do editor. Todo o resto — `ROW_SX`, `TOOLBAR_SX`,
@@ -18,7 +18,7 @@ export {
   NAME_SX,
   ROW_SX,
   TOOLBAR_SX,
-} from '../../common/listStyles';
+} from '@/components/SheetResult/common/listStyles';
 
 /** Largura do painel "na ficha" no desktop. */
 export const SELECTED_PANEL_WIDTH = 340;

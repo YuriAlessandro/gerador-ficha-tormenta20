@@ -51,6 +51,7 @@ import { recalculateSheet } from '../../../functions/recalculateSheet';
 import { ignoresEncumbrance } from '../../../functions/encumbrance';
 import BackpackItemCard from './BackpackItemCard';
 import BackpackToolbar from './BackpackToolbar';
+import { getAmmoTypeOptions } from './ammo';
 import AddItemDialog from './AddItemDialog';
 import ItemEditorDialog from './ItemEditorDialog';
 import { useBackpackState } from './useBackpackState';
@@ -556,6 +557,15 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     if (filters.selectedCategories.size === 0) return undefined;
     return CATEGORY_ORDER.find((cat) => filters.selectedCategories.has(cat));
   }, [filters.selectedCategories]);
+
+  // Tipos de munição já presentes na mochila, para os seletores de autoria
+  // sugerirem munição autoral ("Cartuchos a vapor") além dos cinco do livro.
+  // Sai da mochila ENCENADA, e não da salva, para um pacote criado e uma arma
+  // criada na mesma sessão já se encontrarem sem fechar o modal.
+  const ammoTypeOptions = useMemo(
+    () => getAmmoTypeOptions(staged.equipments),
+    [staged.equipments]
+  );
 
   // Group items by category for the grouped layout, preserving the manual
   // displayOrder within each group via filteredItems already being ordered.
@@ -1214,6 +1224,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         autoDeductMoney={staged.autoDeductMoney}
         onToggleAutoDeductMoney={setAutoDeductMoney}
         defaultCategory={addDialogCategory}
+        ammoTypeOptions={ammoTypeOptions}
       />
       <ItemEditorDialog
         open={editorOpen}
@@ -1223,6 +1234,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         }}
         item={editingItem}
         onSave={handleEditorSave}
+        ammoTypeOptions={ammoTypeOptions}
       />
     </Dialog>
   );

@@ -23,7 +23,7 @@ import { itemTypeStyles } from './itemTypeStyles';
 import WieldingControl from './WieldingControl';
 import WornItemControl from './WornItemControl';
 import { hasMechanicalBonus, isTwoHanded, WieldingSlot } from './wielding';
-import { AMMO_LABELS } from './ammo';
+import { ammoTypeLabel } from './ammo';
 
 export interface BackpackItemCardProps {
   item: Equipment;
@@ -100,7 +100,7 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
     unitSpaces !== undefined && (!isAmmoItem || Boolean(item.hasManualSpaces));
   const ammoUnits = item.unitsRemaining ?? 0;
   const ammoPackSize = item.ammoPackSize ?? 20;
-  const ammoLabel = item.ammoType ? AMMO_LABELS[item.ammoType] : 'Munição';
+  const ammoLabel = item.ammoType ? ammoTypeLabel(item.ammoType) : 'Munição';
 
   const bonusLabels = describeItemBonuses(item);
 

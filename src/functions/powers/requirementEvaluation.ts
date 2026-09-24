@@ -3,17 +3,20 @@ import { ClassPower } from '../../interfaces/Class';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
+  PrerequisiteWaiver,
   Requirement,
   RequirementType,
 } from '../../interfaces/Poderes';
-import Skill, {
-  ALL_SPECIFIC_OFICIOS,
-  isGenericOficio,
-  isOficioSkill,
-} from '../../interfaces/Skills';
+import Skill, { isGenericOficio, isOficioSkill } from '../../interfaces/Skills';
 import { isClassOrVariantOf, isRaceOrVariantOf } from '../general';
 import { applyRequirementNot } from '../powers';
 import { PowerLike, sheetSatisfiesPowerRequirement } from './hasPowerNamed';
+import { ARTESAO_CRIATIVO } from '../../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
+import {
+  findWaiverForPower,
+  getActiveWaivers,
+  isRequirementWaived,
+} from './prerequisiteWaivers';
 import { formatRequirement } from '../requirementText';
 
 /**
@@ -53,11 +56,19 @@ export interface RequirementContext {
   pendingGeneralPowers?: PowerLike[];
   /** Poderes de classe marcados no editor e ainda não salvos. */
   pendingClassPowers?: PowerLike[];
+  /** Classe dona do poder, quando for poder de CLASSE. */
+  className?: string;
+  /** Waivers resolvidos. Passe ao filtrar catálogo inteiro (custo por item). */
+  waivers?: PrerequisiteWaiver[];
 }
 
 export interface EvaluatedRequirement {
   requirement: Requirement;
   met: boolean;
+  /** Não cumprido, e sim DISPENSADO por um poder. Conta como `met`. */
+  waived?: boolean;
+  /** Poder que dispensou. Só existe com `waived`. */
+  waivedReason?: string;
   /** Texto pronto do requisito, via `formatRequirement` (respeita `not`). */
   label: string;
   /**
@@ -80,14 +91,18 @@ export interface PowerAvailability {
   bypassed: boolean;
   /** Grupos são OU entre si; requisitos dentro do grupo são E. */
   groups: EvaluatedRequirementGroup[];
+  /**
+   * Liberado apesar de reprovar nos pré-requisitos, por opt-in do jogador
+   * ("Mostrar poderes fora dos requisitos" da subida de nível). A UI sinaliza
+   * em vez de fingir que o requisito foi cumprido.
+   */
+  outOfRequirements?: boolean;
 }
 
 /** Um poder qualquer que carregue pré-requisitos. */
 type RequirablePower = Pick<GeneralPower | ClassPower, 'name'> & {
   requirements?: Requirement[][];
 };
-
-const ARTESAO_CRIATIVO = 'Artesão Criativo';
 
 /**
  * Todos os nomes de poder que valem como "o personagem tem X", somando a ficha
@@ -186,8 +201,11 @@ function isRequirementMet(
       if (isTrainedIn(sheet, req.name as string)) return true;
 
       // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
-      // específico para fins de pré-requisito.
-      if (ALL_SPECIFIC_OFICIOS.includes(req.name as Skill)) {
+      // para fins de pré-requisito ("qualquer outro Ofício", diz o poder), o
+      // que inclui os Ofícios customizados criados em runtime por
+      // `buildCustomOficio` — por isso `isOficioSkill` e não a lista fechada
+      // `ALL_SPECIFIC_OFICIOS`. Espelha o mesmo trecho em `functions/powers.ts`.
+      if (isOficioSkill(req.name) && !isGenericOficio(req.name)) {
         return (
           hasPowerNamed(ARTESAO_CRIATIVO, ctx) &&
           isTrainedIn(sheet, Skill.OFICIO_ARTESANATO)
@@ -269,14 +287,33 @@ export function evaluatePowerRequirements(
   ctx: RequirementContext,
   kind: PowerKind = 'general'
 ): PowerAvailability {
-  // Habilidades raciais podem dispensar todos os pré-requisitos de certos
-  // poderes (ex.: Centauro "Ginete Natural" → poder "Carga de Cavalaria").
-  // O casamento é por SUBSTRING do nome, então os termos cadastrados precisam
-  // ser específicos o bastante para não pegar poderes vizinhos.
-  const bypassed = (ctx.sheet.raca.abilities ?? []).some((a) =>
-    a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
+  // Ver `prerequisiteWaivers`.
+  const waivers =
+    ctx.waivers ??
+    getActiveWaivers(ctx.sheet, {
+      generalPowers: ctx.pendingGeneralPowers,
+      classPowers: ctx.pendingClassPowers,
+    });
+  const waiver = findWaiverForPower(power, waivers, ctx.className);
+
+  // Waiver TOTAL (sem `requirementTypes`) não deixa requisito para exibir — é o
+  // comportamento histórico de `bypassPrereqForPowersNamed`.
+  //
+  // Só que requisito NEGADO nunca é dispensado (ver `isRequirementWaived`): ele
+  // PROÍBE uma combinação, e ignorá-lo inverteria a regra. O atalho é portanto
+  // limitado a poderes sem negação — do contrário este avaliador liberaria um
+  // poder que `isPowerAvailable`, que decide regra a regra, continua negando.
+  // Nenhum dado de hoje cai nesse caso; a trava existe para os dois motores não
+  // divergirem em silêncio quando cair.
+  const hasNegatedRequirement = power.requirements?.some((group) =>
+    group.some((requirement) => requirement.not)
   );
-  if (bypassed) return { available: true, bypassed: true, groups: [] };
+  const waivesEverything =
+    !!waiver &&
+    !waiver.requirementTypes &&
+    !!power.requirements?.length &&
+    !hasNegatedRequirement;
+  if (waivesEverything) return { available: true, bypassed: true, groups: [] };
 
   if (!power.requirements || power.requirements.length === 0) {
     return { available: true, bypassed: false, groups: [] };
@@ -284,13 +321,23 @@ export function evaluatePowerRequirements(
 
   const groups = power.requirements.map((group) => {
     const requirements = group.map((requirement) => {
-      const met = applyRequirementNot(
+      const { waived, reason } = isRequirementWaived(
         requirement,
-        isRequirementMet(requirement, ctx, kind)
+        power,
+        waivers,
+        ctx.className
       );
+      const met =
+        waived ||
+        applyRequirementNot(
+          requirement,
+          isRequirementMet(requirement, ctx, kind)
+        );
       return {
         requirement,
         met,
+        waived: waived || undefined,
+        waivedReason: waived ? reason : undefined,
         label: formatRequirement(requirement),
         current: met ? undefined : currentValueFor(requirement, ctx),
       };

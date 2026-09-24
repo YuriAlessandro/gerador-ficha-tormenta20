@@ -136,6 +136,122 @@ describe('refreshBagItemsFromCatalog', () => {
     expect(() => refreshBagItemsFromCatalog(sheet)).not.toThrow();
   });
 
+  /**
+   * Um arco comprado antes dos campos de classificação existirem fica com
+   * `alcance`/`ammoType` ausentes — e aí rola Luta, soma Força no dano e não
+   * tem contador de munição. Como a mochila é snapshot congelado, corrigir o
+   * catálogo não bastava; a cura precisa acontecer na carga da ficha.
+   */
+  describe('classificação de arma (alcance / arremesso / munição)', () => {
+    const baggedWeapon = (weapon: Equipment): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.bag = new Bag({ Arma: [weapon] });
+      return sheet;
+    };
+
+    it('carimba alcance e munição num arco antigo sem os campos', () => {
+      const sheet = baggedWeapon({
+        nome: 'Arco Curto',
+        id: 'arco-1',
+        group: 'Arma',
+        dano: '1d6',
+        spaces: 2,
+      });
+
+      refreshBagItemsFromCatalog(sheet);
+
+      const bow = sheet.bag.equipments.Arma[0];
+      expect(bow.alcance).toBe('Médio');
+      expect(bow.ammoType).toBe('Flechas');
+    });
+
+    it('carimba arremesso numa adaga antiga', () => {
+      const sheet = baggedWeapon({
+        nome: 'Adaga',
+        id: 'adaga-1',
+        group: 'Arma',
+        dano: '1d4',
+        spaces: 1,
+      });
+
+      refreshBagItemsFromCatalog(sheet);
+
+      expect(sheet.bag.equipments.Arma[0].alcance).toBe('Curto');
+      expect(sheet.bag.equipments.Arma[0].arremesso).toBe(true);
+    });
+
+    it('NÃO altera arma que já tem alcance "-" explícito', () => {
+      // '-' é escolha do autor (ou do catálogo), não campo faltando.
+      const sheet = baggedWeapon({
+        nome: 'Arco Curto',
+        id: 'arco-2',
+        group: 'Arma',
+        dano: '1d6',
+        spaces: 2,
+        alcance: '-',
+      });
+
+      refreshBagItemsFromCatalog(sheet);
+
+      expect(sheet.bag.equipments.Arma[0].alcance).toBe('-');
+      expect(sheet.bag.equipments.Arma[0].arremesso).toBeUndefined();
+    });
+
+    it('NÃO altera munição que o jogador já escolheu', () => {
+      const sheet = baggedWeapon({
+        nome: 'Arco Curto',
+        id: 'arco-3',
+        group: 'Arma',
+        dano: '1d6',
+        spaces: 2,
+        ammoType: 'Virotes',
+      });
+
+      refreshBagItemsFromCatalog(sheet);
+
+      expect(sheet.bag.equipments.Arma[0].ammoType).toBe('Virotes');
+    });
+
+    it('cura também arma que o pipeline de aprimoramentos já possui', () => {
+      // Classificação não é bônus: uma arma encantada precisa da cura tanto
+      // quanto uma limpa, então roda antes do early-return de ownership.
+      const sheet = baggedWeapon({
+        nome: 'Arco Curto',
+        id: 'arco-4',
+        group: 'Arma',
+        dano: '1d6',
+        spaces: 2,
+        baseSheetBonuses: [],
+      });
+
+      refreshBagItemsFromCatalog(sheet);
+
+      expect(sheet.bag.equipments.Arma[0].alcance).toBe('Médio');
+      expect(sheet.bag.equipments.Arma[0].ammoType).toBe('Flechas');
+    });
+
+    it('não toca em arma custom de mesmo nome', () => {
+      const sheet = baggedWeapon({
+        nome: 'Arco Curto',
+        id: 'arco-5',
+        group: 'Arma',
+        dano: '1d6',
+        spaces: 2,
+        isCustom: true,
+      });
+
+      refreshBagItemsFromCatalog(sheet);
+
+      expect(sheet.bag.equipments.Arma[0].alcance).toBeUndefined();
+      // `ammoType` aqui NÃO vem deste refresh: o construtor do `Bag` chama
+      // `seedAmmoUnits`, cujo retrofit por nome exato
+      // (`WEAPON_AMMO_BY_LEGACY_NAME`) roda antes e de propósito não olha
+      // `isCustom` — quem batiza a própria arma de "Arco Curto" ganha o
+      // vínculo com Flechas, o que é o comportamento útil.
+      expect(sheet.bag.equipments.Arma[0].ammoType).toBe('Flechas');
+    });
+  });
+
   it('deixa item que não existe no catálogo intacto', () => {
     const homebrew: Equipment = {
       nome: 'Espada do Vovô Zé',

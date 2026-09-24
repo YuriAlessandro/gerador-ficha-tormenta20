@@ -15,6 +15,7 @@ import {
   Box,
   Alert,
   Divider,
+  TextField,
 } from '@mui/material';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import {
@@ -22,6 +23,7 @@ import {
   SelectionOptions,
 } from '@/interfaces/PowerSelections';
 import {
+  getChosenOptionNestedRequirements,
   getFilteredAvailableOptions,
   resolveLearnSkillRemainingPick,
   validateSelections,
@@ -33,6 +35,17 @@ import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { dataRegistry } from '@/data/registry';
 import AlmaLivreSelectionField from '@/components/CharacterCreationWizard/steps/AlmaLivreSelectionField';
 
+/** Acima disso, a lista de poderes ganha campo de busca. */
+const SEARCH_THRESHOLD = 12;
+
+/** Comparação de busca sem acento e sem caixa. */
+const normalizeSearch = (value: string): string =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
 interface PowerSelectionDialogProps {
   open: boolean;
   onClose: () => void;
@@ -43,6 +56,12 @@ interface PowerSelectionDialogProps {
   // and the currently-recorded selections (one per instance, in order).
   instances?: number;
   initialSelections?: SelectionOptions;
+  // O poder dono dos requisitos. Só é preciso para os requisitos ANINHADOS de
+  // um `chooseFromOptions` — os que só existem depois que o jogador escolhe uma
+  // opção (ex.: Cosmopolita → "Poder geral" revela a lista de poderes gerais).
+  // Sem ele o diálogo desenha só o primeiro nível e o Confirmar aceita uma
+  // escolha pela metade.
+  ownerPower?: Parameters<typeof getChosenOptionNestedRequirements>[0];
 }
 
 const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
@@ -53,16 +72,32 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
   sheet,
   instances = 1,
   initialSelections,
+  ownerPower,
 }) => {
   const supplements = useContentSupplements();
   const [selections, setSelections] = useState<SelectionOptions>({});
   const [errors, setErrors] = useState<string[]>([]);
+  const [searchByRequirement, setSearchByRequirement] = useState<
+    Record<number, string>
+  >({});
+
+  // Requisitos que só existem depois de uma escolha de `chooseFromOptions`.
+  // Recalculados a cada mudança de `selections` para que o segundo passo
+  // apareça assim que o ramo é escolhido.
+  const nestedRequirements = ownerPower
+    ? getChosenOptionNestedRequirements(ownerPower, selections)
+    : [];
+  const effectiveRequirements: PowerSelectionRequirements = {
+    powerName: requirements.powerName,
+    requirements: [...requirements.requirements, ...nestedRequirements],
+  };
 
   // Reset selections when dialog opens/closes or requirements change
   useEffect(() => {
     if (open) {
       setSelections(initialSelections || {});
       setErrors([]);
+      setSearchByRequirement({});
     }
   }, [open, requirements.powerName, initialSelections]);
 
@@ -286,7 +321,7 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
 
   const handleConfirm = () => {
     const validation = validateSelections(
-      requirements,
+      effectiveRequirements,
       selections,
       sheet,
       supplements
@@ -494,8 +529,48 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         );
       }
 
-      case 'getGeneralPower': {
+      // `getClassPower` (ex.: o ramo "poder de classe" do Cosmopolita e do
+      // Citadino Abastado) compartilha a renderização: a resposta mora na mesma
+      // chave `selections.powers`, e o `applyPower` casa por nome. Sem este
+      // caso o `switch` caía no `default: return null` e o diálogo abria vazio.
+      case 'getGeneralPower':
+      case 'getClassPower': {
         const selectedPowers = selections.powers || [];
+        // ClassPower guarda o texto em `text`, GeneralPower em `description`.
+        const powerText = (power: { description?: string; text?: string }) =>
+          power.description ?? power.text ?? '';
+
+        // Piscinas por categoria (`availableTypes`) chegam com centenas de
+        // poderes; sem busca a lista é inutilizável. O assistente de criação já
+        // tem a dele.
+        const query = normalizeSearch(searchByRequirement[index] ?? '');
+        const shownOptions = query
+          ? availableOptions.filter(
+              (power) =>
+                normalizeSearch(power.name).includes(query) ||
+                normalizeSearch(powerText(power)).includes(query)
+            )
+          : availableOptions;
+
+        const optionLabel = (power: {
+          name: string;
+          description?: string;
+          text?: string;
+        }) => (
+          <Box>
+            <Typography variant='body1'>{power.name}</Typography>
+            {powerText(power) && (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
+                {powerText(power)}
+              </Typography>
+            )}
+          </Box>
+        );
 
         return (
           <Box
@@ -507,6 +582,23 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
             <Typography variant='h6' gutterBottom>
               {label}
             </Typography>
+            {availableOptions.length > SEARCH_THRESHOLD && (
+              <TextField
+                fullWidth
+                size='small'
+                placeholder='Buscar poder...'
+                value={searchByRequirement[index] ?? ''}
+                onChange={(e) =>
+                  setSearchByRequirement((prev) => ({
+                    ...prev,
+                    [index]: e.target.value,
+                  }))
+                }
+                sx={{
+                  mb: 1,
+                }}
+              />
+            )}
             <FormControl component='fieldset'>
               {isSingleSelection ? (
                 <RadioGroup
@@ -518,32 +610,18 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                     if (power) handlePowerSelection(power, true, pick);
                   }}
                 >
-                  {availableOptions.map((power) => (
+                  {shownOptions.map((power) => (
                     <FormControlLabel
                       key={power.name}
                       value={power.name}
                       control={<Radio />}
-                      label={
-                        <Box>
-                          <Typography variant='body1'>{power.name}</Typography>
-                          {power.description && (
-                            <Typography
-                              variant='body2'
-                              sx={{
-                                color: 'text.secondary',
-                              }}
-                            >
-                              {power.description}
-                            </Typography>
-                          )}
-                        </Box>
-                      }
+                      label={optionLabel(power)}
                     />
                   ))}
                 </RadioGroup>
               ) : (
                 <FormGroup>
-                  {availableOptions.map((power) => (
+                  {shownOptions.map((power) => (
                     <FormControlLabel
                       key={power.name}
                       control={
@@ -561,21 +639,7 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                           }
                         />
                       }
-                      label={
-                        <Box>
-                          <Typography variant='body1'>{power.name}</Typography>
-                          {power.description && (
-                            <Typography
-                              variant='body2'
-                              sx={{
-                                color: 'text.secondary',
-                              }}
-                            >
-                              {power.description}
-                            </Typography>
-                          )}
-                        </Box>
-                      }
+                      label={optionLabel(power)}
                     />
                   ))}
                 </FormGroup>
@@ -998,7 +1062,7 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
           </Alert>
         )}
 
-        {requirements.requirements.map((requirement, index) => (
+        {effectiveRequirements.requirements.map((requirement, index) => (
           <React.Fragment
             key={`${requirement.type}-${requirement.pick}-${requirement.label}`}
           >

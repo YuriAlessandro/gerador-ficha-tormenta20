@@ -3,8 +3,11 @@
 import { noop } from '../_inert';
 
 export const getAgeAttributeModifiers = () => [];
+export const getAgeBracket = () => undefined;
+export const getAgeBracketForYears = () => 'jovem';
 export const getAgeExtraLevels = () => 0;
 export const getAgeOriginBenefits = () => 2;
+export const getAgeRanges = () => [];
 export const getAgeSheetBonuses = () => [];
 export const getRequiredAgeComplications = () => 0;
 export const isAgeSelectionComplete = () => true;

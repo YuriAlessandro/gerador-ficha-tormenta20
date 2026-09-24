@@ -17,6 +17,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import HealingIcon from '@mui/icons-material/Healing';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+import { addPointsOverflowingToTemp } from '@/functions/general';
 
 interface StatEditDrawerProps {
   open: boolean;
@@ -140,12 +141,34 @@ const StatEditDrawer: React.FC<StatEditDrawerProps> = ({
       manualMaxPM: newManualMaxPM,
     };
 
-    if (manualMaxChanged) {
-      const recalculated = recalculateSheet(updatedSheet, sheet);
-      onSave(recalculated);
-    } else {
-      onSave(updatedSheet);
-    }
+    // Mexer no máximo manual muda o máximo, então o transbordo tem que ser
+    // medido contra o valor já recalculado.
+    const recalculated = manualMaxChanged
+      ? recalculateSheet(updatedSheet, sheet)
+      : updatedSheet;
+
+    // Valor atual digitado acima do máximo vira temporário, igual aos botões
+    // de + da ficha.
+    const pv = addPointsOverflowingToTemp(
+      0,
+      newCurrentPV,
+      recalculated.pv,
+      newTempPV
+    );
+    const pm = addPointsOverflowingToTemp(
+      0,
+      newCurrentPM,
+      recalculated.pm,
+      newTempPM
+    );
+
+    onSave({
+      ...recalculated,
+      currentPV: pv.current,
+      tempPV: pv.temp,
+      currentPM: pm.current,
+      tempPM: pm.temp,
+    });
     onClose();
   };
 

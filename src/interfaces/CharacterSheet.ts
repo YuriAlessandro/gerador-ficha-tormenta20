@@ -1,5 +1,5 @@
 import { ClassDescription, ClassPower, CrossTraditionRules } from './Class';
-import { GeneralPower, OriginPower } from './Poderes';
+import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
 import Bag from './Bag';
 import { Spell, SpellSchool } from './Spells';
@@ -14,7 +14,7 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
-import type { SheetAge } from '../premium/interfaces/Age';
+import type { SheetAge } from './Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { DiceRoll } from './DiceRoll';
 import type { PlayerJournal } from './PlayerJournal';
@@ -78,6 +78,12 @@ export type SheetChangeSource =
 export type SheetAction = {
   source: SheetChangeSource;
   action: SheetActionStep;
+  /**
+   * Só aplica a ação se a condição passar — mesmas cláusulas de
+   * `SheetBonus.condition`. Ex.: Rei Mercenário (Vassalo 17), que depende do
+   * caminho escolhido no 9º.
+   */
+  condition?: BonusCondition;
 };
 
 export type SheetActionStep =
@@ -110,6 +116,12 @@ export type SheetActionStep =
   | {
       type: 'getGeneralPower';
       availablePowers: GeneralPower[]; // List of available powers
+      // Piscina por CATEGORIA, resolvida na hora pelo `dataRegistry` com os
+      // suplementos ativos (ver `resolveGeneralPowerPool`). Quando presente,
+      // `availablePowers` é ignorado — passe `[]`. Existe porque um poder que
+      // oferece "um poder geral qualquer" não pode congelar a lista no dado:
+      // com import estático, nenhum poder de suplemento entraria na oferta.
+      availableTypes?: GeneralPowerType[];
       pick: number; // Number of powers to learn
       // Concessões que valem apesar dos pré-requisitos dos poderes ofertados.
       // Linhagem Abençoada (Deuses de Arton, pág. 33) dá um poder concedido
@@ -137,6 +149,11 @@ export type SheetActionStep =
       oncePerTier?: boolean; // Limitar a mesma escolha a 1×/patamar (padrão true).
       // Persiste a escolha do jogador (replay sem manualSelections, ex.: homebrew).
       optionKey?: string;
+      /** Restringe o pool. Ausente = todos. Ex.: Rei Mercenário (Vassalo 17). */
+      allowedAttributes?: Atributo[];
+      pick?: number;
+      /** Repetir o mesmo atributo entre os `pick`. Padrão `false`. */
+      allowRepeats?: boolean;
     }
   | {
       type: 'setMaxSpacesAttribute';
@@ -205,10 +222,33 @@ export type SheetActionStep =
       // Nível em que os requisitos são avaliados (default: 2). Ver
       // getFuturaLendaClassPowers.
       minLevel?: number;
+      // De onde sai esse nível. 'fixed' (padrão) usa `minLevel` e rende a mesma
+      // lista em qualquer recálculo — é o caso de um benefício ganho no 1º
+      // nível (Futura Lenda, Cosmopolita). 'sheet' avalia no nível ATUAL do
+      // personagem: para poderes re-escolhidos a cada aventura (Citadino
+      // Abastado), cuja oferta acompanha o crescimento do personagem.
+      levelSource?: 'fixed' | 'sheet';
+      /**
+       * Poder vindo de outra classe, avaliado como se o personagem fosse dela.
+       * Ex.: Valete (Vassalo 2), "um poder de cavaleiro a sua escolha".
+       */
+      fromClasses?: string[];
+      label?: string;
     }
   | {
       type: 'grantSpecificClassPower';
       powerName: string; // Name of the specific class power to grant automatically
+      /** Classe dona do poder, quando não é a da ficha. Ex.: Barão (Vassalo 10). */
+      fromClass?: string;
+    }
+  | {
+      /**
+       * Habilidade NOMEADA de outra classe — `learnClassAbility` deixa o
+       * jogador escolher. Ex.: Capitão do Reino (Vassalo 8), Golpe Divino.
+       */
+      type: 'grantSpecificClassAbility';
+      abilityName: string;
+      fromClass: string;
     }
   | {
       type: 'addAlchemyItems';
@@ -673,6 +713,11 @@ export type BonusConditionClause = (
   | { kind: 'hasSkill'; value: Skill }
   | { kind: 'devoteOf'; value: string }
   | { kind: 'isRace'; value: string }
+  /**
+   * Opção de `chooseFromOptions` já escolhida (lida do histórico). Ex.: o
+   * Caminho do Soldado/Governante do Vassalo, cobrado nos níveis 11 e 13.
+   */
+  | { kind: 'optionChosen'; value: string }
 ) & { negate?: boolean };
 
 /**
@@ -911,6 +956,18 @@ export default interface CharacterSheet {
   raceEnergySource?: string; // For Golem Desperto
   raceSizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
   suragelAbility?: string; // For Suraggel (Aggelus/Sulfure) alternative abilities
+  /**
+   * Escolhas opcionais da variante de classe por divindade (Deuses de Arton) —
+   * hoje só "Paladino de Marah". Ausente = regra do livro básico.
+   *
+   * Só `alternativeAbility` importa depois da criação: a troca é reaplicada a
+   * cada recálculo em `applyClassAbilities`. `swapInitialSkill` é consumido na
+   * geração e vive daí em diante em `sheet.pericias`.
+   */
+  deityClassChoices?: {
+    alternativeAbility?: string;
+    swapInitialSkill?: boolean;
+  };
   duendeNature?: string; // For Duende (animal/vegetal/mineral)
   duendePresentes?: string[]; // For Duende (3 selected powers)
   duendeTabuSkill?: string; // For Duende (skill with -5 penalty)
