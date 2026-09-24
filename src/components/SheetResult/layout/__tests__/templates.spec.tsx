@@ -279,3 +279,43 @@ describe('ações da seção', () => {
     expect(screen.getByText('acao-defesa')).toBeInTheDocument();
   });
 });
+
+describe('coluna lateral — um card por seção', () => {
+  // Levar Equipamentos para a lateral leva o CARD de Equipamentos, e não o
+  // conteúdo dele para dentro do card de outra seção.
+  const withEquipmentInAside = (base: SheetLayout): SheetLayout => ({
+    ...base,
+    regions: base.regions.map((r) => {
+      if (r.role === 'aside') {
+        return {
+          ...r,
+          sections: [
+            ...r.sections,
+            { id: 'eq', payload: { kind: 'equipment' }, width: 'full' },
+          ],
+        };
+      }
+      return {
+        ...r,
+        sections: r.sections.filter((s) => s.payload.kind !== 'equipment'),
+      };
+    }),
+  });
+
+  const cardOf = (text: string) =>
+    screen.getByText(text).closest('.MuiCard-root');
+
+  it.each([
+    ['abas', PRESET_TABS],
+    ['página única', PRESET_SINGLE],
+  ])('%s: Perícias e Equipamentos ficam em cards separados', (_, preset) => {
+    renderLayout(withEquipmentInAside(preset));
+
+    const skills = cardOf('corpo-skills');
+    const equipment = cardOf('corpo-equipment');
+
+    expect(skills).not.toBeNull();
+    expect(equipment).not.toBeNull();
+    expect(skills).not.toBe(equipment);
+  });
+});

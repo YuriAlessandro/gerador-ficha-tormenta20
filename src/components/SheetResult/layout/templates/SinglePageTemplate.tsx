@@ -87,16 +87,8 @@ const SinglePageTemplate: React.FC<SheetTemplateProps> = ({
         </Box>
         {asideRegions.length > 0 && !layout.isNarrow && (
           <Box sx={{ width: '40%', minWidth: 0 }}>
-            {asideRegions.map((region) => (
-              <Card key={region.id} sx={{ p: 3, mb: 4 }}>
-                <RegionStack
-                  region={region}
-                  nodes={nodes}
-                  withCards={false}
-                  titleColor={titleColor}
-                />
-              </Card>
-            ))}
+            {/* Um card por seção, como no corpo (ver TabsTemplate). */}
+            {renderRegions(asideRegions)}
           </Box>
         )}
       </Stack>

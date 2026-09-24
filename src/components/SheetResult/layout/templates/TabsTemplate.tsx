@@ -108,16 +108,10 @@ const TabsTemplate: React.FC<SheetTemplateProps> = ({
         </Box>
         {asideRegions.length > 0 && (
           <Box sx={{ width: layout.isNarrow ? '100%' : '40%', minWidth: 0 }}>
-            {asideRegions.map((region) => (
-              <Card key={region.id} sx={{ p: 3, mb: 4 }}>
-                <RegionStack
-                  region={region}
-                  nodes={nodes}
-                  withCards={false}
-                  titleColor={titleColor}
-                />
-              </Card>
-            ))}
+            {/* Cada SEÇÃO da lateral é um card próprio, como no corpo: levar
+                Equipamentos para cá leva o card de Equipamentos, e não o
+                conteúdo dele para dentro do card de Perícias. */}
+            {renderRegions(asideRegions)}
           </Box>
         )}
       </Stack>
