@@ -18,6 +18,7 @@ import {
   isRequirementWaived,
 } from './prerequisiteWaivers';
 import { formatRequirement } from '../requirementText';
+import { deityRequirementMatches } from './deityNames';
 
 /**
  * Avaliação de pré-requisito **item a item**, para a UI poder dizer *qual*
@@ -189,8 +190,9 @@ function isRequirementMet(
       );
 
     case RequirementType.PERICIA: {
+      const pericia = req.name as string;
       // Requisito de Ofício genérico é satisfeito por qualquer Ofício treinado.
-      if (isGenericOficio(req.name)) {
+      if (isGenericOficio(pericia)) {
         return (
           sheet.completeSkills?.some(
             (s) => isOficioSkill(s.name) && (s.training || 0) > 0
@@ -198,14 +200,14 @@ function isRequirementMet(
         );
       }
 
-      if (isTrainedIn(sheet, req.name as string)) return true;
+      if (isTrainedIn(sheet, pericia)) return true;
 
       // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
       // para fins de pré-requisito ("qualquer outro Ofício", diz o poder), o
       // que inclui os Ofícios customizados criados em runtime por
       // `buildCustomOficio` — por isso `isOficioSkill` e não a lista fechada
       // `ALL_SPECIFIC_OFICIOS`. Espelha o mesmo trecho em `functions/powers.ts`.
-      if (isOficioSkill(req.name) && !isGenericOficio(req.name)) {
+      if (isOficioSkill(pericia) && !isGenericOficio(pericia)) {
         return (
           hasPowerNamed(ARTESAO_CRIATIVO, ctx) &&
           isTrainedIn(sheet, Skill.OFICIO_ARTESANATO)
@@ -231,11 +233,10 @@ function isRequirementMet(
       return isClassOrVariantOf(sheet.classe, req.name as string);
 
     case RequirementType.DEVOTO: {
-      const godName = req.name;
-      if (!godName || godName === 'any') return !!sheet.devoto?.divindade;
-      return (
-        sheet.devoto?.divindade.name.toLowerCase() === godName.toLowerCase()
-      );
+      const deityNames = sheet.devoto?.divindade?.name
+        ? [sheet.devoto.divindade.name]
+        : [];
+      return deityRequirementMatches(req.name, deityNames);
     }
 
     case RequirementType.HABILIDADE:

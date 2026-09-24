@@ -18,7 +18,10 @@ import {
 } from './general';
 import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
-import { getSheetDeityNames } from './powers/deityNames';
+import {
+  deityRequirementMatches,
+  getSheetDeityNames,
+} from './powers/deityNames';
 import {
   sheetHasPowerNamed,
   sheetSatisfiesPowerRequirement,
@@ -129,7 +132,8 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       // poder concedido pode viver sozinho) e respeita o hook
       // `grantsPowerRequirements` — de habilidade racial (homebrew, via
       // `compileRace`) ou de poder ("Ginete Altivo" conta como "Ginete").
-      if (sheetSatisfiesPowerRequirement(sheet, rule.name)) return true;
+      if (sheetSatisfiesPowerRequirement(sheet, rule.name as string))
+        return true;
 
       // `classe.abilities` fica FORA de `sheetSatisfiesPowerRequirement` de
       // propósito (ver `powers/hasPowerNamed.ts`), mas alguns poderes pedem
@@ -153,7 +157,7 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
     case RequirementType.PERICIA: {
       const trainedSkills = getTrainedSkillNames(sheet);
 
-      if (isGenericOficio(rule.name)) {
+      if (isGenericOficio(rule.name as string)) {
         // isOficioSkill (e não a lista fechada) para que um Ofício
         // customizado também satisfaça o pré-requisito genérico
         return trainedSkills.some(isOficioSkill);
@@ -226,15 +230,8 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       );
     }
     case RequirementType.DEVOTO: {
-      const godName = rule.name;
-      // Avalia contra o CONJUNTO de deuses da ficha (ver `getSheetDeityNames`):
-      // com Devoção Dupla são dois, e é isso que faz um grupo de requisitos
-      // `[[{DEVOTO, A}, {DEVOTO, B}]]` — o poder único de um sincretismo —
-      // reprovar devoto simples e aprovar devoto duplo, sem tipo novo.
-      const deityNames = getSheetDeityNames(sheet);
-      // 'any' significa que o personagem deve ser devoto de qualquer divindade
-      if (godName === 'any') return deityNames.length > 0;
-      return !!godName && deityNames.includes(godName);
+      // Avalia contra o CONJUNTO de deuses da ficha (Devoção Dupla = dois).
+      return deityRequirementMatches(rule.name, getSheetDeityNames(sheet));
     }
     case RequirementType.RACA: {
       // Aceita variantes e "considerado um X para efeitos relacionados a raça"

@@ -1,10 +1,32 @@
 import { v4 as uuid } from 'uuid';
 import { ClassDescription } from '../../../../interfaces/Class';
+import {
+  allDivindadeNames,
+  divindadeDisplayNames,
+  DivindadeNames,
+  FaithProbability,
+} from '../../../../interfaces/Divindade';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import { allDivineSpellsCircle1 } from '../magias/divine';
+
+/** Deuses que aceitam paladinos. Fonte única para faithProbability e Cavaleiro Sagrado. */
+export const PALADIN_DEITY_KEYS: DivindadeNames[] = [
+  'AZGHER',
+  'KHALMYR',
+  'LENA',
+  'LINWU',
+  'MARAH',
+  'TANNATOH',
+  'THYATIS',
+  'VALKARIA',
+];
+
+export const PALADIN_DEITIES = PALADIN_DEITY_KEYS.map(
+  (k) => divindadeDisplayNames[k]
+);
 
 const PALADINO: ClassDescription = {
   name: 'Paladino',
@@ -286,28 +308,9 @@ const PALADINO: ClassDescription = {
   ],
   probDevoto: 0.8,
   qtdPoderesConcedidos: 2,
-  faithProbability: {
-    AZGHER: 1,
-    KHALMYR: 1,
-    LENA: 1,
-    LINWU: 1,
-    MARAH: 1,
-    TANNATOH: 1,
-    THYATIS: 1,
-    VALKARIA: 1,
-    AHARADAK: 0,
-    ALLIHANNA: 0,
-    ARSENAL: 0,
-    HYNINN: 0,
-    KALLYADRANOCH: 0,
-    MEGALOKK: 0,
-    NIMB: 0,
-    OCEANO: 0,
-    SSZZAAS: 0,
-    TENEBRA: 0,
-    THWOR: 0,
-    WYNNA: 0,
-  },
+  faithProbability: Object.fromEntries(
+    allDivindadeNames.map((k) => [k, PALADIN_DEITY_KEYS.includes(k) ? 1 : 0])
+  ) as FaithProbability,
   attrPriority: [Atributo.FORCA, Atributo.CONSTITUICAO, Atributo.CARISMA],
 };
 

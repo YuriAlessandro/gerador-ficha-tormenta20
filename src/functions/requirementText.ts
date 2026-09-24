@@ -43,6 +43,8 @@ function baseText(req: Requirement, options: FormatRequirementOptions): string {
       return `Herança: ${req.name}`;
     case RequirementType.DEVOTO:
       if (!req.name) return 'Devoto de uma divindade';
+      if (Array.isArray(req.name))
+        return `Devoto de uma destas divindades: ${req.name.join(', ')}`;
       return req.name === 'any'
         ? 'Devoto de qualquer divindade'
         : `Devoto de ${req.name}`;
@@ -62,6 +64,10 @@ function negatedText(req: Requirement, base: string): string {
   switch (req.type) {
     case RequirementType.DEVOTO:
       if (!req.name || req.name === 'any') return 'Não ser devoto';
+      if (Array.isArray(req.name))
+        return `Não ser devoto de nenhuma destas divindades: ${req.name.join(
+          ', '
+        )}`;
       return `Não ser devoto de ${req.name}`;
     case RequirementType.PERICIA:
       return `Não ser treinado em ${req.name}`;
