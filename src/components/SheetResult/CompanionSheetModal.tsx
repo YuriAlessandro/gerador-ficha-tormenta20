@@ -616,7 +616,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
 
               return (
                 <Box
-                  key={`weapon-${weapon.damageType}-${weapon.damageDice}-${weapon.threatMargin}`}
+                  // Armas naturais do parceiro costumam ser idênticas (Monstro,
+                  // Arma Natural Adicional): só o índice as distingue. Keys
+                  // repetidas faziam o React acumular nós ao trocar de amigo.
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={`weapon-${idx}`}
                   onClick={() => handleWeaponRoll(weapon, idx)}
                   sx={{
                     border: `1px solid ${theme.palette.divider}`,
@@ -771,10 +775,13 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             >
               Truques ({companion.tricks.length})
             </Typography>
-            {companion.tricks.map((trick) => {
+            {companion.tricks.map((trick, idx) => {
               const trickDef = getCompanionTrickDefinition(trick.name);
               return (
-                <Accordion key={trick.name} disableGutters>
+                // Truques repetíveis (Condicionamento Especial, Magia Inata)
+                // aparecem mais de uma vez com o mesmo nome
+                // eslint-disable-next-line react/no-array-index-key
+                <Accordion key={`${trick.name}-${idx}`} disableGutters>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography
                       color='primary'

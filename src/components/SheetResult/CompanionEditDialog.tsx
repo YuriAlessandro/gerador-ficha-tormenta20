@@ -67,6 +67,17 @@ const COMPANION_TYPES: CompanionType[] = [
 
 const ALL_SIZES: CompanionSize[] = ['Pequeno', 'Médio', 'Grande', 'Enorme'];
 
+// Condicionamento Especial: qualquer atributo, exceto Inteligência
+const CONDITIONING_ATTRIBUTES: Atributo[] = [
+  Atributo.FORCA,
+  Atributo.DESTREZA,
+  Atributo.CONSTITUICAO,
+  Atributo.SABEDORIA,
+  Atributo.CARISMA,
+];
+
+const SPECIAL_MOVEMENTS = ['Escalada', 'Natação'];
+
 interface CompanionEditDialogProps {
   open: boolean;
   onClose: () => void;
@@ -1084,7 +1095,7 @@ const TricksTab: React.FC<{
     setDraft((p) => ({ ...p, tricks: [...p.tricks, { name: trickName }] }));
   };
 
-  // Magia Inata: grava/limpa a magia escolhida no truque do draft.
+  // Sub-escolhas (magia, atributos, deslocamento): grava/limpa no truque do draft.
   const setTrickChoice = (
     idx: number,
     key: string,
@@ -1203,6 +1214,78 @@ const TricksTab: React.FC<{
                     sx={{ mt: 1, maxWidth: 360 }}
                   />
                 )}
+                {def?.subChoiceType === 'attribute' && (
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1}
+                    sx={{ mt: 1 }}
+                  >
+                    <FormControl size='small' sx={{ minWidth: 160 }}>
+                      <InputLabel>+2 em</InputLabel>
+                      <Select
+                        label='+2 em'
+                        value={trick.choices?.primary || ''}
+                        onChange={(e) => {
+                          const value = e.target.value as string;
+                          setTrickChoice(idx, 'primary', value || undefined);
+                          if (value && value === trick.choices?.secondary) {
+                            setTrickChoice(idx, 'secondary', undefined);
+                          }
+                        }}
+                      >
+                        {CONDITIONING_ATTRIBUTES.map((attr) => (
+                          <MenuItem key={attr} value={attr}>
+                            {attr}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <FormControl size='small' sx={{ minWidth: 160 }}>
+                      <InputLabel>+1 em</InputLabel>
+                      <Select
+                        label='+1 em'
+                        value={trick.choices?.secondary || ''}
+                        onChange={(e) =>
+                          setTrickChoice(
+                            idx,
+                            'secondary',
+                            (e.target.value as string) || undefined
+                          )
+                        }
+                      >
+                        {CONDITIONING_ATTRIBUTES.filter(
+                          (attr) => attr !== trick.choices?.primary
+                        ).map((attr) => (
+                          <MenuItem key={attr} value={attr}>
+                            {attr}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                )}
+                {def?.subChoiceType === 'movement' && (
+                  <FormControl size='small' sx={{ mt: 1, minWidth: 160 }}>
+                    <InputLabel>Deslocamento</InputLabel>
+                    <Select
+                      label='Deslocamento'
+                      value={trick.choices?.type || ''}
+                      onChange={(e) =>
+                        setTrickChoice(
+                          idx,
+                          'type',
+                          (e.target.value as string) || undefined
+                        )
+                      }
+                    >
+                      {SPECIAL_MOVEMENTS.map((movement) => (
+                        <MenuItem key={movement} value={movement}>
+                          {movement}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
               </Box>
               <IconButton
                 size='small'
@@ -1248,9 +1331,8 @@ const TricksTab: React.FC<{
           color: 'text.secondary',
         }}
       >
-        Ao adicionar Magia Inata, escolha a magia no seletor que aparece no
-        truque acima. Outras sub-escolhas (atributo, movimento) são adicionadas
-        sem escolha — ajuste recriando o parceiro se necessário.
+        Truques com sub-escolha (Magia Inata, Condicionamento Especial,
+        Deslocamento Especial) mostram os seletores no próprio truque, acima.
       </Typography>
     </Stack>
   );

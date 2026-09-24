@@ -301,9 +301,10 @@ export function calculateCompanionPV(
   trainerLevel: number,
   conMod: number
 ): number {
-  // PV = 16 + Con + (nível × (4 + Con))
-  // Nível 1: 16 + Con + (1 × (4 + Con)) = 20 + 2×Con
-  return 16 + conMod + trainerLevel * (4 + conMod);
+  // 16 + Con no 1º nível, +4 + Con por nível seguinte. A fórmula antiga
+  // multiplicava pelo nível inteiro, contando o 1º nível duas vezes (o amigo
+  // de um treinador de nível 2 ficava com os PV de nível 3).
+  return 16 + conMod + (trainerLevel - 1) * (4 + conMod);
 }
 
 /** Calcula Defesa do parceiro */

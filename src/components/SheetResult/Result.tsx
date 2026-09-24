@@ -351,6 +351,10 @@ const Result: React.FC<ResultProps> = (props) => {
     () => getActiveEffectHighlights(currentSheet),
     [currentSheet]
   );
+  // Melhor Amigo escala com o nível de Treinador, não com o de personagem
+  // (mesma regra do recalculateSheet — importa na multiclasse)
+  const trainerLevel =
+    getClassLevel(currentSheet, 'Treinador') || currentSheet.nivel;
   // O painel de companheiros só aparece para quem tem a ver com ele: druidas
   // com o poder Companheiro Animal, ou qualquer ficha que já tenha um
   // companheiro salvo (não esconder dados existentes se o poder for removido).
@@ -3626,7 +3630,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 open={companionModalOpen}
                 onClose={() => setCompanionModalOpen(false)}
                 companion={currentCompanion}
-                trainerLevel={currentSheet.nivel}
+                trainerLevel={trainerLevel}
                 trainerName={currentSheet.nome}
                 trainerCharismaMod={
                   currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
@@ -3687,7 +3691,7 @@ const Result: React.FC<ResultProps> = (props) => {
                     setCompanionModalOpen(true);
                   }}
                   companion={currentCompanion}
-                  trainerLevel={currentSheet.nivel}
+                  trainerLevel={trainerLevel}
                   trainerCharisma={
                     currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
                   }
@@ -3708,7 +3712,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 setCompanionCreationOpen(false);
                 setCompanionModalOpen(true);
               }}
-              trainerLevel={currentSheet.nivel}
+              trainerLevel={trainerLevel}
               trainerCharisma={
                 currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
               }
