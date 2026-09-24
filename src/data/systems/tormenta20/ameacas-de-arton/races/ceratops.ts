@@ -11,6 +11,7 @@ const chifres: Equipment = {
   critico: 'x2',
   tipo: 'Perf.',
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const CERATOPS: Race = {

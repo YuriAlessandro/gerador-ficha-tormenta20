@@ -8,9 +8,12 @@ import {
 } from '../../races/functions/functions';
 import { Atributo } from '../../atributos';
 import HUMANO from '../../races/humano';
+import RACE_COUNTS_AS from '../../races/raceCountsAs';
 
 const SOTERRADO: Race = {
   name: 'Soterrado',
+  // Ver `raceCountsAs.ts` para a justificativa no livro.
+  countsAsRaces: RACE_COUNTS_AS.Soterrado,
   attributes: {
     attrs: [
       { attr: Atributo.CONSTITUICAO, mod: -1 },
@@ -63,6 +66,21 @@ const SOTERRADO: Race = {
       name: 'Abraço Gélido',
       description:
         'Você recebe +2 em testes para agarrar. Além disso, seus ataques desarmados e com armas naturais causam 2 pontos de dano de frio extras.',
+      // TODO: falta o teste de agarrar (+2) e o dano é tratado como não
+      // tipado por enquanto — o motor ainda não soma dano extra TIPADO
+      // (frio) a partir de um sheetBonus genérico.
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Abraço Gélido' },
+          target: { type: 'WeaponDamage', weaponTags: ['natural'] },
+          modifier: { type: 'Fixed', value: 2 },
+        },
+        {
+          source: { type: 'power', name: 'Abraço Gélido' },
+          target: { type: 'UnarmedDamage' },
+          modifier: { type: 'Fixed', value: 2 },
+        },
+      ],
     },
     {
       name: 'Esquife de Gelo',

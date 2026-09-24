@@ -1,5 +1,6 @@
 import React from 'react';
 import { Stack, Box, Tooltip, useTheme } from '@mui/material';
+import WhatshotIcon from '@mui/icons-material/Whatshot';
 
 import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
@@ -13,7 +14,8 @@ import { ConditionMarker } from '../../premium/components/Conditions';
 import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
 import { getConditionAttributeModifier } from '../../premium/functions/conditionAttributeModifier';
-import { getActiveEffectAttributeModifier } from '../../premium/functions/activeEffectHighlights';
+import { getAttributeDelta } from '../../functions/effectiveAttributes';
+import { getCharismaPenaltyPowerCount } from '../../functions/tormentaCharismaPenalty';
 
 type Props = {
   attributes: CharacterAttributes;
@@ -30,6 +32,14 @@ const AttributeDisplay = ({
 }: Props) => {
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
+
+  // Perda de atributo por poderes da Tormenta. Ao contrário de condições e
+  // efeitos ativos, esta penalidade é PERMANENTE e já está embutida em
+  // `atributos[attr].value` — por isso ela não entra no `totalDelta` (entraria
+  // como desconto em dobro na tela), e aparece só como marcador + explicação.
+  // Sem isso não há como saber, olhando a ficha, se a regra foi aplicada.
+  const tormentaPenalties = sheet?.tormentaAttributePenalties;
+  const tormentaPowersQtd = sheet ? getCharismaPenaltyPowerCount(sheet) : 0;
 
   const Title = styled.span`
     font-family: 'Tfont';
@@ -66,13 +76,11 @@ const AttributeDisplay = ({
           attributeName as Atributo
         )
       : 0;
-    // Efeitos ativos (Forma Selvagem, Força da Natureza…) também alteram o
-    // atributo sem mutar `atributos[attr].value`, então entram aqui.
+    // Efeitos ativos (Mente Divina, Forma Selvagem…) e a caixa de modificador
+    // temporário manual alteram o atributo sem mutar `atributos[attr].value`:
+    // o total já vem resolvido em `atributosTemporarios` pelo Step 7.46.
     const effectBonus = sheet
-      ? getActiveEffectAttributeModifier(
-          sheet.activeEffects,
-          attributeName as Atributo
-        )
+      ? getAttributeDelta(sheet, attributeName as Atributo)
       : 0;
 
     const effectiveModifier = modifier + conditionPenalty + effectBonus;
@@ -119,10 +127,12 @@ const AttributeDisplay = ({
         const label = attribute;
         const attrConditions = attributeHighlights?.[attribute as Atributo];
         const labelStyle = getConditionLabelStyle(attrConditions);
-        // Override puramente visual: mostra `valorBase + delta` quando há
-        // condição ou efeito ativo afetando este atributo. NÃO altera o valor
-        // persistido na ficha — `value.value` permanece o base, e o delta é
-        // re-derivado de `activeConditions`/`activeEffects` em todo render.
+        // Mostra `valorBase + delta`. `value.value` permanece o BASE persistido
+        // — o motor nunca muta `atributos`. As duas parcelas vêm de canais
+        // separados de propósito: `atributosTemporarios` é a camada de atributo
+        // efetivo (efeitos ativos + caixa manual), que alimenta TODAS as
+        // derivações; condições são penalidade de TESTE (agregação pior-vence)
+        // e ficam fora dela, só aparecendo aqui e na rolagem.
         const conditionPenalty = sheet
           ? getConditionAttributeModifier(
               sheet.activeConditions,
@@ -131,14 +141,22 @@ const AttributeDisplay = ({
             )
           : 0;
         const effectBonus = sheet
-          ? getActiveEffectAttributeModifier(
-              sheet.activeEffects,
-              attribute as Atributo
-            )
+          ? getAttributeDelta(sheet, attribute as Atributo)
           : 0;
         const totalDelta = conditionPenalty + effectBonus;
         const displayedValue = value.value + totalDelta;
         const hasDelta = totalDelta !== 0;
+        const tormentaPenalty = tormentaPenalties?.[attribute as Atributo] ?? 0;
+        const tormentaNote =
+          tormentaPenalty > 0
+            ? `Inclui −${tormentaPenalty} por ${tormentaPowersQtd} ${
+                tormentaPowersQtd === 1
+                  ? 'poder da Tormenta'
+                  : 'poderes da Tormenta'
+              } (sem a Tormenta seria ${addSign(
+                value.value + tormentaPenalty + totalDelta
+              )}).`
+            : '';
         const deltaColor =
           totalDelta < 0
             ? theme.palette.error.main
@@ -173,6 +191,14 @@ const AttributeDisplay = ({
                   conditions={attrConditions}
                   fontSize='inherit'
                 />
+                {tormentaPenalty > 0 && (
+                  <Tooltip title={tormentaNote} arrow>
+                    <WhatshotIcon
+                      sx={{ fontSize: 12, color: 'error.main' }}
+                      aria-label={tormentaNote}
+                    />
+                  </Tooltip>
+                )}
                 <Title>{label}</Title>
               </Box>
             </FancyBox>
@@ -180,7 +206,7 @@ const AttributeDisplay = ({
               <Tooltip
                 title={`Base ${addSign(value.value)} → ${addSign(
                   displayedValue
-                )}`}
+                )}${tormentaNote ? ` ${tormentaNote}` : ''}`}
                 arrow
               >
                 <Box

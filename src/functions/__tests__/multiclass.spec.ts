@@ -9,6 +9,7 @@ import {
   getClassLevelsMap,
   initializeClassLevels,
   reconcileClassLevels,
+  setClassLevelCounts,
   getMulticlassDisplayName,
   calculateMulticlassPV,
   calculateMulticlassPM,
@@ -239,6 +240,82 @@ describe('reconcileClassLevels', () => {
       { level: 1, className: 'Arcanista', classSubname: 'Mago' },
       { level: 2, className: 'Arcanista', classSubname: 'Mago' },
     ]);
+  });
+});
+
+// ===== setClassLevelCounts =====
+describe('setClassLevelCounts', () => {
+  const E = (className: string, level: number) => ({ level, className });
+  const names = (arr: { className: string }[]) => arr.map((c) => c.className);
+  // Guerreiro 1 / Necromante 4
+  const base = [
+    E('Guerreiro', 1),
+    E('Necromante', 2),
+    E('Necromante', 3),
+    E('Necromante', 4),
+    E('Necromante', 5),
+  ];
+
+  test('cresce uma classe adicionando os níveis no fim', () => {
+    const out = setClassLevelCounts(
+      base,
+      new Map([
+        ['Guerreiro', 2],
+        ['Necromante', 4],
+      ])
+    );
+    expect(names(out)).toEqual([
+      'Guerreiro',
+      'Necromante',
+      'Necromante',
+      'Necromante',
+      'Necromante',
+      'Guerreiro',
+    ]);
+    expect(out.map((cl) => cl.level)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  test('encolhe removendo os níveis mais altos da classe', () => {
+    const out = setClassLevelCounts(
+      base,
+      new Map([
+        ['Guerreiro', 1],
+        ['Necromante', 2],
+      ])
+    );
+    expect(names(out)).toEqual(['Guerreiro', 'Necromante', 'Necromante']);
+    expect(out.map((cl) => cl.level)).toEqual([1, 2, 3]);
+  });
+
+  test('mantém a classe primária na primeira posição', () => {
+    const out = setClassLevelCounts(
+      base,
+      new Map([
+        ['Guerreiro', 1],
+        ['Necromante', 9],
+      ])
+    );
+    expect(out[0].className).toBe('Guerreiro');
+    expect(out).toHaveLength(10);
+  });
+
+  test('preserva classSubname nos níveis criados', () => {
+    const withSub = [
+      { level: 1, className: 'Arcanista', classSubname: 'Mago' },
+    ];
+    const out = setClassLevelCounts(withSub, new Map([['Arcanista', 3]]));
+    expect(out.every((cl) => cl.classSubname === 'Mago')).toBe(true);
+  });
+
+  test('é no-op quando as contagens não mudam', () => {
+    const out = setClassLevelCounts(
+      base,
+      new Map([
+        ['Guerreiro', 1],
+        ['Necromante', 4],
+      ])
+    );
+    expect(out).toEqual(base);
   });
 });
 

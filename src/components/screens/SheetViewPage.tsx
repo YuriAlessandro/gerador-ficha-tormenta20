@@ -19,6 +19,7 @@ import {
 import HomeIcon from '@mui/icons-material/Home';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import ShareIcon from '@mui/icons-material/Share';
+import LiveTvIcon from '@mui/icons-material/LiveTv';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ExtensionIcon from '@mui/icons-material/Extension';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -37,6 +38,12 @@ import { useSheetLimit } from '@/hooks/useSheetLimit';
 import { useSubscription } from '@/hooks/useSubscription';
 import SheetLimitDialog from '@/components/common/SheetLimitDialog';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import { setActivePortraitSheet } from '@/functions/portraitBridge';
+import {
+  PortraitConfigDialog,
+  usePortraitAccess,
+  buildPreviewSnapshot,
+} from '@/premium';
 import Bag from '@/interfaces/Bag';
 import { dataRegistry } from '@/data/registry';
 import { SubscriptionTier } from '@/types/subscription.types';
@@ -77,6 +84,8 @@ const SheetViewPage: React.FC = () => {
   const [copying, setCopying] = useState(false);
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [simpleSheet, setSimpleSheet] = useState(false);
+  const [portraitOpen, setPortraitOpen] = useState(false);
+  const portraitAccess = usePortraitAccess();
 
   // Check if viewing from game table context (hide export options)
   const queryParams = new URLSearchParams(location.search);
@@ -184,6 +193,24 @@ const SheetViewPage: React.FC = () => {
     },
     [isOwner, id, updateSheet]
   );
+
+  /**
+   * Registra esta ficha como origem das rolagens do Portrait.
+   *
+   * SÓ quando é a ficha do próprio usuário: o bridge é global e um registro
+   * indevido mandaria as rolagens de quem está apenas VENDO a ficha de outra
+   * pessoa para o overlay do dono dela.
+   *
+   * Registramos mesmo sem `hasAccess`: quem gerou o link como apoiador e
+   * depois deixou de apoiar continua com o overlay no ar até desativá-lo, e
+   * congelar as rolagens dele seria um defeito, não uma cobrança. O corte de
+   * apoiador vive em GERAR o link (aqui na UI e no `requireSupporter`).
+   */
+  useEffect(() => {
+    if (!isOwner || !id) return undefined;
+    setActivePortraitSheet(id);
+    return () => setActivePortraitSheet(null);
+  }, [isOwner, id]);
 
   const handleShareClick = () => {
     const url = window.location.href;
@@ -519,6 +546,19 @@ const SheetViewPage: React.FC = () => {
                     {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
                   </Button>
 
+                  {/* Portrait: overlay de stream. Só o dono, só apoiador. */}
+                  {isOwner && portraitAccess.hasAccess && (
+                    <Button
+                      variant='outlined'
+                      onClick={() => setPortraitOpen(true)}
+                      fullWidth={isMobile}
+                      sx={{ justifyContent: 'flex-start' }}
+                      startIcon={<LiveTvIcon />}
+                    >
+                      Portrait para streams
+                    </Button>
+                  )}
+
                   {!isOwner && (
                     <Button
                       variant='contained'
@@ -580,6 +620,15 @@ const SheetViewPage: React.FC = () => {
             maxCount={maxSheets}
             tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
           />
+
+          {isOwner && portraitAccess.hasAccess && id && (
+            <PortraitConfigDialog
+              open={portraitOpen}
+              onClose={() => setPortraitOpen(false)}
+              sheetId={id}
+              previewSnapshot={buildPreviewSnapshot(sheet)}
+            />
+          )}
         </Container>
       </Box>
     </>

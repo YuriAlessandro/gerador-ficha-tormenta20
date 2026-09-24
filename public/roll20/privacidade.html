@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Política de Privacidade — Fichas de Nimb para Roll20</title>
+    <meta
+      name="description"
+      content="Como a extensão Fichas de Nimb para Roll20 trata seus dados."
+    />
+    <link rel="icon" href="/favicon-32x32.png" />
+    <style>
+      /*
+        Página estática, fora da SPA de propósito: as lojas de extensão exigem
+        uma URL pública de política de privacidade, e uma rota React levaria o
+        revisor a esperar o bundle carregar para ver o texto.
+      */
+      :root {
+        color-scheme: light dark;
+        --fundo: #ffffff;
+        --texto: #1b1b22;
+        --suave: #5a5a68;
+        --borda: #e2e2e8;
+        --destaque: #b3541e;
+        --caixa: #f7f7f9;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --fundo: #16161f;
+          --texto: #e8e8f0;
+          --suave: #9a9aae;
+          --borda: #2a2a38;
+          --destaque: #e2793f;
+          --caixa: #1e1e2a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px 20px 64px;
+        background: var(--fundo);
+        color: var(--texto);
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        line-height: 1.65;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.7rem;
+        line-height: 1.25;
+        margin: 0 0 6px;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 36px 0 10px;
+        padding-top: 20px;
+        border-top: 1px solid var(--borda);
+      }
+      .atualizado {
+        color: var(--suave);
+        font-size: 0.9rem;
+        margin: 0 0 28px;
+      }
+      a {
+        color: var(--destaque);
+      }
+      ul {
+        padding-left: 20px;
+      }
+      li {
+        margin-bottom: 6px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0;
+        font-size: 0.94rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--borda);
+        vertical-align: top;
+      }
+      th {
+        color: var(--suave);
+        font-weight: 600;
+      }
+      code {
+        background: var(--caixa);
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 0.88em;
+      }
+      .destaque {
+        background: var(--caixa);
+        border-left: 3px solid var(--destaque);
+        padding: 14px 16px;
+        border-radius: 0 6px 6px 0;
+        margin: 18px 0;
+      }
+      footer {
+        margin-top: 44px;
+        padding-top: 18px;
+        border-top: 1px solid var(--borda);
+        color: var(--suave);
+        font-size: 0.88rem;
+      }
+      /* A tabela de permissões rola sozinha em tela estreita. */
+      .rolavel {
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Política de Privacidade</h1>
+      <p class="atualizado">
+        Extensão <strong>Fichas de Nimb para Roll20</strong> · atualizada em 26
+        de agosto de 2026
+      </p>
+
+      <p>
+        Esta extensão importa fichas de Tormenta 20 do
+        <a href="https://fichasdenimb.com.br">Fichas de Nimb</a> para a ficha
+        oficial “Tormenta20 - Jogo do Ano” no Roll20, e permite usar sua ficha
+        durante o jogo com as rolagens aparecendo no chat da mesa.
+      </p>
+
+      <h2>O que a extensão acessa</h2>
+      <p>
+        <strong>Sua conta do Fichas de Nimb.</strong> Ao clicar em “Entrar”,
+        abre-se uma janela do próprio site fichasdenimb.com.br, onde você faz o
+        login. O login acontece lá, não aqui:
+        <strong>a extensão nunca vê sua senha</strong>. O site devolve um token
+        de acesso temporário e um token de renovação.
+      </p>
+      <p>
+        <strong>Suas fichas.</strong> Com esse token, a extensão pede ao
+        servidor do Fichas de Nimb a lista das suas fichas e o conteúdo daquela
+        que você escolher.
+      </p>
+      <p>
+        <strong>A página do Roll20.</strong> A extensão roda apenas em
+        <code>app.roll20.net/editor</code> e só escreve no personagem que você
+        mandar, quando você mandar.
+      </p>
+
+      <h2>O que a extensão guarda, e onde</h2>
+      <p>
+        Os tokens ficam no armazenamento local da extensão, no seu próprio
+        navegador — fora do alcance de scripts das páginas que você visita.
+        Também é guardado o vínculo entre uma ficha e o personagem do Roll20
+        para o qual ela foi importada, e o último relatório de diagnóstico.
+      </p>
+      <div class="destaque">
+        A sessão dura <strong>24 horas</strong>. Dentro desse prazo a extensão
+        renova o token sozinha; passado esse prazo, tudo é apagado e é preciso
+        entrar de novo. Sair da conta apaga na hora, e desinstalar a extensão
+        apaga tudo.
+      </div>
+      <p>
+        <strong>Nada disso sai do seu navegador</strong>, exceto as chamadas ao
+        servidor do Fichas de Nimb descritas acima.
+      </p>
+
+      <h2>O que a extensão não faz</h2>
+      <ul>
+        <li>Não envia dados para nenhum servidor além do Fichas de Nimb.</li>
+        <li>Não usa rastreadores, analytics ou publicidade.</li>
+        <li>
+          Não lê nem envia dados de outras mesas, personagens ou jogadores.
+        </li>
+        <li>
+          Não acessa nenhum site além de <code>app.roll20.net</code> e dos
+          serviços do Fichas de Nimb.
+        </li>
+        <li>Não vende nem compartilha dados com terceiros.</li>
+      </ul>
+
+      <h2>Permissões, e por que cada uma existe</h2>
+      <div class="rolavel">
+        <table>
+          <thead>
+            <tr>
+              <th>Permissão</th>
+              <th>Para quê</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>storage</code></td>
+              <td>Guardar o token, o vínculo e o diagnóstico, localmente</td>
+            </tr>
+            <tr>
+              <td><code>app.roll20.net/editor*</code></td>
+              <td>Ler a ficha aberta e escrever nela o que você importar</td>
+            </tr>
+            <tr>
+              <td><code>fichas-backend.fly.dev</code></td>
+              <td>Buscar suas fichas no servidor do Fichas de Nimb</td>
+            </tr>
+            <tr>
+              <td><code>securetoken.googleapis.com</code></td>
+              <td>
+                Renovar o token durante as 24h de sessão. É o endpoint do
+                Firebase, o mesmo que o site usa
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Removendo seus dados</h2>
+      <p>
+        Sair da conta pela extensão apaga o token. Desinstalar apaga tudo que
+        ela guardou. Nada fica no servidor por conta da extensão — suas fichas
+        são as mesmas da sua conta no Fichas de Nimb, geridas por lá.
+      </p>
+
+      <h2>Contato</h2>
+      <p>
+        Dúvidas ou pedidos:
+        <a href="https://fichasdenimb.com.br">fichasdenimb.com.br</a>
+      </p>
+
+      <footer>
+        Projeto não oficial, sem relação com o Roll20 ou com a Jambô Editora.
+        Tormenta 20 é um RPG publicado pela Jambô Editora.
+      </footer>
+    </main>
+  </body>
+</html>

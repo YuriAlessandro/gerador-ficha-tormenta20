@@ -1,6 +1,7 @@
 import Equipment from '../../../../../interfaces/Equipment';
 import Race from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
+import RACE_COUNTS_AS from '../../races/raceCountsAs';
 
 const mordida: Equipment = {
   group: 'Arma',
@@ -9,10 +10,13 @@ const mordida: Equipment = {
   critico: 'x2',
   tipo: 'Perf.',
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const TROG_ANAO: Race = {
   name: 'Trog Anão',
+  // Ver `raceCountsAs.ts` para a justificativa no livro.
+  countsAsRaces: RACE_COUNTS_AS['Trog Anão'],
   attributes: {
     attrs: [
       { attr: Atributo.CONSTITUICAO, mod: 2 },

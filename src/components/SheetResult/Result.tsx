@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import EditIcon from '@mui/icons-material/Edit';
+import TuneIcon from '@mui/icons-material/Tune';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -34,6 +35,7 @@ import {
   MoreauHeritageName,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { getEffectiveAttributes } from '@/functions/effectiveAttributes';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import {
   recalculateSheet,
@@ -52,6 +54,8 @@ import { getPoderCapturadoDefinition } from '@/functions/powers/poderCapturadoEf
 import { ignoresEncumbrance } from '@/functions/encumbrance';
 import {
   applyManualLevelUp,
+  applyMaxPointsGainToCurrent,
+  addPointsOverflowingToTemp,
   calculateCurrencySpaces,
 } from '@/functions/general';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
@@ -86,10 +90,9 @@ import {
   ActivePowerUseDialog,
 } from '@/premium/components/ActiveEffects';
 import { ComplicationEditDrawer } from '@/premium/components/Complications';
-import { AgeEditDrawer } from '@/premium/components/Ages';
+import { AttributeModifiersDrawer } from '@/premium/components/Attributes';
 import { SupplementId } from '@/types/supplement.types';
 import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import socketService, {
   type PowerEffectBonusPayload,
   type RollAbilityMeta,
@@ -102,6 +105,9 @@ import {
 import { getActiveEffectForSpell } from '@/premium/data/activePowers';
 import {
   collectVirtualCustomEffectDefinitions,
+  collectStandaloneCustomEffectDefinitions,
+  buildStandaloneEffectPowerKey,
+  isStandaloneEffectPowerKey,
   buildVirtualDefinitionFromCustomEffect,
 } from '@/premium/data/activePowers/customEffectAdapter';
 import type {
@@ -122,6 +128,7 @@ import {
 } from '@/premium/functions/animalCompanionEffects';
 import { reconcileAutoPowerEffects } from '@/premium/functions/autoPowerEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
+import { needsTormentaPenaltyBackfill } from '@/functions/tormentaCharismaPenalty';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
 import {
   buildEffectOffer,
@@ -153,6 +160,7 @@ import '../../assets/css/result.css';
 import Spells from './SpellsTab/SpellsDisplay';
 import SkillTable from './SkillTable';
 import LabelDisplay from './LabelDisplay';
+import { getDevotionLabel } from '../../functions/powers/deityNames';
 import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
@@ -178,14 +186,21 @@ import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
 import { commitWielding, WieldingSlot } from './BackpackModal/wielding';
 import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
-import { findAmmoStack } from './BackpackModal/ammo';
-import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
+import { findConsumableAmmoStack } from './BackpackModal/ammo';
+import PowersEditorModal from './EditDrawers/PowersEditor';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
 import NotesDialog from './NotesDialog';
+import {
+  PlayerJournalCard,
+  PlayerJournalFullScreen,
+  PLAYER_JOURNAL_AVAILABLE,
+} from '../../premium/components/PlayerJournal';
+import { PlayerJournal } from '../../interfaces/PlayerJournal';
+import { countJournalNodes } from '../../functions/playerJournal';
 import RestDialog, { RestConfirmConfig } from './RestDialog';
 import {
   calculateRestRecovery,
@@ -281,6 +296,8 @@ const Result: React.FC<ResultProps> = (props) => {
     props;
   const [currentSheet, setCurrentSheet] = useState(sheet);
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
+  const [attributeModifiersDrawerOpen, setAttributeModifiersDrawerOpen] =
+    useState(false);
   const [skillsDrawerOpen, setSkillsDrawerOpen] = useState(false);
   const [backpackOpen, setBackpackOpen] = useState(false);
   const [backpackInitialFilter, setBackpackInitialFilter] = useState<
@@ -288,7 +305,6 @@ const Result: React.FC<ResultProps> = (props) => {
   >(undefined);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [complicationDrawerOpen, setComplicationDrawerOpen] = useState(false);
-  const [ageDrawerOpen, setAgeDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
@@ -297,6 +313,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [statDrawerOpen, setStatDrawerOpen] = useState(false);
   const [restDialogOpen, setRestDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
@@ -337,7 +354,6 @@ const Result: React.FC<ResultProps> = (props) => {
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
   const complicationsFeature = useFeatureAccess('complications');
-  const optionalRulesFeature = useFeatureAccess('optionalRules');
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
   // forma); este componente precisa ficar transparente para não cobri-lo.
@@ -364,8 +380,9 @@ const Result: React.FC<ResultProps> = (props) => {
   }, [currentSheet.animalCompanions, currentSheet.classPowers, currentSheet]);
 
   // Definições injetadas em runtime no gerenciador de efeitos: efeitos custom
-  // do jogador + benefícios ativados dos companheiros animais + o Poder
-  // Capturado do Usurpador (montado a partir de `sheet.poderesCapturados`).
+  // do jogador (presos a um poder ou avulsos) + benefícios ativados dos
+  // companheiros animais + o Poder Capturado do Usurpador (montado a partir de
+  // `sheet.poderesCapturados`).
   const poderCapturadoDefinition = useMemo(
     () => getPoderCapturadoDefinition(currentSheet, userSupplements),
     [currentSheet, userSupplements]
@@ -373,6 +390,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const virtualCustomEffectDefinitions = useMemo(
     () => [
       ...collectVirtualCustomEffectDefinitions(currentSheet),
+      ...collectStandaloneCustomEffectDefinitions(currentSheet),
       ...getAnimalCompanionActivatedPowers(currentSheet),
       ...(poderCapturadoDefinition ? [poderCapturadoDefinition] : []),
     ],
@@ -511,6 +529,82 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, applyRecalculatedSheet]
   );
 
+  // Efeitos customizados AVULSOS (aba "Meus Efeitos" do gerenciador). Só a
+  // definição muda aqui — mas se o efeito editado/apagado estiver ativo, a
+  // instância em `activeEffects` carrega uma CÓPIA dos bônus e precisa
+  // acompanhar, senão o bônus fica grudado na ficha sem definição por trás
+  // (apagar) ou a edição só valeria na próxima ativação (editar).
+  const handleStandaloneCustomEffectsChange = useCallback(
+    (next: CustomEffect[]) => {
+      const active = currentSheet.activeEffects ?? [];
+      const survivingKeys = new Set(
+        next.map((effect) => buildStandaloneEffectPowerKey(effect.id))
+      );
+
+      const removed = active.filter(
+        (eff) =>
+          isStandaloneEffectPowerKey(eff.powerKey) &&
+          !survivingKeys.has(eff.powerKey)
+      );
+
+      let touchedActive = removed.length > 0;
+      const nextActive = active
+        .filter((eff) => !removed.includes(eff))
+        .map((eff) => {
+          if (!isStandaloneEffectPowerKey(eff.powerKey)) return eff;
+          const definition = next.find(
+            (effect) =>
+              buildStandaloneEffectPowerKey(effect.id) === eff.powerKey
+          );
+          const tier = definition?.tiers.find((t) => t.id === eff.optionId);
+          // Tier removido na edição: a instância vira órfã, mas manter os
+          // bônus antigos é melhor que apagá-los sem o jogador pedir — ele
+          // ainda vê e remove o chip pela aba "Ativos".
+          if (!tier) return eff;
+          if (
+            tier.label === eff.optionLabel &&
+            JSON.stringify(tier.bonuses) === JSON.stringify(eff.bonuses)
+          ) {
+            return eff;
+          }
+          touchedActive = true;
+          return { ...eff, optionLabel: tier.label, bonuses: tier.bonuses };
+        });
+
+      // `next` é sempre um array (nunca `undefined`): apagar o último efeito
+      // grava `[]`, e a AUSÊNCIA da chave é o que o guard de integridade trata
+      // como corrupção.
+      const nextSheet: CharacterSheet = {
+        ...currentSheet,
+        customEffects: next,
+        activeEffects: nextActive,
+      };
+
+      // Sem instância ativa afetada, mexer na definição é cosmético: grava
+      // direto, sem pagar um `recalculateSheet` inteiro.
+      if (!touchedActive) {
+        setCurrentSheet(nextSheet);
+        if (onSheetUpdate) onSheetUpdate(nextSheet);
+        return;
+      }
+
+      applyRecalculatedSheet({
+        ...nextSheet,
+        tempPM: Math.max(
+          0,
+          (currentSheet.tempPM ?? 0) -
+            removed.reduce((sum, eff) => sum + (eff.grantsTempPM ?? 0), 0)
+        ),
+        tempPV: Math.max(
+          0,
+          (currentSheet.tempPV ?? 0) -
+            removed.reduce((sum, eff) => sum + (eff.grantsTempPV ?? 0), 0)
+        ),
+      });
+    },
+    [currentSheet, onSheetUpdate, applyRecalculatedSheet]
+  );
+
   // O painel de companheiros fica fora da aba Poderes; o ícone de patinha no
   // poder rola até ele em vez de abrir um modal.
   const animalCompanionsRef = React.useRef<HTMLDivElement>(null);
@@ -604,8 +698,19 @@ const Result: React.FC<ResultProps> = (props) => {
       : currentSheet;
     const auto = reconcileAutoPowerEffects(base);
     const nextEffects = auto ?? companions;
-    if (!nextEffects) return;
-    applyRecalculatedSheet({ ...currentSheet, activeEffects: nextEffects });
+    // Terceiro reconciliador, mesma forma: ficha criada antes de a perda de
+    // Carisma por poderes da Tormenta existir no motor do assistente (v4.30)
+    // nunca recebeu o desconto, porque ABRIR uma ficha não dispara recálculo.
+    // Um recálculo aqui aplica a regra; `applyTormentaAttributePenalty` grava o
+    // ledger (mesmo vazio), então a condição não dispara de novo — não há como
+    // descontar duas vezes.
+    const needsTormentaBackfill = needsTormentaPenaltyBackfill(currentSheet);
+    if (!nextEffects && !needsTormentaBackfill) return;
+    applyRecalculatedSheet(
+      nextEffects
+        ? { ...currentSheet, activeEffects: nextEffects }
+        : currentSheet
+    );
   }, [currentSheet, onSheetUpdate, applyRecalculatedSheet]);
 
   const handleConditionsChange = useCallback(
@@ -700,6 +805,15 @@ const Result: React.FC<ResultProps> = (props) => {
     [handleSheetInfoUpdate]
   );
 
+  // Diário: merge parcial de UMA chave, sem recálculo — igual às anotações. O
+  // debounce fica do lado do diário, que grava com o diálogo aberto.
+  const handleJournalSave = useCallback(
+    (journal: PlayerJournal) => {
+      handleSheetInfoUpdate({ journal });
+    },
+    [handleSheetInfoUpdate]
+  );
+
   // Proficiency edits must trigger a full recalculation: the non-proficiency
   // armor penalty lives in completeSkills.others, which a plain merge would
   // leave stale.
@@ -721,6 +835,8 @@ const Result: React.FC<ResultProps> = (props) => {
           updatedSheet = applyManualLevelUp(updatedSheet, sel);
         });
         updatedSheet = recalculateSheet(updatedSheet);
+        // Os PV/PM ganhos no nível novo entram cheios também no atual.
+        updatedSheet = applyMaxPointsGainToCurrent(currentSheet, updatedSheet);
         if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
           updatedSheet.bag = Bag.fromStored(updatedSheet.bag);
         }
@@ -933,9 +1049,18 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handlePVHeal = useCallback(
     (amount: number) => {
-      const currentPVVal = currentSheet.currentPV ?? currentSheet.pv;
-      const newCurrent = Math.min(currentSheet.pv, currentPVVal + amount);
-      const updatedSheet = { ...currentSheet, currentPV: newCurrent };
+      // Acima do máximo, o excedente vira PV temporário em vez de sumir no teto.
+      const { current, temp } = addPointsOverflowingToTemp(
+        amount,
+        currentSheet.currentPV ?? currentSheet.pv,
+        currentSheet.pv,
+        currentSheet.tempPV ?? 0
+      );
+      const updatedSheet = {
+        ...currentSheet,
+        currentPV: current,
+        tempPV: temp,
+      };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -946,9 +1071,18 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handlePMHeal = useCallback(
     (amount: number) => {
-      const currentPMVal = currentSheet.currentPM ?? currentSheet.pm;
-      const newCurrent = Math.min(currentSheet.pm, currentPMVal + amount);
-      const updatedSheet = { ...currentSheet, currentPM: newCurrent };
+      // Acima do máximo, o excedente vira PM temporário em vez de sumir no teto.
+      const { current, temp } = addPointsOverflowingToTemp(
+        amount,
+        currentSheet.currentPM ?? currentSheet.pm,
+        currentSheet.pm,
+        currentSheet.tempPM ?? 0
+      );
+      const updatedSheet = {
+        ...currentSheet,
+        currentPM: current,
+        tempPM: temp,
+      };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -1270,6 +1404,22 @@ const Result: React.FC<ResultProps> = (props) => {
     return `${id}-${elementId}`;
   }
 
+  /**
+   * Atributos com o modificador temporário já somado — a leitura canônica de
+   * toda derivação (ver `functions/effectiveAttributes.ts`). É o que alimenta a
+   * aba de Ataques inteira, a tabela de perícias e a CD de magia.
+   *
+   * `atributos` cru continua indo só para o `AttributeDisplay`, que mostra o
+   * base e o delta separados, e para o drawer que edita o base.
+   *
+   * Memoizado porque `getEffectiveAttributes` devolve objeto novo a cada
+   * chamada, e vários memos abaixo dependem da identidade dele.
+   */
+  const atributosEfetivos = useMemo(
+    () => getEffectiveAttributes(currentSheet),
+    [currentSheet]
+  );
+
   let className: string;
   if (isMulticlass(currentSheet)) {
     className = getMulticlassDisplayName(currentSheet);
@@ -1371,8 +1521,11 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleConsumeAmmo = useCallback(
     (ammoType: AmmoType) => {
-      const stack = findAmmoStack(bagEquipments, ammoType);
-      if (!stack || !stack.id || (stack.unitsRemaining ?? 0) <= 0) return;
+      // Pilha CONSUMÍVEL, não a primeira: com munição autoral ao lado da
+      // oficial, usar a primeira fazia o ataque virar um no-op silencioso
+      // assim que ela zerava, mesmo com projéteis na pilha seguinte.
+      const stack = findConsumableAmmoStack(bagEquipments, ammoType);
+      if (!stack || !stack.id) return;
 
       const nextEquipments: typeof bagEquipments = { ...bagEquipments };
       (Object.keys(nextEquipments) as (keyof typeof nextEquipments)[]).forEach(
@@ -1615,7 +1768,7 @@ const Result: React.FC<ResultProps> = (props) => {
           ),
         ]}
         completeSkills={completeSkills}
-        atributos={atributos}
+        atributos={atributosEfetivos}
         nivel={currentSheet.nivel}
         classLevels={classLevels}
         characterName={nome}
@@ -1641,7 +1794,7 @@ const Result: React.FC<ResultProps> = (props) => {
     bag,
     bagEquipments,
     completeSkills,
-    atributos,
+    atributosEfetivos,
     nome,
     markersEnabled,
     conditionHighlights.attack,
@@ -1707,7 +1860,8 @@ const Result: React.FC<ResultProps> = (props) => {
       const defaultAttr =
         classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
       const attrToUse = currentSheet.customDefenseAttribute || defaultAttr;
-      const attrValue = atributos[attrToUse]?.value || 0;
+      // Efetivo, para o detalhamento casar com a Defesa que o motor calculou.
+      const attrValue = atributosEfetivos[attrToUse]?.value || 0;
       if (attrValue !== 0) {
         const attrName = attrToUse.substring(0, 3).toUpperCase();
         components.push(`${attrValue} (${attrName})`);
@@ -1763,7 +1917,7 @@ const Result: React.FC<ResultProps> = (props) => {
     defenseEquipments,
     bagEquipments.Armadura,
     classe.name,
-    atributos,
+    atributosEfetivos,
     defesa,
   ]);
 
@@ -1774,7 +1928,10 @@ const Result: React.FC<ResultProps> = (props) => {
     classe.spellPath?.keyAttribute ??
     currentSheet.overrideKeyAttribute ??
     Atributo.SABEDORIA;
-  const keyAttr = atributos[effectiveKeyAttribute];
+  // EFETIVO: a CD de magia é `10 + ½ nível + mod do atributo-chave`, e em RAW um
+  // bônus temporário no atributo-chave (Mente Divina) SOBE a CD. Este era o
+  // buraco principal do modelo antigo, que só cascateava nas perícias.
+  const keyAttr = atributosEfetivos[effectiveKeyAttribute];
 
   /**
    * Usurpar (Usurpador): a classe não aprende magias, mas pode lançar qualquer
@@ -1896,6 +2053,14 @@ const Result: React.FC<ResultProps> = (props) => {
   // largura do container, não do viewport.
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY, { noSsr: true });
 
+  // Diário do Jogador. Enquanto a flag estiver desligada (ou faltar o
+  // submódulo premium), a ficha mantém exatamente o botão e o diálogo de
+  // anotações de sempre — o rollout é reversível sem redeploy, e o texto
+  // original nunca sai de `sheet.notes`.
+  const journalAccess = useFeatureAccess('playerJournal');
+  const journalEnabled = journalAccess.hasAccess && PLAYER_JOURNAL_AVAILABLE;
+  const journalNodeCount = countJournalNodes(currentSheet.journal);
+
   const hasAnyRd =
     currentSheet.reducaoDeDano &&
     Object.values(currentSheet.reducaoDeDano).some((v) => v && v > 0);
@@ -1916,7 +2081,7 @@ const Result: React.FC<ResultProps> = (props) => {
    * com o mesmo estado — as `actions` são só closures para os mesmos setters.
    *
    * A barra flutuante de ícones deixou de ser do card de abas e passou a ser
-   * de cada seção. Complicação e Idade migraram para a identidade (é onde
+   * de cada seção. Complicação migrou para a identidade (é onde
    * conceitualmente estão, e onde não dependem de qual aba está aberta), e
    * Efeitos Ativos acompanha Poderes e Magias.
    */
@@ -1932,19 +2097,6 @@ const Result: React.FC<ResultProps> = (props) => {
       icon: <TheaterComedyIcon />,
       tooltip: 'Complicação (Heróis de Arton)',
       onClick: () => setComplicationDrawerOpen(true),
-    });
-  }
-  if (
-    onSheetUpdate &&
-    (!!currentSheet.age ||
-      (optionalRulesFeature.hasAccess &&
-        userSupplements.includes(SupplementId.TORMENTA20_HEROIS_ARTON)))
-  ) {
-    heroisArtonExtras.push({
-      key: 'age',
-      icon: <HourglassBottomIcon />,
-      tooltip: 'Idade (Heróis de Arton)',
-      onClick: () => setAgeDrawerOpen(true),
     });
   }
 
@@ -2100,12 +2252,22 @@ const Result: React.FC<ResultProps> = (props) => {
                 >
                   <LabelDisplay text={nome} size='large' />
                 </Box>
-                <Tooltip title='Anotações'>
+                <Tooltip
+                  title={journalEnabled ? 'Diário do Jogador' : 'Anotações'}
+                >
                   <IconButton
                     size='small'
-                    onClick={() => setNotesDialogOpen(true)}
+                    onClick={() =>
+                      journalEnabled
+                        ? setJournalOpen(true)
+                        : setNotesDialogOpen(true)
+                    }
                     sx={{
-                      color: currentSheet.notes
+                      color: (
+                        journalEnabled
+                          ? journalNodeCount > 0
+                          : currentSheet.notes
+                      )
                         ? theme.palette.primary.main
                         : theme.palette.text.secondary,
                     }}
@@ -2164,8 +2326,10 @@ const Result: React.FC<ResultProps> = (props) => {
               )}
               {devoto && (
                 <LabelDisplay
-                  title='Divindade'
-                  text={devoto.divindade.name}
+                  title={
+                    devoto.divindadeSecundaria ? 'Devoção dupla' : 'Divindade'
+                  }
+                  text={getDevotionLabel(currentSheet) || devoto.divindade.name}
                   size='small'
                 />
               )}
@@ -2252,6 +2416,35 @@ const Result: React.FC<ResultProps> = (props) => {
               overflow: 'visible',
             }}
           >
+            {onSheetUpdate && (
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  position: 'absolute',
+                  top: -16,
+                  right: 16,
+                  zIndex: 1,
+                }}
+              >
+                <Tooltip title='Modificadores temporários de atributo'>
+                  <IconButton
+                    size='small'
+                    sx={{
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setAttributeModifiersDrawerOpen(true)}
+                  >
+                    <TuneIcon />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            )}
             <BookTitle>Atributos</BookTitle>
             <AttributeDisplay
               attributes={atributos}
@@ -2317,6 +2510,27 @@ const Result: React.FC<ResultProps> = (props) => {
         setSkillsDrawerOpen(true)
       ),
       body: periciasDiv,
+    },
+
+    // Diário do Jogador: o cartão se desenha sozinho (resumo + botão de abrir)
+    // e só existe com a feature ligada — desligada, a ficha fica com o botão de
+    // anotações da identidade, como sempre foi.
+    journal: {
+      kind: 'journal',
+      defaultTitle: 'Diário',
+      iconKey: 'mui:MenuBook',
+      withTitle: false,
+      available: journalEnabled,
+      selfContained: true,
+      actions: editAction('open-journal', 'Abrir diário', () =>
+        setJournalOpen(true)
+      ),
+      body: (
+        <PlayerJournalCard
+          journal={currentSheet.journal}
+          onOpen={() => setJournalOpen(true)}
+        />
+      ),
     },
 
     attacks: {
@@ -3140,6 +3354,8 @@ const Result: React.FC<ResultProps> = (props) => {
             sheet={currentSheet}
             readonly={!onSheetUpdate || !canUseActiveEffects}
             customDefinitions={virtualCustomEffectDefinitions}
+            standaloneEffects={currentSheet.customEffects ?? []}
+            onStandaloneEffectsChange={handleStandaloneCustomEffectsChange}
             onRemove={handleActiveEffectRemove}
             onActivate={handleActiveEffectActivate}
             onClose={() => setEffectsModalOpen(false)}
@@ -3151,6 +3367,16 @@ const Result: React.FC<ResultProps> = (props) => {
             onClose={() => setSheetInfoDrawerOpen(false)}
             sheet={currentSheet}
             onSave={handleSheetInfoUpdate}
+          />
+
+          {/* Modificador temporário por atributo. Salva via
+              `applyRecalculatedSheet` (e não `handleSheetInfoUpdate`) porque o
+              campo muda derivados: perícias, Defesa, carga, CD de magia. */}
+          <AttributeModifiersDrawer
+            open={attributeModifiersDrawerOpen}
+            onClose={() => setAttributeModifiersDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={applyRecalculatedSheet}
           />
 
           <LevelUpWizardModal
@@ -3192,7 +3418,7 @@ const Result: React.FC<ResultProps> = (props) => {
             initialCategoryFilters={backpackInitialFilter}
           />
 
-          <PowersEditDrawer
+          <PowersEditorModal
             open={powersDrawerOpen}
             onClose={() => setPowersDrawerOpen(false)}
             sheet={currentSheet}
@@ -3205,15 +3431,6 @@ const Result: React.FC<ResultProps> = (props) => {
               onClose={() => setComplicationDrawerOpen(false)}
               sheet={currentSheet}
               supplements={userSupplements}
-              onSave={handlePowersUpdate}
-            />
-          )}
-
-          {onSheetUpdate && (
-            <AgeEditDrawer
-              open={ageDrawerOpen}
-              onClose={() => setAgeDrawerOpen(false)}
-              sheet={currentSheet}
               onSave={handlePowersUpdate}
             />
           )}
@@ -3291,6 +3508,20 @@ const Result: React.FC<ResultProps> = (props) => {
             notes={currentSheet.notes || ''}
             onSave={handleNotesSave}
           />
+          {journalEnabled && (
+            <PlayerJournalFullScreen
+              open={journalOpen}
+              onClose={() => setJournalOpen(false)}
+              characterName={currentSheet.nome}
+              journal={currentSheet.journal}
+              // Sem `onSheetUpdate` o diário abre em leitura, em vez de sumir:
+              // ele é feito para ser LIDO durante a sessão, e fechá-lo na cara
+              // de quem está consultando as anotações seria pior do que
+              // desabilitar a edição. É por isso que ele NÃO entra no efeito
+              // que fecha os drawers quando a edição cai.
+              onSave={onSheetUpdate ? handleJournalSave : undefined}
+            />
+          )}
           {(() => {
             const companions = currentSheet.companions || [];
             const safeIndex = Math.min(

@@ -22,6 +22,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import store from '@/store';
 import { createTormentaTheme } from '@/theme/theme';
 import { SupplementId } from '@/types/supplement.types';
+import { setFeatureFlags } from '@/store/slices/system/systemSlice';
+import { DEFAULT_FEATURE_FLAGS } from '@/types/featureFlags.types';
 import { generateEmptySheet } from '@/functions/general';
 import SelectOptions from '@/interfaces/SelectedOptions';
 import CharacterSheet from '@/interfaces/CharacterSheet';
@@ -177,6 +179,51 @@ describe('Result — paridade de layout antes da extração de seções', () => 
         'Poderes',
         'Magias',
         'Equip.',
+      ]);
+    });
+  });
+
+  // Diário do Jogador (entrou na main depois da extração): no largo é um cartão
+  // abaixo de Perícias, na coluna direita; no estreito é a ÚLTIMA aba.
+  describe('com o Diário do Jogador ligado', () => {
+    beforeEach(() => {
+      store.dispatch(
+        setFeatureFlags({
+          ...DEFAULT_FEATURE_FLAGS,
+          playerJournal: { enabled: true, supporterOnly: false },
+        })
+      );
+    });
+
+    afterEach(() => {
+      store.dispatch(setFeatureFlags(DEFAULT_FEATURE_FLAGS));
+    });
+
+    it('desktop: cartão do diário abaixo de Perícias, fora das abas', () => {
+      setViewport(false);
+      renderSheet(sheet);
+
+      const tabs = screen.getAllByRole('tab').map((t) => t.textContent);
+      expect(tabs).not.toContain('Diário');
+      expect(domOrderOf(['Perícias', 'Diário'])).toEqual([
+        'Perícias',
+        'Diário',
+      ]);
+    });
+
+    it('mobile: Diário como última aba', () => {
+      setViewport(true);
+      renderSheet(sheet);
+
+      const tabs = screen.getAllByRole('tab').map((t) => t.textContent);
+      expect(tabs).toEqual([
+        'Perícias',
+        'Ataques',
+        'Defesa',
+        'Poderes',
+        'Magias',
+        'Equip.',
+        'Diário',
       ]);
     });
   });

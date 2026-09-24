@@ -3,6 +3,7 @@ import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { getEffectiveAttributeModifier } from '../effectiveAttributes';
 import { RACE_SIZES } from '../../data/systems/tormenta20/races/raceSizes/raceSizes';
 import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
 import ACTIVE_POWERS_DRUIDA from '../../premium/data/activePowers/druida';
@@ -71,8 +72,21 @@ function wildShapeEffect(
   };
 }
 
-const skillOthers = (sheet: CharacterSheet, name: Skill): number =>
-  sheet.completeSkills?.find((s) => s.name === name)?.others ?? 0;
+/**
+ * Total EXIBIDO da perícia (mesma fórmula da `SkillTable`). Os boosts de
+ * atributo da forma entram pela parcela do ATRIBUTO efetivo, não por "Outros" —
+ * ver `functions/effectiveAttributes.ts`.
+ */
+const skillTotal = (sheet: CharacterSheet, name: Skill): number => {
+  const skill = sheet.completeSkills?.find((s) => s.name === name);
+  if (!skill) return 0;
+  const attr = skill.modAttr
+    ? getEffectiveAttributeModifier(sheet, skill.modAttr)
+    : 0;
+  return (
+    (skill.halfLevel ?? 0) + attr + (skill.others ?? 0) + (skill.training ?? 0)
+  );
+};
 
 describe('catálogo de formas selvagens', () => {
   it('tem as 5 formas × 3 graus do livro', () => {
@@ -331,10 +345,9 @@ describe('aplicação e reversão no recálculo', () => {
 
     expect(out.defesa - base.defesa).toBe(4);
     expect(out.size.name).toBe('Grande');
-    // Força +5 se propaga para as perícias de Força.
-    expect(skillOthers(out, Skill.LUTA) - skillOthers(base, Skill.LUTA)).toBe(
-      5
-    );
+    // Força +5 se propaga para as perícias de Força — pelo atributo efetivo.
+    expect(out.atributosTemporarios?.[Atributo.FORCA]).toBe(5);
+    expect(skillTotal(out, Skill.LUTA) - skillTotal(base, Skill.LUTA)).toBe(5);
     // Tamanho Grande = −2 em Furtividade (aplicado no render, via size.modifiers).
     expect(out.size.modifiers.stealth).toBe(-2);
   });
@@ -426,8 +439,9 @@ describe('aplicação e reversão no recálculo', () => {
     sheet.activeEffects = [wildShapeEffect('agil', 'superior')];
     const out = recalculateSheet(sheet);
 
+    expect(out.atributosTemporarios?.[Atributo.DESTREZA]).toBe(6);
     expect(
-      skillOthers(out, Skill.ACROBACIA) - skillOthers(base, Skill.ACROBACIA)
+      skillTotal(out, Skill.ACROBACIA) - skillTotal(base, Skill.ACROBACIA)
     ).toBe(6);
     // DES +6 entra na Defesa; o tamanho Grande não mexe em Defesa em T20.
     expect(out.defesa - base.defesa).toBe(6);

@@ -5,27 +5,72 @@ import Bag from '../interfaces/Bag';
 import { WeaponOverride } from '../interfaces/Equipment';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
+import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
+import { migrateNotesToJournal } from './playerJournal';
+import { migrateLegacyOficioArtesao } from './migrateSheet';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
+import { dataRegistry } from '../data/registry';
+import { SupplementId } from '../types/supplement.types';
+import { GeneralPower } from '../interfaces/Poderes';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
-import { KAIJIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
+import {
+  KAIJIN_CHARISMA_EXEMPT_POWER_NAMES,
+  KAIJIN_REFRESHED_DESCRIPTIONS,
+  TERROR_VIVO_ABILITY_NAME,
+} from '../data/systems/tormenta20/ameacas-de-arton/races/kaijin';
+import {
+  CENTAURO_REFRESHED_DESCRIPTIONS,
+  CENTAURO_REFRESHED_PREREQ_HOOKS,
+} from '../data/systems/tormenta20/ameacas-de-arton/races/centauro';
+import { HOBGOBLIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/hobgoblin';
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
+import { getBaseAgeStage, getBaseAgeStageForYears } from './ages';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import { RETIRED_ACTIVE_POWER_KEYS } from '../premium/data/activePowers';
+import { CustomPower } from '../interfaces/CustomPower';
+import { sanitizeCustomPowerBonuses } from './powers/customPowerBonuses';
 import {
   ARQUEIRO_SHEET_BONUSES,
   ESGRIMISTA_SHEET_BONUSES,
   ESTILO_DE_DISPARO_SHEET_BONUSES,
   INEXPUGNAVEL_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/classPowerSheetBonuses';
+import {
+  BOLSOES_INSANOS_SHEET_BONUSES,
+  CARAPACA_CORROMPIDA_SHEET_BONUSES,
+  CORPO_ABERRANTE_SHEET_BONUSES,
+  PELE_CORROMPIDA_SHEET_BONUSES,
+} from '../data/systems/tormenta20/powers/tormentaPowerSheetBonuses';
+import { updateUnarmedRolls } from './unarmedDamage';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
 
-const GRANTED_POWERS_BY_NAME = new Map(
-  Object.values(GRANTED_POWERS).map((power) => [power.name, power])
-);
+// Todos os suplementos, não só os ativos na ficha: este mapa serve só de
+// lookup por nome para o refresh abaixo, então incluir suplementos inativos
+// não vaza nada — só garante que um poder concedido por um suplemento (ex.:
+// Biblioteca Divina, em Deuses de Arton) seja encontrado independentemente de
+// quais suplementos a ficha tinha ativos quando foi salva.
+//
+// Lazy (e não no topo do módulo): `dataRegistry` ainda não terminou de
+// inicializar no momento em que este módulo é avaliado (import circular via
+// `general.ts`), então chamar `getPowersBySupplements` de cara quebra com
+// "Cannot read properties of undefined".
+let grantedPowersByNameCache: Map<string, GeneralPower> | null = null;
+function getGrantedPowersByName(): Map<string, GeneralPower> {
+  if (!grantedPowersByNameCache) {
+    grantedPowersByNameCache = new Map(
+      [
+        ...Object.values(GRANTED_POWERS),
+        ...dataRegistry.getPowersBySupplements(Object.values(SupplementId))
+          .CONCEDIDOS,
+      ].map((power) => [power.name, power])
+    );
+  }
+  return grantedPowersByNameCache;
+}
 
 // Poderes cujos `sheetBonuses` passaram a existir depois de já haver fichas
 // salvas com a cópia embutida SEM automação (Arqueiro, Esgrimista, Estilo de
@@ -33,11 +78,26 @@ const GRANTED_POWERS_BY_NAME = new Map(
 // a automação alcance essas fichas — mesmo princípio do refresh de poderes
 // concedidos (GRANTED_POWERS) logo abaixo. Homebrew de mesmo nome ficaria com
 // bônus sobrescrito, mas nenhum destes é reproduzível como homebrew hoje.
+//
+// Os três poderes da Tormenta abaixo são OBRIGATÓRIOS, não cosméticos:
+// - Carapaça Corrompida e Pele Corrompida tinham a RD hardcoded por nome nos
+//   dois motores; ao migrar para `sheetBonuses`, quem já tem o poder PERDERIA a
+//   RD sem este refresh.
+// - Bolsões Insanos era `Fixed: 2`, ignorando o "+1 para cada outro poder da
+//   Tormenta"; sem o refresh a cópia errada fica travada para sempre.
+// - Corpo Aberrante nunca teve automação NENHUMA (era texto puro). A cópia
+//   embutida é o que `collectUnarmedStepBonuses` lê quando a ficha ainda não
+//   passou por um recálculo, então sem o refresh o poder continua inerte em
+//   toda ficha já salva.
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
   ['Estilo de Disparo', ESTILO_DE_DISPARO_SHEET_BONUSES],
   ['Inexpugnável', INEXPUGNAVEL_SHEET_BONUSES],
+  ['Carapaça Corrompida', CARAPACA_CORROMPIDA_SHEET_BONUSES],
+  ['Pele Corrompida', PELE_CORROMPIDA_SHEET_BONUSES],
+  ['Bolsões Insanos', BOLSOES_INSANOS_SHEET_BONUSES],
+  ['Corpo Aberrante', CORPO_ABERRANTE_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<
@@ -56,9 +116,11 @@ function refreshPowerBonuses<
 // Allowlist em vez de refresh genérico das habilidades pelo catálogo da raça:
 // várias raças variam a descrição por instância (Osteon, Lefou, Golem,
 // variantes de atributo), e um match cego por nome apagaria essa variação.
-const REFRESHED_DESCRIPTIONS_BY_NAME = new Map<string, string>(
-  Object.entries(KAIJIN_REFRESHED_DESCRIPTIONS)
-);
+const REFRESHED_DESCRIPTIONS_BY_NAME = new Map<string, string>([
+  ...Object.entries(KAIJIN_REFRESHED_DESCRIPTIONS),
+  ...Object.entries(CENTAURO_REFRESHED_DESCRIPTIONS),
+  ...Object.entries(HOBGOBLIN_REFRESHED_DESCRIPTIONS),
+]);
 
 function refreshDescription<T extends { name: string; description?: string }>(
   entry: T
@@ -66,6 +128,123 @@ function refreshDescription<T extends { name: string; description?: string }>(
   const description = REFRESHED_DESCRIPTIONS_BY_NAME.get(entry.name);
   if (!description) return entry;
   return { ...entry, description };
+}
+
+/**
+ * Refresh dos hooks de pré-requisito das habilidades do CENTAURO. Diferente do
+ * refresh de descrição acima, este não é cosmético: os valores errados liberavam
+ * poderes de verdade na ficha (ver `CENTAURO_REFRESHED_PREREQ_HOOKS`), e
+ * `isPowerAvailable`/`PowersEditor` leem a cópia embutida na ficha, nunca o
+ * catálogo — sem isto a correção só alcançaria fichas novas.
+ *
+ * Gated pelo nome da raça (e não por um mapa global por nome de habilidade, como
+ * as descrições) porque aqui se está DESFAZENDO algo que já vale na ficha.
+ */
+function refreshCentauroPrereqHooks<
+  T extends {
+    name: string;
+    bypassPrereqForPowersNamed?: string[];
+    grantsPowerRequirements?: string[];
+  }
+>(ability: T): T {
+  const hooks = CENTAURO_REFRESHED_PREREQ_HOOKS[ability.name];
+  if (!hooks) return ability;
+
+  const refreshed = { ...ability };
+  if (hooks.bypassPrereqForPowersNamed) {
+    refreshed.bypassPrereqForPowersNamed = [
+      ...hooks.bypassPrereqForPowersNamed,
+    ];
+  } else {
+    delete refreshed.bypassPrereqForPowersNamed;
+  }
+  if (hooks.grantsPowerRequirements) {
+    refreshed.grantsPowerRequirements = [...hooks.grantsPowerRequirements];
+  } else {
+    delete refreshed.grantsPowerRequirements;
+  }
+  return refreshed;
+}
+
+/**
+ * A arma natural do Centauro nasceu com `tipo: 'Perf.'` (o livro diz impacto). A
+ * cópia que está na mochila da ficha é intocável pelo recálculo: o handler de
+ * `addEquipment` é pulado por `isActionAlreadyApplied` assim que existe a entrada
+ * `EquipmentAdded` no `sheetActionHistory`, então a arma errada ficaria congelada
+ * para sempre. Curamos o campo in loco.
+ *
+ * Mutação direta em vez de `bag.addEquipment`: reinjetar o item o faria receber
+ * um `id` novo, o que desequiparia a arma (os slots de mão apontam para o id) e
+ * embaralharia o `displayOrder`. `tipo` não entra em nenhum cálculo — só na
+ * exibição e no PDF.
+ *
+ * Gate triplo (raça + nome do item + valor antigo) para não encostar em uma arma
+ * homebrew chamada "Cascos" e para ser idempotente numa segunda passada.
+ */
+function healCentauroHoovesDamageType(sheet: CharacterSheet): void {
+  if (sheet.raca?.name !== 'Centauro') return;
+  const weapons = sheet.bag?.equipments?.Arma;
+  if (!Array.isArray(weapons)) return;
+  weapons.forEach((weapon) => {
+    if (weapon?.nome === 'Cascos' && weapon.tipo === 'Perf.') {
+      // eslint-disable-next-line no-param-reassign
+      weapon.tipo = 'Impac.';
+    }
+  });
+}
+
+// Poderes que sempre contaram como poder da Tormenta "exceto para perda de
+// Carisma", mas cujo dado não setava a flag que implementa a ressalva. Ela é
+// campo novo, então a cópia embutida nas fichas salvas não a tem — sem este
+// carimbo a correção só alcançaria fichas novas.
+const CHARISMA_EXEMPT_POWER_NAMES = new Set<string>(
+  KAIJIN_CHARISMA_EXEMPT_POWER_NAMES
+);
+
+function refreshCharismaExemption<
+  T extends { name: string; tormentaCountExcludesCharisma?: boolean }
+>(power: T): T {
+  if (!CHARISMA_EXEMPT_POWER_NAMES.has(power.name)) return power;
+  if (power.tormentaCountExcludesCharisma) return power;
+  return { ...power, tormentaCountExcludesCharisma: true };
+}
+
+/**
+ * Terror Vivo (Kaijin): "recebe um poder da Tormenta à sua escolha, que não
+ * conta para perda de Carisma".
+ *
+ * Diferente de Couraça Rúbea e Disforme, o poder isento VARIA por ficha — não
+ * dá para carimbar por nome como o `refreshCharismaExemption` acima. Quem diz
+ * qual foi é o `sheetActionHistory`: o handler de `getGeneralPower` grava uma
+ * entrada com `powerName: 'Terror Vivo'` e um recibo `PowerAdded` por poder
+ * concedido.
+ *
+ * Sem isto a correção do dado só alcançaria ficha nova: o objeto empurrado para
+ * `generalPowers` é a cópia do catálogo da época, sem a flag — e o Kaijin
+ * seguiria perdendo Carisma por uma habilidade que o livro isenta.
+ */
+function refreshTerrorVivoCharismaExemption(sheet: CharacterSheet): void {
+  if (!sheet.generalPowers?.length || !sheet.sheetActionHistory?.length) return;
+
+  const granted = new Set<string>();
+  sheet.sheetActionHistory.forEach((entry) => {
+    const fromTerrorVivo =
+      entry?.powerName === TERROR_VIVO_ABILITY_NAME ||
+      (entry?.source?.type === 'power' &&
+        entry.source.name === TERROR_VIVO_ABILITY_NAME);
+    if (!fromTerrorVivo) return;
+    entry.changes?.forEach((change) => {
+      if (change?.type === 'PowerAdded') granted.add(change.powerName);
+    });
+  });
+
+  if (granted.size === 0) return;
+
+  sheet.generalPowers = sheet.generalPowers.map((power) =>
+    granted.has(power.name) && !power.tormentaCountExcludesCharisma
+      ? { ...power, tormentaCountExcludesCharisma: true }
+      : power
+  );
 }
 
 // Poderes de ORIGEM cujos `sheetBonuses` DEIXARAM de valer sempre. Ao contrário
@@ -163,6 +342,39 @@ function sanitizeWeaponOverrides(sheet: CharacterSheet): void {
 }
 
 /**
+ * Saneia os mapas de modificador temporário de atributo (`bonusAtributos`,
+ * escrito pelo jogador, e `atributosTemporarios`, derivado do recálculo). Os
+ * dois chegam da nuvem sem schema forte, e um valor não-numérico aqui vira NaN
+ * em TODA derivação da ficha (perícias, ataque, Defesa, CD, carga).
+ *
+ * Descarta chaves fora do enum `Atributo` e valores não-finitos, poda zeros e
+ * remove o campo quando não sobra nada — mapa vazio persistido viraria ruído no
+ * delta da nuvem.
+ */
+function sanitizeAttributeModifierMaps(sheet: CharacterSheet): void {
+  (['bonusAtributos', 'atributosTemporarios'] as const).forEach((field) => {
+    const raw = sheet[field];
+    if (raw === undefined) return;
+    if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+      delete sheet[field];
+      return;
+    }
+
+    const cleaned: Partial<Record<Atributo, number>> = {};
+    Object.entries(raw).forEach(([key, value]) => {
+      if (!VALID_ATRIBUTOS.includes(key)) return;
+      if (typeof value !== 'number' || !Number.isFinite(value)) return;
+      const rounded = Math.trunc(value);
+      if (rounded === 0) return;
+      cleaned[key as Atributo] = rounded;
+    });
+
+    if (Object.keys(cleaned).length === 0) delete sheet[field];
+    else sheet[field] = cleaned;
+  });
+}
+
+/**
  * Saneia os ELEMENTOS dos arrays da ficha. Garantir que os arrays existem não
  * basta: entradas nulas ou sem campos obrigatórios (magia sem `nome`, poder
  * sem `name`, entrada de histórico sem `changes`, step sem `value`) explodem
@@ -185,12 +397,36 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
   sheet.generalPowers = sheet.generalPowers
     .filter((p) => p && typeof p.name === 'string')
     .map(refreshPowerBonuses)
-    .map(refreshDescription);
+    .map(refreshDescription)
+    .map(refreshCharismaExemption);
   if (sheet.classPowers) {
     sheet.classPowers = Array.isArray(sheet.classPowers)
       ? sheet.classPowers
           .filter((p) => p && typeof p.name === 'string')
           .map(refreshPowerBonuses)
+      : [];
+  }
+
+  // Poderes personalizados: os `sheetBonuses` são conteúdo de usuário e
+  // chegam da nuvem/localStorage sem passar por validação nenhuma. Sanear aqui
+  // (o chokepoint de toda carga) em vez de confiar só no `applyCustomPowers`,
+  // senão o dado sujo fica gravado para sempre.
+  const sanitizeCustomPowerList = (list: CustomPower[]): CustomPower[] =>
+    list
+      .filter((p) => p && typeof p.name === 'string')
+      .map((p) =>
+        p.sheetBonuses === undefined
+          ? p
+          : { ...p, sheetBonuses: sanitizeCustomPowerBonuses(p.sheetBonuses) }
+      );
+  if (sheet.customPowers !== undefined) {
+    sheet.customPowers = Array.isArray(sheet.customPowers)
+      ? sanitizeCustomPowerList(sheet.customPowers)
+      : [];
+  }
+  if (sheet.customGrantedPowers !== undefined) {
+    sheet.customGrantedPowers = Array.isArray(sheet.customGrantedPowers)
+      ? sanitizeCustomPowerList(sheet.customGrantedPowers)
       : [];
   }
 
@@ -238,6 +474,21 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
       .filter((a) => a && typeof a.name === 'string')
       .map(refreshDescription);
 
+    // `countsAsRaces` é dado estático de catálogo (nunca escolha do usuário),
+    // então sobrescrever pelo mapa atual cura fichas salvas antes do campo
+    // existir — sem isso, um Soterrado do localStorage continuaria sem acesso
+    // aos poderes de raça de Osteon. O caminho da nuvem tem a cura equivalente
+    // em `rehydrateSheet`.
+    const countsAs = RACE_COUNTS_AS[sheet.raca.name];
+    if (countsAs) sheet.raca.countsAsRaces = countsAs;
+
+    if (sheet.raca.name === 'Centauro') {
+      sheet.raca.abilities = sheet.raca.abilities.map(
+        refreshCentauroPrereqHooks
+      );
+      healCentauroHoovesDamageType(sheet);
+    }
+
     // Mesmo princípio do refresh de poderes concedidos abaixo: a ficha embute a
     // cópia da herança de Suraggel da época em que foi escolhida, e antes de
     // jul/2026 essa cópia levava só 4 campos. Refrescar pelo catálogo atual faz
@@ -268,13 +519,28 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     sheet.devoto.poderes = sheet.devoto.poderes
       .filter((p) => p && typeof p.name === 'string')
       .map((p) => {
-        const current = GRANTED_POWERS_BY_NAME.get(p.name);
+        const current = getGrantedPowersByName().get(p.name);
         if (!current) return p;
-        return {
+        const refreshed = {
           ...p,
           description: current.description,
           sheetBonuses: current.sheetBonuses,
+          // `sheetActions` carrega `perTierAboveIniciante` (ex.: Biblioteca
+          // Divina): sem refrescar isto também, uma ficha salva antes desse
+          // campo existir fica travada na perícia-piso para sempre, mesmo
+          // depois da correção do catálogo.
+          sheetActions: current.sheetActions,
         };
+        // "Conta como o poder X para pré-requisitos": campo novo, ausente das
+        // cópias antigas. Segue o dado atual nos dois sentidos.
+        if (current.grantsPowerRequirements) {
+          refreshed.grantsPowerRequirements = [
+            ...current.grantsPowerRequirements,
+          ];
+        } else {
+          delete refreshed.grantsPowerRequirements;
+        }
+        return refreshed;
       });
   }
 
@@ -428,7 +694,25 @@ export function normalizeSheet(sheet: CharacterSheet): void {
 
   if (!sheet.bag) sheet.bag = Bag.fromStored();
 
+  // `undefined` é o estado SAUDÁVEL aqui (= nada guardado, tudo vestido), então
+  // só desfaz um valor corrompido — nunca preenche com `[]`.
+  if (
+    sheet.unwornClothingIds !== undefined &&
+    !Array.isArray(sheet.unwornClothingIds)
+  ) {
+    sheet.unwornClothingIds = undefined;
+  }
+
   if (!Array.isArray(sheet.skills)) sheet.skills = [];
+
+  // Exceção consciente ao "só preenche o que falta": renomear valor LEGADO não
+  // é sobrescrever dado do usuário, é a mesma perícia com o nome do livro.
+  // Precisa rodar aqui (e não só em `migrateSheet`, que o Histórico e Meus
+  // Personagens chamam) porque ficha da nuvem/embed/mesa virtual só passa por
+  // `normalizeSheet` — e com o nome antigo nenhum pré-requisito de Ofício
+  // (Artesão) casava, quebrando também a substituição do Artesão Criativo.
+  migrateLegacyOficioArtesao(sheet);
+
   if (!Array.isArray(sheet.spells)) sheet.spells = [];
   if (!Array.isArray(sheet.generalPowers)) sheet.generalPowers = [];
   if (!Array.isArray(sheet.sheetBonuses)) sheet.sheetBonuses = [];
@@ -468,9 +752,29 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     delete sheet.complication;
   }
 
-  // Idade com faixa etária desconhecida não resolve no catálogo — nem os
-  // bônus nem o rótulo saem de pé, então descarta o bloco inteiro.
-  if (sheet.age && !getAgeBracket(sheet.age.bracket)) {
+  // Faixa de Idades Variadas desconhecida não resolve no catálogo — nem os
+  // bônus nem o rótulo saem de pé. Só a FAIXA é descartada: a idade em anos e o
+  // estágio de envelhecimento do livro básico continuam válidos sem ela.
+  if (sheet.age?.bracket && !getAgeBracket(sheet.age.bracket)) {
+    delete sheet.age.bracket;
+    sheet.age.complications = [];
+    delete sheet.age.grantedPowerName;
+  }
+  // Estágio ausente ou inválido é reconstruído a partir dos anos — fichas
+  // gravadas antes do envelhecimento do livro básico só têm `years`.
+  if (sheet.age && !getBaseAgeStage(sheet.age.stage)) {
+    sheet.age.stage = getBaseAgeStageForYears(
+      sheet.age.years,
+      sheet.raca?.name
+    );
+  }
+  // Bloco de idade sem anos, sem faixa e sem nada a dizer é ruído: some.
+  if (
+    sheet.age &&
+    sheet.age.years === undefined &&
+    !sheet.age.bracket &&
+    !sheet.age.extraLevels
+  ) {
     delete sheet.age;
   }
   if (sheet.age && typeof sheet.age.extraLevels !== 'number') {
@@ -484,8 +788,22 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   if (sheet.devoto) {
     if (!sheet.devoto.divindade?.name) {
       delete sheet.devoto;
-    } else if (!Array.isArray(sheet.devoto.poderes)) {
-      sheet.devoto.poderes = [];
+    } else {
+      if (!Array.isArray(sheet.devoto.poderes)) {
+        sheet.devoto.poderes = [];
+      }
+      // Devoção Dupla: os dois campos são NOMES resolvidos no registry a cada
+      // uso, então qualquer coisa que não seja string é lixo. Secundária igual
+      // à primária seria uma devoção dupla degenerada — some.
+      if (
+        typeof sheet.devoto.divindadeSecundaria !== 'string' ||
+        sheet.devoto.divindadeSecundaria === sheet.devoto.divindade.name
+      ) {
+        delete sheet.devoto.divindadeSecundaria;
+      }
+      if (typeof sheet.devoto.sincretismo !== 'string') {
+        delete sheet.devoto.sincretismo;
+      }
     }
   }
 
@@ -532,8 +850,24 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // NÃO são podados fora da forma: o ponto deles é justamente persistir entre
   // transformações. Só sanidade de shape, contra ficha corrompida na nuvem.
   sanitizeWeaponOverrides(sheet);
+  sanitizeAttributeModifierMaps(sheet);
 
   sanitizeSheetElements(sheet);
+
+  // Anotações livres antigas viram o primeiro nó do Diário do Jogador. Só age
+  // em ficha que TEM anotação e ainda NÃO tem diário, e não apaga o texto
+  // original — ver `migrateNotesToJournal`.
+  migrateNotesToJournal(sheet);
+
+  refreshTerrorVivoCharismaExemption(sheet);
+
+  // Dano desarmado. Precisa rodar AQUI, e não só no recálculo: abrir uma ficha
+  // não dispara recálculo, e a rolagem de Corpo Aberrante/Briga tem que mostrar
+  // o dado certo já na primeira abertura. Vem por último de propósito — depende
+  // do `size` restaurado logo acima e dos `sheetBonuses` refrescados no topo.
+  // É idempotente (derivação absoluta), então rodar aqui e de novo no próximo
+  // recálculo dá o mesmo resultado.
+  updateUnarmedRolls(sheet);
 }
 
 export default normalizeSheet;

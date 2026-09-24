@@ -52,6 +52,37 @@ export function migrateAttributes(
 }
 
 /**
+ * Renomeia, EM UM LUGAR SÓ, a perícia antiga "Ofício (Artesanato)" para o nome
+ * do livro "Ofício (Artesão)" (`Skill.OFICIO_ARTESANATO`).
+ *
+ * Muta a ficha recebida, porque o chamador principal é `normalizeSheet`, que
+ * também muta. Idempotente: rodar duas vezes não muda nada.
+ *
+ * Por que fica fora de `migrateSheet`: `migrateSheet` só é chamado no Histórico
+ * e em Meus Personagens, então ficha da nuvem/embed/mesa virtual nunca migrava
+ * e o pré-requisito de Ofício (Artesão) — inclusive a substituição do poder
+ * Artesão Criativo — falhava em silêncio. Quem chama isso em todo caminho de
+ * carga é `normalizeSheet`.
+ */
+export function migrateLegacyOficioArtesao(sheet: CharacterSheet): void {
+  if (Array.isArray(sheet.skills)) {
+    sheet.skills = sheet.skills.map((skill) =>
+      (skill as string) === LEGACY_OFICIO_ARTESANATO
+        ? Skill.OFICIO_ARTESANATO
+        : skill
+    );
+  }
+
+  if (Array.isArray(sheet.completeSkills)) {
+    sheet.completeSkills = sheet.completeSkills.map((skill) =>
+      (skill?.name as string) === LEGACY_OFICIO_ARTESANATO
+        ? { ...skill, name: Skill.OFICIO_ARTESANATO }
+        : skill
+    );
+  }
+}
+
+/**
  * Migra uma ficha completa, aplicando todas as migrações necessárias
  * @param sheet - Ficha no formato antigo ou novo
  * @returns Ficha no formato atual
@@ -73,22 +104,7 @@ export function migrateSheet(sheet: CharacterSheet): CharacterSheet {
     ).manualAttributeEdits;
   }
 
-  // Renomear perícia antiga "Ofício (Artesanato)" → "Ofício (Artesão)"
-  if (Array.isArray(sheet.skills)) {
-    migratedSheet.skills = sheet.skills.map((skill) =>
-      (skill as string) === LEGACY_OFICIO_ARTESANATO
-        ? Skill.OFICIO_ARTESANATO
-        : skill
-    );
-  }
-
-  if (Array.isArray(sheet.completeSkills)) {
-    migratedSheet.completeSkills = sheet.completeSkills.map((skill) =>
-      (skill.name as string) === LEGACY_OFICIO_ARTESANATO
-        ? { ...skill, name: Skill.OFICIO_ARTESANATO }
-        : skill
-    );
-  }
+  migrateLegacyOficioArtesao(migratedSheet);
 
   return migratedSheet;
 }

@@ -29,6 +29,8 @@ export interface AugmentedRoll extends DiceRoll {
   isAugmented: boolean;
   /** Resumo do que foi somado, ex.: "+2d6" (undefined quando não aumentada). */
   addedSummary?: string;
+  /** Notação resultante de uma substituição, antes dos bônus aditivos. */
+  replacementDice?: string;
 }
 
 interface DiceAccumulator {
@@ -101,6 +103,12 @@ function hasAny(acc: DiceAccumulator): boolean {
     if (count > 0) hasDice = true;
   });
   return hasDice || acc.modifier !== 0;
+}
+
+function getSingleDieSides(acc?: DiceAccumulator): number | undefined {
+  if (!acc) return undefined;
+  const groups = accToGroups(acc);
+  return groups.length === 1 ? groups[0].sides : undefined;
 }
 
 function extractLabel(part: string): string | undefined {
@@ -223,22 +231,33 @@ function resolveBonuses(
 }
 
 /**
- * Índices das rolagens base atingidas por um bônus: casa por label
- * (substring normalizada); sem label, cai na única rolagem existente; se houver
- * mais de uma e nenhum label casar, o bônus é ignorado (nunca chuta).
+ * Índices dos labels atingidos por um bônus: casa por label (substring
+ * normalizada); sem label, cai no único candidato existente; se houver mais
+ * de um e nenhum label casar, o bônus é ignorado (nunca chuta).
  */
-function resolveTargetIndexes(
-  baseRolls: DiceRoll[],
+function resolveIndexesByLabel(
+  labels: string[],
   bonus: AprimoramentoDamageBonus
 ): number[] {
   if (bonus.targetRollLabel) {
     const needle = normalizeLabel(bonus.targetRollLabel);
-    return baseRolls.reduce<number[]>((acc, roll, index) => {
-      if (normalizeLabel(roll.label).includes(needle)) acc.push(index);
+    return labels.reduce<number[]>((acc, label, index) => {
+      if (normalizeLabel(label).includes(needle)) acc.push(index);
       return acc;
     }, []);
   }
-  return baseRolls.length === 1 ? [0] : [];
+  return labels.length === 1 ? [0] : [];
+}
+
+/** Índices das rolagens base (sem contar `additionalRoll`) atingidas por um bônus. */
+function resolveTargetIndexes(
+  baseRolls: DiceRoll[],
+  bonus: AprimoramentoDamageBonus
+): number[] {
+  return resolveIndexesByLabel(
+    baseRolls.map((roll) => roll.label),
+    bonus
+  );
 }
 
 /**
@@ -258,56 +277,193 @@ export function augmentSpellRolls(
     return acc;
   });
   const addedAcc = baseRolls.map(() => newAccumulator());
+  const replacementApplied = baseRolls.map(() => false);
+  const replacementDamageTypes: Array<string | undefined> = baseRolls.map(
+    () => undefined
+  );
+  const replacementLabels: Array<string | undefined> = baseRolls.map(
+    () => undefined
+  );
+  selections.forEach(({ aprimoramento, count }) => {
+    if (count <= 0) return;
+    resolveBonuses(aprimoramento).forEach((bonus) => {
+      if (
+        !bonus.replaceWith &&
+        !bonus.replaceDamageType &&
+        !bonus.replaceLabel
+      ) {
+        return;
+      }
+
+      const targetIndexes = resolveTargetIndexes(baseRolls, bonus);
+      targetIndexes.forEach((index) => {
+        if (bonus.replaceWith) {
+          const replacement = parseDamage(bonus.replaceWith);
+          if (replacement) {
+            baseAcc[index] = newAccumulator();
+            addGroups(
+              baseAcc[index],
+              replacement.diceGroups,
+              replacement.modifier
+            );
+          }
+        }
+        if (bonus.replaceDamageType) {
+          replacementDamageTypes[index] = bonus.replaceDamageType;
+        }
+        if (bonus.replaceLabel) {
+          replacementLabels[index] = bonus.replaceLabel;
+        }
+        replacementApplied[index] = true;
+      });
+    });
+  });
+
+  // Rolagens extras criadas por `additionalRoll` (ex.: o raio da Tempestade
+  // Divina) não existem em `baseRolls` — coletamos todas primeiro, antes do
+  // passe de aumento, para que outros aprimoramentos selecionados na mesma
+  // magia (ex.: "aumenta o dano de raios em +1d8") consigam mirar nelas
+  // independentemente da ordem de seleção.
+  interface AdditionalRollDef {
+    roll: DiceRoll;
+    acc: DiceAccumulator;
+    addedAcc: DiceAccumulator;
+  }
+  const additionalDefs: AdditionalRollDef[] = [];
+  selections.forEach(({ aprimoramento, count }) => {
+    if (count <= 0) return;
+    resolveBonuses(aprimoramento).forEach((bonus) => {
+      if (!bonus.additionalRoll) return;
+      const parsed = parseDamage(bonus.additionalRoll.dice);
+      const acc = newAccumulator();
+      if (parsed) addGroups(acc, parsed.diceGroups, parsed.modifier);
+      additionalDefs.push({
+        roll: bonus.additionalRoll,
+        acc,
+        addedAcc: newAccumulator(),
+      });
+    });
+  });
+
+  const combinedLabels = [
+    ...baseRolls.map((roll) => roll.label),
+    ...additionalDefs.map((def) => def.roll.label),
+  ];
 
   selections.forEach(({ aprimoramento, count }) => {
     if (count <= 0) return;
     const bonuses = resolveBonuses(aprimoramento);
 
     bonuses.forEach((bonus) => {
-      const parsedBonus = parseDamage(bonus.dicePerActivation);
-      const perActivationModifier =
-        (parsedBonus?.modifier ?? 0) + (bonus.flatPerActivation ?? 0);
-      const scaledGroups = (parsedBonus?.diceGroups ?? []).map((group) => ({
-        count: group.count * count,
-        sides: group.sides,
-      }));
-      const scaledModifier = perActivationModifier * count;
+      if (bonus.additionalRoll) return;
+      if (bonus.replaceWith || bonus.replaceDamageType || bonus.replaceLabel) {
+        return;
+      }
 
-      // Nada a somar (ex.: bônus só de texto não numérico).
-      if (scaledGroups.length === 0 && scaledModifier === 0) return;
+      // Bônus COM label pode mirar tanto uma rolagem base quanto uma criada
+      // por `additionalRoll`. Sem label, o fallback "cai na única rolagem"
+      // continua escopado às rolagens base: contar as extras aqui faria o
+      // bônus deixar de aplicar assim que um `additionalRoll` ficasse ativo.
+      const targetIndexes = bonus.targetRollLabel
+        ? resolveIndexesByLabel(combinedLabels, bonus)
+        : resolveTargetIndexes(baseRolls, bonus);
 
-      const targetIndexes = resolveTargetIndexes(baseRolls, bonus);
       targetIndexes.forEach((index) => {
-        addGroups(addedAcc[index], scaledGroups, scaledModifier);
+        const acc =
+          index < baseRolls.length
+            ? baseAcc[index]
+            : additionalDefs[index - baseRolls.length].acc;
+        const targetAddedAcc =
+          index < baseRolls.length
+            ? addedAcc[index]
+            : additionalDefs[index - baseRolls.length].addedAcc;
+
+        const activeDieSides = bonus.diceCount
+          ? getSingleDieSides(acc)
+          : undefined;
+        const parsedBonus =
+          bonus.diceCount && activeDieSides
+            ? {
+                diceGroups: [{ count: bonus.diceCount, sides: activeDieSides }],
+                modifier: 0,
+              }
+            : parseDamage(bonus.dicePerActivation ?? '');
+        const perActivationModifier =
+          (parsedBonus?.modifier ?? 0) + (bonus.flatPerActivation ?? 0);
+        const scaledGroups = (parsedBonus?.diceGroups ?? []).map((group) => ({
+          count: group.count * count,
+          sides: group.sides,
+        }));
+        const scaledModifier = perActivationModifier * count;
+
+        // Nada a somar (ex.: bônus só de texto não numérico).
+        if (scaledGroups.length === 0 && scaledModifier === 0) return;
+        addGroups(targetAddedAcc, scaledGroups, scaledModifier);
       });
     });
   });
 
-  return baseRolls.map((roll, index) => {
-    const added = addedAcc[index];
-    const isAugmented = hasAny(added);
+  return [
+    ...baseRolls.map((roll, index) => {
+      const added = addedAcc[index];
+      const isAugmented = replacementApplied[index] || hasAny(added);
 
-    const total = newAccumulator();
-    addGroups(total, accToGroups(baseAcc[index]), baseAcc[index].modifier);
-    addGroups(total, accToGroups(added), added.modifier);
+      const total = newAccumulator();
+      addGroups(total, accToGroups(baseAcc[index]), baseAcc[index].modifier);
+      addGroups(total, accToGroups(added), added.modifier);
 
-    let addedSummary: string | undefined;
-    if (isAugmented) {
-      const summary = composeNotation(added);
-      addedSummary =
-        summary.startsWith('+') || summary.startsWith('-')
-          ? summary
-          : `+${summary}`;
-    }
+      let addedSummary: string | undefined;
+      if (isAugmented) {
+        const summary = composeNotation(added);
+        if (hasAny(added)) {
+          addedSummary =
+            summary.startsWith('+') || summary.startsWith('-')
+              ? summary
+              : `+${summary}`;
+        }
+      }
 
-    return {
-      ...roll,
-      baseDice: roll.dice,
-      dice: isAugmented ? composeNotation(total) : roll.dice,
-      isAugmented,
-      addedSummary,
-    };
-  });
+      return {
+        ...roll,
+        baseDice: roll.dice,
+        dice: isAugmented ? composeNotation(total) : roll.dice,
+        damageType: replacementDamageTypes[index] ?? roll.damageType,
+        label: replacementLabels[index] ?? roll.label,
+        replacementDice:
+          replacementApplied[index] &&
+          composeNotation(baseAcc[index]) !== roll.dice
+            ? composeNotation(baseAcc[index])
+            : undefined,
+        isAugmented,
+        addedSummary,
+      };
+    }),
+    ...additionalDefs.map((def) => {
+      const added = def.addedAcc;
+      const isAugmented = hasAny(added);
+
+      const total = newAccumulator();
+      addGroups(total, accToGroups(def.acc), def.acc.modifier);
+      addGroups(total, accToGroups(added), added.modifier);
+
+      let addedSummary: string | undefined;
+      if (isAugmented) {
+        const summary = composeNotation(added);
+        addedSummary =
+          summary.startsWith('+') || summary.startsWith('-')
+            ? summary
+            : `+${summary}`;
+      }
+
+      return {
+        ...def.roll,
+        baseDice: def.roll.dice,
+        dice: isAugmented ? composeNotation(total) : def.roll.dice,
+        isAugmented,
+        addedSummary,
+      };
+    }),
+  ];
 }
 
 // Reexport para testes que queiram varrer todos os tokens de dado num texto.

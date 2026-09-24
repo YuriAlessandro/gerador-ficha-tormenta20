@@ -10,10 +10,8 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-  Close as CloseIcon,
-  AutoStories as AutoStoriesIcon,
-} from '@mui/icons-material';
+import CloseIcon from '@mui/icons-material/Close';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import {
   SupplementId,
   SUPPLEMENT_METADATA,

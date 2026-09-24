@@ -4,7 +4,9 @@ import {
   SelectionOptions,
   ManualPowerSelections,
 } from '@/interfaces/PowerSelections';
+import { getClassFamilyName, isSameClassFamily } from './classFamily';
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
 import {
@@ -12,7 +14,8 @@ import {
   reapplyEnhancementsAndWeaponBonuses,
 } from './recalculateSheet';
 import { normalizeSheet } from './sheetNormalizer';
-import { isBonusActive } from './bonusConditions';
+import { refreshBagItemsFromCatalog } from './bagCatalogRefresh';
+import { isBonusActive, evaluateBonusCondition } from './bonusConditions';
 import { getSheetWornArmor, isWearingHeavyArmor } from './wornArmor';
 import { ignoresEncumbrance } from './encumbrance';
 import {
@@ -20,6 +23,8 @@ import {
   hasFanatico,
 } from './powers/heavyArmorPowers';
 import { getCarapacaKappaBonuses } from './powers/kappaCarapaca';
+import { getGrantedPowerPool } from './powers/grantedPowerPool';
+import { normalizeDeityName } from './deityName';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
 import {
@@ -62,6 +67,10 @@ import Race, {
 } from '../interfaces/Race';
 import { ClassDescription, ClassPower } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
+import {
+  applyDeityClassVariant,
+  getDeityClassVariant,
+} from '../data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
 import {
   countTormentaPowers,
   getRandomItemFromArray,
@@ -112,7 +121,13 @@ import {
   toOpenRaceVariant,
 } from '../premium/functions/openRaces';
 import { getAgeBracket } from '../premium/data/ageBrackets';
-import { getAgeAttributeModifiers } from '../premium/functions/ages';
+import type { AgeAttributeModifier, SheetAge } from '../interfaces/Age';
+import {
+  getAgeAttributeTotals,
+  getBaseAgeStage,
+  getBaseAgeStageForYears,
+  rollInitialAge,
+} from './ages';
 import {
   getRaceDisplacement,
   getRaceSize,
@@ -122,9 +137,9 @@ import {
   convertOriginItemsToBagEquipments,
   grantOriginItemsToBag,
 } from './originItems';
+import { resetOriginPowerChoice } from './originBenefits';
 import {
   GeneralPower,
-  GeneralPowerType,
   OriginPower,
   PowerGetter,
   PowersGetters,
@@ -150,6 +165,7 @@ import {
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
 } from './multiclass';
+import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   resolveSchoolChoice,
   buildSpellPool,
@@ -167,10 +183,10 @@ import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getForeignClassPowers,
   getFuturaLendaClassPowers,
   getPowersAllowedByRequirements,
   getWeightedInventorClassPowers,
-  isPowerAvailable,
 } from './powers';
 import {
   addOrCheapenRandomSpells,
@@ -185,6 +201,7 @@ import {
   applyMeioElfoAmbicaoHerdada,
   applyQareenResistenciaElemental,
   applyAlmaLivreSelectClass,
+  applyDiferentaoSelectClassPower,
   applyTeurgistaMistico,
   applyMashinChassi,
 } from './powers/special';
@@ -197,7 +214,10 @@ import {
   MoreauHeritageName,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
-import { updateBrigaRolls } from './powers/lutador-special';
+import {
+  updateUnarmedRolls,
+  updateDesarmadoTaggedWeaponsDano,
+} from './unarmedDamage';
 import {
   captureUserAbilityFields,
   restoreUserAbilityFields,
@@ -214,6 +234,7 @@ import { applyMoreauCustomization } from '../data/systems/tormenta20/ameacas-de-
 import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
+  getPlateauByLevel,
   getTradicaoPerdidaPmValue,
   isClassSpellcastingPmBonus,
   getDeusMenorPmBonus,
@@ -248,10 +269,6 @@ export interface RaceCustomization {
   moreauHeritage?: string;
   moreauBonusAttributes?: Atributo[];
 }
-
-// Helper function to normalize deity names for comparison (removes hyphens and spaces)
-const normalizeDeityName = (name: string): string =>
-  name.toLowerCase().replace(/[-\s]/g, '');
 
 // Inventor Specializations System
 export enum InventorSpecialization {
@@ -677,14 +694,33 @@ export function computeFinalAttributeModifiers(
   race: Race | undefined,
   sexForAttributes: 'Masculino' | 'Feminino' | undefined,
   baseAttributes: Partial<Record<Atributo, number>> | undefined,
-  raceAttributeChoices: (Atributo | undefined)[] | undefined
+  raceAttributeChoices: (Atributo | undefined)[] | undefined,
+  /**
+   * Modificadores da idade (envelhecimento ou faixa de Idades Variadas).
+   *
+   * Entram aqui, e não só na hora de montar a ficha, porque o assistente decide
+   * coisas a partir destes números MUITO antes disso: quantas perícias extras a
+   * Inteligência concede e quais poderes passam no pré-requisito de atributo.
+   * Um personagem maduro com Int +1 tem direito à perícia extra desde o passo
+   * de atributos, e não só quando a ficha existe.
+   */
+  ageModifiers?: AgeAttributeModifier[]
 ): Record<Atributo, number> {
   const modifiers = Object.values(Atributo).reduce(
     (acc, attr) => ({ ...acc, [attr]: baseAttributes?.[attr] ?? 0 }),
     {} as Record<Atributo, number>
   );
 
-  if (!race) return modifiers;
+  const applyAge = () => {
+    ageModifiers?.forEach(({ attribute, value }) => {
+      modifiers[attribute] += value;
+    });
+  };
+
+  if (!race) {
+    applyAge();
+    return modifiers;
+  }
 
   let anyIndex = 0;
   getEffectiveRaceAttrs(race, sexForAttributes).forEach((attr) => {
@@ -696,6 +732,8 @@ export function computeFinalAttributeModifiers(
       modifiers[attr.attr] += attr.mod;
     }
   });
+
+  applyAge();
 
   return modifiers;
 }
@@ -938,6 +976,26 @@ export function isClassOrVariantOf(
   );
 }
 
+// Reexportados aqui porque a maior parte do código já importa os predicados de
+// classe deste módulo; a definição vive em `classFamily.ts`, que é folha para
+// poder ser usada também de dentro de `data/`.
+export { getClassFamilyName, isSameClassFamily };
+
+/**
+ * Análogo racial de `isClassOrVariantOf`. Além do nome próprio, aceita as
+ * raças listadas em `countsAsRaces` — Raças Variantes (Soterrado → Osteon,
+ * Trog Anão → Trog), a cláusula "é considerado um X para efeitos relacionados
+ * a raça" (Meio-Orc, Meio-Elfo, Moreau) e os apelidos do livro que divergem do
+ * nome do catálogo (Suraggel, Sereia/Tritão).
+ *
+ * A relação é de mão única: um Osteon NÃO conta como Soterrado.
+ */
+export function isRaceOrVariantOf(race: Race, raceName: string): boolean {
+  return (
+    race.name === raceName || (race.countsAsRaces ?? []).includes(raceName)
+  );
+}
+
 function getClassByFilter(selectedOptions: SelectedOptions) {
   const supplements = selectedOptions.supplements || [
     SupplementId.TORMENTA20_CORE,
@@ -1177,7 +1235,8 @@ function getArmors(classe: ClassDescription, currentBag?: Bag) {
   const armors = [];
   if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
     armors.push(Armaduras.BRUNEA);
-  } else if (classe.name !== 'Arcanista') {
+  } else if (!isClassOrVariantOf(classe, 'Arcanista')) {
+    // Variante conta: o Necromante é Arcanista e também não recebe armadura.
     armors.push(getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves));
   }
 
@@ -1228,11 +1287,18 @@ export function buildClassEquipmentsFromChoices(
   const shields = getShields(classe);
 
   const armors: DefenseEquipment[] = [];
-  if (!currentBag?.equipments?.Armadura?.length) {
-    if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
-      armors.push(Armaduras.BRUNEA);
-    } else if (choices.armor && classe.name !== 'Arcanista') {
+  if (
+    !currentBag?.equipments?.Armadura?.length &&
+    !isClassOrVariantOf(classe, 'Arcanista')
+  ) {
+    // A escolha do jogador manda. O livro diz que, com proficiência, ele PODE
+    // começar com armadura pesada — não que seja obrigado —, então o
+    // assistente oferece as leves também. A pesada segue como padrão para quem
+    // não escolheu (ficha antiga, ou passo pulado).
+    if (choices.armor) {
       armors.push(choices.armor);
+    } else if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
+      armors.push(Armaduras.BRUNEA);
     }
   }
 
@@ -1389,7 +1455,14 @@ function getReligiosidade(
     ? classe.qtdPoderesConcedidos
     : 0;
   const poderes = getPoderesConcedidos(
-    divindade,
+    // Piscina filtrada, não `divindade.poderes` cru: o registry anexa um poder
+    // a TODA divindade citada nos requisitos, então a lista de um deus carrega
+    // os poderes de sincretismo que ele divide com outros. A ficha aleatória
+    // nunca tem devoção dupla, logo nenhum deles é elegível aqui.
+    {
+      ...divindade,
+      poderes: getGrantedPowerPool([divindade.name], supplements),
+    },
     todosPoderes,
     classe,
     qtdPoderesConcedidos
@@ -1453,9 +1526,9 @@ export function getNewSpells(
   );
 }
 
-export function calculateMaxSpaces(forca: number): number {
-  if (forca < 0) return 10 + forca;
-  return 10 + 2 * forca;
+export function calculateMaxSpaces(attributeValue: number): number {
+  if (attributeValue < 0) return 10 + attributeValue;
+  return 10 + 2 * attributeValue;
 }
 
 // Soma os bônus de capacidade de carga (MaxSpaces) concedidos por equipamentos
@@ -1764,6 +1837,7 @@ export const applyPower = (
     selectFamiliar: ['FamiliarSelected'],
     selectWeaponSpecialization: ['WeaponSpecializationSelected'],
     selectAnimalTotem: ['AnimalTotemSelected'],
+    setMaxSpacesAttribute: ['MaxSpacesAttributeSet'],
   };
 
   const isActionAlreadyApplied = (
@@ -1782,6 +1856,14 @@ export const applyPower = (
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
+      // Ação condicionada a uma escolha anterior (ver `SheetAction.condition`).
+      if (
+        sheetAction.condition &&
+        !evaluateBonusCondition(sheet, sheetAction.condition)
+      ) {
+        return;
+      }
+
       // Unified handling for selectWeaponSpecialization (handles new instances,
       // recalculation, and override-on-change in a single block — bypassing the
       // generic isActionAlreadyApplied short-circuit below).
@@ -1962,11 +2044,71 @@ export const applyPower = (
         }
       }
 
+      // learnSkill com escalonamento por patamar (ex.: Biblioteca Divina):
+      // bypassa o guard genérico abaixo porque ele bloquearia qualquer
+      // perícia extra depois da primeira aplicação. Em vez disso, compara o
+      // total esperado no patamar atual com o que já está no histórico e
+      // concede só a diferença — permitindo que subir de patamar numa ficha
+      // já criada complete a escolha que falta.
+      if (
+        sheetAction.action.type === 'learnSkill' &&
+        sheetAction.action.perTierAboveIniciante
+      ) {
+        const { action } = sheetAction;
+        const totalPick =
+          action.pick +
+          (action.perTierAboveIniciante ?? 0) * (getCurrentPlateau(sheet) - 1);
+
+        const alreadyGranted = sheet.sheetActionHistory
+          .filter((entry) => entry.powerName === powerOrAbility.name)
+          .flatMap((entry) => entry.changes)
+          .filter((change) => change.type === 'SkillsAdded')
+          .flatMap((change) =>
+            change.type === 'SkillsAdded' ? change.skills : []
+          );
+
+        const remainingPick = totalPick - alreadyGranted.length;
+        if (remainingPick <= 0) return;
+
+        const pickedSkills = manualSelections?.skills
+          ? (manualSelections.skills as Skill[]).slice(0, remainingPick)
+          : pickFromAllowed(
+              action.availableSkills,
+              remainingPick,
+              sheet.skills
+            );
+
+        sheet.skills.push(...pickedSkills);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [{ type: 'SkillsAdded', skills: pickedSkills }],
+        });
+
+        pickedSkills.forEach((skill) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aprende a perícia ${skill}`,
+          });
+        });
+
+        return;
+      }
+
       // Skip if this action was already applied (prevents duplication during recalculation)
       if (
         !forceApply &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
+        if (sheetAction.action.type === 'setMaxSpacesAttribute') {
+          const { attribute } = sheetAction.action;
+          sheet.maxSpacesAttribute = attribute;
+          sheet.maxSpaces = calculateMaxSpaces(
+            sheet.atributos[attribute].value
+          );
+          return;
+        }
         // For chooseFromOptions, re-apply sheetBonuses from the chosen option
         // (sheetBonuses are cleared during recalculation, so they need to be re-added)
         if (sheetAction.action.type === 'chooseFromOptions') {
@@ -2110,7 +2252,16 @@ export const applyPower = (
         return;
       }
 
-      if (sheetAction.action.type === 'ModifyAttribute') {
+      if (sheetAction.action.type === 'setMaxSpacesAttribute') {
+        const { attribute } = sheetAction.action;
+        sheet.maxSpacesAttribute = attribute;
+        sheet.maxSpaces = calculateMaxSpaces(sheet.atributos[attribute].value);
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [{ type: 'MaxSpacesAttributeSet', attribute }],
+        });
+      } else if (sheetAction.action.type === 'ModifyAttribute') {
         const { attribute, value } = sheetAction.action;
         const newValue = sheet.atributos[attribute].value + value;
         sheet.atributos[attribute].value = newValue;
@@ -2166,14 +2317,20 @@ export const applyPower = (
           });
         });
       } else if (sheetAction.action.type === 'learnSkill') {
-        // Use manual selections if provided, otherwise random
-        const pickedSkills =
-          (manualSelections?.skills as Skill[]) ||
-          pickFromAllowed(
-            sheetAction.action.availableSkills,
-            sheetAction.action.pick,
-            sheet.skills
-          );
+        // Use manual selections if provided, otherwise random.
+        // O ramo manual também precisa deduplicar: o aleatório já é protegido
+        // por `pickFromAllowed`, mas uma seleção do assistente pode ter ficado
+        // obsoleta (voltar um passo e treinar a mesma perícia pela classe).
+        // Ternário, e não `||`: com `||` um filtro que legitimamente devolve
+        // `[]` cairia no ramo aleatório.
+        const manualSkills = manualSelections?.skills as Skill[] | undefined;
+        const pickedSkills = manualSkills
+          ? manualSkills.filter((skill) => !sheet.skills.includes(skill))
+          : pickFromAllowed(
+              sheetAction.action.availableSkills,
+              sheetAction.action.pick,
+              sheet.skills
+            );
 
         sheet.skills.push(...pickedSkills);
 
@@ -2223,11 +2380,23 @@ export const applyPower = (
           value: sheetAction.action.description,
         });
       } else if (sheetAction.action.type === 'getGeneralPower') {
+        const { availableTypes } = sheetAction.action;
+        // Piscina por categoria (ex.: Cosmopolita, "um poder geral qualquer"):
+        // resolvida agora pelos suplementos ativos. Passa por
+        // `getPowersAllowedByRequirements` porque `pickFromAllowed` NÃO checa
+        // pré-requisito — com uma piscina de centenas de poderes, o sorteio cru
+        // entregaria poderes que o personagem não pode ter.
+        const availablePool = availableTypes
+          ? getPowersAllowedByRequirements(sheet).filter((power) =>
+              availableTypes.includes(power.type)
+            )
+          : sheetAction.action.availablePowers;
+
         // Use manual selections if provided, otherwise random
         const pickedPowers =
           manualSelections?.powers ||
           pickFromAllowed(
-            sheetAction.action.availablePowers,
+            availablePool,
             sheetAction.action.pick,
             sheet.generalPowers
           );
@@ -2381,12 +2550,20 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'increaseAttribute') {
         const incValue = sheetAction.action.value ?? 1;
         const oncePerTier = sheetAction.action.oncePerTier !== false;
-        const { optionKey } = sheetAction.action;
+        const { optionKey, allowedAttributes, allowRepeats } =
+          sheetAction.action;
+        const picks = sheetAction.action.pick ?? 1;
         // 1×/patamar (opcional): exclui atributos já aumentados no patamar.
         const usedAttributes = oncePerTier
           ? getAttributeIncreasesInSamePlateau(sheet)
           : [];
-        const availableAttributes = Object.values(Atributo).filter(
+        // `allowedAttributes` restringe o pool ("3 pontos em Força, Destreza
+        // ou Constituição"). Ausente = todos os atributos.
+        const pool = allowedAttributes ?? Object.values(Atributo);
+        // Aumentos já aplicados por ESTA ação, para os `pick` não repetirem o
+        // mesmo atributo quando `allowRepeats` é falso.
+        const chosenHere: Atributo[] = [];
+        const availableAttributes = pool.filter(
           (attr) => !usedAttributes.includes(attr)
         );
 
@@ -2404,7 +2581,13 @@ export const applyPower = (
         // de classe → aleatório entre os disponíveis.
         if (
           manualSelections?.attributes &&
-          manualSelections.attributes.length > 0
+          manualSelections.attributes.length > 0 &&
+          // A escolha manual ainda precisa caber no pool permitido: o jogador
+          // não pode pôr em Carisma um ponto que a regra manda pôr em Força,
+          // Destreza ou Constituição.
+          availableAttributes.includes(
+            manualSelections.attributes[0] as Atributo
+          )
         ) {
           targetAttribute = manualSelections.attributes[0] as Atributo;
         } else if (persisted) {
@@ -2418,6 +2601,7 @@ export const applyPower = (
 
         // Only apply if we found a valid target attribute
         if (targetAttribute && sheet.atributos[targetAttribute]) {
+          chosenHere.push(targetAttribute);
           sheet.atributos[targetAttribute].value += incValue;
 
           // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
@@ -2436,6 +2620,9 @@ export const applyPower = (
                 type: 'AttributeIncreasedByAumentoDeAtributo',
                 attribute: targetAttribute,
                 plateau: getCurrentPlateau(sheet),
+                // Aumentos sem a restrição (ex.: Aspirante a Herói) não podem
+                // bloquear o atributo para o Aumento de Atributo do patamar.
+                oncePerTier,
               },
             ],
           });
@@ -2443,6 +2630,43 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Aumenta o atributo ${targetAttribute} por +${incValue}`,
           });
+
+          // Pontos restantes da mesma ação (ex.: "3 pontos para distribuir").
+          for (let pickIndex = 1; pickIndex < picks; pickIndex += 1) {
+            const remaining = availableAttributes.filter(
+              (attr) => allowRepeats || !chosenHere.includes(attr)
+            );
+            if (remaining.length === 0) break;
+
+            const manual = manualSelections?.attributes?.[pickIndex] as
+              | Atributo
+              | undefined;
+            const next =
+              manual && remaining.includes(manual)
+                ? manual
+                : sheet.classe.attrPriority.find((attr) =>
+                    remaining.includes(attr)
+                  ) ?? getRandomItemFromArray(remaining);
+
+            chosenHere.push(next);
+            sheet.atributos[next].value += incValue;
+            sheet.sheetActionHistory.push({
+              source: sheetAction.source,
+              powerName: powerOrAbility.name,
+              changes: [
+                {
+                  type: 'AttributeIncreasedByAumentoDeAtributo',
+                  attribute: next,
+                  plateau: getCurrentPlateau(sheet),
+                  oncePerTier,
+                },
+              ],
+            });
+            subSteps.push({
+              name: getSourceName(sheetAction.source),
+              value: `Aumenta o atributo ${next} por +${incValue}`,
+            });
+          }
         } else {
           // Skip this attribute increase if no valid target found
           // eslint-disable-next-line no-console
@@ -2658,10 +2882,15 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'learnClassAbility') {
         const { availableClasses: classNames, level } = sheetAction.action;
 
+        // `availableClasses` lista FAMÍLIAS de classe: uma variante entra pela
+        // base (Necromante pela entrada 'Arcanista'), porque ela redefine o
+        // array `abilities` inteiro e portanto tem habilidades de 1º nível
+        // próprias — não é uma repetição da base.
         const isEligible = (cls: ClassDescription) =>
-          classNames.includes(cls.name) &&
-          // "uma classe que não seja a sua" — variante conta como a base
-          !isClassOrVariantOf(sheet.classe, cls.name) &&
+          classNames.includes(getClassFamilyName(cls)) &&
+          // "uma classe que não seja a sua" — a família inteira conta como a
+          // sua, nos dois sentidos (Guerreiro não pega do Inovador nem vice-versa)
+          !isSameClassFamily(sheet.classe, cls) &&
           cls.abilities.some((ability) => ability.nivel === level);
 
         // Sorteio automático: só o livro básico. Uma ficha gerada
@@ -2878,6 +3107,13 @@ export const applyPower = (
           sheetAction.action.specialAction === 'almaLivreSelectClass'
         ) {
           currentSteps = applyAlmaLivreSelectClass(sheet, manualSelections);
+        } else if (
+          sheetAction.action.specialAction === 'diferentaoSelectClassPower'
+        ) {
+          currentSteps = applyDiferentaoSelectClassPower(
+            sheet,
+            manualSelections
+          );
         } else if (sheetAction.action.specialAction === 'teurgistaMistico') {
           currentSteps = applyTeurgistaMistico(sheet);
         } else if (sheetAction.action.specialAction === 'mashinChassi') {
@@ -2890,10 +3126,23 @@ export const applyPower = (
 
         subSteps.push(...currentSteps);
       } else if (sheetAction.action.type === 'getClassPower') {
-        const { minLevel = 2 } = sheetAction.action;
+        const {
+          minLevel = 2,
+          levelSource = 'fixed',
+          fromClasses,
+        } = sheetAction.action;
+        // 'sheet' avalia no nível atual (poder re-escolhido a cada aventura,
+        // ex.: Citadino Abastado; ou "como um guerreiro de nível igual ao
+        // seu"); 'fixed' congela em `minLevel` para render a mesma lista em
+        // qualquer recálculo (Futura Lenda, Cosmopolita).
+        const effectiveLevel = levelSource === 'sheet' ? sheet.nivel : minLevel;
 
         // Filter class powers by minimum level and requirements
-        const availablePowers = getFuturaLendaClassPowers(sheet, minLevel);
+        const availablePowers = getFuturaLendaClassPowers(
+          sheet,
+          effectiveLevel,
+          { fromClasses }
+        );
 
         if (availablePowers.length === 0) {
           // Sem catálogo resolvível (classe homebrew/variante de suplemento
@@ -2903,7 +3152,7 @@ export const applyPower = (
           // volta a ser aplicada quando o suplemento/classe retornar.
           subSteps.push({
             name: getSourceName(sheetAction.source),
-            value: `Nenhum poder de classe elegível (nível mínimo ${minLevel})`,
+            value: `Nenhum poder de classe elegível (nível ${effectiveLevel})`,
           });
         } else {
           // Select power (manual or random)
@@ -2972,15 +3221,68 @@ export const applyPower = (
             ],
           });
         }
+      } else if (sheetAction.action.type === 'grantSpecificClassAbility') {
+        const { abilityName, fromClass } = sheetAction.action;
+        const sourceClass = findClassDescription(fromClass, undefined);
+        const ability = sourceClass?.abilities.find(
+          (entry) => entry.name === abilityName
+        );
+
+        if (!ability) {
+          throw new Error(
+            `Habilidade "${abilityName}" não encontrada na classe ${fromClass}`
+          );
+        }
+
+        // Entra como PODER de classe, e não em `classe.abilities`: aquele array
+        // é reconstruído da descrição da classe a cada recálculo, e a
+        // concessão sumiria. Mesmo caminho de `learnClassAbility`.
+        const composedName = `${ability.name} (${fromClass})`;
+        if (!sheet.classPowers) sheet.classPowers = [];
+
+        const alreadyHasAbility = sheet.classPowers.some(
+          (entry) => entry.name === composedName
+        );
+        if (!alreadyHasAbility) {
+          const grantedBonuses = ability.sheetBonuses ?? [];
+          sheet.classPowers.push({
+            name: composedName,
+            text: ability.text,
+            sheetActions: ability.sheetActions,
+            sheetBonuses: grantedBonuses,
+            rolls: ability.rolls,
+          });
+          sheet.sheetBonuses.push(...grantedBonuses);
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Habilidade concedida: ${composedName}`,
+          });
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'ClassAbilityLearned',
+                className: fromClass,
+                abilityName,
+              },
+            ],
+          });
+        }
       } else if (sheetAction.action.type === 'grantSpecificClassPower') {
-        const { powerName: targetPowerName } = sheetAction.action;
+        const { powerName: targetPowerName, fromClass } = sheetAction.action;
 
         // Multiclasse: o poder concedido pertence à classe que concedeu a
         // habilidade (`sourceClassName`), que não é necessariamente a classe
         // primária da ficha — ex.: Alquimista 2 concede "Alquimista Iniciado"
         // numa ficha cuja `sheet.classe` é Ladino.
         const { sourceClassName } = powerOrAbility;
-        const ownerClassName = sourceClassName ?? sheet.classe.name;
+        // `fromClass` tem precedência: é a declaração explícita de que o poder
+        // vem de outra classe (Vassalo → poderes de Cavaleiro).
+        const ownerClassName =
+          fromClass ?? sourceClassName ?? sheet.classe.name;
         const isForeignClass = ownerClassName !== sheet.classe.name;
 
         let targetPower = isForeignClass
@@ -3733,16 +4035,6 @@ function applyClassAbilities(
     );
     subSteps.push(...newSubSteps);
 
-    // Cavaleiro: random path selection for Caminho do Cavaleiro
-    if (ability.name === 'Caminho do Cavaleiro' && !newAcc.cavaleiroCaminho) {
-      const caminho = getRandomItemFromArray(['Bastião', 'Montaria'] as const);
-      newAcc.cavaleiroCaminho = caminho;
-      subSteps.push({
-        name: 'Caminho do Cavaleiro',
-        value: caminho,
-      });
-    }
-
     // Treinador: gerar Melhor Amigo aleatório
     if (ability.name === 'Melhor Amigo' && !newAcc.companions?.length) {
       const trainerCharisma = newAcc.atributos[Atributo.CARISMA]?.value ?? 0;
@@ -3810,9 +4102,6 @@ function applyClassAbilities(
     (ability) => ability.nivel <= sheet.nivel
   );
 
-  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
-  updateBrigaRolls(sheetClone);
-
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(sheetClone);
 
@@ -3829,10 +4118,9 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
     return newAcc;
   }, sheetClone);
 
-  // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois
-  // outros poderes da Tormenta, perde 1 de carisma. Compartilhado com o
-  // `recalculateSheet` — grava o ledger que torna a regra idempotente.
-  subSteps.push(...applyTormentaAttributePenalty(sheetClone));
+  // A perda de atributo por poderes da Tormenta NÃO entra aqui: esta função roda
+  // no Passo 11, antes do laço de níveis, e os poderes ganhos em level-up ainda
+  // não existem. Ver o Passo 13.5 de `generateRandomSheet`.
 
   if (subSteps.length) {
     sheetClone.steps.push({
@@ -4044,13 +4332,44 @@ function levelUp(
     value: subSteps,
   });
 
+  // Classes com `powerGrants` (Vassalo) só recebem poder em certos níveis, e
+  // sempre emprestado de outra classe. Fora desses níveis não há poder nenhum
+  // a sortear — nem de classe, nem geral, já que o poder geral é a TROCA do
+  // poder de classe.
+  const classDescForGrants = findClassDescription(
+    updatedSheet.classe.name,
+    updatedSheet.classe.subname,
+    supplements
+  );
+  const powerGrants = classDescForGrants?.powerGrants;
+  const levelGrant = powerGrants?.find(
+    (grant) => grant.level === updatedSheet.nivel
+  );
+  // Fora de um nível com concessão, não há poder nenhum a sortear.
+  const grantsPowerThisLevel = !powerGrants || !!levelGrant;
+
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
-  const allowedPowers = isClassOrVariantOf(updatedSheet.classe, 'Inventor')
-    ? getWeightedInventorClassPowers(updatedSheet)
-    : getAllowedClassPowers(updatedSheet);
-  const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
-  if (randomNumber <= 0.7 && allowedPowers.length > 0) {
+  let allowedPowers: ClassPower[];
+  if (levelGrant) {
+    allowedPowers = getForeignClassPowers(
+      updatedSheet,
+      levelGrant.fromClasses,
+      updatedSheet.nivel,
+      levelGrant.excludePowers
+    );
+  } else if (isClassOrVariantOf(updatedSheet.classe, 'Inventor')) {
+    allowedPowers = getWeightedInventorClassPowers(updatedSheet);
+  } else {
+    allowedPowers = getAllowedClassPowers(updatedSheet);
+  }
+  const allowedGeneralPowers = getPowersAllowedByRequirements(
+    updatedSheet,
+    supplements
+  );
+  if (!grantsPowerThisLevel) {
+    // Nada a fazer: a classe não concede poder neste nível.
+  } else if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
     const newPower = getRandomItemFromArray(allowedPowers);
     if (updatedSheet.classPowers) {
@@ -4180,13 +4499,13 @@ function levelUp(
     applyOptionChosenTexts(updatedSheet);
   }
 
-  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
-  const newBrigaDice = updateBrigaRolls(updatedSheet);
-  if (newBrigaDice) {
+  // Dano desarmado (Briga, Estilo Desarmado, Corpo Aberrante).
+  const newUnarmedDice = updateUnarmedRolls(updatedSheet);
+  if (newUnarmedDice) {
     updatedSheet.steps.push({
       type: 'Poderes',
-      label: 'Briga',
-      value: [{ name: 'Dano desarmado aumenta', value: newBrigaDice }],
+      label: 'Dano Desarmado',
+      value: [{ name: 'Dano desarmado aumenta', value: newUnarmedDice }],
     });
   }
 
@@ -4235,6 +4554,40 @@ export function applyManualLevelUp(
       }
     );
     updatedSheet.optionChoices = merged;
+  }
+
+  // Troca do poder escolhido por uma origem que permite re-escolher entre
+  // aventuras (Cosmopolita, Citadino Abastado). Zera a escolha anterior antes
+  // de reaplicar: o replay do `chooseFromOptions` prioriza `optionChoices` e
+  // ignora a seleção manual, e `isActionAlreadyApplied` casa `getClassPower`
+  // com `PowerAdded` — sem o reset a troca não acontece. Ver
+  // `resetOriginPowerChoice`.
+  if (selections.originPowerSwaps) {
+    Object.entries(selections.originPowerSwaps).forEach(
+      ([powerName, powerSelections]) => {
+        const originPower = updatedSheet.origin?.powers?.find(
+          (power) => power.name === powerName
+        );
+        // Troca começada pela metade (ramo escolhido, poder não) é descartada:
+        // sem `powers` o `applyPower` sortearia um poder em silêncio.
+        if (!originPower || !powerSelections.powers?.length) return;
+
+        resetOriginPowerChoice(updatedSheet, originPower);
+        const [swapped, swapSubSteps] = applyPower(
+          updatedSheet,
+          originPower,
+          powerSelections
+        );
+        updatedSheet = swapped;
+        if (swapSubSteps.length > 0) {
+          updatedSheet.steps.push({
+            type: 'Poderes',
+            label: `Benefício da Origem (${originPower.name})`,
+            value: swapSubSteps,
+          });
+        }
+      }
+    );
   }
 
   // Multiclass: resolve selected class for this level
@@ -4404,6 +4757,38 @@ export function applyManualLevelUp(
           spellNames: selections.spellsLearned.map((spell) => spell.nome),
         },
       ],
+    });
+  }
+
+  // Poderes concedidos já na ficha que ganham mais perícias por patamar (ex.:
+  // Biblioteca Divina). Ao cruzar um patamar, aplica a escolha do jogador
+  // nesta mesma passada — sem isso, o recálculo final concederia a perícia
+  // sorteada aleatoriamente (por falta de manualSelections).
+  if (
+    getPlateauByLevel(updatedSheet.nivel) >
+    getPlateauByLevel(updatedSheet.nivel - 1)
+  ) {
+    // Poderes concedidos por divindade (ex.: Biblioteca Divina) NÃO ficam em
+    // `generalPowers` — moram em `devoto.poderes`, um campo separado.
+    const scalingPowers = [
+      ...(updatedSheet.generalPowers || []),
+      ...(updatedSheet.devoto?.poderes || []),
+    ].filter((power) =>
+      power.sheetActions?.some(
+        (sa) =>
+          sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante
+      )
+    );
+    scalingPowers.forEach((power) => {
+      const powerSelections = selections.powerEffectSelections?.[power.name];
+      if (!powerSelections) return;
+      const [newSheet, newSubSteps] = applyPower(
+        updatedSheet,
+        power,
+        powerSelections
+      );
+      updatedSheet = newSheet;
+      subSteps.push(...newSubSteps);
     });
   }
 
@@ -4897,12 +5282,24 @@ const calculateBonusValue = (
  *
  * Exportado para os testes conseguirem exercitar este caminho diretamente, sem
  * depender do sorteio de `gerarFicha`.
+ *
+ * Exceção conhecida à simetria: bônus de EQUIPAMENTO não têm espelho aqui. Este
+ * motor só consome `sheet.sheetBonuses` já preenchido; quem coleta os bônus dos
+ * itens da mochila é `applyEquipmentBonuses`, que existe apenas no
+ * `recalculateSheet`. Por isso o gate de "peça de Vestuário guardada não aplica
+ * bônus" mora só lá.
  */
 export const applyStatModifiers = (
   _sheet: CharacterSheet,
   manualSelections?: SelectionOptions
 ) => {
   const sheet = _.cloneDeep(_sheet);
+
+  // Zera o mapa de modificador temporário de atributo ANTES do laço abaixo, que
+  // o reconstrói somando os alvos `Attribute`. Este motor é incremental (`+=`)
+  // e não limpa `sheetBonuses` como o Step 1 do `recalculateSheet`, então sem
+  // isto uma segunda passada compõe o delta em cima do anterior.
+  sheet.atributosTemporarios = undefined;
 
   // Remove bônus cuja condição (opcional) não é satisfeita antes de aplicar
   // qualquer um — gateia todos os consumidores abaixo nesta função.
@@ -5076,6 +5473,22 @@ export const applyStatModifiers = (
       }
       sheet.reducaoDeDano[damageType] =
         (sheet.reducaoDeDano[damageType] ?? 0) + bonusValue;
+    } else if (bonus.target.type === 'Attribute') {
+      // Espelho do Step 7.46 do `recalculateSheet`: alvo `Attribute` alimenta a
+      // camada de atributo efetivo, nunca `atributos[attr].value`.
+      //
+      // Na prática o mapa sai vazio aqui — uma ficha recém-gerada não tem
+      // efeitos ativos nem `bonusAtributos`. O ramo existe porque homebrew PODE
+      // emitir alvo `Attribute`, e sem ele a ficha aleatória divergiria em
+      // silêncio da que passa pelo wizard.
+      const { attribute } = bonus.target;
+      if (bonusValue !== 0) {
+        sheet.atributosTemporarios = {
+          ...(sheet.atributosTemporarios ?? {}),
+          [attribute]:
+            (sheet.atributosTemporarios?.[attribute] ?? 0) + bonusValue,
+        };
+      }
     } else if (bonus.target.type === 'ModifySkillAttribute') {
       const { attribute } = bonus.target;
       const skillName = bonus.target.skill;
@@ -5096,10 +5509,33 @@ export const applyStatModifiers = (
         name: subStepName,
         value: `Modifica atributo de ${skillName} para ${attribute}`,
       });
+    } else if (bonus.target.type === 'Proficiency') {
+      // Espelho do ramo de `applyPower` (e do Step 8 do `recalculateSheet`).
+      // Sem isto, proficiência concedida por escolha de habilidade de classe
+      // (ex.: Escola de Tiro do Duelista, que empurra o bônus direto para
+      // `sheet.sheetBonuses` via `chooseFromOptions`) nunca chegava na ficha
+      // aleatória — que não passa por `recalculateSheet` — e a arma seguia
+      // com o -5 de não-proficiência.
+      const { proficiency } = bonus.target;
+      if (proficiency && !sheet.classe.proficiencias.includes(proficiency)) {
+        sheet.classe.proficiencias.push(proficiency);
+      }
     } else {
       // console.warn('bonus não implementado', bonus);
     }
   });
+
+  // Espelho do passo 3 do Step 7.46: re-deriva a capacidade de carga a partir
+  // da Força EFETIVA. Idempotente, e no-op quando não há delta (o caso comum
+  // aqui). Passa pelo `calculateMaxSpaces` porque a escala é não-linear.
+  if (sheet.atributosTemporarios) {
+    sheet.maxSpaces = calculateMaxSpaces(
+      getEffectiveAttributeModifier(
+        sheet,
+        sheet.maxSpacesAttribute ?? Atributo.FORCA
+      )
+    );
+  }
 
   // Class-conditional Damage Reduction. Uses ONLY the worn armor — multiple
   // armors may live in the bag now, but only the worn one drives effects.
@@ -5134,7 +5570,7 @@ export const applyStatModifiers = (
   }
 
   // Cavaleiro: Bastião (RD Geral 5, armadura pesada)
-  if (sheet.cavaleiroCaminho === 'Bastião' && hasHeavyArmor) {
+  if (getCavaleiroCaminho(sheet) === 'Bastião' && hasHeavyArmor) {
     if (!sheet.reducaoDeDano) {
       sheet.reducaoDeDano = {};
     }
@@ -5168,35 +5604,10 @@ export const applyStatModifiers = (
     sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + 1;
   }
 
-  // Carapaça Corrompida (RD Geral 1 + escala com poderes da Tormenta)
-  const hasCarapaca = (sheet.generalPowers || []).some(
-    (p) => p.name === 'Carapaça Corrompida'
-  );
-  if (hasCarapaca) {
-    const otherTormentaPowers = countTormentaPowers(sheet) - 1;
-    const rdValue = 1 + Math.floor(Math.max(0, otherTormentaPowers) / 2);
-    if (!sheet.reducaoDeDano) {
-      sheet.reducaoDeDano = {};
-    }
-    sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + rdValue;
-  }
-
-  // Pele Corrompida (RD 6 tipos, escala com poderes da Tormenta)
-  const hasPeleCorr = (sheet.generalPowers || []).some(
-    (p) => p.name === 'Pele Corrompida'
-  );
-  if (hasPeleCorr) {
-    const otherTormentaPowers = countTormentaPowers(sheet) - 1;
-    const rdValue = 2 + 2 * Math.floor(Math.max(0, otherTormentaPowers) / 2);
-    const rdTypes = ['Ácido', 'Eletricidade', 'Fogo', 'Frio', 'Luz', 'Trevas'];
-    if (!sheet.reducaoDeDano) {
-      sheet.reducaoDeDano = {};
-    }
-    rdTypes.forEach((dt) => {
-      (sheet.reducaoDeDano as Record<string, number>)[dt] =
-        ((sheet.reducaoDeDano as Record<string, number>)[dt] ?? 0) + rdValue;
-    });
-  }
+  // Carapaça Corrompida e Pele Corrompida saíram daqui: viraram `sheetBonuses`
+  // com alvo `DamageReduction` (`tormentaPowerSheetBonuses.ts`), somados pelo
+  // ramo `DamageReduction` do loop acima. Eram a última automação de poder da
+  // Tormenta duplicada entre os dois motores de derivação.
 
   // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
   const virtudePM = getVirtudePaladinescaPMBonus(sheet.classPowers);
@@ -5459,25 +5870,49 @@ export default function generateRandomSheet(
     sexForAttributes
   );
 
-  // Aplicar modificador de atributo da origem, apenas se for origem regional
-  let attributeModifierText: string | undefined;
-  if (origin?.isRegional && origin?.getAttributeModifier) {
-    const attributeModifier = origin.getAttributeModifier(classe.attrPriority);
-    const currentAttr = atributos[attributeModifier.attribute];
-    const newValue = currentAttr.value + attributeModifier.modifier;
-    atributos[attributeModifier.attribute] = {
-      ...currentAttr,
-      value: newValue,
-    };
-
-    attributeModifierText = `+${attributeModifier.modifier} ${attributeModifier.attribute} (${currentAttr.value} → ${newValue})`;
-  }
-
   // Os substeps da origem serão adicionados depois que getSkillsAndPowersByClassAndOrigin for chamado
+
+  // Passo 6.05: Idade.
+  //
+  // Antes de tudo que deriva de atributo (carga, PV, perícias por Inteligência)
+  // porque o envelhecimento os modifica. Na prática a rolagem sempre cai no
+  // estágio Jovem — o teto dela é 27 e o piso de Maduro é 45 × o multiplicador
+  // da raça, que nunca é menor que 0,7 — mas a ordem certa é a que continua
+  // valendo se a tabela mudar.
+  const ageYears = rollInitialAge(classe);
+  const ageStage = getBaseAgeStageForYears(ageYears, race.name);
+  const age: SheetAge = {
+    years: ageYears,
+    stage: ageStage,
+    complications: [],
+    extraLevels: 0,
+  };
+
+  const ageAttributeSubSteps: SubStep[] = [];
+  getAgeAttributeTotals(age).forEach(({ attribute, value }) => {
+    atributos[attribute].value += value;
+    ageAttributeSubSteps.push({
+      name: getBaseAgeStage(ageStage)?.label ?? 'Idade',
+      value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
+    });
+  });
+
+  steps.push({
+    label: 'Idade',
+    type: 'Atributos',
+    value: [
+      { name: 'Idade', value: `${ageYears} anos` },
+      ...ageAttributeSubSteps,
+    ],
+  });
 
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxSpaces = calculateMaxSpaces(atributos.Força.value);
-  const summedPV = initialPV + atributos.Constituição.value;
+  // Guardado à parte: poderes de origem/raça/classe (aplicados só no Passo 11)
+  // podem mexer em Constituição — ver o ajuste após `getAndApplyPowers`, que é
+  // também quem empurra o step "Vida máxima (+CON)" com o total já corrigido.
+  const conForInitialPV = atributos.Constituição.value;
+  const summedPV = initialPV + conForInitialPV;
 
   steps.push({
     label: 'Vida máxima (+CON)',
@@ -5523,13 +5958,9 @@ export default function generateRandomSheet(
     if (originStepIndex >= 0) {
       const additionalSubsteps: SubStep[] = [];
 
-      // Adicionar bônus de atributo
-      if (attributeModifierText) {
-        additionalSubsteps.push({
-          name: 'Bônus de Atributo',
-          value: attributeModifierText,
-        });
-      }
+      // Bônus de atributo da origem NÃO entra aqui: virou `sheetAction` do
+      // poder, e o `applyPowerGetters` já empurra o substep dele no step
+      // "Benefícios da Origem (<nome>)". Duplicaria no passo-a-passo.
 
       // Itens concedidos pela origem. Usa a MESMA lista que foi para a mochila
       // (`rolledOriginItems`) — chamar `getItems()` de novo re-sortearia e o
@@ -5574,10 +6005,14 @@ export default function generateRandomSheet(
 
   let charSheet: CharacterSheet = {
     id: uuid(),
+    // Carimbo dos suplementos ativos: o que permite consultar o catálogo certo
+    // depois da criação, de dentro de handlers que não recebem a lista.
+    supplements,
     nome,
     sexo: finalSex === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
     atributos,
+    age,
     maxSpaces,
     raca: race,
     raceHeritage: race.heritage,
@@ -5618,16 +6053,9 @@ export default function generateRandomSheet(
 
   // Propósito de Criação for Golem races (no origin)
   if (!origin && !raceHasOrigin(race.name)) {
-    const allPowers = dataRegistry.getAllPowersBySupplements(supplements);
-    const validTypes = [
-      GeneralPowerType.COMBATE,
-      GeneralPowerType.DESTINO,
-      GeneralPowerType.MAGIA,
-      GeneralPowerType.TORMENTA,
-    ];
-    const eligiblePowers = allPowers.filter(
-      (power) =>
-        validTypes.includes(power.type) && isPowerAvailable(charSheet, power)
+    const eligiblePowers = getPowersAllowedByRequirements(
+      charSheet,
+      supplements
     );
 
     if (eligiblePowers.length > 0) {
@@ -5685,6 +6113,30 @@ export default function generateRandomSheet(
   // Passo 11:
   // Gerar poderes restantes, e aplicar habilidades, e poderes
   charSheet = getAndApplyPowers(charSheet, powersGetters);
+
+  // Poderes aplicados acima podem alterar Constituição (ex.: o +1 de "Cria da
+  // Favela"), mas o PV base foi fechado no Passo 6.1 com a CON de ANTES.
+  // Espelha o Step 7.5 do `recalculateSheet`, que reconstrói o PV depois dos
+  // poderes. DELTA e não atribuição absoluta: o ramo `HPAttributeReplacement`
+  // do `applyPower` ("Dom da Esperança") já reescreveu `pv` por outra fórmula.
+  // Tem que vir antes do laço de `levelUp`, que soma sobre `charSheet.pv`.
+  const conAfterPowers = charSheet.atributos.Constituição.value;
+  if (
+    conAfterPowers !== conForInitialPV &&
+    !charSheet.sheetBonuses.some(
+      (bonus) => bonus.target.type === 'HPAttributeReplacement'
+    )
+  ) {
+    charSheet.pv += conAfterPowers - conForInitialPV;
+
+    // Corrige o step já empurrado no Passo 6.1 sem mexer na ordem do
+    // passo-a-passo. `applyPowerGetters` clona a ficha, então o array local
+    // `steps` não é mais o mesmo objeto — tem que reachar em `charSheet`.
+    const pvStep = charSheet.steps.find(
+      (step) => step.label === 'Vida máxima (+CON)'
+    );
+    if (pvStep) pvStep.value = [{ value: charSheet.pv }];
+  }
 
   // Passo 11.5:
   // Define a empunhadura inicial (arma/escudo) e a armadura vestida a partir do
@@ -5781,8 +6233,82 @@ export default function generateRandomSheet(
     charSheet = levelUp(charSheet, supplements);
   }
 
+  // Passo 13.45: Perícias de poderes que escalam por patamar (ex.: Biblioteca
+  // Divina) foram concedidas no Passo 11, com `charSheet.nivel` ainda em 1 —
+  // `getCurrentPlateau` só enxerga o patamar Iniciante ali, então uma ficha
+  // gerada direto num nível alto ganhava só a perícia-piso. `applyPower`
+  // já sabe conceder só a diferença entre o patamar final e o já concedido
+  // (mesma lógica do cruzamento de patamar em level-up manual), então
+  // reaplicar aqui — sem `manualSelections`, sorteando as que faltam — fecha
+  // a lacuna sem duplicar o que já foi concedido.
+  const scalingSkillPowers = [
+    ...(charSheet.generalPowers || []),
+    ...(charSheet.devoto?.poderes || []),
+  ].filter((power) =>
+    power.sheetActions?.some(
+      (sa) => sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante
+    )
+  );
+  if (scalingSkillPowers.length) {
+    const scalingSubSteps: SubStep[] = [];
+    scalingSkillPowers.forEach((power) => {
+      const [newSheet, newSubSteps] = applyPower(charSheet, power);
+      charSheet = newSheet;
+      scalingSubSteps.push(...newSubSteps);
+    });
+    if (scalingSubSteps.length) {
+      // Anexa ao step que o Passo 11 já criou, em vez de empurrar um segundo
+      // com o mesmo rótulo: o passo a passo exibe um por vez, e dois
+      // "Poderes Concedidos" apareceriam como seções repetidas. Só cria um
+      // novo se a ficha ainda não tiver esse step (poder escalável que não
+      // veio da divindade).
+      const grantedStep = charSheet.steps.find(
+        (step) =>
+          step.type === 'Poderes' && step.label === GRANTED_POWERS_STEP_LABEL
+      );
+      if (grantedStep) {
+        grantedStep.value.push(...scalingSubSteps);
+      } else {
+        charSheet.steps.push({
+          type: 'Poderes',
+          label: GRANTED_POWERS_STEP_LABEL,
+          value: scalingSubSteps,
+        });
+      }
+    }
+  }
+
+  // Passo 13.5: Perda de atributo por poderes da Tormenta ("ao escolher um poder
+  // da Tormenta você perde 1 ponto de Carisma; para cada dois outros poderes da
+  // Tormenta, perde mais 1").
+  //
+  // Ponto ÚNICO de aplicação neste motor. Antes rodava no Passo 11, dentro de
+  // `applyGeneralPowers` — ou seja, ANTES do laço de níveis acima, então poder da
+  // Tormenta sorteado em level-up não descontava nada (e ainda gravava o ledger
+  // vazio, fazendo o atributo cair "sozinho" na primeira edição da ficha).
+  //
+  // Precisa vir antes do Passo 14, que é quem consome os `sheetBonuses` de PM —
+  // classes com Carisma como atributo-chave saíam com PM inflado. As perícias são
+  // imunes: `completeSkills` guarda o NOME do atributo em `modAttr` e o valor é
+  // lido ao vivo. Espelha o Step 7.35 de `recalculateSheet`.
+  const tormentaSubSteps = applyTormentaAttributePenalty(charSheet);
+  if (tormentaSubSteps.length) {
+    charSheet.steps.push({
+      type: 'Atributos',
+      label: 'Poderes da Tormenta',
+      value: tormentaSubSteps,
+    });
+  }
+
   // Passo 14: Aplicar modificadores de atributos
   charSheet = applyStatModifiers(charSheet);
+
+  // Passo 14.5: dano-base das armas `weaponTags: ['desarmado']` (Ataque
+  // Desarmado, Manopla). Espelha o Step 11.9 do `recalculateSheet` — precisa
+  // rodar ANTES do bake de armas do passo 15, senão o degrau de tamanho
+  // (aplicado no bake, sem filtro de tag) ficaria por cima de um dado-base
+  // desatualizado em vez de ser aplicado uma vez só sobre o fresco.
+  updateDesarmadoTaggedWeaponsDano(charSheet);
 
   // Passo 15: Bakear os bônus de arma (ataque/dano/margem/crítico) vindos de
   // habilidades e poderes — o mesmo que `recalculateSheet` faz nos Steps 17/17.5.
@@ -5792,6 +6318,11 @@ export default function generateRandomSheet(
   // que é quem filtra `sheetBonuses` por `isBonusActive` — bakear antes
   // aplicaria bônus condicionalmente inativos.
   charSheet = reapplyEnhancementsAndWeaponBonuses(charSheet);
+
+  // Passo 16: dano desarmado (rolls dos poderes). Espelha o Step 11.8 do
+  // `recalculateSheet`. Roda no fim porque precisa do `size` final e dos
+  // bônus `UnarmedDamageStep` já filtrados por `isBonusActive` no passo 14.
+  updateUnarmedRolls(charSheet);
 
   return charSheet;
 }
@@ -5858,16 +6389,39 @@ export function generateEmptySheet(
 
   const size = getRaceSize(race);
   const classes = dataRegistry.getClassesBySupplements(supplements);
-  const generatedClass = classes.find((classe) =>
+  const catalogClass = classes.find((classe) =>
     classByName(classe, selectedOptions.classe)
   );
 
-  if (!generatedClass) {
+  if (!catalogClass) {
     throw new Error(`Classe ${selectedOptions.classe} não encontrada`);
   }
 
+  // Variante de classe por divindade (Deuses de Arton): "Paladino de Marah"
+  // troca Golpe Divino por Mensagem de Paz e remaneja perícias.
+  //
+  // Aplicada AQUI, e não junto do `emptySheet.classe` lá embaixo, porque as
+  // perícias iniciais são lidas de `generatedClass.periciasbasicas` na própria
+  // montagem do objeto da ficha — depois já seria tarde para a troca
+  // Luta → Diplomacia.
+  const deityChoiceNames = [
+    selectedOptions.devocao?.value,
+    selectedOptions.dualDevotion
+      ? selectedOptions.devocaoSecundaria?.value
+      : undefined,
+  ].filter((name): name is string => !!name && name !== '--');
+
+  const generatedClass = applyDeityClassVariant(
+    catalogClass,
+    getDeityClassVariant(deityChoiceNames, catalogClass, supplements),
+    wizardSelections?.deityClassChoices
+  );
+
   let emptySheet: CharacterSheet = {
     id: uuid(),
+    // Mesmo carimbo do gerador aleatório: o assistente também precisa que o
+    // catálogo consultado depois da criação inclua os suplementos escolhidos.
+    supplements,
     nome: '',
     sexo: '',
     nivel: 1,
@@ -5987,6 +6541,19 @@ export function generateEmptySheet(
       emptySheet.raca = modifiedRace;
       emptySheet.suragelAbility = wizardSelections.suragelAbility;
     }
+  }
+
+  // Variante de classe por divindade: guarda a escolha para o recálculo poder
+  // reaplicar a troca de habilidade (`classe.abilities` é reconstruído sempre).
+  // Só grava se a classe realmente mudou — senão uma escolha órfã (jogador
+  // trocou de classe depois de responder o passo) ficaria na ficha para sempre.
+  if (
+    wizardSelections?.deityClassChoices &&
+    generatedClass !== catalogClass &&
+    (wizardSelections.deityClassChoices.alternativeAbility ||
+      wizardSelections.deityClassChoices.swapInitialSkill)
+  ) {
+    emptySheet.deityClassChoices = wizardSelections.deityClassChoices;
   }
 
   // Apply Qareen element selection from wizard
@@ -6303,6 +6870,24 @@ export function generateEmptySheet(
     });
   }
 
+  // Step: variante de classe por divindade (Paladino de Marah)
+  if (emptySheet.deityClassChoices) {
+    const { alternativeAbility, swapInitialSkill } =
+      emptySheet.deityClassChoices;
+    const value = [
+      ...(alternativeAbility
+        ? [{ name: 'Habilidade Escolhida', value: alternativeAbility }]
+        : []),
+      ...(swapInitialSkill
+        ? [{ name: 'Perícia Inicial', value: 'Luta trocada por Diplomacia' }]
+        : []),
+    ];
+
+    if (value.length > 0) {
+      emptySheet.steps.push({ label: 'Paladino de Marah', value });
+    }
+  }
+
   // Step: Qareen element selection
   if (wizardSelections?.qareenElement) {
     emptySheet.steps.push({
@@ -6449,8 +7034,7 @@ export function generateEmptySheet(
   // Step: Trained Skills (from class and wizard selection)
   if (emptySheet.skills.length > 0) {
     const skillSubsteps: SubStep[] = emptySheet.skills.map((skill) => ({
-      name: skill,
-      value: 'Treinada',
+      value: skill,
     }));
 
     emptySheet.steps.push({
@@ -6852,74 +7436,93 @@ export function generateEmptySheet(
     });
   }
 
-  // Idades Variadas (Heróis de Arton) — regra opcional.
+  // Idade — duas regras no mesmo bloco.
   //
-  // Jovem é a faixa padrão e não altera nada, então nem chega a ser gravada: uma
-  // ficha sem `age` e uma ficha Jovem são a mesma coisa para o motor.
-  if (wizardSelections?.ageBracket && wizardSelections.ageBracket !== 'jovem') {
-    const bracket = getAgeBracket(wizardSelections.ageBracket);
-    if (bracket) {
-      emptySheet.age = {
-        bracket: wizardSelections.ageBracket,
-        years: wizardSelections.ageYears,
-        complications: wizardSelections.ageComplications ?? [],
-        grantedPowerName: wizardSelections.agePower?.name,
-        // Congelado aqui: trocar a faixa etária depois NÃO reescreve o nível.
-        extraLevels: bracket.extraLevels,
-      };
+  // O envelhecimento do livro básico (T20, p. 108) vale para TODA ficha e não
+  // depende de suplemento: a idade em anos decide o estágio, e o estágio aplica
+  // modificadores de atributo de verdade. As Idades Variadas de Heróis de Arton
+  // são opcionais e, quando ligadas, SUBSTITUEM esses modificadores pelos da
+  // faixa escolhida — quem resolve essa exclusão é `getAgeAttributeTotals`.
+  //
+  // Ficha aleatória (sem assistente) rola a idade inicial da classe; todos os
+  // resultados possíveis caem no estágio Jovem, que não altera atributo nenhum.
+  const variedAges =
+    !!wizardSelections?.variedAges && !!wizardSelections.ageBracket;
+  const ageBracketId = variedAges ? wizardSelections?.ageBracket : undefined;
+  // Só o assistente chama `generateEmptySheet` — a ficha aleatória tem motor
+  // próprio (`generateRandomSheet`), e é lá que a idade é rolada.
+  const ageYears = wizardSelections?.ageYears;
 
-      // Modificadores de atributo da faixa: permanentes, somados aqui uma única
-      // vez — exatamente como os raciais. O recálculo não os reaplica, e trocar
-      // a faixa pelo drawer aplica só o delta (`getAgeAttributeDelta`).
-      const ageAttributeSubSteps: SubStep[] = [];
-      getAgeAttributeModifiers(wizardSelections.ageBracket).forEach(
-        ({ attribute, value }) => {
-          emptySheet.atributos[attribute].value += value;
-          ageAttributeSubSteps.push({
-            name: bracket.label,
-            value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
-          });
-        }
-      );
-      if (ageAttributeSubSteps.length > 0) {
-        emptySheet.steps.push({
-          label: 'Atributos Modificados (idade)',
-          type: 'Atributos',
-          value: ageAttributeSubSteps,
-        });
-      }
+  if (ageYears !== undefined || ageBracketId) {
+    const bracket = getAgeBracket(ageBracketId);
+    const stage =
+      (variedAges ? undefined : wizardSelections?.ageStage) ??
+      getBaseAgeStageForYears(ageYears, emptySheet.raca.name);
 
-      const { agePower } = wizardSelections;
-      if (agePower) {
-        if (!emptySheet.generalPowers.some((p) => p.name === agePower.name)) {
-          emptySheet.generalPowers.push(agePower);
-        }
-      }
+    emptySheet.age = {
+      years: ageYears,
+      stage,
+      bracket: ageBracketId,
+      complications: variedAges ? wizardSelections?.ageComplications ?? [] : [],
+      grantedPowerName: variedAges
+        ? wizardSelections?.agePower?.name
+        : undefined,
+      // Congelado aqui: trocar a idade depois NÃO reescreve o nível.
+      extraLevels: bracket?.extraLevels ?? 0,
+    };
 
+    // Modificadores de atributo da idade: permanentes, somados aqui uma única
+    // vez — exatamente como os raciais. O recálculo não os reaplica, e editar a
+    // idade aplica só o delta (`getAgeAttributeTotalsDelta`).
+    const ageAttributeSubSteps: SubStep[] = [];
+    const ageLabel = bracket?.label ?? getBaseAgeStage(stage)?.label ?? 'Idade';
+    getAgeAttributeTotals(emptySheet.age).forEach(({ attribute, value }) => {
+      emptySheet.atributos[attribute].value += value;
+      ageAttributeSubSteps.push({
+        name: ageLabel,
+        value: `${value > 0 ? '+' : ''}${value} em ${attribute}`,
+      });
+    });
+    if (ageAttributeSubSteps.length > 0) {
       emptySheet.steps.push({
-        label: 'Idade',
+        label: 'Atributos Modificados (idade)',
         type: 'Atributos',
-        value: [
-          { name: 'Faixa etária', value: bracket.label },
-          ...(wizardSelections.ageYears
-            ? [{ name: 'Idade', value: `${wizardSelections.ageYears} anos` }]
-            : []),
-          ...(emptySheet.age.complications.length > 0
-            ? [
-                {
-                  name: 'Complicações de idade',
-                  value: emptySheet.age.complications
-                    .map((c) => c.name)
-                    .join(', '),
-                },
-              ]
-            : []),
-          ...(wizardSelections.agePower
-            ? [{ name: 'Já Vi Coisas', value: wizardSelections.agePower.name }]
-            : []),
-        ],
+        value: ageAttributeSubSteps,
       });
     }
+
+    const agePower = variedAges ? wizardSelections?.agePower : undefined;
+    if (
+      agePower &&
+      !emptySheet.generalPowers.some((p) => p.name === agePower.name)
+    ) {
+      emptySheet.generalPowers.push(agePower);
+    }
+
+    emptySheet.steps.push({
+      label: 'Idade',
+      type: 'Atributos',
+      value: [
+        ...(ageYears !== undefined
+          ? [{ name: 'Idade', value: `${ageYears} anos` }]
+          : []),
+        {
+          name: variedAges ? 'Faixa etária' : 'Envelhecimento',
+          value: ageLabel,
+        },
+        ...(emptySheet.age.complications.length > 0
+          ? [
+              {
+                name: 'Complicações de idade',
+                value: emptySheet.age.complications
+                  .map((c) => c.name)
+                  .join(', '),
+              },
+            ]
+          : []),
+        ...(agePower ? [{ name: 'Já Vi Coisas', value: agePower.name }] : []),
+      ],
+    });
   }
 
   // Regras opcionais de Heróis de Arton em uso. Só grava o que estiver ligado —
@@ -6928,6 +7531,7 @@ export function generateEmptySheet(
   if (wizardSelections?.deathByOldAge) usedOptionalRules.deathByOldAge = true;
   if (selectedOptions.openDeities) usedOptionalRules.openDeities = true;
   if (wizardSelections?.openRaces) usedOptionalRules.openRaces = true;
+  if (selectedOptions.dualDevotion) usedOptionalRules.dualDevotion = true;
   // Só registra a variante de atributos quando ela NÃO é a do livro básico —
   // toda ficha usa algum método, mas só as opcionais interessam à auditoria.
   if (
@@ -6949,6 +7553,28 @@ export function generateEmptySheet(
       (deity) => normalizeDeityName(deity.name) === normalizedSearch
     );
     if (selectedDeity) {
+      // Devoção Dupla: a segunda divindade é guardada por NOME e resolvida no
+      // registry a cada uso. Só vale quando resolve para um deus diferente do
+      // primário — senão seria uma devoção dupla degenerada.
+      const secondarySearch = selectedOptions.dualDevotion
+        ? selectedOptions.devocaoSecundaria?.value
+        : undefined;
+      const secondaryDeity = secondarySearch
+        ? deities.find(
+            (deity) =>
+              normalizeDeityName(deity.name) ===
+              normalizeDeityName(secondarySearch)
+          )
+        : undefined;
+      const hasSecondary =
+        !!secondaryDeity && secondaryDeity.name !== selectedDeity.name;
+
+      // A piscina de escolha é a união das duas listas; a QUANTIDADE que o
+      // personagem escolhe não muda (regra explícita do livro).
+      const deityNames = [selectedDeity.name];
+      if (hasSecondary) deityNames.push(secondaryDeity!.name);
+      const grantedPool = getGrantedPowerPool(deityNames, supplements);
+
       // Determine which deity powers to add based on wizard selections
       let deityPowers: import('../interfaces/Poderes').GeneralPower[] = [];
 
@@ -6957,7 +7583,7 @@ export function generateEmptySheet(
         wizardSelections.deityPowers.length > 0
       ) {
         // Use wizard selections
-        deityPowers = selectedDeity.poderes.filter((p) =>
+        deityPowers = grantedPool.filter((p) =>
           wizardSelections.deityPowers?.includes(p.name)
         );
       } else {
@@ -6970,7 +7596,9 @@ export function generateEmptySheet(
           : 1; // Default to 1 if undefined
 
         deityPowers = getPoderesConcedidos(
-          selectedDeity,
+          // Sorteio automático também escolhe da união — `getPoderesConcedidos`
+          // só lê `poderes`, então basta trocar a lista.
+          { ...selectedDeity, poderes: grantedPool },
           todosPoderes,
           generatedClass,
           qtdPoderesConcedidos
@@ -6980,6 +7608,12 @@ export function generateEmptySheet(
       emptySheet.devoto = {
         divindade: selectedDeity,
         poderes: deityPowers,
+        ...(hasSecondary
+          ? {
+              divindadeSecundaria: secondaryDeity!.name,
+              sincretismo: selectedOptions.sincretismo?.value || undefined,
+            }
+          : {}),
       };
     }
   }
@@ -7194,6 +7828,11 @@ export function restoreSpellPath(
   // antigas/corrompidas. Este é o chokepoint de todos os caminhos de carga.
   normalizeSheet(sheet);
 
+  // Re-carimba nos itens da mochila o dado estático do catálogo (descrição e
+  // bônus). A mochila guarda snapshots do momento da compra, então uma regra
+  // cadastrada depois só alcançaria fichas novas sem isso.
+  refreshBagItemsFromCatalog(sheet);
+
   if (!sheet.classe) return;
 
   // A classe da ficha pode NÃO estar na lista recebida: `classes` é montada com
@@ -7316,4 +7955,56 @@ export function restoreSpellPath(
       }
     });
   }
+}
+
+/**
+ * Repassa para os PV/PM atuais o que o personagem ganhou de máximo: os pontos
+ * novos nascem cheios, e não "gastos". Sem isso, um personagem em 7/7 que sobe
+ * de nível aparece em 7/10, e um Aumento de Atributo em Constituição rende PV
+ * máximo que o personagem não tem.
+ *
+ * Deve ser chamada com a ficha ANTES da mudança e a ficha DEPOIS do
+ * `recalculateSheet` (é o recálculo que fecha o máximo final). Ganho negativo é
+ * ignorado — máximo que cai é tratado pelo teto do próprio recálculo, que não
+ * deve devolver pontos gastos.
+ */
+export function applyMaxPointsGainToCurrent(
+  before: CharacterSheet,
+  after: CharacterSheet
+): CharacterSheet {
+  const gainPV = Math.max(0, after.pv - before.pv);
+  const gainPM = Math.max(0, after.pm - before.pm);
+
+  if (gainPV === 0 && gainPM === 0) return after;
+
+  const currentPV = after.currentPV ?? after.pv;
+  const currentPM = after.currentPM ?? after.pm;
+
+  return {
+    ...after,
+    currentPV: Math.min(after.pv, currentPV + gainPV),
+    currentPM: Math.min(after.pm, currentPM + gainPM),
+  };
+}
+
+/**
+ * Adiciona pontos ao valor atual transbordando para os temporários o que passar
+ * do máximo: quem já está cheio e recebe +2 PM fica com 2 PM temporários, em vez
+ * de perder os pontos no teto.
+ *
+ * O transbordo mora aqui, no momento em que o jogador adiciona os pontos,
+ * porque só aqui existe a intenção de ganhar pontos. O `recalculateSheet` não
+ * tem como saber disso: para ele, atual acima do máximo é só um máximo que
+ * encolheu, e virar temporário ali dava pontos de graça a quem só teve a ficha
+ * recalculada.
+ */
+export function addPointsOverflowingToTemp(
+  amount: number,
+  current: number,
+  max: number,
+  temp: number
+): { current: number; temp: number } {
+  const target = current + amount;
+  if (target <= max) return { current: target, temp };
+  return { current: max, temp: temp + (target - max) };
 }

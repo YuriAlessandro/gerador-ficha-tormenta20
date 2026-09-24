@@ -7,7 +7,8 @@ import {
   MenuItem,
   Tooltip,
 } from '@mui/material';
-import { BackHand as HandIcon, Check as CheckIcon } from '@mui/icons-material';
+import HandIcon from '@mui/icons-material/BackHand';
+import CheckIcon from '@mui/icons-material/Check';
 
 import Equipment from '../../../interfaces/Equipment';
 import {

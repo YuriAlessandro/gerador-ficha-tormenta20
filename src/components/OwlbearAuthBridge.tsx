@@ -8,18 +8,25 @@ import {
 } from '../premium/config/firebase';
 
 /**
- * Página "auth bridge" para a extensão do Owlbear Rodeo.
+ * Página "auth bridge" das extensões (Owlbear Rodeo e Roll20).
  *
- * A extensão roda dentro de um iframe de terceiro no Owlbear, onde o login do
- * Firebase sofre com bloqueio de cookies de terceiros. Esta página é aberta pela
- * extensão num popup *first-party* (mesma origem do Firebase), faz o login e
- * devolve o ID token via postMessage.
+ * Servida em `/owlbear-auth` e em `/roll20-auth` — o mesmo componente, dois
+ * caminhos, porque o problema é o mesmo nas duas extensões: elas não conseguem
+ * fazer login do Firebase no próprio contexto (iframe de terceiro no Owlbear,
+ * página de terceiro no Roll20). Esta página é aberta num popup *first-party*
+ * (mesma origem do Firebase), faz o login e devolve o ID token via postMessage.
  *
- * Protocolo (espelha extensions/owlbear/src/auth/bridge.ts):
+ * Os nomes das mensagens continuam com `owlbear` porque são **formato de fio**:
+ * a extensão do Owlbear em produção depende dessas strings exatas. Renomear
+ * quebraria quem já tem a extensão instalada.
+ *
+ * Protocolo (espelha extensions/owlbear/src/auth/bridge.ts e
+ * extensions/roll20/src/page/auth.ts):
  *  1. bridge → opener: { type: 'fdn-owlbear-auth:ready' }
- *  2. opener → bridge: { type: 'fdn-owlbear-auth:request', origin }
+ *  2. opener → bridge: { type: 'fdn-owlbear-auth:request', origin, wantsRefresh? }
  *  3. bridge valida a origin e responde:
  *       { type: 'fdn-owlbear-auth:token', token, expiresAt }
+ *       — com { refreshToken, apiKey } a mais quando `wantsRefresh`
  *     ou { type: 'fdn-owlbear-auth:error', message }
  */
 
@@ -46,6 +53,9 @@ function isAllowedOrigin(origin: string): boolean {
     // Extensão do Owlbear hospedada no Cloudflare Pages (produção + previews).
     if (hostname === 'fichas-owlbear.pages.dev') return true;
     if (hostname.endsWith('.fichas-owlbear.pages.dev')) return true;
+    // Extensão do Roll20: o popup é aberto de dentro da página do jogo, então
+    // quem pede o token é a origem do Roll20, não uma origem nossa.
+    if (hostname === 'app.roll20.net') return true;
     return false;
   } catch {
     return false;
@@ -84,14 +94,30 @@ export default function OwlbearAuthBridge(): JSX.Element {
   const [status, setStatus] = useState<Status>('waiting');
   const [message, setMessage] = useState<string>('');
   const requesterOriginRef = useRef<string | null>(null);
+  const wantsRefreshRef = useRef<boolean>(false);
   const sentRef = useRef<boolean>(false);
 
   const sendToken = useCallback(async (currentUser: User, origin: string) => {
     try {
       const result = await currentUser.getIdTokenResult();
       const expiresAt = new Date(result.expirationTime).getTime();
+      // O ID token do Firebase dura uma hora e essa validade é fixa. Quem
+      // precisa de sessão mais longa pede o refresh token e renova por conta
+      // própria, no endpoint de secure token — daí virem juntos a chave da API
+      // e o domínio, para o consumidor não ter que replicar a configuração do
+      // Firebase e sair de sincronia com a daqui.
+      //
+      // Só vai quando pedido: refresh token é credencial de longa duração, e a
+      // extensão do Owlbear não precisa dele. Menos gente carregando a chave,
+      // menos superfície.
+      const extras = wantsRefreshRef.current
+        ? {
+            refreshToken: currentUser.refreshToken,
+            apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+          }
+        : {};
       window.opener?.postMessage(
-        { type: MSG.token, token: result.token, expiresAt },
+        { type: MSG.token, token: result.token, expiresAt, ...extras },
         origin
       );
       sentRef.current = true;
@@ -110,7 +136,10 @@ export default function OwlbearAuthBridge(): JSX.Element {
   // Handshake com a extensão e captura da origem solicitante.
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
-      const data = event.data as { type?: string } | null;
+      const data = event.data as {
+        type?: string;
+        wantsRefresh?: boolean;
+      } | null;
       if (!data || data.type !== MSG.request) return;
       if (!isAllowedOrigin(event.origin)) {
         setStatus('error');
@@ -118,6 +147,7 @@ export default function OwlbearAuthBridge(): JSX.Element {
         return;
       }
       requesterOriginRef.current = event.origin;
+      wantsRefreshRef.current = Boolean(data.wantsRefresh);
       if (user && !sentRef.current) {
         sendToken(user, event.origin).catch(() => undefined);
       }

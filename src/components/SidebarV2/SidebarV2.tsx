@@ -47,8 +47,6 @@ import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { APP_VERSION } from '../../utils/appVersion';
 
-const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
-
 interface SidebarV2Props {
   visible: boolean;
   onCloseSidebar: () => void;
@@ -61,8 +59,8 @@ const StyledPaper = styled(Paper)`
   z-index: 3;
   height: 100vh;
   height: 100dvh; /* Dynamic viewport height for iOS */
-  padding-top: 20px;
-  padding-bottom: env(safe-area-inset-bottom, 20px);
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   transition: visibility 0s, opacity 0.5s linear;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -91,8 +89,7 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   onChangeTheme,
 }) => {
   const history = useHistory();
-  const { isAuthenticated, user } = useAuth();
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  const { isAuthenticated, user, isAdmin } = useAuth();
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
   const { requestLogout } = useAuthContext();
   // const { settings, updateSettings } = useDice3D();

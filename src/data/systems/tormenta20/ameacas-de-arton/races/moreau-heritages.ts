@@ -22,6 +22,7 @@ const garraMoreau: Equipment = {
   tipo: 'Corte',
   spaces: 0,
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const mordidaMoreau: Equipment = {
@@ -32,6 +33,7 @@ const mordidaMoreau: Equipment = {
   tipo: 'Perf.',
   spaces: 0,
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const mordidaLeao: Equipment = {
@@ -42,6 +44,22 @@ const mordidaLeao: Equipment = {
   tipo: 'Perf.',
   spaces: 0,
   preco: 0,
+  weaponTags: ['natural'],
+};
+
+// Base MÉDIO-equivalente: a Herança do Urso já é Grande (ver `getSize` em
+// moreau.ts), e o passo de dano automático por tamanho (recalculateSheet Step
+// 11.7) soma +1 dado em cima disso, chegando ao 1d8 impresso no livro. Guardar
+// '1d8' aqui duplicaria o bônus (1d8 -> 1d10) quando o tamanho Grande é aplicado.
+const mordidaUrso: Equipment = {
+  group: 'Arma',
+  nome: 'Mordida',
+  dano: '1d6',
+  critico: 'x2',
+  tipo: 'Perf.',
+  spaces: 0,
+  preco: 0,
+  weaponTags: ['natural'],
 };
 
 const chifresMoreau: Equipment = {
@@ -52,6 +70,7 @@ const chifresMoreau: Equipment = {
   tipo: 'Perf.',
   spaces: 0,
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
@@ -501,7 +520,7 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
             source: { type: 'power', name: 'Mordida' },
             action: {
               type: 'addEquipment',
-              equipment: { Arma: [mordidaLeao] },
+              equipment: { Arma: [mordidaUrso] },
               description: 'Mordida pode ser usada como arma.',
             },
           },

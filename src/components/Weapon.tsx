@@ -18,14 +18,17 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import TuneIcon from '@mui/icons-material/Tune';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import Equipment, {
   AmmoType,
   DamageAttribute,
+  ManualStatField,
   WeaponAction,
   WeaponOverride,
 } from '../interfaces/Equipment';
+import { getManualStatFields } from '../functions/manualStats';
 import type { SheetBonus } from '../interfaces/CharacterSheet';
-import { AMMO_LABELS } from './SheetResult/BackpackModal/ammo';
+import { ammoTypeLabel } from './SheetResult/BackpackModal/ammo';
 import { parseCritical, parseDualModeDamage } from '../functions/diceRoller';
 import { AttackExtraSpec } from '../functions/attackRoll';
 import {
@@ -128,6 +131,13 @@ interface WeaponProps {
   onSemanticsChange?: (next: WeaponOverride) => void;
 }
 
+/** Rótulo da mão na linha da arma. `null` (não empunhada) não rende texto. */
+const WIELDING_LABELS: Record<Exclude<WieldingSlot, null>, string> = {
+  main: '🤚 Principal',
+  off: '✋ Secundária',
+  both: '🤝 Duas mãos',
+};
+
 interface RollContext {
   action?: WeaponAction;
   useTrigger: boolean;
@@ -210,8 +220,17 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         nivel: nivel ?? 1,
         classLevels,
         thrownMode: isThrownAction(action),
+        isProficient: !isNonProficient,
       }),
-    [sheetBonuses, equipment, isThrownAction, atributos, nivel, classLevels]
+    [
+      sheetBonuses,
+      equipment,
+      isThrownAction,
+      atributos,
+      nivel,
+      classLevels,
+      isNonProficient,
+    ]
   );
 
   const liveDamageBonus = useCallback(
@@ -333,6 +352,10 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     hasActiveEffect: boolean;
   }>(() => {
     const lines: string[] = [];
+    // Bônus que casam com a arma mas estão desligados por falta de
+    // proficiência: vão para o fim da lista, marcados, em vez de sumirem — o
+    // jogador precisa saber por que o número não mudou.
+    const inactiveLines: string[] = [];
     let hasActiveEffect = false;
     if (!sheetBonuses) return { lines, hasActiveEffect };
 
@@ -353,16 +376,25 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         targetType !== 'WeaponAttack' &&
         targetType !== 'WeaponDamage' &&
         targetType !== 'WeaponDamageStep' &&
-        targetType !== 'WeaponThreatMargin'
+        targetType !== 'WeaponThreatMargin' &&
+        targetType !== 'WeaponCriticalMultiplier'
       ) {
         return;
       }
       // Casamento estático arma × escopo pela fonte única (weaponMatchesScope) —
       // cobre name/tags/categorias/melee/ranged/thrown/firing/leve-ágil/2-mãos.
-      const scope = b.target as WeaponBonusScope;
+      const scope = b.target as WeaponBonusScope & {
+        proficiencyRequired?: boolean;
+      };
       if (!weaponMatchesScope(equipment, scope)) {
         return;
       }
+      // Bônus que exigem proficiência (Armas da Ambição, Armas da Destruição)
+      // não são aplicados pelo recálculo numa arma em que o personagem não é
+      // proficiente — o caso clássico é a pistola, que é arma de fogo.
+      const requiresMissingProficiency = !!(
+        scope.proficiencyRequired && isNonProficient
+      );
       const value = evaluateSimpleModifier(b.modifier, atributos, nivel ?? 1, {
         classLevels,
         source: b.source,
@@ -380,28 +412,85 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       } else if (equipment.arremesso && scope.meleeOnly) {
         suffix = ' (corpo a corpo)';
       }
+      let line: string | null = null;
       if (targetType === 'WeaponAttack') {
-        lines.push(`${sourceName}: ${signed} no ataque${suffix}`);
+        line = `${sourceName}: ${signed} no ataque${suffix}`;
       } else if (targetType === 'WeaponDamage') {
-        lines.push(`${sourceName}: ${signed} no dano${suffix}`);
+        line = `${sourceName}: ${signed} no dano${suffix}`;
       } else if (targetType === 'WeaponDamageStep') {
-        lines.push(
-          `${sourceName}: ${signed} passo${
-            Math.abs(value) > 1 ? 's' : ''
-          } de dano`
-        );
+        line = `${sourceName}: ${signed} passo${
+          Math.abs(value) > 1 ? 's' : ''
+        } de dano`;
       } else if (targetType === 'WeaponThreatMargin') {
-        lines.push(
+        line =
           b.target.mode === 'set'
             ? `${sourceName}: margem de ameaça ${value}`
-            : `${sourceName}: ${signed} na margem de ameaça`
-        );
+            : `${sourceName}: ${signed} na margem de ameaça`;
+      } else if (targetType === 'WeaponCriticalMultiplier') {
+        line =
+          b.target.mode === 'set'
+            ? `${sourceName}: multiplicador de crítico x${value}`
+            : `${sourceName}: ${signed} no multiplicador de crítico`;
       }
+      if (!line) return;
+      if (requiresMissingProficiency) {
+        inactiveLines.push(`${line} (inativo: sem proficiência)`);
+        return;
+      }
+      lines.push(line);
       hasActiveEffect = hasActiveEffect || isActiveEffect;
     });
 
-    return { lines, hasActiveEffect };
-  }, [sheetBonuses, equipment, atributos, nivel, classLevels]);
+    return { lines: [...lines, ...inactiveLines], hasActiveEffect };
+  }, [sheetBonuses, equipment, atributos, nivel, classLevels, isNonProficient]);
+
+  // Estatísticas digitadas à mão pelo jogador neste item. Ficam sublinhadas em
+  // pontilhado na linha da arma: nelas o motor não aplica melhorias nem bônus
+  // de poder, e sem a marca o número parece simplesmente errado.
+  const manualStatFields = useMemo(
+    () => getManualStatFields(equipment),
+    [equipment]
+  );
+
+  const manualMarkTitle =
+    'Modificado manualmente — melhorias e bônus automáticos não se aplicam a este valor';
+
+  const MANUAL_FIELD_LABELS: Record<ManualStatField, string> = {
+    atkBonus: 'ataque',
+    dano: 'dano',
+    critico: 'crítico',
+    defenseBonus: 'defesa',
+    armorPenalty: 'penalidade de armadura',
+  };
+
+  // Quais estatísticas a marca cobre, na ordem em que aparecem na linha.
+  const manualFieldNames = (
+    ['atkBonus', 'dano', 'critico'] as ManualStatField[]
+  )
+    .filter((field) => manualStatFields.has(field))
+    .map((field) => MANUAL_FIELD_LABELS[field]);
+
+  const withManualMark = (field: ManualStatField, content: React.ReactNode) => {
+    if (!manualStatFields.has(field)) return content;
+    // `disableTouchListener`: no toque o tooltip do MUI só abre com long-press e
+    // ele não cancela o clique sintético que vem depois — o gesto abriria a
+    // explicação E rolaria o ataque. No mobile a explicação sai pelo ícone de
+    // lápis, que é afordância própria e pode parar a propagação sem custo.
+    return (
+      <Tooltip title={manualMarkTitle} disableTouchListener>
+        <Box
+          component='span'
+          sx={{
+            textDecoration: 'underline dotted',
+            textUnderlineOffset: '3px',
+            cursor: 'help',
+          }}
+        >
+          {content}
+        </Box>
+      </Tooltip>
+    );
+  };
 
   const damage = getWeaponDisplayDamage(
     equipment,
@@ -688,7 +777,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   // Trigger ammo availability info for the trigger dialog message.
   const triggerAmmoLabel =
     stagedAction?.trigger?.consumesAmmo &&
-    AMMO_LABELS[stagedAction.trigger.consumesAmmo];
+    ammoTypeLabel(stagedAction.trigger.consumesAmmo);
 
   return (
     <>
@@ -759,6 +848,28 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               />
             </Tooltip>
           )}
+          {manualFieldNames.length > 0 && (
+            <Tooltip
+              title={`${manualMarkTitle} (${manualFieldNames.join(', ')}).`}
+              arrow
+              enterTouchDelay={0}
+              leaveTouchDelay={4000}
+            >
+              {/* No desktop o sublinhado pontilhado já explica no hover; este
+                  ícone existe pelo mobile, onde não há hover e o long-press
+                  sobre o número rolaria o ataque junto. */}
+              <EditNoteIcon
+                aria-label='Estatísticas modificadas manualmente'
+                sx={{
+                  fontSize: 15,
+                  ml: 0.5,
+                  color: 'text.secondary',
+                  cursor: 'help',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          )}
           {(equipment.modifications?.length ||
             equipment.enchantments?.length) && (
             <Tooltip
@@ -803,22 +914,68 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               />
             </Tooltip>
           )}
-          {customSkill && ` (${customSkill})`}{' '}
-          {`${baseAtk >= 0 ? '+' : ''}${baseAtk}`} • {damage} • ({critico})
-          {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
-          {(equipment.extraDamage ?? []).map((extra) => (
-            <Box
-              key={extra.id ?? `${extra.dice}-${extra.damageType}`}
-              component='span'
-              sx={{ color: 'text.secondary', fontSize: '0.85em', ml: 0.5 }}
-            >
-              {' '}
-              + {extra.dice} {extra.damageType}
+          {/* As estatísticas moram num único item flex, com cada valor e seus
+              acompanhantes (separador, parênteses) num grupo `nowrap`.
+              O container desta linha é `display: flex`, e num flex container
+              cada TRECHO DE TEXTO contíguo vira um item anônimo: com as marcas
+              de edição manual quebrando o texto em vários elementos, o `(`, o
+              `)` e os `•` viravam itens próprios, encolhiam e quebravam linha
+              cada um por conta — no mobile os parênteses e pontos apareciam
+              soltos e desalinhados dos números. */}
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'baseline',
+              flexWrap: 'wrap',
+              columnGap: 0.5,
+              ml: 0.5,
+            }}
+          >
+            {customSkill && (
+              <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+                ({customSkill})
+              </Box>
+            )}
+            <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+              {withManualMark(
+                'atkBonus',
+                `${baseAtk >= 0 ? '+' : ''}${baseAtk}`
+              )}
             </Box>
-          ))}
-          {wieldingSlot === 'main' && ' · 🤚 Principal'}
-          {wieldingSlot === 'off' && ' · ✋ Secundária'}
-          {wieldingSlot === 'both' && ' · 🤝 Duas mãos'}
+            {/* O separador viaja junto do valor que ele introduz: numa quebra
+                de linha ele desce com o número, em vez de ficar órfão no fim
+                da linha anterior. */}
+            <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+              • {withManualMark('dano', damage)}
+            </Box>
+            <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+              • ({withManualMark('critico', critico)})
+            </Box>
+            {equipment.tipo && equipment.tipo !== '-' && (
+              <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+                • {equipment.tipo}
+              </Box>
+            )}
+            {(equipment.extraDamage ?? []).map((extra) => (
+              <Box
+                key={extra.id ?? `${extra.dice}-${extra.damageType}`}
+                component='span'
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.85em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                + {extra.dice} {extra.damageType}
+              </Box>
+            ))}
+            {wieldingSlot && WIELDING_LABELS[wieldingSlot] && (
+              <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
+                · {WIELDING_LABELS[wieldingSlot]}
+              </Box>
+            )}
+          </Box>
           {(onWieldingChange || onSemanticsChange) && (
             <Box
               sx={{
@@ -882,7 +1039,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
                 (availableAmmo ?? 0) === 0 ? 'error.main' : 'text.secondary',
             }}
           >
-            🎯 {AMMO_LABELS[equipment.ammoType]}: {availableAmmo ?? 0}
+            🎯 {ammoTypeLabel(equipment.ammoType)}: {availableAmmo ?? 0}
             {(availableAmmo ?? 0) === 0 && ' (sem munição)'}
           </Typography>
         )}
@@ -1073,7 +1230,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
             {equipment.ammoType && (
               <>
                 Você tem <strong>{availableAmmo ?? 0}</strong>{' '}
-                {AMMO_LABELS[equipment.ammoType]} disponível. Como deseja
+                {ammoTypeLabel(equipment.ammoType)} disponível. Como deseja
                 resolver o ataque?
               </>
             )}

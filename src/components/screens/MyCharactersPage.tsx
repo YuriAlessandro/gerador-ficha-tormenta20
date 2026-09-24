@@ -41,26 +41,24 @@ import {
   ListItemText,
   Checkbox,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Search as SearchIcon,
-  CloudDone as CloudIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  FileCopy as DuplicateIcon,
-  Person as PersonIcon,
-  Dangerous as ThreatIcon,
-  Groups as TableIcon,
-  CreateNewFolder as CreateNewFolderIcon,
-  FolderOpen as FolderOpenIcon,
-  DriveFileMove as MoveIcon,
-  FolderOff as FolderOffIcon,
-  ArrowBack as ArrowBackIcon,
-  Folder as FolderIcon,
-  CheckBox as CheckBoxIcon,
-  DragIndicator as DragIndicatorIcon,
-  Public as PublishBestiaryIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
+import CloudIcon from '@mui/icons-material/CloudDone';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DuplicateIcon from '@mui/icons-material/FileCopy';
+import PersonIcon from '@mui/icons-material/Person';
+import ThreatIcon from '@mui/icons-material/Dangerous';
+import TableIcon from '@mui/icons-material/Groups';
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import MoveIcon from '@mui/icons-material/DriveFileMove';
+import FolderOffIcon from '@mui/icons-material/FolderOff';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import FolderIcon from '@mui/icons-material/Folder';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import PublishBestiaryIcon from '@mui/icons-material/Public';
 import { useHistory, useLocation } from 'react-router-dom';
 import {
   DragDropContext,

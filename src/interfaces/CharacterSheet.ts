@@ -1,5 +1,5 @@
 import { ClassDescription, ClassPower, CrossTraditionRules } from './Class';
-import { GeneralPower, OriginPower } from './Poderes';
+import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
 import Bag from './Bag';
 import { Spell, SpellSchool } from './Spells';
@@ -14,9 +14,11 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
-import type { SheetAge } from '../premium/interfaces/Age';
+import type { SheetAge } from './Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { DiceRoll } from './DiceRoll';
+import type { PlayerJournal } from './PlayerJournal';
+import type { SupplementId } from '../types/supplement.types';
 import type { SheetLayout } from './SheetLayout';
 
 export type SheetChangeSource =
@@ -77,6 +79,12 @@ export type SheetChangeSource =
 export type SheetAction = {
   source: SheetChangeSource;
   action: SheetActionStep;
+  /**
+   * Só aplica a ação se a condição passar — mesmas cláusulas de
+   * `SheetBonus.condition`. Ex.: Rei Mercenário (Vassalo 17), que depende do
+   * caminho escolhido no 9º.
+   */
+  condition?: BonusCondition;
 };
 
 export type SheetActionStep =
@@ -89,6 +97,10 @@ export type SheetActionStep =
       type: 'learnSkill';
       availableSkills: Skill[]; // Maybe modify this to be more flexible or to pick from random
       pick: number; // Number of skills to learn
+      // Perícias adicionais por patamar acima de Iniciante (ex.: Biblioteca
+      // Divina). Recalculado a cada `recalculateSheet`, concedendo só a
+      // diferença em relação ao que já está no histórico (ver `applyPower`).
+      perTierAboveIniciante?: number;
     }
   | {
       type: 'learnSpell';
@@ -105,7 +117,18 @@ export type SheetActionStep =
   | {
       type: 'getGeneralPower';
       availablePowers: GeneralPower[]; // List of available powers
+      // Piscina por CATEGORIA, resolvida na hora pelo `dataRegistry` com os
+      // suplementos ativos (ver `resolveGeneralPowerPool`). Quando presente,
+      // `availablePowers` é ignorado — passe `[]`. Existe porque um poder que
+      // oferece "um poder geral qualquer" não pode congelar a lista no dado:
+      // com import estático, nenhum poder de suplemento entraria na oferta.
+      availableTypes?: GeneralPowerType[];
       pick: number; // Number of powers to learn
+      // Concessões que valem apesar dos pré-requisitos dos poderes ofertados.
+      // Linhagem Abençoada (Deuses de Arton, pág. 33) dá um poder concedido
+      // "sem precisar ser devoto" — sem isso, o filtro do assistente descarta
+      // todos eles pelo requisito DEVOTO e o jogador fica sem opção.
+      ignorePrerequisites?: boolean;
     }
   | {
       type: 'addProficiency';
@@ -127,6 +150,15 @@ export type SheetActionStep =
       oncePerTier?: boolean; // Limitar a mesma escolha a 1×/patamar (padrão true).
       // Persiste a escolha do jogador (replay sem manualSelections, ex.: homebrew).
       optionKey?: string;
+      /** Restringe o pool. Ausente = todos. Ex.: Rei Mercenário (Vassalo 17). */
+      allowedAttributes?: Atributo[];
+      pick?: number;
+      /** Repetir o mesmo atributo entre os `pick`. Padrão `false`. */
+      allowRepeats?: boolean;
+    }
+  | {
+      type: 'setMaxSpacesAttribute';
+      attribute: Atributo;
     }
   | {
       type: 'special';
@@ -141,6 +173,7 @@ export type SheetActionStep =
         | 'meioElfoAmbicaoHerdada'
         | 'qareenResistenciaElemental'
         | 'almaLivreSelectClass'
+        | 'diferentaoSelectClassPower'
         | 'teurgistaMistico'
         | 'mashinChassi';
     }
@@ -190,10 +223,33 @@ export type SheetActionStep =
       // Nível em que os requisitos são avaliados (default: 2). Ver
       // getFuturaLendaClassPowers.
       minLevel?: number;
+      // De onde sai esse nível. 'fixed' (padrão) usa `minLevel` e rende a mesma
+      // lista em qualquer recálculo — é o caso de um benefício ganho no 1º
+      // nível (Futura Lenda, Cosmopolita). 'sheet' avalia no nível ATUAL do
+      // personagem: para poderes re-escolhidos a cada aventura (Citadino
+      // Abastado), cuja oferta acompanha o crescimento do personagem.
+      levelSource?: 'fixed' | 'sheet';
+      /**
+       * Poder vindo de outra classe, avaliado como se o personagem fosse dela.
+       * Ex.: Valete (Vassalo 2), "um poder de cavaleiro a sua escolha".
+       */
+      fromClasses?: string[];
+      label?: string;
     }
   | {
       type: 'grantSpecificClassPower';
       powerName: string; // Name of the specific class power to grant automatically
+      /** Classe dona do poder, quando não é a da ficha. Ex.: Barão (Vassalo 10). */
+      fromClass?: string;
+    }
+  | {
+      /**
+       * Habilidade NOMEADA de outra classe — `learnClassAbility` deixa o
+       * jogador escolher. Ex.: Capitão do Reino (Vassalo 8), Golpe Divino.
+       */
+      type: 'grantSpecificClassAbility';
+      abilityName: string;
+      fromClass: string;
     }
   | {
       type: 'addAlchemyItems';
@@ -280,6 +336,10 @@ export type SheetActionReceipt =
       value: number; // Positive or negative
     }
   | {
+      type: 'MaxSpacesAttributeSet';
+      attribute: Atributo;
+    }
+  | {
       type: 'SkillsAdded';
       skills: Skill[];
     }
@@ -311,6 +371,10 @@ export type SheetActionReceipt =
       type: 'AttributeIncreasedByAumentoDeAtributo';
       attribute: Atributo;
       plateau: number; // Plateau number for the increase
+      // `false` quando o aumento veio de uma fonte sem a restrição de 1×/patamar
+      // do poder Aumento de Atributo (ex.: Aspirante a Herói). Ausente em fichas
+      // antigas e nos aumentos do próprio Aumento de Atributo — ambos contam.
+      oncePerTier?: boolean;
     }
   | {
       type: 'ClassAbilityLearned';
@@ -479,6 +543,35 @@ export type StatModifierTarget =
       proficiencyRequired?: boolean;
     }
   | {
+      /**
+       * Passo de dado do ATAQUE DESARMADO ABSTRATO (Corpo Aberrante, e o que
+       * mais vier) — alimenta só o detalhamento/`rolls` de `unarmedDamage.ts`
+       * (as fichas de Briga/Estilo Desarmado/Corpo Aberrante), não a mochila.
+       *
+       * Existe também um item real "Ataque Desarmado" na mochila (e a
+       * Manopla), marcado `weaponTags: ['desarmado']` — bônus que devem
+       * alcançá-lo usam `WeaponDamageStep`/`WeaponDamage` com esse escopo,
+       * bakeados normalmente pelo Step 17. Os dois alvos continuam
+       * ESTRITAMENTE disjuntos quanto ao passo de TAMANHO: o Step 11.7 emite
+       * um `WeaponDamageStep` sem filtro de tag (alcança qualquer arma da
+       * mochila, incluindo as `desarmado`), e `unarmedDamage.ts` lê o tamanho
+       * direto de `sheet.size` pro detalhamento abstrato — por isso vale a
+       * regra: NUNCA emitir um `UnarmedDamageStep` cuja `source` seja
+       * `{ type: 'size' }`, e nunca dar `weaponTags` a um bônus PRÓPRIO de
+       * tamanho (senão o passo conta duas vezes na arma real).
+       */
+      type: 'UnarmedDamageStep';
+    }
+  | {
+      /**
+       * Bônus FIXO (+N) na rolagem de dano do ataque desarmado — não mexe no
+       * dado, só soma um número (ex.: "+2 em rolagens de dano com... ataques
+       * desarmados", Ossos Afiados/Tocado pelo Indomável). Complementar a
+       * `UnarmedDamageStep`, que aumenta o dado em vez de somar um fixo.
+       */
+      type: 'UnarmedDamage';
+    }
+  | {
       type: 'HPAttributeReplacement';
       newAttribute: Atributo;
     }
@@ -600,6 +693,8 @@ export type BonusConditionOp = 'gte' | 'lte' | 'eq';
 export type BonusConditionClause = (
   | { kind: 'wearingHeavyArmor' }
   | { kind: 'wearingArmor' }
+  /** Vestindo a armadura de nome exato `value` (identidade de catálogo). */
+  | { kind: 'wearingArmorNamed'; value: string }
   | { kind: 'wieldingShield' }
   | { kind: 'wieldingItemNamed'; value: string }
   | { kind: 'wieldingTwoHandedWeapon' }
@@ -619,6 +714,11 @@ export type BonusConditionClause = (
   | { kind: 'hasSkill'; value: Skill }
   | { kind: 'devoteOf'; value: string }
   | { kind: 'isRace'; value: string }
+  /**
+   * Opção de `chooseFromOptions` já escolhida (lida do histórico). Ex.: o
+   * Caminho do Soldado/Governante do Vassalo, cobrado nos níveis 11 e 13.
+   */
+  | { kind: 'optionChosen'; value: string }
 ) & { negate?: boolean };
 
 /**
@@ -705,6 +805,13 @@ export interface SheetOptionalRules {
    * Informativo: os atributos já saem calculados, isto só registra a origem.
    */
   attributeMethodVariant?: string;
+  /**
+   * Devoção Dupla (Sincretismos de Arton): devoto de dois deuses maiores. É a
+   * única regra deste bloco que não vem de Heróis de Arton. O dado de verdade
+   * fica em `devoto.divindadeSecundaria`; esta flag é o registro de auditoria,
+   * uniforme com as demais.
+   */
+  dualDevotion?: boolean;
 }
 
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
@@ -728,6 +835,17 @@ export default interface CharacterSheet {
    * bloquear desativação/carregamento quando o conteúdo runtime some.
    */
   usedSupplements?: string[];
+  /**
+   * Suplementos ativos quando a ficha foi criada. Carimbado pelo gerador e
+   * lido por quem precisa consultar o catálogo DEPOIS da criação sem receber a
+   * lista por parâmetro — hoje `getPowersAllowedByRequirements`, chamada de
+   * dentro de handlers de `applyPower` (Humano Versátil, Memória Póstuma,
+   * Natureza Orgânica, Ambição Herdada) que não têm como propagá-la.
+   *
+   * Distinto de `usedSupplements`, que registra só ids de runtime/homebrew para
+   * bloquear desativação. Ausente em ficha antiga: quem lê cai no core.
+   */
+  supplements?: SupplementId[];
   /**
    * Escolhas persistidas de ações `chooseFromOptions`, indexadas por `optionKey`
    * → nomes das opções escolhidas (com repetição quando a opção é repetível ou
@@ -754,10 +872,33 @@ export default interface CharacterSheet {
   // the auto-equip migration from running again and overriding deliberate
   // choices made by the player after the migration.
   equipStateMigrated?: boolean;
+  /**
+   * Peças de `Vestuário` que o jogador GUARDOU na mochila (não está vestindo).
+   * É um conjunto de OPT-OUT de propósito: `undefined`/ausente significa "nada
+   * guardado", logo tudo vestido — exatamente o comportamento de toda ficha
+   * criada antes desta feature. Por isso NÃO existe migração aqui e nenhuma
+   * ficha antiga muda de número.
+   *
+   * A inversão também protege os caminhos que colocam Vestuário na mochila SEM
+   * passar pela Mochila (recompensa de tesouro, itens de origem, pacote de item
+   * homebrew, geração aleatória): a peça nova nunca está no conjunto, então
+   * nasce vestida. Uma lista positiva ("o que está vestido") faria essas peças
+   * perderem o bônus em silêncio.
+   *
+   * Ao esvaziar, volta a `undefined` (ver `applyClothingWorn`) para manter o
+   * payload limpo — `stripSheetForStorage` remove a chave e o delta vira
+   * `$unset`, que é a representação correta de "nada guardado".
+   */
+  unwornClothingIds?: string[];
   // Backpack visual mode: when `true`, items are grouped by category in the
   // modal grid; otherwise flat. Per-sheet because different characters benefit
   // from different layouts (e.g. inventory-heavy vs. minimal kits).
   backpackGroupByCategory?: boolean;
+  // Mochila: quando `true` (o padrão para ficha legada, que grava `undefined`),
+  // adicionar um item desconta o preço do saldo em T$. Por ficha porque cada
+  // personagem tende a viver num modo — um em campanha, gastando consumíveis,
+  // outro em fase de compras.
+  backpackAutoDeductMoney?: boolean;
   devoto?: CharacterReligion;
   origin:
     | {
@@ -776,6 +917,8 @@ export default interface CharacterSheet {
   displacement: number;
   size: RaceSize;
   maxSpaces: number;
+  maxSpacesAttribute?: Atributo;
+  manualMaxSpacesAttribute?: Atributo;
   customMaxSpaces?: number; // Manual override for max spaces
   customDisplacement?: number; // Manual override for displacement
   customSize?: RaceSize; // Manual override for size
@@ -814,6 +957,18 @@ export default interface CharacterSheet {
   raceEnergySource?: string; // For Golem Desperto
   raceSizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
   suragelAbility?: string; // For Suraggel (Aggelus/Sulfure) alternative abilities
+  /**
+   * Escolhas opcionais da variante de classe por divindade (Deuses de Arton) —
+   * hoje só "Paladino de Marah". Ausente = regra do livro básico.
+   *
+   * Só `alternativeAbility` importa depois da criação: a troca é reaplicada a
+   * cada recálculo em `applyClassAbilities`. `swapInitialSkill` é consumido na
+   * geração e vive daí em diante em `sheet.pericias`.
+   */
+  deityClassChoices?: {
+    alternativeAbility?: string;
+    swapInitialSkill?: boolean;
+  };
   duendeNature?: string; // For Duende (animal/vegetal/mineral)
   duendePresentes?: string[]; // For Duende (3 selected powers)
   duendeTabuSkill?: string; // For Duende (skill with -5 penalty)
@@ -852,6 +1007,31 @@ export default interface CharacterSheet {
   useDefenseAttribute?: boolean; // Whether to use attribute mod (false = ignore even without heavy armor)
   bonusDefense?: number; // Manual defense bonus
   bonusSpellDC?: number; // Manual bonus to spell DC (Teste de Resistência)
+  /**
+   * Modificador temporário por atributo registrado À MÃO pelo jogador (magia
+   * não modelada, decisão do mestre, item). É o par MANUAL de
+   * `atributosTemporarios`, como `bonusRd` é de `reducaoDeDano`.
+   *
+   * Só guarda chaves != 0; vazio vira `undefined` para o delta da nuvem virar
+   * `$unset`. Fora de `NEVER_UNSET_SHEET_KEYS`: zerar é operação legítima.
+   */
+  bonusAtributos?: Partial<Record<Atributo, number>>;
+  /**
+   * DERIVADO — total do modificador temporário de cada atributo, recomputado do
+   * zero no Step 7.46 do `recalculateSheet` a partir de TODO `sheetBonus` com
+   * alvo `Attribute` (efeitos ativos, Forma Selvagem, efeitos customizados e a
+   * injeção de `bonusAtributos`).
+   *
+   * O motor NUNCA muta `atributos[attr].value` — isso já foi tentado e vazava
+   * efeito temporário para o estado persistido. Este campo é a camada de
+   * "atributo efetivo" que fica por cima; ler sempre via
+   * `functions/effectiveAttributes.ts`.
+   *
+   * É derivado mas persiste de propósito: fichas chegam por socket e
+   * compartilhamento de mesa e são renderizadas SEM passar por
+   * `recalculateSheet` — sem persistir, o parceiro veria os valores base.
+   */
+  atributosTemporarios?: Partial<Record<Atributo, number>>;
   manualPMEdit?: number; // Manual PM adjustment (added after calculation)
   manualPVEdit?: number; // Manual PV adjustment (added after calculation)
   // Manual PM/PV control (for gameplay tracking and manual overrides)
@@ -869,8 +1049,18 @@ export default interface CharacterSheet {
   removedProficiencias?: string[]; // Proficiências base removidas manualmente pelo usuário
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
+  diferentaoClass?: string; // Classe escolhida pelo poder Diferentão
+  diferentaoPower?: ClassPower; // Poder escolhido pelo poder Diferentão
   poderesCapturados?: PoderCapturadoChoice[]; // Usurpador: Poder Capturado (4º nível)
+  /**
+   * @deprecated Substituído pelo `journal` (Diário do Jogador). Continua sendo
+   * LIDO — é o fallback quando a feature está desligada e a fonte da migração —,
+   * mas nada escreve nele. Mantido em disco de propósito: `migrateNotesToJournal`
+   * copia o texto para um nó em vez de mover, então uma migração com defeito não
+   * leva junto a anotação original do jogador.
+   */
   notes?: string; // Anotações livres do jogador
+  journal?: PlayerJournal; // Diário do Jogador (canvas de blocos)
   imageUrl?: string; // URL de imagem do personagem
   /**
    * Layout customizado desta ficha.
@@ -893,6 +1083,15 @@ export default interface CharacterSheet {
   animalCompanions?: SheetAnimalCompanion[]; // Companheiro(s) Animal(is) do Druida
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
   activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
+  /**
+   * Efeitos customizados AVULSOS: criados direto no modal de Efeitos Ativos,
+   * sem pertencer a nenhum poder/habilidade/magia. Existem só como definição —
+   * ativá-los grava uma instância em `activeEffects`, como qualquer outro.
+   *
+   * Os efeitos customizados presos a um poder continuam morando no
+   * `customEffects` do próprio poder.
+   */
+  customEffects?: CustomEffect[];
   /**
    * Overrides do jogador (perícia rolada, atributo de ataque/dano) sobre armas
    * VIRTUAIS — as que não estão na mochila e por isso não têm onde gravar a

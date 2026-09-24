@@ -242,6 +242,10 @@ export function createLinhagemAbencoada(deus: string): ClassAbility[] {
                 type: 'getGeneralPower',
                 availablePowers: poderesDisponiveis,
                 pick: 1,
+                // "aprovado pelo mestre, sem precisar ser devoto": os poderes
+                // concedidos exigem DEVOTO do deus, e o Feiticeiro Abençoado
+                // não é devoto — sem isso o assistente não oferece nenhum.
+                ignorePrerequisites: true,
               },
             },
           ]

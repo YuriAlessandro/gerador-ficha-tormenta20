@@ -307,7 +307,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6.',
-        damageBonus: [{ dicePerActivation: '1d6' }],
+        damageBonus: [{ diceCount: 1 }],
       },
     ],
     rolls: [
@@ -432,7 +432,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano causado pela arma em +1d6 (bônus máximo limitado pelo círculo máximo de magia que você pode lançar).',
-        damageBonus: [{ dicePerActivation: '1d6' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 5,
@@ -849,7 +849,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 1,
         text: 'se escolheu fogo, aumenta o dano inicial de cada chama em +1d6.',
-        damageBonus: [{ targetRollLabel: 'fogo', dicePerActivation: '1d6' }],
+        damageBonus: [{ targetRollLabel: 'fogo', diceCount: 1 }],
       },
     ],
   },
@@ -931,7 +931,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
         addPm: 1,
         text: 'aumenta a cura em +1d8+1.',
         damageBonus: [
-          { targetRollLabel: 'recuperar', dicePerActivation: '1d8+1' },
+          { targetRollLabel: 'recuperar', diceCount: 1, flatPerActivation: 1 },
         ],
       },
       {
@@ -970,7 +970,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d8+2.',
-        damageBonus: [{ dicePerActivation: '1d8+2' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 2 }],
       },
       {
         addPm: 2,
@@ -1170,7 +1170,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 1,
         text: 'aumenta o dano em +1d6.',
-        damageBonus: [{ dicePerActivation: '1d6' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 1,
@@ -1264,7 +1264,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em 1d8+1.',
-        damageBonus: [{ dicePerActivation: '1d8+1' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 1 }],
       },
       {
         addPm: 2,
@@ -1381,7 +1381,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 3,
         text: 'aumenta o dano de ácido em +2d4.',
-        damageBonus: [{ dicePerActivation: '2d4' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 5,
@@ -1649,6 +1649,16 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: 'muda as setas para lanças de energia que surgem e caem do céu. Cada lança causa 1d8+1 pontos de dano de essência. Requer 2º círculo.',
+        damageBonus: [
+          {
+            targetRollLabel: '1 seta',
+            replaceWith: '1d8+1',
+          },
+          {
+            targetRollLabel: '2 setas',
+            replaceWith: '2d8+2',
+          },
+        ],
       },
       {
         addPm: 2,
@@ -1755,7 +1765,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 1,
         text: 'aumenta o dano em 1d8+1.',
-        damageBonus: [{ dicePerActivation: '1d8+1' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 1 }],
       },
       {
         addPm: 2,
@@ -1907,7 +1917,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       {
         addPm: 2,
         text: ' aumenta os PV temporários recebidos em +1d10. Caso a magia cause dano, em vez disso aumenta o dano causado em +1d10.',
-        damageBonus: [{ dicePerActivation: '1d10' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 5,
@@ -2074,7 +2084,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 1,
         text: 'aumenta o dano em +2d6.',
-        damageBonus: [{ dicePerActivation: '2d6' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 1,
@@ -2296,6 +2306,16 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 3,
         text: 'sempre que o alvo fizer o teste de Vontade e falhar, a marca causa 3d6 pontos de dano psíquico. Requer 3º círculo.',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano Psíquico (marca)',
+              dice: '3d6',
+              damageType: 'psíquico',
+            },
+          },
+        ],
       },
     ],
   },
@@ -2321,11 +2341,12 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +2d6.',
-        damageBonus: [{ dicePerActivation: '2d6' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 2,
         text: 'muda a área para efeito de esfera flamejante com tamanho Médio e a duração para cena. Em vez do normal, cria uma esfera flamejante com 1,5m de diâmetro que causa 3d6 pontos de dano a qualquer criatura no mesmo espaço. Você pode gastar uma ação de movimento para fazer a esfera voar 9m em qualquer direção. Ela é imune a dano, mas pode ser apagada com água. Uma criatura só pode sofrer dano da esfera uma vez por rodada.',
+        damageBonus: [{ replaceWith: '3d6' }],
       },
       {
         addPm: 3,
@@ -2369,8 +2390,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
         addPm: 2,
         text: 'aumenta o dano inicial e o dano por rodada em +1d6.',
         damageBonus: [
-          { targetRollLabel: 'inicial', dicePerActivation: '1d6' },
-          { targetRollLabel: 'por rodada', dicePerActivation: '1d6' },
+          { targetRollLabel: 'inicial', diceCount: 1 },
+          { targetRollLabel: 'por rodada', diceCount: 1 },
         ],
       },
     ],
@@ -2397,7 +2418,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +2d6.',
-        damageBonus: [{ dicePerActivation: '2d6' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 3,
@@ -2432,7 +2453,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano de frio em +2d6.',
-        damageBonus: [{ targetRollLabel: 'frio', dicePerActivation: '2d6' }],
+        damageBonus: [{ targetRollLabel: 'frio', diceCount: 2 }],
       },
       {
         addPm: 3,
@@ -2572,7 +2593,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d8+1.',
-        damageBonus: [{ dicePerActivation: '1d8+1' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 1 }],
       },
       {
         addPm: 2,
@@ -2606,11 +2627,12 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +2d6.',
-        damageBonus: [{ dicePerActivation: '2d6' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 2,
         text: 'muda o alcance para pessoal, o alvo para você e a duração para cena. Em vez do normal, a cada rodada você pode gastar uma ação padrão para tocar 1 criatura e causar 3d6 pontos de dano. Você recupera pontos de vida iguais à metade do dano causado. Requer 3º círculo.',
+        damageBonus: [{ replaceWith: '3d6' }],
       },
     ],
   },
@@ -2882,11 +2904,12 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d12.',
-        damageBonus: [{ dicePerActivation: '1d12' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 3,
         text: 'muda a resistência para Reflexos reduz à metade e o enxame para criaturas maiores, como gatos, guaxinins, compsognatos ou kobolds. Ele causa 3d12 pontos de dano (a sua escolha entre corte, impacto ou perfuração). O resto da magia segue normal.',
+        damageBonus: [{ replaceWith: '3d12' }],
       },
       {
         addPm: 5,
@@ -2895,6 +2918,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 7,
         text: 'muda a resistência para Reflexos reduz à metade e o enxame para criaturas elementais. Ele causa 5d12 pontos do dano (a sua escolha entre ácido, eletricidade, fogo ou frio). O resto da magia segue normal. Requer 4º círculo.',
+        damageBonus: [{ replaceWith: '5d12' }],
       },
     ],
   },
@@ -2924,7 +2948,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6.',
-        damageBonus: [{ dicePerActivation: '1d6' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 4,
@@ -3021,8 +3045,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
         addPm: 2,
         text: 'aumenta o dano em +1d6 (exceto do efeito chamejar).',
         damageBonus: [
-          { targetRollLabel: 'esquentar', dicePerActivation: '1d6' },
-          { targetRollLabel: 'modelar', dicePerActivation: '1d6' },
+          { targetRollLabel: 'esquentar', diceCount: 1 },
+          { targetRollLabel: 'modelar', diceCount: 1 },
         ],
       },
       {
@@ -3075,8 +3099,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     rolls: [
       {
         id: uuid(),
-        label: 'Dano de Luz',
+        label: 'Dano de Luz (normal)',
         dice: '4d8',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Luz (mortos-vivos)',
+        dice: '4d12',
       },
     ],
     aprimoramentos: [
@@ -3088,7 +3117,10 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano ou cura em +1d8 (ou +1d12 em mortos-vivos).',
-        damageBonus: [{ dicePerActivation: '1d8' }],
+        damageBonus: [
+          { targetRollLabel: 'normal', diceCount: 1 },
+          { targetRollLabel: 'mortos-vivos', diceCount: 1 },
+        ],
       },
       {
         addPm: 3,
@@ -3114,10 +3146,21 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 1,
         text: 'além do normal, uma vez por rodada você pode gastar uma ação padrão para fazer um raio cair sobre um alvo na área, causando 3d8 pontos de dano de eletricidade (Reflexos reduz à metade).',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano de Eletricidade (raio)',
+              dice: '3d8',
+              damageType: 'eletricidade',
+            },
+          },
+        ],
       },
       {
         addPm: 2,
         text: 'aumenta o dano de raios (veja acima) em +1d8.',
+        damageBonus: [{ targetRollLabel: 'raio', dicePerActivation: '1d8' }],
       },
       {
         addPm: 3,
@@ -3126,10 +3169,30 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 3,
         text: 'se escolheu causar granizo, muda o dano para 2d6 por rodada.',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano de Impacto (granizo)',
+              dice: '2d6',
+              damageType: 'impacto',
+            },
+          },
+        ],
       },
       {
         addPm: 3,
         text: 'se escolheu causar neve, criaturas na área sofrem 2d6 pontos de dano de frio no início de seus turnos.',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano de Frio (neve)',
+              dice: '2d6',
+              damageType: 'frio',
+            },
+          },
+        ],
       },
       {
         addPm: 3,
@@ -3186,7 +3249,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6.',
-        damageBonus: [{ dicePerActivation: '1d6' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 3,
@@ -3234,6 +3297,16 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       {
         addPm: 3,
         text: 'muda o alvo para área de quadrado com 9m de lado e a duração para cena. Em vez do normal, qualquer vegetação na área fica rígida e afiada. A área é considerada terreno difícil e criaturas que andem nela sofrem 1d6 pontos de dano de corte para cada 1,5m que avancem.',
+        damageBonus: [
+          {
+            additionalRoll: {
+              id: uuid(),
+              label: 'Dano de Corte (vegetação)',
+              dice: '1d6',
+              damageType: 'corte',
+            },
+          },
+        ],
       },
       {
         addPm: 7,
@@ -3458,7 +3531,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d12.',
-        damageBonus: [{ dicePerActivation: '1d12' }],
+        damageBonus: [{ diceCount: 1 }],
       },
       {
         addPm: 2,
@@ -3575,13 +3648,25 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
         addPm: 3,
         text: 'aumenta o dano de frio em +2d6 e o dano de corte em +2d6.',
         damageBonus: [
-          { targetRollLabel: 'frio', dicePerActivation: '2d6' },
-          { targetRollLabel: 'corte', dicePerActivation: '2d6' },
+          { targetRollLabel: 'frio', diceCount: 2 },
+          { targetRollLabel: 'corte', diceCount: 2 },
         ],
       },
       {
         addPm: 4,
         text: 'muda a área para cilindro com 6m de raio e 6m de altura e a duração para sustentada. Em vez do normal, a magia cria uma tempestade de granizo que causa 3d6 pontos de dano de impacto e 3d6 pontos de dano de frio em todas as criaturas na área (sem teste de resistência). A tempestade fornece camuflagem leve às criaturas dentro dela e deixa o piso escorregadio. Piso escorregadio conta como terreno difícil e obriga criaturas na área a fazer testes de Acrobacia para equilíbrio (veja o Capítulo 2). Requer 4º círculo.',
+        damageBonus: [
+          {
+            targetRollLabel: 'corte',
+            replaceWith: '3d6',
+            replaceDamageType: 'impacto',
+            replaceLabel: 'Dano de Impacto',
+          },
+          {
+            targetRollLabel: 'frio',
+            replaceWith: '3d6',
+          },
+        ],
       },
     ],
   },
@@ -3618,8 +3703,8 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
         addPm: 3,
         text: 'aumenta o dano inicial em +2d6 e o dano do efeito em chamas em +1d6.',
         damageBonus: [
-          { targetRollLabel: 'fogo inicial', dicePerActivation: '2d6' },
-          { targetRollLabel: 'em chamas', dicePerActivation: '1d6' },
+          { targetRollLabel: 'fogo inicial', diceCount: 2 },
+          { targetRollLabel: 'em chamas', diceCount: 1 },
         ],
       },
       {
@@ -3656,8 +3741,8 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
         addPm: 2,
         text: 'aumenta o dano por atravessar a muralha em +2d6.',
         damageBonus: [
-          { targetRollLabel: 'fogo', dicePerActivation: '2d6' },
-          { targetRollLabel: 'frio', dicePerActivation: '2d6' },
+          { targetRollLabel: 'fogo', diceCount: 2 },
+          { targetRollLabel: 'frio', diceCount: 2 },
         ],
       },
       {
@@ -3692,7 +3777,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 3,
         text: 'aumenta o dano em +2d6.',
-        damageBonus: [{ dicePerActivation: '2d6' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 4,
@@ -3766,9 +3851,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d8.',
-        damageBonus: [
-          { targetRollLabel: 'por rodada', dicePerActivation: '1d8' },
-        ],
+        damageBonus: [{ targetRollLabel: 'por rodada', diceCount: 1 }],
       },
       {
         addPm: 9,
@@ -3802,7 +3885,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano dos tentáculos em +2d6.',
-        damageBonus: [{ dicePerActivation: '2d6' }],
+        damageBonus: [{ diceCount: 2 }],
       },
     ],
   },
@@ -4101,12 +4184,12 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 1,
         text: 'aumenta o dano de fogo em +1d6.',
-        damageBonus: [{ targetRollLabel: 'fogo', dicePerActivation: '1d6' }],
+        damageBonus: [{ targetRollLabel: 'fogo', diceCount: 1 }],
       },
       {
         addPm: 1,
         text: 'aumenta o dano de luz em +1d6.',
-        damageBonus: [{ targetRollLabel: 'luz', dicePerActivation: '1d6' }],
+        damageBonus: [{ targetRollLabel: 'luz', diceCount: 1 }],
       },
     ],
   },
@@ -4161,7 +4244,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta a cura em +1d8+2.',
-        damageBonus: [{ dicePerActivation: '1d8+2' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 2 }],
       },
       {
         addPm: 4,
@@ -4220,7 +4303,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em 1d8+4.',
-        damageBonus: [{ dicePerActivation: '1d8+4' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 4 }],
       },
     ],
   },
@@ -4271,7 +4354,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +2d8.',
-        damageBonus: [{ dicePerActivation: '2d8' }],
+        damageBonus: [{ diceCount: 2 }],
       },
     ],
   },
@@ -4470,7 +4553,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6+5.',
-        damageBonus: [{ dicePerActivation: '1d6+5' }],
+        damageBonus: [{ diceCount: 1, flatPerActivation: 5 }],
       },
       {
         addPm: 5,
@@ -4553,7 +4636,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
       {
         addPm: 3,
         text: 'aumenta o dano em +2d8.',
-        damageBonus: [{ dicePerActivation: '2d8' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 5,
@@ -4594,9 +4677,9 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
         addPm: 2,
         text: 'aumenta o dano das rajadas em +1d6 e o dano da rajada mista em +2d12.',
         damageBonus: [
-          { targetRollLabel: 'bola de fogo', dicePerActivation: '1d6' },
-          { targetRollLabel: 'relâmpago', dicePerActivation: '1d6' },
-          { targetRollLabel: 'misto', dicePerActivation: '2d12' },
+          { targetRollLabel: 'bola de fogo', diceCount: 1 },
+          { targetRollLabel: 'relâmpago', diceCount: 1 },
+          { targetRollLabel: 'misto', diceCount: 2 },
         ],
       },
     ],
@@ -4623,7 +4706,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
       {
         addPm: 2,
         text: 'aumenta o dano em +2d8.',
-        damageBonus: [{ dicePerActivation: '2d8' }],
+        damageBonus: [{ diceCount: 2 }],
       },
       {
         addPm: 2,
@@ -4766,8 +4849,8 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
         addPm: 4,
         text: 'aumenta o dano total em +2d12 e o dano mínimo em +1d12.',
         damageBonus: [
-          { targetRollLabel: 'total', dicePerActivation: '2d12' },
-          { targetRollLabel: 'mínimo', dicePerActivation: '1d12' },
+          { targetRollLabel: 'total', diceCount: 2 },
+          { targetRollLabel: 'mínimo', diceCount: 1 },
         ],
       },
     ],
@@ -4891,15 +4974,23 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     rolls: [
       {
         id: uuid(),
-        label: 'Dano de Fogo',
+        label: 'Dano de Fogo (normal)',
         dice: '10d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Fogo (mortos-vivos)',
+        dice: '10d8',
       },
     ],
     aprimoramentos: [
       {
         addPm: 2,
         text: 'aumenta o dano em +2d6 (+2d8 contra mortos-vivos).',
-        damageBonus: [{ dicePerActivation: '2d6' }],
+        damageBonus: [
+          { targetRollLabel: 'normal', diceCount: 2 },
+          { targetRollLabel: 'mortos-vivos', diceCount: 2 },
+        ],
       },
       {
         addPm: 2,
@@ -5320,8 +5411,8 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
         addPm: 2,
         text: 'aumenta o número de meteoros que atingem a área, o que aumenta o dano em +2d6 de impacto e +2d6 de fogo.',
         damageBonus: [
-          { targetRollLabel: 'impacto', dicePerActivation: '2d6' },
-          { targetRollLabel: 'fogo', dicePerActivation: '2d6' },
+          { targetRollLabel: 'impacto', diceCount: 2 },
+          { targetRollLabel: 'fogo', diceCount: 2 },
         ],
       },
     ],
@@ -5429,10 +5520,10 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
         addPm: 5,
         text: 'aumenta o dano de cada esfera em +2d6.',
         damageBonus: [
-          { targetRollLabel: 'ácido', dicePerActivation: '2d6' },
-          { targetRollLabel: 'eletricidade', dicePerActivation: '2d6' },
-          { targetRollLabel: 'fogo', dicePerActivation: '2d6' },
-          { targetRollLabel: 'frio', dicePerActivation: '2d6' },
+          { targetRollLabel: 'ácido', diceCount: 2 },
+          { targetRollLabel: 'eletricidade', diceCount: 2 },
+          { targetRollLabel: 'fogo', diceCount: 2 },
+          { targetRollLabel: 'frio', diceCount: 2 },
         ],
       },
       {
@@ -5485,7 +5576,7 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
       {
         addPm: 1,
         text: 'aumenta o dano em 1d12.',
-        damageBonus: [{ dicePerActivation: '1d12' }],
+        damageBonus: [{ diceCount: 1 }],
       },
     ],
   },

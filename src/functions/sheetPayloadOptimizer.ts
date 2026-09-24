@@ -3,6 +3,7 @@ import { ClassDescription } from '../interfaces/Class';
 import Race from '../interfaces/Race';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
+import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { stampUsedSupplements } from './contentSources';
 import { getGrantedProficienciasFromHistory } from './proficiencies';
 
@@ -36,6 +37,14 @@ export const NEVER_UNSET_SHEET_KEYS: readonly string[] = [
   'generalPowers',
   'sheetActionHistory',
   'steps',
+  // Diário do Jogador. Diferente do resto da lista, não é derivável de nada:
+  // é prosa escrita à mão pelo jogador. Uma vez que existe, o normalizeSheet
+  // garante que continua existindo em toda carga.
+  'journal',
+  // Efeitos customizados avulsos. Mesma categoria do diário: autorais, não
+  // deriváveis de nada. Apagar todos é legítimo, mas isso grava `[]` — a
+  // AUSÊNCIA da chave só pode ser corrupção em memória.
+  'customEffects',
 ];
 
 /**
@@ -259,6 +268,10 @@ export function stripSheetForStorage(
       // "Devagar e Sempre"/Golem: sem isso a ficha volta da nuvem sem a
       // isenção e o recálculo aplica −3m de deslocamento por carga/armadura.
       ignoreEncumbrance: sheet.raca.ignoreEncumbrance,
+      // Variantes/"considerado um X": sem isso, um Soterrado volta da nuvem
+      // sem acesso aos poderes de Osteon e os já escolhidos aparecem como
+      // indisponíveis no editor.
+      countsAsRaces: sheet.raca.countsAsRaces,
       // A raça original de Osteon/Yidishan/Soterrado é a fonte do
       // deslocamento, do tamanho e da isenção acima. Sem preservá-la, o
       // rehydrate roda `setup()` de novo e SORTEIA outra raça-base.
@@ -279,6 +292,12 @@ export function stripSheetForStorage(
   ) {
     stripped.devoto = {
       poderes: sheet.devoto.poderes,
+      // Devoção Dupla: guardados por NOME justamente para caberem aqui sem
+      // custo. Este objeto é remontado campo a campo (não é um spread), então
+      // qualquer campo novo de `devoto` que não for listado SOME ao salvar na
+      // nuvem — é o mesmo tipo de bug que já derrubou campos novos de `Race`.
+      divindadeSecundaria: sheet.devoto.divindadeSecundaria,
+      sincretismo: sheet.devoto.sincretismo,
       divindade: {
         name: sheet.devoto.divindade.name,
         poderes: [],
@@ -339,7 +358,7 @@ export function computeSheetDelta(
  * If the sheet was not stripped (old format), returns it as-is for backward compatibility.
  *
  * Reconstructs:
- * - classe.powers: Full class powers catalog (needed for PowersEditDrawer to show available powers)
+ * - classe.powers: Full class powers catalog (needed for PowersEditor to show available powers)
  * - classe.periciasbasicas, periciasrestantes: Static definitions
  * - classe.proficiencias: união da lista da classe com as armazenadas na ficha e
  *   as registradas no `sheetActionHistory` (cura fichas gravadas quando o strip
@@ -417,6 +436,22 @@ function refreshRaceEncumbranceFlag(
   sheet.raca.ignoreEncumbrance = catalogRace?.ignoreEncumbrance ?? false;
 }
 
+/**
+ * Re-carimba `countsAsRaces` (variantes e "considerado um X") pelo mapa atual.
+ *
+ * É dado estático de catálogo, nunca escolha do usuário — então o catálogo
+ * vence sempre, e fichas gravadas antes do campo existir são curadas de graça.
+ * Lê o mapa direto em vez do catálogo de raças para não depender dos
+ * suplementos ativos: um Soterrado não pode perder o acesso aos poderes de
+ * Osteon só porque quem abriu a ficha desativou Ameaças de Arton.
+ */
+function refreshRaceCountsAs(sheet: CharacterSheet) {
+  if (!sheet.raca?.name) return;
+
+  const countsAs = RACE_COUNTS_AS[sheet.raca.name];
+  if (countsAs) sheet.raca.countsAsRaces = countsAs;
+}
+
 export function rehydrateSheet(
   sheetData: Record<string, unknown>,
   supplementIds: SupplementId[]
@@ -429,6 +464,7 @@ export function rehydrateSheet(
   if (!(STRIPPED_MARKER in sheetData)) {
     refreshChosenPowersFromCatalog(sheet, supplementIds);
     refreshRaceEncumbranceFlag(sheet, supplementIds);
+    refreshRaceCountsAs(sheet);
     return sheet;
   }
 
@@ -502,6 +538,7 @@ export function rehydrateSheet(
       } as Race;
     }
     refreshRaceEncumbranceFlag(sheet, supplementIds);
+    refreshRaceCountsAs(sheet);
   }
 
   // Rehydrate devoto.divindade (restore deity powers catalog from registry)

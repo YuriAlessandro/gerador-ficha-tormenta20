@@ -67,7 +67,10 @@ describe('resolveLayout — preset de abas reproduz o comportamento histórico',
     const resolved = resolveLayout(PRESET_TABS, wide());
 
     const aside = resolved.regions.find((r) => r.role === 'aside');
-    expect(aside?.sections.map((s) => s.payload.kind)).toEqual(['skills']);
+    expect(aside?.sections.map((s) => s.payload.kind)).toEqual([
+      'skills',
+      'journal',
+    ]);
 
     expect(surfaceLabels(resolved.regions)).toEqual([
       'Ataques',
@@ -90,12 +93,25 @@ describe('resolveLayout — preset de abas reproduz o comportamento histórico',
       'Poderes',
       'Magias',
       'Equip.',
+      'Diário',
     ]);
 
     const skillsTab = resolved.regions.find(
       (r) => r.id === PRESET_REGION_IDS.skills
     );
     expect(skillsTab?.sections.map((s) => s.payload.kind)).toEqual(['skills']);
+  });
+
+  it('sem o Diário do Jogador, não há aba nem cartão de diário', () => {
+    const semDiario = new Set(ALL_KINDS);
+    semDiario.delete('journal');
+
+    const estreito = resolveLayout(PRESET_TABS, narrow(semDiario));
+    expect(surfaceLabels(estreito.regions)).not.toContain('Diário');
+
+    const largo = resolveLayout(PRESET_TABS, wide(semDiario));
+    const aside = largo.regions.find((r) => r.role === 'aside');
+    expect(aside?.sections.map((s) => s.payload.kind)).toEqual(['skills']);
   });
 
   it('não duplica Perícias ao mover para a aba', () => {

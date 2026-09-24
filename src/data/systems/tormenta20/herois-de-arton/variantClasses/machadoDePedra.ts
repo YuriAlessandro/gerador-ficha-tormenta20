@@ -40,6 +40,50 @@ const MACHADO_DE_PEDRA: VariantClassOverrides = {
       name: 'Machado de Pedra',
       text: 'Você não recebe proficiência com armas simples. Você sabe usar apenas adaga, azagaia, clava, funda, lança, machadinha e tacape. No 9º nível, aprende a usar uma arma simples ou marcial a sua escolha. Entretanto, quando ataca com uma arma natural, um ataque desarmado ou uma dessas armas, você recebe +1 no teste de ataque e na rolagem de dano.',
       nivel: 1,
+      sheetBonuses: [
+        // Arma natural ou ataque desarmado: um único bônus por tag,
+        // `weaponMatchesScope` casa se a arma tiver QUALQUER uma das tags.
+        {
+          source: { type: 'power', name: 'Machado de Pedra' },
+          target: {
+            type: 'WeaponAttack',
+            weaponTags: ['natural', 'desarmado'],
+          },
+          modifier: { type: 'Fixed', value: 1 },
+        },
+        {
+          source: { type: 'power', name: 'Machado de Pedra' },
+          target: {
+            type: 'WeaponDamage',
+            weaponTags: ['natural', 'desarmado'],
+          },
+          modifier: { type: 'Fixed', value: 1 },
+        },
+        // As sete armas nomeadas do texto — sem tag em comum no catálogo,
+        // então um bônus por nome (mesmo padrão de Pirata Oceânico/Arpão).
+        ...(
+          [
+            'Adaga',
+            'Azagaia',
+            'Clava',
+            'Funda',
+            'Lança',
+            'Machadinha',
+            'Tacape',
+          ] as const
+        ).flatMap((weaponName) => [
+          {
+            source: { type: 'power' as const, name: 'Machado de Pedra' },
+            target: { type: 'WeaponAttack' as const, weaponName },
+            modifier: { type: 'Fixed' as const, value: 1 },
+          },
+          {
+            source: { type: 'power' as const, name: 'Machado de Pedra' },
+            target: { type: 'WeaponDamage' as const, weaponName },
+            modifier: { type: 'Fixed' as const, value: 1 },
+          },
+        ]),
+      ],
     },
     {
       name: 'Tanga de Peles',

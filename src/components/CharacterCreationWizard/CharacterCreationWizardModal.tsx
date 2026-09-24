@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
+import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
 import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
@@ -43,10 +44,13 @@ import { buildSpellPool } from '@/functions/spellPathUtils';
 // Import step components
 import {
   getPowerSelectionRequirements,
-  getChosenOptionNestedRequirements,
   countRequirementSelections,
+  resolvePowerRequirements,
+  resolveLearnSkillPick,
+  ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
 import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
+import { getAgeAttributeTotalsForSelection } from '@/functions/ages';
 import {
   applyAttributeVariant,
   buildClassEquipmentsFromChoices,
@@ -59,6 +63,7 @@ import {
   resolveSexForAttributes,
 } from '@/functions/general';
 import { getOriginBagEquipments } from '@/functions/originItems';
+import { getPlateauByLevel } from '@/functions/powers/general';
 import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
 import { rollAttributePool } from '@/functions/attributeMethods';
 import {
@@ -98,6 +103,11 @@ import {
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import type { GeneralPower } from '@/interfaces/Poderes';
+import { getCompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import {
+  applyDeityClassVariant,
+  getDeityClassVariant,
+} from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
 import RaceAttributeStep from './steps/RaceAttributeStep';
@@ -113,6 +123,7 @@ import InitialSpellSelectionStep from './steps/InitialSpellSelectionStep';
 import ArcanistSubtypeSelectionStep from './steps/ArcanistSubtypeSelectionStep';
 import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelectionStep';
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
+import DeityClassVariantStep from './steps/DeityClassVariantStep';
 import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 import ClassEquipmentStep from './steps/ClassEquipmentStep';
@@ -317,11 +328,60 @@ const CharacterCreationWizardModal: React.FC<
     [race, selections.attributeVariant]
   );
 
-  // Memoize classe to prevent infinite re-renders (used as useEffect dependency)
-  const classe: ClassDescription | undefined = useMemo(() => {
+  /**
+   * Divindades escolhidas no formulário, antes do assistente abrir. Alimentam a
+   * variante de classe por divindade (Deuses de Arton).
+   */
+  const deityChoiceNames = useMemo(
+    () =>
+      [
+        selectedOptions.devocao?.value,
+        selectedOptions.dualDevotion
+          ? selectedOptions.devocaoSecundaria?.value
+          : undefined,
+      ].filter((name): name is string => !!name && name !== '--'),
+    [
+      selectedOptions.devocao?.value,
+      selectedOptions.dualDevotion,
+      selectedOptions.devocaoSecundaria?.value,
+    ]
+  );
+
+  const catalogClasse: ClassDescription | undefined = useMemo(() => {
     const classes = dataRegistry.getClassesBySupplements(supplements);
     return classes.find((c) => c.name === selectedOptions.classe);
   }, [supplements, selectedOptions.classe]);
+
+  /**
+   * Variante de classe por divindade — hoje só "Paladino de Marah". Define o
+   * passo e o que ele oferece; `undefined` = o passo não existe nesta ficha.
+   */
+  const deityClassVariant = useMemo(
+    () => getDeityClassVariant(deityChoiceNames, catalogClasse, supplements),
+    [deityChoiceNames, catalogClasse, supplements]
+  );
+
+  /** Rótulo do passo. Dinâmico, então getStepContent/canProceed o comparam fora do switch. */
+  const deityClassVariantStepLabel = deityClassVariant
+    ? `${deityClassVariant.className} de ${deityClassVariant.deity}`
+    : undefined;
+
+  // Memoize classe to prevent infinite re-renders (used as useEffect dependency)
+  //
+  // A variante entra AQUI para que todos os passos abaixo (Perícias da Classe,
+  // Efeitos de Poderes, Equipamento) já vejam a classe customizada — mesmo
+  // padrão do `applySuragelAlternativeAbility` no memo de `race`.
+  const classe: ClassDescription | undefined = useMemo(
+    () =>
+      catalogClasse
+        ? applyDeityClassVariant(
+            catalogClasse,
+            deityClassVariant,
+            selections.deityClassChoices
+          )
+        : undefined,
+    [catalogClasse, deityClassVariant, selections.deityClassChoices]
+  );
 
   // Expand Ofício (Qualquer) in base skills to specific Ofício variants
   const expandedBasicas = useMemo(
@@ -405,6 +465,49 @@ const CharacterCreationWizardModal: React.FC<
     return deityWithPowers || baseDeity;
   }, [selectedOptions.devocao?.value, supplements]);
 
+  /**
+   * Devoção Dupla: a segunda divindade escolhida no formulário. Guardada por
+   * nome, resolvida aqui pelo registry como a primária.
+   */
+  const secondaryDeity: Divindade | null = useMemo(() => {
+    if (!selectedOptions.dualDevotion) return null;
+    const value = selectedOptions.devocaoSecundaria?.value;
+    if (!value) return null;
+    const base =
+      DivindadeEnum[value as keyof typeof DivindadeEnum]?.name ?? value;
+    const resolved = dataRegistry.getDeityByName(base, supplements);
+    return resolved && resolved.name !== deity?.name ? resolved : null;
+  }, [
+    selectedOptions.dualDevotion,
+    selectedOptions.devocaoSecundaria?.value,
+    supplements,
+    deity,
+  ]);
+
+  /**
+   * Piscina de poderes concedidos: a união das listas dos deuses da devoção,
+   * mais o poder único do sincretismo. A QUANTIDADE que o personagem escolhe
+   * não muda — segue saindo de `classe.qtdPoderesConcedidos`.
+   */
+  const grantedPowerPool = useMemo(() => {
+    if (!deity) return [];
+    const names = [deity.name];
+    if (secondaryDeity) names.push(secondaryDeity.name);
+    return getGrantedPowerPool(names, supplements);
+  }, [deity, secondaryDeity, supplements]);
+
+  /**
+   * Poderes concedidos já escolhidos no passo "Poderes da Divindade". Entram na
+   * ficha-mock dos passos de poder (complicação / idade) para que o requisito
+   * DEVOTO e os requisitos do tipo PODER enxerguem a devoção já montada.
+   */
+  const chosenDeityPowers = useMemo(() => {
+    if (!deity || !selections.deityPowers?.length) return [];
+    return grantedPowerPool.filter((p) =>
+      selections.deityPowers?.includes(p.name)
+    );
+  }, [deity, grantedPowerPool, selections.deityPowers]);
+
   // Sexo efetivo para atributos raciais (dimorfismo sexual, ex: Nagah)
   const sexForAttributes = resolveSexForAttributes(
     selections.characterGender,
@@ -442,15 +545,24 @@ const CharacterCreationWizardModal: React.FC<
         )
       : undefined;
 
+  // Idades Variadas ligadas nesta ficha? A idade em si existe sempre (o
+  // envelhecimento do livro básico não é opcional), mas só a regra de Heróis de
+  // Arton mexe em benefícios de origem, complicações e níveis extras.
+  const variedAges =
+    optionalRulesAvailable &&
+    !!selections.variedAges &&
+    !!selections.ageBracket;
+
   // Quantos benefícios de origem a faixa etária concede: Criança 0 ("Sem
   // Origem"), Adolescente 1 ("Origem em Construção"), demais 2.
-  const ageOriginBenefits = optionalRulesAvailable
+  const ageOriginBenefits = variedAges
     ? getAgeOriginBenefits(selections.ageBracket)
     : 2;
 
   // "Já Vi Coisas" só existe no Adulto; nas demais faixas o poder não é opcional
   // (não existe), então o toggle nunca vale.
   const tookAgeOptionalPower =
+    variedAges &&
     !!selections.ageOptionalPowerTaken &&
     !!getAgeBracket(selections.ageBracket)?.optionalGeneralPower;
 
@@ -464,14 +576,32 @@ const CharacterCreationWizardModal: React.FC<
         : undefined
     );
 
-  // Modificadores finais dos seis atributos (base + raciais). Necessários pelos
-  // passos que filtram poderes antes de a ficha existir — sem eles a ficha-mock
-  // usa valores falsos e todo pré-requisito de atributo passa de graça.
+  /**
+   * Modificadores que a idade aplica com a raça e a regra escolhidas AGORA.
+   *
+   * Vive aqui em cima porque a idade é decidida no primeiro passo e todo o
+   * resto do assistente depende dela: um personagem maduro tem Int +1 e, com
+   * isso, uma perícia extra e poderes a mais ao alcance.
+   */
+  const ageAttributeModifiers = getAgeAttributeTotalsForSelection(
+    {
+      years: selections.ageYears,
+      variedAges: selections.variedAges,
+      bracket: selections.ageBracket,
+    },
+    raceForAttributes?.name
+  );
+
+  // Modificadores finais dos seis atributos (base + raciais + idade).
+  // Necessários pelos passos que filtram poderes antes de a ficha existir — sem
+  // eles a ficha-mock usa valores falsos e todo pré-requisito de atributo passa
+  // de graça.
   const finalAttributeModifiers = computeFinalAttributeModifiers(
     raceForAttributes,
     sexForAttributes,
     selections.baseAttributes,
-    selections.raceAttributes
+    selections.raceAttributes,
+    ageAttributeModifiers
   );
 
   // Helper to calculate intelligence modifier (including racial modifiers)
@@ -566,7 +696,7 @@ const CharacterCreationWizardModal: React.FC<
 
     // Check deity granted powers (selected in previous step)
     if (deity && selections.deityPowers && selections.deityPowers.length > 0) {
-      const selectedDeityPowers = deity.poderes.filter((p) =>
+      const selectedDeityPowers = grantedPowerPool.filter((p) =>
         selections.deityPowers?.includes(p.name)
       );
       const hasDeityRequirements = selectedDeityPowers.some((power) => {
@@ -657,8 +787,7 @@ const CharacterCreationWizardModal: React.FC<
   // não têm complicação de idade). Para o Adulto ele aparece mesmo assim,
   // porque é lá que mora o toggle de "Já Vi Coisas".
   const needsAgeComplications = (): boolean =>
-    optionalRulesAvailable &&
-    getRequiredAgeComplications(selections.ageBracket) > 0;
+    variedAges && getRequiredAgeComplications(selections.ageBracket) > 0;
 
   const needsAgePower = (): boolean =>
     needsAgeComplications() && tookAgeOptionalPower;
@@ -796,6 +925,9 @@ const CharacterCreationWizardModal: React.FC<
     if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
     if (needsQareenElementSelection()) stepsArray.push('Elemento do Qareen');
     if (needsMoreauSapienciaSelection()) stepsArray.push('Magia da Sapiência');
+    // Antes de 'Perícias da Classe': a troca Luta → Diplomacia precisa estar
+    // decidida quando o jogador escolhe as perícias restantes.
+    if (deityClassVariantStepLabel) stepsArray.push(deityClassVariantStepLabel);
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
     if (needsAlchemyItemSelection()) stepsArray.push('Itens Alquímicos');
@@ -871,6 +1003,7 @@ const CharacterCreationWizardModal: React.FC<
     classe,
     origin,
     deity,
+    selections.variedAges,
     selections.ageBracket,
     selections.ageOptionalPowerTaken,
   ]);
@@ -940,6 +1073,14 @@ const CharacterCreationWizardModal: React.FC<
    * ficha, então declara só o piso e deixa o atributo no metadata.
    */
   const resolveRequirementPick = (req: PowerSelectionRequirement): number => {
+    if (req.type === 'learnSkill' && req.metadata?.perTierAboveIniciante) {
+      // Biblioteca Divina e similares: `pick` declarado é o piso (patamar
+      // Iniciante); o restante escala com o patamar do nível-alvo da ficha.
+      return resolveLearnSkillPick(
+        req,
+        getPlateauByLevel(selectedOptions.nivel || 1)
+      );
+    }
     if (req.type !== 'markTrainedSkills') return req.pick;
     const attributeMod =
       req.metadata?.pickByAttribute === Atributo.INTELIGENCIA
@@ -1037,6 +1178,25 @@ const CharacterCreationWizardModal: React.FC<
   const getStepContent = (stepIndex: number): React.ReactNode => {
     const stepName = steps[stepIndex];
 
+    // Rótulo dinâmico ("Paladino de Marah"), portanto fora do switch.
+    if (
+      deityClassVariantStepLabel &&
+      stepName === deityClassVariantStepLabel &&
+      deityClassVariant &&
+      catalogClasse
+    ) {
+      return (
+        <DeityClassVariantStep
+          variant={deityClassVariant}
+          classAbilities={catalogClasse.abilities}
+          choices={selections.deityClassChoices}
+          onChange={(deityClassChoices) =>
+            setSelections({ ...selections, deityClassChoices })
+          }
+        />
+      );
+    }
+
     switch (stepName) {
       case 'Informações Básicas':
         return (
@@ -1059,30 +1219,30 @@ const CharacterCreationWizardModal: React.FC<
             raceName={selectedOptions.raca}
             race={race}
             supplements={supplements}
-            ageSelection={
-              optionalRulesAvailable
-                ? {
-                    bracket: selections.ageBracket ?? 'jovem',
-                    years: selections.ageYears,
-                    deathByOldAge: selections.deathByOldAge,
-                  }
-                : undefined
-            }
-            onAgeChange={
-              optionalRulesAvailable
-                ? (age) =>
-                    setSelections({
-                      ...selections,
-                      ageBracket: age.bracket,
-                      ageYears: age.years,
-                      deathByOldAge: age.deathByOldAge,
-                      // Trocar de faixa muda quantas complicações são exigidas e
-                      // se o poder opcional existe — as escolhas antigas não
-                      // sobrevivem à troca.
-                      ageComplications: [],
-                      agePower: undefined,
-                    })
-                : undefined
+            classDescription={classe}
+            variedAgesAvailable={optionalRulesAvailable}
+            ageSelection={{
+              years: selections.ageYears,
+              stage: selections.ageStage,
+              variedAges: selections.variedAges,
+              bracket: selections.ageBracket,
+              deathByOldAge: selections.deathByOldAge,
+            }}
+            onAgeChange={(age) =>
+              setSelections({
+                ...selections,
+                ageYears: age.years,
+                ageStage: age.stage,
+                variedAges: age.variedAges,
+                ageBracket: age.bracket,
+                deathByOldAge: age.deathByOldAge,
+                // Mudar de faixa muda quantas complicações são exigidas e se o
+                // poder opcional existe — as escolhas antigas não sobrevivem à
+                // troca. Desligar a regra as descarta pelo mesmo motivo.
+                ageComplications: [],
+                agePower: undefined,
+                ageOptionalPowerTaken: undefined,
+              })
             }
           />
         );
@@ -1114,6 +1274,7 @@ const CharacterCreationWizardModal: React.FC<
             sexForAttributes={sexForAttributes}
             baseAttributes={selections.baseAttributes || zeroedAttributes}
             raceAttributeChoices={selections.raceAttributes}
+            ageModifiers={ageAttributeModifiers}
             method={selections.attributeMethod || 'free'}
             dicePool={selections.attributeDicePool}
             dicePoolLabels={selections.attributeDicePoolLabels}
@@ -1411,6 +1572,9 @@ const CharacterCreationWizardModal: React.FC<
             race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
+            deity={deity}
+            secondaryDeityName={secondaryDeity?.name}
+            deityPowers={chosenDeityPowers}
             usedSkills={getAllUsedSkills()}
             supplements={supplements}
           />
@@ -1457,6 +1621,7 @@ const CharacterCreationWizardModal: React.FC<
         if (selections.propositoCriacaoPower) {
           knownPowers.push(selections.propositoCriacaoPower);
         }
+        knownPowers.push(...chosenDeityPowers);
 
         const complicationPowerName = selections.complicationPower?.name;
         return (
@@ -1500,6 +1665,9 @@ const CharacterCreationWizardModal: React.FC<
             race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
+            deity={deity}
+            secondaryDeityName={secondaryDeity?.name}
+            deityPowers={chosenDeityPowers}
             usedSkills={getAllUsedSkills()}
             supplements={supplements}
           />
@@ -1542,6 +1710,7 @@ const CharacterCreationWizardModal: React.FC<
         if (selections.propositoCriacaoPower) {
           knownPowers.push(selections.propositoCriacaoPower);
         }
+        knownPowers.push(...chosenDeityPowers);
         if (selections.complicationPower) {
           knownPowers.push(selections.complicationPower);
         }
@@ -1587,6 +1756,9 @@ const CharacterCreationWizardModal: React.FC<
             race={raceForAttributes}
             sexForAttributes={sexForAttributes}
             classe={classe}
+            deity={deity}
+            secondaryDeityName={secondaryDeity?.name}
+            deityPowers={chosenDeityPowers}
             usedSkills={getAllUsedSkills()}
             supplements={supplements}
           />
@@ -1649,6 +1821,8 @@ const CharacterCreationWizardModal: React.FC<
           <DeityPowerStep
             classe={classe}
             deity={deity}
+            secondaryDeity={secondaryDeity}
+            powerPool={grantedPowerPool}
             selectedPowers={selections.deityPowers || []}
             onChange={(powers) =>
               setSelections({ ...selections, deityPowers: powers })
@@ -1742,6 +1916,7 @@ const CharacterCreationWizardModal: React.FC<
             classe={classe}
             origin={origin}
             deity={deity}
+            deityPowerPool={grantedPowerPool}
             selectedDeityPowers={selections.deityPowers}
             selections={selections.powerEffectSelections || {}}
             onChange={(effectSelections) =>
@@ -1754,6 +1929,7 @@ const CharacterCreationWizardModal: React.FC<
             supplements={supplements}
             usedSkills={getAllUsedSkills()}
             attributeModifiers={finalAttributeModifiers}
+            targetPlateau={getPlateauByLevel(selectedOptions.nivel || 1)}
           />
         );
 
@@ -1866,6 +2042,12 @@ const CharacterCreationWizardModal: React.FC<
   const canProceed = (): boolean => {
     const stepName = steps[activeStep];
 
+    // Variante de classe por divindade: sempre válido — o padrão do livro
+    // básico já é uma resposta completa, as duas trocas são opcionais.
+    if (deityClassVariantStepLabel && stepName === deityClassVariantStepLabel) {
+      return true;
+    }
+
     switch (stepName) {
       case 'Informações Básicas':
         // Require at least a name (and the racial attribute set choice for
@@ -1913,7 +2095,7 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Complicações de Idade':
         return isAgeSelectionComplete(
-          selections.ageBracket,
+          variedAges ? selections.ageBracket : undefined,
           (selections.ageComplications ?? []).length,
           tookAgeOptionalPower
         );
@@ -2066,27 +2248,21 @@ const CharacterCreationWizardModal: React.FC<
       case 'Efeitos de Poderes': {
         if (!race || !classe) return false;
 
-        // Collect all requirements from race, class, origin, and deity powers
-        // Each requirement is tied to its power name for per-power validation
-        const allRequirements: Array<
-          PowerSelectionRequirement & { powerName: string }
-        > = [];
-
         const effectSelections = selections.powerEffectSelections || {};
 
-        // Mesma coleta do PowerEffectSelectionStep: requisitos fixos + os que só
-        // aparecem depois de uma escolha de `chooseFromOptions`.
+        // Mesma coleta que o `PowerEffectSelectionStep` usa para desenhar os
+        // seletores: requisitos do poder + os que só existem depois de uma
+        // escolha (`chooseFromOptions`) + os dos poderes concedidos. Enquanto as
+        // duas coisas coletavam por caminhos diferentes, dava para existir
+        // requisito que travava o Próximo sem ter onde escolher (ex.: os
+        // Talentos do Bando dos Kobolds).
+        const allRequirements: ResolvedRequirement[] = [];
         const collectRequirements = (
-          powerOrAbility: Parameters<typeof getPowerSelectionRequirements>[0]
+          powerOrAbility: Parameters<typeof resolvePowerRequirements>[0]
         ) => {
-          const reqs = getPowerSelectionRequirements(powerOrAbility);
-          const nested = getChosenOptionNestedRequirements(
-            powerOrAbility,
-            effectSelections[powerOrAbility.name]
+          allRequirements.push(
+            ...resolvePowerRequirements(powerOrAbility, effectSelections)
           );
-          [...(reqs?.requirements ?? []), ...nested].forEach((req) => {
-            allRequirements.push({ powerName: powerOrAbility.name, ...req });
-          });
         };
 
         // Check race abilities
@@ -2112,22 +2288,20 @@ const CharacterCreationWizardModal: React.FC<
           selections.deityPowers &&
           selections.deityPowers.length > 0
         ) {
-          deity.poderes
+          grantedPowerPool
             .filter((p) => selections.deityPowers?.includes(p.name))
             .forEach(collectRequirements);
         }
 
         // Validate all requirements are met
-        return allRequirements.every((req) => {
-          const { powerName, type, pick } = req;
+        return allRequirements.every(({ selectionKey, requirement: req }) => {
+          const { type, pick } = req;
 
           // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
           if (req.optional) return true;
 
-          const count = countRequirementSelections(
-            req,
-            effectSelections[powerName]
-          );
+          const ownSelections = effectSelections[selectionKey];
+          const count = countRequirementSelections(req, ownSelections);
           // Tipo não contável: não bloquear o assistente
           if (count === null) return true;
 
@@ -2140,37 +2314,29 @@ const CharacterCreationWizardModal: React.FC<
             effectivePick = Math.min(pick, filteredCount);
           }
 
-          // For getGeneralPower, also check if nested power requirements are met
-          if (type === 'getGeneralPower' && count >= effectivePick) {
-            const powerSelections = effectSelections[powerName] || {};
-            const allSelectedPowers = (powerSelections.powers || []) as Array<{
-              name?: string;
-              sheetActions?: unknown[];
-            }>;
-            const hasUnmetNested = allSelectedPowers.some((selPower) => {
-              if (!selPower?.name || !selPower.sheetActions) return false;
-              const nestedReqs = getPowerSelectionRequirements(
-                selPower as Parameters<typeof getPowerSelectionRequirements>[0]
-              );
-              if (!nestedReqs) return false;
-              return nestedReqs.requirements.some((nestedReq) => {
-                if (nestedReq.optional) return false;
-                const nestedCount = countRequirementSelections(
-                  nestedReq,
-                  effectSelections[selPower.name!]
-                );
-                if (nestedCount === null) return false;
-                return nestedCount < nestedReq.pick;
-              });
-            });
-            if (hasUnmetNested) return false;
+          // Mesmo ajuste para perícias: `getFilteredAvailableOptions` remove do
+          // passo as perícias que o personagem JÁ treinou nos passos anteriores
+          // ("Perícias da Classe" e "por Inteligência" vêm antes de "Efeitos de
+          // Poderes"). Sem este clamp, um Hobgoblin que treinou Guerra pela
+          // classe fica com a lista de Arte da Guerra vazia — o passo mostra o
+          // aviso "você já possui todas as opções" e o "Próximo" trava sem nada
+          // para clicar.
+          // `Math.min(effectivePick, ...)` (e não `pick`, como no ramo de
+          // proficiência) para compor com o escalonamento por patamar de
+          // `resolveRequirementPick` (Biblioteca Divina).
+          if (type === 'learnSkill' && req.availableOptions) {
+            const used = new Set(getAllUsedSkills());
+            const filteredCount = (req.availableOptions as Skill[]).filter(
+              (skill) => !used.has(skill)
+            ).length;
+            effectivePick = Math.min(effectivePick, filteredCount);
           }
 
           // A habilidade aprendida (Duplo Feérico) pode ter escolha própria —
           // ex.: Especialista do Ladino pede perícias. As sub-escolhas ficam na
           // MESMA entrada de seleções do poder de origem.
           if (type === 'learnClassAbility' && count >= effectivePick) {
-            const powerSelections = effectSelections[powerName] || {};
+            const powerSelections = ownSelections || {};
             const chosen = powerSelections.classAbilities?.[0];
             const chosenAbility = chosen?.abilityName
               ? dataRegistry
@@ -2208,7 +2374,19 @@ const CharacterCreationWizardModal: React.FC<
         const hasSize = !!selections.companionSize;
         const hasDamageType = !!selections.companionWeaponDamageType;
         const hasSkills = selections.companionSkills?.length === 3;
-        const hasTricks = selections.companionTricks?.length === 2;
+        const tricks = selections.companionTricks || [];
+        const hasTricks =
+          tricks.length === 2 &&
+          // Sub-escolhas do truque (atributos, deslocamento, Magia Inata)
+          tricks.every((t) => {
+            const def = getCompanionTrickDefinition(t.name);
+            if (!def?.hasSubChoice) return true;
+            if (def.subChoiceType === 'attribute')
+              return !!t.choices?.primary && !!t.choices?.secondary;
+            if (def.subChoiceType === 'movement') return !!t.choices?.type;
+            if (def.subChoiceType === 'spell') return !!t.choices?.spell;
+            return true;
+          });
         const hasSpiritEnergy =
           selections.companionType !== 'Espírito' ||
           !!selections.companionSpiritEnergyType;
@@ -2239,10 +2417,12 @@ const CharacterCreationWizardModal: React.FC<
         ) {
           return false;
         }
-        const needsLightArmor =
-          !classe.proficiencias.includes(PROFICIENCIAS.PESADAS) &&
-          classe.name !== 'Arcanista';
-        if (needsLightArmor && !eq.armor) return false;
+        // Espelha o `needsArmor` do `ClassEquipmentStep`: todos escolhem
+        // armadura, menos Arcanista e variantes. Divergir aqui deixaria o
+        // passo incompleto para sempre — ele não oferece o que esta validação
+        // exige.
+        const needsArmor = !isClassOrVariantOf(classe, 'Arcanista');
+        if (needsArmor && !eq.armor) return false;
         if (isClassOrVariantOf(classe, 'Bardo') && !eq.instrument) return false;
         return true;
       }

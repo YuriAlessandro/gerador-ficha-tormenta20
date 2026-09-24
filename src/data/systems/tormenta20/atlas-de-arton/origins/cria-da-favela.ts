@@ -1,11 +1,9 @@
 import Origin, {
   Items,
   OriginBenefits,
-  AttributeModifier,
 } from '../../../../../interfaces/Origin';
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
-import { Atributo } from '../../atributos';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -39,10 +37,8 @@ const CRIA_DA_FAVELA: Origin = {
       description: 'Vara de madeira',
     },
   ],
-  getAttributeModifier: (): AttributeModifier => ({
-    attribute: Atributo.CONSTITUICAO,
-    modifier: 1,
-  }),
+  // O +1 Constituição é `sheetAction` do poder `CRIA_DA_FAVELA`, não um campo
+  // da origem: assim vale nos dois motores de ficha e na troca de origem.
 };
 
 export default CRIA_DA_FAVELA;

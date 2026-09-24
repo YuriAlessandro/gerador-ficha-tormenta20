@@ -18,6 +18,8 @@ export interface FeatureFlags {
   optionalRules: FeatureFlag;
   spellAreaGuide: FeatureFlag;
   playerScreen: FeatureFlag;
+  playerJournal: FeatureFlag;
+  portrait: FeatureFlag;
   sheetLayouts: FeatureFlag;
   limitBoost: FeatureFlag;
 }
@@ -42,6 +44,17 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   spellAreaGuide: { enabled: true, supporterOnly: true },
   // Tela do Jogador: segunda tela pública que o mestre projeta para a mesa.
   playerScreen: { enabled: true, supporterOnly: true },
+  // Diário do Jogador: canvas de blocos que substitui as anotações livres da
+  // ficha. `supporterOnly` é FALSE de propósito — o diário é de todo mundo, e o
+  // corte por apoiador vive nos limites (`maxJournalNodes` e categorias
+  // customizadas). Ligar `supporterOnly` aqui trancaria a feature INTEIRA,
+  // porque o `useFeatureAccess` é binário. Default desligado até o rollout.
+  playerJournal: { enabled: false, supporterOnly: false },
+  // Portrait: overlay da ficha para streams (`/portrait/:token`), embutível como
+  // Browser Source no OBS. `supporterOnly` trava quem GERA e configura o link;
+  // ASSISTIR não passa por esta flag — o OBS não tem sessão, e a rota pública é
+  // guardada só pelo token. Default desligado até o rollout.
+  portrait: { enabled: false, supporterOnly: true },
   // Layouts customizáveis de ficha: os três modelos, o editor e a galeria.
   // Default off — o admin liga quando o rollout estiver pronto. Desligada, a
   // ficha renderiza no arranjo histórico e o botão nem aparece.

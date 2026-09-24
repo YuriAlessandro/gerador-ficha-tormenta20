@@ -1,6 +1,9 @@
 import { shuffle, cloneDeep } from 'lodash';
 import { v4 as uuid } from 'uuid';
-import { OriginPower } from '../../../../../interfaces/Poderes';
+import {
+  GeneralPowerType,
+  OriginPower,
+} from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { spellsCircle1 } from '../../magias/generalSpells';
 import { allArcaneSpellsCircle1 } from '../../magias/arcane';
@@ -126,7 +129,9 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     sheetActions: [
       {
         source: { type: 'power', name: 'Aspirante a Herói' },
-        action: { type: 'increaseAttribute' },
+        // Não é o poder Aumento de Atributo: pode cair no mesmo atributo que
+        // já recebeu o aumento do patamar.
+        action: { type: 'increaseAttribute', oncePerTier: false },
       },
     ],
   },
@@ -192,12 +197,83 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Escolha um poder geral ou de uma classe na qual você tenha pelo menos dois níveis, e cujos requisitos você cumpra (exceto poderes concedidos ou da Tormenta). Você recebe esse poder. Uma vez por aventura, após concluir um descanso (oito horas de sono), pode trocar esse poder por outro.',
     type: ORIGIN_POWER_TYPE,
+    // A troca "uma vez por aventura" vira uma re-escolha oferecida a cada
+    // subida de nível (e, a qualquer momento, pelo editor de poderes).
+    swappableAtLevelUp: true,
+    sheetActions: [
+      {
+        source: { type: 'origin', originName: 'Cosmopolita (Valkaria)' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: 'cosmopolitaPoder',
+          pick: 1,
+          options: [
+            {
+              name: 'Poder geral',
+              text: 'Um poder geral cujos requisitos você cumpra (exceto concedidos ou da Tormenta).',
+              sheetActions: [
+                {
+                  source: {
+                    type: 'origin',
+                    originName: 'Cosmopolita (Valkaria)',
+                  },
+                  action: {
+                    type: 'getGeneralPower',
+                    // Piscina por categoria: ver `availableTypes`. Lista
+                    // estática aqui deixaria de fora todo poder geral de
+                    // suplemento, mesmo com o suplemento ligado.
+                    availablePowers: [],
+                    availableTypes: [
+                      GeneralPowerType.COMBATE,
+                      GeneralPowerType.DESTINO,
+                      GeneralPowerType.MAGIA,
+                    ],
+                    pick: 1,
+                  },
+                },
+              ],
+            },
+            {
+              name: 'Poder de classe',
+              text: 'Um poder de uma classe na qual você tenha pelo menos dois níveis.',
+              sheetActions: [
+                {
+                  source: {
+                    type: 'origin',
+                    originName: 'Cosmopolita (Valkaria)',
+                  },
+                  // Mesmo tratamento da Futura Lenda: requisitos avaliados no
+                  // 2º nível FIXO. O benefício é ganho no 1º nível e precisa
+                  // render a mesma lista em qualquer recálculo — inclusive ao
+                  // criar um personagem já em nível alto.
+                  action: { type: 'getClassPower', minLevel: 2 },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
   },
   CRIA_DA_FAVELA: {
     name: 'Cria da Favela',
     description:
       'Você recebe +1 em Constituição e, por piores que sejam as condições de descanso, sua recuperação é sempre pelo menos normal.',
     type: ORIGIN_POWER_TYPE,
+    // O +1 CON vinha de `Origin.getAttributeModifier`, um gancho exclusivo
+    // desta origem que SÓ o motor de ficha aleatória chamava — no assistente o
+    // bônus nunca era aplicado. Como `sheetAction` ele passa pelo `applyPower`,
+    // comum aos dois motores e idempotente pelo `sheetActionHistory`.
+    sheetActions: [
+      {
+        source: { type: 'origin', originName: 'Cria da Favela (Valkaria)' },
+        action: {
+          type: 'ModifyAttribute',
+          attribute: Atributo.CONSTITUICAO,
+          value: 1,
+        },
+      },
+    ],
   },
   CRIADO_PELAS_VORACIS: {
     name: 'Criado pelas Voracis',
@@ -349,8 +425,12 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         source: { type: 'origin', originName: 'Duplo Feérico (Pondsmânia)' },
         action: {
           type: 'learnClassAbility',
-          // Classes base apenas: as variantes repetem as habilidades de 1º
-          // nível da classe base, então listá-las seria só ruído
+          // Lista de FAMÍLIAS de classe, não de nomes exatos: as variantes
+          // (Necromante, Duelista, Santo...) entram automaticamente pela base,
+          // porque redefinem o array `abilities` inteiro e portanto têm
+          // habilidades de 1º nível próprias. Quem faz essa expansão é
+          // `getClassFamilyName`, em `getFilteredAvailableOptions` e no
+          // `isEligible` da aplicação na ficha.
           availableClasses: [
             'Arcanista',
             'Bárbaro',
@@ -1311,7 +1391,24 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Você é treinado em Atletismo e recebe +2 em rolagens de dano com armas naturais e ataques desarmados.',
     type: ORIGIN_POWER_TYPE,
-    sheetBonuses: [],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tocado pelo Indomável (Moreania)',
+        },
+        target: { type: 'WeaponDamage', weaponTags: ['natural'] },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tocado pelo Indomável (Moreania)',
+        },
+        target: { type: 'UnarmedDamage' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   TRADICIONALISTA_SVALANO: {
     name: 'Tradicionalista Svalano',

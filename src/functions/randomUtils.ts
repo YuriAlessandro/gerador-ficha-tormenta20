@@ -155,56 +155,104 @@ export interface CountTormentaPowersOptions {
   forCharismaPenalty?: boolean;
 }
 
+export interface TormentaPowerEntry {
+  /** Nome canônico do poder. */
+  name: string;
+  /** Balde de onde a cópia que valeu veio, para exibição. */
+  origin: string;
+}
+
 /**
- * Total de poderes da Tormenta da ficha — ponto único de verdade.
+ * Os poderes que REALMENTE contam para a Tormenta nesta ficha, na ordem em que
+ * foram encontrados. `countTormentaPowers` é o `length` disto (mais as perícias
+ * da Deformidade do Lefou, que não vivem em balde de poder nenhum).
  *
  * Conta tanto os poderes cujo `type` é TORMENTA quanto os de qualquer outro
  * tipo marcados com `countAsTormentaPower`, varrendo TODOS os baldes onde um
  * poder pode viver (poder concedido, por exemplo, vive só em `devoto.poderes`).
- * A dedução por nome existe porque poderes concedidos são copiados entre
- * baldes — ver `sheetHasPowerNamed` para o mesmo problema.
+ * A dedup por nome existe porque poderes concedidos são copiados entre baldes —
+ * ver `sheetHasPowerNamed` para o mesmo problema.
+ *
+ * Existe separado da contagem porque a interface precisa EXPLICAR o número: o
+ * cabeçalho do grupo "Poder da Tormenta" na aba de poderes lista só os poderes
+ * gerais do tipo TORMENTA, então quem tem um poder concedido ou de origem
+ * marcado com `countAsTormentaPower` vê dois números diferentes na mesma tela.
+ */
+export function listTormentaPowers(
+  sheet: CharacterSheet,
+  options?: CountTormentaPowersOptions
+): TormentaPowerEntry[] {
+  const forCharismaPenalty = options?.forCharismaPenalty ?? false;
+
+  const buckets: [string, TormentaCountable[]][] = [
+    ['poder geral', sheet.generalPowers ?? []],
+    ['poder personalizado', sheet.customPowers ?? []],
+    ['poder concedido', sheet.customGrantedPowers ?? []],
+    ['poder de classe', sheet.classPowers ?? []],
+    ['origem', sheet.origin?.powers ?? []],
+    ['devoção', sheet.devoto?.poderes ?? []],
+  ];
+
+  // Dedup por nome ANTES de decidir se conta: se o mesmo poder aparece em dois
+  // baldes, a primeira cópia é a que vale (senão uma cópia sem a ressalva de
+  // Carisma reintroduziria o poder que a outra acabou de descartar).
+  const byName = new Map<
+    string,
+    { power: TormentaCountable; origin: string }
+  >();
+  buckets.forEach(([origin, bucket]) => {
+    bucket.forEach((power) => {
+      if (!power || byName.has(power.name)) return;
+      byName.set(power.name, { power, origin });
+    });
+  });
+
+  const entries: TormentaPowerEntry[] = [];
+  byName.forEach(({ power, origin }) => {
+    if (forCharismaPenalty && power.tormentaCountExcludesCharisma) return;
+    // Deformidade do Lefou: "Esta habilidade não causa perda de Carisma".
+    // O poder trocado entra em `generalPowers` como TORMENTA puro, então a
+    // ressalva não vem do objeto — vem de `lefouDeformidadePower`, que é o
+    // campo que a ficha persiste. Ler daqui (em vez de carimbar a flag no
+    // clone empurrado por `applyLefouDeformidade`) cura as fichas antigas de
+    // graça, sem precisar de refresh em `normalizeSheet`.
+    if (forCharismaPenalty && power.name === sheet.lefouDeformidadePower)
+      return;
+    const isTormenta =
+      power.type === GeneralPowerType.TORMENTA ||
+      power.countAsTormentaPower === true;
+    if (isTormenta) entries.push({ name: power.name, origin });
+  });
+
+  return entries;
+}
+
+/**
+ * Total de poderes da Tormenta da ficha — ponto único de verdade.
+ * Ver `listTormentaPowers` para a varredura e as ressalvas.
  */
 export function countTormentaPowers(
   sheet: CharacterSheet,
   options?: CountTormentaPowersOptions
 ): number {
   const forCharismaPenalty = options?.forCharismaPenalty ?? false;
+  let tormentaPowersQtd = listTormentaPowers(sheet, options).length;
 
-  const buckets: TormentaCountable[][] = [
-    sheet.generalPowers ?? [],
-    sheet.customPowers ?? [],
-    sheet.customGrantedPowers ?? [],
-    sheet.classPowers ?? [],
-    sheet.origin?.powers ?? [],
-    sheet.devoto?.poderes ?? [],
-  ];
-
-  // Dedup por nome ANTES de decidir se conta: se o mesmo poder aparece em dois
-  // baldes, a primeira cópia é a que vale (senão uma cópia sem a ressalva de
-  // Carisma reintroduziria o poder que a outra acabou de descartar).
-  const byName = new Map<string, TormentaCountable>();
-  buckets.forEach((bucket) => {
-    bucket.forEach((power) => {
-      if (!power || byName.has(power.name)) return;
-      byName.set(power.name, power);
-    });
-  });
-
-  let tormentaPowersQtd = 0;
-  byName.forEach((power) => {
-    if (forCharismaPenalty && power.tormentaCountExcludesCharisma) return;
-    const isTormenta =
-      power.type === GeneralPowerType.TORMENTA ||
-      power.countAsTormentaPower === true;
-    if (isTormenta) tormentaPowersQtd += 1;
-  });
-
-  // `Skill.countAsTormentaPower` NÃO entra na conta. A flag era da Deformidade
-  // do Lefou, que hoje concede um poder da Tormenta de verdade em
-  // `generalPowers` — contá-la duplicaria. Pior: `addOtherBonusToSkill` a
-  // carimbava em toda perícia que tocava, então fichas antigas trazem a flag
-  // ligada em perícias que nada têm a ver com a Tormenta. Ignorar aqui é o que
-  // conserta essas fichas.
+  // A outra metade da Deformidade: "Você recebe +2 em duas perícias a sua
+  // escolha. CADA UM desses bônus conta como um poder da Tormenta." Os bônus
+  // de perícia não vivem em nenhum balde de poder, então entram aqui — e só
+  // para a ESCALA, nunca para Carisma (mesma ressalva acima).
+  //
+  // Somados ao poder trocado, a Deformidade sempre contribui exatamente 2 nos
+  // dois arranjos possíveis: duas perícias, ou uma perícia + um poder.
+  //
+  // `Skill.countAsTormentaPower` continua FORA da conta: `addOtherBonusToSkill`
+  // a carimbava em toda perícia que tocava, então fichas antigas trazem a flag
+  // ligada em perícias que nada têm a ver com a Tormenta. `lefouDeformidadeSkills`
+  // é a fonte precisa do mesmo dado.
+  if (!forCharismaPenalty) {
+    tormentaPowersQtd += sheet.lefouDeformidadeSkills?.length ?? 0;
+  }
 
   return tormentaPowersQtd;
 }

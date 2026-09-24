@@ -164,6 +164,11 @@ export interface SimpleModifierContext {
   classLevels?: Map<string, number>;
   /** `bonus.source`; só o `className` (fontes do tipo `power`) é lido. */
   source?: SheetChangeSource;
+  /**
+   * Total de poderes da Tormenta da ficha (`countTormentaPowers`), para os
+   * modificadores `TormentaPowersCalc`. Ausente = 0, como no motor completo.
+   */
+  tPowQtd?: number;
 }
 
 /**
@@ -183,8 +188,8 @@ const resolveClassLevel = (
 /**
  * Avaliador leve de modificador para o cálculo por modo e para o texto de
  * efeitos em Weapon.tsx, onde não há acesso à resolução completa de fonte/nível
- * de classe do recalculateSheet. Suporta `Fixed`, `Attribute`, `CappedAttribute`
- * e `LevelCalc`.
+ * de classe do recalculateSheet. Suporta `Fixed`, `Attribute`, `CappedAttribute`,
+ * `LevelCalc` e `TormentaPowersCalc`.
  *
  * `LevelCalc` usa `evaluateFormula` (parser próprio, sem `eval`) porque este
  * módulo é importado por componentes que renderizam conteúdo homebrew. Fórmulas
@@ -211,11 +216,15 @@ export function evaluateSimpleModifier(
       modifier.capBy === 'classLevel' ? resolveClassLevel(nivel, ctx) : nivel;
     return Math.max(0, Math.min(attrValue, cap));
   }
-  if (modifier.type === 'LevelCalc' && modifier.formula) {
+  if (
+    (modifier.type === 'LevelCalc' || modifier.type === 'TormentaPowersCalc') &&
+    modifier.formula
+  ) {
     try {
       return evaluateFormula(modifier.formula, {
         level: nivel,
         classLevel: resolveClassLevel(nivel, ctx),
+        tPowQtd: ctx?.tPowQtd ?? 0,
       });
     } catch {
       // Fórmula reprovada pela whitelist (ternários oficiais, homebrew inválido).
@@ -236,6 +245,13 @@ export interface LiveWeaponBonusContext {
    * exibição é o modo corpo a corpo, coerente com `getWeaponSkill`.
    */
   thrownMode?: boolean;
+  /**
+   * O personagem é proficiente com esta arma? Bônus marcados com
+   * `proficiencyRequired` (Armas da Ambição, Armas da Destruição) só valem
+   * quando `true`. `undefined` = quem chamou não sabe → trata como proficiente,
+   * mesma falha segura de `isProficientWithWeapon` para arma sem categoria.
+   */
+  isProficient?: boolean;
 }
 
 /**
@@ -259,9 +275,14 @@ export function sumLiveWeaponBonuses(
 
   return bonuses.reduce((sum, bonus) => {
     if (bonus.target.type !== targetType) return sum;
-    const scope = bonus.target as WeaponBonusScope;
+    const scope = bonus.target as WeaponBonusScope & {
+      proficiencyRequired?: boolean;
+    };
     if (!isLiveWeaponBonus(weapon, scope, bonus.source.type)) return sum;
     if (!weaponMatchesScope(weapon, scope)) return sum;
+    // Espelha a checagem de `weaponMatchesBonus` (recalculateSheet): sem ela o
+    // caminho vivo aplicaria um bônus que o baking recusa.
+    if (scope.proficiencyRequired && ctx.isProficient === false) return sum;
 
     if (isModeScopedForWeapon(weapon, scope)) {
       const appliesInMode = thrown

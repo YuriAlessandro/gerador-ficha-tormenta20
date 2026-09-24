@@ -11,13 +11,11 @@ import {
   Collapse,
   Alert,
 } from '@mui/material';
-import {
-  ErrorOutlined as ErrorIcon,
-  ContentCopy as CopyIcon,
-  ExpandMore as ExpandMoreIcon,
-  Refresh as RefreshIcon,
-  Home as HomeIcon,
-} from '@mui/icons-material';
+import ErrorIcon from '@mui/icons-material/ErrorOutlined';
+import CopyIcon from '@mui/icons-material/ContentCopy';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import HomeIcon from '@mui/icons-material/Home';
 import { APP_VERSION, getBuildDiagnostics } from '@/utils/appVersion';
 
 interface Props {

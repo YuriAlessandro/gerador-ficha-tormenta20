@@ -62,6 +62,7 @@ export interface SubscriptionLimits {
   maxPlayersPerTable: number; // -1 = unlimited
   maxWeeklyBestiaryPublications: number; // Bestiary publications per 7-day rolling window, -1 = unlimited
   maxSupplements: number; // Suplementos oficiais ativos além do livro básico, -1 = unlimited
+  maxJournalNodes: number; // Blocos do Diário do Jogador por ficha, -1 = unlimited
 }
 
 /**
@@ -173,6 +174,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxPlayersPerTable: 6,
     maxWeeklyBestiaryPublications: 1,
     maxSupplements: 4,
+    maxJournalNodes: 15,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 15,
@@ -181,6 +183,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxPlayersPerTable: 6,
     maxWeeklyBestiaryPublications: 15,
     maxSupplements: -1, // Unlimited
+    maxJournalNodes: 50,
   },
   [SupportLevel.NIVEL_1_ANUAL]: {
     maxSheets: 15,
@@ -189,6 +192,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxPlayersPerTable: 6,
     maxWeeklyBestiaryPublications: 15,
     maxSupplements: -1, // Unlimited
+    maxJournalNodes: 50,
   },
   [SupportLevel.NIVEL_2]: {
     maxSheets: 20,
@@ -197,6 +201,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxPlayersPerTable: -1,
     maxWeeklyBestiaryPublications: 50,
     maxSupplements: -1, // Unlimited
+    maxJournalNodes: 150,
   },
   [SupportLevel.NIVEL_3]: {
     maxSheets: -1, // Unlimited
@@ -205,6 +210,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxPlayersPerTable: -1, // Unlimited
     maxWeeklyBestiaryPublications: -1, // Unlimited
     maxSupplements: -1, // Unlimited
+    maxJournalNodes: -1, // Unlimited
   },
   [SupportLevel.NIVEL_2_ANUAL]: {
     maxSheets: 20,
@@ -213,6 +219,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxPlayersPerTable: -1,
     maxWeeklyBestiaryPublications: 50,
     maxSupplements: -1, // Unlimited
+    maxJournalNodes: 150,
   },
   [SupportLevel.NIVEL_3_ANUAL]: {
     maxSheets: -1, // Unlimited
@@ -221,6 +228,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxPlayersPerTable: -1, // Unlimited
     maxWeeklyBestiaryPublications: -1, // Unlimited
     maxSupplements: -1, // Unlimited
+    maxJournalNodes: -1, // Unlimited
   },
 };
 
@@ -354,7 +362,8 @@ export function hasReachedLimit(
     | 'maxSheets'
     | 'maxMenaceSheets'
     | 'maxGameTables'
-    | 'maxPlayersPerTable',
+    | 'maxPlayersPerTable'
+    | 'maxJournalNodes',
   currentCount: number
 ): boolean {
   const limits = getSupportLimits(level);
@@ -378,6 +387,16 @@ export function hasReachedLimit(
  */
 export function isSupporter(level: SupportLevel): boolean {
   return level !== SupportLevel.FREE;
+}
+
+/**
+ * Criar categorias próprias no Diário do Jogador é recurso de apoiador. As
+ * categorias NATIVAS valem para todo mundo, e uma categoria customizada criada
+ * enquanto o apoio estava ativo continua funcionando depois — o que se perde é
+ * só a criação de novas (mesma política de grandfathering dos suplementos).
+ */
+export function canCreateJournalCategories(level: SupportLevel): boolean {
+  return isSupporter(level);
 }
 
 /**

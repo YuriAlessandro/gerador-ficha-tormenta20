@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { DbUser } from '../types/auth.types';
+import { isAdminUser } from '../utils/admin';
 
 // Helper to get user ID from DbUser (handles MongoDB _id field)
 const getUserId = (dbUser: DbUser | null): string => {
@@ -23,5 +24,6 @@ export const useAuth = () => {
     isPremium: auth.dbUser?.isPremium || false,
     isModerator: auth.dbUser?.isModerator || false,
     isEditor: auth.dbUser?.isEditor || false,
+    isAdmin: isAdminUser(auth.dbUser),
   };
 };

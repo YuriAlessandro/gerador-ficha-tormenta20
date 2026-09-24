@@ -1,25 +1,35 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
-import generalPowers from '../data/poderes';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
 import {
   GeneralPower,
+  GeneralPowerType,
+  PrerequisiteWaiver,
   Requirement,
   RequirementType,
 } from '../interfaces/Poderes';
-import Skill, {
-  ALL_SPECIFIC_OFICIOS,
-  isGenericOficio,
-  isOficioSkill,
-} from '../interfaces/Skills';
+import Skill, { isGenericOficio, isOficioSkill } from '../interfaces/Skills';
 import {
   INVENTOR_SPECIALIZATIONS,
   InventorSpecialization,
   isClassOrVariantOf,
+  isRaceOrVariantOf,
 } from './general';
 import { findClassDescription } from './multiclass';
 import { countTormentaPowers } from './randomUtils';
+import { getSheetDeityNames } from './powers/deityNames';
+import {
+  sheetHasPowerNamed,
+  sheetSatisfiesPowerRequirement,
+} from './powers/hasPowerNamed';
+import { ARTESAO_CRIATIVO } from '../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
+import {
+  getActiveWaivers,
+  isRequirementWaived,
+} from './powers/prerequisiteWaivers';
+import { dataRegistry } from '../data/registry';
+import { SupplementId } from '../types/supplement.types';
 
 export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
 
@@ -51,7 +61,11 @@ export function getPowerCountInCurrentTier(
 }
 
 /**
- * Reúne todos os poderes que o personagem possui (gerais, de origem e de classe).
+ * Reúne todos os poderes que o personagem possui (gerais, de origem, de
+ * classe escolhidos e habilidades de classe concedidas automaticamente —
+ * ex.: Briga do Lutador, referenciada como pré-requisito PODER em Briga de
+ * Rua). `classe.abilities` já vem filtrada pelo nível da classe em
+ * `applyClassAbilities`, então não inclui habilidades futuras.
  * Retorna apenas o que os checadores de requisito consomem (o nome).
  */
 function getAllCharacterPowers(sheet: CharacterSheet): { name: string }[] {
@@ -59,6 +73,7 @@ function getAllCharacterPowers(sheet: CharacterSheet): { name: string }[] {
     ...sheet.generalPowers,
     ...(sheet.origin?.powers || []),
     ...(sheet.classPowers || []),
+    ...(sheet.classe.abilities || []),
   ];
 }
 
@@ -89,23 +104,39 @@ export function applyRequirementNot(rule: Requirement, met: boolean): boolean {
   return rule.not ? !met : met;
 }
 
+function getTrainedSkillNames(sheet: CharacterSheet): string[] {
+  const skillNames = new Set<string>();
+
+  // Base da criação de personagem. Vários caminhos (poderes raciais, origens,
+  // escolhas de classe) fazem `skills.push` sem tocar em `completeSkills`.
+  sheet.skills.forEach((skill) => skillNames.add(skill));
+
+  sheet.completeSkills?.forEach((skill) => {
+    // Treino manual pelo SkillsEditDrawer, que só escreve em `completeSkills`.
+    if ((skill.training ?? 0) > 0) skillNames.add(skill.name);
+    // Destreino manual explícito vence a base da criação.
+    else if (skill.manuallyUntrained) skillNames.delete(skill.name);
+  });
+
+  return [...skillNames];
+}
+
 /** Avalia um único requisito, ignorando a flag `not` (aplicada por quem chama). */
 function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
   switch (rule.type) {
     case RequirementType.PODER: {
-      const allPowers = getAllCharacterPowers(sheet);
+      // Varre TODOS os baldes de poder (inclusive `devoto.poderes`, onde um
+      // poder concedido pode viver sozinho) e respeita o hook
+      // `grantsPowerRequirements` — de habilidade racial (homebrew, via
+      // `compileRace`) ou de poder ("Ginete Altivo" conta como "Ginete").
+      if (sheetSatisfiesPowerRequirement(sheet, rule.name)) return true;
 
-      const foundInPowers = allPowers.some(
-        (currPower) => currPower.name === rule.name
-      );
-      if (foundInPowers) return true;
-
-      // Habilidades raciais que contam como possuir um poder
-      // (ex.: Centauro "Ginete Natural" → poder "Ginete")
-      const grantedByRace = (sheet.raca.abilities ?? []).some((a) =>
-        a.grantsPowerRequirements?.includes(rule.name ?? '')
-      );
-      if (grantedByRace) return true;
+      // `classe.abilities` fica FORA de `sheetSatisfiesPowerRequirement` de
+      // propósito (ver `powers/hasPowerNamed.ts`), mas alguns poderes pedem
+      // `PODER` com o nome de uma habilidade de classe — Briga de Rua exige
+      // "Briga", concedida automaticamente ao Lutador no 1º nível.
+      if ((sheet.classe.abilities ?? []).some((a) => a.name === rule.name))
+        return true;
 
       // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
       return (sheet.sheetActionHistory ?? []).some((entry) =>
@@ -120,24 +151,26 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       return !!rule.name && sheet.atributos[attr].value >= (rule?.value || 0);
     }
     case RequirementType.PERICIA: {
+      const trainedSkills = getTrainedSkillNames(sheet);
+
       if (isGenericOficio(rule.name)) {
         // isOficioSkill (e não a lista fechada) para que um Ofício
         // customizado também satisfaça o pré-requisito genérico
-        return sheet.skills.some(isOficioSkill);
+        return trainedSkills.some(isOficioSkill);
       }
 
       const pericia = rule.name as Skill;
-      if (rule.name && sheet.skills.includes(pericia)) return true;
+      if (rule.name && trainedSkills.includes(pericia)) return true;
 
       // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
-      // específico para fins de pré-requisito.
-      if (ALL_SPECIFIC_OFICIOS.includes(pericia)) {
-        const hasArtesaoCriativo = getAllCharacterPowers(sheet).some(
-          (p) => p.name === 'Artesão Criativo'
-        );
+      // para fins de pré-requisito ("qualquer outro Ofício", diz o poder), o
+      // que inclui os Ofícios customizados criados em runtime por
+      // `buildCustomOficio` — por isso `isOficioSkill` e não a lista fechada
+      // `ALL_SPECIFIC_OFICIOS`.
+      if (isOficioSkill(pericia) && !isGenericOficio(pericia)) {
         if (
-          hasArtesaoCriativo &&
-          sheet.skills.includes(Skill.OFICIO_ARTESANATO)
+          sheetHasPowerNamed(sheet, ARTESAO_CRIATIVO) &&
+          trainedSkills.includes(Skill.OFICIO_ARTESANATO)
         ) {
           return true;
         }
@@ -194,16 +227,28 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
     }
     case RequirementType.DEVOTO: {
       const godName = rule.name;
+      // Avalia contra o CONJUNTO de deuses da ficha (ver `getSheetDeityNames`):
+      // com Devoção Dupla são dois, e é isso que faz um grupo de requisitos
+      // `[[{DEVOTO, A}, {DEVOTO, B}]]` — o poder único de um sincretismo —
+      // reprovar devoto simples e aprovar devoto duplo, sem tipo novo.
+      const deityNames = getSheetDeityNames(sheet);
       // 'any' significa que o personagem deve ser devoto de qualquer divindade
-      if (godName === 'any') return !!sheet.devoto?.divindade;
-      return sheet.devoto?.divindade.name === godName;
+      if (godName === 'any') return deityNames.length > 0;
+      return !!godName && deityNames.includes(godName);
     }
     case RequirementType.RACA: {
-      const raceName = rule.name;
-      return sheet.raca.name === raceName;
+      // Aceita variantes e "considerado um X para efeitos relacionados a raça"
+      // (Soterrado→Osteon, Trog Anão→Trog, Meio-Orc→Orc, Meio-Elfo→Elfo,
+      // Moreau→Humano) além do nome próprio da raça.
+      const raceName = rule.name as string | undefined;
+      return !!raceName && isRaceOrVariantOf(sheet.raca, raceName);
     }
     case RequirementType.CHASSIS: {
       return sheet.raca.chassis === rule.name;
+    }
+    case RequirementType.HERANCA: {
+      // Herança do Moreau (ex.: Magia Ofídica exige "Moreau da Serpente").
+      return sheet.raca.heritage === rule.name;
     }
     case RequirementType.TIER_LIMIT: {
       const category = rule.name as string; // "Bênção Dracônica"
@@ -219,44 +264,130 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
   }
 }
 
+export interface PowerAvailabilityOptions {
+  /** Classe dona do poder, quando for poder de CLASSE. */
+  className?: string;
+  /** Waivers resolvidos. Passe ao filtrar catálogo inteiro (custo por item). */
+  waivers?: PrerequisiteWaiver[];
+}
+
 export function isPowerAvailable(
   sheet: CharacterSheet,
-  power: GeneralPower | ClassPower
+  power: GeneralPower | ClassPower,
+  options?: PowerAvailabilityOptions
 ): boolean {
-  // Habilidades raciais podem ignorar todos os pré-requisitos de certos poderes
-  // (ex.: Centauro "Cascos" → poderes de Carga/Investida)
-  const raceBypass = (sheet.raca.abilities ?? []).some((a) =>
-    a.bypassPrereqForPowersNamed?.some((term) => power.name.includes(term))
-  );
-  if (raceBypass) return true;
+  // Ver `powers/prerequisiteWaivers`.
+  const waivers = options?.waivers ?? getActiveWaivers(sheet);
 
   if (power.requirements && power.requirements.length > 0) {
     return power.requirements.some((req) =>
-      req.every((rule) => applyRequirementNot(rule, evaluateRule(sheet, rule)))
+      req.every(
+        (rule) =>
+          isRequirementWaived(rule, power, waivers, options?.className)
+            .waived || applyRequirementNot(rule, evaluateRule(sheet, rule))
+      )
     );
   }
 
   return true;
 }
 
+/**
+ * Tipos que entram no SORTEIO de um poder geral.
+ *
+ * Pela regra, poder concedido e poder de raça SÃO poderes gerais, e as listas
+ * de escolha manual (LevelUpWizard, Versátil, Memória Póstuma, Natureza
+ * Orgânica, complicação, Propósito de Criação) oferecem os seis tipos — quem
+ * fecha o acesso a eles é o requisito (DEVOTO / RACA), não a categoria.
+ *
+ * Aqui eles ficam de fora por CURADORIA, não por regra: o catálogo é um só e
+ * todo concedido tem pré-requisito DEVOTO, que o próprio devoto satisfaz, então
+ * incluí-los faria a ficha aleatória de um devoto de Khalmyr sortear "Espada
+ * Justiceira" como poder geral — o que muda bastante a cara da geração
+ * aleatória. Decisão consciente de manter o sorteio conservador; se um dia for
+ * revista, o `isRepeatedPower` abaixo precisa passar a olhar `devoto.poderes`
+ * também (ver `getOwnedGeneralPowers`), senão o sorteio repete um concedido que
+ * o devoto já tem pela devoção.
+ */
+const PICKABLE_GENERAL_POWER_TYPES = [
+  GeneralPowerType.COMBATE,
+  GeneralPowerType.DESTINO,
+  GeneralPowerType.MAGIA,
+  GeneralPowerType.TORMENTA,
+];
+
+/**
+ * Poderes gerais que a ficha JÁ possui, para as listas de escolha MANUAL.
+ *
+ * Inclui `devoto.poderes` porque poder concedido é poder geral e vive naquele
+ * balde: sem isso, um devoto de Khalmyr enxerga "Espada Justiceira" — que ele
+ * já recebeu pela devoção — oferecida de novo na subida de nível ou num
+ * Versátil, e acaba com o mesmo poder duas vezes na ficha.
+ */
+export function getOwnedGeneralPowers(sheet: CharacterSheet): GeneralPower[] {
+  return [...(sheet.generalPowers ?? []), ...(sheet.devoto?.poderes ?? [])];
+}
+
+/**
+ * Poderes gerais que a ficha pode receber agora.
+ *
+ * `supplements` é opcional porque boa parte das chamadas vem de dentro de
+ * handlers de `applyPower` (Humano Versátil, Memória Póstuma…), que não
+ * recebem a lista. Nesses casos vale o `sheet.supplements` carimbado na
+ * criação; ficha antiga, sem carimbo, cai no core.
+ *
+ * Antes daqui a função lia o catálogo `generalPowers` (o módulo marcado como
+ * deprecated, que é só o core), então NENHUM poder geral de suplemento entrava
+ * em ficha aleatória, com qualquer combinação de suplementos ligada.
+ */
 export function getPowersAllowedByRequirements(
-  sheet: CharacterSheet
+  sheet: CharacterSheet,
+  supplements?: SupplementId[]
 ): GeneralPower[] {
   const existingGeneralPowers = sheet.generalPowers;
+  const scope = supplements ??
+    sheet.supplements ?? [SupplementId.TORMENTA20_CORE];
+  // Uma vez para o catálogo inteiro: `getActiveWaivers` varre todos os baldes
+  // de poder da ficha, e sem isto cada item da lista pagaria essa varredura.
+  const waivers = getActiveWaivers(sheet);
 
-  return Object.values(generalPowers)
-    .flat()
-    .filter((power) => {
-      const isRepeatedPower = existingGeneralPowers.find(
-        (existingPower) => existingPower.name === power.name
-      );
+  return dataRegistry.getAllPowersBySupplements(scope).filter((power) => {
+    if (!PICKABLE_GENERAL_POWER_TYPES.includes(power.type)) return false;
 
-      if (isRepeatedPower) {
-        return power.allowSeveralPicks;
-      }
+    const isRepeatedPower = existingGeneralPowers.find(
+      (existingPower) => existingPower.name === power.name
+    );
 
-      return isPowerAvailable(sheet, power);
-    });
+    if (isRepeatedPower) {
+      return power.allowSeveralPicks;
+    }
+
+    return isPowerAvailable(sheet, power, { waivers });
+  });
+}
+
+/**
+ * Catálogo cru de poderes gerais restrito a algumas categorias, com os
+ * suplementos ativos.
+ *
+ * Serve a `getGeneralPower.availableTypes`: um poder que oferece "um poder geral
+ * qualquer" não pode congelar a lista no arquivo de dado — com import estático,
+ * nenhum poder geral de suplemento entraria na oferta. NÃO filtra pré-requisito
+ * nem o que a ficha já tem: cada chamador aplica o filtro que lhe cabe (a UI
+ * honra `ignorePrerequisites`, o gerador passa por
+ * `getPowersAllowedByRequirements`).
+ */
+export function getGeneralPowerCatalogByTypes(
+  sheet: CharacterSheet,
+  types: GeneralPowerType[],
+  supplements?: SupplementId[]
+): GeneralPower[] {
+  const scope = supplements ??
+    sheet.supplements ?? [SupplementId.TORMENTA20_CORE];
+
+  return dataRegistry
+    .getAllPowersBySupplements(scope)
+    .filter((power) => types.includes(power.type));
 }
 
 /**
@@ -266,7 +397,7 @@ export function getPowersAllowedByRequirements(
  * quando a classe/variante é resolvida — variantes, homebrew e suplementos
  * desativados deixam o array vazio em fichas carregadas.
  */
-function resolveClassPowerCatalog(sheet: CharacterSheet): ClassPower[] {
+export function resolveClassPowerCatalog(sheet: CharacterSheet): ClassPower[] {
   const stored = sheet.classe?.powers ?? [];
   if (stored.length > 0) return stored;
 
@@ -275,6 +406,55 @@ function resolveClassPowerCatalog(sheet: CharacterSheet): ClassPower[] {
     sheet.classe?.subname
   );
   return fullClass?.powers ?? [];
+}
+
+/**
+ * Poderes de classe de OUTRAS classes que um waiver destrava, com a classe de
+ * origem carimbada em `className`.
+ *
+ * Ponto único dos três consumidores (motor de criação, assistente de subida de
+ * nível e editor): o catálogo de poderes de classe é o da classe da ficha, e
+ * sem isto o poder destravado nunca chega ao avaliador. Classes que o
+ * personagem JÁ tem ficam de fora — os poderes delas já estão no catálogo
+ * normal e apareceriam duas vezes.
+ */
+export function getWaivedClassPowers(
+  sheet: CharacterSheet,
+  waivers: PrerequisiteWaiver[]
+): ClassPower[] {
+  const unlocking = waivers.filter((waiver) => waiver.unlocksOtherClassPowers);
+  if (unlocking.length === 0) return [];
+
+  const ownClasses = new Set(
+    [
+      sheet.classe?.name,
+      ...(sheet.classLevels ?? []).map((entry) => entry.className),
+    ].filter(Boolean)
+  );
+
+  const powers: ClassPower[] = [];
+  const seen = new Set<string>();
+
+  unlocking.forEach((waiver) => {
+    (waiver.targets.classPowers ?? []).forEach(({ className, name }) => {
+      if (ownClasses.has(className)) return;
+
+      const key = `${className}:${name}`;
+      if (seen.has(key)) return;
+
+      const found = findClassDescription(
+        className,
+        undefined,
+        sheet.supplements
+      )?.powers?.find((power) => power.name === name);
+      if (!found) return;
+
+      seen.add(key);
+      powers.push({ ...found, className, unlockedBy: waiver.reason });
+    });
+  });
+
+  return powers;
 }
 
 export function getAllowedClassPowers(
@@ -288,7 +468,13 @@ export function getAllowedClassPowers(
       ? { ...sheet, nivel: options.classLevel }
       : sheet;
 
-  return resolveClassPowerCatalog(sheet).filter((power) => {
+  const waivers = getActiveWaivers(sheet);
+  const catalog = [
+    ...resolveClassPowerCatalog(sheet),
+    ...getWaivedClassPowers(sheet, waivers),
+  ];
+
+  return catalog.filter((power) => {
     const existingClassPowers = sheet.classPowers || [];
     const isRepeatedPower = existingClassPowers.find(
       (existingPower) => existingPower.name === power.name
@@ -298,7 +484,10 @@ export function getAllowedClassPowers(
       return power.canRepeat;
     }
 
-    return isPowerAvailable(sheetForCheck, power);
+    return isPowerAvailable(sheetForCheck, power, {
+      className: power.className,
+      waivers,
+    });
   });
 }
 
@@ -320,11 +509,100 @@ export function getAllowedClassPowers(
  * Mesma lógica usada pelo gerador em applyPower (getClassPower), extraída para
  * ser reaproveitada pela UI de seleção manual (assistente de criação).
  */
+export interface ClassPowerGrantOptions {
+  /**
+   * Classes de onde o poder pode vir, quando NÃO é a da ficha. É a cláusula
+   * "você recebe um poder de cavaleiro a sua escolha" do Vassalo, e o "como um
+   * guerreiro de nível igual ao seu para propósitos de pré-requisitos" que a
+   * acompanha: os requisitos são avaliados contra uma ficha sintética daquela
+   * classe, senão um `RequirementType.CLASSE` reprovaria sempre.
+   *
+   * Mesmo truque de `buildSyntheticDevoteSheet` (Poder Capturado).
+   */
+  fromClasses?: string[];
+}
+
+/**
+ * Ficha "como se fosse da classe X", para avaliar pré-requisitos de um poder
+ * emprestado. Só troca o que o avaliador lê: nome da classe e proficiências.
+ */
+function buildSyntheticClassSheet(
+  sheet: CharacterSheet,
+  className: string,
+  nivel: number
+): CharacterSheet {
+  const description = findClassDescription(
+    className,
+    undefined,
+    sheet.supplements
+  );
+  return {
+    ...sheet,
+    nivel,
+    classe: {
+      ...sheet.classe,
+      name: className,
+      subname: undefined,
+      powers: description?.powers ?? [],
+      proficiencias: [
+        ...(sheet.classe.proficiencias ?? []),
+        ...(description?.proficiencias ?? []),
+      ],
+    },
+  } as CharacterSheet;
+}
+
+/**
+ * Poderes de OUTRAS classes elegíveis para uma concessão, com a classe de
+ * origem carimbada em `className` — o mesmo carimbo de `getWaivedClassPowers`,
+ * que faz o catálogo da UI agrupar por origem em vez de mentir o nome.
+ */
+export function getForeignClassPowers(
+  sheet: CharacterSheet,
+  classNames: string[],
+  nivel: number,
+  excludePowers: string[] = []
+): ClassPower[] {
+  const taken = new Set([
+    ...(sheet.classPowers ?? []).map((power) => power.name),
+    ...excludePowers,
+  ]);
+  const seen = new Set<string>();
+  const result: ClassPower[] = [];
+
+  classNames.forEach((className) => {
+    const syntheticSheet = buildSyntheticClassSheet(sheet, className, nivel);
+    const waivers = getActiveWaivers(syntheticSheet);
+
+    (
+      findClassDescription(className, undefined, sheet.supplements)?.powers ??
+      []
+    ).forEach((power) => {
+      const key = `${className}:${power.name}`;
+      if (seen.has(key)) return;
+      if (taken.has(power.name) && !power.canRepeat) return;
+      if (!isPowerAvailable(syntheticSheet, power, { className, waivers })) {
+        return;
+      }
+      seen.add(key);
+      result.push({ ...power, className });
+    });
+  });
+
+  return result;
+}
+
 export function getFuturaLendaClassPowers(
   sheet: CharacterSheet,
-  minLevel = 2
+  minLevel = 2,
+  options?: ClassPowerGrantOptions
 ): ClassPower[] {
+  if (options?.fromClasses?.length) {
+    return getForeignClassPowers(sheet, options.fromClasses, minLevel);
+  }
+
   const sheetForCheck: CharacterSheet = { ...sheet, nivel: minLevel };
+  const waivers = getActiveWaivers(sheet);
 
   return resolveClassPowerCatalog(sheet).filter((power) => {
     // Check if power already exists and if it can be repeated
@@ -336,7 +614,10 @@ export function getFuturaLendaClassPowers(
       return false;
     }
 
-    return isPowerAvailable(sheetForCheck, power);
+    return isPowerAvailable(sheetForCheck, power, {
+      className: power.className,
+      waivers,
+    });
   });
 }
 

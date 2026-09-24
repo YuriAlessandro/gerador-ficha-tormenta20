@@ -59,13 +59,19 @@ const useCommunityHighlights = (): UseCommunityHighlightsResult => {
           1,
           BUILDS_LIMIT
         ),
+        // `showcase: 'daily'` faz o backend sortear a vitrine 1x por dia com peso
+        // pela nota, em vez de devolver sempre os mesmos 16 do topo da média.
+        // O `sortBy: 'rating'` fica de propósito: um backend que ainda não
+        // conheça o param novo o ignora e cai no comportamento antigo, em vez de
+        // cair no default do endpoint e mudar a home sem ninguém pedir.
         HomebrewService.getAllPublicHomebrews({
           sortBy: 'rating',
           sortOrder: 'desc',
           limit: HOMEBREW_LIMIT,
+          showcase: 'daily',
         }),
         BestiaryService.getPublicBestiary(
-          { sortBy: 'rating', sortOrder: 'desc' },
+          { sortBy: 'rating', sortOrder: 'desc', showcase: 'daily' },
           1,
           BESTIARY_LIMIT
         ),

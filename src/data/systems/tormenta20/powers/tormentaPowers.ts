@@ -5,6 +5,10 @@ import {
   GeneralPowerType,
   RequirementType,
 } from '../../../../interfaces/Poderes';
+import {
+  CORPO_ABERRANTE_SHEET_BONUSES,
+  PELE_CORROMPIDA_SHEET_BONUSES,
+} from './tormentaPowerSheetBonuses';
 
 const tormentaPowers: Record<string, GeneralPower> = {
   ANATOMIA_INSANA: {
@@ -179,6 +183,16 @@ const tormentaPowers: Record<string, GeneralPower> = {
         },
       ],
     ],
+    sheetBonuses: CORPO_ABERRANTE_SHEET_BONUSES,
+    // O dado é reescrito a cada recálculo por `updateUnarmedRolls`; este é só o
+    // valor de partida (o dano desarmado base de uma criatura Média).
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Desarmado',
+        dice: '1d3',
+      },
+    ],
   },
   CUSPIR_ENXAME: {
     name: 'Cuspir Enxame',
@@ -225,6 +239,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
                 tipo: 'Corte',
                 spaces: 0,
                 preco: 0,
+                weaponTags: ['natural'],
               },
             ],
           },
@@ -405,6 +420,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Sua carne foi mesclada à matéria vermelha. Você recebe redução de ácido, eletricidade, fogo, frio, luz e trevas 2. Esta RD aumenta em +2 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
+    sheetBonuses: PELE_CORROMPIDA_SHEET_BONUSES,
   },
   SANGUE_ACIDO: {
     name: 'Sangue Ácido',

@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -59,6 +60,15 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
         'Sua mochila de aventureiro não conta no seu limite de itens vestidos e, se estiver vestindo uma dessas mochilas, você pode usar Sabedoria para estabelecer seu limite de carga (em vez de Força). A critério do mestre, este poder pode ser aplicado a outro item equivalente (como uma mochila de carga).',
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [[{ type: RequirementType.DEVOTO, name: 'Valkaria' }]],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Andarilho Carregado' },
+          action: {
+            type: 'setMaxSpacesAttribute',
+            attribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
     },
     {
       name: 'Armadilha Divina',
@@ -102,6 +112,13 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
         'Para você, armas naturais são armas favoritas de Megalokk. Você recebe +2 em rolagens de dano com elas, pode usar Abençoar Arma nelas e, quando usa esse poder ou a magia Armamento da Natureza, pode aplicar seus benefícios a todas as suas armas naturais (sem custo adicional).',
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [[{ type: RequirementType.DEVOTO, name: 'Megalokk' }]],
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Armas da Selvageria' },
+          target: { type: 'WeaponDamage', weaponTags: ['natural'] },
+          modifier: { type: 'Fixed', value: 2 },
+        },
+      ],
     },
     {
       name: 'Aventureiro Inquieto',
@@ -144,6 +161,7 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
             type: 'learnSkill',
             availableSkills: SKILLS_WITHOUT_OFICIO_QUALQUER,
             pick: 1,
+            perTierAboveIniciante: 1,
           },
         },
       ],
@@ -172,11 +190,20 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
     {
       name: 'Companheiro Celeste',
       description:
-        'Você possui um luminar que o acompanha como um parceiro iniciante. Se perder esse luminar, você pode receber outro com uma cerimônia que exige 1 dia e T$ 100 em oferendas.',
+        'Você possui um luminar que o acompanha como um parceiro iniciante. Se perder esse luminar, você pode receber outro com uma cerimônia que exige 1 dia e T$ 100 em oferendas. O luminar fornece o seguinte benefício: uma vez por rodada, você pode gastar 1 PM para curar 2d4 PV por luz ou causar 2d4 pontos de dano não letal de luz em uma criatura em alcance curto.',
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [
         [{ type: RequirementType.DEVOTO, name: 'Lena' }],
         [{ type: RequirementType.DEVOTO, name: 'Marah' }],
+      ],
+      rolls: [
+        { id: uuid(), label: 'Cura (luminar)', dice: '2d4' },
+        {
+          id: uuid(),
+          label: 'Dano de luz não letal (luminar)',
+          dice: '2d4',
+          damageType: 'luz',
+        },
       ],
     },
     {

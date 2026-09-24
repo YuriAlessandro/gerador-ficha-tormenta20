@@ -68,6 +68,16 @@ code {
   justify-content: space-between;
 }
 
+/* Container do notistack (por onde saem os resultados de rolagem). Fica ancorado
+   no rodapé e não passa pelos styleOverrides de MuiSnackbar, então o inset do
+   home indicator precisa vir daqui. `notistack-SnackbarContainer` é a classe
+   estável da v3. */
+.notistack-SnackbarContainer {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
 #bottom {
   bottom: 0;
   background: var(--primary-main, rgb(209, 50, 53));

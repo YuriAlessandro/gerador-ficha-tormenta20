@@ -46,13 +46,16 @@ const UNAVAILABLE_LABEL: Record<
   'class-exclusive':
     'Poder exclusivo de uma classe — a regra proíbe capturá-lo.',
   requirements: 'Você não cumpre os pré-requisitos deste poder.',
+  'dual-devotion-only':
+    'Poder exclusivo de devoção dupla — o usurpador só conta como devoto de ' +
+    'um deus de cada vez.',
 };
 
 /**
  * Escolha dos pares deus maior + poder concedido do Poder Capturado
  * (Usurpador, 4º nível).
  *
- * Drawer próprio em vez de estender o `PowersEditDrawer`: a seção de deus de lá
+ * Drawer próprio em vez de estender o `PowersEditor`: a seção de deus de lá
  * é acoplada a `sheet.devoto`, que o Usurpador por regra nunca tem.
  */
 const PoderCapturadoEditDrawer: React.FC<PoderCapturadoEditDrawerProps> = ({

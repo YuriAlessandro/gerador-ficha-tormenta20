@@ -16,17 +16,21 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { ClassDescription, ClassPower } from '@/interfaces/Class';
+import CharacterSheet from '@/interfaces/CharacterSheet';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import { normalizeSearch } from '@/functions/stringUtils';
 import { formatRequirements } from '@/functions/requirementText';
+import { isPowerAvailable } from '@/functions/powers';
 
 interface AlmaLivreSelectionFieldProps {
   availableClasses: ClassDescription[];
   supplements: SupplementId[];
   selections: SelectionOptions;
   onChange: (selections: SelectionOptions) => void;
+  immediateClassPower?: boolean;
+  sheet?: CharacterSheet;
 }
 
 const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
@@ -34,11 +38,18 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
   supplements,
   selections,
   onChange,
+  immediateClassPower = false,
+  sheet,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const selectedClassName = selections.almaLivreClass || '';
-  const selectedPower = selections.almaLivrePower;
+  const selectedClassName =
+    (immediateClassPower
+      ? selections.diferentaoClass
+      : selections.almaLivreClass) || '';
+  const selectedPower = immediateClassPower
+    ? selections.diferentaoPower
+    : selections.almaLivrePower;
 
   const sortedClasses = useMemo(
     () =>
@@ -63,27 +74,53 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
 
   // Filter powers by search query
   const filteredPowers = useMemo(() => {
-    if (!searchQuery) return selectedClassPowers;
+    const eligiblePowers =
+      immediateClassPower && sheet
+        ? selectedClassPowers.filter((power) =>
+            isPowerAvailable(
+              {
+                ...sheet,
+                classe:
+                  dataRegistry.getClassByName(selectedClassName, supplements) ||
+                  sheet.classe,
+                // Nível 0 não é válido no filtro de requisitos; poderes de
+                // classe são avaliados a partir do nível efetivo mínimo 1.
+                nivel: Math.max(1, sheet.nivel - 4),
+              },
+              power
+            )
+          )
+        : selectedClassPowers;
+    if (!searchQuery) return eligiblePowers;
     const query = normalizeSearch(searchQuery);
-    return selectedClassPowers.filter(
+    return eligiblePowers.filter(
       (power) =>
         normalizeSearch(power.name).includes(query) ||
         normalizeSearch(power.text).includes(query)
     );
-  }, [selectedClassPowers, searchQuery]);
+  }, [
+    selectedClassPowers,
+    searchQuery,
+    immediateClassPower,
+    sheet,
+    selectedClassName,
+    supplements,
+  ]);
 
   const handleClassChange = (className: string) => {
     setSearchQuery('');
     onChange({
-      almaLivreClass: className,
-      almaLivrePower: undefined,
+      ...(immediateClassPower
+        ? { diferentaoClass: className, diferentaoPower: undefined }
+        : { almaLivreClass: className, almaLivrePower: undefined }),
     });
   };
 
   const handlePowerSelect = (power: ClassPower) => {
     onChange({
-      almaLivreClass: selectedClassName,
-      almaLivrePower: power,
+      ...(immediateClassPower
+        ? { diferentaoClass: selectedClassName, diferentaoPower: power }
+        : { almaLivreClass: selectedClassName, almaLivrePower: power }),
     });
   };
 
@@ -91,10 +128,12 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Alert severity='info'>
         <Typography variant='body2'>
-          <strong>Alma Livre:</strong> Escolha uma classe diferente da sua. Você
-          poderá escolher um poder dessa classe em uma subida de nível futura
-          (nível efetivo = seu nível − 4). Você não recebe o poder agora, apenas
-          o direito de escolhê-lo mais tarde.
+          <strong>{immediateClassPower ? 'Diferentão' : 'Alma Livre'}:</strong>{' '}
+          Escolha uma classe diferente da sua e um poder dessa classe (nível
+          efetivo = seu nível − 4).{' '}
+          {immediateClassPower
+            ? 'Você recebe o poder imediatamente.'
+            : 'Você poderá escolhê-lo em uma subida de nível futura.'}
         </Typography>
       </Alert>
       {/* Class Selection */}

@@ -1,7 +1,7 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { ClassPower } from './Class';
 import Equipment from './Equipment';
-import { GeneralPower } from './Poderes';
+import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import { Spell } from './Spells';
 import { GolpePessoalBuild } from '../data/systems/tormenta20/golpePessoal';
 
@@ -26,8 +26,11 @@ export interface SelectionOptions {
   raceAbilities?: Array<{ raceName: string; abilityName: string }>; // Race ability selections for Memória Póstuma
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
+  diferentaoClass?: string; // Classe escolhida pelo poder Diferentão
+  diferentaoPower?: ClassPower; // Poder escolhido pelo poder Diferentão
   alchemyItems?: Equipment[]; // Selected alchemy items for addAlchemyItems action
   golpePessoalBuild?: GolpePessoalBuild; // Build do Golpe Pessoal montado no assistente
+  originPower?: OriginPower; // Poder único de origem escolhido pela Ambição Herdada (Meio-Elfo)
 }
 
 /**
@@ -79,7 +82,8 @@ export interface PowerSelectionRequirement {
     | 'yidishanNaturezaOrganica'
     | 'chooseFromOptions'
     | 'almaLivreSelectClass'
-    | 'mashinChassi';
+    | 'mashinChassi'
+    | 'meioElfoAmbicaoHerdada';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;
@@ -95,12 +99,30 @@ export interface PowerSelectionRequirement {
     schools?: string[];
     optionKey?: string; // For chooseFromOptions: the option key identifier
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
+    immediateClassPower?: boolean; // Diferentão grants the selected power now
     minLevel?: number; // For getClassPower: nível em que os requisitos são avaliados
+    // For getClassPower: 'fixed' (padrão) avalia em `minLevel`; 'sheet' avalia
+    // no nível atual do personagem.
+    levelSource?: 'fixed' | 'sheet';
+    // For getGeneralPower: piscina por categoria, resolvida pelo `dataRegistry`
+    // com os suplementos ativos em vez de vir congelada em `availableOptions`.
+    availableTypes?: GeneralPowerType[];
+    fromClasses?: string[]; // getClassPower: poder vindo de outra classe
     abilityLevel?: number; // For learnClassAbility: nível das habilidades elegíveis
+    // For getGeneralPower: a concessão vale apesar dos pré-requisitos dos
+    // poderes ofertados (ex.: Linhagem Abençoada, "sem precisar ser devoto").
+    ignorePrerequisites?: boolean;
     // For markTrainedSkills: o `pick` real é o modificador deste atributo, com
     // piso `minPick`. Só quem tem a ficha consegue resolver.
     pickByAttribute?: Atributo;
     minPick?: number;
+    // For learnSkill: perícias adicionais por patamar acima de Iniciante (ex.:
+    // Biblioteca Divina). O `pick` real depende do nível do personagem, com
+    // piso `pick` — só quem sabe o nível-alvo consegue resolver.
+    perTierAboveIniciante?: number;
+    // For increaseAttribute: `false` quando a fonte não tem a restrição de
+    // 1×/patamar do poder Aumento de Atributo (ex.: Aspirante a Herói).
+    oncePerTier?: boolean;
   };
 }
 

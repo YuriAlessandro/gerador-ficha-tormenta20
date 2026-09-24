@@ -55,6 +55,12 @@ const OVERRIDES = {
   },
   // somado a um atributo no card e na rolagem: undefined viraria NaN
   getActiveEffectAttributeModifier: { expr: '() => 0' },
+  // Idade existe em toda ficha (envelhecimento do livro básico), então o código
+  // público chama isto; sem o submódulo não há Idades Variadas para ligar, e a
+  // faixa padrão é a resposta certa.
+  getAgeBracketForYears: { expr: "() => 'jovem'" },
+  // consumido com `.find` e `.map` na lista de faixas
+  getAgeRanges: { expr: '() => []' },
   // ENVOLVE a tela da ficha inteira: NullComponent (o default para
   // /components) faria a ficha sumir sem o submódulo premium.
   WildShapeSkin: { expr: 'PassthroughProvider' },
@@ -70,6 +76,16 @@ const OVERRIDES = {
   WILD_SHAPE_FALLBACK_EMOJI: { expr: "'🐾'" },
   // SCREAMING_CASE cairia em `[]`, mas o consumidor chama `.has()`
   RETIRED_ACTIVE_POWER_KEYS: { expr: 'new Set()' },
+  // SCREAMING_CASE cairia em `[]`, que é TRUTHY — e o público usa isto como
+  // boolean para decidir se mostra a aba "Diário". Sem o submódulo não há
+  // canvas, então a aba apareceria vazia.
+  PLAYER_JOURNAL_AVAILABLE: { expr: 'false' },
+  // O público lê `.hasAccess` para decidir se mostra o botão do Portrait. O
+  // default `() => ({})` funcionaria por acidente (undefined é falsy), mas
+  // deixa o contrato implícito e quebra na hora que alguém ler `.isEnabled`.
+  usePortraitAccess: {
+    expr: '() => ({ isEnabled: false, hasAccess: false, needsSupport: false })',
+  },
   // camelCase cairia em `noop` (undefined); estes são lidos como string/array
   getWildShapeAnimalEmoji: { expr: "() => '🐾'" },
   getWildShapeAnimals: { expr: '() => []' },
@@ -146,6 +162,11 @@ const OVERRIDES = {
   getActiveEffectForSpell: { expr: '() => undefined' },
   buildVirtualDefinitionFromCustomEffect: { expr: '() => null' },
   collectVirtualCustomEffectDefinitions: { expr: '() => []' },
+  // espalhados com `...` na lista de definições do gerenciador de efeitos
+  collectStandaloneCustomEffectDefinitions: { expr: '() => []' },
+  // usadas como chave/predicado: precisam de string e boolean, não undefined
+  buildStandaloneEffectPowerKey: { expr: "() => ''" },
+  isStandaloneEffectPowerKey: { expr: '() => false' },
   resolveProfileFont: { expr: "() => 'inherit'" },
   // hooks: as chaves abaixo são as que o público desestrutura
   useDiceRoll: {

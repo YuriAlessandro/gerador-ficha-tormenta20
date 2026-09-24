@@ -29,6 +29,7 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import {
   PowerSelectionRequirement,
   ManualPowerSelections,
+  SelectionOptions,
 } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
@@ -38,16 +39,21 @@ import Divindade from '@/interfaces/Divindade';
 import {
   getPowerSelectionRequirements,
   getChosenOptionNestedRequirements,
+  getOptionBranchSelectionKeys,
   getFilteredAvailableOptions,
+  getGrantedPowerRequirements,
+  resolveLearnSkillRemainingPick,
 } from '@/functions/powers/manualPowerSelection';
+import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
-import { isPowerAvailable } from '@/functions/powers';
+import { getOwnedGeneralPowers, isPowerAvailable } from '@/functions/powers';
 import Skill from '@/interfaces/Skills';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
+import originPowers from '@/data/systems/tormenta20/powers/originPowers';
 import MECHANICAL_MARVELS from '@/data/systems/tormenta20/ameacas-de-arton/powers/mechanicalMarvels';
 import { normalizeSearch } from '@/functions/stringUtils';
 import VersatilSelectionField from './VersatilSelectionField';
@@ -57,12 +63,19 @@ import YidishanNaturezaOrganicaSelectionField from './YidishanNaturezaOrganicaSe
 import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import ClassAbilitySelectionField from './ClassAbilitySelectionField';
 import MashinSelectionField from './MashinSelectionField';
+import AmbicaoHerdadaSelectionField from './AmbicaoHerdadaSelectionField';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
   classe: ClassDescription;
   origin?: Origin;
   deity?: Divindade | null;
+  /**
+   * Piscina de poderes concedidos (união dos deuses, com Devoção Dupla). Sem
+   * ela um poder escolhido da lista da SEGUNDA divindade não seria encontrado
+   * aqui, e as escolhas que ele exige nunca apareceriam.
+   */
+  deityPowerPool?: GeneralPower[];
   selectedDeityPowers?: string[];
   // Each power has its own SelectionOptions keyed by power name
   selections: ManualPowerSelections;
@@ -86,6 +99,11 @@ interface PowerEffectSelectionStepProps {
   // requisitos de `pick` dinâmico, como o markTrainedSkills da Especialista.
   // No level-up vem de `actualSheet`; na criação, do assistente.
   attributeModifiers?: Partial<Record<Atributo, number>>;
+  // Patamar usado por requisitos `learnSkill` escalados (ex.: Biblioteca
+  // Divina). No level-up vem de `actualSheet` (patamar já correto, calculado
+  // por padrão); na criação, do nível-alvo escolhido no assistente — a ficha
+  // mock usada como fallback (`sheetForFiltering`) sempre teria patamar 1.
+  targetPlateau?: number;
 }
 
 const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
@@ -93,6 +111,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   classe,
   origin,
   deity,
+  deityPowerPool,
   selectedDeityPowers,
   selections,
   onChange,
@@ -105,6 +124,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   supplements = [SupplementId.TORMENTA20_CORE],
   usedSkills = [],
   attributeModifiers,
+  targetPlateau,
 }) => {
   // Search query state for each requirement (keyed by requirement index)
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
@@ -141,47 +161,19 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   const allRequirements: Array<{
     powerName: string;
     source: 'race' | 'class' | 'origin';
-    requirements: Array<{
-      type:
-        | 'learnSkill'
-        | 'addProficiency'
-        | 'getGeneralPower'
-        | 'learnSpell'
-        | 'learnAnySpellFromHighestCircle'
-        | 'increaseAttribute'
-        | 'selectWeaponSpecialization'
-        | 'selectFamiliar'
-        | 'selectAnimalTotem'
-        | 'buildGolpePessoal'
-        | 'learnClassAbility'
-        | 'markTrainedSkills'
-        | 'getClassPower'
-        | 'humanoVersatil'
-        | 'lefouDeformidade'
-        | 'osteonMemoriaPostuma'
-        | 'yidishanNaturezaOrganica'
-        | 'chooseFromOptions'
-        | 'almaLivreSelectClass'
-        | 'mashinChassi';
-      pick: number;
-      label: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      availableOptions: any[];
-      metadata?: {
-        allowedType?: 'Arcane' | 'Divine' | 'Both';
-        schools?: string[];
-        optionKey?: string;
-        linkedTo?: string;
-        abilityLevel?: number;
-        pickByAttribute?: Atributo;
-        minPick?: number;
-      };
-    }>;
+    requirements: PowerSelectionRequirement[];
   }> = [];
 
   // Junta os requisitos fixos do poder com os que só existem depois de uma
   // escolha de `chooseFromOptions` (ex.: Herança de Werra → "Duas Armas
   // Exóticas" pede 2 proficiências).
+  // Guarda o poder por nome para que a troca de ramo de um `chooseFromOptions`
+  // consiga zerar as respostas do ramo anterior (ver `handleSelection`).
+  const powersByName = new Map<
+    string,
+    Parameters<typeof getPowerSelectionRequirements>[0]
+  >();
+
   const collectRequirements = (
     powerOrAbility: Parameters<typeof getPowerSelectionRequirements>[0],
     source: 'race' | 'class' | 'origin'
@@ -193,6 +185,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     );
     const requirements = [...(reqs?.requirements ?? []), ...nested];
     if (requirements.length === 0) return;
+    powersByName.set(powerOrAbility.name, powerOrAbility);
     allRequirements.push({
       powerName: powerOrAbility.name,
       source,
@@ -239,7 +232,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
   // Check deity granted powers (if selected)
   if (deity && selectedDeityPowers && selectedDeityPowers.length > 0) {
-    const deityPowers = deity.poderes.filter((p) =>
+    const deityPowers = (deityPowerPool ?? deity.poderes).filter((p) =>
       selectedDeityPowers.includes(p.name)
     );
     // Use 'origin' as source type for deity powers (closest match)
@@ -405,7 +398,14 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     if (Object.keys(updates).length > 0) {
       onChange({ ...selections, ...updates });
     }
-  }, [race.name, classe.name, origin?.name, deity?.name, selectedDeityPowers]);
+  }, [
+    race.name,
+    classe.name,
+    origin?.name,
+    deity?.name,
+    deityPowerPool,
+    selectedDeityPowers,
+  ]);
 
   // If no requirements, show message
   if (allRequirements.length === 0) {
@@ -542,13 +542,29 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       });
     }
 
+    const nextPowerSelections: SelectionOptions = {
+      ...powerSelections,
+      [updateKey]: newItems,
+    };
+
+    // Trocar o ramo de um `chooseFromOptions` tem que zerar o que o ramo
+    // ANTERIOR respondeu — senão o handler do ramo novo consome a resposta
+    // velha. Ver `getOptionBranchSelectionKeys`: só as chaves dos requisitos
+    // aninhados nas opções são limpas, as respostas dos requisitos irmãos do
+    // próprio poder ficam.
+    if (updateKey === 'chosenOption') {
+      const power = powersByName.get(powerName);
+      if (power) {
+        getOptionBranchSelectionKeys(power).forEach((key) => {
+          delete nextPowerSelections[key];
+        });
+      }
+    }
+
     // Update selections for this specific power
     onChange({
       ...selections,
-      [powerName]: {
-        ...powerSelections,
-        [updateKey]: newItems,
-      },
+      [powerName]: nextPowerSelections,
     });
   };
 
@@ -642,44 +658,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   // Render a single requirement for a specific power
   const renderRequirement = (
     powerName: string,
-    requirement: {
-      type:
-        | 'learnSkill'
-        | 'addProficiency'
-        | 'getGeneralPower'
-        | 'learnSpell'
-        | 'learnAnySpellFromHighestCircle'
-        | 'increaseAttribute'
-        | 'selectWeaponSpecialization'
-        | 'selectFamiliar'
-        | 'selectAnimalTotem'
-        | 'buildGolpePessoal'
-        | 'learnClassAbility'
-        | 'markTrainedSkills'
-        | 'getClassPower'
-        | 'humanoVersatil'
-        | 'lefouDeformidade'
-        | 'osteonMemoriaPostuma'
-        | 'yidishanNaturezaOrganica'
-        | 'chooseFromOptions'
-        | 'almaLivreSelectClass'
-        | 'mashinChassi';
-      pick: number;
-      label: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      availableOptions: any[];
-      metadata?: {
-        allowedType?: 'Arcane' | 'Divine' | 'Both';
-        schools?: string[];
-        optionKey?: string;
-        linkedTo?: string;
-        minLevel?: number;
-        abilityLevel?: number;
-        pickByAttribute?: Atributo;
-        minPick?: number;
-      };
-    },
-    requirementIndex: number
+    requirement: PowerSelectionRequirement,
+    requirementIndex: number,
+    // Profundidade do aninhamento. Só o nível 0 desenha as escolhas dos poderes
+    // concedidos — mesma profundidade que os validadores conferem.
+    depth = 0
     // Anotado porque a função se referencia recursivamente (requisito aninhado
     // do learnClassAbility) — sem isso o TS infere `any`.
   ): React.ReactNode => {
@@ -691,8 +674,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     );
 
     // `markTrainedSkills` (Especialista) tem quantidade dinâmica: o modificador
-    // do atributo, com piso `minPick`. O `pick` declarado é só o piso, porque
-    // `getPowerSelectionRequirements` não conhece a ficha.
+    // do atributo, com piso `minPick`. `learnSkill` com `perTierAboveIniciante`
+    // (Biblioteca Divina) também é dinâmico: escala com o patamar, mas só pelo
+    // que AINDA falta escolher — sem isso, subir um patamar reoferecia o total
+    // cumulativo inteiro em vez do incremento daquele patamar.
     const declaredPick =
       type === 'markTrainedSkills'
         ? Math.max(
@@ -701,7 +686,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               ? resolvedAttributeModifiers[requirement.metadata.pickByAttribute]
               : undefined) ?? 0
           )
-        : pick;
+        : resolveLearnSkillRemainingPick(
+            requirement,
+            targetPlateau ?? getCurrentPlateau(sheetForFiltering),
+            sheetForFiltering,
+            powerName
+          );
 
     // Adjust pick when some options were filtered out (e.g., class already has the proficiency)
     const effectivePick = Math.min(declaredPick, allAvailableOptions.length);
@@ -1466,7 +1456,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available powers for Versátil using dataRegistry
       const allPowers = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowers = Object.values(allPowers).flat();
-      const existingGeneralPowers = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowers = getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForVersatil = allGeneralPowers.filter((power) => {
         const isRepeatedPower = existingGeneralPowers.find(
           (existingPower) => existingPower.name === power.name
@@ -1546,7 +1536,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available general powers
       const allPowersForMP = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowersForMP = Object.values(allPowersForMP).flat();
-      const existingGeneralPowersForMP = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowersForMP =
+        getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForMP = allGeneralPowersForMP.filter((power) => {
         const isRepeatedPower = existingGeneralPowersForMP.find(
           (existingPower) => existingPower.name === power.name
@@ -1592,6 +1583,54 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
     }
 
+    // Render Ambição Herdada (Meio-Elfo) selection with custom component
+    if (type === 'meioElfoAmbicaoHerdada') {
+      const allPowersForAH = dataRegistry.getPowersBySupplements(supplements);
+      const allGeneralPowersForAH = Object.values(allPowersForAH).flat();
+      const existingGeneralPowersForAH =
+        getOwnedGeneralPowers(sheetForFiltering);
+      const availableGeneralPowersForAH = allGeneralPowersForAH.filter(
+        (power) => {
+          const isRepeatedPower = existingGeneralPowersForAH.find(
+            (existingPower) => existingPower.name === power.name
+          );
+          if (isRepeatedPower) {
+            return power.allowSeveralPicks;
+          }
+          return isPowerAvailable(sheetForFiltering, power);
+        }
+      );
+
+      const existingOriginPowers = sheetForFiltering.origin?.powers || [];
+      const availableOriginPowersForAH = Object.values(originPowers).filter(
+        (power) =>
+          !existingOriginPowers.some(
+            (existingPower) => existingPower.name === power.name
+          )
+      );
+
+      return (
+        <Box
+          key={requirementIndex}
+          sx={{
+            mb: 2,
+          }}
+        >
+          <AmbicaoHerdadaSelectionField
+            availableGeneralPowers={availableGeneralPowersForAH}
+            availableOriginPowers={availableOriginPowersForAH}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
     // Render Natureza Orgânica (Yidishan) selection with custom component
     if (type === 'yidishanNaturezaOrganica') {
       const availableSkillsForYNO = allAvailableOptions as unknown as Skill[];
@@ -1599,7 +1638,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Get available general powers (filtered by requirements/existing)
       const allPowersForYNO = dataRegistry.getPowersBySupplements(supplements);
       const allGeneralPowersForYNO = Object.values(allPowersForYNO).flat();
-      const existingGeneralPowersForYNO = sheetForFiltering.generalPowers || [];
+      const existingGeneralPowersForYNO =
+        getOwnedGeneralPowers(sheetForFiltering);
       const availablePowersForYNO = allGeneralPowersForYNO.filter((power) => {
         const isRepeatedPower = existingGeneralPowersForYNO.find(
           (existingPower) => existingPower.name === power.name
@@ -1653,6 +1693,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       const availableClassesForAL = allClassesForAL.filter(
         (c) => c.name !== sheetForFiltering.classe.name
       );
+      const immediateClassPower = requirement.metadata?.immediateClassPower;
 
       return (
         <Box
@@ -1665,6 +1706,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             availableClasses={availableClassesForAL}
             supplements={supplements}
             selections={powerSelections}
+            immediateClassPower={immediateClassPower}
+            sheet={sheetForFiltering}
             onChange={(newSelections) => {
               onChange({
                 ...selections,
@@ -1772,153 +1815,41 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         ('description' in opt || 'descricao' in opt)
     );
 
-    // Helper to get nested requirements from a selected power
-    const getNestedRequirements = (
-      selectedPowerObj: GeneralPower | null
-    ): PowerSelectionRequirement[] => {
-      if (!selectedPowerObj) return [];
-      const nestedReqs = getPowerSelectionRequirements(selectedPowerObj);
-      return nestedReqs?.requirements || [];
-    };
+    // Escolhas exigidas pelos poderes que o jogador acabou de escolher neste
+    // requisito (ex.: Talentos do Bando dos Kobolds → Ex-Familiar pede um
+    // familiar). A lista vem do MESMO helper que o validador do assistente usa,
+    // para nunca existir requisito que trava o Próximo sem ter onde escolher.
+    // As respostas moram sob o nome do poder concedido, não do poder pai.
+    const renderGrantedPowerRequirements = () => {
+      if (depth > 0) return null;
+      if (type !== 'getGeneralPower' && type !== 'getClassPower') return null;
 
-    // Render nested spell selection for powers with learnSpell
-    // Nested powers (e.g., "Prática Arcana" selected via "Bênção de Kallyadranoch")
-    // store their selections under their own name
-    const renderNestedSpellSelection = (
-      nestedPower: GeneralPower,
-      nestedReq: PowerSelectionRequirement
-    ) => {
-      // Filter available spells (exclude already known)
-      const filteredSpells = getFilteredAvailableOptions(
-        nestedReq,
-        sheetForFiltering,
-        supplements
-      ) as Spell[];
-
-      const nestedSearchKey = `nested-${nestedPower.name}-spell`;
-      const nestedSearchQuery =
-        searchQueries[nestedSearchKey as unknown as number] || '';
-      const displayedSpells = filterOptions(filteredSpells, nestedSearchQuery);
-
-      // Get selections for the nested power (stored under the nested power's name)
-      const nestedPowerSelections = selections[nestedPower.name] || {};
-      const selectedSpellName =
-        nestedPowerSelections.spells && nestedPowerSelections.spells.length > 0
-          ? getItemName(nestedPowerSelections.spells[0])
-          : '';
-
-      return (
-        <Paper
-          key={`nested-${nestedPower.name}-learnSpell`}
-          elevation={0}
-          sx={{
-            mt: 2,
-            p: 2,
-            bgcolor: 'action.hover',
-            borderLeft: 3,
-            borderColor: 'secondary.main',
-          }}
-        >
-          <Typography variant='subtitle2' color='secondary' gutterBottom>
-            ✨ O poder selecionado requer escolha adicional:
-          </Typography>
-          <Typography variant='subtitle1' gutterBottom>
-            {nestedReq.label} (de {nestedPower.name})
-          </Typography>
-          {filteredSpells.length > 15 && (
-            <TextField
-              fullWidth
-              size='small'
-              placeholder='Buscar magia por nome...'
-              value={nestedSearchQuery}
-              onChange={(e) =>
-                setSearchQueries((prev) => ({
-                  ...prev,
-                  [nestedSearchKey]: e.target.value,
-                }))
-              }
-              sx={{ mb: 2 }}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-          )}
-          {displayedSpells.length === 0 ? (
-            <Alert severity='info' sx={{ mt: 1 }}>
-              {nestedSearchQuery
-                ? `Nenhuma magia encontrada para "${nestedSearchQuery}"`
-                : 'Você já conhece todas as magias disponíveis.'}
-            </Alert>
-          ) : (
-            <FormControl component='fieldset' fullWidth>
-              <RadioGroup
-                value={selectedSpellName}
-                onChange={(e) => {
-                  const spell = displayedSpells.find(
-                    (s) => getItemName(s) === e.target.value
-                  );
-                  if (spell) {
-                    // Store under the nested power's name, not the parent power
-                    handleSelection(
-                      nestedPower.name,
-                      'learnSpell',
-                      spell,
-                      true,
-                      nestedReq.pick
-                    );
-                  }
-                }}
-              >
-                {displayedSpells.map((spell) => {
-                  const spellName = getItemName(spell);
-                  const isSelected = selectedSpellName === spellName;
-                  return (
-                    <FormControlLabel
-                      key={spellName}
-                      value={spellName}
-                      control={<Radio />}
-                      label={
-                        <Box>
-                          <Typography variant='body1'>{spellName}</Typography>
-                          {spell.description && (
-                            <Typography
-                              variant='body2'
-                              sx={{
-                                color: 'text.secondary',
-                              }}
-                            >
-                              {spell.description.length > 150
-                                ? `${spell.description.substring(0, 150)}...`
-                                : spell.description}
-                            </Typography>
-                          )}
-                        </Box>
-                      }
-                      sx={{
-                        ml: 0,
-                        py: 1,
-                        px: 1,
-                        borderRadius: 1,
-                        transition: 'background-color 0.2s',
-                        ...(isSelected && {
-                          bgcolor: 'action.selected',
-                          borderLeft: 3,
-                          borderColor: 'secondary.main',
-                        }),
-                      }}
-                    />
-                  );
-                })}
-              </RadioGroup>
-            </FormControl>
-          )}
-        </Paper>
+      return getGrantedPowerRequirements(powerSelections).map(
+        (entry, index) => (
+          <Paper
+            key={`granted-${entry.selectionKey}-${entry.requirement.type}`}
+            elevation={0}
+            sx={{
+              mt: 2,
+              p: 2,
+              bgcolor: 'action.hover',
+              borderLeft: 3,
+              borderColor: 'secondary.main',
+            }}
+          >
+            <Typography variant='subtitle2' color='secondary' gutterBottom>
+              ✨ {entry.ownerName} requer escolha adicional:
+            </Typography>
+            {renderRequirement(
+              entry.selectionKey,
+              entry.requirement,
+              // Índice próprio para não colidir com o do requisito de fora
+              // (`searchQueries` é indexado por ele).
+              requirementIndex * 1000 + index,
+              depth + 1
+            )}
+          </Paper>
+        )
       );
     };
 
@@ -1956,24 +1887,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         if (!firstItem) return '';
         return getItemName(firstItem);
       };
-
-      // For getGeneralPower, check if selected power has nested requirements
-      const selectedPowerForNested =
-        type === 'getGeneralPower' && powerSelections.powers?.[0]
-          ? (availableOptions.find(
-              (opt) =>
-                getItemName(opt) === getItemName(powerSelections.powers![0])
-            ) as GeneralPower | undefined)
-          : null;
-
-      const nestedRequirements = selectedPowerForNested
-        ? getNestedRequirements(selectedPowerForNested)
-        : [];
-
-      // Filter for learnSpell requirements
-      const nestedSpellReqs = nestedRequirements.filter(
-        (req) => req.type === 'learnSpell'
-      );
 
       return (
         <Box
@@ -2138,11 +2051,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               })}
             </RadioGroup>
           </FormControl>
-          {/* Render nested spell requirements if selected power has them */}
-          {selectedPowerForNested &&
-            nestedSpellReqs.map((nestedReq) =>
-              renderNestedSpellSelection(selectedPowerForNested, nestedReq)
-            )}
+          {renderGrantedPowerRequirements()}
         </Box>
       );
     }
@@ -2247,15 +2156,36 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                   control={
                     <Checkbox
                       checked={isSelected}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         handleSelection(
                           powerName,
                           type,
                           option,
                           e.target.checked,
                           effectivePick
-                        )
-                      }
+                        );
+                        // Ao desmarcar um poder concedido, esquecer as escolhas
+                        // que ele exigia — senão sobra seleção órfã de um poder
+                        // que o personagem não tem mais.
+                        if (
+                          !e.target.checked &&
+                          (type === 'getGeneralPower' ||
+                            type === 'getClassPower') &&
+                          selections[optionName]
+                        ) {
+                          onChange({
+                            ...selections,
+                            [powerName]: {
+                              ...powerSelections,
+                              powers: (powerSelections.powers || []).filter(
+                                (selected) =>
+                                  getItemName(selected) !== optionName
+                              ),
+                            },
+                            [optionName]: {},
+                          });
+                        }
+                      }}
                       disabled={isDisabled}
                     />
                   }
@@ -2295,24 +2225,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             })}
           </FormGroup>
         </FormControl>
-        {/* Render nested spell requirements for multi-select powers */}
-        {type === 'getGeneralPower' &&
-          (() => {
-            const checkedPowers = powerSelections.powers || [];
-            return checkedPowers.map((checkedPower) => {
-              const fullPower = availableOptions.find(
-                (opt) => getItemName(opt) === getItemName(checkedPower)
-              ) as GeneralPower | undefined;
-              if (!fullPower) return null;
-              const nestedReqs = getNestedRequirements(fullPower).filter(
-                (req) => req.type === 'learnSpell'
-              );
-              if (nestedReqs.length === 0) return null;
-              return nestedReqs.map((req) =>
-                renderNestedSpellSelection(fullPower, req)
-              );
-            });
-          })()}
+        {renderGrantedPowerRequirements()}
       </Box>
     );
   };

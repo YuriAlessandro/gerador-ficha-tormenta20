@@ -2,6 +2,7 @@ import { ClassPower } from '@/interfaces/Class';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import {
+  ManualPowerSelections,
   PowerSelectionRequirement,
   PowerSelectionRequirements,
   SelectionOptions,
@@ -30,9 +31,17 @@ import {
 } from '@/data/systems/tormenta20/magias/divine';
 import { SupplementId } from '@/types/supplement.types';
 import { isPhysicalIncreaseBlockedByAge } from '@/premium/functions/ages';
-import { getAttributeIncreasesInSamePlateau } from './general';
-import { getFuturaLendaClassPowers, isPowerAvailable } from '../powers';
-import { isClassOrVariantOf } from '../general';
+import {
+  getAttributeIncreasesInSamePlateau,
+  getCurrentPlateau,
+} from './general';
+import {
+  getFuturaLendaClassPowers,
+  getGeneralPowerCatalogByTypes,
+  isPowerAvailable,
+} from '../powers';
+import { getClassFamilyName, isSameClassFamily } from '../general';
+import { getActiveWaivers } from './prerequisiteWaivers';
 
 /** Força, Destreza e Constituição — os atributos "físicos" de T20. */
 const PHYSICAL_ATTRIBUTES: Atributo[] = [
@@ -141,6 +150,56 @@ function isAllSpellsOfCircle(spells: Spell[]): {
 }
 
 /**
+ * Quantidade real de perícias de um requisito `learnSkill` escalado por
+ * patamar (ex.: Biblioteca Divina). `requirement.pick` é só o piso, declarado
+ * para o patamar Iniciante — usado por qualquer consumidor que tenha a ficha
+ * (editor de poderes, level-up) ou só o nível-alvo (assistente de criação).
+ */
+export function resolveLearnSkillPick(
+  requirement: PowerSelectionRequirement,
+  plateau: number
+): number {
+  if (
+    requirement.type === 'learnSkill' &&
+    requirement.metadata?.perTierAboveIniciante
+  ) {
+    return (
+      requirement.pick +
+      requirement.metadata.perTierAboveIniciante * (plateau - 1)
+    );
+  }
+  return requirement.pick;
+}
+
+/**
+ * Quantidade de perícias AINDA por escolher de um requisito `learnSkill`
+ * escalado por patamar (ex.: Biblioteca Divina): o total cumulativo do
+ * patamar atual, menos as que o histórico da ficha já concedeu.
+ *
+ * Sem isso, subir um único patamar (ex.: 1 → 2) reoferecia o total
+ * cumulativo inteiro (2 perícias) em vez de só o incremento (1) — o jogador
+ * só deveria ver mais de uma opção se ainda não tivesse escolhido nenhuma
+ * (poder concedido depois da criação, sem histórico prévio).
+ */
+export function resolveLearnSkillRemainingPick(
+  requirement: PowerSelectionRequirement,
+  plateau: number,
+  sheet?: CharacterSheet,
+  powerName?: string
+): number {
+  const totalPick = resolveLearnSkillPick(requirement, plateau);
+  if (!sheet || !powerName) return totalPick;
+
+  const alreadyGranted = (sheet.sheetActionHistory || [])
+    .filter((entry) => entry.powerName === powerName)
+    .flatMap((entry) => entry.changes)
+    .filter((change) => change.type === 'SkillsAdded')
+    .flatMap((change) => (change.type === 'SkillsAdded' ? change.skills : []));
+
+  return Math.max(totalPick - alreadyGranted.length, 0);
+}
+
+/**
  * Check if a power requires manual selection from the user
  */
 export function getPowerSelectionRequirements(
@@ -161,6 +220,9 @@ export function getPowerSelectionRequirements(
           label: `Selecione ${action.pick} perícia${
             action.pick > 1 ? 's' : ''
           }`,
+          metadata: action.perTierAboveIniciante
+            ? { perTierAboveIniciante: action.perTierAboveIniciante }
+            : undefined,
         });
       }
 
@@ -183,6 +245,10 @@ export function getPowerSelectionRequirements(
           label: `Selecione ${action.pick} poder${
             action.pick > 1 ? 'es' : ''
           } geral${action.pick > 1 ? 'is' : ''}`,
+          metadata: {
+            ignorePrerequisites: action.ignorePrerequisites,
+            availableTypes: action.availableTypes,
+          },
         });
       }
 
@@ -216,6 +282,11 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Will be populated dynamically in getFilteredAvailableOptions
           pick: 1, // Always pick 1 attribute
           label: 'Selecione 1 atributo para aumentar',
+          metadata: {
+            // Fontes sem a restrição de 1×/patamar (ex.: Aspirante a Herói)
+            // podem repetir um atributo já aumentado no patamar.
+            oncePerTier: action.oncePerTier !== false,
+          },
         });
       }
 
@@ -337,6 +408,19 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      // Handle Ambição Herdada special action for Meio-Elfo
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'meioElfoAmbicaoHerdada'
+      ) {
+        requirements.push({
+          type: 'meioElfoAmbicaoHerdada',
+          availableOptions: [], // Populated dynamically by the component
+          pick: 1, // 1 poder geral OU 1 poder único de origem
+          label: 'Selecione o poder geral ou poder único de origem',
+        });
+      }
+
       // Handle Alma Livre special action
       if (
         action.type === 'special' &&
@@ -347,6 +431,19 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Populated dynamically by the component
           pick: 1, // 1 class + 1 power
           label: 'Selecione uma classe e um poder dessa classe',
+        });
+      }
+
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'diferentaoSelectClassPower'
+      ) {
+        requirements.push({
+          type: 'almaLivreSelectClass',
+          availableOptions: [],
+          pick: 1,
+          label: 'Selecione uma classe e um poder dessa classe',
+          metadata: { immediateClassPower: true },
         });
       }
 
@@ -389,9 +486,11 @@ export function getPowerSelectionRequirements(
           type: 'getClassPower',
           availableOptions: [], // Populated dynamically in getFilteredAvailableOptions
           pick: 1,
-          label: 'Selecione um poder de classe',
+          label: action.label ?? 'Selecione um poder de classe',
           metadata: {
             minLevel: action.minLevel ?? 2,
+            levelSource: action.levelSource ?? 'fixed',
+            fromClasses: action.fromClasses,
           },
         });
       }
@@ -465,6 +564,149 @@ export function getChosenOptionNestedRequirements(
   return nested;
 }
 
+/** Chave de `SelectionOptions` onde as respostas de cada requisito moram. */
+const REQUIREMENT_SELECTION_KEY: Record<string, keyof SelectionOptions> = {
+  learnSkill: 'skills',
+  markTrainedSkills: 'skills',
+  addProficiency: 'proficiencies',
+  getGeneralPower: 'powers',
+  getClassPower: 'powers',
+  learnSpell: 'spells',
+  learnAnySpellFromHighestCircle: 'spells',
+  increaseAttribute: 'attributes',
+  selectWeaponSpecialization: 'weapons',
+  selectFamiliar: 'familiars',
+  selectAnimalTotem: 'animalTotems',
+  learnClassAbility: 'classAbilities',
+  chooseFromOptions: 'chosenOption',
+  buildGolpePessoal: 'golpePessoalBuild',
+};
+
+/**
+ * Chaves de `SelectionOptions` que os RAMOS de um `chooseFromOptions` escrevem.
+ *
+ * Serve para zerar a resposta do ramo anterior quando o jogador troca de ramo.
+ * Sem isso a resposta velha sobrevive e o handler do ramo novo a consome: no
+ * Cosmopolita, o poder geral escolhido antes continuava em `powers`, o
+ * `getClassPower` não o achava entre os poderes de classe e caía no
+ * `getRandomItemFromArray` — concedendo um poder de classe ALEATÓRIO em
+ * silêncio.
+ *
+ * Devolve só as chaves dos requisitos ANINHADOS nas opções; as respostas dos
+ * requisitos próprios do poder (irmãos do `chooseFromOptions`) não entram e
+ * portanto são preservadas pelo chamador.
+ */
+export function getOptionBranchSelectionKeys(
+  power: GeneralPower | ClassPower | RaceAbility | OriginPower
+): Array<keyof SelectionOptions> {
+  const keys = new Set<keyof SelectionOptions>();
+
+  (power.sheetActions ?? []).forEach((sheetAction) => {
+    if (sheetAction.action.type !== 'chooseFromOptions') return;
+    sheetAction.action.options.forEach((option) => {
+      if (!option.sheetActions || option.sheetActions.length === 0) return;
+      const nested = getPowerSelectionRequirements({
+        ...power,
+        sheetActions: option.sheetActions,
+      });
+      nested?.requirements.forEach((requirement) => {
+        const key = REQUIREMENT_SELECTION_KEY[requirement.type];
+        if (key) keys.add(key);
+      });
+    });
+  });
+
+  return Array.from(keys);
+}
+
+/**
+ * Um requisito de escolha já resolvido: além do requisito em si, diz sob QUAL
+ * chave de `ManualPowerSelections` as respostas dele moram.
+ *
+ * Existe porque um poder pode conceder outro poder que, por sua vez, pede uma
+ * escolha própria (ex.: Talentos do Bando dos Kobolds → Ex-Familiar → familiar).
+ * As respostas desse segundo nível são gravadas sob o nome do poder CONCEDIDO,
+ * não do poder pai.
+ */
+export interface ResolvedRequirement {
+  /** Chave em `ManualPowerSelections` onde as respostas deste requisito moram. */
+  selectionKey: string;
+  /** Nome do poder dono do requisito (o concedido, quando aninhado). */
+  ownerName: string;
+  /** Quando true, o requisito veio de um poder concedido por outro poder. */
+  isNested: boolean;
+  requirement: PowerSelectionRequirement;
+}
+
+/**
+ * Escolhas exigidas pelos poderes que o jogador escolheu em um requisito
+ * `getGeneralPower`/`getClassPower`.
+ *
+ * As respostas moram sob o nome do poder CONCEDIDO, não do poder pai — é assim
+ * que o passo do assistente grava e que os validadores leem. Exportada para que
+ * a tela que desenha os seletores e o validador que libera o botão Próximo
+ * derivem a lista do MESMO lugar.
+ */
+export function getGrantedPowerRequirements(
+  selectionForPower: SelectionOptions | undefined
+): ResolvedRequirement[] {
+  const grantedPowers = (selectionForPower?.powers ?? []) as Array<
+    GeneralPower | ClassPower
+  >;
+
+  return grantedPowers.flatMap((granted) => {
+    if (!granted?.name || !granted.sheetActions) return [];
+    return (getPowerSelectionRequirements(granted)?.requirements ?? []).map(
+      (requirement) => ({
+        selectionKey: granted.name,
+        ownerName: granted.name,
+        isNested: true,
+        requirement,
+      })
+    );
+  });
+}
+
+/**
+ * Lista achatada de TODAS as escolhas que um poder exige, incluindo as dos
+ * poderes que ele concede.
+ *
+ * É a fonte única de verdade para quem desenha os seletores (o passo "Efeitos de
+ * Poderes") e para quem libera o botão Próximo (`canProceed` / `isStepComplete`).
+ * Enquanto as duas coisas coletavam requisitos por caminhos diferentes, dava
+ * para existir requisito que bloqueia o assistente sem ter onde escolher.
+ */
+export function resolvePowerRequirements(
+  power: GeneralPower | ClassPower | RaceAbility | OriginPower,
+  allSelections: ManualPowerSelections
+): ResolvedRequirement[] {
+  const selectionKey = power.name;
+  const ownSelections = allSelections[selectionKey];
+
+  const own = [
+    ...(getPowerSelectionRequirements(power)?.requirements ?? []),
+    // Requisitos que só existem depois de uma escolha de `chooseFromOptions`.
+    // Ficam na MESMA chave do poder pai (ver `applyPower`).
+    ...getChosenOptionNestedRequirements(power, ownSelections),
+  ].map((requirement) => ({
+    selectionKey,
+    ownerName: power.name,
+    isNested: false,
+    requirement,
+  }));
+
+  // Segundo nível: cada poder concedido pode ter escolhas próprias. Só um nível
+  // de profundidade — é o que os validadores sempre fizeram, e evita ciclo.
+  const grantsPower = own.some(
+    ({ requirement }) =>
+      requirement.type === 'getGeneralPower' ||
+      requirement.type === 'getClassPower'
+  );
+  const nested = grantsPower ? getGrantedPowerRequirements(ownSelections) : [];
+
+  return [...own, ...nested];
+}
+
 /**
  * Filter available options based on what the character already has
  * @param requirement - The power selection requirement
@@ -516,7 +758,19 @@ export function getFilteredAvailableOptions(
     }
 
     case 'getGeneralPower': {
-      const powers = availableOptions as GeneralPower[];
+      // Piscina por categoria: o dado ofertou tipos, não uma lista fechada, e o
+      // catálogo sai dos suplementos ativos (ver `getGeneralPowerCatalogByTypes`).
+      const types = requirement.metadata?.availableTypes;
+      const powers =
+        types && types.length > 0
+          ? getGeneralPowerCatalogByTypes(sheet, types, supplements)
+          : (availableOptions as GeneralPower[]);
+      // Concessões marcadas com `ignorePrerequisites` valem apesar dos
+      // pré-requisitos dos poderes ofertados (Linhagem Abençoada dá um poder
+      // concedido "sem precisar ser devoto"). Sem isso, o requisito DEVOTO
+      // reprova a lista inteira e o assistente fica sem opção nenhuma.
+      const ignorePrerequisites =
+        requirement.metadata?.ignorePrerequisites === true;
       return powers
         .filter((power) => {
           // Filter out powers the character already has
@@ -528,7 +782,7 @@ export function getFilteredAvailableOptions(
             return false;
           }
           // Filter out powers whose requirements are not met
-          if (!isPowerAvailable(sheet, power)) {
+          if (!ignorePrerequisites && !isPowerAvailable(sheet, power)) {
             return false;
           }
           return true;
@@ -701,8 +955,13 @@ export function getFilteredAvailableOptions(
     }
 
     case 'increaseAttribute': {
-      // Get attributes that haven't been increased in the current plateau
-      const usedAttributes = getAttributeIncreasesInSamePlateau(sheet);
+      // Get attributes that haven't been increased in the current plateau.
+      // Só vale para fontes com a restrição do poder Aumento de Atributo —
+      // Aspirante a Herói e afins listam todos os atributos.
+      const usedAttributes =
+        requirement.metadata?.oncePerTier === false
+          ? []
+          : getAttributeIncreasesInSamePlateau(sheet);
       // Idades Variadas (Heróis de Arton, p. 290): Velhos e Anciões "não podem
       // escolher o poder Aumento de Atributo para nenhum atributo físico".
       // Filtrar aqui cobre de uma vez o assistente de criação, o de evolução e
@@ -899,6 +1158,32 @@ export function getFilteredAvailableOptions(
       );
     }
 
+    case 'meioElfoAmbicaoHerdada': {
+      // Options are handled dynamically by AmbicaoHerdadaSelectionField.
+      // Return the eligible general powers as a fallback so the requirement
+      // isn't mistaken for "no options left" and skipped by the wizard.
+      const allPowersForAmbicao =
+        dataRegistry.getPowersBySupplements(supplements);
+      const allGeneralPowersForAmbicao =
+        Object.values(allPowersForAmbicao).flat();
+      const existingGeneralPowersForAmbicao = sheet.generalPowers || [];
+      // Resolvidos uma vez para o catálogo inteiro — ver `prerequisiteWaivers`.
+      const waiversForAmbicao = getActiveWaivers(sheet);
+      return allGeneralPowersForAmbicao
+        .filter((power) => {
+          const isRepeatedPower = existingGeneralPowersForAmbicao.find(
+            (existingPower) => existingPower.name === power.name
+          );
+          if (isRepeatedPower) {
+            return power.allowSeveralPicks;
+          }
+          return isPowerAvailable(sheet, power, {
+            waivers: waiversForAmbicao,
+          });
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     case 'learnClassAbility': {
       // Devolve NOMES DE CLASSE (não pares classe+habilidade): `renderRequirement`
       // aborta o passo quando a lista vem vazia, e a lista de habilidades depende
@@ -909,9 +1194,13 @@ export function getFilteredAvailableOptions(
       return (
         dataRegistry
           .getClassesBySupplements(supplements)
-          .filter((cls) => whitelist.includes(cls.name))
-          // "uma classe que não seja a sua" — variante conta como a base
-          .filter((cls) => !isClassOrVariantOf(sheet.classe, cls.name))
+          // A whitelist lista FAMÍLIAS: a variante entra pela base (Necromante
+          // pela entrada 'Arcanista'). Ela redefine `abilities` por inteiro, então
+          // tem habilidades de 1º nível próprias — não repete as da base.
+          .filter((cls) => whitelist.includes(getClassFamilyName(cls)))
+          // "uma classe que não seja a sua" — a família inteira conta como a sua,
+          // nos dois sentidos (Guerreiro não pega do Inovador nem vice-versa)
+          .filter((cls) => !isSameClassFamily(sheet.classe, cls))
           // classe sem habilidade no nível pedido não tem o que oferecer
           .filter((cls) => cls.abilities.some((a) => a.nivel === level))
           .map((cls) => cls.name)
@@ -922,10 +1211,14 @@ export function getFilteredAvailableOptions(
     case 'getClassPower': {
       // Poderes de classe elegíveis (ex.: origem "Futura Lenda"), filtrados por
       // nível mínimo e disponibilidade. Mesma lógica usada pelo gerador.
-      return getFuturaLendaClassPowers(
-        sheet,
-        requirement.metadata?.minLevel ?? 2
-      ).sort((a, b) => a.name.localeCompare(b.name));
+      const { fromClasses } = requirement.metadata ?? {};
+      const classPowerLevel =
+        requirement.metadata?.levelSource === 'sheet'
+          ? sheet.nivel
+          : requirement.metadata?.minLevel ?? 2;
+      return getFuturaLendaClassPowers(sheet, classPowerLevel, {
+        fromClasses,
+      }).sort((a, b) => a.name.localeCompare(b.name));
     }
 
     default:
@@ -971,8 +1264,15 @@ export function countRequirementSelections(
       return selections?.chosenOption?.length ?? 0;
     case 'buildGolpePessoal':
       return selections?.golpePessoalBuild ? 1 : 0;
-    case 'almaLivreSelectClass':
-      return selections?.almaLivreClass && selections?.almaLivrePower ? 1 : 0;
+    case 'almaLivreSelectClass': {
+      const selectedClass = requirement.metadata?.immediateClassPower
+        ? selections?.diferentaoClass
+        : selections?.almaLivreClass;
+      const selectedPower = requirement.metadata?.immediateClassPower
+        ? selections?.diferentaoPower
+        : selections?.almaLivrePower;
+      return selectedClass && selectedPower ? 1 : 0;
+    }
 
     // Escolha em dois passos: ao selecionar a classe o campo já grava
     // `{ className, abilityName: '' }` para que a classe sobreviva à navegação
@@ -1008,6 +1308,12 @@ export function countRequirementSelections(
       return skillCount + powerCount + abilityCount > 0 ? 1 : 0;
     }
 
+    // Ambição Herdada (Meio-Elfo): 1 poder geral OU 1 poder único de origem.
+    case 'meioElfoAmbicaoHerdada': {
+      const powerCount = selections?.powers?.length ?? 0;
+      return powerCount > 0 || selections?.originPower ? 1 : 0;
+    }
+
     default:
       // Tipo não coberto: não bloquear o avanço do assistente
       return null;
@@ -1037,6 +1343,20 @@ export function validateSelections(
 
     switch (type) {
       case 'learnSkill':
+        // Biblioteca Divina e similares: escala com o patamar do nível atual
+        // da ficha, com piso `pick` (declarado para o patamar Iniciante), e
+        // desconta o que o histórico já concedeu. Tem que ser a MESMA conta do
+        // `PowerSelectionDialog`, que renderiza as vagas por
+        // `resolveLearnSkillRemainingPick`: com o total cumulativo aqui, uma
+        // ficha que já recebeu as perícias (poder desmarcado e remarcado no
+        // editor, sem salvar) abria o diálogo com zero vagas e o Confirmar
+        // rejeitava para sempre.
+        expectedPick = resolveLearnSkillRemainingPick(
+          requirement,
+          getCurrentPlateau(sheet),
+          sheet,
+          requirements.powerName
+        );
         selectedItems = selections.skills || [];
         selectedCount = selectedItems.length;
         break;
@@ -1122,13 +1442,16 @@ export function validateSelections(
 
       case 'almaLivreSelectClass': {
         // 1 class + 1 power
-        const hasClass = selections.almaLivreClass ? 1 : 0;
-        const hasPower = selections.almaLivrePower ? 1 : 0;
+        const selectedClass = requirement.metadata?.immediateClassPower
+          ? selections.diferentaoClass
+          : selections.almaLivreClass;
+        const selectedPower = requirement.metadata?.immediateClassPower
+          ? selections.diferentaoPower
+          : selections.almaLivrePower;
+        const hasClass = selectedClass ? 1 : 0;
+        const hasPower = selectedPower ? 1 : 0;
         selectedCount = hasClass && hasPower ? 1 : 0;
-        selectedItems = [
-          selections.almaLivreClass,
-          selections.almaLivrePower,
-        ].filter(Boolean);
+        selectedItems = [selectedClass, selectedPower].filter(Boolean);
         break;
       }
 
@@ -1162,6 +1485,17 @@ export function validateSelections(
         break;
       }
 
+      case 'meioElfoAmbicaoHerdada': {
+        // 1 poder geral OU 1 poder único de origem
+        const ambicaoPowers = selections.powers || [];
+        selectedCount =
+          ambicaoPowers.length > 0 || selections.originPower ? 1 : 0;
+        selectedItems = selections.originPower
+          ? [...ambicaoPowers, selections.originPower]
+          : ambicaoPowers;
+        break;
+      }
+
       default:
         // Handle unknown types
         break;
@@ -1173,6 +1507,12 @@ export function validateSelections(
         `${requirement.label}: esperado ${expectedPick}, selecionado ${selectedCount}`
       );
     }
+
+    // Tipos cuja lista de opções é montada pelo próprio componente (o
+    // `getFilteredAvailableOptions` devolve vazio de propósito). Conferir
+    // disponibilidade aqui reprovaria toda escolha válida.
+    if (type === 'almaLivreSelectClass' || type === 'meioElfoAmbicaoHerdada')
+      return;
 
     // Check if selections are available
     const availableOptions = getFilteredAvailableOptions(

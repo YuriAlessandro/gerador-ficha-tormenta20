@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, CircularProgress, Alert } from '@mui/material';
 import { useDiceBox, DiceBoxConfig } from '../../hooks/useDiceBox';
+import { safeBottom, safeLeft, safeRight } from '../../theme/safeArea';
 
 interface DiceBox3DProps {
   config: DiceBoxConfig;
@@ -35,8 +36,8 @@ export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config }) => {
         <Box
           sx={{
             position: 'fixed',
-            bottom: 16,
-            right: 16,
+            bottom: safeBottom(16),
+            right: safeRight(16),
             maxWidth: '300px',
             zIndex: 10000,
           }}
@@ -52,8 +53,8 @@ export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config }) => {
         <Box
           sx={{
             position: 'fixed',
-            bottom: 16,
-            left: 16,
+            bottom: safeBottom(16),
+            left: safeLeft(16),
             padding: 1,
             bgcolor: 'success.main',
             color: 'white',

@@ -120,7 +120,7 @@ const racePowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.RACA,
     requirements: [
       [
-        { type: RequirementType.RACA, name: 'Hárpia' },
+        { type: RequirementType.RACA, name: 'Harpia' },
         { type: RequirementType.TEXT, text: 'Possuir asas' },
       ],
       [
@@ -141,6 +141,28 @@ const racePowers: Record<string, GeneralPower> = {
         source: { type: 'power', name: 'Asas de Aço' },
         target: { type: 'Defense' },
         modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Asas de Aço' },
+        action: {
+          type: 'addEquipment',
+          equipment: {
+            Arma: [
+              {
+                group: 'Arma',
+                nome: 'Asas de Aço',
+                dano: '2d4',
+                critico: 'x2',
+                tipo: 'Impacto',
+                preco: 0,
+                weaponTags: ['natural'],
+              },
+            ],
+          },
+          description: 'Asas de Aço podem ser usadas como ataque extra.',
+        },
       },
     ],
   },
@@ -517,7 +539,7 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.PERICIA, name: Skill.ACROBACIA },
       ],
       [
-        { type: RequirementType.RACA, name: 'Kobold' },
+        { type: RequirementType.RACA, name: 'Kobolds' },
         { type: RequirementType.PERICIA, name: Skill.ACROBACIA },
       ],
     ],
@@ -724,6 +746,37 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.NIVEL, value: 5 },
       ],
     ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Gavinhas' },
+        action: {
+          type: 'addEquipment',
+          equipment: {
+            Arma: [
+              {
+                group: 'Arma',
+                nome: 'Gavinha',
+                dano: '1d4',
+                critico: 'x2',
+                tipo: 'Impacto',
+                preco: 0,
+                weaponTags: ['natural'],
+              },
+              {
+                group: 'Arma',
+                nome: 'Gavinha',
+                dano: '1d4',
+                critico: 'x2',
+                tipo: 'Impacto',
+                preco: 0,
+                weaponTags: ['natural'],
+              },
+            ],
+          },
+          description: 'Gavinhas podem ser usadas como ataque extra.',
+        },
+      },
+    ],
   },
   GINETE_DE_JAVALI: {
     name: 'Ginete de Javali',
@@ -788,7 +841,7 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.PODER, name: 'Entre as Pernas' },
       ],
       [
-        { type: RequirementType.RACA, name: 'Kobold' },
+        { type: RequirementType.RACA, name: 'Kobolds' },
         { type: RequirementType.PODER, name: 'Entre as Pernas' },
       ],
     ],
@@ -829,7 +882,8 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.TEXT, text: 'Lançar magias' },
       ],
       [
-        { type: RequirementType.RACA, name: 'Moreau da Serpente' },
+        { type: RequirementType.RACA, name: 'Moreau' },
+        { type: RequirementType.HERANCA, name: 'Serpente' },
         { type: RequirementType.TEXT, text: 'Lançar magias' },
       ],
       [
@@ -895,6 +949,25 @@ const racePowers: Record<string, GeneralPower> = {
       {
         source: { type: 'power', name: 'Ossos Afiados' },
         target: { type: 'Skill', name: Skill.INTIMIDACAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Ossos Afiados' },
+        target: { type: 'WeaponDamage', weaponTags: ['natural'] },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      // Ataques desarmados: mesmo +2, em dois alvos — `UnarmedDamage`
+      // alimenta o detalhamento abstrato (`unarmedDamage.ts`) e
+      // `WeaponDamage weaponTags:['desarmado']` bakeia no item real da
+      // mochila (Ataque Desarmado, Manopla).
+      {
+        source: { type: 'power', name: 'Ossos Afiados' },
+        target: { type: 'UnarmedDamage' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Ossos Afiados' },
+        target: { type: 'WeaponDamage', weaponTags: ['desarmado'] },
         modifier: { type: 'Fixed', value: 2 },
       },
     ],

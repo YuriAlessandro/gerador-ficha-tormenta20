@@ -17,7 +17,7 @@ export type AppliedBonus = {
   value?: string;
 };
 
-/** Poder de que dá pra extrair bônus — `CustomPower` não tem `sheetBonuses`. */
+/** Poder de que dá pra extrair bônus — nem todo membro de `SheetPower` declara `sheetBonuses`. */
 type PowerLike = { name: string; sheetBonuses?: SheetBonus[] };
 
 /**

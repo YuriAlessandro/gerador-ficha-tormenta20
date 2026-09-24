@@ -81,7 +81,11 @@ function flattenEquipments(bagEquipments: BagEquipments): Equipment[] {
  * subtotais que divergem do total são um bug difícil de perceber.
  */
 export function getItemSpaces(equipment: Equipment): number {
-  if (equipment.isAmmo) return calcAmmoSpaces(equipment);
+  // Espaço digitado à mão no editor vence a regra automática — inclusive na
+  // munição, cujo custo normalmente sai de `unidadesRestantes / unidadesPorEspaço`.
+  if (equipment.isAmmo && !equipment.hasManualSpaces) {
+    return calcAmmoSpaces(equipment);
+  }
   return (equipment.spaces || 0) * (equipment.quantity || 1);
 }
 
@@ -213,6 +217,15 @@ function keepSemanticFields(
     // acima garante que origem e destino são a MESMA chave.
     (merged as unknown as Record<string, unknown>)[field] = previous[field];
   });
+
+  // `spaces` fica fora da lista acima porque a regra dela ("só copia o que o
+  // novo não define") nunca dispararia — o catálogo sempre traz um espaço. Um
+  // espaço editado à mão, porém, é escolha do jogador e tem que sobreviver.
+  if (previous.hasManualSpaces) {
+    merged = merged ?? { ...incoming };
+    merged.spaces = previous.spaces;
+    merged.hasManualSpaces = true;
+  }
 
   return merged ?? incoming;
 }

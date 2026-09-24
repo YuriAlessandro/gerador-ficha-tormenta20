@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
+  Autocomplete,
   Box,
   Button,
   Checkbox,
@@ -12,6 +14,7 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
@@ -21,13 +24,11 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Casino as RollsIcon,
-  Close as CloseIcon,
-  Delete as DeleteIcon,
-  RestartAlt as ResetIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import RollsIcon from '@mui/icons-material/Casino';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ResetIcon from '@mui/icons-material/RestartAlt';
 
 import Equipment, {
   AppliedEnchantment,
@@ -41,6 +42,16 @@ import Equipment, {
 } from '../../../interfaces/Equipment';
 import { resolveDamageAttribute } from '../../../functions/weaponSkill';
 import {
+  getWeaponPurpose,
+  getWeaponReach,
+  WEAPON_PURPOSE_OPTIONS,
+  WEAPON_REACH_OPTIONS,
+  WeaponPurpose,
+  WeaponReach,
+} from '../../../functions/weaponPurpose';
+import AmmoTypeField from './AmmoTypeField';
+import { AmmoTypeOption } from './ammo';
+import {
   getCatalogWeaponCategoryByName,
   WEAPON_CATEGORY_LABELS,
 } from '../../../functions/proficiencies';
@@ -50,6 +61,7 @@ import { ItemE, ItemMod } from '../../../interfaces/Rewards';
 import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { SupplementId } from '../../../types/supplement.types';
 import { applyItemEnhancements } from '../../../functions/itemEnhancements/applyEnhancements';
+import { getManualStatFields } from '../../../functions/manualStats';
 import {
   MaterialContext,
   toAppliedEnchantment,
@@ -74,12 +86,16 @@ import {
   ATTACK_ATTRIBUTE_DEFAULT_LABEL,
   WEAPON_ATTRIBUTE_OPTIONS,
 } from './weaponAttributeOptions';
+import { parseDamageTypes } from './damageTypeSelect';
+import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
 
 export interface ItemEditorDialogProps {
   open: boolean;
   onClose: () => void;
   item: Equipment | null;
   onSave: (next: Equipment) => void;
+  /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
+  ammoTypeOptions?: AmmoTypeOption[];
 }
 
 type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos';
@@ -148,6 +164,15 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
     damageAttribute: baseDamageAttribute,
     attackAttribute: item?.attackAttribute ?? '',
     weaponCategory: item?.weaponCategory ?? '',
+    damageTypes: parseDamageTypes(item?.tipo),
+    damageTypesTouched: false,
+    purpose: getWeaponPurpose(item ?? {}),
+    reach: getWeaponReach(item ?? {}),
+    ammoType: item?.ammoType ?? '',
+    purposeTouched: false,
+    ammoPackSizeText: String(item?.ammoPackSize ?? 20),
+    ammoUnitsPerSpaceText: String(item?.ammoUnitsPerSpace ?? 20),
+    weaponTags: item?.weaponTags ?? [],
     actionDamageAttributes,
     actionAttackAttributes,
     defenseBonusText:
@@ -182,18 +207,29 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   onClose,
   item,
   onSave,
+  ammoTypeOptions = [],
 }) => {
   const [tab, setTab] = useState<TabKey>('geral');
   const [form, setForm] = useState(buildInitial(item));
   const [manualEditedFields, setManualEditedFields] = useState<Set<StatField>>(
     new Set()
   );
+  /**
+   * Campos digitados NESTA abertura do editor. Separado de
+   * `manualEditedFields`, que ao reabrir um item já congelado volta com o grupo
+   * inteiro (para o preview não sobrescrever valor gravado): sem esta segunda
+   * lista, reabrir e salvar transformaria "editei o dano" em "editei os três".
+   */
+  const [touchedFields, setTouchedFields] = useState<Set<StatField>>(new Set());
   const [rollsOpen, setRollsOpen] = useState(false);
   const [modError, setModError] = useState('');
   const [enchError, setEnchError] = useState('');
   const userSupplements: SupplementId[] = useContentSupplements();
 
   const isWeapon = item?.group === 'Arma';
+  // Munição vive no grupo 'Arma' (convenção do catálogo), mas não tem dano,
+  // crítico nem propósito — a aba de stats troca de conteúdo para ela.
+  const isAmmoItem = !!item?.isAmmo;
   const isDefense = item ? isDefenseGroup(item.group) : false;
   const hasStatsTab = isWeapon || isDefense;
   // Label da opção "Padrão" do Select de categoria: mostra a categoria de
@@ -215,18 +251,16 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       setForm(buildInitial(item));
       // Preserve prior manual edits when reopening an item that already had
       // the flag set — otherwise the live-preview effect below would silently
-      // recompute over the user's persisted values.
-      setManualEditedFields(
-        item?.hasManualEdits
-          ? new Set<StatField>([
-              'dano',
-              'atkBonus',
-              'critico',
-              'defenseBonus',
-              'armorPenalty',
-            ])
-          : new Set()
+      // recompute over the user's persisted values. `getManualStatFields` já
+      // resolve o item legado (flag sem lista) como "grupo inteiro editado".
+      const restored = new Set<StatField>(
+        item ? [...getManualStatFields(item)] : []
       );
+      setTouchedFields(new Set());
+      // Flag independente: reabrir um item com espaço manual não pode perder o
+      // congelamento só porque o jogador não tocou no campo desta vez.
+      if (item?.hasManualSpaces) restored.add('spaces');
+      setManualEditedFields(restored);
       setTab('geral');
       setModError('');
       setEnchError('');
@@ -274,11 +308,18 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       modifications: previewMods.length > 0 ? previewMods : undefined,
       enchantments: previewEnch.length > 0 ? previewEnch : undefined,
       hasManualEdits: false,
+      hasManualSpaces: false,
     };
     const recomputed = applyItemEnhancements(virtual);
 
     setForm((f) => {
       const next = { ...f };
+      if (
+        !manualEditedFields.has('spaces') &&
+        recomputed.spaces !== undefined
+      ) {
+        next.spacesText = String(recomputed.spaces);
+      }
       if (!manualEditedFields.has('dano') && recomputed.dano !== undefined) {
         next.danoText = recomputed.dano;
       }
@@ -326,17 +367,32 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     manualEditedFields,
   ]);
 
-  const markManualEdit = (field: StatField) =>
+  const markManualEdit = (field: StatField) => {
+    setTouchedFields((s) => {
+      if (s.has(field)) return s;
+      const next = new Set(s);
+      next.add(field);
+      return next;
+    });
     setManualEditedFields((s) => {
       if (s.has(field)) return s;
       const next = new Set(s);
       next.add(field);
       return next;
     });
+  };
+
+  // Existe um espaço "automático" para voltar? Ou o pipeline de aprimoramentos
+  // já capturou um base, ou é munição (espaço vem das unidades restantes).
+  const hasAutomaticSpaces =
+    item !== null &&
+    item !== undefined &&
+    (item.baseSpaces !== undefined || item.isAmmo === true);
 
   const baseSnapshot = useMemo(() => {
     if (!item) return null;
     return {
+      spaces: item.baseSpaces ?? item.spaces,
       dano: item.baseDano ?? item.dano ?? '',
       atkBonus: item.baseAtkBonus ?? item.atkBonus ?? 0,
       critico: item.baseCritico ?? item.critico ?? 'x2',
@@ -353,11 +409,34 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
   if (!item) return null;
 
+  /**
+   * Devolve o espaço ao cálculo automático (base + deltas de melhorias, ou a
+   * regra de unidades por espaço da munição). Fica junto do campo, na aba
+   * Geral, porque o botão "Resetar" da aba Estatísticas só existe para armas
+   * e armaduras — e espaço é editável em qualquer item.
+   */
+  const handleResetSpaces = () => {
+    setManualEditedFields((s) => {
+      if (!s.has('spaces')) return s;
+      const next = new Set(s);
+      next.delete('spaces');
+      return next;
+    });
+    setForm((f) => ({
+      ...f,
+      spacesText:
+        baseSnapshot?.spaces !== undefined ? String(baseSnapshot.spaces) : '',
+    }));
+  };
+
   const handleResetToBase = () => {
     if (!baseSnapshot) return;
     setManualEditedFields(new Set());
+    setTouchedFields(new Set());
     setForm((f) => ({
       ...f,
+      spacesText:
+        baseSnapshot.spaces !== undefined ? String(baseSnapshot.spaces) : '',
       danoText: baseSnapshot.dano,
       atkBonusText: String(baseSnapshot.atkBonus),
       criticoText: baseSnapshot.critico,
@@ -366,6 +445,41 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     }));
   };
 
+  /**
+   * As estatísticas travadas por edição manual são invisíveis para o pipeline
+   * de melhorias: `applyItemEnhancements` roda com `preserveManualStats` e o
+   * `applyWeaponBonuses` do recálculo nem toca na arma. Sem este aviso o
+   * jogador aplica Maciça, não vê o crítico mudar e conclui que a melhoria não
+   * funciona — foi exatamente como o problema chegou.
+   */
+  const statsLockedWarning =
+    isWeapon &&
+    (manualEditedFields.has('dano') ||
+      manualEditedFields.has('atkBonus') ||
+      manualEditedFields.has('critico')) ? (
+      <Alert severity='warning' icon={false}>
+        Dano, bônus de ataque e crítico estão travados por edição manual —
+        melhorias, encantos e bônus de poderes não vão alterá-los. Use
+        “Resetar”, na aba Estatísticas, para voltar ao cálculo automático.
+      </Alert>
+    ) : null;
+
+  const spacesAreManual = manualEditedFields.has('spaces');
+  let spacesHelperText: React.ReactNode;
+  if (spacesAreManual && hasAutomaticSpaces) {
+    spacesHelperText = (
+      <Button
+        size='small'
+        onClick={handleResetSpaces}
+        sx={{ p: 0, minWidth: 0, fontSize: 'inherit', textTransform: 'none' }}
+      >
+        Voltar ao automático
+      </Button>
+    );
+  } else if (item.isAmmo && !spacesAreManual) {
+    spacesHelperText = 'Vem das unidades restantes.';
+  }
+
   const handleSave = () => {
     // Build the persisted item (pure composition — stat fields only written
     // when manually edited), then apply enhancement effects (numeric bonuses
@@ -373,7 +487,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     // arremesso). Pipeline is idempotent — when all enhancements are cleared it
     // restores stats from `base*` snapshots automatically.
     const finalItem = applyItemEnhancements(
-      buildSavedItem(item, form, manualEditedFields)
+      buildSavedItem(item, form, manualEditedFields, touchedFields)
     );
 
     onSave(finalItem);
@@ -456,12 +570,17 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                   label='Espaços'
                   fullWidth
                   value={form.spacesText}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, spacesText: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    // Aceita decimal com ponto ou vírgula; barra o resto para o
+                    // campo nunca produzir NaN.
+                    const sanitized = e.target.value.replace(/[^0-9.,]/g, '');
+                    markManualEdit('spaces');
+                    setForm((f) => ({ ...f, spacesText: sanitized }));
+                  }}
                   slotProps={{
                     htmlInput: { inputMode: 'decimal' },
                   }}
+                  helperText={spacesHelperText}
                 />
               </Grid>
               <Grid size={12}>
@@ -503,6 +622,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'stats' && hasStatsTab && (
           <Stack spacing={2}>
+            {statsLockedWarning}
             <Stack
               direction='row'
               sx={{
@@ -529,7 +649,61 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
               </Tooltip>
             </Stack>
 
-            {isWeapon && (
+            {isWeapon && isAmmoItem && (
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <AmmoTypeField
+                    label='Tipo de munição'
+                    value={form.ammoType}
+                    onChange={(next) =>
+                      setForm((f) => ({ ...f, ammoType: next }))
+                    }
+                    options={ammoTypeOptions}
+                    helperText='Escolha da lista ou digite um tipo novo'
+                  />
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <TextField
+                    label='Unidades por pacote'
+                    fullWidth
+                    value={form.ammoPackSizeText}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        ammoPackSizeText: e.target.value,
+                      }))
+                    }
+                    helperText='Padrão do livro: 20'
+                    slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <TextField
+                    label='Unidades por espaço'
+                    fullWidth
+                    value={form.ammoUnitsPerSpaceText}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        ammoUnitsPerSpaceText: e.target.value,
+                      }))
+                    }
+                    helperText='Quantos projéteis cabem em 1 espaço'
+                    slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+                  />
+                </Grid>
+                {!form.ammoType && (
+                  <Grid size={12}>
+                    <Alert severity='info'>
+                      Sem tipo definido, esta munição não se vincula a nenhuma
+                      arma — o contador e o desconto por ataque não aparecem.
+                    </Alert>
+                  </Grid>
+                )}
+              </Grid>
+            )}
+
+            {isWeapon && !isAmmoItem && (
               <Grid container spacing={2}>
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <TextField
@@ -591,6 +765,90 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                     </Select>
                   </FormControl>
                 </Grid>
+
+                {/*
+                  Tipo de ataque / Alcance / Munição. NÃO chamam markManualEdit:
+                  são campos semânticos, da mesma classe de `customSkill` e
+                  `weaponCategory`, e não devem congelar dano/atk/crítico.
+                */}
+                <Grid size={{ xs: 12, sm: form.purpose === 'melee' ? 6 : 4 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo de ataque</InputLabel>
+                    <Select
+                      label='Tipo de ataque'
+                      value={form.purpose}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          purpose: e.target.value as WeaponPurpose,
+                          purposeTouched: true,
+                        }))
+                      }
+                    >
+                      {WEAPON_PURPOSE_OPTIONS.map((p) => (
+                        <MenuItem key={p.value} value={p.value}>
+                          {p.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{ display: 'block', mt: 0.5 }}
+                  >
+                    {
+                      WEAPON_PURPOSE_OPTIONS.find(
+                        (p) => p.value === form.purpose
+                      )?.hint
+                    }
+                  </Typography>
+                </Grid>
+                {form.purpose !== 'melee' && (
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Alcance</InputLabel>
+                      <Select
+                        label='Alcance'
+                        value={form.reach}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            reach: e.target.value as WeaponReach,
+                            purposeTouched: true,
+                          }))
+                        }
+                      >
+                        {WEAPON_REACH_OPTIONS.map((r) => (
+                          <MenuItem key={r.value} value={r.value}>
+                            {r.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+                {form.purpose === 'firing' && (
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <AmmoTypeField
+                      label='Munição'
+                      value={form.ammoType}
+                      onChange={(next) =>
+                        setForm((f) => ({ ...f, ammoType: next }))
+                      }
+                      options={ammoTypeOptions}
+                    />
+                  </Grid>
+                )}
+                {form.purpose === 'firing' && !form.ammoType && (
+                  <Grid size={12}>
+                    <Alert severity='info'>
+                      Arma de disparo sem munição vinculada — o contador e o
+                      aviso de consumo não aparecem na aba Ataques.
+                    </Alert>
+                  </Grid>
+                )}
+
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <FormControl fullWidth>
                     <InputLabel>Atributo no ataque</InputLabel>
@@ -677,6 +935,59 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                       ))}
                     </Select>
                   </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo de dano</InputLabel>
+                    <Select
+                      multiple
+                      label='Tipo de dano'
+                      value={form.damageTypes}
+                      onChange={(e) => {
+                        const { value } = e.target;
+                        setForm((f) => ({
+                          ...f,
+                          damageTypes:
+                            typeof value === 'string'
+                              ? (value.split(',') as DamageType[])
+                              : value,
+                          damageTypesTouched: true,
+                        }));
+                      }}
+                      renderValue={(selected) =>
+                        (selected as DamageType[]).join(' ou ') || '—'
+                      }
+                    >
+                      {DAMAGE_TYPES.map((t) => (
+                        <MenuItem key={t} value={t}>
+                          <Checkbox checked={form.damageTypes.includes(t)} />
+                          <ListItemText primary={t} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    multiple
+                    freeSolo
+                    size='small'
+                    options={WEAPON_TAG_SUGGESTIONS.map((t) => t.value)}
+                    getOptionLabel={weaponTagLabel}
+                    value={form.weaponTags}
+                    onChange={(_, newValue) =>
+                      setForm((f) => ({ ...f, weaponTags: newValue }))
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...params}
+                        label='Tags'
+                        placeholder='Adicionar tag'
+                        helperText='Ex.: Natural, Desarmado, Heredrimm... — pode digitar qualquer valor.'
+                      />
+                    )}
+                  />
                 </Grid>
                 {item.specialActions && item.specialActions.length > 0 && (
                   <Grid size={{ xs: 12 }}>
@@ -947,6 +1258,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'modificacoes' && hasModificationsTab && modItemType && (
           <Stack spacing={2}>
+            {statsLockedWarning}
             <Typography
               variant='caption'
               sx={{
@@ -985,6 +1297,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
         {tab === 'encantamentos' && hasEnchantmentsTab && enchItemType && (
           <Stack spacing={2}>
+            {statsLockedWarning}
             <Typography
               variant='caption'
               sx={{

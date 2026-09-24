@@ -145,12 +145,34 @@ export interface ExtraDamage {
   sourceName?: string;
 }
 
-export type AmmoType =
-  | 'Flechas'
-  | 'Virotes'
-  | 'Balas'
-  | 'Pedras'
-  | 'Bola de Ferro';
+/**
+ * Tipos de munição do livro (JDA, Tabela 3-4) mais a Bola de Ferro de Heróis
+ * de Arton. São os tipos CONHECIDOS — não os únicos possíveis, ver `AmmoType`.
+ */
+export const CORE_AMMO_TYPES = [
+  'Flechas',
+  'Virotes',
+  'Balas',
+  'Pedras',
+  'Bola de Ferro',
+] as const;
+
+export type CoreAmmoType = (typeof CORE_AMMO_TYPES)[number];
+
+/**
+ * Tipo de munição. Vocabulário ABERTO: além dos cinco do livro, autores de
+ * conteúdo cunham famílias próprias ("Cartuchos a vapor", "Dardos de
+ * zarabatana") ao criar um pacote de munição, e a arma que os consome aponta
+ * para o mesmo nome.
+ *
+ * O `string & NonNullable<unknown>` (a forma do `string & {}`, escrita como a
+ * regra `ban-types` exige) é o que preserva o autocomplete dos cinco
+ * conhecidos sem fechar a união. Nada no motor faz `switch` sobre este tipo — arma e munição
+ * se encontram por igualdade de string em `findAmmoStack`, e é só isso que
+ * precisa bater. Rótulo de exibição vem de `ammoTypeLabel`, que cai no próprio
+ * valor quando o tipo não é um dos conhecidos.
+ */
+export type AmmoType = CoreAmmoType | (string & NonNullable<unknown>);
 
 /**
  * Atributo aplicável a uma arma (no teste de ataque ou na rolagem de dano).
@@ -214,6 +236,18 @@ export interface WeaponActionTrigger {
 
 export type WeaponCategory = 'simple' | 'martial' | 'exotic' | 'firearm';
 
+/**
+ * Estatísticas de combate que o jogador pode sobrescrever no editor de item.
+ * `spaces` fica de fora de propósito: tem a sua própria flag
+ * (`hasManualSpaces`) e não pertence ao grupo congelado por `hasManualEdits`.
+ */
+export type ManualStatField =
+  | 'dano'
+  | 'atkBonus'
+  | 'critico'
+  | 'defenseBonus'
+  | 'armorPenalty';
+
 export interface WeaponAction {
   id: string;
   label: string;
@@ -276,6 +310,28 @@ export default interface Equipment {
   // Flag to indicate if this weapon has manual user edits
   // When true, recalculateSheet will preserve user edits instead of resetting
   hasManualEdits?: boolean;
+
+  /**
+   * QUAIS estatísticas o jogador digitou à mão. `hasManualEdits` congela o
+   * grupo inteiro (é o que o motor precisa saber), mas a ficha marca só o campo
+   * de fato editado — daí a lista.
+   *
+   * Ausente num item com `hasManualEdits` = item gravado antes deste campo
+   * existir: nesse caso todo o grupo é tratado como editado (ver
+   * `getManualStatFields`).
+   */
+  manualStatFields?: ManualStatField[];
+
+  /**
+   * O jogador editou `spaces` à mão — o pipeline de aprimoramentos para de
+   * reescrever o espaço a partir de `baseSpaces + delta`, e munição passa a
+   * usar esse valor em vez da regra de unidades por espaço.
+   *
+   * Flag SEPARADA de `hasManualEdits` de propósito: aquela congela o grupo de
+   * stats de combate (`dano`/`atkBonus`/`critico`/`defenseBonus`/
+   * `armorPenalty`), e uma edição só-de-espaço não deve congelar nada disso.
+   */
+  hasManualSpaces?: boolean;
 
   // Override which skill is rolled for this weapon's attack test.
   // When undefined, falls back to the default rule (alcance/arremesso → Luta or Pontaria).

@@ -1,19 +1,17 @@
-import {
-  AutoFixHigh as MagiaIcon,
-  Church as DivinoIcon,
-  Diversity3 as RacaIcon,
-  EditNote as CustomIcon,
-  Gavel as CombateIcon,
-  HourglassBottom as IdadeIcon,
-  Handshake as ConcedidoIcon,
-  HistoryEdu as OrigemIcon,
-  MilitaryTech as ClassPowerIcon,
-  School as ClassAbilityIcon,
-  Star as DestinoIcon,
-  SvgIconComponent,
-  WarningAmber as ComplicacaoIcon,
-  Whatshot as TormentaIcon,
-} from '@mui/icons-material';
+import MagiaIcon from '@mui/icons-material/AutoFixHigh';
+import DivinoIcon from '@mui/icons-material/Church';
+import RacaIcon from '@mui/icons-material/Diversity3';
+import CustomIcon from '@mui/icons-material/EditNote';
+import CombateIcon from '@mui/icons-material/Gavel';
+import IdadeIcon from '@mui/icons-material/HourglassBottom';
+import ConcedidoIcon from '@mui/icons-material/Handshake';
+import OrigemIcon from '@mui/icons-material/HistoryEdu';
+import ClassPowerIcon from '@mui/icons-material/MilitaryTech';
+import ClassAbilityIcon from '@mui/icons-material/School';
+import DestinoIcon from '@mui/icons-material/Star';
+import type { SvgIconComponent } from '@mui/icons-material';
+import ComplicacaoIcon from '@mui/icons-material/WarningAmber';
+import TormentaIcon from '@mui/icons-material/Whatshot';
 
 import { ClassAbility, ClassPower } from '../../interfaces/Class';
 import {
@@ -188,7 +186,7 @@ export const POWER_ORIGIN_ORDER: PowerOriginKind[] = (
 ).sort((a, b) => POWER_ORIGINS[a].order - POWER_ORIGINS[b].order);
 
 /** O tipo do poder geral decide o grupo; `OriginPower.type` NÃO serve aqui. */
-const GENERAL_TYPE_TO_KIND: Record<GeneralPowerType, PowerOriginKind> = {
+export const GENERAL_TYPE_TO_KIND: Record<GeneralPowerType, PowerOriginKind> = {
   [GeneralPowerType.COMBATE]: 'generalCombate',
   [GeneralPowerType.DESTINO]: 'generalDestino',
   [GeneralPowerType.MAGIA]: 'generalMagia',

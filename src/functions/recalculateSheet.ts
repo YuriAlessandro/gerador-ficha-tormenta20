@@ -12,6 +12,11 @@ import CharacterSheet, {
   SubStep,
 } from '@/interfaces/CharacterSheet';
 import { calculateCompanionStats } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import {
+  applyDeityClassAbilitySwap,
+  findDeityClassVariant,
+} from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
+import { getPersistentDeityNames } from '@/functions/powers/deityNames';
 import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import Skill, {
@@ -39,6 +44,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
+import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   isMulticlass,
   calculateMulticlassPV,
@@ -48,12 +54,15 @@ import {
   findClassDescription,
 } from './multiclass';
 import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
-import { updateBrigaRolls } from './powers/lutador-special';
+import {
+  updateUnarmedRolls,
+  updateDesarmadoTaggedWeaponsDano,
+} from './unarmedDamage';
 import {
   captureUserAbilityFields,
   restoreUserAbilityFields,
 } from './powers/preserveUserAbilityFields';
-import { expandAttributeBonus } from './attributeExpansion';
+import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
 import { getSheetWornArmor } from './wornArmor';
@@ -70,6 +79,10 @@ import {
   isProficientWithWeapon,
 } from './proficiencies';
 import { applyAttributeSubstitution } from './powers/attributeSubstitution';
+import {
+  sanitizeCustomPowerBonuses,
+  stampCustomPowerSource,
+} from './powers/customPowerBonuses';
 import { stampUsedSupplements } from './contentSources';
 import {
   isModeScopedForWeapon,
@@ -138,6 +151,13 @@ function deduplicateHistory(
       key += `-${action.source.originName}`;
     } else if (action.source.type === 'levelUp' && 'level' in action.source) {
       key += `-${action.source.level}`;
+      // Um mesmo nível registra mais de uma concessão: o poder escolhido E as
+      // habilidades de classe que entram naquele nível. Sem as mudanças na
+      // chave, todas colapsavam na primeira e as demais perdiam a origem — o
+      // card exibia "Vindo de: Origem não identificada" para a habilidade.
+      if (action.changes && action.changes.length > 0) {
+        key += `-${JSON.stringify(action.changes)}`;
+      }
     } else if (action.source.type === 'power' && 'name' in action.source) {
       key += `-${action.source.name}`;
       // For powers with multiple instances (like Aumento de Atributo), include changes in key
@@ -150,6 +170,19 @@ function deduplicateHistory(
     // Include powerName to differentiate entries from different abilities with the same source
     if (action.powerName) {
       key += `-pn:${action.powerName}`;
+      // …e o TIPO das mudanças, porque um mesmo poder pode gravar mais de uma
+      // entrada em uma única aplicação. O Cosmopolita grava `OptionChosen`
+      // (o ramo escolhido) e, logo depois, `PowerAdded` (o poder concedido pelo
+      // ramo): com a chave só em source+powerName as duas colidiam e a segunda
+      // era descartada — o `isActionAlreadyApplied` deixava de enxergar a
+      // concessão e o recálculo seguinte concedia o poder DE NOVO.
+      // Não é o mesmo que a chave do source `power` logo acima, que serializa
+      // as mudanças inteiras para separar instâncias repetidas (Aumento de
+      // Atributo); aqui basta o tipo.
+      const changeTypes = (action.changes ?? [])
+        .map((change) => change.type)
+        .join(',');
+      if (changeTypes) key += `-ct:${changeTypes}`;
     }
 
     // Nota: `divinity` não tem ramo próprio de propósito. Acrescentar
@@ -1194,14 +1227,25 @@ function applyClassAbilities(
     allAbilities = [...availableAbilities, ...secondaryAbilities];
   }
 
+  // Variante de classe por divindade (Deuses de Arton): "Paladino de Marah"
+  // troca Golpe Divino por Mensagem de Paz. Precisa rodar a CADA recálculo
+  // porque `classe.abilities` é reconstruído do zero aqui — e também porque
+  // fichas sem `originalAbilities` caem no fallback do catálogo lá em cima,
+  // que devolve a classe crua do livro básico.
+  allAbilities = applyDeityClassAbilitySwap(
+    allAbilities,
+    findDeityClassVariant(
+      getPersistentDeityNames(sheetClone),
+      sheetClone.classe
+    ),
+    sheetClone.deityClassChoices?.alternativeAbility
+  );
+
   // Reaplica os campos do usuário preservados sobre a lista reconstruída
   // (cobre habilidades primárias e secundárias de multiclasse).
   allAbilities = restoreUserAbilityFields(allAbilities, userAbilityFields);
 
   sheetClone.classe.abilities = allAbilities;
-
-  // Briga (Lutador/Atleta): dano desarmado escala com o nível de classe
-  updateBrigaRolls(sheetClone);
 
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(sheetClone);
@@ -1209,6 +1253,7 @@ function applyClassAbilities(
   sheetClone = allAbilities.reduce((acc, ability) => {
     const abilitySelections = manualSelections?.[ability.name];
     const [newAcc] = applyPower(acc, ability, abilitySelections);
+
     return newAcc;
   }, sheetClone);
 
@@ -1232,6 +1277,47 @@ function applyGeneralPowers(
   }, sheetClone);
 
   return sheetClone;
+}
+
+/**
+ * Bônus passivos dos poderes criados à mão (`customPowers` +
+ * `customGrantedPowers`). Espelha `applyGeneralPowers`, com duas diferenças:
+ *
+ * 1. O `source` é RE-CARIMBADO aqui, e não gravado pelo diálogo: o usuário pode
+ *    renomear o poder, e um `source.name` congelado no save quebraria o
+ *    casamento em `getPowerAppliedBonuses`. Como o Step 1 zera `sheetBonuses` e
+ *    este passo reconstrói tudo, carimbar aqui é sempre idempotente.
+ * 2. Os bônus passam pelo saneador antes de virarem número — é conteúdo de
+ *    usuário e pode chegar de uma ficha compartilhada ou da nuvem.
+ *
+ * Não passa `sourceClassName`: poder personalizado não pertence a classe
+ * nenhuma, e o `className` faria `{classLevel}` resolver contra uma classe
+ * arbitrária.
+ */
+function applyCustomPowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
+  const customPowers = [
+    ...(sheet.customPowers || []),
+    ...(sheet.customGrantedPowers || []),
+  ];
+  if (customPowers.length === 0) return sheet;
+
+  return customPowers.reduce((acc, power) => {
+    const sheetBonuses = stampCustomPowerSource(
+      sanitizeCustomPowerBonuses(power.sheetBonuses),
+      power.name
+    );
+    if (sheetBonuses.length === 0) return acc;
+
+    const [newAcc] = applyPower(
+      acc,
+      { name: power.name, sheetBonuses },
+      manualSelections?.[power.name]
+    );
+    return newAcc;
+  }, _.cloneDeep(sheet));
 }
 
 function applyClassPowers(
@@ -1355,10 +1441,25 @@ function isConditionMet(
 function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
   const updatedSheet = _.cloneDeep(sheet);
 
+  // Vestuário é o ÚNICO grupo, além de Armadura, com estado vestido/guardado:
+  // uma peça guardada na mochila não aplica nada. Os outros 10 grupos seguem
+  // aplicando por estarem na mochila (decisão de escopo).
+  //
+  // `unwornClothingIds` é um conjunto de OPT-OUT: ausente = nada guardado = tudo
+  // vestido, que é o comportamento de toda ficha criada antes da feature. É por
+  // isso que não há migração nenhuma aqui — NÃO inverter para uma lista de "o
+  // que está vestido", ou toda peça que entra na mochila por fora da modal
+  // (recompensa, item de origem, homebrew, geração aleatória) perde o bônus.
+  const unwornClothing = new Set(updatedSheet.unwornClothingIds ?? []);
+  const wornClothing = (updatedSheet.bag.equipments.Vestuário || []).filter(
+    // Peça sem id nunca pôde ser guardada pela UI.
+    (item) => !item.id || !unwornClothing.has(item.id)
+  );
+
   // Collect all equipment from the bag
   const allEquipment: Equipment[] = [
     ...(updatedSheet.bag.equipments['Item Geral'] || []),
-    ...(updatedSheet.bag.equipments.Vestuário || []),
+    ...wornClothing,
     ...(updatedSheet.bag.equipments.Alquimía || []),
     ...(updatedSheet.bag.equipments.Arma || []),
     ...(updatedSheet.bag.equipments.Armadura || []),
@@ -1480,21 +1581,11 @@ function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
         name: eff.name,
       };
 
-      // Bônus que miram um atributo são expandidos em suas perícias/dano/Defesa
-      // derivados (o motor não muta `atributos[attr].value` — vazaria pro estado
-      // persistido). Mesma estratégia das condições e dos efeitos pré-canned.
-      if (b.target.type === 'Attribute') {
-        const { attribute } = b.target;
-        expandAttributeBonus(attribute, b.modifier).forEach((expanded) => {
-          updated.sheetBonuses.push({
-            source,
-            target: expanded.target,
-            modifier: expanded.modifier,
-          });
-        });
-        return;
-      }
-
+      // Bônus com alvo `Attribute` passam DIRETO. Quem os consome é o Step
+      // 7.46, que os reduz em `atributosTemporarios` (camada de atributo
+      // efetivo). Antes eles eram expandidos aqui em perícias/dano/Defesa, o
+      // que deixava CD de magia e capacidade de carga de fora — ver
+      // `functions/effectiveAttributes.ts`.
       updated.sheetBonuses.push({
         source,
         target: b.target,
@@ -1502,6 +1593,78 @@ function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
       });
     });
   });
+
+  return updated;
+}
+
+/**
+ * Step 7.46 — reduz TODO bônus com alvo `Attribute` em `atributosTemporarios`,
+ * a camada de "atributo efetivo" (ver `functions/effectiveAttributes.ts`).
+ *
+ * Produtor único: antes de reduzir, injeta o campo manual `bonusAtributos` como
+ * `sheetBonuses` de alvo `Attribute`. Assim o bônus manual entra de graça na
+ * infra de origem/tooltip (`sheetBonuses/appliedBonuses.ts`) e existe um só
+ * caminho de leitura.
+ *
+ * Roda DEPOIS do Step 7.45 (efeitos ativos já em `sheetBonuses`) e ANTES do
+ * 7.5 (PV/PM), do 7.7 (perícias) e do Step 8.
+ *
+ * O motor NUNCA muta `atributos[attr].value`: mutar vazava efeito temporário
+ * para o estado persistido e corrompia atributo editado à mão.
+ */
+function applyTemporaryAttributeModifiers(
+  sheet: CharacterSheet
+): CharacterSheet {
+  const updated = _.cloneDeep(sheet);
+
+  // 1. Injeta o campo manual como bônus de alvo `Attribute`.
+  Object.entries(updated.bonusAtributos ?? {}).forEach(([attr, value]) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value === 0) {
+      return;
+    }
+    updated.sheetBonuses.push({
+      source: { type: 'manualEdit' },
+      target: { type: 'Attribute', attribute: attr as Atributo },
+      modifier: { type: 'Fixed', value },
+    });
+  });
+
+  // 2. Reduz todos os alvos `Attribute` vivos. `calculateBonusValue` cobre
+  //    também `LevelCalc`/`ScaledValue`, e `isBonusActive` mantém a paridade
+  //    com o filtro do Step 8.
+  const totals: Partial<Record<Atributo, number>> = {};
+  updated.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type !== 'Attribute') return;
+    if (!isBonusActive(updated, bonus)) return;
+
+    const { attribute } = bonus.target;
+    const value = calculateBonusValue(updated, bonus.modifier, bonus.source);
+    if (!Number.isFinite(value) || value === 0) return;
+    totals[attribute] = (totals[attribute] ?? 0) + value;
+  });
+
+  // Poda zeros; mapa vazio vira `undefined` para o delta da nuvem virar $unset.
+  const cleaned: Partial<Record<Atributo, number>> = {};
+  (Object.keys(totals) as Atributo[]).forEach((attr) => {
+    if (totals[attr]) cleaned[attr] = totals[attr];
+  });
+  updated.atributosTemporarios =
+    Object.keys(cleaned).length > 0 ? cleaned : undefined;
+
+  // 3. Re-deriva a capacidade de carga a partir da Força EFETIVA. O Step 1.5 já
+  //    calculou com a Força base (valor sensato para os Steps 2-7); esta
+  //    atribuição sobrescreve e é idempotente. Precisa passar pelo
+  //    `calculateMaxSpaces` em vez de somar o delta: a escala é não-linear
+  //    (10+2·FOR, mas 10+FOR quando negativa). O Step 8 continua somando os
+  //    alvos `MaxSpaces` por cima. O atributo não é necessariamente Força:
+  //    Organizadinhos/Andarilho Carregado e o seletor da mochila trocam-no via
+  //    `maxSpacesAttribute` — ler Força fixo aqui zeraria esses efeitos.
+  updated.maxSpaces = calculateMaxSpaces(
+    getEffectiveAttributeModifier(
+      updated,
+      updated.maxSpacesAttribute ?? Atributo.FORCA
+    )
+  );
 
   return updated;
 }
@@ -1883,10 +2046,21 @@ export function recalculateSheet(
       (name) => !newOriginPowerNames.includes(name)
     );
 
+    // Find removed deity (granted) powers. `devoto.poderes` é um campo
+    // separado de `generalPowers` — sem checá-lo aqui, remover um poder
+    // concedido (ex.: Biblioteca Divina) nunca reverte as perícias que ele deu.
+    const originalDeityPowers = originalSheet.devoto?.poderes || [];
+    const newDeityPowers = updatedSheet.devoto?.poderes || [];
+    const removedDeityPowers = getRemovedPowers(
+      originalDeityPowers,
+      newDeityPowers
+    );
+
     removedPowerNames = [
       ...removedGeneralPowers,
       ...removedClassPowers,
       ...removedOriginPowers,
+      ...removedDeityPowers,
     ];
 
     // Complicação (Heróis de Arton) removida ou trocada: reverte as
@@ -1948,12 +2122,36 @@ export function recalculateSheet(
     synthesizeHistoryForRemovedPowers(updatedSheet, removedPowerNames);
   }
 
+  // Diferentão grants a class power directly, so its removal does not pass
+  // through reverseSheetActionsForPower. Remove the granted power with the
+  // source talent instead of leaving it orphaned on the sheet.
+  if (
+    !updatedSheet.generalPowers?.some(
+      (power) => power.name === 'Diferentão (Kobolds)'
+    ) &&
+    updatedSheet.diferentaoPower
+  ) {
+    updatedSheet.classPowers = (updatedSheet.classPowers || []).filter(
+      (power) =>
+        !(
+          power.name === updatedSheet.diferentaoPower?.name &&
+          power.className === updatedSheet.diferentaoClass
+        )
+    );
+    updatedSheet.diferentaoClass = undefined;
+    updatedSheet.diferentaoPower = undefined;
+  }
+
   // Step 1: Clear existing bonuses to avoid accumulation
   updatedSheet.sheetBonuses = [];
 
-  // Step 1.5: Recalculate maxSpaces based on current Força modifier
+  // Step 1.5: Recalculate maxSpaces from the manual attribute choice when
+  // present. Powers that replace the attribute reapply their choice below.
+  updatedSheet.maxSpacesAttribute = updatedSheet.manualMaxSpacesAttribute;
+  const baseMaxSpacesAttribute =
+    updatedSheet.manualMaxSpacesAttribute ?? Atributo.FORCA;
   updatedSheet.maxSpaces = calculateMaxSpaces(
-    updatedSheet.atributos.Força.value
+    updatedSheet.atributos[baseMaxSpacesAttribute].value
   );
 
   // Step 1.6: Reset extraArmorPenalty to avoid accumulation across recalculations
@@ -1976,6 +2174,12 @@ export function recalculateSheet(
 
   // Step 7: Apply origin powers
   updatedSheet = applyOriginPowers(updatedSheet, manualSelections);
+
+  // Step 7.1: Bônus passivos dos poderes personalizados. Fica junto dos demais
+  // baldes de poder (Steps 2-7) e ANTES do 7.35 (perda de Carisma da Tormenta,
+  // que precisa de todos os baldes preenchidos), do 7.46 (único consumidor dos
+  // alvos `Attribute`), do 7.5 (PV/PM), do 7.7 (perícias) e do Step 8.
+  updatedSheet = applyCustomPowers(updatedSheet, manualSelections);
 
   // Step 7.2: Apply complication (Heróis de Arton)
   updatedSheet = applyComplication(updatedSheet, manualSelections);
@@ -2001,15 +2205,30 @@ export function recalculateSheet(
   // no motor de ficha aleatória.
   applyTormentaAttributePenalty(updatedSheet);
 
-  // Step 7.4: Apply active condition bonuses
-  //   - Attribute targets mutate atributos directly (before skills/defense recalc)
-  //   - Other targets are pushed to sheetBonuses for the main loop
+  // Step 7.4: Apply active condition bonuses. Condições NUNCA mutam
+  // `atributos` nem entram no atributo efetivo: em RAW "Fraco" é "−2 em testes
+  // de Força", penalidade de TESTE (agregação pior-vence), não redução de
+  // atributo — por isso emitem só bônus `Skill`. Ver `effectiveAttributes.ts`.
   updatedSheet = applyConditionBonuses(updatedSheet);
 
   // Step 7.45: Apply active effect bonuses (powers with temporary bonus,
   // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
   // replace it. Pushes SheetBonus entries for the main loop below.
   updatedSheet = applyActiveEffectBonuses(updatedSheet);
+
+  // Step 7.46: Reduz os alvos `Attribute` (efeitos ativos + campo manual
+  // `bonusAtributos`) em `atributosTemporarios` e re-deriva a capacidade de
+  // carga. Tem que vir antes do 7.5 (PV/PM), do 7.7 (perícias) e do Step 8.
+  updatedSheet = applyTemporaryAttributeModifiers(updatedSheet);
+
+  // A escolha explícita da mochila tem precedência sobre substituições de
+  // atributo concedidas por poderes.
+  if (updatedSheet.manualMaxSpacesAttribute) {
+    updatedSheet.maxSpacesAttribute = updatedSheet.manualMaxSpacesAttribute;
+    updatedSheet.maxSpaces = calculateMaxSpaces(
+      updatedSheet.atributos[updatedSheet.manualMaxSpacesAttribute].value
+    );
+  }
 
   // Step 7.47: Substituição de atributo em escopo de ficha (Usurpador, "Poder
   // de Clérigo": Sabedoria vira Carisma nos poderes de clérigo e concedidos).
@@ -2055,20 +2274,6 @@ export function recalculateSheet(
       }
     }
 
-    // Initialize current PV if not set (first time or reset)
-    if (updatedSheet.currentPV === undefined) {
-      updatedSheet.currentPV = updatedSheet.pv;
-    }
-
-    // Migrate old over-max PV to temp PV
-    if (
-      updatedSheet.currentPV > updatedSheet.pv &&
-      updatedSheet.tempPV === undefined
-    ) {
-      updatedSheet.tempPV = updatedSheet.currentPV - updatedSheet.pv;
-      updatedSheet.currentPV = updatedSheet.pv;
-    }
-
     // Initialize increment if not set
     if (updatedSheet.pvIncrement === undefined) {
       updatedSheet.pvIncrement = 1;
@@ -2108,20 +2313,6 @@ export function recalculateSheet(
     // Paladino: Virtudes Paladinescas (bônus progressivo de PM por quantidade)
     if (!hasManualMaxPM) {
       updatedSheet.pm += getVirtudePaladinescaPMBonus(updatedSheet.classPowers);
-    }
-
-    // Initialize current PM if not set (first time or reset)
-    if (updatedSheet.currentPM === undefined) {
-      updatedSheet.currentPM = updatedSheet.pm;
-    }
-
-    // Migrate old over-max PM to temp PM
-    if (
-      updatedSheet.currentPM > updatedSheet.pm &&
-      updatedSheet.tempPM === undefined
-    ) {
-      updatedSheet.tempPM = updatedSheet.currentPM - updatedSheet.pm;
-      updatedSheet.currentPM = updatedSheet.pm;
     }
 
     // Initialize increment if not set
@@ -2327,10 +2518,15 @@ export function recalculateSheet(
   // Apply custom attribute logic if defined
   if (updatedSheet.useDefenseAttribute === false && !heavyArmor) {
     // User explicitly disabled attribute, remove it
-    const defaultAttr =
+    // Precisa casar com o que `calcDefense` acabou de somar — e ele soma o
+    // atributo EFETIVO. Ler o base aqui deixaria o delta temporário preso na
+    // Defesa depois de o jogador desligar o atributo.
+    const defaultAttr = getEffectiveAttributeModifier(
+      updatedSheet,
       updatedSheet.classe.name === 'Nobre'
-        ? updatedSheet.atributos.Carisma.value
-        : updatedSheet.atributos.Destreza.value;
+        ? Atributo.CARISMA
+        : Atributo.DESTREZA
+    );
     updatedSheet.defesa -= defaultAttr;
   } else if (
     updatedSheet.customDefenseAttribute &&
@@ -2344,10 +2540,17 @@ export function recalculateSheet(
         : Atributo.DESTREZA;
 
     if (updatedSheet.customDefenseAttribute !== defaultAttr) {
-      // Remove default attribute value and add custom
-      const defaultValue = updatedSheet.atributos[defaultAttr].value;
-      const customValue =
-        updatedSheet.atributos[updatedSheet.customDefenseAttribute].value;
+      // Remove default attribute value and add custom. Os dois EFETIVOS: o que
+      // sai tem que casar com o que `calcDefense` somou, e o que entra também
+      // recebe o delta temporário.
+      const defaultValue = getEffectiveAttributeModifier(
+        updatedSheet,
+        defaultAttr
+      );
+      const customValue = getEffectiveAttributeModifier(
+        updatedSheet,
+        updatedSheet.customDefenseAttribute
+      );
       updatedSheet.defesa = updatedSheet.defesa - defaultValue + customValue;
     }
   }
@@ -2488,8 +2691,58 @@ export function recalculateSheet(
     });
   }
 
+  // Step 11.8: dano desarmado (Briga, Estilo Desarmado, Corpo Aberrante).
+  //
+  // Depois do Step 11.5/11.7 porque lê o `size` FINAL, e depois do Step 2
+  // porque precisa dos bônus `UnarmedDamageStep` já em `sheetBonuses`. Antes
+  // rodava lá em cima, dentro de `applyClassAbilities`, onde nenhuma das duas
+  // coisas existia ainda — por isso a Briga ignorava tamanho.
+  //
+  // O passo de tamanho NÃO vem do bônus do Step 11.7 (aquele é
+  // `WeaponDamageStep`, e só é bakeado nas armas da mochila): `unarmedDamage`
+  // lê `sheet.size` direto. Os dois alvos são disjuntos justamente para isso.
+  //
+  // Derivação absoluta (base → melhor dado → passos), então é idempotente sem
+  // snapshot de base, ao contrário do baking de armas.
+  updateUnarmedRolls(updatedSheet);
+
+  // Step 11.9: dano-base das armas `weaponTags: ['desarmado']` (Ataque
+  // Desarmado, Manopla). Roda ANTES dos Steps 17/17.5 (bake de armas) de
+  // propósito — o degrau de tamanho do Step 11.7 é um `WeaponDamageStep` sem
+  // filtro de tag, então já se aplica a qualquer arma da mochila; escrever o
+  // dado-base aqui evita duplicar esse degrau (ver comentário no topo de
+  // `unarmedDamage.ts`).
+  updateDesarmadoTaggedWeaponsDano(updatedSheet);
+
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
   updatedSheet = applyHPAttributeReplacement(updatedSheet);
+
+  // Step 12.5: PV/PM atuais. Tem que rodar DEPOIS de todo mundo que mexe nos
+  // máximos (Step 8 soma os bônus de atributo-chave — o Carisma do "Abençoado"
+  // do paladino, por exemplo — e o Step 12 recalcula PV). Rodando antes, uma
+  // ficha nova nascia com o atual igual à base da classe (paladino nv1 com
+  // Carisma 4: 3/7).
+  //
+  // O recálculo NUNCA move o atual por conta própria: quem gastou PM continua
+  // com o que sobrou, e quem ganhou máximo (nível novo, Aumento de Atributo)
+  // recebe o ganho no atual pelos chamadores, via
+  // `applyMaxPointsGainToCurrent`. A única correção feita aqui é o teto —
+  // quando o máximo cai (atributo reduzido à mão, poder removido), o atual
+  // desce junto. Excedente vira teto, e não pontos temporários: converter em
+  // temporário dava PM de graça a quem só teve o máximo recalculado.
+  if (!options?.skipPVRecalc) {
+    updatedSheet.currentPV = Math.min(
+      updatedSheet.currentPV ?? updatedSheet.pv,
+      updatedSheet.pv
+    );
+  }
+
+  if (!options?.skipPMRecalc) {
+    updatedSheet.currentPM = Math.min(
+      updatedSheet.currentPM ?? updatedSheet.pm,
+      updatedSheet.pm
+    );
+  }
 
   // Step 14: Calculate Damage Reduction from sheetBonuses + manual
   const computedRd: DamageReduction = {};
@@ -2537,7 +2790,7 @@ export function recalculateSheet(
   }
 
   // Cavaleiro: Bastião (RD Geral 5, requer armadura pesada)
-  if (updatedSheet.cavaleiroCaminho === 'Bastião' && heavyArmor) {
+  if (getCavaleiroCaminho(updatedSheet) === 'Bastião' && heavyArmor) {
     computedRd.Geral = (computedRd.Geral ?? 0) + 5;
   }
 
@@ -2562,35 +2815,10 @@ export function recalculateSheet(
     computedRd.Geral = (computedRd.Geral ?? 0) + 1;
   }
 
-  // Carapaça Corrompida (RD Geral 1 + escala com poderes da Tormenta)
-  const hasCarapaca = (updatedSheet.generalPowers || []).some(
-    (p) => p.name === 'Carapaça Corrompida'
-  );
-  if (hasCarapaca) {
-    const otherTormentaPowers = countTormentaPowers(updatedSheet) - 1;
-    const rdValue = 1 + Math.floor(Math.max(0, otherTormentaPowers) / 2);
-    computedRd.Geral = (computedRd.Geral ?? 0) + rdValue;
-  }
-
-  // Pele Corrompida (RD 6 tipos, escala com poderes da Tormenta)
-  const hasPeleCorr = (updatedSheet.generalPowers || []).some(
-    (p) => p.name === 'Pele Corrompida'
-  );
-  if (hasPeleCorr) {
-    const otherTormentaPowers = countTormentaPowers(updatedSheet) - 1;
-    const rdValue = 2 + 2 * Math.floor(Math.max(0, otherTormentaPowers) / 2);
-    const types: DamageType[] = [
-      'Ácido',
-      'Eletricidade',
-      'Fogo',
-      'Frio',
-      'Luz',
-      'Trevas',
-    ];
-    types.forEach((dt) => {
-      computedRd[dt] = (computedRd[dt] ?? 0) + rdValue;
-    });
-  }
+  // Carapaça Corrompida e Pele Corrompida saíram daqui: viraram `sheetBonuses`
+  // com alvo `DamageReduction` (`tormentaPowerSheetBonuses.ts`), somados pelo
+  // loop de `DamageReduction` no topo deste passo. Eram a última automação de
+  // poder da Tormenta duplicada entre os dois motores de derivação.
 
   if (updatedSheet.bonusRd) {
     Object.entries(updatedSheet.bonusRd).forEach(([key, value]) => {

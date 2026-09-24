@@ -142,6 +142,56 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
       requirements: [
         [{ type: RequirementType.DEVOTO, name: 'O Deus do Medo' }],
       ],
+      /**
+       * "Relacionado a efeitos de medo" = causa, se beneficia de ou amplifica
+       * as condições abalado e apavorado (descritor Medo). Curadoria:
+       *
+       * - Intimidação sozinha não basta: "Golpe Semântico", "Jurista Divino" e
+       *   "Armadura de Ossos" só tocam a perícia, não o efeito.
+       * - Anti-medo fica de fora ("Coragem Total"): imunidade a medo inverte a
+       *   intenção da bênção. A exceção deliberada é "Senhor do Submundo", que
+       *   dá imunidade mas TAMBÉM deixa apavorado — entra pela metade que
+       *   causa medo.
+       * - "Palavras Afiadas" (Nobre) apavora via Intimidação e caberia, mas é
+       *   HABILIDADE de classe (2º nível, automática), não poder escolhível:
+       *   não há o que dispensar. Fica fora por impossibilidade, não por
+       *   critério.
+       * - Lista fechada, sem prefixo: `Brado:` pegaria `Brado: Sísmico`, que
+       *   não tem o descritor.
+       *
+       * Requisitos `PODER` continuam valendo, então "Brado: Assombroso" e
+       * "Estampido Ensurdecedor" só abrem via Alma Livre e afins. Ficam na
+       * lista para que essa porta exista.
+       */
+      waivesPrerequisites: [
+        {
+          reason: 'Domínio do Medo',
+          requirementTypes: [RequirementType.CLASSE, RequirementType.DEVOTO],
+          unlocksOtherClassPowers: true,
+          targets: {
+            names: [
+              // Concedidos de outros deuses (Tormenta 20 e Deuses de Arton).
+              'Aura de Medo',
+              'Olhar Amedrontador',
+              'Alimentar-se do Pavor',
+              'Temor Arcano',
+              'Terror Profundo',
+            ],
+            classPowers: [
+              { className: 'Bucaneiro', name: 'Flagelo dos Mares' },
+              { className: 'Bucaneiro', name: 'Abusar dos Fracos' },
+              { className: 'Bucaneiro', name: 'Estampido Ensurdecedor' },
+              { className: 'Bardo', name: 'Música: Canção Assustadora' },
+              { className: 'Bárbaro', name: 'Alma Inabalável' },
+              { className: 'Bárbaro', name: 'Brado: Assombroso' },
+              { className: 'Bárbaro', name: 'Brado: Retardante' },
+              { className: 'Ladino', name: 'Ameaça Brutal' },
+              { className: 'Ladino', name: 'Senhor do Submundo' },
+              { className: 'Cavaleiro', name: 'Presença de Muralha' },
+            ],
+          },
+        },
+      ],
     },
     {
       name: 'Ego',
@@ -191,6 +241,10 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
         'Enquanto está montado sobre um cavalo, você recebe +2 em testes de ataque e em Cavalgar. Além disso, você passa automaticamente em testes de Cavalgar para não cair do cavalo quando sofre dano e não sofre penalidades para atacar à distância ou lançar magias quando montado em cavalos. Este poder conta como o poder Ginete para efeitos de pré-requisitos de outras habilidades. Se você é um centauro, os benefícios deste poder mudam para: você pode fazer investidas em terreno difícil e não sofre a penalidade de –2 na Defesa por fazer uma investida. Por fim, recebe +2 nas rolagens de dano com armas em investidas.',
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [[{ type: RequirementType.DEVOTO, name: 'Hippion' }]],
+      // "Este poder conta como o poder Ginete para efeitos de pré-requisitos
+      // de outras habilidades" — libera Carga de Cavalaria, Catafractário,
+      // Combate Montado e Dois Como Um sem ter o poder Ginete.
+      grantsPowerRequirements: ['Ginete'],
     },
     {
       name: 'Guardei para Você',

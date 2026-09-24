@@ -33,6 +33,7 @@ describe('describeBonusTarget', () => {
     { type: 'WeaponThreatMargin' },
     { type: 'WeaponCriticalMultiplier' },
     { type: 'WeaponDamageStep' },
+    { type: 'UnarmedDamageStep' },
     { type: 'HPAttributeReplacement', newAttribute: Atributo.CARISMA },
     { type: 'SpellDC' },
     { type: 'DamageReduction', damageType: 'Fogo' },

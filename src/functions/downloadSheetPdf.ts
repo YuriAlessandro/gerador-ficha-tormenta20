@@ -16,6 +16,8 @@ import {
   getWeaponNonProficiencyPenalty,
 } from './proficiencies';
 import { collectSheetPowers } from './powers/collectSheetPowers';
+import { getDevotionLabel } from './powers/deityNames';
+import { serializeJournalForPdf } from './playerJournal';
 import { getPowerDisplayName, getPowerDisplayText } from './powers/powerText';
 import {
   getDerivedSpellCircle,
@@ -28,7 +30,7 @@ import {
   splitToFit,
 } from './pdf/sheetExtraPages';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
-import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
+import { getItemSpaces } from '../interfaces/Bag';
 
 const CP1252_REPLACEMENTS: Record<string, string> = {
   '‘': "'",
@@ -138,7 +140,15 @@ const buildExtraSections = (
     if (body.trim()) sections.push({ title, body: sanitizeForWinAnsi(body) });
   };
 
-  push('Anotações', sheet.notes ?? '');
+  // Diário do Jogador. As anotações livres só saem quando NÃO há diário: uma
+  // ficha migrada mantém `sheet.notes` em disco como rede de segurança, e
+  // imprimir os dois duplicaria o mesmo texto no PDF.
+  const journalText = serializeJournalForPdf(sheet.journal, sheet.nome);
+  if (journalText) {
+    push('Diário do Jogador', journalText);
+  } else {
+    push('Anotações', sheet.notes ?? '');
+  }
 
   const rd = sheet.reducaoDeDano;
   if (rd) {
@@ -315,7 +325,13 @@ export const fillSheetPdf: (
   // O nível também vive dentro da string de `Classe` (é o formato do template
   // impresso), mas o campo próprio existe e ficava vazio.
   levelField.setText(sheet.nivel.toString());
-  deytiField.setText(sanitizeForWinAnsi(sheet.devoto?.divindade.name));
+  // Devoção dupla cabe no mesmo campo de texto do template: "A / B".
+  deytiField.setText(sanitizeForWinAnsi(getDevotionLabel(sheet, ' / ')));
+  // Atributos BASE de propósito — aqui e nas perícias/armas mais abaixo. Mesma
+  // política já adotada para o bônus de dano de efeito ativo (ver
+  // `weaponSkill.ts`): estado transitório de combate (efeito ativo, condição,
+  // modificador temporário manual) NÃO é congelado na exportação. Quem quiser o
+  // valor efetivo olha a ficha, que é onde ele vive.
   forceField.setText(sheet.atributos.Força.value.toString());
   dexterityField.setText(sheet.atributos.Destreza.value.toString());
   constitutionField.setText(sheet.atributos.Constituição.value.toString());
@@ -473,17 +489,20 @@ export const fillSheetPdf: (
       it.group !== 'Arma' && it.group !== 'Armadura' && it.group !== 'Escudo'
   );
 
+  // Sufixo de espaços. `0` é um valor válido (item que o jogador zerou de
+  // propósito) — o que suprime o sufixo é o espaço ausente, não o espaço zero.
+  const spacesSuffix = (equip: Equipment): string => {
+    if (equip.spaces === undefined && !equip.isAmmo) return '';
+    return ` (${getItemSpaces(equip)} espaços)`;
+  };
+
   // Concanenate all equipments names into one string
   const equipmentsNames = equipsEntriesNoWeapons
     .map(
       (equip) =>
         `${
           equip.quantity && equip.quantity > 1 ? `${equip.quantity}x ` : ''
-        }${getItemDisplayName(equip)}${
-          equip.spaces
-            ? ` (${equip.spaces * (equip.quantity || 1)} espaços)`
-            : ''
-        }`
+        }${getItemDisplayName(equip)}${spacesSuffix(equip)}`
     )
     .join('\n');
 
@@ -501,24 +520,14 @@ export const fillSheetPdf: (
       const displayName = getItemDisplayName(weapon);
       if (weapon.isAmmo) {
         const units = weapon.unitsRemaining ?? 0;
-        const ammoSpaces = calcAmmoSpaces(weapon);
-        return `${displayName}: ${units}${
-          ammoSpaces > 0 ? ` (${ammoSpaces} espaços)` : ''
-        }`;
+        return `${displayName}: ${units}${spacesSuffix(weapon)}`;
       }
-      return `${displayName}${
-        weapon.spaces ? ` (${weapon.spaces} espaços)` : ''
-      }`;
+      return `${displayName}${spacesSuffix(weapon)}`;
     })
     .join('\n');
 
   const defenseNames = allDefenseEquipments
-    .map(
-      (defense) =>
-        `${getItemDisplayName(defense)}${
-          defense.spaces ? ` (${defense.spaces} espaços)` : ''
-        }`
-    )
+    .map((defense) => `${getItemDisplayName(defense)}${spacesSuffix(defense)}`)
     .join('\n');
 
   // `filter(Boolean)`: juntar incondicionalmente deixava linhas em branco no

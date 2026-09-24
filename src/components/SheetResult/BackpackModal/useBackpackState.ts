@@ -1,20 +1,27 @@
 import React, { useCallback, useMemo, useReducer, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import Bag, { ensureIds, reconcileDisplayOrder } from '../../../interfaces/Bag';
+import Bag, {
+  ensureIds,
+  getItemSpaces,
+  reconcileDisplayOrder,
+} from '../../../interfaces/Bag';
 import Equipment, {
   BagEquipments,
   equipGroup,
 } from '../../../interfaces/Equipment';
+import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import {
   calculateCurrencySpaces,
   calculateMaxSpaces,
   getEquipmentMaxSpacesBonus,
 } from '../../../functions/general';
 import {
+  applyClothingWorn,
   commitWielding,
   isTwoHanded,
   migrateLegacyEquipState,
+  pruneUnwornClothing,
   pruneWielding,
   WieldingSlot,
   WORN_ARMOR_NONE,
@@ -31,24 +38,47 @@ interface StagedState {
   equipments: BagEquipments;
   displayOrder: string[];
   money: BackpackMoney;
+  maxSpacesAttribute: Atributo;
   customMaxSpaces?: number;
   autoDeductMoney: boolean;
+  /**
+   * Quanto de cada item foi efetivamente PAGO nesta sessão do modal. A chave é
+   * o id da entrada na mochila; o valor está na MESMA unidade que o débito
+   * usou — itens para item comum, PACOTES para munição.
+   *
+   * É o único gatilho de reembolso: consumir uma poção que o personagem já
+   * tinha não devolve dinheiro que nunca saiu do bolso. Mesma regra do
+   * `purchasedIds` do MarketStep (ver `MarketSelections`), mas contando
+   * unidades em vez de ids — aqui a mochila JÁ EXISTE quando o modal abre e os
+   * itens EMPILHAM, então uma mesma pilha pode ter parte paga e parte não.
+   *
+   * Nasce vazio a cada abertura do modal (`buildSnapshot`): é isso que torna
+   * tudo que já estava na mochila irreembolsável.
+   */
+  paidUnits: Record<string, number>;
   mainHandItemId?: string;
   offHandItemId?: string;
   wornArmorId?: string;
+  /**
+   * Peças de Vestuário GUARDADAS (conjunto de opt-out — ver
+   * `CharacterSheet.unwornClothingIds`). `undefined` = tudo vestido.
+   */
+  unwornClothingIds?: string[];
   groupByCategory: boolean;
 }
 
 export interface BackpackInputs {
   bag: Bag;
   initialMoney: BackpackMoney;
-  forca: number;
+  maxSpacesAttribute: Atributo;
+  attributeValues: Record<Atributo, number>;
   initialCustomMaxSpaces?: number;
   /** Default for the auto-deduct toggle when entering the modal. */
   initialAutoDeductMoney?: boolean;
   initialMainHandItemId?: string;
   initialOffHandItemId?: string;
   initialWornArmorId?: string;
+  initialUnwornClothingIds?: string[];
   initialGroupByCategory?: boolean;
   /**
    * Categories to pre-select in the filter when the modal opens. The user can
@@ -91,6 +121,7 @@ export interface BackpackActions {
   /** Replaces the item in place by id. */
   updateItem: (id: string, next: Equipment) => void;
   setMoney: (money: Partial<BackpackMoney>) => void;
+  setMaxSpacesAttribute: (attribute: Atributo) => void;
   setCustomMaxSpaces: (value: number | undefined) => void;
   setAutoDeductMoney: (value: boolean) => void;
   /** Reorders by item id (used by drag-and-drop in PR 6). */
@@ -99,6 +130,8 @@ export interface BackpackActions {
   setWielding: (itemId: string, slot: WieldingSlot) => void;
   /** Sets which armor is currently worn. Pass `null` to unwear. */
   setWornArmor: (itemId: string | null) => void;
+  /** Veste (`worn = true`) ou guarda na mochila uma peça de Vestuário. */
+  setWornClothing: (itemId: string, worn: boolean) => void;
   /** Switches the modal grid between flat (false) and category-grouped (true). */
   setGroupByCategory: (value: boolean) => void;
   /** Resets the staged state back to the snapshot taken at modal open. */
@@ -143,7 +176,7 @@ export function computeOverflow(
   let overflowStartIndex = -1;
   for (let i = 0; i < orderedItems.length; i += 1) {
     const item = orderedItems[i];
-    cumulative += (item.spaces ?? 0) * (item.quantity ?? 1);
+    cumulative += getItemSpaces(item);
     if (cumulative > ceiling) {
       if (overflowStartIndex === -1) overflowStartIndex = i;
       if (item.id) overflowItemIds.add(item.id);
@@ -160,11 +193,13 @@ type Action =
   | { type: 'SET_QUANTITY'; id: string; quantity: number }
   | { type: 'UPDATE_ITEM'; id: string; next: Equipment }
   | { type: 'SET_MONEY'; money: Partial<BackpackMoney> }
+  | { type: 'SET_MAX_SPACES_ATTRIBUTE'; attribute: Atributo }
   | { type: 'SET_CUSTOM_MAX_SPACES'; value: number | undefined }
   | { type: 'SET_AUTO_DEDUCT'; value: boolean }
   | { type: 'REORDER'; orderedIds: string[] }
   | { type: 'SET_WIELDING'; itemId: string; slot: WieldingSlot }
   | { type: 'SET_WORN_ARMOR'; itemId: string | null }
+  | { type: 'SET_WORN_CLOTHING'; itemId: string; worn: boolean }
   | { type: 'SET_GROUP_BY_CATEGORY'; value: boolean }
   | { type: 'RESET'; snapshot: StagedState };
 
@@ -327,7 +362,44 @@ function updateItemInEquipments(
   return out;
 }
 
-function reducer(state: StagedState, action: Action): StagedState {
+/**
+ * Quantas "unidades de compra" o item representa HOJE — a mesma unidade em que
+ * o débito foi cobrado, para poder comparar com `paidUnits`.
+ *
+ * Item comum conta por `quantity`. Munição conta por PACOTES FECHADOS: um
+ * pacote parcialmente gasto não volta pra loja, então `floor` (e não `ceil`,
+ * que devolvia um pacote cheio por 1 flecha sobrando).
+ */
+function purchaseUnits(item: Equipment): number {
+  if (item.isAmmo) {
+    const packSize = item.ammoPackSize ?? 20;
+    return Math.floor((item.unitsRemaining ?? 0) / packSize);
+  }
+  return item.quantity ?? 1;
+}
+
+/** Soma `delta` ao crédito pago de `id`, descartando a chave ao chegar em zero. */
+function bumpPaidUnits(
+  paidUnits: Record<string, number>,
+  id: string,
+  delta: number
+): Record<string, number> {
+  const next = { ...paidUnits };
+  const value = (next[id] ?? 0) + delta;
+  if (value > 0) next[id] = value;
+  else delete next[id];
+  return next;
+}
+
+/**
+ * Exportados para teste — a contabilidade de dinheiro da mochila (débito na
+ * compra, reembolso só do que foi pago) não tem como ser exercitada pela UI
+ * neste projeto: React 17 + @testing-library/react v11 não têm `renderHook`.
+ */
+export type BackpackStagedState = StagedState;
+export type BackpackAction = Action;
+
+export function reducer(state: StagedState, action: Action): StagedState {
   switch (action.type) {
     case 'ADD_ITEM': {
       const { equipments, displayOrder, addedId } = addItemToEquipments(
@@ -336,10 +408,16 @@ function reducer(state: StagedState, action: Action): StagedState {
         action.item,
         Math.max(1, action.quantity)
       );
-      let { money } = state;
+      let { money, paidUnits } = state;
       if (state.autoDeductMoney && action.item.preco) {
         const cost = action.item.preco * action.quantity;
         money = { ...money, dinheiro: money.dinheiro - cost };
+        // Registra a procedência para que SÓ essa parte reembolse depois. No
+        // merge, `addedId` é o id da pilha JÁ existente — de propósito: 3 poções
+        // antigas + 2 compradas viram uma pilha com `paidUnits = 2`.
+        if (addedId) {
+          paidUnits = bumpPaidUnits(paidUnits, addedId, action.quantity);
+        }
       }
 
       // Auto-wield: if a weapon is added while both hand slots are empty, the
@@ -382,14 +460,25 @@ function reducer(state: StagedState, action: Action): StagedState {
         wornArmorId = addedId;
       }
 
+      // Auto-vestir peça de Vestuário. O default já é "vestida" (o conjunto é
+      // de opt-out), mas o merge de pilha pode cair numa entrada GUARDADA — uma
+      // 2ª Bandana somada a uma Bandana guardada. Vestir explicitamente evita
+      // que a peça recém-comprada nasça sem efeito.
+      let { unwornClothingIds } = state;
+      if (action.item.group === 'Vestuário' && addedId) {
+        unwornClothingIds = applyClothingWorn(unwornClothingIds, addedId, true);
+      }
+
       return {
         ...state,
         equipments,
         displayOrder,
         money,
+        paidUnits,
         mainHandItemId,
         offHandItemId,
         wornArmorId,
+        unwornClothingIds,
       };
     }
     case 'REMOVE_ITEM': {
@@ -398,20 +487,26 @@ function reducer(state: StagedState, action: Action): StagedState {
         state.displayOrder,
         action.id
       );
-      let { money } = state;
-      if (state.autoDeductMoney && removed?.preco) {
-        let refund: number;
-        if (removed.isAmmo) {
-          // Ammo: each "buy" gave packSize units; refund full packs only.
-          const packSize = removed.ammoPackSize ?? 20;
-          const units = removed.unitsRemaining ?? 0;
-          const stacks = Math.ceil(units / packSize);
-          refund = removed.preco * stacks;
-        } else {
-          refund = removed.preco * (removed.quantity ?? 1);
-        }
-        money = { ...money, dinheiro: money.dinheiro + refund };
+      let { money, paidUnits } = state;
+      // O gate é a PROCEDÊNCIA, não o toggle: só devolve o que foi comprado
+      // nesta sessão do modal. Apagar/consumir um item que o personagem já
+      // possuía não gera mais dinheiro do nada (era o bug de "consumir = vender").
+      //
+      // O toggle não entra aqui de propósito: `paidUnits` só é preenchido
+      // enquanto ele está ligado, então um crédito nunca devolve mais do que
+      // saiu — e comprar, desligar o toggle e desfazer a compra ainda funciona.
+      const paid = state.paidUnits[action.id] ?? 0;
+      if (paid > 0 && removed?.preco) {
+        // `min` com o que de fato está na pilha: `SET_WIELDING` divide pilhas
+        // criando um id novo, então uma pilha paga pode encolher sem passar
+        // por SET_QUANTITY.
+        const refundable = Math.min(paid, purchaseUnits(removed));
+        money = {
+          ...money,
+          dinheiro: money.dinheiro + removed.preco * refundable,
+        };
       }
+      if (paid > 0) paidUnits = bumpPaidUnits(paidUnits, action.id, -paid);
       // Clear wielding slots if they pointed at the removed item.
       const mainHandItemId =
         state.mainHandItemId === action.id ? undefined : state.mainHandItemId;
@@ -419,14 +514,23 @@ function reducer(state: StagedState, action: Action): StagedState {
         state.offHandItemId === action.id ? undefined : state.offHandItemId;
       const wornArmorId =
         state.wornArmorId === action.id ? undefined : state.wornArmorId;
+      // Higiene de payload: ids são uuid e nunca reusados, mas deixar o id
+      // órfão no conjunto sujaria o delta a cada save.
+      const unwornClothingIds = applyClothingWorn(
+        state.unwornClothingIds,
+        action.id,
+        true
+      );
       return {
         ...state,
         equipments,
         displayOrder,
         money,
+        paidUnits,
         mainHandItemId,
         offHandItemId,
         wornArmorId,
+        unwornClothingIds,
       };
     }
     case 'SET_QUANTITY': {
@@ -450,12 +554,27 @@ function reducer(state: StagedState, action: Action): StagedState {
         }
       });
       if (!touched) return state;
-      let { money } = state;
-      if (state.autoDeductMoney && unitPrice) {
-        const delta = (Math.max(1, action.quantity) - oldQty) * unitPrice;
-        money = { ...money, dinheiro: money.dinheiro - delta };
+      let { money, paidUnits } = state;
+      const delta = Math.max(1, action.quantity) - oldQty;
+      if (unitPrice && delta > 0) {
+        // Aumentar quantidade é compra: cobra (se o toggle deixar) e registra.
+        if (state.autoDeductMoney) {
+          money = { ...money, dinheiro: money.dinheiro - delta * unitPrice };
+          paidUnits = bumpPaidUnits(paidUnits, action.id, delta);
+        }
+      } else if (unitPrice && delta < 0) {
+        // Diminuir é consumo OU desfazer compra. Só devolve a parte paga —
+        // gastar 2 de uma pilha com 1 unidade paga reembolsa 1, não 2.
+        const refundable = Math.min(-delta, paidUnits[action.id] ?? 0);
+        if (refundable > 0) {
+          money = {
+            ...money,
+            dinheiro: money.dinheiro + refundable * unitPrice,
+          };
+          paidUnits = bumpPaidUnits(paidUnits, action.id, -refundable);
+        }
       }
-      return { ...state, equipments, money };
+      return { ...state, equipments, money, paidUnits };
     }
     case 'UPDATE_ITEM':
       return {
@@ -468,6 +587,12 @@ function reducer(state: StagedState, action: Action): StagedState {
       };
     case 'SET_MONEY':
       return { ...state, money: { ...state.money, ...action.money } };
+    case 'SET_MAX_SPACES_ATTRIBUTE':
+      return {
+        ...state,
+        maxSpacesAttribute: action.attribute,
+        customMaxSpaces: undefined,
+      };
     case 'SET_CUSTOM_MAX_SPACES':
       return { ...state, customMaxSpaces: action.value };
     case 'SET_AUTO_DEDUCT':
@@ -503,6 +628,16 @@ function reducer(state: StagedState, action: Action): StagedState {
       // legacy fallback doesn't immediately re-apply it (see wielding.ts).
       return { ...state, wornArmorId: action.itemId ?? WORN_ARMOR_NONE };
     }
+    case 'SET_WORN_CLOTHING': {
+      return {
+        ...state,
+        unwornClothingIds: applyClothingWorn(
+          state.unwornClothingIds,
+          action.itemId,
+          action.worn
+        ),
+      };
+    }
     case 'SET_GROUP_BY_CATEGORY': {
       return { ...state, groupByCategory: action.value };
     }
@@ -518,12 +653,14 @@ function reducer(state: StagedState, action: Action): StagedState {
 export function useBackpackState({
   bag,
   initialMoney,
-  forca,
+  maxSpacesAttribute,
+  attributeValues,
   initialCustomMaxSpaces,
   initialAutoDeductMoney = true,
   initialMainHandItemId,
   initialOffHandItemId,
   initialWornArmorId,
+  initialUnwornClothingIds,
   initialGroupByCategory = false,
   initialCategoryFilters,
   open,
@@ -568,11 +705,21 @@ export function useBackpackState({
       equipments,
       displayOrder,
       money: { ...initialMoney },
+      maxSpacesAttribute,
       customMaxSpaces: initialCustomMaxSpaces,
       autoDeductMoney: initialAutoDeductMoney,
+      // Sempre vazio: nada que já estava na mochila ao abrir o modal foi pago
+      // AQUI, então nada disso reembolsa. É o que impede "consumir = vender".
+      paidUnits: {},
       mainHandItemId: pruned.mainHandItemId,
       offHandItemId: pruned.offHandItemId,
       wornArmorId: wornArmorIsPresent ? seededWornArmorId : undefined,
+      // Sem sentinela aqui: `undefined` significa só "nada guardado", então
+      // basta descartar os ids de peças que saíram da mochila.
+      unwornClothingIds: pruneUnwornClothing(
+        initialUnwornClothingIds,
+        existingIds
+      ),
       groupByCategory: initialGroupByCategory,
     };
   };
@@ -629,8 +776,11 @@ export function useBackpackState({
   }, [staged.equipments, staged.displayOrder]);
 
   const totals = useMemo<BackpackDerivedTotals>(() => {
+    // Mesma conta do total da ficha (`bag.getSpaces()`) — antes esta linha
+    // divergia dela na munição, e a modal mostrava um total que a ficha não
+    // reconhecia.
     const itemSpaces = orderedItems.reduce(
-      (acc, item) => acc + (item.spaces ?? 0) * (item.quantity ?? 1),
+      (acc, item) => acc + getItemSpaces(item),
       0
     );
     const currencySpaces = calculateCurrencySpaces(
@@ -644,7 +794,9 @@ export function useBackpackState({
     // destaque de sobrecarga reajam ao adicionar/remover esses itens.
     const equipMaxSpacesBonus = getEquipmentMaxSpacesBonus(orderedItems);
     const maxSpaces =
-      staged.customMaxSpaces ?? calculateMaxSpaces(forca) + equipMaxSpacesBonus;
+      staged.customMaxSpaces ??
+      calculateMaxSpaces(attributeValues[staged.maxSpacesAttribute]) +
+        equipMaxSpacesBonus;
     const { overflowItemIds, overflowStartIndex } = computeOverflow(
       orderedItems,
       maxSpaces - currencySpaces
@@ -658,7 +810,13 @@ export function useBackpackState({
       overflowItemIds,
       overflowStartIndex,
     };
-  }, [orderedItems, staged.money, staged.customMaxSpaces, forca]);
+  }, [
+    orderedItems,
+    staged.money,
+    staged.customMaxSpaces,
+    staged.maxSpacesAttribute,
+    attributeValues,
+  ]);
 
   const filteredItems = useMemo(() => {
     const q = normalize(searchQuery);
@@ -688,6 +846,9 @@ export function useBackpackState({
 
   const isDirty = useMemo(() => {
     if (staged.autoDeductMoney !== initialSnapshot.autoDeductMoney) return true;
+    if (staged.maxSpacesAttribute !== initialSnapshot.maxSpacesAttribute) {
+      return true;
+    }
     if (staged.customMaxSpaces !== initialSnapshot.customMaxSpaces) return true;
     if (
       staged.money.dinheiro !== initialSnapshot.money.dinheiro ||
@@ -701,6 +862,14 @@ export function useBackpackState({
       staged.offHandItemId !== initialSnapshot.offHandItemId ||
       staged.wornArmorId !== initialSnapshot.wornArmorId ||
       staged.groupByCategory !== initialSnapshot.groupByCategory
+    ) {
+      return true;
+    }
+    // Mesmo critério do `computeSheetDelta`, que compara por JSON — por isso
+    // `applyClothingWorn` preserva a ordem de inserção.
+    if (
+      JSON.stringify(staged.unwornClothingIds ?? null) !==
+      JSON.stringify(initialSnapshot.unwornClothingIds ?? null)
     ) {
       return true;
     }
@@ -754,6 +923,12 @@ export function useBackpackState({
     []
   );
 
+  const setMaxSpacesAttribute = useCallback(
+    (attribute: Atributo) =>
+      dispatch({ type: 'SET_MAX_SPACES_ATTRIBUTE', attribute }),
+    []
+  );
+
   const setCustomMaxSpaces = useCallback(
     (value: number | undefined) =>
       dispatch({ type: 'SET_CUSTOM_MAX_SPACES', value }),
@@ -778,6 +953,12 @@ export function useBackpackState({
 
   const setWornArmor = useCallback(
     (itemId: string | null) => dispatch({ type: 'SET_WORN_ARMOR', itemId }),
+    []
+  );
+
+  const setWornClothing = useCallback(
+    (itemId: string, worn: boolean) =>
+      dispatch({ type: 'SET_WORN_CLOTHING', itemId, worn }),
     []
   );
 
@@ -808,11 +989,13 @@ export function useBackpackState({
     setQuantity,
     updateItem,
     setMoney,
+    setMaxSpacesAttribute,
     setCustomMaxSpaces,
     setAutoDeductMoney,
     reorder,
     setWielding,
     setWornArmor,
+    setWornClothing,
     setGroupByCategory,
     revertChanges,
   };

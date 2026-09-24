@@ -31,7 +31,11 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  ClassLevelEntry,
+  Step,
+  SubStep,
+} from '@/interfaces/CharacterSheet';
 import { AttributeVariant } from '@/interfaces/Race';
 import { dataRegistry } from '@/data/registry';
 import Divindade from '@/interfaces/Divindade';
@@ -45,10 +49,20 @@ import {
 import {
   modifyAttributesBasedOnRace,
   applyManualLevelUp,
+  applyMaxPointsGainToCurrent,
 } from '@/functions/general';
 import { getTradicaoPerdidaPmCap } from '@/functions/powers/general';
 import getNameSuggestions from '@/functions/nameSuggestions';
+import {
+  getAgeAttributeTotalsDelta,
+  getBaseAgeStageForYears,
+} from '@/functions/ages';
+import { getAgeBracket } from '@/premium/functions/ages';
+import { AgeComplicationsStep } from '@/premium/components/Ages';
+import AgeField, { AgeSelection } from '@/components/common/AgeField';
+import type { AgeComplication, SheetAge } from '@/interfaces/Age';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
+import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import { SupplementId } from '@/types/supplement.types';
 import {
   MOREAU_HERITAGES,
@@ -71,6 +85,7 @@ import {
   getSuragelAbilityChoiceAction,
   getSuragelDefaultAbilityName,
 } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import { getDeityClassVariant } from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
 import {
   DUENDE_SIZES,
   DUENDE_SIZE_NAMES,
@@ -94,6 +109,7 @@ import {
 } from '@/functions/originBenefits';
 import {
   applyOriginItemChoices,
+  originHasItemChoices,
   OriginItemChoices,
 } from '@/functions/originItems';
 import { GeneralPower } from '@/interfaces/Poderes';
@@ -104,15 +120,18 @@ import {
   calculateMulticlassPM,
   findClassDescription,
   reconcileClassLevels,
+  setClassLevelCounts,
 } from '@/functions/multiclass';
 import NumberField from '@/components/common/NumberField';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
 
-// Helper function to normalize deity names for comparison (removes hyphens and spaces)
-const normalizeDeityName = (name: string): string =>
-  name.toLowerCase().replace(/[-\s]/g, '');
+import { normalizeDeityName } from '../../../functions/deityName';
+import {
+  useDualDevotionAvailable,
+  useSincretismos,
+} from '../../../hooks/useDualDevotion';
 
 // Reconstrói (best-effort) os Dons de um Duende legado a partir dos atributos já
 // "assados" na raça, quando o campo dedicado `duendeBonusAttributes` não existe.
@@ -177,6 +196,17 @@ interface SheetInfoEditDrawerProps {
   onSave: (updates: Partial<CharacterSheet> | CharacterSheet) => void;
 }
 
+/** Estado de idade da ficha traduzido para o formato do campo de edição. */
+function seedAge(sheet: CharacterSheet): AgeSelection {
+  return {
+    years: sheet.age?.years,
+    stage: sheet.age?.stage,
+    variedAges: !!sheet.age?.bracket,
+    bracket: sheet.age?.bracket,
+    deathByOldAge: sheet.optionalRules?.deathByOldAge,
+  };
+}
+
 interface EditedData {
   nome: string;
   nivel: number;
@@ -196,8 +226,17 @@ interface EditedData {
   duendeTabuSkill: string | undefined; // For Duende (skill with -5 penalty)
   duendeBonusAttributes: Atributo[] | undefined; // For Duende (Dons +1 attrs; 3rd entry only when Animal)
   className: string;
+  /**
+   * Variante de classe por divindade (Deuses de Arton): nome da habilidade
+   * alternativa escolhida. `undefined` = habilidade padrão do livro básico.
+   */
+  deityClassAbility: string | undefined;
   originName: string;
   deityName: string;
+  /** Devoção Dupla: nome da segunda divindade ('' = devoção simples). */
+  secondaryDeityName: string;
+  /** Sincretismo do catálogo; '' é válido (par próprio do mestre e jogador). */
+  sincretismoName: string;
   attributes: CharacterAttributes;
   raceAttributeChoices: Atributo[]; // Manual choices for 'any' race attributes
   selectedAttributeVariant: AttributeVariant | undefined; // Selected attribute variant
@@ -209,6 +248,18 @@ interface EditedData {
   manualMaxPM: number | undefined; // Manual max PM override
   tradicaoPerdidaPmAttribute: Atributo | undefined; // Tradição Perdida: atributo do PM (undefined = atributo da classe)
   imageUrl: string;
+  /**
+   * Idade. O envelhecimento do livro básico (T20, p. 108) vale para toda
+   * ficha, então este campo vive aqui, junto de nome e gênero, e não atrás de
+   * suplemento. As Idades Variadas de Heróis de Arton entram pelo interruptor
+   * do próprio campo, quando a conta tem acesso.
+   */
+  age: AgeSelection;
+  /** Complicações de idade escolhidas (só com Idades Variadas ligadas). */
+  ageComplications: AgeComplication[];
+  // Só em fichas multiclasse: distribuição de níveis por classe, editável campo
+  // a campo. `nivel` acompanha o total.
+  classLevels: ClassLevelEntry[] | undefined;
 }
 
 // Detecta se a configuração do Duende foi de fato editada em relação ao estado
@@ -267,6 +318,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   onSave,
 }) => {
   const sheetIsMulticlass = isMulticlass(sheet);
+  const variedAgesAvailable = useOptionalRulesAvailable();
 
   // A Tradição Perdida só faz sentido para conjuradores (a contribuição de PM do
   // atributo-chave vem da habilidade "Magias"). Mostra o seletor só quando a
@@ -294,6 +346,22 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const CLASSES = dataRegistry.getClassesBySupplements(userSupplements);
   const ORIGINS_WITH_INFO =
     dataRegistry.getOriginsBySupplements(userSupplements);
+  const dualDevotionAvailable = useDualDevotionAvailable();
+  const sincretismos = useSincretismos();
+
+  /** Sincretismo do catálogo para um par NÃO-ORDENADO de divindades. */
+  const findSincretismoByPair = useMemo(
+    () => (a?: string, b?: string) => {
+      if (!a || !b) return undefined;
+      const [na, nb] = [normalizeDeityName(a), normalizeDeityName(b)];
+      return sincretismos.find((item) => {
+        const [d1, d2] = item.deities.map(normalizeDeityName);
+        return (d1 === na && d2 === nb) || (d1 === nb && d2 === na);
+      });
+    },
+    [sincretismos]
+  );
+
   // Os 20 deuses maiores mais as divindades dos suplementos ativos. Precisa ser
   // a MESMA lista usada pelo <Select> e pelas buscas por nome abaixo: oferecer
   // no dropdown um deus que a busca não resolve dispara o aviso de "Divindade
@@ -332,8 +400,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         ? getSeedDuendeBonusAttributes(sheet)
         : sheet.raceAttributeChoices,
     className: sheet.classe.name,
+    deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name || '',
+    secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
+    sincretismoName: sheet.devoto?.sincretismo || '',
     attributes: { ...sheet.atributos },
     raceAttributeChoices: sheet.raceAttributeChoices || [],
     selectedAttributeVariant: sheet.selectedAttributeVariant,
@@ -345,7 +416,66 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     manualMaxPM: sheet.manualMaxPM,
     tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
     imageUrl: sheet.imageUrl || '',
+    age: seedAge(sheet),
+    ageComplications: sheet.age?.complications ?? [],
+    classLevels: sheet.classLevels,
   });
+
+  /**
+   * Campos de Devoção Dupla a gravar em `devoto`. A secundária só vale se
+   * resolver para um deus DIFERENTE do primário; o sincretismo pode ficar
+   * vazio — par próprio do mestre e do jogador é um estado válido.
+   */
+  const buildDualDevotionFields = (
+    primaryName: string
+  ): { divindadeSecundaria?: string; sincretismo?: string } => {
+    const secondary = editedData.secondaryDeityName;
+    if (!secondary || secondary === primaryName) return {};
+    return {
+      divindadeSecundaria: secondary,
+      sincretismo: editedData.sincretismoName || undefined,
+    };
+  };
+
+  /**
+   * Idade a gravar, montada a cada render a partir do que está editado.
+   *
+   * O ESTÁGIO é recalculado a partir dos anos e da raça EDITADA, e não do que
+   * está gravado: trocar a raça muda a escala dos marcos, e um humano de 50
+   * anos que vira elfo deixa de ser Maduro. Sem isso, a troca de raça manteria
+   * um estágio que a nova longevidade não justifica.
+   */
+  /**
+   * Complicações de idade que a faixa exige DESTA ficha.
+   *
+   * O Adulto é o único caso condicional: "Já Vi Coisas" é opcional, e a
+   * complicação só é cobrada de quem levou o poder. Fora da criação não há como
+   * conceder esse poder, então quem não o tem não deve nada — cobrar mesmo
+   * assim deixava o Salvar permanentemente desabilitado numa ficha Adulto sem o
+   * poder, travando até a edição do nome.
+   */
+  const ageOptionalPowerTaken = !!sheet.age?.grantedPowerName;
+  const ageBracketData = getAgeBracket(editedData.age.bracket);
+  const requiredAgeComplications =
+    ageBracketData?.optionalGeneralPower && !ageOptionalPowerTaken
+      ? 0
+      : ageBracketData?.requiredComplications ?? 0;
+
+  const nextAge: SheetAge = {
+    years: editedData.age.years,
+    stage: getBaseAgeStageForYears(editedData.age.years, editedData.raceName),
+    bracket: editedData.age.bracket,
+    complications: editedData.age.bracket ? editedData.ageComplications : [],
+    grantedPowerName: sheet.age?.grantedPowerName,
+    // Preservado: o nível já foi construído com base nele.
+    extraLevels: sheet.age?.extraLevels ?? 0,
+  };
+
+  const ageAttributeDelta = getAgeAttributeTotalsDelta(sheet.age, nextAge);
+  const ageChanged =
+    ageAttributeDelta.length > 0 ||
+    !_.isEqual(seedAge(sheet), editedData.age) ||
+    !_.isEqual(sheet.age?.complications ?? [], editedData.ageComplications);
 
   // State for image preview error
   const [imagePreviewError, setImagePreviewError] = useState(false);
@@ -418,8 +548,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           ? getSeedDuendeBonusAttributes(sheet)
           : sheet.raceAttributeChoices,
       className: sheet.classe.name,
+      deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
+      secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
+      sincretismoName: sheet.devoto?.sincretismo || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
       selectedAttributeVariant: sheet.selectedAttributeVariant,
@@ -431,6 +564,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
+      age: seedAge(sheet),
+      ageComplications: sheet.age?.complications ?? [],
+      classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
     setNameSuggestions(
@@ -473,6 +609,30 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
 
   // Escolha embutida da herança de Suraggel selecionada (se houver)
+  /**
+   * Variante de classe por divindade (Deuses de Arton) aplicável à combinação
+   * classe × divindade ATUALMENTE editada — hoje só "Paladino de Marah".
+   *
+   * Só a troca de habilidade é editável depois da criação: as perícias iniciais
+   * já foram gravadas em `sheet.pericias` e mexer nelas aqui seria uma segunda
+   * regra de negócio, não uma edição.
+   */
+  const deityClassVariant = useMemo(
+    () =>
+      getDeityClassVariant(
+        [editedData.deityName, editedData.secondaryDeityName].filter(Boolean),
+        CLASSES.find((c) => c.name === editedData.className),
+        userSupplements
+      ),
+    [
+      editedData.deityName,
+      editedData.secondaryDeityName,
+      editedData.className,
+      CLASSES,
+      userSupplements,
+    ]
+  );
+
   const suragelAbilityChoiceAction = getSuragelAbilityChoiceAction(
     editedData.suragelAbility
   );
@@ -783,8 +943,41 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updatedSheet = applyManualLevelUp(updatedSheet, sel);
     });
     updatedSheet = recalculateSheet(updatedSheet);
+    // Os PV/PM ganhos no nível novo entram cheios também no atual.
+    updatedSheet = applyMaxPointsGainToCurrent(sheet, updatedSheet);
     onSave(updatedSheet);
     onClose();
+  };
+
+  // Contagem de níveis por classe da ficha multiclasse, na ordem em que as
+  // classes aparecem (a primeira é a primária, a única que soma o PV base).
+  const classLevelCounts = React.useMemo(() => {
+    const counts = new Map<string, number>();
+    (editedData.classLevels ?? []).forEach((cl) => {
+      counts.set(cl.className, (counts.get(cl.className) ?? 0) + 1);
+    });
+    return counts;
+  }, [editedData.classLevels]);
+
+  const handleClassLevelChange = (className: string, value: number | null) => {
+    const current = editedData.classLevels;
+    if (!current) return;
+
+    const next = new Map(classLevelCounts);
+    // Mínimo 1: zerar uma classe a removeria da ficha sem reverter o que ela
+    // concedeu (habilidades, magias, perícias). Remoção de classe é trabalho do
+    // assistente, não deste campo.
+    next.set(className, Math.max(value ?? 1, 1));
+
+    const total = Array.from(next.values()).reduce((sum, n) => sum + n, 0);
+    if (total > 20) return;
+
+    const rebuilt = setClassLevelCounts(current, next);
+    setEditedData((prev) => ({
+      ...prev,
+      classLevels: rebuilt,
+      nivel: rebuilt.length,
+    }));
   };
 
   const handleSave = () => {
@@ -820,6 +1013,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceEnergySource: editedData.raceEnergySource,
       raceSizeCategory: editedData.raceSizeCategory,
       suragelAbility: editedData.suragelAbility,
+      // A variante deixa de valer se a classe ou a divindade mudarem: sem o
+      // gate a escolha ficaria órfã na ficha e o recálculo a ignoraria em
+      // silêncio, dando a impressão de que a edição não salvou.
+      deityClassChoices: deityClassVariant
+        ? {
+            ...sheet.deityClassChoices,
+            alternativeAbility: editedData.deityClassAbility,
+          }
+        : undefined,
       duendeNature: editedData.duendeNature,
       duendePresentes: editedData.duendePresentes,
       duendeTabuSkill: editedData.duendeTabuSkill,
@@ -1068,12 +1270,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const attributesChanged =
       JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos);
 
-    // Check if custom PV/PM values changed
+    // Check if custom PV/PM values changed.
+    // `bonusPV`/`bonusPM` são semeados no editedData como `sheet.bonusX || 0`,
+    // então comparar direto com o sheet acusa mudança em toda ficha que tem o
+    // campo `undefined` — abrir e salvar sem editar nada já disparava recálculo.
     const customPVPMChanged =
       editedData.customPVPerLevel !== sheet.customPVPerLevel ||
       editedData.customPMPerLevel !== sheet.customPMPerLevel ||
-      editedData.bonusPV !== sheet.bonusPV ||
-      editedData.bonusPM !== sheet.bonusPM;
+      editedData.bonusPV !== (sheet.bonusPV || 0) ||
+      editedData.bonusPM !== (sheet.bonusPM || 0);
 
     // Track custom PV/PM changes in steps
     if (customPVPMChanged) {
@@ -1158,44 +1363,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
     }
 
-    // Recalculate level-dependent values if level changed
+    // Recalculate level-dependent values if level changed.
+    // PV/PM ficam por conta do `recalculateSheet` no fim do save: `recalculatePV`
+    // e `recalculatePM` só sabem a fórmula mono-classe (classe primária × nível
+    // total) e devolveriam o número errado numa ficha multiclasse.
     if (editedData.nivel !== sheet.nivel) {
       updates.completeSkills = recalculateSkills(editedData.nivel);
-      updates.pv = recalculatePV(
-        editedData.nivel,
-        editedData.className,
-        editedData.attributes,
-        editedData.customPVPerLevel,
-        editedData.bonusPV
-      );
-      updates.pm = recalculatePM(
-        editedData.nivel,
-        editedData.className,
-        editedData.attributes,
-        editedData.customPMPerLevel,
-        editedData.bonusPM
-      );
-    }
-
-    // Recalculate PV/PM if attributes or custom values changed (even if level didn't change)
-    if (
-      (attributesChanged || customPVPMChanged) &&
-      editedData.nivel === sheet.nivel
-    ) {
-      updates.pv = recalculatePV(
-        editedData.nivel,
-        editedData.className,
-        editedData.attributes,
-        editedData.customPVPerLevel,
-        editedData.bonusPV
-      );
-      updates.pm = recalculatePM(
-        editedData.nivel,
-        editedData.className,
-        editedData.attributes,
-        editedData.customPMPerLevel,
-        editedData.bonusPM
-      );
     }
 
     // Find and update race if changed OR sex changed (for sex-dependent races like Nagah) OR heritage changed (for Moreau) OR Golem Desperto customization changed OR Suraggel ability changed
@@ -1379,6 +1552,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       if (newOrigin) {
         // Regional origins: auto-grant all benefits
         if (newOrigin.isRegional) {
+          // Origem com item à escolha (ex.: Nobre Zakharoviano, com arma à
+          // escolha; Lenhador de Tollon, com item de madeira Tollon à escolha)
+          // precisa do drawer — sem ele, o item seria sorteado sem pergunta.
+          if (originHasItemChoices(newOrigin)) {
+            setPendingUpdates(updates);
+            setPendingOrigin(newOrigin);
+            setOriginEditDrawerOpen(true);
+            return; // Don't save yet, wait for item selection
+          }
+
           // Remove old origin benefits first
           let updatedSheet = removeOriginBenefits(sheet);
           // Apply new regional origin benefits
@@ -1440,6 +1623,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           updates.devoto = {
             divindade: newDeity,
             poderes: newDeity.poderes,
+            ...buildDualDevotionFields(newDeity.name),
           };
         } else {
           // Other classes need to select powers - open drawer
@@ -1461,20 +1645,49 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
     } else if (!editedData.deityName && sheet.devoto) {
       updates.devoto = undefined;
+    } else if (sheet.devoto) {
+      // Primário inalterado: só a devoção dupla mudou (segunda divindade ou
+      // sincretismo). Não passa pelo drawer de poderes — a piscina muda, mas
+      // os poderes já escolhidos continuam válidos até serem reeditados.
+      const dual = buildDualDevotionFields(sheet.devoto.divindade.name);
+      const changed =
+        (dual.divindadeSecundaria || '') !==
+          (sheet.devoto.divindadeSecundaria || '') ||
+        (dual.sincretismo || '') !== (sheet.devoto.sincretismo || '');
+      if (changed) {
+        updates.devoto = {
+          divindade: sheet.devoto.divindade,
+          poderes: sheet.devoto.poderes,
+          ...dual,
+        };
+      }
     }
 
     // Use recalculation for full sheet update if attributes, race, deity, or level changed
     const raceChanged = editedData.raceName !== sheet.raca.name;
     const deityChanged =
-      editedData.deityName !== (sheet.devoto?.divindade.name || '');
+      editedData.deityName !== (sheet.devoto?.divindade.name || '') ||
+      editedData.secondaryDeityName !==
+        (sheet.devoto?.divindadeSecundaria || '');
     const levelChanged = editedData.nivel !== sheet.nivel;
     const heritageChanged =
       editedData.raceName === 'Moreau' &&
       editedData.raceHeritage !== sheet.raceHeritage;
-    // Mantém classLevels em sincronia com o nível editado (multiclasse).
-    // Sem isso, baixar o nível deixaria entradas a mais, que um level-up futuro
-    // transformaria num nível fantasma da classe primária.
-    if (levelChanged && sheet.classLevels) {
+    // Numa ficha multiclasse a distribuição vem dos campos por classe — que já
+    // mantêm `nivel` como a soma. Vale também quando o total não muda (trocar um
+    // nível de uma classe por outra).
+    const classLevelsChanged =
+      sheetIsMulticlass &&
+      JSON.stringify(editedData.classLevels) !==
+        JSON.stringify(sheet.classLevels);
+
+    if (classLevelsChanged) {
+      updates.classLevels = editedData.classLevels;
+    } else if (levelChanged && sheet.classLevels) {
+      // Mono-classe (ou ficha com classLevels de uma classe só): mantém
+      // classLevels em sincronia com o nível editado. Sem isso, baixar o nível
+      // deixaria entradas a mais, que um level-up futuro transformaria num
+      // nível fantasma da classe primária.
       updates.classLevels = reconcileClassLevels(
         sheet.classLevels,
         editedData.nivel,
@@ -1495,12 +1708,64 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       (editedData.suragelAbility !== sheet.suragelAbility ||
         editedData.suragelAbilityChoice !== getSeedSuragelAbilityChoice(sheet));
 
+    // Idade. Roda por ÚLTIMO entre as mudanças de atributo porque o caminho de
+    // troca de raça reescreve `updates.atributos` inteiro — o delta da idade
+    // precisa cair em cima do resultado final, não ser sobrescrito por ele.
+    //
+    // Os modificadores de idade são permanentes e já estão somados em
+    // `atributos`, então só a DIFERENÇA entre o total antigo e o novo se
+    // aplica; comparar totais também cobre ligar ou desligar Idades Variadas
+    // numa ficha pronta, em que as duas pontas usam tabelas diferentes.
+    if (ageChanged) {
+      if (ageAttributeDelta.length > 0) {
+        const withAge = { ...(updates.atributos ?? editedData.attributes) };
+        ageAttributeDelta.forEach(({ attribute, value }) => {
+          withAge[attribute] = {
+            ...withAge[attribute],
+            value: withAge[attribute].value + value,
+          };
+        });
+        updates.atributos = withAge;
+
+        newSteps.push({
+          label: 'Edição Manual - Idade',
+          type: 'Atributos',
+          value: ageAttributeDelta.map(({ attribute, value }) => ({
+            name: attribute,
+            value: `${value > 0 ? '+' : ''}${value}`,
+          })),
+        });
+      }
+
+      // Idade em branco e sem faixa é o estado "não informado" — a ficha volta
+      // a não ter bloco de idade nenhum, como as criadas antes desta regra.
+      updates.age =
+        nextAge.years === undefined && !nextAge.bracket ? undefined : nextAge;
+
+      const optionalRules = { ...(sheet.optionalRules ?? {}) };
+      if (editedData.age.deathByOldAge) optionalRules.deathByOldAge = true;
+      else delete optionalRules.deathByOldAge;
+      updates.optionalRules =
+        Object.keys(optionalRules).length > 0 ? optionalRules : undefined;
+    }
+
+    // A troca de habilidade por divindade reescreve `classe.abilities`, que só
+    // `recalculateSheet` reconstrói. Nem Golpe Divino nem Mensagem de Paz têm
+    // `sheetActions`/`sheetBonuses`, então não há nada a reverter à mão.
+    const deityClassAbilityChanged =
+      editedData.deityClassAbility !==
+      sheet.deityClassChoices?.alternativeAbility;
+
     const shouldUseRecalculateSheet =
+      deityClassAbilityChanged ||
+      ageChanged ||
       attributesChanged ||
       raceChanged ||
       deityChanged ||
       levelChanged ||
+      classLevelsChanged ||
       manualMaxChanged ||
+      customPVPMChanged ||
       heritageChanged ||
       suragelChanged ||
       moreauSapienciaSpellChanged ||
@@ -1555,8 +1820,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           ? getSeedDuendeBonusAttributes(sheet)
           : sheet.raceAttributeChoices,
       className: sheet.classe.name,
+      deityClassAbility: sheet.deityClassChoices?.alternativeAbility,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
+      secondaryDeityName: sheet.devoto?.divindadeSecundaria || '',
+      sincretismoName: sheet.devoto?.sincretismo || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
       selectedAttributeVariant: sheet.selectedAttributeVariant,
@@ -1568,6 +1836,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
       imageUrl: sheet.imageUrl || '',
+      age: seedAge(sheet),
+      ageComplications: sheet.age?.complications ?? [],
+      classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
     setNameSuggestions(
@@ -1590,12 +1861,18 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     // Remove old origin benefits first (inclui os itens já concedidos)
     let updatedSheet = removeOriginBenefits(sheet);
 
-    // Apply new origin with selected benefits
-    updatedSheet = applyOriginBenefits(
-      { ...updatedSheet, ...pendingUpdates },
-      pendingOrigin,
-      selectedBenefits
-    );
+    // Origem regional concede tudo automaticamente (sem os 2 benefícios
+    // escolhidos) — só o item à escolha vem do jogador.
+    updatedSheet = pendingOrigin.isRegional
+      ? applyRegionalOriginBenefits(
+          { ...updatedSheet, ...pendingUpdates },
+          pendingOrigin
+        )
+      : applyOriginBenefits(
+          { ...updatedSheet, ...pendingUpdates },
+          pendingOrigin,
+          selectedBenefits
+        );
 
     // Escolhas de item do jogador (troca a arma concedida, se houver)
     updatedSheet = applyOriginItemChoices(
@@ -1667,6 +1944,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       devoto: {
         divindade: pendingDeity,
         poderes: selectedPowers,
+        ...buildDualDevotionFields(pendingDeity.name),
       },
     };
 
@@ -2086,6 +2364,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       }
                       min={1}
                       max={20}
+                      disabled={sheetIsMulticlass}
+                      helperText={
+                        sheetIsMulticlass
+                          ? 'Ajuste os níveis por classe abaixo'
+                          : undefined
+                      }
                     />
                     <Tooltip
                       title={
@@ -2111,6 +2395,50 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     </Tooltip>
                   </Stack>
 
+                  {sheetIsMulticlass && (
+                    <Box>
+                      <Typography
+                        variant='caption'
+                        sx={{ color: 'text.secondary' }}
+                      >
+                        Níveis por classe (o nível total é a soma)
+                      </Typography>
+                      <Stack
+                        direction='row'
+                        spacing={1}
+                        sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}
+                      >
+                        {Array.from(classLevelCounts.entries()).map(
+                          ([className, count]) => (
+                            <NumberField
+                              key={className}
+                              label={className}
+                              value={count}
+                              onValueChange={(v) =>
+                                handleClassLevelChange(className, v)
+                              }
+                              min={1}
+                              max={20}
+                              sx={{ minWidth: 140, flex: '1 1 140px' }}
+                            />
+                          )
+                        )}
+                      </Stack>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          display: 'block',
+                          mt: 1,
+                          color: 'text.secondary',
+                        }}
+                      >
+                        Ajuste manual: não concede habilidades, magias nem
+                        poderes novos. Para subir de nível de verdade, use o
+                        Subir Nível.
+                      </Typography>
+                    </Box>
+                  )}
+
                   <FormControl fullWidth>
                     <InputLabel>Gênero</InputLabel>
                     <Select
@@ -2126,6 +2454,41 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       <MenuItem value='Outro'>Outro</MenuItem>
                     </Select>
                   </FormControl>
+
+                  <AgeField
+                    raceName={editedData.raceName}
+                    classDescription={sheet.classe}
+                    value={editedData.age}
+                    onChange={(next) =>
+                      setEditedData({
+                        ...editedData,
+                        age: next,
+                        // Mudar de faixa muda quantas complicações são
+                        // exigidas; as antigas não sobrevivem à troca.
+                        ageComplications:
+                          next.bracket === editedData.age.bracket
+                            ? editedData.ageComplications
+                            : [],
+                      })
+                    }
+                    variedAgesAvailable={
+                      variedAgesAvailable || !!sheet.age?.bracket
+                    }
+                    // Personagem já criado: a rolagem de idade inicial é uma
+                    // pergunta que já foi respondida.
+                    allowRoll={false}
+                  />
+
+                  {requiredAgeComplications > 0 && editedData.age.bracket && (
+                    <AgeComplicationsStep
+                      bracket={editedData.age.bracket}
+                      selected={editedData.ageComplications}
+                      onChange={(ageComplications) =>
+                        setEditedData({ ...editedData, ageComplications })
+                      }
+                      tookOptionalPower={ageOptionalPowerTaken}
+                    />
+                  )}
 
                   <FormControl fullWidth>
                     <InputLabel>Raça</InputLabel>
@@ -2934,6 +3297,70 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     </FormControl>
                   )}
 
+                  {/* Variante de classe por divindade (Deuses de Arton):
+                      "Paladino de Marah" troca Golpe Divino por Mensagem de Paz.
+                      Só a habilidade é editável aqui — as perícias iniciais já
+                      foram gravadas na criação. */}
+                  {deityClassVariant?.alternativeAbility && (
+                    <FormControl fullWidth>
+                      <InputLabel>
+                        Habilidade de {deityClassVariant.className} de{' '}
+                        {deityClassVariant.deity}
+                      </InputLabel>
+                      <Select
+                        value={editedData.deityClassAbility || ''}
+                        label={`Habilidade de ${deityClassVariant.className} de ${deityClassVariant.deity}`}
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            deityClassAbility: e.target.value || undefined,
+                          })
+                        }
+                      >
+                        <MenuItem value=''>
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{ alignItems: 'center' }}
+                          >
+                            <span>
+                              {deityClassVariant.alternativeAbility.replaces}
+                            </span>
+                            <Chip
+                              label='Padrão'
+                              size='small'
+                              sx={{ fontSize: '0.7rem', height: '20px' }}
+                            />
+                          </Stack>
+                        </MenuItem>
+                        <MenuItem
+                          value={
+                            deityClassVariant.alternativeAbility.ability.name
+                          }
+                        >
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{ alignItems: 'center' }}
+                          >
+                            <span>
+                              {
+                                deityClassVariant.alternativeAbility.ability
+                                  .name
+                              }
+                            </span>
+                            <Chip
+                              label='Deuses de Arton'
+                              size='small'
+                              color='primary'
+                              sx={{ fontSize: '0.65rem', height: '18px' }}
+                            />
+                          </Stack>
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+
                   <FormControl fullWidth>
                     <InputLabel>Origem</InputLabel>
                     <Select
@@ -3008,6 +3435,83 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       ))}
                     </Select>
                   </FormControl>
+
+                  {/* Devoção Dupla. Fica editável em fichas que JÁ usam a
+                      regra mesmo sem o suplemento ativo — senão o usuário
+                      ficaria preso a uma segunda divindade que não consegue
+                      remover. */}
+                  {!!editedData.deityName &&
+                    (dualDevotionAvailable ||
+                      !!sheet.devoto?.divindadeSecundaria) && (
+                      <>
+                        <FormControl fullWidth>
+                          <InputLabel>Segunda divindade</InputLabel>
+                          <Select
+                            value={editedData.secondaryDeityName}
+                            label='Segunda divindade'
+                            onChange={(e) =>
+                              setEditedData({
+                                ...editedData,
+                                secondaryDeityName: e.target.value,
+                                // Re-resolve o sincretismo pelo par novo; não
+                                // achar nenhum é um estado válido.
+                                sincretismoName:
+                                  findSincretismoByPair(
+                                    editedData.deityName,
+                                    e.target.value
+                                  )?.name || '',
+                              })
+                            }
+                          >
+                            <MenuItem value=''>
+                              Nenhuma (devoção simples)
+                            </MenuItem>
+                            {DIVINDADES_DISPONIVEIS.filter(
+                              (deity: Divindade) =>
+                                deity.name !== editedData.deityName
+                            ).map((deity: Divindade) => (
+                              <MenuItem key={deity.name} value={deity.name}>
+                                {deity.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+
+                        {!!editedData.secondaryDeityName && (
+                          <FormControl fullWidth>
+                            <InputLabel>Sincretismo</InputLabel>
+                            <Select
+                              value={editedData.sincretismoName}
+                              label='Sincretismo'
+                              onChange={(e) => {
+                                const chosen = sincretismos.find(
+                                  (item) => item.name === e.target.value
+                                );
+                                setEditedData({
+                                  ...editedData,
+                                  sincretismoName: e.target.value,
+                                  // O outro sentido: escolher o sincretismo
+                                  // preenche as duas divindades.
+                                  ...(chosen
+                                    ? {
+                                        deityName: chosen.deities[0],
+                                        secondaryDeityName: chosen.deities[1],
+                                      }
+                                    : {}),
+                                });
+                              }}
+                            >
+                              <MenuItem value=''>Sincretismo próprio</MenuItem>
+                              {sincretismos.map((item) => (
+                                <MenuItem key={item.name} value={item.name}>
+                                  {item.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        )}
+                      </>
+                    )}
                 </Stack>
               </AccordionDetails>
             </Accordion>
@@ -3298,6 +3802,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               variant='contained'
               onClick={handleSave}
               disabled={
+                // A faixa etária exige um número MÍNIMO de complicações de
+                // idade; salvar no meio da escolha deixaria a ficha sem os
+                // efeitos que pagam pelos níveis extras. Comparação por `<`, e
+                // não por `!==`: uma ficha que já traz mais complicações que o
+                // exigido (homebrew, dados antigos) não tem por que travar.
+                editedData.ageComplications.length < requiredAgeComplications ||
                 (editedData.raceName === 'Moreau' &&
                   editedData.raceHeritage === 'Coruja' &&
                   !editedData.moreauSapienciaSpell) ||
@@ -3351,6 +3861,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
             setPendingUpdates({});
           }}
           deity={pendingDeity}
+          secondaryDeityName={
+            editedData.secondaryDeityName !== pendingDeity.name
+              ? editedData.secondaryDeityName
+              : undefined
+          }
           sheet={sheet}
           onSave={handleDeityPowersSave}
         />

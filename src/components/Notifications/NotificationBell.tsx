@@ -8,7 +8,7 @@ import {
   Button,
   Divider,
 } from '@mui/material';
-import { Notifications as NotificationsIcon } from '@mui/icons-material';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useNotifications } from '../../hooks/useNotifications';
 import { PushNotificationToggle } from '../../premium';
 import NotificationList from './NotificationList';

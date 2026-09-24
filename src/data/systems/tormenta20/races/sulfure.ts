@@ -2,9 +2,12 @@ import Skill from '@/interfaces/Skills';
 import Race from '../../../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { spellsCircle1 } from '../magias/generalSpells';
+import RACE_COUNTS_AS from './raceCountsAs';
 
 const SULFURE: Race = {
   name: 'Suraggel (Sulfure)',
+  // Ver `raceCountsAs.ts` para a justificativa no livro.
+  countsAsRaces: RACE_COUNTS_AS['Suraggel (Sulfure)'],
   attributes: {
     attrs: [
       { attr: Atributo.DESTREZA, mod: 2 },

@@ -14,8 +14,17 @@
  */
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
+/**
+ * O mínimo que os checadores consomem: o nome e a cláusula "conta como o poder
+ * X para efeitos de pré-requisitos".
+ */
+export interface PowerLike {
+  name: string;
+  grantsPowerRequirements?: string[];
+}
+
 /** Fontes de poder da ficha, exceto `classe.abilities` (ver comentário acima). */
-function collectPowerNames(sheet: CharacterSheet): string[] {
+export function collectSheetPowers(sheet: CharacterSheet): PowerLike[] {
   return [
     ...(sheet.generalPowers ?? []),
     ...(sheet.classPowers ?? []),
@@ -24,7 +33,27 @@ function collectPowerNames(sheet: CharacterSheet): string[] {
     ...(sheet.raca?.abilities ?? []),
     ...(sheet.customPowers ?? []),
     ...(sheet.customGrantedPowers ?? []),
-  ].map((entry) => entry.name);
+  ] as PowerLike[];
+}
+
+function collectPowerNames(sheet: CharacterSheet): string[] {
+  return collectSheetPowers(sheet).map((entry) => entry.name);
+}
+
+/**
+ * O personagem satisfaz um pré-requisito `PODER: name`? Casa pelo nome ou pela
+ * cláusula `grantsPowerRequirements` de qualquer poder/habilidade que ele tenha
+ * — é por aqui que "Ginete Altivo" (concedido de Hippion) vale como "Ginete".
+ */
+export function sheetSatisfiesPowerRequirement(
+  sheet: CharacterSheet,
+  name: string | undefined
+): boolean {
+  if (!name) return false;
+  return collectSheetPowers(sheet).some(
+    (power) =>
+      power.name === name || !!power.grantsPowerRequirements?.includes(name)
+  );
 }
 
 /**

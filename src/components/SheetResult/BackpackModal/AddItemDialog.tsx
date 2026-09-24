@@ -21,13 +21,11 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Build as CustomIcon,
-  Clear as ClearIcon,
-  Close as CloseIcon,
-  Search as SearchIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import CustomIcon from '@mui/icons-material/Build';
+import ClearIcon from '@mui/icons-material/Clear';
+import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
 import debounce from 'lodash/debounce';
 
 import Equipment, { equipGroup } from '../../../interfaces/Equipment';
@@ -41,11 +39,14 @@ import {
   buildEquipmentCatalog,
 } from './equipmentCatalog';
 import CustomItemForm from './CustomItemForm';
+import { AmmoTypeOption } from './ammo';
 
 export interface AddItemDialogProps {
   open: boolean;
   onClose: () => void;
   onAddItem: (item: Equipment, options?: { quantity?: number }) => void;
+  /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
+  ammoTypeOptions?: AmmoTypeOption[];
   /** Currency available for the affordability hint (no blocking). */
   availableTibares?: number;
   /** Whether auto-deduct is on (changes the affordability label). */
@@ -77,6 +78,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   autoDeductMoney = false,
   onToggleAutoDeductMoney,
   defaultCategory,
+  ammoTypeOptions = [],
 }) => {
   const userSupplements: SupplementId[] = useContentSupplements();
   const equipmentCatalog = useMemo(
@@ -234,7 +236,13 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   const renderSubgroup = (sub: CatalogSubgroup) => {
     const filtered = sub.items.filter((it) => matches(it, debouncedSearch));
     if (filtered.length === 0) return null;
-    const sorted = [...filtered].sort((a, b) => a.nome.localeCompare(b.nome));
+    // "Ataque Desarmado" fica fixo como primeiro item da categoria "Simples"
+    // (unidade base do ataque desarmado) — os demais seguem alfabéticos.
+    const sorted = [...filtered].sort((a, b) => {
+      if (a.nome === 'Ataque Desarmado') return -1;
+      if (b.nome === 'Ataque Desarmado') return 1;
+      return a.nome.localeCompare(b.nome);
+    });
     return (
       <Box key={sub.key} sx={{ mb: 1.5 }}>
         <Typography
@@ -277,6 +285,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           <Box sx={{ p: 2 }}>
             <CustomItemForm
               defaultGroup={CATEGORY_ORDER[tabIndex]}
+              ammoTypeOptions={ammoTypeOptions}
               onCancel={() => setShowCustomForm(false)}
               onSubmit={(item) => {
                 onAddItem(item);
@@ -412,7 +421,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
                   )}
                 </Typography>
                 {onToggleAutoDeductMoney && (
-                  <Tooltip title='Quando ativo, adicionar um item desconta o preço do saldo. Remover devolve.'>
+                  <Tooltip title='Quando ativo, adicionar um item desconta o preço do saldo. Remover devolve apenas o que foi comprado agora.'>
                     <FormControlLabel
                       control={
                         <Switch

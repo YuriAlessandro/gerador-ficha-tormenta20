@@ -69,6 +69,7 @@ export const SHEET_SECTION_KINDS = [
   'sizeDisplacement',
   'partners',
   'animalCompanions',
+  'journal',
   'creationSteps',
   'supportCta',
   'bugReport',

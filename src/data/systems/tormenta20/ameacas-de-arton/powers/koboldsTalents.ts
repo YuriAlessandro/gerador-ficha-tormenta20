@@ -45,6 +45,15 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
     description:
       'Escolham um poder de outra classe cujos requisitos vocês cumpram (como um poder de bardo da lista de Poderes de Bardo). Vocês recebem o poder escolhido; para efeitos de nível na classe desse poder, considere seu nível de personagem −4.',
     requirements: [[{ type: RequirementType.RACA, name: 'Kobolds' }]],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Diferentão (Kobolds)' },
+        action: {
+          type: 'special',
+          specialAction: 'diferentaoSelectClassPower',
+        },
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,
@@ -57,6 +66,12 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
         source: { type: 'power', name: 'Ex-Familiar (Kobolds)' },
         target: { type: 'PM' },
         modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Ex-Familiar (Kobolds)' },
+        action: { type: 'selectFamiliar' },
       },
     ],
   },
@@ -80,6 +95,15 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
     description:
       'Vocês podem usar Destreza para estabelecer seu limite de carga (em vez de Força) e podem se beneficiar de um vestido adicional.',
     requirements: [[{ type: RequirementType.RACA, name: 'Kobolds' }]],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Organizadinhos (Kobolds)' },
+        action: {
+          type: 'setMaxSpacesAttribute',
+          attribute: Atributo.DESTREZA,
+        },
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,

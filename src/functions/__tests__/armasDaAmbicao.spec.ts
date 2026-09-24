@@ -7,6 +7,7 @@ import Bag from '../../interfaces/Bag';
 import Skill from '../../interfaces/Skills';
 import GRANTED_POWERS from '../../data/systems/tormenta20/powers/grantedPowers';
 import VALKARIA from '../../data/systems/tormenta20/divindades/valkaria';
+import { Armas } from '../../data/systems/tormenta20/equipamentos';
 
 /**
  * Cobre o poder concedido "Armas da Ambição" (Valkaria): o +1 em testes de
@@ -120,5 +121,50 @@ describe('Armas da Ambição', () => {
     normalizeSheet(sheet);
 
     expect(sheet.devoto?.poderes[0]).toEqual(homebrewPower);
+  });
+
+  /**
+   * "com armas nas quais é proficiente": numa arma de fogo (Pistola) o +1 de
+   * margem só vale se a ficha tiver a proficiência Armas de Fogo. Relatado como
+   * bug ("Armas da Ambição não muda a margem da pistola") — é a regra, e o
+   * tooltip da arma passou a dizer que o bônus está inativo.
+   */
+  describe('arma de fogo (Pistola)', () => {
+    const mkPistolaSheet = (proficiente: boolean): CharacterSheet => {
+      const sheet = mkDevotoSheet();
+      sheet.bag = new Bag({
+        Arma: [{ ..._.cloneDeep(Armas.PISTOLA), id: WID }],
+      });
+      // Clonar a classe: `createMockCharacterSheet` devolve um objeto de classe
+      // COMPARTILHADO entre os testes — mexer nas proficiências in loco vazaria
+      // a de Armas de Fogo para os casos seguintes.
+      sheet.classe = {
+        ...sheet.classe,
+        proficiencias: [
+          ...(sheet.classe.proficiencias ?? []),
+          ...(proficiente ? ['Armas de Fogo'] : []),
+        ],
+      };
+      return sheet;
+    };
+
+    const criticoOf = (sheet: CharacterSheet) =>
+      recalculateSheet(sheet).bag.equipments.Arma.find((w) => w.id === WID)
+        ?.critico;
+
+    it('sem proficiência em Armas de Fogo, a margem não muda', () => {
+      expect(criticoOf(mkPistolaSheet(false))).toBe('19/x3');
+    });
+
+    it('com proficiência em Armas de Fogo, a margem estreita (19 → 18)', () => {
+      expect(criticoOf(mkPistolaSheet(true))).toBe('18/x3');
+    });
+
+    it('a modificação Maciça sobe o multiplicador, não a margem', () => {
+      const sheet = mkPistolaSheet(false);
+      sheet.bag.equipments.Arma[0].modifications = [{ mod: 'Maciça' }];
+
+      expect(criticoOf(sheet)).toBe('19/x4');
+    });
   });
 });

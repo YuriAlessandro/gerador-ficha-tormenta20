@@ -7,7 +7,7 @@ import { ClassDescription } from './Class';
 import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
 import Origin from './Origin';
-import { OriginPower, GeneralPower } from './Poderes';
+import { OriginPower, GeneralPower, PrerequisiteWaiver } from './Poderes';
 import Bag from './Bag';
 import Skill from './Skills';
 import { Spell } from './Spells';
@@ -83,8 +83,10 @@ export type RaceAbility = {
   customDescription?: string;
   // Satisfaz um requisito `PODER: <name>` como se o personagem tivesse esses poderes
   grantsPowerRequirements?: string[];
-  // Ignora TODOS os pré-requisitos de poderes cujo nome inclua qualquer destes termos
+  // Ignora TODOS os pré-requisitos de poderes cujo nome inclua qualquer destes
+  // termos. Legado: dados novos usam `waivesPrerequisites`, por nome exato.
   bypassPrereqForPowersNamed?: string[];
+  waivesPrerequisites?: PrerequisiteWaiver[]; // Ver `PrerequisiteWaiver`
 };
 
 export interface RaceHeritage {
@@ -169,6 +171,19 @@ export default interface Race {
   tabuSkill?: Skill; // For Duende (skill with -5 penalty)
   duendeBonusAttributes?: Atributo[]; // For Duende: chosen Dons (transport for generation)
   attributeVariants?: AttributeVariant[];
+  /**
+   * Raças que este personagem TAMBÉM conta como para pré-requisitos de poderes
+   * de raça (`RequirementType.RACA`). Cobre três casos:
+   * - Raças Variantes (Ameaças de Arton): Soterrado → Osteon, Trog Anão → Trog
+   * - "é considerado um X para efeitos relacionados a raça": Meio-Orc → Orc,
+   *   Meio-Elfo → Elfo, Moreau → Humano
+   * - Apelidos usados nos requisitos que diferem do nome do catálogo
+   *   (ex.: "Suraggel" para as duas heranças, "Sereia/Tritão" para Sereia)
+   *
+   * É `string[]` e não `RaceNames[]` de propósito: os apelidos acima não são
+   * nomes de raça do catálogo, e `Requirement.name` também é `string`.
+   */
+  countsAsRaces?: string[];
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;

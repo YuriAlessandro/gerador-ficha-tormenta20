@@ -9,6 +9,7 @@ const mordida: Equipment = {
   critico: 'x2',
   tipo: 'Perf.',
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const TROG: Race = {

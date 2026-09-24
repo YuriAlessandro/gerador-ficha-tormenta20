@@ -9,21 +9,21 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  DragIndicator as DragIcon,
-  Edit as EditIcon,
-  Remove as RemoveIcon,
-  ReportProblem as OverflowIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DragIcon from '@mui/icons-material/DragIndicator';
+import EditIcon from '@mui/icons-material/Edit';
+import RemoveIcon from '@mui/icons-material/Remove';
+import OverflowIcon from '@mui/icons-material/ReportProblem';
 
+import { describeItemBonuses } from '@/functions/equipmentDisplay';
 import Equipment, { DefenseEquipment } from '../../../interfaces/Equipment';
+import { getItemSpaces } from '../../../interfaces/Bag';
 import { itemTypeStyles } from './itemTypeStyles';
 import WieldingControl from './WieldingControl';
-import WornArmorControl from './WornArmorControl';
-import { isTwoHanded, WieldingSlot } from './wielding';
-import { AMMO_LABELS } from './ammo';
+import WornItemControl from './WornItemControl';
+import { hasMechanicalBonus, isTwoHanded, WieldingSlot } from './wielding';
+import { ammoTypeLabel } from './ammo';
 
 export interface BackpackItemCardProps {
   item: Equipment;
@@ -41,7 +41,10 @@ export interface BackpackItemCardProps {
    * both hands).
    */
   wieldingDisabledSlots?: Partial<Record<'main' | 'off', { reason: string }>>;
-  /** True when this item (armor) is the one currently worn. */
+  /**
+   * True quando a peça está vestida. Vale para os dois grupos vestíveis:
+   * `Armadura` (a armadura escolhida) e `Vestuário` (peça não guardada).
+   */
   isWorn?: boolean;
   onWornChange?: (worn: boolean) => void;
   /** Adjust ammunition units remaining (positive or negative delta). */
@@ -88,12 +91,18 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
   const style = itemTypeStyles[item.group];
   const Icon = style.icon;
   const quantity = item.quantity ?? 1;
-  const unitSpaces = item.spaces ?? 0;
-  const totalSpaces = unitSpaces * quantity;
+  const unitSpaces = item.spaces;
+  const totalSpaces = getItemSpaces(item);
   const isAmmoItem = Boolean(item.isAmmo);
+  // Munição normalmente mostra unidades no lugar do espaço; quando o jogador
+  // sobrescreveu o espaço à mão, o número passa a valer e precisa aparecer.
+  const showSpaces =
+    unitSpaces !== undefined && (!isAmmoItem || Boolean(item.hasManualSpaces));
   const ammoUnits = item.unitsRemaining ?? 0;
   const ammoPackSize = item.ammoPackSize ?? 20;
-  const ammoLabel = item.ammoType ? AMMO_LABELS[item.ammoType] : 'Munição';
+  const ammoLabel = item.ammoType ? ammoTypeLabel(item.ammoType) : 'Munição';
+
+  const bonusLabels = describeItemBonuses(item);
 
   const stats: { label: string; value: string }[] = [];
   if (item.group === 'Arma') {
@@ -221,6 +230,27 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
                   sx={{ height: 20, fontSize: '0.65rem' }}
                 />
               )}
+              {isWorn && item.group === 'Vestuário' && (
+                <Chip
+                  size='small'
+                  label='Vestindo'
+                  color='primary'
+                  sx={{ height: 20, fontSize: '0.65rem' }}
+                />
+              )}
+              {/* "Guardado" só quando guardar de fato muda algum número —
+                  sinalizar em toda roupa sem efeito só poluiria os cards. */}
+              {!isWorn &&
+                item.group === 'Vestuário' &&
+                hasMechanicalBonus(item) && (
+                  <Chip
+                    size='small'
+                    label='Guardado'
+                    color='warning'
+                    variant='outlined'
+                    sx={{ height: 20, fontSize: '0.65rem' }}
+                  />
+                )}
             </Stack>
 
             <Typography
@@ -232,11 +262,10 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               }}
             >
               {style.label}
-              {isAmmoItem
-                ? ` · ${ammoLabel}: ${ammoUnits}`
-                : totalSpaces > 0 && ` · ${totalSpaces} esp.`}
-              {!isAmmoItem &&
-                unitSpaces > 0 &&
+              {isAmmoItem && ` · ${ammoLabel}: ${ammoUnits}`}
+              {showSpaces && ` · ${totalSpaces} esp.`}
+              {showSpaces &&
+                !isAmmoItem &&
                 quantity > 1 &&
                 ` (${unitSpaces} × ${quantity})`}
             </Typography>
@@ -258,9 +287,32 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               </Stack>
             )}
 
-            {item.descricao && item.group !== 'Arma' && !isDefense(item) && (
+            {bonusLabels.length > 0 && (
+              <Stack
+                direction='row'
+                spacing={0.5}
+                sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}
+              >
+                {bonusLabels.map((label) => (
+                  <Chip
+                    key={label}
+                    size='small'
+                    variant='outlined'
+                    color='success'
+                    label={label}
+                    sx={{ height: 20, fontSize: '0.65rem' }}
+                  />
+                ))}
+              </Stack>
+            )}
+
+            {/* Armas e armaduras mostram a descrição como qualquer outro item:
+                escondê-las deixava invisível a regra de itens como a Armadura
+                sensual, cujo efeito inteiro vive no texto. */}
+            {item.descricao && (
               <Typography
                 variant='caption'
+                title={item.descricao}
                 sx={{
                   color: 'text.secondary',
                   display: '-webkit-box',
@@ -299,21 +351,25 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               alignItems: 'center',
             }}
           >
-            {item.group === 'Armadura' && onWornChange && (
-              <WornArmorControl
-                item={item}
-                isWorn={isWorn}
-                onChange={onWornChange}
-              />
-            )}
-            {item.group !== 'Armadura' && !isAmmoItem && onWieldingChange && (
-              <WieldingControl
-                item={item}
-                currentSlot={wieldingSlot}
-                onChange={onWieldingChange}
-                disabledSlots={wieldingDisabledSlots}
-              />
-            )}
+            {(item.group === 'Armadura' || item.group === 'Vestuário') &&
+              onWornChange && (
+                <WornItemControl
+                  item={item}
+                  isWorn={isWorn}
+                  onChange={onWornChange}
+                />
+              )}
+            {item.group !== 'Armadura' &&
+              item.group !== 'Vestuário' &&
+              !isAmmoItem &&
+              onWieldingChange && (
+                <WieldingControl
+                  item={item}
+                  currentSlot={wieldingSlot}
+                  onChange={onWieldingChange}
+                  disabledSlots={wieldingDisabledSlots}
+                />
+              )}
             {onEdit && (
               <Tooltip title='Editar item'>
                 <IconButton size='small' onClick={onEdit} aria-label='Editar'>

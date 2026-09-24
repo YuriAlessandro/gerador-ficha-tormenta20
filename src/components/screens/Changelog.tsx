@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            14/08/2026 (v4.30).
+            22/09/2026 (v4.33).
           </p>
 
           <p>
@@ -74,53 +74,1295 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <h3>4.30</h3>
+              <h3>4.33</h3>
               <ul>
                 <li>
-                  <strong>Novo:</strong> <strong>Idades Variadas</strong>, a
-                  regra opcional de <em>Heróis de Arton</em>. No assistente de
-                  criação, em &ldquo;Informações Básicas&rdquo;, você escolhe
-                  entre as sete faixas etárias — de <strong>Criança</strong> a{' '}
-                  <strong>Ancião</strong> — e o app cuida do resto:
-                  modificadores de atributo, tamanho, Defesa, PM, benefícios de
-                  origem e até os <strong>níveis adicionais</strong> de Maduro,
-                  Velho e Ancião, que já entram no assistente de evolução. A
-                  faixa de anos é calculada para a sua raça (um anão vira adulto
-                  aos 50, um elfo só aos 125), e personagens adultos ou mais
-                  velhos escolhem suas <strong>complicações de idade</strong> —
-                  uma para adultos, até quatro para anciões. Velhos e anciões
-                  também deixam de poder gastar{' '}
-                  <strong>Aumento de Atributo</strong> em atributos físicos.
-                  Tudo editável depois, pelo botão de idade na ficha.
+                  <strong>Novo:</strong> Na mesa virtual, as{' '}
+                  <strong>ameaças agora gastam PM automaticamente</strong>. Ao
+                  abrir a ficha de um combatente pelo card dele e clicar no nome
+                  de uma <strong>magia</strong> ou{' '}
+                  <strong>habilidade com custo em PM</strong>, o custo é
+                  descontado daquela criatura (com desfazer) e os dados rolam
+                  como antes. O cabeçalho da ficha passa a mostrar o PM atual da
+                  criatura, e habilidades que custam PM mas não rolam dados
+                  também ficam clicáveis. Se não houver PM suficiente, a ação é
+                  recusada — e os botões de rolagem ao lado do nome continuam
+                  repetindo só os dados, sem cobrar de novo.
                 </li>
                 <li>
-                  <strong>Novo:</strong> <strong>Atributos Variados</strong>. O
-                  passo de atributos ganhou um seletor de variante ao lado dos
-                  botões Livre / Dados / Pontos, com os seis métodos novos do
-                  livro: <strong>Clássica</strong> (3d6, para heróis que vêm do
-                  povo comum), <strong>Épica</strong>, <strong>Valkaria</strong>{' '}
+                  <strong>Novo:</strong> Ao subir de nível, a escolha de poder
+                  ganhou a opção{' '}
+                  <strong>Mostrar poderes fora dos requisitos</strong>.
+                  Desmarcada (como vem), a lista mostra só o que você pode pegar
+                  de verdade — eram 300+ poderes gerais com frequentemente menos
+                  de 50 escolhíveis. Marcada, o catálogo inteiro aparece e você{' '}
+                  <strong>
+                    pode escolher mesmo sem cumprir o pré-requisito
+                  </strong>
+                  . E, mesmo desmarcada, buscar um poder pelo nome continua
+                  encontrando ele, com o requisito que está faltando à vista.
+                </li>
+                <li>
+                  <strong>Novo:</strong> As origens que deixam{' '}
+                  <strong>trocar o poder escolhido entre aventuras</strong> —{' '}
+                  <strong>Cosmopolita</strong> e{' '}
+                  <strong>Citadino Abastado</strong> — ganharam um passo{' '}
+                  <strong>Benefício da Origem</strong> ao subir de nível, onde
+                  você pode trocar o poder por outro. O passo é opcional: se não
+                  quiser mexer, é só seguir adiante.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Ao criar um{' '}
+                  <strong>pacote de poderes da comunidade</strong>, agora dá
+                  para exigir <strong>uma raça</strong> ou{' '}
+                  <strong>ser devoto de uma divindade</strong> como
+                  pré-requisito do poder. Sem isso, um poder de raça ou
+                  concedido aparecia para qualquer personagem ao subir de nível.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Armas à distância criadas por você
+                  agora funcionam de verdade. O editor de item ganhou{' '}
+                  <strong>Tipo de ataque</strong> — corpo a corpo,{' '}
+                  <strong>arremesso</strong> ou <strong>disparo</strong> —, mais{' '}
+                  <strong>alcance</strong> e <strong>munição</strong>. Com isso
+                  a arma passa a rolar <strong>Pontaria</strong>, para de somar
+                  Força no dano, recebe os poderes de ataque à distância (como{' '}
+                  <strong>Estilo de Disparo</strong>) e mostra o contador de
+                  munição, descontando um projétil a cada ataque. Antes não
+                  havia onde dizer que o item era um arco, então ele nascia como
+                  arma corpo a corpo.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Dá para criar seus próprios{' '}
+                  <strong>pacotes de munição</strong> — com preço, tamanho de
+                  pacote e espaço próprios —, tanto como item personalizado na
+                  mochila quanto num pacote de itens da comunidade. E o tipo de
+                  munição deixou de ser uma lista fechada: além dos cinco do
+                  livro, você pode <strong>inventar uma família nova</strong>{' '}
+                  (&quot;Cartuchos a vapor&quot;, &quot;Dardos de
+                  zarabatana&quot;) e apontar uma arma para ela. Ao criar a
+                  arma, os tipos que você já tem aparecem na lista, então é só
+                  escolher.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Toda ficha agora tem{' '}
+                  <strong>idade em anos</strong>, e envelhecer passou a valer de
+                  verdade: aos <strong>45 anos</strong> o personagem fica{' '}
+                  <strong>Maduro</strong> (For −1, Des −1, Con −1, Int +1, Sab
+                  +1, Car +1) e aos <strong>70</strong> fica{' '}
+                  <strong>Velho</strong>, acumulando os dois (For −3, Des −3,
+                  Con −3, Int +2, Sab +2, Car +2). É regra do livro básico
+                  (Tormenta20, p. 108), então vale para qualquer personagem, sem
+                  depender de suplemento. Os marcos acompanham a longevidade da
+                  raça: um elfo só fica Maduro aos 225 anos.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A idade virou um campo comum em{' '}
+                  <strong>Informações Básicas</strong>, ao lado de nome e
+                  gênero, tanto na criação quanto na edição da ficha. Ao lado
+                  dele há um <strong>seletor de faixa etária</strong> que já
+                  mostra os intervalos escalados pela sua raça, e os dois se
+                  alimentam: digitar a idade move a faixa, escolher a faixa move
+                  a idade. Na criação também há um{' '}
+                  <strong>botão de rolar</strong> a idade inicial da sua classe
+                  (1d6+15, 2d4+15 ou 2d6+15, conforme a tabela do livro).
+                </li>
+                <li>
+                  <strong>Novo:</strong> A <strong>ficha aleatória</strong> já
+                  nasce com a idade inicial rolada pela classe, e o passo a
+                  passo mostra qual foi.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Chegou o{' '}
+                  <strong>Paladino de Marah</strong> (Deuses de Arton). Um
+                  paladino devoto da Deusa da Paz ganha um passo próprio na
+                  criação, onde pode trocar{' '}
+                  <strong>Golpe Divino por Mensagem de Paz</strong> e trocar{' '}
+                  <strong>Luta por Diplomacia</strong> entre as perícias
+                  iniciais. <strong>Atuação</strong> e <strong>Luta</strong>{' '}
+                  também passam a contar como perícias de classe. As duas trocas
+                  são opcionais, valem para devoto duplo com Marah como segunda
+                  divindade, e a habilidade pode ser trocada depois pelo editor
+                  da ficha.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O poder{' '}
+                  <strong>Domínio do Medo</strong> (Deus do Medo, Guia de Deuses
+                  Menores) agora funciona: quem o tem pode escolher{' '}
+                  <strong>poderes de medo de outras classes</strong> — como{' '}
+                  <strong>Brado: Assombroso</strong> do Bárbaro ou{' '}
+                  <strong>Presença de Muralha</strong> do Cavaleiro — sem
+                  cumprir os pré-requisitos de classe e de devoção. Eles
+                  aparecem ao subir de nível num grupo próprio, com o nome da
+                  classe de origem.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O <strong>Vassalo</strong> (Heróis de
+                  Arton) agora ganha de verdade o que cada nível promete. Os{' '}
+                  <strong>poderes de cavaleiro</strong> (e de guerreiro ou
+                  nobre, onde o livro permite) chegam só nos níveis certos, num
+                  passo único de escolha; <strong>Escudeiro</strong>,{' '}
+                  <strong>Golpe Divino</strong>,{' '}
+                  <strong>Autoridade Feudal</strong> e <strong>Título</strong>{' '}
+                  entram sozinhos; o <strong>Caminho do Soldado</strong> ou{' '}
+                  <strong>do Governante</strong>, escolhido no 9º nível, vale
+                  nos níveis 11, 13 e 17; e as magias divinas do 16º e do 20º
+                  nível, os pontos de atributo e os bônus em atributo também
+                  entram na ficha.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A tela de{' '}
+                  <strong>escolher poder ao subir de nível</strong> foi refeita
+                  sobre o mesmo catálogo do editor de poderes: uma lista só, com
+                  poderes de classe, gerais e Alma Livre agrupados pela origem
+                  real, busca com destaque, filtro{' '}
+                  <strong>Só os que posso pegar</strong> e os{' '}
+                  <strong>pré-requisitos de cada poder</strong> à mostra, um a
+                  um, dizendo o que falta. Não é mais preciso escolher antes
+                  entre &quot;Poder de Classe&quot; e &quot;Poder Geral&quot;.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No{' '}
+                  <strong>editor de poderes</strong>, os poderes de origem que
+                  envolvem uma escolha agora têm um{' '}
+                  <strong>botão de editar</strong>, para refazer a escolha a
+                  qualquer momento. Antes, como a origem concede o poder
+                  sozinha, a escolha ficava congelada para sempre depois da
+                  criação da ficha.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao <strong>subir de nível</strong>,
+                  os <strong>poderes de classe</strong> que você ainda não
+                  cumpre deixaram de sumir sem explicação: a busca os encontra
+                  travados, com o pré-requisito que está faltando à mostra,
+                  igual aos poderes gerais.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No assistente de criação, os{' '}
+                  <strong>modificadores da idade</strong> passam a valer já no{' '}
+                  <strong>passo de atributos</strong>, numa linha própria
+                  (&quot;Mod. Idade&quot;), separada da racial. Com isso a{' '}
+                  <strong>perícia extra por Inteligência</strong> e os{' '}
+                  <strong>pré-requisitos de poder</strong> enxergam o bônus
+                  desde o começo — antes eles só apareciam quando a ficha já
+                  estava pronta.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As{' '}
+                  <strong>Idades Variadas (Heróis de Arton)</strong> viraram um{' '}
+                  <strong>interruptor</strong> dentro do próprio campo de idade,
+                  no mesmo padrão de Raças Abertas e Devoções Abertas. Ligadas,
+                  as sete faixas <strong>substituem</strong> os modificadores do
+                  livro básico — as duas tabelas nunca somam —, e só elas
+                  concedem níveis extras e complicações de idade. O botão de
+                  ampulheta saiu da ficha: a idade agora se edita num lugar só.
+                  Fichas já salvas não mudam sozinhas — ficam sem idade até você
+                  preencher.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao apontar o{' '}
+                  <strong>tipo de munição</strong> de uma arma, a lista agora
+                  mostra <strong>quais pacotes</strong> cada tipo alcança e
+                  separa o que está <strong>na sua mochila</strong> dos demais
+                  tipos. Antes ela mostrava só os cinco nomes do livro, e quem
+                  tinha criado um pacote próprio achava que ele havia sumido.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Quem tem proficiência com{' '}
+                  <strong>armaduras pesadas</strong> agora escolhe a armadura
+                  inicial no assistente, em vez de receber sempre a pesada — o
+                  livro permite, não obriga. A ficha aleatória continua dando a
+                  pesada.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os filtros de magias agora aceitam{' '}
+                  <strong>várias opções ao mesmo tempo</strong>: dá para marcar
+                  mais de uma <strong>escola</strong>, <strong>círculo</strong>{' '}
+                  ou <strong>execução</strong> e combinar tudo — por exemplo,
+                  ver só as magias de 2º círculo das três escolas que você pode
+                  aprender. Vale para a lista de magias, para a escolha de
+                  magias na criação, ao subir de nível e na edição da ficha, e
+                  para os filtros da aba de magias da ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Duplo Feérico</strong> não oferecia as{' '}
+                  <strong>classes variantes</strong> de Heróis de Arton na hora
+                  de escolher a habilidade de 1º nível — ficavam de fora
+                  Necromante, Duelista, Santo, Usurpador e as outras, cada uma
+                  com habilidades próprias que a classe base não tem. Agora
+                  todas aparecem (com o suplemento ativo). Junto disso, a regra
+                  &quot;uma classe que não seja a sua&quot; passou a valer nos
+                  dois sentidos: um Guerreiro não pega mais habilidade de
+                  Inovador, que é uma variante da própria classe dele.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Com{' '}
+                  <strong>mais de uma pilha do mesmo tipo</strong> de munição na
+                  mochila (flechas comuns e flechas especiais, por exemplo), o
+                  contador mostrava só a primeira e escondia o resto do estoque
+                  — e, pior, quando aquela primeira zerava o ataque parava de
+                  descontar munição em silêncio, mesmo com projéteis na outra
+                  pilha. Agora o contador soma tudo e o gasto vai para a
+                  primeira pilha que ainda tenha munição.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Uma arma do catálogo que já estava
+                  na mochila de uma ficha antiga podia ter ficado sem a
+                  classificação de alcance — e aí um <strong>Arco Curto</strong>{' '}
+                  rolava Luta e somava Força no dano. Agora a ficha se corrige
+                  sozinha ao ser aberta, sem desfazer nenhum ajuste que você
+                  tenha feito à mão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Munição (20)</strong>{' '}
+                  genérica, que vem como tesouro, não contava unidades nem
+                  ocupava espaço como as outras munições. Agora conta — e você
+                  pode dizer no editor de qual tipo ela é.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As origens{' '}
+                  <strong>Cosmopolita (Valkaria)</strong> e{' '}
+                  <strong>Citadino Abastado</strong> nunca perguntavam qual
+                  poder você queria — nem na criação da ficha, nem ao subir de
+                  nível, nem na edição. Agora a escolha aparece normalmente, com
+                  as duas opções que o livro prevê:{' '}
+                  <strong>um poder geral</strong> ou{' '}
+                  <strong>um poder de classe</strong> (só de combate ou destino,
+                  no caso do Citadino).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Um poder concedido pela escolha de
+                  uma origem podia ser <strong>concedido de novo</strong> a cada
+                  recálculo da ficha, aparecendo duplicado na lista de poderes.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao{' '}
+                  <strong>trocar de origem</strong>, um poder geral concedido
+                  pela origem anterior continuava na ficha para sempre.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Artesão Criativo</strong> (Inventor) volta a fazer{' '}
+                  <strong>Ofício (Artesão)</strong> valer no lugar de qualquer
+                  outro Ofício nos pré-requisitos. Poderes como{' '}
+                  <strong>Couraceiro</strong>, <strong>Ferreiro</strong> e{' '}
+                  <strong>Estilista</strong> agora aparecem normalmente ao subir
+                  de nível, sem precisar adicioná-los à mão pelo editor de
+                  poderes. A substituição também passa a valer para{' '}
+                  <strong>Ofícios personalizados</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas antigas que ainda guardavam
+                  a perícia com o nome antigo{' '}
+                  <strong>&quot;Ofício (Artesanato)&quot;</strong> são
+                  corrigidas automaticamente para{' '}
+                  <strong>&quot;Ofício (Artesão)&quot;</strong> ao serem
+                  abertas. O nome antigo não era reconhecido em nenhum
+                  pré-requisito de Ofício, e a correção só rodava no Histórico e
+                  em Meus Personagens — fichas salvas na nuvem continuavam
+                  quebradas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Num{' '}
+                  <strong>pacote de poderes da comunidade</strong>, um poder
+                  endereçado a uma <strong>classe variante</strong> (como{' '}
+                  <strong>Alquimista</strong>) nunca aparecia ao subir de nível.
+                  A classe podia ser escolhida normalmente no editor e o poder
+                  era salvo, mas sumia na hora de usar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Nas <strong>raças longevas</strong>{' '}
+                  havia um buraco entre as faixas etárias: um{' '}
+                  <strong>elfo de 40 anos</strong> ficava acima do teto de Jovem
+                  e abaixo do piso de Adulto, sem faixa nenhuma para cair. Agora
+                  os intervalos são contíguos e qualquer idade resolve para
+                  exatamente uma faixa.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Arte da Guerra</strong> do <strong>Hobgoblin</strong>{' '}
+                  agora deixa você <strong>treinado em Guerra</strong>, como diz
+                  o livro. Antes ela dava um <strong>+2 na perícia</strong> e
+                  deixava Guerra destreinada na ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O{' '}
+                  <strong>Caminho do Cavaleiro</strong> (5º nível) nunca era
+                  escolhido, então a <strong>RD 5 do Bastião</strong> com
+                  armadura pesada nunca aparecia. Agora o assistente pergunta
+                  entre Bastião e Montaria, a ficha aleatória sorteia, e a
+                  habilidade mostra só o caminho escolhido. Fichas já criadas
+                  mantêm o texto com as duas opções.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ter proficiência com{' '}
+                  <strong>armaduras pesadas</strong> passa a incluir as leves.
+                  Antes, ficar mais treinado podia fazer a armadura leve que
+                  você já usava começar a dar penalidade.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Necromante</strong> não
+                  começa mais com armadura, como o Arcanista, e o assistente
+                  deixou de travar pedindo uma armadura que ele não pode
+                  escolher.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Habilidades ganhas no mesmo nível
+                  em que você escolhe um poder não aparecem mais como{' '}
+                  <strong>&quot;Vindo de: Origem não identificada&quot;</strong>{' '}
+                  depois que a ficha é recalculada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As descrições dos suplementos, na
+                  tela de escolher suplementos, passaram a dizer o que cada um
+                  realmente adiciona — algumas contagens de poderes, origens e
+                  magias estavam desatualizadas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No assistente de criação, o poder
+                  geral do <strong>Poder da Complicação</strong>, do{' '}
+                  <strong>Já Vi Coisas</strong> (idade) e do{' '}
+                  <strong>Propósito de Criação</strong> do Golem agora pode ser
+                  um <strong>poder concedido</strong> da sua divindade. O
+                  Propósito de Criação também passou a oferecer os{' '}
+                  <strong>poderes de raça</strong> que você pode pegar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Um poder concedido que você já tem
+                  pela devoção não aparece mais de novo como opção ao subir de
+                  nível ou em escolhas como <strong>Versátil</strong>, evitando
+                  o mesmo poder duas vezes na ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Personagens novos nasciam com{' '}
+                  <strong>PV e PM atuais abaixo do máximo</strong> — um paladino
+                  com Carisma 4 começava em 3/7 PM, às vezes com PM temporário
+                  que ninguém concedeu. Agora a ficha nasce cheia, e o PV/PM
+                  ganho ao <strong>subir de nível</strong> ou com{' '}
+                  <strong>Aumento de Atributo</strong> entra direto no atual,
+                  sem curar o que já estava gasto. Curar acima do máximo pelos
+                  botões de <strong>+</strong> também passou a virar{' '}
+                  <strong>pontos temporários</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na <strong>mesa virtual</strong>,
+                  condições aplicadas a uma <strong>ameaça</strong> no combate
+                  não mudavam nada: uma criatura com Defesa 15 continuava com 15
+                  mesmo <strong>Desprevenida</strong>. Agora a Defesa, os
+                  ataques e as perícias do card, da ordem de iniciativa e da
+                  ficha aberta já saem penalizados, e o valor reduzido fica
+                  destacado. Condições como <strong>Debilitado</strong>,{' '}
+                  <strong>Fraco</strong>, <strong>Surdo</strong> e{' '}
+                  <strong>Exausto</strong> também passaram a afetar ameaças, e{' '}
+                  <strong>Cego</strong> agora pune só as perícias de Força e
+                  Destreza.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Companheiro Celeste</strong> (Lena e Marah) agora
+                  explica o que o <strong>luminar</strong> faz: uma vez por
+                  rodada, gastar 1 PM para curar 2d4 PV ou causar 2d4 de dano
+                  não letal de luz. O poder também ganhou as duas rolagens
+                  prontas. O luminar é um parceiro próprio, então não há tipo de
+                  parceiro para escolher.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Meio-Elfo</strong> que
+                  escolhia um poder de origem pela{' '}
+                  <strong>Ambição Herdada</strong> recebia os bônus desse poder
+                  em dobro — com <strong>Coração Heroico</strong>, eram +6 PM no
+                  nível 1 em vez de +3. Agora o bônus conta uma vez só, tanto na
+                  geração aleatória quanto no assistente de criação.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Magias de{' '}
+                  <strong>Ameaças de Arton</strong>: o{' '}
+                  <strong>Açoite Flamejante</strong> tinha um aprimoramento que
+                  era do Dardo Gélido e ganhou os três corretos; o{' '}
+                  <strong>Jato Corrosivo</strong> ganhou os dois aprimoramentos
+                  que faltavam; a <strong>Katana Celestial</strong> recuperou o
+                  trecho do corte em &quot;V&quot; na descrição; e o{' '}
+                  <strong>Momento de Tormenta</strong> passa a ser ação de
+                  movimento e perdeu um componente material que não era dele.
+                </li>
+              </ul>
+
+              <h3>4.32.2</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Os tópicos do fórum agora aparecem num{' '}
+                  <strong>quadro de acompanhamento</strong> na administração,
+                  com as colunas <strong>Novo</strong>,{' '}
+                  <strong>Em progresso</strong>, <strong>Feito</strong> e{' '}
+                  <strong>Publicado</strong>. A partir de{' '}
+                  <strong>Em progresso</strong>, o status fica visível para quem
+                  abriu o tópico, então dá para acompanhar o andamento do que
+                  você reportou sem precisar perguntar.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Tópicos criados por{' '}
+                  <strong>apoiadores</strong> passam a ter prioridade na fila de
+                  atendimento, e quanto maior o nível de apoio, mais alto o
+                  tópico aparece.
+                </li>
+              </ul>
+
+              <h3>4.32.1</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> Corrigido crash na tela de criar
+                  personagem.
+                </li>
+              </ul>
+
+              <h3>4.32</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Os{' '}
+                  <strong>encontros preparados</strong> da mesa virtual ganharam{' '}
+                  <strong>organização</strong>. Cada encontro agora aceita{' '}
+                  <strong>tags livres</strong> (<em>Capítulo 2</em>,{' '}
+                  <em>Arco da Tormenta</em>, <em>chefe</em>…), e a lista ganhou
+                  uma barra com <strong>busca por nome ou notas</strong> e{' '}
+                  <strong>filtro por tag</strong>. Dá também para{' '}
+                  <strong>agrupar a lista em seções que abrem e fecham</strong>,
+                  escolhendo a tag que serve de divisória — feito para campanha
+                  longa, quando os encontros passam de algumas dezenas. As
+                  seções lembram quais você deixou fechadas, e os capítulos saem
+                  na ordem certa (<em>Capítulo 9</em> antes de{' '}
+                  <em>Capítulo 10</em>).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Agora dá para{' '}
+                  <strong>editar um encontro preparado</strong> já criado. O
+                  botão de lápis no card abre o mesmo formulário da criação, já
+                  preenchido: dá para trocar o nome, as notas, as tags e as
+                  ameaças — o{' '}
+                  <strong>Nível de Desafio é recalculado sozinho</strong> — sem
+                  precisar apagar e refazer o encontro. Se alguma ameaça do
+                  encontro tiver sido removida da mesa desde que ele foi
+                  montado, o formulário avisa quais são e oferece tirá-las.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O <strong>ataque desarmado</strong>{' '}
+                  agora é uma <strong>arma de verdade na mochila</strong>. Antes
+                  ele só existia como um número solto na ficha; agora existe o
+                  item <em>Ataque Desarmado</em> (custo 0, espaço 0), concedido
+                  automaticamente por <em>Briga</em> (Lutador e Atleta) e por{' '}
+                  <em>Estilo Desarmado</em>, e disponível para adicionar à mão
+                  na categoria <em>Simples</em>. Ele aparece na lista de ataques
+                  com o dado certo, recalculado sozinho conforme seus poderes e
+                  seu tamanho, e recebe os bônus de poderes desarmados na
+                  própria linha.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O <strong>editor de armas</strong> da
+                  mochila ganhou <strong>tipo de dano</strong> (dá para marcar
+                  mais de um: Corte, Perfuração, Impacto e os elementais),{' '}
+                  <strong>tags</strong> com sugestões (Natural, Desarmado,
+                  Heredrimm…) e o campo de <strong>danos extras</strong>, que
+                  antes só existia ao editar um item já na mochila — agora
+                  também aparece na criação de item personalizado.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Os{' '}
+                  <strong>aprimoramentos de magia</strong> agora sabem{' '}
+                  <strong>trocar e criar rolagens de dano</strong>, e não só
+                  somar dados. Aprimoramentos que substituem a magia inteira (a{' '}
+                  <em>Chuva de Setas</em> que vira lanças de energia, a{' '}
+                  <em>Bola de Fogo</em> que vira esfera flamejante) trocam a
+                  rolagem para a notação certa; aprimoramentos que acrescentam
+                  um efeito novo (a marca de <em>dano psíquico</em>) criam uma{' '}
+                  <strong>rolagem própria</strong> em vez de bagunçar a
+                  original. O diálogo de conjuração mostra a rolagem já
+                  atualizada, com o rótulo e o tipo de dano corretos.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Os{' '}
+                  <strong>poderes de montaria de Ameaças de Arton</strong>{' '}
+                  entraram no jogo: <em>Combate Montado</em>,{' '}
+                  <em>Resistência Montada</em>, <em>Adestrar Montaria</em> e{' '}
+                  <em>Dois Como Um</em>. Nenhum deles existia no gerador — o
+                  suplemento estava sem nenhum poder de Combate cadastrado. O +2
+                  em Adestramento de <em>Adestrar Montaria</em> já entra sozinho
+                  na ficha.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O poder{' '}
+                  <strong>Coração de Dragão</strong> (Ameaças de Arton), que
+                  também estava faltando: +2 PV e +2 PM aplicados
+                  automaticamente, e a regra de que um dragão jovem conta como
+                  um único parceiro para o seu limite de parceiros.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A linha da arma na ficha agora{' '}
+                  <strong>mostra o que você editou à mão</strong>. Ataque, dano
+                  e crítico digitados manualmente no editor da mochila aparecem{' '}
+                  <strong>sublinhados em pontilhado</strong>, e um ícone{' '}
+                  <strong>ℹ️</strong> no fim da linha explica o porquê: enquanto
+                  o valor estiver travado assim, melhorias, materiais e bônus de
+                  poderes <strong>não mexem nele</strong>. Só o campo que você
+                  realmente digitou fica marcado, e o próprio editor de item
+                  passou a avisar quando um número está nesse estado — antes a
+                  única pista era o botão <em>Resetar</em> resolver o problema.
+                  No celular a explicação abre no primeiro toque, sem atrapalhar
+                  o clique que rola o ataque.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As <strong>armas naturais</strong>{' '}
+                  (mordidas, garras, chifres, cascos…) passaram a ser
+                  reconhecidas como tal pela ficha, e com isso vários poderes
+                  que prometiam bônus no texto e não entregavam passaram a
+                  funcionar de verdade: <em>Armas da Selvageria</em> (Megalokk)
+                  e <em>Ossos Afiados</em> (Osteon) agora somam o dano
+                  prometido, <em>Asas de Aço</em> e <em>Gavinhas</em> ganharam
+                  suas armas naturais, as armas naturais do <em>Druida</em>{' '}
+                  recebem o bônus de margem de ameaça, o <em>Abraço Gélido</em>{' '}
+                  do Soterrado aplica seu dano extra,{' '}
+                  <em>Tocado pelo Indomável</em> (Moreania) soma no desarmado e
+                  o <em>Machado de Pedra</em> (variante do Bárbaro) ganhou o +1
+                  de ataque e dano que faltava.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Mais magias de{' '}
+                  <strong>Ameaças de Arton</strong> e{' '}
+                  <strong>Deuses de Arton</strong> ganharam{' '}
+                  <strong>rolagens de dano prontas</strong> — antes era preciso
+                  ler o texto e montar a rolagem na mão.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A <strong>ficha aleatória</strong>{' '}
+                  passou a sortear{' '}
+                  <strong>poderes gerais dos suplementos</strong>. Ela lia um
+                  catálogo antigo que só tinha o Livro Básico, então nenhum
+                  poder de <em>Heróis de Arton</em>, <em>Ameaças de Arton</em>{' '}
+                  ou <em>Atlas de Arton</em> jamais aparecia numa ficha
+                  sorteada, por mais suplementos que você marcasse. Agora
+                  aparecem — as fichas aleatórias saem bem mais variadas.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Em ficha{' '}
+                  <strong>multiclasse</strong>, a tela de{' '}
+                  <strong>Informações Básicas</strong> troca o campo de nível
+                  único por <strong>um campo para cada classe</strong>. Dá para
+                  ajustar a distribuição dos níveis — e o total — sem que todos
+                  os níveis novos caiam na classe primária, que era o que
+                  acontecia antes, em silêncio.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Moreau Urso</strong>{' '}
+                  agora fica <strong>Grande</strong> automaticamente e a mordida
+                  dele para de ser inflada: o dado de tamanho estava sendo
+                  aplicado duas vezes e a mordida saía 1d10 em vez de 1d8.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Meio-elfo</strong> não
+                  oferece mais <strong>Constituição</strong> entre os atributos
+                  livres (a raça já dá +1 fixo nela) e a{' '}
+                  <em>Ambição Herdada</em> voltou a permitir escolher um{' '}
+                  <strong>poder único de origem</strong>, não só um poder geral
+                  — a lista aparecia vazia e a escolha simplesmente sumia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>perícias treinadas</strong> voltaram a aparecer no
+                  bloco <em>Passo a Passo</em> da ficha. A seção existia, mas
+                  vinha sem os nomes das perícias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes que exigem uma{' '}
+                  <strong>habilidade de classe</strong> como pré-requisito agora
+                  liberam corretamente. <em>Briga de Rua</em> e{' '}
+                  <em>Chuva de Golpes</em> pedem <em>Briga</em>, que o Lutador
+                  recebe automaticamente no 1º nível — mesmo assim os dois
+                  ficavam eternamente indisponíveis. O assistente de evolução e
+                  o drawer <em>Editar poderes</em> também estavam discordando
+                  entre si: um oferecia o poder e o outro marcava como
+                  indisponível.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Pré-requisitos de{' '}
+                  <strong>perícia</strong> passam a respeitar treinos feitos{' '}
+                  <strong>na mão</strong>. Treinar Religião manualmente já
+                  liberava <em>Cavaleiro Sagrado</em> na sua cabeça, mas não na
+                  ficha — e destreinar uma perícia continuava liberando o poder.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No{' '}
+                  <strong>assistente de evolução</strong>, as habilidades de
+                  classe do nível que você acabou de concluir passam a contar
+                  para os pré-requisitos do próximo passo. Criar um personagem
+                  em vários níveis de uma vez escondia poderes como{' '}
+                  <em>Alquimista Exímio</em> e <em>Cavaleiro Bandido</em>, que
+                  dependem de algo ganho no nível anterior.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Aprimoramentos que atingem uma
+                  rolagem <strong>criada por outro aprimoramento</strong> agora
+                  funcionam — o caso do raio da <em>Tempestade Divina</em>. Além
+                  disso, o <em>Siroco de Azgher</em> tinha um aprimoramento que
+                  não achava a rolagem certa e sumia em silêncio, e o chip de
+                  troca de dado exibia coisas como <em>3d6 → 3d6</em> quando
+                  nada mudava de fato.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade <em>Rendição</em> do{' '}
+                  <strong>Gnoll</strong> estava com o texto errado: são{' '}
+                  <strong>1d4</strong> PM temporários (não &quot;1d&quot;) e a
+                  condição é <strong>Alquebrado</strong>, não abalroado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O{' '}
+                  <strong>Companheiro Animal</strong> do tipo{' '}
+                  <strong>Ajudante</strong> nunca perguntava quais perícias ele
+                  eleva — e, sem essa escolha, o bônus não aparecia em lugar
+                  nenhum da ficha. Agora o painel de companheiros avisa enquanto
+                  a escolha estiver faltando e o diálogo de edição traz o campo{' '}
+                  <strong>Perícias do bônus</strong>; o que você escolher entra
+                  na coluna <em>outros</em> das perícias. A escolha continua
+                  valendo quando o companheiro sobe de grau (você só completa as
+                  novas), e fichas aleatórias já saem com as perícias sorteadas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Biblioteca Divina</strong> (Tanna-Toh) só dava{' '}
+                  <strong>uma</strong> perícia treinada, ignorando o &quot;a
+                  cada patamar acima de iniciante, recebe mais uma&quot;. Agora
+                  ele escala de verdade: um personagem criado no 11º nível sai
+                  com <strong>três</strong> perícias, e ao{' '}
+                  <strong>cruzar um patamar</strong> o assistente de evolução
+                  abre o passo <em>Perícias por Patamar</em> pedindo{' '}
+                  <strong>só a perícia nova</strong> — antes ele nem aparecia, e
+                  quando apareceu chegou a pedir o total acumulado. Vale nos
+                  quatro caminhos: criação pelo assistente, ficha aleatória,
+                  subir de nível e adicionar o poder pelo editor de poderes.
+                  Remover o poder agora também <strong>devolve</strong> as
+                  perícias que ele deu (elas ficavam órfãs na ficha para
+                  sempre), o card do poder passou a listar quais perícias vieram
+                  dele, e <strong>fichas antigas</strong>, salvas antes desta
+                  correção, também passam a receber o que faltava.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Lenhador de Tollon</strong> entregava um &quot;item
+                  superior de madeira Tollon&quot; que era só um texto fixo, sem
+                  escolha e sem efeito. Agora ela abre a tela de escolha do item
+                  — e o catálogo respeita o livro: apenas{' '}
+                  <strong>armas de madeira</strong> (arco, bordão, clava, lança,
+                  pique e tacape), <strong>escudo leve</strong> ou{' '}
+                  <strong>item esotérico</strong>, nunca armadura. O item
+                  escolhido já vem com o material especial{' '}
+                  <em>madeira Tollon</em> aplicado. A perícia da origem também
+                  foi acertada para <em>Ofício (artesão)</em>, que é a mesma que
+                  o poder da origem dá +5 — antes era um &quot;Ofício&quot;
+                  genérico, e o bônus caía numa perícia em que o personagem nem
+                  era treinado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Nobre Zakharoviano</strong> dava uma arma superior
+                  cuja &quot;melhoria&quot; era puramente decorativa: o nome
+                  vinha de uma lista em que <strong>quatro das seis</strong>{' '}
+                  melhorias nem existem no jogo, e nada era aplicado à arma.
+                  Agora a melhoria é sorteada entre as{' '}
+                  <strong>melhorias reais do livro</strong> e{' '}
+                  <strong>aplicada de fato</strong>, aparecendo nos números da
+                  arma. A perícia virou <em>Ofício (armeiro)</em>, como manda o
+                  texto oficial, e a tela de escolha da arma ganhou uma{' '}
+                  <strong>busca</strong> — a lista tem quase 40 opções.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A origem{' '}
+                  <strong>Aspirante a Herói</strong> (Atlas de Arton) disputava
+                  o atributo com o poder <strong>Aumento de Atributo</strong>. O
+                  +1 da origem é livre — não é o poder e não segue a regra de{' '}
+                  &quot;um atributo diferente por patamar&quot; —, mas o
+                  atributo escolhido em um sumia da lista do outro, impedindo
+                  concentrar os dois no mesmo lugar. Agora os dois oferecem
+                  todos os atributos, em qualquer ordem de escolha, e fichas
+                  aleatórias também somam os dois no mesmo atributo. Vale
+                  igualmente para a herança{' '}
+                  <strong>Herança de Al-Gazara</strong> do Suragel, que é um
+                  bônus racial pelo mesmo motivo, e{' '}
+                  <strong>fichas antigas</strong> destravam sozinhas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Ginete Altivo</strong> (Hippion) não valia como{' '}
+                  <em>Ginete</em> para pré-requisitos, apesar de o livro dizer
+                  que conta. Por baixo disso havia um problema maior:{' '}
+                  <strong>nenhum poder concedido</strong> satisfazia
+                  pré-requisito de poder — nem pelo próprio nome. Agora
+                  satisfaz, tanto no assistente quanto no editor de poderes, e{' '}
+                  <strong>fichas antigas</strong> passam a valer também.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao subir de nível numa ficha
+                  aleatória, um devoto podia receber um{' '}
+                  <strong>poder concedido da própria divindade</strong> (como{' '}
+                  <em>Espada Justiceira</em>) no lugar de um poder geral. O
+                  sorteio agora só oferece poderes de Combate, Destino, Magia e
+                  Tormenta.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Abrir{' '}
+                  <strong>Informações Básicas</strong> de uma ficha{' '}
+                  <strong>multiclasse</strong> e salvar — mesmo sem editar nada
+                  — corrompia o <strong>PV e o PM</strong>, que pulavam para o
+                  valor da fórmula de classe única.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder do <strong>Anão</strong>{' '}
+                  estava com o nome errado: é <em>Duro como Pedra</em>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Armas com o crítico anotado só como{' '}
+                  <strong>margem de ameaça</strong> (o <em>19</em> da Adaga, da
+                  Espada Longa, da Besta Pesada e de mais 27 armas) eram lidas
+                  pelas <strong>melhorias e encantos</strong> como se o número
+                  fosse o <strong>multiplicador</strong>. Uma Besta Pesada com{' '}
+                  <em>Maciça</em> e <em>Precisa</em> virava <em>19/x20</em> em
+                  vez de <em>18/x3</em> — e o crítico rolava x20 de verdade.
+                  Valia também para <em>Ameaçadora</em> e para o material{' '}
+                  <em>mitral</em>. As fichas já afetadas se{' '}
+                  <strong>corrigem sozinhas</strong> no próximo recálculo; quem
+                  tiver editado o crítico à mão precisa clicar em{' '}
+                  <em>Resetar</em> no editor do item.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A opção{' '}
+                  <strong>Escola de Tiro</strong> (Escola de Duelo do{' '}
+                  <strong>Duelista</strong>, 2º nível) era só texto: o
+                  personagem continuava levando o{' '}
+                  <strong>−5 de falta de proficiência</strong> na pistola e
+                  perdia os bônus de poderes como <em>Armas da Ambição</em>.
+                  Agora ela concede de fato a proficiência com{' '}
+                  <strong>armas de fogo de uma mão</strong> (Pistola e Garrucha
+                  — não o Mosquete nem o Canhão portátil), tanto na ficha criada
+                  pelo assistente quanto na <strong>ficha aleatória</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O tooltip <strong>✨</strong> da
+                  linha da arma{' '}
+                  <strong>
+                    prometia bônus de crítico que não estavam sendo aplicados
+                  </strong>
+                  . <em>Armas da Ambição</em> aparecia listada numa Pistola
+                  mesmo sem a proficiência exigida, enquanto o crítico não
+                  mudava — agora esses casos vêm marcados como{' '}
+                  <em>(inativo: sem proficiência)</em>. Além disso, bônus de{' '}
+                  <strong>multiplicador de crítico</strong> passaram a aparecer
+                  no tooltip: <em>Armas da Destruição</em> era invisível na
+                  ficha.
+                </li>
+              </ul>
+              <h3>4.31</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Os{' '}
+                  <strong>poderes personalizados</strong> agora podem{' '}
+                  <strong>conceder bônus que a ficha calcula sozinha</strong>.
+                  Antes eles só guardavam um texto e uma rolagem: se o seu poder
+                  dava +2 em Fortitude, você tinha que somar na mão. Agora, ao
+                  criar ou editar um poder personalizado, existe a seção{' '}
+                  <strong>Bônus Passivos</strong> — a mesma dos homebrews — onde
+                  você escolhe o que o poder concede (atributo, perícia, PV, PM,
+                  Defesa, deslocamento, redução de dano, dano de arma, margem de
+                  ameaça…) e a ficha aplica na hora. No modo{' '}
+                  <strong>Avançado</strong> dá para fazer o bônus escalar com o
+                  nível. Os bônus aparecem no poder como{' '}
+                  <em>Aplicado na ficha</em>, então dá para conferir de onde
+                  veio cada número. Vale também para os poderes concedidos
+                  personalizados.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Overlay de ficha para lives</strong> (apoiadores). Na
+                  tela de visualização da ficha há um botão para configurar um
+                  overlay e gerar um link próprio — cole em um{' '}
+                  <em>Browser Source</em> do OBS e a ficha aparece na
+                  transmissão, atualizando sozinha conforme você joga. Dá para
+                  escolher quais blocos aparecem e, dentro de{' '}
+                  <strong>Vitais</strong>, ligar item a item o que quer mostrar:
+                  PV, PM, pontos temporários, Defesa e os números.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Peças de <strong>Vestuário</strong>{' '}
+                  agora podem ser <strong>vestidas ou guardadas</strong>, como
+                  já acontecia com armaduras. Antes, uma <em>Camisa bufante</em>{' '}
+                  ou uns <em>Farrapos de ermitão</em> aplicavam seus efeitos só
+                  por estarem na mochila, sem opção de dizer que o personagem
+                  não estava usando aquilo. Agora cada peça tem um botão de
+                  cabide no card da Mochila: só o que está vestido conta na
+                  ficha. Suas peças atuais continuam todas vestidas, então
+                  nenhuma ficha muda de número.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Os itens de{' '}
+                  <strong>Heróis de Arton</strong> e{' '}
+                  <strong>Ameaças de Arton</strong> agora têm{' '}
+                  <strong>descrição e efeito</strong>. Antes eles entravam na
+                  mochila só com preço, espaços e Defesa — a{' '}
+                  <em>Armadura sensual</em> aparecia como uma armadura leve
+                  qualquer, sem nenhum sinal de que deveria dar bônus. Agora 228
+                  itens trazem o texto da regra, e 15 deles somam sozinhos na
+                  ficha: a <em>Armadura sensual</em> dá +2 em perícias de
+                  Carisma (ou +5 se você tiver o poder <em>Atraente</em>), a{' '}
+                  <em>Cota de moedas</em> dá +2 em Diplomacia, a{' '}
+                  <em>Veste de teia de aranha</em> +5 em Furtividade, os{' '}
+                  <em>Elmos</em> aplicam suas penalidades em Iniciativa e
+                  Percepção, e por aí vai. Fichas antigas também recebem os
+                  efeitos: não precisa recomprar o item.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A <strong>Enciclopédia</strong> ganhou
+                  uma <strong>árvore de poderes</strong> para cada classe. Em{' '}
+                  <em>Consulta → Enciclopédia → Classes</em>, ao abrir uma
+                  classe, a seção <em>Poderes de [classe]</em> passou a ter um
+                  botão <strong>Lista | Árvore</strong>. A lista continua sendo
+                  o texto das regras; a árvore desenha{' '}
+                  <strong>quem exige quem</strong> — dá para ver de relance que{' '}
+                  <em>Forma Selvagem</em> destrava dez poderes do druida, ou
+                  qual é o caminho até <em>Mestre Alquimista</em>. Cada linha de
+                  progressão fica em um sanfonado próprio (a maior já abre), os
+                  poderes que não exigem nem destravam nada ficam separados em{' '}
+                  <em>Poderes avulsos</em>, e clicar em um poder abre um painel
+                  com o texto, os pré-requisitos e atalhos para o que vem antes
+                  e depois. Caminhos alternativos (quando dá para chegar por
+                  mais de um pré-requisito) aparecem tracejados, e o cartão
+                  mostra a partir de que nível o poder é alcançável levando em
+                  conta a cadeia inteira, não só o que está escrito nele.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao aplicar o efeito da magia{' '}
+                  <strong>Escudo da Fé</strong>, além dos valores prontos de +2
+                  e +3 na Defesa agora existe a opção{' '}
+                  <strong>Customizado</strong>, com um contador para escolher
+                  quanto de Defesa a magia está dando. O limite acompanha o
+                  atributo-chave de conjuração do personagem, do mesmo jeito que
+                  já acontecia na <em>Armadura Arcana</em>.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na <strong>Mochila</strong>, o card
+                  de cada item passou a mostrar a{' '}
+                  <strong>descrição da regra</strong> — inclusive de armas,
+                  armaduras e escudos, que antes eram os únicos que não a
+                  exibiam. Quando o item concede algum bônus, ele também aparece
+                  em uma etiqueta ao lado dos números, marcada como{' '}
+                  <em>(cond.)</em> quando só vale em certas situações (por
+                  exemplo, enquanto a armadura estiver vestida).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ficou visível{' '}
+                  <strong>quantos poderes da Tormenta a ficha tem</strong> e o
+                  que isso está cobrando. Na aba de poderes, ao lado do grupo{' '}
+                  <em>Poder da Tormenta</em>, uma etiqueta mostra o total que as
+                  regras usam — que inclui poder concedido, de origem, de classe
+                  e personalizado marcado como poder da Tormenta, e por isso
+                  costuma ser maior que a contagem da lista. Passando o mouse,
+                  ela lista um a um e mostra o desconto de atributo. O atributo
+                  afetado também ganhou uma marca explicando o{' '}
+                  <em>−N por X poderes da Tormenta</em>.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A tela de{' '}
+                  <strong>editar poderes e habilidades foi refeita</strong>. Ela
+                  virou uma janela com dois lados: à esquerda o catálogo, à
+                  direita o que já está na ficha. Os sanfonados que era preciso
+                  abrir um a um deram lugar a uma lista corrida com cabeçalho de
+                  cada grupo, e cada tipo de poder ganhou{' '}
+                  <strong>ícone e cor próprios</strong>. A{' '}
+                  <strong>busca</strong> agora procura em tudo — inclusive nas
+                  habilidades de raça e de classe, que antes ela ignorava — e
+                  mostra o resultado numa lista só, com o termo destacado e o
+                  casamento exato em primeiro: procurar o nome de um poder traz
+                  ele na tela, e não um sanfonado fechado para você abrir. Dá
+                  para filtrar por categoria e ligar{' '}
+                  <em>Só os que posso pegar</em> para esconder o que está fora
+                  de alcance. Ao abrir um poder, os{' '}
+                  <strong>pré-requisitos aparecem um a um</strong>, cada um com{' '}
+                  <em>✓</em> ou <em>✗</em> e, quando dá para medir, o quanto
+                  você tem — <em>✗ Força 15 — você tem 12</em> —, no lugar de
+                  apenas pintar o poder de vermelho. As habilidades automáticas
+                  de classe e raça saíram do meio da lista de escolhidos e foram
+                  para um bloco <em>Automáticos</em> à parte, já que não são
+                  removíveis. Salvar e Cancelar ficam sempre visíveis no rodapé,
+                  sem precisar rolar centenas de poderes para chegar neles.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>Diário do Jogador</strong> ficou{' '}
+                  <strong>muito mais leve para navegar no celular</strong>.
+                  Arrastar o mapa de blocos travava e engasgava: o diário
+                  inteiro era redesenhado a cada pixel que o dedo andava, e cada
+                  bloco na tela refazia sozinho as contas de conexões, cor e
+                  brilho no meio do movimento. Agora arrastar o fundo e mover um
+                  bloco são contínuos, e o efeito piora bem menos conforme o
+                  diário cresce.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao adicionar um efeito manualmente
+                  pelo gerenciador de efeitos, os aprimoramentos do poder não
+                  são mais ligados todos de uma vez: a Inspiração do bardo só
+                  soma na Defesa se a ficha tiver <em>Inspiração Resoluta</em>,
+                  no dano se tiver <em>Inspiração Marcial</em> e assim por
+                  diante. O mesmo valia para a Fúria do bárbaro (Rigidez
+                  Selvagem, Fúria Titânica, Alma de Bronze), o Gritar Ordens do
+                  nobre (Ordens Agressivas e Encorajadoras) e a Escaramuça do
+                  caçador (Escaramuça Superior).
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder <em>Arte Mágica</em> do
+                  bardo estava cadastrado com um ponto final sobrando no nome.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No assistente de evolução, o truque{' '}
+                  <strong>Magia Inata</strong> do melhor amigo do{' '}
+                  <strong>Treinador</strong> travava a tela: nenhuma magia podia
+                  ser selecionada, o botão <strong>Próximo</strong> ficava
+                  desabilitado para sempre e nem desmarcar o truque nem escolher
+                  outro funcionava — o truque voltava sozinho. Acontecia ao
+                  pegar o poder <em>Ensinar Truque</em> (por exemplo, ao criar
+                  uma ficha já no nível 2) e nos níveis de truque automático.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Raças variantes não tinham acesso
+                  aos <strong>poderes de raça</strong> da raça base. O{' '}
+                  <strong>Soterrado</strong> (variante de osteon) agora alcança
+                  Explosão Óssea, Manipulação Esquelética e Ossos Afiados, e o{' '}
+                  <strong>Trog Anão</strong> (variante de trog) alcança os onze
+                  poderes de trog. Pelo mesmo motivo, também passaram a valer as
+                  regras de <strong>Meio-Orc</strong> (&quot;considerado um orc
+                  para efeitos relacionados a raça&quot;),{' '}
+                  <strong>Meio-Elfo</strong> (considerado um elfo) e{' '}
+                  <strong>Moreau</strong> (considerado também um humano), que
+                  agora enxergam os poderes de orc, elfo e humano.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Alguns poderes de raça estavam
+                  cadastrados com o nome da raça diferente do catálogo e por
+                  isso <strong>nunca ficavam disponíveis para ninguém</strong>:
+                  Asas de Aço para <strong>Harpia</strong>, Entre as Pernas e
+                  Golpe no Joelho para <strong>Kobolds</strong>, Asas de Aço,
+                  Asas Extraplanares, Criança da Luz/das Trevas e Familiar de
+                  Luz/Trevas para <strong>Suraggel</strong>, Camuflagem
+                  Mimética, Canto da Sereia e Pirata Oceânico para{' '}
+                  <strong>Sereia</strong>, e Magia Ofídica para o{' '}
+                  <strong>Moreau da Serpente</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Égide da Fé</strong> do clérigo não fazia nada. Agora,
+                  com ele na ficha, aplicar o efeito da magia{' '}
+                  <strong>Escudo da Fé</strong> também concede os{' '}
+                  <strong>5 PV temporários para cada +1 na Defesa</strong> — 10
+                  PV no bônus de +2, 15 no de +3, e acompanhando o contador no
+                  valor customizado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em fichas de{' '}
+                  <strong>classes variantes</strong> (Alquimista, Necromante,
+                  Duelista e as outras de Heróis de Arton), a lista de{' '}
+                  <strong>poderes de classe</strong> podia sumir por completo do
+                  editor de poderes — sem lista e sem aviso — quando o
+                  suplemento de origem estava desativado. Agora os poderes
+                  aparecem de qualquer jeito, e se algo impedir de carregá-los a
+                  ficha explica o motivo em vez de mostrar nada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ainda nas classes variantes, os
+                  poderes herdados da classe base ficavam sem o botão{' '}
+                  <strong>Usar</strong>. Um <strong>Alquimista</strong> não
+                  conseguia ativar <em>Pedra de Amolar</em>,{' '}
+                  <em>Ajuste de Mira</em> nem <em>Oficina de Campo</em>, que são
+                  poderes de inventor.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Corpo Aberrante</strong> não fazia nada — era só
+                  texto. Agora ele{' '}
+                  <strong>aumenta mesmo o seu dano desarmado</strong>, em um
+                  passo mais um a cada quatro outros poderes da Tormenta, e o
+                  card do poder ganhou um{' '}
+                  <strong>botão de rolagem com o dado já calculado</strong>.
+                  Vale para qualquer classe: quem não é lutador parte de 1d3, o
+                  poder <em>Estilo Desarmado</em> sobe para 1d6 e a habilidade{' '}
+                  <strong>Briga</strong> do lutador usa a tabela dela. De
+                  quebra, a Briga passou a respeitar o{' '}
+                  <strong>tamanho do personagem</strong> (minúsculo desce um
+                  passo, grande e enorme sobem um, colossal sobe dois), que
+                  antes era ignorado, e o dano desarmado de lutadores do 17º
+                  nível em diante finalmente sobe de dado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Terror Vivo</strong> do <strong>Kaijin</strong> diz
+                  que o poder da Tormenta que ela concede{' '}
+                  <em>não conta para perda de Carisma</em>, mas ele estava
+                  cobrando normalmente. Agora a ressalva vale: o poder continua
+                  contando para a escala dos outros poderes da Tormenta e para
+                  pré-requisitos, só não pesa no Carisma. Fichas de Kaijin já
+                  existentes se acertam sozinhas ao serem abertas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A{' '}
+                  <strong>perda de Carisma por poderes da Tormenta</strong> não
+                  chegava em fichas antigas. A regra passou a valer para todo
+                  mundo na v4.30, mas abrir uma ficha não recalcula nada — então
+                  personagem criado antes disso ficava sem o desconto até você
+                  editar qualquer coisa. Agora a ficha se acerta sozinha ao ser
+                  aberta, uma única vez.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No editor de poderes, alguns{' '}
+                  <strong>poderes de classe apareciam como liberados</strong>{' '}
+                  mesmo sem você cumprir o pré-requisito. Poder que exigia uma
+                  classe específica ou proficiência em qualquer arma passava
+                  batido na checagem e era mostrado como disponível. Agora os
+                  dois casos são conferidos de verdade.
+                </li>
+              </ul>
+              <h3>4.30.2</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> No assistente de evolução, o passo{' '}
+                  <strong>Efeitos de Habilidades</strong> não deixa mais avançar
+                  com escolha pendente. Antes dava para clicar em{' '}
+                  <strong>Próximo Nível</strong> sem escolher nada, e a ficha
+                  recebia uma opção <em>sorteada</em> em silêncio.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Feiticeiro</strong> de{' '}
+                  <strong>Linhagem Abençoada</strong> não conseguia escolher o{' '}
+                  <strong>poder concedido do 2º nível</strong>: no lugar da
+                  lista, o assistente dizia &quot;você já possui todas as opções
+                  disponíveis deste poder&quot; e o poder acabava sorteado. Os
+                  poderes concedidos exigem ser devoto do deus, mas a linhagem
+                  dá o poder <em>sem precisar ser devoto</em> — agora os quatro
+                  poderes do deus escolhido aparecem normalmente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O texto das habilidades{' '}
+                  <strong>Cascos</strong> e <strong>Ginete Natural</strong> do{' '}
+                  <strong>Centauro</strong> estava misturado: as duas terminavam
+                  com a mesma frase sem sentido, Cascos descrevia um efeito que
+                  não existe no lugar do seu (gastar 1 PM por um ataque extra) e
+                  Ginete Natural citava o poder errado. Agora os quatro textos
+                  são os de <em>Ameaças de Arton</em>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os <strong>cascos</strong> do
+                  Centauro causavam dano de <strong>perfuração</strong>; o
+                  correto é <strong>impacto</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O Centauro liberava, sem cumprir
+                  pré-requisito nenhum, todos os poderes com &quot;Carga&quot;
+                  ou &quot;Investida&quot; no nome — além de{' '}
+                  <strong>Catafractário</strong>. Pelo livro, a única concessão
+                  é <strong>Carga de Cavalaria</strong>, e é só ela agora.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As três correções acima também
+                  valem para <strong>fichas de Centauro já criadas</strong>:
+                  elas são ajustadas ao serem abertas, sem precisar refazer
+                  nada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No{' '}
+                  <strong>app instalado no iPhone</strong>, a faixa do topo —
+                  onde ficam o relógio e a bateria — aparecia com um borrão
+                  estranho por cima do conteúdo. Agora o app pinta essa faixa
+                  com a cor do tema. De quebra, o que fica na parte de baixo da
+                  tela (a barra de ações da mesa virtual, os botões flutuantes e
+                  os resultados de rolagem) não passa mais por trás da barrinha
+                  de gestos do iPhone, e as telas cheias respeitam as bordas do
+                  aparelho também na horizontal.
+                </li>
+              </ul>
+
+              <h3>4.30.1</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Ao criar um{' '}
+                  <strong>Kobolds</strong>, escolher{' '}
+                  <strong>Ex-Familiar</strong> ou <strong>Diferentão</strong>{' '}
+                  entre os <em>Talentos do Bando</em> travava o botão{' '}
+                  <strong>Próximo</strong>: o assistente exigia a escolha extra
+                  de cada talento (o familiar, e a classe e o poder) sem
+                  oferecer onde fazê-la. Agora qualquer poder concedido por
+                  outro poder mostra as próprias escolhas na hora.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Adicionar o poder{' '}
+                  <strong>Diferentão</strong> pelo <em>Editar Poderes</em> de
+                  uma ficha pronta abria uma janela sem nenhuma opção e recusava
+                  o Confirmar. Agora a escolha de classe e poder aparece
+                  normalmente.
+                </li>
+              </ul>
+
+              <h3>4.30</h3>
+
+              <Typography variant='body1' sx={{ mt: 2 }}>
+                Os dois destaques desta versão — o{' '}
+                <strong>Diário do Jogador</strong> e as{' '}
+                <strong>regras opcionais de Heróis de Arton</strong> — vieram da{' '}
+                <strong>votação dos apoiadores</strong>. Obrigado a quem votou e
+                a quem sustenta o projeto! 💜
+              </Typography>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  📔 Diário do Jogador
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O antigo campo de anotações virou um <em>canvas</em>: em vez
+                  de um texto corrido, você cria blocos para cada coisa que quer
+                  lembrar — um <strong>local</strong> que visitou, um{' '}
+                  <strong>NPC</strong> que conheceu, uma <strong>missão</strong>
+                  , um <strong>item</strong>, uma <strong>divindade</strong> — e
+                  liga uns aos outros. Cada bloco é um círculo com a cor da sua
+                  categoria; clicar abre o bloco ali mesmo, com espaço para
+                  escrever. Arraste para organizar, ou use o botão{' '}
+                  <em>Organizar em círculo</em> e deixe o app montar o mapa das
+                  suas conexões em volta do personagem. O diário fica no{' '}
+                  <strong>lado direito da ficha</strong>, abaixo das perícias, e
+                  numa aba própria no celular.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Cada bloco tem dois tipos de anotação: o texto de cima é o
+                  contexto que não muda (quem é aquele NPC, como é aquele
+                  lugar), e abaixo dele ficam as <strong>entradas</strong> — o
+                  que foi acontecendo, em ordem cronológica, cada uma com
+                  título, data e texto. Na <strong>Mesa Virtual</strong>, se o{' '}
+                  <em>Calendário de Arton</em> estiver iniciado, a data do mundo
+                  é preenchida <strong>sozinha</strong>: escreveu sobre a
+                  emboscada, a entrada já nasce marcada como &ldquo;12 de
+                  Deusa&rdquo;. Fora da mesa as entradas seguem a ordem em que
+                  você escreveu, sem depender de nada.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Suas anotações antigas <strong>não se perdem</strong>: ao
+                  abrir uma ficha que já tinha texto no campo de anotações, ele
+                  vira automaticamente o primeiro bloco do diário, ligado ao seu
+                  personagem. O diário também entra na{' '}
+                  <strong>exportação em PDF</strong>, agrupado por categoria e
+                  com as conexões e as entradas de cada bloco.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  📜 Regras opcionais de Heróis de Arton
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Depois das <strong>Complicações</strong> (v4.26), chegam mais{' '}
+                  <strong>quatro regras opcionais</strong> de{' '}
+                  <em>Heróis de Arton</em>: <strong>Idades Variadas</strong>,{' '}
+                  <strong>Atributos Variados</strong>,{' '}
+                  <strong>Raças Abertas</strong> e{' '}
+                  <strong>Devoções Abertas</strong>. Todas ficam desligadas por
+                  padrão — você liga só as que a sua mesa usa, no próprio
+                  assistente de criação.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  <strong>Idades Variadas:</strong> em &ldquo;Informações
+                  Básicas&rdquo;, você escolhe entre as sete faixas etárias — de{' '}
+                  <strong>Criança</strong> a <strong>Ancião</strong> — e o app
+                  cuida do resto: modificadores de atributo, tamanho, Defesa,
+                  PM, benefícios de origem e até os{' '}
+                  <strong>níveis adicionais</strong> de Maduro, Velho e Ancião,
+                  que já entram no assistente de evolução. A faixa de anos é
+                  calculada para a sua raça (um anão vira adulto aos 50, um elfo
+                  só aos 125), e personagens adultos ou mais velhos escolhem
+                  suas <strong>complicações de idade</strong> — uma para
+                  adultos, até quatro para anciões. Velhos e anciões também
+                  deixam de poder gastar <strong>Aumento de Atributo</strong> em
+                  atributos físicos. Tudo editável depois, pelo botão de idade
+                  na ficha. Junto vem a <strong>Morte por Velhice</strong>,
+                  disponível para velhos e anciões como marcador na ficha, para
+                  grupos que quiserem levar a mortalidade a sério.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  <strong>Atributos Variados:</strong> o passo de atributos
+                  ganhou um seletor de variante ao lado dos botões Livre / Dados
+                  / Pontos, com os seis métodos novos do livro:{' '}
+                  <strong>Clássica</strong> (3d6, para heróis que vêm do povo
+                  comum), <strong>Épica</strong>, <strong>Valkaria</strong>{' '}
                   (distribua 7d6 entre atributos que começam em 8),{' '}
                   <strong>Nimb</strong> (7d20 descartando o menor — um 20 vira
                   um espantoso +5) e <strong>Khalmyr</strong>, além de compra
                   por <strong>5 ou 15 pontos</strong>.
-                </li>
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  <strong>Raças Abertas:</strong> um interruptor no passo
+                  &ldquo;Atributos da Raça&rdquo; libera você a aplicar cada
+                  modificador da sua raça no atributo que quiser — o anão
+                  continua com +2, +1 e −1, mas você decide onde cada um cai
+                  (sem repetir o mesmo atributo, como manda a regra).{' '}
+                  <strong>Devoções Abertas:</strong> um interruptor ao lado da
+                  divindade libera qualquer personagem a ser devoto de qualquer
+                  deus, independente de raça ou classe.
+                </Typography>
+              </Alert>
+
+              <ul>
                 <li>
-                  <strong>Novo:</strong> <strong>Raças Abertas</strong>. Um
-                  interruptor no passo &ldquo;Atributos da Raça&rdquo; libera
-                  você a aplicar cada modificador da sua raça no atributo que
-                  quiser — o anão continua com +2, +1 e −1, mas você decide onde
-                  cada um cai. Sem repetir o mesmo atributo, como manda a regra.
-                </li>
-                <li>
-                  <strong>Novo:</strong> <strong>Devoções Abertas</strong>. Um
-                  interruptor ao lado da divindade, no formulário de criação,
-                  libera qualquer personagem a ser devoto de qualquer deus,
-                  independente de raça ou classe.
-                </li>
-                <li>
-                  <strong>Novo:</strong> <strong>Morte por Velhice</strong>,
-                  disponível para personagens velhos e anciões como marcador na
-                  ficha, para grupos que quiserem levar a mortalidade a sério.
+                  <strong>Novo:</strong> dá para criar um{' '}
+                  <strong>efeito ativo avulso</strong>, sem precisar inventar um
+                  poder só para pendurá-lo. Abra o menu de{' '}
+                  <strong>Efeitos Ativos</strong> (o ✨ no topo da ficha) e use
+                  a nova aba <strong>Meus Efeitos</strong> para montar um bônus
+                  ou penalidade na hora — aquele item que o mestre acabou de
+                  entregar, uma bênção improvisada, um agouro. O efeito criado
+                  aparece <strong>no topo da aba Adicionar</strong>, marcado
+                  como <em>Customizado</em>, pronto para ligar e desligar, e com
+                  um botão de apagar ali mesmo. Antes era preciso criar um poder
+                  personalizado, entrar nele, criar o efeito e só então
+                  ativá-lo.
                 </li>
                 <li>
                   <strong>Novo:</strong> poderes personalizados agora podem{' '}
@@ -134,6 +1376,70 @@ const Changelog: React.FC = () => {
                   de Carisma&rdquo;, para poderes como{' '}
                   <strong>Corrupção Rubra</strong> e{' '}
                   <strong>Forma Aberrante</strong>.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>modificadores temporários de atributo</strong>. O card
+                  de Atributos ganhou um botão que abre uma caixa para você
+                  registrar à mão um bônus ou penalidade em cada atributo —
+                  aquela magia que a ficha ainda não conhece, um item, uma
+                  decisão do mestre. A ficha considera o valor sozinha em
+                  perícias, ataques, dano, Defesa, CD de magia, iniciativa e
+                  capacidade de carga, e mostra o total ajustado embaixo do
+                  atributo. Seguindo o livro, um bônus temporário não altera PV
+                  nem PM máximos. Para mudar o atributo em definitivo, continue
+                  usando o botão de Informações.
+                </li>
+                <li>
+                  <strong>Novo:</strong> o interruptor{' '}
+                  <strong>Auto-descontar T$</strong> saiu de dentro da janela de
+                  adicionar item e agora fica no{' '}
+                  <strong>rodapé da mochila</strong>, sempre à mão. Cada
+                  personagem <strong>lembra</strong> da sua escolha: quem está
+                  em campanha gastando consumíveis pode deixá-lo desligado de
+                  vez, sem precisar reajustar toda vez que abre a mochila.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Asas Insetoides</strong> virou
+                  um efeito ativo. Ligue o poder na ficha e o{' '}
+                  <strong>deslocamento de voo</strong> aparece já calculado —
+                  9m, mais 1,5m para cada outro poder da Tormenta que você
+                  tiver.
+                </li>
+                <li>
+                  <strong>Novo:</strong> os <strong>Talentos do Bando</strong>{' '}
+                  dos <strong>Kobolds</strong> (<em>Ameaças de Arton</em>) agora
+                  funcionam sozinhos na ficha. <strong>Diferentão</strong> abre
+                  a lista de poderes de outra classe na hora em que você escolhe
+                  o talento — já filtrada pelos requisitos que vocês cumprem,
+                  contando seu nível de personagem −4.{' '}
+                  <strong>Ex-Familiar</strong> deixa você escolher o familiar,
+                  como o Arcanista. <strong>Organizadinhos</strong> passa seu
+                  limite de carga a usar <strong>Destreza</strong> no lugar de
+                  Força.
+                </li>
+                <li>
+                  <strong>Novo:</strong> você pode{' '}
+                  <strong>
+                    escolher qual atributo define o seu limite de carga
+                  </strong>{' '}
+                  direto na mochila. Serve para o poder que o app ainda não
+                  conhece, ou para uma decisão do mestre — e o número de espaços
+                  se recalcula na hora. Poderes que já mudam esse atributo
+                  sozinhos continuam valendo por padrão.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Andarilho Carregado</strong>, o
+                  poder concedido de <strong>Valkaria</strong> (
+                  <em>Deuses de Arton</em>), passou a aplicar sozinho o limite
+                  de carga por <strong>Sabedoria</strong>.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> as reduções de dano de{' '}
+                  <strong>Carapaça Corrompida</strong> e{' '}
+                  <strong>Pele Corrompida</strong> passaram a aparecer no
+                  detalhamento &ldquo;Aplicado na ficha&rdquo; do card do poder,
+                  como as outras.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> o <strong>PDF da ficha</strong>{' '}
@@ -158,6 +1464,110 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> a contagem de poderes da Tormenta
                   passou a olhar a ficha inteira — poderes gerais, de classe, de
                   origem e concedidos —, e não só a lista de poderes gerais.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o <strong>saldo em T$</strong>{' '}
+                  agora aparece direto no rodapé da mochila, ao lado da contagem
+                  de espaços, e muda na hora a cada item que você adiciona ou
+                  remove — antes era preciso abrir o painel de ajustes para ver
+                  quanto dinheiro sobrava.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o detalhamento da coluna{' '}
+                  <strong>Outros</strong>, nas perícias, agora aparece mesmo
+                  quando só uma coisa está dando o bônus. Antes ele só surgia
+                  com duas ou mais fontes ao mesmo tempo, então um <em>−1</em>{' '}
+                  em Furtividade ou um <em>+2</em> em Percepção ficavam sem
+                  explicação. Agora o número vem sublinhado sempre que houver
+                  algo a dizer — passe o mouse (ou toque, no celular) para ver
+                  de onde vem cada ponto, seja um poder, a penalidade da
+                  armadura ou o seu próprio ajuste manual.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> as vitrines de{' '}
+                  <strong>homebrews</strong> e do <strong>bestiário</strong> na
+                  página inicial passaram a ser{' '}
+                  <strong>sorteadas uma vez por dia</strong>, com peso pela
+                  nota, em vez de mostrarem sempre os mesmos do topo da média.
+                  Conteúdo bem avaliado continua aparecendo mais, mas agora todo
+                  mundo tem vez — e a home muda de cara todo dia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder <strong>Gatuno</strong>, do
+                  Ladino, não exige mais treinamento em{' '}
+                  <strong>Atletismo</strong>. O pré-requisito não existe no
+                  livro e travava a escolha do poder sem motivo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> remover ou consumir um item que o
+                  personagem <strong>já possuía</strong> não devolve mais
+                  dinheiro. Com o auto-desconto ligado, apagar uma poção ou
+                  baixar a quantidade de um item creditava o preço de catálogo
+                  no seu saldo, como se você tivesse <strong>vendido</strong> o
+                  item — gastar consumíveis deixava o personagem mais rico.
+                  Agora só volta o que foi <strong>comprado ali na hora</strong>
+                  , então desfazer uma compra continua funcionando. Munição
+                  segue a mesma regra: só pacotes fechados são reembolsados.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a origem{' '}
+                  <strong>Cria da Favela</strong> (<em>Atlas de Arton</em>) não
+                  concedia o <strong>+1 em Constituição</strong> quando o
+                  personagem era criado pelo{' '}
+                  <strong>assistente de criação</strong> — só a ficha aleatória
+                  aplicava. Agora vale nos dois caminhos, e o PV já entra
+                  somando o ponto. Fichas antigas continuam como estão; para
+                  receber o bônus, resselecione a origem no editor de
+                  informações da ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> magias que dão{' '}
+                  <strong>bônus em atributo</strong> — como{' '}
+                  <strong>Mente Divina</strong>,{' '}
+                  <strong>Força da Natureza</strong> e as{' '}
+                  <strong>Formas Selvagens</strong> — só aumentavam as perícias
+                  daquele atributo. A <strong>CD das suas magias</strong> e a{' '}
+                  <strong>capacidade de carga</strong> ficavam de fora, e o
+                  número no card do atributo nem se mexia. Agora o bônus é
+                  aplicado no <strong>atributo</strong>, e tudo que depende dele
+                  acompanha junto — inclusive a CD, que é o caso mais fácil de
+                  esquecer na mesa.
+                </li>
+                <li>
+                  <strong>Correção:</strong> um bônus de <strong>Força</strong>{' '}
+                  aumentava indevidamente o dano de armas{' '}
+                  <strong>ágeis que usam Destreza</strong>, e um bônus de
+                  Destreza não aumentava nada nessas armas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> não dava para{' '}
+                  <strong>zerar o espaço de alguns itens</strong> na mochila.
+                  Você digitava <em>0</em>, salvava, e o valor antigo voltava —
+                  em uns itens sim, em outros não. O que decidia era o item já
+                  ter recebido alguma{' '}
+                  <strong>modificação, material especial</strong> ou{' '}
+                  <strong>encantamento</strong> em algum momento: nesses, o
+                  espaço era recalculado por cima do que você tinha digitado.
+                  Agora o valor que você escreve manda, e continua valendo
+                  depois de recarregar a ficha ou de ganhar o item de novo por
+                  um poder. No editor do item, um <em>Voltar ao automático</em>{' '}
+                  devolve o espaço original quando você quiser.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o espaço de{' '}
+                  <strong>munição</strong> (flechas, virotes, pedras) ignorava
+                  por completo o valor digitado — ele agora vale, quando você
+                  escolhe editá-lo. E o total de espaços mostrado{' '}
+                  <strong>dentro da mochila</strong> podia divergir do total da
+                  ficha justamente por causa da munição; os dois passaram a
+                  fazer a mesma conta.
+                </li>
+                <li>
+                  <strong>Correção:</strong> um item com{' '}
+                  <strong>0 espaços</strong> aparecia como &ldquo;—&rdquo; (ou
+                  não aparecia) na lista de equipamentos, nos cards da mochila e
+                  no PDF, o que fazia uma edição bem-sucedida parecer que não
+                  tinha salvado.
                 </li>
                 <li>
                   <strong>Correção:</strong> o PDF não trazia os{' '}
@@ -266,6 +1676,17 @@ const Changelog: React.FC = () => {
                   refletir isso ao serem abertas.
                 </li>
                 <li>
+                  <strong>Correção:</strong> na outra ponta, o personagem{' '}
+                  <strong>aleatório</strong> que ganhava um poder da Tormenta ao{' '}
+                  <strong>subir de nível</strong> também não perdia o Carisma
+                  correspondente: a regra era aplicada antes da evolução, quando
+                  o poder ainda nem existia. Pior, o atributo despencava
+                  &ldquo;sozinho&rdquo; na primeira vez que a ficha era editada.
+                  Personagens de <strong>Bardo</strong> e{' '}
+                  <strong>Feiticeiro</strong> nessa situação também vinham com
+                  PM a mais.
+                </li>
+                <li>
                   <strong>Correção:</strong> qualquer bônus de perícia (de
                   Sentidos Aguçados a itens) estava sendo contado como se fosse
                   um poder da Tormenta. Personagens sem nenhum poder da Tormenta
@@ -274,7 +1695,31 @@ const Changelog: React.FC = () => {
                 <li>
                   <strong>Correção:</strong> <strong>Bolsões Insanos</strong>{' '}
                   dava sempre +2 espaços de carga, ignorando o &ldquo;+1 para
-                  cada outro poder da Tormenta&rdquo; do livro.
+                  cada outro poder da Tormenta&rdquo; do livro. A correção agora
+                  também alcança as fichas que já estavam salvas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a <strong>Deformidade</strong> do{' '}
+                  <strong>Lefou</strong> derrubava o Carisma, apesar de o livro
+                  dizer que ela &ldquo;não causa perda de Carisma&rdquo;. E os{' '}
+                  <strong>+2 em duas perícias</strong> que ela concede não
+                  entravam na conta de poderes da Tormenta, embora o livro diga
+                  que cada um deles conta como um — então todos os poderes que
+                  escalam vinham menores do que deviam.
+                </li>
+                <li>
+                  <strong>Correção:</strong>{' '}
+                  <strong>Afinidade com a Tormenta</strong>, poder concedido de{' '}
+                  <strong>Aharadak</strong>, era só texto na ficha. O &ldquo;seu
+                  primeiro poder da Tormenta não conta para perda de
+                  Carisma&rdquo; agora vale de verdade.
+                </li>
+                <li>
+                  <strong>Correção:</strong> as habilidades{' '}
+                  <strong>Couraça Rúbea</strong> e <strong>Disforme</strong> do{' '}
+                  <strong>Kaijin</strong> descontavam Carisma, apesar de o livro
+                  dizer que contam como poder da Tormenta{' '}
+                  <em>exceto para perda de Carisma</em>.
                 </li>
                 <li>
                   <strong>Correção:</strong> a <strong>Carapaça Kappa</strong>,
@@ -297,6 +1742,37 @@ const Changelog: React.FC = () => {
                   estava incompleto: o +5 em resistência vale contra efeitos de{' '}
                   <strong>lefeu</strong> e da Tormenta, não só da Tormenta.
                   Fichas de kaijin já salvas são corrigidas ao serem abertas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a <strong>Tela do Jogador</strong>{' '}
+                  voltou a poder ser aberta por{' '}
+                  <strong>qualquer participante da mesa</strong>, apoiador ou
+                  não. O bloqueio de apoio tinha sido aplicado à tela inteira,
+                  então os jogadores de um mestre apoiador eram mandados de
+                  volta para a página inicial ao abrir o link — justamente quem
+                  a tela existe para atender. Montar e transmitir a tela
+                  continua sendo exclusivo de apoiadores.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a habilidade{' '}
+                  <strong>Mente Criminosa</strong>, do <strong>Ladino</strong>,
+                  exigia <strong>Destreza</strong> em vez de{' '}
+                  <strong>Inteligência</strong> como pré-requisito. Como ela
+                  soma Inteligência em Ladinagem e Furtividade, o requisito
+                  certo é Inteligência.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a habilidade de raça dos{' '}
+                  <strong>Kobolds</strong> estava escrita como &ldquo;Praça
+                  Perigosa&rdquo; — o nome certo é{' '}
+                  <strong>Praga Perigosa</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o limite de carga por um atributo
+                  diferente de Força voltava sozinho para Força quando a ficha
+                  era recalculada. Quem usava <strong>Organizadinhos</strong> ou{' '}
+                  <strong>Andarilho Carregado</strong> via os espaços da mochila
+                  caírem em silêncio (com Destreza 4, 12 espaços em vez de 18).
                 </li>
               </ul>
               <h3>4.29</h3>

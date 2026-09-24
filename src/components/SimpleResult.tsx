@@ -15,6 +15,10 @@ import {
   getWeaponDisplayDamage,
 } from '../functions/weaponSkill';
 import CharacterSheet from '../interfaces/CharacterSheet';
+import {
+  getEffectiveAttributeModifier,
+  getEffectiveAttributes,
+} from '../functions/effectiveAttributes';
 import Equipment from '../interfaces/Equipment';
 import { SkillsTotals } from '../interfaces/Skills';
 
@@ -82,10 +86,17 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
     }
   }, [resultRef]);
 
+  // Atributos com o modificador temporário já somado — leitura canônica de toda
+  // derivação (ver `functions/effectiveAttributes.ts`).
+  const atributosEfetivos = getEffectiveAttributes(sheet);
+
   const skillsTotals = {} as SkillsTotals;
 
   sheet.completeSkills?.forEach((sk) => {
-    const attributeValue = sk.modAttr ? sheet.atributos[sk.modAttr].value : 0;
+    // Atributo EFETIVO (ver `functions/effectiveAttributes.ts`).
+    const attributeValue = sk.modAttr
+      ? getEffectiveAttributeModifier(sheet, sk.modAttr)
+      : 0;
 
     const skTotal =
       (sk.halfLevel ?? 0) +
@@ -183,12 +194,12 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
             getWeaponAttackSkillBonus(
               eq,
               sheet.completeSkills,
-              sheet.atributos
+              atributosEfetivos
             );
           return (
             <div key={getKey(eq.nome)}>
               {eq.nome} {modAtk > 0 ? `+${modAtk}` : modAtk} (
-              {getWeaponDisplayDamage(eq, sheet.atributos)}, {eq.critico})
+              {getWeaponDisplayDamage(eq, atributosEfetivos)}, {eq.critico})
             </div>
           );
         })}

@@ -88,6 +88,28 @@ describe('updatePowerAcrossSheet', () => {
     expect(updated.generalPowers[0].customName).toBeUndefined();
   });
 
+  it('não encosta nos sheetBonuses do poder personalizado', () => {
+    // `applyPowerPatch` (Result.tsx) grava direto na ficha, SEM recalcular —
+    // os campos daqui são cosméticos. `sheetBonuses` não é: se um dia entrar no
+    // `PowerUserPatch`, o caller tem que passar a chamar `recalculateSheet`.
+    const sheet = makeSheet();
+    const bonuses = [
+      {
+        source: { type: 'power', name: 'Bênção' },
+        target: { type: 'PV' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+    ];
+    sheet.customPowers![0].sheetBonuses =
+      bonuses as unknown as CharacterSheet['sheetBonuses'];
+
+    const updated = updatePowerAcrossSheet(sheet, sheet.customPowers![0], {
+      customName: 'Apelido',
+    });
+
+    expect(updated.customPowers?.[0].sheetBonuses).toEqual(bonuses);
+  });
+
   it('não quebra quando as listas opcionais não existem', () => {
     const sheet = {
       generalPowers: [

@@ -1,6 +1,7 @@
 import Race from '../../../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { spellsCircle1 } from '../magias/generalSpells';
+import RACE_COUNTS_AS from './raceCountsAs';
 
 const seaSongSpells = [
   spellsCircle1.amedrontar,
@@ -15,6 +16,8 @@ const seaSongSpells = [
 
 const SEREIA: Race = {
   name: 'Sereia',
+  // Ver `raceCountsAs.ts` para a justificativa no livro.
+  countsAsRaces: RACE_COUNTS_AS.Sereia,
   attributes: {
     attrs: [
       { attr: 'any', mod: 1 },

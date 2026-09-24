@@ -1,28 +1,51 @@
 import React, { useState } from 'react';
 import {
+  Autocomplete,
   Box,
   Button,
   Checkbox,
   FormControl,
   FormControlLabel,
   Grid,
+  IconButton,
   InputLabel,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuid } from 'uuid';
 
 import Equipment, {
+  AmmoType,
+  DamageType,
+  DAMAGE_TYPES,
   DefenseEquipment,
   equipGroup,
+  ExtraDamage,
   WeaponCategory,
 } from '../../../interfaces/Equipment';
 import Skill from '../../../interfaces/Skills';
 import { CATEGORY_ORDER } from './itemTypeStyles';
 import { isDefenseGroup } from './equipmentCatalog';
 import { WEAPON_CATEGORY_LABELS } from '../../../functions/proficiencies';
+import { parseDamageTypes, formatDamageTypes } from './damageTypeSelect';
+import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
+import AmmoTypeField from './AmmoTypeField';
+import { AmmoTypeOption } from './ammo';
+import {
+  buildWeaponPurposeFields,
+  getWeaponPurpose,
+  getWeaponReach,
+  WEAPON_PURPOSE_OPTIONS,
+  WEAPON_REACH_OPTIONS,
+  WeaponPurpose,
+  WeaponReach,
+} from '../../../functions/weaponPurpose';
 
 export interface CustomItemFormProps {
   /** Optional initial values when editing an existing custom item. */
@@ -31,6 +54,8 @@ export interface CustomItemFormProps {
   defaultGroup?: equipGroup;
   onCancel: () => void;
   onSubmit: (item: Equipment) => void;
+  /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
+  ammoTypeOptions?: AmmoTypeOption[];
 }
 
 const ALL_SKILLS = Object.values(Skill);
@@ -40,6 +65,7 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
   defaultGroup,
   onCancel,
   onSubmit,
+  ammoTypeOptions = [],
 }) => {
   const [nome, setNome] = useState(initial?.nome ?? '');
   const [group, setGroup] = useState<equipGroup>(
@@ -64,6 +90,41 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
   );
   const [weaponCategory, setWeaponCategory] = useState<WeaponCategory | ''>(
     initial?.weaponCategory ?? ''
+  );
+  const [damageTypes, setDamageTypes] = useState<DamageType[]>(
+    parseDamageTypes(initial?.tipo)
+  );
+  const [weaponTags, setWeaponTags] = useState<string[]>(
+    initial?.weaponTags ?? []
+  );
+  // Propósito da arma: o que faz `getWeaponSkill` devolver Pontaria, o dano
+  // parar de somar Força e os bônus `rangedOnly`/`firingOnly` acharem a arma.
+  const [purpose, setPurpose] = useState<WeaponPurpose>(
+    getWeaponPurpose(initial ?? {})
+  );
+  const [reach, setReach] = useState<WeaponReach>(
+    getWeaponReach(initial ?? {})
+  );
+  const [ammoType, setAmmoType] = useState<AmmoType | ''>(
+    initial?.ammoType ?? ''
+  );
+  const [isAmmoItem, setIsAmmoItem] = useState(initial?.isAmmo ?? false);
+  const [ammoPackSizeText, setAmmoPackSizeText] = useState(
+    String(initial?.ammoPackSize ?? 20)
+  );
+  const [ammoUnitsPerSpaceText, setAmmoUnitsPerSpaceText] = useState(
+    String(initial?.ammoUnitsPerSpace ?? 20)
+  );
+  const [extraDamage, setExtraDamage] = useState<
+    { id: string; dice: string; damageType: DamageType }[]
+  >(
+    (initial?.extraDamage ?? [])
+      .filter((e) => e.source === 'user')
+      .map((e) => ({
+        id: e.id ?? uuid(),
+        dice: e.dice,
+        damageType: e.damageType,
+      }))
   );
 
   // Defense fields
@@ -127,7 +188,23 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
       canBeWielded: !naturallyWieldable && canBeWielded ? true : undefined,
     };
 
-    if (group === 'Arma') {
+    if (group === 'Arma' && isAmmoItem) {
+      // Pacote de munição: mesma forma de `Armas.FLECHAS` — vive no grupo Arma,
+      // com os campos de combate zerados em '-'. `unitsRemaining` não é escrito
+      // aqui: `addItemToEquipments` já semeia `ammoPackSize * quantity`.
+      const packSize = parseInt(ammoPackSizeText, 10);
+      const unitsPerSpace = parseInt(ammoUnitsPerSpaceText, 10);
+      baseItem.isAmmo = true;
+      baseItem.ammoType = ammoType || undefined;
+      baseItem.ammoPackSize =
+        Number.isNaN(packSize) || packSize < 1 ? 20 : packSize;
+      baseItem.ammoUnitsPerSpace =
+        Number.isNaN(unitsPerSpace) || unitsPerSpace < 1 ? 20 : unitsPerSpace;
+      baseItem.dano = '-';
+      baseItem.critico = '-';
+      baseItem.tipo = '-';
+      baseItem.alcance = '-';
+    } else if (group === 'Arma') {
       const atkBonus = parseInt(atkBonusText, 10);
       baseItem.dano = dano.trim() || undefined;
       baseItem.atkBonus = Number.isNaN(atkBonus) ? 0 : atkBonus;
@@ -138,6 +215,28 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
       baseItem.baseAtkBonus = baseItem.atkBonus;
       baseItem.baseCritico = baseItem.critico;
       baseItem.twoHanded = twoHanded ? true : undefined;
+      baseItem.tipo = formatDamageTypes(damageTypes);
+      baseItem.weaponTags = weaponTags.length > 0 ? weaponTags : undefined;
+      const persistedExtraDamage: ExtraDamage[] = extraDamage
+        .filter((e) => e.dice.trim().length > 0)
+        .map((e) => ({
+          id: e.id,
+          dice: e.dice.trim(),
+          damageType: e.damageType,
+          source: 'user' as const,
+        }));
+      baseItem.extraDamage =
+        persistedExtraDamage.length > 0 ? persistedExtraDamage : undefined;
+
+      // Escritor único do triple alcance/arremesso/specialActions.
+      const purposeFields = buildWeaponPurposeFields(purpose, reach);
+      baseItem.alcance = purposeFields.alcance;
+      baseItem.arremesso = purposeFields.arremesso;
+      baseItem.specialActions = purposeFields.specialActions;
+      // Munição só faz sentido em arma de disparo: arremesso atira a própria
+      // arma e corpo a corpo não atira nada.
+      baseItem.ammoType =
+        purpose === 'firing' ? ammoType || undefined : undefined;
     } else if (isDefenseGroup(group)) {
       const defenseBonus = parseInt(defenseBonusText, 10);
       const armorPenalty = parseInt(armorPenaltyText, 10);
@@ -214,6 +313,60 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
         </Grid>
 
         {group === 'Arma' && (
+          <Grid size={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isAmmoItem}
+                  onChange={(e) => setIsAmmoItem(e.target.checked)}
+                />
+              }
+              label='É munição (pacote de projéteis)'
+            />
+          </Grid>
+        )}
+
+        {group === 'Arma' && isAmmoItem && (
+          <>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <AmmoTypeField
+                label='Tipo de munição'
+                value={ammoType}
+                onChange={setAmmoType}
+                options={ammoTypeOptions}
+                helperText='Escolha da lista ou digite um tipo novo'
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4 }}>
+              <TextField
+                label='Unidades por pacote'
+                fullWidth
+                value={ammoPackSizeText}
+                onChange={(e) => setAmmoPackSizeText(e.target.value)}
+                helperText='Padrão do livro: 20'
+                slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4 }}>
+              <TextField
+                label='Unidades por espaço'
+                fullWidth
+                value={ammoUnitsPerSpaceText}
+                onChange={(e) => setAmmoUnitsPerSpaceText(e.target.value)}
+                helperText='Quantos projéteis cabem em 1 espaço'
+                slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+              />
+            </Grid>
+            <Grid size={12}>
+              <Typography variant='caption' color='text.secondary'>
+                Uma arma de disparo com este mesmo tipo de munição passa a
+                mostrar o contador e a descontar as unidades a cada ataque.
+              </Typography>
+            </Grid>
+          </>
+        )}
+
+        {group === 'Arma' && !isAmmoItem && (
           <>
             <Grid size={{ xs: 6, sm: 3 }}>
               <TextField
@@ -263,6 +416,57 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                 </Select>
               </FormControl>
             </Grid>
+            <Grid size={{ xs: 12, sm: purpose === 'melee' ? 12 : 4 }}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de ataque</InputLabel>
+                <Select
+                  label='Tipo de ataque'
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value as WeaponPurpose)}
+                >
+                  {WEAPON_PURPOSE_OPTIONS.map((p) => (
+                    <MenuItem key={p.value} value={p.value}>
+                      {p.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ display: 'block', mt: 0.5 }}
+              >
+                {WEAPON_PURPOSE_OPTIONS.find((p) => p.value === purpose)?.hint}
+              </Typography>
+            </Grid>
+            {purpose !== 'melee' && (
+              <Grid size={{ xs: 6, sm: 4 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Alcance</InputLabel>
+                  <Select
+                    label='Alcance'
+                    value={reach}
+                    onChange={(e) => setReach(e.target.value as WeaponReach)}
+                  >
+                    {WEAPON_REACH_OPTIONS.map((r) => (
+                      <MenuItem key={r.value} value={r.value}>
+                        {r.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
+            {purpose === 'firing' && (
+              <Grid size={{ xs: 6, sm: 4 }}>
+                <AmmoTypeField
+                  label='Munição'
+                  value={ammoType}
+                  onChange={setAmmoType}
+                  options={ammoTypeOptions}
+                />
+              </Grid>
+            )}
             <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>Categoria de proficiência (opcional)</InputLabel>
@@ -288,6 +492,141 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
                   ))}
                 </Select>
               </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de dano</InputLabel>
+                <Select
+                  multiple
+                  label='Tipo de dano'
+                  value={damageTypes}
+                  onChange={(e) => {
+                    const { value } = e.target;
+                    setDamageTypes(
+                      typeof value === 'string'
+                        ? (value.split(',') as DamageType[])
+                        : value
+                    );
+                  }}
+                  renderValue={(selected) =>
+                    (selected as DamageType[]).join(' ou ') || '—'
+                  }
+                >
+                  {DAMAGE_TYPES.map((t) => (
+                    <MenuItem key={t} value={t}>
+                      <Checkbox checked={damageTypes.includes(t)} />
+                      <ListItemText primary={t} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid size={12}>
+              <Autocomplete
+                multiple
+                freeSolo
+                size='small'
+                options={WEAPON_TAG_SUGGESTIONS.map((t) => t.value)}
+                getOptionLabel={weaponTagLabel}
+                value={weaponTags}
+                onChange={(_, newValue) => setWeaponTags(newValue)}
+                renderInput={(params) => (
+                  <TextField
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...params}
+                    label='Tags'
+                    placeholder='Adicionar tag'
+                    helperText='Ex.: Natural, Desarmado, Heredrimm... — pode digitar qualquer valor.'
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={12}>
+              <Stack
+                direction='row'
+                sx={{
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
+              >
+                <Typography variant='subtitle2'>
+                  Danos extras ({extraDamage.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<AddIcon />}
+                  onClick={() =>
+                    setExtraDamage((prev) => [
+                      ...prev,
+                      { id: uuid(), dice: '1d6', damageType: 'Fogo' },
+                    ])
+                  }
+                >
+                  Adicionar
+                </Button>
+              </Stack>
+              <Stack spacing={1}>
+                {extraDamage.map((entry, idx) => (
+                  <Stack
+                    key={entry.id}
+                    direction='row'
+                    spacing={1}
+                    sx={{ alignItems: 'center' }}
+                  >
+                    <TextField
+                      size='small'
+                      label='Dado'
+                      value={entry.dice}
+                      onChange={(e) =>
+                        setExtraDamage((prev) =>
+                          prev.map((x, i) =>
+                            i === idx ? { ...x, dice: e.target.value } : x
+                          )
+                        )
+                      }
+                      sx={{ width: 120 }}
+                      placeholder='1d6'
+                    />
+                    <FormControl size='small' sx={{ flex: 1, minWidth: 120 }}>
+                      <InputLabel>Tipo</InputLabel>
+                      <Select
+                        label='Tipo'
+                        value={entry.damageType}
+                        onChange={(e) =>
+                          setExtraDamage((prev) =>
+                            prev.map((x, i) =>
+                              i === idx
+                                ? {
+                                    ...x,
+                                    damageType: e.target.value as DamageType,
+                                  }
+                                : x
+                            )
+                          )
+                        }
+                      >
+                        {DAMAGE_TYPES.map((t) => (
+                          <MenuItem key={t} value={t}>
+                            {t}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <IconButton
+                      size='small'
+                      aria-label='Remover dano extra'
+                      onClick={() =>
+                        setExtraDamage((prev) =>
+                          prev.filter((_, i) => i !== idx)
+                        )
+                      }
+                    >
+                      <DeleteIcon fontSize='small' />
+                    </IconButton>
+                  </Stack>
+                ))}
+              </Stack>
             </Grid>
             <Grid size={12}>
               <FormControlLabel

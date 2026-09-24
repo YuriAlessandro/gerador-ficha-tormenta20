@@ -20,6 +20,12 @@ import {
   createLinhagemAbencoada,
   getArcanistaSpellPath,
 } from '../../data/systems/tormenta20/classes/arcanista';
+import {
+  getFilteredAvailableOptions,
+  getPowerSelectionRequirements,
+  validateSelections,
+} from '../powers/manualPowerSelection';
+import { GeneralPower } from '../../interfaces/Poderes';
 
 /**
  * Linhagem Abençoada (Deuses de Arton, pág. 33): "No 2º nível, você recebe um
@@ -116,6 +122,81 @@ describe('Poder concedido da Linhagem Abençoada', () => {
       nomesDosPoderesDoDeus.has(p.name)
     );
     expect(concedidos.map((p) => p.name)).toEqual([escolhido.name]);
+  });
+});
+
+/**
+ * Os poderes concedidos exigem `DEVOTO` do deus, e o Feiticeiro Abençoado não é
+ * devoto — o filtro de opções do assistente reprovava os quatro e o passo
+ * mostrava "Você já possui todas as opções disponíveis deste poder", sem lista.
+ * A flag `ignorePrerequisites` na concessão é o que implementa o "sem precisar
+ * ser devoto" da regra.
+ */
+describe('Opções oferecidas pelo assistente', () => {
+  const PODER_CONCEDIDO = 'Linhagem Abençoada (Poder Concedido)';
+
+  function getRequisitoDoPoderConcedido() {
+    const ability = createLinhagemAbencoada(DEUS).find(
+      (a) => a.name === PODER_CONCEDIDO
+    )!;
+    const { requirements } = getPowerSelectionRequirements(ability)!;
+    expect(requirements).toHaveLength(1);
+    return requirements[0];
+  }
+
+  it('oferece os poderes do deus mesmo sem devoção', () => {
+    const sheet = makeFeiticeiroAbencoado(2);
+    expect(sheet.devoto).toBeUndefined();
+
+    const options = getFilteredAvailableOptions(
+      getRequisitoDoPoderConcedido(),
+      sheet
+    ) as GeneralPower[];
+
+    expect(options.map((p) => p.name).sort()).toEqual(
+      PODERES_DO_DEUS.map((p) => p.name).sort()
+    );
+  });
+
+  it('aceita a escolha do jogador na validação', () => {
+    const sheet = makeFeiticeiroAbencoado(2);
+    const escolhido = PODERES_DO_DEUS[1];
+
+    const result = validateSelections(
+      {
+        powerName: PODER_CONCEDIDO,
+        requirements: [getRequisitoDoPoderConcedido()],
+      },
+      { powers: [escolhido] },
+      sheet
+    );
+
+    expect(result.errors).toEqual([]);
+    expect(result.isValid).toBe(true);
+  });
+
+  it('não repete poder que a ficha já tem', () => {
+    const sheet = makeFeiticeiroAbencoado(2);
+    const jaTem = PODERES_DO_DEUS[0];
+    sheet.generalPowers = [jaTem];
+
+    const options = getFilteredAvailableOptions(
+      getRequisitoDoPoderConcedido(),
+      sheet
+    ) as GeneralPower[];
+
+    expect(options.map((p) => p.name)).not.toContain(jaTem.name);
+    expect(options).toHaveLength(PODERES_DO_DEUS.length - 1);
+  });
+
+  it('concessão sem a flag continua filtrando por pré-requisito', () => {
+    const sheet = makeFeiticeiroAbencoado(2);
+    const semFlag = {
+      ...getRequisitoDoPoderConcedido(),
+      metadata: { ignorePrerequisites: false },
+    };
+
+    expect(getFilteredAvailableOptions(semFlag, sheet)).toEqual([]);
   });
 });
 

@@ -1,6 +1,7 @@
 import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
 import BUCANEIRO from '../../classes/bucaneiro';
+import PROFICIENCIAS from '../../proficiencias';
 
 const insolencia = BUCANEIRO.abilities.find((a) => a.name === 'Insolência')!;
 const esquivaSagaz = BUCANEIRO.abilities.find(
@@ -57,6 +58,20 @@ const DUELISTA: VariantClassOverrides = {
               {
                 name: 'Escola de Tiro',
                 text: 'Você recebe proficiência com armas de fogo leves e de uma mão. Caso receba essa proficiência novamente, com essas armas você pode usar suas habilidades de bucaneiro normalmente usadas com armas corpo a corpo leves ou ágeis.',
+                // "leves e de uma mão" = toda arma de fogo que não é de duas
+                // mãos (Pistola, Garrucha). Sem isto o personagem continuava
+                // com o −5 de não proficiência e perdia os bônus que exigem
+                // proficiência (ex.: Armas da Ambição, de Valkaria).
+                sheetBonuses: [
+                  {
+                    source: { type: 'class', className: 'Duelista' },
+                    target: {
+                      type: 'Proficiency',
+                      proficiency: PROFICIENCIAS.FOGO_UMA_MAO,
+                    },
+                    modifier: { type: 'Fixed', value: 1 },
+                  },
+                ],
               },
             ],
           },

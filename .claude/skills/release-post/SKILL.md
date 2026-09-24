@@ -1,6 +1,6 @@
 ---
 name: release-post
-description: Generate a blog post markdown file for a new release of Fichas de Nimb. Reads the version's section in src/components/screens/Changelog.tsx, the related git commits, and produces release-posts/atualizacao-{version}.md following the established blog format (title, description, slug, cover image suggestion, content blocks with image suggestions). Use when the user asks for a release post, blog post for a version, or "post da v X.Y".
+description: Generate a blog post markdown file for a new release of Fichas de Nimb AND open the deploy PRs (main → production) in the frontend and backend repos for that version. Reads the version's section in src/components/screens/Changelog.tsx, the related git commits, and produces release-posts/atualizacao-{version}.md following the established blog format (title, description, slug, cover image suggestion, content blocks with image suggestions). Use when the user asks for a release post, blog post for a version, "post da v X.Y", or the deploy PRs of a version.
 ---
 
 # release-post
@@ -21,8 +21,78 @@ Generate a publish-ready markdown draft for a new release blog post on https://f
 2. **Locate the version's changelog entry** in `src/components/screens/Changelog.tsx`. It lives between `<h3>X.Y</h3>` and the next `<h3>` (or the closing tag of that accordion). Read the full block of `<li>` items.
 3. **Get commit context** with `git log --oneline -n 30` and pick out the commits relevant to this version (look for commits between `release: vX.Y` and the previous `release: v...` tag/commit). For commits whose meaning is non-obvious from the message, run `git show --stat <hash>` (and `git show <hash>` if needed) to understand what changed.
 4. **Generate the markdown** following the format in the next section. Write to `release-posts/atualizacao-{version-with-dash}.md` (e.g. `release-posts/atualizacao-4-13.md`). Create the `release-posts/` directory if it doesn't exist. Tell the user the file path at the end.
+5. **Open the deploy PRs** (`main → production`) in the frontend and backend repos — see "Abrir os PRs de deploy" below.
 
-Do **not** publish, push, commit, or call the blog API. The file is a draft for the user to paste into the blog editor block-by-block.
+Do **not** publish, commit, push, merge the PRs, or call the blog API. The markdown is a draft for the user to paste into the blog editor block-by-block, and merging the PRs (which is what actually deploys) is always the user's call.
+
+## Abrir os PRs de deploy
+
+Deploy sai da branch `production` nos dois repos; ver "Fluxo de deploy" no `CLAUDE.md`. O skill abre os PRs, nunca mergeia.
+
+**Sempre passe `--repo`** — o remote `upstream` faz o `gh` resolver o fork errado.
+Repos: `YuriAlessandro/gerador-ficha-tormenta20` (frontend) e `YuriAlessandro/fichas-de-nimb-backend` (backend, que é o submódulo `/backend`).
+
+### Passo 1 — checagens antes de abrir (pare se falhar)
+
+```bash
+git fetch origin main production
+git -C backend fetch origin main production
+git -C src/premium fetch origin
+```
+
+- **`main` local à frente do remoto** (`git log --oneline origin/main..main`, idem em `backend` e `src/premium`): **não abra o PR**. O PR só enxerga o remoto, então o deploy sairia sem esses commits. Liste os commits que ficariam de fora e peça ao usuário que faça o push. O skill **nunca** pusha.
+- **Gitlink do premium não pushado**: `git -C src/premium branch -r --contains $(git ls-tree origin/main src/premium | awk '{print $3}')`. Se não aparecer nenhuma branch remota, o build do deploy quebra ao clonar o submódulo — pare e avise.
+- **Nada para publicar** (`git log --oneline origin/production..origin/main` vazio): pule esse repo e diga no relatório que ele já está em produção. É o caso comum do backend.
+- **PR já aberto** (`gh pr list --repo <repo> --base production --head main --state open --json number,url`): não abra outro. Atualize com `gh pr edit <n> --repo <repo> --title ... --body ...` e diga que foi atualizado, não criado.
+
+### Passo 2 — criar
+
+Título: **`vX.Y`** (ex.: `v4.33`), igual nos dois repos.
+
+```bash
+gh pr create --repo <repo> --base production --head main --title "vX.Y" --body-file <arquivo>
+```
+
+Corpo do PR do **frontend** — o changelog da versão, convertido dos `<li>` do `Changelog.tsx` para bullets markdown (texto limpo, sem tags):
+
+```markdown
+Deploy da **vX.Y**.
+
+## Changelog
+
+- <item 1>
+- <item 2>
+
+Rascunho do post do blog: `release-posts/atualizacao-X-Y.md` (ainda não publicado).
+
+---
+
+⚠️ Mergear com **"Create a merge commit"**. Nunca squash, rebase ou "Update branch".
+```
+
+Corpo do PR do **backend** — o mesmo changelog, mais os commits do backend, que o changelog não descreve:
+
+```markdown
+Deploy da **vX.Y**. Mergear **antes** do PR do frontend quando o contrato da API muda.
+
+## Commits do backend
+
+- <saída de `git -C backend log --oneline origin/production..origin/main`>
+
+## Changelog da versão (frontend)
+
+- <os mesmos itens do PR do frontend>
+
+---
+
+⚠️ Mergear com **"Create a merge commit"**. Nunca squash, rebase ou "Update branch".
+```
+
+Use `--body-file` com um arquivo temporário no diretório de scratchpad da sessão; o changelog tem acentuação e aspas que sofrem no shell.
+
+### Passo 3 — relatar
+
+Dê as URLs dos dois PRs (ou o motivo de cada um não ter sido aberto) e lembre que o deploy só acontece no merge, backend primeiro.
 
 ## Output file format
 
@@ -44,7 +114,7 @@ coverImage: <SUGESTÃO: arte de fantasia/RPG temática (ex.: dmdave.com, thegame
 
 **Legenda da imagem (opcional):** <só se for útil; muitos blocos não têm legenda>
 
-<conteúdo do bloco em markdown — 1 a 3 parágrafos curtos, com **negrito** em termos do jogo e nomes de poderes/itens, *itálico* em ênfase ocasional. Listas com `-` quando agrupar várias features.>
+<conteúdo do bloco em markdown — 1 a 3 parágrafos curtos, com **negrito** em termos do jogo e nomes de poderes/itens, _itálico_ em ênfase ocasional. Listas com `-` quando agrupar várias features.>
 
 ---
 
@@ -74,8 +144,8 @@ A lista completa, como sempre, está no [Changelog](/changelog).
 - **Idioma:** português brasileiro coloquial e direto. Soa como dev contando o que mudou pra um jogador, não release notes corporativos.
 - **Personalidade:** punchy. Use construções como "Bug chato e silencioso:", "Mudança pequena, ganho diário grande.", "O maior inimigo das condições em RPG não é a regra — é esquecer que elas estão ativas." Comece blocos pelo problema/contexto quando der, não pela feature.
 - **Negrito:** sempre em **nomes de poderes**, **classes**, **itens**, **condições**, **valores numéricos importantes** (ex.: **+2**, **1d10**), **nomes de telas/ações** (ex.: **Mochila de Aventureiro**, **Mesa Virtual**).
-- **Itálico:** ênfase ocasional, nomes de condições no meio do texto (ex.: *paralisado*), e em frases-fechamento informais (ex.: *Bons jogos e que suas condições durem só uma rodada.*).
-- **Explica o porquê:** todo bloco precisa de pelo menos uma frase do *porquê* da mudança ou *qual problema resolvia*. Não basta listar a feature.
+- **Itálico:** ênfase ocasional, nomes de condições no meio do texto (ex.: _paralisado_), e em frases-fechamento informais (ex.: _Bons jogos e que suas condições durem só uma rodada._).
+- **Explica o porquê:** todo bloco precisa de pelo menos uma frase do _porquê_ da mudança ou _qual problema resolvia_. Não basta listar a feature.
 - **Especificidade:** prefira nomes reais (poder, classe, número) a abstrações ("um poder de uma classe"). Se o changelog cita "Casca Grossa (Lutador / Atleta)", use isso.
 - **Tamanho dos blocos:** 1-3 parágrafos, raramente 4. Listas com `-` quando há 3+ itens correlatos.
 - **Quantidade de blocos:** 4 a 8. Combine itens correlatos do changelog num bloco só quando fizer sentido (ex.: 4 poderes de combate viraram um bloco em 4.12). Não faça 1 bloco por linha do changelog.
@@ -84,6 +154,7 @@ A lista completa, como sempre, está no [Changelog](/changelog).
 ### Sugestão de imagem — como pensar
 
 Para cada bloco com mudança visual, sugira **o que** screenshotar, não uma URL. Padrões observados:
+
 - Feature de UI nova → screenshot da própria UI mostrando a feature em ação.
 - Mudança de regra/cálculo → screenshot da ficha mostrando o número correto, ou um print da tela onde o usuário escolhe.
 - Bloco de correções → geralmente sem imagem própria.
@@ -105,10 +176,14 @@ Para a `coverImage`, sugira o **tema** que combina com a feature de destaque (ex
 - [ ] Cada bloco tem pelo menos uma frase de "porquê".
 - [ ] Bloco final agrupa as correções menores e fecha com link `[Changelog](/changelog)`.
 - [ ] Arquivo salvo em `release-posts/atualizacao-X-Y.md`.
+- [ ] PRs `main → production` abertos (ou pulados, com motivo) nos dois repos, título `vX.Y`, changelog no corpo, nenhum mergeado.
 
 ## Final report to user
 
-Em uma ou duas frases, diga:
+Em poucas frases, diga:
+
 1. O caminho do arquivo gerado.
 2. Quantos blocos foram criados.
 3. Lembre que as URLs de imagem são sugestões e precisam ser substituídas antes de publicar.
+4. As URLs dos PRs de deploy do frontend e do backend — ou, para cada um que não foi aberto, o motivo (nada novo para publicar, `main` local não pushada, PR já existente que foi atualizado).
+5. Que nada foi mergeado: o deploy acontece quando o usuário mergear, backend primeiro.

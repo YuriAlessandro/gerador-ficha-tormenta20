@@ -27,12 +27,10 @@ import {
   AccordionDetails,
   Slide,
 } from '@mui/material';
-import {
-  ContentCopy as CopyIcon,
-  ExpandMore as ExpandMoreIcon,
-  History as HistoryIcon,
-  AutoFixHigh as MagicIcon,
-} from '@mui/icons-material';
+import CopyIcon from '@mui/icons-material/ContentCopy';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import HistoryIcon from '@mui/icons-material/History';
+import MagicIcon from '@mui/icons-material/AutoFixHigh';
 import { TransitionGroup } from 'react-transition-group';
 
 import { SEO, getPageSEO } from '../SEO';

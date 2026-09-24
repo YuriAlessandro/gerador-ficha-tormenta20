@@ -16,14 +16,12 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Clear as ClearIcon,
-  Search as SearchIcon,
-  SwapVert as ReorderIcon,
-  ViewModule as GroupIcon,
-  FilterList as FilterIcon,
-} from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import ClearIcon from '@mui/icons-material/Clear';
+import SearchIcon from '@mui/icons-material/Search';
+import ReorderIcon from '@mui/icons-material/SwapVert';
+import GroupIcon from '@mui/icons-material/ViewModule';
+import FilterIcon from '@mui/icons-material/FilterList';
 
 import { equipGroup } from '../../../interfaces/Equipment';
 import { CATEGORY_ORDER, itemTypeStyles } from './itemTypeStyles';

@@ -107,14 +107,14 @@ const ANAO: Race = {
       ],
     },
     {
-      name: 'Duro com Pedra',
+      name: 'Duro como Pedra',
       description:
         'Você recebe +3 pontos de vida no 1º nível e +1 por nível seguinte.',
       sheetBonuses: [
         {
           source: {
             type: 'power',
-            name: 'Duro com Pedra',
+            name: 'Duro como Pedra',
           },
           target: {
             type: 'PV',

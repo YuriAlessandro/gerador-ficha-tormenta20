@@ -77,9 +77,9 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
 
   const filtersActive =
     filters.search !== '' ||
-    filters.circle !== 'all' ||
-    filters.school !== 'all' ||
-    filters.execution !== 'all';
+    filters.circles.length > 0 ||
+    filters.schools.length > 0 ||
+    filters.executions.length > 0;
 
   return (
     <Box>

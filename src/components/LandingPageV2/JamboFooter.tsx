@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import { APP_VERSION } from '@/utils/appVersion';
+import { safeBottom } from '../../theme/safeArea';
 
 // Image credits - add more as needed
 const imageCredits = [
@@ -129,7 +130,8 @@ const JamboFooter: React.FC = () => {
       sx={{
         mt: 6,
         pt: 4,
-        pb: 3,
+        // Último elemento do fluxo: absorve o inset do home indicator no PWA.
+        pb: safeBottom(24),
         borderTop: '1px solid',
         borderColor: 'divider',
       }}

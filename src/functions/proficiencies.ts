@@ -101,6 +101,34 @@ const WEAPON_CATEGORY_BY_NAME = new Map<string, WeaponCategory>();
   });
 });
 
+// Mesma história do mapa acima, para `twoHanded`: o campo só existe no catálogo
+// desde 02/05/2026 e `refreshBagItemsFromCatalog` não o recarimba, então um
+// Mosquete copiado para a mochila antes disso chega aqui sem ele — e passaria
+// como arma de uma mão para 'Armas de Fogo de Uma Mão'.
+const WEAPON_TWO_HANDED_BY_NAME = new Map<string, boolean>();
+(
+  [
+    ...EQUIPAMENTOS.armasSimples,
+    ...EQUIPAMENTOS.armasMarciais,
+    ...EQUIPAMENTOS.armasExoticas,
+    ...EQUIPAMENTOS.armasDeFogo,
+    ...Object.values(AMEACAS_ARTON_WEAPONS),
+    ...Object.values(HEROIS_ARTON_WEAPONS),
+  ] as Equipment[]
+).forEach((weapon) => {
+  WEAPON_TWO_HANDED_BY_NAME.set(weapon.nome, Boolean(weapon.twoHanded));
+});
+
+/**
+ * `twoHanded` da arma, com fallback pelo catálogo para cópias legadas gravadas
+ * antes do campo existir. Mantém o `false` explícito do item quando ele traz o
+ * campo — override manual do usuário vence o catálogo.
+ */
+function isTwoHandedWeapon(weapon: Equipment): boolean {
+  if (weapon.twoHanded !== undefined) return weapon.twoHanded;
+  return WEAPON_TWO_HANDED_BY_NAME.get(weapon.nome) ?? false;
+}
+
 /** Categoria de catálogo de uma arma pelo nome (core + suplementos). */
 export function getCatalogWeaponCategoryByName(
   nome: string
@@ -143,7 +171,8 @@ const normalizeProficiencyName = (value: unknown): string =>
  * - Marciais: exigem 'Armas Marciais'; se a arma tem alcance (incluindo
  *   arremesso), 'Armas Marciais de Distância' também satisfaz. A proficiência
  *   é da arma, não do modo de ataque — vale igualmente em Luta e Pontaria.
- * - Exóticas: exigem 'Armas Exóticas'. De fogo: exigem 'Armas de Fogo'.
+ * - Exóticas: exigem 'Armas Exóticas'. De fogo: exigem 'Armas de Fogo' — ou,
+ *   se não forem de duas mãos, 'Armas de Fogo de Uma Mão' (Escola de Tiro).
  * - Sem categoria resolvível (custom/homebrew): proficiente (falha segura).
  *
  * Use `getSheetProficiencias(sheet)` para obter a lista efetiva da ficha.
@@ -172,7 +201,13 @@ export function isProficientWithWeapon(
   }
   if (category === 'exotic')
     return proficiencias.includes(PROFICIENCIAS.EXOTICAS);
-  return proficiencias.includes(PROFICIENCIAS.FOGO);
+  // De fogo: 'Armas de Fogo' cobre todas; 'Armas de Fogo de Uma Mão' (Escola de
+  // Tiro do Duelista) cobre as que não são de duas mãos.
+  if (proficiencias.includes(PROFICIENCIAS.FOGO)) return true;
+  return (
+    !isTwoHandedWeapon(weapon) &&
+    proficiencias.includes(PROFICIENCIAS.FOGO_UMA_MAO)
+  );
 }
 
 /** Penalidade de não proficiência da arma: 0 ou -5 nos testes de ataque. */
@@ -196,9 +231,18 @@ export function isProficientWithDefense(
 ): boolean {
   if (item.group === 'Escudo')
     return proficiencias.includes(PROFICIENCIAS.ESCUDOS);
-  return isHeavyArmor(item)
-    ? proficiencias.includes(PROFICIENCIAS.PESADAS)
-    : proficiencias.includes(PROFICIENCIAS.LEVES);
+
+  if (isHeavyArmor(item)) return proficiencias.includes(PROFICIENCIAS.PESADAS);
+
+  // Proficiência com armaduras PESADAS inclui as leves: quem treinou para usar
+  // a categoria mais restritiva não desaprende a mais simples. Sem isto, um
+  // Vassalo — cujas proficiências iniciais são só armas marciais e escudos, e
+  // que recebe pesadas no 3º nível — passava a sofrer penalidade de armadura
+  // vestindo a armadura leve com que começou.
+  return (
+    proficiencias.includes(PROFICIENCIAS.LEVES) ||
+    proficiencias.includes(PROFICIENCIAS.PESADAS)
+  );
 }
 
 /**

@@ -886,9 +886,13 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                           </Typography>
                           {roll.isAugmented && (
                             <Chip
-                              label={`${roll.baseDice} ${
-                                roll.addedSummary ?? ''
-                              }`.trim()}
+                              label={`${roll.baseDice}${
+                                roll.replacementDice
+                                  ? ` -> ${roll.replacementDice}`
+                                  : ''
+                              }${
+                                roll.addedSummary ? ` ${roll.addedSummary}` : ''
+                              }`}
                               size='small'
                               color='primary'
                               variant='outlined'

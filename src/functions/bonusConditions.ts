@@ -61,6 +61,16 @@ function evaluateClause(
         sheet.bag.equipments.Armadura || [],
         sheet.wornArmorId
       );
+    case 'wearingArmorNamed': {
+      // Casa por `nome` (identidade de catálogo) e nunca por
+      // `customDisplayName` — mesmo princípio de `sheetHasPowerNamed`: um
+      // apelido dado pelo jogador não pode ligar nem desligar uma regra.
+      const worn = getWornArmor(
+        sheet.bag.equipments.Armadura || [],
+        sheet.wornArmorId
+      );
+      return worn?.nome === clause.value;
+    }
     case 'wieldingShield':
       return (sheet.bag.equipments.Escudo || []).some(
         (s) =>
@@ -100,6 +110,13 @@ function evaluateClause(
       );
     case 'hasPower':
       return sheetHasPowerNamed(sheet, clause.value);
+    case 'optionChosen':
+      return (sheet.sheetActionHistory ?? []).some((entry) =>
+        entry.changes.some(
+          (change) =>
+            change.type === 'OptionChosen' && change.chosenName === clause.value
+        )
+      );
     case 'hasProficiency':
       return getSheetProficiencias(sheet).includes(clause.value);
     case 'hasSkill':

@@ -11,16 +11,14 @@ import {
   CircularProgress,
   Button,
 } from '@mui/material';
-import {
-  Notifications as NotificationsIcon,
-  Comment as CommentIcon,
-  Mail as MailIcon,
-  Cancel as CancelIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  Forum as ForumIcon,
-  Campaign as CampaignIcon,
-} from '@mui/icons-material';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import CommentIcon from '@mui/icons-material/Comment';
+import MailIcon from '@mui/icons-material/Mail';
+import CancelIcon from '@mui/icons-material/Cancel';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import ForumIcon from '@mui/icons-material/Forum';
+import CampaignIcon from '@mui/icons-material/Campaign';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useHistory } from 'react-router-dom';

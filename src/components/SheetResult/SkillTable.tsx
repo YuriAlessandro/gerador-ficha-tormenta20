@@ -32,6 +32,7 @@ import { normalizeSearch } from '../../functions/stringUtils';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 import SkillActionsDialog from './SkillActionsDialog';
 import { ConditionMarker } from '../../premium/components/Conditions';
+import { getEffectiveAttributeModifier } from '../../functions/effectiveAttributes';
 import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
 import { ActiveEffectMarker } from '../../premium/components/ActiveEffects';
@@ -39,6 +40,7 @@ import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
 import { getActiveEffectLabelStyle } from '../../premium/functions/activeEffectHighlights';
 import {
   getSkillOthersBreakdown,
+  hasSkillOthersDetail,
   formatBreakdownValue,
 } from '../../functions/skills/skillBonusBreakdown';
 
@@ -297,8 +299,11 @@ const SkillTable: React.FC<IProps> = ({
           </TableHead>
           <TableBody sx={{ border: 'none' }}>
             {filteredSkills.map((skill) => {
+              // Atributo EFETIVO: o bônus temporário de atributo (Mente Divina,
+              // Forma Selvagem, caixa manual) entra por aqui e NÃO em "Outros"
+              // — ver `functions/effectiveAttributes.ts`.
               const attrValue = skill.modAttr
-                ? sheet.atributos[skill.modAttr].value
+                ? getEffectiveAttributeModifier(sheet, skill.modAttr)
                 : 0;
 
               // Get size modifier for stealth (Furtividade)
@@ -314,9 +319,11 @@ const SkillTable: React.FC<IProps> = ({
                 (skill.training ?? 0) +
                 sizeModifier;
 
-              // "Outros" soma bônus e penalidades no mesmo número, o que
-              // esconde bônus reais (ex.: o +2 de Golpista Divino em Ladinagem
-              // sob a penalidade de armadura). O detalhamento mostra as parcelas.
+              // "Outros" é um número só: não diz de onde vem (o -1 de
+              // Furtividade é armadura? o +2 de Percepção é qual poder?) e
+              // ainda soma bônus com penalidades, escondendo bônus reais (o +2
+              // de Golpista Divino em Ladinagem sob a penalidade de armadura).
+              // O detalhamento mostra as parcelas.
               const othersTotal = (skill.others ?? 0) + sizeModifier;
               const othersBreakdown = getSkillOthersBreakdown(sheet, skill);
 
@@ -387,7 +394,7 @@ const SkillTable: React.FC<IProps> = ({
                     )}
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
-                    {othersBreakdown.length > 1 ? (
+                    {hasSkillOthersDetail(othersBreakdown) ? (
                       <Tooltip
                         arrow
                         enterTouchDelay={0}

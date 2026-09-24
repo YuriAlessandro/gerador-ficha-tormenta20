@@ -12,7 +12,16 @@
   X-XSS-Protection: 1; mode=block
 
 # Assets com hash de conteúdo gerados pelo Vite. O hash muda quando o conteúdo
-# muda, então cache imutável de 1 ano é seguro.
+# muda, então cache de 1 ano é seguro.
+#
+# Sem `immutable`, de propósito. `immutable` promete que a resposta nunca muda e
+# faz o navegador não revalidar nem em reload — o que é verdade para o conteúdo,
+# mas não para os acidentes: se o catch-all do `_redirects` devolver o HTML do
+# SPA sob a URL de um `.js` durante a janela de propagação de um deploy, essa
+# resposta fica presa no cache do navegador por um ano e nem F5 tira. Sem o
+# `immutable` o arquivo continua sendo servido do cache em navegação normal
+# (mesmo max-age), e um reload passa a revalidar — 304 barato, já que a URL é
+# hasheada, e vira uma saída para o usuário preso.
 #
 # O `Access-Control-Allow-Origin` é load-bearing, não higiene: módulos ES e web
 # fonts são sempre buscados com CORS, e num embed em iframe sandbox sem
@@ -20,7 +29,7 @@
 # bloqueado sem ele — tela branca na extensão do Owlbear. Assets são públicos e
 # sem credencial, então `*` é seguro.
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=31536000
   Access-Control-Allow-Origin: *
 
 # Assets da raiz que NÃO têm hash no nome (ícones, PDF da ficha, imagem de
@@ -67,16 +76,42 @@
 
 # --- Framing ---
 #
-# Padrão é bloquear (X-Frame-Options: SAMEORIGIN, na regra /* acima). Duas
-# exceções, ambas destacando o header com `!`:
+# Padrão é bloquear (X-Frame-Options: SAMEORIGIN, na regra /* acima). Três
+# exceções, todas destacando o header com `!`:
 
-# 1. Ficha embutida na extensão do Owlbear: troca o XFO por um CSP restrito à
-#    cadeia owlbear.rodeo → extensão (hospedada no Cloudflare Pages).
+# 1. Ficha embutida nas extensões de VTT: troca o XFO por um CSP restrito às
+#    origens que podem embutir a ficha.
+#
+#    A rota se chama /owlbear/* por ter nascido para o Owlbear, mas serve as
+#    duas extensões — a do Roll20 embute a MESMA rota no painel dentro do jogo.
+#    Renomear a rota quebraria a extensão do Owlbear já instalada, então o que
+#    cresce é a lista de ancestrais:
+#      - owlbear.rodeo → extensão do Owlbear (hospedada no Cloudflare Pages)
+#      - app.roll20.net → painel da extensão do Roll20, injetado na página do jogo
 /owlbear/*
   ! X-Frame-Options
-  Content-Security-Policy: frame-ancestors https://www.owlbear.rodeo https://fichas-owlbear.pages.dev https://*.fichas-owlbear.pages.dev
+  Content-Security-Policy: frame-ancestors https://www.owlbear.rodeo https://fichas-owlbear.pages.dev https://*.fichas-owlbear.pages.dev https://app.roll20.net
 
-# 2. Mapa de Arton: página pública somente leitura, incorporável por qualquer
+# 2. Portrait: overlay de ficha para streams, carregado como Browser Source no
+#    OBS. O OBS é página top-level (não iframe), então o XFO nem se aplica a
+#    ele — o motivo de destacar é outro: gente embute isto em Streamlabs, no
+#    painel da Twitch e em editores de overlay, que usam iframe sandbox sem
+#    allow-same-origin (origem opaca). Mesma razão do Mapa de Arton abaixo,
+#    inclusive para NÃO usar CSP com `frame-ancestors *`. Embutir não expõe
+#    nada que o link já não exponha.
+#
+#    `no-store`: o shell do SPA é o que o OBS carrega e ele fica com a fonte
+#    aberta por semanas; sem isto uma cena antiga serve HTML velho depois de um
+#    deploy.
+#
+#    `noindex`: o token é a credencial da rota, e não pode acabar num índice de
+#    busca.
+/portrait/*
+  ! X-Frame-Options
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+
+# 3. Mapa de Arton: página pública somente leitura, incorporável por qualquer
 #    site — omite XFO E CSP. Não usar `frame-ancestors *`: o `*` só casa com
 #    origens de esquema de rede (http/https/ws/wss) e rejeita ancestral com
 #    origem opaca, que é o que plataformas criam ao envolver embeds em iframe

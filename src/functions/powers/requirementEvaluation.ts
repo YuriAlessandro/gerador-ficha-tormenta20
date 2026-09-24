@@ -1,0 +1,356 @@
+import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { ClassPower } from '../../interfaces/Class';
+import CharacterSheet from '../../interfaces/CharacterSheet';
+import {
+  GeneralPower,
+  PrerequisiteWaiver,
+  Requirement,
+  RequirementType,
+} from '../../interfaces/Poderes';
+import Skill, { isGenericOficio, isOficioSkill } from '../../interfaces/Skills';
+import { isClassOrVariantOf, isRaceOrVariantOf } from '../general';
+import { applyRequirementNot } from '../powers';
+import { PowerLike, sheetSatisfiesPowerRequirement } from './hasPowerNamed';
+import { ARTESAO_CRIATIVO } from '../../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
+import {
+  findWaiverForPower,
+  getActiveWaivers,
+  isRequirementWaived,
+} from './prerequisiteWaivers';
+import { formatRequirement } from '../requirementText';
+
+/**
+ * Avaliação de pré-requisito **item a item**, para a UI poder dizer *qual*
+ * requisito falhou em vez de só pintar o poder de vermelho.
+ *
+ * Nasceu da fusão de `checkRequirements` e `checkClassPowerRequirements`, duas
+ * cópias de ~140 linhas que viviam dentro do editor de poderes e haviam
+ * divergido em silêncio (só a de classe tratava `DEVOTO`; só a geral tratava
+ * `CLASSE` e o `'all'` de `PROFICIENCIA`). Esta versão preserva a **união** dos
+ * casos que as duas tratavam — o que corrige, de quebra, poderes de classe com
+ * pré-requisito de classe ou de proficiência genérica, que antes caíam no
+ * `default: true` e ficavam sempre liberados.
+ *
+ * Por que não reusar `isPowerAvailable`/`evaluateRule` de `functions/powers.ts`:
+ * aquele avaliador lê só a ficha salva. O editor precisa avaliar contra os
+ * poderes **marcados na sessão e ainda não salvos**, senão marcar o pré-requisito
+ * e o poder que depende dele na mesma visita nunca destrava a segunda linha.
+ *
+ * Divergência conhecida e deliberada em relação a `evaluateRule`: os tipos
+ * `PODER_TORMENTA`, `TIPO_ARCANISTA`, `MAGIA` e `TEXT` caem no `default` e são
+ * considerados atendidos. É o comportamento que o editor sempre teve; tratá-los
+ * aqui tornaria indisponíveis poderes que hoje aparecem disponíveis, e essa é
+ * uma mudança de regra que não cabe num overhaul visual.
+ */
+
+/**
+ * Qual escopo o `TIER_LIMIT` conta. É a única regra que muda conforme o poder
+ * avaliado: para um poder geral ele conta poderes gerais; para um de classe,
+ * poderes de classe.
+ */
+export type PowerKind = 'general' | 'class';
+
+export interface RequirementContext {
+  sheet: CharacterSheet;
+  /** Poderes gerais marcados no editor e ainda não salvos. */
+  pendingGeneralPowers?: PowerLike[];
+  /** Poderes de classe marcados no editor e ainda não salvos. */
+  pendingClassPowers?: PowerLike[];
+  /** Classe dona do poder, quando for poder de CLASSE. */
+  className?: string;
+  /** Waivers resolvidos. Passe ao filtrar catálogo inteiro (custo por item). */
+  waivers?: PrerequisiteWaiver[];
+}
+
+export interface EvaluatedRequirement {
+  requirement: Requirement;
+  met: boolean;
+  /** Não cumprido, e sim DISPENSADO por um poder. Conta como `met`. */
+  waived?: boolean;
+  /** Poder que dispensou. Só existe com `waived`. */
+  waivedReason?: string;
+  /** Texto pronto do requisito, via `formatRequirement` (respeita `not`). */
+  label: string;
+  /**
+   * O lado do personagem na comparação, quando existe número a mostrar:
+   * `'você tem 12'`. `undefined` quando o requisito é booleano e o próprio
+   * `label` já diz tudo.
+   */
+  current?: string;
+}
+
+export interface EvaluatedRequirementGroup {
+  /** Todos os requisitos do grupo atendidos (E). */
+  met: boolean;
+  requirements: EvaluatedRequirement[];
+}
+
+export interface PowerAvailability {
+  available: boolean;
+  /** Habilidade racial dispensou os pré-requisitos: não há o que exibir. */
+  bypassed: boolean;
+  /** Grupos são OU entre si; requisitos dentro do grupo são E. */
+  groups: EvaluatedRequirementGroup[];
+  /**
+   * Liberado apesar de reprovar nos pré-requisitos, por opt-in do jogador
+   * ("Mostrar poderes fora dos requisitos" da subida de nível). A UI sinaliza
+   * em vez de fingir que o requisito foi cumprido.
+   */
+  outOfRequirements?: boolean;
+}
+
+/** Um poder qualquer que carregue pré-requisitos. */
+type RequirablePower = Pick<GeneralPower | ClassPower, 'name'> & {
+  requirements?: Requirement[][];
+};
+
+/**
+ * Todos os nomes de poder que valem como "o personagem tem X", somando a ficha
+ * salva e o que está marcado na sessão do editor.
+ *
+ * Inclui as habilidades de classe concedidas automaticamente: alguns poderes
+ * são cadastrados pedindo `PODER` com o nome de uma habilidade (Briga de Rua e
+ * Chuva de Golpes exigem "Briga", que é habilidade de 1º nível do Lutador).
+ * `classe.abilities` já vem filtrada pelo nível em `applyClassAbilities`, então
+ * não vaza habilidade futura. Espelha `getAllCharacterPowers` de
+ * `functions/powers.ts` — os dois avaliadores precisam concordar, senão o
+ * assistente oferece um poder que o editor marca como indisponível.
+ */
+function hasPowerNamed(name: string | undefined, ctx: RequirementContext) {
+  if (!name) return false;
+  const { sheet, pendingGeneralPowers = [], pendingClassPowers = [] } = ctx;
+  const satisfies = (p: PowerLike) =>
+    p.name === name || !!p.grantsPowerRequirements?.includes(name);
+  return (
+    pendingGeneralPowers.some(satisfies) ||
+    pendingClassPowers.some(satisfies) ||
+    // Cobre os baldes salvos da ficha — inclusive `devoto.poderes`, onde um
+    // poder concedido pode viver sozinho — e o hook `grantsPowerRequirements`
+    // ("Ginete Altivo", de Hippion, conta como "Ginete").
+    sheetSatisfiesPowerRequirement(sheet, name) ||
+    // `classe.abilities` fica FORA de `sheetSatisfiesPowerRequirement` de
+    // propósito (ver `hasPowerNamed.ts`), então continua checada aqui.
+    (sheet.classe.abilities?.some((a) => a.name === name) ?? false)
+  );
+}
+
+function isTrainedIn(sheet: CharacterSheet, skillName: string | undefined) {
+  return (
+    sheet.completeSkills?.some(
+      (s) => s.name === skillName && (s.training || 0) > 0
+    ) ?? false
+  );
+}
+
+/** `undefined` quando não há número do lado do personagem para mostrar. */
+function currentValueFor(
+  req: Requirement,
+  ctx: RequirementContext
+): string | undefined {
+  const { sheet } = ctx;
+  switch (req.type) {
+    case RequirementType.ATRIBUTO: {
+      const value = sheet.atributos[req.name as Atributo]?.value ?? 0;
+      return `você tem ${value}`;
+    }
+    case RequirementType.NIVEL:
+      return `você é nível ${sheet.nivel}`;
+    default:
+      return undefined;
+  }
+}
+
+function isRequirementMet(
+  req: Requirement,
+  ctx: RequirementContext,
+  kind: PowerKind
+): boolean {
+  const { sheet, pendingGeneralPowers = [], pendingClassPowers = [] } = ctx;
+
+  switch (req.type) {
+    case RequirementType.ATRIBUTO: {
+      const attrValue = sheet.atributos[req.name as Atributo]?.value || 0;
+      return attrValue >= (req.value || 0);
+    }
+
+    case RequirementType.NIVEL:
+      return sheet.nivel >= (req.value || 0);
+
+    case RequirementType.PODER:
+      return (
+        hasPowerNamed(req.name as string, ctx) ||
+        (sheet.sheetActionHistory?.some((entry) =>
+          entry.changes.some(
+            (change) =>
+              change.type === 'OptionChosen' && change.chosenName === req.name
+          )
+        ) ??
+          false)
+      );
+
+    case RequirementType.PERICIA: {
+      // Requisito de Ofício genérico é satisfeito por qualquer Ofício treinado.
+      if (isGenericOficio(req.name)) {
+        return (
+          sheet.completeSkills?.some(
+            (s) => isOficioSkill(s.name) && (s.training || 0) > 0
+          ) ?? false
+        );
+      }
+
+      if (isTrainedIn(sheet, req.name as string)) return true;
+
+      // Artesão Criativo: Ofício (Artesão) substitui qualquer outro Ofício
+      // para fins de pré-requisito ("qualquer outro Ofício", diz o poder), o
+      // que inclui os Ofícios customizados criados em runtime por
+      // `buildCustomOficio` — por isso `isOficioSkill` e não a lista fechada
+      // `ALL_SPECIFIC_OFICIOS`. Espelha o mesmo trecho em `functions/powers.ts`.
+      if (isOficioSkill(req.name) && !isGenericOficio(req.name)) {
+        return (
+          hasPowerNamed(ARTESAO_CRIATIVO, ctx) &&
+          isTrainedIn(sheet, Skill.OFICIO_ARTESANATO)
+        );
+      }
+
+      return false;
+    }
+
+    case RequirementType.PROFICIENCIA: {
+      // 'all' = qualquer proficiência de arma que não seja Simples.
+      if (req.name === 'all') {
+        return ['Armas Marciais', 'Armas de Fogo', 'Armas Exóticas'].some(
+          (wp) => sheet.classe.proficiencias.includes(wp)
+        );
+      }
+      return sheet.classe.proficiencias.includes(req.name as string);
+    }
+
+    case RequirementType.CLASSE:
+      // O nome da classe fica em `name` nos dados — mesmo campo que
+      // `formatRequirement` lê para montar o texto.
+      return isClassOrVariantOf(sheet.classe, req.name as string);
+
+    case RequirementType.DEVOTO: {
+      const godName = req.name;
+      if (!godName || godName === 'any') return !!sheet.devoto?.divindade;
+      return (
+        sheet.devoto?.divindade.name.toLowerCase() === godName.toLowerCase()
+      );
+    }
+
+    case RequirementType.HABILIDADE:
+      return sheet.classe.abilities?.some((a) => a.name === req.name) ?? false;
+
+    case RequirementType.RACA:
+      // Aceita variantes e "considerado um X para efeitos relacionados a raça".
+      return !!req.name && isRaceOrVariantOf(sheet.raca, req.name as string);
+
+    case RequirementType.CHASSIS:
+      return sheet.raca.chassis === req.name;
+
+    case RequirementType.HERANCA:
+      // Herança do Moreau (ex.: "Moreau da Serpente").
+      return sheet.raca.heritage === req.name;
+
+    case RequirementType.TIER_LIMIT: {
+      const category = req.name as string;
+      const matches = (p: { name: string }) => p.name.includes(category);
+      const pending =
+        kind === 'class' ? pendingClassPowers : pendingGeneralPowers;
+      const saved = kind === 'class' ? sheet.classPowers : sheet.generalPowers;
+      return (
+        pending.filter(matches).length + (saved?.filter(matches).length ?? 0) <
+        1
+      );
+    }
+
+    default:
+      // Tipos não avaliados aqui contam como atendidos. Ver o comentário de
+      // divergência no topo do módulo.
+      return true;
+  }
+}
+
+/**
+ * Avalia um poder e devolve o veredito **junto com o detalhamento** de cada
+ * requisito, para a UI mostrar `✓ Força 15` / `✗ Força 15 — você tem 12`.
+ */
+export function evaluatePowerRequirements(
+  power: RequirablePower,
+  ctx: RequirementContext,
+  kind: PowerKind = 'general'
+): PowerAvailability {
+  // Ver `prerequisiteWaivers`.
+  const waivers =
+    ctx.waivers ??
+    getActiveWaivers(ctx.sheet, {
+      generalPowers: ctx.pendingGeneralPowers,
+      classPowers: ctx.pendingClassPowers,
+    });
+  const waiver = findWaiverForPower(power, waivers, ctx.className);
+
+  // Waiver TOTAL (sem `requirementTypes`) não deixa requisito para exibir — é o
+  // comportamento histórico de `bypassPrereqForPowersNamed`.
+  //
+  // Só que requisito NEGADO nunca é dispensado (ver `isRequirementWaived`): ele
+  // PROÍBE uma combinação, e ignorá-lo inverteria a regra. O atalho é portanto
+  // limitado a poderes sem negação — do contrário este avaliador liberaria um
+  // poder que `isPowerAvailable`, que decide regra a regra, continua negando.
+  // Nenhum dado de hoje cai nesse caso; a trava existe para os dois motores não
+  // divergirem em silêncio quando cair.
+  const hasNegatedRequirement = power.requirements?.some((group) =>
+    group.some((requirement) => requirement.not)
+  );
+  const waivesEverything =
+    !!waiver &&
+    !waiver.requirementTypes &&
+    !!power.requirements?.length &&
+    !hasNegatedRequirement;
+  if (waivesEverything) return { available: true, bypassed: true, groups: [] };
+
+  if (!power.requirements || power.requirements.length === 0) {
+    return { available: true, bypassed: false, groups: [] };
+  }
+
+  const groups = power.requirements.map((group) => {
+    const requirements = group.map((requirement) => {
+      const { waived, reason } = isRequirementWaived(
+        requirement,
+        power,
+        waivers,
+        ctx.className
+      );
+      const met =
+        waived ||
+        applyRequirementNot(
+          requirement,
+          isRequirementMet(requirement, ctx, kind)
+        );
+      return {
+        requirement,
+        met,
+        waived: waived || undefined,
+        waivedReason: waived ? reason : undefined,
+        label: formatRequirement(requirement),
+        current: met ? undefined : currentValueFor(requirement, ctx),
+      };
+    });
+
+    return { met: requirements.every((r) => r.met), requirements };
+  });
+
+  return {
+    available: groups.some((group) => group.met),
+    bypassed: false,
+    groups,
+  };
+}
+
+/** Atalho para quem só precisa do booleano. */
+export function isPowerAvailableInEditor(
+  power: RequirablePower,
+  ctx: RequirementContext,
+  kind: PowerKind = 'general'
+): boolean {
+  return evaluatePowerRequirements(power, ctx, kind).available;
+}

@@ -1,6 +1,11 @@
 /* eslint-disable */
 // Stub público — gerado por scripts/generate-premium-stub.mjs.
-import { NullComponent, PassthroughProvider, inertService } from './_inert';
+import {
+  NullComponent,
+  PassthroughProvider,
+  inertService,
+  noop,
+} from './_inert';
 import { DEFAULT_FEATURE_FLAGS } from '@/types/featureFlags.types';
 
 // Sem o módulo premium não há como verificar assinatura, então toda
@@ -54,6 +59,7 @@ export const MyHomebrewsPage = NullComponent;
 export const OriginHomebrewEditorPage = NullComponent;
 export const PartnersProvider = PassthroughProvider;
 export const PlayerScreenPage = NullComponent;
+export const PortraitConfigDialog = NullComponent;
 export const PowerPackEditorPage = NullComponent;
 export const PublishBestiaryModal = NullComponent;
 export const PushNotificationPrompt = NullComponent;
@@ -62,11 +68,17 @@ export const RaceHomebrewEditorPage = NullComponent;
 export const SpellPackEditorPage = NullComponent;
 export const ThreadPage = NullComponent;
 export const VariantClassEditorPage = NullComponent;
+export const buildPreviewSnapshot = noop;
 export const getFeatureFlags = async () => ALL_FEATURES_DISABLED;
 export const useHomebrews = () => ({
   activated: [],
   myHomebrews: [],
   loading: false,
   error: null,
+});
+export const usePortraitAccess = () => ({
+  isEnabled: false,
+  hasAccess: false,
+  needsSupport: false,
 });
 export type BestiaryPublicationData = any;

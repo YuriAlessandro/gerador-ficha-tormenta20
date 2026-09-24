@@ -35,6 +35,7 @@ export const PRESET_REGION_IDS = {
   spells: 'r-spells',
   equipment: 'r-equipment',
   skills: 'r-skills',
+  journal: 'r-journal',
   /** Tela única do modelo de página contínua. */
   body: 'r-body',
   /** Telas agrupadas do menu de ação. */
@@ -62,6 +63,7 @@ export const PRESET_SECTION_IDS = {
   sizeDisplacement: sectionId('sizeDisplacement'),
   partners: sectionId('partners'),
   animalCompanions: sectionId('animalCompanions'),
+  journal: sectionId('journal'),
   creationSteps: sectionId('creationSteps'),
   supportCta: sectionId('supportCta'),
   bugReport: sectionId('bugReport'),
@@ -117,11 +119,11 @@ const footerRegion = (): LayoutRegion => ({
  * Reproduz o arranjo original:
  * - coluna esquerda: identidade + PV/PM, atributos, parceiros, companheiros,
  *   depois o card de abas, depois proficiências e tamanho/deslocamento;
- * - coluna direita (só no largo): Perícias;
+ * - coluna direita (só no largo): Perícias e, abaixo, o Diário do Jogador;
  * - abas: Ataques, Defesa, Poderes, Magias, Equip.
  *
- * No estreito, Perícias sai da coluna direita e vira a PRIMEIRA aba — que é o
- * que `Result.tsx` fazia com um `if` cravado no render.
+ * No estreito, Perícias sai da coluna direita e vira a PRIMEIRA aba, e o Diário
+ * vira a ÚLTIMA — que é o que `Result.tsx` fazia com `if`s cravados no render.
  */
 export const PRESET_TABS: SheetLayout = {
   schemaVersion: SHEET_LAYOUT_SCHEMA_VERSION,
@@ -138,7 +140,7 @@ export const PRESET_TABS: SheetLayout = {
     {
       id: PRESET_REGION_IDS.aside,
       role: 'aside',
-      sections: [sec('skills')],
+      sections: [sec('skills'), sec('journal')],
     },
     // A aba de Perícias só existe no estreito; no largo ela fica vazia e o
     // resolve a descarta, então nunca aparece no desktop.
@@ -150,6 +152,8 @@ export const PRESET_TABS: SheetLayout = {
     surface(PRESET_REGION_IDS.equipment, 'Equip.', 'mui:Backpack', [
       'equipment',
     ]),
+    // Mesma lógica da aba de Perícias: só existe no estreito.
+    surface(PRESET_REGION_IDS.journal, 'Diário', 'mui:MenuBook', []),
     {
       id: PRESET_REGION_IDS.mainBottom,
       role: 'main',
@@ -163,6 +167,7 @@ export const PRESET_TABS: SheetLayout = {
   mobile: {
     regionOverrides: {
       [PRESET_SECTION_IDS.skills]: PRESET_REGION_IDS.skills,
+      [PRESET_SECTION_IDS.journal]: PRESET_REGION_IDS.journal,
     },
     hiddenRegionIds: [PRESET_REGION_IDS.aside],
   },
@@ -191,7 +196,7 @@ export const PRESET_SINGLE: SheetLayout = {
     {
       id: PRESET_REGION_IDS.aside,
       role: 'aside',
-      sections: [sec('skills')],
+      sections: [sec('skills'), sec('journal')],
     },
     {
       id: PRESET_REGION_IDS.body,
@@ -256,6 +261,7 @@ export const PRESET_ACTION_MENU: SheetLayout = {
       'partners',
       'animalCompanions',
     ]),
+    surface(PRESET_REGION_IDS.journal, 'Diário', 'mui:MenuBook', ['journal']),
     footerRegion(),
   ],
   // Sem `mobile`: o menu de ação já é desenhado para o estreito, e o default

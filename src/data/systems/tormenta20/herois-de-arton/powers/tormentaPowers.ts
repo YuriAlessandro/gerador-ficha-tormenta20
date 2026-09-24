@@ -3,6 +3,10 @@ import {
   GeneralPowerType,
   RequirementType,
 } from '../../../../../interfaces/Poderes';
+import {
+  BOLSOES_INSANOS_SHEET_BONUSES,
+  CARAPACA_CORROMPIDA_SHEET_BONUSES,
+} from '../../powers/tormentaPowerSheetBonuses';
 
 /**
  * Poderes da Tormenta do suplemento Heróis de Arton
@@ -14,18 +18,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Seu corpo possui espaços vazios sob sua pele ou carapaça, possibilitando que você carregue mais itens, em lugares nos quais eles dificilmente serão achados. Seu limite de carga aumenta em 2 espaços, mais 1 espaço para cada outro poder da Tormenta que você possui, e você recebe +5 em testes de Ladinagem para ocultar itens nesses espaços.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
-    sheetBonuses: [
-      {
-        source: { type: 'power', name: 'Bolsões Insanos' },
-        target: { type: 'MaxSpaces' },
-        // "2 espaços, mais 1 para cada OUTRO poder da Tormenta" — `{tPowQtd}`
-        // já inclui este poder, então `{tPowQtd} - 1` são os outros.
-        modifier: {
-          type: 'TormentaPowersCalc',
-          formula: '2 + ({tPowQtd} - 1)',
-        },
-      },
-    ],
+    sheetBonuses: BOLSOES_INSANOS_SHEET_BONUSES,
   },
   CARAPACA_CORROMPIDA: {
     name: 'Carapaça Corrompida',
@@ -33,6 +26,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'As placas quitinosas que recobrem seu corpo são especialmente grossas, formadas por matéria vermelha que parece repelir os elementos físicos de Arton. Você recebe redução de dano 1. Essa RD aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [[{ type: RequirementType.PODER, name: 'Carapaça' }]],
+    sheetBonuses: CARAPACA_CORROMPIDA_SHEET_BONUSES,
   },
   REPULSIVO: {
     name: 'Repulsivo',

@@ -215,6 +215,80 @@ export const getThemeOptions = (
     },
     shadows: generateShadows(accentColor.main),
     components: {
+      /* Safe-area do iOS: o app roda edge-to-edge (viewport-fit=cover +
+         black-translucent), então toda superfície que encosta numa borda da
+         viewport precisa somar o inset. Tratar aqui, no tema, alcança de uma vez
+         os ~30 <Dialog fullScreen>, os Drawers e os Snackbars do repositório
+         inteiro — incluindo os do submódulo premium, que compartilham este mesmo
+         ThemeProvider. Fora do PWA todo env() vale 0px, então é inerte. */
+      MuiDialog: {
+        styleOverrides: {
+          /* O variant interno do MUI fixa height: 100% no paper fullScreen, e
+             este projeto não usa <CssBaseline /> nem @tailwind base — não há
+             box-sizing global. Sem border-box o padding somaria à altura em vez
+             de descontar. */
+          paperFullScreen: {
+            boxSizing: 'border-box',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            paddingLeft: 'env(safe-area-inset-left, 0px)',
+            paddingRight: 'env(safe-area-inset-right, 0px)',
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          /* No MUI v9 o paper do Drawer é um slot único e o lado vem do
+             ownerState.anchor (não há mais paperAnchorBottom no tema). Drawers
+             laterais são full-height, então também precisam do inset de topo e
+             de rodapé. */
+          paper: ({ ownerState }) => ({
+            boxSizing: 'border-box',
+            ...(ownerState.anchor === 'top' && {
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+            }),
+            ...(ownerState.anchor === 'bottom' && {
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            }),
+            ...((ownerState.anchor === 'left' ||
+              ownerState.anchor === 'right') && {
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+              ...(ownerState.anchor === 'left'
+                ? { paddingLeft: 'env(safe-area-inset-left, 0px)' }
+                : { paddingRight: 'env(safe-area-inset-right, 0px)' }),
+            }),
+          }),
+        },
+      },
+      MuiSnackbar: {
+        /* Margem (e não `bottom`) para preservar o offset responsivo que o
+           próprio MUI calcula. */
+        styleOverrides: {
+          anchorOriginBottomCenter: {
+            marginBottom: 'env(safe-area-inset-bottom, 0px)',
+          },
+          anchorOriginBottomLeft: {
+            marginBottom: 'env(safe-area-inset-bottom, 0px)',
+            marginLeft: 'env(safe-area-inset-left, 0px)',
+          },
+          anchorOriginBottomRight: {
+            marginBottom: 'env(safe-area-inset-bottom, 0px)',
+            marginRight: 'env(safe-area-inset-right, 0px)',
+          },
+          anchorOriginTopCenter: {
+            marginTop: 'env(safe-area-inset-top, 0px)',
+          },
+          anchorOriginTopLeft: {
+            marginTop: 'env(safe-area-inset-top, 0px)',
+            marginLeft: 'env(safe-area-inset-left, 0px)',
+          },
+          anchorOriginTopRight: {
+            marginTop: 'env(safe-area-inset-top, 0px)',
+            marginRight: 'env(safe-area-inset-right, 0px)',
+          },
+        },
+      },
       MuiButton: {
         styleOverrides: {
           root: {

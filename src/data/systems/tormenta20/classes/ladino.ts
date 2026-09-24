@@ -141,9 +141,7 @@ const LADINO: ClassDescription = {
     {
       name: 'Gatuno',
       text: 'Você recebe +2 em Atletismo. Quando escala, não fica desprevenido e avança seu deslocamento normal, em vez de metade dele.',
-      requirements: [
-        [{ type: RequirementType.PERICIA, name: Skill.ATLETISMO }],
-      ],
+      requirements: [],
       sheetBonuses: [
         {
           source: {
@@ -190,7 +188,7 @@ const LADINO: ClassDescription = {
       name: 'Mente Criminosa',
       text: 'Você soma sua Inteligência em Ladinagem e Furtividade',
       requirements: [
-        [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 1 }],
+        [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
       ],
       sheetBonuses: [
         {

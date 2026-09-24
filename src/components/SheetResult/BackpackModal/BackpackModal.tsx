@@ -8,11 +8,17 @@ import {
   Collapse,
   Dialog,
   Divider,
+  FormControl,
+  FormControlLabel,
   Grid,
+  InputLabel,
   IconButton,
   LinearProgress,
+  MenuItem,
+  Select,
   Slide,
   Stack,
+  Switch,
   TextField,
   Toolbar,
   Tooltip,
@@ -21,13 +27,11 @@ import {
   useTheme,
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import {
-  Close as CloseIcon,
-  ExpandLess as ExpandLessIcon,
-  Inventory as InventoryIcon,
-  Save as SaveIcon,
-  Tune as TuneIcon,
-} from '@mui/icons-material';
+import CloseIcon from '@mui/icons-material/Close';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import SaveIcon from '@mui/icons-material/Save';
+import TuneIcon from '@mui/icons-material/Tune';
 import {
   DragDropContext,
   Draggable,
@@ -40,15 +44,18 @@ import CharacterSheet, {
   SubStep,
 } from '../../../interfaces/CharacterSheet';
 import Bag from '../../../interfaces/Bag';
+import { getEffectiveAttributeModifier } from '../../../functions/effectiveAttributes';
+import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Equipment, { equipGroup } from '../../../interfaces/Equipment';
 import { recalculateSheet } from '../../../functions/recalculateSheet';
 import { ignoresEncumbrance } from '../../../functions/encumbrance';
 import BackpackItemCard from './BackpackItemCard';
 import BackpackToolbar from './BackpackToolbar';
+import { getAmmoTypeOptions } from './ammo';
 import AddItemDialog from './AddItemDialog';
 import ItemEditorDialog from './ItemEditorDialog';
 import { useBackpackState } from './useBackpackState';
-import { getWieldingSlot, getWornArmor } from './wielding';
+import { getWieldingSlot, getWornArmor, isClothingWorn } from './wielding';
 import { CATEGORY_ORDER, itemTypeStyles } from './itemTypeStyles';
 
 export interface BackpackModalProps {
@@ -65,6 +72,9 @@ export interface BackpackModalProps {
   initialCategoryFilters?: equipGroup[];
 }
 
+/** Dispensa do aviso de vestir/guardar Vestuário. Preferência de UI, por device. */
+const CLOTHING_HINT_DISMISSED_KEY = 'fdn:backpack:clothingWearHintDismissed';
+
 const SlideUpTransition = React.forwardRef<
   unknown,
   TransitionProps & { children: React.ReactElement }
@@ -73,6 +83,15 @@ const SlideUpTransition = React.forwardRef<
   <Slide direction='up' ref={ref} {...props} />
 ));
 SlideUpTransition.displayName = 'SlideUpTransition';
+
+/**
+ * Formata um valor de moeda para exibição. Sem casas decimais quando o valor é
+ * inteiro (o caso comum) — "T$ 13.500" lê melhor que "T$ 13.500,00" numa linha
+ * de resumo já cheia de números.
+ */
+function formatCoin(value: number): string {
+  return value.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+}
 
 function buildEquipmentSubsteps(
   before: Equipment[],
@@ -116,19 +135,34 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     }),
     [sheet.dinheiro, sheet.dinheiroTC, sheet.dinheiroTO]
   );
-  const forca = sheet.atributos.Força.value;
+  const maxSpacesAttribute = sheet.maxSpacesAttribute ?? Atributo.FORCA;
+  // Atributo EFETIVO: um bônus temporário aumenta a capacidade de carga.
+  const attributeValues = useMemo(
+    () =>
+      Object.values(Atributo).reduce(
+        (values, attribute) => ({
+          ...values,
+          [attribute]: getEffectiveAttributeModifier(sheet, attribute),
+        }),
+        {} as Record<Atributo, number>
+      ),
+    [sheet]
+  );
   // "Devagar e Sempre"/Golem: sobrecarregar não custa deslocamento.
   const sheetIgnoresEncumbrance = ignoresEncumbrance(sheet);
 
   const state = useBackpackState({
     bag: sheet.bag,
     initialMoney,
-    forca,
+    maxSpacesAttribute,
+    attributeValues,
     initialCustomMaxSpaces: sheet.customMaxSpaces,
     initialMainHandItemId: sheet.mainHandItemId,
     initialOffHandItemId: sheet.offHandItemId,
     initialWornArmorId: sheet.wornArmorId,
+    initialUnwornClothingIds: sheet.unwornClothingIds,
     initialGroupByCategory: sheet.backpackGroupByCategory,
+    initialAutoDeductMoney: sheet.backpackAutoDeductMoney,
     initialCategoryFilters,
     open,
   });
@@ -150,11 +184,13 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     setQuantity,
     updateItem,
     setMoney,
+    setMaxSpacesAttribute,
     setCustomMaxSpaces,
     setAutoDeductMoney,
     reorder,
     setWielding,
     setWornArmor,
+    setWornClothing,
     setGroupByCategory,
     revertChanges,
   } = state;
@@ -178,6 +214,20 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
   const wornArmor = getWornArmor(armorsInBag, staged.wornArmorId);
   const ambiguousArmor =
     armorsInBag.length >= 2 && staged.wornArmorId === undefined;
+
+  // Aviso único de descoberta: até esta versão toda peça de Vestuário aplicava
+  // bônus só por estar na mochila, então o jogador precisa saber que agora
+  // existe um estado vestido/guardado. Dispensa em localStorage — é preferência
+  // de UI, nunca dado de personagem.
+  const [clothingHintDismissed, setClothingHintDismissed] = useState(
+    () => localStorage.getItem(CLOTHING_HINT_DISMISSED_KEY) === 'true'
+  );
+  const dismissClothingHint = () => {
+    localStorage.setItem(CLOTHING_HINT_DISMISSED_KEY, 'true');
+    setClothingHintDismissed(true);
+  };
+  const hasClothing = orderedItems.some((it) => it.group === 'Vestuário');
+  const showClothingHint = hasClothing && !clothingHintDismissed;
 
   /**
    * Returns the slot disable map for an item card. Blocks slots when a hand
@@ -254,6 +304,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
 
     const beforeItems = sheet.bag.getOrderedEquipments();
     const newBag = new Bag(staged.equipments, true, staged.displayOrder);
+    const derivedMaxSpacesAttribute =
+      sheet.maxSpacesAttribute ?? Atributo.FORCA;
+    const manualMaxSpacesAttribute =
+      staged.maxSpacesAttribute !== derivedMaxSpacesAttribute
+        ? staged.maxSpacesAttribute
+        : sheet.manualMaxSpacesAttribute;
 
     const recalculated = recalculateSheet(
       {
@@ -262,6 +318,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         dinheiro: staged.money.dinheiro,
         dinheiroTC: staged.money.dinheiroTC,
         dinheiroTO: staged.money.dinheiroTO,
+        manualMaxSpacesAttribute,
         customMaxSpaces: staged.customMaxSpaces,
         // Drive the recalc off the STAGED equip-state, not the stale sheet
         // values — otherwise defesa/armor-penalty are computed against the
@@ -270,6 +327,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         mainHandItemId: staged.mainHandItemId,
         offHandItemId: staged.offHandItemId,
         wornArmorId: staged.wornArmorId,
+        unwornClothingIds: staged.unwornClothingIds,
       },
       undefined,
       undefined,
@@ -321,6 +379,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       dinheiro: staged.money.dinheiro,
       dinheiroTC: staged.money.dinheiroTC,
       dinheiroTO: staged.money.dinheiroTO,
+      manualMaxSpacesAttribute,
+      maxSpacesAttribute: recalculated.maxSpacesAttribute,
       customMaxSpaces: staged.customMaxSpaces,
       maxSpaces: recalculated.maxSpaces ?? sheet.maxSpaces,
       defesa: recalculated.defesa ?? sheet.defesa,
@@ -328,7 +388,9 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       mainHandItemId: staged.mainHandItemId,
       offHandItemId: staged.offHandItemId,
       wornArmorId: staged.wornArmorId,
+      unwornClothingIds: staged.unwornClothingIds,
       backpackGroupByCategory: staged.groupByCategory,
+      backpackAutoDeductMoney: staged.autoDeductMoney,
       sheetBonuses: recalculated.sheetBonuses ?? sheet.sheetBonuses,
       // Propagate the recomputed Damage Reduction so equipment-driven RD
       // (e.g. Adamante armor/shield material) actually persists. Without this,
@@ -416,49 +478,76 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     setEditingItem(null);
   };
 
-  const renderItemCard = (item: Equipment) => (
-    <BackpackItemCard
-      item={item}
-      isOverflowing={item.id ? totals.overflowItemIds.has(item.id) : false}
-      reorderMode={reorderMode}
-      onEdit={() => handleEdit(item)}
-      onDelete={() => item.id && removeItem(item.id)}
-      onIncrementQuantity={
-        item.group !== 'Armadura' && item.group !== 'Escudo'
-          ? () => item.id && setQuantity(item.id, (item.quantity ?? 1) + 1)
-          : undefined
-      }
-      onDecrementQuantity={
-        item.group !== 'Armadura' && item.group !== 'Escudo'
-          ? () =>
-              item.id &&
-              setQuantity(item.id, Math.max(1, (item.quantity ?? 1) - 1))
-          : undefined
-      }
-      wieldingSlot={getWieldingSlot(item.id, wieldingState)}
-      onWieldingChange={
-        item.id ? (slot) => setWielding(item.id as string, slot) : undefined
-      }
-      wieldingDisabledSlots={getDisabledSlots(item.id)}
-      isWorn={item.id !== undefined && wornArmor?.id === item.id}
-      onWornChange={
-        item.id && item.group === 'Armadura'
-          ? (worn) => setWornArmor(worn ? (item.id as string) : null)
-          : undefined
-      }
-      onAdjustAmmoUnits={
-        item.isAmmo && item.id
-          ? (delta) => {
-              const next: Equipment = {
-                ...item,
-                unitsRemaining: Math.max(0, (item.unitsRemaining ?? 0) + delta),
-              };
-              updateItem(item.id as string, next);
-            }
-          : undefined
-      }
-    />
-  );
+  /**
+   * Estado de vestimenta do card. Os dois grupos vestíveis guardam a escolha em
+   * lugares diferentes — armadura num id único, vestuário num conjunto de
+   * guardados — mas a UI é a mesma, então a diferença morre aqui.
+   */
+  const buildWornProps = (
+    item: Equipment
+  ): { isWorn: boolean; onWornChange?: (worn: boolean) => void } => {
+    const itemId = item.id;
+    if (!itemId) return { isWorn: false, onWornChange: undefined };
+    if (item.group === 'Armadura') {
+      return {
+        isWorn: wornArmor?.id === itemId,
+        onWornChange: (worn) => setWornArmor(worn ? itemId : null),
+      };
+    }
+    if (item.group === 'Vestuário') {
+      return {
+        isWorn: isClothingWorn(itemId, staged.unwornClothingIds),
+        onWornChange: (worn) => setWornClothing(itemId, worn),
+      };
+    }
+    return { isWorn: false, onWornChange: undefined };
+  };
+
+  const renderItemCard = (item: Equipment) => {
+    const wornProps = buildWornProps(item);
+    return (
+      <BackpackItemCard
+        item={item}
+        isOverflowing={item.id ? totals.overflowItemIds.has(item.id) : false}
+        reorderMode={reorderMode}
+        onEdit={() => handleEdit(item)}
+        onDelete={() => item.id && removeItem(item.id)}
+        onIncrementQuantity={
+          item.group !== 'Armadura' && item.group !== 'Escudo'
+            ? () => item.id && setQuantity(item.id, (item.quantity ?? 1) + 1)
+            : undefined
+        }
+        onDecrementQuantity={
+          item.group !== 'Armadura' && item.group !== 'Escudo'
+            ? () =>
+                item.id &&
+                setQuantity(item.id, Math.max(1, (item.quantity ?? 1) - 1))
+            : undefined
+        }
+        wieldingSlot={getWieldingSlot(item.id, wieldingState)}
+        onWieldingChange={
+          item.id ? (slot) => setWielding(item.id as string, slot) : undefined
+        }
+        wieldingDisabledSlots={getDisabledSlots(item.id)}
+        isWorn={wornProps.isWorn}
+        onWornChange={wornProps.onWornChange}
+        onAdjustAmmoUnits={
+          item.isAmmo && item.id
+            ? (delta) => {
+                const next: Equipment = {
+                  ...item,
+                  unitsRemaining: Math.max(
+                    0,
+                    (item.unitsRemaining ?? 0) + delta
+                  ),
+                };
+                updateItem(item.id as string, next);
+              }
+            : undefined
+        }
+      />
+    );
+  };
 
   // Com um filtro de categoria ativo, "Adicionar item" já abre na aba
   // correspondente — o usuário que filtrou por Armadura quer adicionar uma
@@ -468,6 +557,15 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     if (filters.selectedCategories.size === 0) return undefined;
     return CATEGORY_ORDER.find((cat) => filters.selectedCategories.has(cat));
   }, [filters.selectedCategories]);
+
+  // Tipos de munição já presentes na mochila, para os seletores de autoria
+  // sugerirem munição autoral ("Cartuchos a vapor") além dos cinco do livro.
+  // Sai da mochila ENCENADA, e não da salva, para um pacote criado e uma arma
+  // criada na mesma sessão já se encontrarem sem fechar o modal.
+  const ammoTypeOptions = useMemo(
+    () => getAmmoTypeOptions(staged.equipments),
+    [staged.equipments]
+  );
 
   // Group items by category for the grouped layout, preserving the manual
   // displayOrder within each group via filteredItems already being ordered.
@@ -688,6 +786,19 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
             <Typography variant='caption' sx={{ display: 'block', mt: 0.25 }}>
               Enquanto nenhuma estiver marcada como vestida, NENHUMA aplica seu
               bônus de defesa ou penalidade. Use o botão de armadura no card.
+            </Typography>
+          </Alert>
+        )}
+
+        {showClothingHint && (
+          <Alert severity='info' onClose={dismissClothingHint} sx={{ mb: 2 }}>
+            <Typography variant='body2' sx={{ fontWeight: 600 }}>
+              Novidade: agora você veste e guarda peças de Vestuário.
+            </Typography>
+            <Typography variant='caption' sx={{ display: 'block', mt: 0.25 }}>
+              Só o que está vestido aplica bônus. Suas peças atuais já estão
+              vestidas — nada mudou na sua ficha. Use o botão de cabide no card
+              para guardar uma peça.
             </Typography>
           </Alert>
         )}
@@ -922,6 +1033,48 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                 {totals.totalSpaces} / {totals.maxSpaces}
               </Box>
             </Typography>
+            {/* Saldo à vista: antes só existia dentro do painel do TuneIcon e
+                no diálogo de adicionar item, então o jogador não via o dinheiro
+                mudar enquanto mexia na mochila. Lê o valor STAGED, logo
+                acompanha cada compra/reembolso em tempo real. */}
+            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+              T${' '}
+              <Box
+                component='span'
+                sx={{
+                  fontWeight: 700,
+                  // Pode ficar negativo: o gate do botão de adicionar só olha
+                  // o preço unitário, e os campos de dinheiro aceitam qualquer
+                  // valor.
+                  color:
+                    staged.money.dinheiro < 0 ? 'error.main' : 'text.primary',
+                }}
+              >
+                {formatCoin(staged.money.dinheiro)}
+              </Box>
+            </Typography>
+            {staged.money.dinheiroTC > 0 && (
+              <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                TC{' '}
+                <Box
+                  component='span'
+                  sx={{ fontWeight: 600, color: 'text.primary' }}
+                >
+                  {formatCoin(staged.money.dinheiroTC)}
+                </Box>
+              </Typography>
+            )}
+            {staged.money.dinheiroTO > 0 && (
+              <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                TO{' '}
+                <Box
+                  component='span'
+                  sx={{ fontWeight: 600, color: 'text.primary' }}
+                >
+                  {formatCoin(staged.money.dinheiroTO)}
+                </Box>
+              </Typography>
+            )}
           </Stack>
           <Tooltip
             title={
@@ -969,6 +1122,28 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
               (v) => setMoney({ dinheiroTO: v }),
               '1 TO = T$ 10'
             )}
+            <FormControl
+              size='small'
+              sx={{ width: { xs: 'calc(50% - 4px)', sm: 170 } }}
+            >
+              <InputLabel id='backpack-load-attribute-label'>
+                Atributo de carga
+              </InputLabel>
+              <Select
+                labelId='backpack-load-attribute-label'
+                value={staged.maxSpacesAttribute}
+                label='Atributo de carga'
+                onChange={(event) =>
+                  setMaxSpacesAttribute(event.target.value as Atributo)
+                }
+              >
+                {Object.values(Atributo).map((attribute) => (
+                  <MenuItem key={attribute} value={attribute}>
+                    {attribute}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <TextField
               label='Espaço máx.'
               size='small'
@@ -992,23 +1167,50 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           </Stack>
         </Collapse>
 
+        {/* O switch divide a linha com os botões em vez de ganhar uma linha só
+            sua: no mobile o modal é fullScreen e cada linha do rodapé come
+            altura da lista de itens. `flexWrap` deixa ele cair sozinho quando
+            não couber. */}
         <Stack
           direction='row'
           spacing={1}
-          sx={{ justifyContent: 'flex-end', mt: { xs: 0.25, sm: 0 } }}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 1,
+            mt: { xs: 0.25, sm: 0 },
+          }}
         >
-          <Button onClick={handleClose} size={isMobile ? 'small' : 'medium'}>
-            Cancelar
-          </Button>
-          <Button
-            variant='contained'
-            startIcon={isMobile ? undefined : <SaveIcon />}
-            onClick={handleSave}
-            disabled={!isDirty}
-            size={isMobile ? 'small' : 'medium'}
-          >
-            Salvar
-          </Button>
+          <Tooltip title='Quando ativo, adicionar um item desconta o preço do saldo. Remover devolve apenas o que foi comprado agora.'>
+            <FormControlLabel
+              control={
+                <Switch
+                  size='small'
+                  checked={staged.autoDeductMoney}
+                  onChange={(e) => setAutoDeductMoney(e.target.checked)}
+                />
+              }
+              label={
+                <Typography variant='caption'>Auto-descontar T$</Typography>
+              }
+              sx={{ mr: 0 }}
+            />
+          </Tooltip>
+          <Stack direction='row' spacing={1}>
+            <Button onClick={handleClose} size={isMobile ? 'small' : 'medium'}>
+              Cancelar
+            </Button>
+            <Button
+              variant='contained'
+              startIcon={isMobile ? undefined : <SaveIcon />}
+              onClick={handleSave}
+              disabled={!isDirty}
+              size={isMobile ? 'small' : 'medium'}
+            >
+              Salvar
+            </Button>
+          </Stack>
         </Stack>
       </Box>
       <AddItemDialog
@@ -1022,6 +1224,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         autoDeductMoney={staged.autoDeductMoney}
         onToggleAutoDeductMoney={setAutoDeductMoney}
         defaultCategory={addDialogCategory}
+        ammoTypeOptions={ammoTypeOptions}
       />
       <ItemEditorDialog
         open={editorOpen}
@@ -1031,6 +1234,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         }}
         item={editingItem}
         onSave={handleEditorSave}
+        ammoTypeOptions={ammoTypeOptions}
       />
     </Dialog>
   );

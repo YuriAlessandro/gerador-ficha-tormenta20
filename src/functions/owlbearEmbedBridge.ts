@@ -37,6 +37,12 @@ export interface OwlbearVitalsPayload {
   currentPv?: number;
   tempPv?: number;
   defense?: number;
+  // PM entrou depois, para a extensão do Roll20 espelhar PV e PM na ficha
+  // nativa enquanto o painel está aberto. Campos aditivos: a extensão do
+  // Owlbear, que só lê PV, ignora o que não conhece.
+  maxPm?: number;
+  currentPm?: number;
+  tempPm?: number;
 }
 
 let currentToken: string | null = null;

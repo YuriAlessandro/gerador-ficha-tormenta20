@@ -21,6 +21,7 @@ const armaNaturalDraconica: Equipment = {
   critico: 'x2',
   tipo: 'Perf./Imp.',
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const DRACONIC_BLESSINGS: GeneralPower[] = [

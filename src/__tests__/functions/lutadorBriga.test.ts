@@ -16,6 +16,10 @@ import { Atributo } from '../../data/systems/tormenta20/atributos';
 import Bag from '../../interfaces/Bag';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
+import {
+  computeUnarmedDamage,
+  getUnarmedDamageDice,
+} from '../../functions/unarmedDamage';
 
 const createLutadorSheet = (nivel: number): CharacterSheet => {
   const coreClasses = dataRegistry.getClassesBySupplements([
@@ -26,10 +30,10 @@ const createLutadorSheet = (nivel: number): CharacterSheet => {
   ]);
 
   const lutadorClass = coreClasses.find((c) => c.name === 'Lutador');
-  const humanoRace = coreRaces.find((r) => r.name === 'Humano');
+  const elfoRace = coreRaces.find((r) => r.name === 'Elfo');
 
-  if (!lutadorClass || !humanoRace) {
-    throw new Error('Lutador class or Humano race not found in registry');
+  if (!lutadorClass || !elfoRace) {
+    throw new Error('Lutador class or Elfo race not found in registry');
   }
 
   const attributes: CharacterAttributes = {
@@ -47,7 +51,7 @@ const createLutadorSheet = (nivel: number): CharacterSheet => {
     sexo: 'Masculino',
     nivel,
     atributos: attributes,
-    raca: humanoRace,
+    raca: elfoRace,
     classe: lutadorClass,
     skills: [],
     pv: 20,
@@ -60,7 +64,7 @@ const createLutadorSheet = (nivel: number): CharacterSheet => {
     origin: undefined,
     spells: [],
     displacement: 9,
-    size: humanoRace.size!,
+    size: elfoRace.size!,
     maxSpaces: 10,
     generalPowers: [],
     classPowers: [],
@@ -167,18 +171,29 @@ describe('updateBrigaRolls', () => {
   });
 });
 
+/**
+ * `Elfo`, e não `Humano`: o `Versátil` do Humano sorteia um poder geral de
+ * QUALQUER tipo a cada geração — inclusive da Tormenta. Desde que Corpo
+ * Aberrante passou a aumentar o dano desarmado, isso deixaria o dado da Briga
+ * dependente do sorteio.
+ *
+ * Mesmo assim a asserção do dado FINAL é relacional (o motor aleatório também
+ * pode sortear Corpo Aberrante no level-up); o que se fixa é a tabela da Briga,
+ * que é o objeto deste teste.
+ */
 describe('generateRandomSheet — Briga scaling integration', () => {
   it('scales Briga dice on a randomly generated level 10 Lutador', () => {
     const sheet = generateRandomSheet({
       nivel: 10,
-      raca: 'Humano',
+      raca: 'Elfo',
       classe: 'Lutador',
       origin: '',
       devocao: { label: '', value: '' },
       supplements: [SupplementId.TORMENTA20_CORE],
     });
 
-    expect(getBrigaRollDice(sheet)).toBe('1d10');
+    expect(computeUnarmedDamage(sheet).base).toBe('1d10');
+    expect(getBrigaRollDice(sheet)).toBe(getUnarmedDamageDice(sheet));
   });
 });
 

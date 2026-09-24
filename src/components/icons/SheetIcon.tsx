@@ -23,6 +23,7 @@ import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import GroupsIcon from '@mui/icons-material/Groups';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import PersonIcon from '@mui/icons-material/Person';
@@ -43,6 +44,7 @@ const MUI_ICONS: Record<string, React.ComponentType<SvgIconProps>> = {
   Favorite: FavoriteIcon,
   Groups: GroupsIcon,
   HistoryEdu: HistoryEduIcon,
+  MenuBook: MenuBookIcon,
   MilitaryTech: MilitaryTechIcon,
   NoteAlt: NoteAltIcon,
   Person: PersonIcon,

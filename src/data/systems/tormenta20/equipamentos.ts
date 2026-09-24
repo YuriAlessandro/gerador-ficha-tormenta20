@@ -1,5 +1,7 @@
 import _ from 'lodash';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
+import { getEffectiveAttributeModifier } from '../../../functions/effectiveAttributes';
+import { Atributo } from './atributos';
 import Equipment, {
   DefenseEquipment,
   CombatItems,
@@ -49,6 +51,11 @@ export const Armas = catalog({
     ammoType: 'Flechas',
     ammoPackSize: 20,
   },
+  // Munição genérica da tabela de tesouro (`rewards/items.ts`). Sem `ammoType`
+  // de propósito: a linha do livro não diz de que tipo é, e cravar um aqui
+  // decidiria a regra em silêncio. Sem tipo ela ainda conta espaços, recarrega
+  // e mostra unidades — só não auto-vincula a uma arma, e o jogador escolhe o
+  // tipo no editor da mochila.
   MUNICAO: {
     nome: 'Munição (20)',
     dano: '-',
@@ -58,6 +65,9 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 10,
+    isAmmo: true,
+    ammoPackSize: 20,
+    ammoUnitsPerSpace: 20,
   },
   VIROTES: {
     nome: 'Virotes (20)',
@@ -128,6 +138,22 @@ export const Armas = catalog({
     group: 'Arma',
     preco: 4,
   },
+  // Unidade base do ataque desarmado — preço/espaço 0, dano/crítico mantidos
+  // vivos por `updateDesarmadoTaggedWeaponsDano` (ver `unarmedDamage.ts`), que
+  // reescreve qualquer arma com `weaponTags: ['desarmado']` (esta e a Manopla)
+  // a cada recálculo. NÃO faz parte de `armasSimples`/`ARMAS_SIMPLES_E_MARCIAIS`
+  // de propósito — entraria nos pools de "arma simples aleatória" das origens.
+  ATAQUE_DESARMADO: {
+    nome: 'Ataque Desarmado',
+    dano: '1d3',
+    critico: 'x2',
+    spaces: 0,
+    tipo: 'Impacto',
+    alcance: '-',
+    group: 'Arma',
+    preco: 0,
+    weaponTags: ['desarmado'],
+  },
   MANOPLA: {
     nome: 'Manopla',
     weaponCategory: 'simple',
@@ -138,6 +164,11 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 10,
+    // Dano "-" é a convenção do livro pra "usa o dano desarmado" — a Manopla
+    // conta como ataque desarmado (dano letal em vez do não-letal padrão).
+    // O "-" é só o placeholder de catálogo: `updateDesarmadoTaggedWeaponsDano`
+    // sobrescreve com o dado desarmado vivo assim que a arma entra na mochila.
+    weaponTags: ['desarmado'],
   },
   CLAVA: {
     nome: 'Clava',
@@ -920,7 +951,11 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
   if (!heavyArmor) {
     // Se for nobre
     if (cloneSheet.classe.name === 'Nobre') {
-      const carismaMod = cloneSheet.atributos.Carisma.value;
+      // Atributo EFETIVO: um bônus temporário de Carisma sobe a Defesa do Nobre.
+      const carismaMod = getEffectiveAttributeModifier(
+        cloneSheet,
+        Atributo.CARISMA
+      );
       // Only add step if Carisma modifier is not 0
       if (carismaMod !== 0) {
         cloneSheet.steps.push({
@@ -938,7 +973,11 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
     }
     // Se não for Nobre
     else {
-      const destreza = cloneSheet.atributos.Destreza.value;
+      // Atributo EFETIVO (ver `functions/effectiveAttributes.ts`).
+      const destreza = getEffectiveAttributeModifier(
+        cloneSheet,
+        Atributo.DESTREZA
+      );
       // Only add step if Destreza modifier is not 0
       if (destreza !== 0) {
         cloneSheet.steps.push({

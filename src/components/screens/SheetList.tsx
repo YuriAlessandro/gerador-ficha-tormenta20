@@ -13,10 +13,8 @@ import {
   Container,
   Chip,
 } from '@mui/material';
-import {
-  Storage as StorageIcon,
-  CloudOff as CloudOffIcon,
-} from '@mui/icons-material';
+import StorageIcon from '@mui/icons-material/Storage';
+import CloudOffIcon from '@mui/icons-material/CloudOff';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import {

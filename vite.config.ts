@@ -6,6 +6,10 @@ import { defineConfig, Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
+import {
+  isPremiumAvailable,
+  premiumStubPlugin,
+} from './scripts/premiumStubPlugin';
 
 // Fonte única da versão: `package.json`. Além de nomear os caches do PWA
 // (bumpar a versão invalida todos), é exposta ao bundle como `__APP_VERSION__`
@@ -15,58 +19,7 @@ const APP_VERSION: string = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
 ).version;
 
-const PREMIUM_DIR = path.resolve(__dirname, 'src/premium');
-const PREMIUM_STUB_DIR = path.resolve(__dirname, 'src/premium-stub');
-
-// O submódulo premium é privado. Sem ele (clone sem --recurse-submodules, ou
-// contribuidor sem acesso ao repo), o diretório existe mas fica vazio.
-// VITE_NO_PREMIUM=1 força o mesmo caminho mesmo com o submódulo presente,
-// para conferir se o build público continua de pé.
-const premiumAvailable =
-  process.env.VITE_NO_PREMIUM !== '1' &&
-  fs.existsSync(path.join(PREMIUM_DIR, 'index.ts'));
-
-// Redireciona qualquer import que caia dentro de src/premium para o stub
-// público em src/premium-stub. Trabalha sobre o caminho absoluto já resolvido,
-// então cobre tanto `@/premium/...` quanto os `../premium/...` relativos dos
-// barrels em src/services — nenhum arquivo de src/ precisa ser editado.
-function premiumStubPlugin(): Plugin {
-  return {
-    name: 'premium-stub',
-    enforce: 'pre',
-    async resolveId(source, importer) {
-      // O plugin `vite:alias` roda antes dos plugins `enforce: 'pre'`, então o
-      // alias `@` já chega aqui expandido para caminho absoluto. Por isso as
-      // três formas precisam ser tratadas.
-      const [spec, query = ''] = source.split(/(?=\?)/, 2);
-      let abs: string | null = null;
-      if (spec === '@/premium' || spec.startsWith('@/premium/')) {
-        abs = path.resolve(__dirname, 'src', spec.slice(2));
-      } else if (path.isAbsolute(spec)) {
-        abs = spec;
-      } else if (/^\.{1,2}\//.test(spec) && importer) {
-        abs = path.resolve(path.dirname(importer), spec);
-      }
-      if (!abs) return null;
-      if (abs !== PREMIUM_DIR && !abs.startsWith(PREMIUM_DIR + path.sep))
-        return null;
-
-      const rel = path.relative(PREMIUM_DIR, abs);
-      const target =
-        (rel ? path.join(PREMIUM_STUB_DIR, rel) : PREMIUM_STUB_DIR) + query;
-      const resolved = await this.resolve(target, importer, { skipSelf: true });
-      if (!resolved) {
-        this.error(
-          `[premium-stub] falta stub para "${source}" (esperado em ${path.relative(
-            __dirname,
-            target
-          )}). Adicione o módulo em src/premium-stub/.`
-        );
-      }
-      return resolved;
-    },
-  };
-}
+const premiumAvailable = isPremiumAvailable(__dirname);
 
 // Plugin to handle SPA routing for paths with dots (e.g., /perfil/user.name)
 // This runs AFTER Vite's middleware to catch 404s on client-side routes
@@ -135,12 +88,21 @@ export default defineConfig({
   base: '/',
   plugins: [
     spaFallbackPlugin(),
-    ...(premiumAvailable ? [] : [premiumStubPlugin()]),
+    ...(premiumAvailable ? [] : [premiumStubPlugin(__dirname)]),
     react(),
-    // O checker roda tsc e eslint sobre todo o src. Sem o submódulo premium os
-    // 173 imports viram TS2307 e o overlay cobre a tela — o stub resolve em
-    // runtime, mas não no type-check. Desligado nesse modo de propósito.
-    ...(premiumAvailable
+    // O checker roda tsc e eslint sobre todo o src — medido em 1.8 GB (tsc) +
+    // 2.1 GB (eslint) de pico, dentro do processo do dev server e re-rodando a
+    // cada save. Somado ao servidor isso estourava a RAM do WSL e o kernel
+    // matava o `npm start` por OOM. O editor já roda tsserver e eslintServer,
+    // então em dev isso era o mesmo trabalho pago duas vezes.
+    //
+    // Agora é opt-in: `VITE_CHECK=1 npm start` para ter o overlay de volta.
+    // O portão de verdade continua sendo `npx tsc --noEmit` + eslint no CI.
+    //
+    // Sem o submódulo premium ele fica desligado de qualquer forma: os 173
+    // imports viram TS2307 e o overlay cobre a tela — o stub resolve em
+    // runtime, mas não no type-check.
+    ...(premiumAvailable && process.env.VITE_CHECK === '1'
       ? [
           checker({
             overlay: { initialIsOpen: false },
@@ -196,7 +158,22 @@ export default defineConfig({
         importScripts: ['push-sw.js'],
         // Exclude HTML from precache - let it be handled by NetworkFirst runtime caching
         // This ensures users always get the latest HTML on navigation
-        globPatterns: ['**/*.{js,css,ico,png,svg,json,wasm}'],
+        //
+        // Só o app shell. O glob antigo (`**/*.{js,css,ico,png,svg,json,wasm}`)
+        // pegava tudo: 129 arquivos, 31 MB — os 24 chunks de tela lazy, o
+        // dice-box inteiro e 9,7 MB de PNG, sendo 7,9 MB em três imagens
+        // decorativas. Isso significava 31 MB baixados a cada versão nova, e
+        // uma janela de vários minutos, a cada deploy, em que o SW disputava
+        // banda com as próprias telas que o usuário estava tentando abrir.
+        //
+        // As telas lazy continuam funcionando offline — só que pelo cache de
+        // runtime, a partir da primeira visita naquela versão, em vez de
+        // adiantado.
+        globPatterns: [
+          'assets/index-*.js',
+          'assets/index-*.css',
+          '*.{ico,png,svg,txt}',
+        ],
         // `_routes.json` é config de deploy do Cloudflare Pages (define quais
         // caminhos invocam a Function), não asset da aplicação. O glob de .json
         // acima o pegaria e o service worker o precachearia à toa.
@@ -268,6 +245,37 @@ export default defineConfig({
                 maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
               },
+              plugins: [
+                {
+                  // Guarda contra envenenamento do cache local.
+                  //
+                  // O `_redirects` do Pages termina em `/* /index.html 200`, e
+                  // o Pages não aceita 404 em `_redirects` — então um asset que
+                  // falte por um instante (janela de propagação de um deploy)
+                  // não dá 404: dá 200 com o HTML do SPA. Sem este guard o SWR
+                  // guardava esse HTML sob a URL do `.js` por 7 dias, e o
+                  // aparelho ficava com "Failed to fetch dynamically imported
+                  // module" em toda navegação — só naquele dispositivo, com o
+                  // servidor íntegro o tempo todo.
+                  //
+                  // Precisa ser livre de closure: o workbox-build serializa a
+                  // função para dentro do `sw.js` gerado.
+                  cacheWillUpdate: async ({
+                    request,
+                    response,
+                  }: {
+                    request: Request;
+                    response: Response;
+                  }) => {
+                    const type = response.headers.get('content-type') || '';
+                    const wantsCode =
+                      request.destination === 'script' ||
+                      request.destination === 'style';
+                    if (wantsCode && type.includes('text/html')) return null;
+                    return response;
+                  },
+                },
+              ],
             },
           },
         ],

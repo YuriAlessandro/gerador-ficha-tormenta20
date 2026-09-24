@@ -8,6 +8,9 @@ import type {
   ActiveEffectBonus,
 } from '../../premium/interfaces/ActiveEffect';
 import { getActiveEffectForSpell } from '../../premium/data/activePowers';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { getEffectiveAttributes } from '../effectiveAttributes';
+import { getWeaponDisplayDamage } from '../weaponSkill';
 
 /**
  * Passo de dano por categoria de tamanho (JDA, Toques Finais p. 106) e o
@@ -194,8 +197,15 @@ describe('magias que mudam de categoria', () => {
 
     const out = recalculateSheet(sheetWith(maior.bonuses));
     expect(out.size.name).toBe('Grande');
-    // 1d8 → 1d10 pelo tamanho, +2 de dano melee pela expansão de Força.
-    expect(weapon(out)?.dano).toBe('1d10+2');
+    // A string bakeada carrega só o passo de dado do tamanho: 1d8 → 1d10. A
+    // Força NÃO é bakeada — ela entra na exibição, a partir do atributo
+    // efetivo (ver `functions/effectiveAttributes.ts`).
+    expect(weapon(out)?.dano).toBe('1d10');
+    expect(out.atributosTemporarios?.[Atributo.FORCA]).toBe(2);
+    // Na ficha o jogador vê 1d10 + Força efetiva (base 2 + magia 2) = 1d10+4.
+    expect(
+      getWeaponDisplayDamage(weapon(out)!, getEffectiveAttributes(out))
+    ).toBe('1d10+4');
   });
 
   it('Potência Divina também sobe uma categoria', () => {

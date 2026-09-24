@@ -5,6 +5,12 @@ import type {
   ActivePowerDefinition,
 } from '../../premium/interfaces/ActiveEffect';
 import { resolveCapturedPower } from './poderCapturado';
+import { getSheetDeityNames } from './deityNames';
+import {
+  PODER_CAPTURADO_KEY,
+  buildPoderCapturadoOptionId,
+  parsePoderCapturadoDeity,
+} from './poderCapturadoKey';
 
 /**
  * Poder Capturado como efeito ativo VIRTUAL.
@@ -22,22 +28,13 @@ import { resolveCapturedPower } from './poderCapturado';
  * `src/premium` (o stub resolve apenas os tipos).
  */
 
-export const PODER_CAPTURADO_KEY = 'usurpador:poder-capturado';
-
-/** Separador do `optionId` — `<deus>|<poder>`. */
-const OPTION_ID_SEPARATOR = '|';
-
-export function buildPoderCapturadoOptionId(
-  divindade: string,
-  poder: string
-): string {
-  return `${divindade}${OPTION_ID_SEPARATOR}${poder}`;
-}
-
-/** Nome do deus embutido no `optionId` de um efeito de Poder Capturado. */
-export function parsePoderCapturadoDeity(optionId: string): string {
-  return optionId.split(OPTION_ID_SEPARATOR)[0];
-}
+// Reexportados de `poderCapturadoKey` (módulo folha) para não quebrar quem já
+// os importa daqui. A separação existe para evitar ciclo com `deityNames`.
+export {
+  PODER_CAPTURADO_KEY,
+  buildPoderCapturadoOptionId,
+  parsePoderCapturadoDeity,
+};
 
 /**
  * O deus de quem a ficha conta como devota AGORA: o capturado pelo efeito
@@ -49,11 +46,10 @@ export function parsePoderCapturadoDeity(optionId: string): string {
 export function getEffectiveDeityName(
   sheet: CharacterSheet
 ): string | undefined {
-  const capturado = sheet?.activeEffects?.find(
-    (effect) => effect.powerKey === PODER_CAPTURADO_KEY
-  );
-  if (capturado) return parsePoderCapturadoDeity(capturado.optionId);
-  return sheet?.devoto?.divindade?.name;
+  // Delega ao ponto único e devolve o PRIMEIRO: quem chama aqui quer um nome
+  // só (rótulos, texto dinâmico, condições de bônus). Com Devoção Dupla isso
+  // é a divindade primária — quem precisa das duas usa `getSheetDeityNames`.
+  return getSheetDeityNames(sheet)[0];
 }
 
 /**

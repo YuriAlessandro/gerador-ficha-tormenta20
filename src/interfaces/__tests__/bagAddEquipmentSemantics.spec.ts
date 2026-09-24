@@ -90,3 +90,45 @@ describe('Bag.addEquipment — campos semânticos do jogador', () => {
     expect(bag.equipments.Arma[0].nome).toBe('Mordida');
   });
 });
+
+/**
+ * Espaço editado à mão é escolha do jogador, como os campos semânticos acima —
+ * mas fica fora da allow-list porque a regra dela ("só copia o que o novo não
+ * define") nunca dispararia: o catálogo sempre traz um espaço.
+ */
+describe('Bag.addEquipment — espaço editado à mão', () => {
+  const arcoZerado: Equipment = {
+    nome: 'Arco longo',
+    group: 'Arma',
+    dano: '1d8',
+    critico: 'x3',
+    spaces: 0,
+    hasManualSpaces: true,
+  };
+
+  const arcoDoCatalogo: Equipment = {
+    nome: 'Arco longo',
+    group: 'Arma',
+    dano: '1d8',
+    critico: 'x3',
+    spaces: 2,
+  };
+
+  test('reconceder o item preserva o espaço zerado pelo jogador', () => {
+    const bag = new Bag({ Arma: [arcoZerado] });
+    bag.addEquipment({ Arma: [arcoDoCatalogo] });
+    const arco = bag.equipments.Arma.find((w) => w.nome === 'Arco longo');
+    expect(arco?.spaces).toBe(0);
+    expect(arco?.hasManualSpaces).toBe(true);
+  });
+
+  test('sem edição manual o espaço do catálogo vence', () => {
+    const bag = new Bag({
+      Arma: [{ ...arcoZerado, hasManualSpaces: undefined }],
+    });
+    bag.addEquipment({ Arma: [arcoDoCatalogo] });
+    expect(
+      bag.equipments.Arma.find((w) => w.nome === 'Arco longo')?.spaces
+    ).toBe(2);
+  });
+});

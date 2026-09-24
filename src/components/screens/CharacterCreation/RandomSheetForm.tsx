@@ -10,10 +10,8 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-  Casino as CasinoIcon,
-  HelpOutlined as HelpIcon,
-} from '@mui/icons-material';
+import CasinoIcon from '@mui/icons-material/Casino';
+import HelpIcon from '@mui/icons-material/HelpOutlined';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';

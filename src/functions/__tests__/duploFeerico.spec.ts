@@ -33,6 +33,10 @@ import Skill from '../../interfaces/Skills';
 describe('Duplo Feérico', () => {
   const POWER_NAME = 'Duplo Feérico';
   const ORIGIN_NAME = 'Duplo Feérico (Pondsmânia)';
+  const HEROIS = [
+    SupplementId.TORMENTA20_CORE,
+    SupplementId.TORMENTA20_HEROIS_ARTON,
+  ];
   const power = atlasOriginPowers.DUPLO_FEERICO;
 
   const mkSheet = (classe: ClassDescription = GUERREIRO): CharacterSheet => {
@@ -137,6 +141,44 @@ describe('Duplo Feérico', () => {
         ])
       ).toContain('Frade');
     });
+
+    // Regressão: a whitelist do dado só lista as classes BASE, e o filtro
+    // comparava pelo nome exato — as 14 variantes de Heróis de Arton nunca
+    // apareciam, apesar de terem habilidades de 1º nível próprias (feedback de
+    // usuário, set/2026).
+    it('oferece as classes variantes quando Heróis de Arton está ativo', () => {
+      const options = optionsFor(GUERREIRO, HEROIS);
+
+      expect(options).toContain('Necromante'); // variante de Arcanista
+      expect(options).toContain('Usurpador'); // variante de Clérigo
+      expect(options).toContain('Santo'); // variante de Paladino
+    });
+
+    it('não oferece as variantes com Heróis de Arton desativado', () => {
+      const options = optionsFor(GUERREIRO);
+
+      expect(options).not.toContain('Necromante');
+      expect(options).not.toContain('Inovador');
+    });
+
+    // "uma classe que não seja a sua": a exclusão vale nos DOIS sentidos. Antes
+    // ela era de mão única — a variante não pegava da base, mas a base pegava
+    // livremente da variante da própria família.
+    it('exclui as variantes da própria classe', () => {
+      const options = optionsFor(GUERREIRO, HEROIS);
+
+      expect(options).not.toContain('Guerreiro');
+      expect(options).not.toContain('Inovador'); // variante de Guerreiro
+    });
+
+    it('a habilidade de 1º nível da variante aparece na lista dela', () => {
+      const necromante = dataRegistry.getClassByName('Necromante', HEROIS);
+
+      expect(necromante).toBeDefined();
+      expect(
+        necromante!.abilities.filter((a) => a.nivel === 1).map((a) => a.name)
+      ).toContain('Falar com Mortos');
+    });
   });
 
   describe('aplicação na ficha', () => {
@@ -148,6 +190,18 @@ describe('Duplo Feérico', () => {
       );
 
       expect(classPowerNames(sheet)).toContain('Ataque Furtivo (Ladino)');
+    });
+
+    // O `isEligible` do gerador tem a própria cópia do filtro por whitelist:
+    // corrigir só a UI deixaria a escolha ser descartada em silêncio aqui.
+    it('respeita a escolha de uma classe variante', () => {
+      const sheet = recalculateSheet(
+        mkSheet(),
+        undefined,
+        manualPick('Necromante', 'Falar com Mortos')
+      );
+
+      expect(classPowerNames(sheet)).toContain('Falar com Mortos (Necromante)');
     });
 
     it('não duplica a habilidade em recálculos sucessivos', () => {

@@ -18,8 +18,6 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useAuth } from '../../hooks/useAuth';
 
-const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
-
 interface ToolsSidebarProps {
   isAuthenticated: boolean;
 }
@@ -45,8 +43,7 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({ isAuthenticated }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { openLoginModal } = useAuthContext();
-  const { user, isEditor } = useAuth();
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  const { isAdmin, isEditor } = useAuth();
   const canCreateBlogPost = isAdmin || isEditor;
 
   // O item continua sendo uma âncora de verdade (Ctrl/Cmd/clique do meio abrem

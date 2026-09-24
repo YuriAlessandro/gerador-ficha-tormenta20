@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Box, IconButton, CircularProgress, Alert } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { DiceBoxConfig } from '../../hooks/useDiceBox';
+import { safeBottom, safeRight } from '../../theme/safeArea';
 
 interface DiceTrayProps {
   config: DiceBoxConfig;
@@ -96,8 +97,8 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
       <Box
         sx={{
           position: 'fixed',
-          bottom: 16,
-          right: 16,
+          bottom: safeBottom(16),
+          right: safeRight(16),
           width: { xs: '90vw', sm: '600px' },
           height: { xs: '60vh', sm: '400px' },
           backgroundColor: '#2d1810',

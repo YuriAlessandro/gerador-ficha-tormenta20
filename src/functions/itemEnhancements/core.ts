@@ -302,19 +302,33 @@ interface ParsedCritico {
   mult: number;
 }
 
-function parseCritico(c: string): ParsedCritico {
-  const trimmed = (c || '').trim();
-  const slashIdx = trimmed.indexOf('/');
-  if (slashIdx >= 0) {
-    const threat = parseInt(trimmed.substring(0, slashIdx), 10);
-    const multStr = trimmed.substring(slashIdx + 1).replace(/^x/i, '');
+/**
+ * Formatos aceitos (os mesmos de `parseCritical` em `diceRoller`):
+ *   "19/x3" → margem 19, multiplicador 3
+ *   "x3"    → margem 20, multiplicador 3
+ *   "19"    → margem 19, multiplicador 2  (o `x` é obrigatório para multiplicador)
+ * Retorna `null` para strings sem crítico ("-", "**", vazio) ou não
+ * reconhecidas, para que os ajustes devolvam a string original intacta.
+ */
+function parseCritico(c: string): ParsedCritico | null {
+  const trimmed = (c || '').trim().toLowerCase();
+
+  const fullMatch = trimmed.match(/^(\d+)\/x(\d+)$/);
+  if (fullMatch) {
     return {
-      threat: Number.isFinite(threat) ? threat : 20,
-      mult: parseInt(multStr, 10) || 2,
+      threat: parseInt(fullMatch[1], 10),
+      mult: parseInt(fullMatch[2], 10),
     };
   }
-  const multStr = trimmed.replace(/^x/i, '');
-  return { threat: 20, mult: parseInt(multStr, 10) || 2 };
+
+  const multMatch = trimmed.match(/^x(\d+)$/);
+  if (multMatch) return { threat: 20, mult: parseInt(multMatch[1], 10) };
+
+  // Só a margem: "19" é 19/x2, NUNCA multiplicador x19.
+  const threatMatch = trimmed.match(/^(\d+)$/);
+  if (threatMatch) return { threat: parseInt(threatMatch[1], 10), mult: 2 };
+
+  return null;
 }
 
 function formatCritico({ threat, mult }: ParsedCritico): string {
@@ -324,6 +338,7 @@ function formatCritico({ threat, mult }: ParsedCritico): string {
 
 export function adjustCriticoMult(c: string, delta: number): string {
   const parsed = parseCritico(c);
+  if (!parsed) return c;
   return formatCritico({
     ...parsed,
     mult: Math.max(2, parsed.mult + delta),
@@ -336,6 +351,7 @@ export function adjustCriticoMult(c: string, delta: number): string {
  */
 export function adjustCriticoThreat(c: string, delta: number): string {
   const parsed = parseCritico(c);
+  if (!parsed) return c;
   return formatCritico({
     ...parsed,
     threat: Math.min(20, parsed.threat - delta),
@@ -349,6 +365,7 @@ export function adjustCriticoThreat(c: string, delta: number): string {
  */
 export function doubleCriticoThreatMargin(c: string): string {
   const parsed = parseCritico(c);
+  if (!parsed) return c;
   const margin = 21 - parsed.threat;
   const newThreat = Math.max(2, 21 - margin * 2);
   return formatCritico({ ...parsed, threat: newThreat });
@@ -420,7 +437,11 @@ export function captureBaseValues<T extends Equipment>(item: T): T {
  * When `preserveManualStats` is true, skip rewriting the numeric stat fields
  * the user can edit by hand (`dano`, `atkBonus`, `critico`, `defenseBonus`,
  * `armorPenalty`). Derived effects (sheetBonuses, extraDamage, specialActions,
- * arremesso, spaces) still apply — those don't compete with manual edits.
+ * arremesso) still apply — those don't compete with manual edits.
+ *
+ * `spaces` também é editável pelo jogador, mas tem a sua própria flag
+ * (`hasManualSpaces`) em vez de entrar no grupo acima: o editor deixa mexer no
+ * espaço sem tocar nos stats de combate, e vice-versa.
  */
 export function applyDelta<T extends Equipment>(
   captured: T,
@@ -462,7 +483,10 @@ export function applyDelta<T extends Equipment>(
     }
   }
 
-  if (captured.baseSpaces !== undefined) {
+  // `hasManualSpaces` é do ITEM, não do parâmetro `preserveManualStats`: este
+  // pipeline também roda no recálculo da ficha, longe do editor, e lá o único
+  // sinal de que o jogador digitou o espaço à mão é a flag gravada no item.
+  if (!captured.hasManualSpaces && captured.baseSpaces !== undefined) {
     result.spaces = Math.max(0, captured.baseSpaces + delta.spacesDelta);
   }
 

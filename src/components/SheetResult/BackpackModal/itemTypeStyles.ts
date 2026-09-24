@@ -1,18 +1,16 @@
-import {
-  AutoFixHigh as EsotericoIcon,
-  Checkroom as VestuarioIcon,
-  DirectionsCar as VeiculoIcon,
-  Gavel as ArmaIcon,
-  Handshake as ServicoIcon,
-  Hotel as HospedagemIcon,
-  Inventory2 as ItemGeralIcon,
-  Pets as AnimalIcon,
-  Restaurant as AlimentacaoIcon,
-  Science as AlquimiaIcon,
-  Security as EscudoIcon,
-  Shield as ArmaduraIcon,
-  SvgIconComponent,
-} from '@mui/icons-material';
+import EsotericoIcon from '@mui/icons-material/AutoFixHigh';
+import VestuarioIcon from '@mui/icons-material/Checkroom';
+import VeiculoIcon from '@mui/icons-material/DirectionsCar';
+import ArmaIcon from '@mui/icons-material/Gavel';
+import ServicoIcon from '@mui/icons-material/Handshake';
+import HospedagemIcon from '@mui/icons-material/Hotel';
+import ItemGeralIcon from '@mui/icons-material/Inventory2';
+import AnimalIcon from '@mui/icons-material/Pets';
+import AlimentacaoIcon from '@mui/icons-material/Restaurant';
+import AlquimiaIcon from '@mui/icons-material/Science';
+import EscudoIcon from '@mui/icons-material/Security';
+import ArmaduraIcon from '@mui/icons-material/Shield';
+import type { SvgIconComponent } from '@mui/icons-material';
 
 import { equipGroup } from '../../../interfaces/Equipment';
 

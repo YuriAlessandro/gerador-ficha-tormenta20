@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -15,27 +15,46 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
-import { ClassPower } from '@/interfaces/Class';
-import { GeneralPower } from '@/interfaces/Poderes';
+import {
+  ClassAbility,
+  ClassDescription,
+  ClassPower,
+  ClassPowerGrant,
+} from '@/interfaces/Class';
+import {
+  GeneralPower,
+  OriginPower,
+  RequirementType,
+} from '@/interfaces/Poderes';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
-import { CompanionSheet, CompanionTrick } from '@/interfaces/Companion';
+import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   getCharacterPowerNames,
+  getForeignClassPowers,
+  getOwnedGeneralPowers,
+  getWaivedClassPowers,
   isPowerAvailable,
+  resolveClassPowerCatalog,
 } from '@/functions/powers';
+import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
   countRequirementSelections,
+  resolvePowerRequirements,
+  resolveLearnSkillRemainingPick,
+  ResolvedRequirement,
 } from '@/functions/powers/manualPowerSelection';
+import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import {
   getCurrentPlateau,
+  getPlateauByLevel,
   getDeityMaxSpellCircleFor,
 } from '@/functions/powers/general';
-import { isClassOrVariantOf } from '@/functions/general';
+import { applyPower, isClassOrVariantOf } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
   getClassLevel,
@@ -59,6 +78,7 @@ import {
   getCompanionTrickDefinition,
   getTrickAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import OriginPowerSwapStep from './steps/OriginPowerSwapStep';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
@@ -66,10 +86,37 @@ import LevelBenefitsStep from './steps/LevelBenefitsStep';
 import ClassSelectionStep from './steps/ClassSelectionStep';
 import ClassSetupStep from './steps/ClassSetupStep';
 import CompanionTrickSelectionStep from './steps/CompanionTrickSelectionStep';
+import {
+  applyCompanionTrickPatch,
+  CompanionTrickPatch,
+} from './companionTrickSelection';
 import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCreationStep';
 import RaceLevelUpPickStep, {
   RaceLevelUpPick,
 } from './steps/RaceLevelUpPickStep';
+
+/**
+ * A concessão de poder da classe neste nível.
+ *
+ * `powerGrants` ausente = padrão de T20 (todo nível a partir do 2º concede um
+ * poder da própria classe), representado por `undefined` aqui e tratado como
+ * "concede, da própria classe" por quem chama.
+ */
+export function findPowerGrant(
+  classDesc: ClassDescription | undefined,
+  level: number
+): ClassPowerGrant | undefined {
+  return classDesc?.powerGrants?.find((grant) => grant.level === level);
+}
+
+/** A classe concede escolha de poder neste nível? */
+export function classGrantsPowerAtLevel(
+  classDesc: ClassDescription | undefined,
+  level: number
+): boolean {
+  if (!classDesc?.powerGrants) return true;
+  return !!findPowerGrant(classDesc, level);
+}
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -91,6 +138,30 @@ const getTreinoEspecializadoChoice = (
   sel: LevelUpSelections
 ): string | undefined =>
   sel.abilityEffectSelections?.[TREINO_ESPECIALIZADO]?.chosenOption?.[0];
+
+/**
+ * O poder tem algum grupo de pré-requisitos cuja exigência de NÍVEL já está
+ * cumprida?
+ *
+ * Usado para decidir quais poderes de classe reprovados ainda vale a pena
+ * listar como "Indisponível": os travados só pelo nível ficam de fora, senão a
+ * lista de um personagem de 2º nível viraria o catálogo inteiro da classe até
+ * o 20º. Grupo sem requisito de NÍVEL conta como alcançável.
+ */
+const hasReachableLevelRequirement = (
+  power: ClassPower,
+  classLevel: number
+): boolean => {
+  const groups = power.requirements;
+  if (!groups || groups.length === 0) return true;
+
+  return groups.some((group) =>
+    group.every(
+      (rule) =>
+        rule.type !== RequirementType.NIVEL || (rule.value ?? 0) <= classLevel
+    )
+  );
+};
 
 const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   open,
@@ -130,6 +201,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Current step within this level
   const [activeStep, setActiveStep] = useState(0);
 
+  // Opt-in "quebre a regra": mostra e libera a escolha de poderes fora dos
+  // pré-requisitos. Mora aqui, e não no PowerSelectionStep, porque o switch de
+  // renderStepContent DESMONTA o passo a cada navegação (é por isso que a busca
+  // também se perde) — em estado local, voltar de "Efeitos do Poder" re-travaria
+  // um poder já escolhido. Persiste entre os níveis do mesmo level-up e volta a
+  // false quando o assistente reabre.
+  const [allowOutOfRequirements, setAllowOutOfRequirements] = useState(false);
+
   // Confirmation dialog state for cancel action
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
@@ -157,6 +236,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         powerChoice: 'class',
       });
       setActiveStep(0);
+      setAllowOutOfRequirements(false);
       setTrickStepCompanionIndex({ auto: 0, power: 0 });
       // Initialize classLevels if not present
       const sheetWithClassLevels = initialSheet.classLevels
@@ -198,6 +278,81 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     nivel: currentLevel,
   };
 
+  // Habilidades da classe que está subindo de nível. As injetadas no setup
+  // (linhagens do Feiticeiro) vivem na FICHA, não na entrada do registry — por
+  // isso a mescla. Fonte única do passo "Efeitos de Habilidades": detecção,
+  // render e validação.
+  const getMergedClassAbilities = (): ClassAbility[] => [
+    ...getBaseAbilitiesForLevelUp(
+      simulatedSheet.classe,
+      selectedClassDesc,
+      selectedClassName
+    ),
+    ...getClassSetupAbilities(
+      selectedClassName,
+      currentLevelSelection.classSetup
+    ),
+  ];
+
+  // Só as que estreiam neste nível de CLASSE (importa na multiclasse).
+  const getAbilitiesForCurrentLevel = (): ClassAbility[] =>
+    getMergedClassAbilities().filter(
+      (ability) => ability.nivel === selectedClassLevel
+    );
+
+  const getSheetWithCurrentLevelAbilities = (
+    baseSheet: CharacterSheet
+  ): CharacterSheet => {
+    const abilitiesThisLevel = getAbilitiesForCurrentLevel();
+    if (abilitiesThisLevel.length === 0) return baseSheet;
+
+    let nextSheet = baseSheet;
+
+    abilitiesThisLevel.forEach((ability) => {
+      const requirements = getPowerSelectionRequirements(ability);
+      if (requirements !== null) return;
+
+      const [abilitySheet] = applyPower(nextSheet, {
+        ...ability,
+        sourceClassName: selectedClassName,
+      });
+      if (abilitySheet) {
+        nextSheet = {
+          ...abilitySheet,
+          classe: {
+            ...abilitySheet.classe,
+            abilities: nextSheet.classe.abilities,
+          },
+        };
+      }
+    });
+
+    const knownAbilityNames = new Set(
+      (nextSheet.classe.abilities || []).map((ability) => ability.name)
+    );
+    const projectedAbilities = abilitiesThisLevel.filter(
+      (ability) => !knownAbilityNames.has(ability.name)
+    );
+
+    if (projectedAbilities.length === 0) return nextSheet;
+
+    return {
+      ...nextSheet,
+      classe: {
+        ...nextSheet.classe,
+        abilities: [...nextSheet.classe.abilities, ...projectedAbilities],
+      },
+    };
+  };
+
+  // O cálculo acima faz um `cloneDeep` da ficha por habilidade (via
+  // `applyPower`); memoizado para não rodar duas vezes no mesmo render
+  // (aqui e em `getAvailablePowers`) nem a cada re-render sem mudança real.
+  const sheetWithCurrentLevelAbilities = useMemo(
+    () => getSheetWithCurrentLevelAbilities(sheetForCurrentLevel),
+    [sheetForCurrentLevel, selectedClassName, selectedClassLevel]
+  );
+
   // Companheiro com os truques pendentes da OUTRA razão (auto/power) deste
   // nível projetados sobre os truques já refletidos no simulatedSheet — evita
   // escolher o mesmo truque não-repetível nos dois steps do mesmo nível
@@ -230,10 +385,21 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     classNeedsFirstLevelSetup(selectedClassDesc);
 
   // Get available powers for current simulated sheet
-  const getAvailablePowers = (): {
+  const getAvailablePowers = (
+    sheetForPowerSelection: CharacterSheet,
+    { allowAll = false }: { allowAll?: boolean } = {}
+  ): {
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
+    unavailableClassPowers: string[];
     unavailableGeneralPowers: string[];
+    /**
+     * A ficha contra a qual os poderes foram filtrados. Sai junto para o passo
+     * reavaliar os requisitos com ela: em multiclasse ela difere da ficha de
+     * seleção (leva a classe escolhida e suas proficiências), e avaliar com a
+     * outra faria as duas pontas discordarem sobre o mesmo poder.
+     */
+    sheetForFiltering: CharacterSheet;
   } => {
     // Get class with merged supplement powers from registry
     // Use the SELECTED class for power filtering (multiclass support)
@@ -247,18 +413,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const classForFiltering = classWithSupplementPowers || selectedClassDesc;
     const sheetForFiltering: CharacterSheet = classForFiltering
       ? {
-          ...sheetForCurrentLevel,
+          ...sheetForPowerSelection,
           classe: {
-            ...sheetForCurrentLevel.classe,
+            ...sheetForPowerSelection.classe,
             name: classNameForPowers,
             powers: classForFiltering.powers,
             proficiencias:
-              sheetForCurrentLevel.classe.proficiencias ||
+              sheetForPowerSelection.classe.proficiencias ||
               classForFiltering.proficiencias ||
               [],
           },
         }
-      : sheetForCurrentLevel;
+      : sheetForPowerSelection;
 
     // Get class powers using the selected class's powers.
     // Sempre usar getAllowedClassPowers na lista manual: a ponderação do
@@ -266,8 +432,71 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     // duplicadas, o que só faz sentido em sorteio aleatório — numa seleção
     // manual geraria poderes repetidos. Cobre Inventor e suas variantes
     // (ex.: Alquimista) via sheetForFiltering.classe.powers.
-    const classPowers = getAllowedClassPowers(sheetForFiltering, {
-      classLevel: selectedClassLevel,
+    // Concessão declarada pela classe (Vassalo): os poderes vêm do catálogo de
+    // OUTRA classe, avaliados no nível do personagem. Sem declaração, vale o
+    // catálogo da própria classe, como em toda classe padrão.
+    const grant = findPowerGrant(selectedClassDesc, selectedClassLevel);
+    const classPowers = grant
+      ? getForeignClassPowers(
+          sheetForFiltering,
+          grant.fromClasses,
+          sheetForPowerSelection.nivel,
+          grant.excludePowers
+        )
+      : getAllowedClassPowers(sheetForFiltering, {
+          classLevel: selectedClassLevel,
+        });
+
+    // Poder de classe reprovado por pré-requisito continua na lista, apenas
+    // desabilitado e com o requisito à mostra — igual ao tratamento dos poderes
+    // gerais logo abaixo. Antes ele simplesmente sumia, sem nenhum sinal do
+    // motivo: foi assim que a substituição de Ofício do Artesão Criativo
+    // falhando em silêncio chegou como "não dá pra pegar, tem que pôr manual".
+    const allowedClassPowerNames = new Set(classPowers.map((p) => p.name));
+    const knownClassPowerNames = new Set(
+      (sheetForFiltering.classPowers || []).map((p) => p.name)
+    );
+    const unavailableClassPowers: string[] = [];
+    const fullClassCatalog: ClassPower[] = grant
+      ? // Numa concessão emprestada o catálogo completo é o das classes de
+        // origem, avaliado no nível do PERSONAGEM; avaliar contra o da ficha
+        // listaria poder de outra classe. `className` carimbado aqui também, e
+        // não só nos disponíveis: sem ele o agrupamento cai no nome da classe
+        // da FICHA, e um poder de Cavaleiro que o Vassalo não alcança aparecia
+        // sob "Poder de Vassalo".
+        grant.fromClasses.flatMap((className) =>
+          (
+            findClassDescription(className, undefined, supplements)?.powers ??
+            []
+          ).map((power) => ({ ...power, className }))
+        )
+      : // Entram na varredura também os poderes de OUTRA classe alcançados por
+        // um waiver (ex.: Domínio do Medo), que não estão no catálogo da classe.
+        [
+          ...resolveClassPowerCatalog(sheetForFiltering),
+          ...getWaivedClassPowers(
+            sheetForFiltering,
+            getActiveWaivers(sheetForFiltering)
+          ),
+        ];
+    const levelForCut = grant
+      ? sheetForPowerSelection.nivel
+      : selectedClassLevel;
+    const blockedClassPowers = fullClassCatalog.filter((power) => {
+      if (allowedClassPowerNames.has(power.name)) return false;
+      // Já conhecido e não repetível some, como sempre — quem sinaliza isso é
+      // o chip "Já Conhecido" dos poderes que continuam na lista.
+      if (knownClassPowerNames.has(power.name) && !power.canRepeat) {
+        return false;
+      }
+      // Com o opt-in ligado o corte de nível sai também: meio-quebrar a regra
+      // (liberar atributo/perícia mas não nível) confunde mais que quebrar
+      // inteiro. Desligado, segue escondendo o catálogo até o 20º nível.
+      if (!allowAll && !hasReachableLevelRequirement(power, levelForCut)) {
+        return false;
+      }
+      unavailableClassPowers.push(power.name);
+      return true;
     });
 
     // Use dataRegistry to get powers from all active supplements.
@@ -282,12 +511,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       ...allPowers.MAGIA,
       ...allPowers.TORMENTA,
       ...allPowers.RACA.filter((power) =>
-        isPowerAvailable(sheetForCurrentLevel, power)
+        isPowerAvailable(sheetForFiltering, power)
       ),
     ];
 
     // Track which powers are unavailable (requirements not met)
-    const existingGeneralPowers = sheetForCurrentLevel.generalPowers;
+    const existingGeneralPowers = getOwnedGeneralPowers(sheetForFiltering);
     const unavailableGeneralPowers: string[] = [];
     const generalPowers = allGeneralPowers.filter((power) => {
       const isRepeatedPower = existingGeneralPowers.find(
@@ -298,15 +527,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return true; // Keep in list; isPowerKnown handles disable in UI
       }
 
-      if (!isPowerAvailable(sheetForCurrentLevel, power)) {
+      if (!isPowerAvailable(sheetForFiltering, power)) {
         unavailableGeneralPowers.push(power.name);
       }
       return true; // Always include
     });
 
     // Sort powers alphabetically
-    const sortedClassPowers = [...classPowers].sort((a, b) =>
-      a.name.localeCompare(b.name, 'pt-BR')
+    const sortedClassPowers = [...classPowers, ...blockedClassPowers].sort(
+      (a, b) => a.name.localeCompare(b.name, 'pt-BR')
     );
     const sortedGeneralPowers = [...generalPowers].sort((a, b) =>
       a.name.localeCompare(b.name, 'pt-BR')
@@ -315,7 +544,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     return {
       classPowers: sortedClassPowers,
       generalPowers: sortedGeneralPowers,
+      unavailableClassPowers,
       unavailableGeneralPowers,
+      sheetForFiltering,
     };
   };
 
@@ -488,27 +719,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   };
 
   // Check if class abilities for this level need effect selections
-  // For multiclass: use selected class's abilities filtered by CLASS level
-  const needsAbilityEffectSelections = (): boolean => {
-    const baseAbilities = getBaseAbilitiesForLevelUp(
-      simulatedSheet.classe,
-      selectedClassDesc,
-      selectedClassName
-    );
-    const setupAbilities = getClassSetupAbilities(
-      selectedClassName,
-      currentLevelSelection.classSetup
-    );
-    const allAbilities = [...baseAbilities, ...setupAbilities];
-    const newlyAvailableAbilities = allAbilities.filter(
-      (ability) => ability.nivel === selectedClassLevel
-    );
-
-    return newlyAvailableAbilities.some((ability) => {
+  const needsAbilityEffectSelections = (): boolean =>
+    getAbilitiesForCurrentLevel().some((ability) => {
       const requirements = getPowerSelectionRequirements(ability);
       return requirements !== null && requirements.requirements.length > 0;
     });
-  };
 
   // Habilidades de raça que concedem novas escolhas ("picks") ao subir de nível
   // (config `levelUp` na ação `chooseFromOptions`). Apenas o caso ADITIVO
@@ -543,6 +758,40 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     return result;
   };
 
+  // Poderes concedidos já na ficha que ganham mais perícias por patamar (ex.:
+  // Biblioteca Divina). Só relevante quando ESTE nível cruza um patamar —
+  // fora disso o poder não tem nada de novo pra oferecer.
+  const getScalingPowersForLevelUp = (): GeneralPower[] => {
+    const oldPlateau = getPlateauByLevel(simulatedSheet.nivel);
+    const newPlateau = getCurrentPlateau(sheetForCurrentLevel);
+    if (newPlateau <= oldPlateau) return [];
+
+    // Poderes concedidos por divindade (ex.: Biblioteca Divina) NÃO ficam em
+    // `generalPowers` — moram em `devoto.poderes`, um campo separado.
+    return [
+      ...(simulatedSheet.generalPowers || []),
+      ...(simulatedSheet.devoto?.poderes || []),
+    ].filter((power) =>
+      power.sheetActions?.some(
+        (sa) =>
+          sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante
+      )
+    );
+  };
+
+  /**
+   * Poderes de origem cujo texto prevê trocar o poder escolhido entre
+   * aventuras (Cosmopolita, Citadino Abastado). Gateado pelo marcador
+   * `swappableAtLevelUp` e não por "tem requisito": Futura Lenda e Duplo
+   * Feérico também escolhem, mas de forma permanente.
+   */
+  const getSwappableOriginPowers = (): OriginPower[] =>
+    (simulatedSheet.origin?.powers ?? []).filter(
+      (power) =>
+        power.swappableAtLevelUp &&
+        getPowerSelectionRequirements(power) !== null
+    );
+
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
@@ -565,8 +814,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       steps.push('Melhor Amigo');
     }
 
-    // First level in a new class (multiclass) grants no power
-    if (!isFirstLevelInNewClass) {
+    // First level in a new class (multiclass) grants no power.
+    // Classes com `powerGrants` (Vassalo) só concedem poder em certos níveis —
+    // nos demais o passo não deve nem aparecer.
+    if (
+      !isFirstLevelInNewClass &&
+      classGrantsPowerAtLevel(selectedClassDesc, selectedClassLevel)
+    ) {
       steps.push('Escolha de Poder');
 
       if (needsPowerEffectSelections()) {
@@ -592,6 +846,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
     if (getRaceLevelUpPicks().length > 0) {
       steps.push('Escolhas de Raça');
+    }
+
+    if (getScalingPowersForLevelUp().length > 0) {
+      steps.push('Perícias por Patamar');
+    }
+
+    if (getSwappableOriginPowers().length > 0) {
+      steps.push('Benefício da Origem');
     }
 
     const spellInfo = getSpellInfo();
@@ -632,6 +894,58 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   };
 
   const steps = getSteps();
+
+  /**
+   * Toda escolha exigida foi feita? Compartilhado pelos passos "Efeitos do
+   * Poder" e "Efeitos de Habilidades", que derivam os requisitos do MESMO
+   * `resolvePowerRequirements` que o `PowerEffectSelectionStep` usa para
+   * desenhar os seletores — assim não existe requisito que trave o botão
+   * "Próximo" sem ter onde escolher.
+   */
+  const areRequirementsSatisfied = (
+    requirements: ResolvedRequirement[],
+    allSelections: ManualPowerSelections
+  ): boolean =>
+    requirements.every(({ selectionKey, ownerName, requirement: req }) => {
+      const { type } = req;
+      const effectSelections = allSelections[selectionKey] || {};
+
+      // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
+      if (req.optional) return true;
+
+      // Golpe Pessoal usa um construtor próprio e tem availableOptions vazio
+      // por design — exige que um build tenha sido montado pelo usuário.
+      if (type === 'buildGolpePessoal') {
+        return !!effectSelections.golpePessoalBuild;
+      }
+
+      // Check available options - if none available, consider requirement satisfied
+      const availableOptions = getFilteredAvailableOptions(
+        req,
+        sheetForCurrentLevel
+      );
+      if (availableOptions.length === 0) return true;
+
+      // If fewer options than required, adjust the effective pick count.
+      // `resolveLearnSkillRemainingPick` escala o piso declarado pelo patamar
+      // atual e subtrai o que o histórico já concedeu (Biblioteca Divina e
+      // similares); para os demais tipos devolve `pick`.
+      const effectivePick = Math.min(
+        resolveLearnSkillRemainingPick(
+          req,
+          getCurrentPlateau(sheetForCurrentLevel),
+          sheetForCurrentLevel,
+          ownerName
+        ),
+        availableOptions.length
+      );
+
+      const count = countRequirementSelections(req, effectSelections);
+      // Tipo não contável: não bloquear o assistente
+      if (count === null) return true;
+
+      return count >= effectivePick;
+    });
 
   // Validate current step completion
   const isStepComplete = (stepIndex: number): boolean => {
@@ -696,81 +1010,63 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         if (!power) return false;
 
-        const requirements = getPowerSelectionRequirements(power);
-        if (!requirements) return true;
-
         // Get selections keyed by power name
         const allEffectSelections =
           currentLevelSelection.powerEffectSelections || {};
-        const effectSelections = allEffectSelections[power.name] || {};
 
-        return requirements.requirements.every((req) => {
-          const { type, pick } = req;
+        // Mesma coleta que o `PowerEffectSelectionStep` usa para desenhar os
+        // seletores — inclui as escolhas exigidas pelos poderes concedidos, que
+        // moram sob o nome do poder concedido.
+        const requirements = resolvePowerRequirements(
+          power,
+          allEffectSelections
+        );
 
-          // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
-          if (req.optional) return true;
+        return areRequirementsSatisfied(requirements, allEffectSelections);
+      }
 
-          // Golpe Pessoal usa um construtor próprio e tem availableOptions vazio
-          // por design — exige que um build tenha sido montado pelo usuário.
-          if (type === 'buildGolpePessoal') {
-            return !!effectSelections.golpePessoalBuild;
-          }
+      // Passo opcional: quem não quer trocar segue direto. Uma troca começada
+      // pela metade é descartada no apply (exige `powers` preenchido).
+      case 'Benefício da Origem':
+        return true;
 
-          // Check available options - if none available, consider requirement satisfied
-          const availableOptions = getFilteredAvailableOptions(
-            req,
-            sheetForCurrentLevel
+      case 'Perícias por Patamar': {
+        const allEffectSelections =
+          currentLevelSelection.powerEffectSelections || {};
+        return getScalingPowersForLevelUp().every((power) => {
+          const requirements = resolvePowerRequirements(
+            power,
+            allEffectSelections
           );
-          if (availableOptions.length === 0) return true;
-
-          // If fewer options than required, adjust the effective pick count
-          const effectivePick = Math.min(pick, availableOptions.length);
-
-          const count = countRequirementSelections(req, effectSelections);
-          // Tipo não contável: não bloquear o assistente
-          if (count === null) return true;
-
-          // For getGeneralPower, also check if nested power requirements are met
-          if (type === 'getGeneralPower' && count >= effectivePick) {
-            const selectedPower = effectSelections.powers?.[0] as
-              | { name?: string; sheetActions?: unknown[] }
-              | undefined;
-            if (selectedPower?.name && selectedPower.sheetActions) {
-              const nestedReqs = getPowerSelectionRequirements(
-                selectedPower as Parameters<
-                  typeof getPowerSelectionRequirements
-                >[0]
-              );
-              if (nestedReqs) {
-                // As seleções do poder aninhado ficam sob o nome DELE
-                const nestedSelections =
-                  allEffectSelections[selectedPower.name] || {};
-                return nestedReqs.requirements.every((nestedReq) => {
-                  if (nestedReq.optional) return true;
-                  const nestedCount = countRequirementSelections(
-                    nestedReq,
-                    nestedSelections
-                  );
-                  if (nestedCount === null) return true;
-                  return nestedCount >= nestedReq.pick;
-                });
-              }
-            }
-          }
-
-          return count >= effectivePick;
+          return areRequirementsSatisfied(requirements, allEffectSelections);
         });
       }
 
       case 'Efeitos de Habilidades': {
         // Treinador 5: a escolha de Treino Especializado é obrigatória — sem
-        // ela, o chooseFromOptions sorteia uma opção aleatória no apply
-        if (selectedClassName === 'Treinador' && selectedClassLevel === 5) {
-          return !!getTreinoEspecializadoChoice(currentLevelSelection);
+        // ela, o chooseFromOptions sorteia uma opção aleatória no apply.
+        // Explícito porque a checagem genérica abaixo dá o requisito por
+        // satisfeito quando a lista de opções vem vazia.
+        if (
+          selectedClassName === 'Treinador' &&
+          selectedClassLevel === 5 &&
+          !getTreinoEspecializadoChoice(currentLevelSelection)
+        ) {
+          return false;
         }
-        // Demais habilidades: opcional (pode pular)
-        // TODO: Implement validation for required ability selections
-        return true;
+
+        // Mesmas habilidades que o passo desenha. Sem isso, pular o passo fazia
+        // o `applyPower` SORTEAR a escolha em silêncio (era assim que o poder
+        // concedido da Linhagem Abençoada saía aleatório).
+        const allEffectSelections =
+          currentLevelSelection.abilityEffectSelections || {};
+
+        return getAbilitiesForCurrentLevel().every((ability) =>
+          areRequirementsSatisfied(
+            resolvePowerRequirements(ability, allEffectSelections),
+            allEffectSelections
+          )
+        );
       }
 
       case 'Escolhas de Raça': {
@@ -848,6 +1144,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           if (def.subChoiceType === 'attribute')
             return !!t.choices?.primary && !!t.choices?.secondary;
           if (def.subChoiceType === 'movement') return !!t.choices?.type;
+          // Magia Inata: sem a magia escolhida o truque não concede nada
+          if (def.subChoiceType === 'spell') return !!t.choices?.spell;
           return true;
         });
       }
@@ -913,22 +1211,50 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Escolha de Poder': {
-        const { classPowers, generalPowers, unavailableGeneralPowers } =
-          getAvailablePowers();
+        const sheetForPowerSelection = sheetWithCurrentLevelAbilities;
+        const {
+          classPowers,
+          generalPowers,
+          unavailableClassPowers,
+          unavailableGeneralPowers,
+          sheetForFiltering,
+        } = getAvailablePowers(sheetForPowerSelection, {
+          allowAll: allowOutOfRequirements,
+        });
+
+        // Desmarcar o opt-in com um poder fora dos requisitos já escolhido
+        // deixaria a seleção inválida sobreviver até o apply. Zera só nesse caso.
+        const handleAllowOutOfRequirementsChange = (allow: boolean) => {
+          setAllowOutOfRequirements(allow);
+          if (allow) return;
+          const general = currentLevelSelection.selectedGeneralPower;
+          const classPower = currentLevelSelection.selectedClassPower;
+          const dropGeneral =
+            !!general && unavailableGeneralPowers.includes(general.name);
+          const dropClass =
+            !!classPower && unavailableClassPowers.includes(classPower.name);
+          if (dropGeneral || dropClass) {
+            setCurrentLevelSelection({
+              ...currentLevelSelection,
+              selectedGeneralPower: dropGeneral ? undefined : general,
+              selectedClassPower: dropClass ? undefined : classPower,
+            });
+          }
+        };
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
-          simulatedSheet.classPowers?.map((p) => p.name) || [];
+          sheetForPowerSelection.classPowers?.map((p) => p.name) || [];
         const knownGeneralPowers = [
-          ...(simulatedSheet.generalPowers?.map((p) => p.name) || []),
-          ...(simulatedSheet.raca.abilities?.map((a) => a.name) || []),
+          ...getOwnedGeneralPowers(sheetForPowerSelection).map((p) => p.name),
+          ...(sheetForPowerSelection.raca.abilities?.map((a) => a.name) || []),
         ];
 
         // Alma Livre detection: check if the character has a pre-selected power
         // that hasn't been acquired yet
-        const almaLivrePower = simulatedSheet.almaLivrePower || null;
-        const almaLivreClassName = simulatedSheet.almaLivreClass;
-        const almaLivrePowerAcquired = simulatedSheet.classPowers?.some(
+        const almaLivrePower = sheetForPowerSelection.almaLivrePower || null;
+        const almaLivreClassName = sheetForPowerSelection.almaLivreClass;
+        const almaLivrePowerAcquired = sheetForPowerSelection.classPowers?.some(
           (p) => p.name === almaLivrePower?.name
         );
         const showAlmaLivre =
@@ -938,7 +1264,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         let almaLivrePowerAvailable = false;
         if (showAlmaLivre && almaLivrePower) {
           const almaLivreSheet = {
-            ...simulatedSheet,
+            ...sheetForPowerSelection,
             nivel: Math.max(1, currentLevel - 4),
           };
           almaLivrePowerAvailable = isPowerAvailable(
@@ -949,6 +1275,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
         return (
           <PowerSelectionStep
+            sheet={sheetForFiltering}
             classPowers={classPowers}
             generalPowers={generalPowers}
             selectedPowerChoice={currentLevelSelection.powerChoice}
@@ -958,37 +1285,45 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             selectedGeneralPower={
               currentLevelSelection.selectedGeneralPower || null
             }
+            // Atualização FUNCIONAL: o passo dispara `onPowerChoiceChange` e o
+            // select do poder no MESMO clique (o tipo da escolha é derivado do
+            // item). Espalhando `currentLevelSelection` da closure, o segundo
+            // setState apagava o `powerChoice` gravado pelo primeiro — e como
+            // ele começa em 'class', nenhum poder geral ficava selecionado.
             onPowerChoiceChange={(choice) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 powerChoice: choice,
                 selectedClassPower: undefined,
                 selectedGeneralPower: undefined,
                 selectedAlmaLivrePower: undefined,
-              })
+              }))
             }
             onClassPowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedClassPower: power,
-              })
+              }))
             }
             onGeneralPowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedGeneralPower: power,
-              })
+              }))
             }
             onAlmaLivrePowerSelect={(power) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
                 selectedAlmaLivrePower: power,
-              })
+              }))
             }
             className={selectedClassName}
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
+            unavailableClassPowers={unavailableClassPowers}
             unavailableGeneralPowers={unavailableGeneralPowers}
+            allowOutOfRequirements={allowOutOfRequirements}
+            onAllowOutOfRequirementsChange={handleAllowOutOfRequirementsChange}
             almaLivrePower={showAlmaLivre ? almaLivrePower : null}
             almaLivreClassName={showAlmaLivre ? almaLivreClassName : undefined}
             almaLivrePowerAvailable={almaLivrePowerAvailable}
@@ -1026,23 +1361,65 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         );
       }
 
+      case 'Benefício da Origem':
+        return (
+          <OriginPowerSwapStep
+            sheet={sheetForCurrentLevel}
+            powers={getSwappableOriginPowers()}
+            selections={currentLevelSelection.originPowerSwaps || {}}
+            onChange={(originPowerSwaps) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                originPowerSwaps,
+              })
+            }
+          />
+        );
+
+      case 'Perícias por Patamar': {
+        const scalingPowers = getScalingPowersForLevelUp();
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography variant='h6' gutterBottom>
+              Perícias por Patamar
+            </Typography>
+            <Typography variant='body2' sx={{ color: 'text.secondary', mb: 2 }}>
+              Você cruzou um patamar e ganhou mais perícias de um poder já
+              concedido.
+            </Typography>
+            {scalingPowers.map((power) => (
+              <PowerEffectSelectionStep
+                key={power.name}
+                race={simulatedSheet.raca}
+                classe={simulatedSheet.classe}
+                origin={undefined}
+                selectedPower={power}
+                powerSource='general'
+                selections={currentLevelSelection.powerEffectSelections || {}}
+                onChange={(selections) =>
+                  setCurrentLevelSelection({
+                    ...currentLevelSelection,
+                    powerEffectSelections: selections,
+                  })
+                }
+                actualSheet={sheetForCurrentLevel}
+                skipRaceAbilities
+                supplements={supplements}
+              />
+            ))}
+          </Box>
+        );
+      }
+
       case 'Efeitos de Habilidades': {
-        // Mesma resolução de `needsAbilityEffectSelections`: as habilidades
-        // injetadas no setup (linhagens do Feiticeiro) vivem na FICHA, não na
-        // entrada do registry.
+        // Mesma mescla de `needsAbilityEffectSelections` e da validação: as
+        // habilidades injetadas no setup (linhagens do Feiticeiro) vivem na
+        // FICHA, não na entrada do registry. O passo filtra por
+        // `classAbilityLevel`, então a lista vai completa.
         const activeClass = selectedClassDesc || simulatedSheet.classe;
-        const setupAbilitiesForStep = getClassSetupAbilities(
-          selectedClassName,
-          currentLevelSelection.classSetup
-        );
-        const baseAbilitiesForStep = getBaseAbilitiesForLevelUp(
-          simulatedSheet.classe,
-          selectedClassDesc,
-          selectedClassName
-        );
         const expandedClass = {
           ...activeClass,
-          abilities: [...baseAbilitiesForStep, ...setupAbilitiesForStep],
+          abilities: getMergedClassAbilities(),
           // `PowerEffectSelectionStep` prefere `originalAbilities` a
           // `abilities`; mantê-lo faria a lista mesclada ser ignorada.
           originalAbilities: undefined,
@@ -1164,34 +1541,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           getProjectedCompanion(reason, selectedCompanionIndex) ||
           companions[0];
 
-        const upsert = (
-          patch: Partial<{
-            companionIndex: number;
-            trick: CompanionTrick | undefined;
-            spell: Spell | undefined;
-          }>
-        ) => {
-          const others = selections.filter((e) => e.reason !== reason);
-          // Se "patch.trick" for explicitamente undefined (clear), remove a entry
-          if ('trick' in patch && patch.trick === undefined) {
-            setCurrentLevelSelection({
-              ...currentLevelSelection,
-              companionTrickSelections: others.length ? others : undefined,
-            });
-            return;
-          }
-          const baseTrick = patch.trick ?? existing?.trick;
-          if (!baseTrick) return;
-          const updated = {
-            companionIndex: patch.companionIndex ?? selectedCompanionIndex,
-            trick: baseTrick,
-            spell: 'spell' in patch ? patch.spell : existing?.spell,
-            reason,
-          };
-          setCurrentLevelSelection({
-            ...currentLevelSelection,
-            companionTrickSelections: [...others, updated],
-          });
+        // Atualização funcional e atômica: o passo dispara DOIS callbacks no
+        // mesmo evento (magia + truque, ou truque + limpeza da magia), então
+        // cada patch precisa partir do estado mais recente — não do render.
+        const upsert = (patch: CompanionTrickPatch) => {
+          setCurrentLevelSelection((prev) =>
+            applyCompanionTrickPatch(
+              prev,
+              reason,
+              patch,
+              selectedCompanionIndex
+            )
+          );
         };
 
         return (
@@ -1440,6 +1801,54 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           ];
         }
 
+        // Aplica as habilidades de classe que estreiam neste nível ao sheet
+        // simulado. Sem isto, poderes concedidos por habilidade (ex.:
+        // "Alquimista Iniciado" via grantSpecificClassPower) e pré-requisitos
+        // de HABILIDADE (ex.: "Duelo" p/ "Cavaleiro Bandido") nunca aparecem
+        // satisfeitos durante uma criação de múltiplos níveis — só depois que
+        // a ficha já está instanciada, quando `applyManualLevelUp` reaplica
+        // tudo de verdade a partir do zero.
+        const abilitiesThisLevel = getAbilitiesForCurrentLevel();
+        abilitiesThisLevel.forEach((ability) => {
+          const [abilitySheet] = applyPower(
+            nextSheet,
+            { ...ability, sourceClassName: selectedClassName },
+            currentLevelSelection.abilityEffectSelections?.[ability.name]
+          );
+          if (abilitySheet) {
+            nextSheet.classPowers = abilitySheet.classPowers;
+            nextSheet.generalPowers = abilitySheet.generalPowers;
+            nextSheet.spells = abilitySheet.spells;
+            nextSheet.sheetActionHistory = abilitySheet.sheetActionHistory;
+            nextSheet.skills = abilitySheet.skills;
+            nextSheet.completeSkills = abilitySheet.completeSkills;
+            nextSheet.sheetBonuses = abilitySheet.sheetBonuses;
+            nextSheet.atributos = abilitySheet.atributos;
+            nextSheet.classe = {
+              ...nextSheet.classe,
+              proficiencias: abilitySheet.classe.proficiencias,
+            };
+          }
+        });
+
+        if (abilitiesThisLevel.length > 0) {
+          const originalAbilities =
+            nextSheet.classe.originalAbilities || nextSheet.classe.abilities;
+          const newPrimaryClassLevel = getClassLevel(
+            nextSheet,
+            nextSheet.classe.name
+          );
+          const allAvailableAbilities = originalAbilities.filter(
+            (ability) => ability.nivel <= newPrimaryClassLevel
+          );
+          // Multiclasse: habilidades de classe secundária não estão em
+          // `originalAbilities` (que é só da classe primária) — anexa direto.
+          if (selectedClassName !== nextSheet.classe.name) {
+            allAvailableAbilities.push(...abilitiesThisLevel);
+          }
+          nextSheet.classe.abilities = allAvailableAbilities;
+        }
+
         // Add selected spells to the simulated sheet
         if (
           currentLevelSelection.spellsLearned &&
@@ -1492,6 +1901,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             const plateau = getCurrentPlateau({
               nivel: currentLevel,
             } as CharacterSheet);
+            // Aumentos de fontes sem a restrição de 1×/patamar não podem
+            // bloquear o atributo para o poder Aumento de Atributo.
+            const oncePerTier = !selectedPower.sheetActions?.some(
+              (sheetAction) =>
+                sheetAction.action.type === 'increaseAttribute' &&
+                sheetAction.action.oncePerTier === false
+            );
             const newHistoryEntries: SheetActionHistoryEntry[] =
               powerEffects.attributes.map((attr) => ({
                 source: { type: 'power' as const, name: selectedPower.name },
@@ -1501,6 +1917,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                     type: 'AttributeIncreasedByAumentoDeAtributo' as const,
                     attribute: attr as Atributo,
                     plateau,
+                    oncePerTier,
                   },
                 ],
               }));
@@ -1511,8 +1928,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             ];
           }
 
-          // Apply Alma Livre class/power selections to the simulated sheet
-          // so the next level can detect and offer the pre-selected power
+          // Apply class/power selections to the simulated sheet so the next
+          // level can detect and offer the pre-selected power.
           if (selectedPower && currentLevelSelection.powerEffectSelections) {
             const almaLivreEffects =
               currentLevelSelection.powerEffectSelections[selectedPower.name];
@@ -1522,6 +1939,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             ) {
               nextSheet.almaLivreClass = almaLivreEffects.almaLivreClass;
               nextSheet.almaLivrePower = almaLivreEffects.almaLivrePower;
+            }
+            if (
+              almaLivreEffects?.diferentaoClass &&
+              almaLivreEffects?.diferentaoPower
+            ) {
+              nextSheet.diferentaoClass = almaLivreEffects.diferentaoClass;
+              nextSheet.diferentaoPower = almaLivreEffects.diferentaoPower;
             }
           }
         }

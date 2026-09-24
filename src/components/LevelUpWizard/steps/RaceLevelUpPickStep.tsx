@@ -9,7 +9,8 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 /** Uma opção de uma ação `chooseFromOptions`. */
 export interface RaceLevelUpPickOption {
