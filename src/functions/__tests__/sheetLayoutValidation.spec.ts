@@ -300,7 +300,8 @@ describe('endurecimento para a galeria (Fase 3)', () => {
 
     const layout = sanitizeSheetLayout(raw);
 
-    expect(layout.regions.map((r) => r.id)).toEqual(['r1']);
+    // `r-footer` é o rodapé que o saneamento cria para as seções travadas.
+    expect(layout.regions.map((r) => r.id)).toEqual(['r1', 'r-footer']);
     expect(layout.regions[0].sections.map((s) => s.payload.kind)).toEqual([
       'identity',
     ]);
@@ -403,5 +404,90 @@ describe('endurecimento para a galeria (Fase 3)', () => {
     });
 
     expect(codes(raw)).toContain('too-large');
+  });
+});
+
+describe('aviso de problema e convite de apoio travados no rodapé', () => {
+  const kindsOf = (layout: SheetLayout, regionId: string) =>
+    layout.regions
+      .find((r) => r.id === regionId)
+      ?.sections.map((s) => s.payload.kind);
+
+  it('cria o rodapé com os dois quando o layout não tem', () => {
+    const layout = sanitizeSheetLayout(minimal());
+    const footer = layout.regions.find((r) => r.role === 'footer');
+
+    expect(footer?.sections.map((s) => s.payload.kind)).toEqual([
+      'bugReport',
+      'supportCta',
+    ]);
+  });
+
+  it('traz de volta para o rodapé o que foi levado para outra área', () => {
+    const raw = clone(minimal());
+    raw.regions[0].sections.push({
+      id: 'apoio',
+      payload: { kind: 'supportCta' },
+      width: 'half',
+      title: 'Apoie!',
+    });
+    raw.regions.push({ id: 'rod', role: 'footer', sections: [] });
+
+    const layout = sanitizeSheetLayout(raw);
+
+    expect(kindsOf(layout, 'r1')).toEqual(['identity']);
+    // A seção movida volta com o que o usuário configurou nela.
+    const apoio = layout.regions
+      .find((r) => r.id === 'rod')
+      ?.sections.find((s) => s.id === 'apoio');
+    expect(apoio?.title).toBe('Apoie!');
+    // As que faltavam entram na ordem canônica (aviso, depois apoio).
+    expect(kindsOf(layout, 'rod')).toEqual(['bugReport', 'supportCta']);
+  });
+
+  it('preserva a ordem escolhida entre os dois dentro do rodapé', () => {
+    const raw = clone(minimal());
+    raw.regions.push({
+      id: 'rod',
+      role: 'footer',
+      sections: [
+        { id: 'c', payload: { kind: 'creationSteps' }, width: 'full' },
+        { id: 'a', payload: { kind: 'supportCta' }, width: 'full' },
+        { id: 'b', payload: { kind: 'bugReport' }, width: 'full' },
+      ],
+    });
+
+    expect(kindsOf(sanitizeSheetLayout(raw), 'rod')).toEqual([
+      'creationSteps',
+      'supportCta',
+      'bugReport',
+    ]);
+  });
+
+  it('não deixa o rodapé sumir no celular nem mandar as travadas para outro lugar', () => {
+    const raw = clone(minimal());
+    raw.regions.push({
+      id: 'rod',
+      role: 'footer',
+      sections: [
+        { id: 'a', payload: { kind: 'supportCta' }, width: 'full' },
+        { id: 'b', payload: { kind: 'bugReport' }, width: 'full' },
+      ],
+    });
+    raw.mobile = {
+      hiddenRegionIds: ['rod'],
+      regionOverrides: { a: 'r1' },
+    };
+
+    expect(sanitizeSheetLayout(raw).mobile).toBeUndefined();
+  });
+
+  it('é idempotente com o conserto', () => {
+    const once = sanitizeSheetLayout(minimal());
+    expect(sanitizeSheetLayout(clone(once))).toEqual(once);
+  });
+
+  it('os presets já cumprem a regra (o saneamento não os altera)', () => {
+    expect(sanitizeSheetLayout(clone(PRESET_TABS))).toEqual(PRESET_TABS);
   });
 });

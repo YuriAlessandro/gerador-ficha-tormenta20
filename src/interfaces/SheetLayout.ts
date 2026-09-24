@@ -79,6 +79,18 @@ export const SHEET_SECTION_KINDS = [
 export type SheetSectionKind = (typeof SHEET_SECTION_KINDS)[number];
 
 /**
+ * Seções TRAVADAS no rodapé: o aviso de problema e o convite de apoio. Não
+ * podem ser removidas nem levadas para outra área — só reordenadas dentro do
+ * rodapé. O saneamento conserta qualquer documento que diga o contrário
+ * (layout antigo, importado ou da galeria), então o renderer pode contar com
+ * elas lá.
+ */
+export const FOOTER_LOCKED_KINDS = ['bugReport', 'supportCta'] as const;
+
+export const isFooterLockedKind = (kind: SheetSectionKind): boolean =>
+  (FOOTER_LOCKED_KINDS as readonly string[]).includes(kind);
+
+/**
  * União discriminada por `kind`, no molde de `GMScreenWidget`. Só `note` carrega
  * conteúdo próprio; as demais seções leem da ficha.
  */

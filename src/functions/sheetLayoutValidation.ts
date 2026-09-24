@@ -30,6 +30,8 @@ import {
   SHEET_LAYOUT_SCHEMA_VERSION,
   SHEET_SECTION_KINDS,
   SHEET_TEMPLATE_KINDS,
+  FOOTER_LOCKED_KINDS,
+  isFooterLockedKind,
   isPresetLayoutId,
 } from '../interfaces/SheetLayout';
 import { DEFAULT_SHEET_LAYOUT } from '../interfaces/sheetLayoutPresets';
@@ -185,6 +187,77 @@ const sanitizeRegion = (raw: unknown): LayoutRegion | null => {
   return region;
 };
 
+/** Id de uma região nova que não colide com as existentes. */
+const freshId = (base: string, taken: Set<string>): string => {
+  let id = base;
+  let n = 2;
+  while (taken.has(id)) {
+    id = `${base}-${n}`;
+    n += 1;
+  }
+  return id;
+};
+
+/**
+ * Garante as seções travadas (`FOOTER_LOCKED_KINDS`) no PRIMEIRO rodapé.
+ *
+ * Conserta em vez de recusar: um layout salvo antes da trava, ou montado à mão,
+ * continua abrindo — só volta a ter o aviso e o convite no lugar deles. A ordem
+ * entre as travadas que já estavam no rodapé é preservada (é a única liberdade
+ * que o usuário tem com elas); as que vieram de fora ou faltavam entram no fim.
+ */
+const enforceFooterLock = (regions: LayoutRegion[]): LayoutRegion[] => {
+  const moved = new Map<SheetSectionKind, LayoutSection>();
+  let footerIdx = regions.findIndex((r) => r.role === 'footer');
+
+  const cleaned = regions.map((region, i) => {
+    if (i === footerIdx) return region;
+    const kept = region.sections.filter((s) => {
+      if (!isFooterLockedKind(s.payload.kind)) return true;
+      if (!moved.has(s.payload.kind)) moved.set(s.payload.kind, s);
+      return false;
+    });
+    return kept.length === region.sections.length
+      ? region
+      : { ...region, sections: kept };
+  });
+
+  if (footerIdx === -1) {
+    const taken = new Set(regions.map((r) => r.id));
+    cleaned.push({
+      id: freshId('r-footer', taken),
+      role: 'footer',
+      sections: [],
+    });
+    footerIdx = cleaned.length - 1;
+  }
+
+  const footer = cleaned[footerIdx];
+  const present = new Set(footer.sections.map((s) => s.payload.kind));
+  const sectionIds = new Set(
+    cleaned.flatMap((r) => r.sections.map((s) => s.id))
+  );
+  const additions: LayoutSection[] = [];
+  FOOTER_LOCKED_KINDS.forEach((kind) => {
+    if (present.has(kind)) return;
+    const fromElsewhere = moved.get(kind);
+    if (fromElsewhere) {
+      additions.push(fromElsewhere);
+      return;
+    }
+    const id = freshId(`s-${kind}`, sectionIds);
+    sectionIds.add(id);
+    additions.push({ id, payload: { kind }, width: 'full' });
+  });
+
+  if (additions.length === 0) return cleaned;
+  cleaned[footerIdx] = {
+    ...footer,
+    sections: [...footer.sections, ...additions],
+  };
+  return cleaned;
+};
+
 /** Por que um payload é irrecuperável. Vira código de erro na validação. */
 export type LayoutRejection =
   | 'not-an-object'
@@ -246,6 +319,17 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
     return { layout: null, rejection: 'missing-required-section' };
   }
 
+  // Aviso de problema e convite de apoio: sempre no rodapé.
+  const lockedRegions = enforceFooterLock(regions);
+  const footerId = lockedRegions.find((r) => r.role === 'footer')?.id;
+  const lockedSectionIds = new Set(
+    lockedRegions.flatMap((r) =>
+      r.sections
+        .filter((s) => isFooterLockedKind(s.payload.kind))
+        .map((s) => s.id)
+    )
+  );
+
   const rawTheme = isRecord(raw.theme) ? raw.theme : {};
   const theme: SheetLayout['theme'] = {};
   const accentColor = asColor(rawTheme.accentColor);
@@ -285,15 +369,15 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
       template && TEMPLATE_SET.has(template)
         ? (template as SheetTemplateKind)
         : 'tabs',
-    regions,
+    regions: lockedRegions,
     theme,
   };
 
   const rawMobile = isRecord(raw.mobile) ? raw.mobile : undefined;
   if (rawMobile) {
-    const regionIds = new Set(regions.map((r) => r.id));
+    const regionIds = new Set(lockedRegions.map((r) => r.id));
     const sectionIds = new Set(
-      regions.flatMap((r) => r.sections.map((s) => s.id))
+      lockedRegions.flatMap((r) => r.sections.map((s) => s.id))
     );
 
     const mobile: NonNullable<SheetLayout['mobile']> = {};
@@ -310,7 +394,14 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
           const t = asString(target);
           // Override apontando para região/seção que não existe mais é lixo de
           // uma edição anterior — some sem alarde.
-          if (t && sectionIds.has(sectionId) && regionIds.has(t)) {
+          // Seção travada não tem destino alternativo no celular: fica no
+          // rodapé como no desktop.
+          if (
+            t &&
+            sectionIds.has(sectionId) &&
+            regionIds.has(t) &&
+            !lockedSectionIds.has(sectionId)
+          ) {
             overrides[sectionId] = t;
           }
         }
@@ -321,7 +412,10 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
     if (Array.isArray(rawMobile.hiddenRegionIds)) {
       const hidden = rawMobile.hiddenRegionIds
         .map(asString)
-        .filter((id): id is string => !!id && regionIds.has(id));
+        // O rodapé com as seções travadas não pode sumir no celular.
+        .filter(
+          (id): id is string => !!id && regionIds.has(id) && id !== footerId
+        );
       if (hidden.length > 0) mobile.hiddenRegionIds = hidden;
     }
 
