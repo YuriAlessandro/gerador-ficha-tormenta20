@@ -2,22 +2,21 @@
 /**
  * Gera o catálogo de ícones do game-icons.net usado pelos layouts de ficha.
  *
- * POR QUE ARQUIVO POR ÍCONE, E NÃO UM PACOTE NPM
- * ----------------------------------------------
+ * OS DESENHOS VÊM DO jsDelivr, NÃO DESTE REPOSITÓRIO
+ * --------------------------------------------------
  * Um ícone escolhido pelo usuário em runtime não é tree-shakeable: importar
- * `react-icons/gi` colocaria os ~4.200 desenhos no bundle de todo mundo,
- * inclusive de quem nunca abre o editor de layout. Servindo um arquivo por
- * ícone a partir de `public/`, uma ficha baixa exatamente os 5-15 que usa, o
- * Vite não põe nada no bundle, e o Cloudflare Pages serve tudo do CDN sem
- * invocar a Function (`public/_routes.json` só inclui rotas de página).
+ * `react-icons/gi` colocaria os ~4.200 desenhos no bundle de todo mundo. E
+ * commitar um SVG por ícone em `public/` custava 4.200 arquivos e 7 MB no
+ * histórico do git. Então cada ficha busca os 5-15 desenhos que usa direto do
+ * jsDelivr, no repositório oficial TRAVADO num commit (`COMMIT` abaixo): a URL
+ * nunca muda de conteúdo e o CDN a serve como imutável por 1 ano. Ver
+ * `src/components/icons/gameIcons/GameIcon.tsx`.
  *
- * O QUE É FEITO COM CADA SVG
- * --------------------------
- * O original tem `viewBox="0 0 512 512"` e DOIS paths: o primeiro é o quadrado
- * preto de fundo, o segundo é o glifo. Só o glifo entra, e sem o `fill` — assim
- * ele herda `currentColor` e obedece à cor do tema. É o mesmo tratamento que
- * `src/components/SheetResult/SpellsTab/spellSchoolIcons.tsx` já documenta para
- * os oito glifos de escola de magia que estão inline lá.
+ * Este script gera só o que o app precisa ter localmente:
+ * - `public/game-icons/manifest.json`: a lista que o seletor usa para buscar;
+ * - `credits.generated.ts`: o commit travado e os créditos de cada autor.
+ *
+ * Para atualizar o acervo, troque `COMMIT` e rode de novo.
  *
  * LICENÇA
  * -------
@@ -50,8 +49,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'public', 'game-icons');
 const GENERATED_DIR = join(ROOT, 'src', 'components', 'icons', 'gameIcons');
 
-const TARBALL =
-  'https://codeload.github.com/game-icons/icons/tar.gz/refs/heads/master';
+/** Commit do github.com/game-icons/icons de onde saem a lista e os desenhos. */
+const COMMIT = '82d948812bfe3f269ef8f731dcdb07b08160edc4';
+
+const TARBALL = `https://codeload.github.com/game-icons/icons/tar.gz/${COMMIT}`;
 
 /** Pastas do repositório que não são de autor. */
 const NON_AUTHOR_DIRS = new Set(['badges', '.github']);
@@ -61,7 +62,7 @@ function fetchSource() {
   console.log('Baixando o acervo do game-icons…');
   execFileSync('curl', ['-sSL', '-o', join(tmp, 'icons.tar.gz'), TARBALL]);
   execFileSync('tar', ['xzf', join(tmp, 'icons.tar.gz'), '-C', tmp]);
-  return { dir: join(tmp, 'icons-master'), cleanup: () => rmSync(tmp, { recursive: true, force: true }) };
+  return { dir: join(tmp, `icons-${COMMIT}`), cleanup: () => rmSync(tmp, { recursive: true, force: true }) };
 }
 
 /**
@@ -154,8 +155,6 @@ function main() {
       const files = readdirSync(authorDir).filter((f) => f.endsWith('.svg'));
       if (files.length === 0) return;
 
-      mkdirSync(join(OUT_DIR, author), { recursive: true });
-
       files.sort().forEach((file) => {
         const name = file.replace(/\.svg$/, '');
         const glyph = extractGlyph(readFileSync(join(authorDir, file), 'utf8'));
@@ -164,12 +163,6 @@ function main() {
           skipped += 1;
           return;
         }
-
-        // Sem `fill`: o glifo herda `currentColor` de quem o inlina.
-        writeFileSync(
-          join(OUT_DIR, author, file),
-          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="${glyph}"/></svg>\n`
-        );
 
         manifest.push({
           id: `gi:${author}/${name}`,
@@ -203,6 +196,9 @@ export interface GameIconAuthor {
 
 export const GAME_ICONS_SOURCE = 'https://game-icons.net';
 
+/** Commit do github.com/game-icons/icons de onde os desenhos são servidos. */
+export const GAME_ICONS_COMMIT = '${COMMIT}';
+
 export const GAME_ICONS_AUTHORS: GameIconAuthor[] = ${JSON.stringify(
       authors,
       null,
@@ -220,7 +216,7 @@ export const GAME_ICONS_CC0_AUTHORS: string[] = ${JSON.stringify(
 
   source.cleanup();
 
-  console.log(`${manifest.length} ícones gerados em public/game-icons/`);
+  console.log(`${manifest.length} ícones listados em public/game-icons/manifest.json`);
   if (skipped > 0) console.log(`${skipped} ignorados (formato inesperado)`);
   console.log(`${authors.length} autores creditados`);
 }

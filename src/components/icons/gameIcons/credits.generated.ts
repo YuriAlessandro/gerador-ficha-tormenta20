@@ -12,6 +12,9 @@ export interface GameIconAuthor {
 
 export const GAME_ICONS_SOURCE = 'https://game-icons.net';
 
+/** Commit do github.com/game-icons/icons de onde os desenhos são servidos. */
+export const GAME_ICONS_COMMIT = '82d948812bfe3f269ef8f731dcdb07b08160edc4';
+
 export const GAME_ICONS_AUTHORS: GameIconAuthor[] = [
   {
     name: 'Lorc',

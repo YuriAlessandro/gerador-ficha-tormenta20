@@ -1,11 +1,16 @@
 /**
  * Renderiza um ícone do catálogo do game-icons.net.
  *
- * Os desenhos vivem em `public/game-icons/<autor>/<nome>.svg`, gerados por
- * `scripts/build-game-icons.mjs`. São buscados sob demanda e cacheados em
- * módulo: uma ficha usa 5-15 ícones, então o custo é de alguns KB, e o bundle
- * JS não cresce um byte — que é o motivo de o catálogo não ser um pacote npm
- * (ícone escolhido em runtime não é tree-shakeable).
+ * Os desenhos vêm do jsDelivr, direto do repositório oficial TRAVADO num commit
+ * (`GAME_ICONS_COMMIT`, gerado por `scripts/build-game-icons.mjs`): o conteúdo
+ * de uma URL nunca muda e o CDN a serve como imutável. São buscados sob demanda
+ * e cacheados em módulo: uma ficha usa 5-15 ícones, então o custo é de alguns
+ * KB, e o bundle JS não cresce um byte (ícone escolhido em runtime não é
+ * tree-shakeable, por isso não é um pacote npm). O service worker guarda o que
+ * já foi visto, para o PWA offline (ver `vite.config.ts`).
+ *
+ * Ícone que não carrega (CDN fora do ar, sem rede) vira ausência: a ficha nunca
+ * quebra por causa dele.
  *
  * O conteúdo é embrulhado num `SvgIcon` do MUI de propósito: assim `fontSize`,
  * `color` e `sx` funcionam igual aos ícones do resto do app, que é exatamente
@@ -14,6 +19,8 @@
  */
 import React, { useEffect, useState } from 'react';
 import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
+
+import { GAME_ICONS_COMMIT } from './credits.generated';
 
 /** Os SVGs gerados têm sempre o viewBox original do game-icons. */
 const VIEW_BOX = '0 0 512 512';
@@ -28,9 +35,20 @@ const VIEW_BOX = '0 0 512 512';
  */
 const cache = new Map<string, Promise<string | null>>();
 
-const pathOf = (svgText: string): string | null => {
-  const match = svgText.match(/<path\b[^>]*\bd="([^"]+)"/);
-  return match ? match[1] : null;
+export const GAME_ICONS_CDN = `https://cdn.jsdelivr.net/gh/game-icons/icons@${GAME_ICONS_COMMIT}`;
+
+/**
+ * O SVG original tem o quadrado preto de fundo como PRIMEIRO path e o glifo
+ * nos demais. Só o glifo interessa, sem `fill`, para herdar `currentColor`.
+ * Com um path só, ele já é o glifo.
+ */
+export const glyphOf = (svgText: string): string | null => {
+  const paths = [...svgText.matchAll(/<path\b[^>]*\bd="([^"]+)"/g)].map(
+    (m) => m[1]
+  );
+  if (paths.length === 0) return null;
+  if (paths.length === 1) return paths[0];
+  return paths.slice(1).join(' ');
 };
 
 export const loadGameIconPath = (
@@ -41,9 +59,9 @@ export const loadGameIconPath = (
   const cached = cache.get(key);
   if (cached) return cached;
 
-  const promise = fetch(`/game-icons/${key}.svg`)
+  const promise = fetch(`${GAME_ICONS_CDN}/${key}.svg`)
     .then((res) => (res.ok ? res.text() : null))
-    .then((text) => (text ? pathOf(text) : null))
+    .then((text) => (text ? glyphOf(text) : null))
     // Ícone que não carrega não pode derrubar a ficha: vira ausência, e quem
     // chama decide o que mostrar no lugar.
     .catch(() => null);

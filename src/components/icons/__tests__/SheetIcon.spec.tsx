@@ -1,7 +1,7 @@
 /**
  * O resolvedor de ícones e o catálogo do game-icons.
  *
- * O catálogo real são ~4.200 arquivos em `public/`, buscados por rede. Aqui o
+ * O catálogo real são ~4.200 arquivos no jsDelivr, buscados por rede. Aqui o
  * `fetch` é dublado: o que está sob teste é o contrato do id com namespace e o
  * cache — não o conteúdo dos desenhos.
  */
@@ -10,7 +10,11 @@ import { render, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import SheetIcon from '../SheetIcon';
-import GameIcon, { clearGameIconCache } from '../gameIcons/GameIcon';
+import GameIcon, {
+  GAME_ICONS_CDN,
+  clearGameIconCache,
+  glyphOf,
+} from '../gameIcons/GameIcon';
 
 const SVG = (d: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="${d}"/></svg>`;
@@ -69,7 +73,13 @@ describe('SheetIcon — roteamento por namespace', () => {
       expect(container.querySelector('path')).not.toBeNull();
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/game-icons/lorc/crystal-ball.svg');
+    expect(fetchSpy).toHaveBeenCalledWith(
+      `${GAME_ICONS_CDN}/lorc/crystal-ball.svg`
+    );
+    // Travado num commit: o conteúdo da URL nunca muda.
+    expect(GAME_ICONS_CDN).toMatch(
+      /^https:\/\/cdn\.jsdelivr\.net\/gh\/game-icons\/icons@[0-9a-f]{40}$/
+    );
     expect(container.querySelector('path')?.getAttribute('d')).toBe(
       'M10 10 H90 V90 H10 Z'
     );
@@ -121,5 +131,26 @@ describe('GameIcon — cache e falhas', () => {
       expect(container.querySelector('svg')).toBeInTheDocument();
     });
     expect(container.querySelector('path')).toBeNull();
+  });
+});
+
+describe('glyphOf — SVG original do acervo', () => {
+  it('descarta o quadrado de fundo e fica com o glifo', () => {
+    const original =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
+      '<path d="M0 0h512v512H0z"/><path fill="#fff" d="M10 10z"/></svg>';
+
+    expect(glyphOf(original)).toBe('M10 10z');
+  });
+
+  it('junta os traçados quando o glifo tem mais de um', () => {
+    const original =
+      '<svg><path d="M0 0h512v512H0z"/><path d="M1 1z"/><path d="M2 2z"/></svg>';
+
+    expect(glyphOf(original)).toBe('M1 1z M2 2z');
+  });
+
+  it('com um path só, ele já é o glifo', () => {
+    expect(glyphOf('<svg><path d="M5 5z"/></svg>')).toBe('M5 5z');
   });
 });

@@ -77,7 +77,7 @@ PÚBLICO
   src/components/SheetResult/sheetSurfaceMemory.ts
   src/components/icons/SheetIcon.tsx         roteia mui: e gi:
   src/components/icons/gameIcons/GameIcon.tsx
-  public/game-icons/                         4.180 SVGs + manifest (gerados)
+  public/game-icons/manifest.json           lista do seletor (gerada)
   scripts/build-game-icons.mjs               gerador do catálogo
 
 PREMIUM (src/premium/)
@@ -336,21 +336,30 @@ Cada uma destas custou tempo ou quase virou bug. Não redescobrir.
 
 ## 8. O catálogo de ícones
 
-4.180 SVGs em `public/game-icons/`, ~6,5 MB, gerados por
-`scripts/build-game-icons.mjs` a partir do repositório `game-icons/icons`.
+4.180 ícones do repositório `game-icons/icons`, servidos pelo **jsDelivr**
+travado num commit (`GAME_ICONS_COMMIT` em `credits.generated.ts`):
+`https://cdn.jsdelivr.net/gh/game-icons/icons@<commit>/<autor>/<nome>.svg`.
+No repositório fica só a lista do seletor (`public/game-icons/manifest.json`),
+gerada por `scripts/build-game-icons.mjs`. Para atualizar o acervo: trocar o
+`COMMIT` do script e rodar de novo.
 
-**Por que arquivo por ícone e não um pacote npm:** um ícone escolhido em runtime
-não é tree-shakeable, então `react-icons/gi` colocaria os ~4.200 desenhos no
-bundle de todo mundo, inclusive de quem nunca abre o editor. Servidos de
-`public/`, uma ficha baixa os 5-15 que usa e o bundle JS não cresce um byte.
+**Por que CDN e não arquivos nossos nem pacote npm:** um ícone escolhido em
+runtime não é tree-shakeable, então `react-icons/gi` colocaria os ~4.200
+desenhos no bundle de todo mundo. Commitar um SVG por ícone em `public/`
+custava 4.200 arquivos e 7 MB no histórico do git. Pelo CDN, uma ficha baixa os
+5-15 que usa, e nem o bundle nem o repositório crescem.
 
-- `public/_headers` dá cache imutável de 1 ano em `/game-icons/*` — o desenho de
-  `lorc/crystal-ball` de fato nunca muda; ícone novo ganha nome novo.
-- `public/_routes.json` só inclui rotas de página, então esses caminhos **nunca
-  invocam a Function** do Pages: custo zero na cota do Workers.
+- Travado no commit, o conteúdo de uma URL nunca muda: o jsDelivr a serve com
+  cache imutável de 1 ano e `Access-Control-Allow-Origin: *` (o Owlbear roda
+  num iframe de origem opaca). O game-icons.net em si não manda CORS e não serve.
+- O SVG original traz o quadrado preto de fundo como primeiro path; `glyphOf`
+  em `GameIcon.tsx` fica só com o glifo, sem `fill`, que herda `currentColor`.
+- **Offline:** o service worker guarda os desenhos numa cache própria
+  (`fdn-game-icons`, CacheFirst, regra em `vite.config.ts`). Ícone que não
+  carrega vira ausência, sem quebrar a ficha.
 - O id (`gi:<autor>/<nome>`) carrega o caminho do arquivo, então **renderizar
   não precisa do manifest**. O manifest (290 KB, 35 KB comprimido) só é baixado
-  quando o seletor do editor abre.
+  quando o seletor do editor abre; `public/_headers` dá 1 dia de cache a ele.
 
 **Licença — requisito, não cortesia.** O acervo é CC BY 3.0 com alguns autores
 em CC0, e a licença é **por autor**. O manifest carrega o autor de cada ícone e
