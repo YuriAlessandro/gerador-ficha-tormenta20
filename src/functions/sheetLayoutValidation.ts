@@ -82,13 +82,32 @@ const asIconKey = (v: unknown): string | undefined => {
 const asWidth = (v: unknown): SheetSectionWidth =>
   v === 'half' ? 'half' : 'full';
 
+const asId = (v: unknown): string | undefined => {
+  const s = asString(v);
+  return s && s.length <= SHEET_LAYOUT_CAPS.maxIdLength ? s : undefined;
+};
+
+const asCatalogKey = (v: unknown): string | undefined => {
+  const s = asString(v);
+  return s && s.length <= SHEET_LAYOUT_CAPS.maxCatalogKeyLength ? s : undefined;
+};
+
+// Caracteres de controle e espaço não têm lugar numa URL colada; a URL vai
+// parar dentro de um `url()` de CSS, então nada que possa fechar a string.
+// eslint-disable-next-line no-control-regex
+const UNSAFE_URL_CHARS_RE = /[\u0000-\u0020\u007f"'\\]/;
+
 const asHttpsUrl = (v: unknown): string | undefined => {
   const s = asString(v);
-  if (!s) return undefined;
+  if (!s || s.length > SHEET_LAYOUT_CAPS.maxBackgroundUrlLength)
+    return undefined;
+  if (UNSAFE_URL_CHARS_RE.test(s)) return undefined;
   try {
     // Mesmo critério do `profileController` (só o protocolo, sem allowlist de
-    // host): o app inteiro já aceita URL colada pelo usuário assim.
-    return new URL(s).protocol === 'https:' ? s : undefined;
+    // host): o app inteiro já aceita URL colada pelo usuário assim. Guarda a
+    // forma normalizada (`href`), não o texto colado.
+    const url = new URL(s);
+    return url.protocol === 'https:' ? url.href : undefined;
   } catch {
     return undefined;
   }
@@ -105,7 +124,7 @@ const sanitizeSection = (raw: unknown): LayoutSection | null => {
   const kind = asString(payload?.kind);
   if (!kind || !KIND_SET.has(kind)) return null;
 
-  const id = asString(raw.id);
+  const id = asId(raw.id);
   if (!id) return null;
 
   const section: LayoutSection = {
@@ -139,7 +158,7 @@ const sanitizeSection = (raw: unknown): LayoutSection | null => {
 const sanitizeRegion = (raw: unknown): LayoutRegion | null => {
   if (!isRecord(raw)) return null;
 
-  const id = asString(raw.id);
+  const id = asId(raw.id);
   const role = asString(raw.role);
   if (!id || !role || !ROLE_SET.has(role)) return null;
 
@@ -197,11 +216,27 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
   }
 
   const template = asString(raw.template);
+  // Ids repetidos quebram o drag-and-drop (droppableIds) e os overrides de
+  // mobile, que endereçam seção e região por id: fica a primeira ocorrência.
+  const seenRegionIds = new Set<string>();
+  const seenSectionIds = new Set<string>();
   const regions = Array.isArray(raw.regions)
     ? raw.regions
         .map(sanitizeRegion)
-        .filter((r): r is LayoutRegion => r !== null)
+        .filter((r): r is LayoutRegion => {
+          if (r === null || seenRegionIds.has(r.id)) return false;
+          seenRegionIds.add(r.id);
+          return true;
+        })
         .slice(0, SHEET_LAYOUT_CAPS.maxRegions)
+        .map((r) => ({
+          ...r,
+          sections: r.sections.filter((s) => {
+            if (seenSectionIds.has(s.id)) return false;
+            seenSectionIds.add(s.id);
+            return true;
+          }),
+        }))
     : [];
 
   const present = new Set(
@@ -219,7 +254,7 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
   if (titleColor) theme.titleColor = titleColor;
   const cardBackgroundColor = asColor(rawTheme.cardBackgroundColor);
   if (cardBackgroundColor) theme.cardBackgroundColor = cardBackgroundColor;
-  const backgroundPresetId = asString(rawTheme.backgroundPresetId);
+  const backgroundPresetId = asCatalogKey(rawTheme.backgroundPresetId);
   if (backgroundPresetId) theme.backgroundPresetId = backgroundPresetId;
   const backgroundImageUrl = asHttpsUrl(rawTheme.backgroundImageUrl);
   if (backgroundImageUrl) theme.backgroundImageUrl = backgroundImageUrl;
@@ -229,7 +264,7 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
       Math.max(0, rawTheme.backgroundOpacity)
     );
   }
-  const fontFamily = asString(rawTheme.fontFamily);
+  const fontFamily = asCatalogKey(rawTheme.fontFamily);
   if (fontFamily) theme.fontFamily = fontFamily;
   if (
     rawTheme.cardStyle === 'flat' ||
@@ -241,7 +276,7 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
 
   const layout: SheetLayout = {
     schemaVersion: SHEET_LAYOUT_SCHEMA_VERSION,
-    id: asString(raw.id) ?? DEFAULT_SHEET_LAYOUT.id,
+    id: asId(raw.id) ?? DEFAULT_SHEET_LAYOUT.id,
     name: (asString(raw.name) ?? 'Meu layout').slice(
       0,
       SHEET_LAYOUT_CAPS.maxLayoutNameLength
@@ -340,11 +375,36 @@ export function validateSheetLayout(raw: unknown): ValidateLayoutResult {
     };
   }
 
-  if (layout.regions.length > SHEET_LAYOUT_CAPS.maxRegions) {
+  // Os tetos são medidos no documento RECEBIDO: o saneamento corta em
+  // silêncio, e medir depois dele aprovaria um layout diferente do enviado.
+  const rawRegions =
+    isRecord(raw) && Array.isArray(raw.regions) ? raw.regions : [];
+  if (rawRegions.length > SHEET_LAYOUT_CAPS.maxRegions) {
     issues.push({
       level: 'error',
       code: 'too-many-regions',
       message: `Um layout pode ter no máximo ${SHEET_LAYOUT_CAPS.maxRegions} áreas.`,
+    });
+  }
+  if (
+    rawRegions.some(
+      (r) =>
+        isRecord(r) &&
+        Array.isArray(r.sections) &&
+        r.sections.length > SHEET_LAYOUT_CAPS.maxSectionsPerRegion
+    )
+  ) {
+    issues.push({
+      level: 'error',
+      code: 'too-many-sections',
+      message: `Uma área pode ter no máximo ${SHEET_LAYOUT_CAPS.maxSectionsPerRegion} seções.`,
+    });
+  }
+  if (JSON.stringify(raw).length > SHEET_LAYOUT_CAPS.maxSerializedBytes) {
+    issues.push({
+      level: 'error',
+      code: 'too-large',
+      message: 'O layout ficou grande demais. Encurte as notas.',
     });
   }
 

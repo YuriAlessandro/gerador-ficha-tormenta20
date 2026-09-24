@@ -321,12 +321,12 @@ const Result: React.FC<ResultProps> = (props) => {
   /**
    * Qual layout desenha esta ficha.
    *
-   * Sem acesso à feature isto devolve o preset histórico independentemente do
-   * que estiver salvo na ficha — o gating não é burlável por payload, e um
-   * ex-apoiador não fica preso num layout que não pode mais editar.
+   * O layout salvo na ficha vale para QUALQUER visualizador (mestre, colega
+   * de mesa, Owlbear); só a flag desligada devolve o preset histórico. Apoio
+   * é exigido para criar e editar, não para ver — ver `resolveSheetLayoutFor`.
    */
-  const { hasAccess: canUseSheetLayouts } = useSheetLayoutAccess();
-  const activeLayout: SheetLayout = resolveSheetLayoutFor(canUseSheetLayouts, {
+  const { isEnabled: sheetLayoutsEnabled } = useSheetLayoutAccess();
+  const activeLayout: SheetLayout = resolveSheetLayoutFor(sheetLayoutsEnabled, {
     override: layoutOverride,
     fromSheet: currentSheet.layout,
   });
@@ -799,8 +799,10 @@ const Result: React.FC<ResultProps> = (props) => {
    * coisas aparecem.
    */
   const handleLayoutSelect = useCallback(
-    (layout: SheetLayout) => {
-      handleSheetInfoUpdate({ layout });
+    (layout: SheetLayout, layoutId: string | null) => {
+      // `undefined` (e não `null`) para o delta virar `$unset` no backend: a
+      // ficha deixa de estar vinculada a um modelo da biblioteca.
+      handleSheetInfoUpdate({ layout, layoutId: layoutId ?? undefined });
     },
     [handleSheetInfoUpdate]
   );

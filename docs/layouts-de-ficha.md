@@ -1,10 +1,11 @@
 # Layouts customizáveis de ficha — estado e handoff
 
-> **Para quem pegar isto depois.** As Fases 1 e 2 estão implementadas e verdes.
-> A Fase 3 não foi começada. Este documento é o que você precisa para continuar
-> sem reabrir decisões que já foram tomadas.
+> **Para quem pegar isto depois.** As três fases estão implementadas e verdes.
+> Falta o que está em §10 (build, página de créditos, testes na mão). Este
+> documento é o que você precisa para continuar sem reabrir decisões que já
+> foram tomadas.
 >
-> Última atualização: 15/08/2026.
+> Última atualização: 24/09/2026.
 
 ---
 
@@ -20,64 +21,33 @@ Tudo atrás da flag `sheetLayouts`, restrita a apoiadores.
 
 Não reabrir sem falar com ele.
 
-| Tema             | Decisão                                                                                                                   |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Modelos          | `single` (rolagem contínua), `tabs` (o arranjo histórico), `actionMenu` (lista-mestra de telas, estilo app do D&D Beyond) |
-| Gating           | **Tudo** só para apoiadores. Não-apoiador fica no layout de hoje e vê cadeado + CTA `/apoiar`                             |
-| Editor           | **Seções em slots** — arrastar entre áreas, ordem, largura, título, ícone, cor. **Não** é grade livre x/y                 |
-| Imagens de fundo | Presets no bundle + campo de URL https. **Nenhum pipeline de upload novo**                                                |
-| Ícones           | Catálogo **completo** do game-icons.net                                                                                   |
-| Compartilhar     | Código curto/link + galeria simples com busca, preview e denúncia. Sem fila de curadoria                                  |
-| Entrada na UI    | Discreta, dentro da própria ficha. **Sem área dedicada na home**                                                          |
+| Tema             | Decisão                                                                                                                                                               |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modelos          | `single` (rolagem contínua), `tabs` (o arranjo histórico), `actionMenu` (lista-mestra de telas, estilo app do D&D Beyond)                                             |
+| Gating           | **Criar, editar, salvar e publicar** só para apoiadores (cadeado + CTA `/apoiar`). **Ver** é de todos: o layout da ficha renderiza para qualquer visualizador (24/09) |
+| Editor           | **Seções em slots** — arrastar entre áreas, ordem, largura, título, ícone, cor. **Não** é grade livre x/y                                                             |
+| Imagens de fundo | Presets no bundle + campo de URL https. **Nenhum pipeline de upload novo**                                                                                            |
+| Ícones           | Catálogo **completo** do game-icons.net                                                                                                                               |
+| Compartilhar     | Código curto/link + galeria simples com busca, preview e denúncia. Sem fila de curadoria                                                                              |
+| Entrada na UI    | Discreta, dentro da própria ficha. **Sem área dedicada na home**                                                                                                      |
+| Vínculo          | A ficha **sempre** carrega a cópia em `sheet.layout`; `sheet.layoutId` é só o modelo de origem. Nada renderiza por referência (24/09)                                 |
+| Denúncia         | 1 por usuário, com motivo; **3 denúncias ocultam sozinho**; moderador restaura pelo admin (24/09)                                                                     |
 
 ---
 
 ## 2. Onde está o código
 
-Três repositórios, todos na branch **`feat/layouts-de-ficha`**, **nada pusheado**.
+Três repositórios, todos na branch **`feat/layouts-de-ficha`**, **pushada**
+(nunca em `main`). A branch recebeu `main` por merge em 24/09.
 
-### Repo principal — 7 commits
+- **Principal:** Fases 1–2 (8 commits de 15/08), o merge da `main` e a Fase 3.
+- **`src/premium`:** editor (Fase 2), seção do Diário e a biblioteca/galeria.
+- **`backend`:** flag, merge da `main` e a biblioteca (`67a9401`).
 
-```
-df9aa5a3 chore(stub oss): regenera o espelho público do submódulo premium
-21120ceb feat(layouts): aparência do layout e entrada para o editor
-22f1a3ce feat(ficha): o Result passa a ser dirigido por layout, atrás de flag
-e0d62a0e feat(layouts): os três modelos de ficha e o motor que os renderiza
-b5fa24df feat(ícones): catálogo completo do game-icons.net
-91968790 feat(layouts): contrato de dados, resolução e saneamento
-93be0a07 test(ficha): trava o arranjo atual antes de extrair as seções
-```
-
-40 arquivos (fora os 4.180 ícones), +5.545 / −1.387.
-
-### Submódulo `src/premium` — 2 commits
-
-```
-8e42aa1 feat(layouts): editor drag-and-drop com preview ao vivo
-b928366 feat(layouts): operações do editor como funções puras
-```
-
-### Submódulo `backend` — 1 commit
-
-```
-4eaf6e7 feat(feature flags): registra a flag sheetLayouts
-```
-
-Cada commit compila e passa nos testes por conta própria — o histórico foi
-refeito uma vez justamente para garantir isso.
-
-### ⚠️ Árvore suja de propósito
-
-`src/types/featureFlags.types.ts` tem uma alteração **não commitada** que
-destrava a flag para teste local:
-
-```ts
-// TEMPORÁRIO PARA TESTE LOCAL — reverter para { enabled: false, supporterOnly: true }
-sheetLayouts: { enabled: true, supporterOnly: false },
-```
-
-Reverter com `git checkout src/types/featureFlags.types.ts` antes de commitar
-qualquer coisa.
+Para testar localmente, ligue a flag **sem commitar**: em
+`src/types/featureFlags.types.ts`, `sheetLayouts: { enabled: true,
+supporterOnly: false }`. No backend, a flag precisa existir no banco (o seed
+só roda com a coleção vazia) — crie pelo admin ou `PUT /api/admin/feature-flags`.
 
 ---
 
@@ -225,94 +195,77 @@ seis transições entre os três modelos.
 
 O layout é gravado **inline em `sheet.layout`**. Isso não exigiu nada do
 backend: `stripSheetForStorage` faz spread no nível raiz e `Sheet.sheetData` é
-`Mixed`. Custa ~2-4 KB por ficha — que é um dos argumentos para migrar a
-`layoutId` na Fase 3.
+`Mixed`. Custa ~2-4 KB por ficha. A Fase 3 **manteve** isso de propósito
+(decisão de 24/09): `layoutId` é só vínculo de origem, nunca referência de
+renderização — assim a ficha não depende de rede nem de o modelo continuar
+existindo.
 
 ---
 
-## 6. Fase 3 — o que falta ⬜
+## 6. Fase 3 — biblioteca, compartilhamento e galeria ✅
 
-Nada disso foi começado.
+### Backend (`backend/`)
 
-### 6.1 Backend
+- `src/models/SheetLayout.ts`: `userId`, `name`, `description`, `data`
+  (sempre o layout SANEADO), `visibility`, `shareCode` (unique sparse),
+  `forkedFrom`, `copyCount`, `isHidden` + `hiddenReason`, `reports[]` +
+  `reportCount`.
+- `src/routes/sheetLayoutRoutes.ts` → `/api/sheet-layouts`: `GET /public`,
+  `GET /code/:code`, `GET /reported` (moderador), `GET /`, `POST /`,
+  `POST /:id/publish|copy|apply|report`, `PATCH /:id/moderation`,
+  `GET|PUT|DELETE /:id`. Regras puras (busca escapada, paginação, quem lê,
+  auto-ocultar, remoção da URL) em `src/utils/sheetLayoutRules.ts`, testadas em
+  `tests/sheetLayout.test.ts`.
+- **Espelho do contrato** em `src/sheetLayout/` (os três arquivos do front).
+  `src/functions/__tests__/sheetLayoutBackendMirror.spec.ts` compara byte a
+  byte e falha se divergirem — edite no front e copie.
+- `src/middleware/requireFlag.ts`: primeira checagem de flag no servidor.
+  Flag ausente = desligada; `supporterOnly` encadeia `requireSupporter`. Ler a
+  própria lista e APAGAR ficam fora do portão (quem deixou de apoiar limpa o que
+  criou).
+- `maxSheetLayouts` (FREE 0, N1 3, N2 10, N3 ilimitado; com boost) nos dois
+  espelhos de limites.
+- `defaultSheetLayoutId` no usuário: validado como layout próprio no
+  `authController` e **copiado para toda ficha nova** (não ameaça, sem layout
+  próprio) no `POST /api/sheets`. Nunca ao abrir ficha (vetor do bug de wipe).
 
-Molde: `Folder` (coleção do usuário) + os campos de compartilhamento do
-`Homebrew`.
+### Frontend
 
-```
-backend/src/models/SheetLayout.ts
-backend/src/routes/sheetLayoutRoutes.ts
-backend/src/controllers/sheetLayoutController.ts
-backend/src/middleware/validateSheetLayout.ts   ← espelho de sheetLayoutValidation.ts
-backend/src/types/sheetLayout.ts
-```
+- `resolveSheetLayoutFor(isEnabled, …)`: decide pela FLAG, não pelo apoio de
+  quem olha. O mestre sem apoio vê a ficha do jogador como ele montou.
+- Premium, `src/premium/`:
+  - `hooks/useSheetLayouts.ts` — store de MÓDULO (não Context) com a
+    biblioteca, carregada sob demanda;
+  - `components/SheetLayoutLibrary/` — painel "Meus layouts" no seletor,
+    compartilhar, importar por código, galeria, denúncia, página
+    `/layout/:code`;
+  - editor: "Salvar nesta ficha" (desfaz o vínculo), "Biblioteca → Salvar
+    como novo modelo / Atualizar o modelo" (oferece aplicar às fichas
+    vinculadas na nuvem);
+  - admin → Comunidade → **Layouts denunciados**.
+- `SheetLayoutWireframe` (público): miniatura esquemática para galeria,
+  importar e link — não precisa de ficha e não carrega URL externa.
+- Diário do Jogador (veio da `main`) virou a seção `journal`.
 
-Model: `userId` (ref User, indexado), `name` (60), `description` (200),
-`schemaVersion`, `data` (Mixed), `visibility: private|unlisted|public`,
-`shareCode` (unique sparse), `templateKind` (desnormalizado para filtro),
-`copyCount`, `reportCount`, `isHidden`, timestamps.
+### Regras que não são óbvias
 
-Índices: `{userId,updatedAt:-1}`, `{visibility,isHidden,copyCount:-1}`,
-`{shareCode}` unique sparse, texto em `name`/`description`.
-
-Rotas — **literais antes de `/:id`**, como em `homebrewRoutes.ts`:
-
-```
-GET   /api/sheet-layouts/public       optionalAuth   ?q= &template= &sort= &page=
-GET   /api/sheet-layouts/code/:code   optionalAuth
-GET   /api/sheet-layouts/             auth           meus layouts
-POST  /api/sheet-layouts/             auth + requireFeature + checkLimit + validate
-POST  /api/sheet-layouts/:id/publish  auth           gera shareCode
-POST  /api/sheet-layouts/:id/copy     auth           fork, copyCount++
-POST  /api/sheet-layouts/:id/report   auth
-PATCH /api/sheet-layouts/:id/visibility  auth + moderatorMiddleware
-GET   /api/sheet-layouts/:id          optionalAuth   dono OU visibility != private
-PUT   /api/sheet-layouts/:id          auth + validate
-DELETE /api/sheet-layouts/:id         auth
-```
-
-**Código curto:** reusar o padrão de `GameTableInviteLink.ts:14`
-(`randomBytes(...).toString('base64url')`), com retry até 3× em colisão.
-
-### 6.2 Limites por tier
-
-`maxSheetLayouts` em `SubscriptionLimits`, **nos dois espelhos**:
-`src/types/subscription.types.ts` e `backend/src/types/subscription.ts`.
-Esquecer o backend dá **400 no PUT** — é uma armadilha conhecida do projeto.
-
-Sugerido: FREE `0` (a sentinela de indisponível), N1 `3`, N2 `10`, N3 `-1`.
-Boostável pelo `limitBoost` (fora de `NON_BOOSTABLE_LIMITS`).
-
-Considerar também um `getSheetLayoutCaps(level)` no estilo de
-`getProfileCustomizationCaps`: `maxRegions`, `canUseBackgroundUrl` (N2+),
-`canPublishToGallery` (N1+), `canUseCustomNotes` (N2+).
-
-### 6.3 Frontend
-
-- `src/premium/services/sheetLayout.service.ts` + provider com os layouts do
-  usuário.
-- `sheet.layoutId` com precedência sobre `sheet.layout` inline; ao salvar um
-  layout inline como modelo, gravar `layoutId` e limpar `layout`.
-- `defaultSheetLayoutId` em `useUserPreferences` + `saveAppearanceSettings`
-  (`authSlice.ts:107`) — é isso que dá "reaproveitável entre personagens" sem
-  tocar em cada ficha.
-- Publicar → `shareCode` + link; botão de copiar.
-- `ImportLayoutDialog` (código/link) + galeria (busca, filtro por template,
-  ordenação por `copyCount`, preview, "Usar este layout").
-- Rota `/layout/:code` em `src/App.tsx` (react-router v5, sem lazy).
-- Botão de denunciar.
-
-### 6.4 Regra importante da galeria
-
-**Aplicar um layout da comunidade faz cópia dura** (como o `POST /:id/fork` do
-homebrew), nunca referência ao documento do autor — senão despublicar quebraria
-a ficha de terceiros.
-
-**Ficha alheia na mesa:** `GET /:id` com `optionalAuth` devolve
-`public`/`unlisted` para qualquer um, `private` só para o dono. Não resolveu →
-preset padrão. Ao atribuir um layout privado a uma ficha que está numa mesa, o
-editor deveria sugerir publicar como `unlisted`. Degradação aceitável, nunca
-erro.
+- **Usar layout de terceiro direto na ficha** não ocupa vaga nem conta cópia;
+  **salvar na biblioteca** ocupa vaga e faz `copyCount++` (atômico). Copiar o
+  próprio layout não conta.
+- **URL de fundo nunca sai para terceiros** (`stripForPublic` no servidor, na
+  leitura pública e na cópia): abrir um layout alheio vazaria o IP para o
+  servidor da imagem. O dono continua vendo a dele.
+- **Editar não desoculta** um layout ocultado por denúncia (≠ homebrew).
+  Restaurar pelo admin zera as denúncias.
+- O **código** nasce na primeira publicação e não muda; voltar a privado só
+  faz o link parar de responder.
+- **"Aplicar nas fichas"** alcança só fichas na nuvem (`sheetData.layoutId`).
+  Quem estiver com uma dessas fichas aberta noutro aparelho continua vendo o
+  layout antigo até recarregar.
+- A **ficha recém-criada** com layout padrão só mostra o layout depois de
+  recarregada do servidor: quem injeta é o backend, e o cliente segue com a
+  cópia que enviou (a baseline do delta não inclui o layout, então nada é
+  apagado).
 
 ---
 
@@ -420,7 +373,7 @@ Com o dev server (`npm start`, porta 5173) e a flag destravada (ver §2):
 | `/ficha/:id` a 390px                | Perícias como primeira aba no modelo de abas                       |
 | Ícone de layout → 3 modelos         | página única e menu de ação navegáveis                             |
 | Personalizar                        | arrastar entre áreas, criar aba, trocar de modelo sem perder seção |
-| Embed do Owlbear                    | `?theme=light` e `?theme=dark`, sem botão de layout                |
+| Embed do Owlbear                    | `?theme=light` e `?theme=dark`; o DONO vê o botão de layout        |
 | `GameSessionPage`                   | girar o tablet → aba/tela preservada                               |
 | Widget de ficha no Escudo do Mestre | somente-leitura; **o overlay não cobre a tela do mestre**          |
 | `VITE_NO_PREMIUM=1`                 | ficha de pé, sem botão de layout                                   |
@@ -429,16 +382,19 @@ Com o dev server (`npm start`, porta 5173) e a flag destravada (ver §2):
 
 ## 10. Pendências e riscos conhecidos
 
-| #   | Item                                                                                                                                  | Gravidade                                                                     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 1   | **Build nunca foi rodado** — nem o normal nem `VITE_NO_PREMIUM=1`                                                                     | precisa acontecer antes do merge                                              |
-| 2   | **Página de créditos dos ícones não existe** (§8)                                                                                     | requisito de licença                                                          |
-| 3   | **Fundos e véu não foram avaliados visualmente** — 8 padrões CSS e véu de 50%, escolhidos no escuro                                   | subjetivo, fácil de ajustar                                                   |
-| 4   | **Mesa virtual / Owlbear não foram testados de fato** — o overlay foi raciocinado, não visto                                          | é o risco nº 1 da §7                                                          |
-| 5   | **Largura "metade" numa seção larga** (Equipamentos) pode estourar                                                                    | não verificado                                                                |
-| 6   | `golpistaDivino.spec.ts` é **intermitente** — gera até 30 fichas aleatórias torcendo para sortear um poder. Falhou 1 vez em 4 rodadas | pré-existente, não relacionado                                                |
-| 7   | O `Result` ainda tem ~3.370 linhas (Estágio B não feito, §4)                                                                          | opcional                                                                      |
-| 8   | Nenhum teste renderiza o **editor** — só a lógica pura tem cobertura                                                                  | aceitável (é o padrão do `gmScreenPlacement`), mas o dnd nunca foi exercitado |
+| #   | Item                                                                                                                                   | Gravidade                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 1   | **Build nunca foi rodado** — nem o normal nem `VITE_NO_PREMIUM=1`                                                                      | precisa acontecer antes do merge                                              |
+| 2   | **Página de créditos dos ícones não existe** (§8)                                                                                      | requisito de licença                                                          |
+| 3   | **Fundos e véu não foram avaliados visualmente** — 8 padrões CSS e véu de 50%, escolhidos no escuro                                    | subjetivo, fácil de ajustar                                                   |
+| 4   | **Mesa virtual / Owlbear não foram testados de fato** — o overlay foi raciocinado, não visto                                           | é o risco nº 1 da §7                                                          |
+| 5   | **Largura "metade" numa seção larga** (Equipamentos) pode estourar                                                                     | não verificado                                                                |
+| 6   | `golpistaDivino.spec.ts` é **intermitente** — gera até 30 fichas aleatórias torcendo para sortear um poder. Falhou 1 vez em 4 rodadas  | pré-existente, não relacionado                                                |
+| 7   | O `Result` ainda tem ~3.370 linhas (Estágio B não feito, §4)                                                                           | opcional                                                                      |
+| 8   | Nenhum teste renderiza o **editor** nem a **galeria** — só a lógica pura tem cobertura                                                 | aceitável (é o padrão do `gmScreenPlacement`), mas o dnd nunca foi exercitado |
+| 9   | **Seção `note` não renderiza** — o editor deixa adicionar, o `Result` não tem nó para ela (fora do escopo da Fase 3, decisão de 24/09) | bug conhecido                                                                 |
+| 10  | **Controllers da Fase 3 não têm teste de integração** (o backend não tem Mongo em memória); só as regras puras                         | testar na mão (§9)                                                            |
+| 11  | Flag `sheetLayouts` precisa ser **criada no banco de produção** antes do rollout (o seed não roda com coleção cheia)                   | passo de deploy                                                               |
 
 ---
 
@@ -453,5 +409,5 @@ Com o dev server (`npm start`, porta 5173) e a flag destravada (ver §2):
 - Feature nova premium exige: flag em `featureFlags.types.ts` **e** no
   `featureFlagController.ts` do backend, componentes no submódulo, e **stub OSS
   regenerado**.
-- O plano original completo está em
-  `~/.claude/plans/eu-quero-fazer-uma-twinkly-haven.md`.
+- O plano original das Fases 1–2 se perdeu; o da Fase 3 está em
+  `~/.claude/plans/vamos-planejar-a-fase-typed-stallman.md` (máquina do dono).

@@ -194,4 +194,14 @@ export const SHEET_LAYOUT_CAPS = {
   maxSectionTitleLength: 40,
   maxNoteLength: 4000,
   maxLayoutNameLength: 60,
+  /** Ids de região/seção são gerados pelo app (uuid ou `r-*`/`s-*`). */
+  maxIdLength: 64,
+  maxBackgroundUrlLength: 500,
+  /** `fontFamily` e `backgroundPresetId` são chaves de catálogo, não texto livre. */
+  maxCatalogKeyLength: 40,
+  /**
+   * Teto do documento inteiro, serializado. Sem ele, 192 notas de 4 mil
+   * caracteres dariam ~770 KB por layout — e o layout viaja dentro da ficha.
+   */
+  maxSerializedBytes: 64 * 1024,
 } as const;

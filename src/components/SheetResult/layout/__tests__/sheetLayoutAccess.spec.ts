@@ -1,10 +1,8 @@
 /**
- * O gating não pode depender da UI.
- *
- * Uma ficha é um documento que o usuário controla: dá para exportar o JSON,
- * editar à mão e importar de volta, e a mesa virtual recebe fichas de outras
- * contas. Se a decisão "pode usar layout customizado?" morasse só no botão,
- * bastaria embutir um `layout` no payload para contornar o apoio.
+ * Quem desenha a ficha é o layout DELA, para qualquer visualizador — o mestre
+ * sem apoio vê a ficha do jogador apoiador como o jogador a montou. A única
+ * chave que derruba isso é a flag (kill-switch). O payload continua sendo
+ * tratado como hostil: tudo passa pelo saneamento.
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -15,7 +13,7 @@ import {
 import { resolveSheetLayoutFor } from '../sheetLayoutAccess';
 
 describe('resolveSheetLayoutFor', () => {
-  it('ignora o layout da ficha quando não há acesso', () => {
+  it('flag desligada: todos veem o arranjo histórico', () => {
     const resolved = resolveSheetLayoutFor(false, {
       fromSheet: PRESET_ACTION_MENU,
     });
@@ -23,28 +21,12 @@ describe('resolveSheetLayoutFor', () => {
     expect(resolved).toBe(DEFAULT_SHEET_LAYOUT);
   });
 
-  it('ignora o padrão do usuário quando não há acesso', () => {
-    const resolved = resolveSheetLayoutFor(false, {
-      fromUserDefault: PRESET_SINGLE,
-    });
-
-    expect(resolved).toBe(DEFAULT_SHEET_LAYOUT);
-  });
-
-  it('usa o layout da ficha quando há acesso', () => {
+  it('flag ligada: usa o layout da ficha, independente de quem olha', () => {
     const resolved = resolveSheetLayoutFor(true, {
       fromSheet: PRESET_ACTION_MENU,
     });
 
     expect(resolved.template).toBe('actionMenu');
-  });
-
-  it('cai no padrão do usuário quando a ficha não tem layout próprio', () => {
-    const resolved = resolveSheetLayoutFor(true, {
-      fromUserDefault: PRESET_SINGLE,
-    });
-
-    expect(resolved).toBe(PRESET_SINGLE);
   });
 
   it('cai no preset histórico quando não há nada', () => {

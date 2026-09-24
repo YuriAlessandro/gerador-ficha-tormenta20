@@ -1071,6 +1071,13 @@ export default interface CharacterSheet {
    * confiável na leitura: quem resolve passa pelo `sanitizeSheetLayout`.
    */
   layout?: SheetLayout;
+  /**
+   * Layout da biblioteca de onde `layout` veio. É só VÍNCULO de origem: a ficha
+   * renderiza sempre pela cópia em `layout`, então apagar ou despublicar o
+   * modelo não afeta a ficha. Serve para "aplicar nas fichas que usam este
+   * modelo" (`POST /api/sheet-layouts/:id/apply`).
+   */
+  layoutId?: string;
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha

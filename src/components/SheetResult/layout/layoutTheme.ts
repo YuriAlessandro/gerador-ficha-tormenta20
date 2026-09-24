@@ -87,17 +87,33 @@ export const getBackgroundPreset = (
 ): SheetBackgroundPreset | undefined =>
   id ? SHEET_BACKGROUND_PRESETS.find((p) => p.id === id) : undefined;
 
+// Mesmo conjunto que o saneamento recusa: nada que feche a string do `url()`.
+// eslint-disable-next-line no-control-regex
+const UNSAFE_CSS_URL_CHARS_RE = /[\u0000-\u0020\u007f"'\\]/;
+
 /**
- * Mesma regra do `profileController`: só o protocolo é checado, sem allowlist
- * de host. É o padrão que o app inteiro já usa para imagem colada pelo usuário.
+ * Mesma regra do `profileController` para o protocolo (só https, sem
+ * allowlist de host), mais a recusa de qualquer caractere que possa escapar do
+ * `url()` do CSS. O renderer também recebe o rascunho do editor, que não passa
+ * pelo saneamento — por isso a checagem se repete aqui.
  */
 export const isSafeBackgroundUrl = (url: string): boolean => {
+  if (UNSAFE_CSS_URL_CHARS_RE.test(url)) return false;
   try {
     return new URL(url).protocol === 'https:';
   } catch {
     return false;
   }
 };
+
+/**
+ * `url("…")` pronto para o `background`, ou `undefined` se a URL não for
+ * segura. Com a URL entre aspas, só aspas, barra invertida e quebra de linha
+ * poderiam fechar a string — e esses já foram recusados acima. Parênteses
+ * ficam permitidos: dentro das aspas eles não encerram o `url()`.
+ */
+export const cssBackgroundUrl = (url: string | undefined): string | undefined =>
+  url && isSafeBackgroundUrl(url) ? `url("${new URL(url).href}")` : undefined;
 
 /* ------------------------------------------------------------------ *
  * Fontes

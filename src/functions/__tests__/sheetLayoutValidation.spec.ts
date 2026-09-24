@@ -283,3 +283,125 @@ describe('validateSheetLayout — dá para salvar?', () => {
     }
   );
 });
+
+describe('endurecimento para a galeria (Fase 3)', () => {
+  it('descarta região e seção com id repetido, mantendo a primeira', () => {
+    const raw = clone(minimal());
+    raw.regions.push({
+      id: 'r1',
+      role: 'aside',
+      sections: [{ id: 's2', payload: { kind: 'skills' }, width: 'full' }],
+    });
+    raw.regions[0].sections.push({
+      id: 's1',
+      payload: { kind: 'attacks' },
+      width: 'full',
+    });
+
+    const layout = sanitizeSheetLayout(raw);
+
+    expect(layout.regions.map((r) => r.id)).toEqual(['r1']);
+    expect(layout.regions[0].sections.map((s) => s.payload.kind)).toEqual([
+      'identity',
+    ]);
+  });
+
+  it('descarta ids longos demais', () => {
+    const raw = clone(minimal());
+    raw.regions[0].sections.push({
+      id: 'x'.repeat(SHEET_LAYOUT_CAPS.maxIdLength + 1),
+      payload: { kind: 'attacks' },
+      width: 'full',
+    });
+
+    const kinds = sanitizeSheetLayout(raw).regions[0].sections.map(
+      (s) => s.payload.kind
+    );
+    expect(kinds).toEqual(['identity']);
+  });
+
+  it.each([
+    'https://exemplo.com/a b.png',
+    'https://exemplo.com/a".png',
+    "https://exemplo.com/a'.png",
+    'https://exemplo.com/a\\.png',
+    'https://exemplo.com/a\n.png',
+    `https://exemplo.com/${'a'.repeat(
+      SHEET_LAYOUT_CAPS.maxBackgroundUrlLength
+    )}`,
+  ])('recusa URL de fundo perigosa ou longa (%s)', (url) => {
+    const raw = clone(minimal());
+    raw.theme.backgroundImageUrl = url;
+
+    expect(sanitizeSheetLayout(raw).theme.backgroundImageUrl).toBeUndefined();
+  });
+
+  it('guarda a URL de fundo normalizada', () => {
+    const raw = clone(minimal());
+    raw.theme.backgroundImageUrl = 'https://EXEMPLO.com/fundo.png';
+
+    expect(sanitizeSheetLayout(raw).theme.backgroundImageUrl).toBe(
+      'https://exemplo.com/fundo.png'
+    );
+  });
+
+  it('descarta chaves de catálogo longas demais', () => {
+    const raw = clone(minimal());
+    raw.theme.fontFamily = 'f'.repeat(
+      SHEET_LAYOUT_CAPS.maxCatalogKeyLength + 1
+    );
+    raw.theme.backgroundPresetId = 'b'.repeat(
+      SHEET_LAYOUT_CAPS.maxCatalogKeyLength + 1
+    );
+
+    const { theme } = sanitizeSheetLayout(raw);
+    expect(theme.fontFamily).toBeUndefined();
+    expect(theme.backgroundPresetId).toBeUndefined();
+  });
+
+  it('recusa mais áreas do que o teto, em vez de cortar em silêncio', () => {
+    const raw = clone(minimal());
+    for (let i = 0; i < SHEET_LAYOUT_CAPS.maxRegions; i += 1) {
+      raw.regions.push({ id: `extra-${i}`, role: 'main', sections: [] });
+    }
+
+    expect(codes(raw)).toContain('too-many-regions');
+    expect(validateSheetLayout(raw).ok).toBe(false);
+  });
+
+  it('recusa mais seções numa área do que o teto', () => {
+    const raw = clone(minimal());
+    for (let i = 0; i < SHEET_LAYOUT_CAPS.maxSectionsPerRegion; i += 1) {
+      raw.regions[0].sections.push({
+        id: `nota-${i}`,
+        payload: { kind: 'note', content: '' },
+        width: 'full',
+      });
+    }
+
+    expect(codes(raw)).toContain('too-many-sections');
+  });
+
+  it('recusa documento grande demais', () => {
+    const raw = clone(minimal());
+    raw.regions = Array.from({ length: 8 }, (_, r) => ({
+      id: `r${r}`,
+      role: 'main' as const,
+      sections: Array.from({ length: 4 }, (__, s) => ({
+        id: `n${r}-${s}`,
+        payload: {
+          kind: 'note' as const,
+          content: 'x'.repeat(SHEET_LAYOUT_CAPS.maxNoteLength),
+        },
+        width: 'full' as const,
+      })),
+    }));
+    raw.regions[0].sections.push({
+      id: 'id',
+      payload: { kind: 'identity' },
+      width: 'full',
+    });
+
+    expect(codes(raw)).toContain('too-large');
+  });
+});

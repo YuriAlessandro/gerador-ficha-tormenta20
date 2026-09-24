@@ -24,7 +24,7 @@ import TabsTemplate from './templates/TabsTemplate';
 import { availableKindsOf, SheetSectionNodeMap } from './sheetSectionTypes';
 import {
   getBackgroundPreset,
-  isSafeBackgroundUrl,
+  cssBackgroundUrl,
   resolveLayoutFont,
 } from './layoutTheme';
 
@@ -77,10 +77,7 @@ const SheetLayoutRenderer: React.FC<SheetLayoutRendererProps> = ({
 
   const { theme } = resolved;
   const preset = getBackgroundPreset(theme.backgroundPresetId);
-  const customUrl =
-    theme.backgroundImageUrl && isSafeBackgroundUrl(theme.backgroundImageUrl)
-      ? theme.backgroundImageUrl
-      : undefined;
+  const customUrl = cssBackgroundUrl(theme.backgroundImageUrl);
   const hasBackground = !!preset || !!customUrl;
 
   return (
@@ -94,9 +91,7 @@ const SheetLayoutRenderer: React.FC<SheetLayoutRendererProps> = ({
         fontFamily: resolveLayoutFont(theme.fontFamily),
         ...(hasBackground
           ? {
-              background: customUrl
-                ? `url(${customUrl}) center/cover`
-                : preset?.css,
+              background: customUrl ? `${customUrl} center/cover` : preset?.css,
               backgroundAttachment: 'fixed',
             }
           : {}),

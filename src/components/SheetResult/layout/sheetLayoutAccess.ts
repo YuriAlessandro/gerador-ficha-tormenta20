@@ -28,25 +28,30 @@ export function useSheetLayoutAccess(): SheetLayoutAccess {
 /**
  * Qual layout desenha esta ficha.
  *
- * Sem acesso à feature o resultado é SEMPRE o preset histórico, ignorando o que
- * estiver salvo. Isso resolve duas coisas de uma vez: o gating não pode ser
- * burlado por payload (uma ficha importada com layout embutido não libera nada),
- * e um ex-apoiador não fica com a ficha presa num layout que não pode mais
- * editar — ela volta ao arranjo padrão, intacta.
+ * Decide pela FLAG, não pelo apoio de quem olha. O layout é da ficha: o mestre
+ * sem apoio, o colega de mesa e o embed do Owlbear veem a ficha como o dono a
+ * montou. Apoio é exigido para CRIAR, editar e publicar — e isso quem guarda é
+ * o picker/editor na UI e a API no servidor, não a renderização.
+ *
+ * Não há brecha nisso: um `layout` embutido à mão num JSON importado só muda
+ * onde os blocos aparecem, não libera nenhum recurso pago. E ele passa pelo
+ * `sanitizeSheetLayout` antes de chegar ao renderer.
+ *
+ * Flag desligada continua sendo o kill-switch: todo mundo volta ao arranjo
+ * histórico, sem tocar no que está salvo nas fichas.
  */
 export function resolveSheetLayoutFor(
-  hasAccess: boolean,
+  isEnabled: boolean,
   candidates: {
     override?: SheetLayout;
     fromSheet?: unknown;
-    fromUserDefault?: SheetLayout;
   }
 ): SheetLayout {
   // O preview do editor manda em qualquer caso: ele só existe para quem já tem
   // acesso, e é a única forma de ver o rascunho antes de salvar.
   if (candidates.override) return candidates.override;
-  if (!hasAccess) return DEFAULT_SHEET_LAYOUT;
+  if (!isEnabled) return DEFAULT_SHEET_LAYOUT;
 
   if (candidates.fromSheet) return sanitizeSheetLayout(candidates.fromSheet);
-  return candidates.fromUserDefault ?? DEFAULT_SHEET_LAYOUT;
+  return DEFAULT_SHEET_LAYOUT;
 }

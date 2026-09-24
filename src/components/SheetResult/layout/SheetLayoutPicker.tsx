@@ -10,6 +10,10 @@
  *   desligado;
  * - flag ligada sem apoio → botão com cadeado que explica a feature e leva a
  *   /apoiar, com a ficha continuando no arranjo padrão.
+ *
+ * Abaixo dos três modelos fica a biblioteca do usuário (seus layouts, galeria
+ * e importar por código). Ela vive no submódulo premium e entra por caminho;
+ * no build sem o submódulo o stub devolve nada e sobram só os modelos.
  */
 import React, { useState } from 'react';
 import {
@@ -30,6 +34,7 @@ import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import LockIcon from '@mui/icons-material/Lock';
 
 import SheetLayoutEditorDialog from '../../../premium/components/SheetLayoutEditor/SheetLayoutEditorDialog';
+import SheetLayoutLibraryPanel from '../../../premium/components/SheetLayoutLibrary/SheetLayoutLibraryPanel';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 import { SheetLayout } from '../../../interfaces/SheetLayout';
 import {
@@ -54,7 +59,11 @@ export interface SheetLayoutPickerProps {
   currentLayout: SheetLayout;
   /** A ficha que o editor usa no preview. */
   sheet: CharacterSheet;
-  onSelect: (layout: SheetLayout) => void;
+  /**
+   * Grava o layout na ficha. `layoutId` é o modelo da biblioteca de onde ele
+   * veio; `null` para modelos embarcados e layouts de terceiros.
+   */
+  onSelect: (layout: SheetLayout, layoutId: string | null) => void;
 }
 
 const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
@@ -69,8 +78,8 @@ const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
 
   if (!isEnabled) return null;
 
-  const handlePick = (layout: SheetLayout) => {
-    onSelect(layout);
+  const handlePick = (layout: SheetLayout, layoutId: string | null = null) => {
+    onSelect(layout, layoutId);
     setOpen(false);
   };
 
@@ -93,7 +102,7 @@ const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
-        maxWidth='sm'
+        maxWidth='md'
         fullWidth
       >
         <DialogTitle sx={{ fontFamily: 'Tfont' }}>Layout da ficha</DialogTitle>
@@ -151,6 +160,8 @@ const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
                   </Card>
                 );
               })}
+
+              <SheetLayoutLibraryPanel sheet={sheet} onApply={handlePick} />
             </Stack>
           )}
         </DialogContent>
