@@ -97,3 +97,20 @@ export function getDevotionLabel(
 export function hasDualDevotion(sheet: CharacterSheet): boolean {
   return getSheetDeityNames(sheet).length > 1;
 }
+
+/**
+ * Verifica se um requisito `DEVOTO` é satisfeito pelo conjunto de deuses da
+ * ficha. Suporta `string` (uma divindade), `string[]` (uma dentre várias) e
+ * `'any'` (qualquer devoção). Usada por `powers.ts`, `requirementEvaluation.ts`,
+ * `grantedPowerPool.ts` e `registry.ts` — única fonte de verdade.
+ */
+export function deityRequirementMatches(
+  reqName: string | string[] | undefined,
+  deityNames: string[]
+): boolean {
+  if (!reqName) return false;
+  if (reqName === 'any') return deityNames.length > 0;
+  if (Array.isArray(reqName))
+    return deityNames.some((name) => reqName.includes(name));
+  return deityNames.includes(reqName);
+}

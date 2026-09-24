@@ -1320,23 +1320,25 @@ class DataRegistry {
         power.requirements.forEach((reqGroup) => {
           reqGroup.forEach((req) => {
             if (req.type === RequirementType.DEVOTO && req.name) {
-              const deityName = req.name;
-              // Encontra a divindade correspondente. O match exato tem
-              // precedência sobre o parcial em TODA a lista: nomes curtos são
-              // substring de nomes maiores (ex.: 'Ur' em 'O Deus Cristal de
-              // Urielka') e o parcial anexaria o poder ao deus errado.
-              const deity =
-                deitiesWithPowers.find((d) => d.name === deityName) ??
-                deitiesWithPowers.find((d) => d.name.includes(deityName));
-              if (deity) {
-                // Verifica se o poder já não está na lista
-                const alreadyHas = deity.poderes.some(
-                  (p) => p.name === power.name
-                );
-                if (!alreadyHas) {
-                  deity.poderes.push(power);
+              const names = Array.isArray(req.name) ? req.name : [req.name];
+              names.forEach((deityName) => {
+                // Encontra a divindade correspondente. O match exato tem
+                // precedência sobre o parcial em TODA a lista: nomes curtos são
+                // substring de nomes maiores (ex.: 'Ur' em 'O Deus Cristal de
+                // Urielka') e o parcial anexaria o poder ao deus errado.
+                const deity =
+                  deitiesWithPowers.find((d) => d.name === deityName) ??
+                  deitiesWithPowers.find((d) => d.name.includes(deityName));
+                if (deity) {
+                  // Verifica se o poder já não está na lista
+                  const alreadyHas = deity.poderes.some(
+                    (p) => p.name === power.name
+                  );
+                  if (!alreadyHas) {
+                    deity.poderes.push(power);
+                  }
                 }
-              }
+              });
             }
           });
         });

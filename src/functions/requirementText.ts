@@ -44,7 +44,8 @@ function baseText(req: Requirement, options: FormatRequirementOptions): string {
     case RequirementType.DEVOTO:
       if (!req.name) return 'Devoto de uma divindade';
       if (req.name === 'any') return 'Devoto de qualquer divindade';
-      if (Array.isArray(req.name)) return `Devoto de ${req.name.join(', ')}`;
+      if (Array.isArray(req.name))
+        return `Devoto de uma destas divindades: ${req.name.join(', ')}`;
       return `Devoto de ${req.name}`;
     case RequirementType.PODER_TORMENTA:
       return `Pelo menos ${req.value} ${
@@ -63,7 +64,9 @@ function negatedText(req: Requirement, base: string): string {
     case RequirementType.DEVOTO:
       if (!req.name || req.name === 'any') return 'Não ser devoto';
       if (Array.isArray(req.name))
-        return `Não ser devoto de nenhuma dessas divindades`;
+        return `Não ser devoto de nenhuma destas divindades: ${req.name.join(
+          ', '
+        )}`;
       return `Não ser devoto de ${req.name}`;
     case RequirementType.PERICIA:
       return `Não ser treinado em ${req.name}`;

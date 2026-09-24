@@ -157,3 +157,24 @@ describe('formatRequirements', () => {
     );
   });
 });
+
+describe('DEVOTO com lista de divindades (string[])', () => {
+  it('formata a lista na forma positiva', () => {
+    expect(
+      formatRequirement({
+        type: RequirementType.DEVOTO,
+        name: ['Azgher', 'Khalmyr', 'Valkaria'],
+      })
+    ).toBe('Devoto de uma destas divindades: Azgher, Khalmyr, Valkaria');
+  });
+
+  it('formata a lista na forma negada', () => {
+    expect(
+      formatRequirement({
+        type: RequirementType.DEVOTO,
+        name: ['Lena', 'Marah'],
+        not: true,
+      })
+    ).toBe('Não ser devoto de nenhuma destas divindades: Lena, Marah');
+  });
+});

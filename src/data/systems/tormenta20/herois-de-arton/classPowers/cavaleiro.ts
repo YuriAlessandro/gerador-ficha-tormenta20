@@ -1,6 +1,7 @@
 import { ClassPower } from '../../../../../interfaces/Class';
 import { RequirementType } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
+import { PALADIN_DEITIES } from '../../classes/paladino';
 
 /**
  * Poderes de Cavaleiro do suplemento Heróis de Arton
@@ -36,16 +37,7 @@ const CAVALEIRO_POWERS: ClassPower[] = [
         { type: RequirementType.PERICIA, name: Skill.RELIGIAO },
         {
           type: RequirementType.DEVOTO,
-          name: [
-            'Azgher',
-            'Khalmyr',
-            'Lena',
-            'Lin-Wu',
-            'Marah',
-            'Tanna-Toh',
-            'Thyatis',
-            'Valkaria',
-          ],
+          name: PALADIN_DEITIES,
         },
       ],
     ],

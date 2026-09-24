@@ -190,7 +190,7 @@ function isRequirementMet(
 
     case RequirementType.PERICIA: {
       // Requisito de Ofício genérico é satisfeito por qualquer Ofício treinado.
-      if (isGenericOficio(req.name)) {
+      if (isGenericOficio(req.name as string)) {
         return (
           sheet.completeSkills?.some(
             (s) => isOficioSkill(s.name) && (s.training || 0) > 0
@@ -205,7 +205,10 @@ function isRequirementMet(
       // que inclui os Ofícios customizados criados em runtime por
       // `buildCustomOficio` — por isso `isOficioSkill` e não a lista fechada
       // `ALL_SPECIFIC_OFICIOS`. Espelha o mesmo trecho em `functions/powers.ts`.
-      if (isOficioSkill(req.name) && !isGenericOficio(req.name)) {
+      if (
+        isOficioSkill(req.name as string) &&
+        !isGenericOficio(req.name as string)
+      ) {
         return (
           hasPowerNamed(ARTESAO_CRIATIVO, ctx) &&
           isTrainedIn(sheet, Skill.OFICIO_ARTESANATO)
