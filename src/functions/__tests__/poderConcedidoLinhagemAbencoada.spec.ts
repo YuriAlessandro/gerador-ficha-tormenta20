@@ -241,7 +241,12 @@ describe('Geração aleatória de Feiticeiro Abençoado', () => {
     SupplementId.TORMENTA20_DEUSES_ARTON,
   ];
 
-  function generateAbencoados(nivel: number, tries: number): CharacterSheet[] {
+  // Só ~8% dos Arcanistas sorteados saem Feiticeiro com Linhagem Abençoada.
+  // Um número FIXO de sorteios deixava o teste falhar por azar (60 sorteios:
+  // ~0,6% das execuções sem nenhum Abençoado). Sorteia até achar `wanted`, com
+  // um teto que só estoura se a linhagem deixar de ser sorteável.
+  function generateAbencoados(nivel: number, wanted: number): CharacterSheet[] {
+    const MAX_TRIES = 2000;
     const options: SelectOptions = {
       nivel,
       raca: 'Humano',
@@ -251,7 +256,7 @@ describe('Geração aleatória de Feiticeiro Abençoado', () => {
       supplements: SUPPLEMENTS,
     };
     const sheets: CharacterSheet[] = [];
-    for (let i = 0; i < tries; i += 1) {
+    for (let i = 0; i < MAX_TRIES && sheets.length < wanted; i += 1) {
       const sheet = generateRandomSheet(options);
       const isAbencoado = (sheet.classe.originalAbilities || []).some(
         (a) => a.name === 'Linhagem Abençoada'
@@ -262,8 +267,8 @@ describe('Geração aleatória de Feiticeiro Abençoado', () => {
   }
 
   it('nível 1: 4 magias e nenhum poder concedido da linhagem', () => {
-    const sheets = generateAbencoados(1, 60);
-    expect(sheets.length).toBeGreaterThan(0);
+    const sheets = generateAbencoados(1, 5);
+    expect(sheets).toHaveLength(5);
 
     sheets.forEach((sheet) => {
       expect(sheet.spells.length).toBeGreaterThanOrEqual(4);
@@ -276,7 +281,7 @@ describe('Geração aleatória de Feiticeiro Abençoado', () => {
   });
 
   it('recarregar a ficha preserva 4 magias iniciais e o teto de círculo', () => {
-    const [sheet] = generateAbencoados(1, 60);
+    const [sheet] = generateAbencoados(1, 1);
     expect(sheet).toBeDefined();
 
     // Round-trip: a serialização perde as funções do spellPath.
