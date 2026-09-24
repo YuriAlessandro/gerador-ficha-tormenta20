@@ -5119,7 +5119,10 @@ export function applyManualLevelUp(
           if (idx !== targetIdx) return companion;
           const next = {
             ...companion,
-            tricks: [...companion.tricks, entry.trick],
+            tricks: [
+              ...companion.tricks,
+              { ...entry.trick, level: updatedSheet.nivel },
+            ],
           };
           if (entry.spell) {
             const spellWithKey = {
@@ -5149,6 +5152,7 @@ export function applyManualLevelUp(
             trickName: entry.trick.name,
             choices: entry.trick.choices,
             spellName: entry.spell?.nome,
+            level: updatedSheet.nivel,
           },
         ],
       });

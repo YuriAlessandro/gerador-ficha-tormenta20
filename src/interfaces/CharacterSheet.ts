@@ -417,6 +417,9 @@ export type SheetActionReceipt =
       trickName: string;
       choices?: Record<string, string>;
       spellName?: string;
+      // Nível do personagem em que o truque foi aprendido (ver
+      // `CompanionTrick.level`). Ausente em registros antigos.
+      level?: number;
     };
 
 export type SheetActionHistoryEntry = {
