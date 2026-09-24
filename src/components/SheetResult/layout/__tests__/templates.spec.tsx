@@ -7,7 +7,7 @@
  * ver com layout.
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material/styles';
@@ -145,63 +145,93 @@ describe('SinglePageTemplate', () => {
 });
 
 describe('ActionMenuTemplate', () => {
-  it('abre na lista-mestra de telas, não numa seção', () => {
+  const openMenu = () =>
+    userEvent.click(screen.getByRole('button', { name: /trocar de tela/i }));
+  const menu = () =>
+    screen.queryByRole('navigation', { name: 'Telas da ficha' });
+
+  it('abre direto na primeira tela, com a barra dizendo qual é', () => {
     renderLayout(PRESET_ACTION_MENU);
 
-    expect(screen.getByText('Combate')).toBeInTheDocument();
-    expect(screen.getByText('Inventário')).toBeInTheDocument();
-    // O conteúdo de uma tela só aparece depois de escolhida.
-    expect(screen.queryByText('corpo-attacks')).not.toBeInTheDocument();
-  });
-
-  it('entra numa tela e volta', () => {
-    renderLayout(PRESET_ACTION_MENU);
-
-    userEvent.click(screen.getByText('Combate'));
     expect(screen.getByText('corpo-attacks')).toBeInTheDocument();
     expect(screen.getByText('corpo-defense')).toBeInTheDocument();
-
-    userEvent.click(screen.getByRole('button', { name: /voltar/i }));
-    expect(screen.queryByText('corpo-attacks')).not.toBeInTheDocument();
-    expect(screen.getByText('Combate')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Trocar de tela (atual: Combate)' })
+    ).toBeInTheDocument();
+    // A barra resume o que tem dentro da tela.
+    expect(
+      screen.getByText('Título attacks, Título defense')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('corpo-equipment')).not.toBeInTheDocument();
+    expect(menu()).not.toBeInTheDocument();
   });
 
-  it('o overlay do menu abre, troca de tela e fecha', () => {
+  it('o menu abre embaixo da barra, troca de tela e fecha', () => {
     renderLayout(PRESET_ACTION_MENU);
 
-    userEvent.click(screen.getByText('Combate'));
-    userEvent.click(screen.getByRole('button', { name: '' }));
+    openMenu();
+    expect(menu()).toBeInTheDocument();
+    // A tela atual vem marcada na lista.
+    expect(menu()?.querySelector('[aria-current="page"]')).toHaveTextContent(
+      'Combate'
+    );
 
-    // Com o overlay aberto, o mesmo rótulo existe na lista de trás e na de
-    // cima; escolher "Inventário" troca a tela sem passar pelo Voltar.
-    userEvent.click(screen.getAllByText('Inventário')[0]);
+    userEvent.click(screen.getByText('Inventário'));
 
     expect(screen.getByText('corpo-equipment')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Fechar menu' })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('corpo-attacks')).not.toBeInTheDocument();
+    expect(menu()).not.toBeInTheDocument();
+  });
+
+  it('fecha pelo Esc, pelo véu e pela própria barra', () => {
+    renderLayout(PRESET_ACTION_MENU);
+
+    openMenu();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(menu()).not.toBeInTheDocument();
+
+    openMenu();
+    userEvent.click(screen.getByTestId('action-menu-scrim'));
+    expect(menu()).not.toBeInTheDocument();
+
+    openMenu();
+    openMenu();
+    expect(menu()).not.toBeInTheDocument();
+    // Nada disso trocou de tela.
+    expect(screen.getByText('corpo-attacks')).toBeInTheDocument();
   });
 
   it('volta para a tela aberta quando a árvore remonta', () => {
     // O caso real é a mesa virtual: girar o tablet troca o layout inteiro e
-    // remonta o <Result/>, zerando todo o useState. O jogador estava lendo os
-    // próprios ataques e não pode cair de volta na lista-mestra.
+    // remonta o <Result/>, zerando todo o useState. O jogador estava lendo o
+    // próprio inventário e não pode cair de volta na primeira tela.
     const first = renderLayout(PRESET_ACTION_MENU);
-    userEvent.click(screen.getByText('Combate'));
-    expect(screen.getByText('corpo-attacks')).toBeInTheDocument();
+    openMenu();
+    userEvent.click(screen.getByText('Inventário'));
+    expect(screen.getByText('corpo-equipment')).toBeInTheDocument();
 
     first.unmount();
     renderLayout(PRESET_ACTION_MENU);
 
-    expect(screen.getByText('corpo-attacks')).toBeInTheDocument();
+    expect(screen.getByText('corpo-equipment')).toBeInTheDocument();
   });
 
-  it('mantém o cabeçalho visível dentro de uma tela', () => {
+  it('mantém a identidade e o rodapé em qualquer tela', () => {
     renderLayout(PRESET_ACTION_MENU);
-
-    userEvent.click(screen.getByText('Combate'));
+    openMenu();
+    userEvent.click(screen.getByText('Magias'));
 
     expect(screen.getByText('corpo-identity')).toBeInTheDocument();
+    expect(screen.getByText('corpo-bugReport')).toBeInTheDocument();
+  });
+
+  it('cada seção da tela é um card próprio', () => {
+    renderLayout(PRESET_ACTION_MENU);
+
+    const attacks = screen.getByText('corpo-attacks').closest('.MuiCard-root');
+    const defense = screen.getByText('corpo-defense').closest('.MuiCard-root');
+    expect(attacks).not.toBeNull();
+    expect(attacks).not.toBe(defense);
   });
 });
 
@@ -273,7 +303,6 @@ describe('ações da seção', () => {
     });
 
     renderLayout(PRESET_ACTION_MENU, nodes);
-    userEvent.click(screen.getByText('Combate'));
 
     expect(screen.getByText('acao-ataque')).toBeInTheDocument();
     expect(screen.getByText('acao-defesa')).toBeInTheDocument();

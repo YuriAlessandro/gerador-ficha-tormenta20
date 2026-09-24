@@ -23,15 +23,6 @@ import {
 export interface SurfaceSelection {
   activeId: string;
   setActiveId: (regionId: string) => void;
-  /**
-   * Id que veio da memória, ou `undefined` se não havia nada guardado.
-   *
-   * O menu de ação precisa distinguir "restaurado" de "primeiro da lista": ele
-   * abre na lista-mestra por padrão, mas se o jogador estava DENTRO de uma tela
-   * quando a árvore remontou (a mesa virtual troca o layout inteiro ao girar o
-   * tablet), tem que voltar para lá — que é a razão de existir esta memória.
-   */
-  restoredId?: string;
 }
 
 export function useSurfaceSelection(
@@ -49,15 +40,15 @@ export function useSurfaceSelection(
 
   const fallback = surfaces[0]?.id ?? '';
 
-  // Lido uma vez, no mount: depois disso quem manda é o estado local.
-  const [restoredId] = useState<string | undefined>(() => {
+  // A memória é lida uma vez, no mount: depois disso quem manda é o estado
+  // local. É o que devolve o jogador à aba/tela em que estava quando a árvore
+  // remonta (a mesa virtual troca o layout inteiro ao girar o tablet).
+  const [activeId, setActive] = useState<string>(() => {
     const remembered = getRememberedSheetSurface(sheetId, layoutKey);
     return remembered && surfaces.some((s) => s.id === remembered)
       ? remembered
-      : undefined;
+      : fallback;
   });
-
-  const [activeId, setActive] = useState<string>(restoredId ?? fallback);
 
   // A região ativa pode desaparecer sem que este componente desmonte.
   useEffect(() => {
@@ -74,7 +65,7 @@ export function useSurfaceSelection(
     [sheetId, layoutKey]
   );
 
-  return { activeId, setActiveId, restoredId };
+  return { activeId, setActiveId };
 }
 
 export default useSurfaceSelection;

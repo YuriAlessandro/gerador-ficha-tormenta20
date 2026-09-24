@@ -23,7 +23,7 @@ Não reabrir sem falar com ele.
 
 | Tema             | Decisão                                                                                                                                                               |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Modelos          | `single` (rolagem contínua), `tabs` (o arranjo histórico), `actionMenu` (lista-mestra de telas, estilo app do D&D Beyond)                                             |
+| Modelos          | `single` (rolagem contínua), `tabs` (o arranjo histórico), `actionMenu` (uma tela por vez, trocada pela barra fixa com menu, estilo app do D&D Beyond)                |
 | Gating           | **Criar, editar, salvar e publicar** só para apoiadores (cadeado + CTA `/apoiar`). **Ver** é de todos: o layout da ficha renderiza para qualquer visualizador (24/09) |
 | Editor           | **Seções em slots** — arrastar entre áreas, ordem, largura, título, ícone, cor. **Não** é grade livre x/y                                                             |
 | Imagens de fundo | Presets no bundle + campo de URL https. **Nenhum pipeline de upload novo**                                                                                            |
