@@ -10,6 +10,7 @@ import React from 'react';
 import { Box, Card, Stack, Typography } from '@mui/material';
 
 import { ResolvedLayout } from '../../../../interfaces/SheetLayout';
+import SheetIcon from '../../../icons/SheetIcon';
 import RegionStack from '../RegionStack';
 import { SheetSectionActions } from '../SheetSectionFrame';
 import { collectRegionActions } from '../sheetSectionTypes';
@@ -58,8 +59,17 @@ const SinglePageTemplate: React.FC<SheetTemplateProps> = ({
           <SheetSectionActions actions={collectRegionActions(region, nodes)} />
           <Typography
             variant='overline'
-            sx={{ color: 'text.secondary', letterSpacing: 1 }}
+            sx={{
+              color: 'text.secondary',
+              letterSpacing: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
           >
+            {region.iconKey && (
+              <SheetIcon iconKey={region.iconKey} fontSize='small' />
+            )}
             {region.label}
           </Typography>
           <RegionStack

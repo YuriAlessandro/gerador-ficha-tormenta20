@@ -28,13 +28,16 @@ export interface BookTitleProps {
   children: React.ReactNode;
   /** Cor vinda do layout do usuário. Sem ela, o branco histórico. */
   color?: string;
+  /** Ícone antes do texto, na mesma cor dele (escolhido no editor de layout). */
+  icon?: React.ReactNode;
 }
 
-const BookTitle: React.FC<BookTitleProps> = ({ children, color }) => {
+const BookTitle: React.FC<BookTitleProps> = ({ children, color, icon }) => {
   const sectionBg = useAccentSectionBg();
 
   return (
     <Title bg={sectionBg} titleColor={color}>
+      {icon}
       {children}
     </Title>
   );

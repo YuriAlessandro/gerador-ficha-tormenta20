@@ -348,3 +348,32 @@ describe('coluna lateral — um card por seção', () => {
     expect(skills).not.toBe(equipment);
   });
 });
+
+describe('ícones escolhidos no editor aparecem na ficha', () => {
+  it('a aba mostra o ícone da área', () => {
+    renderLayout(PRESET_TABS);
+
+    const tab = screen.getByRole('tab', { name: 'Ataques' });
+    expect(tab.querySelector('[data-testid="ColorizeIcon"]')).not.toBeNull();
+  });
+
+  it('o título da seção mostra só o ícone escolhido', () => {
+    const withIcon: SheetLayout = {
+      ...PRESET_SINGLE,
+      regions: PRESET_SINGLE.regions.map((r) => ({
+        ...r,
+        sections: r.sections.map((s) =>
+          s.payload.kind === 'attacks' ? { ...s, iconKey: 'mui:Shield' } : s
+        ),
+      })),
+    };
+    renderLayout(withIcon);
+
+    const attacksTitle = screen.getByText('Título attacks');
+    expect(
+      attacksTitle.querySelector('[data-testid="ShieldIcon"]')
+    ).not.toBeNull();
+    // Sem escolha, o título continua só com o texto.
+    expect(screen.getByText('Título spells').querySelector('svg')).toBeNull();
+  });
+});

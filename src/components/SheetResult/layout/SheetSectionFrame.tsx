@@ -12,6 +12,7 @@ import { Badge, Card, IconButton, Stack, Tooltip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 import BookTitle from '../common/BookTitle';
+import SheetIcon from '../../icons/SheetIcon';
 import { LayoutSection } from '../../../interfaces/SheetLayout';
 import { SheetSectionNode } from './sheetSectionTypes';
 
@@ -109,7 +110,27 @@ const SheetSectionFrame: React.FC<SheetSectionFrameProps> = ({
           de uma aba/tela, e quem agrega as ações de TODAS as seções dali é o
           template — desenhar aqui também duplicaria cada botão. */}
       {withCard && <SheetSectionActions actions={node.actions} />}
-      {node.withTitle && <BookTitle color={color}>{title}</BookTitle>}
+      {node.withTitle && (
+        <BookTitle
+          color={color}
+          icon={
+            // Só o ícone ESCOLHIDO no editor: o padrão de cada seção existe
+            // para o editor, e mostrá-lo mudaria o visual de toda ficha.
+            section.iconKey && (
+              <SheetIcon
+                iconKey={section.iconKey}
+                sx={{
+                  fontSize: '0.85em',
+                  verticalAlign: '-0.1em',
+                  mr: '0.35em',
+                }}
+              />
+            )
+          }
+        >
+          {title}
+        </BookTitle>
+      )}
       {node.body}
     </>
   );

@@ -13,6 +13,7 @@ import { Box, Card, Stack, Tab } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 
 import { ResolvedLayout } from '../../../../interfaces/SheetLayout';
+import SheetIcon from '../../../icons/SheetIcon';
 import RegionStack from '../RegionStack';
 import { SheetSectionActions } from '../SheetSectionFrame';
 import { collectRegionActions } from '../sheetSectionTypes';
@@ -72,7 +73,18 @@ const TabsTemplate: React.FC<SheetTemplateProps> = ({
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
           {surfaces.map((region) => (
-            <Tab key={region.id} label={region.label} value={region.id} />
+            <Tab
+              key={region.id}
+              label={region.label}
+              value={region.id}
+              icon={
+                region.iconKey ? (
+                  <SheetIcon iconKey={region.iconKey} fontSize='small' />
+                ) : undefined
+              }
+              iconPosition='start'
+              sx={{ minHeight: 48 }}
+            />
           ))}
         </TabList>
         {surfaces.map((region) => (
