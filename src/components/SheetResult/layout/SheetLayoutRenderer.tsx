@@ -22,11 +22,7 @@ import ActionMenuTemplate from './templates/ActionMenuTemplate';
 import SinglePageTemplate from './templates/SinglePageTemplate';
 import TabsTemplate from './templates/TabsTemplate';
 import { availableKindsOf, SheetSectionNodeMap } from './sheetSectionTypes';
-import {
-  getBackgroundPreset,
-  cssBackgroundUrl,
-  resolveLayoutFont,
-} from './layoutTheme';
+import { resolveLayoutFont } from './layoutTheme';
 
 export interface SheetLayoutRendererProps {
   layout: SheetLayout;
@@ -76,47 +72,19 @@ const SheetLayoutRenderer: React.FC<SheetLayoutRendererProps> = ({
       : TabsTemplate;
 
   const { theme } = resolved;
-  const preset = getBackgroundPreset(theme.backgroundPresetId);
-  const customUrl = cssBackgroundUrl(theme.backgroundImageUrl);
-  const hasBackground = !!preset || !!customUrl;
 
   return (
     <Box
       ref={containerRef}
       sx={{
         width: '100%',
-        // `relative` sustenta o véu, que é posicionado em absoluto.
-        position: 'relative',
         // A fonte do layout vale para a ficha inteira; sem escolha, herda.
+        // O FUNDO do layout é pintado pela raiz do `Result` (ver
+        // `layoutBackgroundCss`), para cobrir também as margens da ficha.
         fontFamily: resolveLayoutFont(theme.fontFamily),
-        ...(hasBackground
-          ? {
-              background: customUrl ? `${customUrl} center/cover` : preset?.css,
-              backgroundAttachment: 'fixed',
-            }
-          : {}),
       }}
     >
-      {/*
-       * Véu sobre o fundo. Sem ele, qualquer imagem com contraste alto torna a
-       * ficha ilegível — e é justamente uma imagem escolhida pelo usuário, que
-       * o app não tem como prever. O véu usa a cor de superfície do tema, então
-       * funciona igual no claro e no escuro.
-       */}
-      {hasBackground && (
-        <Box
-          sx={{
-            backgroundColor: 'background.default',
-            opacity: theme.backgroundOpacity ?? 0.5,
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
-      <Box sx={{ position: 'relative' }}>
-        <Template layout={resolved} nodes={nodes} sheetId={sheetId} />
-      </Box>
+      <Template layout={resolved} nodes={nodes} sheetId={sheetId} />
     </Box>
   );
 };

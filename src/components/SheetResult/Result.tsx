@@ -178,6 +178,7 @@ import {
   SheetSectionNodeMap,
 } from './layout/sheetSectionTypes';
 import SheetLayoutPicker from './layout/SheetLayoutPicker';
+import { layoutBackgroundCss } from './layout/layoutTheme';
 import {
   resolveSheetLayoutFor,
   useSheetLayoutAccess,
@@ -365,6 +366,9 @@ const Result: React.FC<ResultProps> = (props) => {
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
   // forma); este componente precisa ficar transparente para não cobri-lo.
   const skinPaintsBackground = isInWildShape(currentSheet);
+  const layoutBackground = sheetLayoutsEnabled
+    ? layoutBackgroundCss(activeLayout.theme)
+    : undefined;
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
@@ -3321,13 +3325,43 @@ const Result: React.FC<ResultProps> = (props) => {
        */}
       <Box
         sx={{
-          bgcolor: skinPaintsBackground
-            ? 'transparent'
-            : getSheetBackgroundColor(isDarkMode),
+          // Precedência do fundo: forma selvagem > fundo do layout > tema.
+          ...(layoutBackground && !skinPaintsBackground
+            ? {
+                background: layoutBackground,
+                backgroundAttachment: 'fixed',
+                // Sustenta o véu, que é posicionado em absoluto.
+                position: 'relative',
+              }
+            : {
+                bgcolor: skinPaintsBackground
+                  ? 'transparent'
+                  : getSheetBackgroundColor(isDarkMode),
+              }),
           p: isMobile ? 0 : 2,
         }}
       >
-        <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
+        {/*
+         * Véu sobre o fundo do layout. Sem ele, qualquer imagem com contraste
+         * alto torna a ficha ilegível — e é uma imagem escolhida pelo usuário,
+         * que o app não tem como prever. Usa a cor de superfície do tema, então
+         * funciona igual no claro e no escuro.
+         */}
+        {layoutBackground && !skinPaintsBackground && (
+          <Box
+            sx={{
+              backgroundColor: 'background.default',
+              opacity: activeLayout.theme?.backgroundOpacity ?? 0.5,
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+        <Container
+          maxWidth='xl'
+          sx={{ p: isMobile ? 0 : 2, position: 'relative' }}
+        >
           <SheetLayoutRenderer
             layout={activeLayout}
             nodes={sectionNodes}

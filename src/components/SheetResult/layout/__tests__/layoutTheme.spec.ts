@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { cssBackgroundUrl, isSafeBackgroundUrl } from '../layoutTheme';
+import {
+  SHEET_BACKGROUND_PRESETS,
+  cssBackgroundUrl,
+  isSafeBackgroundUrl,
+  layoutBackgroundCss,
+} from '../layoutTheme';
 
 describe('cssBackgroundUrl — a URL nunca escapa do url() do CSS', () => {
   it('envolve a URL em aspas', () => {
@@ -33,5 +38,39 @@ describe('cssBackgroundUrl — a URL nunca escapa do url() do CSS', () => {
   it('não devolve nada sem URL', () => {
     expect(cssBackgroundUrl(undefined)).toBeUndefined();
     expect(cssBackgroundUrl('')).toBeUndefined();
+  });
+});
+
+describe('layoutBackgroundCss', () => {
+  it('sem escolha, não pinta nada (a ficha fica na cor do tema)', () => {
+    expect(layoutBackgroundCss(undefined)).toBeUndefined();
+    expect(layoutBackgroundCss({})).toBeUndefined();
+  });
+
+  it('usa o preset do catálogo', () => {
+    const [preset] = SHEET_BACKGROUND_PRESETS;
+    expect(layoutBackgroundCss({ backgroundPresetId: preset.id })).toBe(
+      preset.css
+    );
+  });
+
+  it('a imagem por URL tem precedência sobre o preset', () => {
+    const [preset] = SHEET_BACKGROUND_PRESETS;
+    expect(
+      layoutBackgroundCss({
+        backgroundPresetId: preset.id,
+        backgroundImageUrl: 'https://exemplo.com/fundo.png',
+      })
+    ).toBe('url("https://exemplo.com/fundo.png") center/cover');
+  });
+
+  it('URL insegura cai no preset, não vaza para o CSS', () => {
+    const [preset] = SHEET_BACKGROUND_PRESETS;
+    expect(
+      layoutBackgroundCss({
+        backgroundPresetId: preset.id,
+        backgroundImageUrl: 'https://exemplo.com/a").png',
+      })
+    ).toBe(preset.css);
   });
 });

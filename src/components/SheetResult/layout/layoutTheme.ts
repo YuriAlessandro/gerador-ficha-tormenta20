@@ -21,6 +21,7 @@
  * Quem quiser a própria imagem cola uma URL https — mesmo caminho do avatar de
  * ficha, da foto de perfil e das imagens do blog.
  */
+import type { SheetLayoutTheme } from '../../../interfaces/SheetLayout';
 
 export interface SheetBackgroundPreset {
   id: string;
@@ -155,3 +156,18 @@ export const LAYOUT_FONTS: LayoutFontOption[] = [
 
 export const resolveLayoutFont = (id?: string): string | undefined =>
   id ? LAYOUT_FONTS.find((f) => f.id === id)?.stack : undefined;
+
+/**
+ * O `background` CSS que o layout pede, ou `undefined` sem fundo escolhido.
+ *
+ * Quem pinta é a RAIZ do `Result`, não o renderer: o renderer mora dentro do
+ * `Container` (com padding e largura máxima), e pintar ali deixava margens na
+ * cor padrão da ficha em volta do fundo escolhido.
+ */
+export const layoutBackgroundCss = (
+  theme: SheetLayoutTheme | undefined
+): string | undefined => {
+  const customUrl = cssBackgroundUrl(theme?.backgroundImageUrl);
+  if (customUrl) return `${customUrl} center/cover`;
+  return getBackgroundPreset(theme?.backgroundPresetId)?.css;
+};
