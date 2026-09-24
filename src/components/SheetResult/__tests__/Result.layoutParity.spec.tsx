@@ -228,6 +228,50 @@ describe('Result — paridade de layout antes da extração de seções', () => 
     });
   });
 
+  describe('botão de layout da ficha', () => {
+    const renderEditable = () =>
+      render(
+        <Provider store={store}>
+          <ThemeProvider theme={createTormentaTheme('light', 'red')}>
+            <Result sheet={sheet} isDarkMode={false} onSheetUpdate={vi.fn()} />
+          </ThemeProvider>
+        </Provider>
+      );
+
+    afterEach(() => {
+      store.dispatch(setFeatureFlags(DEFAULT_FEATURE_FLAGS));
+    });
+
+    it('aparece com texto na ficha editável quando a flag está ligada', () => {
+      store.dispatch(
+        setFeatureFlags({
+          ...DEFAULT_FEATURE_FLAGS,
+          sheetLayouts: { enabled: true, supporterOnly: false },
+        })
+      );
+      renderEditable();
+
+      expect(screen.getByText('Editar layout da ficha')).toBeInTheDocument();
+    });
+
+    it('some com a flag desligada', () => {
+      renderEditable();
+
+      expect(
+        screen.queryByRole('button', { name: /editar layout da ficha/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it('não há mais botão de anotações junto do nome', () => {
+      renderEditable();
+
+      expect(screen.queryByLabelText('Anotações')).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText('Diário do Jogador')
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe('somente leitura', () => {
     it('não oferece ações de edição sem onSheetUpdate', () => {
       renderSheet(sheet);

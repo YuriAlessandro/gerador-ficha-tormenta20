@@ -1,6 +1,6 @@
 /**
- * A entrada discreta da feature: um botão junto dos outros controles da ficha,
- * que abre a escolha entre os três modelos.
+ * O diálogo de layout da ficha: os três modelos, a biblioteca e a porta para o
+ * editor. Quem abre é a ação "Layout da ficha" do card de identidade.
  *
  * Não existe área dedicada na home — a decisão de produto foi que layout se
  * descobre usando a ficha, não navegando até uma vitrine.
@@ -8,8 +8,8 @@
  * O comportamento segue o contrato de dois eixos do projeto:
  * - flag desligada → o botão não existe, e ninguém fica sabendo que há algo
  *   desligado;
- * - flag ligada sem apoio → botão com cadeado que explica a feature e leva a
- *   /apoiar, com a ficha continuando no arranjo padrão.
+ * - flag ligada sem apoio → a ação aparece com cadeado e este diálogo explica a
+ *   feature e leva a /apoiar, com a ficha continuando no arranjo padrão.
  *
  * Abaixo dos três modelos fica a biblioteca do usuário (seus layouts, galeria
  * e importar por código). Ela vive no submódulo premium e entra por caminho;
@@ -26,12 +26,8 @@ import {
   DialogContent,
   DialogTitle,
   Stack,
-  Tooltip,
   Typography,
 } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
-import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
-import LockIcon from '@mui/icons-material/Lock';
 
 import SheetLayoutEditorDialog from '../../../premium/components/SheetLayoutEditor/SheetLayoutEditorDialog';
 import SheetLayoutLibraryPanel from '../../../premium/components/SheetLayoutLibrary/SheetLayoutLibraryPanel';
@@ -54,6 +50,8 @@ const PRESET_BLURBS: Record<string, string> = {
 };
 
 export interface SheetLayoutPickerProps {
+  open: boolean;
+  onClose: () => void;
   currentLayoutId: string;
   /** O layout em uso, ponto de partida do editor. */
   currentLayout: SheetLayout;
@@ -67,44 +65,26 @@ export interface SheetLayoutPickerProps {
 }
 
 const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
+  open,
+  onClose,
   currentLayoutId,
   currentLayout,
   sheet,
   onSelect,
 }) => {
   const { isEnabled, hasAccess, needsSupport } = useSheetLayoutAccess();
-  const [open, setOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
 
   if (!isEnabled) return null;
 
   const handlePick = (layout: SheetLayout, layoutId: string | null = null) => {
     onSelect(layout, layoutId);
-    setOpen(false);
+    onClose();
   };
 
   return (
     <>
-      <Tooltip
-        title={
-          needsSupport ? 'Layout da ficha (apoiadores)' : 'Layout da ficha'
-        }
-      >
-        <IconButton size='small' onClick={() => setOpen(true)}>
-          {needsSupport ? (
-            <LockIcon fontSize='small' />
-          ) : (
-            <DashboardCustomizeIcon fontSize='small' />
-          )}
-        </IconButton>
-      </Tooltip>
-
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        maxWidth='md'
-        fullWidth
-      >
+      <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth>
         <DialogTitle sx={{ fontFamily: 'Tfont' }}>Layout da ficha</DialogTitle>
         <DialogContent>
           {needsSupport ? (
@@ -166,7 +146,7 @@ const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Fechar</Button>
+          <Button onClick={onClose}>Fechar</Button>
           {needsSupport && (
             <Button href='/apoiar' variant='contained'>
               Conhecer o apoio
@@ -181,7 +161,7 @@ const SheetLayoutPicker: React.FC<SheetLayoutPickerProps> = ({
             <Button
               variant='contained'
               onClick={() => {
-                setOpen(false);
+                onClose();
                 setEditorOpen(true);
               }}
             >

@@ -8,7 +8,8 @@ import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import NoteAltIcon from '@mui/icons-material/NoteAlt';
+import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
+import LockIcon from '@mui/icons-material/Lock';
 import SearchIcon from '@mui/icons-material/Search';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
@@ -28,6 +29,7 @@ import {
   Alert,
   Link,
   Snackbar,
+  Button,
 } from '@mui/material';
 import styled from '@emotion/styled';
 import {
@@ -193,14 +195,12 @@ import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
-import NotesDialog from './NotesDialog';
 import {
   PlayerJournalCard,
   PlayerJournalFullScreen,
   PLAYER_JOURNAL_AVAILABLE,
 } from '../../premium/components/PlayerJournal';
 import { PlayerJournal } from '../../interfaces/PlayerJournal';
-import { countJournalNodes } from '../../functions/playerJournal';
 import RestDialog, { RestConfirmConfig } from './RestDialog';
 import {
   calculateRestRecovery,
@@ -312,7 +312,7 @@ const Result: React.FC<ResultProps> = (props) => {
     useState(false);
   const [statDrawerOpen, setStatDrawerOpen] = useState(false);
   const [restDialogOpen, setRestDialogOpen] = useState(false);
-  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [layoutPickerOpen, setLayoutPickerOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
@@ -325,7 +325,8 @@ const Result: React.FC<ResultProps> = (props) => {
    * de mesa, Owlbear); só a flag desligada devolve o preset histórico. Apoio
    * é exigido para criar e editar, não para ver — ver `resolveSheetLayoutFor`.
    */
-  const { isEnabled: sheetLayoutsEnabled } = useSheetLayoutAccess();
+  const { isEnabled: sheetLayoutsEnabled, needsSupport: layoutNeedsSupport } =
+    useSheetLayoutAccess();
   // Memoizado: o saneamento devolve um objeto NOVO a cada chamada, e esse
   // objeto desce para o renderer (que refaz o resolve) e para o editor.
   const activeLayout: SheetLayout = useMemo(
@@ -790,13 +791,6 @@ const Result: React.FC<ResultProps> = (props) => {
       }
     },
     [currentSheet, onSheetUpdate]
-  );
-
-  const handleNotesSave = useCallback(
-    (notes: string) => {
-      handleSheetInfoUpdate({ notes });
-    },
-    [handleSheetInfoUpdate]
   );
 
   /**
@@ -2067,7 +2061,6 @@ const Result: React.FC<ResultProps> = (props) => {
   // original nunca sai de `sheet.notes`.
   const journalAccess = useFeatureAccess('playerJournal');
   const journalEnabled = journalAccess.hasAccess && PLAYER_JOURNAL_AVAILABLE;
-  const journalNodeCount = countJournalNodes(currentSheet.journal);
 
   const hasAnyRd =
     currentSheet.reducaoDeDano &&
@@ -2132,6 +2125,12 @@ const Result: React.FC<ResultProps> = (props) => {
   ): SheetSectionAction[] =>
     onSheetUpdate ? [{ key, icon: <EditIcon />, tooltip, onClick }] : [];
 
+  const layoutIcon = layoutNeedsSupport ? (
+    <LockIcon fontSize='small' />
+  ) : (
+    <DashboardCustomizeIcon fontSize='small' />
+  );
+
   const sectionNodes: SheetSectionNodeMap = {
     identity: {
       kind: 'identity',
@@ -2177,6 +2176,41 @@ const Result: React.FC<ResultProps> = (props) => {
       ],
       body: (
         <>
+          {/*
+           * Layout da ficha: do lado ESQUERDO do card, com cor e texto
+           * próprios — as ações de dentro da ficha ficam todas na direita, e
+           * esta mexe na ficha inteira. No celular fica só o ícone, para não
+           * disputar a largura com a barra da direita. Some por completo com
+           * a flag desligada; sem apoio, o cadeado abre a explicação.
+           */}
+          {onSheetUpdate && sheetLayoutsEnabled && (
+            <Tooltip
+              title={
+                layoutNeedsSupport
+                  ? 'Editar layout da ficha (apoiadores)'
+                  : 'Editar layout da ficha'
+              }
+            >
+              <Button
+                variant='contained'
+                color='secondary'
+                size='small'
+                onClick={() => setLayoutPickerOpen(true)}
+                startIcon={isMobile ? undefined : layoutIcon}
+                aria-label='Editar layout da ficha'
+                sx={{
+                  position: 'absolute',
+                  top: -16,
+                  left: 16,
+                  zIndex: 1,
+                  textTransform: 'none',
+                  ...(isMobile ? { minWidth: 0, px: 1 } : {}),
+                }}
+              >
+                {isMobile ? layoutIcon : 'Editar layout da ficha'}
+              </Button>
+            </Tooltip>
+          )}
           <WildShapeBanner
             sheet={currentSheet}
             onRevert={onSheetUpdate ? handleRevertWildShape : undefined}
@@ -2260,39 +2294,6 @@ const Result: React.FC<ResultProps> = (props) => {
                 >
                   <LabelDisplay text={nome} size='large' />
                 </Box>
-                <Tooltip
-                  title={journalEnabled ? 'Diário do Jogador' : 'Anotações'}
-                >
-                  <IconButton
-                    size='small'
-                    onClick={() =>
-                      journalEnabled
-                        ? setJournalOpen(true)
-                        : setNotesDialogOpen(true)
-                    }
-                    sx={{
-                      color: (
-                        journalEnabled
-                          ? journalNodeCount > 0
-                          : currentSheet.notes
-                      )
-                        ? theme.palette.primary.main
-                        : theme.palette.text.secondary,
-                    }}
-                  >
-                    <NoteAltIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                {/* Entrada discreta da feature de layouts: fica junto das
-                    Anotações, e some por completo com a flag desligada. */}
-                {onSheetUpdate && (
-                  <SheetLayoutPicker
-                    currentLayoutId={activeLayout.id}
-                    currentLayout={activeLayout}
-                    sheet={currentSheet}
-                    onSelect={handleLayoutSelect}
-                  />
-                )}
               </Stack>
               <LabelDisplay
                 text={
@@ -3510,12 +3511,16 @@ const Result: React.FC<ResultProps> = (props) => {
             sheet={currentSheet}
             onConfirm={handleRest}
           />
-          <NotesDialog
-            open={notesDialogOpen}
-            onClose={() => setNotesDialogOpen(false)}
-            notes={currentSheet.notes || ''}
-            onSave={handleNotesSave}
-          />
+          {onSheetUpdate && sheetLayoutsEnabled && (
+            <SheetLayoutPicker
+              open={layoutPickerOpen}
+              onClose={() => setLayoutPickerOpen(false)}
+              currentLayoutId={activeLayout.id}
+              currentLayout={activeLayout}
+              sheet={currentSheet}
+              onSelect={handleLayoutSelect}
+            />
+          )}
           {journalEnabled && (
             <PlayerJournalFullScreen
               open={journalOpen}
