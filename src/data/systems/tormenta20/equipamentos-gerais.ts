@@ -36,7 +36,7 @@ export const equipamentoAventureiro: Equipment[] = [
     nome: 'Algemas',
     group: 'Item Geral',
     preco: parsePrice('T$ 15'),
-    descricao: 'Um par de algemas para criaturas . Prender uma criatura que não esteja indefesa exige empunhar a algema, agarrar o alvo (veja “Manobras de Combate”, no Capítulo 5) e vencer um novo teste de agarrar contra ela. Você pode prender os dois pulsos da pessoa (–5 em testes que exijam o uso das mãos, impede conjuração) ou um dos pulsos dela em um objeto imóvel adjacente, caso haja, para impedir que ela se mova. Escapar das algemas exige uma ação completa e um teste de Acrobacia contra CD 30 ou de Força contra CD 25 — ou ter as chaves...',
+    descricao: 'Um par de algemas para criaturas Médias. Prender uma criatura que não esteja indefesa exige empunhar a algema, agarrar o alvo (veja “Manobras de Combate”, no Capítulo 5) e vencer um novo teste de agarrar contra ela. Você pode prender os dois pulsos da pessoa (–5 em testes que exijam o uso das mãos, impede conjuração) ou um dos pulsos dela em um objeto imóvel adjacente, caso haja, para impedir que ela se mova. Escapar das algemas exige uma ação completa e um teste de Acrobacia contra CD 30 ou de Força contra CD 25 — ou ter as chaves...',
     spaces: parseSpaces(1),
   },
   {
@@ -127,7 +127,7 @@ export const equipamentoAventureiro: Equipment[] = [
     nome: 'Saco de dormir',
     group: 'Item Geral',
     preco: parsePrice('T$ 1'),
-    descricao: 'Um colchão com uma coberta fina o bastante para ser enrolada e amarrada, é especialmente útil para aventureiros, que nunca',
+    descricao: 'Um colchão com uma coberta fina o bastante para ser enrolada e amarrada, é especialmente útil para aventureiros, que nunca sabem onde vão passar a noite. Dormir ao relento sem um acampamento e um saco de dormir diminui sua recuperação de PV e PM (veja a página 106).',
     spaces: parseSpaces(1),
   },
   {
@@ -171,6 +171,7 @@ export const equipamentoAventureiro: Equipment[] = [
     nome: 'Vara de madeira (3m)',
     group: 'Item Geral',
     preco: parsePrice('T$ 0,2'),
+    descricao: 'Uma haste com 3m de comprimento. Útil para alcançar pontos distantes, mas frágil demais para servir como arma.',
     spaces: parseSpaces(1),
   },
 ];
@@ -188,7 +189,7 @@ export const ferramentas: Equipment[] = [
     nome: 'Coleção de livros',
     group: 'Item Geral',
     preco: parsePrice('T$ 75'),
-    descricao: 'Uma pequena coleção de tomos e tratados sobre um assunto. Fornece +1 em Conhecimento, Guerra, Misticismo,',
+    descricao: 'Uma pequena coleção de tomos e tratados sobre um assunto. Fornece +1 em Conhecimento, Guerra, Misticismo, Nobreza ou Religião (definido quando o item é comprado ou fabricado).',
     spaces: parseSpaces(1),
     selectableBonus: {
       availableSkills: [
@@ -206,21 +207,21 @@ export const ferramentas: Equipment[] = [
     nome: 'Equipamento de viagem',
     group: 'Item Geral',
     preco: parsePrice('T$ 10'),
-    descricao: 'Um saco de lona contendo instrumentos úteis para sobreviver',
+    descricao: 'Um saco de lona contendo instrumentos úteis para sobreviver nos ermos, como pederneira (pedra para fazer fogo), panelas e talheres para cozinhar, anzól e linha para pescar e uma pequena pá. Um personagem sem este item sofre –5 em testes de Sobrevivência para fazer um acampamento. Não inclui saco de dormir ou barraca.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Estojo de disfarces',
     group: 'Item Geral',
     preco: parsePrice('T$ 50'),
-    descricao: 'Um conjunto de cosméticos, tintas para cabelo e algumas próteses simples (como bigodes e narizes falsos). Um personagem sem este item sofre –5 em testes de Enganação para disfarce. Você precisa empunhar um instrumento musical com as duas mãos para receber seus benefícios e para usar Músicas de Bardo (veja a página 45). Instrumentos musicais podem ser usados como esotéricos por bardos (permitindo que lance magias usando a mão que empunha o instrumento).',
+    descricao: 'Um conjunto de cosméticos, tintas para cabelo e algumas próteses simples (como bigodes e narizes falsos). Um personagem sem este item sofre –5 em testes de Enganação para disfarce.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Flauta mística',
     group: 'Item Geral',
     preco: parsePrice('T$ 150'),
-    descricao: 'Um instrumento delicado, repleto de runas e pequenas gemas místicas. Um bardo que empunhe este item aumenta a CD para resistir às magias lançadas por ele em +1. Conta como um instrumento musical. Instrumentos musicais podem receber melhorias de ferramentas (contam como itens ligados a Atuação) e de esotéricos (mas afetam apenas magias lançadas por bardos).',
+    descricao: 'Um instrumento delicado, repleto de runas e pequenas gemas místicas. Um bardo que empunhe este item aumenta a CD para resistir às magias lançadas por ele em +1. Conta como um instrumento musical.',
     spaces: parseSpaces(1),
     conditionalBonuses: [
       {
@@ -239,7 +240,7 @@ export const ferramentas: Equipment[] = [
     nome: 'Gazua',
     group: 'Item Geral',
     preco: parsePrice('T$ 5'),
-    descricao: 'Uma barra fina de ferro, com a ponta torta ou em forma de gancho. Um personagem sem este item sofre –5 em testes de Ladinagem para abrir fechaduras. Instrumentos de <Ofício>. Existe uma versão deste item para cada perícia de Ofício. Por exemplo, martelo, pregos e serrote para Ofício (carpinteiro), pergaminhos em branco, tinta e pena para Ofício (escriba) e assim por diante. Um personagem sem os instrumentos de seu Ofício sofre –5 nessa perícia. Itens desta categoria afetam testes de perícia, eliminando penalidades ou fornecendo bônus. A CD para fabricar qualquer ferramenta é 20.',
+    descricao: 'Uma barra fina de ferro, com a ponta torta ou em forma de gancho. Um personagem sem este item sofre –5 em testes de Ladinagem para abrir fechaduras.',
     spaces: parseSpaces(1),
   },
   {
@@ -266,21 +267,21 @@ export const ferramentas: Equipment[] = [
     nome: 'Maleta de medicamentos',
     group: 'Item Geral',
     preco: parsePrice('T$ 50'),
-    descricao: 'Caixa de madeira com ervas, unguentos, bandagens e outros materiais úteis. Um personagem sem este item sofre –5 em Cura. Nobreza ou Religião (definido quando o item é comprado ou fabricado).',
+    descricao: 'Caixa de madeira com ervas, unguentos, bandagens e outros materiais úteis. Um personagem sem este item sofre –5 em Cura.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Sela',
     group: 'Item Geral',
     preco: parsePrice('T$ 20'),
-    descricao: 'Uma peça de couro e pelego colocada sobre o lombo da montaria, sobre a qual o cavaleiro se senta. Inclui arreios para conduzir o animal. Um personagem montado em uma montaria sem sela sofre –5 em testes de Cavalgar. Usada no animal, a sela não ocupa espaço de carga do personagem. nos ermos, como pederneira',
+    descricao: 'Uma peça de couro e pelego colocada sobre o lombo da montaria, sobre a qual o cavaleiro se senta. Inclui arreios para conduzir o animal. Um personagem montado em uma montaria sem sela sofre –5 em testes de Cavalgar. Usada no animal, a sela não ocupa espaço de carga do personagem.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Tambor das profundezas',
     group: 'Item Geral',
     preco: parsePrice('T$ 80'),
-    descricao: 'Um instrumento típico de anões de Doherimm, capaz de sons graves e retumbantes. Enquanto empunha este item, o alcance da habilidade Inspiração e de qualquer Música de Bardo é dobrado. Conta como um instrumento musical. 158',
+    descricao: 'Um instrumento típico de anões de Doherimm, capaz de sons graves e retumbantes. Enquanto empunha este item, o alcance da habilidade Inspiração e de qualquer Música de Bardo é dobrado. Conta como um instrumento musical.',
     spaces: parseSpaces(1),
   },
 ];
@@ -489,6 +490,7 @@ export const vestuario: Equipment[] = [
     nome: 'Sapatos de andruança',
     group: 'Vestuário',
     preco: parsePrice('T$ 8'),
+    descricao: 'Leves e resistentes, aprimoram o equilíbrio e a firmeza dos pés, fornecendo +1 em Acrobacia.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -530,7 +532,7 @@ export const vestuario: Equipment[] = [
     nome: 'Veste de seda',
     group: 'Vestuário',
     preco: parsePrice('T$ 25'),
-    descricao: 'Esta roupa leve e elegante deixa seus movimentos os mais livres possíveis. Fornece +1 em Reflexos. Itens utilizados por conjuradores para lançar magias de forma mais eficiente. Para usar um esotérico, você precisa empunhá-lo com a mão que usará para gesticular ao lançar a magia. Uma magia só pode receber os benefícios de um esotérico por vez. A CD para fabricar qualquer esotérico é 20 e para fabricá-lo você deve ser treinado em Misticismo.',
+    descricao: 'Esta roupa leve e elegante deixa seus movimentos os mais livres possíveis. Fornece +1 em Reflexos.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -548,7 +550,7 @@ export const esotericos: Equipment[] = [
     nome: 'Bolsa de pó',
     group: 'Esotérico',
     preco: parsePrice('T$ 300'),
-    descricao: 'Uma bolsa com pó multicolorido, fabricado a partir das pétalas trituradas de flores que',
+    descricao: 'Uma bolsa com pó multicolorido, fabricado a partir das pétalas trituradas de flores que brilham fracamente. Uma ação padrão para atirar o pó em uma criatura em alcance curto. A criatura fica cega por 1d4 rodadas (Reflexos CD Sab anula). Uma sessão de po dura 10 usos.',
     spaces: parseSpaces(1),
   },
   {
