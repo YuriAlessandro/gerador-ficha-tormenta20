@@ -550,7 +550,9 @@ describe('v2 — visibilidade por dispositivo', () => {
     expect(layout.schemaVersion).toBe(2);
     expect(layout.mobile).toBeUndefined();
     expect(aside?.showOn).toBe('desktop');
-    expect(aside?.sections[0]).toMatchObject({ id: 'sk', showOn: 'desktop' });
+    // Só computador pela ÁREA; o selo repetido na seção é normalizado fora.
+    expect(aside?.sections[0].id).toBe('sk');
+    expect(aside?.sections[0]).not.toHaveProperty('showOn');
     expect(aba?.sections).toHaveLength(1);
     expect(aba?.sections[0]).toMatchObject({
       payload: { kind: 'skills' },

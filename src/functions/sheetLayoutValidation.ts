@@ -277,6 +277,26 @@ const enforceFooterLock = (regions: LayoutRegion[]): LayoutRegion[] => {
 };
 
 /**
+ * Seção "só computador" numa área que já é "só computador" diz a mesma coisa
+ * duas vezes — e o editor mostrava o selo repetido em cada linha. Fica só o da
+ * área. (A conversão da v1 produz exatamente esse caso na coluna lateral.)
+ */
+const dropRedundantShowOn = (regions: LayoutRegion[]): LayoutRegion[] =>
+  regions.map((region) => {
+    if (!region.showOn) return region;
+    if (!region.sections.some((s) => s.showOn === region.showOn)) return region;
+    return {
+      ...region,
+      sections: region.sections.map((s) => {
+        if (s.showOn !== region.showOn) return s;
+        const next = { ...s };
+        delete next.showOn;
+        return next;
+      }),
+    };
+  });
+
+/**
  * Converte o celular da v1 para `showOn` (v2).
  *
  * - `hiddenRegionIds` → a região vira "só computador".
@@ -406,7 +426,9 @@ export function sanitizeSheetLayoutStrict(raw: unknown): StrictSanitizeResult {
   const rawMobile = isRecord(raw.mobile) ? raw.mobile : undefined;
   // v1 → v2 primeiro (as cópias do celular nascem aqui), depois a trava do
   // rodapé — que também tira `showOn` das seções travadas.
-  const lockedRegions = enforceFooterLock(migrateV1Mobile(regions, rawMobile));
+  const lockedRegions = dropRedundantShowOn(
+    enforceFooterLock(migrateV1Mobile(regions, rawMobile))
+  );
 
   const rawTheme = isRecord(raw.theme) ? raw.theme : {};
   const theme: SheetLayout['theme'] = {};

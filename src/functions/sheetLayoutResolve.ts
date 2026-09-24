@@ -94,10 +94,15 @@ export function resolveLayout(
 
   if (isNarrow) {
     // Coluna lateral não existe no estreito: o que sobrou nela vira conteúdo
-    // normal do corpo, em vez de sumir.
-    regions = regions.map((region) =>
-      region.role === 'aside' ? { ...region, role: 'main' as const } : region
-    );
+    // normal do corpo, NO FIM dele — regra fixa, que o editor explica, em vez
+    // de depender da posição da lateral no documento (que o usuário não vê).
+    const asides = regions
+      .filter((region) => region.role === 'aside')
+      .map((region) => ({ ...region, role: 'main' as const }));
+    regions = [
+      ...regions.filter((region) => region.role !== 'aside'),
+      ...asides,
+    ];
 
     if (mobile.forceFullWidth !== false) {
       regions = regions.map((region) => ({

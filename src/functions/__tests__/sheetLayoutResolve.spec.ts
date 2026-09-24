@@ -229,3 +229,16 @@ describe('resolveLayout — outros modelos', () => {
     ).toContain('skills');
   });
 });
+
+describe('resolveLayout — coluna lateral no celular', () => {
+  it('vai para o FIM do corpo, independente da posição no documento', () => {
+    const resolved = resolveLayout(PRESET_SINGLE, narrow());
+    const kinds = resolved.regions
+      .filter((r) => r.role !== 'footer')
+      .flatMap((r) => r.sections.map((s) => s.payload.kind));
+
+    // Na página única a lateral (Perícias, Diário) vem logo depois do corpo
+    // no documento, mas no celular aparece depois de tudo.
+    expect(kinds.slice(-2)).toEqual(['skills', 'journal']);
+  });
+});
