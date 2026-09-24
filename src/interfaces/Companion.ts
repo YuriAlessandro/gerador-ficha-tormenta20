@@ -22,6 +22,9 @@ export interface CompanionNaturalWeapon {
 export interface CompanionTrick {
   name: string;
   choices?: Record<string, string>;
+  // Nível do personagem em que o truque passou a valer. Usado para desfazer
+  // o nível que o concedeu. Ausente em truques antigos e nos da criação.
+  level?: number;
 }
 
 export interface CompanionSheet {

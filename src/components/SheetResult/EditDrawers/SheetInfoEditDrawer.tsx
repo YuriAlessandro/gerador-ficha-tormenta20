@@ -122,10 +122,16 @@ import {
   reconcileClassLevels,
   setClassLevelCounts,
 } from '@/functions/multiclass';
+import {
+  canRevertLastLevel,
+  getLastLevelSummary,
+  revertLastLevel,
+} from '@/functions/revertLevel';
 import NumberField from '@/components/common/NumberField';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
+import RevertLevelDialog from './RevertLevelDialog';
 
 import { normalizeDeityName } from '../../../functions/deityName';
 import {
@@ -513,6 +519,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
   // State for LevelUpWizard
   const [levelUpWizardOpen, setLevelUpWizardOpen] = useState(false);
+  const [revertLevelOpen, setRevertLevelOpen] = useState(false);
 
   // Estado local para inputs de atributos (permite campo vazio)
   const [attributeInputValues, setAttributeInputValues] = useState<
@@ -949,25 +956,47 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     onClose();
   };
 
+  // Como o Subir Nível, age sobre a ficha salva: edições pendentes do drawer
+  // são descartadas.
+  const revertLevelSummary = useMemo(
+    () => (revertLevelOpen ? getLastLevelSummary(sheet) : null),
+    [revertLevelOpen, sheet]
+  );
+
+  const handleRevertLevelConfirm = () => {
+    setRevertLevelOpen(false);
+    onSave(revertLastLevel(sheet));
+    onClose();
+  };
+
   // Contagem de níveis por classe da ficha multiclasse, na ordem em que as
   // classes aparecem (a primeira é a primária, a única que soma o PV base).
+  // Parte das classes da ficha salva: uma classe zerada no drawer continua
+  // com o campo visível (em 0) para poder voltar atrás.
+  const primaryClassName = sheet.classLevels?.[0]?.className;
   const classLevelCounts = React.useMemo(() => {
     const counts = new Map<string, number>();
+    (sheet.classLevels ?? []).forEach((cl) => counts.set(cl.className, 0));
     (editedData.classLevels ?? []).forEach((cl) => {
       counts.set(cl.className, (counts.get(cl.className) ?? 0) + 1);
     });
     return counts;
-  }, [editedData.classLevels]);
+  }, [sheet.classLevels, editedData.classLevels]);
+
+  const zeroedClasses = Array.from(classLevelCounts.entries())
+    .filter(([, count]) => count === 0)
+    .map(([className]) => className);
 
   const handleClassLevelChange = (className: string, value: number | null) => {
     const current = editedData.classLevels;
     if (!current) return;
 
     const next = new Map(classLevelCounts);
-    // Mínimo 1: zerar uma classe a removeria da ficha sem reverter o que ela
-    // concedeu (habilidades, magias, perícias). Remoção de classe é trabalho do
-    // assistente, não deste campo.
-    next.set(className, Math.max(value ?? 1, 1));
+    // A primária não pode zerar (é ela que soma o PV base). Zerar uma
+    // secundária a tira da ficha SEM reverter o que ela concedeu — é o
+    // caminho de fichas sem registro dos níveis; o normal é o Desfazer Nível.
+    const min = className === primaryClassName ? 1 : 0;
+    next.set(className, Math.max(value ?? min, min));
 
     const total = Array.from(next.values()).reduce((sum, n) => sum + n, 0);
     if (total > 20) return;
@@ -1683,6 +1712,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
     if (classLevelsChanged) {
       updates.classLevels = editedData.classLevels;
+      // Classe zerada: o caminho de magia dela não vale mais.
+      if (sheet.multiclassSpellPaths && zeroedClasses.length > 0) {
+        updates.multiclassSpellPaths = _.omit(
+          sheet.multiclassSpellPaths,
+          zeroedClasses
+        );
+      }
     } else if (levelChanged && sheet.classLevels) {
       // Mono-classe (ou ficha com classLevels de uma classe só): mantém
       // classLevels em sincronia com o nível editado. Sem isso, baixar o nível
@@ -2347,13 +2383,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
                   <Stack
                     direction='row'
-                    spacing={1}
+                    useFlexGap
                     sx={{
                       alignItems: 'flex-start',
+                      flexWrap: 'wrap',
+                      gap: 1,
                     }}
                   >
                     <NumberField
                       fullWidth
+                      sx={{ flex: '1 1 120px' }}
                       label='Nível'
                       value={editedData.nivel}
                       onValueChange={(v) =>
@@ -2393,6 +2432,29 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         </Button>
                       </span>
                     </Tooltip>
+                    <Tooltip
+                      title={
+                        canRevertLastLevel(sheet)
+                          ? `Desfazer tudo o que o nível ${sheet.nivel} concedeu`
+                          : 'A ficha já está no nível 1'
+                      }
+                    >
+                      <span>
+                        <Button
+                          variant='outlined'
+                          color='warning'
+                          onClick={() => setRevertLevelOpen(true)}
+                          disabled={!canRevertLastLevel(sheet)}
+                          sx={{
+                            minWidth: 'auto',
+                            whiteSpace: 'nowrap',
+                            height: 56,
+                          }}
+                        >
+                          Desfazer Nível
+                        </Button>
+                      </span>
+                    </Tooltip>
                   </Stack>
 
                   {sheetIsMulticlass && (
@@ -2417,7 +2479,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                               onValueChange={(v) =>
                                 handleClassLevelChange(className, v)
                               }
-                              min={1}
+                              min={className === primaryClassName ? 1 : 0}
                               max={20}
                               sx={{ minWidth: 140, flex: '1 1 140px' }}
                             />
@@ -2436,6 +2498,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         poderes novos. Para subir de nível de verdade, use o
                         Subir Nível.
                       </Typography>
+                      {zeroedClasses.length > 0 && (
+                        <Alert severity='warning' sx={{ mt: 1 }}>
+                          {zeroedClasses.join(', ')} sairá da ficha ao salvar.
+                          Habilidades, poderes e magias que{' '}
+                          {zeroedClasses.length > 1 ? 'elas' : 'ela'} concedeu
+                          não são removidos automaticamente — remova-os nas abas
+                          correspondentes. Se os níveis foram ganhos pelo Subir
+                          Nível, prefira o Desfazer Nível, que remove tudo.
+                        </Alert>
+                      )}
                     </Box>
                   )}
 
@@ -3878,6 +3950,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         supplements={userSupplements}
         onConfirm={handleLevelUpConfirm}
         onCancel={() => setLevelUpWizardOpen(false)}
+      />
+      <RevertLevelDialog
+        open={revertLevelOpen}
+        summary={revertLevelSummary}
+        onConfirm={handleRevertLevelConfirm}
+        onCancel={() => setRevertLevelOpen(false)}
       />
     </>
   );
