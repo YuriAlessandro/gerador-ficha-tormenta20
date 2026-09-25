@@ -153,18 +153,14 @@ describe('dados de equipamento', () => {
   });
 
   it('os 4 veículos do core existem com group Veículo e preço correto', () => {
-    const coreVehicles = catalog.vehicles.filter(
-      (item) => !item.supplementId
-    );
+    const coreVehicles = catalog.vehicles.filter((item) => !item.supplementId);
     expect(coreVehicles.map((v) => v.nome).sort()).toEqual([
       'Balão goblin',
       'Canoa',
       'Carroça',
       'Carruagem',
     ]);
-    expect(
-      coreVehicles.every((item) => item.group === 'Veículo')
-    ).toBe(true);
+    expect(coreVehicles.every((item) => item.group === 'Veículo')).toBe(true);
     expect(
       coreVehicles.every(
         (item) => typeof item.preco === 'number' && item.preco > 0

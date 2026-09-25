@@ -141,11 +141,7 @@ export const EQUIPMENT_CATALOG: CatalogCategory[] = [
   {
     group: 'Veículo',
     label: 'Veículos',
-    subgroups: flatSubgroup(
-      'veiculos',
-      'Veículos',
-      GENERAL_EQUIPMENT.vehicles
-    ),
+    subgroups: flatSubgroup('veiculos', 'Veículos', GENERAL_EQUIPMENT.vehicles),
   },
   { group: 'Serviço', label: 'Serviços', subgroups: [] },
 ];
