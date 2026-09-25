@@ -869,6 +869,47 @@ export const foodItems: Equipment[] = [...alimentacao];
 
 export const animalItems: Equipment[] = [...animais];
 
+// Veículos do livro base — Balão goblin, Canoa, Carroça e Carruagem.
+// Veleiro fica de fora: o livro base não traz estatísticas para ele, só o
+// Heróis de Arton, que já o define completo. Sem stats, seria um stub ao
+// lado dos outros veículos completos.
+export const veiculos: Equipment[] = [
+  {
+    nome: 'Balão goblin',
+    group: 'Veículo',
+    preco: parsePrice('T$ 200'),
+    descricao:
+      'Enorme, voo 12m, Defesa 5 (+ Des do baloeiro), 100 PV; carrega até 8 criaturas Médias ou 160 espaços. Perda de metade dos PV: flutua ao solo, 4d6 de impacto (Ref CD 15 reduz à metade). Remendar: ação completa, Ofício (artesão) CD 15, recupera 1d8 PV.',
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Canoa',
+    group: 'Veículo',
+    preco: parsePrice('T$ 70'),
+    descricao:
+      'Mesmas estatísticas de uma carroça, mas com deslocamento de natação.',
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Carroça',
+    group: 'Veículo',
+    preco: parsePrice('T$ 150'),
+    descricao:
+      'Grande, deslocamento 9m, Defesa 8 (+ Des do condutor), 50 PV; carrega até 4 criaturas Médias ou 80 espaços. Puxada por 2 cavalos ou 1 trobo.',
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Carruagem',
+    group: 'Veículo',
+    preco: parsePrice('T$ 500'),
+    descricao:
+      'Mesmas estatísticas de uma carroça. Cobertura leve aos passageiros.',
+    spaces: parseSpaces('—'),
+  },
+];
+
+export const vehicleItems: Equipment[] = [...veiculos];
+
 // Objeto para facilitar o acesso organizado no componente
 export const GENERAL_EQUIPMENT = {
   // Subcategorias para Item Geral
@@ -891,6 +932,9 @@ export const GENERAL_EQUIPMENT = {
 
   // Animais
   animals: animais,
+
+  // Veículos
+  vehicles: veiculos,
 
   // Arrays unificados
   generalItems,
