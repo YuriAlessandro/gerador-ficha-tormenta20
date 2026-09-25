@@ -1,6 +1,6 @@
 import React from 'react';
 import { vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { allSpellSchools, Spell } from '@/interfaces/Spells';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
@@ -128,5 +128,27 @@ describe('InitialSpellSelectionStep — Feiticeiro comum (não-regressão)', () 
     expect(screen.queryByText(exclusiveDivineSpell().nome)).toBeNull();
     expect(screen.queryByText('Divina')).toBeNull();
     expect(screen.queryByText(/precisa ser divina/i)).toBeNull();
+  });
+});
+
+describe('InitialSpellSelectionStep — cards', () => {
+  it('seleciona a magia ao clicar no card', () => {
+    const onChange = vi.fn();
+    const arcana = exclusiveArcaneSpell();
+    render(
+      <InitialSpellSelectionStep
+        selectedSpells={[]}
+        onChange={onChange}
+        requiredCount={3}
+        className='Arcanista'
+        spellType='Arcane'
+        supplements={SUPPLEMENTS}
+      />
+    );
+
+    fireEvent.click(screen.getByText(arcana.nome));
+    expect(onChange).toHaveBeenCalledWith([
+      expect.objectContaining({ nome: arcana.nome }),
+    ]);
   });
 });
