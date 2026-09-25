@@ -22,6 +22,7 @@ import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 
 import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { SEO, getPageSEO } from '../SEO';
 import {
   allArcaneSpellsCircle1,
@@ -44,6 +45,7 @@ import AdvancedSpellFilter from './AdvancedSpellFilter';
 import TormentaTitle from './TormentaTitle';
 import SearchInput from '../DatabaseTables/SearchInput';
 import CopyUrlButton from './CopyUrlButton';
+import { EncyclopediaSummaryRow } from './EncyclopediaRowSummary';
 import { useAuth } from '../../hooks/useAuth';
 import {
   SupplementId,
@@ -140,90 +142,110 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const theme = useTheme();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
+  const typeChips = spell.spellTypes.map((type) => (
+    <Chip
+      key={type}
+      icon={type === 'arcane' ? <AutoFixHighIcon /> : <FilterDramaIcon />}
+      label={type === 'arcane' ? 'Arcana' : 'Divina'}
+      size='small'
+      color={type === 'arcane' ? 'primary' : 'secondary'}
+      variant='outlined'
+      sx={{
+        fontSize: '0.75rem',
+        height: '24px',
+        fontFamily: 'Tfont, serif',
+      }}
+    />
+  ));
+  const supplementChip = spell.supplementId &&
+    spell.supplementId !== SupplementId.TORMENTA20_CORE && (
+      <Chip
+        label={SUPPLEMENT_METADATA[spell.supplementId]?.abbreviation || ''}
+        size='small'
+        color='primary'
+        variant='outlined'
+        sx={{ ml: 1 }}
+      />
+    );
+  const shareButton = (
+    <CopyUrlButton
+      itemName={spell.nome}
+      itemType='magia'
+      size='small'
+      variant='minimal'
+    />
+  );
+
   return (
     <>
-      <TableRow
-        sx={{
-          '& > *': { borderBottom: 'unset' },
-          '&:hover': {
-            backgroundColor: `${theme.palette.primary.main}05`,
-          },
-        }}
-      >
-        <TableCell width={10}>
-          <IconButton
-            aria-label='expand row'
-            size='small'
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row'>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              flexWrap: 'wrap',
-            }}
-          >
-            <Typography
-              variant='body1'
+      {isMobile ? (
+        <EncyclopediaSummaryRow
+          colSpan={6}
+          name={spell.nome}
+          open={open}
+          onToggle={() => setOpen(!open)}
+          badge={`${getCircleNumber(spell.spellCircle)}º`}
+          tags={
+            <>
+              {typeChips}
+              {supplementChip}
+            </>
+          }
+          action={shareButton}
+        />
+      ) : (
+        <TableRow
+          sx={{
+            '& > *': { borderBottom: 'unset' },
+            '&:hover': {
+              backgroundColor: `${theme.palette.primary.main}05`,
+            },
+          }}
+        >
+          <TableCell width={10}>
+            <IconButton
+              aria-label='expand row'
+              size='small'
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </TableCell>
+          <TableCell component='th' scope='row'>
+            <Box
               sx={{
-                fontWeight: 500,
-                minWidth: 'fit-content',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                flexWrap: 'wrap',
               }}
             >
-              {spell.nome}
-            </Typography>
-            {spell.spellTypes.map((type) => (
-              <Chip
-                key={type}
-                icon={
-                  type === 'arcane' ? <AutoFixHighIcon /> : <FilterDramaIcon />
-                }
-                label={type === 'arcane' ? 'Arcana' : 'Divina'}
-                size='small'
-                color={type === 'arcane' ? 'primary' : 'secondary'}
-                variant='outlined'
+              <Typography
+                variant='body1'
                 sx={{
-                  fontSize: '0.75rem',
-                  height: '24px',
-                  fontFamily: 'Tfont, serif',
+                  fontWeight: 500,
+                  minWidth: 'fit-content',
                 }}
-              />
-            ))}
-            {spell.supplementId &&
-              spell.supplementId !== SupplementId.TORMENTA20_CORE && (
-                <Chip
-                  label={
-                    SUPPLEMENT_METADATA[spell.supplementId]?.abbreviation || ''
-                  }
-                  size='small'
-                  color='primary'
-                  variant='outlined'
-                  sx={{ ml: 1 }}
-                />
-              )}
-            <CopyUrlButton
-              itemName={spell.nome}
-              itemType='magia'
-              size='small'
-              variant='minimal'
-            />
-          </Box>
-        </TableCell>
-        <TableCell>{getCircleNumber(spell.spellCircle)}º</TableCell>
-        <TableCell sx={DESKTOP_ONLY_CELL_SX}>{spell.school}</TableCell>
-        <TableCell sx={DESKTOP_ONLY_CELL_SX}>{spell.execucao}</TableCell>
-        <TableCell />
-      </TableRow>
+              >
+                {spell.nome}
+              </Typography>
+              {typeChips}
+              {supplementChip}
+              {shareButton}
+            </Box>
+          </TableCell>
+          <TableCell>{getCircleNumber(spell.spellCircle)}º</TableCell>
+          <TableCell>{spell.school}</TableCell>
+          <TableCell>{spell.execucao}</TableCell>
+          <TableCell />
+        </TableRow>
+      )}
       <TableRow>
         <TableCell
           style={{ paddingBottom: 0, paddingTop: 0 }}
@@ -641,18 +663,12 @@ const UnifiedSpellsTable: React.FC = () => {
             '& .MuiTable-root': {
               minWidth: { xs: '100%', md: 650 },
             },
-            '& .MuiTableCell-root': {
-              [theme.breakpoints.down('md')]: {
-                padding: '8px 4px',
-                fontSize: '0.875rem',
-              },
-            },
           }}
         >
           <Table aria-label='unified spells table'>
             <TableHead>
               <TableRow>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
                 <TableCell>
                   <Typography
                     variant='h6'
@@ -664,7 +680,7 @@ const UnifiedSpellsTable: React.FC = () => {
                     Nome da Magia
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={DESKTOP_ONLY_CELL_SX}>
                   <Typography
                     variant='h6'
                     sx={{
@@ -697,7 +713,7 @@ const UnifiedSpellsTable: React.FC = () => {
                     Execução
                   </Typography>
                 </TableCell>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
               </TableRow>
             </TableHead>
             <TableBody>

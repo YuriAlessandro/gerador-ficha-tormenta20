@@ -21,6 +21,8 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
 import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
 import SupplementFilter from './SupplementFilter';
@@ -29,6 +31,7 @@ import { dataRegistry, OriginWithSupplement } from '../../data/registry';
 import { ORIGIN_POWER_TYPE } from '../../data/systems/tormenta20/powers/originPowers';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 import { normalizeSearch } from '../../functions/stringUtils';
 
 const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
@@ -37,64 +40,82 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
 }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
+  const supplementChip = origin.supplementId !==
+    SupplementId.TORMENTA20_CORE && (
+    <Chip
+      label={origin.supplementName}
+      size='small'
+      sx={{
+        height: '20px',
+        fontSize: '0.7rem',
+        backgroundColor: 'secondary.main',
+        color: 'secondary.contrastText',
+      }}
+    />
+  );
+  const shareButton = (
+    <CopyUrlButton
+      itemName={origin.name}
+      itemType='origem'
+      size='small'
+      variant='minimal'
+    />
+  );
+
   return (
     <>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-        <TableCell width={10}>
-          <IconButton
-            aria-label='expand row'
-            size='small'
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row'>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 1,
-              rowGap: 0.5,
-            }}
-          >
-            <BrowseGalleryIcon color='primary' fontSize='small' />
-            <Typography
-              variant='body1'
+      {isMobile ? (
+        <EncyclopediaSummaryRow
+          colSpan={3}
+          name={origin.name}
+          open={open}
+          onToggle={() => setOpen(!open)}
+          tags={supplementChip}
+          action={shareButton}
+        />
+      ) : (
+        <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+          <TableCell width={10}>
+            <IconButton
+              aria-label='expand row'
+              size='small'
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </TableCell>
+          <TableCell component='th' scope='row'>
+            <Box
               sx={{
-                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 1,
+                rowGap: 0.5,
               }}
             >
-              {origin.name}
-            </Typography>
-            {origin.supplementId !== SupplementId.TORMENTA20_CORE && (
-              <Chip
-                label={origin.supplementName}
-                size='small'
+              <BrowseGalleryIcon color='primary' fontSize='small' />
+              <Typography
+                variant='body1'
                 sx={{
-                  height: '20px',
-                  fontSize: '0.7rem',
-                  backgroundColor: 'secondary.main',
-                  color: 'secondary.contrastText',
+                  fontWeight: 500,
                 }}
-              />
-            )}
-            <CopyUrlButton
-              itemName={origin.name}
-              itemType='origem'
-              size='small'
-              variant='minimal'
-            />
-          </Box>
-        </TableCell>
-        <TableCell />
-      </TableRow>
+              >
+                {origin.name}
+              </Typography>
+              {supplementChip}
+              {shareButton}
+            </Box>
+          </TableCell>
+          <TableCell />
+        </TableRow>
+      )}
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
@@ -373,7 +394,7 @@ const OriginsTable: React.FC = () => {
           <Table aria-label='origins table'>
             <TableHead>
               <TableRow>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
                 <TableCell>
                   <Typography
                     variant='h6'
@@ -385,7 +406,7 @@ const OriginsTable: React.FC = () => {
                     Nome da Origem
                   </Typography>
                 </TableCell>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
               </TableRow>
             </TableHead>
             <TableBody>
