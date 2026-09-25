@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { SupplementId } from '../types/supplement.types';
 import { dataRegistry } from '../data/registry';
+import { getDevSupplements } from '../functions/devSupplements';
 
 /**
  * Retorna as fontes de conteúdo ativas a serem passadas aos métodos
@@ -45,8 +46,9 @@ export function useContentSupplements(): SupplementId[] {
   return useMemo(() => {
     const official = enabledSupplements ?? [SupplementId.TORMENTA20_CORE];
     const runtimeIds = dataRegistry.getRuntimeSupplementIds();
+    const devIds = getDevSupplements();
     // Cast de fronteira: ver doc acima.
-    return [...official, ...runtimeIds] as SupplementId[];
+    return [...new Set([...official, ...devIds, ...runtimeIds])] as SupplementId[];
     // `runtimeVersion` não é lido: é o gatilho de recálculo quando o conjunto
     // de suplementos runtime muda.
   }, [enabledSupplements, runtimeVersion]);
