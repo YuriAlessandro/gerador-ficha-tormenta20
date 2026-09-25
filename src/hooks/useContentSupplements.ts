@@ -48,7 +48,9 @@ export function useContentSupplements(): SupplementId[] {
     const runtimeIds = dataRegistry.getRuntimeSupplementIds();
     const devIds = getDevSupplements();
     // Cast de fronteira: ver doc acima.
-    return [...new Set([...official, ...devIds, ...runtimeIds])] as SupplementId[];
+    return [
+      ...new Set([...official, ...devIds, ...runtimeIds]),
+    ] as SupplementId[];
     // `runtimeVersion` não é lido: é o gatilho de recálculo quando o conjunto
     // de suplementos runtime muda.
   }, [enabledSupplements, runtimeVersion]);

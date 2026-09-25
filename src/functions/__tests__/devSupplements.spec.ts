@@ -39,9 +39,7 @@ describe('getDevSupplements', () => {
   it('filtra ids inválidos', () => {
     vi.stubEnv('MODE', 'development');
     vi.stubEnv('VITE_DEV_SUPPLEMENTS', 'tormenta20-herois-de-arton,invalido,');
-    expect(getDevSupplements()).toEqual([
-      SupplementId.TORMENTA20_HEROIS_ARTON,
-    ]);
+    expect(getDevSupplements()).toEqual([SupplementId.TORMENTA20_HEROIS_ARTON]);
   });
 
   it('deduplica ids repetidos', () => {
@@ -50,16 +48,12 @@ describe('getDevSupplements', () => {
       'VITE_DEV_SUPPLEMENTS',
       'tormenta20-herois-de-arton, tormenta20-herois-de-arton'
     );
-    expect(getDevSupplements()).toEqual([
-      SupplementId.TORMENTA20_HEROIS_ARTON,
-    ]);
+    expect(getDevSupplements()).toEqual([SupplementId.TORMENTA20_HEROIS_ARTON]);
   });
 
   it('trata espaços em branco', () => {
     vi.stubEnv('MODE', 'development');
     vi.stubEnv('VITE_DEV_SUPPLEMENTS', '  tormenta20-herois-de-arton  ');
-    expect(getDevSupplements()).toEqual([
-      SupplementId.TORMENTA20_HEROIS_ARTON,
-    ]);
+    expect(getDevSupplements()).toEqual([SupplementId.TORMENTA20_HEROIS_ARTON]);
   });
 });
