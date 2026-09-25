@@ -37,7 +37,7 @@ import {
   Atributo,
   ATTR_ABBREVIATIONS,
 } from '@/data/systems/tormenta20/atributos';
-import { SkillsAttrs } from '@/interfaces/Skills';
+import Skill, { SkillsAttrs } from '@/interfaces/Skills';
 import { rollD20 } from '@/functions/diceRoller';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
 import StatControl from './StatControl';
@@ -268,10 +268,14 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   );
 
   const handleSkillRoll = useCallback(
-    (skillName: string) => {
+    (skillName: Skill) => {
       const skillAttr = SkillsAttrs[skillName];
       const attrMod = skillAttr ? companion.attributes[skillAttr] : 0;
-      const skillBonus = attrMod + halfTrainerLevel + skillTrainingBonus;
+      const skillBonus =
+        attrMod +
+        halfTrainerLevel +
+        skillTrainingBonus +
+        (companion.skillBonuses?.[skillName] ?? 0);
 
       const d20Roll = rollD20();
       const total = Math.max(1, d20Roll + skillBonus);
@@ -299,6 +303,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
     },
     [
       companion.attributes,
+      companion.skillBonuses,
       halfTrainerLevel,
       skillTrainingBonus,
       showDiceResult,
@@ -703,7 +708,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           {companion.skills.map((skill) => {
             const skillAttr = SkillsAttrs[skill];
             const attrMod = skillAttr ? companion.attributes[skillAttr] : 0;
-            const skillBonus = attrMod + halfTrainerLevel + skillTrainingBonus;
+            const skillBonus =
+              attrMod +
+              halfTrainerLevel +
+              skillTrainingBonus +
+              (companion.skillBonuses?.[skill] ?? 0);
             const bonusStr =
               skillBonus >= 0 ? `+${skillBonus}` : `${skillBonus}`;
 

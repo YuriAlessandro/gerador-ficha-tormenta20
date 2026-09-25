@@ -11,6 +11,7 @@ import {
   CompanionAutoSnapshot,
 } from '../../../../../interfaces/Companion';
 import {
+  COMPANION_TYPES,
   getCompanionTypeDefinition,
   CompanionTypeDefinition,
 } from './companionTypes';
@@ -193,11 +194,42 @@ function computeNaturalWeapons(
   return weapons;
 }
 
+/** Perícias que a criação do melhor amigo sempre pede. */
+const CHOSEN_SKILL_COUNT = 3;
+
+/**
+ * Perícias que o tipo ou um truque podem ter treinado: as de qualquer tipo
+ * (o tipo pode ter sido trocado no editor) e o Atletismo do Veloz (o truque
+ * pode ter sido removido).
+ */
+const DERIVABLE_SKILLS = new Set<Skill>([
+  ...COMPANION_TYPES.flatMap((type) => type.trainedSkills ?? []),
+  Skill.ATLETISMO,
+]);
+
+/**
+ * Fichas antigas não separavam as perícias escolhidas das derivadas: `skills`
+ * guardava as duas e cada recálculo relia as derivadas como escolhidas. Como
+ * `computeSkills` sempre pôs as escolhidas primeiro e anexou as derivadas no
+ * fim, tira do fim as que podem ter sido derivadas até sobrarem as 3 da
+ * criação.
+ */
+export function inferChosenSkills(legacySkills: Skill[]): Skill[] {
+  const chosen = [...legacySkills];
+  while (
+    chosen.length > CHOSEN_SKILL_COUNT &&
+    DERIVABLE_SKILLS.has(chosen[chosen.length - 1])
+  ) {
+    chosen.pop();
+  }
+  return chosen;
+}
+
 function computeSkills(
   chosenSkills: Skill[],
   typeDef: CompanionTypeDefinition,
   tricks: CompanionTrick[]
-): Skill[] {
+): { skills: Skill[]; skillBonuses?: Partial<Record<Skill, number>> } {
   const skills = [...chosenSkills];
   if (typeDef.trainedSkills) {
     typeDef.trainedSkills.forEach((s) => {
@@ -206,14 +238,14 @@ function computeSkills(
       }
     });
   }
-  // Veloz treina Atletismo
-  if (
-    tricks.some((t) => t.name === 'Veloz') &&
-    !skills.includes(Skill.ATLETISMO)
-  ) {
+  // Veloz treina Atletismo; se já era treinado, +2 nessa perícia
+  if (tricks.some((t) => t.name === 'Veloz')) {
+    if (skills.includes(Skill.ATLETISMO)) {
+      return { skills, skillBonuses: { [Skill.ATLETISMO]: 2 } };
+    }
     skills.push(Skill.ATLETISMO);
   }
-  return skills;
+  return { skills };
 }
 
 function computeSenses(
@@ -426,6 +458,16 @@ export function calculateCompanionStats(
     return [{ ...spell, customKeyAttr: Atributo.CARISMA }];
   });
 
+  // Fichas antigas: infere as escolhidas do estado anterior aos overrides
+  const chosenSkills =
+    companion.chosenSkills ??
+    inferChosenSkills(companion.originalAutoState?.skills ?? companion.skills);
+  const { skills, skillBonuses } = computeSkills(
+    chosenSkills,
+    typeDef,
+    companion.tricks
+  );
+
   // Estado auto-computado puro (sem overrides aplicados)
   const autoComputed: CompanionSheet = {
     ...companion,
@@ -448,7 +490,9 @@ export function calculateCompanionStats(
     hasAnatomiaHumanoide: companion.tricks.some(
       (t) => t.name === 'Anatomia Humanoide'
     ),
-    skills: computeSkills(companion.skills, typeDef, companion.tricks),
+    chosenSkills,
+    skills,
+    skillBonuses,
     attackBonus: treinamentoBonus,
     damageBonus: treinamentoBonus,
   };
@@ -460,7 +504,9 @@ export function calculateCompanionStats(
     companionType: autoComputed.companionType,
     spiritEnergyType: autoComputed.spiritEnergyType,
     attributes: autoComputed.attributes,
+    chosenSkills: autoComputed.chosenSkills,
     skills: autoComputed.skills,
+    skillBonuses: autoComputed.skillBonuses,
     naturalWeapons: autoComputed.naturalWeapons,
     tricks: autoComputed.tricks,
     spells: autoComputed.spells,
@@ -566,6 +612,7 @@ export function createCompanion(
     companionType: options.type,
     spiritEnergyType: options.spiritEnergyType,
     attributes: { ...BASE_ATTRIBUTES },
+    chosenSkills: options.skills,
     skills: options.skills,
     naturalWeapons: [
       {

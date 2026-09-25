@@ -44,6 +44,7 @@ import {
   countNaturalWeapons,
   COMPANION_AVAILABLE_SKILLS,
   COMPANION_WEAPON_DAMAGE_TYPES,
+  inferChosenSkills,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
   formatTrickChoices,
@@ -102,7 +103,9 @@ function buildInitialDraft(companion: CompanionSheet): DraftState {
     spiritEnergyType: companion.spiritEnergyType,
     treinoIntensivo: companion.treinoIntensivo,
     tricks: [...companion.tricks],
-    baseSkills: [...companion.skills],
+    baseSkills: [
+      ...(companion.chosenSkills ?? inferChosenSkills(companion.skills)),
+    ],
     baseDamageType:
       companion.naturalWeapons[0]?.damageType ||
       ('Corte' as NaturalWeaponDamageType),
@@ -145,7 +148,7 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
       spiritEnergyType: draft.spiritEnergyType,
       treinoIntensivo: draft.treinoIntensivo,
       tricks: draft.tricks,
-      skills: draft.baseSkills,
+      chosenSkills: draft.baseSkills,
       naturalWeapons: [
         {
           ...(companion.naturalWeapons[0] || {
@@ -202,7 +205,7 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
         draft.companionType === 'Espírito' ? draft.spiritEnergyType : undefined,
       treinoIntensivo: draft.treinoIntensivo,
       tricks: draft.tricks,
-      skills: draft.baseSkills,
+      chosenSkills: draft.baseSkills,
       naturalWeapons: [
         {
           ...(companion.naturalWeapons[0] || {
