@@ -85,7 +85,9 @@ const Row: React.FC<{
             sx={{
               display: 'flex',
               alignItems: 'center',
+              flexWrap: 'wrap',
               gap: 1,
+              rowGap: 0.5,
             }}
           >
             <LocalFireDepartmentIcon color='primary' fontSize='small' />

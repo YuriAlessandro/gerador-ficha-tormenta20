@@ -73,7 +73,9 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 gap: 1,
+                rowGap: 0.5,
               }}
             >
               <FilterDramaIcon color='primary' fontSize='small' />

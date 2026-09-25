@@ -101,7 +101,9 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 gap: 1,
+                rowGap: 0.5,
               }}
             >
               <WhatshotIcon color='primary' fontSize='small' />
@@ -175,6 +177,9 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  columnGap: 1,
+                  rowGap: 0.5,
                   mb: 1,
                 }}
               >

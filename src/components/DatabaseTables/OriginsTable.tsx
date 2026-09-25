@@ -59,7 +59,9 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
             sx={{
               display: 'flex',
               alignItems: 'center',
+              flexWrap: 'wrap',
               gap: 1,
+              rowGap: 0.5,
             }}
           >
             <BrowseGalleryIcon color='primary' fontSize='small' />
@@ -108,6 +110,9 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  columnGap: 1,
+                  rowGap: 0.5,
                   mb: 1,
                 }}
               >
