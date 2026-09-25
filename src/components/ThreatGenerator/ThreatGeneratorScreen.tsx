@@ -13,7 +13,6 @@ import {
   Stack,
   Fade,
   useTheme,
-  useMediaQuery,
   IconButton,
   Chip,
 } from '@mui/material';
@@ -31,6 +30,8 @@ import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
 import FolderIcon from '@mui/icons-material/Folder';
 import { useHistory, useLocation } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import CompactStepProgress from '@/components/common/CompactStepProgress';
 import { useDispatch, useSelector } from 'react-redux';
 import SheetsService from '@/services/sheets.service';
 import { SEO, getPageSEO } from '../SEO';
@@ -118,7 +119,7 @@ const ThreatStepIcon: React.FC<StepIconProps> = ({
 
 const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useIsMobile();
   const history = useHistory();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -495,7 +496,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
                   background: (muiTheme) =>
                     `linear-gradient(135deg, ${muiTheme.palette.primary.main} 0%, ${muiTheme.palette.primary.dark} 100%)`,
                   color: 'white',
-                  p: 3,
+                  p: { xs: 2, md: 3 },
                 }}
               >
                 <Box
@@ -558,38 +559,38 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
               {/* Stepper */}
               <Box
                 sx={{
-                  p: 3,
+                  p: { xs: 2, md: 3 },
                   borderBottom: `1px solid ${theme.palette.divider}`,
                 }}
               >
-                <Stepper
-                  activeStep={activeStep}
-                  orientation={isMobile ? 'vertical' : 'horizontal'}
-                  sx={{
-                    '& .MuiStepLabel-label': {
-                      fontSize: isMobile ? '0.875rem' : '1rem',
-                    },
-                  }}
-                >
-                  {steps.map((label, index) => (
-                    <Step key={label}>
-                      <StepLabel
-                        slots={{ stepIcon: ThreatStepIcon }}
-                        sx={{
-                          cursor: 'pointer',
-                          '&:hover': {
-                            '& .MuiStepLabel-label': {
-                              color: theme.palette.primary.main,
+                {isMobile ? (
+                  <CompactStepProgress activeStep={activeStep} steps={steps} />
+                ) : (
+                  <Stepper
+                    activeStep={activeStep}
+                    orientation='horizontal'
+                    sx={{ '& .MuiStepLabel-label': { fontSize: '1rem' } }}
+                  >
+                    {steps.map((label, index) => (
+                      <Step key={label}>
+                        <StepLabel
+                          slots={{ stepIcon: ThreatStepIcon }}
+                          sx={{
+                            cursor: 'pointer',
+                            '&:hover': {
+                              '& .MuiStepLabel-label': {
+                                color: theme.palette.primary.main,
+                              },
                             },
-                          },
-                        }}
-                        onClick={() => handleStepClick(index)}
-                      >
-                        {label}
-                      </StepLabel>
-                    </Step>
-                  ))}
-                </Stepper>
+                          }}
+                          onClick={() => handleStepClick(index)}
+                        >
+                          {label}
+                        </StepLabel>
+                      </Step>
+                    ))}
+                  </Stepper>
+                )}
               </Box>
 
               {/* Step Content */}
@@ -602,7 +603,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
               {/* Navigation */}
               <Box
                 sx={{
-                  p: 3,
+                  p: { xs: 2, md: 3 },
                   borderTop: `1px solid ${theme.palette.divider}`,
                   backgroundColor: theme.palette.background.default,
                 }}
@@ -628,7 +629,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
                     variant='body2'
                     sx={{
                       color: 'text.secondary',
-                      display: { xs: 'none', sm: 'block' },
+                      display: { xs: 'none', md: 'block' },
                     }}
                   >
                     Etapa {activeStep + 1} de {steps.length}
