@@ -52,6 +52,9 @@ const CONTAINER_SX = {
   bgcolor: 'background.paper',
   borderBottom: 1,
   borderColor: 'divider',
+  // No mobile a barra gruda no topo do dialog (tela cheia); o respiro de cima
+  // evita que o rótulo flutuante do campo de dinheiro seja cortado.
+  pt: { xs: 1, md: 0 },
   pb: 1,
   display: 'flex',
   flexDirection: 'column',
