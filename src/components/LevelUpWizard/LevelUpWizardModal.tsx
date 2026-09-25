@@ -1319,6 +1319,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               }))
             }
             className={selectedClassName}
+            classLevel={selectedClassLevel}
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
             unavailableClassPowers={unavailableClassPowers}
