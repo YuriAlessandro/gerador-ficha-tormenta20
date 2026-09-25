@@ -152,6 +152,23 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo:</strong> Botão <strong>Desfazer Nível</strong>{' '}
+                  ao lado do Subir Nível, na edição de informações da ficha. Ele
+                  desfaz tudo o que o último nível concedeu (poderes,
+                  habilidades de classe, magias, truques do Melhor Amigo e as
+                  perícias e bônus que vieram deles) e devolve a ficha ao nível
+                  anterior, para você subir de novo com outras escolhas. Antes
+                  de confirmar, uma janela mostra o que vai sair.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas <strong>multiclasse</strong>{' '}
+                  podiam não conseguir voltar ao nível 1: cada classe tinha
+                  mínimo de 1 nível, então um Guerreiro 1 / Ladino 1 ficava
+                  preso no nível 2. Agora a classe secundária pode ir a 0 no
+                  editor de níveis por classe, com um aviso sobre o que precisa
+                  ser removido à mão.
+                </li>
+                <li>
                   <strong>Correção:</strong> Na mesa virtual, o bônus de{' '}
                   <strong>Furtividade</strong> que o mestre vê no card do
                   combatente passa a somar o modificador de{' '}
