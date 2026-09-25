@@ -570,7 +570,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     spellCircle: number;
     availableSpells: Spell[];
     crossTraditionSpellNames: Set<string>;
+    crossTraditionLabel: string;
     crossTraditionLimit?: number;
+    minCrossTraditionSpells: number;
   } | null => {
     // Use the selected class's spellPath (for multiclass support)
     // For first level in new class, build spellPath from setup choices
@@ -691,8 +693,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     // Teurgista Místico: aplica o limite POR CÍRCULO. Círculos onde o
     // personagem já atingiu o limite têm suas magias cross removidas do pool;
     // círculos ainda abertos continuam ofertando. `crossNames` passa a conter
-    // apenas os nomes dos círculos ainda abertos.
-    let crossNames = new Set<string>();
+    // apenas os nomes dos círculos ainda abertos. Sem limite (Linhagem
+    // Abençoada), valem todos os nomes cross do pool.
+    let { crossNames } = pool;
     if (spellPath.crossTraditionLimit && crossNamesByCircle.size > 0) {
       const { removeNames, keepNames } = partitionCrossTraditionByCircle(
         crossNamesByCircle,
@@ -717,7 +720,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       spellCircle,
       availableSpells,
       crossTraditionSpellNames: crossNames,
+      crossTraditionLabel:
+        spellPath.spellType === 'Arcane' ? 'Divina' : 'Arcana',
       crossTraditionLimit: spellPath.crossTraditionLimit,
+      // Linhagem Abençoada: uma das magias iniciais tem que ser divina. Só no
+      // 1º nível da classe, como na criação.
+      minCrossTraditionSpells: isFirstLevelInNewClass
+        ? spellPath.crossTraditionRules?.minInitialSpells ?? 0
+        : 0,
     };
   };
 
@@ -1098,8 +1108,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         const spellInfo = getSpellInfo();
         if (!spellInfo) return true;
 
-        const selectedCount = currentLevelSelection.spellsLearned?.length || 0;
-        return selectedCount === spellInfo.spellCount;
+        const learned = currentLevelSelection.spellsLearned || [];
+        const crossCount = learned.filter((spell) =>
+          spellInfo.crossTraditionSpellNames.has(spell.nome)
+        ).length;
+        return (
+          learned.length === spellInfo.spellCount &&
+          crossCount >= spellInfo.minCrossTraditionSpells
+        );
       }
 
       case 'Truque do Melhor Amigo':
@@ -1519,7 +1535,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             requiredCount={spellInfo.spellCount}
             spellCircle={spellInfo.spellCircle}
             crossTraditionSpellNames={spellInfo.crossTraditionSpellNames}
+            crossTraditionLabel={spellInfo.crossTraditionLabel}
             crossTraditionLimit={spellInfo.crossTraditionLimit}
+            minCrossTraditionSpells={spellInfo.minCrossTraditionSpells}
             onSpellToggle={(spell) => {
               const current = currentLevelSelection.spellsLearned || [];
               const isSelected = current.some((s) => s.nome === spell.nome);
