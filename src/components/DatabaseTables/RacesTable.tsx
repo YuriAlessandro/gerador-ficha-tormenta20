@@ -128,7 +128,9 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
               sx={{
                 display: 'flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 gap: 1,
+                rowGap: 0.5,
               }}
             >
               <GroupIcon color='primary' fontSize='small' />
@@ -178,6 +180,9 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  columnGap: 1,
+                  rowGap: 0.5,
                   mb: 1,
                 }}
               >

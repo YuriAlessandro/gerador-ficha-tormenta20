@@ -21,6 +21,7 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 
+import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
 import { SEO, getPageSEO } from '../SEO';
 import {
   allArcaneSpellsCircle1,
@@ -219,8 +220,8 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
           </Box>
         </TableCell>
         <TableCell>{getCircleNumber(spell.spellCircle)}º</TableCell>
-        <TableCell>{spell.school}</TableCell>
-        <TableCell>{spell.execucao}</TableCell>
+        <TableCell sx={DESKTOP_ONLY_CELL_SX}>{spell.school}</TableCell>
+        <TableCell sx={DESKTOP_ONLY_CELL_SX}>{spell.execucao}</TableCell>
         <TableCell />
       </TableRow>
       <TableRow>
@@ -638,13 +639,10 @@ const UnifiedSpellsTable: React.FC = () => {
             maxWidth: '100%',
             overflowX: 'auto',
             '& .MuiTable-root': {
-              minWidth: 650,
-              '@media (max-width: 768px)': {
-                minWidth: '100%',
-              },
+              minWidth: { xs: '100%', md: 650 },
             },
             '& .MuiTableCell-root': {
-              '@media (max-width: 768px)': {
+              [theme.breakpoints.down('md')]: {
                 padding: '8px 4px',
                 fontSize: '0.875rem',
               },
@@ -677,7 +675,7 @@ const UnifiedSpellsTable: React.FC = () => {
                     Círculo
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={DESKTOP_ONLY_CELL_SX}>
                   <Typography
                     variant='h6'
                     sx={{
@@ -688,7 +686,7 @@ const UnifiedSpellsTable: React.FC = () => {
                     Escola
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={DESKTOP_ONLY_CELL_SX}>
                   <Typography
                     variant='h6'
                     sx={{
