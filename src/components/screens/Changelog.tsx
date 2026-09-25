@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            22/09/2026 (v4.33).
+            25/09/2026 (v4.34).
           </p>
 
           <p>
@@ -74,6 +74,92 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.34</h3>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🎲 Testes estendidos e armadilhas na Mesa Virtual
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O mestre agora prepara e conduz{' '}
+                  <strong>testes estendidos</strong> (JdA p. 222) e{' '}
+                  <strong>armadilhas</strong> (JdA p. 317) direto na mesa. No
+                  novo painel <strong>Testes e armadilhas</strong>, ele escolhe
+                  o <strong>teste da vez</strong> e pede a rolagem aos
+                  jogadores; o pedido aparece na tela de cada um, com as
+                  perícias certas e o bônus da ficha, e o resultado volta
+                  sozinho: o sistema compara com a CD, soma{' '}
+                  <strong>sucessos e falhas</strong> e encerra o desafio quando
+                  ele é vencido ou quando chegam as falhas. Rolar a perícia pela
+                  própria ficha também vale — responde o pedido ou oferece
+                  &ldquo;contar no desafio&rdquo; em um toque.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  As regras do livro vêm prontas: complexidade baixa, média ou
+                  alta (3, 5 ou 7 sucessos), perícias por etapa (&ldquo;1
+                  Atletismo + 2 Furtividade&rdquo;), teste{' '}
+                  <strong>aberto</strong> em que o jogador propõe a perícia e o
+                  mestre aprova, testes <strong>em grupo</strong> por rodadas,{' '}
+                  <strong>ajuda</strong>, <strong>CD cumulativa</strong> (+2 a
+                  cada teste ou rodada, ou ajustada na hora),{' '}
+                  <strong>penalidade por falha</strong> e 20/1 natural. O mestre
+                  decide se os jogadores veem a <strong>CD</strong> e a{' '}
+                  <strong>contagem</strong>, e pode mostrar o desafio na{' '}
+                  <strong>Tela do Jogador</strong>.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  As <strong>armadilhas</strong> seguem em etapas — oculta,
+                  encontrada, desarmada ou <strong>disparada</strong> — com as{' '}
+                  <strong>35 armadilhas</strong> do Livro Básico e de{' '}
+                  <em>Ameaças de Arton</em> prontas para usar. Encontrar pede
+                  Percepção/Investigação sem entregar a surpresa, desarmar pede
+                  Ladinagem (falhar por 5 ou mais dispara), e ao disparar os
+                  afetados recebem o pedido de resistência enquanto o mestre
+                  rola o dano e vê quanto cada um sofre.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Funciona do jeito que sua mesa joga: <strong>online</strong>{' '}
+                  (cada jogador rola no próprio aparelho),{' '}
+                  <strong>presencial</strong> (o mestre digita o total dos dados
+                  físicos, ou só marca ✓/✗) e para quem usa a mesa{' '}
+                  <strong>sozinho como mestre</strong>. Preparar e conduzir é
+                  exclusivo para mestres apoiadores; jogadores de qualquer plano
+                  participam.
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Na mesa virtual, o bônus de{' '}
+                  <strong>Furtividade</strong> que o mestre vê no card do
+                  combatente passa a somar o modificador de{' '}
+                  <strong>tamanho</strong>, igual à ficha. Personagens pequenos
+                  e grandes apareciam com o valor errado no encontro.
+                </li>
+              </ul>
+
               <h3>4.33</h3>
               <ul>
                 <li>
