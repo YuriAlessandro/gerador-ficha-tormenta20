@@ -158,6 +158,14 @@ const Changelog: React.FC = () => {
                   <strong>tamanho</strong>, igual à ficha. Personagens pequenos
                   e grandes apareciam com o valor errado no encontro.
                 </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Vanguardista</strong> do Kliren agora deixa escolher
+                  qual <strong>Ofício</strong> recebe o +2, entre os Ofícios
+                  treinados, e a escolha continua valendo quando a ficha é
+                  editada. Antes o bônus ia para um &quot;Ofício
+                  (Qualquer)&quot; genérico.
+                </li>
               </ul>
 
               <h3>4.33</h3>
