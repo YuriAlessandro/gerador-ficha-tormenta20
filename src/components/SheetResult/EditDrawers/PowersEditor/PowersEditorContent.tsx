@@ -23,6 +23,8 @@ import {
   CATALOG_MIN_WIDTH,
   SELECTED_PANEL_WIDTH,
 } from '@/components/PowerCatalog/powerCatalogStyles';
+import { getLinhagemAbencoadaDeus } from '@/functions/multiclass';
+import { DIVINDADES } from '@/data/systems/tormenta20/divindades';
 import CustomPowerDialog from '../CustomPowerDialog';
 import EnsinarTruqueDialog from '../EnsinarTruqueDialog';
 import GolpePessoalBuilder from '../GolpePessoalBuilder';
@@ -95,6 +97,38 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
     isDeityPowerSelected,
   } = editor;
 
+  // Linhagem Abençoada: no 2º nível, UM poder concedido do deus da linhagem,
+  // "sem precisar ser devoto" — e o Feiticeiro pode ser devoto de OUTRO deus
+  // (Druida multiclasse). Esses poderes seguem pelo caminho dos poderes gerais.
+  const linhagemPowerNames = useMemo(() => {
+    const hasPoderConcedido = sheet.classe.abilities.some(
+      (ability) => ability.name === 'Linhagem Abençoada (Poder Concedido)'
+    );
+    const deus = hasPoderConcedido
+      ? getLinhagemAbencoadaDeus(sheet)
+      : undefined;
+    const poderes = DIVINDADES.find((d) => d.name === deus)?.poderes ?? [];
+    return new Set(poderes.map((p) => p.name));
+  }, [sheet]);
+
+  // A vaga é uma só: ocupada, os demais poderes do deus voltam a exigir devoção.
+  const linhagemPowerTaken = selectedPowers.find((p) =>
+    linhagemPowerNames.has(p.name)
+  )?.name;
+  const isLinhagemSlotFor = (name: string): boolean =>
+    linhagemPowerNames.has(name) &&
+    (!linhagemPowerTaken || linhagemPowerTaken === name);
+
+  const isLinhagemPower = (entry: CatalogEntry): boolean =>
+    entry.kind === 'generalConcedidos' &&
+    entry.source.type === 'general' &&
+    linhagemPowerNames.has(entry.name) &&
+    !(isDevoto && isDeityPowerAvailable(entry.source.power));
+
+  // Concedido que vive em `devoto.poderes`.
+  const isDevotoPower = (entry: CatalogEntry): boolean =>
+    entry.kind === 'generalConcedidos' && isDevoto && !isLinhagemPower(entry);
+
   // ── Disponibilidade por item ─────────────────────────────────────────────
   // Poder de origem e poder concedido não passam pelo avaliador de
   // pré-requisitos: o que os libera é a origem da ficha e a divindade.
@@ -111,6 +145,9 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
           ? ALWAYS_AVAILABLE
           : UNAVAILABLE;
       case 'general':
+        if (isLinhagemPower(entry) && isLinhagemSlotFor(entry.name)) {
+          return ALWAYS_AVAILABLE;
+        }
         // Concedido do PRÓPRIO deus: liberado pela devoção, sem passar pelo
         // avaliador. Os demais caem na regra geral — é por lá que um waiver
         // ("Domínio do Medo") dispensa a cláusula DEVOTO de outro deus.
@@ -161,7 +198,7 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
       case 'origin':
         return selectedOriginPowers.some((p) => p.name === entry.name);
       case 'general':
-        if (entry.kind === 'generalConcedidos' && isDevoto) {
+        if (isDevotoPower(entry)) {
           return isDeityPowerSelected(entry.source.power);
         }
         return selectedPowers.some((p) => p.name === entry.name);
@@ -184,7 +221,7 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
         editor.handleOriginPowerToggle(entry.source.power);
         break;
       case 'general':
-        if (entry.kind === 'generalConcedidos' && isDevoto) {
+        if (isDevotoPower(entry)) {
           editor.handleDeityPowerToggle(entry.source.power);
         } else {
           editor.handlePowerToggle(entry.source.power);
@@ -207,7 +244,7 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
     if (!entry.repeatable) return false;
     if (entry.source.type === 'class') return true;
     if (entry.source.type !== 'general') return false;
-    return !(entry.kind === 'generalConcedidos' && isDevoto);
+    return !isDevotoPower(entry);
   };
 
   const handleAddAnother = (entry: CatalogEntry) => {
@@ -317,7 +354,9 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
         selectedPowers,
         editor.handlePowerRemove,
         'generalPower',
-        (p) => !getAvailability(p, 'general').available
+        (p) =>
+          p.name !== linhagemPowerTaken &&
+          !getAvailability(p, 'general').available
       )
     );
 

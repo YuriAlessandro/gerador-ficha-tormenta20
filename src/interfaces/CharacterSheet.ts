@@ -7,7 +7,7 @@ import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { BagEquipments, WeaponOverride } from './Equipment';
-import { OriginBenefit } from './WizardSelections';
+import { ClassSetupSelection, OriginBenefit } from './WizardSelections';
 import { CustomPower } from './CustomPower';
 import { CompanionSheet } from './Companion';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
@@ -1069,6 +1069,7 @@ export default interface CharacterSheet {
   tradicaoPerdidaPmAttribute?: Atributo; // Poder Tradição Perdida: atributo que entra no total de PM no lugar do atributo da classe (cap 6 +2/patamar). undefined = usa o atributo da classe.
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
+  multiclassSetups?: Record<string, ClassSetupSelection>; // Multiclasse: escolhas do 1º nível por className (linhagem, deus, escolas)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
   animalCompanions?: SheetAnimalCompanion[]; // Companheiro(s) Animal(is) do Druida
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha

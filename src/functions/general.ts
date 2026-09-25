@@ -164,6 +164,7 @@ import {
   applySerializedOverrides,
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
+  resolveClassSetup,
 } from './multiclass';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
@@ -4609,6 +4610,20 @@ export function applyManualLevelUp(
   const newClassLevel = getClassLevel(updatedSheet, selectedClassName);
   const isFirstLevelInClass = newClassLevel === 1;
 
+  // Multiclasse: as escolhas do 1º nível na classe (linhagem, deus) seguem
+  // valendo nos níveis seguintes — o assistente só as pergunta uma vez.
+  const classSetup = resolveClassSetup(
+    updatedSheet,
+    selectedClassName,
+    selections.classSetup
+  );
+  if (classSetup && selectedClassName !== updatedSheet.classe.name) {
+    updatedSheet.multiclassSetups = {
+      ...(updatedSheet.multiclassSetups || {}),
+      [selectedClassName]: classSetup,
+    };
+  }
+
   // Multiclass: persist spellPath for new caster class
   if (isFirstLevelInClass) {
     const newSpellPath = buildSpellPathFromSetup(
@@ -4945,10 +4960,7 @@ export function applyManualLevelUp(
     selectedClassDesc,
     selectedClassName
   );
-  const setupAbilities = getClassSetupAbilities(
-    selectedClassName,
-    selections.classSetup
-  );
+  const setupAbilities = getClassSetupAbilities(selectedClassName, classSetup);
   const newlyAvailableAbilities = [
     ...baseAbilitiesForLevel,
     ...setupAbilities,
