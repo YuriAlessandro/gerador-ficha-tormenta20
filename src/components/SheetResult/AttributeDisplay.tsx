@@ -44,11 +44,17 @@ const AttributeDisplay = ({
   const Title = styled.span`
     font-family: 'Tfont';
     font-size: 12px;
+    ${theme.breakpoints.down('md')} {
+      font-size: 11px;
+    }
   `;
 
   const NumberDisplay = styled.span`
     font-family: 'Tfont';
     font-size: 50px;
+    ${theme.breakpoints.down('md')} {
+      font-size: 36px;
+    }
     color: ${theme.palette.primary.main};
     cursor: pointer;
     user-select: none;
@@ -171,7 +177,7 @@ const AttributeDisplay = ({
               gap: 0.25,
             }}
           >
-            <FancyBox>
+            <FancyBox compactOnMobile>
               <NumberDisplay
                 onClick={() => handleAttributeClick(label, value.value)}
                 title={`Rolar teste de ${label}`}
