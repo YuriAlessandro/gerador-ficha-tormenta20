@@ -8,7 +8,7 @@ import {
   SelectionOptions,
 } from '@/interfaces/PowerSelections';
 import { RaceAbility } from '@/interfaces/Race';
-import Skill from '@/interfaces/Skills';
+import Skill, { isOficioSkill } from '@/interfaces/Skills';
 import { Spell, spellsCircles } from '@/interfaces/Spells';
 import { dataRegistry } from '@/data/registry';
 import { ANIMAL_TOTEM_NAMES } from '@/data/systems/tormenta20/animalTotems';
@@ -709,6 +709,23 @@ export function resolvePowerRequirements(
 }
 
 /**
+ * Perícia elegível num requisito `learnSkill`. Treino (padrão) só oferece o que
+ * ainda não é treinado. Bônus (`skillBonusOnly`, vindo de `PickSkill`) aceita
+ * perícia treinada, mas não Ofício sem treino: Ofício só é usado treinado e a
+ * ficha nem tem linha para ele, então o bônus sumiria no recálculo.
+ */
+export function isLearnSkillOptionAvailable(
+  requirement: PowerSelectionRequirement,
+  skill: Skill,
+  isTrained: boolean
+): boolean {
+  if (requirement.metadata?.skillBonusOnly) {
+    return isTrained || !isOficioSkill(skill);
+  }
+  return !isTrained;
+}
+
+/**
  * Filter available options based on what the character already has
  * @param requirement - The power selection requirement
  * @param sheet - The character sheet
@@ -725,32 +742,15 @@ export function getFilteredAvailableOptions(
   switch (type) {
     case 'learnSkill': {
       const skills = availableOptions as Skill[];
-      const { skillBonusOnly } = requirement.metadata ?? {};
       return skills
         .filter((skill) => {
-          // Bônus (`PickSkill`) pode ir para perícia já treinada.
-          if (skillBonusOnly) return true;
-
-          // Check if skill is already in the skills array
-          if (sheet.skills.includes(skill)) {
-            return false;
-          }
-
-          // Check if skill is already trained in completeSkills
-          if (sheet.completeSkills) {
-            const existingSkill = sheet.completeSkills.find(
-              (cs) => cs.name === skill
+          // Treinada em `skills` (criação) ou em `completeSkills` (edição)
+          const isTrained =
+            sheet.skills.includes(skill) ||
+            !!sheet.completeSkills?.some(
+              (cs) => cs.name === skill && (cs.training ?? 0) > 0
             );
-            if (
-              existingSkill &&
-              existingSkill.training &&
-              existingSkill.training > 0
-            ) {
-              return false;
-            }
-          }
-
-          return true;
+          return isLearnSkillOptionAvailable(requirement, skill, isTrained);
         })
         .sort((a, b) => a.localeCompare(b));
     }

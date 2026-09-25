@@ -1,12 +1,14 @@
 import { recalculateSheet } from '../recalculateSheet';
-import { applyStatModifiers } from '../general';
+import { applyStatModifiers, generateEmptySheet } from '../general';
 import {
   getFilteredAvailableOptions,
   getPowerSelectionRequirements,
 } from '../powers/manualPowerSelection';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import CharacterSheet from '../../interfaces/CharacterSheet';
-import Skill, { ALL_SPECIFIC_OFICIOS } from '../../interfaces/Skills';
+import Skill from '../../interfaces/Skills';
+import SelectedOptions from '../../interfaces/SelectedOptions';
+import { SupplementId } from '../../types/supplement.types';
 import KLIREN from '../../data/systems/tormenta20/races/kliren';
 
 /**
@@ -31,7 +33,7 @@ describe('Kliren — Vanguardista', () => {
   const oficioOthers = (sheet: CharacterSheet, skill: Skill) =>
     sheet.completeSkills?.find((s) => s.name === skill)?.others ?? 0;
 
-  it('oferece no assistente os Ofícios específicos, inclusive os já treinados', () => {
+  it('oferece no assistente só os Ofícios treinados (inclusive já treinados)', () => {
     const requirements = getPowerSelectionRequirements(vanguardista);
     const skillReq = requirements?.requirements.find(
       (r) => r.type === 'learnSkill'
@@ -43,9 +45,28 @@ describe('Kliren — Vanguardista', () => {
     sheet.skills = [...sheet.skills, Skill.OFICIO_EGENHOQUEIRO];
     const options = getFilteredAvailableOptions(skillReq, sheet);
 
-    expect(options).not.toContain(Skill.OFICIO);
-    expect(options).toContain(Skill.OFICIO_EGENHOQUEIRO);
-    expect(options).toHaveLength(ALL_SPECIFIC_OFICIOS.length);
+    // Ofício não treinado não tem linha na ficha: o bônus sumiria.
+    expect(options).toEqual([Skill.OFICIO_EGENHOQUEIRO]);
+  });
+
+  it('no assistente, o bônus chega ao Ofício treinado escolhido', () => {
+    const options: SelectedOptions = {
+      nivel: 1,
+      raca: 'Kliren',
+      classe: 'Inventor',
+      origin: '',
+      devocao: { label: '--', value: '--' },
+      supplements: [SupplementId.TORMENTA20_CORE],
+    };
+    const sheet = generateEmptySheet(options, {
+      classSkills: [Skill.OFICIO_ARMEIRO],
+      powerEffectSelections: {
+        Vanguardista: { skills: [Skill.OFICIO_ARMEIRO] },
+      },
+    });
+
+    expect(oficioOthers(sheet, Skill.OFICIO_ARMEIRO)).toBe(2);
+    expect(oficioOthers(recalculateSheet(sheet), Skill.OFICIO_ARMEIRO)).toBe(2);
   });
 
   it('aplica o bônus no Ofício escolhido e o mantém nos recálculos seguintes', () => {

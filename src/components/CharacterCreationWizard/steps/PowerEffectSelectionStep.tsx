@@ -771,8 +771,9 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             {label}
           </Typography>
           <Alert severity='info'>
-            Você já possui todas as opções disponíveis deste poder. Nenhuma
-            seleção necessária.
+            {requirement.metadata?.skillBonusOnly
+              ? 'Nenhuma perícia elegível para este bônus (Ofício só recebe o bônus se for treinado). Nenhuma seleção necessária.'
+              : 'Você já possui todas as opções disponíveis deste poder. Nenhuma seleção necessária.'}
           </Alert>
         </Box>
       );
