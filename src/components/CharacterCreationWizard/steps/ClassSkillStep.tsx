@@ -4,6 +4,7 @@ import Skill, { isOficioSkill } from '@/interfaces/Skills';
 import { BasicExpertise } from '@/interfaces/Class';
 import SkillChipSelector from '@/components/common/SkillChipSelector';
 import OficioPicker from '@/components/common/OficioPicker';
+import { TOUCH_CHIP_SX } from '@/components/common/responsiveSx';
 
 interface ClassSkillStepProps {
   // Base skills data
@@ -88,7 +89,7 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
                     size='small'
                     variant='filled'
                     color='success'
-                    sx={{ cursor: 'default' }}
+                    sx={[TOUCH_CHIP_SX, { cursor: 'default' }]}
                   />
                 ))}
               </Box>
@@ -128,14 +129,17 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
                       variant={isSelected ? 'filled' : 'outlined'}
                       color={isSelected ? 'primary' : 'default'}
                       onClick={() => handleOrChoice(currentOrIndex, skill)}
-                      sx={{
-                        cursor: 'pointer',
-                        '&:hover': {
-                          backgroundColor: isSelected
-                            ? 'primary.dark'
-                            : 'rgba(209, 50, 53, 0.08)',
+                      sx={[
+                        TOUCH_CHIP_SX,
+                        {
+                          cursor: 'pointer',
+                          '&:hover': {
+                            backgroundColor: isSelected
+                              ? 'primary.dark'
+                              : 'rgba(209, 50, 53, 0.08)',
+                          },
                         },
-                      }}
+                      ]}
                     />
                   );
                 })}
