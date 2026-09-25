@@ -32,6 +32,7 @@ const STUB = path.join(SRC, 'premium-stub');
  */
 const HANDWRITTEN = new Set([
   '@/premium/components/Homebrew/HomebrewCard',
+  '@/premium/components/SheetLayout',
   '@/premium/config/firebase',
   '@/premium/data/bestiaryCategoryMeta',
   '@/premium/data/conditions',

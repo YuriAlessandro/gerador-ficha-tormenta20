@@ -19,6 +19,7 @@ import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion
 import type { DiceRoll } from './DiceRoll';
 import type { PlayerJournal } from './PlayerJournal';
 import type { SupplementId } from '../types/supplement.types';
+import type { SheetLayout } from '../premium/interfaces/SheetLayout';
 
 export type SheetChangeSource =
   | {
@@ -1061,6 +1062,22 @@ export default interface CharacterSheet {
   notes?: string; // Anotações livres do jogador
   journal?: PlayerJournal; // Diário do Jogador (canvas de blocos)
   imageUrl?: string; // URL de imagem do personagem
+  /**
+   * Layout customizado desta ficha.
+   *
+   * Sobrevive ao `stripSheetForStorage` (que faz spread no nível raiz) e ao
+   * `Sheet.sheetData`, que é `Mixed` no backend — por isso guardar o documento
+   * aqui não exigiu nenhuma mudança de schema. É tratado como payload não
+   * confiável na leitura: quem resolve passa pelo `sanitizeSheetLayout`.
+   */
+  layout?: SheetLayout;
+  /**
+   * Layout da biblioteca de onde `layout` veio. É só VÍNCULO de origem: a ficha
+   * renderiza sempre pela cópia em `layout`, então apagar ou despublicar o
+   * modelo não afeta a ficha. Serve para "aplicar nas fichas que usam este
+   * modelo" (`POST /api/sheet-layouts/:id/apply`).
+   */
+  layoutId?: string;
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha

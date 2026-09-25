@@ -20,6 +20,7 @@ export interface FeatureFlags {
   playerScreen: FeatureFlag;
   playerJournal: FeatureFlag;
   portrait: FeatureFlag;
+  sheetLayouts: FeatureFlag;
   limitBoost: FeatureFlag;
   challenges: FeatureFlag;
 }
@@ -55,6 +56,10 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // ASSISTIR não passa por esta flag — o OBS não tem sessão, e a rota pública é
   // guardada só pelo token. Default desligado até o rollout.
   portrait: { enabled: false, supporterOnly: true },
+  // Layouts customizáveis de ficha: os três modelos, o editor e a galeria.
+  // Default off — o admin liga quando o rollout estiver pronto. Desligada, a
+  // ficha renderiza no arranjo histórico e o botão nem aparece.
+  sheetLayouts: { enabled: false, supporterOnly: true },
   // Boost de limites da meta de 200 apoiadores: multiplica TODOS os limites por
   // nível de apoio (menos suplementos), inclusive os de contas gratuitas.
   // `supporterOnly` é ignorado — vale para todo mundo. Default desligado: o

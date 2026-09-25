@@ -63,6 +63,7 @@ export interface SubscriptionLimits {
   maxWeeklyBestiaryPublications: number; // Bestiary publications per 7-day rolling window, -1 = unlimited
   maxSupplements: number; // Suplementos oficiais ativos além do livro básico, -1 = unlimited
   maxJournalNodes: number; // Blocos do Diário do Jogador por ficha, -1 = unlimited
+  maxSheetLayouts: number; // Layouts de ficha na biblioteca, 0 = indisponível, -1 = unlimited. ESPELHO do backend.
 }
 
 /**
@@ -175,6 +176,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxWeeklyBestiaryPublications: 1,
     maxSupplements: 4,
     maxJournalNodes: 15,
+    maxSheetLayouts: 0,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 15,
@@ -184,6 +186,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxWeeklyBestiaryPublications: 15,
     maxSupplements: -1, // Unlimited
     maxJournalNodes: 50,
+    maxSheetLayouts: 3,
   },
   [SupportLevel.NIVEL_1_ANUAL]: {
     maxSheets: 15,
@@ -193,6 +196,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxWeeklyBestiaryPublications: 15,
     maxSupplements: -1, // Unlimited
     maxJournalNodes: 50,
+    maxSheetLayouts: 3,
   },
   [SupportLevel.NIVEL_2]: {
     maxSheets: 20,
@@ -202,6 +206,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxWeeklyBestiaryPublications: 50,
     maxSupplements: -1, // Unlimited
     maxJournalNodes: 150,
+    maxSheetLayouts: 10,
   },
   [SupportLevel.NIVEL_3]: {
     maxSheets: -1, // Unlimited
@@ -211,6 +216,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxWeeklyBestiaryPublications: -1, // Unlimited
     maxSupplements: -1, // Unlimited
     maxJournalNodes: -1, // Unlimited
+    maxSheetLayouts: -1,
   },
   [SupportLevel.NIVEL_2_ANUAL]: {
     maxSheets: 20,
@@ -220,6 +226,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxWeeklyBestiaryPublications: 50,
     maxSupplements: -1, // Unlimited
     maxJournalNodes: 150,
+    maxSheetLayouts: 10,
   },
   [SupportLevel.NIVEL_3_ANUAL]: {
     maxSheets: -1, // Unlimited
@@ -229,6 +236,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxWeeklyBestiaryPublications: -1, // Unlimited
     maxSupplements: -1, // Unlimited
     maxJournalNodes: -1, // Unlimited
+    maxSheetLayouts: -1,
   },
 };
 

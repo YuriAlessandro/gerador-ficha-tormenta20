@@ -21,6 +21,8 @@ This project uses git submodules for backend and premium features:
 
 **IMPORTANT**: New features should be developed in the premium submodule (`/src/premium`) as they will be paid features. The main repository remains open-source with core functionality.
 
+**REGRA DO REPO PÚBLICO — NÃO VIOLAR:** este repositório é **público** e deve conter **apenas o que é referente à geração de ficha** (regras, dados do jogo, criação/edição/exibição da ficha, PDF). Qualquer feature que faça grande conexão com o backend e seja função exclusiva da plataforma (mesa virtual, desafios/testes estendidos e armadilhas, layouts de ficha com biblioteca e galeria, homebrews, social, admin etc.) vai **direto para `src/premium`**: tipos, lógica, componentes **e testes**. No público fica só o ponto de integração mínimo (import via `@/premium/*`, com stub em `src/premium-stub/`, regenerado por `node scripts/generate-premium-stub.mjs`). Antes de criar um arquivo novo fora de `src/premium`, perguntar: "isso é geração de ficha?". Se não for, ou na dúvida, vai para o premium.
+
 ### Working with Submodules
 
 ```bash
