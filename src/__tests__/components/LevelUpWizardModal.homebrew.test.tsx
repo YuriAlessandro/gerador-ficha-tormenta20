@@ -109,12 +109,9 @@ const searchPowers = (query: string) => {
   );
 };
 
+// Desligar "Só os que posso pegar" é o que libera o poder fora dos requisitos.
 const toggleOutOfRequirements = () => {
-  fireEvent.click(
-    screen.getByRole('checkbox', {
-      name: 'Mostrar poderes fora dos requisitos',
-    })
-  );
+  fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
 };
 
 describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', () => {
@@ -256,7 +253,7 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
     ).toBeInTheDocument();
   });
 
-  it('opt-in mostra e libera a escolha do poder fora dos requisitos', () => {
+  it('desligar o filtro mostra e libera a escolha do poder fora dos requisitos', () => {
     registerBencaoProibida();
 
     openPowerSelection(nonDevotoSheet());
@@ -269,7 +266,7 @@ describe('LevelUpWizardModal — poderes de suplemento registrado em runtime', (
       within(row).getByText('Fora dos pré-requisitos')
     ).toBeInTheDocument();
 
-    // O estado do opt-in mora no modal, então a escolha vale de verdade: o
+    // O estado do filtro mora no modal, então a escolha vale de verdade: o
     // aviso de passo incompleto só sai se o clique tiver selecionado o poder.
     expect(
       screen.getByText('Selecione um poder para continuar.')

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { Box, Checkbox, FormControlLabel, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import CatalogPanel from '@/components/PowerCatalog/CatalogPanel';
 import {
   CatalogEntry,
@@ -27,6 +27,11 @@ interface PowerSelectionStepProps {
   onGeneralPowerSelect: (power: GeneralPower) => void;
   onAlmaLivrePowerSelect?: (power: ClassPower) => void;
   className: string;
+  /**
+   * Nível-alvo em `className`. Os requisitos de NÍVEL dos poderes dessa
+   * classe são mostrados contra ele, não contra o nível de personagem.
+   */
+  classLevel?: number;
   knownClassPowers?: string[];
   knownGeneralPowers?: string[];
   unavailableGeneralPowers?: string[];
@@ -40,10 +45,11 @@ interface PowerSelectionStepProps {
   almaLivreClassName?: string;
   almaLivrePowerAvailable?: boolean;
   /**
-   * Opt-in do jogador para escolher poderes fora dos pré-requisitos. Desligado,
-   * os reprovados ficam escondidos enquanto se navega (a busca ainda os
-   * encontra, travados); ligado, aparecem e ficam escolhíveis. O estado mora no
-   * modal: este passo é desmontado a cada navegação do assistente.
+   * O inverso do filtro "Só os que posso pegar" do catálogo. Com o filtro
+   * ligado, os reprovados por pré-requisito ficam escondidos enquanto se
+   * navega (a busca ainda os encontra, travados); desligado, aparecem e ficam
+   * escolhíveis. O estado mora no modal: este passo é desmontado a cada
+   * navegação do assistente.
    */
   allowOutOfRequirements?: boolean;
   onAllowOutOfRequirementsChange?: (allow: boolean) => void;
@@ -149,6 +155,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   onGeneralPowerSelect,
   onAlmaLivrePowerSelect,
   className,
+  classLevel,
   knownClassPowers = [],
   knownGeneralPowers = [],
   unavailableGeneralPowers = [],
@@ -204,7 +211,13 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
         // qual requisito falhou, que é o motivo de o poder ficar listado.
         const evaluated = evaluatePowerRequirements(
           power,
-          { sheet, className: entry.source.className },
+          {
+            sheet,
+            className: entry.source.className,
+            // Poder emprestado de outra classe (waiver) não usa este nível
+            classLevel:
+              entry.source.className === className ? classLevel : undefined,
+          },
           'class'
         );
         if (unavailableClassPowers.includes(power.name)) {
@@ -264,6 +277,14 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
     // concluir que ele não existe, em vez de ver o requisito que falta.
     initialOnlyAvailable: true,
     searchIgnoresOnlyAvailable: true,
+    // Desligar o filtro é o mesmo que quebrar a regra: o reprovado aparece e
+    // fica escolhível, marcado "Fora dos pré-requisitos" — como no editor de
+    // poderes da ficha. Mostrá-lo travado não teria para que servir.
+    ...(onAllowOutOfRequirementsChange && {
+      onlyAvailable: !allowOutOfRequirements,
+      onOnlyAvailableChange: (only: boolean) =>
+        onAllowOutOfRequirementsChange(!only),
+    }),
   });
 
   const isSelected = useCallback(
@@ -403,27 +424,6 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
           </Typography>
         )}
       </Box>
-
-      {onAllowOutOfRequirementsChange && (
-        <FormControlLabel
-          sx={{ ml: 0, mr: 0, mb: 1, gap: 1, alignSelf: 'flex-start' }}
-          control={
-            <Checkbox
-              size='small'
-              checked={allowOutOfRequirements}
-              onChange={(e) => onAllowOutOfRequirementsChange(e.target.checked)}
-              slotProps={{
-                input: { 'aria-label': 'Mostrar poderes fora dos requisitos' },
-              }}
-            />
-          }
-          label={
-            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-              Mostrar poderes fora dos requisitos
-            </Typography>
-          }
-        />
-      )}
 
       {/* Altura limitada: o catálogo rola por dentro, com busca e filtros
           grudados no topo, em vez de esticar o corpo do assistente. */}

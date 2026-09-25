@@ -32,6 +32,7 @@ const STUB = path.join(SRC, 'premium-stub');
  */
 const HANDWRITTEN = new Set([
   '@/premium/components/Homebrew/HomebrewCard',
+  '@/premium/components/SheetLayout',
   '@/premium/config/firebase',
   '@/premium/data/bestiaryCategoryMeta',
   '@/premium/data/conditions',
@@ -176,6 +177,8 @@ const OVERRIDES = {
     expr: '() => ({ tables: [], loading: false, fetchUserTables: async () => {} })',
   },
   useOptionalEncounter: { expr: '() => null' },
+  // devolve a função chamada depois de cada rolagem de perícia da ficha
+  useChallengeSkillRollLink: { expr: '() => noop' },
   // a implementação real lança sem provider; o stub NÃO pode herdar isso
   useHomebrews: {
     expr: '() => ({ activated: [], myHomebrews: [], loading: false, error: null })',

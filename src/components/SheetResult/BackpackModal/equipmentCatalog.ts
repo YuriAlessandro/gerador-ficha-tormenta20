@@ -136,9 +136,13 @@ export const EQUIPMENT_CATALOG: CatalogCategory[] = [
     label: 'Animais',
     subgroups: flatSubgroup('animais', 'Animais', GENERAL_EQUIPMENT.animals),
   },
-  // Hospedagem, Veículo, Serviço currently have no catalog data — users add via custom item.
+  // Hospedagem e Serviço currently have no catalog data — users add via custom item.
   { group: 'Hospedagem', label: 'Hospedagem', subgroups: [] },
-  { group: 'Veículo', label: 'Veículos', subgroups: [] },
+  {
+    group: 'Veículo',
+    label: 'Veículos',
+    subgroups: flatSubgroup('veiculos', 'Veículos', GENERAL_EQUIPMENT.vehicles),
+  },
   { group: 'Serviço', label: 'Serviços', subgroups: [] },
 ];
 
@@ -201,6 +205,7 @@ export function buildEquipmentCatalog(
     append('Alquimía', filterBy(merged.alchemy));
     append('Alimentação', filterBy(merged.food));
     append('Animal', filterBy(merged.animals));
+    append('Veículo', filterBy(merged.vehicles));
   });
 
   return catalog;

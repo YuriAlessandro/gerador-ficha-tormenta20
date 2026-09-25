@@ -85,6 +85,87 @@ describe('evaluatePowerRequirements', () => {
       expect(nope.available).toBe(false);
       expect(nope.groups[0].requirements[0].current).toBe('você é nível 2');
     });
+
+    describe('multiclasse — poder de classe usa o nível NA classe', () => {
+      // Guerreiro 6 / Lutador 1: personagem de 7º nível
+      const multiclassSheet = () => {
+        const sheet = createMockCharacterSheet();
+        sheet.nivel = 7;
+        sheet.classLevels = [
+          ...Array.from({ length: 6 }, (_, i) => ({
+            level: i + 1,
+            className: 'Guerreiro',
+          })),
+          { level: 7, className: 'Lutador' },
+        ];
+        return sheet;
+      };
+      const nivel6 = power([[{ type: RequirementType.NIVEL, value: 6 }]]);
+
+      it('reprova "6º nível de lutador" para um lutador de 1º nível', () => {
+        const result = evaluatePowerRequirements(
+          nivel6,
+          ctxOf(multiclassSheet(), { className: 'Lutador' }),
+          'class'
+        );
+        expect(result.available).toBe(false);
+        expect(result.groups[0].requirements[0].current).toBe(
+          'você é nível 1 de Lutador'
+        );
+      });
+
+      it('aprova com o nível da própria classe', () => {
+        expect(
+          evaluatePowerRequirements(
+            nivel6,
+            ctxOf(multiclassSheet(), { className: 'Guerreiro' }),
+            'class'
+          ).available
+        ).toBe(true);
+      });
+
+      it('classLevel explícito (nível-alvo do level up) vence a ficha', () => {
+        expect(
+          evaluatePowerRequirements(
+            nivel6,
+            ctxOf(multiclassSheet(), { className: 'Lutador', classLevel: 6 }),
+            'class'
+          ).available
+        ).toBe(true);
+      });
+
+      it('poder geral continua usando o nível de personagem', () => {
+        expect(
+          evaluatePowerRequirements(
+            power([[{ type: RequirementType.NIVEL, value: 7 }]]),
+            ctxOf(multiclassSheet(), { className: 'Lutador' }),
+            'general'
+          ).available
+        ).toBe(true);
+      });
+
+      it('poder de classe que o personagem não tem (waiver) usa o nível de personagem', () => {
+        expect(
+          evaluatePowerRequirements(
+            nivel6,
+            ctxOf(multiclassSheet(), { className: 'Bárbaro' }),
+            'class'
+          ).available
+        ).toBe(true);
+      });
+
+      it('mono-classe sem classLevels: nada muda', () => {
+        const sheet = createMockCharacterSheet();
+        sheet.nivel = 6;
+        sheet.classLevels = undefined;
+        const result = evaluatePowerRequirements(
+          nivel6,
+          ctxOf(sheet, { className: sheet.classe.name }),
+          'class'
+        );
+        expect(result.available).toBe(true);
+      });
+    });
   });
 
   describe('PODER', () => {

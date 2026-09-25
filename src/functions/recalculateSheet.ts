@@ -1671,25 +1671,18 @@ function applyTemporaryAttributeModifiers(
 }
 
 /**
- * Reverts the side effects of a power/ability identified by `powerName` by
- * walking its `sheetActionHistory` entries and undoing arrays mutated outside
- * `sheetBonuses` (which is wiped in Step 1 of `recalculateSheet`).
- *
- * Mutates `sheet` in place. Used by:
- *   - `recalculateSheet` Step 0: to revert removed `generalPowers/classPowers/origin.powers`.
- *   - `applyRaceCustomizationToSheet`: to revert removed race abilities when
- *     a customizable race (Duende/Moreau/Golem Desperto) is reconfigured.
+ * Desfaz as mudanças de um conjunto específico de entradas do histórico, sem
+ * removê-las de `sheetActionHistory` (quem chama decide). Existe separado de
+ * `reverseSheetActionsForPower` para desfazer UMA instância de um poder
+ * repetível — ver `revertLastLevel`.
  */
-export function reverseSheetActionsForPower(
+export function reverseHistoryEntries(
   sheet: CharacterSheet,
+  entries: SheetActionHistoryEntry[],
   powerName: string
 ): void {
-  const powerHistoryEntries = sheet.sheetActionHistory.filter(
-    (entry) => entry.powerName === powerName
-  );
-
   // Reverse each action in reverse order (LIFO)
-  powerHistoryEntries.reverse().forEach((historyEntry) => {
+  [...entries].reverse().forEach((historyEntry) => {
     historyEntry.changes.forEach((change) => {
       switch (change.type) {
         case 'Attribute': {
@@ -1815,6 +1808,27 @@ export function reverseSheetActionsForPower(
       }
     });
   });
+}
+
+/**
+ * Reverts the side effects of a power/ability identified by `powerName` by
+ * walking its `sheetActionHistory` entries and undoing arrays mutated outside
+ * `sheetBonuses` (which is wiped in Step 1 of `recalculateSheet`).
+ *
+ * Mutates `sheet` in place. Used by:
+ *   - `recalculateSheet` Step 0: to revert removed `generalPowers/classPowers/origin.powers`.
+ *   - `applyRaceCustomizationToSheet`: to revert removed race abilities when
+ *     a customizable race (Duende/Moreau/Golem Desperto) is reconfigured.
+ */
+export function reverseSheetActionsForPower(
+  sheet: CharacterSheet,
+  powerName: string
+): void {
+  const powerHistoryEntries = sheet.sheetActionHistory.filter(
+    (entry) => entry.powerName === powerName
+  );
+
+  reverseHistoryEntries(sheet, powerHistoryEntries, powerName);
 
   // Remove history entries for this power.
   // Note: powers granted via a `getGeneralPower` sheetAction store the entry
@@ -2444,6 +2458,14 @@ export function recalculateSheet(
 
         if (skillsToProcess.length > 0) {
           const selectedSkills = skillsToProcess.slice(0, bonus.target.pick);
+          // Persiste a escolha manual (assistente) para os recálculos
+          // seguintes, que rodam sem `manualSelections`.
+          if (bonus.target.optionKey) {
+            updatedSheet.optionChoices = {
+              ...(updatedSheet.optionChoices || {}),
+              [bonus.target.optionKey]: selectedSkills,
+            };
+          }
           selectedSkills.forEach((skillName: string) => {
             addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
           });

@@ -8,17 +8,14 @@ import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import SearchIcon from '@mui/icons-material/Search';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
-  Badge,
   Box,
   Card,
   Chip,
   Container,
   Stack,
-  Tab,
   Tooltip,
   Typography,
   useMediaQuery,
@@ -31,7 +28,6 @@ import {
   Link,
   Snackbar,
 } from '@mui/material';
-import { TabContext, TabList, TabPanel } from '@mui/lab';
 import styled from '@emotion/styled';
 import {
   MOREAU_HERITAGES,
@@ -135,6 +131,12 @@ import { getDeitySpellCircleWarning } from '@/functions/powers/general';
 import { needsTormentaPenaltyBackfill } from '@/functions/tormentaCharismaPenalty';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
 import {
+  SheetLayoutArea,
+  SheetLayoutEditButton,
+  useSheetLayoutView,
+} from '@/premium/components/SheetLayout';
+import type { SheetLayout } from '@/premium/interfaces/SheetLayout';
+import {
   buildEffectOffer,
   buildSpellAbilityMeta,
   truncateAbilityDescription,
@@ -175,10 +177,9 @@ import CompanionEditDialog from './CompanionEditDialog';
 import EquipmentTable from './EquipmentTable';
 import CarryLoadSummary from './CarryLoadSummary';
 import {
-  SheetTabValue,
-  getRememberedSheetTab,
-  rememberSheetTab,
-} from './sheetTabMemory';
+  SheetSectionAction,
+  SheetSectionNodeMap,
+} from './sections/sheetSectionTypes';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
@@ -191,14 +192,12 @@ import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
-import NotesDialog from './NotesDialog';
 import {
   PlayerJournalCard,
   PlayerJournalFullScreen,
   PLAYER_JOURNAL_AVAILABLE,
 } from '../../premium/components/PlayerJournal';
 import { PlayerJournal } from '../../interfaces/PlayerJournal';
-import { countJournalNodes } from '../../functions/playerJournal';
 import RestDialog, { RestConfirmConfig } from './RestDialog';
 import {
   calculateRestRecovery,
@@ -274,13 +273,24 @@ interface ResultProps {
    */
   isDarkMode: boolean;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
+  /**
+   * Layout a usar no lugar do resolvido a partir da ficha. Existe para o
+   * preview ao vivo do editor; nenhuma das telas normais passa isto.
+   */
+  layoutOverride?: SheetLayout;
+  /**
+   * Crava a superfície em vez de medir o container. Para embeds que sabem em
+   * que modo estão e cuja largura medida enganaria.
+   */
+  forceSurface?: 'desktop' | 'mobile';
 }
 
 /** Mesmo corte de sempre (768px), só que consultado ao vivo. */
 const MOBILE_MEDIA_QUERY = '(max-width:768px)';
 
 const Result: React.FC<ResultProps> = (props) => {
-  const { sheet, isDarkMode, onSheetUpdate } = props;
+  const { sheet, isDarkMode, onSheetUpdate, layoutOverride, forceSurface } =
+    props;
   const [currentSheet, setCurrentSheet] = useState(sheet);
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
   const [attributeModifiersDrawerOpen, setAttributeModifiersDrawerOpen] =
@@ -299,21 +309,16 @@ const Result: React.FC<ResultProps> = (props) => {
     useState(false);
   const [statDrawerOpen, setStatDrawerOpen] = useState(false);
   const [restDialogOpen, setRestDialogOpen] = useState(false);
-  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState<SheetTabValue>(
-    () =>
-      getRememberedSheetTab(sheet.id) ??
-      (window.innerWidth <= 768 ? 'pericias' : 'ataques')
-  );
-
-  const onChangeTab = (_e: React.SyntheticEvent, newValue: SheetTabValue) => {
-    setActiveTab(newValue);
-  };
+  /**
+   * Qual layout desenha esta ficha (submódulo premium). Sem o submódulo, o
+   * stub devolve "sem layout" e a ficha usa o arranjo fixo público.
+   */
+  const layoutView = useSheetLayoutView(currentSheet.layout, layoutOverride);
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
   const [poderCapturadoDrawerOpen, setPoderCapturadoDrawerOpen] =
     useState(false);
@@ -342,6 +347,7 @@ const Result: React.FC<ResultProps> = (props) => {
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
   // forma); este componente precisa ficar transparente para não cobri-lo.
   const skinPaintsBackground = isInWildShape(currentSheet);
+  const layoutBackground = layoutView.backgroundCss;
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
@@ -737,13 +743,9 @@ const Result: React.FC<ResultProps> = (props) => {
     setCurrentSheet(sheet);
   }, [sheet]);
 
-  // A aba visível é gravada aqui, e não no onChange, para cobrir também a troca
-  // de ficha NO LUGAR (o mestre alternando entre jogadores): o valor que está
-  // na tela passa a valer para a ficha nova, então um giro depois disso
-  // restaura o que o usuário estava vendo, não uma entrada antiga.
-  React.useEffect(() => {
-    rememberSheetTab(currentSheet.id, activeTab);
-  }, [currentSheet.id, activeTab]);
+  // A memória da aba/tela visível vive no `sheetSurfaceMemory`, gravada pelo
+  // template que a mostra — ele é quem sabe qual região está aberta, agora que
+  // as abas são dado do layout e não uma união fixa de nomes.
 
   // Close all edit drawers when editing capability is lost (e.g. socket disconnect)
   React.useEffect(() => {
@@ -778,9 +780,16 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
-  const handleNotesSave = useCallback(
-    (notes: string) => {
-      handleSheetInfoUpdate({ notes });
+  /**
+   * Trocar de layout é uma edição de ficha como qualquer outra: um merge raso,
+   * sem recálculo. O layout não influencia nenhum número da ficha — só onde as
+   * coisas aparecem.
+   */
+  const handleLayoutSelect = useCallback(
+    (layout: SheetLayout, layoutId: string | null) => {
+      // `undefined` (e não `null`) para o delta virar `$unset` no backend: a
+      // ficha deixa de estar vinculada a um modelo da biblioteca.
+      handleSheetInfoUpdate({ layout, layoutId: layoutId ?? undefined });
     },
     [handleSheetInfoUpdate]
   );
@@ -2026,6 +2035,11 @@ const Result: React.FC<ResultProps> = (props) => {
   // Ao vivo, não congelado no mount: a mesa virtual só parecia responsiva
   // porque o pai remontava o Result ao girar o tablet. Onde não há remount
   // (SheetViewPage, MainScreen) a ficha ficava presa no layout antigo.
+  //
+  // Continua valendo para o ESTILO interno dos blocos (paddings, tamanho da
+  // imagem, `compact` dos StatControl). Quem decide o ARRANJO — quais seções
+  // vão para onde — é o `SheetLayoutRenderer`, e lá a pergunta é sobre a
+  // largura do container, não do viewport.
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY, { noSsr: true });
 
   // Diário do Jogador. Enquanto a flag estiver desligada (ou faltar o
@@ -2034,15 +2048,6 @@ const Result: React.FC<ResultProps> = (props) => {
   // original nunca sai de `sheet.notes`.
   const journalAccess = useFeatureAccess('playerJournal');
   const journalEnabled = journalAccess.hasAccess && PLAYER_JOURNAL_AVAILABLE;
-  const journalNodeCount = countJournalNodes(currentSheet.journal);
-
-  // No desktop Perícias e Diário vivem na coluna da direita, não nas abas.
-  // Sem esta coerção, girar o tablet estando numa dessas abas deixaria o
-  // desktop sem painel nenhum selecionado.
-  const activeSheetTab: SheetTabValue =
-    !isMobile && (activeTab === 'pericias' || activeTab === 'diario')
-      ? 'ataques'
-      : activeTab;
 
   const hasAnyRd =
     currentSheet.reducaoDeDano &&
@@ -2055,6 +2060,1211 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const defenseInfoWidth = isMobile ? '100%' : '80%';
 
+  /**
+   * As seções da ficha, prontas para o layout posicionar.
+   *
+   * Este mapa é o contrato do Estágio A da extração: os corpos são exatamente
+   * o JSX que antes estava inline no `return`, e o que mudou é apenas quem
+   * decide ONDE cada um aparece. As drawers e diálogos seguem montados abaixo,
+   * com o mesmo estado — as `actions` são só closures para os mesmos setters.
+   *
+   * A barra flutuante de ícones deixou de ser do card de abas e passou a ser
+   * de cada seção. Complicação migrou para a identidade (é onde
+   * conceitualmente estão, e onde não dependem de qual aba está aberta), e
+   * Efeitos Ativos acompanha Poderes e Magias.
+   */
+  const heroisArtonExtras: SheetSectionAction[] = [];
+  if (
+    onSheetUpdate &&
+    (!!currentSheet.complication ||
+      (complicationsFeature.hasAccess &&
+        userSupplements.includes(SupplementId.TORMENTA20_HEROIS_ARTON)))
+  ) {
+    heroisArtonExtras.push({
+      key: 'complication',
+      icon: <TheaterComedyIcon />,
+      tooltip: 'Complicação (Heróis de Arton)',
+      onClick: () => setComplicationDrawerOpen(true),
+    });
+  }
+
+  const activeEffectsAction = (): SheetSectionAction[] => {
+    if (!canUseActiveEffects) return [];
+    const activeCount = currentSheet.activeEffects?.length ?? 0;
+    return [
+      {
+        key: 'active-effects',
+        icon: <AutoAwesomeIcon />,
+        tooltip: activeCount
+          ? `Efeitos ativos (${activeCount})`
+          : 'Efeitos ativos',
+        badgeContent: activeCount || undefined,
+        highlightColor: activeCount ? ACTIVE_EFFECT_COLOR : undefined,
+        onClick: () => setEffectsModalOpen(true),
+      },
+    ];
+  };
+
+  const editAction = (
+    key: string,
+    tooltip: string,
+    onClick: () => void
+  ): SheetSectionAction[] =>
+    onSheetUpdate ? [{ key, icon: <EditIcon />, tooltip, onClick }] : [];
+
+  const sectionNodes: SheetSectionNodeMap = {
+    identity: {
+      kind: 'identity',
+      defaultTitle: 'Identidade',
+      iconKey: 'mui:Person',
+      withTitle: false,
+      available: true,
+      cardSx: {
+        p: isMobile ? 2 : 3,
+        mb: 4,
+        minHeight: isMobile ? 'inherit' : '180px',
+        position: 'relative',
+        overflow: 'visible',
+      },
+      actions: [
+        ...(onSheetUpdate
+          ? [
+              {
+                key: 'level-up',
+                icon: <UpgradeIcon />,
+                tooltip:
+                  currentSheet.nivel >= 20
+                    ? 'Nível máximo atingido'
+                    : 'Subir nível',
+                disabled: currentSheet.nivel >= 20,
+                onClick: () => setLevelUpWizardOpen(true),
+              },
+              {
+                key: 'rest',
+                icon: <BedtimeIcon />,
+                tooltip: 'Descansar',
+                onClick: () => setRestDialogOpen(true),
+              },
+              {
+                key: 'edit-sheet',
+                icon: <EditIcon />,
+                tooltip: 'Editar ficha',
+                onClick: () => setSheetInfoDrawerOpen(true),
+              },
+            ]
+          : []),
+        ...heroisArtonExtras,
+      ],
+      body: (
+        <>
+          {onSheetUpdate && (
+            <SheetLayoutEditButton
+              view={layoutView}
+              sheet={currentSheet}
+              isMobile={isMobile}
+              onSelect={handleLayoutSelect}
+            />
+          )}
+          <WildShapeBanner
+            sheet={currentSheet}
+            onRevert={onSheetUpdate ? handleRevertWildShape : undefined}
+          />
+          {/*
+           * `useFlexGap` é obrigatório aqui: sem ele o `spacing` do MUI
+           * compila para `margin-left: 16px` E o `gap` continua valendo,
+           * somando duas goteiras (no mobile eram 40px + 16px de sobra
+           * comidos da largura útil). Com ele, `spacing` vira `gap`.
+           * `justifyContent: center` só era perigoso enquanto o conteúdo
+           * transbordava (o começo do texto saía pela esquerda, fora do
+           * alcance do scroll); com os `minWidth: 0` abaixo ele volta a
+           * ser apenas o alinhamento pretendido.
+           */}
+          <Stack
+            direction='row'
+            spacing={2}
+            useFlexGap
+            sx={{
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              rowGap: isMobile ? 3 : 0,
+            }}
+          >
+            {currentSheet.imageUrl && (
+              <Box
+                component='img'
+                src={currentSheet.imageUrl}
+                alt={nome}
+                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+                sx={{
+                  width: isMobile ? 80 : 100,
+                  height: isMobile ? 80 : 100,
+                  objectFit: 'cover',
+                  borderRadius: 2,
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            {/*
+             * `minWidth: 0` em toda a cadeia de itens de flex daqui até o
+             * texto: item de flex tem `min-width: auto`, então sem isto a
+             * coluna se recusa a encolher abaixo do min-content do nome e
+             * estoura o card. Mesmo mecanismo já corrigido nos controles
+             * de PV/PM logo abaixo.
+             */}
+            <Box
+              sx={{
+                flexGrow: 1,
+                minWidth: 0,
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              <Stack
+                direction='row'
+                spacing={0.5}
+                useFlexGap
+                sx={{
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  minWidth: 0,
+                }}
+              >
+                {markersEnabled && (
+                  <ConditionMarker
+                    conditions={conditionHighlights.name}
+                    fontSize='medium'
+                  />
+                )}
+                <Box
+                  sx={{
+                    minWidth: 0,
+                    ...(markersEnabled
+                      ? getConditionLabelStyle(conditionHighlights.name)
+                      : {}),
+                  }}
+                >
+                  <LabelDisplay text={nome} size='large' />
+                </Box>
+              </Stack>
+              <LabelDisplay
+                text={
+                  multiclassDisplay ? (
+                    <>
+                      {`${raca.name}${
+                        raca.name === 'Moreau' && raceHeritage
+                          ? ` (${
+                              MOREAU_HERITAGES[
+                                raceHeritage as MoreauHeritageName
+                              ]?.name || raceHeritage
+                            })`
+                          : ''
+                      }`}
+                      <span style={{ margin: '0 6px', opacity: 0.5 }}>·</span>
+                      {multiclassDisplay}
+                      {sexo ? ` (${sexo})` : ''}
+                    </>
+                  ) : (
+                    `${raca.name}${
+                      raca.name === 'Moreau' && raceHeritage
+                        ? ` (${
+                            MOREAU_HERITAGES[raceHeritage as MoreauHeritageName]
+                              ?.name || raceHeritage
+                          })`
+                        : ''
+                    } ${className}${sexo ? ` (${sexo})` : ''}`
+                  )
+                }
+                size='medium'
+              />
+              <LabelDisplay title='Nível' text={`${nivel}`} size='small' />
+              {origin && (
+                <LabelDisplay
+                  title='Origem'
+                  text={origin.name || 'Não possui'}
+                  size='small'
+                />
+              )}
+              {devoto && (
+                <LabelDisplay
+                  title={
+                    devoto.divindadeSecundaria ? 'Devoção dupla' : 'Divindade'
+                  }
+                  text={getDevotionLabel(currentSheet) || devoto.divindade.name}
+                  size='small'
+                />
+              )}
+              {conditionsFeature.isEnabled && (
+                <ConditionsBar
+                  activeConditions={currentSheet.activeConditions}
+                  onChange={handleConditionsChange}
+                  readonly={!onSheetUpdate}
+                  lockReason={
+                    !conditionsFeature.hasAccess &&
+                    conditionsFeature.supporterOnly
+                      ? 'supporter'
+                      : undefined
+                  }
+                  dense
+                />
+              )}
+            </Box>
+            {/*
+             * useFlexGap + flexWrap: em larguras intermediárias (a coluna
+             * estreita do jogador na mesa virtual, por exemplo) os dois
+             * stats quebram para linhas separadas em vez de transbordar.
+             * Sem useFlexGap a Stack espaça por margin e a quebra sai
+             * torta.
+             */}
+            <Stack
+              direction='row'
+              spacing={isMobile ? 1.5 : 3}
+              useFlexGap
+              sx={{
+                justifyContent: 'space-around',
+                alignItems: 'flex-start',
+                flexWrap: 'wrap',
+                minWidth: 0,
+              }}
+            >
+              <StatControl
+                type='PV'
+                current={currentSheet.currentPV ?? pv}
+                max={pv}
+                calculatedMax={pv}
+                temp={currentSheet.tempPV ?? 0}
+                onDecrement={handlePVDecrement}
+                onHeal={handlePVHeal}
+                onOpenDrawer={() => setStatDrawerOpen(true)}
+                disabled={!onSheetUpdate}
+                compact={isMobile}
+                isManualMax={(currentSheet.manualMaxPV ?? 0) > 0}
+              />
+              <StatControl
+                type='PM'
+                current={currentSheet.currentPM ?? pm}
+                max={pm}
+                calculatedMax={pm}
+                temp={currentSheet.tempPM ?? 0}
+                onDecrement={handlePMDecrement}
+                onHeal={handlePMHeal}
+                onOpenDrawer={() => setStatDrawerOpen(true)}
+                disabled={!onSheetUpdate}
+                compact={isMobile}
+                isManualMax={(currentSheet.manualMaxPM ?? 0) > 0}
+              />
+            </Stack>
+          </Stack>
+        </>
+      ),
+    },
+
+    attributes: {
+      kind: 'attributes',
+      defaultTitle: 'Atributos',
+      iconKey: 'mui:MilitaryTech',
+      withTitle: false,
+      available: true,
+      selfContained: true,
+      actions: [],
+      body: (
+        <>
+          <Card
+            sx={{
+              p: 3,
+              mb: 4,
+              position: 'relative',
+              overflow: 'visible',
+            }}
+          >
+            {onSheetUpdate && (
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  position: 'absolute',
+                  top: -16,
+                  right: 16,
+                  zIndex: 1,
+                }}
+              >
+                <Tooltip title='Modificadores temporários de atributo'>
+                  <IconButton
+                    size='small'
+                    sx={{
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setAttributeModifiersDrawerOpen(true)}
+                  >
+                    <TuneIcon />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            )}
+            <BookTitle>Atributos</BookTitle>
+            <AttributeDisplay
+              attributes={atributos}
+              characterName={nome}
+              sheet={currentSheet}
+              attributeHighlights={
+                markersEnabled ? conditionHighlights.attributes : undefined
+              }
+            />
+          </Card>
+        </>
+      ),
+    },
+
+    partners: {
+      kind: 'partners',
+      defaultTitle: 'Parceiros',
+      iconKey: 'mui:Groups',
+      withTitle: false,
+      available: true,
+      selfContained: true,
+      actions: [],
+      body: (
+        <>
+          <Box sx={{ mb: 4 }}>
+            <PartnerSheetPanel />
+          </Box>
+        </>
+      ),
+    },
+
+    animalCompanions: {
+      kind: 'animalCompanions',
+      defaultTitle: 'Companheiros',
+      iconKey: 'mui:Pets',
+      withTitle: false,
+      available: showAnimalCompanions,
+      selfContained: true,
+      actions: [],
+      body: (
+        <>
+          {showAnimalCompanions && (
+            <Box sx={{ mb: 4 }} ref={animalCompanionsRef}>
+              <AnimalCompanionsPanel
+                sheet={currentSheet}
+                onSheetUpdate={
+                  onSheetUpdate ? applyRecalculatedSheet : undefined
+                }
+              />
+            </Box>
+          )}
+        </>
+      ),
+    },
+
+    skills: {
+      kind: 'skills',
+      defaultTitle: 'Perícias',
+      iconKey: 'mui:Psychology',
+      withTitle: false,
+      available: true,
+      actions: editAction('edit-skills', 'Editar perícias', () =>
+        setSkillsDrawerOpen(true)
+      ),
+      body: periciasDiv,
+    },
+
+    // Diário do Jogador: o cartão se desenha sozinho (resumo + botão de abrir)
+    // e só existe com a feature ligada — desligada, a ficha fica com o botão de
+    // anotações da identidade, como sempre foi.
+    journal: {
+      kind: 'journal',
+      defaultTitle: 'Diário',
+      iconKey: 'mui:MenuBook',
+      withTitle: false,
+      available: journalEnabled,
+      selfContained: true,
+      actions: editAction('open-journal', 'Abrir diário', () =>
+        setJournalOpen(true)
+      ),
+      body: (
+        <PlayerJournalCard
+          journal={currentSheet.journal}
+          onOpen={() => setJournalOpen(true)}
+        />
+      ),
+    },
+
+    attacks: {
+      kind: 'attacks',
+      defaultTitle: 'Ataques',
+      iconKey: 'mui:Colorize',
+      withTitle: false,
+      available: true,
+      actions: editAction('edit-weapons', 'Editar armas', () => {
+        setBackpackInitialFilter(['Arma']);
+        setBackpackOpen(true);
+      }),
+      body: (
+        <>
+          <BookTitle>Ataques</BookTitle>
+          {weaponsDiv}
+        </>
+      ),
+    },
+
+    defense: {
+      kind: 'defense',
+      defaultTitle: 'Defesa',
+      iconKey: 'mui:Shield',
+      withTitle: false,
+      available: true,
+      actions: [
+        ...(onSheetUpdate
+          ? [
+              {
+                key: 'defense-settings',
+                icon: <SettingsIcon />,
+                tooltip: 'Configurações de defesa',
+                onClick: () => setDefenseDrawerOpen(true),
+              },
+            ]
+          : []),
+        ...editAction('edit-defense', 'Editar armadura e escudo', () => {
+          setBackpackInitialFilter(['Armadura', 'Escudo']);
+          setBackpackOpen(true);
+        }),
+      ],
+      body: (
+        <>
+          <Box sx={{ position: 'relative' }}>
+            {((markersEnabled && conditionHighlights.defense.length > 0) ||
+              activeEffectHighlights.defense.length > 0) && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: 8,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                {markersEnabled && (
+                  <ConditionMarker
+                    conditions={conditionHighlights.defense}
+                    fontSize='medium'
+                  />
+                )}
+                <ActiveEffectMarker
+                  effects={activeEffectHighlights.defense}
+                  fontSize='medium'
+                />
+              </Box>
+            )}
+            <Box
+              sx={
+                activeEffectHighlights.defense.length > 0
+                  ? getActiveEffectLabelStyle(activeEffectHighlights.defense)
+                  : (markersEnabled &&
+                      getConditionLabelStyle(conditionHighlights.defense)) ||
+                    undefined
+              }
+            >
+              <BookTitle>Defesa</BookTitle>
+            </Box>
+          </Box>
+          <Stack
+            direction={isMobile ? 'column' : 'row'}
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                width: isMobile ? '100%' : '20%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                order: isMobile ? 1 : 0,
+              }}
+            >
+              <FancyBox>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 0.5,
+                    fontSize: '68px',
+                  }}
+                >
+                  <StatLabel
+                    theme={theme}
+                    style={
+                      markersEnabled
+                        ? getConditionLabelStyle(conditionHighlights.defense)
+                        : undefined
+                    }
+                  >
+                    {defesa}
+                  </StatLabel>
+                  <StatTitle
+                    style={
+                      markersEnabled
+                        ? getConditionLabelStyle(conditionHighlights.defense)
+                        : undefined
+                    }
+                  >
+                    Defesa
+                  </StatTitle>
+                </Box>
+              </FancyBox>
+              {(hasAnyRd || onSheetUpdate) && (
+                <Tooltip
+                  title={
+                    onSheetUpdate
+                      ? 'Clique para editar Defesa e Redução de Dano'
+                      : formatRdLabel(currentSheet.reducaoDeDano)
+                  }
+                  arrow
+                >
+                  <Typography
+                    onClick={() => onSheetUpdate && setDefenseDrawerOpen(true)}
+                    sx={{
+                      mt: 0.5,
+                      fontSize: '11px',
+                      color: hasAnyRd ? 'text.secondary' : 'text.disabled',
+                      cursor: onSheetUpdate ? 'pointer' : 'default',
+                      textAlign: 'center',
+                      maxWidth: '140px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      ...(onSheetUpdate
+                        ? {
+                            '&:hover': {
+                              color: 'primary.main',
+                              textDecoration: 'underline',
+                            },
+                          }
+                        : {}),
+                    }}
+                  >
+                    {hasAnyRd
+                      ? `RD: ${formatRdLabel(currentSheet.reducaoDeDano)}`
+                      : 'RD: —'}
+                  </Typography>
+                </Tooltip>
+              )}
+            </Box>
+            <Box
+              sx={{
+                width: defenseInfoWidth,
+                order: isMobile ? 0 : 1,
+              }}
+            >
+              <DefenseEquipments
+                getKey={getKey}
+                defenseEquipments={defenseEquipments}
+                wornArmorId={currentSheet.wornArmorId}
+                mainHandItemId={currentSheet.mainHandItemId}
+                offHandItemId={currentSheet.offHandItemId}
+                onWieldingChange={
+                  onSheetUpdate ? handleQuickWieldChange : undefined
+                }
+                getWieldingDisabledSlots={computeWieldingDisabled}
+                proficiencias={effectiveProficiencias}
+              />
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                  mt: 1,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    color: 'text.secondary',
+                  }}
+                >
+                  <strong>Penalidade de Armadura: </strong>
+                  {(getActiveArmorPenalty(currentSheet) + extraArmorPenalty) *
+                    -1}
+                </Typography>
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: 'text.secondary',
+                  mt: 1,
+                  fontFamily: 'monospace',
+                }}
+              >
+                {defenseFormula}
+              </Typography>
+            </Box>
+          </Stack>
+        </>
+      ),
+    },
+
+    powers: {
+      kind: 'powers',
+      defaultTitle: 'Poderes',
+      iconKey: 'mui:AutoAwesome',
+      withTitle: false,
+      available: true,
+      actions: [
+        ...activeEffectsAction(),
+        ...editAction('edit-powers', 'Editar poderes', () =>
+          setPowersDrawerOpen(true)
+        ),
+      ],
+      body: (
+        <>
+          <Box>
+            <BookTitle>Poderes</BookTitle>
+            <PowersDisplay
+              sheetHistory={currentSheet.sheetActionHistory || []}
+              classAbilities={classe.abilities}
+              classPowers={classPowers}
+              raceAbilities={raca.abilities}
+              originPowers={origin?.powers || []}
+              deityPowers={devoto?.poderes || []}
+              generalPowers={generalPowers}
+              customPowers={currentSheet.customPowers || []}
+              customGrantedPowers={currentSheet.customGrantedPowers || []}
+              className={classe.name}
+              raceName={raca.name}
+              deityName={devoto?.divindade?.name}
+              onUpdateRolls={onSheetUpdate ? handlePowerRollsUpdate : undefined}
+              onUpdateCustomEffects={
+                onSheetUpdate ? handlePowerCustomEffectsUpdate : undefined
+              }
+              onUpdateDisplay={
+                onSheetUpdate ? handlePowerDisplayUpdate : undefined
+              }
+              characterName={nome}
+              sheet={currentSheet}
+              onActivateEffect={
+                onSheetUpdate && canUseActiveEffects
+                  ? handleActiveEffectActivate
+                  : undefined
+              }
+              onSheetUpdate={
+                onSheetUpdate
+                  ? (updated) => {
+                      setCurrentSheet(updated);
+                      onSheetUpdate(updated);
+                    }
+                  : undefined
+              }
+              onCompanionClick={(() => {
+                const hasCompanion = (currentSheet.companions?.length || 0) > 0;
+                const isTreinador =
+                  getClassLevel(currentSheet, 'Treinador') > 0;
+                if (hasCompanion) {
+                  return () => {
+                    setSelectedCompanionIndex(0);
+                    setCompanionModalOpen(true);
+                  };
+                }
+                if (isTreinador && onSheetUpdate) {
+                  return () => setCompanionCreationOpen(true);
+                }
+                return undefined;
+              })()}
+              onAnimalCompanionClick={
+                showAnimalCompanions ? scrollToAnimalCompanions : undefined
+              }
+              powerActionSlots={{
+                Paródia: (
+                  <Tooltip title='Buscar magia para parodiar' arrow>
+                    <IconButton
+                      size='small'
+                      onClick={() => setParodyDialogOpen(true)}
+                    >
+                      <SearchIcon fontSize='small' color='primary' />
+                    </IconButton>
+                  </Tooltip>
+                ),
+                'Poder Capturado': (
+                  <PoderCapturadoAction
+                    sheet={currentSheet}
+                    onConfigure={() => setPoderCapturadoDrawerOpen(true)}
+                    onActivate={
+                      onSheetUpdate && canUseActiveEffects
+                        ? handleActiveEffectActivate
+                        : undefined
+                    }
+                    onSheetUpdate={onSheetUpdate}
+                    characterName={nome}
+                  />
+                ),
+              }}
+            />
+          </Box>
+        </>
+      ),
+    },
+
+    spells: {
+      kind: 'spells',
+      defaultTitle: 'Magias',
+      iconKey: 'mui:AutoFixHigh',
+      withTitle: false,
+      available: true,
+      actions: [
+        ...activeEffectsAction(),
+        ...editAction('edit-spells', 'Editar magias', () =>
+          setSpellsDrawerOpen(true)
+        ),
+      ],
+      body: (
+        <>
+          <Box>
+            <BookTitle>Magias</BookTitle>
+            <Spells
+              spells={displayedSpells}
+              keyAttr={keyAttr}
+              selectedKeyAttribute={effectiveKeyAttribute}
+              nivel={nivel}
+              // Magia derivada não é da ficha: sem `onUpdateRolls` o
+              // diálogo esconde o editor persistente de rolagens e
+              // mantém só o override efêmero da conjuração.
+              onUpdateRolls={
+                onSheetUpdate && !isDerivedSpells
+                  ? handleSpellRollsUpdate
+                  : undefined
+              }
+              characterName={nome}
+              currentPM={currentSheet.currentPM ?? pm}
+              maxPM={pm}
+              tempPM={currentSheet.tempPM ?? 0}
+              onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
+              isMago={classe.subname === 'Mago'}
+              onToggleMemorized={
+                onSheetUpdate ? handleToggleMemorized : undefined
+              }
+              onToggleAlwaysPrepared={
+                onSheetUpdate ? handleToggleAlwaysPrepared : undefined
+              }
+              bonusSpellDC={spellDCBonus}
+              onKeyAttributeChange={
+                onSheetUpdate ? handleKeyAttributeChange : undefined
+              }
+              getCircleWarning={(circle) =>
+                getDeitySpellCircleWarning(currentSheet, circle)
+              }
+              derived={isDerivedSpells}
+              derivedNotice={derivedSpellsNotice}
+              castCheck={usurparCastCheck}
+              sheet={currentSheet}
+              onActivateEffect={
+                onSheetUpdate && canUseActiveEffects
+                  ? handleActiveEffectActivate
+                  : undefined
+              }
+            />
+          </Box>
+        </>
+      ),
+    },
+
+    equipment: {
+      kind: 'equipment',
+      defaultTitle: 'Equipamentos',
+      iconKey: 'mui:Backpack',
+      withTitle: false,
+      available: true,
+      actions: editAction('edit-equipment', 'Editar mochila', () => {
+        setBackpackInitialFilter(undefined);
+        setBackpackOpen(true);
+      }),
+      body: (
+        <>
+          <Box>
+            <BookTitle>Equipamentos</BookTitle>
+            <EquipmentTable items={equipamentosOrdered} characterName={nome} />
+            <Box
+              sx={{
+                mt: 2,
+              }}
+            >
+              <strong>Dinheiro: </strong>
+              T$ {dinheiro}
+              {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
+              {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
+            </Box>
+            <CarryLoadSummary
+              usedSpaces={
+                bag.getSpaces() +
+                calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO)
+              }
+              currencySpaces={calculateCurrencySpaces(
+                dinheiro,
+                dinheiroTC,
+                dinheiroTO
+              )}
+              maxSpaces={customMaxSpaces ?? maxSpaces}
+              ignoresEncumbrance={sheetIgnoresEncumbrance}
+            />
+          </Box>
+        </>
+      ),
+    },
+
+    proficiencies: {
+      kind: 'proficiencies',
+      defaultTitle: 'Proficiências',
+      iconKey: 'mui:MilitaryTech',
+      withTitle: false,
+      available: true,
+      cardSx: { p: 2, mb: 4, position: 'relative', overflow: 'visible' },
+      actions: editAction('edit-proficiencies', 'Editar proficiências', () =>
+        setProficiencyDrawerOpen(true)
+      ),
+      body: (
+        <>
+          <BookTitle>Proficiências</BookTitle>
+          <Stack
+            direction='row'
+            sx={{
+              flexWrap: 'wrap',
+            }}
+          >
+            {proficienciasDiv}
+          </Stack>
+        </>
+      ),
+    },
+
+    sizeDisplacement: {
+      kind: 'sizeDisplacement',
+      defaultTitle: 'Tamanho e Deslocamento',
+      iconKey: 'mui:DirectionsRun',
+      withTitle: false,
+      available: true,
+      cardSx: { p: 2, mb: 4, position: 'relative', overflow: 'visible' },
+      actions: editAction(
+        'edit-size-displacement',
+        'Editar tamanho e deslocamento',
+        () => setSizeDisplacementDrawerOpen(true)
+      ),
+      body: (
+        <>
+          <Stack
+            spacing={2}
+            direction='row'
+            sx={{
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
+            >
+              <FancyBox>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 0.3,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: 'Tfont',
+                      fontSize: '35px',
+                      color: theme.palette.primary.main,
+                      textAlign: 'center',
+                      lineHeight: 1,
+                      margin: 0,
+                      ...(markersEnabled
+                        ? getConditionLabelStyle(
+                            conditionHighlights.displacement
+                          )
+                        : {}),
+                    }}
+                  >
+                    {displacement}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Tfont',
+                      fontSize: '16px',
+                      color: theme.palette.text.secondary,
+                      textAlign: 'center',
+                      margin: 0,
+                    }}
+                  >
+                    ({Math.floor(displacement / 1.5)}q)
+                  </Typography>
+                  <Stack
+                    direction='row'
+                    spacing={0.5}
+                    sx={{
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {markersEnabled && (
+                      <ConditionMarker
+                        conditions={conditionHighlights.displacement}
+                        fontSize='small'
+                      />
+                    )}
+                    <StatTitle
+                      style={
+                        markersEnabled
+                          ? getConditionLabelStyle(
+                              conditionHighlights.displacement
+                            )
+                          : undefined
+                      }
+                    >
+                      Desl.
+                    </StatTitle>
+                    {currentSheet.customDisplacement !== undefined && (
+                      <ManualValueMarker title='Deslocamento definido manualmente' />
+                    )}
+                  </Stack>
+                </Box>
+              </FancyBox>
+              {(() => {
+                const effectiveMaxSpaces = customMaxSpaces ?? maxSpaces;
+                const totalUsedSpaces =
+                  bag.getSpaces() +
+                  calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
+                if (totalUsedSpaces > effectiveMaxSpaces) {
+                  // Anão/Golem: a sobrecarga ainda é informação útil, mas
+                  // o deslocamento não cai — não anunciar o -3m.
+                  const tooltip = sheetIgnoresEncumbrance
+                    ? `Sobrecarga: ${totalUsedSpaces.toFixed(
+                        1
+                      )}/${effectiveMaxSpaces} espaços (sua raça ignora a redução de deslocamento)`
+                    : `Sobrecarga: ${totalUsedSpaces.toFixed(
+                        1
+                      )}/${effectiveMaxSpaces} espaços (-3m)`;
+                  return (
+                    <Tooltip title={tooltip}>
+                      <Chip
+                        size='small'
+                        label='Sobrecarga'
+                        color={sheetIgnoresEncumbrance ? 'warning' : 'error'}
+                        sx={{ mt: 1, fontSize: '0.7rem' }}
+                      />
+                    </Tooltip>
+                  );
+                }
+                return null;
+              })()}
+              {displayedMovementTypes && (
+                <Stack spacing={0} sx={{ mt: 0.5 }}>
+                  {displayedMovementTypes.escalada &&
+                    displayedMovementTypes.escalada > 0 && (
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                          textAlign: 'center',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        Escalada: {displayedMovementTypes.escalada}m (
+                        {Math.floor(displayedMovementTypes.escalada / 1.5)}
+                        q)
+                      </Typography>
+                    )}
+                  {displayedMovementTypes.escavar &&
+                    displayedMovementTypes.escavar > 0 && (
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                          textAlign: 'center',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        Escavar: {displayedMovementTypes.escavar}m (
+                        {Math.floor(displayedMovementTypes.escavar / 1.5)}
+                        q)
+                      </Typography>
+                    )}
+                  {displayedMovementTypes.natacao &&
+                    displayedMovementTypes.natacao > 0 && (
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                          textAlign: 'center',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        Natação: {displayedMovementTypes.natacao}m (
+                        {Math.floor(displayedMovementTypes.natacao / 1.5)}
+                        q)
+                      </Typography>
+                    )}
+                  {displayedMovementTypes.voo &&
+                    displayedMovementTypes.voo > 0 && (
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                          textAlign: 'center',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        Voo: {displayedMovementTypes.voo}m (
+                        {Math.floor(displayedMovementTypes.voo / 1.5)}
+                        q)
+                        {displayedMovementTypes.pairar ? ' (Pairar)' : ''}
+                      </Typography>
+                    )}
+                </Stack>
+              )}
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
+            >
+              <FancyBox>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 0.5,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: 'Tfont',
+                      fontSize: '58px',
+                      color: theme.palette.primary.main,
+                      textAlign: 'center',
+                      textTransform: 'uppercase',
+                      lineHeight: 1,
+                      margin: 0,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {size.name.charAt(0)}
+                  </Typography>
+                  <Stack
+                    direction='row'
+                    spacing={0.5}
+                    sx={{
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <StatTitle>Tamanho</StatTitle>
+                    {currentSheet.customSize !== undefined && (
+                      <ManualValueMarker title='Tamanho definido manualmente' />
+                    )}
+                  </Stack>
+                </Box>
+              </FancyBox>
+            </Box>
+          </Stack>
+        </>
+      ),
+    },
+
+    creationSteps: {
+      kind: 'creationSteps',
+      defaultTitle: 'Passo-a-passo da criação',
+      iconKey: 'mui:HistoryEdu',
+      withTitle: false,
+      available: true,
+      selfContained: true,
+      actions: [],
+      body: (
+        <Box sx={{ mt: 2, width: '100%' }}>
+          {/* Bug Report Alert */}
+          <Alert severity='info' icon={<BugReportIcon />} sx={{ mb: 2 }}>
+            Encontrou algum problema nessa ficha?{' '}
+            <Link
+              href='https://fichasdenimb.com.br/forum'
+              target=''
+              rel='noopener noreferrer'
+              sx={{ fontWeight: 'bold' }}
+            >
+              Nos avise!
+            </Link>
+          </Alert>
+
+          {/* Support CTA - only for non-supporters */}
+          {!isSupporter && (
+            <Alert
+              severity='success'
+              icon={<FavoriteIcon />}
+              sx={{
+                mb: 2,
+                background: `linear-gradient(135deg, ${
+                  theme.palette.mode === 'dark' ? '#3d3200' : '#fff8e1'
+                } 0%, ${
+                  theme.palette.mode === 'dark' ? '#2d2400' : '#fff3cd'
+                } 100%)`,
+                border: '1px solid',
+                borderColor:
+                  theme.palette.mode === 'dark' ? '#5a4a00' : '#ffe082',
+                '& .MuiAlert-icon': {
+                  color: '#FFA500',
+                },
+              }}
+            >
+              Gostou da ficha? Apoie o Fichas de Nimb e desbloqueie recursos
+              exclusivos!{' '}
+              <Link
+                href='/apoiar'
+                sx={{ fontWeight: 'bold', color: '#FFA500' }}
+              >
+                Apoiar o projeto
+              </Link>
+            </Alert>
+          )}
+
+          {/* Passo-a-passo Accordion */}
+          <Accordion defaultExpanded={false}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls='steps-content'
+              id='steps-header'
+            >
+              <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
+                Passo-a-passo da criação
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box component='ul' sx={{ pl: 2 }}>
+                {changesDiv}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        </Box>
+      ),
+    },
+  };
+
   return (
     <WildShapeSkin sheet={currentSheet}>
       {/*
@@ -2065,1397 +3275,84 @@ const Result: React.FC<ResultProps> = (props) => {
        */}
       <Box
         sx={{
-          bgcolor: skinPaintsBackground
-            ? 'transparent'
-            : getSheetBackgroundColor(isDarkMode),
+          // Precedência do fundo: forma selvagem > fundo do layout > tema.
+          ...(layoutBackground && !skinPaintsBackground
+            ? {
+                background: layoutBackground,
+                backgroundAttachment: 'fixed',
+                // Sustenta o véu, que é posicionado em absoluto.
+                position: 'relative',
+              }
+            : {
+                bgcolor: skinPaintsBackground
+                  ? 'transparent'
+                  : getSheetBackgroundColor(isDarkMode),
+              }),
           p: isMobile ? 0 : 2,
         }}
       >
-        <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
-          <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
-            {/* LADO ESQUERDO, 60% */}
-            <Box
-              sx={{
-                width: isMobile ? '100%' : '60%',
-                // Item de flex tem `min-width: auto`: sem isto a coluna se
-                // recusa a encolher abaixo do min-content e conteúdo largo
-                // (a tabela de equipamentos) estoura por cima da coluna ao
-                // lado em vez de se conter.
-                minWidth: 0,
-              }}
-            >
-              {/* PARTE DE CIMA: Informações da ficha */}
-              <Card
-                sx={{
-                  p: isMobile ? 2 : 3,
-                  mb: 4,
-                  minHeight: isMobile ? 'inherit' : '180px',
-                  position: 'relative',
-                  overflow: 'visible', // Allow the button to show outside the card
-                }}
-              >
-                {onSheetUpdate && (
-                  <Stack
-                    direction='row'
-                    spacing={1}
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                    }}
-                  >
-                    <Tooltip
-                      title={
-                        currentSheet.nivel >= 20
-                          ? 'Nível máximo atingido'
-                          : 'Subir nível'
-                      }
-                    >
-                      <span>
-                        <IconButton
-                          size='small'
-                          disabled={currentSheet.nivel >= 20}
-                          sx={{
-                            backgroundColor: theme.palette.primary.main,
-                            color: 'white',
-                            borderRadius: 1,
-                            '&:hover': {
-                              backgroundColor: theme.palette.primary.dark,
-                            },
-                            '&.Mui-disabled': {
-                              backgroundColor:
-                                theme.palette.action.disabledBackground,
-                              color: theme.palette.action.disabled,
-                            },
-                          }}
-                          onClick={() => setLevelUpWizardOpen(true)}
-                        >
-                          <UpgradeIcon />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title='Descansar'>
-                      <IconButton
-                        size='small'
-                        sx={{
-                          backgroundColor: theme.palette.primary.main,
-                          color: 'white',
-                          borderRadius: 1,
-                          '&:hover': {
-                            backgroundColor: theme.palette.primary.dark,
-                          },
-                        }}
-                        onClick={() => setRestDialogOpen(true)}
-                      >
-                        <BedtimeIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title='Editar ficha'>
-                      <IconButton
-                        size='small'
-                        sx={{
-                          backgroundColor: theme.palette.primary.main,
-                          color: 'white',
-                          borderRadius: 1,
-                          '&:hover': {
-                            backgroundColor: theme.palette.primary.dark,
-                          },
-                        }}
-                        onClick={() => setSheetInfoDrawerOpen(true)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                )}
-                <WildShapeBanner
-                  sheet={currentSheet}
-                  onRevert={onSheetUpdate ? handleRevertWildShape : undefined}
-                />
-                {/*
-                 * `useFlexGap` é obrigatório aqui: sem ele o `spacing` do MUI
-                 * compila para `margin-left: 16px` E o `gap` continua valendo,
-                 * somando duas goteiras (no mobile eram 40px + 16px de sobra
-                 * comidos da largura útil). Com ele, `spacing` vira `gap`.
-                 * `justifyContent: center` só era perigoso enquanto o conteúdo
-                 * transbordava (o começo do texto saía pela esquerda, fora do
-                 * alcance do scroll); com os `minWidth: 0` abaixo ele volta a
-                 * ser apenas o alinhamento pretendido.
-                 */}
-                <Stack
-                  direction='row'
-                  spacing={2}
-                  useFlexGap
-                  sx={{
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    rowGap: isMobile ? 3 : 0,
-                  }}
-                >
-                  {currentSheet.imageUrl && (
-                    <Box
-                      component='img'
-                      src={currentSheet.imageUrl}
-                      alt={nome}
-                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                      sx={{
-                        width: isMobile ? 80 : 100,
-                        height: isMobile ? 80 : 100,
-                        objectFit: 'cover',
-                        borderRadius: 2,
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
-                  {/*
-                   * `minWidth: 0` em toda a cadeia de itens de flex daqui até o
-                   * texto: item de flex tem `min-width: auto`, então sem isto a
-                   * coluna se recusa a encolher abaixo do min-content do nome e
-                   * estoura o card. Mesmo mecanismo já corrigido nos controles
-                   * de PV/PM logo abaixo.
-                   */}
-                  <Box
-                    sx={{
-                      flexGrow: 1,
-                      minWidth: 0,
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
-                  >
-                    <Stack
-                      direction='row'
-                      spacing={0.5}
-                      useFlexGap
-                      sx={{
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        minWidth: 0,
-                      }}
-                    >
-                      {markersEnabled && (
-                        <ConditionMarker
-                          conditions={conditionHighlights.name}
-                          fontSize='medium'
-                        />
-                      )}
-                      <Box
-                        sx={{
-                          minWidth: 0,
-                          ...(markersEnabled
-                            ? getConditionLabelStyle(conditionHighlights.name)
-                            : {}),
-                        }}
-                      >
-                        <LabelDisplay text={nome} size='large' />
-                      </Box>
-                      <Tooltip
-                        title={
-                          journalEnabled ? 'Diário do Jogador' : 'Anotações'
-                        }
-                      >
-                        <IconButton
-                          size='small'
-                          onClick={() =>
-                            journalEnabled
-                              ? setJournalOpen(true)
-                              : setNotesDialogOpen(true)
-                          }
-                          sx={{
-                            color: (
-                              journalEnabled
-                                ? journalNodeCount > 0
-                                : currentSheet.notes
-                            )
-                              ? theme.palette.primary.main
-                              : theme.palette.text.secondary,
-                          }}
-                        >
-                          <NoteAltIcon fontSize='small' />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                    <LabelDisplay
-                      text={
-                        multiclassDisplay ? (
-                          <>
-                            {`${raca.name}${
-                              raca.name === 'Moreau' && raceHeritage
-                                ? ` (${
-                                    MOREAU_HERITAGES[
-                                      raceHeritage as MoreauHeritageName
-                                    ]?.name || raceHeritage
-                                  })`
-                                : ''
-                            }`}
-                            <span style={{ margin: '0 6px', opacity: 0.5 }}>
-                              ·
-                            </span>
-                            {multiclassDisplay}
-                            {sexo ? ` (${sexo})` : ''}
-                          </>
-                        ) : (
-                          `${raca.name}${
-                            raca.name === 'Moreau' && raceHeritage
-                              ? ` (${
-                                  MOREAU_HERITAGES[
-                                    raceHeritage as MoreauHeritageName
-                                  ]?.name || raceHeritage
-                                })`
-                              : ''
-                          } ${className}${sexo ? ` (${sexo})` : ''}`
-                        )
-                      }
-                      size='medium'
-                    />
-                    <LabelDisplay
-                      title='Nível'
-                      text={`${nivel}`}
-                      size='small'
-                    />
-                    {origin && (
-                      <LabelDisplay
-                        title='Origem'
-                        text={origin.name || 'Não possui'}
-                        size='small'
-                      />
-                    )}
-                    {devoto && (
-                      <LabelDisplay
-                        title={
-                          devoto.divindadeSecundaria
-                            ? 'Devoção dupla'
-                            : 'Divindade'
-                        }
-                        text={
-                          getDevotionLabel(currentSheet) ||
-                          devoto.divindade.name
-                        }
-                        size='small'
-                      />
-                    )}
-                    {conditionsFeature.isEnabled && (
-                      <ConditionsBar
-                        activeConditions={currentSheet.activeConditions}
-                        onChange={handleConditionsChange}
-                        readonly={!onSheetUpdate}
-                        lockReason={
-                          !conditionsFeature.hasAccess &&
-                          conditionsFeature.supporterOnly
-                            ? 'supporter'
-                            : undefined
-                        }
-                        dense
-                      />
-                    )}
-                  </Box>
-                  {/*
-                   * useFlexGap + flexWrap: em larguras intermediárias (a coluna
-                   * estreita do jogador na mesa virtual, por exemplo) os dois
-                   * stats quebram para linhas separadas em vez de transbordar.
-                   * Sem useFlexGap a Stack espaça por margin e a quebra sai
-                   * torta.
-                   */}
-                  <Stack
-                    direction='row'
-                    spacing={isMobile ? 1.5 : 3}
-                    useFlexGap
-                    sx={{
-                      justifyContent: 'space-around',
-                      alignItems: 'flex-start',
-                      flexWrap: 'wrap',
-                      minWidth: 0,
-                    }}
-                  >
-                    <StatControl
-                      type='PV'
-                      current={currentSheet.currentPV ?? pv}
-                      max={pv}
-                      calculatedMax={pv}
-                      temp={currentSheet.tempPV ?? 0}
-                      onDecrement={handlePVDecrement}
-                      onHeal={handlePVHeal}
-                      onOpenDrawer={() => setStatDrawerOpen(true)}
-                      disabled={!onSheetUpdate}
-                      compact={isMobile}
-                      isManualMax={(currentSheet.manualMaxPV ?? 0) > 0}
-                    />
-                    <StatControl
-                      type='PM'
-                      current={currentSheet.currentPM ?? pm}
-                      max={pm}
-                      calculatedMax={pm}
-                      temp={currentSheet.tempPM ?? 0}
-                      onDecrement={handlePMDecrement}
-                      onHeal={handlePMHeal}
-                      onOpenDrawer={() => setStatDrawerOpen(true)}
-                      disabled={!onSheetUpdate}
-                      compact={isMobile}
-                      isManualMax={(currentSheet.manualMaxPM ?? 0) > 0}
-                    />
-                  </Stack>
-                </Stack>
-              </Card>
+        {/*
+         * Véu sobre o fundo do layout. Sem ele, qualquer imagem com contraste
+         * alto torna a ficha ilegível — e é uma imagem escolhida pelo usuário,
+         * que o app não tem como prever. Usa a cor de superfície do tema, então
+         * funciona igual no claro e no escuro.
+         */}
+        {layoutBackground && !skinPaintsBackground && (
+          <Box
+            sx={{
+              backgroundColor: 'background.default',
+              opacity: layoutView.backgroundOpacity,
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+        <Container
+          maxWidth='xl'
+          sx={{ p: isMobile ? 0 : 2, position: 'relative' }}
+        >
+          <SheetLayoutArea
+            view={layoutView}
+            nodes={sectionNodes}
+            sheetId={currentSheet.id ?? ''}
+            forceSurface={forceSurface}
+          />
+          <ActivePowerUseDialog
+            open={spellEffectDef !== null && canUseActiveEffects}
+            definition={spellEffectDef}
+            sheet={currentSheet}
+            onClose={handleSpellEffectDismiss}
+            onConfirm={(option) => {
+              if (spellEffectDef) {
+                handleActiveEffectActivate(spellEffectDef, option, {
+                  abilityBase: pendingSpellAbility ?? undefined,
+                });
+              }
+              setSpellEffectDef(null);
+              setPendingSpellAbility(null);
+            }}
+          />
 
-              <ActivePowerUseDialog
-                open={spellEffectDef !== null && canUseActiveEffects}
-                definition={spellEffectDef}
-                sheet={currentSheet}
-                onClose={handleSpellEffectDismiss}
-                onConfirm={(option) => {
-                  if (spellEffectDef) {
-                    handleActiveEffectActivate(spellEffectDef, option, {
-                      abilityBase: pendingSpellAbility ?? undefined,
-                    });
-                  }
-                  setSpellEffectDef(null);
-                  setPendingSpellAbility(null);
-                }}
-              />
+          <ActiveEffectsCleanupModal
+            open={cleanupOpen}
+            effects={currentSheet.activeEffects ?? []}
+            onConfirm={handleCleanupRemove}
+            onClose={() => setCleanupOpen(false)}
+          />
 
-              <ActiveEffectsCleanupModal
-                open={cleanupOpen}
-                effects={currentSheet.activeEffects ?? []}
-                onConfirm={handleCleanupRemove}
-                onClose={() => setCleanupOpen(false)}
-              />
-
-              <ActiveEffectsManagerModal
-                open={effectsModalOpen}
-                effects={currentSheet.activeEffects ?? []}
-                sheet={currentSheet}
-                readonly={!onSheetUpdate || !canUseActiveEffects}
-                customDefinitions={virtualCustomEffectDefinitions}
-                standaloneEffects={currentSheet.customEffects ?? []}
-                onStandaloneEffectsChange={handleStandaloneCustomEffectsChange}
-                onRemove={handleActiveEffectRemove}
-                onActivate={handleActiveEffectActivate}
-                onClose={() => setEffectsModalOpen(false)}
-              />
-
-              {/* PARTE DO MEIO: Atributos */}
-              <Card
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  position: 'relative',
-                  overflow: 'visible',
-                }}
-              >
-                {onSheetUpdate && (
-                  <Stack
-                    direction='row'
-                    spacing={1}
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      zIndex: 1,
-                    }}
-                  >
-                    <Tooltip title='Modificadores temporários de atributo'>
-                      <IconButton
-                        size='small'
-                        sx={{
-                          backgroundColor: theme.palette.primary.main,
-                          color: 'white',
-                          borderRadius: 1,
-                          '&:hover': {
-                            backgroundColor: theme.palette.primary.dark,
-                          },
-                        }}
-                        onClick={() => setAttributeModifiersDrawerOpen(true)}
-                      >
-                        <TuneIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                )}
-                <BookTitle>Atributos</BookTitle>
-                <AttributeDisplay
-                  attributes={atributos}
-                  characterName={nome}
-                  sheet={currentSheet}
-                  attributeHighlights={
-                    markersEnabled ? conditionHighlights.attributes : undefined
-                  }
-                />
-              </Card>
-
-              {/* Card de Parceiros (apenas durante encontro com partners anexados) */}
-              <Box sx={{ mb: 4 }}>
-                <PartnerSheetPanel />
-              </Box>
-
-              {/* Companheiros Animais do Druida (persistentes na ficha) */}
-              {showAnimalCompanions && (
-                <Box sx={{ mb: 4 }} ref={animalCompanionsRef}>
-                  <AnimalCompanionsPanel
-                    sheet={currentSheet}
-                    onSheetUpdate={
-                      onSheetUpdate ? applyRecalculatedSheet : undefined
-                    }
-                  />
-                </Box>
-              )}
-
-              {/* Card com abas: Ataques / Defesa / Poderes / Magias / Equip. (+ Perícias no mobile) */}
-              <Card
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  position: 'relative',
-                  overflow: 'visible',
-                }}
-              >
-                <Stack
-                  direction='row'
-                  spacing={1}
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    zIndex: 1,
-                  }}
-                >
-                  {/* Magias também acendem efeito ativo, então o gerenciador
-                      precisa estar ao alcance nas duas abas. */}
-                  {(activeSheetTab === 'poderes' ||
-                    activeSheetTab === 'magias') &&
-                    canUseActiveEffects &&
-                    (() => {
-                      const activeCount =
-                        currentSheet.activeEffects?.length ?? 0;
-                      const hasActive = activeCount > 0;
-                      return (
-                        <Tooltip
-                          title={
-                            hasActive
-                              ? `Efeitos ativos (${activeCount})`
-                              : 'Efeitos ativos'
-                          }
-                        >
-                          <Badge
-                            badgeContent={activeCount}
-                            color='error'
-                            overlap='circular'
-                            invisible={!hasActive}
-                          >
-                            <IconButton
-                              size='small'
-                              sx={{
-                                backgroundColor: hasActive
-                                  ? ACTIVE_EFFECT_COLOR
-                                  : theme.palette.primary.main,
-                                color: 'white',
-                                borderRadius: 1,
-                                '&:hover': {
-                                  backgroundColor: hasActive
-                                    ? ACTIVE_EFFECT_COLOR
-                                    : theme.palette.primary.dark,
-                                  filter: hasActive
-                                    ? 'brightness(0.92)'
-                                    : undefined,
-                                },
-                              }}
-                              onClick={() => setEffectsModalOpen(true)}
-                            >
-                              <AutoAwesomeIcon />
-                            </IconButton>
-                          </Badge>
-                        </Tooltip>
-                      );
-                    })()}
-                  {onSheetUpdate &&
-                    // Já tem complicação → sempre gerenciável (inclusive para
-                    // remover). Sem complicação → exige a feature liberada.
-                    (!!currentSheet.complication ||
-                      (complicationsFeature.hasAccess &&
-                        userSupplements.includes(
-                          SupplementId.TORMENTA20_HEROIS_ARTON
-                        ))) && (
-                      <Tooltip title='Complicação (Heróis de Arton)'>
-                        <IconButton
-                          size='small'
-                          sx={{
-                            backgroundColor: theme.palette.primary.main,
-                            color: 'white',
-                            borderRadius: 1,
-                            '&:hover': {
-                              backgroundColor: theme.palette.primary.dark,
-                            },
-                          }}
-                          onClick={() => setComplicationDrawerOpen(true)}
-                        >
-                          <TheaterComedyIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                  {activeSheetTab === 'defesa' && onSheetUpdate && (
-                    <Tooltip title='Configurações de defesa' arrow>
-                      <IconButton
-                        size='small'
-                        sx={{
-                          backgroundColor: theme.palette.primary.main,
-                          color: 'white',
-                          borderRadius: 1,
-                          '&:hover': {
-                            backgroundColor: theme.palette.primary.dark,
-                          },
-                        }}
-                        onClick={() => setDefenseDrawerOpen(true)}
-                      >
-                        <SettingsIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                  {onSheetUpdate && (
-                    <IconButton
-                      size='small'
-                      sx={{
-                        backgroundColor: theme.palette.primary.main,
-                        color: 'white',
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: theme.palette.primary.dark,
-                        },
-                      }}
-                      onClick={() => {
-                        if (activeSheetTab === 'pericias') {
-                          setSkillsDrawerOpen(true);
-                        } else if (activeSheetTab === 'ataques') {
-                          setBackpackInitialFilter(['Arma']);
-                          setBackpackOpen(true);
-                        } else if (activeSheetTab === 'defesa') {
-                          setBackpackInitialFilter(['Armadura', 'Escudo']);
-                          setBackpackOpen(true);
-                        } else if (activeSheetTab === 'poderes') {
-                          setPowersDrawerOpen(true);
-                        } else if (activeSheetTab === 'magias') {
-                          setSpellsDrawerOpen(true);
-                        } else if (activeSheetTab === 'diario') {
-                          setJournalOpen(true);
-                        } else {
-                          setBackpackInitialFilter(undefined);
-                          setBackpackOpen(true);
-                        }
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  )}
-                </Stack>
-                <TabContext value={activeSheetTab}>
-                  <TabList
-                    onChange={onChangeTab}
-                    variant='scrollable'
-                    scrollButtons='auto'
-                    allowScrollButtonsMobile
-                    sx={{
-                      borderBottom: 1,
-                      borderColor: 'divider',
-                    }}
-                  >
-                    {isMobile && <Tab label='Perícias' value='pericias' />}
-                    <Tab label='Ataques' value='ataques' />
-                    <Tab label='Defesa' value='defesa' />
-                    <Tab label='Poderes' value='poderes' />
-                    <Tab label='Magias' value='magias' />
-                    <Tab label='Equip.' value='equipamentos' />
-                    {isMobile && journalEnabled && (
-                      <Tab label='Diário' value='diario' />
-                    )}
-                  </TabList>
-                  {isMobile && (
-                    <TabPanel value='pericias' sx={{ p: 0 }}>
-                      {periciasDiv}
-                    </TabPanel>
-                  )}
-                  {isMobile && journalEnabled && (
-                    <TabPanel value='diario' sx={{ p: 2 }}>
-                      <PlayerJournalCard
-                        journal={currentSheet.journal}
-                        onOpen={() => setJournalOpen(true)}
-                      />
-                    </TabPanel>
-                  )}
-                  <TabPanel value='ataques' sx={{ p: 2 }}>
-                    <BookTitle>Ataques</BookTitle>
-                    {weaponsDiv}
-                  </TabPanel>
-                  <TabPanel value='defesa' sx={{ p: 2 }}>
-                    <Box sx={{ position: 'relative' }}>
-                      {((markersEnabled &&
-                        conditionHighlights.defense.length > 0) ||
-                        activeEffectHighlights.defense.length > 0) && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            left: 8,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            zIndex: 1,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                          }}
-                        >
-                          {markersEnabled && (
-                            <ConditionMarker
-                              conditions={conditionHighlights.defense}
-                              fontSize='medium'
-                            />
-                          )}
-                          <ActiveEffectMarker
-                            effects={activeEffectHighlights.defense}
-                            fontSize='medium'
-                          />
-                        </Box>
-                      )}
-                      <Box
-                        sx={
-                          activeEffectHighlights.defense.length > 0
-                            ? getActiveEffectLabelStyle(
-                                activeEffectHighlights.defense
-                              )
-                            : (markersEnabled &&
-                                getConditionLabelStyle(
-                                  conditionHighlights.defense
-                                )) ||
-                              undefined
-                        }
-                      >
-                        <BookTitle>Defesa</BookTitle>
-                      </Box>
-                    </Box>
-                    <Stack
-                      direction={isMobile ? 'column' : 'row'}
-                      spacing={2}
-                      sx={{
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: isMobile ? '100%' : '20%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          order: isMobile ? 1 : 0,
-                        }}
-                      >
-                        <FancyBox>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 0.5,
-                              fontSize: '68px',
-                            }}
-                          >
-                            <StatLabel
-                              theme={theme}
-                              style={
-                                markersEnabled
-                                  ? getConditionLabelStyle(
-                                      conditionHighlights.defense
-                                    )
-                                  : undefined
-                              }
-                            >
-                              {defesa}
-                            </StatLabel>
-                            <StatTitle
-                              style={
-                                markersEnabled
-                                  ? getConditionLabelStyle(
-                                      conditionHighlights.defense
-                                    )
-                                  : undefined
-                              }
-                            >
-                              Defesa
-                            </StatTitle>
-                          </Box>
-                        </FancyBox>
-                        {(hasAnyRd || onSheetUpdate) && (
-                          <Tooltip
-                            title={
-                              onSheetUpdate
-                                ? 'Clique para editar Defesa e Redução de Dano'
-                                : formatRdLabel(currentSheet.reducaoDeDano)
-                            }
-                            arrow
-                          >
-                            <Typography
-                              onClick={() =>
-                                onSheetUpdate && setDefenseDrawerOpen(true)
-                              }
-                              sx={{
-                                mt: 0.5,
-                                fontSize: '11px',
-                                color: hasAnyRd
-                                  ? 'text.secondary'
-                                  : 'text.disabled',
-                                cursor: onSheetUpdate ? 'pointer' : 'default',
-                                textAlign: 'center',
-                                maxWidth: '140px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                ...(onSheetUpdate
-                                  ? {
-                                      '&:hover': {
-                                        color: 'primary.main',
-                                        textDecoration: 'underline',
-                                      },
-                                    }
-                                  : {}),
-                              }}
-                            >
-                              {hasAnyRd
-                                ? `RD: ${formatRdLabel(
-                                    currentSheet.reducaoDeDano
-                                  )}`
-                                : 'RD: —'}
-                            </Typography>
-                          </Tooltip>
-                        )}
-                      </Box>
-                      <Box
-                        sx={{
-                          width: defenseInfoWidth,
-                          order: isMobile ? 0 : 1,
-                        }}
-                      >
-                        <DefenseEquipments
-                          getKey={getKey}
-                          defenseEquipments={defenseEquipments}
-                          wornArmorId={currentSheet.wornArmorId}
-                          mainHandItemId={currentSheet.mainHandItemId}
-                          offHandItemId={currentSheet.offHandItemId}
-                          onWieldingChange={
-                            onSheetUpdate ? handleQuickWieldChange : undefined
-                          }
-                          getWieldingDisabledSlots={computeWieldingDisabled}
-                          proficiencias={effectiveProficiencias}
-                        />
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'flex-start',
-                            mt: 1,
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              fontSize: 12,
-                              color: 'text.secondary',
-                            }}
-                          >
-                            <strong>Penalidade de Armadura: </strong>
-                            {(getActiveArmorPenalty(currentSheet) +
-                              extraArmorPenalty) *
-                              -1}
-                          </Typography>
-                        </Box>
-                        <Typography
-                          sx={{
-                            fontSize: 12,
-                            color: 'text.secondary',
-                            mt: 1,
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          {defenseFormula}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </TabPanel>
-                  <TabPanel value='poderes' sx={{ p: 2 }}>
-                    <Box>
-                      <BookTitle>Poderes</BookTitle>
-                      <PowersDisplay
-                        sheetHistory={currentSheet.sheetActionHistory || []}
-                        classAbilities={classe.abilities}
-                        classPowers={classPowers}
-                        raceAbilities={raca.abilities}
-                        originPowers={origin?.powers || []}
-                        deityPowers={devoto?.poderes || []}
-                        generalPowers={generalPowers}
-                        customPowers={currentSheet.customPowers || []}
-                        customGrantedPowers={
-                          currentSheet.customGrantedPowers || []
-                        }
-                        className={classe.name}
-                        raceName={raca.name}
-                        deityName={devoto?.divindade?.name}
-                        onUpdateRolls={
-                          onSheetUpdate ? handlePowerRollsUpdate : undefined
-                        }
-                        onUpdateCustomEffects={
-                          onSheetUpdate
-                            ? handlePowerCustomEffectsUpdate
-                            : undefined
-                        }
-                        onUpdateDisplay={
-                          onSheetUpdate ? handlePowerDisplayUpdate : undefined
-                        }
-                        characterName={nome}
-                        sheet={currentSheet}
-                        onActivateEffect={
-                          onSheetUpdate && canUseActiveEffects
-                            ? handleActiveEffectActivate
-                            : undefined
-                        }
-                        onSheetUpdate={
-                          onSheetUpdate
-                            ? (updated) => {
-                                setCurrentSheet(updated);
-                                onSheetUpdate(updated);
-                              }
-                            : undefined
-                        }
-                        onCompanionClick={(() => {
-                          const hasCompanion =
-                            (currentSheet.companions?.length || 0) > 0;
-                          const isTreinador =
-                            getClassLevel(currentSheet, 'Treinador') > 0;
-                          if (hasCompanion) {
-                            return () => {
-                              setSelectedCompanionIndex(0);
-                              setCompanionModalOpen(true);
-                            };
-                          }
-                          if (isTreinador && onSheetUpdate) {
-                            return () => setCompanionCreationOpen(true);
-                          }
-                          return undefined;
-                        })()}
-                        onAnimalCompanionClick={
-                          showAnimalCompanions
-                            ? scrollToAnimalCompanions
-                            : undefined
-                        }
-                        powerActionSlots={{
-                          Paródia: (
-                            <Tooltip title='Buscar magia para parodiar' arrow>
-                              <IconButton
-                                size='small'
-                                onClick={() => setParodyDialogOpen(true)}
-                              >
-                                <SearchIcon fontSize='small' color='primary' />
-                              </IconButton>
-                            </Tooltip>
-                          ),
-                          'Poder Capturado': (
-                            <PoderCapturadoAction
-                              sheet={currentSheet}
-                              onConfigure={() =>
-                                setPoderCapturadoDrawerOpen(true)
-                              }
-                              onActivate={
-                                onSheetUpdate && canUseActiveEffects
-                                  ? handleActiveEffectActivate
-                                  : undefined
-                              }
-                              onSheetUpdate={onSheetUpdate}
-                              characterName={nome}
-                            />
-                          ),
-                        }}
-                      />
-                    </Box>
-                  </TabPanel>
-                  <TabPanel value='magias' sx={{ p: 2 }}>
-                    <Box>
-                      <BookTitle>Magias</BookTitle>
-                      <Spells
-                        spells={displayedSpells}
-                        keyAttr={keyAttr}
-                        selectedKeyAttribute={effectiveKeyAttribute}
-                        nivel={nivel}
-                        // Magia derivada não é da ficha: sem `onUpdateRolls` o
-                        // diálogo esconde o editor persistente de rolagens e
-                        // mantém só o override efêmero da conjuração.
-                        onUpdateRolls={
-                          onSheetUpdate && !isDerivedSpells
-                            ? handleSpellRollsUpdate
-                            : undefined
-                        }
-                        characterName={nome}
-                        currentPM={currentSheet.currentPM ?? pm}
-                        maxPM={pm}
-                        tempPM={currentSheet.tempPM ?? 0}
-                        onSpellCast={
-                          onSheetUpdate ? handleSpellCast : undefined
-                        }
-                        isMago={classe.subname === 'Mago'}
-                        onToggleMemorized={
-                          onSheetUpdate ? handleToggleMemorized : undefined
-                        }
-                        onToggleAlwaysPrepared={
-                          onSheetUpdate ? handleToggleAlwaysPrepared : undefined
-                        }
-                        bonusSpellDC={spellDCBonus}
-                        onKeyAttributeChange={
-                          onSheetUpdate ? handleKeyAttributeChange : undefined
-                        }
-                        getCircleWarning={(circle) =>
-                          getDeitySpellCircleWarning(currentSheet, circle)
-                        }
-                        derived={isDerivedSpells}
-                        derivedNotice={derivedSpellsNotice}
-                        castCheck={usurparCastCheck}
-                        sheet={currentSheet}
-                        onActivateEffect={
-                          onSheetUpdate && canUseActiveEffects
-                            ? handleActiveEffectActivate
-                            : undefined
-                        }
-                      />
-                    </Box>
-                  </TabPanel>
-                  <TabPanel value='equipamentos' sx={{ p: 2 }}>
-                    <Box>
-                      <BookTitle>Equipamentos</BookTitle>
-                      <EquipmentTable
-                        items={equipamentosOrdered}
-                        characterName={nome}
-                      />
-                      <Box
-                        sx={{
-                          mt: 2,
-                        }}
-                      >
-                        <strong>Dinheiro: </strong>
-                        T$ {dinheiro}
-                        {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
-                        {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
-                      </Box>
-                      <CarryLoadSummary
-                        usedSpaces={
-                          bag.getSpaces() +
-                          calculateCurrencySpaces(
-                            dinheiro,
-                            dinheiroTC,
-                            dinheiroTO
-                          )
-                        }
-                        currencySpaces={calculateCurrencySpaces(
-                          dinheiro,
-                          dinheiroTC,
-                          dinheiroTO
-                        )}
-                        maxSpaces={customMaxSpaces ?? maxSpaces}
-                        ignoresEncumbrance={sheetIgnoresEncumbrance}
-                      />
-                    </Box>
-                  </TabPanel>
-                </TabContext>
-              </Card>
-
-              {/* Card de Proficiências */}
-              <Card
-                sx={{ p: 2, mb: 4, position: 'relative', overflow: 'visible' }}
-              >
-                {onSheetUpdate && (
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => setProficiencyDrawerOpen(true)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                )}
-                <BookTitle>Proficiências</BookTitle>
-                <Stack
-                  direction='row'
-                  sx={{
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  {proficienciasDiv}
-                </Stack>
-              </Card>
-
-              {/* Card de Tamanho/Deslocamento */}
-              <Card
-                sx={{ p: 2, mb: 4, position: 'relative', overflow: 'visible' }}
-              >
-                {onSheetUpdate && (
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => setSizeDisplacementDrawerOpen(true)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                )}
-                <Stack
-                  spacing={2}
-                  direction='row'
-                  sx={{
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <FancyBox>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 0.3,
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontFamily: 'Tfont',
-                            fontSize: '35px',
-                            color: theme.palette.primary.main,
-                            textAlign: 'center',
-                            lineHeight: 1,
-                            margin: 0,
-                            ...(markersEnabled
-                              ? getConditionLabelStyle(
-                                  conditionHighlights.displacement
-                                )
-                              : {}),
-                          }}
-                        >
-                          {displacement}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontFamily: 'Tfont',
-                            fontSize: '16px',
-                            color: theme.palette.text.secondary,
-                            textAlign: 'center',
-                            margin: 0,
-                          }}
-                        >
-                          ({Math.floor(displacement / 1.5)}q)
-                        </Typography>
-                        <Stack
-                          direction='row'
-                          spacing={0.5}
-                          sx={{
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          {markersEnabled && (
-                            <ConditionMarker
-                              conditions={conditionHighlights.displacement}
-                              fontSize='small'
-                            />
-                          )}
-                          <StatTitle
-                            style={
-                              markersEnabled
-                                ? getConditionLabelStyle(
-                                    conditionHighlights.displacement
-                                  )
-                                : undefined
-                            }
-                          >
-                            Desl.
-                          </StatTitle>
-                          {currentSheet.customDisplacement !== undefined && (
-                            <ManualValueMarker title='Deslocamento definido manualmente' />
-                          )}
-                        </Stack>
-                      </Box>
-                    </FancyBox>
-                    {(() => {
-                      const effectiveMaxSpaces = customMaxSpaces ?? maxSpaces;
-                      const totalUsedSpaces =
-                        bag.getSpaces() +
-                        calculateCurrencySpaces(
-                          dinheiro,
-                          dinheiroTC,
-                          dinheiroTO
-                        );
-                      if (totalUsedSpaces > effectiveMaxSpaces) {
-                        // Anão/Golem: a sobrecarga ainda é informação útil, mas
-                        // o deslocamento não cai — não anunciar o -3m.
-                        const tooltip = sheetIgnoresEncumbrance
-                          ? `Sobrecarga: ${totalUsedSpaces.toFixed(
-                              1
-                            )}/${effectiveMaxSpaces} espaços (sua raça ignora a redução de deslocamento)`
-                          : `Sobrecarga: ${totalUsedSpaces.toFixed(
-                              1
-                            )}/${effectiveMaxSpaces} espaços (-3m)`;
-                        return (
-                          <Tooltip title={tooltip}>
-                            <Chip
-                              size='small'
-                              label='Sobrecarga'
-                              color={
-                                sheetIgnoresEncumbrance ? 'warning' : 'error'
-                              }
-                              sx={{ mt: 1, fontSize: '0.7rem' }}
-                            />
-                          </Tooltip>
-                        );
-                      }
-                      return null;
-                    })()}
-                    {displayedMovementTypes && (
-                      <Stack spacing={0} sx={{ mt: 0.5 }}>
-                        {displayedMovementTypes.escalada &&
-                          displayedMovementTypes.escalada > 0 && (
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: 'text.secondary',
-                                textAlign: 'center',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Escalada: {displayedMovementTypes.escalada}m (
-                              {Math.floor(
-                                displayedMovementTypes.escalada / 1.5
-                              )}
-                              q)
-                            </Typography>
-                          )}
-                        {displayedMovementTypes.escavar &&
-                          displayedMovementTypes.escavar > 0 && (
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: 'text.secondary',
-                                textAlign: 'center',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Escavar: {displayedMovementTypes.escavar}m (
-                              {Math.floor(displayedMovementTypes.escavar / 1.5)}
-                              q)
-                            </Typography>
-                          )}
-                        {displayedMovementTypes.natacao &&
-                          displayedMovementTypes.natacao > 0 && (
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: 'text.secondary',
-                                textAlign: 'center',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Natação: {displayedMovementTypes.natacao}m (
-                              {Math.floor(displayedMovementTypes.natacao / 1.5)}
-                              q)
-                            </Typography>
-                          )}
-                        {displayedMovementTypes.voo &&
-                          displayedMovementTypes.voo > 0 && (
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: 'text.secondary',
-                                textAlign: 'center',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Voo: {displayedMovementTypes.voo}m (
-                              {Math.floor(displayedMovementTypes.voo / 1.5)}
-                              q)
-                              {displayedMovementTypes.pairar ? ' (Pairar)' : ''}
-                            </Typography>
-                          )}
-                      </Stack>
-                    )}
-                  </Box>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <FancyBox>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 0.5,
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontFamily: 'Tfont',
-                            fontSize: '58px',
-                            color: theme.palette.primary.main,
-                            textAlign: 'center',
-                            textTransform: 'uppercase',
-                            lineHeight: 1,
-                            margin: 0,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {size.name.charAt(0)}
-                        </Typography>
-                        <Stack
-                          direction='row'
-                          spacing={0.5}
-                          sx={{
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <StatTitle>Tamanho</StatTitle>
-                          {currentSheet.customSize !== undefined && (
-                            <ManualValueMarker title='Tamanho definido manualmente' />
-                          )}
-                        </Stack>
-                      </Box>
-                    </FancyBox>
-                  </Box>
-                </Stack>
-              </Card>
-            </Box>
-            {/* LADO DIREITO, 40% — apenas Perícias (no mobile vira aba) */}
-            {!isMobile && (
-              <Box
-                sx={{
-                  width: '40%',
-                  minWidth: 0,
-                }}
-              >
-                <Stack spacing={4}>
-                  <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                    {onSheetUpdate && (
-                      <IconButton
-                        size='small'
-                        sx={{
-                          position: 'absolute',
-                          top: -16,
-                          right: 16,
-                          backgroundColor: theme.palette.primary.main,
-                          color: 'white',
-                          borderRadius: 1,
-                          '&:hover': {
-                            backgroundColor: theme.palette.primary.dark,
-                          },
-                        }}
-                        onClick={() => setSkillsDrawerOpen(true)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    )}
-                    {periciasDiv}
-                  </Card>
-                  {journalEnabled && (
-                    <PlayerJournalCard
-                      journal={currentSheet.journal}
-                      onOpen={() => setJournalOpen(true)}
-                    />
-                  )}
-                </Stack>
-              </Box>
-            )}
-          </Stack>
-
-          <Box sx={{ mt: 2, width: '100%' }}>
-            {/* Bug Report Alert */}
-            <Alert severity='info' icon={<BugReportIcon />} sx={{ mb: 2 }}>
-              Encontrou algum problema nessa ficha?{' '}
-              <Link
-                href='https://fichasdenimb.com.br/forum'
-                target=''
-                rel='noopener noreferrer'
-                sx={{ fontWeight: 'bold' }}
-              >
-                Nos avise!
-              </Link>
-            </Alert>
-
-            {/* Support CTA - only for non-supporters */}
-            {!isSupporter && (
-              <Alert
-                severity='success'
-                icon={<FavoriteIcon />}
-                sx={{
-                  mb: 2,
-                  background: `linear-gradient(135deg, ${
-                    theme.palette.mode === 'dark' ? '#3d3200' : '#fff8e1'
-                  } 0%, ${
-                    theme.palette.mode === 'dark' ? '#2d2400' : '#fff3cd'
-                  } 100%)`,
-                  border: '1px solid',
-                  borderColor:
-                    theme.palette.mode === 'dark' ? '#5a4a00' : '#ffe082',
-                  '& .MuiAlert-icon': {
-                    color: '#FFA500',
-                  },
-                }}
-              >
-                Gostou da ficha? Apoie o Fichas de Nimb e desbloqueie recursos
-                exclusivos!{' '}
-                <Link
-                  href='/apoiar'
-                  sx={{ fontWeight: 'bold', color: '#FFA500' }}
-                >
-                  Apoiar o projeto
-                </Link>
-              </Alert>
-            )}
-
-            {/* Passo-a-passo Accordion */}
-            <Accordion defaultExpanded={false}>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls='steps-content'
-                id='steps-header'
-              >
-                <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
-                  Passo-a-passo da criação
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box component='ul' sx={{ pl: 2 }}>
-                  {changesDiv}
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-          </Box>
+          <ActiveEffectsManagerModal
+            open={effectsModalOpen}
+            effects={currentSheet.activeEffects ?? []}
+            sheet={currentSheet}
+            readonly={!onSheetUpdate || !canUseActiveEffects}
+            customDefinitions={virtualCustomEffectDefinitions}
+            standaloneEffects={currentSheet.customEffects ?? []}
+            onStandaloneEffectsChange={handleStandaloneCustomEffectsChange}
+            onRemove={handleActiveEffectRemove}
+            onActivate={handleActiveEffectActivate}
+            onClose={() => setEffectsModalOpen(false)}
+          />
         </Container>
         <>
           <SheetInfoEditDrawer
@@ -3597,12 +3494,6 @@ const Result: React.FC<ResultProps> = (props) => {
             onClose={() => setRestDialogOpen(false)}
             sheet={currentSheet}
             onConfirm={handleRest}
-          />
-          <NotesDialog
-            open={notesDialogOpen}
-            onClose={() => setNotesDialogOpen(false)}
-            notes={currentSheet.notes || ''}
-            onSave={handleNotesSave}
           />
           {journalEnabled && (
             <PlayerJournalFullScreen

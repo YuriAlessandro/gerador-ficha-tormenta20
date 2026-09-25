@@ -1,4 +1,4 @@
-import Skill from '@/interfaces/Skills';
+import { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
 import Race from '../../../../interfaces/Race';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
@@ -70,9 +70,13 @@ const KLIREN: Race = {
             type: 'power',
             name: 'Vanguardista',
           },
+          // "Um qualquer, a sua escolha": o jogador escolhe o Ofício; a escolha
+          // fica em `optionChoices` para sobreviver aos recálculos.
           target: {
-            type: 'Skill',
-            name: Skill.OFICIO,
+            type: 'PickSkill',
+            skills: ALL_SPECIFIC_OFICIOS,
+            pick: 1,
+            optionKey: 'kliren-vanguardista-oficio',
           },
           modifier: {
             type: 'Fixed',

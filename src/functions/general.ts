@@ -164,6 +164,7 @@ import {
   applySerializedOverrides,
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
+  resolveClassSetup,
 } from './multiclass';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
@@ -4609,6 +4610,20 @@ export function applyManualLevelUp(
   const newClassLevel = getClassLevel(updatedSheet, selectedClassName);
   const isFirstLevelInClass = newClassLevel === 1;
 
+  // Multiclasse: as escolhas do 1º nível na classe (linhagem, deus) seguem
+  // valendo nos níveis seguintes — o assistente só as pergunta uma vez.
+  const classSetup = resolveClassSetup(
+    updatedSheet,
+    selectedClassName,
+    selections.classSetup
+  );
+  if (classSetup && selectedClassName !== updatedSheet.classe.name) {
+    updatedSheet.multiclassSetups = {
+      ...(updatedSheet.multiclassSetups || {}),
+      [selectedClassName]: classSetup,
+    };
+  }
+
   // Multiclass: persist spellPath for new caster class
   if (isFirstLevelInClass) {
     const newSpellPath = buildSpellPathFromSetup(
@@ -4945,10 +4960,7 @@ export function applyManualLevelUp(
     selectedClassDesc,
     selectedClassName
   );
-  const setupAbilities = getClassSetupAbilities(
-    selectedClassName,
-    selections.classSetup
-  );
+  const setupAbilities = getClassSetupAbilities(selectedClassName, classSetup);
   const newlyAvailableAbilities = [
     ...baseAbilitiesForLevel,
     ...setupAbilities,
@@ -5119,7 +5131,10 @@ export function applyManualLevelUp(
           if (idx !== targetIdx) return companion;
           const next = {
             ...companion,
-            tricks: [...companion.tricks, entry.trick],
+            tricks: [
+              ...companion.tricks,
+              { ...entry.trick, level: updatedSheet.nivel },
+            ],
           };
           if (entry.spell) {
             const spellWithKey = {
@@ -5149,6 +5164,7 @@ export function applyManualLevelUp(
             trickName: entry.trick.name,
             choices: entry.trick.choices,
             spellName: entry.spell?.nome,
+            level: updatedSheet.nivel,
           },
         ],
       });
@@ -5446,8 +5462,20 @@ export const applyStatModifiers = (
       } else if (persisted && persisted.length > 0) {
         pickedSkills = persisted.slice(0, bonus.target.pick) as Skill[];
       } else {
-        // Fall back to random selection
-        pickedSkills = pickFromArray(bonus.target.skills, bonus.target.pick);
+        // Sorteio, preferindo perícias já treinadas — um bônus numa perícia
+        // que o personagem não usa (ex.: Ofício não treinado) é desperdiçado.
+        const { skills: options, pick } = bonus.target;
+        const trained = options.filter((skill) => sheet.skills.includes(skill));
+        pickedSkills = pickFromArray(trained, Math.min(pick, trained.length));
+        if (pickedSkills.length < pick) {
+          pickedSkills = [
+            ...pickedSkills,
+            ...pickFromArray(
+              options.filter((skill) => !trained.includes(skill)),
+              pick - pickedSkills.length
+            ),
+          ];
+        }
       }
 
       // Persiste a escolha (homebrew com optionKey) para o replay no recalc.

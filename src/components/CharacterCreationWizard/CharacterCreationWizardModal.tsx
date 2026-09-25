@@ -39,11 +39,15 @@ import {
   applyLinhagemAbencoadaToSpellPath,
   getArcanistaSpellPath,
 } from '@/data/systems/tormenta20/classes/arcanista';
-import { buildSpellPool } from '@/functions/spellPathUtils';
+import {
+  buildSpellPool,
+  countTowardsCrossMinimum,
+} from '@/functions/spellPathUtils';
 
 // Import step components
 import {
   getPowerSelectionRequirements,
+  isLearnSkillOptionAvailable,
   countRequirementSelections,
   resolvePowerRequirements,
   resolveLearnSkillPick,
@@ -2226,7 +2230,7 @@ const CharacterCreationWizardModal: React.FC<
         // faria o botão e os checkboxes discordarem.
         const minCross = spellInfo.crossTraditionRules?.minInitialSpells ?? 0;
         if (minCross <= 0) return true;
-        const { crossNames } = buildSpellPool({
+        const { crossNames, sharedNames } = buildSpellPool({
           spellPath: {
             spellType: spellInfo.spellType,
             schools: selections.spellSchools,
@@ -2240,8 +2244,13 @@ const CharacterCreationWizardModal: React.FC<
           supplements,
         });
         return (
-          chosenSpells.filter((spell) => crossNames.has(spell.nome)).length >=
-          minCross
+          countTowardsCrossMinimum(
+            chosenSpells,
+            crossNames,
+            sharedNames,
+            spellInfo.initialSpells,
+            minCross
+          ) >= minCross
         );
       }
 
@@ -2323,11 +2332,13 @@ const CharacterCreationWizardModal: React.FC<
           // para clicar.
           // `Math.min(effectivePick, ...)` (e não `pick`, como no ramo de
           // proficiência) para compor com o escalonamento por patamar de
-          // `resolveRequirementPick` (Biblioteca Divina).
+          // `resolveRequirementPick` (Biblioteca Divina). Bônus (`PickSkill`)
+          // inverte a conta: a perícia treinada é que é elegível.
           if (type === 'learnSkill' && req.availableOptions) {
             const used = new Set(getAllUsedSkills());
             const filteredCount = (req.availableOptions as Skill[]).filter(
-              (skill) => !used.has(skill)
+              (skill) =>
+                isLearnSkillOptionAvailable(req, skill, used.has(skill))
             ).length;
             effectivePick = Math.min(effectivePick, filteredCount);
           }
