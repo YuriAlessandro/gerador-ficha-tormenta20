@@ -133,6 +133,7 @@ export const MARKET_CATEGORIES: MarketCategoryDescriptor[] = [
   mundane('alchemy', 'Alquimía', 'Alquimia', () => true),
   mundane('food', 'Alimentação', 'Alimentação', () => true),
   mundane('animals', 'Animal', 'Animais'),
+  mundane('vehicles', 'Veículo', 'Veículos'),
 ];
 
 export const DEFAULT_CATEGORY: MarketCategoryKey = 'weapons';

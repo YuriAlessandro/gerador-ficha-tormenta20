@@ -13,6 +13,7 @@ export interface MarketEquipment {
   alchemy: Equipment[];
   food: Equipment[];
   animals: Equipment[];
+  vehicles: Equipment[];
 }
 
 /**
