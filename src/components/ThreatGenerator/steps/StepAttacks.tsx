@@ -341,7 +341,7 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                     placeholder='Ex: Garra, Mordida, Espada Longa'
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <NumberField
                     fullWidth
                     label='Bônus de Ataque'
@@ -358,7 +358,7 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                     }`}
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label='Dados de Dano'
@@ -467,7 +467,11 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                           !newBonusDice.damageType.trim() ||
                           !validateDiceString(newBonusDice.dice)
                         }
-                        sx={{ minHeight: '40px' }}
+                        sx={{
+                          minHeight: '40px',
+                          minWidth: { xs: 0, md: 64 },
+                          width: { xs: '100%', md: 'auto' },
+                        }}
                       >
                         <AddIcon fontSize='small' />
                       </Button>
@@ -757,7 +761,7 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                 }
               />
             </Grid>
-            <Grid size={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <NumberField
                 fullWidth
                 label='Bônus de Ataque'
@@ -769,7 +773,7 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                 }
               />
             </Grid>
-            <Grid size={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label='Dados de Dano'
@@ -865,7 +869,11 @@ const StepAttacks: React.FC<StepAttacksProps> = ({ threat, onUpdate }) => {
                       !editNewBonusDice.damageType.trim() ||
                       !validateDiceString(editNewBonusDice.dice)
                     }
-                    sx={{ minHeight: '40px' }}
+                    sx={{
+                      minHeight: '40px',
+                      minWidth: { xs: 0, md: 64 },
+                      width: { xs: '100%', md: 'auto' },
+                    }}
                   >
                     <AddIcon fontSize='small' />
                   </Button>
