@@ -72,6 +72,7 @@ import {
 import {
   partitionCrossTraditionByCircle,
   buildSpellPool,
+  countTowardsCrossMinimum,
 } from '@/functions/spellPathUtils';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
@@ -571,6 +572,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     spellCircle: number;
     availableSpells: Spell[];
     crossTraditionSpellNames: Set<string>;
+    sharedTraditionSpellNames: Set<string>;
     crossTraditionLabel: string;
     crossTraditionLimit?: number;
     minCrossTraditionSpells: number;
@@ -721,6 +723,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       spellCircle,
       availableSpells,
       crossTraditionSpellNames: crossNames,
+      sharedTraditionSpellNames: pool.sharedNames,
       crossTraditionLabel:
         spellPath.spellType === 'Arcane' ? 'Divina' : 'Arcana',
       crossTraditionLimit: spellPath.crossTraditionLimit,
@@ -1110,9 +1113,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         if (!spellInfo) return true;
 
         const learned = currentLevelSelection.spellsLearned || [];
-        const crossCount = learned.filter((spell) =>
-          spellInfo.crossTraditionSpellNames.has(spell.nome)
-        ).length;
+        const crossCount = countTowardsCrossMinimum(
+          learned,
+          spellInfo.crossTraditionSpellNames,
+          spellInfo.sharedTraditionSpellNames,
+          spellInfo.spellCount,
+          spellInfo.minCrossTraditionSpells
+        );
         return (
           learned.length === spellInfo.spellCount &&
           crossCount >= spellInfo.minCrossTraditionSpells
@@ -1537,6 +1544,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             requiredCount={spellInfo.spellCount}
             spellCircle={spellInfo.spellCircle}
             crossTraditionSpellNames={spellInfo.crossTraditionSpellNames}
+            sharedTraditionSpellNames={spellInfo.sharedTraditionSpellNames}
             crossTraditionLabel={spellInfo.crossTraditionLabel}
             crossTraditionLimit={spellInfo.crossTraditionLimit}
             minCrossTraditionSpells={spellInfo.minCrossTraditionSpells}

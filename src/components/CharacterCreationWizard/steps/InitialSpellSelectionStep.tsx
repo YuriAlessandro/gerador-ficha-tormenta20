@@ -40,57 +40,60 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
   supplements = [SupplementId.TORMENTA20_CORE],
 }) => {
   // Get available spells based on type, schools, and supplements
-  const { availableSpells, crossTraditionSpellNames, traditionNames } =
-    useMemo(() => {
-      // Magias iniciais são sempre de 1º círculo. O pool sai do mesmo builder da
-      // geração aleatória e do wizard de evolução — três implementações
-      // separadas divergiam.
-      const { spells, crossNames } = buildSpellPool({
-        spellPath: {
-          spellType,
-          schools,
-          excludeSchools,
-          includeDivineSchools,
-          includeArcaneSchools,
-          crossTraditionLimit,
-          crossTraditionRules,
-        },
-        maxCircle: 1,
-        supplements,
-      });
-
-      // Tradition name sets, used by the "Tipo" filter when spellType is 'Both'.
-      const spellsByCircle =
-        dataRegistry.getSpellsCircle1BySupplements(supplements);
-      const allArcaneNames = new Set<string>(
-        (Object.values(spellsByCircle.arcane) as Spell[][])
-          .flat()
-          .map((s) => s.nome)
-      );
-      const allDivineNames = new Set<string>(
-        (Object.values(spellsByCircle.divine) as Spell[][])
-          .flat()
-          .map((s) => s.nome)
-      );
-
-      // Sort alphabetically
-      return {
-        availableSpells: [...spells].sort((a, b) =>
-          a.nome.localeCompare(b.nome)
-        ),
-        crossTraditionSpellNames: crossNames,
-        traditionNames: { arcane: allArcaneNames, divine: allDivineNames },
-      };
-    }, [
-      spellType,
-      schools,
-      excludeSchools,
-      includeDivineSchools,
-      includeArcaneSchools,
-      crossTraditionLimit,
-      crossTraditionRules,
+  const {
+    availableSpells,
+    crossTraditionSpellNames,
+    sharedTraditionSpellNames,
+    traditionNames,
+  } = useMemo(() => {
+    // Magias iniciais são sempre de 1º círculo. O pool sai do mesmo builder da
+    // geração aleatória e do wizard de evolução — três implementações
+    // separadas divergiam.
+    const { spells, crossNames, sharedNames } = buildSpellPool({
+      spellPath: {
+        spellType,
+        schools,
+        excludeSchools,
+        includeDivineSchools,
+        includeArcaneSchools,
+        crossTraditionLimit,
+        crossTraditionRules,
+      },
+      maxCircle: 1,
       supplements,
-    ]);
+    });
+
+    // Tradition name sets, used by the "Tipo" filter when spellType is 'Both'.
+    const spellsByCircle =
+      dataRegistry.getSpellsCircle1BySupplements(supplements);
+    const allArcaneNames = new Set<string>(
+      (Object.values(spellsByCircle.arcane) as Spell[][])
+        .flat()
+        .map((s) => s.nome)
+    );
+    const allDivineNames = new Set<string>(
+      (Object.values(spellsByCircle.divine) as Spell[][])
+        .flat()
+        .map((s) => s.nome)
+    );
+
+    // Sort alphabetically
+    return {
+      availableSpells: [...spells].sort((a, b) => a.nome.localeCompare(b.nome)),
+      crossTraditionSpellNames: crossNames,
+      sharedTraditionSpellNames: sharedNames,
+      traditionNames: { arcane: allArcaneNames, divine: allDivineNames },
+    };
+  }, [
+    spellType,
+    schools,
+    excludeSchools,
+    includeDivineSchools,
+    includeArcaneSchools,
+    crossTraditionLimit,
+    crossTraditionRules,
+    supplements,
+  ]);
 
   const handleToggle = (spell: Spell) => {
     const isSelected = selectedSpells.some((s) => s.nome === spell.nome);
@@ -117,6 +120,7 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
         requiredCount={requiredCount}
         onToggle={handleToggle}
         crossTraditionSpellNames={crossTraditionSpellNames}
+        sharedTraditionSpellNames={sharedTraditionSpellNames}
         crossTraditionLabel={spellType === 'Arcane' ? 'Divina' : 'Arcana'}
         crossTraditionLimit={crossTraditionLimit}
         minCrossTraditionSpells={minCrossTraditionSpells}

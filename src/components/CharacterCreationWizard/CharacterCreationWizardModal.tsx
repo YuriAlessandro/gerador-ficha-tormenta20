@@ -39,7 +39,10 @@ import {
   applyLinhagemAbencoadaToSpellPath,
   getArcanistaSpellPath,
 } from '@/data/systems/tormenta20/classes/arcanista';
-import { buildSpellPool } from '@/functions/spellPathUtils';
+import {
+  buildSpellPool,
+  countTowardsCrossMinimum,
+} from '@/functions/spellPathUtils';
 
 // Import step components
 import {
@@ -2227,7 +2230,7 @@ const CharacterCreationWizardModal: React.FC<
         // faria o botão e os checkboxes discordarem.
         const minCross = spellInfo.crossTraditionRules?.minInitialSpells ?? 0;
         if (minCross <= 0) return true;
-        const { crossNames } = buildSpellPool({
+        const { crossNames, sharedNames } = buildSpellPool({
           spellPath: {
             spellType: spellInfo.spellType,
             schools: selections.spellSchools,
@@ -2241,8 +2244,13 @@ const CharacterCreationWizardModal: React.FC<
           supplements,
         });
         return (
-          chosenSpells.filter((spell) => crossNames.has(spell.nome)).length >=
-          minCross
+          countTowardsCrossMinimum(
+            chosenSpells,
+            crossNames,
+            sharedNames,
+            spellInfo.initialSpells,
+            minCross
+          ) >= minCross
         );
       }
 
