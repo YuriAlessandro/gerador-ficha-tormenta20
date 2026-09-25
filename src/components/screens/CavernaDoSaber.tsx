@@ -1,6 +1,9 @@
 import styled from '@emotion/styled';
 import {
+  Box,
   Divider,
+  Drawer,
+  Fab,
   List,
   ListItemButton,
   ListItemIcon,
@@ -9,12 +12,15 @@ import {
   Paper,
   Stack,
   Typography,
-  useMediaQuery,
   useTheme,
+  Zoom,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { RefObject, useEffect, useRef, useState } from 'react';
 
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
+import TocIcon from '@mui/icons-material/Toc';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { safeBottom, safeRight } from '@/theme/safeArea';
 
 interface Heads {
   id: string;
@@ -60,8 +66,22 @@ const useHeadingsData = () => {
   return { nestedHeadings };
 };
 
-const Headings: React.FC<HInterface> = ({ headings }) => (
-  <Paper sx={{ mt: 2, ml: 2, p: 3 }}>
+interface HeadingsListProps extends HInterface {
+  /** Chamado depois de rolar até a seção (o drawer do mobile fecha nele). */
+  onNavigate?: () => void;
+}
+
+const HeadingsList: React.FC<HeadingsListProps> = ({
+  headings,
+  onNavigate,
+}) => {
+  const goTo = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    document.querySelector(`#${id}`)?.scrollIntoView({ behavior: 'smooth' });
+    onNavigate?.();
+  };
+
+  return (
     <List
       sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
       component='nav'
@@ -77,12 +97,7 @@ const Headings: React.FC<HInterface> = ({ headings }) => (
           <ListItemButton>
             <ListItemText
               primary={heading.title}
-              onClick={(e) => {
-                e.preventDefault();
-                document.querySelector(`#${heading.id}`)?.scrollIntoView({
-                  behavior: 'smooth',
-                });
-              }}
+              onClick={(e) => goTo(e, heading.id)}
             />
           </ListItemButton>
           {heading.items && heading.items.length > 0 && (
@@ -94,12 +109,7 @@ const Headings: React.FC<HInterface> = ({ headings }) => (
                   </ListItemIcon>
                   <ListItemText
                     primary={child.title}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      document.querySelector(`#${child.id}`)?.scrollIntoView({
-                        behavior: 'smooth',
-                      });
-                    }}
+                    onClick={(e) => goTo(e, child.id)}
                   />
                 </ListItemButton>
               ))}
@@ -108,6 +118,12 @@ const Headings: React.FC<HInterface> = ({ headings }) => (
         </>
       ))}
     </List>
+  );
+};
+
+const Headings: React.FC<HInterface> = ({ headings }) => (
+  <Paper sx={{ mt: 2, ml: 2, p: 3 }}>
+    <HeadingsList headings={headings} />
   </Paper>
 );
 
@@ -131,14 +147,82 @@ const TableOfContents: React.FC = () => {
   );
 };
 
+interface MobileTableOfContentsProps {
+  /** Marcador no fim do conteúdo: quando ele entra na tela, o Fab sai. */
+  contentEndRef: RefObject<HTMLElement>;
+}
+
+const MobileTableOfContents: React.FC<MobileTableOfContentsProps> = ({
+  contentEndRef,
+}) => {
+  const { nestedHeadings } = useHeadingsData();
+  const [open, setOpen] = useState(false);
+  // O Fab fica por cima do rodapé global, que vem depois do conteúdo. Ele só
+  // aparece enquanto o fim do conteúdo ainda está abaixo da tela.
+  const [showFab, setShowFab] = useState(true);
+
+  useEffect(() => {
+    const end = contentEndRef.current;
+    if (!end || typeof IntersectionObserver === 'undefined') return undefined;
+    // A área observada se estende para cima sem limite: o marcador "intersecta"
+    // em qualquer posição acima da borda de baixo da tela. Assim a única
+    // transição é cruzar essa borda — um salto de rolagem (fling, âncora) que
+    // pule a tela inteira não passa despercebido.
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowFab(!entry.isIntersecting),
+      { rootMargin: '100000px 0px 0px 0px' }
+    );
+    observer.observe(end);
+    return () => observer.disconnect();
+  }, [contentEndRef]);
+
+  return (
+    <>
+      <Zoom in={showFab}>
+        <Fab
+          variant='extended'
+          color='primary'
+          onClick={() => setOpen(true)}
+          sx={{
+            position: 'fixed',
+            bottom: safeBottom(16),
+            right: safeRight(16),
+            zIndex: (theme) => theme.zIndex.speedDial,
+          }}
+        >
+          <TocIcon sx={{ mr: 1 }} />
+          Sumário
+        </Fab>
+      </Zoom>
+      <Drawer
+        anchor='bottom'
+        open={open}
+        onClose={() => setOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: '70vh',
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              pb: safeBottom(8),
+            },
+          },
+        }}
+      >
+        <HeadingsList
+          headings={nestedHeadings}
+          onNavigate={() => setOpen(false)}
+        />
+      </Drawer>
+    </>
+  );
+};
+
 const CavernaDoSaber: React.FC = () => {
   const theme = useTheme();
 
-  const isMobile = useMediaQuery('(max-width:720px)');
-
-  const MainDiv = styled.div`
-    margin: 0 50px;
-  `;
+  const isMobile = useIsMobile();
+  const contentEndRef = useRef<HTMLDivElement>(null);
 
   const StyledPaper = styled(Paper)`
     padding: 16px;
@@ -160,13 +244,13 @@ const CavernaDoSaber: React.FC = () => {
   `;
 
   return (
-    <MainDiv>
+    <Box sx={{ mx: { xs: 2, md: '50px' }, pb: { xs: 10, md: 0 } }}>
       <Typography
         color={theme.palette.primary.main}
         align='center'
         sx={{
           fontFamily: 'Tfont',
-          fontSize: 50,
+          fontSize: { xs: 34, md: 50 },
         }}
       >
         Caverna do Saber
@@ -1698,9 +1782,14 @@ const CavernaDoSaber: React.FC = () => {
             </ul>
           </StyledPaper>
         </div>
-        {!isMobile && <TableOfContents />}
+        {isMobile ? (
+          <MobileTableOfContents contentEndRef={contentEndRef} />
+        ) : (
+          <TableOfContents />
+        )}
       </Stack>
-    </MainDiv>
+      <div ref={contentEndRef} />
+    </Box>
   );
 };
 
