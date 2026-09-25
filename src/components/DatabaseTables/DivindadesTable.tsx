@@ -21,6 +21,8 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 
 import { Link, useHistory, useRouteMatch } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
 import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
 import Divindade from '../../interfaces/Divindade';
@@ -28,6 +30,7 @@ import { dataRegistry } from '../../data/registry';
 import { useContentSupplements } from '../../hooks/useContentSupplements';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 
 interface IProps {
   divindade: Divindade;
@@ -37,75 +40,92 @@ interface IProps {
 const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
+  const statusChip = divindade.statusDivino !== undefined && (
+    <Chip
+      label={`Status Divino ${divindade.statusDivino}`}
+      size='small'
+      variant='outlined'
+      color='primary'
+    />
+  );
+  const shareButton = (
+    <CopyUrlButton
+      itemName={divindade.name}
+      itemType='divindade'
+      size='small'
+      variant='minimal'
+    />
+  );
+
   return (
     <>
-      <TableRow
-        sx={{
-          '& > *': { borderBottom: 'unset' },
-          '&:hover': {
-            backgroundColor: 'rgba(209, 50, 53, 0.02)',
-          },
-        }}
-      >
-        <TableCell width={10}>
-          <IconButton
-            aria-label='expand row'
-            size='small'
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row'>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
+      {isMobile ? (
+        <EncyclopediaSummaryRow
+          colSpan={3}
+          name={divindade.name}
+          open={open}
+          onToggle={() => setOpen(!open)}
+          tags={statusChip}
+          action={shareButton}
+        />
+      ) : (
+        <TableRow
+          sx={{
+            '& > *': { borderBottom: 'unset' },
+            '&:hover': {
+              backgroundColor: 'rgba(209, 50, 53, 0.02)',
+            },
+          }}
+        >
+          <TableCell width={10}>
+            <IconButton
+              aria-label='expand row'
+              size='small'
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </TableCell>
+          <TableCell component='th' scope='row'>
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 1,
-                rowGap: 0.5,
+                justifyContent: 'space-between',
               }}
             >
-              <FilterDramaIcon color='primary' fontSize='small' />
-              <Typography
-                variant='body1'
+              <Box
                 sx={{
-                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  rowGap: 0.5,
                 }}
               >
-                {divindade.name}
-              </Typography>
-              {divindade.statusDivino !== undefined && (
-                <Chip
-                  label={`Status Divino ${divindade.statusDivino}`}
-                  size='small'
-                  variant='outlined'
-                  color='primary'
-                />
-              )}
+                <FilterDramaIcon color='primary' fontSize='small' />
+                <Typography
+                  variant='body1'
+                  sx={{
+                    fontWeight: 500,
+                  }}
+                >
+                  {divindade.name}
+                </Typography>
+                {statusChip}
+              </Box>
+              {shareButton}
             </Box>
-            <CopyUrlButton
-              itemName={divindade.name}
-              itemType='divindade'
-              size='small'
-              variant='minimal'
-            />
-          </Box>
-        </TableCell>
-        <TableCell />
-      </TableRow>
+          </TableCell>
+          <TableCell />
+        </TableRow>
+      )}
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
@@ -287,7 +307,7 @@ const DivindadesTable: React.FC = () => {
           <Table aria-label='divindades table'>
             <TableHead>
               <TableRow>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
                 <TableCell>
                   <Typography
                     variant='h6'
@@ -299,7 +319,7 @@ const DivindadesTable: React.FC = () => {
                     Nome da Divindade
                   </Typography>
                 </TableCell>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
               </TableRow>
             </TableHead>
             <TableBody>
