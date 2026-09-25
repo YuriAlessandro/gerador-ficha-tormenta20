@@ -42,6 +42,22 @@ function exclusiveArcaneSpell(): Spell {
   return spell;
 }
 
+/** Magias SÓ arcanas, distintas. */
+function exclusiveArcaneSpells(qty: number): Spell[] {
+  const divineNames = new Set(circle1('divine').map((s) => s.nome));
+  return circle1('arcane')
+    .filter((s) => !divineNames.has(s.nome))
+    .slice(0, qty);
+}
+
+/** Magia que está nas duas listas ("universal"). */
+function sharedSpell(): Spell {
+  const arcaneNames = new Set(circle1('arcane').map((s) => s.nome));
+  const spell = circle1('divine').find((s) => arcaneNames.has(s.nome));
+  if (!spell) throw new Error('nenhuma magia universal no core');
+  return spell;
+}
+
 function renderAbencoado(selectedSpells: Spell[]) {
   return render(
     <InitialSpellSelectionStep
@@ -83,7 +99,7 @@ describe('InitialSpellSelectionStep — Linhagem Abençoada', () => {
   });
 
   it('avisa enquanto nenhuma divina foi escolhida', () => {
-    const arcanas = circle1('arcane').slice(0, 4);
+    const arcanas = exclusiveArcaneSpells(4);
     renderAbencoado(arcanas);
 
     expect(minDivinaAlertText()).toMatch(
@@ -99,16 +115,46 @@ describe('InitialSpellSelectionStep — Linhagem Abençoada', () => {
     expect(minDivinaAlertText()).toContain('(1 selecionada)');
   });
 
-  it('magia presente nas duas tradições NÃO conta como divina', () => {
-    // "Luz" e afins são arcanas E divinas — não satisfazem a exigência.
-    const arcaneNames = new Set(circle1('arcane').map((s) => s.nome));
-    const compartilhada = circle1('divine').find((s) =>
-      arcaneNames.has(s.nome)
-    );
-    expect(compartilhada).toBeDefined();
-
-    renderAbencoado([compartilhada!]);
+  it('universal sozinha fica numa vaga arcana', () => {
+    renderAbencoado([sharedSpell()]);
     expect(minDivinaAlertText()).toContain('(0 selecionadas)');
+  });
+
+  it('3 arcanas + 1 universal: a universal preenche a vaga divina', () => {
+    const arcanas = exclusiveArcaneSpells(3);
+    renderAbencoado([...arcanas, sharedSpell()]);
+    expect(minDivinaAlertText()).toContain('(1 selecionada)');
+    expect(screen.getAllByText('Universal').length).toBeGreaterThan(0);
+  });
+
+  it('com 3 arcanas exclusivas, bloqueia a 4ª arcana exclusiva', () => {
+    const onChange = vi.fn();
+    const [a1, a2, a3, a4] = exclusiveArcaneSpells(4);
+    render(
+      <InitialSpellSelectionStep
+        selectedSpells={[a1, a2, a3]}
+        onChange={onChange}
+        requiredCount={4}
+        className='Arcanista'
+        spellType='Arcane'
+        includeDivineSchools={allSpellSchools}
+        crossTraditionRules={ABENCOADA_RULES}
+        minCrossTraditionSpells={1}
+        supplements={SUPPLEMENTS}
+      />
+    );
+
+    fireEvent.click(screen.getByText(a4.nome));
+    expect(onChange).not.toHaveBeenCalled();
+
+    const universal = sharedSpell();
+    fireEvent.click(screen.getByText(universal.nome));
+    expect(onChange).toHaveBeenCalledWith([
+      a1,
+      a2,
+      a3,
+      expect.objectContaining({ nome: universal.nome }),
+    ]);
   });
 });
 

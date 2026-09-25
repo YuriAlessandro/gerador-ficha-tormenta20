@@ -10,6 +10,7 @@ interface LevelSpellSelectionStepProps {
   spellCircle: number;
   onSpellToggle: (spell: Spell) => void;
   crossTraditionSpellNames?: Set<string>;
+  sharedTraditionSpellNames?: Set<string>;
   crossTraditionLabel?: string;
   crossTraditionLimit?: number;
   /** Linhagem Abençoada no 1º nível via multiclasse. */
@@ -23,6 +24,7 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
   spellCircle,
   onSpellToggle,
   crossTraditionSpellNames,
+  sharedTraditionSpellNames,
   crossTraditionLabel,
   crossTraditionLimit,
   minCrossTraditionSpells,
@@ -41,6 +43,7 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
       requiredCount={requiredCount}
       onToggle={onSpellToggle}
       crossTraditionSpellNames={crossTraditionSpellNames}
+      sharedTraditionSpellNames={sharedTraditionSpellNames}
       crossTraditionLabel={crossTraditionLabel}
       crossTraditionLimit={crossTraditionLimit}
       minCrossTraditionSpells={minCrossTraditionSpells}

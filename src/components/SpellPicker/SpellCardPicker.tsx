@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
+import { countTowardsCrossMinimum } from '@/functions/spellPathUtils';
 import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
 import {
   SpellFilterState,
@@ -35,6 +36,8 @@ interface SpellCardPickerProps {
   crossTraditionLabel?: string;
   /** Teurgista Místico: máximo de magias da tradição oposta POR CÍRCULO. */
   crossTraditionLimit?: number;
+  /** Universais (nas duas listas): podem preencher o mínimo abaixo. */
+  sharedTraditionSpellNames?: Set<string>;
   /** Linhagem Abençoada: ao menos N das escolhidas da tradição oposta. */
   minCrossTraditionSpells?: number;
   /** Presente = mostra o filtro arcana/divina. */
@@ -55,6 +58,7 @@ const SpellCardPicker: React.FC<SpellCardPickerProps> = ({
   crossTraditionLabel = 'Outra tradição',
   crossTraditionLimit,
   minCrossTraditionSpells = 0,
+  sharedTraditionSpellNames,
   traditionNames,
   emptyMessage = 'Nenhuma magia disponível.',
 }) => {
@@ -98,10 +102,23 @@ const SpellCardPicker: React.FC<SpellCardPickerProps> = ({
     return map;
   }, [selectedSpells, crossTraditionSpellNames]);
 
-  const selectedCrossCount = Array.from(selectedCrossByCircle.values()).reduce(
-    (sum, count) => sum + count,
-    0
+  const shared = sharedTraditionSpellNames ?? new Set<string>();
+  const selectedCrossCount = countTowardsCrossMinimum(
+    selectedSpells,
+    crossTraditionSpellNames ?? new Set<string>(),
+    shared,
+    requiredCount,
+    minCrossTraditionSpells
   );
+  // Vagas da tradição nativa esgotadas: outra exclusiva dela deixaria o mínimo
+  // da tradição oposta impossível — só cross e universal seguem liberadas.
+  const selectedNativeOnly = selectedSpells.filter(
+    (spell) =>
+      !crossTraditionSpellNames?.has(spell.nome) && !shared.has(spell.nome)
+  ).length;
+  const nativeSlotsFull =
+    minCrossTraditionSpells > 0 &&
+    selectedNativeOnly >= requiredCount - minCrossTraditionSpells;
   const isAnyCrossCircleAtLimit =
     crossTraditionLimit !== undefined &&
     Array.from(selectedCrossByCircle.values()).some(
@@ -142,6 +159,8 @@ const SpellCardPicker: React.FC<SpellCardPickerProps> = ({
           Ao menos {minCrossTraditionSpells} das {requiredCount} magias precisa
           ser {crossTraditionLabel.toLowerCase()} ({selectedCrossCount}{' '}
           selecionada{selectedCrossCount === 1 ? '' : 's'}).
+          {shared.size > 0 &&
+            ' Magias universais contam para esse mínimo depois de preencherem as demais vagas.'}
         </Alert>
       )}
 
@@ -193,6 +212,7 @@ const SpellCardPicker: React.FC<SpellCardPickerProps> = ({
         {filteredSpells.map((spell) => {
           const selected = isSelected(spell);
           const cross = isCross(spell);
+          const universal = shared.has(spell.nome);
           const circleAtLimit =
             crossTraditionLimit !== undefined &&
             (selectedCrossByCircle.get(spell.spellCircle) || 0) >=
@@ -200,7 +220,8 @@ const SpellCardPicker: React.FC<SpellCardPickerProps> = ({
           const canSelect =
             !selected &&
             selectedSpells.length < requiredCount &&
-            !(cross && circleAtLimit);
+            !(cross && circleAtLimit) &&
+            !(nativeSlotsFull && !cross && !universal);
 
           return (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={spell.nome}>
@@ -251,6 +272,13 @@ const SpellCardPicker: React.FC<SpellCardPickerProps> = ({
                           label={crossTraditionLabel}
                           size='small'
                           color='secondary'
+                          variant='outlined'
+                        />
+                      )}
+                      {universal && minCrossTraditionSpells > 0 && (
+                        <Chip
+                          label='Universal'
+                          size='small'
                           variant='outlined'
                         />
                       )}
