@@ -161,6 +161,23 @@ const Changelog: React.FC = () => {
                   de confirmar, uma janela mostra o que vai sair.
                 </li>
                 <li>
+                  <strong>Novo:</strong> <strong>Parceiros na ficha</strong>.
+                  Agora você mesmo adiciona parceiros pela seção Parceiros da
+                  ficha, escolhendo o tipo e o patamar (iniciante, veterano ou
+                  mestre), e os bônus entram sozinhos. O parceiro fica salvo na
+                  ficha e vale em todos os encontros. A ficha avisa quando você
+                  passa do limite do seu nível (1 parceiro até o 4º nível, 2 até
+                  o 16º e 3 a partir do 17º).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Na mesa virtual, o mestre pode criar{' '}
+                  <strong>parceiros combinando tipos</strong>, como uma médica
+                  fortona que dá as vantagens do Médico e do Fortão. Só o mestre
+                  atribui esses parceiros, e ele pode editar qualquer parceiro
+                  das fichas da mesa. Os que ele atribui ficam travados para o
+                  jogador.
+                </li>
+                <li>
                   <strong>Correção:</strong> Fichas <strong>multiclasse</strong>{' '}
                   podiam não conseguir voltar ao nível 1: cada classe tinha
                   mínimo de 1 nível, então um Guerreiro 1 / Ladino 1 ficava

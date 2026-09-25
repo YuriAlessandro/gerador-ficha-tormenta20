@@ -16,6 +16,7 @@ import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
 import type { SheetAge } from './Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
+import type { SheetPartner } from '../premium/interfaces/Partner';
 import type { DiceRoll } from './DiceRoll';
 import type { PlayerJournal } from './PlayerJournal';
 import type { SupplementId } from '../types/supplement.types';
@@ -1092,6 +1093,7 @@ export default interface CharacterSheet {
   multiclassSetups?: Record<string, ClassSetupSelection>; // Multiclasse: escolhas do 1º nível por className (linhagem, deus, escolas)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
   animalCompanions?: SheetAnimalCompanion[]; // Companheiro(s) Animal(is) do Druida
+  partners?: SheetPartner[]; // Parceiros persistentes (JdA cap. 6) — ver `SheetPartner`
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
   activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
   /**

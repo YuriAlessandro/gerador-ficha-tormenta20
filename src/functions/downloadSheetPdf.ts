@@ -205,6 +205,31 @@ const buildExtraSections = (
   ];
   push('Companheiros', companionLines.join('\n'));
 
+  // Parceiros (JdA cap. 6). Tipos crus, como o companheiro acima: o PDF não
+  // depende do catálogo premium para rotular.
+  const partnerLines = (sheet.partners ?? []).map((partner) => {
+    const components = partner.snapshot?.components?.length
+      ? partner.snapshot.components
+      : [];
+    const types =
+      components.length > 0
+        ? components.map((c) => c.archetype).join(' + ')
+        : partner.archetype ?? partner.snapshot?.archetype ?? '';
+    const tier = partner.tier ?? components[0]?.tier ?? partner.snapshot?.tier;
+    const name =
+      partner.customName?.trim() ||
+      partner.snapshot?.name ||
+      types ||
+      'Parceiro';
+    const details = [types !== name ? types : '', tier ?? '']
+      .filter(Boolean)
+      .join(', ');
+    return `- ${name}${details ? ` (${details})` : ''}${
+      partner.inactive ? ' — inativo' : ''
+    }`;
+  });
+  push('Parceiros', partnerLines.join('\n'));
+
   // O template tem campo para T$ e TO, mas não para TC.
   if (sheet.dinheiroTC)
     push('Moedas', `Tibar de Cobre (TC): ${sheet.dinheiroTC}`);

@@ -125,6 +125,7 @@ import {
   getAnimalCompanionActivatedPowers,
   reconcileAnimalCompanionEffects,
 } from '@/premium/functions/animalCompanionEffects';
+import { reconcileSheetPartnerEffects } from '@/premium/functions/sheetPartners';
 import { reconcileAutoPowerEffects } from '@/premium/functions/autoPowerEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
 import { needsTormentaPenaltyBackfill } from '@/functions/tormentaCharismaPenalty';
@@ -342,6 +343,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
   const complicationsFeature = useFeatureAccess('complications');
+  const partnersFeature = useFeatureAccess('partners');
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
   // forma); este componente precisa ficar transparente para não cobri-lo.
@@ -682,11 +684,17 @@ const Result: React.FC<ResultProps> = (props) => {
   React.useEffect(() => {
     if (!onSheetUpdate) return;
     const companions = reconcileAnimalCompanionEffects(currentSheet);
-    const base = companions
+    const afterCompanions = companions
       ? { ...currentSheet, activeEffects: companions }
       : currentSheet;
+    // Parceiros da ficha: mesma forma do companheiro (um efeito passivo por
+    // parceiro, derivado de `sheet.partners`).
+    const partners = reconcileSheetPartnerEffects(afterCompanions);
+    const base = partners
+      ? { ...afterCompanions, activeEffects: partners }
+      : afterCompanions;
     const auto = reconcileAutoPowerEffects(base);
-    const nextEffects = auto ?? companions;
+    const nextEffects = auto ?? partners ?? companions;
     // Terceiro reconciliador, mesma forma: ficha criada antes de a perda de
     // Carisma por poderes da Tormenta existir no motor do assistente (v4.30)
     // nunca recebeu o desconto, porque ABRIR uma ficha não dispara recálculo.
@@ -2422,14 +2430,21 @@ const Result: React.FC<ResultProps> = (props) => {
       defaultTitle: 'Parceiros',
       iconKey: 'mui:Groups',
       withTitle: false,
-      available: true,
+      available: partnersFeature.isEnabled,
       selfContained: true,
       actions: [],
       body: (
         <>
-          <Box sx={{ mb: 4 }}>
-            <PartnerSheetPanel />
-          </Box>
+          {partnersFeature.isEnabled && (
+            <Box sx={{ mb: 4 }}>
+              <PartnerSheetPanel
+                sheet={currentSheet}
+                onSheetUpdate={
+                  onSheetUpdate ? applyRecalculatedSheet : undefined
+                }
+              />
+            </Box>
+          )}
         </>
       ),
     },
