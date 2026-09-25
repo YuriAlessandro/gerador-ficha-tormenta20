@@ -274,7 +274,7 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
           powers,
           editor.handleClassPowerRemove,
           `classPower:${className}`,
-          (p) => !getAvailability(p, 'class').available
+          (p) => !getAvailability(p, 'class', className).available
         )
       );
     });

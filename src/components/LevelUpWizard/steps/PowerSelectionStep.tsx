@@ -27,6 +27,11 @@ interface PowerSelectionStepProps {
   onGeneralPowerSelect: (power: GeneralPower) => void;
   onAlmaLivrePowerSelect?: (power: ClassPower) => void;
   className: string;
+  /**
+   * Nível-alvo em `className`. Os requisitos de NÍVEL dos poderes dessa
+   * classe são mostrados contra ele, não contra o nível de personagem.
+   */
+  classLevel?: number;
   knownClassPowers?: string[];
   knownGeneralPowers?: string[];
   unavailableGeneralPowers?: string[];
@@ -149,6 +154,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   onGeneralPowerSelect,
   onAlmaLivrePowerSelect,
   className,
+  classLevel,
   knownClassPowers = [],
   knownGeneralPowers = [],
   unavailableGeneralPowers = [],
@@ -204,7 +210,13 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
         // qual requisito falhou, que é o motivo de o poder ficar listado.
         const evaluated = evaluatePowerRequirements(
           power,
-          { sheet, className: entry.source.className },
+          {
+            sheet,
+            className: entry.source.className,
+            // Poder emprestado de outra classe (waiver) não usa este nível
+            classLevel:
+              entry.source.className === className ? classLevel : undefined,
+          },
           'class'
         );
         if (unavailableClassPowers.includes(power.name)) {
