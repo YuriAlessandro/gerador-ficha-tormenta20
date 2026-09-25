@@ -21,7 +21,7 @@ export const equipamentoAventureiro: Equipment[] = [
     nome: 'Água benta',
     group: 'Item Geral',
     preco: parsePrice('T$ 10'),
-    descricao: 'Produzida com a magia Abençoar Alimentos, esta água sagrada é um poderoso recurso na luta contra o mal. Para usar a água benta, você gasta uma ação padrão e escolhe um morto-vivo ou abissal em alcance curto (a água benta é inofensiva contra outras criaturas). O alvo sofre 2d10 pontos de dano de luz (Reflexos CD Sab reduz à metade).',
+    descricao: 'Ação padrão; morto-vivo ou abissal em alcance curto sofre 2d10 de dano de luz (Reflexos CD Sab reduz à metade).',
     spaces: parseSpaces(0.5),
     rolls: [
       {
@@ -36,63 +36,62 @@ export const equipamentoAventureiro: Equipment[] = [
     nome: 'Algemas',
     group: 'Item Geral',
     preco: parsePrice('T$ 15'),
-    descricao: 'Um par de algemas para criaturas Médias. Prender uma criatura que não esteja indefesa exige empunhar a algema, agarrar o alvo (veja “Manobras de Combate”, no Capítulo 5) e vencer um novo teste de agarrar contra ela. Você pode prender os dois pulsos da pessoa (–5 em testes que exijam o uso das mãos, impede conjuração) ou um dos pulsos dela em um objeto imóvel adjacente, caso haja, para impedir que ela se mova. Escapar das algemas exige uma ação completa e um teste de Acrobacia contra CD 30 ou de Força contra CD 25 — ou ter as chaves...',
+    descricao: 'Prender: agarrar o alvo + vencer novo teste de agarrar. Dois pulsos presos: –5 em testes com as mãos, impede conjuração. Escapar: ação completa, Acrobacia CD 30 ou Força CD 25.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Arpéu',
     group: 'Item Geral',
     preco: parsePrice('T$ 5'),
-    descricao: 'Um gancho de aço amarrado na ponta de uma corda para se fixar em muros, janelas, parapeitos de prédios... Prender um arpéu exige um teste de Pontaria (CD 15). Subir um muro com a ajuda de uma corda fornece +5 no teste de Atletismo.',
+    descricao: 'Prender: Pontaria CD 15. +5 em Atletismo para subir muro com corda.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Bandoleira de poções',
     group: 'Item Geral',
     preco: parsePrice('T$ 20'),
-    descricao: 'Um cinto de couro com bolsos que comportam pequenos frascos. Se você estiver vestindo uma bandoleira, pode sacar itens alquímicos e poções como uma ação livre.',
+    descricao: 'Sacar itens alquímicos e poções como ação livre.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Barraca',
     group: 'Item Geral',
     preco: parsePrice('T$ 10'),
-    descricao: 'Esta barraca de lona conta como um saco de dormir para duas pessoas e fornece +2 em testes de Sobrevivência para acampar.',
+    descricao: 'Conta como saco de dormir para 2 pessoas. +2 em Sobrevivência para acampar.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Corda',
     group: 'Item Geral',
     preco: parsePrice('T$ 1'),
-    descricao: 'Um rolo com 10 metros de corda de cânhamo, o mesmo tipo usado em navios. Possui diversas utilidades: pode ajudar a descer um buraco ou muro (+5 em testes de Atletismo nessas situações), amarrar pessoas etc. Dar um nó firme ou especial (por exemplo, capaz de deslizar, se desfazer com um puxão etc.) exige um teste de Destreza (CD 15). Arrebentar a corda exige 2 pontos de dano de corte ou uma ação padrão e um teste de Força (CD 20).',
+    descricao: '+5 em Atletismo para descer buraco/muro. Nó: Destreza CD 15. Arrebentar: ação padrão, 2 de dano de corte ou Força CD 20.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Espelho',
     group: 'Item Geral',
     preco: parsePrice('T$ 10'),
-    descricao: 'Este pequeno espelho possui diversas utilidades: observar cantos, fazer sinais de luz e, claro, garantir que você esteja apresentável.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Lampião',
     group: 'Item Geral',
     preco: parsePrice('T$ 7'),
-    descricao: 'Um cilindro com uma alça e duas portinholas. Uma chama alimentada por óleo é acesa dentro do cilindro e uma das portinholas aberta deixa a luz sair. Acender um lampião é uma ação padrão e sua luz ilumina um raio com 15m. Carregar um lampião com óleo é uma ação padrão e ele dura uma cena.',
+    descricao: 'Acender: ação padrão. Ilumina raio de 15m, dura uma cena.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Mochila',
     group: 'Item Geral',
     preco: parsePrice('T$ 2'),
-    descricao: 'Uma bolsa de lona com tiras para ser carregada nas costas. Não conta como item vestido.',
+    descricao: 'Não conta como item vestido.',
     spaces: parseSpaces('—'),
   },
   {
     nome: 'Mochila de aventureiro',
     group: 'Item Geral',
     preco: parsePrice('T$ 50'),
-    descricao: 'Feita de couro resistente, esta mochila é repleta de bolsos para prender equipamento. Vestir uma mochila de aventureiro aumenta sua capacidade de carga em 2 espaços (ela própria não gasta um espaço).',
+    descricao: '+2 espaços de capacidade de carga (ela própria não gasta um espaço).',
     spaces: parseSpaces('—'),
     sheetBonuses: [
       {
@@ -106,35 +105,35 @@ export const equipamentoAventureiro: Equipment[] = [
     nome: 'Óleo',
     group: 'Item Geral',
     preco: parsePrice('T$ 0,1'),
-    descricao: 'Um frasco com óleo inflamável para lampião. Você pode atirar o frasco em uma criatura em alcance curto com uma ação padrão. Se ela sofrer dano de fogo até o fim do seu próximo turno, sofre 1d6 pontos de dano extra e fica em chamas.',
+    descricao: 'Atirar frasco: ação padrão, alcance curto. Se ela sofrer dano de fogo até o fim do seu próximo turno, sofre +1d6 de dano e fica em chamas.',
     spaces: parseSpaces(0.5),
   },
   {
     nome: 'Organizador de pergaminhos',
     group: 'Item Geral',
     preco: parsePrice('T$ 25'),
-    descricao: 'Um estojo de madeira ou couro rígido. Se você estiver vestindo um organizador de pergaminhos, pode sacar pergaminhos como uma ação livre.',
+    descricao: 'Sacar pergaminhos como ação livre.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Pé de cabra',
     group: 'Item Geral',
     preco: parsePrice('T$ 2'),
-    descricao: 'Esta barra de ferro fornece +5 em testes de Força para abrir portas, janelas e baús fechados. Um pé de cabra pode ser usado como arma, com as estatísticas de uma clava.',
+    descricao: '+5 em Força para abrir portas, janelas e baús. Conta como arma (clava).',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Saco de dormir',
     group: 'Item Geral',
     preco: parsePrice('T$ 1'),
-    descricao: 'Um colchão com uma coberta fina o bastante para ser enrolada e amarrada, é especialmente útil para aventureiros, que nunca sabem onde vão passar a noite. Dormir ao relento sem um acampamento e um saco de dormir diminui sua recuperação de PV e PM (veja a página 106).',
+    descricao: 'Dormir ao relento sem acampamento e saco de dormir diminui recuperação de PV e PM.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Símbolo sagrado',
     group: 'Item Geral',
     preco: parsePrice('T$ 5'),
-    descricao: 'Um medalhão de madeira ou metal com o símbolo de uma divindade. Se você estiver vestindo (normalmente com uma corrente ao redor do pescoço) ou empunhando o símbolo sagrado de um deus do qual é devoto, recebe +1 em testes de resistência.',
+    descricao: '+1 em testes de resistência se estiver vestindo ou empunhando o símbolo sagrado de um deus do qual é devoto.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -158,7 +157,7 @@ export const equipamentoAventureiro: Equipment[] = [
     nome: 'Tocha',
     group: 'Item Geral',
     preco: parsePrice('T$ 0,1'),
-    descricao: 'Um bastão de madeira com algum combustível na ponta (geralmente trapos embebidos em parafina). Acender uma tocha é uma ação padrão. Ela ilumina um raio de 9m e dura uma cena. Pode ser usada como uma arma simples leve (dano 1d4 de impacto mais 1 de fogo, crítico x2).',
+    descricao: 'Acender: ação padrão. Ilumina raio de 9m e dura uma cena. Arma simples leve: 1d4 impacto + 1 fogo, crítico x2.',
     spaces: parseSpaces(1),
     canBeUsedAsWeapon: true,
     weaponStats: {
@@ -171,7 +170,6 @@ export const equipamentoAventureiro: Equipment[] = [
     nome: 'Vara de madeira (3m)',
     group: 'Item Geral',
     preco: parsePrice('T$ 0,2'),
-    descricao: 'Uma haste com 3m de comprimento. Útil para alcançar pontos distantes, mas frágil demais para servir como arma.',
     spaces: parseSpaces(1),
   },
 ];
@@ -182,14 +180,14 @@ export const ferramentas: Equipment[] = [
     nome: 'Alaúde élfico',
     group: 'Item Geral',
     preco: parsePrice('T$ 300'),
-    descricao: 'Feito com madeira de alta qualidade e manufatura delicada, este alaúde gera notas vívidas e emocionantes. Enquanto empunha este item, você pode usar a habilidade Inspiração como uma ação de movimento. Conta como um instrumento musical.',
+    descricao: 'Inspiração como ação de movimento. Conta como instrumento musical.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Coleção de livros',
     group: 'Item Geral',
     preco: parsePrice('T$ 75'),
-    descricao: 'Uma pequena coleção de tomos e tratados sobre um assunto. Fornece +1 em Conhecimento, Guerra, Misticismo, Nobreza ou Religião (definido quando o item é comprado ou fabricado).',
+    descricao: '+1 em Conhecimento, Guerra, Misticismo, Nobreza ou Religião (definido na compra).',
     spaces: parseSpaces(1),
     selectableBonus: {
       availableSkills: [
@@ -207,21 +205,21 @@ export const ferramentas: Equipment[] = [
     nome: 'Equipamento de viagem',
     group: 'Item Geral',
     preco: parsePrice('T$ 10'),
-    descricao: 'Um saco de lona contendo instrumentos úteis para sobreviver nos ermos, como pederneira (pedra para fazer fogo), panelas e talheres para cozinhar, anzól e linha para pescar e uma pequena pá. Um personagem sem este item sofre –5 em testes de Sobrevivência para fazer um acampamento. Não inclui saco de dormir ou barraca.',
+    descricao: 'Sem ele: –5 em Sobrevivência para acampar.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Estojo de disfarces',
     group: 'Item Geral',
     preco: parsePrice('T$ 50'),
-    descricao: 'Um conjunto de cosméticos, tintas para cabelo e algumas próteses simples (como bigodes e narizes falsos). Um personagem sem este item sofre –5 em testes de Enganação para disfarce.',
+    descricao: 'Sem ele: –5 em Enganação para disfarce.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Flauta mística',
     group: 'Item Geral',
     preco: parsePrice('T$ 150'),
-    descricao: 'Um instrumento delicado, repleto de runas e pequenas gemas místicas. Um bardo que empunhe este item aumenta a CD para resistir às magias lançadas por ele em +1. Conta como um instrumento musical.',
+    descricao: '+1 na CD de resistência das magias. Conta como instrumento musical.',
     spaces: parseSpaces(1),
     conditionalBonuses: [
       {
@@ -240,7 +238,7 @@ export const ferramentas: Equipment[] = [
     nome: 'Gazua',
     group: 'Item Geral',
     preco: parsePrice('T$ 5'),
-    descricao: 'Uma barra fina de ferro, com a ponta torta ou em forma de gancho. Um personagem sem este item sofre –5 em testes de Ladinagem para abrir fechaduras.',
+    descricao: 'Sem ela: –5 em Ladinagem para abrir fechaduras.',
     spaces: parseSpaces(1),
   },
   {
@@ -253,35 +251,35 @@ export const ferramentas: Equipment[] = [
     nome: 'Instrumento musical',
     group: 'Item Geral',
     preco: parsePrice('T$ 35'),
-    descricao: 'Um instrumento típico, como um bandolim, flauta ou lira. Veja o quadro acima para as regras deste item.',
+    descricao: 'Empunhar com as duas mãos para usar Músicas de Bardo. Conta como esotérico para bardos.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Luneta',
     group: 'Item Geral',
     preco: parsePrice('T$ 100'),
-    descricao: 'Este instrumento valioso consiste de um cilindro metálico com duas lentes. Fornece +5 em testes de Percepção para observar coisas em alcance longo ou além.',
+    descricao: '+5 em Percepção para observar em alcance longo ou além.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Maleta de medicamentos',
     group: 'Item Geral',
     preco: parsePrice('T$ 50'),
-    descricao: 'Caixa de madeira com ervas, unguentos, bandagens e outros materiais úteis. Um personagem sem este item sofre –5 em Cura.',
+    descricao: 'Sem ela: –5 em Cura.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Sela',
     group: 'Item Geral',
     preco: parsePrice('T$ 20'),
-    descricao: 'Uma peça de couro e pelego colocada sobre o lombo da montaria, sobre a qual o cavaleiro se senta. Inclui arreios para conduzir o animal. Um personagem montado em uma montaria sem sela sofre –5 em testes de Cavalgar. Usada no animal, a sela não ocupa espaço de carga do personagem.',
+    descricao: 'Sem sela: –5 em Cavalgar. Não ocupa espaço (usada no animal).',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Tambor das profundezas',
     group: 'Item Geral',
     preco: parsePrice('T$ 80'),
-    descricao: 'Um instrumento típico de anões de Doherimm, capaz de sons graves e retumbantes. Enquanto empunha este item, o alcance da habilidade Inspiração e de qualquer Música de Bardo é dobrado. Conta como um instrumento musical.',
+    descricao: 'Dobra alcance de Inspiração e Músicas de Bardo. Conta como instrumento musical.',
     spaces: parseSpaces(1),
   },
 ];
@@ -292,14 +290,14 @@ export const vestuario: Equipment[] = [
     nome: 'Andrajos de aldeão',
     group: 'Vestuário',
     preco: parsePrice('T$ 1'),
-    descricao: 'Roupas típicas de camponês. Consiste de camisa larga e calças soltas ou blusa e saia e não inclui botas — os mais pobres andam descalços. Fornece +2 em testes de Investigação para interrogar (ninguém se importa com o que um aldeão escuta) e, se você possuir o poder Aparência Inofensiva, a CD para resistir a ele aumenta em +2. Porém, impõe –2 em perícias baseadas em Carisma contra pessoas que se importam com classe social.',
+    descricao: '+2 em Investigação para interrogar. Se possuir o poder Aparência Inofensiva: +2 na CD. Impõe –2 em perícias de Carisma contra pessoas que se importam com classe social.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Bandana',
     group: 'Vestuário',
     preco: parsePrice('T$ 5'),
-    descricao: 'Um lenço tipicamente usado por bandidos e piratas. Fornece +1 em Intimidação.',
+    descricao: '+1 em Intimidação.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -313,14 +311,14 @@ export const vestuario: Equipment[] = [
     nome: 'Botas reforçadas',
     group: 'Vestuário',
     preco: parsePrice('T$ 20'),
-    descricao: 'Grossas e resistentes, estas botas de cano alto protegem contra perigos do terreno. Aumentam seu deslocamento em +1,5m se ele for reduzido por terreno difícil (após a redução).',
+    descricao: '+1,5m de deslocamento se reduzido por terreno difícil (após a redução).',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Camisa bufante',
     group: 'Vestuário',
     preco: parsePrice('T$ 25'),
-    descricao: 'Blusa colorida, com mangas e golas longas e encrespadas. Fornece +1 em Atuação.',
+    descricao: '+1 em Atuação.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -334,7 +332,7 @@ export const vestuario: Equipment[] = [
     nome: 'Capa esvoaçante',
     group: 'Vestuário',
     preco: parsePrice('T$ 25'),
-    descricao: 'Favorita entre heróis ousados, esta capa de seda produz movimentos amplos e chamativos, que fornecem +1 em Enganação.',
+    descricao: '+1 em Enganação.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -348,7 +346,7 @@ export const vestuario: Equipment[] = [
     nome: 'Capa pesada',
     group: 'Vestuário',
     preco: parsePrice('T$ 15'),
-    descricao: 'Uma capa de couro grossa e resistente. Protege e aquece o corpo, fornecendo +1 em Fortitude.',
+    descricao: '+1 em Fortitude.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -362,14 +360,14 @@ export const vestuario: Equipment[] = [
     nome: 'Casaco longo',
     group: 'Vestuário',
     preco: parsePrice('T$ 20'),
-    descricao: 'Feito de peles ou couro grosso forrado com lã, e impermeabilizado com óleo, este casaco é quente e pesado. Fornece +5 em testes de Fortitude para resistir a efeitos de frio, mas impõe penalidade de armadura de –2.',
+    descricao: '+5 em Fortitude contra frio; penalidade de armadura –2.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Chapéu arcano',
     group: 'Vestuário',
     preco: parsePrice('T$ 50'),
-    descricao: 'Com pinturas e bordados de símbolos místicos, este chapéu pontudo ajuda a canalizar energias mágicas. Ele fornece +1 ponto de mana, mas apenas se você possuir a habilidade de classe Caminho do Arcanista.',
+    descricao: '+1 PM (somente com Caminho do Arcanista).',
     spaces: parseSpaces(1),
     conditionalBonuses: [
       {
@@ -388,7 +386,7 @@ export const vestuario: Equipment[] = [
     nome: 'Enfeite de elmo',
     group: 'Vestuário',
     preco: parsePrice('T$ 15'),
-    descricao: 'Um adorno chamativo, como crina de cavalo, plumas, asas ou um totem de animal. Fornece resistência a medo +2.',
+    descricao: 'Resistência a medo +2.',
     spaces: parseSpaces(1),
   },
   {
@@ -401,7 +399,7 @@ export const vestuario: Equipment[] = [
     nome: 'Farrapos de ermitão',
     group: 'Vestuário',
     preco: parsePrice('T$ 5'),
-    descricao: 'Trapos “adornados” com plantas e raízes. Uma pessoa vestindo farrapos de ermitão não parece muito civilizada, e sofre –2 em Diplomacia e em testes de Investigação para interrogar. Entretanto, recebe +2 em Adestramento.',
+    descricao: '+2 em Adestramento; –2 em Diplomacia e Investigação para interrogar.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -420,7 +418,7 @@ export const vestuario: Equipment[] = [
     nome: 'Gorro de ervas',
     group: 'Vestuário',
     preco: parsePrice('T$ 75'),
-    descricao: 'Formado por duas camadas de tecido, este chapéu é preenchido com ervas preparadas para auxiliar a concentração do usuário. Fornece +1 em Vontade.',
+    descricao: '+1 em Vontade.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -434,7 +432,7 @@ export const vestuario: Equipment[] = [
     nome: 'Luva de pelica',
     group: 'Vestuário',
     preco: parsePrice('T$ 5'),
-    descricao: 'Estas luvas delicadas preservam o tato e impedem que o suor deixe os dedos escorregadios. Fornecem +1 em Ladinagem.',
+    descricao: '+1 em Ladinagem.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -448,21 +446,21 @@ export const vestuario: Equipment[] = [
     nome: 'Manopla',
     group: 'Vestuário',
     preco: parsePrice('T$ 10'),
-    descricao: 'Luva metálica que permite socos mais perigosos — o dano de seus ataques desarmados torna-se letal. Uma manopla conta como uma arma para receber melhorias e encantos para usá-los em seus ataques desarmados.',
+    descricao: 'Ataques desarmados viram letais. Conta como arma para melhorias e encantos.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Manto camuflado',
     group: 'Vestuário',
     preco: parsePrice('T$ 12'),
-    descricao: 'Um manto camuflado é feito para um tipo de terreno específico (veja a habilidade Explorador, na página 51). Por exemplo, um manto camuflado para floresta pode ser verde e marrom e coberto de folhas, enquanto um manto urbano pode ser cinza ou negro. Usar um manto camuflado no terreno correto fornece +2 em Furtividade.',
+    descricao: '+2 em Furtividade no terreno escolhido.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Manto eclesiástico',
     group: 'Vestuário',
     preco: parsePrice('T$ 20'),
-    descricao: 'Um manto típico de igrejas e templos. Fornece +1 em Religião.',
+    descricao: '+1 em Religião.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -476,7 +474,7 @@ export const vestuario: Equipment[] = [
     nome: 'Robe místico',
     group: 'Vestuário',
     preco: parsePrice('T$ 50'),
-    descricao: 'Um manto longo, adornado com temas arcanos. Fornece +1 em Misticismo.',
+    descricao: '+1 em Misticismo.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -490,7 +488,7 @@ export const vestuario: Equipment[] = [
     nome: 'Sapatos de andruança',
     group: 'Vestuário',
     preco: parsePrice('T$ 8'),
-    descricao: 'Leves e resistentes, aprimoram o equilíbrio e a firmeza dos pés, fornecendo +1 em Acrobacia.',
+    descricao: '+1 em Acrobacia.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -504,7 +502,7 @@ export const vestuario: Equipment[] = [
     nome: 'Tabardo',
     group: 'Vestuário',
     preco: parsePrice('T$ 10'),
-    descricao: 'Uma peça de tecido usada como um colete, cobrindo o peito e as costas. Geralmente ostenta a heráldica de um reino, igreja, casa nobre ou ordem de cavaleiros. Fornece +1 em Diplomacia.',
+    descricao: '+1 em Diplomacia.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -518,21 +516,20 @@ export const vestuario: Equipment[] = [
     nome: 'Traje da corte',
     group: 'Vestuário',
     preco: parsePrice('T$ 100'),
-    descricao: 'Roupas de luxo, feitas sob medida e adequadas à nobreza e realeza. Inclui algumas joias, como aneis e colares. Em certos ambientes (um baile, um salão de palácio), um personagem que não esteja vestindo este item sofre –5 em perícias baseadas em Carisma.',
+    descricao: 'Sem ele em ambientes formais (bailes, palácios): –5 em perícias de Carisma.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Traje de viajante',
     group: 'Vestuário',
     preco: parsePrice('T$ 10'),
-    descricao: 'Inclui botas, calças ou saias, cinto, camisa de linho e capa com capuz. A roupa padrão de aventureiros.',
     spaces: parseSpaces(1),
   },
   {
     nome: 'Veste de seda',
     group: 'Vestuário',
     preco: parsePrice('T$ 25'),
-    descricao: 'Esta roupa leve e elegante deixa seus movimentos os mais livres possíveis. Fornece +1 em Reflexos.',
+    descricao: '+1 em Reflexos.',
     spaces: parseSpaces(1),
     sheetBonuses: [
       {
@@ -550,7 +547,7 @@ export const esotericos: Equipment[] = [
     nome: 'Bolsa de pó',
     group: 'Esotérico',
     preco: parsePrice('T$ 300'),
-    descricao: 'Uma bolsa com pó multicolorido, fabricado a partir das pétalas trituradas de flores que brilham fracamente. Uma ação padrão para atirar o pó em uma criatura em alcance curto. A criatura fica cega por 1d4 rodadas (Reflexos CD Sab anula). Uma sessão de po dura 10 usos.',
+    descricao: 'Ação padrão, alcance curto: criatura fica cega 1d4 rodadas (Reflexos CD Sab anula). 10 usos.',
     spaces: parseSpaces(1),
   },
   {
