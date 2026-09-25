@@ -808,6 +808,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           sx={{
             fontSize: 16,
             display: 'flex',
+            flexWrap: { xs: 'wrap', md: 'nowrap' },
             alignItems: 'center',
             ...getConditionLabelStyle(attackConditions),
           }}
@@ -929,7 +930,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               alignItems: 'baseline',
               flexWrap: 'wrap',
               columnGap: 0.5,
-              ml: 0.5,
+              ml: { xs: 0, md: 0.5 },
+              width: { xs: '100%', md: 'auto' },
+              // No mobile as estatísticas descem para a linha de baixo e os
+              // controles (empunhadura, ajustes) ficam ao lado do nome.
+              order: { xs: 1, md: 0 },
             }}
           >
             {customSkill && (
