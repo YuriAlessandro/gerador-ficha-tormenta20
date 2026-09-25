@@ -30,6 +30,7 @@ const allItems: Equipment[] = [
   ...catalog.alchemy,
   ...catalog.food,
   ...catalog.animals,
+  ...catalog.vehicles,
 ];
 
 const defenseItems: Equipment[] = [...catalog.armors, ...catalog.shields];
@@ -149,5 +150,25 @@ describe('dados de equipamento', () => {
       .filter((item) => !item.descricao)
       .map((item) => item.nome);
     expect(semDescricao).toEqual([]);
+  });
+
+  it('os 4 veículos do core existem com group Veículo e preço correto', () => {
+    const coreVehicles = catalog.vehicles.filter(
+      (item) => !item.supplementId
+    );
+    expect(coreVehicles.map((v) => v.nome).sort()).toEqual([
+      'Balão goblin',
+      'Canoa',
+      'Carroça',
+      'Carruagem',
+    ]);
+    expect(
+      coreVehicles.every((item) => item.group === 'Veículo')
+    ).toBe(true);
+    expect(
+      coreVehicles.every(
+        (item) => typeof item.preco === 'number' && item.preco > 0
+      )
+    ).toBe(true);
   });
 });
