@@ -1,4 +1,5 @@
 import React from 'react';
+import { vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { TREASURE_DATASETS } from '@/data/treasure/treasureDatasets';
 import type { TreasureItemInfo } from '@/functions/treasure/treasureItemInfo';

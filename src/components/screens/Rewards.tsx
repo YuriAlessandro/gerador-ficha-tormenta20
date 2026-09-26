@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Container,
-  Link,
   Paper,
   Stack,
   Typography,
@@ -76,14 +75,6 @@ const readStoredMode = (): TreasureMode => {
     return 'basic';
   }
 };
-
-const SPREADSHEET_URL = `https://docs.google.com/spreadsheets/d/${TREASURE_DATASETS.supplements.tables.source.spreadsheetId}`;
-
-/** "Se você não possuir o livro de um item rolado, use o próximo item na lista." */
-const SPREADSHEET_BOOK_NOTE =
-  TREASURE_DATASETS.supplements.tables.introduction?.find((p) =>
-    p.includes('Se você não possuir o livro')
-  ) ?? '';
 
 const Rewards: React.FC = () => {
   const theme = useTheme();
@@ -370,32 +361,6 @@ const Rewards: React.FC = () => {
             </Box>
           </Box>
         </Paper>
-
-        {mode === 'supplements' && (
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              mb: 3,
-              borderRadius: 1,
-              borderLeft: `3px solid ${theme.palette.secondary.main}`,
-              backgroundColor: `${theme.palette.secondary.main}0D`,
-            }}
-          >
-            <Typography variant='body2' sx={{ mb: 1 }}>
-              {SPREADSHEET_BOOK_NOTE}
-            </Typography>
-            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-              Fonte:{' '}
-              <Link href={SPREADSHEET_URL} target='_blank' rel='noopener'>
-                Geração de Tesouros em Tormenta20
-              </Link>{' '}
-              — {TREASURE_DATASETS.supplements.tables.source.credits} Regras que
-              a planilha não detalha seguem os livros; quando nenhuma fonte
-              decide, o resultado vem com um aviso para o mestre.
-            </Typography>
-          </Paper>
-        )}
 
         {/* Results Section */}
         {results && results.length > 0 && (
