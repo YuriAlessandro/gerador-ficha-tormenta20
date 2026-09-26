@@ -150,6 +150,75 @@ const Changelog: React.FC = () => {
                 </Typography>
               </Alert>
 
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🧩 Layouts de ficha: monte a ficha do seu jeito
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Pelo novo botão <strong>Editar layout da ficha</strong>, você
+                  escolhe como a sua ficha é organizada. São três modelos:{' '}
+                  <strong>Abas</strong> (o arranjo de sempre),{' '}
+                  <strong>Página única</strong> (tudo numa rolagem só) e{' '}
+                  <strong>Menu de ação</strong> (uma tela por vez, trocada por
+                  uma barra fixa, no estilo dos apps de ficha para celular). A
+                  partir deles, o <strong>editor</strong> deixa arrastar cada
+                  card para onde você quiser, criar abas, grupos e telas, e
+                  mudar cores, fonte, estilo dos cards e imagem de fundo, com a
+                  prévia ao vivo.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Cada área e cada seção pode aparecer em{' '}
+                  <strong>todos os dispositivos</strong>, só no{' '}
+                  <strong>computador</strong> ou só no <strong>celular</strong>,
+                  e dá para duplicar uma seção para que ela fique em lugares
+                  diferentes em cada um. As seções e as abas podem ganhar{' '}
+                  <strong>ícones</strong>, escolhidos entre mais de 4 mil
+                  desenhos do{' '}
+                  <a href='https://game-icons.net' target='blank'>
+                    game-icons.net
+                  </a>{' '}
+                  (licença CC BY 3.0), com busca em português.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Os layouts ficam salvos na sua <strong>biblioteca</strong>:
+                  use o mesmo em várias fichas, atualize o modelo e aplique a
+                  mudança em todas as fichas que usam ele de uma vez, e escolha
+                  um <strong>layout padrão</strong> para as fichas novas. Dá
+                  para <strong>compartilhar</strong> um layout por link ou
+                  código, e a <strong>galeria</strong> reúne os layouts
+                  publicados pela comunidade.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  O layout é da ficha: o mestre e os colegas de mesa veem a
+                  ficha do jeito que você montou, tenham eles apoio ou não.
+                  Escolher, montar e salvar layouts é exclusivo para apoiadores,
+                  com até 3 layouts na biblioteca no Nível 1, 10 no Nível 2 e
+                  sem limite no Nível 3.
+                </Typography>
+              </Alert>
+
               <ul>
                 <li>
                   <strong>Novo:</strong> Botão <strong>Desfazer Nível</strong>{' '}
