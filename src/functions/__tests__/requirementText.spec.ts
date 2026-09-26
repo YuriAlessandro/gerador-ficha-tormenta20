@@ -39,6 +39,19 @@ describe('formatRequirement', () => {
       formatRequirement({ type: RequirementType.DEVOTO, name: 'any' })
     ).toBe('Devoto de qualquer divindade');
     expect(
+      formatRequirement({
+        type: RequirementType.DEVOTO_CLASSE,
+        name: 'Paladino',
+        text: 'Devoto de uma divindade que aceite paladinos',
+      })
+    ).toBe('Devoto de uma divindade que aceite paladinos');
+    expect(
+      formatRequirement({
+        type: RequirementType.DEVOTO_CLASSE,
+        name: 'Paladino',
+      })
+    ).toBe('Devoto de uma divindade que aceite Paladino');
+    expect(
       formatRequirement({ type: RequirementType.PROFICIENCIA, name: 'all' })
     ).toBe('Proficiência em qualquer arma');
     expect(
@@ -155,5 +168,26 @@ describe('formatRequirements', () => {
     expect(formatRequirements(armaSagrada?.requirements)).toBe(
       'Não ser devoto de Lena e Não ser devoto de Marah'
     );
+  });
+});
+
+describe('DEVOTO com lista de divindades (string[])', () => {
+  it('formata a lista na forma positiva', () => {
+    expect(
+      formatRequirement({
+        type: RequirementType.DEVOTO,
+        name: ['Azgher', 'Khalmyr', 'Valkaria'],
+      })
+    ).toBe('Devoto de uma destas divindades: Azgher, Khalmyr, Valkaria');
+  });
+
+  it('formata a lista na forma negada', () => {
+    expect(
+      formatRequirement({
+        type: RequirementType.DEVOTO,
+        name: ['Lena', 'Marah'],
+        not: true,
+      })
+    ).toBe('Não ser devoto de nenhuma destas divindades: Lena, Marah');
   });
 });

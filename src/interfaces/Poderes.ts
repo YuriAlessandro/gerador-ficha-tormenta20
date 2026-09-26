@@ -29,6 +29,13 @@ export enum RequirementType {
   TIPO_ARCANISTA = 'TIPO_ARCANISTA',
   MAGIA = 'MAGIA',
   DEVOTO = 'DEVOTO',
+  /**
+   * Devoto de divindade que ACEITA a classe nomeada em `name`
+   * (ex. Cavaleiro Sagrado: `{ DEVOTO_CLASSE, name: 'Paladino' }`).
+   * Avaliado por `deityAcceptsClass`, que respeita Devoções Abertas,
+   * deuses de suplemento/homebrew e o `faithProbability` da classe.
+   */
+  DEVOTO_CLASSE = 'DEVOTO_CLASSE',
   TEXT = 'TEXT',
   RACA = 'RACA',
   CHASSIS = 'CHASSIS',
@@ -38,7 +45,7 @@ export enum RequirementType {
 
 export interface Requirement {
   type: RequirementType;
-  name?: string | Atributo;
+  name?: string | string[] | Atributo;
   value?: number;
   not?: boolean;
   text?: string;
