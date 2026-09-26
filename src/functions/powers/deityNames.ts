@@ -100,18 +100,14 @@ export function hasDualDevotion(sheet: CharacterSheet): boolean {
 
 /**
  * Um requisito `DEVOTO` é satisfeito pelo conjunto de deuses da ficha?
- * Cobre `string`, `string[]` (uma dentre várias) e `'any'`. Comparação
- * case-insensitive.
+ * `'any'` = devoto de qualquer divindade. Comparação case-insensitive.
  */
 export function deityRequirementMatches(
-  reqName: string | string[] | undefined,
+  reqName: string | undefined,
   deityNames: string[]
 ): boolean {
   if (!reqName) return false;
   if (reqName === 'any') return deityNames.length > 0;
-  const deities = deityNames.map((n) => n.toLowerCase());
-  const wanted = (Array.isArray(reqName) ? reqName : [reqName]).map((n) =>
-    n.toLowerCase()
-  );
-  return wanted.some((n) => deities.includes(n));
+  const wanted = reqName.toLowerCase();
+  return deityNames.some((n) => n.toLowerCase() === wanted);
 }

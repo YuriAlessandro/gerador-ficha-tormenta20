@@ -133,8 +133,7 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       // poder concedido pode viver sozinho) e respeita o hook
       // `grantsPowerRequirements` — de habilidade racial (homebrew, via
       // `compileRace`) ou de poder ("Ginete Altivo" conta como "Ginete").
-      if (sheetSatisfiesPowerRequirement(sheet, rule.name as string))
-        return true;
+      if (sheetSatisfiesPowerRequirement(sheet, rule.name)) return true;
 
       // `classe.abilities` fica FORA de `sheetSatisfiesPowerRequirement` de
       // propósito (ver `powers/hasPowerNamed.ts`), mas alguns poderes pedem
@@ -158,7 +157,7 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
     case RequirementType.PERICIA: {
       const trainedSkills = getTrainedSkillNames(sheet);
 
-      if (isGenericOficio(rule.name as string)) {
+      if (isGenericOficio(rule.name)) {
         // isOficioSkill (e não a lista fechada) para que um Ofício
         // customizado também satisfaça o pré-requisito genérico
         return trainedSkills.some(isOficioSkill);

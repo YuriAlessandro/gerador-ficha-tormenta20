@@ -11,8 +11,11 @@ import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import { allDivineSpellsCircle1 } from '../magias/divine';
 
-/** Deuses que aceitam paladinos. Fonte única para faithProbability e Cavaleiro Sagrado. */
-export const PALADIN_DEITY_KEYS: DivindadeNames[] = [
+/**
+ * Deuses que aceitam paladinos. O Cavaleiro Sagrado (`DEVOTO_CLASSE`) lê esta
+ * lista via `faithProbability`, em `deityAcceptsClass`.
+ */
+const PALADIN_DEITY_KEYS: DivindadeNames[] = [
   'AZGHER',
   'KHALMYR',
   'LENA',

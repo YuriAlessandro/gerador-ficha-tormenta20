@@ -45,7 +45,7 @@ export enum RequirementType {
 
 export interface Requirement {
   type: RequirementType;
-  name?: string | string[] | Atributo;
+  name?: string | Atributo;
   value?: number;
   not?: boolean;
   text?: string;

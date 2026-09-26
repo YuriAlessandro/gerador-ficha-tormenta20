@@ -100,11 +100,7 @@ export function getPowerDeityNames(
   power.requirements?.forEach((group) => {
     group.forEach((req) => {
       if (req.type === RequirementType.DEVOTO && !req.not && req.name) {
-        if (Array.isArray(req.name)) {
-          req.name.forEach((n) => required.add(n));
-        } else {
-          required.add(req.name);
-        }
+        required.add(req.name);
       }
     });
   });
