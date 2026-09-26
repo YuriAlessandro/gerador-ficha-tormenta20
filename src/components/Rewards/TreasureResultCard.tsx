@@ -106,15 +106,51 @@ interface RollTagProps {
   label: string;
 }
 
+/** A rolagem e a linha da tabela consultada — o "meio", não o resultado. */
 const RollTag: React.FC<RollTagProps> = ({ label }) => (
   <Typography
     component='span'
     variant='caption'
-    sx={{ color: 'text.secondary', whiteSpace: 'nowrap', mr: 1 }}
+    sx={{
+      display: 'inline-block',
+      color: 'text.secondary',
+      whiteSpace: 'nowrap',
+      fontVariantNumeric: 'tabular-nums',
+      bgcolor: 'action.hover',
+      border: 1,
+      borderColor: 'divider',
+      borderRadius: 1,
+      px: 0.75,
+      lineHeight: 1.7,
+      mr: 1,
+    }}
   >
     {label}
   </Typography>
 );
+
+interface ResultValueProps {
+  children: React.ReactNode;
+  muted?: boolean;
+}
+
+/** O resultado de fato (valor em moedas, "Nada"): grande e em negrito. */
+const ResultValue: React.FC<ResultValueProps> = ({ children, muted }) => (
+  <Typography
+    sx={{
+      fontSize: muted ? '1rem' : '1.35rem',
+      fontWeight: muted ? 400 : 700,
+      lineHeight: 1.3,
+      color: muted ? 'text.secondary' : 'text.primary',
+      mt: 0.5,
+    }}
+  >
+    {children}
+  </Typography>
+);
+
+/** Linha da Tabela 8-1 sorteada: "d% 91 → 1d4x100 TC". */
+const ndRowLabel = (roll: number, label: string) => `d% ${roll} → ${label}`;
 
 interface EntryLineProps {
   entry: TreasureEntry;
@@ -139,7 +175,7 @@ const EntryLine: React.FC<EntryLineProps> = ({
     }}
   >
     <RollTag label={rollLabel} />
-    <Typography variant='body2' sx={{ fontWeight: 500 }}>
+    <Typography sx={{ fontSize: '1.05rem', fontWeight: 700 }}>
       {entry.name}
       {suffix}
       {entry.price !== undefined ? ` — T$ ${formatNumber(entry.price)}` : ''}
@@ -273,7 +309,7 @@ const Wealth: React.FC<WealthProps> = ({ wealth }) => {
     <Box>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
         <RollTag label={roll} />
-        <Typography variant='body2' sx={{ fontWeight: 500, mr: 1 }}>
+        <Typography sx={{ fontSize: '1.05rem', fontWeight: 700, mr: 1 }}>
           Riqueza de T$ {formatNumber(wealth.value)}
         </Typography>
         <RollTag
@@ -325,26 +361,20 @@ const Money: React.FC<MoneyProps> = ({ outcome, index }) => {
   return (
     <RevealSlot id={id}>
       <Box sx={separatorSx(index)}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-          <RollTag label={`d% ${roll}`} />
-          <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-            {row.label === '—' ? 'Nada' : row.label}
-          </Typography>
-        </Box>
+        <RollTag label={ndRowLabel(roll, row.label)} />
+        {detail.kind === 'none' && <ResultValue muted>Nada</ResultValue>}
         {detail.kind === 'coins' && (
-          <Typography variant='body1' sx={{ fontWeight: 600 }}>
-            {formatNumber(detail.halved ?? detail.amount)} {detail.currency}
-            <Typography
-              component='span'
-              variant='caption'
-              sx={{ color: 'text.secondary', ml: 1 }}
-            >
+          <>
+            <ResultValue>
+              {formatNumber(detail.halved ?? detail.amount)} {detail.currency}
+            </ResultValue>
+            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
               {detail.halved !== undefined
-                ? `metade de ${formatNumber(detail.amount)}`
+                ? `metade de ${formatNumber(detail.amount)} `
                 : ''}
-              {countText(detail.count)}
+              {countText(detail.count).trim()}
             </Typography>
-          </Typography>
+          </>
         )}
         {detail.kind === 'riqueza' && (
           <Stack spacing={0.5} sx={{ mt: 0.5 }}>
@@ -381,12 +411,8 @@ const Item: React.FC<ItemProps> = ({ outcome, index, showBooks, onChoose }) => {
   return (
     <RevealSlot id={p}>
       <Box sx={separatorSx(index)}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-          <RollTag label={`d% ${roll}`} />
-          <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-            {row.label === '—' ? 'Nada' : row.label}
-          </Typography>
-        </Box>
+        <RollTag label={ndRowLabel(roll, row.label)} />
+        {detail?.kind === 'none' && <ResultValue muted>Nada</ResultValue>}
 
         {choice && (
           <RevealSlot id={`${p}-choice`}>

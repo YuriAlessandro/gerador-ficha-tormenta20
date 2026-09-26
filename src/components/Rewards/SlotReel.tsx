@@ -15,7 +15,7 @@ export const REJECT_HOLD_MS = 900;
 /** Destaque rápido na linha sorteada antes de revelar o resultado. */
 export const SETTLE_HOLD_MS = 180;
 
-const ROW_HEIGHT = { major: 30, minor: 24 } as const;
+const ROW_HEIGHT = { major: 40, minor: 32 } as const;
 /** Mínimo de linhas que passam pela janela (tabelas curtas dão mais voltas). */
 const MIN_TRAVEL = { major: 22, minor: 14 } as const;
 const EASING = 'cubic-bezier(0.12, 0.8, 0.25, 1)';
@@ -136,9 +136,9 @@ const SlotReel: React.FC<SlotReelProps> = ({
               <Typography
                 // eslint-disable-next-line react/no-array-index-key
                 key={k}
-                variant={size === 'major' ? 'body1' : 'body2'}
                 noWrap
                 sx={{
+                  fontSize: size === 'major' ? '1.2rem' : '1.05rem',
                   height: rowHeight,
                   lineHeight: `${rowHeight}px`,
                   px: 1,
