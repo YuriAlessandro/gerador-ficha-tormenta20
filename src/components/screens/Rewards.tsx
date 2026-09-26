@@ -3,80 +3,120 @@ import {
   Box,
   Button,
   Container,
+  Link,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
   FormControl,
   FormLabel,
   RadioGroup,
   FormControlLabel,
   Radio,
+  ToggleButton,
+  ToggleButtonGroup,
   useTheme,
-  Chip,
 } from '@mui/material';
 import Select from 'react-select';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 
 import NumberField from '@/components/common/NumberField';
+import {
+  ItemKind,
+  TREASURE_DATASETS,
+  TreasureMode,
+} from '@/data/treasure/treasureDatasets';
+import {
+  ND_ORDER,
+  TreasureMultiplier,
+  TreasureRollResult,
+  chooseTwoDice,
+  createTreasureContext,
+  rollTreasure,
+} from '@/functions/treasure/treasureRoller';
 import { SEO, getPageSEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
 import getSelectTheme from '../../functions/style';
-import { ITEM_TYPE, LEVELS } from '../../interfaces/Rewards';
-import {
-  rewardGenerator,
-  applyMoneyReward,
-  applyItemReward,
-  RewardGenerated,
-} from '../../functions/rewards/rewardsGenerator';
+import TreasureResultCard from '../Rewards/TreasureResultCard';
 
-const nds = Object.keys(LEVELS).map((nd) => ({
-  value: nd,
-  label: `ND ${nd.replace('F', '').replace('S', '1/')}`,
-}));
+const nds = ND_ORDER.map((nd) => ({ value: nd, label: `ND ${nd}` }));
 
 type SelectedOption = { value: string; label: string };
 
-type RewardWithId = RewardGenerated & { id: string };
+type TreasureResultWithId = {
+  id: string;
+  mode: TreasureMode;
+  result: TreasureRollResult;
+};
+
+const MODE_STORAGE_KEY = 'rewards.treasureMode';
+
+const readStoredMode = (): TreasureMode => {
+  try {
+    const stored = window.localStorage.getItem(MODE_STORAGE_KEY);
+    return stored === 'supplements' ? 'supplements' : 'basic';
+  } catch {
+    return 'basic';
+  }
+};
+
+const SPREADSHEET_URL = `https://docs.google.com/spreadsheets/d/${TREASURE_DATASETS.supplements.tables.source.spreadsheetId}`;
+
+/** "Se você não possuir o livro de um item rolado, use o próximo item na lista." */
+const SPREADSHEET_BOOK_NOTE =
+  TREASURE_DATASETS.supplements.tables.introduction?.find((p) =>
+    p.includes('Se você não possuir o livro')
+  ) ?? '';
 
 const Rewards: React.FC = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
 
-  const [items, setItems] = useState<RewardWithId[]>();
+  const [results, setResults] = useState<TreasureResultWithId[]>();
   const [numberOfItems, setNumberOfItems] = useState<number | null>(1);
-  const [nd, setNd] = useState<LEVELS>(LEVELS.S4);
-  const [rewardMult, setRewardMult] = useState<'Padrão' | 'Metade' | 'Dobro'>(
-    'Padrão'
-  );
+  const [nd, setNd] = useState<string>('1/4');
+  const [mode, setMode] = useState<TreasureMode>(readStoredMode);
+  const [rewardMult, setRewardMult] = useState<TreasureMultiplier>('Padrão');
+
+  const dataset = TREASURE_DATASETS[mode];
 
   const onClickGenerate = () => {
-    const newItems: RewardWithId[] = [];
-    const isDouble = rewardMult === 'Dobro';
-    const isHalf = rewardMult === 'Metade';
-
-    let itemsToRoll = numberOfItems ?? 0;
-
-    if (isDouble) itemsToRoll *= 2;
-
-    for (let index = 0; index < itemsToRoll; index += 1) {
-      const newItem = rewardGenerator(nd);
-      if (newItem.money)
-        newItem.moneyApplied = applyMoneyReward(newItem.money, isHalf);
-      if (newItem.item)
-        newItem.itemApplied = applyItemReward(newItem.item, isDouble);
-      newItems.push({ ...newItem, id: crypto.randomUUID() });
+    const ctx = createTreasureContext(dataset);
+    const newResults: TreasureResultWithId[] = [];
+    for (let index = 0; index < (numberOfItems ?? 0); index += 1) {
+      newResults.push({
+        id: crypto.randomUUID(),
+        mode,
+        result: rollTreasure(ctx, nd, rewardMult),
+      });
     }
-    setItems(newItems);
+    setResults(newResults);
+  };
+
+  const onChangeMode = (_: React.MouseEvent, value: TreasureMode | null) => {
+    if (!value) return;
+    setMode(value);
+    try {
+      window.localStorage.setItem(MODE_STORAGE_KEY, value);
+    } catch {
+      // Armazenamento indisponível (aba anônima etc.): só não lembra o modo.
+    }
+  };
+
+  const onChoose = (resultId: string, itemIndex: number, kind: ItemKind) => {
+    setResults((prev) =>
+      prev?.map((r) => {
+        if (r.id !== resultId) return r;
+        const ctx = createTreasureContext(TREASURE_DATASETS[r.mode]);
+        const items = r.result.items.map((it, idx) =>
+          idx === itemIndex ? chooseTwoDice(ctx, it, kind) : it
+        );
+        return { ...r, result: { ...r.result, items } };
+      })
+    );
   };
 
   const onChangeNd = (newNd: SelectedOption | null) => {
-    if (newNd) setNd(newNd.value as LEVELS);
+    if (newNd) setNd(newNd.value);
   };
 
   const onChangeQtd = (qtd: number | null) => {
@@ -97,151 +137,6 @@ const Rewards: React.FC = () => {
     : getSelectTheme('default');
 
   const rewardsSEO = getPageSEO('rewards');
-
-  const headerCellSx = {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-    fontFamily: 'Tfont, serif',
-    fontWeight: 600,
-  };
-
-  const ResultDiv = items?.map((item) => {
-    const moneyStr = item?.money?.reward
-      ? `${item.money?.reward?.qty}${
-          item.money?.reward?.dice > 1 ? `d${item.money?.reward?.dice}` : ''
-        }${
-          item.money?.reward?.mult > 1 ? `x${item.money?.reward?.mult} ` : ' '
-        }${item.money?.reward?.som ? `+${item.money?.reward?.som} ` : ' '}${
-          item.money?.reward?.money
-        }`
-      : '--';
-
-    const itemStr = item?.item?.reward
-      ? `${
-          item.item.reward.type === ITEM_TYPE.POCAO
-            ? `${item.item?.reward?.qty}d${item.item?.reward?.dice}${
-                item.item?.reward?.som ? `+${item.item?.reward?.som} ` : ' '
-              }`
-            : ''
-        }${item.item.reward.type}${
-          item.item.reward.type === ITEM_TYPE.SUPERIOR
-            ? ` (${item.item.reward.mods} modificações) `
-            : ''
-        }`
-      : '--';
-
-    return (
-      <Paper
-        key={item.id}
-        elevation={1}
-        sx={{
-          mb: 2,
-          overflow: 'hidden',
-          borderRadius: 1,
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            boxShadow: 3,
-          },
-        }}
-      >
-        <TableContainer>
-          <Table size='small'>
-            <TableHead>
-              <TableRow>
-                <TableCell width='10%' sx={headerCellSx}>
-                  ND
-                </TableCell>
-                <TableCell colSpan={2} sx={headerCellSx}>
-                  Dinheiro
-                </TableCell>
-                <TableCell colSpan={2} sx={headerCellSx}>
-                  Itens
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow
-                sx={{
-                  '&:hover': {
-                    backgroundColor: `${theme.palette.primary.main}08`,
-                  },
-                  transition: 'background-color 0.2s ease',
-                }}
-              >
-                <TableCell>
-                  <Chip
-                    label={nd.replace('S', '1/').replace('F', '')}
-                    size='small'
-                    color='primary'
-                    sx={{ fontFamily: 'Tfont, serif' }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: 'text.secondary',
-                    }}
-                  >
-                    D% = {item?.moneyRoll}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant='body2'>{moneyStr}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: 'text.secondary',
-                    }}
-                  >
-                    D% = {item?.itemRoll}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant='body2'>{itemStr}</Typography>
-                </TableCell>
-              </TableRow>
-              {(item.itemApplied || item.moneyApplied) && (
-                <TableRow
-                  sx={{
-                    backgroundColor: `${theme.palette.primary.main}0D`,
-                  }}
-                >
-                  <TableCell />
-                  <TableCell />
-                  <TableCell>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                      }}
-                    >
-                      {item?.money?.reward?.applyRollBonus ? '+% ' : ''}
-                      {item.moneyApplied}
-                    </Typography>
-                  </TableCell>
-                  <TableCell />
-                  <TableCell sx={{ whiteSpace: 'pre-wrap' }}>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                      }}
-                    >
-                      {item?.item?.reward?.applyRollBonus ? '+% ' : ''}
-                      {item.itemApplied}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-    );
-  });
 
   return (
     <>
@@ -267,6 +162,29 @@ const Rewards: React.FC = () => {
           }}
         >
           <Stack
+            spacing={1}
+            sx={{ alignItems: 'center', mb: 3, textAlign: 'center' }}
+          >
+            <ToggleButtonGroup
+              value={mode}
+              exclusive
+              onChange={onChangeMode}
+              size='small'
+              color='primary'
+              aria-label='Tabelas usadas na rolagem'
+            >
+              <ToggleButton value='basic'>Livro básico</ToggleButton>
+              <ToggleButton value='supplements'>
+                Todos os suplementos
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+              {mode === 'basic'
+                ? 'Tabelas 8-1 a 8-15 do Tormenta20 Jogo do Ano.'
+                : 'Tabelas ampliadas com Ameaças, Deuses e Heróis de Arton, da planilha de Guilherme Dei Svaldi.'}
+            </Typography>
+          </Stack>
+          <Stack
             spacing={3}
             direction={{ xs: 'column', md: 'row' }}
             sx={{
@@ -289,6 +207,7 @@ const Rewards: React.FC = () => {
               <Select
                 className='filterSelect'
                 options={nds}
+                value={nds.find((o) => o.value === nd)}
                 placeholder='Nível de Dificuldade'
                 onChange={onChangeNd}
                 theme={(selectTheme) => ({
@@ -368,8 +287,9 @@ const Rewards: React.FC = () => {
                 >
                   Metade
                 </Typography>
-                : A criatura tem poucos tesouros; quaisquer resultados rolados
-                para dinheiro é dividido pela metade.
+                : a criatura tem poucos tesouros; as moedas roladas na coluna
+                Dinheiro são divididas pela metade (o valor das riquezas não é
+                alterado).
               </Typography>
             </Box>
             <Box component='li'>
@@ -383,15 +303,41 @@ const Rewards: React.FC = () => {
                 >
                   Dobro
                 </Typography>
-                : Será rolado normalmente, duas vezes para dinheiro e duas vezes
-                para itens.
+                : a criatura tem muitos tesouros; role duas vezes em cada coluna
+                da tabela.
               </Typography>
             </Box>
           </Box>
         </Paper>
 
+        {mode === 'supplements' && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 3,
+              borderRadius: 1,
+              borderLeft: `3px solid ${theme.palette.secondary.main}`,
+              backgroundColor: `${theme.palette.secondary.main}0D`,
+            }}
+          >
+            <Typography variant='body2' sx={{ mb: 1 }}>
+              {SPREADSHEET_BOOK_NOTE}
+            </Typography>
+            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+              Fonte:{' '}
+              <Link href={SPREADSHEET_URL} target='_blank' rel='noopener'>
+                Geração de Tesouros em Tormenta20
+              </Link>{' '}
+              — {TREASURE_DATASETS.supplements.tables.source.credits} Regras que
+              a planilha não detalha seguem os livros; quando nenhuma fonte
+              decide, o resultado vem com um aviso para o mestre.
+            </Typography>
+          </Paper>
+        )}
+
         {/* Results Section */}
-        {items && items.length > 0 && (
+        {results && results.length > 0 && (
           <Box sx={{ mb: 4 }}>
             <Typography
               variant='h6'
@@ -401,10 +347,17 @@ const Rewards: React.FC = () => {
                 mb: 2,
               }}
             >
-              Resultados ({items.length}{' '}
-              {items.length === 1 ? 'recompensa' : 'recompensas'})
+              Resultados ({results.length}{' '}
+              {results.length === 1 ? 'recompensa' : 'recompensas'})
             </Typography>
-            {ResultDiv}
+            {results.map((r) => (
+              <TreasureResultCard
+                key={r.id}
+                result={r.result}
+                showBooks={TREASURE_DATASETS[r.mode].showBooks}
+                onChoose={(itemIndex, kind) => onChoose(r.id, itemIndex, kind)}
+              />
+            ))}
           </Box>
         )}
 

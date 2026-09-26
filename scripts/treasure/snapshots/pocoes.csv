@@ -1,0 +1,70 @@
+d%,Poção,Preço (T$),Livro,Página
+01,Abençoar Alimentos (óleo),30,Tormenta20,178
+02,Área Escorregadia (granada),30,Tormenta20,180
+03-04,Arma Mágica (óleo),30,Tormenta20,181
+05,Compreensão,30,Tormenta20,184
+06-11,Curar Ferimentos (2d8+2 PV),30,Tormenta20,189
+12-13,Disfarce Ilusório,30,Tormenta20,191
+14-15,Escuridão (óleo),30,Tormenta20,193
+16-17,Luz (óleo),30,Tormenta20,197
+18,Névoa (granada),30,Tormenta20,200
+19,Primor Atlético,30,Tormenta20,201
+20,Sono,30,Tormenta20,207
+21-22,Proteção Divina,30,Tormenta20,202
+23-24,Resistência a Energia,30,Tormenta20,204
+25,Suporte Ambiental,30,Tormenta20,207
+26,Tranca Arcana (óleo),30,Tormenta20,209
+27,Visão Mística,30,Tormenta20,211
+28,Vitalidade Fantasma,30,Tormenta20,211
+29,Armadura Elemental,30,Heróis de Arton,252
+30,Desafio Corajoso,30,Heróis de Arton,252
+31,Discrição,30,Heróis de Arton,253
+32,Farejar Fortuna,30,Heróis de Arton,254
+33,Maaais Klunc,30,Heróis de Arton,254
+34,Ossos de Adamante,30,Heróis de Arton,254
+35,Punho de Mitral,30,Heróis de Arton,254
+36,Magia Dadivosa,30,Deuses de Arton,62
+37,Sigilo de Sszzaas,30,Deuses de Arton,64
+38,Sorriso da Fortuna,30,Deuses de Arton,64
+39,Toque de Megalokk,30,Deuses de Arton,65
+40,Voz da Razão,30,Deuses de Arton,65
+41-42,Escudo da Fé (aprimoramento para duração cena),120,Tormenta20,192
+43-44,Alterar Tamanho,270,Tormenta20,179
+45,Aparência Perfeita,270,Tormenta20,180
+46,Armamento da Natureza (óleo),270,Tormenta20,181
+47-50,Bola de Fogo (granada),270,Tormenta20,182
+51,Camuflagem Ilusória,270,Tormenta20,183
+52,Concentração de Combate (aprimoramento para duração cena),270,Tormenta20,185
+53-56,Curar Ferimentos (4d8+4 PV),270,Tormenta20,189
+57-58,Físico Divino,270,Tormenta20,193
+59,Mente Divina,270,Tormenta20,198
+60,Metamorfose,270,Tormenta20,198
+61-64,Purificação,270,Tormenta20,202
+65-66,Velocidade,270,Tormenta20,210
+67-68,Vestimenta da Fé (óleo),270,Tormenta20,210
+69,Voz Divina,270,Tormenta20,211
+70-71,"Orientação (aprimoramento para duração cena; role o atributo afetado, sendo 1 = Força, 2 = Destreza e assim por diante)",270,Tormenta20,200
+72,Aura de Morte,270,Heróis de Arton,252
+73,Emular Magia,270,Heróis de Arton,253
+74,Punho de Mitral (aprimoramento para +2 em testes de ataque e margem de ameaça),270,Heróis de Arton,255
+75,Viagem Onírica,270,Heróis de Arton,255
+76,Couraça de Allihanna (óleo),270,Deuses de Arton,60
+77,Toque de Megalokk (aprimoramento para aumentar o dano das armas naturais em um passo e a margem de ameaça delas em +1 ),480,Deuses de Arton,65
+78-79,Arma Mágica (óleo; aprimoramento para bônus +3),750,Tormenta20,181
+80-81,Proteção Divina (aprimoramento para bônus de +4),750,Tormenta20,202
+82,Armadura Elemental (aprimoramento para 4d6 pontos de dano),750,Heróis de Arton,252
+83-88,Curar Ferimentos (7d8+7 PV),1.080,Tormenta20,189
+89-90,Físico Divino (aprimoramento para três atributos),1.080,Tormenta20,193
+91-92,Invisibilidade (aprimoramento para duração cena),1.080,Tormenta20,195
+93-94,Pele de Pedra,1.080,Tormenta20,201
+95,Potência Divina,1.080,Tormenta20,201
+96,Voo,1.080,Tormenta20,211
+97,Percepção Rubra (aprimoramento para aumentar bônus em +3),1.080,Deuses de Arton,63
+98-100,Bola de Fogo (granada; aprimoramento para 10d6 de dano),1.470,Tormenta20,182
+101-110,Curar Ferimentos (11d8+11 PV),3.000,Tormenta20,189
+111-114,Pele de Pedra (aprimoramento para pele de aço e RD 10),3.000,Tormenta20,201
+115-116,Premonição,3.000,Tormenta20,201
+117,Viagem Onírica (aprimoramentos para falar e lançar magias),3.000,Heróis de Arton,255
+118,Potência Divina (aprimoramento para Força +6 e RD 15),6.750,Tormenta20,201
+119,Momento de Tormenta (granada; aprimoramento para +4 dados de dano do mesmo tipo),6.750,Ameaças de Arton,404
+120,"Transformação em Dragão (aprimoramentos para atributos +4, asas, arma de mordida e dano de sopro de 12d6+12)",28.000,Ameaças de Arton,405

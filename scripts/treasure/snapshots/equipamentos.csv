@@ -1,0 +1,102 @@
+ARMAS,,,,,ARMADURAS & ESCUDOS,,,,,ESOTÉRICOS,,,
+d%,Arma,Livro,Página,,d%,Armadura ou Escudo,Livro,Página,,d%,Esotérico,Livro,Página
+01,Açoite finntroll,Ameaças de Arton,392,,01-02,Armadura de chumbo,Heróis de Arton,223,,01-03,Afiador solar,Deuses de Arton,51
+02,Adaga,Tormenta20,146,,03-04,Armadura de engenhoqueiro goblin,Heróis de Arton,223,,04-06,Ankh solar,Ameaças de Arton,396
+03,Adaga oposta,Heróis de Arton,216,,05-06,Armadura de folhas,Heróis de Arton,223,,07-10,Báculo da retribuição,Deuses de Arton,51
+04,Agulha de Ahlen,Heróis de Arton,216,,07-08,Armadura de hussardo alado,Heróis de Arton,223,,11-14,Bolsa de pó,Tormenta20,159
+05,Alabarda,Tormenta20,146,,09-10,Armadura de justa,Heróis de Arton,223,,15-18,Cajado arcano,Tormenta20,160
+06,Alfange,Tormenta20,146,,11,Armadura de ossos,Ameaças de Arton,395,,19-22,Cetro elemental,Tormenta20,160
+07,Arcabuz,Ameaças de Arton,392,,12-13,Armadura de pedra,Heróis de Arton,224,,23-26,Compasso mistico,Heróis de Arton,234
+08,Arco curto,Tormenta20,146,,14,Armadura de quitina,Ameaças de Arton,395,,27-30,Contas de oração,Deuses de Arton,51
+09,Arco de guerra,Heróis de Arton,216,,15-16,Armadura sensual,Heróis de Arton,224,,31-34,Costela de lich,Tormenta20,160
+10,Arco longo,Tormenta20,146,,17-20,Brigantina,Heróis de Arton,224,,35-38,Dedo de ente,Tormenta20,160
+11,Arco montado,Heróis de Arton,216,,21-22,Broquel,Heróis de Arton,224,,39-42,Estola,Deuses de Arton,51
+12,Arpão,Ameaças de Arton,392,,23-26,Brunea,Tormenta20,154,,43-46,Flauta convocadora,Heróis de Arton,234
+13,Azagaia,Tormenta20,146,,27-28,Colete fora da lei,Heróis de Arton,226,,47-50,Frasco purificador,Deuses de Arton,51
+14,Bacamarte,Ameaças de Arton,392,,29-38,Completa,Tormenta20,154,,51-54,Luva de ferro,Tormenta20,160
+15,Balas (20),Tormenta20,151,,39-42,Cota de malha,Tormenta20,154,,55-58,Mandala onírica,Heróis de Arton,234
+16,Balestra,Heróis de Arton,216,,43-44,Cota de moedas,Heróis de Arton,226,,59-62,Medalhão afiado,Deuses de Arton,51
+17,Bastão lúdico,Heróis de Arton,216,,45-54,Couraça,Tormenta20,154,,63-66,Medalhão de prata,Tormenta20,160
+18,Besta de mão,Heróis de Arton,216,,55-58,Couro,Tormenta20,154,,67-70,Orbe cristalino,Tormenta20,160
+19,Besta de repetição,Heróis de Arton,216,,59-64,Couro batido,Tormenta20,154,,71-74,Ostensório santificado,Deuses de Arton,51
+20,Besta dupla,Heróis de Arton,216,,65,Escudo de couro,Ameaças de Arton,395,,75-78,Rede de almas,Deuses de Arton,52
+21,Besta leve,Tormenta20,146,,66,Escudo de vime,Heróis de Arton,226,,79-81,Tomo de guerra,Ameaças de Arton,396
+22,Besta pesada,Tormenta20,146,,67-74,Escudo leve,Tormenta20,154,,82-84,Tomo do rancor,Ameaças de Arton,396
+23,Bico de corvo,Heróis de Arton,216,,75-82,Escudo pesado,Tormenta20,154,,85-88,Tomo hermético,Tormenta20,160
+24,Boleadeira,Heróis de Arton,216,,83-84,Escudo torre,Heróis de Arton,226,,89-92,Turíbulo ungido,Deuses de Arton,52
+25,Bordão,Tormenta20,147,,85-88,Gibão de peles,Tormenta20,154,,93-96,Varinha arcana,Tormenta20,160
+26,Canhão portátil,Heróis de Arton,217,,89-92,Loriga segmentada,Tormenta20,154,,97-100,Varinha armamentista,Heróis de Arton,234
+27,Chakram,Heróis de Arton,217,,93-98,Meia armadura,Tormenta20,154,,,,,
+28,Chicote,Tormenta20,147,,99,Sagna,Heróis de Arton,226,,,,,
+29,Cimitarra,Tormenta20,147,,100,Veste de teia de aranha,Ameaças de Arton,395,,,,,
+30,Cinquedea,Heróis de Arton,217,,,,,,,,,,
+31,Clava,Tormenta20,147,,,,,,,,,,
+32,Clava-grão,Heróis de Arton,217,,,,,,,,,,
+33,Corrente de espinhos,Tormenta20,147,,,,,,,,,,
+34,Desmontador,Heróis de Arton,217,,,,,,,,,,
+35,Dirk,Heróis de Arton,217,,,,,,,,,,
+36,Espada bastarda,Tormenta20,147,,,,,,,,,,
+37,Espada canora,Heróis de Arton,217,,,,,,,,,,
+38,Espada curta,Tormenta20,148,,,,,,,,,,
+39,Espada de execução,Heróis de Arton,217,,,,,,,,,,
+40,Espada larga,Heróis de Arton,217,,,,,,,,,,
+41,Espada longa,Tormenta20,148,,,,,,,,,,
+42,Espada vespa,Ameaças de Arton,392,,,,,,,,,,
+43,Espada-gadanho,Heróis de Arton,217,,,,,,,,,,
+44,Espadim,Heróis de Arton,217,,,,,,,,,,
+45,Flechas (20),Tormenta20,151,,,,,,,,,,
+46,Flechas de caça (20),Heróis de Arton,223,,,,,,,,,,
+47,Florete,Tormenta20,148,,,,,,,,,,
+48,Foice,Tormenta20,148,,,,,,,,,,
+49,Funda,Tormenta20,148,,,,,,,,,,
+50,Gadanho,Tormenta20,148,,,,,,,,,,
+51,Garrucha,Heróis de Arton,219,,,,,,,,,,
+52,Gládio,Ameaças de Arton,392,,,,,,,,,,
+53,Katana,Tormenta20,148,,,,,,,,,,
+54,Khopesh,Heróis de Arton,219,,,,,,,,,,
+55,Kimbata,Heróis de Arton,219,,,,,,,,,,
+56,Lança,Tormenta20,148,,,,,,,,,,
+57,Lança de falange,Heróis de Arton,220,,,,,,,,,,
+58,Lança de fogo,Ameaças de Arton,392,,,,,,,,,,
+59,Lança de justa,Heróis de Arton,220,,,,,,,,,,
+60,Lança montada,Tormenta20,148,,,,,,,,,,
+61,Maça,Tormenta20,149,,,,,,,,,,
+62,Maça-estrela,Heróis de Arton,220,,,,,,,,,,
+63,Machadinha,Tormenta20,149,,,,,,,,,,
+64,Machado anão,Tormenta20,149,,,,,,,,,,
+65,Machado de batalha,Tormenta20,149,,,,,,,,,,
+66,Machado de guerra,Tormenta20,149,,,,,,,,,,
+67,Machado de haste,Heróis de Arton,220,,,,,,,,,,
+68,Machado táurico,Tormenta20,149,,,,,,,,,,
+69,Malho,Heróis de Arton,220,,,,,,,,,,
+70,Mangual,Tormenta20,149,,,,,,,,,,
+71,Marrão,Heróis de Arton,221,,,,,,,,,,
+72,Marreta,Tormenta20,149,,,,,,,,,,
+73,Martelo de guerra,Tormenta20,149,,,,,,,,,,
+74,Martelo leve,Heróis de Arton,221,,,,,,,,,,
+75,Martelo longo,Heróis de Arton,221,,,,,,,,,,
+76,Montante,Tormenta20,150,,,,,,,,,,
+77,Montante cinético,Heróis de Arton,221,,,,,,,,,,
+78,Mordida do diabo,Ameaças de Arton,393,,,,,,,,,,
+79,Mosquete,Tormenta20,150,,,,,,,,,,
+80,Neko-te,Ameaças de Arton,393,,,,,,,,,,
+81,Pedras (20),Tormenta20,151,,,,,,,,,,
+82,Picareta,Tormenta20,150,,,,,,,,,,
+83,Pique,Tormenta20,150,,,,,,,,,,
+84,Pistola,Tormenta20,150,,,,,,,,,,
+85,Pistola-punhal,Ameaças de Arton,393,,,,,,,,,,
+86,Porrete,Ameaças de Arton,393,,,,,,,,,,
+87,Presa de serpente,Ameaças de Arton,393,,,,,,,,,,
+88,Rapieira,Heróis de Arton,221,,,,,,,,,,
+89,Rede,Tormenta20,150,,,,,,,,,,
+90,Serrilheira,Heróis de Arton,221,,,,,,,,,,
+91,Shuriken,Ameaças de Arton,394,,,,,,,,,,
+92,Sifão cáustico,Heróis de Arton,222,,,,,,,,,,
+93,Tacape,Tormenta20,150,,,,,,,,,,
+94,Tai-tai,Heróis de Arton,222,,,,,,,,,,
+95,Tan-korak,Heróis de Arton,222,,,,,,,,,,
+96,Tetsubo,Ameaças de Arton,394,,,,,,,,,,
+97,Traque,Ameaças de Arton,394,,,,,,,,,,
+98,Tridente,Tormenta20,150,,,,,,,,,,
+99,Virotes (20),Tormenta20,151,,,,,,,,,,
+100,Zarabatana,Ameaças de Arton,394,,,,,,,,,,

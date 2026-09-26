@@ -1,0 +1,96 @@
+ND,d%,Dinheiro,,d%,Itens,,Resultados da Tabela
+1/4,01-30,—,,01-50,—,,Coluna Dinheiro
+,31-70,1d6x10 TC,,51-75,Item diverso,,"O grupo encontra moedas ou riquezas. No caso de riquezas,"
+,71-95,1d4x100 TC,,76-100,Equipamento,,"os jogadores devem rolar 1d% na aba ""Riquezas"" para determinar"
+,96-100,1d6x10 T$,,,,,o valor de venda de cada riqueza e quantos espaços ela ocupa.
+1/2,01-25,—,,01-45,—,,
+,26-70,2d6x10 TC,,46-70,Item diverso,,
+,71-95,2d8x10 T$,,71-100,Equipamento,,Coluna Itens
+,96-100,1d4x100 T$,,,,,Item diverso
+1,01-20,—,,01-40,—,,"O grupo encontra um item variado. Para definir qual, os jogadores devem"
+,21-70,3d8x10 T$,,41-65,Item diverso,,"rolar 1d% na aba ""Itens diversos""."
+,71-95,4d12x10 T$,,66-90,Equipamento,,
+,96-100,1 riqueza menor,,91-100,1 poção,,Equipamento
+2,01-15,—,,01-30,—,,"O grupo encontra um equipamento mundano. Para definir qual, os jogadores devem:"
+,16-55,3d10x10 T$,,31-40,Item diverso,,"Passo 1. Rolar 1d6 para determinar o tipo de equipamento, sendo:"
+,56-85,2d4x100 T$,,41-70,Equipamento,,               1-3) arma; 4-5) armadura; 6) esotérico.
+,86-95,2d6+1x100 T$,,71-90,1 poção,,"Passo 2. Rolar 1d% na aba ""Equipamentos"", na coluna referente ao tipo rolado no"
+,96-100,1 riqueza menor,,91-100,Superior (1 melhoria),,"               passo anterior, para determinar o item específico."
+3,01-10,—,,01-25,—,,
+,11-20,4d12x10 T$,,26-35,Item diverso,,Poção
+,21-60,1d4x100 T$,,36-60,Equipamento,,"O grupo encontra uma ou mais poções. Para determinar quais, os jogadores devem"
+,61-90,1d8x10 TO,,61-85,1 poção,,"rolar 1d% para cada poção encontrada na aba ""Poções""."
+,91-100,1d3 riquezas menores,,86-100,Superior (1 melhoria),,
+4,01-10,—,,01-20,—,,Superior
+,11-50,1d6x100 T$,,21-30,Item diverso,,O grupo encontra um equipamento mundano e superior (com uma ou mais melhorias).
+,51-80,1d12x100 T$,,31-55,Equipamento 2D,,"Para definir qual, os jogadores seguem os mesmos passos de ""Equipamento"", acima."
+,81-90,1 riqueza menor +%,,56-80,1 poção +%,,"Então, para cada melhoria, devem rolar uma vez na aba ""Superiores""."
+,91-100,1d3 riquezas menores +%,,81-100,Superior (1 melhoria) 2D,,
+5,01-15,—,,01-20,—,,Mágico
+,16-65,1d8x100 T$,,21-70,1 poção,,"O grupo encontra um item mágico. Para determinar qual, os jogadores devem:"
+,66-95,3d4x10 TO,,71-90,Superior (1 melhoria),,"Passo 1. Rolar 1d6 para determinar o tipo de item, sendo:"
+,96-100,1 riqueza média,,91-100,Superior (2 melhorias),,               1-2) arma; 3) armadura; 4) esotérico; 5-6) acessório.
+6,01-15,—,,01-20,—,,"Passo 2. Se for uma arma, armadura ou esotérico, rolar na aba ""Mágicos"" para"
+,16-60,2d6x100 T$,,21-65,1 poção +%,,"               determinar seus encantos; role uma vez para itens menores, duas vezes"
+,61-90,2d10x100 T$,,66-95,Superior (1 melhoria),,"               para itens médios e três vezes para itens maiores. Se for um acessório,"
+,91-100,1d3+1 riquezas menores,,96-100,Superior (2 melhorias) 2D,,"               role na aba ""Acessórios"" na coluna correspondente à categoria."
+7,01-10,—,,01-20,—,,
+,11-60,2d8x100 T$,,21-60,1d3 poções,,
+,61-90,2d12x10 TO,,61-90,Superior (2 melhorias),,
+,91-100,1d4+1 riquezas menores,,91-100,Superior (3 melhorias),,
+8,01-10,—,,01-20,—,,
+,11-55,2d10x100 T$,,21-75,1d3 poções,,
+,56-95,1d4+1 riquezas menores,,76-95,Superior (2 melhorias),,
+,96-100,1 riqueza média+%,,96-100,Superior (3 melhorias) 2D,,
+9,01-10,—,,01-20,—,,
+,11-35,1 riqueza média,,21-70,1 poção +%,,
+,36-85,4d6x100 T$,,71-95,Superior (3 melhorias),,
+,86-100,1d3 riquezas médias,,96-100,Mágico (menor),,
+10,01-10,—,,01-50,—,,
+,11-30,4d6x100 T$,,51-75,1d3+1 poções,,
+,31-85,4d10x10 TO,,76-90,Superior (3 melhorias),,
+,86-100,1d3+1 riquezas médias,,91-100,Mágico (menor),,
+11,01-10,—,,01-45,—,,
+,11-45,2d4x1.000 T$,,46-70,1d4+1 poções,,
+,46-85,1d3 riquezas médias,,71-90,Superior (3 melhorias),,
+,86-100,2d6x100 TO,,91-100,Mágico (menor) 2D,,
+12,01-10,—,,01-45,—,,
+,11-45,1 riqueza média +%,,46-70,1d3+1 poções +%,,
+,46-80,2d6x1.000 T$,,71-85,Superior (4 melhorias),,
+,81-100,1d4+1 riquezas médias,,86-100,Mágico (menor),,
+13,01-10,—,,01-40,—,,
+,11-45,4d4x1.000 T$,,41-65,1d4+1 poções +%,,
+,46-80,1d3+1 riquezas médias,,66-95,Superior (4 melhorias),,
+,81-100,4d6x100 TO,,96-100,Mágico (médio),,
+14,01-10,—,,01-40,—,,
+,11-45,1d3+1 riquezas médias,,41-65,1d4+1 poções +%,,
+,46-80,3d6x1.000 T$,,66-90,Superior (4 melhorias),,
+,81-100,1 riqueza maior,,91-100,Mágico (médio),,
+15,01-10,—,,01-35,—,,
+,11-45,1 riqueza média+%,,36-45,1d6+1 poções,,
+,46-80,2d10x1.000 T$,,46-85,Superior (4 melhorias) 2D,,
+,81-100,1d4x1.000 TO,,86-100,Mágico (médio),,
+16,01-10,—,,01-35,—,,
+,11-40,3d6x1.000 T$,,36-45,1d6+1 poções +%,,
+,41-75,3d10x100 TO,,46-80,Superior (4 melhorias) 2D,,
+,76-100,1d3 riquezas maiores,,81-100,Mágico (médio),,
+17,01-05,—,,01-20,—,,
+,06-40,4d6x1.000 T$,,21-40,Mágico (menor),,
+,41-75,1d3 riquezas médias +%,,41-80,Mágico (médio),,
+,76-100,2d4x1.000 TO,,81-100,Mágico (maior),,
+18,01-05,—,,01-15,—,,
+,06-40,4d10x1.000 T$,,16-40,Mágico (menor) 2D,,
+,41-75,1 riqueza maior,,41-70,Mágico (médio),,
+,76-100,1d3+1 riquezas maiores,,71-100,Mágico (maior),,
+19,01-05,—,,01-10,—,,
+,06-40,4d12x1.000 T$,,11-40,Mágico (menor) 2D,,
+,41-75,1 riqueza maior +%,,41-60,Mágico (médio) 2D,,
+,76-100,1d12x1.000 TO,,61-100,Mágico (maior),,
+20,01-05,—,,01-05,—,,
+,06-40,2d4x1.000 TO,,06-40,Mágico (menor) 2D,,
+,41-75,1d3 riquezas maiores,,41-50,Mágico (médio) 2D,,
+,76-100,1d3+1 riquezas maiores +%,,51-100,Mágico (maior) 2D,,
+,,,,,,,
+"+%        Na rolagem de d% para determinar o tipo de riqueza ou poção, você recebe +20%.",,,,,,,
+,,,,,,,
+"2D        Na rolagem para definir o tipo de equipamento ou item mágico, role 2d6 e escolha um deles.",,,,,,,
