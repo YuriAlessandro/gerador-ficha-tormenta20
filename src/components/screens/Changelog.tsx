@@ -231,6 +231,13 @@ const Changelog: React.FC = () => {
                   mão também ganharam seletores.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> Na mesa virtual, tocar em qualquer
+                  ponto da barra de título de <strong>Ordem de Turno</strong> e{' '}
+                  <strong>Rolagens recentes</strong> agora abre e recolhe o
+                  painel. Antes era preciso acertar a setinha, o que era difícil
+                  no celular.
+                </li>
+                <li>
                   <strong>Correção:</strong> Fichas <strong>multiclasse</strong>{' '}
                   podiam não conseguir voltar ao nível 1: cada classe tinha
                   mínimo de 1 nível, então um Guerreiro 1 / Ladino 1 ficava
