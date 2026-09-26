@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            25/09/2026 (v4.34).
+            26/09/2026 (v4.34).
           </p>
 
           <p>
@@ -178,6 +178,51 @@ const Changelog: React.FC = () => {
                   jogador.
                 </li>
                 <li>
+                  <strong>Novo:</strong> <strong>Veículos</strong> do livro
+                  básico no mercado, com categoria própria na mochila. (por{' '}
+                  <a href='https://github.com/ianptkcs' target='blank'>
+                    ianptkcs
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A <strong>ficha de ameaça</strong>{' '}
+                  agora controla <strong>PV e PM atuais</strong> direto na
+                  ficha, com os mesmos botões de dano e cura da ficha de
+                  personagem (PV e PM temporários inclusos), e um botão para
+                  restaurar tudo. Antes isso só era possível com a ameaça em um
+                  encontro da mesa virtual. O valor fica salvo na ameaça. No
+                  encontro, os PV e PM continuam sendo os do combatente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os <strong>itens gerais</strong>
+                  agora trazem a descrição do livro, com o que cada um faz em
+                  jogo. (por{' '}
+                  <a href='https://github.com/ianptkcs' target='blank'>
+                    ianptkcs
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A escolha de magias na
+                  <strong>criação da ficha</strong> usa os mesmos cards do Subir
+                  Nível, com filtro por tipo (arcana/divina) e as magias
+                  escolhidas em destaque.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No Subir Nível, a escolha de poder
+                  tem um controle só: desligue{' '}
+                  <strong>Só os que posso pegar</strong> para ver e escolher
+                  também os poderes fora dos pré-requisitos, que aparecem
+                  marcados, como no editor de poderes da ficha.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na{' '}
+                  <strong>Linhagem Abençoada</strong>, uma magia que é arcana e
+                  divina ao mesmo tempo agora pode preencher a vaga da magia
+                  divina obrigatória quando as vagas arcanas já estão cheias.
+                </li>
+                <li>
                   <strong>Correção:</strong> Fichas <strong>multiclasse</strong>{' '}
                   podiam não conseguir voltar ao nível 1: cada classe tinha
                   mínimo de 1 nível, então um Guerreiro 1 / Ladino 1 ficava
@@ -199,6 +244,25 @@ const Changelog: React.FC = () => {
                   treinados, e a escolha continua valendo quando a ficha é
                   editada. Antes o bônus ia para um &quot;Ofício
                   (Qualquer)&quot; genérico.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em fichas{' '}
+                  <strong>multiclasse</strong>, requisitos como &quot;6º nível
+                  de Guerreiro&quot; nos poderes de classe passam a contar o
+                  nível naquela classe, e não o nível de personagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Feiticeiro de{' '}
+                  <strong>Linhagem Abençoada</strong> como classe secundária não
+                  recebia o poder concedido nem tinha as magias divinas
+                  exigidas, e o Arcanista secundário podia trocar de caminho
+                  sozinho ao subir de nível. As escolhas do 1º nível na classe
+                  (caminho, linhagem, deus) agora ficam salvas na ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No tema claro, o ícone de remover
+                  dos chips destacados (magias escolhidas, filtros, mochila)
+                  ficava invisível.
                 </li>
               </ul>
 
