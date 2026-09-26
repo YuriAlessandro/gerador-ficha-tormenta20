@@ -122,6 +122,12 @@ const CavernaDoSaber = lazyScreen(
 );
 const Changelog = lazyScreen(() => import('./components/screens/Changelog'));
 const Database = lazyScreen(() => import('./components/screens/Database'));
+const PocketGrimoireListPage = lazyScreen(
+  () => import('./components/PocketGrimoire/PocketGrimoireListPage')
+);
+const PocketGrimoirePage = lazyScreen(
+  () => import('./components/PocketGrimoire/PocketGrimoirePage')
+);
 const TermsOfUse = lazyScreen(() => import('./components/screens/TermsOfUse'));
 const MainScreen = lazyScreen(() => import('./components/screens/MainScreen'));
 const MyCharactersPage = lazyScreen(
@@ -484,6 +490,12 @@ function ThemedApp(): JSX.Element {
                                       </Route>
                                       <Route path='/database'>
                                         <Database />
+                                      </Route>
+                                      <Route exact path='/grimorio'>
+                                        <PocketGrimoireListPage />
+                                      </Route>
+                                      <Route path='/grimorio/:id'>
+                                        <PocketGrimoirePage />
                                       </Route>
                                       <Route path='/caverna-do-saber'>
                                         <CavernaDoSaber />

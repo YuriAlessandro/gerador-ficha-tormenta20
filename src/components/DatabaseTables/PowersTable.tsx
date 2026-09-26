@@ -29,6 +29,8 @@ import { SEO, getPageSEO } from '../SEO';
 import SearchInput from './SearchInput';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { powerItemId } from '../../functions/pocketGrimoire/resolveItems';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, GeneralPowerWithSupplement } from '../../data/registry';
@@ -115,6 +117,10 @@ const Row: React.FC<{
               }
               sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
             />
+            <AddToGrimoireButton
+              itemId={powerItemId(power)}
+              itemName={power.name}
+            />
           </Box>
           <CopyUrlButton
             itemName={power.name}
@@ -143,6 +149,13 @@ const Row: React.FC<{
               >
                 {power.name}
               </Typography>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={powerItemId(power)}
+                  itemName={power.name}
+                  variant='labeled'
+                />
+              </Box>
 
               <Typography
                 variant='body1'

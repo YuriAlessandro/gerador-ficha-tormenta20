@@ -26,6 +26,8 @@ import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, RaceWithSupplement } from '../../data/registry';
@@ -152,6 +154,10 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                   }}
                 />
               )}
+              <AddToGrimoireButton
+                itemId={encyclopediaIds.race(race.name)}
+                itemName={race.name}
+              />
             </Box>
             <CopyUrlButton
               itemName={race.name}
@@ -198,6 +204,13 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                       : 'secondary'
                   }
                   sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.race(race.name)}
+                  itemName={race.name}
+                  variant='labeled'
                 />
               </Box>
 
@@ -332,6 +345,14 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                               }}
                             >
                               {ability.name}
+                              <AddToGrimoireButton
+                                itemId={encyclopediaIds.raceAbility(
+                                  race.name,
+                                  ability.name,
+                                  heritage.name
+                                )}
+                                itemName={ability.name}
+                              />
                             </Typography>
                             <Typography
                               variant='body1'
@@ -365,6 +386,13 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                         }}
                       >
                         {ability.name}
+                        <AddToGrimoireButton
+                          itemId={encyclopediaIds.raceAbility(
+                            race.name,
+                            ability.name
+                          )}
+                          itemName={ability.name}
+                        />
                       </Typography>
                       <Typography
                         variant='body1'

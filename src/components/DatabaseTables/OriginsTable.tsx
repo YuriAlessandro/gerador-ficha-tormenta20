@@ -29,6 +29,8 @@ import { dataRegistry, OriginWithSupplement } from '../../data/registry';
 import { ORIGIN_POWER_TYPE } from '../../data/systems/tormenta20/powers/originPowers';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
 import { normalizeSearch } from '../../functions/stringUtils';
 
 const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
@@ -83,6 +85,10 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
                 }}
               />
             )}
+            <AddToGrimoireButton
+              itemId={encyclopediaIds.origin(origin.name)}
+              itemName={origin.name}
+            />
             <CopyUrlButton
               itemName={origin.name}
               itemType='origem'
@@ -128,6 +134,13 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
                       : 'secondary'
                   }
                   sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.origin(origin.name)}
+                  itemName={origin.name}
+                  variant='labeled'
                 />
               </Box>
 
@@ -209,6 +222,13 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
                             }}
                           >
                             {power.name}
+                            <AddToGrimoireButton
+                              itemId={encyclopediaIds.originPower(
+                                origin.name,
+                                power.name
+                              )}
+                              itemName={power.name}
+                            />
                           </Typography>
                           <Typography
                             variant='body1'

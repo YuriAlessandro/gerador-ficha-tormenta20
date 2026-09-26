@@ -23,6 +23,7 @@ import {
   EncyclopediaEntry,
 } from '../../functions/encyclopediaSearch';
 import { normalizeSearch } from '../../functions/stringUtils';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
 
 interface IProps {
   /** URL base da enciclopédia (ex.: "/database"), vinda do useRouteMatch pai. */
@@ -314,6 +315,12 @@ const EncyclopediaSearch: React.FC<IProps> = ({ baseUrl }) => {
                                 {entry.subtitle}
                               </Typography>
                             )}
+                            <Box sx={{ ml: 'auto' }}>
+                              <AddToGrimoireButton
+                                itemId={entry.id}
+                                itemName={entry.title}
+                              />
+                            </Box>
                           </Box>
                         }
                         secondary={
