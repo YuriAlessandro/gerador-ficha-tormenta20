@@ -44,8 +44,10 @@ import {
   countNaturalWeapons,
   COMPANION_AVAILABLE_SKILLS,
   COMPANION_WEAPON_DAMAGE_TYPES,
+  inferChosenSkills,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
+  formatTrickChoices,
   getCompanionTrickDefinition,
   getTricksWithAvailability,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
@@ -56,6 +58,7 @@ import {
 } from '@/data/systems/tormenta20/atributos';
 import Skill from '@/interfaces/Skills';
 import NumberField from '@/components/common/NumberField';
+import CompanionTrickChoiceFields from './CompanionTrickChoiceFields';
 
 const COMPANION_TYPES: CompanionType[] = [
   'Animal',
@@ -72,6 +75,8 @@ interface CompanionEditDialogProps {
   onClose: () => void;
   companion: CompanionSheet;
   trainerLevel: number;
+  /** Nível para PV/Defesa/perícias (Treinador Eclético); padrão: trainerLevel */
+  statLevel?: number;
   trainerCharisma: number;
   onSave: (updated: CompanionSheet) => void;
 }
@@ -98,7 +103,9 @@ function buildInitialDraft(companion: CompanionSheet): DraftState {
     spiritEnergyType: companion.spiritEnergyType,
     treinoIntensivo: companion.treinoIntensivo,
     tricks: [...companion.tricks],
-    baseSkills: [...companion.skills],
+    baseSkills: [
+      ...(companion.chosenSkills ?? inferChosenSkills(companion.skills)),
+    ],
     baseDamageType:
       companion.naturalWeapons[0]?.damageType ||
       ('Corte' as NaturalWeaponDamageType),
@@ -113,6 +120,7 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
   onClose,
   companion,
   trainerLevel,
+  statLevel = trainerLevel,
   trainerCharisma,
   onSave,
 }) => {
@@ -140,7 +148,7 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
       spiritEnergyType: draft.spiritEnergyType,
       treinoIntensivo: draft.treinoIntensivo,
       tricks: draft.tricks,
-      skills: draft.baseSkills,
+      chosenSkills: draft.baseSkills,
       naturalWeapons: [
         {
           ...(companion.naturalWeapons[0] || {
@@ -157,9 +165,10 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
     return calculateCompanionStats(
       draftCompanion,
       trainerLevel,
-      trainerCharisma
+      trainerCharisma,
+      statLevel
     );
-  }, [draft, companion, trainerLevel, trainerCharisma]);
+  }, [draft, companion, trainerLevel, trainerCharisma, statLevel]);
 
   const autoStateForDisplay = previewCompanion.originalAutoState;
 
@@ -196,7 +205,7 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
         draft.companionType === 'Espírito' ? draft.spiritEnergyType : undefined,
       treinoIntensivo: draft.treinoIntensivo,
       tricks: draft.tricks,
-      skills: draft.baseSkills,
+      chosenSkills: draft.baseSkills,
       naturalWeapons: [
         {
           ...(companion.naturalWeapons[0] || {
@@ -214,21 +223,31 @@ const CompanionEditDialog: React.FC<CompanionEditDialogProps> = ({
     const recalculated = calculateCompanionStats(
       updatedCompanion,
       trainerLevel,
-      trainerCharisma
+      trainerCharisma,
+      statLevel
     );
     onSave(recalculated);
     onClose();
-  }, [companion, draft, trainerLevel, trainerCharisma, onSave, onClose]);
+  }, [
+    companion,
+    draft,
+    trainerLevel,
+    trainerCharisma,
+    statLevel,
+    onSave,
+    onClose,
+  ]);
 
   const handleConfirmReset = useCallback(() => {
     const restored = revertCompanionToOriginal(
       companion,
       trainerLevel,
-      trainerCharisma
+      trainerCharisma,
+      statLevel
     );
     setDraft(buildInitialDraft(restored));
     setConfirmResetOpen(false);
-  }, [companion, trainerLevel, trainerCharisma]);
+  }, [companion, trainerLevel, trainerCharisma, statLevel]);
 
   const hasOverrides = Object.keys(draft.overrides).length > 0;
   const canReset = !!companion.originalAutoState;
@@ -1084,6 +1103,13 @@ const TricksTab: React.FC<{
     setDraft((p) => ({ ...p, tricks: [...p.tricks, { name: trickName }] }));
   };
 
+  const setTrickChoices = (idx: number, choices: Record<string, string>) => {
+    setDraft((p) => ({
+      ...p,
+      tricks: p.tricks.map((t, i) => (i === idx ? { ...t, choices } : t)),
+    }));
+  };
+
   // Magia Inata: grava/limpa a magia escolhida no truque do draft.
   const setTrickChoice = (
     idx: number,
@@ -1160,10 +1186,7 @@ const TricksTab: React.FC<{
                       color: 'text.secondary',
                     }}
                   >
-                    Escolhas:{' '}
-                    {Object.entries(trick.choices)
-                      .map(([k, v]) => `${k}: ${v}`)
-                      .join(', ')}
+                    Escolhas: {formatTrickChoices(trick)}
                   </Typography>
                 )}
                 {def?.text && (
@@ -1203,6 +1226,12 @@ const TricksTab: React.FC<{
                     sx={{ mt: 1, maxWidth: 360 }}
                   />
                 )}
+                <Box sx={{ mt: 1 }}>
+                  <CompanionTrickChoiceFields
+                    trick={trick}
+                    onChoicesChange={(choices) => setTrickChoices(idx, choices)}
+                  />
+                </Box>
               </Box>
               <IconButton
                 size='small'
@@ -1248,9 +1277,9 @@ const TricksTab: React.FC<{
           color: 'text.secondary',
         }}
       >
-        Ao adicionar Magia Inata, escolha a magia no seletor que aparece no
-        truque acima. Outras sub-escolhas (atributo, movimento) são adicionadas
-        sem escolha — ajuste recriando o parceiro se necessário.
+        Truques com sub-escolha (Magia Inata, Condicionamento Especial,
+        Deslocamento Especial, Sopro, Manobra Ensaiada) mostram os seletores no
+        próprio truque, acima.
       </Typography>
     </Stack>
   );

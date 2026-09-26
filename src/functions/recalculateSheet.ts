@@ -44,6 +44,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
+import { getCompanionLevels } from './companionLevels';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   isMulticlass,
@@ -2865,12 +2866,16 @@ export function recalculateSheet(
 
   // Step 15: Recalculate companion stats (Treinador)
   if (updatedSheet.companions?.length) {
-    const trainerLevel =
-      getClassLevel(updatedSheet, 'Treinador') || updatedSheet.nivel;
+    const { trainerLevel, statLevel } = getCompanionLevels(updatedSheet);
     const trainerCharisma =
       updatedSheet.atributos[Atributo.CARISMA]?.value ?? 0;
     updatedSheet.companions = updatedSheet.companions.map((companion) =>
-      calculateCompanionStats(companion, trainerLevel, trainerCharisma)
+      calculateCompanionStats(
+        companion,
+        trainerLevel,
+        trainerCharisma,
+        statLevel
+      )
     );
   }
 

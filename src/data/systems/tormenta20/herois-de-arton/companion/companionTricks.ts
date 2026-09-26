@@ -12,7 +12,41 @@ export interface CompanionTrickRequirements {
   minNaturalWeapons?: number;
   creationOnly?: boolean;
   canRepeat?: boolean;
+  /** Limite de vezes para truques repetíveis */
+  maxCount?: number;
+  /** Repetível no máximo uma vez por patamar do treinador */
+  oncePerPlateau?: boolean;
 }
+
+/** Sopro: tipos de energia disponíveis */
+export const SOPRO_ELEMENTS = ['Ácido', 'Eletricidade', 'Fogo', 'Frio'];
+
+/** Manobra Ensaiada: manobras de combate */
+export const COMPANION_MANEUVERS = [
+  'Agarrar',
+  'Derrubar',
+  'Desarmar',
+  'Empurrar',
+  'Quebrar',
+];
+
+/** Deslocamento Especial: tipos de deslocamento */
+export const SPECIAL_MOVEMENTS = ['Escalada', 'Natação'];
+
+/**
+ * Chave de `CompanionTrick.choices` preenchida por cada tipo de sub-escolha
+ * (atributo usa duas: primary e secondary).
+ */
+export const SUB_CHOICE_KEYS: Record<
+  NonNullable<CompanionTrickDefinition['subChoiceType']>,
+  string[]
+> = {
+  attribute: ['primary', 'secondary'],
+  movement: ['type'],
+  spell: ['spell'],
+  element: ['element'],
+  maneuver: ['maneuver'],
+};
 
 export interface CompanionTrickDefinition {
   name: string;
@@ -95,6 +129,7 @@ const COMPANION_TRICKS: CompanionTrickDefinition[] = [
     subChoiceType: 'attribute',
     requirements: {
       canRepeat: true,
+      oncePerPlateau: true,
     },
   },
   {
@@ -104,6 +139,7 @@ const COMPANION_TRICKS: CompanionTrickDefinition[] = [
     subChoiceType: 'movement',
     requirements: {
       canRepeat: true,
+      maxCount: 2,
     },
   },
   {
@@ -189,6 +225,13 @@ export interface TrickWithAvailability {
   unmetReasons: string[];
 }
 
+function getPlateausReached(trainerLevel: number): number {
+  if (trainerLevel >= 17) return 4;
+  if (trainerLevel >= 11) return 3;
+  if (trainerLevel >= 5) return 2;
+  return 1;
+}
+
 export function getTrickAvailability(
   trick: CompanionTrickDefinition,
   trainerLevel: number,
@@ -228,6 +271,18 @@ export function getTrickAvailability(
   // truques sem bloco de requirements — a ausência de canRepeat = único)
   if (!reqs?.canRepeat && existingTricks.some((t) => t.name === trick.name))
     unmetReasons.push('Já aprendido (não pode repetir)');
+
+  const timesLearned = existingTricks.filter(
+    (t) => t.name === trick.name
+  ).length;
+  if (reqs?.maxCount && timesLearned >= reqs.maxCount)
+    unmetReasons.push(`Já aprendido ${reqs.maxCount} vezes (limite)`);
+  // Patamares: iniciante (1–4), veterano (5–10), campeão (11–16), lenda (17+)
+  if (reqs?.oncePerPlateau) {
+    const plateausReached = getPlateausReached(trainerLevel);
+    if (timesLearned >= plateausReached)
+      unmetReasons.push('Limite de uma vez por patamar atingido');
+  }
 
   return { available: unmetReasons.length === 0, unmetReasons };
 }
@@ -293,4 +348,32 @@ export function getAvailableTricks(
       isCreation
     )
   );
+}
+
+/**
+ * Se a sub-escolha do truque (atributo, deslocamento, magia, elemento ou
+ * manobra) já foi feita. Truques sem sub-escolha estão sempre completos.
+ */
+export function isTrickChoiceComplete(trick: CompanionTrick): boolean {
+  const def = getCompanionTrickDefinition(trick.name);
+  if (!def?.hasSubChoice || !def.subChoiceType) return true;
+  return SUB_CHOICE_KEYS[def.subChoiceType].every(
+    (key) => !!trick.choices?.[key]
+  );
+}
+
+const CHOICE_LABELS: Record<string, string> = {
+  primary: '+2',
+  secondary: '+1',
+  type: 'Deslocamento',
+  spell: 'Magia',
+  element: 'Energia',
+  maneuver: 'Manobra',
+};
+
+/** Escolhas do truque em texto legível (ex.: "+2: Força, +1: Destreza"). */
+export function formatTrickChoices(trick: CompanionTrick): string {
+  return Object.entries(trick.choices || {})
+    .map(([key, value]) => `${CHOICE_LABELS[key] ?? key}: ${value}`)
+    .join(', ');
 }

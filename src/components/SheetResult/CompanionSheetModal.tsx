@@ -28,13 +28,16 @@ import {
   getCompanionTypeDefinition,
   CompanionTypeDefinition,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTypes';
-import { getCompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import {
+  formatTrickChoices,
+  getCompanionTrickDefinition,
+} from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import { getCompanionSkillTrainingBonus } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
   Atributo,
   ATTR_ABBREVIATIONS,
 } from '@/data/systems/tormenta20/atributos';
-import { SkillsAttrs } from '@/interfaces/Skills';
+import Skill, { SkillsAttrs } from '@/interfaces/Skills';
 import { rollD20 } from '@/functions/diceRoller';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
 import StatControl from './StatControl';
@@ -44,6 +47,8 @@ interface CompanionSheetModalProps {
   onClose: () => void;
   companion: CompanionSheet;
   trainerLevel: number;
+  /** Nível para PV/Defesa/perícias (Treinador Eclético); padrão: trainerLevel */
+  statLevel?: number;
   trainerName?: string;
   trainerCharismaMod?: number;
   pendingEnsinarTruqueCount?: number;
@@ -141,6 +146,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   onClose,
   companion,
   trainerLevel,
+  statLevel = trainerLevel,
   trainerName,
   trainerCharismaMod,
   pendingEnsinarTruqueCount,
@@ -222,8 +228,9 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
     [showDiceResult, displayName]
   );
 
-  const halfTrainerLevel = Math.floor(trainerLevel / 2);
-  const skillTrainingBonus = getCompanionSkillTrainingBonus(trainerLevel);
+  // Perícias (e ataques, testes de Luta/Pontaria) usam o nível de atributos
+  const halfTrainerLevel = Math.floor(statLevel / 2);
+  const skillTrainingBonus = getCompanionSkillTrainingBonus(statLevel);
   const forMod = companion.attributes[Atributo.FORCA];
   const companionAtkBonus = companion.attackBonus || 0;
   const companionDmgBonus = companion.damageBonus || 0;
@@ -261,10 +268,14 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   );
 
   const handleSkillRoll = useCallback(
-    (skillName: string) => {
+    (skillName: Skill) => {
       const skillAttr = SkillsAttrs[skillName];
       const attrMod = skillAttr ? companion.attributes[skillAttr] : 0;
-      const skillBonus = attrMod + halfTrainerLevel + skillTrainingBonus;
+      const skillBonus =
+        attrMod +
+        halfTrainerLevel +
+        skillTrainingBonus +
+        (companion.skillBonuses?.[skillName] ?? 0);
 
       const d20Roll = rollD20();
       const total = Math.max(1, d20Roll + skillBonus);
@@ -292,6 +303,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
     },
     [
       companion.attributes,
+      companion.skillBonuses,
       halfTrainerLevel,
       skillTrainingBonus,
       showDiceResult,
@@ -616,7 +628,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
 
               return (
                 <Box
-                  key={`weapon-${weapon.damageType}-${weapon.damageDice}-${weapon.threatMargin}`}
+                  // Armas naturais do parceiro costumam ser idênticas (Monstro,
+                  // Arma Natural Adicional): só o índice as distingue. Keys
+                  // repetidas faziam o React acumular nós ao trocar de amigo.
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={`weapon-${idx}`}
                   onClick={() => handleWeaponRoll(weapon, idx)}
                   sx={{
                     border: `1px solid ${theme.palette.divider}`,
@@ -692,7 +708,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           {companion.skills.map((skill) => {
             const skillAttr = SkillsAttrs[skill];
             const attrMod = skillAttr ? companion.attributes[skillAttr] : 0;
-            const skillBonus = attrMod + halfTrainerLevel + skillTrainingBonus;
+            const skillBonus =
+              attrMod +
+              halfTrainerLevel +
+              skillTrainingBonus +
+              (companion.skillBonuses?.[skill] ?? 0);
             const bonusStr =
               skillBonus >= 0 ? `+${skillBonus}` : `${skillBonus}`;
 
@@ -771,10 +791,13 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             >
               Truques ({companion.tricks.length})
             </Typography>
-            {companion.tricks.map((trick) => {
+            {companion.tricks.map((trick, idx) => {
               const trickDef = getCompanionTrickDefinition(trick.name);
               return (
-                <Accordion key={trick.name} disableGutters>
+                // Truques repetíveis (Condicionamento Especial, Magia Inata)
+                // aparecem mais de uma vez com o mesmo nome
+                // eslint-disable-next-line react/no-array-index-key
+                <Accordion key={`${trick.name}-${idx}`} disableGutters>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography
                       color='primary'
@@ -799,10 +822,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                               color: 'text.secondary',
                             }}
                           >
-                            Escolhas:{' '}
-                            {Object.entries(trick.choices)
-                              .map(([key, val]) => `${key}: ${val}`)
-                              .join(', ')}
+                            Escolhas: {formatTrickChoices(trick)}
                           </Typography>
                         </Box>
                       )}
@@ -914,6 +934,8 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           }}
         >
           Nível do Treinador: {trainerLevel}
+          {statLevel !== trainerLevel &&
+            ` · PV, Defesa e perícias pelo nível ${statLevel} (Treinador Eclético)`}
         </Typography>
       </DialogContent>
       <Dialog

@@ -34,7 +34,15 @@ export interface CompanionSheet {
   spiritEnergyType?: SpiritEnergyType;
 
   attributes: Record<Atributo, number>;
+  /**
+   * Perícias escolhidas pelo jogador (input). Ausente em fichas antigas, em
+   * que é inferido de `skills` no primeiro recálculo.
+   */
+  chosenSkills?: Skill[];
+  /** Perícias treinadas finais: escolhidas + tipo + truques (derivado). */
   skills: Skill[];
+  /** Bônus extras por perícia vindos de truques (ex.: Veloz em Atletismo). */
+  skillBonuses?: Partial<Record<Skill, number>>;
   naturalWeapons: CompanionNaturalWeapon[];
   tricks: CompanionTrick[];
   spells?: Spell[];

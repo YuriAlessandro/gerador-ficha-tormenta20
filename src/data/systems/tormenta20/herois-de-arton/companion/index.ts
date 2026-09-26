@@ -11,6 +11,7 @@ import {
   CompanionAutoSnapshot,
 } from '../../../../../interfaces/Companion';
 import {
+  COMPANION_TYPES,
   getCompanionTypeDefinition,
   CompanionTypeDefinition,
 } from './companionTypes';
@@ -19,12 +20,16 @@ import COMPANION_TRICKS, {
   getCompanionTrickDefinition,
   getTrickAvailability,
   getTricksWithAvailability,
+  isTrickChoiceComplete,
+  COMPANION_MANEUVERS,
+  SOPRO_ELEMENTS,
 } from './companionTricks';
 import { Spell } from '../../../../../interfaces/Spells';
 import { findInnateSpell, getInnateSpellOptions } from './innateSpells';
 
 export {
   COMPANION_TRICKS,
+  isTrickChoiceComplete,
   getAvailableTricks,
   getCompanionTrickDefinition,
   getTrickAvailability,
@@ -189,11 +194,42 @@ function computeNaturalWeapons(
   return weapons;
 }
 
+/** Perícias que a criação do melhor amigo sempre pede. */
+const CHOSEN_SKILL_COUNT = 3;
+
+/**
+ * Perícias que o tipo ou um truque podem ter treinado: as de qualquer tipo
+ * (o tipo pode ter sido trocado no editor) e o Atletismo do Veloz (o truque
+ * pode ter sido removido).
+ */
+const DERIVABLE_SKILLS = new Set<Skill>([
+  ...COMPANION_TYPES.flatMap((type) => type.trainedSkills ?? []),
+  Skill.ATLETISMO,
+]);
+
+/**
+ * Fichas antigas não separavam as perícias escolhidas das derivadas: `skills`
+ * guardava as duas e cada recálculo relia as derivadas como escolhidas. Como
+ * `computeSkills` sempre pôs as escolhidas primeiro e anexou as derivadas no
+ * fim, tira do fim as que podem ter sido derivadas até sobrarem as 3 da
+ * criação.
+ */
+export function inferChosenSkills(legacySkills: Skill[]): Skill[] {
+  const chosen = [...legacySkills];
+  while (
+    chosen.length > CHOSEN_SKILL_COUNT &&
+    DERIVABLE_SKILLS.has(chosen[chosen.length - 1])
+  ) {
+    chosen.pop();
+  }
+  return chosen;
+}
+
 function computeSkills(
   chosenSkills: Skill[],
   typeDef: CompanionTypeDefinition,
   tricks: CompanionTrick[]
-): Skill[] {
+): { skills: Skill[]; skillBonuses?: Partial<Record<Skill, number>> } {
   const skills = [...chosenSkills];
   if (typeDef.trainedSkills) {
     typeDef.trainedSkills.forEach((s) => {
@@ -202,14 +238,14 @@ function computeSkills(
       }
     });
   }
-  // Veloz treina Atletismo
-  if (
-    tricks.some((t) => t.name === 'Veloz') &&
-    !skills.includes(Skill.ATLETISMO)
-  ) {
+  // Veloz treina Atletismo; se já era treinado, +2 nessa perícia
+  if (tricks.some((t) => t.name === 'Veloz')) {
+    if (skills.includes(Skill.ATLETISMO)) {
+      return { skills, skillBonuses: { [Skill.ATLETISMO]: 2 } };
+    }
     skills.push(Skill.ATLETISMO);
   }
-  return skills;
+  return { skills };
 }
 
 function computeSenses(
@@ -301,9 +337,10 @@ export function calculateCompanionPV(
   trainerLevel: number,
   conMod: number
 ): number {
-  // PV = 16 + Con + (nível × (4 + Con))
-  // Nível 1: 16 + Con + (1 × (4 + Con)) = 20 + 2×Con
-  return 16 + conMod + trainerLevel * (4 + conMod);
+  // 16 + Con no 1º nível, +4 + Con por nível seguinte. A fórmula antiga
+  // multiplicava pelo nível inteiro, contando o 1º nível duas vezes (o amigo
+  // de um treinador de nível 2 ficava com os PV de nível 3).
+  return 16 + conMod + (trainerLevel - 1) * (4 + conMod);
 }
 
 /** Calcula Defesa do parceiro */
@@ -349,11 +386,19 @@ export function getCompanionSkillTrainingBonus(trainerLevel: number): number {
   return 2;
 }
 
-/** Recalcula todos os stats derivados do parceiro */
+/**
+ * Recalcula todos os stats derivados do parceiro.
+ *
+ * `statLevel` é o nível usado para PV (inclusive o +4/nível do Treino
+ * Intensivo), Defesa e perícias: o nível de Treinador, ou o de personagem com
+ * o poder Treinador Eclético. Truques, a RD do Treino Intensivo e o
+ * Treinamento Marcial seguem sempre o nível de Treinador.
+ */
 export function calculateCompanionStats(
   companion: CompanionSheet,
   trainerLevel: number,
-  trainerCharisma: number
+  trainerCharisma: number,
+  statLevel: number = trainerLevel
 ): CompanionSheet {
   const typeDef = getCompanionTypeDefinition(companion.companionType);
   const attrs = computeAttributes(typeDef, companion.tricks);
@@ -367,7 +412,7 @@ export function calculateCompanionStats(
   let defesa = calculateCompanionDefense(
     attrs[Atributo.DESTREZA],
     trainerCharisma,
-    trainerLevel,
+    statLevel,
     hasFullLevelDefense
   );
 
@@ -385,11 +430,12 @@ export function calculateCompanionStats(
     : 0;
 
   // PV base
-  let pv = calculateCompanionPV(trainerLevel, attrs[Atributo.CONSTITUICAO]);
+  let pv = calculateCompanionPV(statLevel, attrs[Atributo.CONSTITUICAO]);
 
-  // Treino Intensivo: +4 PV por nível
+  // Treino Intensivo: +4 PV por nível (parte do cálculo de PV, então segue o
+  // statLevel com Treinador Eclético)
   if (companion.treinoIntensivo) {
-    pv += 4 * trainerLevel;
+    pv += 4 * statLevel;
   }
 
   // RD base (truques) + Treino Intensivo
@@ -411,6 +457,16 @@ export function calculateCompanionStats(
     if (!spell) return [];
     return [{ ...spell, customKeyAttr: Atributo.CARISMA }];
   });
+
+  // Fichas antigas: infere as escolhidas do estado anterior aos overrides
+  const chosenSkills =
+    companion.chosenSkills ??
+    inferChosenSkills(companion.originalAutoState?.skills ?? companion.skills);
+  const { skills, skillBonuses } = computeSkills(
+    chosenSkills,
+    typeDef,
+    companion.tricks
+  );
 
   // Estado auto-computado puro (sem overrides aplicados)
   const autoComputed: CompanionSheet = {
@@ -434,7 +490,9 @@ export function calculateCompanionStats(
     hasAnatomiaHumanoide: companion.tricks.some(
       (t) => t.name === 'Anatomia Humanoide'
     ),
-    skills: computeSkills(companion.skills, typeDef, companion.tricks),
+    chosenSkills,
+    skills,
+    skillBonuses,
     attackBonus: treinamentoBonus,
     damageBonus: treinamentoBonus,
   };
@@ -446,7 +504,9 @@ export function calculateCompanionStats(
     companionType: autoComputed.companionType,
     spiritEnergyType: autoComputed.spiritEnergyType,
     attributes: autoComputed.attributes,
+    chosenSkills: autoComputed.chosenSkills,
     skills: autoComputed.skills,
+    skillBonuses: autoComputed.skillBonuses,
     naturalWeapons: autoComputed.naturalWeapons,
     tricks: autoComputed.tricks,
     spells: autoComputed.spells,
@@ -506,7 +566,8 @@ export function calculateCompanionStats(
 export function revertCompanionToOriginal(
   companion: CompanionSheet,
   trainerLevel: number,
-  trainerCharisma: number
+  trainerCharisma: number,
+  statLevel: number = trainerLevel
 ): CompanionSheet {
   if (!companion.originalAutoState) return companion;
   const restored: CompanionSheet = {
@@ -517,7 +578,12 @@ export function revertCompanionToOriginal(
     originalAutoState: companion.originalAutoState,
     manualOverrides: undefined,
   };
-  return calculateCompanionStats(restored, trainerLevel, trainerCharisma);
+  return calculateCompanionStats(
+    restored,
+    trainerLevel,
+    trainerCharisma,
+    statLevel
+  );
 }
 
 export interface CreateCompanionOptions {
@@ -530,6 +596,8 @@ export interface CreateCompanionOptions {
   tricks: CompanionTrick[];
   trainerLevel: number;
   trainerCharisma: number;
+  /** Nível para PV/Defesa/perícias (Treinador Eclético); padrão: trainerLevel */
+  statLevel?: number;
 }
 
 /** Cria um parceiro a partir das seleções do wizard */
@@ -544,6 +612,7 @@ export function createCompanion(
     companionType: options.type,
     spiritEnergyType: options.spiritEnergyType,
     attributes: { ...BASE_ATTRIBUTES },
+    chosenSkills: options.skills,
     skills: options.skills,
     naturalWeapons: [
       {
@@ -562,7 +631,8 @@ export function createCompanion(
   return calculateCompanionStats(
     baseCompanion,
     options.trainerLevel,
-    options.trainerCharisma
+    options.trainerCharisma,
+    options.statLevel
   );
 }
 
@@ -671,6 +741,18 @@ export function generateRandomCompanion(
         const chosen =
           spellOptions[Math.floor(Math.random() * spellOptions.length)];
         if (chosen) trickEntry.choices = { spell: chosen.nome };
+      } else if (trick.subChoiceType === 'element') {
+        trickEntry.choices = {
+          element:
+            SOPRO_ELEMENTS[Math.floor(Math.random() * SOPRO_ELEMENTS.length)],
+        };
+      } else if (trick.subChoiceType === 'maneuver') {
+        trickEntry.choices = {
+          maneuver:
+            COMPANION_MANEUVERS[
+              Math.floor(Math.random() * COMPANION_MANEUVERS.length)
+            ],
+        };
       }
     }
 

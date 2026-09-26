@@ -5030,7 +5030,7 @@ export function applyManualLevelUp(
                     trainerLevel: newClassLevel,
                     trainerCharisma: trainerCha,
                   })
-                : generateRandomCompanion(updatedSheet.nivel, trainerCha);
+                : generateRandomCompanion(newClassLevel, trainerCha);
             updatedSheet.companions.push(secondCompanion);
             abilitySubSteps.push({
               name: 'Conquistar pelos Números',
