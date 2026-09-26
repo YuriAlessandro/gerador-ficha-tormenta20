@@ -23,6 +23,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import ThreatIcon from '@mui/icons-material/Dangerous';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import RestoreIcon from '@mui/icons-material/Restore';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { useConfirm } from '../../hooks/useDialog';
@@ -65,6 +66,16 @@ import {
   type ThreatPmSourceKind,
   type ThreatPmUsage,
 } from '../../functions/threatPmUse';
+import {
+  damageThreatPV,
+  getThreatVitals,
+  healThreatPV,
+  isThreatAtFullVitals,
+  recoverThreatPM,
+  restoreThreatVitals,
+  spendThreatPM,
+} from '../../functions/threatVitals';
+import StatControl from '../SheetResult/StatControl';
 
 // Styled components for threat sheet (uses theme accent color)
 const ThreatDivisor: React.FC = () => (
@@ -133,6 +144,14 @@ interface ThreatResultProps {
    * e visão do jogador não gastam PM).
    */
   pmUsage?: ThreatPmUsage;
+  /**
+   * Mostra o controle de PV/PM atuais da própria ficha (dano, cura, gasto de
+   * PM). Opt-in das telas avulsas da ameaça: na mesa virtual quem manda nos
+   * vitais é o participante do encontro, então lá não pode aparecer — e o
+   * diálogo da mesa passa `viewOnly={false}`, por isso não dá para derivar
+   * de `viewOnly`.
+   */
+  enableVitalsTracker?: boolean;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
@@ -149,6 +168,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   onApplyAttackCondition,
   onApplySpellCondition,
   pmUsage,
+  enableVitalsTracker = false,
 }) => {
   const threat = React.useMemo(
     () => getEffectiveThreat(rawThreat),
@@ -182,6 +202,20 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     },
     [dispatch, rawThreat, onThreatUpdate]
   );
+
+  const handleVitalsChange = React.useCallback(
+    (updated: ThreatSheet) => {
+      const stamped: ThreatSheet = { ...updated, updatedAt: new Date() };
+      if (onThreatUpdate) {
+        onThreatUpdate(stamped);
+      } else {
+        dispatch(saveThreat(stamped));
+      }
+    },
+    [dispatch, onThreatUpdate]
+  );
+  const showVitalsTracker = enableVitalsTracker && !viewOnly && !pmUsage;
+  const vitals = getThreatVitals(rawThreat);
 
   const resultRef = React.createRef<HTMLDivElement>();
 
@@ -739,6 +773,67 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               }
               dense
             />
+          )}
+          {showVitalsTracker && (
+            <Stack
+              spacing={1}
+              // O PDF imprime o statblock: vitais de sessão ficam de fora.
+              sx={{ alignItems: 'center', mt: 1, mb: 1, displayPrint: 'none' }}
+            >
+              <Stack
+                direction='row'
+                spacing={isMobile ? 1 : 2}
+                useFlexGap
+                sx={{
+                  justifyContent: 'space-around',
+                  alignItems: 'flex-start',
+                  flexWrap: 'wrap',
+                  minWidth: 0,
+                  width: '100%',
+                }}
+              >
+                <StatControl
+                  type='PV'
+                  current={vitals.currentPV}
+                  max={vitals.maxPV}
+                  calculatedMax={vitals.maxPV}
+                  temp={vitals.tempPV}
+                  onDecrement={(n) =>
+                    handleVitalsChange(damageThreatPV(rawThreat, n))
+                  }
+                  onHeal={(n) => handleVitalsChange(healThreatPV(rawThreat, n))}
+                  compact={isMobile}
+                />
+                {vitals.hasPM && (
+                  <StatControl
+                    type='PM'
+                    current={vitals.currentPM}
+                    max={vitals.maxPM}
+                    calculatedMax={vitals.maxPM}
+                    temp={vitals.tempPM}
+                    onDecrement={(n) =>
+                      handleVitalsChange(spendThreatPM(rawThreat, n))
+                    }
+                    onHeal={(n) =>
+                      handleVitalsChange(recoverThreatPM(rawThreat, n))
+                    }
+                    compact={isMobile}
+                  />
+                )}
+              </Stack>
+              {!isThreatAtFullVitals(rawThreat) && (
+                <Button
+                  size='small'
+                  variant='text'
+                  startIcon={<RestoreIcon />}
+                  onClick={() =>
+                    handleVitalsChange(restoreThreatVitals(rawThreat))
+                  }
+                >
+                  Restaurar PV/PM
+                </Button>
+              )}
+            </Stack>
           )}
           <Box
             sx={{

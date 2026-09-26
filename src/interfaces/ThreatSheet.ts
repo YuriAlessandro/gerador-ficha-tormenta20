@@ -213,6 +213,14 @@ export interface ThreatSheet {
 
   // Condições (status effects) ativas na ameaça
   activeConditions?: ActiveCondition[];
+
+  // PV/PM atuais controlados pela própria ficha (fora da mesa virtual).
+  // `undefined` = cheia, mesma convenção da ficha de jogador. No encontro a
+  // fonte da verdade é o participante, que ignora estes campos.
+  currentPV?: number;
+  tempPV?: number;
+  currentPM?: number;
+  tempPM?: number;
 }
 
 /**

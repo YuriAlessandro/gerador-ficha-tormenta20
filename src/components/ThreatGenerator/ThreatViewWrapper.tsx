@@ -90,6 +90,7 @@ const ThreatViewWrapper: React.FC = () => {
         isFromHistory
         isSavedToCloud={isSavedToCloud}
         onSaveToCloud={handleSaveToCloud}
+        enableVitalsTracker
       />
     </>
   );

@@ -12,7 +12,10 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PublicIcon from '@mui/icons-material/Public';
-import SheetsService from '@/services/sheets.service';
+import SheetsService, {
+  type UpdateSheetRequest,
+} from '@/services/sheets.service';
+import { useSheets } from '@/hooks/useSheets';
 import {
   ThreatSheet,
   normalizeThreatSheet,
@@ -39,6 +42,7 @@ const ThreatViewCloudWrapper: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const idExtracted = useRef(false);
+  const { updateSheet } = useSheets();
 
   useEffect(() => {
     // Only extract id from location.state once
@@ -92,6 +96,24 @@ const ThreatViewCloudWrapper: React.FC = () => {
         sheetData: threat,
       },
     });
+  };
+
+  // Condições e PV/PM atuais mudados na ficha vão para a nuvem na hora.
+  const handleThreatUpdate = async (updated: ThreatSheet) => {
+    setThreat(updated);
+    if (!cloudThreatId) return;
+    try {
+      await updateSheet(cloudThreatId, {
+        name: updated.name,
+        sheetData: {
+          ...updated,
+          isThreat: true,
+        } as unknown as UpdateSheetRequest['sheetData'],
+        image: updated.imageUrl,
+      }).unwrap();
+    } catch (err) {
+      console.error('Failed to update cloud threat:', err);
+    }
   };
 
   if (loading) {
@@ -157,7 +179,8 @@ const ThreatViewCloudWrapper: React.FC = () => {
         isSavedToCloud
         onSaveToCloud={async () => {}}
         folderInfo={folderInfo}
-        onThreatUpdate={setThreat}
+        onThreatUpdate={handleThreatUpdate}
+        enableVitalsTracker
       />
       {cloudThreatId && (
         <PublishBestiaryModal

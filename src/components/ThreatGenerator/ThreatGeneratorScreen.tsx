@@ -366,6 +366,27 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     }
   };
 
+  // Mudanças feitas na ficha pronta (condições, PV/PM atuais) persistem no
+  // armazenamento local e, se a ameaça já está na nuvem, lá também.
+  const handleResultThreatUpdate = async (updated: ThreatSheet) => {
+    setThreat(updated);
+    dispatch(saveThreat(updated));
+    if (cloudThreatId && isSavedToCloud) {
+      try {
+        await updateSheetAction(cloudThreatId, {
+          name: updated.name,
+          sheetData: {
+            ...updated,
+            isThreat: true,
+          } as any,
+          image: updated.imageUrl,
+        });
+      } catch (error) {
+        console.error('Failed to update cloud threat:', error);
+      }
+    }
+  };
+
   const handleEdit = () => {
     setShowResult(false);
     setActiveStep(0);
@@ -455,7 +476,8 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
           onEdit={handleEdit}
           isSavedToCloud={isSavedToCloud}
           onSaveToCloud={handleSaveToCloud}
-          onThreatUpdate={(updated) => setThreat(updated)}
+          onThreatUpdate={handleResultThreatUpdate}
+          enableVitalsTracker
         />
       ) : (
         <>
