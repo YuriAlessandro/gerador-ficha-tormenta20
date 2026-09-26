@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Box,
   Button,
@@ -12,8 +12,10 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Switch,
   ToggleButton,
   ToggleButtonGroup,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import Select from 'react-select';
@@ -49,6 +51,22 @@ type TreasureResultWithId = {
 };
 
 const MODE_STORAGE_KEY = 'rewards.treasureMode';
+const ANIMATION_STORAGE_KEY = 'rewards.rollAnimation';
+
+/** Preferência explícita do usuário; `null` = nunca escolheu. */
+const readStoredAnimation = (): boolean | null => {
+  try {
+    const stored = window.localStorage.getItem(ANIMATION_STORAGE_KEY);
+    if (stored === 'on') return true;
+    if (stored === 'off') return false;
+  } catch {
+    // Armazenamento indisponível: usa o padrão.
+  }
+  return null;
+};
+
+/** Defasagem entre cards animando juntos. */
+const CARD_STAGGER_MS = 150;
 
 const readStoredMode = (): TreasureMode => {
   try {
@@ -77,6 +95,38 @@ const Rewards: React.FC = () => {
   const [mode, setMode] = useState<TreasureMode>(readStoredMode);
   const [rewardMult, setRewardMult] = useState<TreasureMultiplier>('Padrão');
 
+  // Animação: ligada por padrão, exceto para quem pediu menos movimento.
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const [storedAnimation, setStoredAnimation] = useState(readStoredAnimation);
+  const animate = storedAnimation ?? !reducedMotion;
+  const [skipToken, setSkipToken] = useState(0);
+  const [animatingIds, setAnimatingIds] = useState<Set<string>>(new Set());
+
+  const onAnimatingChange = useCallback((id: string, animating: boolean) => {
+    setAnimatingIds((prev) => {
+      if (prev.has(id) === animating) return prev;
+      const next = new Set(prev);
+      if (animating) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const onToggleAnimation = (
+    _: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean
+  ) => {
+    setStoredAnimation(checked);
+    try {
+      window.localStorage.setItem(
+        ANIMATION_STORAGE_KEY,
+        checked ? 'on' : 'off'
+      );
+    } catch {
+      // Armazenamento indisponível: só não lembra a escolha.
+    }
+  };
+
   const dataset = TREASURE_DATASETS[mode];
 
   const onClickGenerate = () => {
@@ -89,6 +139,7 @@ const Rewards: React.FC = () => {
         result: rollTreasure(ctx, nd, rewardMult),
       });
     }
+    setAnimatingIds(new Set());
     setResults(newResults);
   };
 
@@ -178,6 +229,16 @@ const Rewards: React.FC = () => {
                 Todos os suplementos
               </ToggleButton>
             </ToggleButtonGroup>
+            <FormControlLabel
+              control={
+                <Switch
+                  size='small'
+                  checked={animate}
+                  onChange={onToggleAnimation}
+                />
+              }
+              label={<Typography variant='body2'>Animar rolagem</Typography>}
+            />
             <Typography variant='caption' sx={{ color: 'text.secondary' }}>
               {mode === 'basic'
                 ? 'Tabelas 8-1 a 8-15 do Tormenta20 Jogo do Ano.'
@@ -339,23 +400,43 @@ const Rewards: React.FC = () => {
         {/* Results Section */}
         {results && results.length > 0 && (
           <Box sx={{ mb: 4 }}>
-            <Typography
-              variant='h6'
+            <Stack
+              direction='row'
               sx={{
-                fontFamily: 'Tfont, serif',
-                color: 'primary.main',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 1,
                 mb: 2,
               }}
             >
-              Resultados ({results.length}{' '}
-              {results.length === 1 ? 'recompensa' : 'recompensas'})
-            </Typography>
-            {results.map((r) => (
+              <Typography
+                variant='h6'
+                sx={{ fontFamily: 'Tfont, serif', color: 'primary.main' }}
+              >
+                Resultados ({results.length}{' '}
+                {results.length === 1 ? 'recompensa' : 'recompensas'})
+              </Typography>
+              {animatingIds.size > 0 && (
+                <Button
+                  size='small'
+                  variant='outlined'
+                  onClick={() => setSkipToken((t) => t + 1)}
+                >
+                  Pular animação
+                </Button>
+              )}
+            </Stack>
+            {results.map((r, idx) => (
               <TreasureResultCard
                 key={r.id}
                 result={r.result}
-                showBooks={TREASURE_DATASETS[r.mode].showBooks}
+                dataset={TREASURE_DATASETS[r.mode]}
                 onChoose={(itemIndex, kind) => onChoose(r.id, itemIndex, kind)}
+                animate={animate}
+                startDelay={idx * CARD_STAGGER_MS}
+                skipToken={skipToken}
+                onAnimatingChange={(a) => onAnimatingChange(r.id, a)}
               />
             ))}
           </Box>

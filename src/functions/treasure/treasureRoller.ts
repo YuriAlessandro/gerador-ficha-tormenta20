@@ -98,7 +98,18 @@ export interface EnhancementPick {
   notes: string[];
 }
 
+/** Uma rolagem na tabela de melhorias/encantos, na ordem em que aconteceu. */
+export interface EnhancementAttempt {
+  roll: number;
+  entry: TreasureEntry;
+  accepted: boolean;
+  /** Motivo da rejeição (quando `accepted` é false). */
+  reason?: string;
+}
+
 export interface EnhancementSet {
+  /** Todas as rolagens, aceitas e rejeitadas, em ordem cronológica. */
+  attempts: EnhancementAttempt[];
   picks: EnhancementPick[];
   rejected: RejectedRoll[];
   warnings: string[];
@@ -372,19 +383,26 @@ export function rollImprovements(
   const markers: MarkerRules = dataset.markers.superiores;
   const rules = IMPROVEMENT_RULES[kind];
   const info = ctx.itemInfo(base.name, kind);
-  const set: EnhancementSet = { picks: [], rejected: [], warnings: [] };
+  const set: EnhancementSet = {
+    attempts: [],
+    picks: [],
+    rejected: [],
+    warnings: [],
+  };
   const reroll = dataset.rerollInapplicableImprovements;
 
   let slotsLeft = count;
-  let attempts = 0;
-  while (slotsLeft > 0 && attempts < MAX_ATTEMPTS) {
-    attempts += 1;
+  let tries = 0;
+  while (slotsLeft > 0 && tries < MAX_ATTEMPTS) {
+    tries += 1;
     const roll = ctx.die(100);
     const entry = lookup(table, roll);
     const marker = entry.marker ? markers[entry.marker] : undefined;
     const rule = rules[entry.name];
-    const reject = (reason: string) =>
+    const reject = (reason: string) => {
       set.rejected.push({ roll, name: entry.rawName, reason });
+      set.attempts.push({ roll, entry, accepted: false, reason });
+    };
 
     if (hasEnhancement(set.picks, entry.name)) {
       reject(`já está no item — ${GENERAL_RULES.improvementOncePerItem.quote}`);
@@ -451,6 +469,7 @@ export function rollImprovements(
         }
         if (rule?.warning) set.warnings.push(rule.warning);
         set.picks.push(pick);
+        set.attempts.push({ roll, entry, accepted: true });
         slotsLeft -= pick.slots;
       }
     }
@@ -505,16 +524,22 @@ function rollMagicItem(
   const markers = enchantmentMarkers(ctx.dataset, kind);
   const rules = ENCHANTMENT_RULES[kind];
   const slots = TIER_SLOTS[tier];
-  const set: EnhancementSet = { picks: [], rejected: [], warnings: [] };
+  const set: EnhancementSet = {
+    attempts: [],
+    picks: [],
+    rejected: [],
+    warnings: [],
+  };
 
   let slotsLeft = slots;
-  let attempts = 0;
-  while (slotsLeft > 0 && attempts < MAX_ATTEMPTS) {
-    attempts += 1;
+  let tries = 0;
+  while (slotsLeft > 0 && tries < MAX_ATTEMPTS) {
+    tries += 1;
     const roll = ctx.die(100);
     const entry = lookup(enchTable, roll);
 
     if (entry.rollOnSpecificTable) {
+      set.attempts.push({ roll, entry, accepted: true });
       const specific = rollTable(ctx, specificTable);
       return {
         kind: 'magico',
@@ -529,8 +554,10 @@ function rollMagicItem(
     const marker = entry.marker ? markers[entry.marker] : undefined;
     const meaning = marker?.meaning.kind;
     const rule = rules[entry.name];
-    const reject = (reason: string) =>
+    const reject = (reason: string) => {
       set.rejected.push({ roll, name: entry.rawName, reason });
+      set.attempts.push({ roll, entry, accepted: false, reason });
+    };
 
     if ((meaning === 'double' || meaning === 'minTwo') && slots < 2) {
       reject(marker?.footnote ?? '');
@@ -585,6 +612,7 @@ function rollMagicItem(
         );
       if (rule?.warning) set.warnings.push(rule.warning);
       set.picks.push(pick);
+      set.attempts.push({ roll, entry, accepted: true });
       slotsLeft -= pick.slots;
     }
   }
