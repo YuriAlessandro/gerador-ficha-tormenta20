@@ -19,6 +19,7 @@ import AddIcon from '@mui/icons-material/Add';
 import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
 import { buildCustomOficio } from '@/functions/oficio';
 import { normalizeSearch } from '@/functions/stringUtils';
+import { TOUCH_CHIP_SX } from './responsiveSx';
 
 interface OficioPickerProps {
   /** Ofícios escolhidos. Inclui customizados — é a fonte da verdade dos chips. */
@@ -213,7 +214,10 @@ const OficioPicker: React.FC<OficioPickerProps> = ({
             variant='filled'
             color='primary'
             onDelete={onDeselect ? () => onDeselect(oficio) : undefined}
-            sx={{ '&:hover': { backgroundColor: 'primary.dark' } }}
+            sx={[
+              TOUCH_CHIP_SX,
+              { '&:hover': { backgroundColor: 'primary.dark' } },
+            ]}
           />
         ))}
       <Chip
@@ -230,10 +234,13 @@ const OficioPicker: React.FC<OficioPickerProps> = ({
         variant='outlined'
         color='default'
         onClick={(e) => setAnchorEl(e.currentTarget)}
-        sx={{
-          cursor: 'pointer',
-          '&:hover': { backgroundColor: 'rgba(209, 50, 53, 0.08)' },
-        }}
+        sx={[
+          TOUCH_CHIP_SX,
+          {
+            cursor: 'pointer',
+            '&:hover': { backgroundColor: 'rgba(209, 50, 53, 0.08)' },
+          },
+        ]}
       />
       {isMobile ? (
         <Drawer

@@ -12,6 +12,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import Skill, { isOficioSkill } from '@/interfaces/Skills';
 import { normalizeSearch } from '@/functions/stringUtils';
 import OficioPicker from './OficioPicker';
+import { TOUCH_CHIP_SX } from './responsiveSx';
 
 // Busca só aparece quando a lista é grande o suficiente para valer a pena
 const SEARCH_THRESHOLD = 10;
@@ -141,12 +142,15 @@ const SkillChipSelector: React.FC<SkillChipSelectorProps> = ({
               color={isSelected ? 'primary' : 'default'}
               onClick={isDisabled ? undefined : () => onToggle(skill)}
               disabled={isDisabled}
-              sx={{
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                '&:hover': {
-                  backgroundColor: hoverBgColor,
+              sx={[
+                TOUCH_CHIP_SX,
+                {
+                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                  '&:hover': {
+                    backgroundColor: hoverBgColor,
+                  },
                 },
-              }}
+              ]}
             />
           );
         })}

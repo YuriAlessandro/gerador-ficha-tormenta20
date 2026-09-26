@@ -68,9 +68,13 @@ interface MarketSection {
   items: (Equipment | DefenseEquipment)[];
 }
 
+// No desktop a lista rola sozinha, com a barra de ferramentas visível acima.
+// No mobile o wizard é tela cheia e o conteúdo do dialog já rola (com a barra
+// fixa no topo): uma segunda rolagem aqui deixava só uma fresta da lista
+// visível, então abaixo de `md` ela rola junto com o dialog.
 const LIST_SX = {
-  maxHeight: { xs: '48vh', md: '44vh' },
-  overflowY: 'auto',
+  maxHeight: { md: '44vh' },
+  overflowY: { md: 'auto' },
   overflowX: 'hidden',
   position: 'relative',
 } as const;

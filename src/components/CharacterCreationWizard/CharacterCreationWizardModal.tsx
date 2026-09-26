@@ -17,6 +17,8 @@ import {
   Typography,
   Box,
 } from '@mui/material';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import CompactStepProgress from '@/components/common/CompactStepProgress';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
@@ -192,6 +194,7 @@ const CharacterCreationWizardModal: React.FC<
   const [stepsInitialized, setStepsInitialized] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const stepperScrollRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const [selections, setSelections] = useState<WizardSelections>({
     // Initialize with default attribute modifiers (0 = average)
     baseAttributes: {
@@ -2511,12 +2514,15 @@ const CharacterCreationWizardModal: React.FC<
         onClose={handleCloseAttempt}
         maxWidth='md'
         fullWidth
+        fullScreen={isMobile}
         slotProps={{
           paper: {
-            sx: {
-              borderRadius: 2,
-              minHeight: '500px',
-            },
+            sx: isMobile
+              ? undefined
+              : {
+                  borderRadius: 2,
+                  minHeight: '500px',
+                },
           },
         }}
       >
@@ -2524,53 +2530,67 @@ const CharacterCreationWizardModal: React.FC<
           <Typography
             variant='h5'
             component='div'
-            sx={{
+            sx={(theme) => ({
               fontWeight: 'bold',
-            }}
+              [theme.breakpoints.down('md')]: { fontSize: '1.25rem' },
+            })}
           >
             Criação Manual de Personagem
           </Typography>
         </DialogTitle>
 
-        <DialogContent>
-          <Box sx={{ width: '100%', mt: 2 }}>
-            <Box
-              ref={stepperScrollRef}
-              sx={{
-                overflowX: 'auto',
-                pb: 1,
-                '&::-webkit-scrollbar': {
-                  height: 6,
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0,0,0,0.2)',
-                  borderRadius: 3,
-                },
-              }}
-            >
-              <Stepper
-                activeStep={activeStep}
+        {isMobile && (
+          <Box sx={{ px: 3, pb: 2 }}>
+            <CompactStepProgress activeStep={activeStep} steps={steps} />
+          </Box>
+        )}
+
+        {/* O MUI zera o padding-top do DialogContent quando ele vem logo após o
+            DialogTitle; o progresso compacto entre os dois quebra essa
+            adjacência, então o zero é explícito no mobile. */}
+        <DialogContent sx={isMobile ? { pt: 0 } : undefined}>
+          <Box sx={{ width: '100%', mt: isMobile ? 0 : 2 }}>
+            {!isMobile && (
+              <Box
+                ref={stepperScrollRef}
                 sx={{
-                  minWidth: 'max-content',
+                  overflowX: 'auto',
+                  pb: 1,
+                  '&::-webkit-scrollbar': {
+                    height: 6,
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: 'rgba(0,0,0,0.2)',
+                    borderRadius: 3,
+                  },
                 }}
               >
-                {steps.map((label) => (
-                  <Step key={label}>
-                    <StepLabel
-                      sx={{
-                        '& .MuiStepLabel-label': {
-                          whiteSpace: 'nowrap',
-                        },
-                      }}
-                    >
-                      {label}
-                    </StepLabel>
-                  </Step>
-                ))}
-              </Stepper>
-            </Box>
+                <Stepper
+                  activeStep={activeStep}
+                  sx={{
+                    minWidth: 'max-content',
+                  }}
+                >
+                  {steps.map((label) => (
+                    <Step key={label}>
+                      <StepLabel
+                        sx={{
+                          '& .MuiStepLabel-label': {
+                            whiteSpace: 'nowrap',
+                          },
+                        }}
+                      >
+                        {label}
+                      </StepLabel>
+                    </Step>
+                  ))}
+                </Stepper>
+              </Box>
+            )}
 
-            <Box sx={{ mt: 4, mb: 2 }}>{getStepContent(activeStep)}</Box>
+            <Box sx={{ mt: isMobile ? 1 : 4, mb: 2 }}>
+              {getStepContent(activeStep)}
+            </Box>
           </Box>
         </DialogContent>
 

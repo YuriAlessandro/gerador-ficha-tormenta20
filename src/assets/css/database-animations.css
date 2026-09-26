@@ -276,11 +276,6 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-
-  .table-container .MuiTable-root {
-    /* Force minimum width on mobile to enable scrolling */
-    min-width: 700px;
-  }
 }
 
 /* Loading States */
