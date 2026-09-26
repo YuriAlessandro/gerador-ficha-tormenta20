@@ -223,6 +223,14 @@ const Changelog: React.FC = () => {
                   divina obrigatória quando as vagas arcanas já estão cheias.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> Os truques <strong>Sopro</strong> e{' '}
+                  <strong>Manobra Ensaiada</strong> do melhor amigo do Treinador
+                  agora deixam escolher o tipo de energia e a manobra na
+                  criação, no Subir Nível e no editor do parceiro. No editor,
+                  Condicionamento Especial e Deslocamento Especial adicionados à
+                  mão também ganharam seletores.
+                </li>
+                <li>
                   <strong>Correção:</strong> Fichas <strong>multiclasse</strong>{' '}
                   podiam não conseguir voltar ao nível 1: cada classe tinha
                   mínimo de 1 nível, então um Guerreiro 1 / Ladino 1 ficava
@@ -263,6 +271,34 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> No tema claro, o ícone de remover
                   dos chips destacados (magias escolhidas, filtros, mochila)
                   ficava invisível.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Várias correções no{' '}
+                  <strong>melhor amigo do Treinador</strong>: os PV contavam o
+                  1º nível duas vezes; em multiclasse, o parceiro (inclusive o
+                  segundo, de Conquistar pelos Números) usa o nível de
+                  Treinador, e não o de personagem; com{' '}
+                  <strong>Treinador Eclético</strong>, PV, Defesa e perícias
+                  passam a usar o nível de personagem; Convocar Enxame ensina
+                  Enxame de Pestes; e Condicionamento Especial e Deslocamento
+                  Especial respeitam os limites de Heróis de Arton.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As <strong>perícias</strong> do
+                  melhor amigo não ficam mais para trás ao remover o truque
+                  Veloz ou trocar o tipo do parceiro, e o +2 do Veloz em
+                  Atletismo já treinado passa a contar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Cavaleiro Sagrado</strong> agora exige ser devoto de
+                  uma divindade que aceite paladinos (ou qualquer uma, com
+                  Devoções Abertas). Antes ele aparecia até para quem não era
+                  devoto. (por{' '}
+                  <a href='https://github.com/ianptkcs' target='blank'>
+                    ianptkcs
+                  </a>
+                  )
                 </li>
               </ul>
 
