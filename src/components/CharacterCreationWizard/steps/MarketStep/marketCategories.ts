@@ -5,6 +5,7 @@ import Equipment, {
 } from '@/interfaces/Equipment';
 import { MarketEquipment } from '@/interfaces/MarketEquipment';
 import { isDefenseEquipment } from '@/functions/itemEnhancements/core';
+import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { WEAPON_CATEGORY_SHORT_LABELS } from '@/functions/proficiencies';
 import {
   EquipmentStat,
@@ -100,7 +101,7 @@ export const MARKET_CATEGORIES: MarketCategoryDescriptor[] = [
       {
         key: 'heavy',
         label: 'Pesada',
-        test: (i) => isDefenseEquipment(i) && !!i.isHeavyArmor,
+        test: (i) => isDefenseEquipment(i) && isHeavyArmor(i),
       },
     ],
     showDescription: true,
@@ -109,12 +110,12 @@ export const MARKET_CATEGORIES: MarketCategoryDescriptor[] = [
       {
         key: 'light',
         label: 'Leves',
-        test: (item) => !(item as DefenseEquipment).isHeavyArmor,
+        test: (item) => !isHeavyArmor(item as DefenseEquipment),
       },
       {
         key: 'heavy',
         label: 'Pesadas',
-        test: (item) => !!(item as DefenseEquipment).isHeavyArmor,
+        test: (item) => isHeavyArmor(item as DefenseEquipment),
       },
     ],
   },

@@ -1,4 +1,6 @@
-import EQUIPAMENTOS from '../data/systems/tormenta20/equipamentos';
+import EQUIPAMENTOS, {
+  isHeavyArmor,
+} from '../data/systems/tormenta20/equipamentos';
 import { dataRegistry } from '../data/registry';
 import Equipment from '../interfaces/Equipment';
 import { SupplementId } from '../types/supplement.types';
@@ -60,7 +62,7 @@ export function getCategorizedCombatItems(
   merged.armors
     .filter((item) => item.supplementId)
     .forEach((item) => {
-      if (item.isHeavyArmor) armorsByType.heavy.push(item);
+      if (isHeavyArmor(item)) armorsByType.heavy.push(item);
       else armorsByType.light.push(item);
     });
 

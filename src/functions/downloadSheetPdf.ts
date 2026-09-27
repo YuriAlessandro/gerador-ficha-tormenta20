@@ -1,4 +1,5 @@
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Equipment from '@/interfaces/Equipment';
@@ -112,7 +113,7 @@ const getDefenseAttribute = (sheet: CharacterSheet): Atributo => {
     : undefined;
   const defaultAttr =
     sheet.classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
-  if (wornArmor?.isHeavyArmor) return defaultAttr;
+  if (wornArmor && isHeavyArmor(wornArmor)) return defaultAttr;
   if (sheet.useDefenseAttribute === false) return defaultAttr;
   return sheet.customDefenseAttribute || defaultAttr;
 };
@@ -501,9 +502,7 @@ export const fillSheetPdf: (
     defenseBonusField.setText(
       `${defense.defenseBonus >= 0 ? '+' : ''}${defense.defenseBonus}`
     );
-    penaltyField.setText(
-      `${defense.armorPenalty >= 0 ? '+' : ''}${defense.armorPenalty}`
-    );
+    penaltyField.setText(`-${Math.abs(defense.armorPenalty)}`);
   });
 
   // Add remain equipments — respects the user-defined manual order so the
@@ -594,8 +593,8 @@ export const fillSheetPdf: (
       sheet.mainHandItemId,
       sheet.offHandItemId
     ) + (sheet.extraArmorPenalty ?? 0);
-  armorPenaltyField.setText(`${activeArmorPenalty}`);
-  if (resolvedWornArmor?.isHeavyArmor) heavyArmorField.check();
+  armorPenaltyField.setText(`-${Math.abs(activeArmorPenalty)}`);
+  if (resolvedWornArmor && isHeavyArmor(resolvedWornArmor)) heavyArmorField.check();
   else heavyArmorField.uncheck();
 
   // Modificadores de tamanho (Pequeno/Grande…)

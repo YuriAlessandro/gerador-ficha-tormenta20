@@ -1015,7 +1015,7 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
       let basePenalty = 0;
       if (isAffectedByArmor) basePenalty = armorPenalty;
       else if (isStrDexSkill) basePenalty = nonProficientArmorPenalty;
-      const baseOthers = basePenalty > 0 ? basePenalty * -1 : 0;
+      const baseOthers = basePenalty ? -Math.abs(basePenalty) : 0;
 
       return {
         ...skill,
@@ -1074,7 +1074,7 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
             updatedSheet.nivel
           ),
           modAttr: attr,
-          others: basePenalty > 0 ? basePenalty * -1 : 0,
+          others: basePenalty ? -Math.abs(basePenalty) : 0,
         };
       })
       .filter(

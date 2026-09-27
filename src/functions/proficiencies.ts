@@ -302,7 +302,7 @@ export function getNonProficientArmorPenalty(sheet: CharacterSheet): number {
 
   let penalty = 0;
   if (activeArmor && !isProficientWithDefense(activeArmor, proficiencias)) {
-    penalty += activeArmor.armorPenalty;
+    penalty += Math.abs(activeArmor.armorPenalty);
   }
 
   shields.forEach((shield) => {
@@ -310,7 +310,7 @@ export function getNonProficientArmorPenalty(sheet: CharacterSheet): number {
       shield.id !== undefined &&
       (shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId);
     if (inHand && !isProficientWithDefense(shield, proficiencias)) {
-      penalty += shield.armorPenalty;
+      penalty += Math.abs(shield.armorPenalty);
     }
   });
 

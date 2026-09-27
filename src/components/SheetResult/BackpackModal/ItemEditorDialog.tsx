@@ -63,6 +63,7 @@ import { ItemE, ItemMod } from '../../../interfaces/Rewards';
 import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { SupplementId } from '../../../types/supplement.types';
 import { applyItemEnhancements } from '../../../functions/itemEnhancements/applyEnhancements';
+import { isHeavyArmor } from '../../../data/systems/tormenta20/equipamentos';
 import { getManualStatFields } from '../../../functions/manualStats';
 import {
   MaterialContext,
@@ -190,7 +191,7 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
         : '0',
     isHeavyArmor:
       item && item.group === 'Armadura'
-        ? (item as DefenseEquipment).isHeavyArmor ?? false
+        ? isHeavyArmor(item as DefenseEquipment)
         : false,
     selectedModifications: initialMods,
     selectedMaterial: materialEntry?.specialMaterial ?? '',
