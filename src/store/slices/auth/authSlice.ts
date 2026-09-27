@@ -119,6 +119,20 @@ export const saveAppearanceSettings = createAsyncThunk(
   }
 );
 
+export const saveDefaultSheetLayout = createAsyncThunk(
+  'auth/saveDefaultSheetLayout',
+  async (layoutId: string | null, { rejectWithValue }) => {
+    try {
+      return await authService.saveDefaultSheetLayout(layoutId);
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Failed to save default sheet layout');
+    }
+  }
+);
+
 export const saveBestiaryAnonymous = createAsyncThunk(
   'auth/saveBestiaryAnonymous',
   async (enabled: boolean, { rejectWithValue }) => {
@@ -277,6 +291,15 @@ const authSlice = createSlice({
         state.dbUser = action.payload;
       })
       .addCase(saveAppearanceSettings.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
+    // Save Default Sheet Layout
+    builder
+      .addCase(saveDefaultSheetLayout.fulfilled, (state, action) => {
+        state.dbUser = action.payload;
+      })
+      .addCase(saveDefaultSheetLayout.rejected, (state, action) => {
         state.error = action.payload as string;
       });
 

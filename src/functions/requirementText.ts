@@ -46,6 +46,8 @@ function baseText(req: Requirement, options: FormatRequirementOptions): string {
       return req.name === 'any'
         ? 'Devoto de qualquer divindade'
         : `Devoto de ${req.name}`;
+    case RequirementType.DEVOTO_CLASSE:
+      return req.text || `Devoto de uma divindade que aceite ${req.name}`;
     case RequirementType.PODER_TORMENTA:
       return `Pelo menos ${req.value} ${
         (req.value || 0) > 1 ? 'poderes' : 'poder'

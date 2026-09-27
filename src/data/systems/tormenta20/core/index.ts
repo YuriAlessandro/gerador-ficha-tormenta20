@@ -38,6 +38,7 @@ export interface SupplementEquipment {
   alchemy?: Equipment[];
   food?: Equipment[];
   animals?: Equipment[];
+  vehicles?: Equipment[];
 }
 
 export interface SupplementSpells {

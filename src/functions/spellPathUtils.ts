@@ -142,6 +142,12 @@ export interface SpellPool {
   crossNames: Set<string>;
   /** Os mesmos nomes agrupados por círculo (limite do Teurgista é por círculo). */
   crossNamesByCircle: Map<number, Set<string>>;
+  /**
+   * Universais: magias ofertadas pela tradição oposta que também estão na
+   * nativa. Não são cross, mas podem preencher o mínimo da tradição oposta
+   * (ver `countTowardsCrossMinimum`).
+   */
+  sharedNames: Set<string>;
 }
 
 function getNativeSpellsOfCircle(
@@ -203,6 +209,8 @@ export function buildSpellPool({
 
   const crossSpells: Spell[] = [];
   const crossNamesByCircle = new Map<number, Set<string>>();
+  const nativeNames = new Set(nativeSpells.map((spell) => spell.nome));
+  const offeredShared = new Set<string>();
   if (crossSchools && crossSchools.length > 0 && spellType !== 'Both') {
     for (let circle = 1; circle <= crossMaxCircle; circle += 1) {
       const oppositeType = spellType === 'Arcane' ? 'Divine' : 'Arcane';
@@ -220,6 +228,9 @@ export function buildSpellPool({
         circle,
         getExclusiveCrossNames(offered, nativeSpells)
       );
+      offered.forEach((spell) => {
+        if (nativeNames.has(spell.nome)) offeredShared.add(spell.nome);
+      });
     }
   }
 
@@ -257,7 +268,34 @@ export function buildSpellPool({
     crossNamesByCircle.set(circle, kept);
   });
 
-  return { spells, crossNames, crossNamesByCircle };
+  const sharedNames = new Set(
+    [...offeredShared].filter((name) => survived.has(name))
+  );
+
+  return { spells, crossNames, crossNamesByCircle, sharedNames };
+}
+
+/**
+ * Quantas das magias escolhidas preenchem o mínimo da tradição oposta
+ * (Linhagem Abençoada: "você aprende uma magia divina de 1º círculo").
+ *
+ * Exclusiva da tradição oposta conta sempre. Universal (nas duas listas)
+ * ocupa primeiro as vagas nativas — `requiredCount - minCross` — e só o
+ * excedente conta como da tradição oposta. Com a seleção completa, equivale a
+ * "no máximo `requiredCount - minCross` exclusivas da tradição nativa".
+ */
+export function countTowardsCrossMinimum(
+  selected: readonly Spell[],
+  crossNames: ReadonlySet<string>,
+  sharedNames: ReadonlySet<string>,
+  requiredCount: number,
+  minCross: number
+): number {
+  const cross = selected.filter((spell) => crossNames.has(spell.nome)).length;
+  const shared = selected.filter((spell) => sharedNames.has(spell.nome)).length;
+  const nativeOnly = selected.length - cross - shared;
+  const nativeRoom = Math.max(0, requiredCount - minCross - nativeOnly);
+  return cross + Math.max(0, shared - nativeRoom);
 }
 
 /**

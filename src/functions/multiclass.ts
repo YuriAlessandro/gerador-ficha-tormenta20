@@ -5,7 +5,10 @@ import CharacterSheet, {
 import { ClassAbility, ClassDescription, SpellPath } from '@/interfaces/Class';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
-import { LevelUpSelections } from '@/interfaces/WizardSelections';
+import {
+  ClassSetupSelection,
+  LevelUpSelections,
+} from '@/interfaces/WizardSelections';
 import {
   ArcanistaSubtypes,
   classAbilities as arcanistaClassAbilities,
@@ -13,6 +16,7 @@ import {
   createLinhagemAbencoada,
   getArcanistaSpellPath,
   applyLinhagemAbencoadaToSpellPath,
+  DEUSES_MAIORES,
 } from '@/data/systems/tormenta20/classes/arcanista';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { SpellSchool } from '@/interfaces/Spells';
@@ -310,46 +314,6 @@ export function calculateMulticlassPM(sheet: CharacterSheet): number {
 }
 
 /**
- * Retorna todas as habilidades de classe disponíveis para multiclasse.
- * Para cada classe, filtra habilidades por nível da classe específica.
- * Mono-classe: retorna as habilidades da classe primária filtradas por sheet.nivel.
- */
-export function getMulticlassAvailableAbilities(
-  sheet: CharacterSheet,
-  supplements?: SupplementId[]
-): ClassAbility[] {
-  if (!isMulticlass(sheet)) {
-    // Mono-classe: comportamento original
-    const classDesc = findClassDescription(
-      sheet.classe.name,
-      sheet.classe.subname,
-      supplements
-    );
-    const abilities = classDesc?.abilities ?? sheet.classe.abilities;
-    return abilities.filter((a) => a.nivel <= sheet.nivel);
-  }
-
-  const classLevelsMap = getClassLevelsMap(sheet);
-  const allAbilities: ClassAbility[] = [];
-
-  classLevelsMap.forEach((classLevel, className) => {
-    const subname = sheet.classLevels!.find(
-      (cl) => cl.className === className
-    )?.classSubname;
-    const classDesc = findClassDescription(className, subname, supplements);
-
-    if (!classDesc) return;
-
-    const filtered = classDesc.abilities
-      .filter((a) => a.nivel <= classLevel)
-      .map((a) => ({ ...a, sourceClassName: className }));
-    allAbilities.push(...filtered);
-  });
-
-  return allAbilities;
-}
-
-/**
  * Verifica se a classe exige escolhas do usuário na configuração de primeiro
  * nível ao multiclassar (subtipo de Arcanista, escolas de Bardo/Druida ou
  * spellPath.schoolChoice). Classes com spellPath estático próprio sem
@@ -522,6 +486,101 @@ export function applySerializedOverrides(
   }
 }
 
+/** Deus lido do texto da habilidade de 1º nível ("Seu poder vem de X."). */
+function findLinhagemAbencoadaDeusInAbilities(
+  sheet: CharacterSheet
+): string | undefined {
+  const abilities = [
+    ...(sheet.classe.abilities || []),
+    ...(sheet.classe.originalAbilities || []),
+  ];
+  return abilities
+    .filter((ability) => ability.name === 'Linhagem Abençoada')
+    .map((ability) => ability.text.match(/^Seu poder vem de (.+?)\./)?.[1])
+    .find((nome): nome is string => !!nome && DEUSES_MAIORES.includes(nome));
+}
+
+/**
+ * Deus da Linhagem Abençoada do personagem, como classe principal ou
+ * secundária. `undefined` se não houver a linhagem (ou o deus se perdeu).
+ */
+export function getLinhagemAbencoadaDeus(
+  sheet: CharacterSheet
+): string | undefined {
+  const fromSetup = Object.values(sheet.multiclassSetups || {}).find(
+    (setup) => setup.feiticeiroLinhagem === 'Linhagem Abençoada'
+  )?.linhagemAbencoadaDeus;
+  return fromSetup ?? findLinhagemAbencoadaDeusInAbilities(sheet);
+}
+
+/**
+ * Fichas multiclasse anteriores a `multiclassSetups` só guardavam o spellPath
+ * serializado. Dá para recuperar o subtipo do Arcanista por ele (Feiticeiro
+ * usa Carisma; Mago começa com 4 magias, Bruxo com 3) e a Linhagem Abençoada
+ * pelas escolas divinas. O deus só sobrevive no texto da habilidade de 1º
+ * nível ("Seu poder vem de X."), se ela ainda estiver na ficha.
+ */
+function inferLegacyClassSetup(
+  sheet: CharacterSheet,
+  className: string
+): ClassSetupSelection | undefined {
+  if (className !== 'Arcanista') return undefined;
+  const serialized = sheet.multiclassSpellPaths?.[className];
+  if (!serialized) return undefined;
+
+  if (serialized.keyAttribute !== Atributo.CARISMA) {
+    return {
+      arcanistaSubtype: serialized.initialSpells === 4 ? 'Mago' : 'Bruxo',
+    };
+  }
+
+  if (!serialized.includeDivineSchools?.length) {
+    return { arcanistaSubtype: 'Feiticeiro' };
+  }
+
+  return {
+    arcanistaSubtype: 'Feiticeiro',
+    feiticeiroLinhagem: 'Linhagem Abençoada',
+    linhagemAbencoadaDeus: findLinhagemAbencoadaDeusInAbilities(sheet),
+  };
+}
+
+/**
+ * Setup da classe que está subindo de nível. O do nível corrente (1º nível na
+ * classe) vence; nos seguintes vem do que ficou gravado na ficha. A classe
+ * principal não precisa: as habilidades do setup já moram em `sheet.classe`.
+ */
+export function resolveClassSetup(
+  sheet: CharacterSheet,
+  className: string,
+  selectionSetup: ClassSetupSelection | undefined
+): ClassSetupSelection | undefined {
+  if (selectionSetup) return selectionSetup;
+  if (className === sheet.classe.name) return undefined;
+  return (
+    sheet.multiclassSetups?.[className] ??
+    inferLegacyClassSetup(sheet, className)
+  );
+}
+
+/**
+ * Setup de classe secundária que não dá para reconstruir: ficha antiga cujo
+ * deus da Linhagem Abençoada se perdeu. O assistente pede de novo antes do
+ * 2º nível, quando o poder concedido depende dele.
+ */
+export function classSetupNeedsRecovery(
+  sheet: CharacterSheet,
+  className: string,
+  classLevel: number
+): boolean {
+  if (className === sheet.classe.name || classLevel !== 2) return false;
+  const setup = resolveClassSetup(sheet, className, undefined);
+  return (
+    setup?.feiticeiroLinhagem === 'Linhagem Abençoada' &&
+    !setup.linhagemAbencoadaDeus
+  );
+}
+
 /**
  * Retorna habilidades adicionais de classe que vêm do setup/configuração
  * e não estão na ClassDescription base (ex: linhagens do Feiticeiro).
@@ -565,6 +624,54 @@ export function getClassSetupAbilities(
   }
 
   return [];
+}
+
+/**
+ * Retorna todas as habilidades de classe disponíveis para multiclasse.
+ * Para cada classe, filtra habilidades por nível da classe específica.
+ * Mono-classe: retorna as habilidades da classe primária filtradas por sheet.nivel.
+ */
+export function getMulticlassAvailableAbilities(
+  sheet: CharacterSheet,
+  supplements?: SupplementId[]
+): ClassAbility[] {
+  if (!isMulticlass(sheet)) {
+    // Mono-classe: comportamento original
+    const classDesc = findClassDescription(
+      sheet.classe.name,
+      sheet.classe.subname,
+      supplements
+    );
+    const abilities = classDesc?.abilities ?? sheet.classe.abilities;
+    return abilities.filter((a) => a.nivel <= sheet.nivel);
+  }
+
+  const classLevelsMap = getClassLevelsMap(sheet);
+  const allAbilities: ClassAbility[] = [];
+
+  classLevelsMap.forEach((classLevel, className) => {
+    const subname = sheet.classLevels!.find(
+      (cl) => cl.className === className
+    )?.classSubname;
+    const classDesc = findClassDescription(className, subname, supplements);
+
+    if (!classDesc) return;
+
+    // Classe secundária: as habilidades do setup (Caminho do Arcanista,
+    // linhagem do Feiticeiro) não estão no registry. Sem elas o recálculo as
+    // apagava da ficha a cada level-up. Na principal já vêm de `sheet.classe`.
+    const setupAbilities = getClassSetupAbilities(
+      className,
+      resolveClassSetup(sheet, className, undefined)
+    );
+
+    const filtered = [...classDesc.abilities, ...setupAbilities]
+      .filter((a) => a.nivel <= classLevel)
+      .map((a) => ({ ...a, sourceClassName: className }));
+    allAbilities.push(...filtered);
+  });
+
+  return allAbilities;
 }
 
 /**

@@ -34,6 +34,7 @@ import {
   clothingItems as coreClothingItems,
   alchemyItems as coreAlchemyItems,
   foodItems as coreFoodItems,
+  vehicleItems as coreVehicleItems,
 } from './systems/tormenta20/equipamentos-gerais';
 import { Spell, SpellCircle, spellsCircles } from '../interfaces/Spells';
 import {
@@ -855,6 +856,7 @@ class DataRegistry {
       alchemy: [],
       food: [],
       animals: [],
+      vehicles: [],
     };
 
     const systemData = this.getResolvedSystemData(systemId);
@@ -890,6 +892,9 @@ class DataRegistry {
 
     // Add core animal items
     result.animals.push(...animais);
+
+    // Add core vehicle items
+    result.vehicles.push(...coreVehicleItems);
 
     // Add equipment from supplements
     supplementIds.forEach((id) => {
@@ -964,6 +969,13 @@ class DataRegistry {
         if (supplementEquipment.animals) {
           result.animals.push(
             ...supplementEquipment.animals.map(addSupplementInfo)
+          );
+        }
+
+        // Add supplement vehicles
+        if (supplementEquipment.vehicles) {
+          result.vehicles.push(
+            ...supplementEquipment.vehicles.map(addSupplementInfo)
           );
         }
       }

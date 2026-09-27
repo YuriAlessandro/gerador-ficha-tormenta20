@@ -14,6 +14,7 @@ import {
   countNaturalWeapons,
   getCompanionTrickDefinition,
   getTrickAvailability,
+  isTrickChoiceComplete,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import CompanionTrickSelectionStep from '@/components/LevelUpWizard/steps/CompanionTrickSelectionStep';
 
@@ -88,12 +89,8 @@ const EnsinarTruqueDialog: React.FC<EnsinarTruqueDialogProps> = ({
       false
     );
     if (!available) return false;
-    if (!def.hasSubChoice) return true;
-    if (def.subChoiceType === 'attribute')
-      return !!trick.choices?.primary && !!trick.choices?.secondary;
-    if (def.subChoiceType === 'movement') return !!trick.choices?.type;
     if (def.subChoiceType === 'spell') return !!spell;
-    return true;
+    return isTrickChoiceComplete(trick);
   }, [trick, spell, projectedCompanion, trainerLevel]);
 
   const handleConfirmStep = () => {

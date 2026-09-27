@@ -66,6 +66,7 @@ import {
   GameSessionPage,
   PlayerScreenPage,
   JoinTableByLinkPage,
+  SheetLayoutSharePage,
   PartnersProvider,
   HomebrewProvider,
   HomebrewsListPage,
@@ -646,6 +647,14 @@ function ThemedApp(): JSX.Element {
                                         >
                                           <GameTablesPage />
                                         </ProtectedRoute>
+                                      </Route>
+                                      {/* Sem portão de flag: as flags chegam
+                                          depois do primeiro render, e um link
+                                          aberto direto seria redirecionado
+                                          antes delas. A leitura por código é
+                                          pública e salvar é barrado na API. */}
+                                      <Route path='/layout/:code'>
+                                        <SheetLayoutSharePage />
                                       </Route>
                                       <Route path='/mesa/entrar/:code'>
                                         <JoinTableByLinkPage />

@@ -43,6 +43,7 @@ function buildCatalogIndex(): Map<string, Equipment> {
     catalog.alchemy,
     catalog.food,
     catalog.animals,
+    catalog.vehicles,
   ];
 
   groups.forEach((group) => {

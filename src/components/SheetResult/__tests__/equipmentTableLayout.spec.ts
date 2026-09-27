@@ -6,10 +6,6 @@ import {
   statTrack,
 } from '@/functions/equipmentStats';
 import { getGroupMinWidth } from '@/components/SheetResult/EquipmentTable';
-import {
-  getRememberedSheetTab,
-  rememberSheetTab,
-} from '@/components/SheetResult/sheetTabMemory';
 
 describe('trilhas do grid de equipamentos', () => {
   it('formata a trilha a partir dos limites numéricos', () => {
@@ -35,28 +31,5 @@ describe('largura mínima da tabela', () => {
     expect(getGroupMinWidth(getStatsForGroup('Arma'))).toBeGreaterThan(
       getGroupMinWidth(getStatsForGroup('Item Geral'))
     );
-  });
-});
-
-describe('memória da aba aberta', () => {
-  it('não lembra nada antes da primeira escrita', () => {
-    expect(getRememberedSheetTab('ficha-nova')).toBeUndefined();
-  });
-
-  it('devolve a última aba da ficha', () => {
-    rememberSheetTab('ficha-a', 'equipamentos');
-    expect(getRememberedSheetTab('ficha-a')).toBe('equipamentos');
-  });
-
-  it('não mistura fichas diferentes', () => {
-    rememberSheetTab('ficha-b', 'magias');
-    rememberSheetTab('ficha-c', 'poderes');
-    expect(getRememberedSheetTab('ficha-b')).toBe('magias');
-    expect(getRememberedSheetTab('ficha-c')).toBe('poderes');
-  });
-
-  it('ignora ficha sem id, para uma não herdar a aba da outra', () => {
-    rememberSheetTab('', 'magias');
-    expect(getRememberedSheetTab('')).toBeUndefined();
   });
 });

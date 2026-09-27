@@ -69,3 +69,43 @@ describe('LevelSpellSelectionStep — limite cross-tradition por círculo', () =
     expect(onSpellToggle).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * Linhagem Abençoada via multiclasse: no 1º nível de Feiticeiro uma das
+ * magias iniciais tem que ser divina, como na criação de personagem.
+ */
+describe('LevelSpellSelectionStep — mínimo da tradição oposta', () => {
+  const arcana = makeSpell('Arcana Qualquer', spellsCircles.c1);
+  const divina = makeSpell('Divina Qualquer', spellsCircles.c1);
+
+  const renderAbencoado = (selectedSpells: Spell[]) =>
+    render(
+      <LevelSpellSelectionStep
+        availableSpells={[arcana, divina]}
+        selectedSpells={selectedSpells}
+        requiredCount={1}
+        spellCircle={1}
+        onSpellToggle={vi.fn()}
+        crossTraditionSpellNames={new Set([divina.nome])}
+        crossTraditionLabel='Divina'
+        minCrossTraditionSpells={1}
+      />
+    );
+
+  it('marca a magia divina e avisa enquanto nenhuma foi escolhida', () => {
+    renderAbencoado([arcana]);
+    expect(screen.getByText('Divina')).toBeTruthy();
+    const alert = screen
+      .getAllByRole('alert')
+      .find((el) => /precisa ser divina/i.test(el.textContent ?? ''));
+    expect(alert?.textContent).toContain('(0 selecionadas)');
+  });
+
+  it('conta a divina escolhida', () => {
+    renderAbencoado([divina]);
+    const alert = screen
+      .getAllByRole('alert')
+      .find((el) => /precisa ser divina/i.test(el.textContent ?? ''));
+    expect(alert?.textContent).toContain('(1 selecionada)');
+  });
+});

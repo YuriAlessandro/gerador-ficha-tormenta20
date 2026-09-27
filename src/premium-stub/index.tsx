@@ -65,6 +65,7 @@ export const PublishBestiaryModal = NullComponent;
 export const PushNotificationPrompt = NullComponent;
 export const PushNotificationToggle = NullComponent;
 export const RaceHomebrewEditorPage = NullComponent;
+export const SheetLayoutSharePage = NullComponent;
 export const SpellPackEditorPage = NullComponent;
 export const ThreadPage = NullComponent;
 export const VariantClassEditorPage = NullComponent;

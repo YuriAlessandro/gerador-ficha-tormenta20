@@ -21,6 +21,8 @@ interface SubtypeOption {
 interface ArcanistSubtypeSelectionStepProps {
   selectedSubtype: ArcanistaSubtypes | null;
   onChange: (subtype: ArcanistaSubtypes) => void;
+  // Level-up multiclasse: a linhagem vem logo abaixo e tem o próprio aviso.
+  hideStatus?: boolean;
 }
 
 const subtypeOptions: SubtypeOption[] = [
@@ -51,7 +53,7 @@ const subtypeOptions: SubtypeOption[] = [
 
 const ArcanistSubtypeSelectionStep: React.FC<
   ArcanistSubtypeSelectionStepProps
-> = ({ selectedSubtype, onChange }) => {
+> = ({ selectedSubtype, onChange, hideStatus = false }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value as ArcanistaSubtypes);
   };
@@ -101,13 +103,13 @@ const ArcanistSubtypeSelectionStep: React.FC<
           </Paper>
         ))}
       </RadioGroup>
-      {isComplete && (
+      {!hideStatus && isComplete && (
         <Alert severity='success'>
           Caminho selecionado com sucesso! Você pode continuar para o próximo
           passo.
         </Alert>
       )}
-      {!isComplete && (
+      {!hideStatus && !isComplete && (
         <Alert severity='info'>Selecione um caminho para continuar.</Alert>
       )}
     </Box>

@@ -26,7 +26,14 @@ import FitnessCenterOutlinedIcon from '@mui/icons-material/FitnessCenterOutlined
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import PsychologyOutlinedIcon from '@mui/icons-material/PsychologyOutlined';
 import NumberField from '@/components/common/NumberField';
-import { Atributo } from '../../../data/systems/tormenta20/atributos';
+import {
+  DESKTOP_ONLY_CELL_SX,
+  MOBILE_ONLY_INLINE_SX,
+} from '@/components/common/responsiveSx';
+import {
+  Atributo,
+  ATTR_ABBREVIATIONS,
+} from '../../../data/systems/tormenta20/atributos';
 import {
   ThreatSheet,
   ThreatAttributes,
@@ -237,8 +244,18 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
     const isResistance = RESISTANCE_SKILL_NAMES.includes(skill.name);
     return (
       <TableRow key={skill.name} hover>
-        <TableCell>{skill.name}</TableCell>
-        <TableCell align='center'>{skill.attribute}</TableCell>
+        <TableCell>
+          {skill.name}
+          <Box
+            component='span'
+            sx={{ ...MOBILE_ONLY_INLINE_SX, color: 'text.secondary', ml: 0.5 }}
+          >
+            ({ATTR_ABBREVIATIONS[skill.attribute]})
+          </Box>
+        </TableCell>
+        <TableCell align='center' sx={DESKTOP_ONLY_CELL_SX}>
+          {skill.attribute}
+        </TableCell>
         <TableCell align='center'>
           {isResistance ? (
             <Checkbox
@@ -266,10 +283,10 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
             placeholder={`${skill.total}`}
             onValueChange={(v) => handleSkillOverrideChange(skill.name, v)}
             sx={{
-              maxWidth: 90,
+              maxWidth: { xs: 64, md: 90 },
               '& input': {
                 textAlign: 'center',
-                width: 60,
+                width: { xs: 40, md: 60 },
                 fontWeight:
                   skill.overrideTotal !== undefined ? 'bold' : 'normal',
                 color:
@@ -571,13 +588,18 @@ const StepAttributesSkills: React.FC<StepAttributesSkillsProps> = ({
               border: 1,
               borderColor: 'divider',
               borderRadius: 1,
+              '& .MuiTableCell-root': {
+                [theme.breakpoints.down('md')]: { px: 1 },
+              },
             }}
           >
             <Table size='small' stickyHeader>
               <TableHead>
                 <TableRow>
                   <TableCell>Perícia</TableCell>
-                  <TableCell align='center'>Atributo</TableCell>
+                  <TableCell align='center' sx={DESKTOP_ONLY_CELL_SX}>
+                    Atributo
+                  </TableCell>
                   <TableCell align='center'>Treinada</TableCell>
                   <TableCell align='center'>Total</TableCell>
                 </TableRow>

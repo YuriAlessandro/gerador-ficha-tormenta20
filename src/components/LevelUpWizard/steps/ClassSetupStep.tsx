@@ -1,20 +1,22 @@
 import React from 'react';
 import {
   Box,
-  Typography,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Chip,
   Alert,
+  Divider,
 } from '@mui/material';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
-import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
+import { allSpellSchools } from '@/interfaces/Spells';
 import { SupplementId } from '@/types/supplement.types';
 import { DEUSES_MAIORES } from '@/data/systems/tormenta20/classes/arcanista';
 import { findClassDescription } from '@/functions/multiclass';
 import { isClassOrVariantOf } from '@/functions/general';
+import ArcanistSubtypeSelectionStep from '@/components/CharacterCreationWizard/steps/ArcanistSubtypeSelectionStep';
+import FeiticeiroLinhagemSelectionStep from '@/components/CharacterCreationWizard/steps/FeiticeiroLinhagemSelectionStep';
+import SpellSchoolSelectionStep from '@/components/CharacterCreationWizard/steps/SpellSchoolSelectionStep';
 
 type ClassSetupData = NonNullable<LevelUpSelections['classSetup']>;
 
@@ -23,24 +25,19 @@ interface ClassSetupStepProps {
   classSetup: ClassSetupData;
   onChange: (setup: ClassSetupData) => void;
   activeSupplements?: SupplementId[];
+  /**
+   * Ficha antiga de Feiticeiro Abençoado multiclasse que perdeu o deus: só
+   * ele é perguntado, no 2º nível da classe (ver `classSetupNeedsRecovery`).
+   */
+  recoveringDeus?: boolean;
 }
-
-const SPELL_SCHOOL_LABELS: Record<SpellSchool, string> = {
-  Abjur: 'Abjuração',
-  Adiv: 'Adivinhação',
-  Conv: 'Convocação',
-  Encan: 'Encantamento',
-  Evoc: 'Evocação',
-  Ilusão: 'Ilusão',
-  Necro: 'Necromancia',
-  Trans: 'Transmutação',
-};
 
 const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
   selectedClassName,
   classSetup,
   onChange,
   activeSupplements = [],
+  recoveringDeus = false,
 }) => {
   // Resolve a classe para tratar variantes (ex.: Magimarcialista, variante de
   // Bardo) como a classe base na escolha de escolas de magia.
@@ -56,127 +53,97 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
     ? isClassOrVariantOf(classDesc, 'Druida')
     : selectedClassName === 'Druida';
 
-  if (selectedClassName === 'Arcanista') {
+  if (selectedClassName === 'Arcanista' && recoveringDeus) {
     return (
-      <Box>
-        <Typography variant='h6' gutterBottom>
-          Configuração do Arcanista
-        </Typography>
-        <Typography
-          variant='body2'
-          sx={{
-            color: 'text.secondary',
-            mb: 2,
-          }}
-        >
-          Escolha o caminho do seu Arcanista. Cada subtipo possui uma forma
-          diferente de conjurar magias.
-        </Typography>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel>Subtipo do Arcanista</InputLabel>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Alert severity='info'>
+          No 2º nível da Linhagem Abençoada você recebe um poder concedido do
+          deus da linhagem, mas esta ficha não guardou qual deus foi escolhido.
+          Selecione-o de novo para continuar.
+        </Alert>
+        <FormControl fullWidth>
+          <InputLabel>Deus Maior</InputLabel>
           <Select
-            value={classSetup.arcanistaSubtype || ''}
-            label='Subtipo do Arcanista'
+            value={classSetup.linhagemAbencoadaDeus || ''}
+            label='Deus Maior'
             onChange={(e) =>
               onChange({
                 ...classSetup,
-                arcanistaSubtype: e.target
-                  .value as ClassSetupData['arcanistaSubtype'],
-                feiticeiroLinhagem: undefined,
-                draconicaDamageType: undefined,
+                linhagemAbencoadaDeus: e.target.value,
               })
             }
           >
-            <MenuItem value='Bruxo'>
-              Bruxo (INT — magias via foco arcano)
-            </MenuItem>
-            <MenuItem value='Mago'>
-              Mago (INT — 4 magias iniciais, livro de magias)
-            </MenuItem>
-            <MenuItem value='Feiticeiro'>
-              Feiticeiro (CAR — poder inato, linhagem)
-            </MenuItem>
+            {DEUSES_MAIORES.map((deus) => (
+              <MenuItem key={deus} value={deus}>
+                {deus}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
-        {classSetup.arcanistaSubtype === 'Feiticeiro' && (
+      </Box>
+    );
+  }
+
+  // Mesmos cards da criação de personagem.
+  if (selectedClassName === 'Arcanista') {
+    const isFeiticeiro = classSetup.arcanistaSubtype === 'Feiticeiro';
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <ArcanistSubtypeSelectionStep
+          selectedSubtype={classSetup.arcanistaSubtype || null}
+          onChange={(subtype) =>
+            onChange({
+              ...classSetup,
+              arcanistaSubtype: subtype,
+              feiticeiroLinhagem: undefined,
+              draconicaDamageType: undefined,
+              linhagemAbencoadaDeus: undefined,
+            })
+          }
+          hideStatus={isFeiticeiro}
+        />
+        {isFeiticeiro && (
           <>
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Linhagem</InputLabel>
+            <Divider />
+            <FeiticeiroLinhagemSelectionStep
+              selectedLinhagem={classSetup.feiticeiroLinhagem || null}
+              onChange={(linhagem) =>
+                onChange({
+                  ...classSetup,
+                  feiticeiroLinhagem: linhagem,
+                  draconicaDamageType: undefined,
+                  linhagemAbencoadaDeus: undefined,
+                })
+              }
+              activeSupplements={activeSupplements}
+              selectedDeus={classSetup.linhagemAbencoadaDeus}
+              onDeusChange={(deus) =>
+                onChange({ ...classSetup, linhagemAbencoadaDeus: deus })
+              }
+            />
+          </>
+        )}
+        {isFeiticeiro &&
+          classSetup.feiticeiroLinhagem === 'Linhagem Dracônica' && (
+            <FormControl fullWidth>
+              <InputLabel>Tipo de Dano</InputLabel>
               <Select
-                value={classSetup.feiticeiroLinhagem || ''}
-                label='Linhagem'
+                value={classSetup.draconicaDamageType || ''}
+                label='Tipo de Dano'
                 onChange={(e) =>
                   onChange({
                     ...classSetup,
-                    feiticeiroLinhagem: e.target
-                      .value as ClassSetupData['feiticeiroLinhagem'],
-                    draconicaDamageType: undefined,
+                    draconicaDamageType: e.target.value,
                   })
                 }
               >
-                <MenuItem value='Linhagem Dracônica'>
-                  Linhagem Dracônica (resistência elemental + bônus PV)
-                </MenuItem>
-                <MenuItem value='Linhagem Feérica'>
-                  Linhagem Feérica (treinado em Enganação)
-                </MenuItem>
-                <MenuItem value='Linhagem Rubra'>
-                  Linhagem Rubra (conexão com a Tormenta)
-                </MenuItem>
-                {activeSupplements.includes(
-                  SupplementId.TORMENTA20_DEUSES_ARTON
-                ) && (
-                  <MenuItem value='Linhagem Abençoada'>
-                    Linhagem Abençoada (magias divinas + poder concedido)
-                  </MenuItem>
-                )}
+                <MenuItem value='Ácido'>Ácido</MenuItem>
+                <MenuItem value='Elétrico'>Elétrico</MenuItem>
+                <MenuItem value='Fogo'>Fogo</MenuItem>
+                <MenuItem value='Frio'>Frio</MenuItem>
               </Select>
             </FormControl>
-
-            {classSetup.feiticeiroLinhagem === 'Linhagem Dracônica' && (
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Tipo de Dano</InputLabel>
-                <Select
-                  value={classSetup.draconicaDamageType || ''}
-                  label='Tipo de Dano'
-                  onChange={(e) =>
-                    onChange({
-                      ...classSetup,
-                      draconicaDamageType: e.target.value,
-                    })
-                  }
-                >
-                  <MenuItem value='Ácido'>Ácido</MenuItem>
-                  <MenuItem value='Elétrico'>Elétrico</MenuItem>
-                  <MenuItem value='Fogo'>Fogo</MenuItem>
-                  <MenuItem value='Frio'>Frio</MenuItem>
-                </Select>
-              </FormControl>
-            )}
-
-            {classSetup.feiticeiroLinhagem === 'Linhagem Abençoada' && (
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Deus Maior</InputLabel>
-                <Select
-                  value={classSetup.linhagemAbencoadaDeus || ''}
-                  label='Deus Maior'
-                  onChange={(e) =>
-                    onChange({
-                      ...classSetup,
-                      linhagemAbencoadaDeus: e.target.value,
-                    })
-                  }
-                >
-                  {DEUSES_MAIORES.map((deus) => (
-                    <MenuItem key={deus} value={deus}>
-                      {deus}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-          </>
-        )}
+          )}
       </Box>
     );
   }
@@ -189,79 +156,24 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
     schoolChoice ?? (isBardoLike || isDruidaLike ? { count: 3 } : null);
 
   if (schoolConfig) {
-    const selectedSchools = classSetup.spellSchools || [];
-    const pool = schoolConfig.available ?? allSpellSchools;
-    const requiredCount = Math.min(schoolConfig.count, pool.length);
-
-    const getSpellTypeText = (): string => {
-      const type = schoolChoice
-        ? classDesc?.spellPath?.spellType
-        : (isBardoLike && 'Both') || 'Divine';
-      if (type === 'Arcane') return 'arcanas';
-      if (type === 'Both') return 'arcanas e divinas';
-      return 'divinas';
-    };
-    const spellType = getSpellTypeText();
+    const spellType: 'Arcane' | 'Divine' | 'Both' =
+      (schoolChoice ? classDesc?.spellPath?.spellType : undefined) ??
+      (isBardoLike ? 'Both' : 'Divine');
 
     return (
-      <Box>
-        <Typography variant='h6' gutterBottom>
-          Escolas de Magia — {selectedClassName}
-        </Typography>
-        <Typography
-          variant='body2'
-          sx={{
-            color: 'text.secondary',
-            mb: 2,
-          }}
-        >
-          Escolha {requiredCount} escola{requiredCount > 1 ? 's' : ''} de magia.
-          Você poderá aprender magias {spellType} dessas escolas.
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-          {pool.map((school) => {
-            const isSelected = selectedSchools.includes(school);
-            const isDisabled =
-              !isSelected && selectedSchools.length >= requiredCount;
-
-            return (
-              <Chip
-                key={school}
-                label={SPELL_SCHOOL_LABELS[school]}
-                onClick={() => {
-                  if (isSelected) {
-                    onChange({
-                      ...classSetup,
-                      spellSchools: selectedSchools.filter((s) => s !== school),
-                    });
-                  } else if (!isDisabled) {
-                    onChange({
-                      ...classSetup,
-                      spellSchools: [...selectedSchools, school],
-                    });
-                  }
-                }}
-                color={isSelected ? 'primary' : 'default'}
-                variant={isSelected ? 'filled' : 'outlined'}
-                disabled={isDisabled}
-                sx={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
-              />
-            );
-          })}
-        </Box>
-        {selectedSchools.length < requiredCount && (
-          <Alert severity='info'>
-            Selecione {requiredCount - selectedSchools.length} escola
-            {requiredCount - selectedSchools.length > 1 ? 's' : ''} de magia.
-          </Alert>
+      <SpellSchoolSelectionStep
+        selectedSchools={classSetup.spellSchools || []}
+        onChange={(schools) =>
+          onChange({ ...classSetup, spellSchools: schools })
+        }
+        requiredCount={Math.min(
+          schoolConfig.count,
+          (schoolConfig.available ?? allSpellSchools).length
         )}
-        {selectedSchools.length === requiredCount && (
-          <Alert severity='success'>
-            Escolas selecionadas:{' '}
-            {selectedSchools.map((s) => SPELL_SCHOOL_LABELS[s]).join(', ')}
-          </Alert>
-        )}
-      </Box>
+        availableSchools={schoolConfig.available}
+        className={selectedClassName}
+        spellType={spellType}
+      />
     );
   }
 

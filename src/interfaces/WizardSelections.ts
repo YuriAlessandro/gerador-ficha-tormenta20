@@ -32,6 +32,24 @@ export interface OriginBenefit {
   alreadyUsed?: boolean; // Flag to indicate skill is already selected in previous steps
 }
 
+/**
+ * Escolhas feitas ao pegar o 1º nível de uma classe via multiclasse (subtipo
+ * do Arcanista, linhagem do Feiticeiro, escolas de magia). Persistida na ficha
+ * em `multiclassSetups`: habilidades de níveis seguintes dependem dela (o
+ * poder concedido da Linhagem Abençoada, no 2º nível).
+ */
+export interface ClassSetupSelection {
+  arcanistaSubtype?: 'Bruxo' | 'Mago' | 'Feiticeiro';
+  feiticeiroLinhagem?:
+    | 'Linhagem Dracônica'
+    | 'Linhagem Feérica'
+    | 'Linhagem Rubra'
+    | 'Linhagem Abençoada';
+  draconicaDamageType?: string;
+  linhagemAbencoadaDeus?: string;
+  spellSchools?: SpellSchool[];
+}
+
 export interface LevelUpSelections {
   level: number;
   selectedClassName?: string; // Multiclasse: classe escolhida para este nível
@@ -77,17 +95,7 @@ export interface LevelUpSelections {
   companionTricks?: CompanionTrick[];
 
   // Multiclasse: configuração de primeira vez na nova classe
-  classSetup?: {
-    arcanistaSubtype?: 'Bruxo' | 'Mago' | 'Feiticeiro';
-    feiticeiroLinhagem?:
-      | 'Linhagem Dracônica'
-      | 'Linhagem Feérica'
-      | 'Linhagem Rubra'
-      | 'Linhagem Abençoada';
-    draconicaDamageType?: string;
-    linhagemAbencoadaDeus?: string;
-    spellSchools?: SpellSchool[];
-  };
+  classSetup?: ClassSetupSelection;
 }
 
 export interface WizardSelections {

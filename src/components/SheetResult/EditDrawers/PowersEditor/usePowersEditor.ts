@@ -1327,7 +1327,10 @@ export function usePowersEditor({
           if (picksForThis.length === 0) return companion;
           return {
             ...companion,
-            tricks: [...companion.tricks, ...picksForThis.map((p) => p.trick)],
+            tricks: [
+              ...companion.tricks,
+              ...picksForThis.map((p) => ({ ...p.trick, level: sheet.nivel })),
+            ],
             spells: [
               ...(companion.spells || []),
               ...picksForThis
@@ -1352,6 +1355,7 @@ export function usePowersEditor({
                 trickName: pick.trick.name,
                 choices: pick.trick.choices,
                 spellName: pick.spell?.nome,
+                level: sheet.nivel,
               },
             ],
           });

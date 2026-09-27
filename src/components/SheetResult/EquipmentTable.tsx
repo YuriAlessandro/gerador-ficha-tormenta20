@@ -95,15 +95,15 @@ const INFO_ICON_SX = {
   cursor: 'help',
 } as const;
 const SUPPLEMENT_CHIP_SX = {
-  height: 16,
-  fontSize: '0.6rem',
+  height: { xs: 20, md: 16 },
+  fontSize: { xs: '0.7rem', md: '0.6rem' },
   borderColor: 'info.main',
   color: 'info.main',
   '& .MuiChip-label': { px: 0.625 },
 } as const;
 const QTY_CHIP_SX = {
-  height: 16,
-  fontSize: '0.6rem',
+  height: { xs: 20, md: 16 },
+  fontSize: { xs: '0.7rem', md: '0.6rem' },
   '& .MuiChip-label': { px: 0.625 },
 } as const;
 const CARD_STATS_SX = {
@@ -112,7 +112,10 @@ const CARD_STATS_SX = {
   gap: 0.5,
   mt: 0.5,
 } as const;
-const STAT_CHIP_SX = { height: 18, fontSize: '0.65rem' } as const;
+const STAT_CHIP_SX = {
+  height: { xs: 20, md: 18 },
+  fontSize: { xs: '0.7rem', md: '0.65rem' },
+} as const;
 const EMPTY_SX = { color: 'text.secondary', py: 1 } as const;
 
 /** Munição conta unidades restantes; o resto conta quantidade. */

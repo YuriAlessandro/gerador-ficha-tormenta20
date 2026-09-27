@@ -7,7 +7,7 @@ import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { BagEquipments, WeaponOverride } from './Equipment';
-import { OriginBenefit } from './WizardSelections';
+import { ClassSetupSelection, OriginBenefit } from './WizardSelections';
 import { CustomPower } from './CustomPower';
 import { CompanionSheet } from './Companion';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
@@ -16,9 +16,11 @@ import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
 import type { SheetAge } from './Age';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
+import type { SheetPartner } from '../premium/interfaces/Partner';
 import type { DiceRoll } from './DiceRoll';
 import type { PlayerJournal } from './PlayerJournal';
 import type { SupplementId } from '../types/supplement.types';
+import type { SheetLayout } from '../premium/interfaces/SheetLayout';
 
 export type SheetChangeSource =
   | {
@@ -416,6 +418,9 @@ export type SheetActionReceipt =
       trickName: string;
       choices?: Record<string, string>;
       spellName?: string;
+      // Nível do personagem em que o truque foi aprendido (ver
+      // `CompanionTrick.level`). Ausente em registros antigos.
+      level?: number;
     };
 
 export type SheetActionHistoryEntry = {
@@ -1061,6 +1066,22 @@ export default interface CharacterSheet {
   notes?: string; // Anotações livres do jogador
   journal?: PlayerJournal; // Diário do Jogador (canvas de blocos)
   imageUrl?: string; // URL de imagem do personagem
+  /**
+   * Layout customizado desta ficha.
+   *
+   * Sobrevive ao `stripSheetForStorage` (que faz spread no nível raiz) e ao
+   * `Sheet.sheetData`, que é `Mixed` no backend — por isso guardar o documento
+   * aqui não exigiu nenhuma mudança de schema. É tratado como payload não
+   * confiável na leitura: quem resolve passa pelo `sanitizeSheetLayout`.
+   */
+  layout?: SheetLayout;
+  /**
+   * Layout da biblioteca de onde `layout` veio. É só VÍNCULO de origem: a ficha
+   * renderiza sempre pela cópia em `layout`, então apagar ou despublicar o
+   * modelo não afeta a ficha. Serve para "aplicar nas fichas que usam este
+   * modelo" (`POST /api/sheet-layouts/:id/apply`).
+   */
+  layoutId?: string;
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha
@@ -1069,8 +1090,10 @@ export default interface CharacterSheet {
   tradicaoPerdidaPmAttribute?: Atributo; // Poder Tradição Perdida: atributo que entra no total de PM no lugar do atributo da classe (cap 6 +2/patamar). undefined = usa o atributo da classe.
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
+  multiclassSetups?: Record<string, ClassSetupSelection>; // Multiclasse: escolhas do 1º nível por className (linhagem, deus, escolas)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
   animalCompanions?: SheetAnimalCompanion[]; // Companheiro(s) Animal(is) do Druida
+  partners?: SheetPartner[]; // Parceiros persistentes (JdA cap. 6) — ver `SheetPartner`
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
   activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
   /**

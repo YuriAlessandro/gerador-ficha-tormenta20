@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            22/09/2026 (v4.33).
+            26/09/2026 (v4.34).
           </p>
 
           <p>
@@ -74,6 +74,310 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.34</h3>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🎲 Testes estendidos e armadilhas na Mesa Virtual
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O mestre agora prepara e conduz{' '}
+                  <strong>testes estendidos</strong> (JdA p. 222) e{' '}
+                  <strong>armadilhas</strong> (JdA p. 317) direto na mesa. No
+                  novo painel <strong>Testes e armadilhas</strong>, ele escolhe
+                  o <strong>teste da vez</strong> e pede a rolagem aos
+                  jogadores; o pedido aparece na tela de cada um, com as
+                  perícias certas e o bônus da ficha, e o resultado volta
+                  sozinho: o sistema compara com a CD, soma{' '}
+                  <strong>sucessos e falhas</strong> e encerra o desafio quando
+                  ele é vencido ou quando chegam as falhas. Rolar a perícia pela
+                  própria ficha também vale — responde o pedido ou oferece
+                  &ldquo;contar no desafio&rdquo; em um toque.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  As regras do livro vêm prontas: complexidade baixa, média ou
+                  alta (3, 5 ou 7 sucessos), perícias por etapa (&ldquo;1
+                  Atletismo + 2 Furtividade&rdquo;), teste{' '}
+                  <strong>aberto</strong> em que o jogador propõe a perícia e o
+                  mestre aprova, testes <strong>em grupo</strong> por rodadas,{' '}
+                  <strong>ajuda</strong>, <strong>CD cumulativa</strong> (+2 a
+                  cada teste ou rodada, ou ajustada na hora),{' '}
+                  <strong>penalidade por falha</strong> e 20/1 natural. O mestre
+                  decide se os jogadores veem a <strong>CD</strong> e a{' '}
+                  <strong>contagem</strong>, e pode mostrar o desafio na{' '}
+                  <strong>Tela do Jogador</strong>.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  As <strong>armadilhas</strong> seguem em etapas — oculta,
+                  encontrada, desarmada ou <strong>disparada</strong> — com as{' '}
+                  <strong>35 armadilhas</strong> do Livro Básico e de{' '}
+                  <em>Ameaças de Arton</em> prontas para usar. Encontrar pede
+                  Percepção/Investigação sem entregar a surpresa, desarmar pede
+                  Ladinagem (falhar por 5 ou mais dispara), e ao disparar os
+                  afetados recebem o pedido de resistência enquanto o mestre
+                  rola o dano e vê quanto cada um sofre.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Funciona do jeito que sua mesa joga: <strong>online</strong>{' '}
+                  (cada jogador rola no próprio aparelho),{' '}
+                  <strong>presencial</strong> (o mestre digita o total dos dados
+                  físicos, ou só marca ✓/✗) e para quem usa a mesa{' '}
+                  <strong>sozinho como mestre</strong>. Preparar e conduzir é
+                  exclusivo para mestres apoiadores; jogadores de qualquer plano
+                  participam.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🧩 Layouts de ficha: monte a ficha do seu jeito
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Pelo novo botão <strong>Editar layout da ficha</strong>, você
+                  escolhe como a sua ficha é organizada. São três modelos:{' '}
+                  <strong>Abas</strong> (o arranjo de sempre),{' '}
+                  <strong>Página única</strong> (tudo numa rolagem só) e{' '}
+                  <strong>Menu de ação</strong> (uma tela por vez, trocada por
+                  uma barra fixa, no estilo dos apps de ficha para celular). A
+                  partir deles, o <strong>editor</strong> deixa arrastar cada
+                  card para onde você quiser, criar abas, grupos e telas, e
+                  mudar cores, fonte, estilo dos cards e imagem de fundo, com a
+                  prévia ao vivo.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Cada área e cada seção pode aparecer em{' '}
+                  <strong>todos os dispositivos</strong>, só no{' '}
+                  <strong>computador</strong> ou só no <strong>celular</strong>,
+                  e dá para duplicar uma seção para que ela fique em lugares
+                  diferentes em cada um. As seções e as abas podem ganhar{' '}
+                  <strong>ícones</strong>, escolhidos entre mais de 4 mil
+                  desenhos do{' '}
+                  <a href='https://game-icons.net' target='blank'>
+                    game-icons.net
+                  </a>{' '}
+                  (licença CC BY 3.0), com busca em português.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Os layouts ficam salvos na sua <strong>biblioteca</strong>:
+                  use o mesmo em várias fichas, atualize o modelo e aplique a
+                  mudança em todas as fichas que usam ele de uma vez, e escolha
+                  um <strong>layout padrão</strong> para as fichas novas. Dá
+                  para <strong>compartilhar</strong> um layout por link ou
+                  código, e a <strong>galeria</strong> reúne os layouts
+                  publicados pela comunidade.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  O layout é da ficha: o mestre e os colegas de mesa veem a
+                  ficha do jeito que você montou, tenham eles apoio ou não.
+                  Escolher, montar e salvar layouts é exclusivo para apoiadores,
+                  com até 3 layouts na biblioteca no Nível 1, 10 no Nível 2 e
+                  sem limite no Nível 3.
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Botão <strong>Desfazer Nível</strong>{' '}
+                  ao lado do Subir Nível, na edição de informações da ficha. Ele
+                  desfaz tudo o que o último nível concedeu (poderes,
+                  habilidades de classe, magias, truques do Melhor Amigo e as
+                  perícias e bônus que vieram deles) e devolve a ficha ao nível
+                  anterior, para você subir de novo com outras escolhas. Antes
+                  de confirmar, uma janela mostra o que vai sair.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Parceiros na ficha</strong>.
+                  Agora você mesmo adiciona parceiros pela seção Parceiros da
+                  ficha, escolhendo o tipo e o patamar (iniciante, veterano ou
+                  mestre), e os bônus entram sozinhos. O parceiro fica salvo na
+                  ficha e vale em todos os encontros. A ficha avisa quando você
+                  passa do limite do seu nível (1 parceiro até o 4º nível, 2 até
+                  o 16º e 3 a partir do 17º).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Na mesa virtual, o mestre pode criar{' '}
+                  <strong>parceiros combinando tipos</strong>, como uma médica
+                  fortona que dá as vantagens do Médico e do Fortão. Só o mestre
+                  atribui esses parceiros, e ele pode editar qualquer parceiro
+                  das fichas da mesa. Os que ele atribui ficam travados para o
+                  jogador.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Veículos</strong> do livro
+                  básico no mercado, com categoria própria na mochila. (por{' '}
+                  <a href='https://github.com/ianptkcs' target='blank'>
+                    ianptkcs
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A <strong>ficha de ameaça</strong>{' '}
+                  agora controla <strong>PV e PM atuais</strong> direto na
+                  ficha, com os mesmos botões de dano e cura da ficha de
+                  personagem (PV e PM temporários inclusos), e um botão para
+                  restaurar tudo. Antes isso só era possível com a ameaça em um
+                  encontro da mesa virtual. O valor fica salvo na ameaça. No
+                  encontro, os PV e PM continuam sendo os do combatente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os <strong>itens gerais</strong>
+                  agora trazem a descrição do livro, com o que cada um faz em
+                  jogo. (por{' '}
+                  <a href='https://github.com/ianptkcs' target='blank'>
+                    ianptkcs
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A escolha de magias na
+                  <strong>criação da ficha</strong> usa os mesmos cards do Subir
+                  Nível, com filtro por tipo (arcana/divina) e as magias
+                  escolhidas em destaque.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No Subir Nível, a escolha de poder
+                  tem um controle só: desligue{' '}
+                  <strong>Só os que posso pegar</strong> para ver e escolher
+                  também os poderes fora dos pré-requisitos, que aparecem
+                  marcados, como no editor de poderes da ficha.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na{' '}
+                  <strong>Linhagem Abençoada</strong>, uma magia que é arcana e
+                  divina ao mesmo tempo agora pode preencher a vaga da magia
+                  divina obrigatória quando as vagas arcanas já estão cheias.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Os truques <strong>Sopro</strong> e{' '}
+                  <strong>Manobra Ensaiada</strong> do melhor amigo do Treinador
+                  agora deixam escolher o tipo de energia e a manobra na
+                  criação, no Subir Nível e no editor do parceiro. No editor,
+                  Condicionamento Especial e Deslocamento Especial adicionados à
+                  mão também ganharam seletores.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na mesa virtual, tocar em qualquer
+                  ponto da barra de título de <strong>Ordem de Turno</strong> e{' '}
+                  <strong>Rolagens recentes</strong> agora abre e recolhe o
+                  painel. Antes era preciso acertar a setinha, o que era difícil
+                  no celular.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas <strong>multiclasse</strong>{' '}
+                  podiam não conseguir voltar ao nível 1: cada classe tinha
+                  mínimo de 1 nível, então um Guerreiro 1 / Ladino 1 ficava
+                  preso no nível 2. Agora a classe secundária pode ir a 0 no
+                  editor de níveis por classe, com um aviso sobre o que precisa
+                  ser removido à mão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na mesa virtual, o bônus de{' '}
+                  <strong>Furtividade</strong> que o mestre vê no card do
+                  combatente passa a somar o modificador de{' '}
+                  <strong>tamanho</strong>, igual à ficha. Personagens pequenos
+                  e grandes apareciam com o valor errado no encontro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Vanguardista</strong> do Kliren agora deixa escolher
+                  qual <strong>Ofício</strong> recebe o +2, entre os Ofícios
+                  treinados, e a escolha continua valendo quando a ficha é
+                  editada. Antes o bônus ia para um &quot;Ofício
+                  (Qualquer)&quot; genérico.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em fichas{' '}
+                  <strong>multiclasse</strong>, requisitos como &quot;6º nível
+                  de Guerreiro&quot; nos poderes de classe passam a contar o
+                  nível naquela classe, e não o nível de personagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Feiticeiro de{' '}
+                  <strong>Linhagem Abençoada</strong> como classe secundária não
+                  recebia o poder concedido nem tinha as magias divinas
+                  exigidas, e o Arcanista secundário podia trocar de caminho
+                  sozinho ao subir de nível. As escolhas do 1º nível na classe
+                  (caminho, linhagem, deus) agora ficam salvas na ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No tema claro, o ícone de remover
+                  dos chips destacados (magias escolhidas, filtros, mochila)
+                  ficava invisível.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Várias correções no{' '}
+                  <strong>melhor amigo do Treinador</strong>: os PV contavam o
+                  1º nível duas vezes; em multiclasse, o parceiro (inclusive o
+                  segundo, de Conquistar pelos Números) usa o nível de
+                  Treinador, e não o de personagem; com{' '}
+                  <strong>Treinador Eclético</strong>, PV, Defesa e perícias
+                  passam a usar o nível de personagem; Convocar Enxame ensina
+                  Enxame de Pestes; e Condicionamento Especial e Deslocamento
+                  Especial respeitam os limites de Heróis de Arton.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As <strong>perícias</strong> do
+                  melhor amigo não ficam mais para trás ao remover o truque
+                  Veloz ou trocar o tipo do parceiro, e o +2 do Veloz em
+                  Atletismo já treinado passa a contar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Cavaleiro Sagrado</strong> agora exige ser devoto de
+                  uma divindade que aceite paladinos (ou qualquer uma, com
+                  Devoções Abertas). Antes ele aparecia até para quem não era
+                  devoto. (por{' '}
+                  <a href='https://github.com/ianptkcs' target='blank'>
+                    ianptkcs
+                  </a>
+                  )
+                </li>
+              </ul>
+
               <h3>4.33</h3>
               <ul>
                 <li>

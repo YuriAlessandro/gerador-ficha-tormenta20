@@ -9,8 +9,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  RadioGroup,
-  Radio,
   TextField,
   InputAdornment,
   Card,
@@ -24,21 +22,14 @@ import {
   countNaturalWeapons,
   getTricksWithAvailability,
   TrickWithAvailability,
+  isTrickChoiceComplete,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
   CompanionTrickDefinition,
   getCompanionTrickDefinition,
 } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
-import { Atributo } from '@/data/systems/tormenta20/atributos';
+import CompanionTrickChoiceFields from '@/components/SheetResult/CompanionTrickChoiceFields';
 import { getInnateSpellOptions } from '@/data/systems/tormenta20/herois-de-arton/companion/innateSpells';
-
-const COMPANION_ATTRIBUTE_OPTIONS = [
-  Atributo.FORCA,
-  Atributo.DESTREZA,
-  Atributo.CONSTITUICAO,
-  Atributo.SABEDORIA,
-  Atributo.CARISMA,
-];
 
 interface CompanionTrickSelectionStepProps {
   companion: CompanionSheet;
@@ -109,15 +100,6 @@ const CompanionTrickSelectionStep: React.FC<
     }
   };
 
-  const handleChoiceChange = (choiceKey: string, value: string) => {
-    if (selectedTrick) {
-      onSelectTrick({
-        ...selectedTrick,
-        choices: { ...selectedTrick.choices, [choiceKey]: value },
-      });
-    }
-  };
-
   const handleSelectSpell = (spell: Spell) => {
     if (!onSelectSpell) return;
     if (selectedSpell?.nome === spell.nome) {
@@ -148,14 +130,8 @@ const CompanionTrickSelectionStep: React.FC<
   const isSelectionComplete = useMemo(() => {
     if (!selectedTrick) return false;
     const def = getCompanionTrickDefinition(selectedTrick.name);
-    if (!def?.hasSubChoice) return true;
-    if (def.subChoiceType === 'attribute')
-      return (
-        !!selectedTrick.choices?.primary && !!selectedTrick.choices?.secondary
-      );
-    if (def.subChoiceType === 'movement') return !!selectedTrick.choices?.type;
-    if (def.subChoiceType === 'spell') return !!selectedSpell;
-    return true;
+    if (def?.subChoiceType === 'spell') return !!selectedSpell;
+    return isTrickChoiceComplete(selectedTrick);
   }, [selectedTrick, selectedSpell]);
 
   return (
@@ -260,78 +236,16 @@ const CompanionTrickSelectionStep: React.FC<
                 }
                 sx={{ alignItems: 'flex-start' }}
               />
-              {isSelected &&
-                trick.hasSubChoice &&
-                trick.subChoiceType === 'attribute' && (
-                  <Box
-                    sx={{
-                      ml: 4,
-                      mt: 1,
-                      display: 'flex',
-                      gap: 2,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <FormControl size='small' sx={{ minWidth: 160 }}>
-                      <InputLabel>Primário (+2)</InputLabel>
-                      <Select
-                        label='Primário (+2)'
-                        value={selectedTrick?.choices?.primary || ''}
-                        onChange={(e) =>
-                          handleChoiceChange('primary', e.target.value)
-                        }
-                      >
-                        {COMPANION_ATTRIBUTE_OPTIONS.map((attr) => (
-                          <MenuItem key={attr} value={attr}>
-                            {attr}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <FormControl size='small' sx={{ minWidth: 160 }}>
-                      <InputLabel>Secundário (+1)</InputLabel>
-                      <Select
-                        label='Secundário (+1)'
-                        value={selectedTrick?.choices?.secondary || ''}
-                        onChange={(e) =>
-                          handleChoiceChange('secondary', e.target.value)
-                        }
-                      >
-                        {COMPANION_ATTRIBUTE_OPTIONS.filter(
-                          (attr) => attr !== selectedTrick?.choices?.primary
-                        ).map((attr) => (
-                          <MenuItem key={attr} value={attr}>
-                            {attr}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                )}
-              {isSelected &&
-                trick.hasSubChoice &&
-                trick.subChoiceType === 'movement' && (
-                  <Box sx={{ ml: 4, mt: 1 }}>
-                    <RadioGroup
-                      row
-                      value={selectedTrick?.choices?.type || ''}
-                      onChange={(e) =>
-                        handleChoiceChange('type', e.target.value)
-                      }
-                    >
-                      <FormControlLabel
-                        value='Escalada'
-                        control={<Radio size='small' />}
-                        label='Escalada'
-                      />
-                      <FormControlLabel
-                        value='Natação'
-                        control={<Radio size='small' />}
-                        label='Natação'
-                      />
-                    </RadioGroup>
-                  </Box>
-                )}
+              {isSelected && selectedTrick && (
+                <Box sx={{ ml: 4, mt: 1 }}>
+                  <CompanionTrickChoiceFields
+                    trick={selectedTrick}
+                    onChoicesChange={(choices) =>
+                      onSelectTrick({ ...selectedTrick, choices })
+                    }
+                  />
+                </Box>
+              )}
               {isSelected &&
                 trick.hasSubChoice &&
                 trick.subChoiceType === 'spell' && (

@@ -25,6 +25,8 @@ export interface DbUser {
   accentColor?: AccentColorId;
   darkMode?: boolean;
   bestiaryAnonymous?: boolean;
+  /** Layout da biblioteca copiado para toda ficha nova (ver backend). */
+  defaultSheetLayoutId?: string | null;
   termsAcceptedVersion?: number;
   isModerator?: boolean;
   isEditor?: boolean;

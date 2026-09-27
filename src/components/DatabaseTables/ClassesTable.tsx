@@ -26,12 +26,15 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
 import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
 import { Requirement } from '../../interfaces/Poderes';
 import { formatRequirement } from '../../functions/requirementText';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, ClassWithSupplement } from '../../data/registry';
@@ -64,102 +67,130 @@ const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => (
 const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
   const [powersView, setPowersView] = useState<PowersView>('lista');
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
+  const variantChip = classe.isVariant && classe.baseClassName && (
+    <Chip
+      label={`Variante de ${classe.baseClassName}`}
+      size='small'
+      variant='outlined'
+      color='info'
+      sx={{
+        height: '20px',
+        fontSize: '0.7rem',
+      }}
+    />
+  );
+  const supplementChip = classe.supplementId !==
+    SupplementId.TORMENTA20_CORE && (
+    <Chip
+      label={classe.supplementName}
+      size='small'
+      sx={{
+        height: '20px',
+        fontSize: '0.7rem',
+        backgroundColor: 'secondary.main',
+        color: 'secondary.contrastText',
+      }}
+    />
+  );
+  const shareButton = (
+    <CopyUrlButton
+      itemName={classe.name}
+      itemType='classe'
+      size='small'
+      variant='minimal'
+    />
+  );
+
   return (
     <>
-      <TableRow
-        sx={{
-          '& > *': { borderBottom: 'unset' },
-          '&:hover': {
-            backgroundColor: 'rgba(209, 50, 53, 0.02)',
-          },
-        }}
-      >
-        <TableCell width={10}>
-          <IconButton
-            aria-label='expand row'
-            size='small'
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row'>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
+      {isMobile ? (
+        <EncyclopediaSummaryRow
+          colSpan={3}
+          name={
+            classe.subname ? `${classe.name} (${classe.subname})` : classe.name
+          }
+          open={open}
+          onToggle={() => setOpen(!open)}
+          tags={
+            <>
+              {variantChip}
+              {supplementChip}
+            </>
+          }
+          action={shareButton}
+        />
+      ) : (
+        <TableRow
+          sx={{
+            '& > *': { borderBottom: 'unset' },
+            '&:hover': {
+              backgroundColor: 'rgba(209, 50, 53, 0.02)',
+            },
+          }}
+        >
+          <TableCell width={10}>
+            <IconButton
+              aria-label='expand row'
+              size='small'
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </TableCell>
+          <TableCell component='th' scope='row'>
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1,
+                justifyContent: 'space-between',
               }}
             >
-              <WhatshotIcon color='primary' fontSize='small' />
-              <Typography
-                variant='body1'
+              <Box
                 sx={{
-                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  rowGap: 0.5,
                 }}
               >
-                {classe.name}
-                {classe.subname && (
-                  <Typography
-                    component='span'
-                    variant='body2'
-                    sx={{
-                      color: 'text.secondary',
-                      ml: 1,
-                    }}
-                  >
-                    ({classe.subname})
-                  </Typography>
-                )}
-              </Typography>
-              {classe.isVariant && classe.baseClassName && (
-                <Chip
-                  label={`Variante de ${classe.baseClassName}`}
-                  size='small'
-                  variant='outlined'
-                  color='info'
+                <WhatshotIcon color='primary' fontSize='small' />
+                <Typography
+                  variant='body1'
                   sx={{
-                    height: '20px',
-                    fontSize: '0.7rem',
+                    fontWeight: 500,
                   }}
-                />
-              )}
-              {classe.supplementId !== SupplementId.TORMENTA20_CORE && (
-                <Chip
-                  label={classe.supplementName}
-                  size='small'
-                  sx={{
-                    height: '20px',
-                    fontSize: '0.7rem',
-                    backgroundColor: 'secondary.main',
-                    color: 'secondary.contrastText',
-                  }}
-                />
-              )}
+                >
+                  {classe.name}
+                  {classe.subname && (
+                    <Typography
+                      component='span'
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                        ml: 1,
+                      }}
+                    >
+                      ({classe.subname})
+                    </Typography>
+                  )}
+                </Typography>
+                {variantChip}
+                {supplementChip}
+              </Box>
+              {shareButton}
             </Box>
-            <CopyUrlButton
-              itemName={classe.name}
-              itemType='classe'
-              size='small'
-              variant='minimal'
-            />
-          </Box>
-        </TableCell>
-        <TableCell />
-      </TableRow>
+          </TableCell>
+          <TableCell />
+        </TableRow>
+      )}
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
@@ -175,6 +206,9 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  columnGap: 1,
+                  rowGap: 0.5,
                   mb: 1,
                 }}
               >
@@ -671,7 +705,7 @@ const ClassesTable: React.FC = () => {
           <Table aria-label='classes table'>
             <TableHead>
               <TableRow>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
                 <TableCell>
                   <Typography
                     variant='h6'
@@ -683,7 +717,7 @@ const ClassesTable: React.FC = () => {
                     Nome da Classe
                   </Typography>
                 </TableCell>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
               </TableRow>
             </TableHead>
             <TableBody>
