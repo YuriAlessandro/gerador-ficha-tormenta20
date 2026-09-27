@@ -1,4 +1,9 @@
-import { createTheme, ThemeOptions, Shadows } from '@mui/material/styles';
+import {
+  alpha,
+  createTheme,
+  ThemeOptions,
+  Shadows,
+} from '@mui/material/styles';
 import {
   AccentColorPalette,
   AccentColorId,
@@ -369,9 +374,18 @@ export const getThemeOptions = (
           root: {
             fontWeight: 500,
           },
+          // O fundo sólido vale também para `variant='outlined'`, e nele o MUI
+          // pinta o ícone de apagar na cor primária — vermelho no vermelho,
+          // invisível no tema claro. Segue o texto, como no chip preenchido.
           colorPrimary: {
             backgroundColor: accentColor.main,
             color: accentColor.contrastText,
+            '& .MuiChip-deleteIcon': {
+              color: alpha(accentColor.contrastText, 0.7),
+              '&:hover': {
+                color: accentColor.contrastText,
+              },
+            },
           },
         },
       },

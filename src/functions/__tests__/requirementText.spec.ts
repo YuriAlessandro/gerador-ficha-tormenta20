@@ -39,6 +39,19 @@ describe('formatRequirement', () => {
       formatRequirement({ type: RequirementType.DEVOTO, name: 'any' })
     ).toBe('Devoto de qualquer divindade');
     expect(
+      formatRequirement({
+        type: RequirementType.DEVOTO_CLASSE,
+        name: 'Paladino',
+        text: 'Devoto de uma divindade que aceite paladinos',
+      })
+    ).toBe('Devoto de uma divindade que aceite paladinos');
+    expect(
+      formatRequirement({
+        type: RequirementType.DEVOTO_CLASSE,
+        name: 'Paladino',
+      })
+    ).toBe('Devoto de uma divindade que aceite Paladino');
+    expect(
       formatRequirement({ type: RequirementType.PROFICIENCIA, name: 'all' })
     ).toBe('Proficiência em qualquer arma');
     expect(

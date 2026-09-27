@@ -1,0 +1,108 @@
+ARMAS,,,,,ARMADURAS & ESCUDOS,,,,,ESOTÉRICOS,,,
+d%,Encanto,Livro,Página,,d%,Encanto,Livro,Página,,d%,Encanto,Livro,Página
+01,Alvorada,Heróis de Arton,256,,01-02,Abascanto,Tormenta20,338,,01-02,Abafador,Heróis de Arton,260
+02-05,Ameaçadora,Tormenta20,335,,03-04,Abençoado,Tormenta20,338,,03-12,Bélico,Heróis de Arton,260
+06,Anátema,Heróis de Arton,256,,05,Abissal,Heróis de Arton,258,,13-16,Caridoso,Heróis de Arton,260
+07-08,Anticriatura,Tormenta20,335,,06,Acrobático,Tormenta20,338,,17-20,Chocante,Heróis de Arton,260
+09,Arremesso,Tormenta20,335,,07-08,Alado,Tormenta20,338,,21-30,Clemente,Heróis de Arton,260
+10,Assassina,Tormenta20,335,,09,Ancorada*,Heróis de Arton,258,,31-32,Contido,Heróis de Arton,260
+11,Brumosa,Heróis de Arton,256,,10-11,Animado**,Tormenta20,338,,33-34,Embusteiro,Heróis de Arton,260
+12,Caçadora,Tormenta20,335,,12,Anulador***,Heróis de Arton,258,,35-36,Emergencial,Heróis de Arton,260
+13,Cantante,Heróis de Arton,256,,13,Arbóreo,Heróis de Arton,258,,37-40,Encadeado,Heróis de Arton,260
+14,Ciclônica,Heróis de Arton,256,,14-15,Assustador,Tormenta20,338,,41-42,Escultor,Heróis de Arton,260
+15-18,Congelante,Tormenta20,335,,16,Astuto,Heróis de Arton,258,,43-44,Frugal,Heróis de Arton,261
+19,Conjuradora,Tormenta20,335,,17,Cáustica,Tormenta20,338,,45-48,Glacial,Heróis de Arton,261
+20-23,Corrosiva,Tormenta20,335,,18-27,Defensor,Tormenta20,338,,49-50,Imperioso,Heróis de Arton,261
+24-25,Crescente,Heróis de Arton,256,,28,Densa*,Heróis de Arton,258,,51-52,Implacável*,Heróis de Arton,261
+26,Cristalina,Heróis de Arton,256,,29,Égide,Heróis de Arton,258,,53-54,Incriminador,Heróis de Arton,261
+27,Cronal*,Heróis de Arton,256,,30,Enraizada*,Heróis de Arton,258,,55-61,Inflamável,Heróis de Arton,261
+28,Cuidadora,Heróis de Arton,256,,31,Escorregadio,Tormenta20,338,,62-65,Inquisidor,Heróis de Arton,261
+29-30,Dançarina,Tormenta20,335,,32-33,Esmagador**,Tormenta20,339,,66-69,Insistente,Heróis de Arton,261
+31-32,Defensora,Tormenta20,335,,34,Esmérico,Heróis de Arton,258,,70-71,Khalmyrita,Heróis de Arton,261
+33,Destruidora,Tormenta20,335,,35-36,Estígio***,Heróis de Arton,258,,72-81,Majestoso*,Heróis de Arton,261
+34-35,Dilacerante,Tormenta20,335,,37,Etéreo,Heróis de Arton,259,,82-83,Nímbico,Heróis de Arton,261
+36,Drenante,Tormenta20,335,,38-39,Fantasmagórico,Tormenta20,339,,84,Pulverizante*,Heróis de Arton,261
+37-40,Elétrica,Tormenta20,335,,40-43,Fortificado,Tormenta20,339,,85,Retaliador,Heróis de Arton,261
+41,Energética*,Tormenta20,335,,44,Gélido,Tormenta20,339,,86-87,Sanguessuga,Heróis de Arton,261
+42-43,Espreitadora,Heróis de Arton,256,,45,Geomântico,Heróis de Arton,259,,88,Traiçoeiro,Heróis de Arton,261
+44-45,Excruciante,Tormenta20,335,,46-55,Guardião***,Tormenta20,339,,89-90,Verdugo,Heróis de Arton,261
+46-49,Flamejante,Tormenta20,335,,56-57,Hipnótico,Tormenta20,339,,91-100,Esotérico específico,Role na tabela abaixo,–
+50-57,Formidável,Tormenta20,336,,58,Ilusório,Tormenta20,339,,,,,
+58-59,Frenética,Heróis de Arton,256,,59,Incandescente,Tormenta20,339,,*Apenas para itens com pelo menos dois encantos.,,,
+60,Gárgula,Heróis de Arton,256,,60-64,Invulnerável,Tormenta20,339,,,,,
+61,Horrenda,Heróis de Arton,256,,65,Ligeira*,Heróis de Arton,259,,ESOTÉRICOS ESPECÍFICOS,,,
+62,Indignada,Heróis de Arton,256,,66-67,Luminescente,Heróis de Arton,259,,d%,Esotérico Específico,Livro,Página
+63,Infestada,Heróis de Arton,256,,68-72,Opaco,Tormenta20,339,,01-20,Cajado da destruição,Tormenta20,337
+64,Lancinante*,Tormenta20,336,,73,Prístino,Heróis de Arton,259,,21-40,Cajado da vida,Tormenta20,337
+65-72,Magnífica*,Tormenta20,336,,74-78,Protetor,Tormenta20,339,,41-45,Cajado das marés,Heróis de Arton,262
+73,Manáfaga,Heróis de Arton,256,,79,Purificador,Heróis de Arton,259,,46-60,Cajado do poder,Tormenta20,337
+74-75,Piedosa,Tormenta20,336,,80-81,Reanimador,Heróis de Arton,259,,61-75,Cálice sagrado,Heróis de Arton,262
+76,Profana,Tormenta20,336,,82-83,Refletor,Tormenta20,339,,76-85,Relógio do arcanista,Heróis de Arton,262
+77,Rebote,Heróis de Arton,256,,84,Relampejante,Tormenta20,339,,86-95,Varinha da generosidade,Deuses de Arton,59
+78,Reflexiva,Heróis de Arton,257,,85,Reluzente,Tormenta20,339,,96-100,Varinha milenar,Heróis de Arton,262
+79,Ressonante,Heróis de Arton,257,,86,Replicante,Heróis de Arton,259,,,,,
+80,Sagrada,Tormenta20,336,,87,Resiliente,Heróis de Arton,259,,,,,
+81-82,Sanguinária,Tormenta20,336,,88,Sombrio,Tormenta20,339,,,,,
+83,Sepulcral,Heróis de Arton,257,,89,Vórtice,Heróis de Arton,259,,,,,
+84,Sombria,Heróis de Arton,257,,90,Zeloso,Tormenta20,339,,,,,
+85,Trovejante,Tormenta20,336,,91-100,Item específico,Role na tabela abaixo,–,,,,,
+86,Tumular,Tormenta20,336,,,,,,,,,,
+87,Vampírica,Heróis de Arton,257,,"*Apenas armaduras. Para escudos, role novamente.",,,,,,,,
+88-89,Veloz,Tormenta20,336,,"**Apenas escudos. Para armaduras, role novamente.",,,,,,,,
+90,Venenosa,Tormenta20,336,,***Conta como dois encantos e inclui o encanto de pré-requisito.,,,,,,,,
+91-100,Arma específica,Role na tabela abaixo,–,,"Se o item só possuir um, role novamente.",,,,,,,,
+,,,,,,,,,,,,,
+*Conta como dois encantos e inclui o encanto de pré-requisito.,,,,,ARMADURAS & ESCUDOS ESPECÍFICOS,,,,,,,,
+"Se o item só possuir um, role novamente.",,,,,d%,Armadura/Escudo Específico,Livro,Página,,,,,
+,,,,,01-04,Armadura da luz,Tormenta20,340,,,,,
+ARMAS ESPECÍFICAS,,,,,05-08,Armadura das sombras profundas,Heróis de Arton,259,,,,,
+d%,Arma Específica,Livro,Página,,09-12,Armadura do dragão ancião,Heróis de Arton,259,,,,,
+01-02,Adaga da bruma,Heróis de Arton,257,,13-16,Armadura do inverno perene,Heróis de Arton,259,,,,,
+03,Adaga ofídica,Deuses de Arton,58,,17-18,Armadura do julgamento,Deuses de Arton,57,,,,,
+04,Adaga sorrateira,Deuses de Arton,56,,19-22,Baluarte anão,Tormenta20,340,,,,,
+05,Alabarda da coragem,Deuses de Arton,57,,23-26,Carapaça demoníaca,Tormenta20,340,,,,,
+06,Alfange dourado,Deuses de Arton,56,,27-30,Cota da serpente marinha,Heróis de Arton,259,,,,,
+07,Alguma coisa de Nimb...,Deuses de Arton,58,,31-40,Cota élfica,Tormenta20,340,,,,,
+08-10,Arco das sombras,Heróis de Arton,257,,41-44,Couraça do comando,Tormenta20,340,,,,,
+11-12,Arco do crepúsculo,Heróis de Arton,257,,45-48,Couraça do guardião celeste,Heróis de Arton,259,,,,,
+13-15,Arco do poder,Tormenta20,336,,49-52,Couro de monstro,Tormenta20,340,,,,,
+16-18,Avalanche,Tormenta20,337,,53-56,Escudo da ira vulcânica,Heróis de Arton,260,,,,,
+19-21,Azagaia dos relâmpagos,Tormenta20,337,,57-60,Escudo da luz estelar,Heróis de Arton,260,,,,,
+22-23,Azagaia fantasma,Heróis de Arton,257,,61-64,Escudo da natureza viva,Heróis de Arton,260,,,,,
+24-26,Besta estelar,Heróis de Arton,257,,65-68,Escudo de Azgher,Tormenta20,340,,,,,
+27-29,Besta explosiva,Tormenta20,337,,69-72,Escudo do conjurador,Tormenta20,340,,,,,
+30,Bordão sabichão,Deuses de Arton,58,,73-76,Escudo do eclipse,Tormenta20,340,,,,,
+31,Cajado das matas,Deuses de Arton,55,,77-80,Escudo do grifo,Heróis de Arton,260,,,,,
+32,Cimitarra solar,Deuses de Arton,56,,81-86,Escudo do leão,Tormenta20,340,,,,,
+33-34,Clava de lava,Heróis de Arton,257,,87-90,Escudo do trovão,Heróis de Arton,260,,,,,
+35-37,Espada baronial,Tormenta20,337,,91-94,Escudo espinhoso,Tormenta20,340,,,,,
+38-39,Espada da tempestade,Heróis de Arton,257,,95-98,Loriga do centurião,Tormenta20,340,,,,,
+40-42,Espada do guardião,Heróis de Arton,257,,99-100,Manto da noite,Tormenta20,340,,,,,
+43,Espada imaculada,Deuses de Arton,59,,,,,,,,,,
+44,Espada monástica,Deuses de Arton,57,,,,,,,,,,
+45-46,Espada solar,Heróis de Arton,257,,,,,,,,,,
+47-49,Espada sortuda,Tormenta20,337,,,,,,,,,,
+50-51,Florete do vendaval,Heróis de Arton,258,,,,,,,,,,
+52-54,Florete fugaz,Tormenta20,337,,,,,,,,,,
+55,Katana da determinação,Deuses de Arton,57,,,,,,,,,,
+56-58,Lâmina da luz,Tormenta20,338,,,,,,,,,,
+59-61,Lança animalesca,Tormenta20,338,,,,,,,,,,
+62,Lança da dominação,Deuses de Arton,56,,,,,,,,,,
+63-64,Lança da fênix,Heróis de Arton,258,,,,,,,,,,
+65-67,Língua do deserto,Tormenta20,338,,,,,,,,,,
+68-70,Maça do terror,Tormenta20,338,,,,,,,,,,
+71,Maça monstruosa,Deuses de Arton,58,,,,,,,,,,
+72,Machado da bravura,Deuses de Arton,55,,,,,,,,,,
+73-74,Machado da natureza,Heróis de Arton,258,,,,,,,,,,
+75-76,Machado do abismo,Heróis de Arton,258,,,,,,,,,,
+77-79,Machado do vulcão,Heróis de Arton,258,,,,,,,,,,
+80,Machado lamnoriano,Deuses de Arton,59,,,,,,,,,,
+81-83,Machado silvestre,Tormenta20,338,,,,,,,,,,
+84,Mangual aventureiro,Deuses de Arton,59,,,,,,,,,,
+85-86,Martelo da terra,Heróis de Arton,258,,,,,,,,,,
+87-89,Martelo de Doherimm,Tormenta20,338,,,,,,,,,,
+90-91,Martelo do titã,Heróis de Arton,258,,,,,,,,,,
+92-93,Punhal das profundezas,Heróis de Arton,258,,,,,,,,,,
+94-96,Punhal sszzaazita,Tormenta20,338,,,,,,,,,,
+97,Tridente aquoso,Deuses de Arton,58,,,,,,,,,,
+98-100,Vingadora sagrada,Tormenta20,338,,,,,,,,,,

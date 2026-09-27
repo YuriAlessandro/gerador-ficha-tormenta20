@@ -11,6 +11,7 @@
 import { GeneralPower, RequirementType } from '../../interfaces/Poderes';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
+import { deityRequirementMatches } from './deityNames';
 
 /**
  * Um poder é exclusivo de devoção dupla quando exige DOIS deuses no MESMO
@@ -52,10 +53,7 @@ function deityClausesSatisfied(
     group
       .filter((req) => req.type === RequirementType.DEVOTO && req.name)
       .every((req) => {
-        const satisfied =
-          req.name === 'any'
-            ? deityNames.length > 0
-            : deityNames.includes(req.name as string);
+        const satisfied = deityRequirementMatches(req.name, deityNames);
         return req.not ? !satisfied : satisfied;
       })
   );

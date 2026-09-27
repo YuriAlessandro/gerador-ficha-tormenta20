@@ -21,7 +21,7 @@ import {
 import Skill from '@/interfaces/Skills';
 import {
   createCompanion,
-  getAvailableTricks,
+  isTrickChoiceComplete,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCreationStep';
 
@@ -30,6 +30,8 @@ interface CompanionCreationDialogProps {
   onClose: () => void;
   onConfirm: (companion: CompanionSheet) => void;
   trainerLevel: number;
+  /** Nível para PV/Defesa/perícias (Treinador Eclético); padrão: trainerLevel */
+  statLevel?: number;
   trainerCharisma: number;
 }
 
@@ -38,6 +40,7 @@ const CompanionCreationDialog: React.FC<CompanionCreationDialogProps> = ({
   onClose,
   onConfirm,
   trainerLevel,
+  statLevel,
   trainerCharisma,
 }) => {
   const isMobile = useMemo(() => window.innerWidth < 720, []);
@@ -80,23 +83,7 @@ const CompanionCreationDialog: React.FC<CompanionCreationDialogProps> = ({
       return false;
     if (companionSkills.length !== 3) return false;
     if (companionTricks.length !== 2) return false;
-    const availableTricks = getAvailableTricks(
-      1,
-      companionType,
-      companionSize,
-      companionTricks,
-      companionType === 'Monstro' ? 2 : 1,
-      true
-    );
-    return companionTricks.every((t) => {
-      const def = availableTricks.find((d) => d.name === t.name);
-      if (!def?.hasSubChoice) return true;
-      if (def.subChoiceType === 'attribute')
-        return !!t.choices?.primary && !!t.choices?.secondary;
-      if (def.subChoiceType === 'movement') return !!t.choices?.type;
-      if (def.subChoiceType === 'spell') return !!t.choices?.spell;
-      return true;
-    });
+    return companionTricks.every(isTrickChoiceComplete);
   }, [
     companionType,
     companionSize,
@@ -124,6 +111,7 @@ const CompanionCreationDialog: React.FC<CompanionCreationDialogProps> = ({
       tricks: companionTricks,
       trainerLevel,
       trainerCharisma,
+      statLevel,
     });
     onConfirm(newCompanion);
     resetState();

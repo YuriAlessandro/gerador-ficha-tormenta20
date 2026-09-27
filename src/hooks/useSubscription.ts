@@ -23,6 +23,24 @@ import { applyLimitBoost } from '../functions/limitBoost';
 import { useLimitBoost } from './useLimitBoost';
 
 /**
+ * Usuário (uid) cuja assinatura já foi revalidada nesta carga de página.
+ *
+ * De MÓDULO, e não por instância: o hook é usado por dezenas de componentes
+ * (todo `useFeatureAccess` passa por ele) e o efeito rodava em CADA montagem.
+ * Uma ficha disparava 12 buscas de assinatura ao abrir, e cada resposta
+ * regravava o slice e re-renderizava a ficha inteira 12 vezes — o editor de
+ * layout, que monta uma segunda ficha no preview, dobrava isso. O `!loading`
+ * do efeito não deduplicava nada: todas as instâncias montam no mesmo commit e
+ * leem `loading = false`.
+ */
+let revalidatedUid: string | null = null;
+
+/** Só para testes: o guard é de módulo e sobrevive entre casos. */
+export const resetSubscriptionRevalidation = (): void => {
+  revalidatedUid = null;
+};
+
+/**
  * Custom hook for subscription management
  */
 export const useSubscription = () => {
@@ -42,6 +60,9 @@ export const useSubscription = () => {
   // Get auth state to check if user is authenticated
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
+  );
+  const uid = useSelector(
+    (state: RootState) => state.auth.firebaseUser?.uid ?? null
   );
 
   // Get current tier (defaults to FREE if no subscription)
@@ -67,11 +88,13 @@ export const useSubscription = () => {
   // whose tier changed since the last visit (upgrade, renewal, downgrade)
   // would keep seeing the old limits until they manually visit the profile.
   // The cost of one extra request per session is worth always-correct gating.
+  // UMA por usuário por carga de página (ver `revalidatedUid`); quem precisa
+  // de dado fresco depois disso (checkout, perfil) chama `loadSubscription`.
   useEffect(() => {
-    if (isAuthenticated && !loading) {
-      dispatch(fetchSubscription());
-    }
-  }, [dispatch, isAuthenticated]);
+    if (!isAuthenticated || !uid || revalidatedUid === uid) return;
+    revalidatedUid = uid;
+    dispatch(fetchSubscription());
+  }, [dispatch, isAuthenticated, uid]);
 
   // Actions
   const loadSubscription = useCallback(() => {

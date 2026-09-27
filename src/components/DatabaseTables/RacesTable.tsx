@@ -21,6 +21,8 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import GroupIcon from '@mui/icons-material/Group';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
 import Race, { RaceAttributeAbility } from '../../interfaces/Race';
 import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
@@ -28,6 +30,7 @@ import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
 import { encyclopediaIds } from '../../functions/encyclopediaSearch';
+import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, RaceWithSupplement } from '../../data/registry';
@@ -94,81 +97,106 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
 }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
+  const supplementChip = race.supplementId !== SupplementId.TORMENTA20_CORE && (
+    <Chip
+      label={race.supplementName}
+      size='small'
+      sx={{
+        height: '20px',
+        fontSize: '0.7rem',
+        backgroundColor: 'secondary.main',
+        color: 'secondary.contrastText',
+      }}
+    />
+  );
+  const shareButton = (
+    <CopyUrlButton
+      itemName={race.name}
+      itemType='raça'
+      size='small'
+      variant='minimal'
+    />
+  );
+  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
+  const rowActions = (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <AddToGrimoireButton
+        itemId={encyclopediaIds.race(race.name)}
+        itemName={race.name}
+      />
+      {shareButton}
+    </Box>
+  );
+
   return (
     <>
-      <TableRow
-        sx={{
-          '& > *': { borderBottom: 'unset' },
-          '&:hover': {
-            backgroundColor: 'rgba(209, 50, 53, 0.02)',
-          },
-        }}
-      >
-        <TableCell width={10}>
-          <IconButton
-            aria-label='expand row'
-            size='small'
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row'>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
+      {isMobile ? (
+        <EncyclopediaSummaryRow
+          colSpan={3}
+          name={race.name}
+          open={open}
+          onToggle={() => setOpen(!open)}
+          tags={supplementChip}
+          action={rowActions}
+        />
+      ) : (
+        <TableRow
+          sx={{
+            '& > *': { borderBottom: 'unset' },
+            '&:hover': {
+              backgroundColor: 'rgba(209, 50, 53, 0.02)',
+            },
+          }}
+        >
+          <TableCell width={10}>
+            <IconButton
+              aria-label='expand row'
+              size='small'
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </TableCell>
+          <TableCell component='th' scope='row'>
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1,
+                justifyContent: 'space-between',
               }}
             >
-              <GroupIcon color='primary' fontSize='small' />
-              <Typography
-                variant='body1'
+              <Box
                 sx={{
-                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  rowGap: 0.5,
                 }}
               >
-                {race.name}
-              </Typography>
-              {race.supplementId !== SupplementId.TORMENTA20_CORE && (
-                <Chip
-                  label={race.supplementName}
-                  size='small'
+                <GroupIcon color='primary' fontSize='small' />
+                <Typography
+                  variant='body1'
                   sx={{
-                    height: '20px',
-                    fontSize: '0.7rem',
-                    backgroundColor: 'secondary.main',
-                    color: 'secondary.contrastText',
+                    fontWeight: 500,
                   }}
-                />
-              )}
-              <AddToGrimoireButton
-                itemId={encyclopediaIds.race(race.name)}
-                itemName={race.name}
-              />
+                >
+                  {race.name}
+                </Typography>
+                {supplementChip}
+              </Box>
+              {rowActions}
             </Box>
-            <CopyUrlButton
-              itemName={race.name}
-              itemType='raça'
-              size='small'
-              variant='minimal'
-            />
-          </Box>
-        </TableCell>
-        <TableCell />
-      </TableRow>
+          </TableCell>
+          <TableCell />
+        </TableRow>
+      )}
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
@@ -184,6 +212,9 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  columnGap: 1,
+                  rowGap: 0.5,
                   mb: 1,
                 }}
               >
@@ -562,7 +593,7 @@ const RacesTable: React.FC = () => {
           <Table aria-label='races table'>
             <TableHead>
               <TableRow>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
                 <TableCell>
                   <Typography
                     variant='h6'
@@ -574,7 +605,7 @@ const RacesTable: React.FC = () => {
                     Nome da Raça
                   </Typography>
                 </TableCell>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
               </TableRow>
             </TableHead>
             <TableBody>

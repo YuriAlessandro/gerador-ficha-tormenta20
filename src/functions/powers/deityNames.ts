@@ -97,3 +97,17 @@ export function getDevotionLabel(
 export function hasDualDevotion(sheet: CharacterSheet): boolean {
   return getSheetDeityNames(sheet).length > 1;
 }
+
+/**
+ * Um requisito `DEVOTO` é satisfeito pelo conjunto de deuses da ficha?
+ * `'any'` = devoto de qualquer divindade. Comparação case-insensitive.
+ */
+export function deityRequirementMatches(
+  reqName: string | undefined,
+  deityNames: string[]
+): boolean {
+  if (!reqName) return false;
+  if (reqName === 'any') return deityNames.length > 0;
+  const wanted = reqName.toLowerCase();
+  return deityNames.some((n) => n.toLowerCase() === wanted);
+}

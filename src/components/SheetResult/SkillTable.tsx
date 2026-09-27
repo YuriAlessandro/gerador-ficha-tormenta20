@@ -30,6 +30,7 @@ import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
 import { normalizeSearch } from '../../functions/stringUtils';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
+import { useChallengeSkillRollLink } from '../../premium/hooks/useChallengeSkillRollLink';
 import SkillActionsDialog from './SkillActionsDialog';
 import { ConditionMarker } from '../../premium/components/Conditions';
 import { getEffectiveAttributeModifier } from '../../functions/effectiveAttributes';
@@ -38,6 +39,10 @@ import { getConditionLabelStyle } from '../../premium/functions/conditionHighlig
 import { ActiveEffectMarker } from '../../premium/components/ActiveEffects';
 import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
 import { getActiveEffectLabelStyle } from '../../premium/functions/activeEffectHighlights';
+import {
+  getSkillSizeModifier,
+  getSkillTotal,
+} from '../../functions/skills/skillTotal';
 import {
   getSkillOthersBreakdown,
   hasSkillOthersDetail,
@@ -59,6 +64,7 @@ const SkillTable: React.FC<IProps> = ({
 }) => {
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
+  const linkSkillRoll = useChallengeSkillRollLink();
   const [actionsDialogOpen, setActionsDialogOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<CompleteSkill | null>(
     null
@@ -163,7 +169,7 @@ const SkillTable: React.FC<IProps> = ({
   }));
 
   const handleSkillRoll = useCallback(
-    (skill: CompleteSkill, skillTotal: number, actionName?: string) => {
+    async (skill: CompleteSkill, skillTotal: number, actionName?: string) => {
       const d20Roll = rollD20();
       const total = Math.max(1, d20Roll + skillTotal);
       const isCritical = d20Roll === 20;
@@ -177,7 +183,7 @@ const SkillTable: React.FC<IProps> = ({
         ? `${skill.name} (${actionName})`
         : `Teste de ${skill.name}`;
 
-      showDiceResult(
+      const final = await showDiceResult(
         label,
         [
           {
@@ -192,8 +198,17 @@ const SkillTable: React.FC<IProps> = ({
         ],
         sheet.nome
       );
+      // Mesa virtual: a rolagem responde o pedido de teste do mestre ou
+      // oferece contar no desafio em andamento. O d20 é o que apareceu na
+      // tela (com 3D, o do dado físico).
+      linkSkillRoll({
+        sheet,
+        skill: skill.name,
+        d20: final?.[0]?.rolls?.[0] ?? d20Roll,
+        modifier: skillTotal,
+      });
     },
-    [showDiceResult, sheet.nome]
+    [showDiceResult, sheet, linkSkillRoll]
   );
 
   const handleSkillNameClick = (
@@ -306,18 +321,8 @@ const SkillTable: React.FC<IProps> = ({
                 ? getEffectiveAttributeModifier(sheet, skill.modAttr)
                 : 0;
 
-              // Get size modifier for stealth (Furtividade)
-              const sizeModifier =
-                skill.name === 'Furtividade'
-                  ? sheet.size?.modifiers?.stealth ?? 0
-                  : 0;
-
-              const skillTotal =
-                (skill.halfLevel ?? 0) +
-                (attrValue ?? 0) +
-                (skill.others ?? 0) +
-                (skill.training ?? 0) +
-                sizeModifier;
+              const sizeModifier = getSkillSizeModifier(sheet, skill);
+              const skillTotal = getSkillTotal(sheet, skill);
 
               // "Outros" é um número só: não diz de onde vem (o -1 de
               // Furtividade é armadura? o +2 de Percepção é qual poder?) e

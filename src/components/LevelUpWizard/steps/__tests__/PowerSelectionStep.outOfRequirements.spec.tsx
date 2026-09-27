@@ -7,10 +7,10 @@ import { createMockCharacterSheet } from '@/__mocks__/characterSheet';
 import PowerSelectionStep from '../PowerSelectionStep';
 
 /**
- * Opt-in "quebre a regra": com 300+ poderes gerais e frequentemente menos de 50
+ * "Quebre a regra": com 300+ poderes gerais e frequentemente menos de 50
  * escolhíveis, os reprovados por pré-requisito ficam escondidos enquanto se
- * navega (a busca ainda os encontra, travados) e o checkbox os mostra já
- * escolhíveis.
+ * navega (a busca ainda os encontra, travados). Desligar "Só os que posso
+ * pegar" os mostra já escolhíveis — não há um segundo controle para isso.
  */
 const generalPower = (name: string): GeneralPower => ({
   name,
@@ -33,6 +33,7 @@ const setup = () => {
   const sheet = createMockCharacterSheet();
   const onGeneralPowerSelect = vi.fn();
   const onClassPowerSelect = vi.fn();
+  const onAllowOutOfRequirementsChange = vi.fn();
 
   const renderWith = (allow: boolean) => (
     <PowerSelectionStep
@@ -49,17 +50,22 @@ const setup = () => {
       unavailableClassPowers={[CLASSE_TRAVADO.name]}
       unavailableGeneralPowers={[TRAVADO.name]}
       allowOutOfRequirements={allow}
-      onAllowOutOfRequirementsChange={vi.fn()}
+      onAllowOutOfRequirementsChange={onAllowOutOfRequirementsChange}
     />
   );
 
   const view = render(renderWith(false));
 
   // O estado real mora no LevelUpWizardModal; aqui re-renderizamos com o novo
-  // valor, que é exatamente o que o modal faz ao marcar o checkbox.
+  // valor, que é exatamente o que o modal faz ao desligar o filtro.
   const enableOptIn = () => view.rerender(renderWith(true));
 
-  return { onGeneralPowerSelect, onClassPowerSelect, enableOptIn };
+  return {
+    onGeneralPowerSelect,
+    onClassPowerSelect,
+    onAllowOutOfRequirementsChange,
+    enableOptIn,
+  };
 };
 
 describe('PowerSelectionStep — poderes fora dos requisitos', () => {
@@ -70,9 +76,22 @@ describe('PowerSelectionStep — poderes fora dos requisitos', () => {
     expect(screen.getByText(CLASSE_LIVRE.name)).toBeInTheDocument();
     expect(screen.queryByText(TRAVADO.name)).not.toBeInTheDocument();
     expect(screen.queryByText(CLASSE_TRAVADO.name)).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Só os que posso pegar')).toBeChecked();
     expect(
-      screen.getByLabelText('Mostrar poderes fora dos requisitos')
-    ).toBeInTheDocument();
+      screen.queryByLabelText('Mostrar poderes fora dos requisitos')
+    ).not.toBeInTheDocument();
+  });
+
+  it('desligar "Só os que posso pegar" pede ao modal para quebrar a regra', () => {
+    const { onAllowOutOfRequirementsChange, enableOptIn } = setup();
+
+    fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
+    expect(onAllowOutOfRequirementsChange).toHaveBeenCalledWith(true);
+
+    enableOptIn();
+    expect(screen.getByLabelText('Só os que posso pegar')).not.toBeChecked();
+    fireEvent.click(screen.getByLabelText('Só os que posso pegar'));
+    expect(onAllowOutOfRequirementsChange).toHaveBeenLastCalledWith(false);
   });
 
   it('busca encontra o reprovado, travado', async () => {
@@ -89,7 +108,7 @@ describe('PowerSelectionStep — poderes fora dos requisitos', () => {
     expect(onGeneralPowerSelect).not.toHaveBeenCalled();
   });
 
-  it('com o opt-in, o reprovado aparece sem busca e fica escolhível', () => {
+  it('com o filtro desligado, o reprovado aparece sem busca e fica escolhível', () => {
     const { onGeneralPowerSelect, enableOptIn } = setup();
 
     enableOptIn();

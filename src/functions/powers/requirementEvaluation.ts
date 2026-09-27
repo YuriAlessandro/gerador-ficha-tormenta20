@@ -18,6 +18,9 @@ import {
   isRequirementWaived,
 } from './prerequisiteWaivers';
 import { formatRequirement } from '../requirementText';
+import { getClassLevel } from '../multiclass';
+import { deityRequirementMatches, getSheetDeityNames } from './deityNames';
+import { deityAcceptsClass } from './deityClassAcceptance';
 
 /**
  * Avaliação de pré-requisito **item a item**, para a UI poder dizer *qual*
@@ -58,6 +61,12 @@ export interface RequirementContext {
   pendingClassPowers?: PowerLike[];
   /** Classe dona do poder, quando for poder de CLASSE. */
   className?: string;
+  /**
+   * Nível do personagem em `className`. Omitido, sai da ficha
+   * (`getClassLevel`). O assistente de subida de nível informa o nível-alvo,
+   * que a ficha simulada ainda não registrou.
+   */
+  classLevel?: number;
   /** Waivers resolvidos. Passe ao filtrar catálogo inteiro (custo por item). */
   waivers?: PrerequisiteWaiver[];
 }
@@ -92,8 +101,8 @@ export interface PowerAvailability {
   /** Grupos são OU entre si; requisitos dentro do grupo são E. */
   groups: EvaluatedRequirementGroup[];
   /**
-   * Liberado apesar de reprovar nos pré-requisitos, por opt-in do jogador
-   * ("Mostrar poderes fora dos requisitos" da subida de nível). A UI sinaliza
+   * Liberado apesar de reprovar nos pré-requisitos, por escolha do jogador
+   * ("Só os que posso pegar" desligado na subida de nível). A UI sinaliza
    * em vez de fingir que o requisito foi cumprido.
    */
   outOfRequirements?: boolean;
@@ -142,10 +151,31 @@ function isTrainedIn(sheet: CharacterSheet, skillName: string | undefined) {
   );
 }
 
+/**
+ * Nível contra o qual o requisito `NIVEL` é comparado.
+ *
+ * Poder de classe usa o nível NAQUELA classe ("6º nível de lutador" — Tormenta20,
+ * p. 35: nível de classe é o nível numa classe específica); poder geral usa o de
+ * personagem. Se o personagem não tem nível na classe dona — poder emprestado
+ * de outra classe por um waiver —, vale o nível de personagem, como antes.
+ */
+function requirementLevel(
+  ctx: RequirementContext,
+  kind: PowerKind
+): { level: number; className?: string } {
+  const { sheet } = ctx;
+  if (kind === 'class' && ctx.className) {
+    const level = ctx.classLevel ?? getClassLevel(sheet, ctx.className);
+    if (level > 0) return { level, className: ctx.className };
+  }
+  return { level: sheet.nivel };
+}
+
 /** `undefined` quando não há número do lado do personagem para mostrar. */
 function currentValueFor(
   req: Requirement,
-  ctx: RequirementContext
+  ctx: RequirementContext,
+  kind: PowerKind
 ): string | undefined {
   const { sheet } = ctx;
   switch (req.type) {
@@ -153,8 +183,14 @@ function currentValueFor(
       const value = sheet.atributos[req.name as Atributo]?.value ?? 0;
       return `você tem ${value}`;
     }
-    case RequirementType.NIVEL:
-      return `você é nível ${sheet.nivel}`;
+    case RequirementType.NIVEL: {
+      const { level, className } = requirementLevel(ctx, kind);
+      // Só nomeia a classe quando o número difere do nível de personagem
+      // (multiclasse); na mono-classe o texto continua o de sempre.
+      return className && level !== sheet.nivel
+        ? `você é nível ${level} de ${className}`
+        : `você é nível ${level}`;
+    }
     default:
       return undefined;
   }
@@ -174,7 +210,7 @@ function isRequirementMet(
     }
 
     case RequirementType.NIVEL:
-      return sheet.nivel >= (req.value || 0);
+      return requirementLevel(ctx, kind).level >= (req.value || 0);
 
     case RequirementType.PODER:
       return (
@@ -231,12 +267,11 @@ function isRequirementMet(
       return isClassOrVariantOf(sheet.classe, req.name as string);
 
     case RequirementType.DEVOTO: {
-      const godName = req.name;
-      if (!godName || godName === 'any') return !!sheet.devoto?.divindade;
-      return (
-        sheet.devoto?.divindade.name.toLowerCase() === godName.toLowerCase()
-      );
+      return deityRequirementMatches(req.name, getSheetDeityNames(sheet));
     }
+
+    case RequirementType.DEVOTO_CLASSE:
+      return deityAcceptsClass(sheet, req.name as string);
 
     case RequirementType.HABILIDADE:
       return sheet.classe.abilities?.some((a) => a.name === req.name) ?? false;
@@ -332,7 +367,7 @@ export function evaluatePowerRequirements(
         waived: waived || undefined,
         waivedReason: waived ? reason : undefined,
         label: formatRequirement(requirement),
-        current: met ? undefined : currentValueFor(requirement, ctx),
+        current: met ? undefined : currentValueFor(requirement, ctx, kind),
       };
     });
 

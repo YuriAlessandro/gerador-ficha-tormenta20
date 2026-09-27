@@ -65,11 +65,14 @@ import {
   applySerializedOverrides,
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
+  resolveClassSetup,
+  classSetupNeedsRecovery,
   classNeedsFirstLevelSetup,
 } from '@/functions/multiclass';
 import {
   partitionCrossTraditionByCircle,
   buildSpellPool,
+  countTowardsCrossMinimum,
 } from '@/functions/spellPathUtils';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
@@ -77,6 +80,7 @@ import {
   createCompanion,
   getCompanionTrickDefinition,
   getTrickAvailability,
+  isTrickChoiceComplete,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import OriginPowerSwapStep from './steps/OriginPowerSwapStep';
 import PowerSelectionStep from './steps/PowerSelectionStep';
@@ -201,12 +205,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Current step within this level
   const [activeStep, setActiveStep] = useState(0);
 
-  // Opt-in "quebre a regra": mostra e libera a escolha de poderes fora dos
-  // pré-requisitos. Mora aqui, e não no PowerSelectionStep, porque o switch de
-  // renderStepContent DESMONTA o passo a cada navegação (é por isso que a busca
-  // também se perde) — em estado local, voltar de "Efeitos do Poder" re-travaria
-  // um poder já escolhido. Persiste entre os níveis do mesmo level-up e volta a
-  // false quando o assistente reabre.
+  // "Quebre a regra": é o filtro "Só os que posso pegar" DESLIGADO na escolha
+  // de poder — mostra e libera poderes fora dos pré-requisitos. Mora aqui, e
+  // não no PowerSelectionStep, porque o switch de renderStepContent DESMONTA o
+  // passo a cada navegação (é por isso que a busca também se perde) — em
+  // estado local, voltar de "Efeitos do Poder" re-travaria um poder já
+  // escolhido. Persiste entre os níveis do mesmo level-up e volta a false
+  // (filtro ligado) quando o assistente reabre.
   const [allowOutOfRequirements, setAllowOutOfRequirements] = useState(false);
 
   // Confirmation dialog state for cancel action
@@ -278,6 +283,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     nivel: currentLevel,
   };
 
+  // Setup da classe secundária: o do nível corrente ou o gravado na ficha no
+  // 1º nível dela (o poder concedido da Linhagem Abençoada sai no 2º).
+  const resolvedClassSetup = resolveClassSetup(
+    simulatedSheet,
+    selectedClassName,
+    currentLevelSelection.classSetup
+  );
+
   // Habilidades da classe que está subindo de nível. As injetadas no setup
   // (linhagens do Feiticeiro) vivem na FICHA, não na entrada do registry — por
   // isso a mescla. Fonte única do passo "Efeitos de Habilidades": detecção,
@@ -288,10 +301,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       selectedClassDesc,
       selectedClassName
     ),
-    ...getClassSetupAbilities(
-      selectedClassName,
-      currentLevelSelection.classSetup
-    ),
+    ...getClassSetupAbilities(selectedClassName, resolvedClassSetup),
   ];
 
   // Só as que estreiam neste nível de CLASSE (importa na multiclasse).
@@ -379,10 +389,16 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Classes that require user choices during first-level setup (variant-aware:
   // ex. Magimarcialista, variante de Bardo, herda o setup de escolas; variantes
   // com spellPath estático próprio, ex. Necromante, não exigem configuração)
+  const recoveringLinhagemDeus = classSetupNeedsRecovery(
+    simulatedSheet,
+    selectedClassName,
+    selectedClassLevel
+  );
   const classNeedsUserSetup =
-    isFirstLevelInNewClass &&
-    !!selectedClassDesc &&
-    classNeedsFirstLevelSetup(selectedClassDesc);
+    (isFirstLevelInNewClass &&
+      !!selectedClassDesc &&
+      classNeedsFirstLevelSetup(selectedClassDesc)) ||
+    recoveringLinhagemDeus;
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (
@@ -489,7 +505,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       if (knownClassPowerNames.has(power.name) && !power.canRepeat) {
         return false;
       }
-      // Com o opt-in ligado o corte de nível sai também: meio-quebrar a regra
+      // Com o filtro desligado o corte de nível sai também: meio-quebrar a regra
       // (liberar atributo/perícia mas não nível) confunde mais que quebrar
       // inteiro. Desligado, segue escondendo o catálogo até o 20º nível.
       if (!allowAll && !hasReachableLevelRequirement(power, levelForCut)) {
@@ -557,7 +573,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     spellCircle: number;
     availableSpells: Spell[];
     crossTraditionSpellNames: Set<string>;
+    sharedTraditionSpellNames: Set<string>;
+    crossTraditionLabel: string;
     crossTraditionLimit?: number;
+    minCrossTraditionSpells: number;
   } | null => {
     // Use the selected class's spellPath (for multiclass support)
     // For first level in new class, build spellPath from setup choices
@@ -576,12 +595,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         simulatedSheet.multiclassSpellPaths?.[selectedClassName];
       if (storedPath && activeClassDesc.name !== simulatedSheet.classe.name) {
         // Rebuild full SpellPath with functions from the stored serializable data
+        // O subtipo do Arcanista vem do setup gravado: sem ele o registry
+        // cai no setup() aleatório e sorteia Mago/Bruxo/Feiticeiro.
         spellPath = buildSpellPathFromSetup(
           storedPath.className,
           storedPath.classSubname,
-          { spellSchools: storedPath.schools },
+          { ...resolvedClassSetup, spellSchools: storedPath.schools },
           supplements
         );
+        if (spellPath) applySerializedOverrides(spellPath, storedPath);
       } else {
         // simulatedSheet.classe.spellPath has setup() applied (at creation and
         // rehydrated on load); selectedClassDesc from dataRegistry does not.
@@ -675,8 +697,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     // Teurgista Místico: aplica o limite POR CÍRCULO. Círculos onde o
     // personagem já atingiu o limite têm suas magias cross removidas do pool;
     // círculos ainda abertos continuam ofertando. `crossNames` passa a conter
-    // apenas os nomes dos círculos ainda abertos.
-    let crossNames = new Set<string>();
+    // apenas os nomes dos círculos ainda abertos. Sem limite (Linhagem
+    // Abençoada), valem todos os nomes cross do pool.
+    let { crossNames } = pool;
     if (spellPath.crossTraditionLimit && crossNamesByCircle.size > 0) {
       const { removeNames, keepNames } = partitionCrossTraditionByCircle(
         crossNamesByCircle,
@@ -701,7 +724,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       spellCircle,
       availableSpells,
       crossTraditionSpellNames: crossNames,
+      sharedTraditionSpellNames: pool.sharedNames,
+      crossTraditionLabel:
+        spellPath.spellType === 'Arcane' ? 'Divina' : 'Arcana',
       crossTraditionLimit: spellPath.crossTraditionLimit,
+      // Linhagem Abençoada: uma das magias iniciais tem que ser divina. Só no
+      // 1º nível da classe, como na criação.
+      minCrossTraditionSpells: isFirstLevelInNewClass
+        ? spellPath.crossTraditionRules?.minInitialSpells ?? 0
+        : 0,
     };
   };
 
@@ -1082,8 +1113,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         const spellInfo = getSpellInfo();
         if (!spellInfo) return true;
 
-        const selectedCount = currentLevelSelection.spellsLearned?.length || 0;
-        return selectedCount === spellInfo.spellCount;
+        const learned = currentLevelSelection.spellsLearned || [];
+        const crossCount = countTowardsCrossMinimum(
+          learned,
+          spellInfo.crossTraditionSpellNames,
+          spellInfo.sharedTraditionSpellNames,
+          spellInfo.spellCount,
+          spellInfo.minCrossTraditionSpells
+        );
+        return (
+          learned.length === spellInfo.spellCount &&
+          crossCount >= spellInfo.minCrossTraditionSpells
+        );
       }
 
       case 'Truque do Melhor Amigo':
@@ -1110,16 +1151,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           false
         );
         if (!available) return false;
-        if (trickDef.hasSubChoice) {
-          if (trickDef.subChoiceType === 'attribute')
-            return (
-              !!entry.trick.choices?.primary && !!entry.trick.choices?.secondary
-            );
-          if (trickDef.subChoiceType === 'movement')
-            return !!entry.trick.choices?.type;
-          if (trickDef.subChoiceType === 'spell') return !!entry.spell;
-        }
-        return true;
+        if (trickDef.subChoiceType === 'spell') return !!entry.spell;
+        return isTrickChoiceComplete(entry.trick);
       }
 
       case 'Melhor Amigo':
@@ -1138,16 +1171,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           return false;
         if (!companionSkills || companionSkills.length !== 3) return false;
         if (!companionTricks || companionTricks.length !== 2) return false;
-        return companionTricks.every((t) => {
-          const def = getCompanionTrickDefinition(t.name);
-          if (!def?.hasSubChoice) return true;
-          if (def.subChoiceType === 'attribute')
-            return !!t.choices?.primary && !!t.choices?.secondary;
-          if (def.subChoiceType === 'movement') return !!t.choices?.type;
-          // Magia Inata: sem a magia escolhida o truque não concede nada
-          if (def.subChoiceType === 'spell') return !!t.choices?.spell;
-          return true;
-        });
+        return companionTricks.every(isTrickChoiceComplete);
       }
 
       default:
@@ -1185,7 +1209,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return (
           <ClassSetupStep
             selectedClassName={selectedClassName}
-            classSetup={currentLevelSelection.classSetup || {}}
+            classSetup={resolvedClassSetup || {}}
             onChange={(setup) =>
               setCurrentLevelSelection({
                 ...currentLevelSelection,
@@ -1193,6 +1217,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               })
             }
             activeSupplements={supplements}
+            recoveringDeus={recoveringLinhagemDeus}
           />
         );
       }
@@ -1222,7 +1247,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           allowAll: allowOutOfRequirements,
         });
 
-        // Desmarcar o opt-in com um poder fora dos requisitos já escolhido
+        // Religar o filtro com um poder fora dos requisitos já escolhido
         // deixaria a seleção inválida sobreviver até o apply. Zera só nesse caso.
         const handleAllowOutOfRequirementsChange = (allow: boolean) => {
           setAllowOutOfRequirements(allow);
@@ -1318,6 +1343,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               }))
             }
             className={selectedClassName}
+            classLevel={selectedClassLevel}
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
             unavailableClassPowers={unavailableClassPowers}
@@ -1502,7 +1528,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             requiredCount={spellInfo.spellCount}
             spellCircle={spellInfo.spellCircle}
             crossTraditionSpellNames={spellInfo.crossTraditionSpellNames}
+            sharedTraditionSpellNames={spellInfo.sharedTraditionSpellNames}
+            crossTraditionLabel={spellInfo.crossTraditionLabel}
             crossTraditionLimit={spellInfo.crossTraditionLimit}
+            minCrossTraditionSpells={spellInfo.minCrossTraditionSpells}
             onSpellToggle={(spell) => {
               const current = currentLevelSelection.spellsLearned || [];
               const isSelected = current.some((s) => s.nome === spell.nome);
@@ -1679,6 +1708,16 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           ...(nextSheet.classLevels || []),
           newClassLevelEntry,
         ];
+
+        if (
+          resolvedClassSetup &&
+          selectedClassName !== simulatedSheet.classe.name
+        ) {
+          nextSheet.multiclassSetups = {
+            ...(nextSheet.multiclassSetups || {}),
+            [selectedClassName]: resolvedClassSetup,
+          };
+        }
 
         // Store spellPath for new multiclass caster class
         if (isFirstLevelInNewClass) {

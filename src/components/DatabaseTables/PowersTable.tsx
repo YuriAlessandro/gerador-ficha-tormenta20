@@ -23,6 +23,8 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
 import { Requirement } from '../../interfaces/Poderes';
 import { formatRequirement } from '../../functions/requirementText';
 import { SEO, getPageSEO } from '../SEO';
@@ -31,6 +33,7 @@ import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
 import { powerItemId } from '../../functions/pocketGrimoire/resolveItems';
+import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, GeneralPowerWithSupplement } from '../../data/registry';
@@ -56,81 +59,113 @@ const Row: React.FC<{
 }> = ({ power, defaultOpen }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
+  const typeChip = (
+    <Chip
+      label={power.type}
+      size='small'
+      variant='filled'
+      color='primary'
+      sx={{ ml: 1, fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+    />
+  );
+  const supplementChip = (
+    <Chip
+      label={power.supplementName}
+      size='small'
+      variant='outlined'
+      color={
+        power.supplementId === SupplementId.TORMENTA20_CORE
+          ? 'default'
+          : 'secondary'
+      }
+      sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+    />
+  );
+  const shareButton = (
+    <CopyUrlButton
+      itemName={power.name}
+      itemType='poder'
+      size='small'
+      variant='minimal'
+    />
+  );
+  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
+  const rowActions = (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <AddToGrimoireButton itemId={powerItemId(power)} itemName={power.name} />
+      {shareButton}
+    </Box>
+  );
+
   return (
     <>
-      <TableRow
-        className='table-row'
-        sx={{
-          '& > *': { borderBottom: 'unset' },
-          position: 'relative',
-          '&:hover': {
-            backgroundColor: `${theme.palette.primary.main}05`,
-          },
-        }}
-      >
-        <TableCell width={10}>
-          <IconButton
-            aria-label='expand row'
-            size='small'
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row' sx={{ position: 'relative' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-            }}
-          >
-            <LocalFireDepartmentIcon color='primary' fontSize='small' />
-            <Typography
-              variant='body1'
+      {isMobile ? (
+        <EncyclopediaSummaryRow
+          colSpan={3}
+          name={power.name}
+          open={open}
+          onToggle={() => setOpen(!open)}
+          tags={
+            <>
+              {typeChip}
+              {supplementChip}
+            </>
+          }
+          action={rowActions}
+        />
+      ) : (
+        <TableRow
+          className='table-row'
+          sx={{
+            '& > *': { borderBottom: 'unset' },
+            position: 'relative',
+            '&:hover': {
+              backgroundColor: `${theme.palette.primary.main}05`,
+            },
+          }}
+        >
+          <TableCell width={10}>
+            <IconButton
+              aria-label='expand row'
+              size='small'
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </TableCell>
+          <TableCell component='th' scope='row' sx={{ position: 'relative' }}>
+            <Box
               sx={{
-                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 1,
+                rowGap: 0.5,
               }}
             >
-              {power.name}
-            </Typography>
-            <Chip
-              label={power.type}
-              size='small'
-              variant='filled'
-              color='primary'
-              sx={{ ml: 1, fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
-            />
-            <Chip
-              label={power.supplementName}
-              size='small'
-              variant='outlined'
-              color={
-                power.supplementId === SupplementId.TORMENTA20_CORE
-                  ? 'default'
-                  : 'secondary'
-              }
-              sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
-            />
-            <AddToGrimoireButton
-              itemId={powerItemId(power)}
-              itemName={power.name}
-            />
-          </Box>
-          <CopyUrlButton
-            itemName={power.name}
-            itemType='poder'
-            size='small'
-            variant='minimal'
-          />
-        </TableCell>
-        <TableCell />
-      </TableRow>
+              <LocalFireDepartmentIcon color='primary' fontSize='small' />
+              <Typography
+                variant='body1'
+                sx={{
+                  fontWeight: 500,
+                }}
+              >
+                {power.name}
+              </Typography>
+              {typeChip}
+              {supplementChip}
+            </Box>
+            {rowActions}
+          </TableCell>
+          <TableCell />
+        </TableRow>
+      )}
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
@@ -461,7 +496,7 @@ const PowersTable: React.FC = () => {
           <Table aria-label='powers table'>
             <TableHead>
               <TableRow>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
                 <TableCell>
                   <Typography
                     variant='h6'
@@ -473,7 +508,7 @@ const PowersTable: React.FC = () => {
                     Nome do Poder
                   </Typography>
                 </TableCell>
-                <TableCell />
+                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
               </TableRow>
             </TableHead>
             <TableBody>

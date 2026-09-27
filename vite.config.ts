@@ -235,6 +235,28 @@ export default defineConfig({
             },
           },
           {
+            // Ícones do game-icons.net escolhidos nos layouts de ficha. Vêm do
+            // jsDelivr travados num commit (ver `GameIcon.tsx` no premium), então o
+            // conteúdo de uma URL nunca muda: CacheFirst sem prazo curto é
+            // seguro. Sem esta regra o PWA offline perderia os ícones da
+            // ficha, que por serem cross-origin não caem na regra abaixo.
+            //
+            // O cache NÃO leva a versão do app no nome: trocar de versão não
+            // muda nenhum desenho, e rebaixar tudo a cada deploy seria à toa.
+            urlPattern: ({ url }) =>
+              url.origin === 'https://cdn.jsdelivr.net' &&
+              url.pathname.startsWith('/gh/game-icons/icons@'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fdn-game-icons',
+              expiration: {
+                maxEntries: 400,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
             // Other same-origin requests - use StaleWhileRevalidate for balance
             // eslint-disable-next-line no-restricted-globals
             urlPattern: ({ url }) => url.origin === self.location.origin,

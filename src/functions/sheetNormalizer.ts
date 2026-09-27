@@ -820,6 +820,26 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     delete sheet.animalCompanions;
   }
 
+  // Parceiros da ficha: sem id/origem/dono válidos, ou sem o que resolver no
+  // catálogo (builtin sem tipo/patamar, da mesa sem snapshot), viram cards
+  // vazios sem bônus nenhum.
+  if (Array.isArray(sheet.partners)) {
+    sheet.partners = sheet.partners.filter(
+      (partner) =>
+        !!partner &&
+        typeof partner.id === 'string' &&
+        (partner.assignedBy === 'player' || partner.assignedBy === 'gm') &&
+        ((partner.source === 'builtin' &&
+          typeof partner.archetype === 'string' &&
+          typeof partner.tier === 'string') ||
+          (partner.source === 'table' &&
+            !!partner.snapshot &&
+            typeof partner.snapshot === 'object'))
+    );
+  } else if (sheet.partners !== undefined) {
+    delete sheet.partners;
+  }
+
   // Efeitos ativos APOSENTADOS: a regra virou automação passiva, mas o efeito
   // salvo carrega os próprios `bonuses` e seria somado por cima do passivo novo.
   // Não mexemos em `defesa`/`reducaoDeDano` aqui — carregar a ficha não dispara
