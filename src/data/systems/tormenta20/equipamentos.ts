@@ -708,6 +708,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 2,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 50,
   },
   COTA_DE_MALHA: {
@@ -716,6 +717,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 2,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 150,
   },
   LORIGA_SEGMENTADA: {
@@ -724,6 +726,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 3,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 250,
   },
   MEIA_ARMADURA: {
@@ -732,6 +735,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 4,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 600,
   },
   ARMADURA_COMPLETA: {
@@ -740,6 +744,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 5,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 3000,
   },
 });
@@ -847,18 +852,24 @@ export const TODAS_AS_ARMAS: Equipment[] = [
   ...EQUIPAMENTOS.armasExoticas,
 ];
 
+const KNOWN_HEAVY_NAMES = new Set(
+  EQUIPAMENTOS.armaduraPesada.map((a) => a.nome)
+);
+
 /**
  * Verifica se uma armadura é pesada.
- * Primeiro verifica a propriedade isHeavyArmor (para armaduras editadas pelo usuário),
- * depois faz fallback para verificação por nome (compatibilidade com dados antigos).
+ *
+ * Armaduras conhecidas do catálogo base são sempre pesadas (autoritativo por
+ * nome) — mesmo que uma ficha salva tenha `isHeavyArmor: false` porque o
+ * editor de item grava `false` por padrão. O nome vence, o que auto-cura
+ * fichas já corrompidas sem precisar de migração.
+ *
+ * Para itens não listados (suplementos, custom, homebrew), o valor vem da
+ * propriedade `isHeavyArmor` definida no dado ou editada pelo usuário.
  */
 export function isHeavyArmor(armor: DefenseEquipment): boolean {
-  // Se a propriedade estiver definida, usar ela
-  if (armor.isHeavyArmor !== undefined) {
-    return armor.isHeavyArmor;
-  }
-  // Fallback: verificar por nome (compatibilidade com dados antigos)
-  return EQUIPAMENTOS.armaduraPesada.some((heavy) => heavy.nome === armor.nome);
+  if (KNOWN_HEAVY_NAMES.has(armor.nome)) return true;
+  return armor.isHeavyArmor === true;
 }
 
 export const bardInstruments: string[] = [

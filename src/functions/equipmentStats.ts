@@ -104,7 +104,7 @@ export const STAT_PENALIDADE: EquipmentStat = {
   maxWidth: 96,
   get: (item) =>
     isDefenseEquipment(item) && item.armorPenalty
-      ? `${item.armorPenalty}`
+      ? `-${Math.abs(item.armorPenalty)}`
       : undefined,
 };
 

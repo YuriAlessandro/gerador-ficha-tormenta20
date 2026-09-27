@@ -18,7 +18,7 @@ export const AMEACAS_ARTON_ARMORS = {
   ARMADURA_DE_OSSOS: {
     nome: 'Armadura de ossos',
     defenseBonus: 3,
-    armorPenalty: -2,
+    armorPenalty: 2,
     spaces: 2,
     group: 'Armadura',
     preco: 120,
@@ -56,7 +56,7 @@ export const AMEACAS_ARTON_ARMORS = {
   ARMADURA_DE_QUITINA: {
     nome: 'Armadura de quitina',
     defenseBonus: 7,
-    armorPenalty: -3,
+    armorPenalty: 3,
     spaces: 5,
     group: 'Armadura',
     isHeavyArmor: true,
@@ -69,7 +69,7 @@ export const AMEACAS_ARTON_ARMORS = {
   ESCUDO_DE_COURO: {
     nome: 'Escudo de couro',
     defenseBonus: 1,
-    armorPenalty: -1,
+    armorPenalty: 1,
     spaces: 1,
     group: 'Escudo',
     preco: 3,

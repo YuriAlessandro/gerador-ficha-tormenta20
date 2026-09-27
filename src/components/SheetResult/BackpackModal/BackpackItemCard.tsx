@@ -115,7 +115,7 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
   } else if (isDefense(item)) {
     stats.push({ label: 'Def', value: `+${item.defenseBonus}` });
     if (item.armorPenalty) {
-      stats.push({ label: 'Pen', value: `${item.armorPenalty}` });
+      stats.push({ label: 'Pen', value: `-${Math.abs(item.armorPenalty)}` });
     }
   }
 

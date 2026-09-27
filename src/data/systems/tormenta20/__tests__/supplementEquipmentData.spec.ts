@@ -167,4 +167,26 @@ describe('dados de equipamento', () => {
       )
     ).toBe(true);
   });
+
+  it('armaduras pesadas do core têm isHeavyArmor: true', () => {
+    const heavyNames = [
+      'Brunea',
+      'Cota de Malha',
+      'Loriga Segmentada',
+      'Meia Armadura',
+      'Armadura Completa',
+    ];
+    const coreHeavy = catalog.armors.filter(
+      (a) => heavyNames.includes(a.nome) && !a.supplementId
+    );
+    expect(coreHeavy).toHaveLength(5);
+    expect(coreHeavy.every((a) => (a as any).isHeavyArmor === true)).toBe(true);
+  });
+
+  it('armorPenalty de todas as armaduras e escudos é >= 0 (magnitude positiva)', () => {
+    const negativePenalties = defenseItems
+      .filter((item) => item.armorPenalty < 0)
+      .map((item) => `${item.nome} (${item.armorPenalty})`);
+    expect(negativePenalties).toEqual([]);
+  });
 });

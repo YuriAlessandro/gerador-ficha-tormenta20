@@ -290,8 +290,8 @@ describe('proficiencies', () => {
       ).toBe(true);
     });
 
-    it('armadura pesada exige Armaduras Pesadas (fallback por nome)', () => {
-      // Brunea não tem a flag isHeavyArmor no catálogo — resolve pelo nome
+    it('armadura pesada exige Armaduras Pesadas', () => {
+      // Brunea tem isHeavyArmor: true no catálogo
       expect(
         isProficientWithDefense(Armaduras.BRUNEA, [PROFICIENCIAS.LEVES])
       ).toBe(false);
