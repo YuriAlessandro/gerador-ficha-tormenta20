@@ -271,14 +271,14 @@ export default defineConfig({
                 {
                   // Guarda contra envenenamento do cache local.
                   //
-                  // O `_redirects` do Pages termina em `/* /index.html 200`, e
-                  // o Pages não aceita 404 em `_redirects` — então um asset que
-                  // falte por um instante (janela de propagação de um deploy)
-                  // não dá 404: dá 200 com o HTML do SPA. Sem este guard o SWR
-                  // guardava esse HTML sob a URL do `.js` por 7 dias, e o
-                  // aparelho ficava com "Failed to fetch dynamically imported
-                  // module" em toda navegação — só naquele dispositivo, com o
-                  // servidor íntegro o tempo todo.
+                  // No modo SPA do Pages, um asset que falte por um instante
+                  // (janela de propagação de um deploy) não dava 404: dava 200
+                  // com o HTML do index. `public/assets/404.html` fecha isso na
+                  // origem desde 28/09/2026; este guard fica como segunda
+                  // camada. Sem ele o SWR guardava esse HTML sob a URL do `.js`
+                  // por 7 dias, e o aparelho ficava com "Failed to fetch
+                  // dynamically imported module" em toda navegação — só naquele
+                  // dispositivo, com o servidor íntegro o tempo todo.
                   //
                   // Precisa ser livre de closure: o workbox-build serializa a
                   // função para dentro do `sw.js` gerado.

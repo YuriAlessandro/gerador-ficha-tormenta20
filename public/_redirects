@@ -1,19 +1,20 @@
-# SPA fallback do Cloudflare Pages.
+# Redirects/rewrites do Cloudflare Pages.
 #
-# Equivale ao `try_files $uri $uri/ /index.html` do nginx que rodava no Cloud Run.
-# Precisa ser explícito: o fallback automático do Pages decide pela "cara" do
-# caminho, e várias rotas do app têm ponto no meio (`/perfil/user.name`), o que
-# as faz parecer arquivo e devolver 404. É o mesmo motivo do `spaFallbackPlugin()`
-# em vite.config.ts, que só vale para o dev server.
+# NÃO existe regra de SPA aqui, e não deve existir. O fallback do SPA é o modo
+# nativo do Pages: sem 404.html na raiz, todo caminho inexistente recebe o
+# index.html com 200 — inclusive rotas com ponto (`/perfil/user.name`).
 #
-# As regras são avaliadas em ordem, então tudo que for específico precisa vir
-# antes do catch-all.
+# Desde a migração (08/2026) este arquivo terminou em `/*  /index.html  200`, mas o parser do
+# Pages DESCARTA essa regra ("Infinite loop detected in this rule and has been
+# ignored" — ver `wrangler pages dev`), então ela nunca fez nada. Não a traga de
+# volta, nem na forma `/*  /index  200`: um catch-all que funcione de fato passa
+# na frente do lookup de asset e sequestraria também `/assets/*`.
+#
+# Arquivo ausente sob `/assets/*` responde 404 por causa de
+# `public/assets/404.html` — ver o comentário lá.
 
 # O Pages remove o `.html` das URLs e devolve 308 para a versão sem extensão.
 # No arquivo de verificação do Search Console isso muda a URL que o Google
 # pediu, então servimos por rewrite (200) e a URL fica idêntica à do nginx.
 # (O domínio também está verificado por TXT no DNS — isto é cinto e suspensório.)
 /googleeda1efffc269b53c.html  /googleeda1efffc269b53c  200
-
-# Status 200 = rewrite (a URL do navegador não muda), não redirect.
-/*  /index.html  200
