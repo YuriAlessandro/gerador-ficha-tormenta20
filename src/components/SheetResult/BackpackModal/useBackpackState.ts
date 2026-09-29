@@ -120,6 +120,11 @@ export interface BackpackActions {
   setQuantity: (id: string, quantity: number) => void;
   /** Replaces the item in place by id. */
   updateItem: (id: string, next: Equipment) => void;
+  /**
+   * Edita uma única unidade de uma pilha: `next` entra como item novo logo
+   * após a pilha, que perde uma unidade.
+   */
+  splitEditItem: (id: string, next: Equipment) => void;
   setMoney: (money: Partial<BackpackMoney>) => void;
   setMaxSpacesAttribute: (attribute: Atributo) => void;
   setCustomMaxSpaces: (value: number | undefined) => void;
@@ -192,6 +197,7 @@ type Action =
   | { type: 'REMOVE_ITEM'; id: string }
   | { type: 'SET_QUANTITY'; id: string; quantity: number }
   | { type: 'UPDATE_ITEM'; id: string; next: Equipment }
+  | { type: 'SPLIT_EDIT_ITEM'; id: string; next: Equipment; newId: string }
   | { type: 'SET_MONEY'; money: Partial<BackpackMoney> }
   | { type: 'SET_MAX_SPACES_ATTRIBUTE'; attribute: Atributo }
   | { type: 'SET_CUSTOM_MAX_SPACES'; value: number | undefined }
@@ -392,6 +398,77 @@ function bumpPaidUnits(
 }
 
 /**
+ * Tira uma unidade da pilha `id` e insere `next` (quantidade 1, id `newId`)
+ * logo depois dela, na lista e na ordem de exibição. Pilha de uma unidade só
+ * (ou id inexistente) cai no update comum.
+ *
+ * O crédito de compra (`paidUnits`) segue a unidade: se a pilha tinha mais
+ * unidades pagas do que sobram nela, a excedente passa para a cópia — assim
+ * nenhuma das duas reembolsa mais do que foi pago.
+ *
+ * Exportada para teste.
+ */
+export function splitItemInEquipments(
+  equipments: BagEquipments,
+  displayOrder: string[],
+  paidUnits: Record<string, number>,
+  id: string,
+  next: Equipment,
+  newId: string
+): {
+  equipments: BagEquipments;
+  displayOrder: string[];
+  paidUnits: Record<string, number>;
+} {
+  const out: BagEquipments = { ...equipments };
+  let remaining: number | undefined;
+  (Object.keys(out) as equipGroup[]).forEach((cat) => {
+    const list = out[cat];
+    if (remaining !== undefined || !Array.isArray(list)) return;
+    const idx = list.findIndex((it) => it.id === id);
+    if (idx < 0) return;
+    const stack = list[idx];
+    const quantity = stack.quantity ?? 1;
+    if (quantity < 2) return;
+    remaining = quantity - 1;
+    out[cat] = [
+      ...list.slice(0, idx),
+      { ...stack, quantity: quantity - 1 },
+      { ...next, id: newId, quantity: 1 },
+      ...list.slice(idx + 1),
+    ] as never;
+  });
+
+  if (remaining === undefined) {
+    return {
+      equipments: updateItemInEquipments(equipments, id, next),
+      displayOrder,
+      paidUnits,
+    };
+  }
+
+  const orderIdx = displayOrder.indexOf(id);
+  const nextOrder =
+    orderIdx >= 0
+      ? [
+          ...displayOrder.slice(0, orderIdx + 1),
+          newId,
+          ...displayOrder.slice(orderIdx + 1),
+        ]
+      : [...displayOrder, newId];
+
+  let nextPaid = paidUnits;
+  const paid = paidUnits[id] ?? 0;
+  if (paid > remaining) {
+    const moved = paid - remaining;
+    nextPaid = bumpPaidUnits(paidUnits, id, -moved);
+    nextPaid = bumpPaidUnits(nextPaid, newId, moved);
+  }
+
+  return { equipments: out, displayOrder: nextOrder, paidUnits: nextPaid };
+}
+
+/**
  * Exportados para teste — a contabilidade de dinheiro da mochila (débito na
  * compra, reembolso só do que foi pago) não tem como ser exercitada pela UI
  * neste projeto: React 17 + @testing-library/react v11 não têm `renderHook`.
@@ -585,6 +662,22 @@ export function reducer(state: StagedState, action: Action): StagedState {
           action.next
         ),
       };
+    case 'SPLIT_EDIT_ITEM': {
+      const next = splitItemInEquipments(
+        state.equipments,
+        state.displayOrder,
+        state.paidUnits,
+        action.id,
+        action.next,
+        action.newId
+      );
+      return {
+        ...state,
+        equipments: next.equipments,
+        displayOrder: next.displayOrder,
+        paidUnits: next.paidUnits,
+      };
+    }
     case 'SET_MONEY':
       return { ...state, money: { ...state.money, ...action.money } };
     case 'SET_MAX_SPACES_ATTRIBUTE':
@@ -918,6 +1011,12 @@ export function useBackpackState({
     []
   );
 
+  const splitEditItem = useCallback(
+    (id: string, next: Equipment) =>
+      dispatch({ type: 'SPLIT_EDIT_ITEM', id, next, newId: uuid() }),
+    []
+  );
+
   const setMoney = useCallback(
     (money: Partial<BackpackMoney>) => dispatch({ type: 'SET_MONEY', money }),
     []
@@ -988,6 +1087,7 @@ export function useBackpackState({
     removeItem,
     setQuantity,
     updateItem,
+    splitEditItem,
     setMoney,
     setMaxSpacesAttribute,
     setCustomMaxSpaces,

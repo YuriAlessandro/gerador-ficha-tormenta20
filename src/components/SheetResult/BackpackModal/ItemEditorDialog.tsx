@@ -16,6 +16,8 @@ import {
   InputLabel,
   ListItemText,
   MenuItem,
+  Radio,
+  RadioGroup,
   Select,
   Stack,
   Tab,
@@ -94,7 +96,11 @@ export interface ItemEditorDialogProps {
   open: boolean;
   onClose: () => void;
   item: Equipment | null;
-  onSave: (next: Equipment) => void;
+  /**
+   * `splitFromStack`: o item é uma pilha (`quantity > 1`) e o jogador escolheu
+   * editar só uma unidade — `next` vira uma entrada nova e a pilha perde uma.
+   */
+  onSave: (next: Equipment, options?: { splitFromStack?: boolean }) => void;
   /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
   ammoTypeOptions?: AmmoTypeOption[];
 }
@@ -223,12 +229,19 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const [rollsOpen, setRollsOpen] = useState(false);
   const [modError, setModError] = useState('');
   const [enchError, setEnchError] = useState('');
+  // Pilha de itens iguais: por padrão a edição separa uma unidade, em vez de
+  // alterar todas (duas couraças, uma de mitral).
+  const [editOnlyOne, setEditOnlyOne] = useState(true);
   const userSupplements: SupplementId[] = useContentSupplements();
 
   const isWeapon = item?.group === 'Arma';
   // Munição vive no grupo 'Arma' (convenção do catálogo), mas não tem dano,
   // crítico nem propósito — a aba de stats troca de conteúdo para ela.
   const isAmmoItem = !!item?.isAmmo;
+  // Munição guarda a contagem em `unitsRemaining` (quantity é cosmético).
+  const stackSize = item && !isAmmoItem ? item.quantity ?? 1 : 1;
+  const isStack = stackSize > 1;
+  const splitFromStack = isStack && editOnlyOne;
   const isDefense = item ? isDefenseGroup(item.group) : false;
   const hasStatsTab = isWeapon || isDefense;
   // Label da opção "Padrão" do Select de categoria: mostra a categoria de
@@ -261,6 +274,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       if (item?.hasManualSpaces) restored.add('spaces');
       setManualEditedFields(restored);
       setTab('geral');
+      setEditOnlyOne(true);
       setModError('');
       setEnchError('');
     }
@@ -489,7 +503,22 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       buildSavedItem(item, form, manualEditedFields, touchedFields)
     );
 
-    onSave(finalItem);
+    if (splitFromStack) {
+      // Salvar sem mudar nada não deve partir a pilha em duas entradas iguais.
+      const pristine = applyItemEnhancements(
+        buildSavedItem(item, buildInitial(item), manualEditedFields, new Set())
+      );
+      const unchanged =
+        JSON.stringify({ ...finalItem, quantity: 1 }) ===
+        JSON.stringify({ ...pristine, quantity: 1 });
+      if (unchanged) {
+        onClose();
+      } else {
+        onSave({ ...finalItem, quantity: 1 }, { splitFromStack: true });
+      }
+    } else {
+      onSave(finalItem);
+    }
   };
 
   return (
@@ -505,6 +534,30 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
+        {isStack && (
+          <Alert severity='info' sx={{ mb: 2 }}>
+            <Typography variant='body2'>
+              Este item está agrupado ({stackSize} unidades). Aplicar as
+              alterações a:
+            </Typography>
+            <RadioGroup
+              row
+              value={editOnlyOne ? 'one' : 'all'}
+              onChange={(e) => setEditOnlyOne(e.target.value === 'one')}
+            >
+              <FormControlLabel
+                value='one'
+                control={<Radio size='small' />}
+                label='Só uma unidade (separa das demais)'
+              />
+              <FormControlLabel
+                value='all'
+                control={<Radio size='small' />}
+                label={`Todas as ${stackSize}`}
+              />
+            </RadioGroup>
+          </Alert>
+        )}
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
@@ -552,7 +605,8 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 <TextField
                   label='Quantidade'
                   fullWidth
-                  value={form.quantityText}
+                  disabled={splitFromStack}
+                  value={splitFromStack ? '1' : form.quantityText}
                   onChange={(e) =>
                     setForm((f) => ({
                       ...f,
