@@ -61,6 +61,7 @@ export type ClassAbility = {
   text: string;
   nivel: number;
   sourceClassName?: string; // Para multiclasse: qual classe originou esta habilidade
+  dynamicText?: string; // Texto calculado na exibição (ex: escolas escolhidas em "Magias")
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
