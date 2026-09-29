@@ -1,4 +1,9 @@
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import { SpellSchool } from '@/interfaces/Spells';
+import {
+  describeChosenSpellSchools,
+  getChosenSpellSchoolsByClass,
+} from '../spells/spellSchoolEditing';
 import { applyPowersOrder } from './applyPowersOrder';
 import { getAutoridadeEclesiasticaDynamicText } from './frade-special';
 import { PowerSourceArrays, SheetPower } from './powerOrigins';
@@ -63,11 +68,14 @@ export function buildPowerSources(sheet: CharacterSheet): PowerSourceArrays {
  * @param powersOrder ordem manual do usuário (`sheet.powersOrder`)
  * @param deityName   nome da divindade, para o texto dinâmico de Autoridade
  *                    Eclesiástica
+ * @param spellSchoolsByClass escolas escolhidas por classe (Bardo, Druida...),
+ *                    anexadas ao texto da habilidade "Magias"
  */
 export function collectPowers(
   sources: PowerSourceArrays,
   powersOrder?: string[],
-  deityName?: string
+  deityName?: string,
+  spellSchoolsByClass?: Record<string, SpellSchool[]>
 ): CollectedPowers {
   // Texto dinâmico dos poderes que dependem da divindade.
   const processedClassPowers = sources.classPowers.map((power) => {
@@ -82,9 +90,21 @@ export function collectPowers(
   // coisa (ex.: a habilidade "Alquimista Iniciado" auto-concede o poder de
   // mesmo nome) — listar as duas duplicaria a linha.
   const classPowerNames = new Set(processedClassPowers.map((p) => p.name));
-  const filteredClassAbilities = sources.classAbilities.filter(
-    (ability) => !classPowerNames.has(ability.name)
-  );
+  const filteredClassAbilities = sources.classAbilities
+    .filter((ability) => !classPowerNames.has(ability.name))
+    .map((ability) => {
+      // "Escolha três escolas de magia" — mostra quais foram escolhidas.
+      // Calculado aqui (e não gravado no texto) porque as escolas são
+      // editáveis depois da criação.
+      if (ability.name !== 'Magias') return ability;
+      const schools =
+        spellSchoolsByClass?.[ability.sourceClassName ?? sources.className];
+      if (!schools?.length) return ability;
+      return {
+        ...ability,
+        dynamicText: `${ability.text} ${describeChosenSpellSchools(schools)}`,
+      };
+    });
 
   const normalized: PowerSourceArrays = {
     ...sources,
@@ -122,7 +142,8 @@ export function collectSheetPowers(sheet: CharacterSheet): CollectedPowers {
   return collectPowers(
     buildPowerSources(sheet),
     sheet.powersOrder,
-    sheet.devoto?.divindade.name
+    sheet.devoto?.divindade.name,
+    getChosenSpellSchoolsByClass(sheet)
   );
 }
 

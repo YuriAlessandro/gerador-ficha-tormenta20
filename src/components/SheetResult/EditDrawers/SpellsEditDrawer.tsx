@@ -22,13 +22,14 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
-import { Spell } from '@/interfaces/Spells';
+import { Spell, SpellSchool } from '@/interfaces/Spells';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
 import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
 import { dataRegistry } from '@/data/registry';
 import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
+import { getSchoolLabel } from '@/components/SpellPicker/schoolLabels';
 import {
   SpellFilterState,
   EMPTY_SPELL_FILTERS,
@@ -41,7 +42,13 @@ import {
   getDeityMaxSpellCircle,
   getDeitySpellCircleWarning,
 } from '@/functions/powers/general';
+import {
+  buildSpellSchoolUpdates,
+  getAllowedSpellSchools,
+  getEditableSchoolTargets,
+} from '@/functions/spells/spellSchoolEditing';
 import CustomSpellDialog from './CustomSpellDialog';
+import SpellSchoolsEditor from './SpellSchoolsEditor';
 
 interface SpellsEditDrawerProps {
   open: boolean;
@@ -98,6 +105,33 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       setSelectedSpells([...sheet.spells]);
     }
   }, [sheet.spells, open]);
+
+  // Escolas escolhidas na criação (Bardo, Druida...) — editáveis aqui porque
+  // muitos jogadores só decidem a última escola mais tarde.
+  const schoolTargets = useMemo(() => getEditableSchoolTargets(sheet), [sheet]);
+  const [schoolDraft, setSchoolDraft] = useState<Record<string, SpellSchool[]>>(
+    {}
+  );
+
+  useEffect(() => {
+    if (open) setSchoolDraft({});
+  }, [open]);
+
+  const allowedSchools = useMemo(
+    () => getAllowedSpellSchools(sheet, schoolDraft),
+    [sheet, schoolDraft]
+  );
+  const isOutsideSchools = (spell: Spell): boolean =>
+    !spell.isCustom &&
+    allowedSchools !== null &&
+    !allowedSchools.includes(spell.school);
+
+  // Ficha antiga sem escolas gravadas não deve travar a edição de magias:
+  // só bloqueia o save se o jogador mexeu nas escolas e deixou incompleto.
+  const hasIncompleteSchoolEdit = schoolTargets.some((target) => {
+    const draft = schoolDraft[target.className];
+    return draft !== undefined && draft.length !== target.config.count;
+  });
 
   // Get spells from active supplements
   const getSupplementSpells = useMemo(() => {
@@ -186,6 +220,9 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   const isMoreauSapienciaSpell = (spell: Spell): boolean =>
     !!sheet.moreauSapienciaSpell && spell.nome === sheet.moreauSapienciaSpell;
 
+  const isSpellSelected = (spell: Spell) =>
+    selectedSpells.some((s) => s.nome === spell.nome);
+
   const handleSpellToggle = (spell: Spell) => {
     if (isMoreauSapienciaSpell(spell)) return;
     setSelectedSpells((prev) => {
@@ -212,9 +249,6 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       return [...prev, spell];
     });
   };
-
-  const isSpellSelected = (spell: Spell) =>
-    selectedSpells.some((s) => s.nome === spell.nome);
 
   // Check if character can cast spells of this circle
   const canCastCircle = (circle: number): boolean => {
@@ -359,6 +393,14 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       updates.steps = [...sheet.steps, ...newSteps];
     }
 
+    Object.assign(
+      updates,
+      buildSpellSchoolUpdates(
+        { ...sheet, steps: updates.steps ?? sheet.steps },
+        schoolDraft
+      )
+    );
+
     onSave(updates);
     onClose();
   };
@@ -369,6 +411,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     }
     setBonusSpellDC(sheet.bonusSpellDC ?? 0);
     setFilters(EMPTY_SPELL_FILTERS);
+    setSchoolDraft({});
     onClose();
   };
 
@@ -387,72 +430,102 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     >
       <Box
         sx={{
-          p: 3,
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
         }}
       >
-        <Stack
-          direction='row'
-          sx={{
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-          }}
-        >
-          <Typography variant='h6'>Editar Magias</Typography>
-          <IconButton onClick={handleCancel} size='small'>
-            <CloseIcon />
-          </IconButton>
-        </Stack>
+        <Box sx={{ px: 3, pt: 3, flexShrink: 0 }}>
+          <Stack
+            direction='row'
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
+            <Typography variant='h6'>Editar Magias</Typography>
+            <IconButton onClick={handleCancel} size='small'>
+              <CloseIcon />
+            </IconButton>
+          </Stack>
+          <Divider />
+        </Box>
 
-        <Divider sx={{ mb: 3 }} />
+        {/* Scroll único: no mobile, rolar só a lista deixava metade da tela
+            presa no cabeçalho. Só título e rodapé ficam fixos. */}
+        <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0, px: 3, pb: 2 }}>
+          <Typography variant='body2' sx={{ mt: 2, mb: 2 }}>
+            Selecione as magias do personagem. Magias que atendem aos
+            pré-requisitos do seu nível são destacadas em verde
+            {allowedSchools !== null
+              ? '; as de escolas fora das suas, em vermelho.'
+              : '.'}
+          </Typography>
 
-        <Typography variant='body2' sx={{ mb: 2 }}>
-          Selecione as magias do personagem. Magias que atendem aos
-          pré-requisitos do seu nível são destacadas em verde.
-        </Typography>
+          {/* Configuração do personagem antes da seleção de magias */}
+          <NumberField
+            label='Bônus no Teste de Resistência'
+            value={bonusSpellDC}
+            onValueChange={(v) => setBonusSpellDC(v ?? 0)}
+            helperText='Bônus adicional na CD de magias de fontes não automáticas'
+            size='small'
+            sx={{ mb: 3, maxWidth: 300 }}
+            min={-50}
+            max={50}
+          />
 
-        {/* Bonus Spell DC */}
-        <NumberField
-          label='Bônus no Teste de Resistência'
-          value={bonusSpellDC}
-          onValueChange={(v) => setBonusSpellDC(v ?? 0)}
-          helperText='Bônus adicional na CD de magias de fontes não automáticas'
-          size='small'
-          sx={{ mb: 3, maxWidth: 300 }}
-          min={-50}
-          max={50}
-        />
+          {schoolTargets.length > 0 && (
+            <SpellSchoolsEditor
+              targets={schoolTargets}
+              draft={schoolDraft}
+              onChange={(className, schools) =>
+                setSchoolDraft((prev) => ({ ...prev, [className]: schools }))
+              }
+              spells={selectedSpells}
+            />
+          )}
 
-        {/* Filters */}
-        <SpellAdvancedFilters
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          options={filterOptions}
-          visibleFilters={{
-            circle: true,
-            school: true,
-            execution: true,
-            spellType: true,
-          }}
-        />
+          {/* Busca fica visível enquanto se rola a lista */}
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 2,
+              pt: 1,
+              // Padding impede a margem inferior dos filtros de colapsar para
+              // fora do fundo (a lista vazaria por baixo da busca)
+              pb: '1px',
+              mx: -3,
+              px: 3,
+              bgcolor: 'background.paper',
+            }}
+          >
+            <SpellAdvancedFilters
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              options={filterOptions}
+              visibleFilters={{
+                circle: true,
+                school: true,
+                execution: true,
+                spellType: true,
+              }}
+            />
+          </Box>
 
-        {/* Custom Spell Button */}
-        <Button
-          variant='outlined'
-          color='success'
-          startIcon={<AddIcon />}
-          onClick={() => setCustomSpellDialog({ open: true })}
-          size='small'
-          sx={{ mb: 2, alignSelf: 'flex-start' }}
-        >
-          Adicionar Magia Personalizada
-        </Button>
+          <Button
+            variant='outlined'
+            color='success'
+            startIcon={<AddIcon />}
+            onClick={() => setCustomSpellDialog({ open: true })}
+            size='small'
+            sx={{ mb: 2 }}
+          >
+            Adicionar Magia Personalizada
+          </Button>
 
-        <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
           {/* Custom Spells Section */}
           {customSpellsSelected.length > 0 && (
             <Box
@@ -551,7 +624,14 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                         key={spell.nome}
                         label={`${spell.nome} (${spell.spellCircle})`}
                         size='small'
-                        color={locked ? 'primary' : 'default'}
+                        color={(() => {
+                          if (locked) return 'primary';
+                          if (isOutsideSchools(spell)) return 'error';
+                          return 'default';
+                        })()}
+                        variant={
+                          isOutsideSchools(spell) ? 'outlined' : 'filled'
+                        }
                         onDelete={
                           locked ? undefined : () => handleSpellToggle(spell)
                         }
@@ -623,12 +703,21 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                   <AccordionDetails>
                     <Stack spacing={2}>
                       {filteredSpells
-                        .sort((a, b) => a.nome.localeCompare(b.nome))
+                        // Magias das suas escolas primeiro, as de fora depois.
+                        .sort(
+                          (a, b) =>
+                            Number(isOutsideSchools(a)) -
+                              Number(isOutsideSchools(b)) ||
+                            a.nome.localeCompare(b.nome)
+                        )
                         .map((spell) => {
                           // Find if this spell is from a supplement
                           const supplementSpell = getSupplementSpells.find(
                             (s) => s.spell.nome === spell.nome
                           );
+                          // Fora das escolas: só sinaliza, não bloqueia —
+                          // poderes e o mestre podem conceder essas magias.
+                          const outside = isOutsideSchools(spell);
 
                           return (
                             <Box
@@ -636,7 +725,12 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                               sx={{
                                 p: 2,
                                 border: 2,
+                                // Tracejado: o accent (primary) pode ser
+                                // vermelho, então só a cor não distingue
+                                // "selecionada" de "fora das escolas"
+                                borderStyle: outside ? 'dashed' : 'solid',
                                 borderColor: (() => {
+                                  if (outside) return 'error.main';
                                   if (isSpellSelected(spell))
                                     return 'primary.main';
                                   if (canCast) return 'success.main';
@@ -687,17 +781,32 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                                     >
                                       <Typography
                                         variant='body1'
-                                        color={
-                                          isSpellSelected(spell)
-                                            ? 'primary.main'
-                                            : 'text.primary'
-                                        }
+                                        color={(() => {
+                                          if (outside) return 'error.main';
+                                          if (isSpellSelected(spell))
+                                            return 'primary.main';
+                                          return 'text.primary';
+                                        })()}
                                         sx={{
                                           fontWeight: 'bold',
                                         }}
                                       >
                                         {spell.nome}
                                       </Typography>
+                                      {outside && (
+                                        <Tooltip
+                                          title={`Suas classes não aprendem magias de ${getSchoolLabel(
+                                            spell.school
+                                          )}. Você ainda pode selecioná-la (ex.: magia concedida por um poder).`}
+                                        >
+                                          <Chip
+                                            label='Fora das suas escolas'
+                                            size='small'
+                                            color='error'
+                                            variant='outlined'
+                                          />
+                                        </Tooltip>
+                                      )}
                                       {supplementSpell &&
                                         supplementSpell.supplementId !==
                                           SupplementId.TORMENTA20_CORE && (
@@ -754,14 +863,38 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           </Box>
         </Box>
 
-        <Stack direction='row' spacing={2} sx={{ mt: 3, flexShrink: 0 }}>
-          <Button fullWidth variant='contained' onClick={handleSave}>
-            Salvar
-          </Button>
-          <Button fullWidth variant='outlined' onClick={handleCancel}>
-            Cancelar
-          </Button>
-        </Stack>
+        <Box
+          sx={{
+            px: 3,
+            pt: 2,
+            pb: 3,
+            flexShrink: 0,
+            borderTop: 1,
+            borderColor: 'divider',
+          }}
+        >
+          {hasIncompleteSchoolEdit && (
+            <Typography
+              variant='caption'
+              sx={{ color: 'warning.main', display: 'block', mb: 1 }}
+            >
+              Complete a escolha das escolas de magia para salvar.
+            </Typography>
+          )}
+          <Stack direction='row' spacing={2}>
+            <Button
+              fullWidth
+              variant='contained'
+              onClick={handleSave}
+              disabled={hasIncompleteSchoolEdit}
+            >
+              Salvar
+            </Button>
+            <Button fullWidth variant='outlined' onClick={handleCancel}>
+              Cancelar
+            </Button>
+          </Stack>
+        </Box>
       </Box>
       <CustomSpellDialog
         open={customSpellDialog.open}
