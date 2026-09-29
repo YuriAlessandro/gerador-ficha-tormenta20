@@ -6,9 +6,12 @@ import Skill from '../../interfaces/Skills';
  * Numeric deltas (atkBonus, danoDelta, etc.) are applied additively to the item's
  * base stats. Skill bonuses are converted into SheetBonus entries on the equipment.
  *
- * Stacking: when two modifications target the same stat (e.g. Certeira +1 atk and
- * Pungente +2 atk), the deltas sum (+3 total). This is the adopted interpretation
- * — official rules are ambiguous on whether prerequisite mods stack.
+ * Stacking: deltas from different modifications sum, EXCEPT for the sequential
+ * upgrades in `SUPERSEDED_MODIFICATIONS` (Cruel → Atroz, Certeira → Pungente,
+ * Ajustada → Sob medida): the upgrade replaces its prerequisite instead of
+ * adding to it. Sob Medida's own text supports this reading — for anyone other
+ * than its owner the armor "comporta-se como um item ajustado" (−1), so the
+ * owner's −2 is the total, not −3.
  *
  * Mods with purely textual effects (Harmonizada, Mira telescópica, Injeção alquímica,
  * Material especial) are intentionally absent from this registry — they are persisted
@@ -84,6 +87,27 @@ export const modificationEffects: Record<string, ModificationEffect> = {
   // (não há target "Maneuver"), então apenas a Defesa é aplicada.
   Guarda: { defenseBonus: 1 },
 };
+
+/**
+ * Melhorias sequenciais: a chave é a melhoria superior e o valor, a que ela
+ * substitui. Com as duas no item, só o efeito da superior vale — o pré-requisito
+ * continua registrado (custo e pré-requisito seguem valendo), mas não soma.
+ */
+export const SUPERSEDED_MODIFICATIONS: Readonly<Record<string, string>> = {
+  Atroz: 'Cruel',
+  Pungente: 'Certeira',
+  'Sob medida': 'Ajustada',
+};
+
+/**
+ * A melhoria `mod` está anulada por uma superior presente em `appliedNames`?
+ */
+export function isModificationSuperseded(
+  mod: string,
+  appliedNames: readonly string[]
+): boolean {
+  return appliedNames.some((name) => SUPERSEDED_MODIFICATIONS[name] === mod);
+}
 
 /**
  * Mods recognized by the catalog but with no numeric effect — kept here purely

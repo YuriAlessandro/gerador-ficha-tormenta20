@@ -499,8 +499,12 @@ export function applyDelta<T extends Equipment>(
           defenseCaptured.baseDefenseBonus + delta.defenseBonusDelta;
       }
       if (defenseCaptured.baseArmorPenalty !== undefined) {
-        defenseResult.armorPenalty =
-          defenseCaptured.baseArmorPenalty + delta.armorPenaltyDelta;
+        // Reduções (mitral, Ajustada, Sob medida...) param em zero: penalidade
+        // de armadura nunca vira bônus.
+        defenseResult.armorPenalty = Math.max(
+          0,
+          defenseCaptured.baseArmorPenalty + delta.armorPenaltyDelta
+        );
       }
     }
   }

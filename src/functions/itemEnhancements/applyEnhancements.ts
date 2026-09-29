@@ -8,7 +8,10 @@ import {
   SourcedEffect,
   sumDeltas,
 } from './core';
-import { modificationEffects } from '../modifications/modificationEffects';
+import {
+  isModificationSuperseded,
+  modificationEffects,
+} from '../modifications/modificationEffects';
 import { enchantmentEffects } from './enchantmentEffects';
 import { resolveMaterialEffect } from './materialEffects';
 
@@ -55,6 +58,7 @@ export function applyItemEnhancements<T extends Equipment>(item: T): T {
   //   3. sem efeito (melhoria puramente descritiva).
   // O snapshot vir primeiro é o que faz um item continuar valendo os mesmos
   // números depois que o suplemento/homebrew de origem é desativado.
+  const appliedModNames = (captured.modifications ?? []).map((m) => m.mod);
   const modEntries: SourcedEffect[] = (captured.modifications ?? []).map(
     (m) => {
       if (m.mod === 'Material especial' && m.specialMaterial) {
@@ -81,8 +85,11 @@ export function applyItemEnhancements<T extends Equipment>(item: T): T {
           sourceName: `Material especial (${m.specialMaterial})`,
         };
       }
+      // Melhoria sequencial (Cruel sob Atroz, Ajustada sob Sob medida...): a
+      // superior substitui o efeito, não soma a ele.
+      const superseded = isModificationSuperseded(m.mod, appliedModNames);
       return {
-        effect: m.effect ?? modificationEffects[m.mod],
+        effect: superseded ? undefined : m.effect ?? modificationEffects[m.mod],
         source: 'modification',
         sourceName: m.mod,
       };

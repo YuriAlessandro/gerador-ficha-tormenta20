@@ -531,10 +531,10 @@ describe('applyItemEnhancements — encantamentos', () => {
 
     test('Mitral em armadura reduz a penalidade de armadura em 2', () => {
       const lightArmor: DefenseEquipment = {
-        nome: 'Armadura de Couro',
+        nome: 'Gibão de peles',
         group: 'Armadura',
-        defenseBonus: 2,
-        armorPenalty: -1,
+        defenseBonus: 4,
+        armorPenalty: 3,
         spaces: 2,
       };
       const item: DefenseEquipment = {
@@ -544,7 +544,44 @@ describe('applyItemEnhancements — encantamentos', () => {
         ],
       };
       const result = applyItemEnhancements(item) as DefenseEquipment;
-      expect(result.armorPenalty).toBe(-3);
+      expect(result.armorPenalty).toBe(1);
+    });
+
+    test('redução de penalidade para em zero (nunca vira bônus)', () => {
+      // Armadura de couro (penalidade 0) com Ajustada, Sob medida e mitral:
+      // antes ficava −4 (e −5 com as duas melhorias somando).
+      const item: DefenseEquipment = {
+        nome: 'Armadura de couro',
+        group: 'Armadura',
+        defenseBonus: 2,
+        armorPenalty: 0,
+        spaces: 2,
+        modifications: [
+          { mod: 'Ajustada' },
+          { mod: 'Sob medida' },
+          { mod: 'Material especial', specialMaterial: 'Mitral' },
+        ],
+      };
+      const result = applyItemEnhancements(item) as DefenseEquipment;
+      expect(result.armorPenalty).toBe(0);
+    });
+
+    test('Couraça com Ajustada, Sob medida e mitral fica sem penalidade', () => {
+      // Caso do relato: 4 − 2 (Sob medida, substitui Ajustada) − 2 (mitral) = 0.
+      const item: DefenseEquipment = {
+        nome: 'Couraça',
+        group: 'Armadura',
+        defenseBonus: 5,
+        armorPenalty: 4,
+        spaces: 2,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Mitral' },
+          { mod: 'Ajustada' },
+          { mod: 'Sob medida' },
+        ],
+      };
+      const result = applyItemEnhancements(item) as DefenseEquipment;
+      expect(result.armorPenalty).toBe(0);
     });
 
     test('Adamante em arma aumenta o dado de dano em um passo', () => {
@@ -688,10 +725,10 @@ describe('applyItemEnhancements — encantamentos', () => {
 
     test('Casco de Monstro em armadura reduz a penalidade em 1', () => {
       const armor: DefenseEquipment = {
-        nome: 'Armadura de Couro',
+        nome: 'Couro batido',
         group: 'Armadura',
-        defenseBonus: 2,
-        armorPenalty: -1,
+        defenseBonus: 3,
+        armorPenalty: 1,
         spaces: 2,
       };
       const item: DefenseEquipment = {
@@ -701,7 +738,7 @@ describe('applyItemEnhancements — encantamentos', () => {
         ],
       };
       const result = applyItemEnhancements(item) as DefenseEquipment;
-      expect(result.armorPenalty).toBe(-2);
+      expect(result.armorPenalty).toBe(0);
     });
 
     test('Lanajuste em armadura leve dá redução de corte 5', () => {
