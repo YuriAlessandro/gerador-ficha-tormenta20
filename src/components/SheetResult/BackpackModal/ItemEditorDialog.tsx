@@ -80,6 +80,7 @@ import { isDefenseGroup } from './equipmentCatalog';
 import {
   buildSavedItem,
   ItemEditorFormState,
+  rehydrateModification,
   StatField,
 } from './itemEditorSave';
 import {
@@ -123,11 +124,9 @@ function findEnchantmentByName(name: string): ItemE | undefined {
 }
 
 function buildInitial(item: Equipment | null): ItemEditorFormState {
-  const initialMods: ItemMod[] = (item?.modifications ?? []).map((m) => ({
-    min: 0,
-    max: 0,
-    mod: m.mod,
-  }));
+  const initialMods: ItemMod[] = item
+    ? (item.modifications ?? []).map((m) => rehydrateModification(m, item))
+    : [];
   const initialEnchantments: ItemE[] = (item?.enchantments ?? [])
     .map((e) => findEnchantmentByName(e.enchantment))
     .filter((e): e is ItemE => e !== undefined);
