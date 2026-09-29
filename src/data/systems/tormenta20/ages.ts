@@ -170,6 +170,10 @@ export const DEFAULT_INITIAL_AGE_GROUP: InitialAgeGroupId = 'treinado';
  * apenas os marcos A PARTIR DE ADULTO ("embora essas raças sejam mais longevas,
  * amadurecem no mesmo ritmo de humanos"), enquanto as raças de vida curta
  * multiplicam TODOS os marcos.
+ *
+ * Exceção ao box: ele lista sátiros entre os ×5, mas a própria entrada da raça
+ * (HdA, p. 15) diz "Longevidade. Normal." — vale a entrada da raça, e o sátiro
+ * envelhece como humano.
  */
 const SLOW_AGING_X2 = ['Anão', 'Meio-Elfo', 'Qareen'];
 const SLOW_AGING_X5 = [
@@ -180,7 +184,6 @@ const SLOW_AGING_X5 = [
   'Golem',
   'Golem Desperto',
   'Osteon',
-  'Sátiro',
   'Sílfide',
 ];
 const FAST_AGING = ['Goblin', 'Trog'];
