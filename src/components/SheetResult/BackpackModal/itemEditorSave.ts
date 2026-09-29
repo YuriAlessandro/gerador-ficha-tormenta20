@@ -31,6 +31,27 @@ import { formatDamageTypes } from './damageTypeSelect';
 import { getManualStatFields } from '../../../functions/manualStats';
 
 /**
+ * Reidrata a melhoria salva (que guarda só o nome) com o dado completo do
+ * catálogo: sem `prerequisite` o editor deixava remover Ajustada mantendo Sob
+ * medida, e sem `double` o custo saía errado. O snapshot gravado no item vence
+ * o catálogo, como no pipeline de efeitos.
+ */
+export function rehydrateModification(
+  applied: AppliedModification,
+  item: Equipment
+): ItemMod {
+  const context = item.group === 'Arma' ? 'weapon' : 'defense';
+  const catalog = dataRegistry.getImprovementByName(applied.mod, context);
+  const mod: ItemMod = catalog
+    ? { ...catalog }
+    : { min: 0, max: 0, mod: applied.mod };
+  if (applied.effect) mod.effect = applied.effect;
+  if (applied.description) mod.description = applied.description;
+  if (applied.supplementId) mod.supplementId = applied.supplementId;
+  return mod;
+}
+
+/**
  * Campos que o jogador pode sobrescrever à mão no editor, congelando o
  * recálculo automático a partir dos snapshots `base*`.
  *
