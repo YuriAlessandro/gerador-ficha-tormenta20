@@ -26,7 +26,7 @@ import {
   OriginPower,
   RequirementType,
 } from '@/interfaces/Poderes';
-import { allSpellSchools, Spell } from '@/interfaces/Spells';
+import { Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
@@ -54,7 +54,7 @@ import {
   getPlateauByLevel,
   getDeityMaxSpellCircleFor,
 } from '@/functions/powers/general';
-import { applyPower, isClassOrVariantOf } from '@/functions/general';
+import { applyPower } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
   getClassLevel,
@@ -73,6 +73,7 @@ import {
   partitionCrossTraditionByCircle,
   buildSpellPool,
   countTowardsCrossMinimum,
+  getSchoolChoiceConfig,
 } from '@/functions/spellPathUtils';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
@@ -1006,19 +1007,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           }
           return true;
         }
-        if (selectedClassDesc?.spellPath?.schoolChoice) {
-          // Classes homebrew: quantidade declarada no spellPath (nunca maior
-          // que o pool de escolas disponíveis)
-          const { count, available } = selectedClassDesc.spellPath.schoolChoice;
-          const poolSize = available?.length ?? allSpellSchools.length;
-          return setup.spellSchools?.length === Math.min(count, poolSize);
-        }
-        if (
-          selectedClassDesc &&
-          (isClassOrVariantOf(selectedClassDesc, 'Bardo') ||
-            isClassOrVariantOf(selectedClassDesc, 'Druida'))
-        ) {
-          return setup.spellSchools?.length === 3;
+        const schoolChoice = selectedClassDesc
+          ? getSchoolChoiceConfig(selectedClassDesc)
+          : null;
+        if (schoolChoice) {
+          return setup.spellSchools?.length === schoolChoice.count;
         }
         return true;
       }
