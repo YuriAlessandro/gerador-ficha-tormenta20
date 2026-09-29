@@ -183,6 +183,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     removeItem,
     setQuantity,
     updateItem,
+    splitEditItem,
     setMoney,
     setMaxSpacesAttribute,
     setCustomMaxSpaces,
@@ -472,8 +473,14 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     reorder(nextOrder);
   };
 
-  const handleEditorSave = (next: Equipment) => {
-    if (next.id) updateItem(next.id, next);
+  const handleEditorSave = (
+    next: Equipment,
+    options?: { splitFromStack?: boolean }
+  ) => {
+    if (next.id) {
+      if (options?.splitFromStack) splitEditItem(next.id, next);
+      else updateItem(next.id, next);
+    }
     setEditorOpen(false);
     setEditingItem(null);
   };
