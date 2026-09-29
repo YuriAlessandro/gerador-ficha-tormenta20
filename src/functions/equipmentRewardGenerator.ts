@@ -196,8 +196,9 @@ function applyWeaponModifications(
           break;
 
         case 'Atroz':
-          // +2 nas rolagens de dano (requer Cruel)
-          modifiedWeapon.dano = increaseDamage(modifiedWeapon.dano || '1d4', 2);
+          // +2 nas rolagens de dano, substituindo o +1 de Cruel (pré-requisito,
+          // já aplicado) — soma só a diferença.
+          modifiedWeapon.dano = increaseDamage(modifiedWeapon.dano || '1d4', 1);
           priceMultiplier += 1.0;
           break;
 

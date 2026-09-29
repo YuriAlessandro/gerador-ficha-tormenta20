@@ -109,22 +109,22 @@ describe('applyModificationsToEquipment', () => {
     expect(result.atkBonus).toBe(0);
   });
 
-  test('stacks Cruel + Atroz (+3 damage total)', () => {
+  test('Atroz substitui Cruel (+2 de dano, não +3)', () => {
     const item: Equipment = {
       ...baseSword,
       modifications: [{ mod: 'Cruel' }, { mod: 'Atroz' }],
     };
     const result = applyModificationsToEquipment(item);
-    expect(result.dano).toBe('1d8+3');
+    expect(result.dano).toBe('1d8+2');
   });
 
-  test('stacks Certeira + Pungente (+3 attack total)', () => {
+  test('Pungente substitui Certeira (+2 no ataque, não +3)', () => {
     const item: Equipment = {
       ...baseSword,
       modifications: [{ mod: 'Certeira' }, { mod: 'Pungente' }],
     };
     const result = applyModificationsToEquipment(item);
-    expect(result.atkBonus).toBe(3);
+    expect(result.atkBonus).toBe(2);
   });
 
   test('Maciça raises critical multiplier', () => {
@@ -215,7 +215,7 @@ describe('applyModificationsToEquipment', () => {
     expect(result.baseArmorPenalty).toBe(1);
   });
 
-  test('Sob medida + Ajustada cumulatively reduce armor penalty', () => {
+  test('Sob medida substitui Ajustada (−2 na penalidade, não −3)', () => {
     const baseArmor: DefenseEquipment = {
       nome: 'Cota de malha',
       group: 'Armadura',
@@ -228,7 +228,7 @@ describe('applyModificationsToEquipment', () => {
       modifications: [{ mod: 'Ajustada' }, { mod: 'Sob medida' }],
     };
     const result = applyModificationsToEquipment(item);
-    expect(result.armorPenalty).toBe(1);
+    expect(result.armorPenalty).toBe(2);
   });
 
   test('preserves existing sheetBonuses as base and merges with mod-derived ones', () => {
