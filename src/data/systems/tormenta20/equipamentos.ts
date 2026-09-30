@@ -864,6 +864,10 @@ const KNOWN_HEAVY_NAMES = new Set(
  * editor de item grava `false` por padrão. O nome vence, o que auto-cura
  * fichas já corrompidas sem precisar de migração.
  *
+ * Efeito colateral intencional: o checkbox "Armadura pesada" do editor não
+ * tem efeito nesses nomes conhecidos. Marcar como leve salva `false`, mas o
+ * helper continua devolvendo `true`.
+ *
  * Para itens não listados (suplementos, custom, homebrew), o valor vem da
  * propriedade `isHeavyArmor` definida no dado ou editada pelo usuário.
  */

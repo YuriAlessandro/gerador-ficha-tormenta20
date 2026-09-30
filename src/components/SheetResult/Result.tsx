@@ -2710,7 +2710,11 @@ const Result: React.FC<ResultProps> = (props) => {
                   }}
                 >
                   <strong>Penalidade de Armadura: </strong>
-                  -{Math.abs(getActiveArmorPenalty(currentSheet) + extraArmorPenalty)}
+                  {(() => {
+                    const p =
+                      getActiveArmorPenalty(currentSheet) + extraArmorPenalty;
+                    return p > 0 ? `-${p}` : '0';
+                  })()}
                 </Typography>
               </Box>
               <Typography

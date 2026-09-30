@@ -502,7 +502,9 @@ export const fillSheetPdf: (
     defenseBonusField.setText(
       `${defense.defenseBonus >= 0 ? '+' : ''}${defense.defenseBonus}`
     );
-    penaltyField.setText(`-${Math.abs(defense.armorPenalty)}`);
+    penaltyField.setText(
+      defense.armorPenalty > 0 ? `-${defense.armorPenalty}` : '0'
+    );
   });
 
   // Add remain equipments — respects the user-defined manual order so the
@@ -593,8 +595,11 @@ export const fillSheetPdf: (
       sheet.mainHandItemId,
       sheet.offHandItemId
     ) + (sheet.extraArmorPenalty ?? 0);
-  armorPenaltyField.setText(`-${Math.abs(activeArmorPenalty)}`);
-  if (resolvedWornArmor && isHeavyArmor(resolvedWornArmor)) heavyArmorField.check();
+  armorPenaltyField.setText(
+    activeArmorPenalty > 0 ? `-${activeArmorPenalty}` : '0'
+  );
+  if (resolvedWornArmor && isHeavyArmor(resolvedWornArmor))
+    heavyArmorField.check();
   else heavyArmorField.uncheck();
 
   // Modificadores de tamanho (Pequeno/Grande…)
