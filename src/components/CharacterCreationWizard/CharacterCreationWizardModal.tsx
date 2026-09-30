@@ -2153,8 +2153,9 @@ const CharacterCreationWizardModal: React.FC<
         // If regional origin, always allow (no selection needed)
         if (!origin) return false;
         if (origin.isRegional) return true;
-        // Otherwise, require 2 selections
-        return selections.originBenefits?.length === 2;
+        // Otherwise, require as many selections as the age bracket grants
+        // (Adolescente escolhe só 1 — "Origem em Construção")
+        return selections.originBenefits?.length === ageOriginBenefits;
 
       case 'Propósito de Criação':
         return !!selections.propositoCriacaoPower;
