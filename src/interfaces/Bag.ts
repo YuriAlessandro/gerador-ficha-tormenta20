@@ -319,10 +319,10 @@ export default class Bag {
     let armorPenalty = 0;
     if (wornArmorId !== undefined) {
       const worn = armors.find((a) => a.id === wornArmorId);
-      if (worn) armorPenalty = Math.abs(worn.armorPenalty);
+      if (worn) armorPenalty = Math.max(0, worn.armorPenalty);
     } else if (armors.length === 1) {
       // Legacy compat: single armor without explicit selection still applies.
-      armorPenalty = Math.abs(armors[0].armorPenalty);
+      armorPenalty = Math.max(0, armors[0].armorPenalty);
     }
 
     let shieldPenalty = 0;
@@ -330,7 +330,7 @@ export default class Bag {
       const inHand =
         shield.id !== undefined &&
         (shield.id === mainHandItemId || shield.id === offHandItemId);
-      if (inHand) shieldPenalty += Math.abs(shield.armorPenalty);
+      if (inHand) shieldPenalty += Math.max(0, shield.armorPenalty);
     });
 
     return armorPenalty + shieldPenalty;

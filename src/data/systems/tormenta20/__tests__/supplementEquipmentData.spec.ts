@@ -1,7 +1,11 @@
 import { dataRegistry } from '../../../registry';
 import { SupplementId } from '../../../../types/supplement.types';
-import Equipment from '../../../../interfaces/Equipment';
+import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { BonusConditionClause } from '../../../../interfaces/CharacterSheet';
+import Bag from '../../../../interfaces/Bag';
+import Skill from '../../../../interfaces/Skills';
+import { recalculateSheet } from '../../../../functions/recalculateSheet';
+import { createMockCharacterSheet } from '../../../../__mocks__/characterSheet';
 
 /**
  * Invariantes do DADO de equipamento — não de item específico.
@@ -33,7 +37,10 @@ const allItems: Equipment[] = [
   ...catalog.vehicles,
 ];
 
-const defenseItems: Equipment[] = [...catalog.armors, ...catalog.shields];
+const defenseItems: DefenseEquipment[] = [
+  ...catalog.armors,
+  ...catalog.shields,
+];
 
 const clausesOf = (item: Equipment): BonusConditionClause[] =>
   (item.sheetBonuses ?? []).flatMap((b) => b.condition?.clauses ?? []);
@@ -180,7 +187,7 @@ describe('dados de equipamento', () => {
       (a) => heavyNames.includes(a.nome) && !a.supplementId
     );
     expect(coreHeavy).toHaveLength(5);
-    expect(coreHeavy.every((a) => (a as any).isHeavyArmor === true)).toBe(true);
+    expect(coreHeavy.every((a) => a.isHeavyArmor === true)).toBe(true);
   });
 
   it('armorPenalty de todas as armaduras e escudos é >= 0 (magnitude positiva)', () => {
@@ -188,5 +195,23 @@ describe('dados de equipamento', () => {
       .filter((item) => item.armorPenalty < 0)
       .map((item) => `${item.nome} (${item.armorPenalty})`);
     expect(negativePenalties).toEqual([]);
+  });
+
+  it('vestir Armadura de chumbo aplica -5 em Acrobacia via recalculateSheet', () => {
+    const lead = defenseItems.find((i) => i.nome === 'Armadura de chumbo');
+    expect(lead).toBeDefined();
+    expect(lead!.armorPenalty).toBe(5);
+
+    const sheet = createMockCharacterSheet();
+    const worn = { ...lead!, id: 'lead-test-id' };
+    sheet.bag = new Bag({ Armadura: [worn] });
+    sheet.wornArmorId = 'lead-test-id';
+
+    const recalculated = recalculateSheet(sheet);
+    const acrobacia = recalculated.completeSkills?.find(
+      (s) => s.name === Skill.ACROBACIA
+    );
+    expect(acrobacia).toBeDefined();
+    expect(acrobacia!.others).toBe(-5);
   });
 });

@@ -6203,7 +6203,7 @@ export default function generateRandomSheet(
         halfLevel: Math.floor(charSheet.nivel / 2),
         training: Object.values(charSheet.skills).includes(skill) ? 2 : 0,
         modAttr: attr.name,
-        others: armorPenalty ? -Math.abs(armorPenalty) : 0,
+        others: armorPenalty > 0 ? armorPenalty * -1 : 0,
       };
     })
     .filter(
