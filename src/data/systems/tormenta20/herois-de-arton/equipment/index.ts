@@ -1,4 +1,5 @@
 import { SupplementEquipment } from '../../core';
+import { HEROIS_ARTON_APARATOS } from '../aparatos';
 import { HEROIS_ARTON_ARMORS } from './armors';
 import {
   HEROIS_ARTON_ADVENTURE_EQUIPMENT,
@@ -26,6 +27,7 @@ const HEROIS_ARTON_EQUIPMENT: SupplementEquipment = {
     ...HEROIS_ARTON_ADVENTURE_EQUIPMENT,
     ...HEROIS_ARTON_TOOLS,
     ...HEROIS_ARTON_MUSICAL_INSTRUMENTS,
+    ...HEROIS_ARTON_APARATOS,
   ],
   animals: HEROIS_ARTON_ANIMALS,
   vehicles: HEROIS_ARTON_VEHICLES,

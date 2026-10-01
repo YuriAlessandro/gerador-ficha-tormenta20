@@ -6,6 +6,8 @@ import Equipment from '@/interfaces/Equipment';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { getSpellDisplayName } from './spells/spellDisplayName';
+import { getEngenhocaAparatos } from './spells/engenhoca';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import {
@@ -269,8 +271,23 @@ const generateSpellText = (spell: Spell): string => {
     spell.execucao,
     spell.alcance,
     spell.duracao,
-    `${getSpellPmCost(spell)}PM`,
+    // Engenhoca não paga o custo base da magia na ativação.
+    spell.engenhoca ? 'ativação por Ofício' : `${getSpellPmCost(spell)}PM`,
   ].join(', ');
+  if (spell.engenhoca) {
+    const aparatos = getEngenhocaAparatos(spell.engenhoca).map((a) => a.nome);
+    const details = [
+      `simula ${spell.nome}`,
+      spell.engenhoca.forma,
+      aparatos.length ? `aparatos: ${aparatos.join(', ')}` : undefined,
+      spell.engenhoca.enguicada ? 'enguiçada' : undefined,
+    ]
+      .filter(Boolean)
+      .join('; ');
+    return `- [Engenhoca] ${getSpellDisplayName(
+      spell
+    )} (${details}) (${meta}): ${spell.description}`;
+  }
   return `- ${spell.nome} (${meta}): ${spell.description}`;
 };
 

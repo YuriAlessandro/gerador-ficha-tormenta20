@@ -67,7 +67,7 @@ import {
 } from '@/functions/multiclass';
 import { getCompanionLevels } from '@/functions/companionLevels';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { Spell } from '@/interfaces/Spells';
+import { EngenhocaData, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -971,6 +971,27 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate, ownsSpell]
   );
 
+  // Engenhoca (Inventor): marca cosmética da magia, grava sem recálculo.
+  // `undefined` devolve a magia ao normal.
+  const handleEngenhocaUpdate = useCallback(
+    (spell: Spell, engenhoca: EngenhocaData | undefined) => {
+      if (!ownsSpell(spell)) return;
+      const updatedSpells = currentSheet.spells?.map((s) => {
+        if (s.nome !== spell.nome) return s;
+        if (engenhoca) return { ...s, engenhoca };
+        const rest = { ...s };
+        delete rest.engenhoca;
+        return rest;
+      });
+      const updatedSheet = { ...currentSheet, spells: updatedSpells };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate, ownsSpell]
+  );
+
   // Campos por-instância do poder (rolagens, efeitos, nome/texto customizados)
   // são cosméticos: gravam direto na ficha, sem `recalculateSheet`.
   const applyPowerPatch = useCallback(
@@ -1227,15 +1248,26 @@ const Result: React.FC<ResultProps> = (props) => {
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
       const tempConsumed = Math.min(currentTemp, pmSpent);
       const remaining = pmSpent - tempConsumed;
+      // Engenhoca que falhou no teste de ativação volta marcada como
+      // enguiçada — gravada no MESMO save do PM (ver `SpellsDisplay`).
+      const engenhocaBroke = !!spell.engenhoca?.enguicada && ownsSpell(spell);
       const updatedSheet = {
         ...currentSheet,
         tempPM: currentTemp - tempConsumed,
         currentPM: Math.max(0, currentPMValue - remaining),
+        ...(engenhocaBroke && {
+          spells: currentSheet.spells.map((s) =>
+            s.nome === spell.nome ? { ...s, engenhoca: spell.engenhoca } : s
+          ),
+        }),
       };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
       }
+
+      // Engenhoca enguiçada não gerou efeito — nada a oferecer.
+      if (engenhocaBroke) return;
 
       // Se a magia lançada tem efeito ativo, oferece a ativação (mesmo fluxo
       // dos poderes — o PM já foi pago no lançamento, então o efeito não
@@ -1266,7 +1298,7 @@ const Result: React.FC<ResultProps> = (props) => {
         }
       }
     },
-    [currentSheet, onSheetUpdate, canUseActiveEffects]
+    [currentSheet, onSheetUpdate, canUseActiveEffects, ownsSpell]
   );
 
   // Fechar o diálogo de efeito sem confirmar não pode engolir o lançamento:
@@ -2885,6 +2917,19 @@ const Result: React.FC<ResultProps> = (props) => {
               derivedNotice={derivedSpellsNotice}
               castCheck={usurparCastCheck}
               sheet={currentSheet}
+              onEngenhocaChange={
+                onSheetUpdate && !isDerivedSpells
+                  ? handleEngenhocaUpdate
+                  : undefined
+              }
+              showAparatos={
+                userSupplements.includes(
+                  SupplementId.TORMENTA20_HEROIS_ARTON
+                ) ||
+                !!currentSheet.supplements?.includes(
+                  SupplementId.TORMENTA20_HEROIS_ARTON
+                )
+              }
               onActivateEffect={
                 onSheetUpdate && canUseActiveEffects
                   ? handleActiveEffectActivate

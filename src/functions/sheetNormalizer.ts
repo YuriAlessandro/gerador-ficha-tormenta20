@@ -31,6 +31,7 @@ import { getBaseAgeStage, getBaseAgeStageForYears } from './ages';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import { RETIRED_ACTIVE_POWER_KEYS } from '../premium/data/activePowers';
 import { CustomPower } from '../interfaces/CustomPower';
+import { sanitizeEngenhoca } from './spells/sanitizeEngenhoca';
 import { sanitizeCustomPowerBonuses } from './powers/customPowerBonuses';
 import {
   ARQUEIRO_SHEET_BONUSES,
@@ -385,11 +386,20 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
   sheet.spells = sheet.spells
     .filter((s) => s && typeof s.nome === 'string')
     .map((s) => {
-      if (s.aprimoramentos === undefined) return s;
-      const aprimoramentos = Array.isArray(s.aprimoramentos)
-        ? s.aprimoramentos.filter((a) => a && typeof a.text === 'string')
+      let spell = s;
+      if (spell.engenhoca !== undefined) {
+        const engenhoca = sanitizeEngenhoca(spell.engenhoca);
+        if (engenhoca) {
+          spell = { ...spell, engenhoca };
+        } else {
+          spell = _.omit(spell, 'engenhoca');
+        }
+      }
+      if (spell.aprimoramentos === undefined) return spell;
+      const aprimoramentos = Array.isArray(spell.aprimoramentos)
+        ? spell.aprimoramentos.filter((a) => a && typeof a.text === 'string')
         : [];
-      return { ...s, aprimoramentos };
+      return { ...spell, aprimoramentos };
     });
 
   sheet.skills = sheet.skills.filter((s) => typeof s === 'string');

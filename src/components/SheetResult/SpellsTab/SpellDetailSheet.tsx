@@ -9,7 +9,8 @@ import {
   Typography,
 } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
-import SpellDetailBody from './SpellDetailBody';
+import { getSpellDisplayName } from '@/functions/spells/spellDisplayName';
+import SpellDetailBody, { EngenhocaRowInfo } from './SpellDetailBody';
 import SpellMetaLine from './SpellMetaLine';
 import SpellSchoolGlyph from './SpellSchoolGlyph';
 
@@ -19,6 +20,7 @@ export interface SpellDetailSheetProps {
   compact: boolean;
   spell: Spell | null;
   onCast?: () => void;
+  engenhocaInfo?: EngenhocaRowInfo;
 }
 
 /**
@@ -38,6 +40,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
   compact,
   spell,
   onCast,
+  engenhocaInfo,
 }) => (
   <Drawer
     anchor={compact ? 'bottom' : 'right'}
@@ -72,7 +75,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
             >
               <SpellSchoolGlyph school={spell.school} size={20} />
               <Typography variant='h6' sx={{ overflowWrap: 'anywhere' }}>
-                {spell.nome}
+                {getSpellDisplayName(spell)}
               </Typography>
             </Stack>
             <SpellMetaLine spell={spell} />
@@ -84,7 +87,11 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
 
         <Divider sx={{ mb: 2 }} />
 
-        <SpellDetailBody spell={spell} onCast={onCast} />
+        <SpellDetailBody
+          spell={spell}
+          onCast={onCast}
+          engenhocaInfo={engenhocaInfo}
+        />
       </Box>
     )}
   </Drawer>
