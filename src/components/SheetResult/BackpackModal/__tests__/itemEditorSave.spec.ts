@@ -2,9 +2,15 @@ import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { applyItemEnhancements } from '../../../../functions/itemEnhancements/applyEnhancements';
 import {
   buildSavedItem,
+  findCatalogItem,
   ItemEditorFormState,
   StatField,
+  withCatalogStats,
 } from '../itemEditorSave';
+import {
+  Armaduras,
+  Armas,
+} from '../../../../data/systems/tormenta20/equipamentos';
 
 /**
  * Regressão do bug "Reforçada +2/+2" (e das demais mods numéricas na primeira
@@ -475,5 +481,78 @@ describe('buildSavedItem — tipo de ataque sobrevive ao pipeline de aprimoramen
     expect(result.ammoUnitsPerSpace).toBe(5);
     // Munição não vira arma de disparo.
     expect(result.alcance).toBeUndefined();
+  });
+});
+
+describe('Resetar volta as estatísticas ao catálogo', () => {
+  const reforcada = {
+    selectedModifications: [{ min: 0, max: 0, mod: 'Reforçada' }],
+  };
+
+  /** O que o "Resetar" + "Salvar" do `ItemEditorDialog` gravam. */
+  const reset = (item: Equipment, overrides = {}) =>
+    save(
+      withCatalogStats(item, findCatalogItem(item)),
+      mkForm(overrides)
+    ) as DefenseEquipment;
+
+  it('desfaz edição manual de armadura que nunca teve melhoria', () => {
+    // Sem melhoria, o pipeline nunca capturou `base*`: o reset reescrevia o
+    // próprio valor editado e "nada acontecia".
+    const edited = save(
+      { ...Armaduras.BRUNEA },
+      mkForm({ defenseBonusText: '9' }),
+      ['defenseBonus']
+    ) as DefenseEquipment;
+    expect(edited.defenseBonus).toBe(9);
+
+    const result = reset(edited);
+    expect(result.defenseBonus).toBe(Armaduras.BRUNEA.defenseBonus);
+    expect(result.hasManualEdits).toBeUndefined();
+  });
+
+  it('não usa como base uma edição manual feita antes da melhoria', () => {
+    let item = save(
+      { ...Armaduras.BRUNEA },
+      mkForm({ defenseBonusText: '9' }),
+      ['defenseBonus']
+    );
+    item = save(item, mkForm({ ...reforcada, defenseBonusText: '9' }), [
+      'defenseBonus',
+    ]);
+    // O pipeline capturou o 9 manual como `baseDefenseBonus`.
+    expect((item as DefenseEquipment).baseDefenseBonus).toBe(9);
+
+    const result = reset(item, reforcada);
+    expect(result.defenseBonus).toBe(Armaduras.BRUNEA.defenseBonus + 1);
+    expect(result.baseDefenseBonus).toBe(Armaduras.BRUNEA.defenseBonus);
+    expect(result.armorPenalty).toBe(Armaduras.BRUNEA.armorPenalty + 1);
+  });
+
+  it('desfaz edição manual de arma', () => {
+    const edited = save(
+      { ...Armas.ESPADA_LONGA },
+      mkForm({ danoText: '3d6', atkBonusText: '4', criticoText: '17' }),
+      ['dano', 'atkBonus', 'critico']
+    );
+    const result = reset(edited);
+    expect(result).toMatchObject({
+      dano: Armas.ESPADA_LONGA.dano,
+      atkBonus: 0,
+      critico: Armas.ESPADA_LONGA.critico,
+    });
+  });
+
+  it('item custom continua resetando para os snapshots `base*`', () => {
+    const custom: DefenseEquipment = {
+      nome: 'Brunea',
+      group: 'Armadura',
+      isCustom: true,
+      defenseBonus: 7,
+      armorPenalty: 1,
+      spaces: 5,
+    };
+    expect(findCatalogItem(custom)).toBeUndefined();
+    expect(withCatalogStats(custom, undefined)).toBe(custom);
   });
 });

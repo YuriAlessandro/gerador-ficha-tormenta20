@@ -24,6 +24,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../../interfaces/Character';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import Bag from '../../interfaces/Bag';
+import { applyItemEnhancements } from '../../functions/itemEnhancements/applyEnhancements';
 import Skill from '../../interfaces/Skills';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
@@ -366,6 +367,21 @@ describe('Detecção de armadura pesada (vestida, não carregada)', () => {
     // não tem `classLevels`; sem o guard, todo personagem de nível 5+ ganhava
     // a Resistência a Dano do Bárbaro.
     expect(rdGeralCom({ nivel: 6, armor: LIGHT_ARMOR })).toBe(0);
+  });
+
+  it('armadura melhorada salva com `isHeavyArmor: false` continua pesada', () => {
+    // Relato de usuário (out/2026): o editor de item gravava `isHeavyArmor:
+    // false` ao aplicar uma melhoria, e o Encouraçado deixava de contar. O
+    // nome do catálogo é autoritativo, então a ficha já corrompida se cura.
+    const corrupted = applyItemEnhancements({
+      ..._.cloneDeep(HEAVY_ARMOR),
+      isHeavyArmor: false,
+      modifications: [{ mod: 'Reforçada' }],
+    });
+    const base = defesaCom({ armor: corrupted });
+    expect(
+      defesaCom({ armor: corrupted, generalPowers: [ENCOURACADO()] })
+    ).toBe(base + 2);
   });
 });
 
