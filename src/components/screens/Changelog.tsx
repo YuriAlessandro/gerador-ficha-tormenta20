@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            26/09/2026 (v4.34).
+            01/10/2026 (v4.35).
           </p>
 
           <p>
@@ -74,6 +74,101 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.35</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Engenhocas</strong> do Inventor
+                  na aba de Magias. Quem tem o poder{' '}
+                  <strong>Engenhoqueiro</strong> ganha uma chave inglesa em cada
+                  magia para transformá-la em engenhoca: dá para batizar a
+                  invenção, escolher se é empunhada ou vestida e marcar quando
+                  ela enguiça. Ativar rola{' '}
+                  <strong>Ofício (engenhoqueiro)</strong> contra a CD certa (15
+                  + custo da magia + aprimoramentos), sem cobrar o PM base, com
+                  penalidade de armadura e +5 a cada ativação no mesmo dia; se
+                  falhar, a engenhoca enguiça. A ficha também mostra a CD para
+                  resistir (por Inteligência), o limite de engenhocas e avisa
+                  quando o círculo passa do seu nível de inventor.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Aparatos</strong> de Heróis de
+                  Arton. Os 15 aparatos estão no mercado e podem ser acoplados
+                  às engenhocas (até dois em cada), somando +2 ou +5 na CD de
+                  ativação. Estabilizador, Comutador, Giroscópio e Sistema de
+                  Refrigeração já entram na conta sozinhos, assim como os
+                  poderes Aparato Personalizado, Manutenção Eficiente e Forçar a
+                  Calibragem.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O gerador de{' '}
+                  <strong>recompensas</strong> ganhou o modo{' '}
+                  <strong>Todos os suplementos</strong>, além do livro básico, e
+                  as rolagens de tesouro agora têm uma animação de caça-níquel,
+                  com o resultado destacado na tabela.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Bardo, Druida e outras classes que
+                  escolhem <strong>escolas de magia</strong> podem trocar as
+                  escolas depois da criação, em &quot;Editar magias&quot;.
+                  Magias fora das escolas da ficha ficam sinalizadas, e a
+                  habilidade Magias mostra as escolas escolhidas.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Na mochila, editar um item que está em{' '}
+                  <strong>pilha</strong> agora pergunta se a mudança vale para
+                  uma unidade só ou para todas. Assim dá para ter duas Couraças
+                  e só uma de mitral.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Várias telas ficaram melhores no{' '}
+                  <strong>celular</strong>: a criação de ficha abre em tela
+                  cheia com progresso compacto, as tabelas da enciclopédia cabem
+                  na tela, a Caverna do Saber ganhou sumário, e o gerador de
+                  ameaças, a tabela de recompensas e a ficha gerada foram
+                  ajustados para leitura em telas pequenas. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Armaduras pesadas</strong>{' '}
+                  do livro básico passam a ser reconhecidas como pesadas em toda
+                  a ficha, e a <strong>penalidade de armadura</strong> das
+                  armaduras de suplementos, que era ignorada, agora é aplicada.
+                  (por{' '}
+                  <a href='https://github.com/ianptkcs' target='blank'>
+                    ianptkcs
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Correção:</strong> A penalidade de armadura reduzida
+                  por <strong>melhorias</strong> para em zero, melhorias em
+                  sequência não somam mais em dobro, e reabrir um item no editor
+                  traz o pré-requisito e o custo das melhorias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Um <strong>Ofício</strong>{' '}
+                  destreinado na ficha não volta mais a aparecer treinado ao
+                  reabri-la.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na criação de ficha, personagem{' '}
+                  <strong>adolescente</strong> consegue avançar com um único
+                  benefício de origem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>sátiro</strong> envelhece
+                  como humano nas faixas de idade.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Catalisadores e esotéricos de
+                  Heróis de Arton tinham a descrição começando com
+                  &quot;Aparato.&quot; por engano.
+                </li>
+              </ul>
+
               <h3>4.34</h3>
 
               <Alert
