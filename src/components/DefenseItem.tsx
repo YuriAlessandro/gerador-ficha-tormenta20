@@ -2,7 +2,9 @@ import React from 'react';
 import { Box, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { DefenseEquipment } from '../interfaces/Equipment';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import { DefenseEquipment, ManualStatField } from '../interfaces/Equipment';
+import { getManualStatFields } from '../functions/manualStats';
 import WieldingControl from './SheetResult/BackpackModal/WieldingControl';
 import { WieldingSlot } from './SheetResult/BackpackModal/wielding';
 
@@ -32,6 +34,39 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
     isNonProficient = false,
   } = props;
   const { nome, defenseBonus, armorPenalty } = equipment;
+
+  // Mesma marca da linha de arma (`Weapon.tsx`): o valor digitado à mão fica
+  // sublinhado em pontilhado — nele, melhorias e encantos não se aplicam, e
+  // sem a marca a conta simplesmente não fecha.
+  const manualStatFields = getManualStatFields(equipment);
+  const manualMarkTitle =
+    'Modificado manualmente — melhorias e bônus automáticos não se aplicam a este valor';
+  const manualFieldNames = (
+    [
+      ['defenseBonus', 'defesa'],
+      ['armorPenalty', 'penalidade de armadura'],
+    ] as [ManualStatField, string][]
+  )
+    .filter(([field]) => manualStatFields.has(field))
+    .map(([, label]) => label);
+
+  const withManualMark = (field: ManualStatField, content: React.ReactNode) => {
+    if (!manualStatFields.has(field)) return content;
+    return (
+      <Tooltip title={manualMarkTitle} disableTouchListener>
+        <Box
+          component='span'
+          sx={{
+            textDecoration: 'underline dotted',
+            textUnderlineOffset: '3px',
+            cursor: 'help',
+          }}
+        >
+          {content}
+        </Box>
+      </Tooltip>
+    );
+  };
 
   return (
     <Box
@@ -69,7 +104,27 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
               alignItems: 'center',
             }}
           >
-            {nome} +{defenseBonus} (-{armorPenalty} PA)
+            {nome}&nbsp;{withManualMark('defenseBonus', `+${defenseBonus}`)}
+            &nbsp;({withManualMark('armorPenalty', `-${armorPenalty} PA`)})
+            {manualFieldNames.length > 0 && (
+              <Tooltip
+                title={`${manualMarkTitle} (${manualFieldNames.join(', ')}).`}
+                arrow
+                enterTouchDelay={0}
+                leaveTouchDelay={4000}
+              >
+                {/* O sublinhado explica no hover; o ícone existe pelo mobile. */}
+                <EditNoteIcon
+                  aria-label='Estatísticas modificadas manualmente'
+                  sx={{
+                    fontSize: 15,
+                    ml: 0.5,
+                    color: 'text.secondary',
+                    cursor: 'help',
+                  }}
+                />
+              </Tooltip>
+            )}
             {equipment.descricao && (
               <Tooltip title={equipment.descricao} arrow>
                 <InfoOutlinedIcon
