@@ -2,6 +2,7 @@ import { DefenseEquipment } from '../../interfaces/Equipment';
 import { DamageType } from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { EnhancementEffect, resolveScaledEffect } from './core';
+import { isHeavyArmor } from '../../data/systems/tormenta20/equipamentos';
 
 /**
  * Numeric effects applied by special materials when used as a weapon or as an
@@ -38,7 +39,7 @@ export const materialEffects: Record<string, MaterialEffect> = {
     weaponEffect: { weaponStats: { danoStepUp: 1 } },
     defenseEffect: (item) => ({
       damageReduction: [
-        { damageType: 'Geral', value: item.isHeavyArmor ? 5 : 2 },
+        { damageType: 'Geral', value: isHeavyArmor(item) ? 5 : 2 },
       ],
     }),
   },
@@ -46,7 +47,7 @@ export const materialEffects: Record<string, MaterialEffect> = {
     weaponEffect: { extraDamage: [{ dice: '2', damageType: 'Frio' }] },
     defenseEffect: (item) => ({
       damageReduction: [
-        { damageType: 'Fogo', value: item.isHeavyArmor ? 10 : 5 },
+        { damageType: 'Fogo', value: isHeavyArmor(item) ? 10 : 5 },
       ],
     }),
   },
@@ -75,15 +76,15 @@ export const materialEffects: Record<string, MaterialEffect> = {
   lanajuste: {
     defenseEffect: (item) => ({
       damageReduction: [
-        { damageType: 'Corte', value: item.isHeavyArmor ? 10 : 5 },
+        { damageType: 'Corte', value: isHeavyArmor(item) ? 10 : 5 },
       ],
     }),
   },
   'quitina razza': {
     defenseEffect: (item) => ({
-      defenseStats: { defenseBonusDelta: item.isHeavyArmor ? 2 : 1 },
+      defenseStats: { defenseBonusDelta: isHeavyArmor(item) ? 2 : 1 },
       skillBonuses: [
-        { skill: Skill.PERCEPCAO, value: item.isHeavyArmor ? 5 : 2 },
+        { skill: Skill.PERCEPCAO, value: isHeavyArmor(item) ? 5 : 2 },
       ],
     }),
   },

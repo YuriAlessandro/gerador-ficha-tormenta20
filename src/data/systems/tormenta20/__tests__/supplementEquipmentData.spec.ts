@@ -4,6 +4,7 @@ import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { BonusConditionClause } from '../../../../interfaces/CharacterSheet';
 import Bag from '../../../../interfaces/Bag';
 import Skill from '../../../../interfaces/Skills';
+import { isHeavyArmor } from '../equipamentos';
 import { recalculateSheet } from '../../../../functions/recalculateSheet';
 import { createMockCharacterSheet } from '../../../../__mocks__/characterSheet';
 
@@ -188,6 +189,17 @@ describe('dados de equipamento', () => {
     );
     expect(coreHeavy).toHaveLength(5);
     expect(coreHeavy.every((a) => a.isHeavyArmor === true)).toBe(true);
+  });
+
+  it('toda armadura pesada do catálogo é pesada pelo nome, mesmo salva com isHeavyArmor: false', () => {
+    // Fichas salvas antes do fix podem ter `isHeavyArmor: false` gravado pelo
+    // editor de item — inclusive em armaduras de suplemento.
+    const heavy = catalog.armors.filter((a) => a.isHeavyArmor === true);
+    expect(heavy.some((a) => a.supplementId)).toBe(true);
+    const notRecognized = heavy
+      .filter((a) => !isHeavyArmor({ ...a, isHeavyArmor: false }))
+      .map((a) => a.nome);
+    expect(notRecognized).toEqual([]);
   });
 
   it('armorPenalty de todas as armaduras e escudos é >= 0 (magnitude positiva)', () => {
