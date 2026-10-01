@@ -82,9 +82,11 @@ import ItemEnchantmentsEditor, {
 import { isDefenseGroup } from './equipmentCatalog';
 import {
   buildSavedItem,
+  findCatalogItem,
   ItemEditorFormState,
   rehydrateModification,
   StatField,
+  withCatalogStats,
 } from './itemEditorSave';
 import {
   ATTACK_ATTRIBUTE_DEFAULT_LABEL,
@@ -233,6 +235,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   // Pilha de itens iguais: por padrão a edição separa uma unidade, em vez de
   // alterar todas (duas couraças, uma de mitral).
   const [editOnlyOne, setEditOnlyOne] = useState(true);
+  // "Resetar" clicado nesta abertura: as estatísticas voltam ao catálogo, e
+  // não aos snapshots `base*` (que podem ter capturado uma edição manual).
+  const [statsReset, setStatsReset] = useState(false);
   const userSupplements: SupplementId[] = useContentSupplements();
 
   const isWeapon = item?.group === 'Arma';
@@ -276,17 +281,29 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       setManualEditedFields(restored);
       setTab('geral');
       setEditOnlyOne(true);
+      setStatsReset(false);
       setModError('');
       setEnchError('');
     }
   }, [open, item]);
+
+  const catalogItem = useMemo(
+    () => (item ? findCatalogItem(item) : undefined),
+    [item]
+  );
+  // O item sobre o qual a prévia e o save recomputam: depois do "Resetar",
+  // com estatísticas e `base*` do catálogo.
+  const statsItem = useMemo(
+    () => (item && statsReset ? withCatalogStats(item, catalogItem) : item),
+    [item, statsReset, catalogItem]
+  );
 
   // Live preview: when mods / material / enchantments change, recompute the
   // stat fields the user has NOT manually edited. Fields the user touched stay
   // exactly as-is. This is the same pipeline that runs on save, so what the
   // user sees in the Stats tab matches what gets persisted.
   useEffect(() => {
-    if (!open || !item) return;
+    if (!open || !statsItem) return;
     if (!isWeapon && !isDefense) return;
 
     // Mesmo congelamento do save (`buildSavedItem`): sem ele, a prévia não
@@ -318,7 +335,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     );
 
     const virtual: Equipment = {
-      ...item,
+      ...statsItem,
       modifications: previewMods.length > 0 ? previewMods : undefined,
       enchantments: previewEnch.length > 0 ? previewEnch : undefined,
       hasManualEdits: false,
@@ -371,7 +388,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     // typing in those inputs.
   }, [
     open,
-    item,
+    statsItem,
     isWeapon,
     isDefense,
     form.selectedModifications,
@@ -405,21 +422,23 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
   const baseSnapshot = useMemo(() => {
     if (!item) return null;
+    // Catálogo primeiro: os `base*` podem ter capturado uma edição manual.
+    const base = withCatalogStats(item, catalogItem);
     return {
-      spaces: item.baseSpaces ?? item.spaces,
-      dano: item.baseDano ?? item.dano ?? '',
-      atkBonus: item.baseAtkBonus ?? item.atkBonus ?? 0,
-      critico: item.baseCritico ?? item.critico ?? 'x2',
+      spaces: base.baseSpaces ?? base.spaces,
+      dano: base.baseDano ?? base.dano ?? '',
+      atkBonus: base.baseAtkBonus ?? base.atkBonus ?? 0,
+      critico: base.baseCritico ?? base.critico ?? 'x2',
       defenseBonus: isDefense
-        ? (item as DefenseEquipment).baseDefenseBonus ??
-          (item as DefenseEquipment).defenseBonus
+        ? (base as DefenseEquipment).baseDefenseBonus ??
+          (base as DefenseEquipment).defenseBonus
         : 0,
       armorPenalty: isDefense
-        ? (item as DefenseEquipment).baseArmorPenalty ??
-          (item as DefenseEquipment).armorPenalty
+        ? (base as DefenseEquipment).baseArmorPenalty ??
+          (base as DefenseEquipment).armorPenalty
         : 0,
     };
-  }, [item, isDefense]);
+  }, [item, catalogItem, isDefense]);
 
   if (!item) return null;
 
@@ -447,8 +466,15 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     if (!baseSnapshot) return;
     setManualEditedFields(new Set());
     setTouchedFields(new Set());
+    setStatsReset(true);
     setForm((f) => ({
       ...f,
+      // Armadura de catálogo volta a ser pesada se o livro diz que é — ficha
+      // salva antes do fix de `isHeavyArmor` pode ter gravado `false`.
+      isHeavyArmor:
+        catalogItem && item.group === 'Armadura'
+          ? isHeavyArmor(catalogItem as DefenseEquipment)
+          : f.isHeavyArmor,
       spacesText:
         baseSnapshot.spaces !== undefined ? String(baseSnapshot.spaces) : '',
       danoText: baseSnapshot.dano,
@@ -501,7 +527,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     // arremesso). Pipeline is idempotent — when all enhancements are cleared it
     // restores stats from `base*` snapshots automatically.
     const finalItem = applyItemEnhancements(
-      buildSavedItem(item, form, manualEditedFields, touchedFields)
+      buildSavedItem(statsItem ?? item, form, manualEditedFields, touchedFields)
     );
 
     if (splitFromStack) {
