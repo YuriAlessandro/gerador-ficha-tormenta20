@@ -492,17 +492,29 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
    * jogador aplica Maciça, não vê o crítico mudar e conclui que a melhoria não
    * funciona — foi exatamente como o problema chegou.
    */
-  const statsLockedWarning =
+  const weaponStatsLocked =
     isWeapon &&
     (manualEditedFields.has('dano') ||
       manualEditedFields.has('atkBonus') ||
-      manualEditedFields.has('critico')) ? (
-      <Alert severity='warning' icon={false}>
-        Dano, bônus de ataque e crítico estão travados por edição manual —
-        melhorias, encantos e bônus de poderes não vão alterá-los. Use
-        “Resetar”, na aba Estatísticas, para voltar ao cálculo automático.
-      </Alert>
-    ) : null;
+      manualEditedFields.has('critico'));
+  // Mesmo problema na armadura: Reforçada e Defensor somem em silêncio, e a
+  // conta do jogador não fecha (relato de out/2026).
+  const defenseStatsLocked =
+    isDefense &&
+    (manualEditedFields.has('defenseBonus') ||
+      manualEditedFields.has('armorPenalty'));
+  let lockedStatsLabel: string | null = null;
+  if (weaponStatsLocked) lockedStatsLabel = 'Dano, bônus de ataque e crítico';
+  else if (defenseStatsLocked) {
+    lockedStatsLabel = 'Bônus de Defesa e penalidade de armadura';
+  }
+  const statsLockedWarning = lockedStatsLabel ? (
+    <Alert severity='warning' icon={false}>
+      {lockedStatsLabel} estão travados por edição manual — melhorias, encantos
+      e bônus de poderes não vão alterá-los. Use “Resetar”, na aba Estatísticas,
+      para voltar ao cálculo automático.
+    </Alert>
+  ) : null;
 
   const spacesAreManual = manualEditedFields.has('spaces');
   let spacesHelperText: React.ReactNode;

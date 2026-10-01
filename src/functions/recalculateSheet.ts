@@ -96,6 +96,11 @@ import {
   getDeusMenorPmBonus,
 } from './powers/general';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
+import {
+  dedupeHolySymbolBonuses,
+  getHolySymbolBonuses,
+  hasActiveInscritoItem,
+} from './holySymbol';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
@@ -1509,6 +1514,15 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
       updatedSheet.sheetBonuses.push(skillBonus);
     }
   });
+
+  // Inscrito (Deuses de Arton): o item conta como símbolo sagrado. O bônus não
+  // acumula com outro símbolo — nem com um segundo item "Símbolo sagrado".
+  if (hasActiveInscritoItem(updatedSheet, allEquipment)) {
+    updatedSheet.sheetBonuses.push(...getHolySymbolBonuses());
+  }
+  updatedSheet.sheetBonuses = dedupeHolySymbolBonuses(
+    updatedSheet.sheetBonuses
+  );
 
   return updatedSheet;
 }
