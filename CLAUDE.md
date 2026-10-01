@@ -178,7 +178,7 @@ npx prettier --check <filename>  # Check if files are formatted
 ### Infraestrutura
 
 - **Frontend** (este repo): **Cloudflare Pages**, projeto `fichas-frontend`. Merge em `production` → GitHub Actions (`.github/workflows/deploy-frontend.yml`) faz `npm run build` e publica via `wrangler pages deploy` (Direct Upload). A integração Git nativa do Pages **não serve**: não clona submódulo privado, e o build depende de `src/premium`.
-- **Backend** (`/backend` submodule): Fly.io `fichas-backend` em região `gru` (São Paulo) — `shared-cpu-2x` 1GB, 1 machine, `auto_stop_machines=off`. Deploy automatizado via GitHub Actions (`.github/workflows/fly-deploy.yml`) no repo do backend, a cada merge em `production`. Runbook completo em `backend/docs/runbook.md`.
+- **Backend** (`/backend` submodule): Fly.io `fichas-backend` em região `gru` (São Paulo) — `shared-cpu-8x` 2GB (não reduzir: com 2x o pico de fim de semana esgota o crédito de CPU e o Fly estrangula a VM — ver runbook), 1 machine, `auto_stop_machines=off`. Deploy automatizado via GitHub Actions (`.github/workflows/fly-deploy.yml`) no repo do backend, a cada merge em `production`. Runbook completo em `backend/docs/runbook.md`.
 - **Banco**: MongoDB Atlas (externo, fora do GCP).
 - **Auth**: Firebase Auth (no projeto GCP `fichas-de-nimb`). **É a única coisa que ainda vive no GCP** — todo o resto foi decomissionado em 08/08/2026. Não apagar o projeto.
 - **Pagamentos**: Stripe — webhooks vão direto pra `https://fichas-backend.fly.dev/api/webhooks/stripe`.
