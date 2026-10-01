@@ -2,6 +2,8 @@ import _ from 'lodash';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 import { getEffectiveAttributeModifier } from '../../../functions/effectiveAttributes';
 import { Atributo } from './atributos';
+import { HEROIS_ARTON_ARMORS } from './herois-de-arton/equipment/armors';
+import { AMEACAS_ARTON_ARMORS } from './ameacas-de-arton/equipment/armors';
 import Equipment, {
   DefenseEquipment,
   CombatItems,
@@ -852,24 +854,34 @@ export const TODAS_AS_ARMAS: Equipment[] = [
   ...EQUIPAMENTOS.armasExoticas,
 ];
 
-const KNOWN_HEAVY_NAMES = new Set(
-  EQUIPAMENTOS.armaduraPesada.map((a) => a.nome)
-);
+/**
+ * Armaduras pesadas de catálogo — núcleo e suplementos. Os dados de suplemento
+ * já trazem `isHeavyArmor: true`; o núcleo é a lista `armaduraPesada`.
+ */
+const KNOWN_HEAVY_NAMES = new Set([
+  ...EQUIPAMENTOS.armaduraPesada.map((armor) => armor.nome),
+  ...[
+    ...Object.values(HEROIS_ARTON_ARMORS),
+    ...Object.values(AMEACAS_ARTON_ARMORS),
+  ]
+    .filter((armor) => (armor as DefenseEquipment).isHeavyArmor === true)
+    .map((armor) => armor.nome),
+]);
 
 /**
  * Verifica se uma armadura é pesada.
  *
- * Armaduras conhecidas do catálogo base são sempre pesadas (autoritativo por
- * nome) — mesmo que uma ficha salva tenha `isHeavyArmor: false` porque o
- * editor de item grava `false` por padrão. O nome vence, o que auto-cura
- * fichas já corrompidas sem precisar de migração.
+ * Armaduras pesadas de catálogo (núcleo e suplementos) são sempre pesadas
+ * (autoritativo por nome) — mesmo que uma ficha salva tenha
+ * `isHeavyArmor: false` porque o editor de item gravava `false` por padrão. O
+ * nome vence, o que auto-cura fichas já corrompidas sem precisar de migração.
  *
  * Efeito colateral intencional: o checkbox "Armadura pesada" do editor não
  * tem efeito nesses nomes conhecidos. Marcar como leve salva `false`, mas o
  * helper continua devolvendo `true`.
  *
- * Para itens não listados (suplementos, custom, homebrew), o valor vem da
- * propriedade `isHeavyArmor` definida no dado ou editada pelo usuário.
+ * Para itens não listados (custom, homebrew), o valor vem da propriedade
+ * `isHeavyArmor` definida no dado ou editada pelo usuário.
  */
 export function isHeavyArmor(armor: DefenseEquipment): boolean {
   if (KNOWN_HEAVY_NAMES.has(armor.nome)) return true;

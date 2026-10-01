@@ -9,6 +9,7 @@ import {
   SheetBonus,
 } from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
+import { isHeavyArmor } from '../../data/systems/tormenta20/equipamentos';
 
 /**
  * Effect of a single item enhancement (modification or enchantment).
@@ -108,7 +109,7 @@ export function resolveScaledEffect(
   item?: DefenseEquipment
 ): EnhancementEffect {
   if (!isBranchedEffect(effect)) return effect;
-  return item?.isHeavyArmor ? effect.heavy : effect.light;
+  return item && isHeavyArmor(item) ? effect.heavy : effect.light;
 }
 
 /**
