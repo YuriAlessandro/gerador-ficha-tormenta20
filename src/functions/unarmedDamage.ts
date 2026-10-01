@@ -15,6 +15,7 @@ import {
   addFlatDamageBonus,
 } from './weaponDamageStep';
 import { evaluateSimpleModifier } from './weaponBonusScope';
+import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
 
 /**
  * Dano desarmado — ponto ÚNICO de verdade.
@@ -355,8 +356,15 @@ export function updateUnarmedRolls(sheet: CharacterSheet): string | null {
  * / Step 17), pra esse passo aplicar o degrau de tamanho por cima do dado-base
  * fresco em vez de sobre um valor desatualizado.
  *
- * Respeita `hasManualEdits` e modificações/encantamentos — mesma regra que
- * `resetWeaponToBase` usa pra não sobrescrever edição do jogador.
+ * Respeita `hasManualEdits` — mesma regra que `resetWeaponToBase` usa pra não
+ * sobrescrever edição do jogador.
+ *
+ * Arma com melhoria/encanto tem o dano recomputado a partir dos snapshots
+ * `base*` pelo pipeline de aprimoramentos, então é o SNAPSHOT que recebe o
+ * dado vivo, e a arma é recomputada por cima dele. Antes ela era pulada: o
+ * `baseDano` ficava congelado no dado do momento em que a melhoria entrou (a
+ * Manopla de um Lutador 1º com Certeira continuava 1d6 no 20º) — ou no "-" do
+ * catálogo, quando a Manopla já entrava na ficha melhorada.
  */
 export function updateDesarmadoTaggedWeaponsDano(sheet: CharacterSheet): void {
   const { dice } = getUnarmedBaseDamage(sheet);
@@ -364,13 +372,25 @@ export function updateDesarmadoTaggedWeaponsDano(sheet: CharacterSheet): void {
   sheet.bag.equipments.Arma = sheet.bag.equipments.Arma.map((weapon) => {
     if (!weapon.weaponTags?.includes('desarmado')) return weapon;
     if (weapon.hasManualEdits) return weapon;
-    if (weapon.modifications?.length || weapon.enchantments?.length) {
-      return weapon;
-    }
 
     // "-" é só o placeholder de catálogo (Manopla) pra "usa o dano
     // desarmado" — um crítico real definido pelo jogador nunca é tocado.
-    const critico = weapon.critico === '-' ? 'x2' : weapon.critico;
+    const toCritico = (value: string | undefined) =>
+      value === '-' ? 'x2' : value;
+
+    if (weapon.modifications?.length || weapon.enchantments?.length) {
+      const baseCritico = toCritico(weapon.baseCritico ?? weapon.critico);
+      if (weapon.baseDano === dice && weapon.baseCritico === baseCritico) {
+        return weapon;
+      }
+      return applyItemEnhancements({
+        ...weapon,
+        baseDano: dice,
+        baseCritico,
+      });
+    }
+
+    const critico = toCritico(weapon.critico);
     if (weapon.dano === dice && weapon.critico === critico) return weapon;
 
     return {
