@@ -128,6 +128,7 @@ import {
 } from '@/premium/functions/animalCompanionEffects';
 import { reconcileSheetPartnerEffects } from '@/premium/functions/sheetPartners';
 import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
+import { reconcileItemPartners } from '@/premium/functions/itemPartners';
 import { reconcileAutoPowerEffects } from '@/premium/functions/autoPowerEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
 import { needsTormentaPenaltyBackfill } from '@/functions/tormentaCharismaPenalty';
@@ -712,7 +713,9 @@ const Result: React.FC<ResultProps> = (props) => {
     // concedido existir: o recálculo de `applyRecalculatedSheet` cria o
     // parceiro, e a rodada seguinte deste efeito aplica os bônus dele. `!!` e
     // não `!== null`: o stub público devolve `undefined`.
-    const needsPowerPartners = !!reconcilePowerPartners(currentSheet);
+    const needsPowerPartners =
+      !!reconcilePowerPartners(currentSheet) ||
+      !!reconcileItemPartners(currentSheet);
     if (!nextEffects && !needsTormentaBackfill && !needsPowerPartners) return;
     applyRecalculatedSheet(
       nextEffects
