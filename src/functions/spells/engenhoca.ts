@@ -12,6 +12,9 @@ import {
 import { getEffectiveAttributeModifier } from '../effectiveAttributes';
 import { getActiveArmorPenalty } from '../proficiencies';
 import { getClassLevel } from '../multiclass';
+import { buildSpellPool } from '../spellPathUtils';
+import { SupplementId } from '../../types/supplement.types';
+import { dataRegistry } from '../../data/registry';
 import { sheetHasPowerNamed } from '../powers/hasPowerNamed';
 import type { SpellCastCheck } from '../../components/SpellCastDialog';
 
@@ -36,6 +39,8 @@ export { sanitizeEngenhoca } from './sanitizeEngenhoca';
 export const ENGENHOQUEIRO_POWER = 'Engenhoqueiro';
 export const ENGENHOCA_BASE_ACTIVATION_DC = 15;
 export const ENGENHOCA_DAILY_REPEAT_DC = 5;
+export const ENGENHOCA_FABRICATION_COST_PER_PM = 100;
+export const ENGENHOCA_FABRICATION_BASE_DC = 20;
 
 const INVENTOR_CLASS = 'Inventor';
 const MANUTENCAO_EFICIENTE = 'Manutenção Eficiente';
@@ -97,12 +102,32 @@ function getIntelligence(sheet: CharacterSheet): number {
   return getEffectiveAttributeModifier(sheet, Atributo.INTELIGENCIA);
 }
 
-/** Máximo de engenhocas mantidas ao mesmo tempo. */
-export function getEngenhocaLimit(sheet: CharacterSheet): number {
-  const bonus = sheetHasPowerNamed(sheet, MANUTENCAO_EFICIENTE)
-    ? MANUTENCAO_EFICIENTE_BONUS
-    : 0;
-  return Math.max(0, getIntelligence(sheet)) + bonus;
+/**
+ * Máximo de engenhocas mantidas ao mesmo tempo. `pendingPowerNames` são os
+ * poderes escolhidos no nível em curso do assistente, ainda fora da ficha.
+ */
+export function getEngenhocaLimit(
+  sheet: CharacterSheet,
+  pendingPowerNames: string[] = []
+): number {
+  const hasManutencao =
+    pendingPowerNames.includes(MANUTENCAO_EFICIENTE) ||
+    sheetHasPowerNamed(sheet, MANUTENCAO_EFICIENTE);
+  return (
+    Math.max(0, getIntelligence(sheet)) +
+    (hasManutencao ? MANUTENCAO_EFICIENTE_BONUS : 0)
+  );
+}
+
+/**
+ * Toda magia desta ficha só pode ser engenhoca: tem Engenhoqueiro e nenhuma
+ * conjuração própria. Com caminho de magia (classe ou multiclasse) a magia
+ * nova é magia de verdade, e a conversão fica manual.
+ */
+export function shouldAutoEngenhoca(sheet: CharacterSheet): boolean {
+  if (!hasEngenhoqueiro(sheet)) return false;
+  if (sheet.classe?.spellPath) return false;
+  return Object.keys(sheet.multiclassSpellPaths ?? {}).length === 0;
 }
 
 export function countEngenhocas(spells: Spell[]): number {
@@ -134,6 +159,53 @@ export function getAparatoActivationDcIncrease(
 /** Custo em PM da magia simulada (sem reduções — a regra usa o custo da magia). */
 export function getSpellBasePm(spell: Spell): number {
   return spell.manaExpense ?? manaExpenseByCircle[spell.spellCircle] ?? 0;
+}
+
+/** "O custo de fabricação da engenhoca é T$ 100 x o custo em PM da magia". */
+export function getEngenhocaFabricationCost(spell: Spell): number {
+  return ENGENHOCA_FABRICATION_COST_PER_PM * getSpellBasePm(spell);
+}
+
+/** "A CD do teste é 20 + o custo em PM da magia." */
+export function getEngenhocaFabricationDC(spell: Spell): number {
+  return ENGENHOCA_FABRICATION_BASE_DC + getSpellBasePm(spell);
+}
+
+/**
+ * Magias que o inventor pode fabricar agora: arcanas e divinas até
+ * `maxCircle`, menos as que já estão na ficha. Magia já conhecida vira
+ * engenhoca pela própria ficha — marcar aqui uma entrada pré-existente não
+ * teria como ser desfeito ao reverter o nível.
+ */
+export function buildEngenhocaSpellPool(
+  sheet: CharacterSheet,
+  maxCircle: number,
+  supplements: SupplementId[]
+): Spell[] {
+  const known = new Set((sheet.spells ?? []).map((spell) => spell.nome));
+  return buildSpellPool({
+    spellPath: { spellType: 'Both' },
+    maxCircle,
+    supplements,
+  }).spells.filter((spell) => !known.has(spell.nome));
+}
+
+/** Nomes das magias arcanas e divinas até `maxCircle` (filtro "Tipo" do seletor). */
+export function getEngenhocaTraditionNames(
+  maxCircle: number,
+  supplements: SupplementId[]
+): { arcane: Set<string>; divine: Set<string> } {
+  const arcane = new Set<string>();
+  const divine = new Set<string>();
+  for (let circle = 1; circle <= maxCircle; circle += 1) {
+    dataRegistry
+      .getArcaneSpellsByCircleAndSupplements(circle, supplements)
+      .forEach((spell) => arcane.add(spell.nome));
+    dataRegistry
+      .getDivineSpellsByCircleAndSupplements(circle, supplements)
+      .forEach((spell) => divine.add(spell.nome));
+  }
+  return { arcane, divine };
 }
 
 /** CD de ativação sem aprimoramentos: 15 + custo da magia + aparatos. */
@@ -188,15 +260,8 @@ export function getEngenhocaArmorPenalty(
   return Math.max(0, total - worn);
 }
 
-/**
- * Bônus do teste de Ofício (engenhoqueiro) para ativar a engenhoca. Ofício
- * não está em `SkillsWithArmorPenalty`, então a penalidade ainda não está em
- * `skill.others` — subtrair aqui não duplica nada (mesmo raciocínio do Usurpar).
- */
-export function getEngenhocaCheckModifier(
-  sheet: CharacterSheet,
-  spell: Spell
-): number {
+/** Bônus de Ofício (engenhoqueiro) sem penalidades — o do teste de fabricação. */
+export function getOficioEngenhoqueiroBonus(sheet: CharacterSheet): number {
   const skill = sheet?.completeSkills?.find(
     (s) => s.name === Skill.OFICIO_EGENHOQUEIRO
   );
@@ -206,12 +271,20 @@ export function getEngenhocaCheckModifier(
   const training = skill?.training ?? 0;
   const others = skill?.others ?? 0;
 
+  return halfLevel + attrValue + training + others;
+}
+
+/**
+ * Bônus do teste de Ofício (engenhoqueiro) para ativar a engenhoca. Ofício
+ * não está em `SkillsWithArmorPenalty`, então a penalidade ainda não está em
+ * `skill.others` — subtrair aqui não duplica nada (mesmo raciocínio do Usurpar).
+ */
+export function getEngenhocaCheckModifier(
+  sheet: CharacterSheet,
+  spell: Spell
+): number {
   return (
-    halfLevel +
-    attrValue +
-    training +
-    others -
-    getEngenhocaArmorPenalty(sheet, spell)
+    getOficioEngenhoqueiroBonus(sheet) - getEngenhocaArmorPenalty(sheet, spell)
   );
 }
 

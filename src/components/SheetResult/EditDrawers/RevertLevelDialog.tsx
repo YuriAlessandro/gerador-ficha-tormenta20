@@ -73,6 +73,13 @@ const RevertLevelDialog: React.FC<RevertLevelDialogProps> = ({
           />
           <SummaryGroup title='Magias' items={summary.spells} />
 
+          {!!summary.moneyRefunded && (
+            <Typography variant='body2'>
+              Os <strong>T$ {summary.moneyRefunded}</strong> gastos neste nível
+              voltam para a ficha.
+            </Typography>
+          )}
+
           {nothingRecorded && (
             <Alert severity='warning'>
               Não há registro do que este nível concedeu (o nível pode ter sido

@@ -349,6 +349,12 @@ export type SheetActionReceipt =
       spellNames: string[];
     }
   | {
+      // T$ gasto num nível (ex.: fabricação de engenhocas). Reverter o nível
+      // devolve o valor.
+      type: 'MoneySpent';
+      amount: number;
+    }
+  | {
       type: 'SenseAdded';
       sense: string;
     }

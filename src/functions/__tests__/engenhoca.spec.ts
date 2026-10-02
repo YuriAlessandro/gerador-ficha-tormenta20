@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   buildEngenhocaCastCheck,
+  buildEngenhocaSpellPool,
+  getEngenhocaFabricationCost,
+  getEngenhocaFabricationDC,
+  shouldAutoEngenhoca,
   countEngenhocas,
   getAparatoActivationDcIncrease,
   getEngenhocaActivationBaseDC,
@@ -19,6 +23,7 @@ import { ClassPower } from '../../interfaces/Class';
 import Skill, { SkillsWithArmorPenalty } from '../../interfaces/Skills';
 import { Spell, spellsCircles } from '../../interfaces/Spells';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { SupplementId } from '../../types/supplement.types';
 import { APARATOS } from '../../data/systems/tormenta20/herois-de-arton/aparatos';
 import INVENTOR from '../../data/systems/tormenta20/classes/inventor';
 import INVENTOR_POWERS from '../../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
@@ -238,6 +243,54 @@ describe('Engenhocas do Inventor', () => {
     expect(
       sanitizeEngenhoca({ nome: 'Canhão', forma: 'vestida', enguicada: true })
     ).toEqual({ nome: 'Canhão', forma: 'vestida', enguicada: true });
+  });
+
+  it('fabricar custa T$ 100 por PM e o teste é CD 20 + PM', () => {
+    // Exemplo do livro: 2º círculo (3 PM) = T$ 300 e CD 23.
+    expect(getEngenhocaFabricationCost(bolaDeFogo())).toBe(300);
+    expect(getEngenhocaFabricationDC(bolaDeFogo())).toBe(23);
+  });
+
+  it('Manutenção Eficiente escolhida no nível em curso já conta no limite', () => {
+    const sheet = buildInventor(5);
+    expect(getEngenhocaLimit(sheet, ['Manutenção Eficiente'])).toBe(7);
+    expect(getEngenhocaLimit(sheet, ['Outro Poder'])).toBe(4);
+  });
+
+  it('o catálogo de fabricação respeita o círculo e tira o que já está na ficha', () => {
+    const supplements = [SupplementId.TORMENTA20_CORE];
+    const sheet = buildInventor(1);
+    const pool = buildEngenhocaSpellPool(sheet, 1, supplements);
+    expect(pool.length).toBeGreaterThan(0);
+    expect(pool.every((spell) => spell.spellCircle === spellsCircles.c1)).toBe(
+      true
+    );
+
+    sheet.spells = [pool[0]];
+    const semConhecida = buildEngenhocaSpellPool(sheet, 1, supplements);
+    expect(semConhecida.map((s) => s.nome)).not.toContain(pool[0].nome);
+    expect(semConhecida).toHaveLength(pool.length - 1);
+
+    const ateSegundo = buildEngenhocaSpellPool(sheet, 2, supplements);
+    expect(
+      ateSegundo.some((spell) => spell.spellCircle === spellsCircles.c2)
+    ).toBe(true);
+  });
+
+  it('só converte magia nova sozinho quando não há conjuração própria', () => {
+    expect(shouldAutoEngenhoca(buildInventor(3))).toBe(true);
+
+    const semPoder = buildInventor(3);
+    semPoder.classPowers = [];
+    expect(shouldAutoEngenhoca(semPoder)).toBe(false);
+
+    const multiclasse = buildInventor(3);
+    multiclasse.multiclassSpellPaths = {
+      Arcanista: {} as NonNullable<
+        CharacterSheet['multiclassSpellPaths']
+      >[string],
+    };
+    expect(shouldAutoEngenhoca(multiclasse)).toBe(false);
   });
 
   it('o catálogo tem os 15 aparatos do livro com ids únicos', () => {

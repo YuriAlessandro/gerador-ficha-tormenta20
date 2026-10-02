@@ -56,6 +56,7 @@ import {
 } from '@/functions/powers/general';
 import { applyPower } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { getEffectiveAttributeModifier } from '@/functions/effectiveAttributes';
 import {
   getClassLevel,
   initializeClassLevels,
@@ -83,9 +84,22 @@ import {
   getTrickAvailability,
   isTrickChoiceComplete,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import {
+  ENGENHOQUEIRO_POWER,
+  buildEngenhocaSpellPool,
+  countEngenhocas,
+  getEngenhocaLimit,
+  getEngenhocaTraditionNames,
+  getMaxEngenhocaCircle,
+  getOficioEngenhoqueiroBonus,
+  hasEngenhoqueiro,
+} from '@/functions/spells/engenhoca';
 import OriginPowerSwapStep from './steps/OriginPowerSwapStep';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
+import EngenhocaFabricationStep, {
+  getTotalFabricationCost,
+} from './steps/EngenhocaFabricationStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
 import LevelBenefitsStep from './steps/LevelBenefitsStep';
 import ClassSelectionStep from './steps/ClassSelectionStep';
@@ -824,6 +838,59 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         getPowerSelectionRequirements(power) !== null
     );
 
+  /**
+   * Fabricação de engenhocas neste nível (JdA p. 70), ou `null` quando o passo
+   * não se aplica: sem Engenhoqueiro (na ficha ou escolhido agora), sem vaga
+   * no limite ou sem magia para fabricar.
+   */
+  const getEngenhocaInfo = () => {
+    const pendingPower = getSelectedPower(currentLevelSelection);
+    const pendingNames = pendingPower ? [pendingPower.name] : [];
+    if (
+      !hasEngenhoqueiro(simulatedSheet) &&
+      !pendingNames.includes(ENGENHOQUEIRO_POWER)
+    ) {
+      return null;
+    }
+
+    const inventorLevel =
+      selectedClassName === 'Inventor'
+        ? selectedClassLevel
+        : getClassLevel(simulatedSheet, 'Inventor');
+    const maxCircle = getMaxEngenhocaCircle(inventorLevel);
+    const slots =
+      getEngenhocaLimit(sheetForCurrentLevel, pendingNames) -
+      countEngenhocas(simulatedSheet.spells ?? []);
+    if (slots <= 0) return null;
+
+    // Magia aprendida neste mesmo nível também já é "da ficha".
+    const learnedNow = new Set(
+      (currentLevelSelection.spellsLearned ?? []).map((s) => s.nome)
+    );
+    const availableSpells = buildEngenhocaSpellPool(
+      simulatedSheet,
+      maxCircle,
+      supplements
+    )
+      .filter((spell) => !learnedNow.has(spell.nome))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+    if (availableSpells.length === 0) return null;
+
+    return {
+      availableSpells,
+      maxCircle,
+      slots,
+      money: simulatedSheet.dinheiro ?? 0,
+      maxAprimoramentoPm: Math.max(
+        0,
+        getEffectiveAttributeModifier(
+          sheetForCurrentLevel,
+          Atributo.INTELIGENCIA
+        )
+      ),
+    };
+  };
+
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
@@ -891,6 +958,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const spellInfo = getSpellInfo();
     if (spellInfo && spellInfo.shouldLearnSpells) {
       steps.push('Seleção de Magias');
+    }
+
+    if (getEngenhocaInfo()) {
+      steps.push('Engenhocas');
     }
 
     // Treinador: truque do parceiro nos níveis 4, 7, 10, 13, 16, 19
@@ -1117,6 +1188,17 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return (
           learned.length === spellInfo.spellCount &&
           crossCount >= spellInfo.minCrossTraditionSpells
+        );
+      }
+
+      // Opcional: zero engenhocas é válido. Só trava acima do limite ou sem T$.
+      case 'Engenhocas': {
+        const info = getEngenhocaInfo();
+        if (!info) return true;
+        const fabricadas = currentLevelSelection.engenhocasFabricadas ?? [];
+        return (
+          fabricadas.length <= info.slots &&
+          (currentLevelSelection.engenhocasCost ?? 0) <= info.money
         );
       }
 
@@ -1547,6 +1629,38 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         );
       }
 
+      case 'Engenhocas': {
+        const info = getEngenhocaInfo();
+        if (!info) return null;
+
+        return (
+          <EngenhocaFabricationStep
+            availableSpells={info.availableSpells}
+            selectedSpells={currentLevelSelection.engenhocasFabricadas ?? []}
+            slots={info.slots}
+            maxCircle={info.maxCircle}
+            money={info.money}
+            deductMoney={currentLevelSelection.engenhocasDeductMoney !== false}
+            oficioBonus={getOficioEngenhoqueiroBonus(sheetForCurrentLevel)}
+            maxAprimoramentoPm={info.maxAprimoramentoPm}
+            traditionNames={getEngenhocaTraditionNames(
+              info.maxCircle,
+              supplements
+            )}
+            onChange={(engenhocas, deductMoney) =>
+              setCurrentLevelSelection((prev) => ({
+                ...prev,
+                engenhocasFabricadas: engenhocas,
+                engenhocasDeductMoney: deductMoney,
+                engenhocasCost: deductMoney
+                  ? getTotalFabricationCost(engenhocas)
+                  : 0,
+              }))
+            }
+          />
+        );
+      }
+
       case 'Truque do Melhor Amigo':
       case 'Truque do Melhor Amigo (Ensinar Truque)': {
         const companions = simulatedSheet.companions || [];
@@ -1669,10 +1783,16 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
       // Finished all steps for this level
-      const updatedLevelSelections = [
-        ...allLevelSelections,
-        currentLevelSelection,
-      ];
+      // Engenhocas escolhidas e depois invalidadas (o jogador voltou e trocou
+      // o poder Engenhoqueiro) não podem seguir junto com o nível.
+      const levelSelection: LevelUpSelections = steps.includes('Engenhocas')
+        ? currentLevelSelection
+        : {
+            ...currentLevelSelection,
+            engenhocasFabricadas: undefined,
+            engenhocasCost: undefined,
+          };
+      const updatedLevelSelections = [...allLevelSelections, levelSelection];
 
       if (currentLevel < targetLevel) {
         // Move to next level
@@ -1892,6 +2012,19 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           ];
         }
 
+        // Engenhocas fabricadas: entram como magias e o custo sai do dinheiro,
+        // para os próximos níveis da sessão verem o limite e o T$ certos.
+        if (levelSelection.engenhocasFabricadas?.length) {
+          nextSheet.spells = [
+            ...(nextSheet.spells || []),
+            ...levelSelection.engenhocasFabricadas,
+          ];
+          nextSheet.dinheiro = Math.max(
+            0,
+            (nextSheet.dinheiro ?? 0) - (levelSelection.engenhocasCost ?? 0)
+          );
+        }
+
         // Treinador: refletir truques escolhidos neste nível no sheet simulado,
         // para que os steps de truque dos próximos níveis da sessão os enxerguem
         // (dedup de não-repetíveis, cadeias de requiredTricks e Magia Inata)
@@ -2065,6 +2198,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           prevSheet.spells = (prevSheet.spells || []).filter(
             (s) => !spellNamesToRemove.includes(s.nome)
           );
+        }
+
+        // Engenhocas do nível ao qual estamos voltando: saem e o T$ retorna.
+        if (previousLevelSelection.engenhocasFabricadas?.length) {
+          const engenhocaNames =
+            previousLevelSelection.engenhocasFabricadas.map((s) => s.nome);
+          prevSheet.spells = (prevSheet.spells || []).filter(
+            (s) => !engenhocaNames.includes(s.nome)
+          );
+          prevSheet.dinheiro =
+            (prevSheet.dinheiro ?? 0) +
+            (previousLevelSelection.engenhocasCost ?? 0);
         }
 
         // Treinador: reverter truques aplicados ao sheet simulado no nível ao

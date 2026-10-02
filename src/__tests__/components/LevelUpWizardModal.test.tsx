@@ -5,6 +5,7 @@ import LevelUpWizardModal from '@/components/LevelUpWizard/LevelUpWizardModal';
 import { dataRegistry } from '@/data/registry';
 import { createMockCharacterSheet } from '@/__mocks__/characterSheet';
 import { SupplementId } from '@/types/supplement.types';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 
 vi.mock('@/hooks/useFeatureAccess', () => ({
   useFeatureAccess: () => ({
@@ -58,5 +59,50 @@ describe('LevelUpWizardModal — pré-requisitos do nível atual', () => {
     expect(
       within(card as HTMLElement).queryByText('Indisponível')
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('LevelUpWizardModal — fabricação de engenhocas', () => {
+  const buildInventor = (comEngenhoqueiro: boolean) => {
+    const sheet = createMockCharacterSheet();
+    const inventor = dataRegistry.getClassByName(
+      'Inventor',
+      ACTIVE_SUPPLEMENTS
+    );
+    if (!inventor) throw new Error('Inventor não encontrado no registry');
+
+    sheet.nivel = 2;
+    sheet.classe = inventor;
+    sheet.classLevels = [1, 2].map((level) => ({
+      level,
+      className: 'Inventor',
+    }));
+    sheet.atributos[Atributo.INTELIGENCIA].value = 3;
+    sheet.classPowers = comEngenhoqueiro
+      ? inventor.powers.filter((p) => p.name === 'Engenhoqueiro')
+      : [];
+    return sheet;
+  };
+
+  const renderWizard = (comEngenhoqueiro: boolean) =>
+    render(
+      <LevelUpWizardModal
+        open
+        initialSheet={buildInventor(comEngenhoqueiro)}
+        targetLevel={3}
+        supplements={ACTIVE_SUPPLEMENTS}
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+
+  it('mostra o passo Engenhocas para quem tem Engenhoqueiro', () => {
+    renderWizard(true);
+    expect(screen.getByText('Engenhocas')).toBeInTheDocument();
+  });
+
+  it('não mostra o passo para Inventor sem o poder', () => {
+    renderWizard(false);
+    expect(screen.queryByText('Engenhocas')).not.toBeInTheDocument();
   });
 });

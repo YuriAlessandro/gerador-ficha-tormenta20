@@ -138,6 +138,7 @@ import {
   grantOriginItemsToBag,
 } from './originItems';
 import { resetOriginPowerChoice } from './originBenefits';
+import { getSpellDisplayName } from './spells/spellDisplayName';
 import {
   GeneralPower,
   OriginPower,
@@ -146,6 +147,7 @@ import {
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   ClassLevelEntry,
+  SheetActionReceipt,
   SheetActionStep,
   SheetBonus,
   SheetChangeSource,
@@ -4772,6 +4774,56 @@ export function applyManualLevelUp(
           spellNames: selections.spellsLearned.map((spell) => spell.nome),
         },
       ],
+    });
+  }
+
+  // Engenhocas fabricadas neste nível (Inventor com Engenhoqueiro). Entram como
+  // magias já marcadas; o custo de fabricação sai do dinheiro e fica no
+  // histórico para o "desfazer nível" devolver.
+  if (
+    selections.engenhocasFabricadas &&
+    selections.engenhocasFabricadas.length > 0
+  ) {
+    const novasEngenhocas = selections.engenhocasFabricadas.filter(
+      (newSpell) =>
+        !updatedSheet.spells.some((existing) => existing.nome === newSpell.nome)
+    );
+    updatedSheet.spells.push(...novasEngenhocas);
+
+    novasEngenhocas.forEach((spell) => {
+      const displayName = getSpellDisplayName(spell);
+      subSteps.push({
+        name: 'Engenhoca fabricada',
+        value:
+          displayName === spell.nome
+            ? spell.nome
+            : `${displayName} (simula ${spell.nome})`,
+      });
+    });
+
+    const changes: SheetActionReceipt[] = [
+      {
+        type: 'SpellsLearned',
+        spellNames: novasEngenhocas.map((spell) => spell.nome),
+      },
+    ];
+
+    const cost = Math.min(
+      Math.max(0, selections.engenhocasCost ?? 0),
+      updatedSheet.dinheiro ?? 0
+    );
+    if (cost > 0) {
+      updatedSheet.dinheiro = (updatedSheet.dinheiro ?? 0) - cost;
+      subSteps.push({ name: 'Dinheiro gasto', value: `T$ ${cost}` });
+      changes.push({ type: 'MoneySpent', amount: cost });
+    }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes,
     });
   }
 

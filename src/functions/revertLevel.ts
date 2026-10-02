@@ -44,6 +44,8 @@ export interface LastLevelSummary {
   powers: string[];
   abilities: string[];
   spells: string[];
+  /** T$ gasto no nível (fabricação de engenhocas) que volta para a ficha. */
+  moneyRefunded?: number;
 }
 
 const isMarkerOf =
@@ -106,6 +108,8 @@ export function getLastLevelSummary(sheet: CharacterSheet): LastLevelSummary {
         }
       } else if (change.type === 'SpellsLearned') {
         summary.spells.push(...change.spellNames);
+      } else if (change.type === 'MoneySpent') {
+        summary.moneyRefunded = (summary.moneyRefunded ?? 0) + change.amount;
       }
     })
   );
@@ -395,6 +399,10 @@ export function revertLastLevel(sheet: CharacterSheet): CharacterSheet {
           );
           if (index >= 0) s.spells.splice(index, 1);
         });
+        return;
+      }
+      if (change.type === 'MoneySpent') {
+        s.dinheiro = (s.dinheiro ?? 0) + change.amount;
         return;
       }
       if (change.type !== 'PowerAdded') return;
