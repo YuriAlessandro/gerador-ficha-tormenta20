@@ -43,6 +43,7 @@ import { CONDITION_TEMPLATES } from '@/premium/data/conditions';
 import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
+import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
 import { getCompanionLevels } from './companionLevels';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
@@ -1601,10 +1602,13 @@ function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
       // efetivo). Antes eles eram expandidos aqui em perícias/dano/Defesa, o
       // que deixava CD de magia e capacidade de carga de fora — ver
       // `functions/effectiveAttributes.ts`.
+      // A condição segue junto e é avaliada pelo filtro do Step 8 (ex.: o +1
+      // na Defesa do Escudeiro, que só vale vestindo armadura).
       updated.sheetBonuses.push({
         source,
         target: b.target,
         modifier: b.modifier,
+        ...(b.condition ? { condition: b.condition } : {}),
       });
     });
   });
@@ -2913,6 +2917,12 @@ export function recalculateSheet(
     updatedSheet.spells,
     updatedSheet.bag?.equipments
   );
+
+  // Step 19: parceiros concedidos por poderes (Familiar, Escudeiro, Autômato...).
+  // No fim, quando poderes e histórico de escolhas já estão finais. Os bônus
+  // passivos deles entram depois, pelo conciliador de efeitos do `Result.tsx`.
+  const powerPartners = reconcilePowerPartners(updatedSheet);
+  if (powerPartners) updatedSheet.partners = powerPartners;
 
   // Carimba os suplementos runtime usados (preserva inativos não verificáveis).
   stampUsedSupplements(updatedSheet);
