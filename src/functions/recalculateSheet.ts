@@ -44,6 +44,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
+import { stripPartnerOwnedBonuses } from '@/premium/functions/partnerOwnedBonuses';
 import { reconcileItemPartners } from '@/premium/functions/itemPartners';
 import { dismountPartnersInWildShape } from '@/premium/functions/sheetPartners';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
@@ -2248,6 +2249,12 @@ export function recalculateSheet(
   // de Força", penalidade de TESTE (agregação pior-vence), não redução de
   // atributo — por isso emitem só bônus `Skill`. Ver `effectiveAttributes.ts`.
   updatedSheet = applyConditionBonuses(updatedSheet);
+
+  // Step 7.44: bônus de poder que passaram para o parceiro (Familiar, Acólito
+  // Escudeiro...) saem daqui — o parceiro os aplica pelo Step 7.45. Sem o
+  // premium (build público) o stub não remove nada.
+  const partnerOwned = stripPartnerOwnedBonuses(updatedSheet.sheetBonuses);
+  if (partnerOwned) updatedSheet.sheetBonuses = partnerOwned;
 
   // Step 7.45: Apply active effect bonuses (powers with temporary bonus,
   // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not

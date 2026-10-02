@@ -6,20 +6,11 @@ import CharacterSheet, {
 import Skill from '../../interfaces/Skills';
 
 /**
- * Poderes cujo familiar é um PARCEIRO na ficha: o bônus mecânico vem do
- * parceiro (premium, `data/powerPartners`), e não do poder — vale enquanto o
- * familiar está ativo. Os demais usuários de `selectFamiliar` (Ex-Familiar dos
- * Kobolds, em que o bando É o ex-familiar) continuam recebendo pelo poder.
- *
- * Pelo nome do poder, e não por um campo na ação: fichas salvas guardam uma
- * cópia das `sheetActions` de quando o poder foi escolhido.
- */
-export const FAMILIAR_BONUSES_VIA_PARTNER = new Set(['Familiar']);
-
-/**
- * Bônus mecânicos por familiar (Tormenta20, p. 38). Apenas os familiares com
- * efeito modelável retornam bônus; os demais (Borboleta/Cobra/Lagarto +1 CD,
- * Coruja, Corvo, Falcão, Morcego) ficam só descritivos.
+ * Bônus mecânicos por familiar (Tormenta20, p. 38). Compartilhado pelo poder
+ * (`selectFamiliar`) e pelo parceiro Familiar (premium, `data/powerPartners`).
+ * Apenas os familiares com efeito modelável retornam bônus; os demais
+ * (Borboleta/Cobra/Lagarto +1 CD, Coruja, Corvo, Falcão, Morcego) ficam só
+ * descritivos.
  */
 export const buildFamiliarSheetBonuses = (
   familiarKey: string,
