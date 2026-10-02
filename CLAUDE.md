@@ -174,6 +174,7 @@ npx prettier --check <filename>  # Check if files are formatted
   - Test layouts for both mobile and desktop views
   - Use `isMobile` pattern: `const isMobile = window.innerWidth <= 768;`
 - Produção em https://fichasdenimb.com.br
+- **IMPORTANT — Pull Requests**: antes de criar ou editar um PR, **ler o `CONTRIBUTING.md`** (seção "Pull Requests") e seguir o que ele pede: rodar a checagem de "Antes de Submeter" (`npm test`, `npx tsc --noEmit`, `npx eslint src/`, `npm run build`) e escrever a descrição no **Template de PR** de lá (Descrição, Tipo de Mudança, Testes, Screenshots), marcando só as caixas que foram de fato verificadas.
 
 ### Infraestrutura
 

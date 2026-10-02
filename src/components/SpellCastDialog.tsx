@@ -35,6 +35,8 @@ import { buildSpellAbilityMeta } from '@/functions/rollAbilityMeta';
 import {
   augmentSpellRolls,
   AprimoramentoSelection,
+  isStackableAprimoramento,
+  isTruqueAprimoramento,
   AugmentedRoll,
 } from '@/functions/spellRollAugmentation';
 import { Spell, Aprimoramento } from '../interfaces/Spells';
@@ -127,11 +129,8 @@ interface SpellCastDialogProps {
   castCheck?: SpellCastCheck;
 }
 
-const isStackable = (aprimoramento: Aprimoramento): boolean =>
-  /^aumenta/i.test(aprimoramento.text);
-
-const isTruque = (aprimoramento: Aprimoramento): boolean =>
-  aprimoramento.trick === true;
+const isStackable = isStackableAprimoramento;
+const isTruque = isTruqueAprimoramento;
 
 // Remove os campos derivados do augment antes de semear o editor / persistir.
 const toPlainRoll = (roll: DiceRoll): DiceRoll => ({
