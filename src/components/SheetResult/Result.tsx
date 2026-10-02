@@ -199,6 +199,8 @@ import {
   PLAYER_JOURNAL_AVAILABLE,
 } from '../../premium/components/PlayerJournal';
 import { PlayerJournal } from '../../interfaces/PlayerJournal';
+import NotesDialog from './NotesDialog';
+import SheetNotesCard from './SheetNotesCard';
 import RestDialog, { RestConfirmConfig } from './RestDialog';
 import {
   calculateRestRecovery,
@@ -311,6 +313,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [statDrawerOpen, setStatDrawerOpen] = useState(false);
   const [restDialogOpen, setRestDialogOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
@@ -804,9 +807,39 @@ const Result: React.FC<ResultProps> = (props) => {
 
   // Diário: merge parcial de UMA chave, sem recálculo — igual às anotações. O
   // debounce fica do lado do diário, que grava com o diálogo aberto.
+  //
+  // Devolve o retorno de `onSheetUpdate` (uma Promise, onde a gravação é
+  // assíncrona): é o que o diário usa para mostrar "Salvando… / Salvo".
   const handleJournalSave = useCallback(
-    (journal: PlayerJournal) => {
-      handleSheetInfoUpdate({ journal });
+    (journal: PlayerJournal): void | Promise<unknown> => {
+      const updatedSheet = { ...currentSheet, journal };
+      setCurrentSheet(updatedSheet);
+      return onSheetUpdate ? onSheetUpdate(updatedSheet) : undefined;
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleNotesSave = useCallback(
+    (notes: string) => {
+      handleSheetInfoUpdate({ notes });
+    },
+    [handleSheetInfoUpdate]
+  );
+
+  /**
+   * Alterna entre o Diário e as anotações em texto simples. Só troca o que a
+   * ficha MOSTRA: `journal` e `notes` continuam os dois em disco.
+   *
+   * `pendingJournal` é o que o diário ainda tinha na fila ao ser fechado pela
+   * troca. Vai junto, na mesma escrita — duas escritas seguidas partiriam do
+   * mesmo `currentSheet` e a segunda desfaria a primeira.
+   */
+  const handleJournalModeChange = useCallback(
+    (mode: 'journal' | 'simple', pendingJournal?: PlayerJournal) => {
+      handleSheetInfoUpdate({
+        ...(pendingJournal ? { journal: pendingJournal } : {}),
+        journalMode: mode,
+      });
     },
     [handleSheetInfoUpdate]
   );
@@ -2103,12 +2136,15 @@ const Result: React.FC<ResultProps> = (props) => {
   // largura do container, não do viewport.
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY, { noSsr: true });
 
-  // Diário do Jogador. Enquanto a flag estiver desligada (ou faltar o
-  // submódulo premium), a ficha mantém exatamente o botão e o diálogo de
-  // anotações de sempre — o rollout é reversível sem redeploy, e o texto
-  // original nunca sai de `sheet.notes`.
+  // Diário do Jogador × anotações em texto simples.
+  //
+  // A mesma seção da ficha mostra um ou outro. O texto simples aparece quando
+  // o jogador o escolheu para esta ficha (`journalMode`) e também quando o
+  // Diário não existe aqui — flag desligada ou build sem o submódulo premium —,
+  // de modo que a ficha nunca fica sem lugar para anotar.
   const journalAccess = useFeatureAccess('playerJournal');
   const journalEnabled = journalAccess.hasAccess && PLAYER_JOURNAL_AVAILABLE;
+  const notesMode = !journalEnabled || currentSheet.journalMode === 'simple';
 
   const hasAnyRd =
     currentSheet.reducaoDeDano &&
@@ -2543,23 +2579,39 @@ const Result: React.FC<ResultProps> = (props) => {
       body: periciasDiv,
     },
 
-    // Diário do Jogador: o cartão se desenha sozinho (resumo + botão de abrir)
-    // e só existe com a feature ligada — desligada, a ficha fica com o botão de
-    // anotações da identidade, como sempre foi.
+    // Diário do Jogador ou anotações em texto simples (ver `notesMode`). Nos
+    // dois casos o cartão se desenha sozinho: resumo + botão de abrir + a
+    // troca para o outro modo, que só aparece para quem pode editar a ficha.
     journal: {
       kind: 'journal',
-      defaultTitle: 'Diário',
+      defaultTitle: notesMode ? 'Anotações' : 'Diário',
       iconKey: 'mui:MenuBook',
       withTitle: false,
-      available: journalEnabled,
+      available: true,
       selfContained: true,
-      actions: editAction('open-journal', 'Abrir diário', () =>
-        setJournalOpen(true)
-      ),
-      body: (
+      actions: notesMode
+        ? editAction('edit-notes', 'Editar anotações', () => setNotesOpen(true))
+        : editAction('open-journal', 'Abrir diário', () =>
+            setJournalOpen(true)
+          ),
+      body: notesMode ? (
+        <SheetNotesCard
+          notes={currentSheet.notes}
+          readOnly={!onSheetUpdate}
+          onOpen={() => setNotesOpen(true)}
+          onSwitchToJournal={
+            journalEnabled && onSheetUpdate
+              ? () => handleJournalModeChange('journal')
+              : undefined
+          }
+        />
+      ) : (
         <PlayerJournalCard
           journal={currentSheet.journal}
           onOpen={() => setJournalOpen(true)}
+          onSwitchToSimple={
+            onSheetUpdate ? () => handleJournalModeChange('simple') : undefined
+          }
         />
       ),
     },
@@ -3581,12 +3633,25 @@ const Result: React.FC<ResultProps> = (props) => {
             sheet={currentSheet}
             onConfirm={handleRest}
           />
+          <NotesDialog
+            open={notesOpen}
+            onClose={() => setNotesOpen(false)}
+            notes={currentSheet.notes ?? ''}
+            onSave={onSheetUpdate ? handleNotesSave : undefined}
+          />
           {journalEnabled && (
             <PlayerJournalFullScreen
               open={journalOpen}
               onClose={() => setJournalOpen(false)}
               characterName={currentSheet.nome}
               journal={currentSheet.journal}
+              sheetId={currentSheet.id}
+              onSwitchToSimple={
+                onSheetUpdate
+                  ? (pendingJournal?: PlayerJournal) =>
+                      handleJournalModeChange('simple', pendingJournal)
+                  : undefined
+              }
               // Sem `onSheetUpdate` o diário abre em leitura, em vez de sumir:
               // ele é feito para ser LIDO durante a sessão, e fechá-lo na cara
               // de quem está consultando as anotações seria pior do que

@@ -146,7 +146,12 @@ const buildExtraSections = (
   // Diário do Jogador. As anotações livres só saem quando NÃO há diário: uma
   // ficha migrada mantém `sheet.notes` em disco como rede de segurança, e
   // imprimir os dois duplicaria o mesmo texto no PDF.
-  const journalText = serializeJournalForPdf(sheet.journal, sheet.nome);
+  // No modo de texto simples é o contrário: quem a pessoa está usando são as
+  // anotações, e o diário guardado não entra.
+  const journalText =
+    sheet.journalMode === 'simple'
+      ? ''
+      : serializeJournalForPdf(sheet.journal, sheet.nome);
   if (journalText) {
     push('Diário do Jogador', journalText);
   } else {

@@ -368,6 +368,11 @@ export function migrateNotesToJournal(sheet: CharacterSheet): void {
     return;
   }
 
+  // Quem escolheu o texto simples continua escrevendo em `notes`: criar o
+  // diário agora congelaria uma cópia do texto que fica velha na edição
+  // seguinte. A migração acontece se (e quando) a pessoa voltar para o diário.
+  if (sheet.journalMode === 'simple') return;
+
   const notes = sheet.notes?.trim();
   if (!notes) return;
 

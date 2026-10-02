@@ -1063,14 +1063,19 @@ export default interface CharacterSheet {
   diferentaoPower?: ClassPower; // Poder escolhido pelo poder Diferentão
   poderesCapturados?: PoderCapturadoChoice[]; // Usurpador: Poder Capturado (4º nível)
   /**
-   * @deprecated Substituído pelo `journal` (Diário do Jogador). Continua sendo
-   * LIDO — é o fallback quando a feature está desligada e a fonte da migração —,
-   * mas nada escreve nele. Mantido em disco de propósito: `migrateNotesToJournal`
-   * copia o texto para um nó em vez de mover, então uma migração com defeito não
-   * leva junto a anotação original do jogador.
+   * Anotações livres em texto simples. É o que a ficha mostra e edita quando
+   * `journalMode` é `'simple'` (ou quando o Diário não está disponível), e a
+   * fonte da migração para o Diário: `migrateNotesToJournal` COPIA o texto para
+   * um bloco em vez de mover, então os dois lados existem em disco ao mesmo
+   * tempo e alternar entre eles nunca apaga nada.
    */
-  notes?: string; // Anotações livres do jogador
+  notes?: string;
   journal?: PlayerJournal; // Diário do Jogador (canvas de blocos)
+  /**
+   * O que a ficha usa para anotar: o Diário completo ou o texto simples em
+   * `notes`. Ausente = `'journal'`. É escolha do jogador, por ficha.
+   */
+  journalMode?: 'journal' | 'simple';
   imageUrl?: string; // URL de imagem do personagem
   /**
    * Layout customizado desta ficha.
