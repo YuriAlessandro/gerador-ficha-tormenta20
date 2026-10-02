@@ -20,6 +20,7 @@ import foldersReducer from './slices/folders/foldersSlice';
 import systemReducer from './slices/system/systemSlice';
 import subscriptionReducer from './slices/subscription/subscriptionSlice';
 import notificationReducer from './slices/notification/notificationSlice';
+import pocketGrimoireSyncStatusReducer from './slices/pocketGrimoire/pocketGrimoireSyncStatusSlice';
 import pocketGrimoireReducer, {
   migratePocketGrimoire,
 } from './slices/pocketGrimoire/pocketGrimoireSlice';
@@ -100,6 +101,7 @@ const store = configureStore({
     subscription: persistedSubscriptionReducer,
     notification: notificationReducer,
     pocketGrimoire: persistedPocketGrimoireReducer,
+    pocketGrimoireSyncStatus: pocketGrimoireSyncStatusReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
