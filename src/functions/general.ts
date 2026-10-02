@@ -6,6 +6,10 @@ import {
 } from '@/interfaces/PowerSelections';
 import { getClassFamilyName, isSameClassFamily } from './classFamily';
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import {
+  buildFamiliarSheetBonuses,
+  FAMILIAR_BONUSES_VIA_PARTNER,
+} from './powers/familiarBonuses';
 import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
@@ -1591,62 +1595,6 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
-// Bônus mecânicos por familiar (poder "Familiar" do Arcanista).
-// Apenas os familiares com efeito modelável retornam bônus; os demais
-// (Borboleta/Cobra/Lagarto +1 CD, Coruja, Corvo, Falcão, Morcego) ficam só
-// descritivos no texto do poder.
-const buildFamiliarSheetBonuses = (
-  familiarKey: string,
-  sheet: CharacterSheet,
-  source: SheetChangeSource
-): SheetBonus[] => {
-  // GATO: visão no escuro (narrativa) + +2 Furtividade
-  if (familiarKey === 'GATO') {
-    return [
-      {
-        source,
-        target: { type: 'Skill', name: Skill.FURTIVIDADE },
-        modifier: { type: 'Fixed', value: 2 },
-      },
-    ];
-  }
-  // SAPO: soma o atributo-chave ao total de PV (cumulativo com CON, não substitui)
-  if (familiarKey === 'SAPO') {
-    return [
-      {
-        source,
-        target: { type: 'PV' },
-        modifier: { type: 'SpecialAttribute', attribute: 'spellKeyAttr' },
-      },
-    ];
-  }
-  // RATO: pode usar o atributo-chave em Fortitude no lugar de Constituição.
-  // Por ser opcional ("você pode usar"), só troca quando for benéfico.
-  if (familiarKey === 'RATO') {
-    const keyAttr =
-      sheet.classe.spellPath?.keyAttribute ??
-      sheet.overrideKeyAttribute ??
-      Atributo.CARISMA;
-    if (
-      (sheet.atributos[keyAttr]?.value ?? 0) >
-      (sheet.atributos[Atributo.CONSTITUICAO]?.value ?? 0)
-    ) {
-      return [
-        {
-          source,
-          target: {
-            type: 'ModifySkillAttribute',
-            skill: Skill.FORTITUDE,
-            attribute: keyAttr,
-          },
-          modifier: { type: 'Fixed', value: 0 },
-        },
-      ];
-    }
-  }
-  return [];
-};
-
 /**
  * Resolve e aplica a concessão de magias POR ESCOLHA de uma opção de
  * `chooseFromOptions` (quando a opção escolhida tem `grantedSpellsAction`).
@@ -2212,13 +2160,15 @@ export const applyPower = (
           if (previousResult && previousResult.type === 'FamiliarSelected') {
             const familiar = FAMILIARS[previousResult.familiarKey];
             if (familiar) {
-              sheet.sheetBonuses.push(
-                ...buildFamiliarSheetBonuses(
-                  previousResult.familiarKey,
-                  sheet,
-                  sheetAction.source
-                )
-              );
+              if (!FAMILIAR_BONUSES_VIA_PARTNER.has(powerOrAbility.name)) {
+                sheet.sheetBonuses.push(
+                  ...buildFamiliarSheetBonuses(
+                    previousResult.familiarKey,
+                    sheet,
+                    sheetAction.source
+                  )
+                );
+              }
               if (sheet.classPowers) {
                 const powerIndex = sheet.classPowers.findIndex(
                   (power) => power.name === 'Familiar'
@@ -2714,14 +2664,17 @@ export const applyPower = (
         // Get familiar data
         const familiar = FAMILIARS[selectedFamiliar];
 
-        // Aplica os bônus mecânicos do familiar selecionado (Gato/Sapo/Rato)
-        sheet.sheetBonuses.push(
-          ...buildFamiliarSheetBonuses(
-            selectedFamiliar,
-            sheet,
-            sheetAction.source
-          )
-        );
+        // Aplica os bônus mecânicos do familiar selecionado (Gato/Sapo/Rato).
+        // O Familiar do Arcanista é parceiro: o bônus vem dele (premium).
+        if (!FAMILIAR_BONUSES_VIA_PARTNER.has(powerOrAbility.name)) {
+          sheet.sheetBonuses.push(
+            ...buildFamiliarSheetBonuses(
+              selectedFamiliar,
+              sheet,
+              sheetAction.source
+            )
+          );
+        }
 
         // Update power text to show selected familiar
         if (sheet.classPowers) {
