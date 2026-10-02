@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, current, PayloadAction, Reducer } from '@reduxjs/toolkit';
 import { PersistedState } from 'redux-persist';
 import { v4 as uuid } from 'uuid';
 import {
@@ -11,6 +11,13 @@ import {
   normalizeGrimoireName,
   uniqueGrimoireName,
 } from '../../../functions/pocketGrimoire/state';
+import {
+  applyRemote as applyRemoteState,
+  claimForUser as claimForUserState,
+  hasPendingChanges,
+  markSynced as markSyncedState,
+  trackChanges,
+} from '../../../functions/pocketGrimoire/sync';
 
 const NEW_GRIMOIRE_NAME = 'Novo grimório';
 const IMPORTED_GRIMOIRE_NAME = 'Grimório importado';
@@ -38,6 +45,16 @@ interface ReplacePayload {
   id: string;
   itemIds: string[];
   now: string;
+}
+
+interface ApplyRemotePayload {
+  grimoires: PocketGrimoire[];
+  now: string;
+}
+
+interface MarkSyncedPayload {
+  sent: Record<string, string>;
+  deletedIds: string[];
 }
 
 interface DuplicatePayload {
@@ -185,6 +202,32 @@ export const pocketGrimoireSlice = createSlice({
         state.activeId = action.payload;
       }
     },
+    /** Login: a cópia passa a ser da conta (ver `functions/pocketGrimoire/sync`). */
+    claimForUser(state, action: PayloadAction<string>) {
+      return claimForUserState(current(state), action.payload);
+    },
+    applyRemote: {
+      reducer(state, action: PayloadAction<ApplyRemotePayload>) {
+        const { grimoires, now } = action.payload;
+        return applyRemoteState(current(state), grimoires, now);
+      },
+      prepare(grimoires: PocketGrimoire[]) {
+        return { payload: { grimoires, now: isoNow() } };
+      },
+    },
+    markSynced(state, action: PayloadAction<MarkSyncedPayload>) {
+      const { sent, deletedIds } = action.payload;
+      state.sync = markSyncedState(current(state).sync, sent, deletedIds);
+    },
+    /** Logout explícito: o navegador volta ao zero. */
+    resetToAnonymous: {
+      reducer(_state, action: PayloadAction<string>) {
+        return createInitialState(action.payload);
+      },
+      prepare() {
+        return { payload: isoNow() };
+      },
+    },
   },
 });
 
@@ -198,9 +241,41 @@ export const {
   replaceItems,
   deleteGrimoire,
   setActive,
+  claimForUser,
+  applyRemote,
+  markSynced,
+  resetToAnonymous,
 } = pocketGrimoireSlice.actions;
 
-export default pocketGrimoireSlice.reducer;
+const SYNC_ACTION_TYPES = new Set<string>([
+  claimForUser.type,
+  applyRemote.type,
+  markSynced.type,
+  resetToAnonymous.type,
+]);
+
+/**
+ * Envolve o reducer para registrar o que precisa ir para a conta, sem mexer
+ * nos reducers de edição: compara a lista antes/depois de cada ação.
+ * Só atua numa cópia da conta (`ownerId` definido).
+ */
+export const withSyncTracking =
+  (reducer: Reducer<PocketGrimoireState>): Reducer<PocketGrimoireState> =>
+  (state, action) => {
+    const next = reducer(state, action);
+    if (
+      !state ||
+      next === state ||
+      next.sync.ownerId === null ||
+      SYNC_ACTION_TYPES.has(action.type)
+    ) {
+      return next;
+    }
+    const sync = trackChanges(next.sync, state.grimoires, next.grimoires);
+    return sync === next.sync ? next : { ...next, sync };
+  };
+
+export default withSyncTracking(pocketGrimoireSlice.reducer);
 
 /** Formato mínimo que os selectors precisam (RootState ou store de teste). */
 export interface WithPocketGrimoire {
@@ -223,6 +298,12 @@ export const selectGrimoireById =
   (id: string | undefined) =>
   (state: WithPocketGrimoire): PocketGrimoire | undefined =>
     id === undefined ? undefined : findGrimoire(state.pocketGrimoire, id);
+
+export const selectGrimoireSync = (state: WithPocketGrimoire) =>
+  state.pocketGrimoire.sync;
+
+export const selectHasPendingGrimoireChanges = (state: WithPocketGrimoire) =>
+  hasPendingChanges(state.pocketGrimoire.sync);
 
 /**
  * `migrate` do redux-persist: o localStorage é entrada externa (outra versão
