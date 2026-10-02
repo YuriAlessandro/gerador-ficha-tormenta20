@@ -9,6 +9,7 @@ import pocketGrimoireReducer from '../../../store/slices/pocketGrimoire/pocketGr
 import { PocketGrimoireState } from '../../../interfaces/PocketGrimoire';
 import { createInitialState } from '../../../functions/pocketGrimoire/state';
 import pocketGrimoireSyncStatusReducer from '../../../store/slices/pocketGrimoire/pocketGrimoireSyncStatusSlice';
+import grimoireMoveReducer from '../../../store/slices/pocketGrimoire/grimoireMoveSlice';
 import { DbUser } from '../../../types/auth.types';
 
 export interface TestAuth {
@@ -43,6 +44,7 @@ export const createTestStore = (
     reducer: {
       pocketGrimoire: pocketGrimoireReducer,
       pocketGrimoireSyncStatus: pocketGrimoireSyncStatusReducer,
+      grimoireMove: grimoireMoveReducer,
       auth: (state: ReturnType<typeof authState> = authState(auth)) => state,
       // Plano gratuito, sem boost (o que o limite de grimórios lê).
       subscription: (state = { subscription: null }) => state,

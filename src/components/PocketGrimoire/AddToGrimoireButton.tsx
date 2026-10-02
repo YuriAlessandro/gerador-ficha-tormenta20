@@ -1,8 +1,10 @@
-import React from 'react';
-import { Button, IconButton, Tooltip } from '@mui/material';
+import React, { useState } from 'react';
+import { Button, ButtonGroup, IconButton, Tooltip } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
 import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
 import { useAddToGrimoire } from './useAddToGrimoire';
+import GrimoireChoiceMenu from './GrimoireChoiceMenu';
 
 interface Props {
   itemId: string;
@@ -13,6 +15,7 @@ interface Props {
    * `icon` (padrão): ícone compacto, para linhas e listas.
    * `labeled`: botão com texto e o nome do grimório de destino, para o
    * detalhe expandido e cabeçalhos — é o que o usuário não pode deixar de ver.
+   * A seta ao lado escolhe outro grimório (`GrimoireChoiceMenu`).
    */
   variant?: 'icon' | 'labeled';
 }
@@ -29,6 +32,8 @@ const AddToGrimoireButton: React.FC<Props> = ({
     grimoireId
   );
 
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+
   const handleClick = (event: React.MouseEvent) => {
     // O botão vive dentro de linhas de tabela e resultados de busca clicáveis.
     event.stopPropagation();
@@ -37,23 +42,51 @@ const AddToGrimoireButton: React.FC<Props> = ({
 
   if (variant === 'labeled') {
     return (
-      <Tooltip describeChild title={inGrimoire ? 'Clique para remover' : ''}>
-        <Button
+      <>
+        <ButtonGroup
           size='small'
           variant={inGrimoire ? 'contained' : 'outlined'}
           color={inGrimoire ? 'success' : 'primary'}
-          startIcon={
-            inGrimoire ? <BookmarkAddedIcon /> : <BookmarkAddOutlinedIcon />
-          }
-          onClick={handleClick}
-          onMouseDown={(event) => event.stopPropagation()}
-          sx={{ textTransform: 'none', maxWidth: '100%' }}
+          sx={{ maxWidth: '100%' }}
         >
-          {inGrimoire
-            ? `No grimório "${targetName}"`
-            : `Adicionar ao grimório "${targetName}"`}
-        </Button>
-      </Tooltip>
+          <Tooltip
+            describeChild
+            title={inGrimoire ? 'Clique para remover' : ''}
+          >
+            <Button
+              startIcon={
+                inGrimoire ? <BookmarkAddedIcon /> : <BookmarkAddOutlinedIcon />
+              }
+              onClick={handleClick}
+              onMouseDown={(event) => event.stopPropagation()}
+              sx={{ textTransform: 'none', minWidth: 0 }}
+            >
+              {inGrimoire
+                ? `No grimório "${targetName}"`
+                : `Adicionar ao grimório "${targetName}"`}
+            </Button>
+          </Tooltip>
+          <Button
+            aria-label='Escolher grimório'
+            aria-haspopup='menu'
+            aria-expanded={menuAnchor !== null}
+            onClick={(event) => {
+              event.stopPropagation();
+              setMenuAnchor(event.currentTarget);
+            }}
+            onMouseDown={(event) => event.stopPropagation()}
+            sx={{ px: 0.5, minWidth: 0 }}
+          >
+            <ArrowDropDownIcon fontSize='small' />
+          </Button>
+        </ButtonGroup>
+        <GrimoireChoiceMenu
+          anchorEl={menuAnchor}
+          onClose={() => setMenuAnchor(null)}
+          itemId={itemId}
+          itemName={itemName}
+        />
+      </>
     );
   }
 

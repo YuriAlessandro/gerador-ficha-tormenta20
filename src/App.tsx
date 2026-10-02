@@ -30,6 +30,7 @@ import SystemSetupDialog from './components/SystemSetupDialog';
 import TermsAcceptanceModal from './components/Terms/TermsAcceptanceModal';
 import { AuthProvider } from './contexts/AuthContext';
 import PocketGrimoireSync from './components/PocketGrimoire/PocketGrimoireSync';
+import GrimoireMoveDialog from './components/PocketGrimoire/GrimoireMoveDialog';
 import { CURRENT_TERMS_VERSION } from './constants/terms';
 import LandingPageV2 from './components/LandingPageV2';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -389,6 +390,7 @@ function ThemedApp(): JSX.Element {
         >
           <AuthProvider>
             <PocketGrimoireSync />
+            <GrimoireMoveDialog />
             <BuildsProvider>
               <GameTableProvider>
                 <PartnersProvider>

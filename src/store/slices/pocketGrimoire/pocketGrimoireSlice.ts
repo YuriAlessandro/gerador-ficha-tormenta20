@@ -28,6 +28,13 @@ interface ItemPayload {
   now: string;
 }
 
+interface MovePayload {
+  itemId: string;
+  fromId: string;
+  toId: string;
+  now: string;
+}
+
 interface NewGrimoirePayload {
   id: string;
   now: string;
@@ -117,6 +124,31 @@ export const pocketGrimoireSlice = createSlice({
       },
       prepare(grimoireId: string, itemId: string) {
         return { payload: { grimoireId, itemId, now: isoNow() } };
+      },
+    },
+    /**
+     * "Trocar" do aviso de adição: o item muda de grimório e o destino vira
+     * o ativo, para que os próximos cliques no marcador já caiam nele.
+     */
+    moveItem: {
+      reducer(state, action: PayloadAction<MovePayload>) {
+        const { itemId, fromId, toId, now } = action.payload;
+        const to = findGrimoire(state, toId);
+        if (!to) return;
+        state.activeId = toId;
+        if (fromId === toId) return;
+        const from = findGrimoire(state, fromId);
+        if (from && from.itemIds.includes(itemId)) {
+          from.itemIds = from.itemIds.filter((id) => id !== itemId);
+          from.updatedAt = now;
+        }
+        if (!to.itemIds.includes(itemId)) {
+          to.itemIds.push(itemId);
+          to.updatedAt = now;
+        }
+      },
+      prepare(itemId: string, fromId: string, toId: string) {
+        return { payload: { itemId, fromId, toId, now: isoNow() } };
       },
     },
     createGrimoire: {
@@ -234,6 +266,7 @@ export const pocketGrimoireSlice = createSlice({
 export const {
   addItem,
   removeItem,
+  moveItem,
   createGrimoire,
   importGrimoire,
   renameGrimoire,

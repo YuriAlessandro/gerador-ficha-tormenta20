@@ -6,6 +6,7 @@ import reducer, {
   duplicateGrimoire,
   importGrimoire,
   migratePocketGrimoire,
+  moveItem,
   removeItem,
   renameGrimoire,
   replaceItems,
@@ -47,6 +48,42 @@ describe('itens', () => {
   it('ignora grimório inexistente', () => {
     const state = reducer(initial(), addItem('fantasma', 'spell:A'));
     expect(state).toEqual(initial());
+  });
+});
+
+describe('mover item', () => {
+  it('tira da origem, põe no destino e torna o destino ativo', () => {
+    const { state: base, id } = withGrimoire('Combate');
+    let state = reducer(base, addItem(DEFAULT_GRIMOIRE_ID, 'spell:A'));
+    state = reducer(state, moveItem('spell:A', DEFAULT_GRIMOIRE_ID, id));
+    expect(state.grimoires[0].itemIds).toEqual([]);
+    expect(state.grimoires[1].itemIds).toEqual(['spell:A']);
+    expect(state.activeId).toBe(id);
+  });
+
+  it('destino que já tem o item não duplica', () => {
+    const { state: base, id } = withGrimoire('Combate');
+    let state = reducer(base, addItem(DEFAULT_GRIMOIRE_ID, 'spell:A'));
+    state = reducer(state, addItem(id, 'spell:A'));
+    state = reducer(state, moveItem('spell:A', DEFAULT_GRIMOIRE_ID, id));
+    expect(state.grimoires[0].itemIds).toEqual([]);
+    expect(state.grimoires[1].itemIds).toEqual(['spell:A']);
+  });
+
+  it('mover para o próprio grimório só o torna ativo', () => {
+    const { state: base, id } = withGrimoire('Combate');
+    let state = reducer(base, addItem(id, 'spell:A'));
+    const before = state.grimoires[1];
+    state = reducer(state, moveItem('spell:A', id, id));
+    expect(state.grimoires[1]).toBe(before);
+    expect(state.activeId).toBe(id);
+  });
+
+  it('ignora destino inexistente', () => {
+    const state = reducer(initial(), addItem(DEFAULT_GRIMOIRE_ID, 'spell:A'));
+    expect(
+      reducer(state, moveItem('spell:A', DEFAULT_GRIMOIRE_ID, 'fantasma'))
+    ).toEqual(state);
   });
 });
 

@@ -11,29 +11,72 @@ import {
   resolveItem,
 } from '../../functions/pocketGrimoire/resolveItems';
 import { PocketGrimoire } from '../../interfaces/PocketGrimoire';
+import { requestGrimoireMove } from '../../store/slices/pocketGrimoire/grimoireMoveSlice';
 import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
 
-/** Snackbar do grimório com o botão "Desfazer". */
+/** Com "Trocar", um pouco mais de tempo para ler o destino e decidir. */
+export const CHANGE_SNACKBAR_DURATION = 6000;
+
+/**
+ * Snackbar do grimório com o botão "Desfazer" e, quando há `onChange`, o
+ * "Trocar" antes dele.
+ */
 export function useUndoSnackbar() {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-  return (message: string, undo: () => void) => {
+  return (message: string, undo: () => void, onChange?: () => void) => {
     enqueueSnackbar(message, {
       ...GRIMOIRE_SNACKBAR,
+      ...(onChange ? { autoHideDuration: CHANGE_SNACKBAR_DURATION } : {}),
       variant: 'default',
       action: (key) => (
-        <Button
-          color='inherit'
-          size='small'
-          onClick={() => {
-            undo();
-            closeSnackbar(key);
-          }}
-        >
-          Desfazer
-        </Button>
+        <>
+          {onChange && (
+            <Button
+              color='inherit'
+              size='small'
+              onClick={() => {
+                closeSnackbar(key);
+                onChange();
+              }}
+            >
+              Trocar
+            </Button>
+          )}
+          <Button
+            color='inherit'
+            size='small'
+            onClick={() => {
+              undo();
+              closeSnackbar(key);
+            }}
+          >
+            Desfazer
+          </Button>
+        </>
       ),
     });
+  };
+}
+
+/**
+ * Aviso de "foi para o grimório ativo": mostra o destino na hora em que ele
+ * importa e oferece "Trocar" (ver `GrimoireMoveDialog`).
+ */
+export function useAddedToActiveSnackbar() {
+  const dispatch = useAppDispatch();
+  const notify = useUndoSnackbar();
+
+  return (
+    item: { itemId: string; itemName: string },
+    grimoire: Pick<PocketGrimoire, 'id' | 'name'>,
+    undo: () => void
+  ) => {
+    const { itemId, itemName } = item;
+    // Texto sem gênero: serve para "a magia" e para "o poder".
+    notify(`"${itemName}" foi para ${grimoire.name}.`, undo, () =>
+      dispatch(requestGrimoireMove({ itemId, itemName, fromId: grimoire.id }))
+    );
   };
 }
 
