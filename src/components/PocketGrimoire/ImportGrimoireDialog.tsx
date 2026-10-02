@@ -31,6 +31,7 @@ import {
 import { resolveItem } from '../../functions/pocketGrimoire/resolveItems';
 import { PocketGrimoire } from '../../interfaces/PocketGrimoire';
 import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
+import { useGrimoireLimit } from './useGrimoireLimit';
 
 interface Props {
   open: boolean;
@@ -63,6 +64,7 @@ const ImportGrimoireDialog: React.FC<Props> = ({
   onImported,
 }) => {
   const dispatch = useAppDispatch();
+  const { canCreate, message: limitMessage } = useGrimoireLimit();
   const store = useStore<WithPocketGrimoire>();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [tab, setTab] = useState<'file' | 'text'>('file');
@@ -171,6 +173,7 @@ const ImportGrimoireDialog: React.FC<Props> = ({
     const result = parseGrimoireImport(text);
     if (!result.ok) setError(result.error);
     else if (replaceTarget) setPending(result.value.itemIds);
+    else if (!canCreate) setError(limitMessage);
     else importAsNew(result.value.name, result.value.itemIds);
   };
 

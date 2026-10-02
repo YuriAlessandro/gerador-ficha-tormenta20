@@ -33,6 +33,7 @@ import GrimoireNameDialog from './GrimoireNameDialog';
 import ExportGrimoireDialog from './ExportGrimoireDialog';
 import ImportGrimoireDialog from './ImportGrimoireDialog';
 import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
+import { useGrimoireLimit } from './useGrimoireLimit';
 
 interface Props {
   grimoire: PocketGrimoire;
@@ -46,6 +47,7 @@ type OpenDialog = 'rename' | 'export' | 'replace' | 'delete' | null;
 const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
   const dispatch = useAppDispatch();
   const { enqueueSnackbar } = useSnackbar();
+  const { ensureCanCreate } = useGrimoireLimit();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [dialog, setDialog] = useState<OpenDialog>(null);
   // Sempre precisa sobrar pelo menos um grimório.
@@ -59,6 +61,7 @@ const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
 
   const handleDuplicate = () => {
     closeMenu();
+    if (!ensureCanCreate()) return;
     dispatch(duplicateGrimoire(grimoire.id));
     enqueueSnackbar(`Cópia de ${grimoire.name} criada.`, {
       ...GRIMOIRE_SNACKBAR,

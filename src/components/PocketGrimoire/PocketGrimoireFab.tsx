@@ -34,6 +34,7 @@ import GrimoireItemList from './GrimoireItemList';
 import GrimoireNameDialog from './GrimoireNameDialog';
 import ImportGrimoireDialog from './ImportGrimoireDialog';
 import { useRemoveFromGrimoire } from './useGrimoireUndo';
+import { useGrimoireLimit } from './useGrimoireLimit';
 
 const NEW_OPTION = '__novo__';
 const TITLE_ID = 'pocket-grimoire-panel-title';
@@ -43,6 +44,7 @@ const countLabel = (count: number) =>
 
 const PocketGrimoireFab: React.FC = () => {
   const dispatch = useAppDispatch();
+  const { ensureCanCreate } = useGrimoireLimit();
   const removeFromGrimoire = useRemoveFromGrimoire();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const grimoires = useAppSelector(selectGrimoires);
@@ -91,8 +93,11 @@ const PocketGrimoireFab: React.FC = () => {
         label='Grimório ativo'
         value={active.id}
         onChange={(event) => {
-          if (event.target.value === NEW_OPTION) setCreating(true);
-          else dispatch(setActive(event.target.value));
+          if (event.target.value === NEW_OPTION) {
+            if (ensureCanCreate()) setCreating(true);
+          } else {
+            dispatch(setActive(event.target.value));
+          }
         }}
       >
         {grimoires.map((grimoire) => (

@@ -24,6 +24,7 @@ import { SEO } from '../SEO';
 import { useAuth } from '../../hooks/useAuth';
 import TormentaTitle from '../Database/TormentaTitle';
 import GrimoireMenu from './GrimoireMenu';
+import { useGrimoireLimit } from './useGrimoireLimit';
 import GrimoireSyncIndicator from './GrimoireSyncIndicator';
 import GrimoireLoginHint from './GrimoireLoginHint';
 import { useRequestGrimoireSync } from './usePocketGrimoireSync';
@@ -41,6 +42,7 @@ const describeGrimoire = (count: number, updatedAt: string) => {
 const PocketGrimoireListPage: React.FC = () => {
   useRequestGrimoireSync();
   const { isAuthenticated } = useAuth();
+  const { ensureCanCreate } = useGrimoireLimit();
   const dispatch = useAppDispatch();
   const history = useHistory();
   const grimoires = useAppSelector(selectGrimoires);
@@ -69,7 +71,9 @@ const PocketGrimoireListPage: React.FC = () => {
           <Button
             variant='contained'
             startIcon={<AddIcon />}
-            onClick={() => setCreating(true)}
+            onClick={() => {
+              if (ensureCanCreate()) setCreating(true);
+            }}
           >
             Novo
           </Button>

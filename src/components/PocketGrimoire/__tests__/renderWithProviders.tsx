@@ -44,6 +44,9 @@ export const createTestStore = (
       pocketGrimoire: pocketGrimoireReducer,
       pocketGrimoireSyncStatus: pocketGrimoireSyncStatusReducer,
       auth: (state: ReturnType<typeof authState> = authState(auth)) => state,
+      // Plano gratuito, sem boost (o que o limite de grimórios lê).
+      subscription: (state = { subscription: null }) => state,
+      system: (state = { featureFlags: {} }) => state,
     },
     preloadedState: {
       pocketGrimoire: preloadedState ?? createInitialState(),
