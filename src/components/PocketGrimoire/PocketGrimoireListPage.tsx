@@ -21,6 +21,7 @@ import {
   selectGrimoires,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 import { SEO } from '../SEO';
+import { useAuth } from '../../hooks/useAuth';
 import TormentaTitle from '../Database/TormentaTitle';
 import GrimoireMenu from './GrimoireMenu';
 import GrimoireSyncIndicator from './GrimoireSyncIndicator';
@@ -39,6 +40,7 @@ const describeGrimoire = (count: number, updatedAt: string) => {
 
 const PocketGrimoireListPage: React.FC = () => {
   useRequestGrimoireSync();
+  const { isAuthenticated } = useAuth();
   const dispatch = useAppDispatch();
   const history = useHistory();
   const grimoires = useAppSelector(selectGrimoires);
@@ -128,10 +130,12 @@ const PocketGrimoireListPage: React.FC = () => {
           ))}
         </Stack>
 
-        <Alert severity='warning' sx={{ mt: 3 }}>
-          Grimórios ficam só neste navegador. Exporte para fazer backup ou levar
-          para outro aparelho.
-        </Alert>
+        {!isAuthenticated && (
+          <Alert severity='warning' sx={{ mt: 3 }}>
+            Grimórios ficam só neste navegador. Exporte para fazer backup ou
+            levar para outro aparelho.
+          </Alert>
+        )}
       </Container>
 
       <GrimoireNameDialog

@@ -237,6 +237,15 @@ describe('PocketGrimoireListPage', () => {
     expect(screen.getByText(/ficam só neste navegador/)).toBeInTheDocument();
   });
 
+  it('logado, não diz que os grimórios ficam só no navegador', () => {
+    renderWithProviders(<PocketGrimoireListPage />, {
+      auth: { isAuthenticated: true },
+    });
+    expect(
+      screen.queryByText(/ficam só neste navegador/)
+    ).not.toBeInTheDocument();
+  });
+
   it('cria um grimório novo pelo botão Novo', () => {
     const { store } = renderWithProviders(<PocketGrimoireListPage />);
     fireEvent.click(screen.getByRole('button', { name: /Novo/ }));
