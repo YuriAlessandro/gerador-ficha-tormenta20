@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
+  Alert,
   Drawer,
   Box,
   Typography,
@@ -28,6 +29,7 @@ import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane
 import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
 import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
 import { dataRegistry } from '@/data/registry';
+import { shouldAutoEngenhoca } from '@/functions/spells/engenhoca';
 import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
 import { getSchoolLabel } from '@/components/SpellPicker/schoolLabels';
 import {
@@ -85,6 +87,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     []
   );
 
+  const autoEngenhoca = useMemo(() => shouldAutoEngenhoca(sheet), [sheet]);
   const [selectedSpells, setSelectedSpells] = useState<Spell[]>([]);
   const [bonusSpellDC, setBonusSpellDC] = useState<number>(
     sheet.bonusSpellDC ?? 0
@@ -355,6 +358,16 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     const originalSpellNames = sheet.spells?.map((s) => s.nome) || [];
     const newSpellNames = finalSelectedSpells.map((s) => s.nome);
 
+    // Engenhoqueiro sem conjuração própria: toda magia nova só pode ser
+    // engenhoca, então já entra marcada (o jogador batiza depois, na aba).
+    if (autoEngenhoca) {
+      finalSelectedSpells = finalSelectedSpells.map((s) =>
+        originalSpellNames.includes(s.nome) || s.engenhoca || s.equipmentSource
+          ? s
+          : { ...s, engenhoca: { forma: 'empunhada' as const } }
+      );
+    }
+
     const addedSpells = finalSelectedSpells.filter(
       (s) => !originalSpellNames.includes(s.nome)
     );
@@ -476,6 +489,14 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
             min={-50}
             max={50}
           />
+
+          {autoEngenhoca && (
+            <Alert severity='info' sx={{ mb: 2 }}>
+              Seu personagem não lança magias: as que você adicionar aqui entram
+              como <strong>engenhocas</strong>. Depois de salvar, use a chave
+              inglesa na aba de Magias para dar nome, forma e aparatos.
+            </Alert>
+          )}
 
           {schoolTargets.length > 0 && (
             <SpellSchoolsEditor

@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { Alert, Box, Button, Chip, Tooltip, Typography } from '@mui/material';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
@@ -161,6 +167,12 @@ export interface SpellsDisplayProps {
   ) => void;
   /** Heróis de Arton ativo: o diálogo da engenhoca oferece aparatos. */
   showAparatos?: boolean;
+  /**
+   * Nome da magia cujo diálogo de engenhoca deve abrir sozinho (acabou de ser
+   * adicionada como engenhoca). Consumido uma vez: o pai limpa no callback.
+   */
+  autoOpenEngenhocaFor?: string | null;
+  onAutoOpenEngenhocaHandled?: () => void;
 }
 
 const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
@@ -187,6 +199,8 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   onActivateEffect,
   onEngenhocaChange,
   showAparatos,
+  autoOpenEngenhocaFor,
+  onAutoOpenEngenhocaHandled,
 }) => {
   const { hasAccess: canUseActiveEffects } = useFeatureAccess('activeEffects');
   const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
@@ -231,6 +245,20 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   const handleOpenEngenhoca = useCallback((spell: Spell) => {
     setEngenhocaSpell(spell);
   }, []);
+
+  useEffect(() => {
+    if (!autoOpenEngenhocaFor) return;
+    const target = spells.find((spell) => spell.nome === autoOpenEngenhocaFor);
+    // A lista ainda pode não ter recebido a magia nova: espera o próximo render.
+    if (!target) return;
+    if (canEditEngenhoca) setEngenhocaSpell(target);
+    onAutoOpenEngenhocaHandled?.();
+  }, [
+    autoOpenEngenhocaFor,
+    spells,
+    canEditEngenhoca,
+    onAutoOpenEngenhocaHandled,
+  ]);
 
   const handleRepairEngenhoca = useCallback(
     (spell: Spell) => {

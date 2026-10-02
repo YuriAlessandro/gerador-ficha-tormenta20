@@ -899,12 +899,33 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
+  // Engenhoca recém-criada pela gaveta de magias cujo diálogo de configuração
+  // deve abrir sozinho. Só quando entrou UMA: com várias, abrir um diálogo por
+  // magia em sequência atrapalharia mais do que ajuda.
+  const [autoOpenEngenhocaFor, setAutoOpenEngenhocaFor] = useState<
+    string | null
+  >(null);
+  const clearAutoOpenEngenhoca = useCallback(
+    () => setAutoOpenEngenhocaFor(null),
+    []
+  );
+
   const handleSpellsUpdate = useCallback(
     (updates: Partial<CharacterSheet>) => {
       const updatedSheet = { ...currentSheet, ...updates };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
+      }
+
+      const previousNames = new Set(
+        (currentSheet.spells ?? []).map((s) => s.nome)
+      );
+      const novasEngenhocas = (updates.spells ?? []).filter(
+        (s) => s.engenhoca && !previousNames.has(s.nome)
+      );
+      if (novasEngenhocas.length === 1) {
+        setAutoOpenEngenhocaFor(novasEngenhocas[0].nome);
       }
     },
     [currentSheet, onSheetUpdate]
@@ -2922,6 +2943,8 @@ const Result: React.FC<ResultProps> = (props) => {
                   ? handleEngenhocaUpdate
                   : undefined
               }
+              autoOpenEngenhocaFor={autoOpenEngenhocaFor}
+              onAutoOpenEngenhocaHandled={clearAutoOpenEngenhoca}
               showAparatos={
                 userSupplements.includes(
                   SupplementId.TORMENTA20_HEROIS_ARTON
