@@ -6,10 +6,7 @@ import {
 } from '@/interfaces/PowerSelections';
 import { getClassFamilyName, isSameClassFamily } from './classFamily';
 import { Atributo } from '../data/systems/tormenta20/atributos';
-import {
-  buildFamiliarSheetBonuses,
-  FAMILIAR_BONUSES_VIA_PARTNER,
-} from './powers/familiarBonuses';
+import { buildFamiliarSheetBonuses } from './powers/familiarBonuses';
 import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
@@ -2160,15 +2157,13 @@ export const applyPower = (
           if (previousResult && previousResult.type === 'FamiliarSelected') {
             const familiar = FAMILIARS[previousResult.familiarKey];
             if (familiar) {
-              if (!FAMILIAR_BONUSES_VIA_PARTNER.has(powerOrAbility.name)) {
-                sheet.sheetBonuses.push(
-                  ...buildFamiliarSheetBonuses(
-                    previousResult.familiarKey,
-                    sheet,
-                    sheetAction.source
-                  )
-                );
-              }
+              sheet.sheetBonuses.push(
+                ...buildFamiliarSheetBonuses(
+                  previousResult.familiarKey,
+                  sheet,
+                  sheetAction.source
+                )
+              );
               if (sheet.classPowers) {
                 const powerIndex = sheet.classPowers.findIndex(
                   (power) => power.name === 'Familiar'
@@ -2665,16 +2660,15 @@ export const applyPower = (
         const familiar = FAMILIARS[selectedFamiliar];
 
         // Aplica os bônus mecânicos do familiar selecionado (Gato/Sapo/Rato).
-        // O Familiar do Arcanista é parceiro: o bônus vem dele (premium).
-        if (!FAMILIAR_BONUSES_VIA_PARTNER.has(powerOrAbility.name)) {
-          sheet.sheetBonuses.push(
-            ...buildFamiliarSheetBonuses(
-              selectedFamiliar,
-              sheet,
-              sheetAction.source
-            )
-          );
-        }
+        // Com o premium, o do Familiar do Arcanista sai daqui e vem do
+        // parceiro (`stripPartnerOwnedBonuses`, no recálculo).
+        sheet.sheetBonuses.push(
+          ...buildFamiliarSheetBonuses(
+            selectedFamiliar,
+            sheet,
+            sheetAction.source
+          )
+        );
 
         // Update power text to show selected familiar
         if (sheet.classPowers) {
