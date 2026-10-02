@@ -127,6 +127,7 @@ import {
   reconcileAnimalCompanionEffects,
 } from '@/premium/functions/animalCompanionEffects';
 import { reconcileSheetPartnerEffects } from '@/premium/functions/sheetPartners';
+import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
 import { reconcileAutoPowerEffects } from '@/premium/functions/autoPowerEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
 import { needsTormentaPenaltyBackfill } from '@/functions/tormentaCharismaPenalty';
@@ -713,7 +714,12 @@ const Result: React.FC<ResultProps> = (props) => {
     // ledger (mesmo vazio), então a condição não dispara de novo — não há como
     // descontar duas vezes.
     const needsTormentaBackfill = needsTormentaPenaltyBackfill(currentSheet);
-    if (!nextEffects && !needsTormentaBackfill) return;
+    // Ficha que já tinha o poder (Familiar, Escudeiro...) antes de o parceiro
+    // concedido existir: o recálculo de `applyRecalculatedSheet` cria o
+    // parceiro, e a rodada seguinte deste efeito aplica os bônus dele. `!!` e
+    // não `!== null`: o stub público devolve `undefined`.
+    const needsPowerPartners = !!reconcilePowerPartners(currentSheet);
+    if (!nextEffects && !needsTormentaBackfill && !needsPowerPartners) return;
     applyRecalculatedSheet(
       nextEffects
         ? { ...currentSheet, activeEffects: nextEffects }
