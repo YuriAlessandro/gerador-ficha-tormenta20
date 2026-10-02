@@ -67,6 +67,11 @@ export interface SyncEngine {
   onStoreChange: () => void;
   onOnline: () => void;
   onVisible: () => void;
+  /**
+   * Antes do "Sair": envia já o que estiver pendente (sem esperar o
+   * debounce). `true` se nada ficou para trás.
+   */
+  flush: () => Promise<boolean>;
   /** Logout explícito (botão "Sair"). */
   onLogout: () => void;
   dispose: () => void;
@@ -80,7 +85,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
   let userId: string | null = null;
   let active = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
-  let inFlight = false;
+  let inFlight: Promise<void> | null = null;
   let runAgain = false;
   let disposed = false;
   let lastSync: PocketGrimoireSyncState | null = null;
@@ -111,21 +116,13 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     }
   };
 
-  const run = async (): Promise<void> => {
-    if (!userId || !active || disposed) return;
-    if (inFlight) {
-      runAgain = true;
-      return;
-    }
-    cancelTimer();
-
-    const requestUser = userId;
+  /** Uma requisição: envia as pendências, ou busca a lista. Nunca rejeita. */
+  const execute = async (requestUser: string): Promise<void> => {
     const state = deps.getState();
     const payload = hasPendingChanges(state.sync)
       ? buildSyncPayload(state)
       : null;
     const sent = { ...state.sync.dirty };
-    inFlight = true;
     lastAttempt = now();
     deps.setStatus('syncing');
 
@@ -153,13 +150,25 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       }
     } catch (error) {
       if (userId === requestUser) handleError(error);
-    } finally {
-      inFlight = false;
+    }
+  };
+
+  /** Uma requisição por vez: o que chega durante uma vai na seguinte. */
+  const run = (): Promise<void> => {
+    if (!userId || !active || disposed) return Promise.resolve();
+    if (inFlight) {
+      runAgain = true;
+      return inFlight;
+    }
+    cancelTimer();
+    inFlight = execute(userId).finally(() => {
+      inFlight = null;
       if (runAgain) {
         runAgain = false;
         run();
       }
-    }
+    });
+    return inFlight;
   };
 
   const schedule = () => {
@@ -239,6 +248,18 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
 
     onVisible() {
       if (now() - lastAttempt >= REFRESH_INTERVAL_MS) run();
+    },
+
+    async flush() {
+      const settled = () => !hasPendingChanges(deps.getState().sync);
+      if (!userId || !active) return settled();
+      // Requisição em voo (e a que ela encadear): espera terminar.
+      while (inFlight) {
+        // eslint-disable-next-line no-await-in-loop
+        await inFlight;
+      }
+      if (!settled()) await run();
+      return settled();
     },
 
     onLogout() {

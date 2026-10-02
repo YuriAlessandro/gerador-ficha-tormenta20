@@ -10,6 +10,8 @@ export interface LogoutCheck {
   message: string;
   /** Chamado depois que o logout explícito deu certo. */
   onLogout?: () => void;
+  /** Última chance de salvar antes do diálogo (ex.: enviar pendências). */
+  beforeLogout?: () => Promise<unknown>;
 }
 
 export interface LogoutCheckRegistry {
@@ -17,7 +19,12 @@ export interface LogoutCheckRegistry {
   unregister: (id: string) => void;
   pendingMessages: () => string[];
   notifyLogout: () => void;
+  /** Roda os `beforeLogout`, esperando no máximo `timeoutMs`. Nunca rejeita. */
+  prepare: (timeoutMs: number) => Promise<void>;
 }
+
+/** Quanto o "Sair" espera as pendências subirem antes de avisar. */
+export const LOGOUT_PREPARE_TIMEOUT_MS = 5000;
 
 export const SHEET_LOGOUT_CHECK_ID = 'sheet';
 
@@ -39,6 +46,18 @@ export function createLogoutCheckRegistry(): LogoutCheckRegistry {
         .map(({ message }) => message),
     notifyLogout: () => {
       checks.forEach(({ onLogout }) => onLogout?.());
+    },
+    prepare: async (timeoutMs) => {
+      const tasks = Array.from(checks.values()).flatMap(({ beforeLogout }) =>
+        beforeLogout ? [beforeLogout().catch(() => undefined)] : []
+      );
+      if (tasks.length === 0) return;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, timeoutMs);
+      });
+      await Promise.race([Promise.all(tasks), timeout]);
+      clearTimeout(timer);
     },
   };
 }

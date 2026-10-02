@@ -90,6 +90,7 @@ export function usePocketGrimoireSync(service: GrimoireSyncService): void {
       message: PENDING_LOGOUT_MESSAGE,
       check: () => hasPendingChanges(store.getState().pocketGrimoire.sync),
       onLogout: () => engineRef.current?.onLogout(),
+      beforeLogout: () => engineRef.current?.flush() ?? Promise.resolve(true),
     });
     return () => unregisterLogoutCheck(LOGOUT_CHECK_ID);
   }, [store, registerLogoutCheck, unregisterLogoutCheck]);

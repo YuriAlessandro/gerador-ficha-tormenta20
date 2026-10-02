@@ -404,3 +404,66 @@ describe('voltar para a aba', () => {
     expect(server.service.getAll).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('flush (antes do logout)', () => {
+  it('envia as pendências na hora, sem esperar o debounce', async () => {
+    const server = createFakeServer();
+    const { engine, store, local } = setup(ownedState('u1'), server.service);
+    engine.setUser('u1');
+    await flush();
+
+    store.dispatch(addItem(DEFAULT_GRIMOIRE_ID, 'spell:A'));
+    await expect(engine.flush()).resolves.toBe(true);
+    expect(server.service.sync).toHaveBeenCalledTimes(1);
+    expect(local().sync.dirty).toEqual({});
+  });
+
+  it('espera a requisição em voo e envia o que sobrou', async () => {
+    const server = createFakeServer();
+    let release: () => void = () => undefined;
+    const original = server.service.sync.getMockImplementation()!;
+    server.service.sync.mockImplementationOnce(
+      (payload: GrimoireSyncPayload) =>
+        new Promise<PocketGrimoire[]>((resolve) => {
+          release = () => resolve(original(payload));
+        })
+    );
+    const { engine, store, local } = setup(ownedState('u1'), server.service);
+    engine.setUser('u1');
+    await flush();
+    store.dispatch(addItem(DEFAULT_GRIMOIRE_ID, 'spell:A'));
+    await vi.advanceTimersByTimeAsync(SYNC_DEBOUNCE_MS);
+    await vi.advanceTimersByTimeAsync(1);
+    store.dispatch(addItem(DEFAULT_GRIMOIRE_ID, 'spell:B'));
+
+    const result = engine.flush();
+    release();
+    await expect(result).resolves.toBe(true);
+    expect(server.stored()[0].itemIds).toEqual(['spell:A', 'spell:B']);
+    expect(local().sync.dirty).toEqual({});
+  });
+
+  it('sem conexão: devolve false e mantém as pendências', async () => {
+    const server = createFakeServer();
+    const { engine, store, local } = setup(ownedState('u1'), server.service);
+    engine.setUser('u1');
+    await flush();
+    server.service.sync.mockRejectedValueOnce(
+      new GrimoireSyncError('network', 'offline')
+    );
+    store.dispatch(addItem(DEFAULT_GRIMOIRE_ID, 'spell:A'));
+    await expect(engine.flush()).resolves.toBe(false);
+    expect(Object.keys(local().sync.dirty)).toHaveLength(1);
+  });
+
+  it('nada pendente: true sem chamar a API', async () => {
+    const server = createFakeServer();
+    const { engine } = setup(ownedState('u1'), server.service);
+    engine.setUser('u1');
+    await flush();
+    server.service.getAll.mockClear();
+    await expect(engine.flush()).resolves.toBe(true);
+    expect(server.service.sync).not.toHaveBeenCalled();
+    expect(server.service.getAll).not.toHaveBeenCalled();
+  });
+});

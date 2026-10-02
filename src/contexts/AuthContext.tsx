@@ -35,6 +35,7 @@ import { AppDispatch } from '../store';
 import AuthModal from '../components/Auth/AuthModal';
 import {
   createLogoutCheckRegistry,
+  LOGOUT_PREPARE_TIMEOUT_MS,
   LogoutCheck,
   SHEET_LOGOUT_CHECK_ID,
   SHEET_UNSAVED_MESSAGE,
@@ -128,7 +129,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [performLogout]);
 
   // Request logout - checks for unsaved changes first
-  const requestLogout = useCallback(() => {
+  const requestLogout = useCallback(async () => {
+    // Dá a chance de quem tem pendências salvar antes (ex.: grimórios).
+    await logoutChecksRef.current.prepare(LOGOUT_PREPARE_TIMEOUT_MS);
     const messages = logoutChecksRef.current.pendingMessages();
 
     if (messages.length > 0) {
