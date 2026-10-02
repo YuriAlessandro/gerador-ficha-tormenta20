@@ -57,6 +57,27 @@ describe('PocketGrimoireSync', () => {
     expect(store.getState().pocketGrimoire.sync.ownerId).toBe('u1');
   });
 
+  it('logado sem conta no backend (fora do ar): mostra offline e não apaga nada', async () => {
+    const state = createInitialState();
+    state.grimoires[0].itemIds = ['spell:Luz'];
+    state.sync.ownerId = 'u1';
+    const service = fakeService();
+    const { store } = renderWithProviders(
+      <PocketGrimoireSync service={service} />,
+      { preloadedState: state, auth: { isAuthenticated: true, userId: '' } }
+    );
+    act(() => {
+      store.dispatch(requestGrimoireSync());
+    });
+    await settle();
+    expect(service.getAll).not.toHaveBeenCalled();
+    expect(service.sync).not.toHaveBeenCalled();
+    expect(store.getState().pocketGrimoireSyncStatus.status).toBe('offline');
+    expect(store.getState().pocketGrimoire.grimoires[0].itemIds).toEqual([
+      'spell:Luz',
+    ]);
+  });
+
   it('deslogado: não chama a API', async () => {
     const service = fakeService();
     const { store } = renderWithProviders(

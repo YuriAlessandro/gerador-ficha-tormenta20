@@ -40,6 +40,9 @@ export function usePocketGrimoireSync(service: GrimoireSyncService): void {
   if (!loading) resolvedUser = isAuthenticated && userId ? userId : null;
   const userRef = useRef(resolvedUser);
   userRef.current = resolvedUser;
+  // Firebase logado, mas o backend não respondeu ao entrar (`dbUser` nulo):
+  // nada sobe até a próxima abertura com o backend no ar.
+  const accountUnreachable = !loading && isAuthenticated && !userId;
 
   useEffect(() => {
     const engine = createSyncEngine({
@@ -77,6 +80,10 @@ export function usePocketGrimoireSync(service: GrimoireSyncService): void {
   useEffect(() => {
     if (requested && resolvedUser) engineRef.current?.activate();
   }, [requested, resolvedUser]);
+
+  useEffect(() => {
+    if (accountUnreachable) store.dispatch(setSyncStatus('offline'));
+  }, [store, accountUnreachable, resolvedUser]);
 
   useEffect(() => {
     registerLogoutCheck(LOGOUT_CHECK_ID, {
