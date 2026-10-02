@@ -23,6 +23,9 @@ import {
 import { SEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
 import GrimoireMenu from './GrimoireMenu';
+import GrimoireSyncIndicator from './GrimoireSyncIndicator';
+import GrimoireLoginHint from './GrimoireLoginHint';
+import { useRequestGrimoireSync } from './usePocketGrimoireSync';
 import GrimoireNameDialog from './GrimoireNameDialog';
 import ImportGrimoireDialog from './ImportGrimoireDialog';
 
@@ -35,6 +38,7 @@ const describeGrimoire = (count: number, updatedAt: string) => {
 };
 
 const PocketGrimoireListPage: React.FC = () => {
+  useRequestGrimoireSync();
   const dispatch = useAppDispatch();
   const history = useHistory();
   const grimoires = useAppSelector(selectGrimoires);
@@ -82,7 +86,9 @@ const PocketGrimoireListPage: React.FC = () => {
           >
             Ir para a enciclopédia
           </Button>
+          <GrimoireSyncIndicator />
         </Stack>
+        <GrimoireLoginHint sx={{ mt: -1, mb: 2 }} />
 
         <Stack spacing={1.5}>
           {grimoires.map((grimoire) => (

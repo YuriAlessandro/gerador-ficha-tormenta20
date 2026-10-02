@@ -41,6 +41,9 @@ import { normalizeSearch } from '../../functions/stringUtils';
 import { SEO } from '../SEO';
 import GrimoireItemCard from './cards/GrimoireItemCard';
 import GrimoireMenu from './GrimoireMenu';
+import GrimoireSyncIndicator from './GrimoireSyncIndicator';
+import GrimoireLoginHint from './GrimoireLoginHint';
+import { useRequestGrimoireSync } from './usePocketGrimoireSync';
 import AddFromEncyclopediaItem from './AddFromEncyclopediaItem';
 import { useRemoveFromGrimoire } from './useGrimoireUndo';
 import GrimoireCollectibleCard from './cards/GrimoireCollectibleCard';
@@ -62,6 +65,7 @@ const FILTERS: { value: GrimoireFilter; label: string }[] = [
 ];
 
 const PocketGrimoirePage: React.FC = () => {
+  useRequestGrimoireSync();
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
   const removeFromGrimoire = useRemoveFromGrimoire();
@@ -188,12 +192,14 @@ const PocketGrimoirePage: React.FC = () => {
           {grimoire.id === activeId && (
             <Chip label='ativo' size='small' color='primary' />
           )}
+          <GrimoireSyncIndicator />
           <GrimoireMenu
             grimoire={grimoire}
             isActive={grimoire.id === activeId}
             onDeleted={() => history.push('/grimorio')}
           />
         </Box>
+        <GrimoireLoginHint sx={{ mt: -1, mb: 2 }} />
 
         <TextField
           fullWidth
