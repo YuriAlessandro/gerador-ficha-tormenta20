@@ -22,6 +22,7 @@ describe('createInitialState', () => {
         },
       ],
       activeId: DEFAULT_GRIMOIRE_ID,
+      sync: { ownerId: null, dirty: {}, deletedIds: [], pendingMerge: false },
     });
   });
 });
@@ -139,5 +140,75 @@ describe('ensureValidState', () => {
       NOW
     );
     expect(result.grimoires[0].name).toBe('Grimório sem nome');
+  });
+});
+
+describe('ensureValidState — sync', () => {
+  const g = (id: string) => ({
+    id,
+    name: id,
+    itemIds: [],
+    createdAt: NOW,
+    updatedAt: NOW,
+  });
+
+  it('estado antigo sem sync vira anônimo', () => {
+    expect(
+      ensureValidState({ grimoires: [g('a')], activeId: 'a' }, NOW).sync
+    ).toEqual({
+      ownerId: null,
+      dirty: {},
+      deletedIds: [],
+      pendingMerge: false,
+    });
+  });
+
+  it('mantém o sync válido de uma cópia da conta', () => {
+    const sync = {
+      ownerId: 'u1',
+      dirty: { a: NOW },
+      deletedIds: ['x'],
+      pendingMerge: true,
+    };
+    expect(
+      ensureValidState({ grimoires: [g('a')], activeId: 'a', sync }, NOW).sync
+    ).toEqual(sync);
+  });
+
+  it('descarta pendências inválidas ou de grimórios que não existem', () => {
+    const sync = {
+      ownerId: 'u1',
+      dirty: { a: NOW, fantasma: NOW, b: 42 },
+      deletedIds: ['x', 'x', 'a', 7, ''],
+      pendingMerge: 'sim',
+    };
+    expect(
+      ensureValidState(
+        { grimoires: [g('a'), g('b')], activeId: 'a', sync },
+        NOW
+      ).sync
+    ).toEqual({
+      ownerId: 'u1',
+      dirty: { a: NOW },
+      deletedIds: ['x'],
+      pendingMerge: false,
+    });
+  });
+
+  it('sem dono, pendências são descartadas', () => {
+    const sync = {
+      ownerId: null,
+      dirty: { a: NOW },
+      deletedIds: ['x'],
+      pendingMerge: true,
+    };
+    expect(
+      ensureValidState({ grimoires: [g('a')], activeId: 'a', sync }, NOW).sync
+    ).toEqual({
+      ownerId: null,
+      dirty: {},
+      deletedIds: [],
+      pendingMerge: false,
+    });
   });
 });

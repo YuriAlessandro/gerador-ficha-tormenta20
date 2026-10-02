@@ -15,7 +15,22 @@ export interface PocketGrimoire {
   updatedAt: string;
 }
 
+export interface PocketGrimoireSyncState {
+  /** `null`: grimórios do navegador. Um userId: cópia da conta desse usuário. */
+  ownerId: string | null;
+  /** Grimórios com mudança ainda não enviada: id → `updatedAt` da mudança. */
+  dirty: Record<string, string>;
+  /** Exclusões ainda não enviadas. */
+  deletedIds: string[];
+  /** O próximo envio junta com a conta (`merge: true`): é o login. */
+  pendingMerge: boolean;
+}
+
 export interface PocketGrimoireState {
   grimoires: PocketGrimoire[];
   activeId: string;
+  sync: PocketGrimoireSyncState;
 }
+
+/** Estado da conexão com a conta (não persistido). */
+export type GrimoireSyncStatus = 'idle' | 'syncing' | 'offline' | 'error';
