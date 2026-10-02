@@ -8,6 +8,22 @@ import { HelmetProvider } from 'react-helmet-async';
 import pocketGrimoireReducer from '../../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 import { PocketGrimoireState } from '../../../interfaces/PocketGrimoire';
 import { createInitialState } from '../../../functions/pocketGrimoire/state';
+import pocketGrimoireSyncStatusReducer from '../../../store/slices/pocketGrimoire/pocketGrimoireSyncStatusSlice';
+import { DbUser } from '../../../types/auth.types';
+
+export interface TestAuth {
+  isAuthenticated: boolean;
+  userId?: string;
+}
+
+/** Só o que `useAuth` lê; sem Firebase. */
+const authState = ({ isAuthenticated, userId = 'user-1' }: TestAuth) => ({
+  firebaseUser: null,
+  dbUser: isAuthenticated ? ({ _id: userId } as unknown as DbUser) : null,
+  loading: false,
+  error: null,
+  isAuthenticated,
+});
 
 interface Options {
   preloadedState?: PocketGrimoireState;
@@ -15,11 +31,20 @@ interface Options {
   route?: string;
   /** Padrão de rota que envolve a UI (para `useParams`). */
   path?: string;
+  /** Sessão simulada (padrão: deslogado). */
+  auth?: TestAuth;
 }
 
-export const createTestStore = (preloadedState?: PocketGrimoireState) =>
+export const createTestStore = (
+  preloadedState?: PocketGrimoireState,
+  auth: TestAuth = { isAuthenticated: false }
+) =>
   configureStore({
-    reducer: { pocketGrimoire: pocketGrimoireReducer },
+    reducer: {
+      pocketGrimoire: pocketGrimoireReducer,
+      pocketGrimoireSyncStatus: pocketGrimoireSyncStatusReducer,
+      auth: (state: ReturnType<typeof authState> = authState(auth)) => state,
+    },
     preloadedState: {
       pocketGrimoire: preloadedState ?? createInitialState(),
     },
@@ -27,9 +52,9 @@ export const createTestStore = (preloadedState?: PocketGrimoireState) =>
 
 export function renderWithProviders(
   ui: React.ReactElement,
-  { preloadedState, route = '/', path }: Options = {}
+  { preloadedState, route = '/', path, auth }: Options = {}
 ) {
-  const store = createTestStore(preloadedState);
+  const store = createTestStore(preloadedState, auth);
   const result = render(
     <HelmetProvider>
       <Provider store={store}>
