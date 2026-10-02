@@ -1245,7 +1245,10 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                 <ThreatText>Magias</ThreatText>
               </div>
               {threat.spells.map((spell) => (
-                <div key={getKey(`spell-${spell.name}`)}>
+                <div
+                  key={getKey(`spell-${spell.name}`)}
+                  style={{ whiteSpace: 'pre-line', marginBottom: '0.5em' }}
+                >
                   {renderSourceName(spell, 'spell')} {spell.description}
                   {spell.rolls && spell.rolls.length > 0 && (
                     <Box component='span' sx={{ ml: 1 }}>
