@@ -144,6 +144,20 @@ Se você estiver submerso (seja por ter falhado no teste de Atletismo, seja por 
 
 Você sofre penalidade de armadura em testes de Atletismo para nadar.`,
     },
+    {
+      name: 'Saltar',
+      summary:
+        'Parte do movimento. Longo: CD 5 por 1,5m; altura: CD 15 por 1,5m.',
+      description: `Você pode pular sobre buracos ou obstáculos ou alcançar algo elevado.
+
+A CD é:
+• Salto longo: 5 por quadrado de 1,5m (CD 10 para 3m, 15 para 4,5m, 20 para 6m e assim por diante)
+• Salto em altura: 15 por quadrado de 1,5m (CD 30 para 3m, 45 para 4,5m e assim por diante)
+
+Você deve ter pelo menos 6m para correr e pegar impulso. Sem esse espaço, a CD aumenta em +10.
+
+Saltar é parte de seu movimento e não exige uma ação.`,
+    },
   ],
   [Skill.ATUACAO]: [
     {
