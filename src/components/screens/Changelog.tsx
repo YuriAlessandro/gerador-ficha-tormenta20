@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            01/10/2026 (v4.35).
+            02/10/2026 (v4.35).
           </p>
 
           <p>
@@ -100,6 +100,23 @@ const Changelog: React.FC = () => {
                   Calibragem.
                 </li>
                 <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Fabricação de engenhocas</strong> no assistente de
+                  subir de nível. Quem tem (ou escolhe naquele nível) o poder
+                  Engenhoqueiro ganha o passo &quot;Engenhocas&quot; para
+                  escolher as magias, com o custo de T$ 100 por PM descontado do
+                  dinheiro (dá para desligar) e a CD de fabricação informada.
+                  Desfazer o nível remove as engenhocas e devolve o dinheiro. Em
+                  &quot;Editar magias&quot;, a magia adicionada por um
+                  engenhoqueiro sem classe conjuradora já entra como engenhoca.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A melhoria <strong>Inscrito</strong>,
+                  de Deuses de Arton, agora funciona: o item vestido ou
+                  empunhado conta como símbolo sagrado e dá +1 nos testes de
+                  resistência.
+                </li>
+                <li>
                   <strong>Novo:</strong> O gerador de{' '}
                   <strong>recompensas</strong> ganhou o modo{' '}
                   <strong>Todos os suplementos</strong>, além do livro básico, e
@@ -132,6 +149,13 @@ const Changelog: React.FC = () => {
                   )
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> <strong>Armadura ou escudo</strong>{' '}
+                  com Defesa ou penalidade editada à mão agora avisa, no editor
+                  de item, que melhorias e encantos não alteram esses valores.
+                  Na aba Defesa, o valor editado aparece sublinhado em
+                  pontilhado e com um ícone, como já acontecia nas armas.
+                </li>
+                <li>
                   <strong>Correção:</strong> <strong>Armaduras pesadas</strong>{' '}
                   do livro básico passam a ser reconhecidas como pesadas em toda
                   a ficha, e a <strong>penalidade de armadura</strong> das
@@ -147,6 +171,33 @@ const Changelog: React.FC = () => {
                   por <strong>melhorias</strong> para em zero, melhorias em
                   sequência não somam mais em dobro, e reabrir um item no editor
                   traz o pré-requisito e o custo das melhorias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Manopla</strong> com
+                  melhoria ou encanto volta a acompanhar o dano da Briga do
+                  Lutador ao subir de nível. Antes o dado ficava congelado no
+                  nível em que a melhoria foi aplicada, ou aparecia como
+                  &quot;-&quot;.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Armaduras pesadas de{' '}
+                  <strong>Heróis de Arton</strong> e{' '}
+                  <strong>Ameaças de Arton</strong> não perdem mais a marcação
+                  de pesada ao receber uma melhoria, o que desligava Encouraçado
+                  e poderes parecidos. Adamante, Gelo eterno, Lanajuste e
+                  Quitina razza também passam a usar o valor de armadura pesada
+                  nesses casos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O botão <strong>Resetar</strong> do
+                  editor de item volta as estatísticas aos valores do livro.
+                  Antes não fazia nada em item sem melhoria e podia voltar a um
+                  valor editado à mão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O bônus de{' '}
+                  <strong>símbolo sagrado</strong> não acumula mais com dois
+                  símbolos na mochila.
                 </li>
                 <li>
                   <strong>Correção:</strong> Um <strong>Ofício</strong>{' '}
