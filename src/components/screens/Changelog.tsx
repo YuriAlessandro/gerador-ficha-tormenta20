@@ -137,6 +137,32 @@ const Changelog: React.FC = () => {
                   e só uma de mitral.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Quem prefere um bloco único de texto
+                  pode trocar o <strong>Diário</strong> pelas{' '}
+                  <strong>anotações em texto simples</strong>, em cada ficha:
+                  use &quot;Prefiro texto simples&quot; no cartão do diário (ou
+                  no menu de opções dentro dele) e &quot;Usar o diário
+                  completo&quot; para voltar. Nada é apagado na troca, e o PDF
+                  imprime o que a ficha estiver usando.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O Diário ganhou{' '}
+                  <strong>Desfazer</strong> (botão na barra e Ctrl+Z) para
+                  organizar, mover, criar ou apagar blocos e conexões, sem
+                  perder o texto escrito depois.
+                </li>
+                <li>
+                  <strong>Novo:</strong> No celular, o Diário aceita{' '}
+                  <strong>zoom com dois dedos</strong>, e há botões de aproximar
+                  e afastar no canto do mapa.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O Diário mostra se o texto já foi{' '}
+                  <strong>salvo</strong>, e quem preferir pode desligar o
+                  salvamento automático no menu de opções e salvar pelo botão
+                  (ou Ctrl+S). Fechar o diário sempre salva.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Várias telas ficaram melhores no{' '}
                   <strong>celular</strong>: a criação de ficha abre em tela
                   cheia com progresso compacto, as tabelas da enciclopédia cabem
@@ -154,6 +180,18 @@ const Changelog: React.FC = () => {
                   de item, que melhorias e encantos não alteram esses valores.
                   Na aba Defesa, o valor editado aparece sublinhado em
                   pontilhado e com um ícone, como já acontecia nas armas.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>Organizar automaticamente</strong> do Diário mantém
+                  cada bloco perto daquele a que está ligado, abre espaço quando
+                  há muitos blocos e não separa grupos sem ligação com o
+                  personagem.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As <strong>conexões</strong> do
+                  Diário desviam dos blocos que estão no caminho, em vez de
+                  passar por cima deles.
                 </li>
                 <li>
                   <strong>Correção:</strong> <strong>Armaduras pesadas</strong>{' '}
@@ -217,6 +255,11 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> Catalisadores e esotéricos de
                   Heróis de Arton tinham a descrição começando com
                   &quot;Aparato.&quot; por engano.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Escrever no <strong>Diário</strong>{' '}
+                  não perde mais letras nem apaga o texto quando o salvamento
+                  automático dispara no meio da digitação.
                 </li>
               </ul>
 
