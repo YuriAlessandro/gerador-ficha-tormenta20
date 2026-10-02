@@ -16,6 +16,7 @@ import MECHANICAL_MARVELS from '../../data/systems/tormenta20/ameacas-de-arton/p
 import Bag from '../../interfaces/Bag';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { DefenseEquipment } from '../../interfaces/Equipment';
+import { reconcileSheetPartnerEffects } from '../../premium/functions/sheetPartners';
 
 describe('recalculateSheet', () => {
   let mockSheet: CharacterSheet;
@@ -419,7 +420,22 @@ describe('recalculateSheet', () => {
       );
     });
 
-    it('should re-apply Gato +2 Furtividade bonus across recalculations', () => {
+    // O Familiar do Arcanista é um parceiro: o bônus mecânico vem do efeito
+    // do parceiro (premium), não do poder. `withPartnerEffects` faz o que a
+    // ficha faz ao abrir: aplica os efeitos dos parceiros e recalcula.
+    const withPartnerEffects = (sheet: CharacterSheet): CharacterSheet => {
+      const effects = reconcileSheetPartnerEffects(sheet);
+      return effects
+        ? recalculateSheet({ ...sheet, activeEffects: effects })
+        : sheet;
+    };
+    const isFurtividade2 = (b: CharacterSheet['sheetBonuses'][number]) =>
+      b.target.type === 'Skill' &&
+      b.target.name === Skill.FURTIVIDADE &&
+      b.modifier.type === 'Fixed' &&
+      b.modifier.value === 2;
+
+    it('should move the Gato +2 Furtividade bonus from the power to the partner', () => {
       mockSheet.classPowers = [{ ...familiarPower }];
 
       // Force Gato selection through the manualSelections path
@@ -427,29 +443,45 @@ describe('recalculateSheet', () => {
         Familiar: { familiars: ['GATO'] },
       });
 
-      const firstBonus = firstRun.sheetBonuses.find(
-        (b) =>
-          b.target.type === 'Skill' &&
-          b.target.name === Skill.FURTIVIDADE &&
-          b.modifier.type === 'Fixed' &&
-          b.modifier.value === 2
-      );
-      expect(firstBonus).toBeDefined();
+      // O poder não aplica mais; o recálculo cria o parceiro.
+      expect(firstRun.sheetBonuses.filter(isFurtividade2)).toHaveLength(0);
+      expect(firstRun.partners?.[0]?.grant).toMatchObject({
+        power: 'Familiar',
+        option: 'Gato',
+      });
 
-      // After 3 recalculations without manualSelections, bonus should still be present
-      let current = firstRun;
+      // After 3 recalculations, the bonus comes once, from the partner
+      let current = withPartnerEffects(firstRun);
       for (let i = 0; i < 3; i += 1) {
-        current = recalculateSheet(current);
+        current = withPartnerEffects(recalculateSheet(current));
       }
+      const bonuses = current.sheetBonuses.filter(isFurtividade2);
+      expect(bonuses).toHaveLength(1);
+      expect(bonuses[0].source.type).toBe('activeEffect');
+    });
 
-      const finalBonus = current.sheetBonuses.find(
-        (b) =>
-          b.target.type === 'Skill' &&
-          b.target.name === Skill.FURTIVIDADE &&
-          b.modifier.type === 'Fixed' &&
-          b.modifier.value === 2
-      );
-      expect(finalBonus).toBeDefined();
+    it('should keep the familiar bonus on the power for Ex-Familiar (Kobolds)', () => {
+      const exFamiliar = {
+        ...familiarPower,
+        name: 'Ex-Familiar (Kobolds)',
+        sheetActions: [
+          {
+            source: {
+              type: 'power' as const,
+              name: 'Ex-Familiar (Kobolds)',
+            },
+            action: { type: 'selectFamiliar' as const },
+          },
+        ],
+      };
+      mockSheet.classPowers = [exFamiliar];
+
+      const out = recalculateSheet(mockSheet, undefined, {
+        'Ex-Familiar (Kobolds)': { familiars: ['GATO'] },
+      });
+
+      expect(out.sheetBonuses.filter(isFurtividade2)).toHaveLength(1);
+      expect(out.partners ?? []).toHaveLength(0);
     });
 
     it('should override the recorded familiar when a new manualSelection is provided', () => {
@@ -493,12 +525,16 @@ describe('recalculateSheet', () => {
       mockSheet.overrideKeyAttribute = Atributo.FORCA; // value 2 in the mock
 
       // Gato has no PV effect, so it isolates Sapo's PV bonus
-      const withGato = recalculateSheet(cloneDeep(mockSheet), undefined, {
-        Familiar: { familiars: ['GATO'] },
-      });
-      const withSapo = recalculateSheet(cloneDeep(mockSheet), undefined, {
-        Familiar: { familiars: ['SAPO'] },
-      });
+      const withGato = withPartnerEffects(
+        recalculateSheet(cloneDeep(mockSheet), undefined, {
+          Familiar: { familiars: ['GATO'] },
+        })
+      );
+      const withSapo = withPartnerEffects(
+        recalculateSheet(cloneDeep(mockSheet), undefined, {
+          Familiar: { familiars: ['SAPO'] },
+        })
+      );
 
       expect(withSapo.pv).toBe(withGato.pv + 2);
 
@@ -515,13 +551,15 @@ describe('recalculateSheet', () => {
       mockSheet.classPowers = [{ ...familiarPower }];
       mockSheet.overrideKeyAttribute = Atributo.FORCA;
 
-      const first = recalculateSheet(cloneDeep(mockSheet), undefined, {
-        Familiar: { familiars: ['SAPO'] },
-      });
+      const first = withPartnerEffects(
+        recalculateSheet(cloneDeep(mockSheet), undefined, {
+          Familiar: { familiars: ['SAPO'] },
+        })
+      );
 
       let current = first;
       for (let i = 0; i < 3; i += 1) {
-        current = recalculateSheet(current);
+        current = withPartnerEffects(recalculateSheet(current));
       }
 
       expect(current.pv).toBe(first.pv);
@@ -538,9 +576,11 @@ describe('recalculateSheet', () => {
       mockSheet.classPowers = [{ ...familiarPower }];
       mockSheet.overrideKeyAttribute = Atributo.FORCA; // value 2 > CON value 1
 
-      const withRato = recalculateSheet(cloneDeep(mockSheet), undefined, {
-        Familiar: { familiars: ['RATO'] },
-      });
+      const withRato = withPartnerEffects(
+        recalculateSheet(cloneDeep(mockSheet), undefined, {
+          Familiar: { familiars: ['RATO'] },
+        })
+      );
 
       const fortitude = withRato.completeSkills?.find(
         (s) => s.name === Skill.FORTITUDE

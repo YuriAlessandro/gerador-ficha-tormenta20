@@ -44,6 +44,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
+import { dismountPartnersInWildShape } from '@/premium/functions/sheetPartners';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
 import { getCompanionLevels } from './companionLevels';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
@@ -2926,6 +2927,9 @@ export function recalculateSheet(
   // passivos deles entram depois, pelo conciliador de efeitos do `Result.tsx`.
   const powerPartners = reconcilePowerPartners(updatedSheet);
   if (powerPartners) updatedSheet.partners = powerPartners;
+  // Montado e Forma Selvagem não convivem: transformar desmonta.
+  const dismounted = dismountPartnersInWildShape(updatedSheet);
+  if (dismounted) updatedSheet.partners = dismounted;
 
   // Carimba os suplementos runtime usados (preserva inativos não verificáveis).
   stampUsedSupplements(updatedSheet);

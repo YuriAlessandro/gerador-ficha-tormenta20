@@ -867,8 +867,9 @@ export function normalizeSheet(sheet: CharacterSheet): void {
 
   // Parceiros da ficha: sem id/origem/dono válidos, ou sem o que resolver no
   // catálogo (builtin sem tipo/patamar, da mesa sem snapshot, de poder sem
-  // `grant`), viram cards vazios sem bônus nenhum. Descartar um parceiro de
-  // poder válido faria o conciliador do recálculo recriá-lo em laço.
+  // `grant`, personalizado sem benefícios), viram cards vazios sem bônus
+  // nenhum. Descartar um parceiro de poder válido faria o conciliador do
+  // recálculo recriá-lo em laço.
   if (Array.isArray(sheet.partners)) {
     sheet.partners = sheet.partners.filter(
       (partner) =>
@@ -882,7 +883,9 @@ export function normalizeSheet(sheet: CharacterSheet): void {
             !!partner.snapshot &&
             typeof partner.snapshot === 'object') ||
           (partner.source === 'power' &&
-            typeof partner.grant?.power === 'string'))
+            typeof partner.grant?.power === 'string') ||
+          (partner.source === 'custom' &&
+            Array.isArray(partner.customBenefits)))
     );
   } else if (sheet.partners !== undefined) {
     delete sheet.partners;
