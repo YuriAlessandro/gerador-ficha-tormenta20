@@ -18,6 +18,14 @@ export interface GrimoireSyncPayload {
   merge: boolean;
 }
 
+/** Resposta do sync: a lista da conta e os novos recusados por limite. */
+export interface GrimoireSyncResult {
+  grimoires: PocketGrimoire[];
+  rejectedIds: string[];
+  /** `maxPocketGrimoires` efetivo do plano (`-1` = ilimitado). */
+  maxGrimoires: number;
+}
+
 const isDirty = (sync: PocketGrimoireSyncState, id: string) =>
   Object.prototype.hasOwnProperty.call(sync.dirty, id);
 

@@ -1,7 +1,10 @@
 import axios from 'axios';
 import api from './api';
 import { PocketGrimoire } from '../interfaces/PocketGrimoire';
-import { GrimoireSyncPayload } from '../functions/pocketGrimoire/sync';
+import {
+  GrimoireSyncPayload,
+  GrimoireSyncResult,
+} from '../functions/pocketGrimoire/sync';
 import { GrimoireSyncError } from '../functions/pocketGrimoire/syncError';
 
 /**
@@ -24,6 +27,11 @@ interface GrimoireListResponse {
   success: boolean;
   data: ApiGrimoire[];
   count: number;
+}
+
+interface GrimoireSyncResponse extends GrimoireListResponse {
+  rejectedIds?: string[];
+  maxGrimoires?: number;
 }
 
 export const toApiGrimoire = ({
@@ -73,33 +81,39 @@ export function toGrimoireSyncError(error: unknown): GrimoireSyncError {
   );
 }
 
-const requestList = async (
-  call: () => Promise<{ data: GrimoireListResponse }>
-): Promise<PocketGrimoire[]> => {
+const request = async <T>(call: () => Promise<{ data: T }>): Promise<T> => {
   try {
     const { data } = await call();
-    return data.data.map(fromApiGrimoire);
+    return data;
   } catch (error) {
     throw toGrimoireSyncError(error);
   }
 };
 
 const pocketGrimoireService = {
-  getAll: (): Promise<PocketGrimoire[]> =>
-    requestList(() => api.get<GrimoireListResponse>(BASE_URL)),
+  getAll: async (): Promise<PocketGrimoire[]> => {
+    const data = await request(() => api.get<GrimoireListResponse>(BASE_URL));
+    return data.data.map(fromApiGrimoire);
+  },
 
-  sync: ({
+  sync: async ({
     upserts,
     deletes,
     merge,
-  }: GrimoireSyncPayload): Promise<PocketGrimoire[]> =>
-    requestList(() =>
-      api.post<GrimoireListResponse>(`${BASE_URL}/sync`, {
+  }: GrimoireSyncPayload): Promise<GrimoireSyncResult> => {
+    const data = await request(() =>
+      api.post<GrimoireSyncResponse>(`${BASE_URL}/sync`, {
         upserts: upserts.map(toApiGrimoire),
         deletes,
         merge,
       })
-    ),
+    );
+    return {
+      grimoires: data.data.map(fromApiGrimoire),
+      rejectedIds: data.rejectedIds ?? [],
+      maxGrimoires: data.maxGrimoires ?? -1,
+    };
+  },
 };
 
 export default pocketGrimoireService;

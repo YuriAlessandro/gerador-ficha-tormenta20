@@ -1,6 +1,3 @@
-/** Código do 409 do backend quando a conta passaria de 100 grimórios. */
-export const GRIMOIRE_LIMIT_CODE = 'GRIMOIRE_LIMIT';
-
 /**
  * `network`: sem resposta (offline) — tenta de novo ao reconectar.
  * `server`: 5xx — tenta de novo na próxima oportunidade.

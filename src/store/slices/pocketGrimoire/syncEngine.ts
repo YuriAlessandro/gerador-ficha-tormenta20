@@ -8,14 +8,16 @@ import {
 import {
   buildSyncPayload,
   GrimoireSyncPayload,
+  GrimoireSyncResult,
   hasPendingChanges,
   isPristineDefault,
   pendingKey,
 } from '../../../functions/pocketGrimoire/sync';
+import { GrimoireSyncError } from '../../../functions/pocketGrimoire/syncError';
 import {
-  GRIMOIRE_LIMIT_CODE,
-  GrimoireSyncError,
-} from '../../../functions/pocketGrimoire/syncError';
+  effectiveGrimoireLimit,
+  grimoireLimitMessage,
+} from '../../../functions/pocketGrimoire/limit';
 import {
   applyRemote,
   claimForUser,
@@ -35,8 +37,6 @@ import {
 export const SYNC_DEBOUNCE_MS = 1000;
 export const REFRESH_INTERVAL_MS = 60_000;
 
-export const LIMIT_MESSAGE =
-  'Sua conta chegou ao limite de 100 grimórios. Exclua algum para salvar os novos.';
 export const REJECTED_MESSAGE =
   'Não foi possível salvar seus grimórios na conta.';
 
@@ -47,7 +47,7 @@ export const mergeMessage = (count: number): string =>
 
 export interface GrimoireSyncService {
   getAll: () => Promise<PocketGrimoire[]>;
-  sync: (payload: GrimoireSyncPayload) => Promise<PocketGrimoire[]>;
+  sync: (payload: GrimoireSyncPayload) => Promise<GrimoireSyncResult>;
 }
 
 export interface SyncEngineDeps {
@@ -93,6 +93,8 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
   let lastKey = '';
   let lastAttempt = 0;
   let announceCount = 0;
+  /** Último conjunto de recusados por limite já avisado (evita repetir). */
+  let announcedRejected = '';
 
   const cancelTimer = () => {
     if (timer) {
@@ -108,11 +110,33 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       return;
     }
     deps.setStatus('error');
-    if (kind === 'rejected') {
-      const limit =
-        error instanceof GrimoireSyncError &&
-        error.code === GRIMOIRE_LIMIT_CODE;
-      deps.notify(limit ? LIMIT_MESSAGE : REJECTED_MESSAGE, 'error');
+    if (kind === 'rejected') deps.notify(REJECTED_MESSAGE, 'error');
+  };
+
+  /**
+   * Novos recusados por limite ficam pendentes no navegador. Se só eles
+   * sobraram, não reenvia sozinho: espera uma mudança (ex.: excluir outro).
+   */
+  const holdRejected = (rejected: string[], maxGrimoires: number) => {
+    const rejectedSet = new Set(rejected);
+    const { sync } = deps.getState();
+    const onlyRejected =
+      !sync.pendingMerge &&
+      sync.deletedIds.length === 0 &&
+      Object.keys(sync.dirty).every((id) => rejectedSet.has(id));
+    if (onlyRejected) {
+      cancelTimer();
+      lastSync = sync;
+      lastKey = pendingKey(sync);
+    }
+    deps.setStatus('error');
+    const key = [...rejected].sort().join('|');
+    if (key !== announcedRejected) {
+      announcedRejected = key;
+      deps.notify(
+        grimoireLimitMessage(effectiveGrimoireLimit(maxGrimoires)),
+        'error'
+      );
     }
   };
 
@@ -127,9 +151,17 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     deps.setStatus('syncing');
 
     try {
-      const remote = payload
-        ? await deps.service.sync(payload)
-        : await deps.service.getAll();
+      let remote: PocketGrimoire[];
+      let rejected: string[] = [];
+      let maxGrimoires = -1;
+      if (payload) {
+        const result = await deps.service.sync(payload);
+        remote = result.grimoires;
+        rejected = result.rejectedIds;
+        maxGrimoires = result.maxGrimoires;
+      } else {
+        remote = await deps.service.getAll();
+      }
       // Logout ou troca de conta durante a requisição: a resposta é velha.
       if (
         userId !== requestUser ||
@@ -138,10 +170,21 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         return;
       }
       if (payload) {
-        deps.dispatch(markSynced({ sent, deletedIds: payload.deletes }));
+        const confirmed = { ...sent };
+        rejected.forEach((id) => {
+          delete confirmed[id];
+        });
+        deps.dispatch(
+          markSynced({ sent: confirmed, deletedIds: payload.deletes })
+        );
       }
       deps.dispatch(applyRemote(remote));
-      deps.setStatus('idle');
+      if (rejected.length > 0) {
+        holdRejected(rejected, maxGrimoires);
+      } else {
+        announcedRejected = '';
+        deps.setStatus('idle');
+      }
       if (payload?.merge) {
         if (announceCount > 0) {
           deps.notify(mergeMessage(announceCount), 'success');

@@ -64,6 +64,7 @@ export interface SubscriptionLimits {
   maxSupplements: number; // Suplementos oficiais ativos além do livro básico, -1 = unlimited
   maxJournalNodes: number; // Blocos do Diário do Jogador por ficha, -1 = unlimited
   maxSheetLayouts: number; // Layouts de ficha na biblioteca, 0 = indisponível, -1 = unlimited. ESPELHO do backend.
+  maxPocketGrimoires: number; // Grimórios de bolso na conta, -1 = unlimited (teto de 100). ESPELHO do backend.
 }
 
 /**
@@ -177,6 +178,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxSupplements: 4,
     maxJournalNodes: 15,
     maxSheetLayouts: 0,
+    maxPocketGrimoires: 10,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 15,
@@ -187,6 +189,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxSupplements: -1, // Unlimited
     maxJournalNodes: 50,
     maxSheetLayouts: 3,
+    maxPocketGrimoires: 15,
   },
   [SupportLevel.NIVEL_1_ANUAL]: {
     maxSheets: 15,
@@ -197,6 +200,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxSupplements: -1, // Unlimited
     maxJournalNodes: 50,
     maxSheetLayouts: 3,
+    maxPocketGrimoires: 15,
   },
   [SupportLevel.NIVEL_2]: {
     maxSheets: 20,
@@ -207,6 +211,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxSupplements: -1, // Unlimited
     maxJournalNodes: 150,
     maxSheetLayouts: 10,
+    maxPocketGrimoires: 20,
   },
   [SupportLevel.NIVEL_3]: {
     maxSheets: -1, // Unlimited
@@ -217,6 +222,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxSupplements: -1, // Unlimited
     maxJournalNodes: -1, // Unlimited
     maxSheetLayouts: -1,
+    maxPocketGrimoires: -1,
   },
   [SupportLevel.NIVEL_2_ANUAL]: {
     maxSheets: 20,
@@ -227,6 +233,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxSupplements: -1, // Unlimited
     maxJournalNodes: 150,
     maxSheetLayouts: 10,
+    maxPocketGrimoires: 20,
   },
   [SupportLevel.NIVEL_3_ANUAL]: {
     maxSheets: -1, // Unlimited
@@ -237,6 +244,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxSupplements: -1, // Unlimited
     maxJournalNodes: -1, // Unlimited
     maxSheetLayouts: -1,
+    maxPocketGrimoires: -1,
   },
 };
 

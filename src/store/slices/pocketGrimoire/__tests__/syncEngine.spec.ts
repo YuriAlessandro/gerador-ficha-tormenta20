@@ -1,18 +1,25 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
-import reducer, { addItem, createGrimoire } from '../pocketGrimoireSlice';
+import reducer, {
+  addItem,
+  createGrimoire,
+  deleteGrimoire,
+} from '../pocketGrimoireSlice';
 import {
   createSyncEngine,
   GrimoireSyncService,
-  LIMIT_MESSAGE,
   mergeMessage,
   REFRESH_INTERVAL_MS,
   REJECTED_MESSAGE,
   SYNC_DEBOUNCE_MS,
 } from '../syncEngine';
 import { createInitialState } from '../../../../functions/pocketGrimoire/state';
-import { GrimoireSyncPayload } from '../../../../functions/pocketGrimoire/sync';
+import {
+  GrimoireSyncPayload,
+  GrimoireSyncResult,
+} from '../../../../functions/pocketGrimoire/sync';
 import { GrimoireSyncError } from '../../../../functions/pocketGrimoire/syncError';
+import { grimoireLimitMessage } from '../../../../functions/pocketGrimoire/limit';
 import {
   DEFAULT_GRIMOIRE_ID,
   GrimoireSyncStatus,
@@ -26,17 +33,26 @@ const flush = () =>
     setImmediate(resolve);
   });
 
-/** Servidor em memória com a regra mínima do backend. */
-const createFakeServer = (initial: PocketGrimoire[] = []) => {
+/** Servidor em memória com a regra mínima do backend (limite incluído). */
+const createFakeServer = (
+  initial: PocketGrimoire[] = [],
+  maxGrimoires = 10
+) => {
   let stored = [...initial];
   const service = {
     getAll: vi.fn(async () => [...stored]),
-    sync: vi.fn(async ({ upserts, deletes }: GrimoireSyncPayload) => {
+    sync: vi.fn(async ({ upserts, deletes, merge }: GrimoireSyncPayload) => {
       stored = stored.filter((g) => !deletes.includes(g.id));
+      const rejectedIds: string[] = [];
       upserts.forEach((u) => {
+        const exists = stored.some((g) => g.id === u.id);
+        if (!exists && !merge && stored.length >= maxGrimoires) {
+          rejectedIds.push(u.id);
+          return;
+        }
         stored = [...stored.filter((g) => g.id !== u.id), u];
       });
-      return [...stored];
+      return { grimoires: [...stored], rejectedIds, maxGrimoires };
     }),
   };
   return { service, stored: () => stored };
@@ -159,23 +175,50 @@ describe('login', () => {
     expect(server.stored()[0].itemIds).toEqual(['spell:A']);
     expect(notes).toEqual([]);
   });
+});
 
-  it('409 no login mantém as pendências e avisa o limite', async () => {
-    const service = {
-      getAll: vi.fn(),
-      sync: vi.fn(async () => {
-        throw new GrimoireSyncError('rejected', 'HTTP 409', 'GRIMOIRE_LIMIT');
-      }),
-    };
-    const { engine, notes, local, statuses } = setup(
-      withItem(createInitialState(), 'spell:A'),
-      service
+describe('limite do plano', () => {
+  it('grimório novo além do limite: o resto sobe, ele fica pendente e o aviso sai uma vez', async () => {
+    const server = createFakeServer([], 1);
+    const { engine, store, local, notes, statuses } = setup(
+      ownedState('u1'),
+      server.service
     );
     engine.setUser('u1');
     await flush();
-    expect(notes).toEqual([[LIMIT_MESSAGE, 'error']]);
-    expect(local().sync.pendingMerge).toBe(true);
+
+    store.dispatch(addItem(DEFAULT_GRIMOIRE_ID, 'spell:A'));
+    const novo = createGrimoire('Excedente');
+    store.dispatch(novo);
+    await vi.advanceTimersByTimeAsync(SYNC_DEBOUNCE_MS);
+    await flush();
+
+    expect(server.stored().map((g) => g.id)).toEqual([DEFAULT_GRIMOIRE_ID]);
+    expect(Object.keys(local().sync.dirty)).toEqual([novo.payload.id]);
+    expect(local().grimoires.map((g) => g.name)).toContain('Excedente');
+    expect(notes).toEqual([[grimoireLimitMessage(1), 'error']]);
     expect(statuses[statuses.length - 1]).toBe('error');
+
+    // Não fica reenviando sozinho.
+    await vi.advanceTimersByTimeAsync(10 * SYNC_DEBOUNCE_MS);
+    expect(server.service.sync).toHaveBeenCalledTimes(1);
+  });
+
+  it('abrir vaga e editar de novo sobe o pendente', async () => {
+    const server = createFakeServer([], 1);
+    const { engine, store, local } = setup(ownedState('u1'), server.service);
+    engine.setUser('u1');
+    await flush();
+    store.dispatch(addItem(DEFAULT_GRIMOIRE_ID, 'spell:A'));
+    store.dispatch(createGrimoire('Excedente'));
+    await vi.advanceTimersByTimeAsync(SYNC_DEBOUNCE_MS);
+    await flush();
+
+    store.dispatch(deleteGrimoire(DEFAULT_GRIMOIRE_ID));
+    await vi.advanceTimersByTimeAsync(SYNC_DEBOUNCE_MS);
+    await flush();
+    expect(server.stored().map((g) => g.name)).toEqual(['Excedente']);
+    expect(local().sync.dirty).toEqual({});
   });
 });
 
@@ -241,7 +284,7 @@ describe('edições', () => {
     const original = server.service.sync.getMockImplementation()!;
     server.service.sync.mockImplementationOnce(
       (payload: GrimoireSyncPayload) =>
-        new Promise<PocketGrimoire[]>((resolve) => {
+        new Promise<GrimoireSyncResult>((resolve) => {
           release = () => resolve(original(payload));
         })
     );
@@ -424,7 +467,7 @@ describe('flush (antes do logout)', () => {
     const original = server.service.sync.getMockImplementation()!;
     server.service.sync.mockImplementationOnce(
       (payload: GrimoireSyncPayload) =>
-        new Promise<PocketGrimoire[]>((resolve) => {
+        new Promise<GrimoireSyncResult>((resolve) => {
           release = () => resolve(original(payload));
         })
     );

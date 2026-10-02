@@ -9,7 +9,11 @@ import { requestGrimoireSync } from '../../../store/slices/pocketGrimoire/pocket
 
 const fakeService = () => ({
   getAll: vi.fn(async () => []),
-  sync: vi.fn(async ({ upserts }: GrimoireSyncPayload) => upserts),
+  sync: vi.fn(async ({ upserts }: GrimoireSyncPayload) => ({
+    grimoires: upserts,
+    rejectedIds: [],
+    maxGrimoires: 10,
+  })),
 });
 
 const settle = () =>
