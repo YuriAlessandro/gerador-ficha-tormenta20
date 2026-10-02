@@ -33,6 +33,12 @@ import {
 } from '../store/slices/subscription/subscriptionSlice';
 import { AppDispatch } from '../store';
 import AuthModal from '../components/Auth/AuthModal';
+import {
+  createLogoutCheckRegistry,
+  LogoutCheck,
+  SHEET_LOGOUT_CHECK_ID,
+  SHEET_UNSAVED_MESSAGE,
+} from './logoutChecks';
 
 interface AuthContextType {
   loginModalOpen: boolean;
@@ -41,6 +47,8 @@ interface AuthContextType {
   requestLogout: () => void;
   registerUnsavedChangesChecker: (checker: () => boolean) => void;
   unregisterUnsavedChangesChecker: () => void;
+  registerLogoutCheck: (id: string, check: LogoutCheck) => void;
+  unregisterLogoutCheck: (id: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -50,6 +58,8 @@ const AuthContext = createContext<AuthContextType>({
   requestLogout: () => {},
   registerUnsavedChangesChecker: () => {},
   unregisterUnsavedChangesChecker: () => {},
+  registerLogoutCheck: () => {},
+  unregisterLogoutCheck: () => {},
 });
 
 interface AuthProviderProps {
@@ -62,21 +72,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const unsavedChangesCheckerRef = useRef<(() => boolean) | null>(null);
+  const logoutChecksRef = useRef(createLogoutCheckRegistry());
+  const [logoutMessages, setLogoutMessages] = useState<string[]>([]);
 
   const openLoginModal = () => setLoginModalOpen(true);
   const closeLoginModal = () => setLoginModalOpen(false);
 
-  // Registration functions for unsaved changes checker
+  const registerLogoutCheck = useCallback((id: string, check: LogoutCheck) => {
+    logoutChecksRef.current.register(id, check);
+  }, []);
+
+  const unregisterLogoutCheck = useCallback((id: string) => {
+    logoutChecksRef.current.unregister(id);
+  }, []);
+
+  // Atalhos antigos, usados pela ficha e pelo gerador de ameaças.
   const registerUnsavedChangesChecker = useCallback(
     (checker: () => boolean) => {
-      unsavedChangesCheckerRef.current = checker;
+      logoutChecksRef.current.register(SHEET_LOGOUT_CHECK_ID, {
+        check: checker,
+        message: SHEET_UNSAVED_MESSAGE,
+      });
     },
     []
   );
 
   const unregisterUnsavedChangesChecker = useCallback(() => {
-    unsavedChangesCheckerRef.current = null;
+    logoutChecksRef.current.unregister(SHEET_LOGOUT_CHECK_ID);
   }, []);
 
   // Perform the actual logout
@@ -84,6 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoggingOut(true);
     try {
       await dispatch(logout()).unwrap();
+      logoutChecksRef.current.notifyLogout();
       // Clear cached subscription so the next user (or anonymous browse)
       // does not inherit the previous user's tier from persisted state.
       dispatch(clearSubscription());
@@ -106,9 +129,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Request logout - checks for unsaved changes first
   const requestLogout = useCallback(() => {
-    const hasUnsavedChanges = unsavedChangesCheckerRef.current?.() ?? false;
+    const messages = logoutChecksRef.current.pendingMessages();
 
-    if (hasUnsavedChanges) {
+    if (messages.length > 0) {
+      setLogoutMessages(messages);
       setLogoutDialogOpen(true);
     } else {
       performLogout();
@@ -173,6 +197,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     requestLogout,
     registerUnsavedChangesChecker,
     unregisterUnsavedChangesChecker,
+    registerLogoutCheck,
+    unregisterLogoutCheck,
   };
 
   return (
@@ -189,10 +215,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       >
         <DialogTitle>Sair da Conta</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Você tem alterações não salvas na nuvem. Se você sair agora, elas
-            ficarão salvas apenas localmente no seu navegador. Deseja continuar?
-          </DialogContentText>
+          {logoutMessages.map((message) => (
+            <DialogContentText key={message} sx={{ mb: 1 }}>
+              {message}
+            </DialogContentText>
+          ))}
+          <DialogContentText>Deseja continuar?</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button
