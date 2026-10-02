@@ -261,6 +261,11 @@ const Changelog: React.FC = () => {
                   não perde mais letras nem apaga o texto quando o salvamento
                   automático dispara no meio da digitação.
                 </li>
+                <li>
+                  <strong>Correção:</strong> No celular, os{' '}
+                  <strong>aprimoramentos</strong> de magia homebrew voltam a
+                  mostrar o custo em PM: o campo encolhia até o valor sumir.
+                </li>
               </ul>
 
               <h3>4.34</h3>
