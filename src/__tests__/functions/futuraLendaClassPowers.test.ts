@@ -126,4 +126,23 @@ describe('getFuturaLendaClassPowers', () => {
 
     expect(names(getFuturaLendaClassPowers(sheet))).toContain('Bater e Correr');
   });
+
+  it('oferece o poder pré-escolhido pelo Alma Livre (outra classe)', () => {
+    const sheet = buildSheet(CLERIGO);
+    sheet.almaLivreClass = 'Guerreiro';
+    sheet.almaLivrePower = guerreiroPower('Bater e Correr');
+
+    expect(names(getFuturaLendaClassPowers(sheet))).toContain('Bater e Correr');
+  });
+
+  it('não oferece o poder do Alma Livre se os pré-requisitos não forem atendidos', () => {
+    const sheet = buildSheet(CLERIGO);
+    sheet.almaLivreClass = 'Guerreiro';
+    // Mestre em Arma exige Especialização em Arma
+    sheet.almaLivrePower = guerreiroPower('Mestre em Arma');
+
+    expect(names(getFuturaLendaClassPowers(sheet))).not.toContain(
+      'Mestre em Arma'
+    );
+  });
 });
