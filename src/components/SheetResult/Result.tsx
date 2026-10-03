@@ -2492,6 +2492,10 @@ const Result: React.FC<ResultProps> = (props) => {
                 onSheetUpdate={
                   onSheetUpdate ? applyRecalculatedSheet : undefined
                 }
+                onOpenBestFriend={(index) => {
+                  setSelectedCompanionIndex(index);
+                  setCompanionModalOpen(true);
+                }}
               />
             </Box>
           )}
