@@ -20,6 +20,11 @@ import foldersReducer from './slices/folders/foldersSlice';
 import systemReducer from './slices/system/systemSlice';
 import subscriptionReducer from './slices/subscription/subscriptionSlice';
 import notificationReducer from './slices/notification/notificationSlice';
+import pocketGrimoireSyncStatusReducer from './slices/pocketGrimoire/pocketGrimoireSyncStatusSlice';
+import grimoireMoveReducer from './slices/pocketGrimoire/grimoireMoveSlice';
+import pocketGrimoireReducer, {
+  migratePocketGrimoire,
+} from './slices/pocketGrimoire/pocketGrimoireSlice';
 import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
@@ -50,6 +55,14 @@ export const subscriptionPersistConfig = {
   whitelist: ['subscription', 'limits'], // Persist subscription data and limits
 };
 
+export const pocketGrimoirePersistConfig = {
+  key: 'pocketGrimoire',
+  storage,
+  // Versão do formato guardado: o `migrate` pode ramificar por ela no futuro.
+  version: 1,
+  migrate: migratePocketGrimoire,
+};
+
 const persistedReducer = persistReducer(
   persistConfig,
   sheetStorageSlice.reducer
@@ -72,6 +85,11 @@ const persistedSubscriptionReducer = persistReducer(
   subscriptionReducer
 );
 
+const persistedPocketGrimoireReducer = persistReducer(
+  pocketGrimoirePersistConfig,
+  pocketGrimoireReducer
+);
+
 const store = configureStore({
   reducer: {
     sheetBuilder: sheetBuilderReducer,
@@ -83,6 +101,9 @@ const store = configureStore({
     system: persistedSystemReducer,
     subscription: persistedSubscriptionReducer,
     notification: notificationReducer,
+    pocketGrimoire: persistedPocketGrimoireReducer,
+    pocketGrimoireSyncStatus: pocketGrimoireSyncStatusReducer,
+    grimoireMove: grimoireMoveReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

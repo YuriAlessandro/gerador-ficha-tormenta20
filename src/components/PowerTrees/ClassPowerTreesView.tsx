@@ -27,6 +27,7 @@ import { dataRegistry } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
 import PowerTreeCanvas from './PowerTreeCanvas';
 import PowerDetailDrawer from './PowerDetailDrawer';
+import { treeNodeItemId } from '../../functions/pocketGrimoire/resolveItems';
 import PowerNodeCard from './PowerNodeCard';
 import { getNodeKindMeta } from './powerNodeStyle';
 
@@ -337,6 +338,7 @@ const ClassPowerTreesView: React.FC<ClassPowerTreesViewProps> = ({
           graph={graph}
           onClose={() => setSelectedNodeId(null)}
           onNavigate={setSelectedNodeId}
+          grimoireItemId={treeNodeItemId(classe, selectedNode)}
         />
       )}
     </Box>

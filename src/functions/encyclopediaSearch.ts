@@ -83,6 +83,41 @@ const POWER_TYPE_LABEL: Record<GeneralPowerType, string> = {
   [GeneralPowerType.RACA]: 'Racial',
 };
 
+/**
+ * Fonte única dos ids do índice. As tabelas da enciclopédia usam estas mesmas
+ * funções (ex.: botão "adicionar ao grimório"), então o id que elas geram é
+ * sempre o id que o índice conhece — inclusive o rótulo "Nome (subnome)" das
+ * classes.
+ */
+export const classLabelOf = (classe: { name: string; subname?: string }) =>
+  classe.subname ? `${classe.name} (${classe.subname})` : classe.name;
+
+export const encyclopediaIds = {
+  race: (raceName: string) => `race:${raceName}`,
+  /**
+   * Habilidades de herança levam a herança no "dono": raças como Moreau têm
+   * uma "Mordida" diferente por herança, e sem isso os ids colidiam.
+   */
+  raceAbility: (raceName: string, name: string, heritageName?: string) =>
+    `race-ability:${
+      heritageName ? `${raceName} (${heritageName})` : raceName
+    }:${name}`,
+  class: (classe: { name: string; subname?: string }) =>
+    `class:${classLabelOf(classe)}`,
+  classAbility: (classe: { name: string; subname?: string }, name: string) =>
+    `class-ability:${classLabelOf(classe)}:${name}`,
+  classPower: (classe: { name: string; subname?: string }, name: string) =>
+    `class-power:${classLabelOf(classe)}:${name}`,
+  origin: (originName: string) => `origin:${originName}`,
+  originPower: (originName: string, name: string) =>
+    `origin-power:${originName}:${name}`,
+  deity: (deityName: string) => `deity:${deityName}`,
+  deityPower: (deityName: string, name: string) =>
+    `deity-power:${deityName}:${name}`,
+  power: (type: string, name: string) => `power:${type}:${name}`,
+  spell: (name: string) => `spell:${name}`,
+};
+
 function makeEntry(
   raw: Omit<EncyclopediaEntry, 'nTitle' | 'nDescription'>
 ): EncyclopediaEntry {
@@ -112,7 +147,7 @@ export function buildEncyclopediaIndex(
   races.forEach((race) => {
     add(
       makeEntry({
-        id: `race:${race.name}`,
+        id: encyclopediaIds.race(race.name),
         category: 'race',
         categoryLabel: 'Raça',
         title: race.name,
@@ -125,12 +160,17 @@ export function buildEncyclopediaIndex(
 
     const collectAbilities = (
       abilities: { name: string; description: string }[],
-      context: string
+      context: string,
+      heritageName?: string
     ) => {
       abilities.forEach((ability) => {
         add(
           makeEntry({
-            id: `race-ability:${race.name}:${ability.name}`,
+            id: encyclopediaIds.raceAbility(
+              race.name,
+              ability.name,
+              heritageName
+            ),
             category: 'race',
             categoryLabel: 'Habilidade de raça',
             title: ability.name,
@@ -146,7 +186,11 @@ export function buildEncyclopediaIndex(
     collectAbilities(race.abilities || [], 'Habilidade racial');
     if (race.heritages) {
       Object.values(race.heritages).forEach((heritage) => {
-        collectAbilities(heritage.abilities || [], `Herança ${heritage.name}`);
+        collectAbilities(
+          heritage.abilities || [],
+          `Herança ${heritage.name}`,
+          heritage.name
+        );
       });
     }
   });
@@ -154,13 +198,11 @@ export function buildEncyclopediaIndex(
   // --- Classes (incluindo habilidades e poderes de classe) ---------------
   const classes = dataRegistry.getClassesWithSupplementInfo(supplementIds);
   classes.forEach((classe) => {
-    const classLabel = classe.subname
-      ? `${classe.name} (${classe.subname})`
-      : classe.name;
+    const classLabel = classLabelOf(classe);
 
     add(
       makeEntry({
-        id: `class:${classLabel}`,
+        id: encyclopediaIds.class(classe),
         category: 'class',
         categoryLabel: 'Classe',
         title: classLabel,
@@ -176,7 +218,7 @@ export function buildEncyclopediaIndex(
     (classe.abilities || []).forEach((ability) => {
       add(
         makeEntry({
-          id: `class-ability:${classLabel}:${ability.name}`,
+          id: encyclopediaIds.classAbility(classe, ability.name),
           category: 'class',
           categoryLabel: 'Habilidade de classe',
           title: ability.name,
@@ -193,7 +235,7 @@ export function buildEncyclopediaIndex(
     (classe.powers || []).forEach((power) => {
       add(
         makeEntry({
-          id: `class-power:${classLabel}:${power.name}`,
+          id: encyclopediaIds.classPower(classe, power.name),
           category: 'class',
           categoryLabel: 'Poder de classe',
           title: power.name,
@@ -211,7 +253,7 @@ export function buildEncyclopediaIndex(
   origins.forEach((origin) => {
     add(
       makeEntry({
-        id: `origin:${origin.name}`,
+        id: encyclopediaIds.origin(origin.name),
         category: 'origin',
         categoryLabel: 'Origem',
         title: origin.name,
@@ -225,7 +267,7 @@ export function buildEncyclopediaIndex(
     (origin.poderes || []).forEach((power) => {
       add(
         makeEntry({
-          id: `origin-power:${origin.name}:${power.name}`,
+          id: encyclopediaIds.originPower(origin.name, power.name),
           category: 'origin',
           categoryLabel: 'Poder de origem',
           title: power.name,
@@ -243,7 +285,7 @@ export function buildEncyclopediaIndex(
   deities.forEach((deity) => {
     add(
       makeEntry({
-        id: `deity:${deity.name}`,
+        id: encyclopediaIds.deity(deity.name),
         category: 'deity',
         categoryLabel: 'Divindade',
         title: deity.name,
@@ -256,7 +298,7 @@ export function buildEncyclopediaIndex(
     (deity.poderes || []).forEach((power) => {
       add(
         makeEntry({
-          id: `deity-power:${deity.name}:${power.name}`,
+          id: encyclopediaIds.deityPower(deity.name, power.name),
           category: 'deity',
           categoryLabel: 'Poder concedido',
           title: power.name,
@@ -275,7 +317,7 @@ export function buildEncyclopediaIndex(
     powers[type].forEach((power) => {
       add(
         makeEntry({
-          id: `power:${type}:${power.name}`,
+          id: encyclopediaIds.power(type, power.name),
           category: 'power',
           categoryLabel: 'Poder geral',
           title: power.name,
@@ -303,7 +345,7 @@ export function buildEncyclopediaIndex(
         spellsOfSchool.forEach((spell) => {
           add(
             makeEntry({
-              id: `spell:${spell.nome}`,
+              id: encyclopediaIds.spell(spell.nome),
               category: 'spell',
               categoryLabel: 'Magia',
               title: spell.nome,

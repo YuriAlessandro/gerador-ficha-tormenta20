@@ -28,6 +28,8 @@ import SearchInput from './SearchInput';
 import { SEO, getPageSEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
 import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
@@ -121,6 +123,16 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
       variant='minimal'
     />
   );
+  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
+  const rowActions = (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <AddToGrimoireButton
+        itemId={encyclopediaIds.race(race.name)}
+        itemName={race.name}
+      />
+      {shareButton}
+    </Box>
+  );
 
   return (
     <>
@@ -131,7 +143,7 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
           open={open}
           onToggle={() => setOpen(!open)}
           tags={supplementChip}
-          action={shareButton}
+          action={rowActions}
         />
       ) : (
         <TableRow
@@ -179,7 +191,7 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                 </Typography>
                 {supplementChip}
               </Box>
-              {shareButton}
+              {rowActions}
             </Box>
           </TableCell>
           <TableCell />
@@ -223,6 +235,13 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                       : 'secondary'
                   }
                   sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.race(race.name)}
+                  itemName={race.name}
+                  variant='labeled'
                 />
               </Box>
 
@@ -357,6 +376,14 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                               }}
                             >
                               {ability.name}
+                              <AddToGrimoireButton
+                                itemId={encyclopediaIds.raceAbility(
+                                  race.name,
+                                  ability.name,
+                                  heritage.name
+                                )}
+                                itemName={ability.name}
+                              />
                             </Typography>
                             <Typography
                               variant='body1'
@@ -390,6 +417,13 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                         }}
                       >
                         {ability.name}
+                        <AddToGrimoireButton
+                          itemId={encyclopediaIds.raceAbility(
+                            race.name,
+                            ability.name
+                          )}
+                          itemName={ability.name}
+                        />
                       </Typography>
                       <Typography
                         variant='body1'

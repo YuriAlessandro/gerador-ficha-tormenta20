@@ -1,0 +1,66 @@
+{
+  "formato": "fichas-de-nimb/grimorio-de-bolso",
+  "versao": 1,
+  "exportadoEm": "2026-09-19T12:00:00.000Z",
+  "grimorio": {
+    "nome": "Irmão Thalos — Clérigo de Lena (nível 5)",
+    "itens": [
+      {
+        "id": "spell:Curar Ferimentos",
+        "nome": "Curar Ferimentos"
+      },
+      {
+        "id": "spell:Bênção",
+        "nome": "Bênção"
+      },
+      {
+        "id": "spell:Escudo da Fé",
+        "nome": "Escudo da Fé"
+      },
+      {
+        "id": "spell:Proteção Divina",
+        "nome": "Proteção Divina"
+      },
+      {
+        "id": "spell:Consagrar",
+        "nome": "Consagrar"
+      },
+      {
+        "id": "spell:Oração",
+        "nome": "Oração"
+      },
+      {
+        "id": "class-ability:Clérigo:Magias",
+        "nome": "Magias"
+      },
+      {
+        "id": "class-ability:Clérigo:Devoto Fiel",
+        "nome": "Devoto Fiel"
+      },
+      {
+        "id": "class-power:Clérigo:Canalizar Energia Positiva/Negativa",
+        "nome": "Canalizar Energia Positiva/Negativa"
+      },
+      {
+        "id": "class-power:Clérigo:Prece de Combate",
+        "nome": "Prece de Combate"
+      },
+      {
+        "id": "deity:Lena",
+        "nome": "Lena"
+      },
+      {
+        "id": "deity-power:Lena:Cura Gentil",
+        "nome": "Cura Gentil"
+      },
+      {
+        "id": "deity-power:Lena:Curandeira Perfeita",
+        "nome": "Curandeira Perfeita"
+      },
+      {
+        "id": "origin:Acólito",
+        "nome": "Acólito"
+      }
+    ]
+  }
+}
