@@ -3,6 +3,7 @@ import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import { spellsCircle1 } from '../../magias/generalSpells';
 import LUTADOR from '../../classes/lutador';
+import PROFICIENCIAS from '../../proficiencias';
 
 const briga = LUTADOR.abilities.find((a) => a.name === 'Briga')!;
 const cascaGrossa = LUTADOR.abilities.find((a) => a.name === 'Casca Grossa')!;
@@ -35,7 +36,7 @@ const ATLETA: VariantClassOverrides = {
     ],
   },
   // "Proficiências. Nenhuma." (Heróis de Arton, variante Atleta)
-  proficiencias: [],
+  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
     briga,
     {

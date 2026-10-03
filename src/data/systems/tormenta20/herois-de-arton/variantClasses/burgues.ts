@@ -3,6 +3,7 @@ import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import { spellsCircle1 } from '../../magias/generalSpells';
 import NOBRE from '../../classes/nobre';
+import PROFICIENCIAS from '../../proficiencias';
 
 const orgulho = NOBRE.abilities.find((a) => a.name === 'Orgulho')!;
 
@@ -42,7 +43,7 @@ const BURGUES: VariantClassOverrides = {
     ],
   },
   // "Proficiências. Nenhuma." (Heróis de Arton, variante Burguês)
-  proficiencias: [],
+  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
     {
       name: 'Meios de Produção',
