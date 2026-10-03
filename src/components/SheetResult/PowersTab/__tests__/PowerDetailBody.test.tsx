@@ -9,6 +9,8 @@ import GRANTED_POWERS from '@/data/systems/tormenta20/powers/grantedPowers';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import HYNINN from '@/data/systems/tormenta20/divindades/hyninn';
 import { createMockCharacterSheet } from '@/__mocks__/characterSheet';
+import atlasOriginPowers from '@/data/systems/tormenta20/atlas-de-arton/powers/originPowers';
+import GUERREIRO from '@/data/systems/tormenta20/classes/guerreiro';
 import PowerDetailBody from '../PowerDetailBody';
 
 /**
@@ -97,5 +99,51 @@ describe('PowerDetailBody — "Aplicado na ficha"', () => {
     renderBody(sheet, sheet.sheetActionHistory);
 
     expect(screen.getByText('Ladinagem +2')).toBeInTheDocument();
+  });
+});
+
+describe('PowerDetailBody — "Vindo de" da Futura Lenda', () => {
+  const FUTURA_LENDA_ORIGIN = 'Futura Lenda (Nova Malpetrim)';
+
+  it('atribui o poder de origem à origem mesmo sem histórico', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.origin = {
+      name: FUTURA_LENDA_ORIGIN,
+      powers: [atlasOriginPowers.FUTURA_LENDA],
+    };
+    render(
+      <PowerDetailBody
+        power={atlasOriginPowers.FUTURA_LENDA}
+        originKind='originPower'
+        sheetHistory={[]}
+        sheet={sheet}
+      />
+    );
+
+    expect(
+      screen.getByText(`Vindo de: ${FUTURA_LENDA_ORIGIN}`)
+    ).toBeInTheDocument();
+  });
+
+  it('atribui o poder de classe concedido (ClassPowerAdded) à origem', () => {
+    const power = GUERREIRO.powers.find((p) => p.name === 'Bater e Correr');
+    if (!power) throw new Error('Poder de fixture ausente');
+    render(
+      <PowerDetailBody
+        power={power}
+        originKind='classPower'
+        sheetHistory={[
+          {
+            source: { type: 'origin', originName: FUTURA_LENDA_ORIGIN },
+            powerName: 'Futura Lenda',
+            changes: [{ type: 'ClassPowerAdded', powerName: power.name }],
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.getByText(`Vindo de: ${FUTURA_LENDA_ORIGIN}`)
+    ).toBeInTheDocument();
   });
 });
