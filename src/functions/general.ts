@@ -120,7 +120,6 @@ import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcan
 import { Spell } from '../interfaces/Spells';
 import { DiceRoll } from '../interfaces/DiceRoll';
 import { CustomEffect } from '../premium/interfaces/CustomEffect';
-import { generateRandomAnimalCompanion } from '../premium/functions/animalCompanionEffects';
 import {
   applyOpenRace,
   toOpenRaceVariant,
@@ -3130,21 +3129,6 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Poder de classe adquirido: ${selectedPower.name}`,
           });
-
-          // Druida: o poder Companheiro Animal concede um parceiro. Semeia um
-          // com espécie/tipo/nome aleatórios para a ficha já sair jogável — o
-          // jogador renomeia e troca o tipo depois no painel.
-          if (selectedPower.name === 'Companheiro Animal') {
-            const companion = generateRandomAnimalCompanion(uuid());
-            sheet.animalCompanions = [
-              ...(sheet.animalCompanions ?? []),
-              companion,
-            ];
-            subSteps.push({
-              name: 'Companheiro Animal',
-              value: `${companion.name} (${companion.species})`,
-            });
-          }
 
           // Apply the selected power's sheetActions and sheetBonuses
           if (selectedPower.sheetActions || selectedPower.sheetBonuses) {

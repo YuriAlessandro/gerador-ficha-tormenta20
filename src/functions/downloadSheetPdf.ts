@@ -204,24 +204,16 @@ const buildExtraSections = (
     );
   }
 
-  const companionLines = [
-    ...(sheet.companions ?? []).map(
-      (companion) =>
-        `- ${companion.name || 'Melhor Amigo'} (${companion.companionType}, ${
-          companion.size
-        }) — PV ${companion.pv}`
-    ),
-    ...(sheet.animalCompanions ?? []).map(
-      (companion) =>
-        `- ${companion.name}${
-          companion.species ? ` (${companion.species})` : ''
-        } — ${companion.archetype}`
-    ),
-  ];
+  const companionLines = (sheet.companions ?? []).map(
+    (companion) =>
+      `- ${companion.name || 'Melhor Amigo'} (${companion.companionType}, ${
+        companion.size
+      }) — PV ${companion.pv}`
+  );
   push('Companheiros', companionLines.join('\n'));
 
-  // Parceiros (JdA cap. 6). Tipos crus, como o companheiro acima: o PDF não
-  // depende do catálogo premium para rotular.
+  // Parceiros (JdA cap. 6), incluindo o Companheiro Animal. Tipos crus: o PDF
+  // não depende do catálogo premium para rotular.
   const partnerLines = (sheet.partners ?? []).map((partner) => {
     const components = partner.snapshot?.components?.length
       ? partner.snapshot.components
@@ -234,9 +226,14 @@ const buildExtraSections = (
     const name =
       partner.customName?.trim() ||
       partner.snapshot?.name ||
+      partner.grant?.power ||
       types ||
       'Parceiro';
-    const details = [types !== name ? types : '', tier ?? '']
+    const details = [
+      partner.species?.trim() ?? '',
+      types !== name ? types : '',
+      tier ?? '',
+    ]
       .filter(Boolean)
       .join(', ');
     return `- ${name}${details ? ` (${details})` : ''}${

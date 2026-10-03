@@ -3,4 +3,5 @@
 import { noop } from '../_inert';
 
 export const dismountPartnersInWildShape = noop;
+export const getSheetPartnerActivatedPowers = () => [];
 export const reconcileSheetPartnerEffects = noop;

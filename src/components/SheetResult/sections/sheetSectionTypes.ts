@@ -30,7 +30,6 @@ export const SHEET_SECTION_KINDS = [
   'proficiencies',
   'sizeDisplacement',
   'partners',
-  'animalCompanions',
   'journal',
   'creationSteps',
   'supportCta',
