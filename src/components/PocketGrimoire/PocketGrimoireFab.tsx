@@ -44,7 +44,7 @@ const countLabel = (count: number) =>
 
 const PocketGrimoireFab: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { ensureCanCreate } = useGrimoireLimit();
+  const { ensureCanCreate, lockedIds } = useGrimoireLimit();
   const removeFromGrimoire = useRemoveFromGrimoire();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const grimoires = useAppSelector(selectGrimoires);
@@ -100,11 +100,15 @@ const PocketGrimoireFab: React.FC = () => {
           }
         }}
       >
-        {grimoires.map((grimoire) => (
-          <MenuItem key={grimoire.id} value={grimoire.id}>
-            {grimoire.name} ({grimoire.itemIds.length})
-          </MenuItem>
-        ))}
+        {grimoires.map((grimoire) => {
+          const locked = lockedIds.has(grimoire.id);
+          return (
+            <MenuItem key={grimoire.id} value={grimoire.id} disabled={locked}>
+              {grimoire.name}{' '}
+              {locked ? '(acima do limite)' : `(${grimoire.itemIds.length})`}
+            </MenuItem>
+          );
+        })}
         <MenuItem value={NEW_OPTION}>
           <AddIcon fontSize='small' sx={{ mr: 1 }} />
           Novo grimório

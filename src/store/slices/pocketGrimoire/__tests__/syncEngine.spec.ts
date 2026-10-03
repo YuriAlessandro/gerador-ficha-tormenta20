@@ -9,6 +9,7 @@ import {
   createSyncEngine,
   GrimoireSyncService,
   mergeMessage,
+  mergeOverLimitMessage,
   REFRESH_INTERVAL_MS,
   REJECTED_MESSAGE,
   SYNC_DEBOUNCE_MS,
@@ -41,12 +42,12 @@ const createFakeServer = (
   let stored = [...initial];
   const service = {
     getAll: vi.fn(async () => [...stored]),
-    sync: vi.fn(async ({ upserts, deletes, merge }: GrimoireSyncPayload) => {
+    sync: vi.fn(async ({ upserts, deletes }: GrimoireSyncPayload) => {
       stored = stored.filter((g) => !deletes.includes(g.id));
       const rejectedIds: string[] = [];
       upserts.forEach((u) => {
         const exists = stored.some((g) => g.id === u.id);
-        if (!exists && !merge && stored.length >= maxGrimoires) {
+        if (!exists && stored.length >= maxGrimoires) {
           rejectedIds.push(u.id);
           return;
         }
@@ -119,8 +120,37 @@ describe('login', () => {
       dirty: {},
       deletedIds: [],
       pendingMerge: false,
+      rejectedIds: [],
     });
     expect(notes).toEqual([[mergeMessage(1), 'success']]);
+  });
+
+  it('acima do limite: sobe o que cabe, guarda os recusados e avisa uma vez só', async () => {
+    const conta = Array.from({ length: 7 }, (_, i) => ({
+      ...createInitialState().grimoires[0],
+      id: `c${i}`,
+      name: `Conta ${i}`,
+    }));
+    const server = createFakeServer(conta, 10);
+    const state = createInitialState();
+    const navegador = Array.from({ length: 5 }, (_, i) => ({
+      ...state.grimoires[0],
+      id: `n${i}`,
+      name: `Navegador ${i}`,
+    }));
+    state.grimoires = navegador;
+    state.activeId = 'n0';
+    const { engine, notes, local, statuses } = setup(state, server.service);
+
+    engine.setUser('u1');
+    await flush();
+
+    expect(server.stored()).toHaveLength(10);
+    expect(local().grimoires).toHaveLength(12);
+    expect(local().sync.rejectedIds).toEqual(['n3', 'n4']);
+    expect(Object.keys(local().sync.dirty).sort()).toEqual(['n3', 'n4']);
+    expect(notes).toEqual([[mergeOverLimitMessage(3, 2), 'warning']]);
+    expect(statuses[statuses.length - 1]).toBe('error');
   });
 
   it('só o "Padrão" intocado: nenhuma requisição até a demanda', async () => {
@@ -219,6 +249,7 @@ describe('limite do plano', () => {
     await flush();
     expect(server.stored().map((g) => g.name)).toEqual(['Excedente']);
     expect(local().sync.dirty).toEqual({});
+    expect(local().sync.rejectedIds).toEqual([]);
   });
 });
 
@@ -390,7 +421,13 @@ describe('saída e logout', () => {
     engine.onLogout();
     expect(local()).toMatchObject({
       grimoires: [{ id: DEFAULT_GRIMOIRE_ID, itemIds: [] }],
-      sync: { ownerId: null, dirty: {}, deletedIds: [], pendingMerge: false },
+      sync: {
+        ownerId: null,
+        dirty: {},
+        deletedIds: [],
+        pendingMerge: false,
+        rejectedIds: [],
+      },
     });
   });
 
@@ -508,5 +545,19 @@ describe('flush (antes do logout)', () => {
     await expect(engine.flush()).resolves.toBe(true);
     expect(server.service.sync).not.toHaveBeenCalled();
     expect(server.service.getAll).not.toHaveBeenCalled();
+  });
+});
+
+describe('mergeOverLimitMessage', () => {
+  it('conta os salvos e os bloqueados', () => {
+    expect(mergeOverLimitMessage(3, 2)).toBe(
+      '3 grimórios deste navegador foram salvos na sua conta. 2 ficaram bloqueados por estarem acima do limite do seu plano.'
+    );
+    expect(mergeOverLimitMessage(1, 1)).toBe(
+      '1 grimório deste navegador foi salvo na sua conta. 1 ficou bloqueado por estar acima do limite do seu plano.'
+    );
+    expect(mergeOverLimitMessage(0, 2)).toBe(
+      '2 grimórios deste navegador ficaram bloqueados por estarem acima do limite do seu plano.'
+    );
   });
 });

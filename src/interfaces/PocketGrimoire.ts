@@ -24,6 +24,11 @@ export interface PocketGrimoireSyncState {
   deletedIds: string[];
   /** O próximo envio junta com a conta (`merge: true`): é o login. */
   pendingMerge: boolean;
+  /**
+   * Novos que o servidor recusou por limite no último envio: só existem no
+   * navegador e entram por último na fila de vagas (ver `lockedGrimoireIds`).
+   */
+  rejectedIds: string[];
 }
 
 export interface PocketGrimoireState {

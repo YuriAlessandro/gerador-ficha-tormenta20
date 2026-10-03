@@ -91,7 +91,13 @@ export function claimForUser(
     });
   return {
     ...state,
-    sync: { ownerId: userId, dirty, deletedIds: [], pendingMerge: true },
+    sync: {
+      ownerId: userId,
+      dirty,
+      deletedIds: [],
+      pendingMerge: true,
+      rejectedIds: [],
+    },
   };
 }
 
@@ -109,11 +115,14 @@ export function buildSyncPayload(
 /**
  * Tira das pendências só o que o servidor confirmou: um grimório editado de
  * novo durante a requisição (outro `updatedAt`) continua pendente.
+ * `rejectedIds` é a lista inteira de recusados: todo envio leva todos os
+ * pendentes, inclusive os recusados antes.
  */
 export function markSynced(
   sync: PocketGrimoireSyncState,
   sent: Record<string, string>,
-  sentDeletes: string[]
+  sentDeletes: string[],
+  rejectedIds: string[] = []
 ): PocketGrimoireSyncState {
   const dirty = { ...sync.dirty };
   Object.entries(sent).forEach(([id, updatedAt]) => {
@@ -125,6 +134,7 @@ export function markSynced(
     dirty,
     deletedIds: sync.deletedIds.filter((id) => !acked.has(id)),
     pendingMerge: false,
+    rejectedIds,
   };
 }
 

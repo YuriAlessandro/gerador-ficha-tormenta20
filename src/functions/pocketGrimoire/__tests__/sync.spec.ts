@@ -110,6 +110,7 @@ describe('claimForUser', () => {
       dirty: { b: T1 },
       deletedIds: [],
       pendingMerge: true,
+      rejectedIds: [],
     });
   });
 
@@ -149,6 +150,12 @@ describe('markSynced', () => {
     expect(result.dirty).toEqual({ b: T2 });
     expect(result.deletedIds).toEqual(['y']);
     expect(result.pendingMerge).toBe(false);
+  });
+
+  it('guarda os recusados por limite da resposta (a lista inteira)', () => {
+    const { sync } = owned([g('a'), g('b')], { rejectedIds: ['a'] });
+    expect(markSynced(sync, {}, [], ['b']).rejectedIds).toEqual(['b']);
+    expect(markSynced(sync, {}, []).rejectedIds).toEqual([]);
   });
 });
 

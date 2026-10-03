@@ -50,7 +50,7 @@ const GrimoireMoveDialog: React.FC = () => {
   const grimoires = useAppSelector(selectGrimoires);
   const activeId = useAppSelector(selectActiveId);
   const notifyAddedToActive = useAddedToActiveSnackbar();
-  const { ensureCanCreate } = useGrimoireLimit();
+  const { ensureCanCreate, lockedIds } = useGrimoireLimit();
   const [naming, setNaming] = useState(false);
 
   const close = () => {
@@ -94,26 +94,28 @@ const GrimoireMoveDialog: React.FC = () => {
           {request ? `Mover "${request.itemName}" para…` : ''}
         </DialogTitle>
         <List sx={{ pt: 0 }}>
-          {grimoires.map((grimoire) => {
-            const current = grimoire.id === request?.fromId;
-            return (
-              <ListItemButton
-                key={grimoire.id}
-                selected={current}
-                onClick={() => request && moveTo(request, grimoire.id)}
-              >
-                <ListItemText
-                  primary={grimoire.name}
-                  secondary={countLabel(grimoire.itemIds.length)}
-                />
-                {current && (
-                  <ListItemIcon sx={{ minWidth: 0 }}>
-                    <CheckIcon fontSize='small' color='primary' />
-                  </ListItemIcon>
-                )}
-              </ListItemButton>
-            );
-          })}
+          {grimoires
+            .filter((grimoire) => !lockedIds.has(grimoire.id))
+            .map((grimoire) => {
+              const current = grimoire.id === request?.fromId;
+              return (
+                <ListItemButton
+                  key={grimoire.id}
+                  selected={current}
+                  onClick={() => request && moveTo(request, grimoire.id)}
+                >
+                  <ListItemText
+                    primary={grimoire.name}
+                    secondary={countLabel(grimoire.itemIds.length)}
+                  />
+                  {current && (
+                    <ListItemIcon sx={{ minWidth: 0 }}>
+                      <CheckIcon fontSize='small' color='primary' />
+                    </ListItemIcon>
+                  )}
+                </ListItemButton>
+              );
+            })}
           <Divider />
           <ListItemButton
             onClick={() => {

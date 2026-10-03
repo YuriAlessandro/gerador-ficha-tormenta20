@@ -38,13 +38,20 @@ import { useGrimoireLimit } from './useGrimoireLimit';
 interface Props {
   grimoire: PocketGrimoire;
   isActive: boolean;
+  /** Acima do limite: só dá para excluir. */
+  locked?: boolean;
   /** Chamado depois de excluir (a página de consulta volta para a lista). */
   onDeleted?: () => void;
 }
 
 type OpenDialog = 'rename' | 'export' | 'replace' | 'delete' | null;
 
-const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
+const GrimoireMenu: React.FC<Props> = ({
+  grimoire,
+  isActive,
+  locked = false,
+  onDeleted,
+}) => {
   const dispatch = useAppDispatch();
   const { enqueueSnackbar } = useSnackbar();
   const { ensureCanCreate } = useGrimoireLimit();
@@ -88,44 +95,54 @@ const GrimoireMenu: React.FC<Props> = ({ grimoire, isActive, onDeleted }) => {
         <MoreVertIcon />
       </IconButton>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
-        <MenuItem
-          disabled={isActive}
-          onClick={() => {
-            closeMenu();
-            dispatch(setActive(grimoire.id));
-          }}
-        >
-          <ListItemIcon>
-            <CheckCircleOutlinedIcon fontSize='small' />
-          </ListItemIcon>
-          <ListItemText>
-            {isActive ? 'Já é o ativo' : 'Tornar ativo'}
-          </ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => openDialog('rename')}>
-          <ListItemIcon>
-            <DriveFileRenameOutlineIcon fontSize='small' />
-          </ListItemIcon>
-          <ListItemText>Renomear</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => openDialog('export')}>
-          <ListItemIcon>
-            <FileDownloadOutlinedIcon fontSize='small' />
-          </ListItemIcon>
-          <ListItemText>Exportar</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => openDialog('replace')}>
-          <ListItemIcon>
-            <FileUploadOutlinedIcon fontSize='small' />
-          </ListItemIcon>
-          <ListItemText>Importar e substituir</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleDuplicate}>
-          <ListItemIcon>
-            <ContentCopyOutlinedIcon fontSize='small' />
-          </ListItemIcon>
-          <ListItemText>Duplicar</ListItemText>
-        </MenuItem>
+        {!locked && (
+          <MenuItem
+            disabled={isActive}
+            onClick={() => {
+              closeMenu();
+              dispatch(setActive(grimoire.id));
+            }}
+          >
+            <ListItemIcon>
+              <CheckCircleOutlinedIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>
+              {isActive ? 'Já é o ativo' : 'Tornar ativo'}
+            </ListItemText>
+          </MenuItem>
+        )}
+        {!locked && (
+          <MenuItem onClick={() => openDialog('rename')}>
+            <ListItemIcon>
+              <DriveFileRenameOutlineIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>Renomear</ListItemText>
+          </MenuItem>
+        )}
+        {!locked && (
+          <MenuItem onClick={() => openDialog('export')}>
+            <ListItemIcon>
+              <FileDownloadOutlinedIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>Exportar</ListItemText>
+          </MenuItem>
+        )}
+        {!locked && (
+          <MenuItem onClick={() => openDialog('replace')}>
+            <ListItemIcon>
+              <FileUploadOutlinedIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>Importar e substituir</ListItemText>
+          </MenuItem>
+        )}
+        {!locked && (
+          <MenuItem onClick={handleDuplicate}>
+            <ListItemIcon>
+              <ContentCopyOutlinedIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>Duplicar</ListItemText>
+          </MenuItem>
+        )}
         <MenuItem
           disabled={isLast}
           onClick={() => openDialog('delete')}

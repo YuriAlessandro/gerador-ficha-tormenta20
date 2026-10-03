@@ -81,6 +81,7 @@ describe('resetToAnonymous', () => {
       dirty: {},
       deletedIds: [],
       pendingMerge: false,
+      rejectedIds: [],
     });
   });
 });

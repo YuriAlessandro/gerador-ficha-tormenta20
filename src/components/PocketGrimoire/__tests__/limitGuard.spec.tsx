@@ -47,9 +47,20 @@ describe('limite de grimórios na interface (plano gratuito)', () => {
     expect(screen.getByText('Novo grimório')).toBeInTheDocument();
   });
 
-  it('deslogado não tem limite', () => {
+  it('deslogado tem o limite do plano gratuito, com convite para entrar', async () => {
     renderWithProviders(<PocketGrimoireListPage />, {
       preloadedState: withGrimoires(10),
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Novo' }));
+    expect(
+      await screen.findByText(grimoireLimitMessage(10, false))
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Novo grimório')).not.toBeInTheDocument();
+  });
+
+  it('deslogado abaixo do limite cria', () => {
+    renderWithProviders(<PocketGrimoireListPage />, {
+      preloadedState: withGrimoires(9),
     });
     fireEvent.click(screen.getByRole('button', { name: 'Novo' }));
     expect(screen.getByText('Novo grimório')).toBeInTheDocument();

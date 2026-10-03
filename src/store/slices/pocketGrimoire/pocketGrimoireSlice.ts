@@ -62,6 +62,8 @@ interface ApplyRemotePayload {
 interface MarkSyncedPayload {
   sent: Record<string, string>;
   deletedIds: string[];
+  /** Recusados por limite na resposta. */
+  rejectedIds?: string[];
 }
 
 interface DuplicatePayload {
@@ -248,8 +250,13 @@ export const pocketGrimoireSlice = createSlice({
       },
     },
     markSynced(state, action: PayloadAction<MarkSyncedPayload>) {
-      const { sent, deletedIds } = action.payload;
-      state.sync = markSyncedState(current(state).sync, sent, deletedIds);
+      const { sent, deletedIds, rejectedIds } = action.payload;
+      state.sync = markSyncedState(
+        current(state).sync,
+        sent,
+        deletedIds,
+        rejectedIds
+      );
     },
     /** Logout explícito: o navegador volta ao zero. */
     resetToAnonymous: {

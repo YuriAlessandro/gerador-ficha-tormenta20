@@ -17,6 +17,7 @@ export const createAnonymousSync = (): PocketGrimoireSyncState => ({
   dirty: {},
   deletedIds: [],
   pendingMerge: false,
+  rejectedIds: [],
 });
 
 export function createDefaultGrimoire(now: string): PocketGrimoire {
@@ -128,11 +129,20 @@ function sanitizeSync(
       )
     )
   );
+  const rawRejected = Array.isArray(raw.rejectedIds) ? raw.rejectedIds : [];
+  const rejectedIds = Array.from(
+    new Set(
+      rawRejected.filter(
+        (id): id is string => typeof id === 'string' && grimoireIds.has(id)
+      )
+    )
+  );
   return {
     ownerId: raw.ownerId,
     dirty,
     deletedIds,
     pendingMerge: raw.pendingMerge === true,
+    rejectedIds,
   };
 }
 

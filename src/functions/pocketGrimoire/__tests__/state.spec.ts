@@ -22,7 +22,13 @@ describe('createInitialState', () => {
         },
       ],
       activeId: DEFAULT_GRIMOIRE_ID,
-      sync: { ownerId: null, dirty: {}, deletedIds: [], pendingMerge: false },
+      sync: {
+        ownerId: null,
+        dirty: {},
+        deletedIds: [],
+        pendingMerge: false,
+        rejectedIds: [],
+      },
     });
   });
 });
@@ -160,6 +166,7 @@ describe('ensureValidState — sync', () => {
       dirty: {},
       deletedIds: [],
       pendingMerge: false,
+      rejectedIds: [],
     });
   });
 
@@ -169,6 +176,7 @@ describe('ensureValidState — sync', () => {
       dirty: { a: NOW },
       deletedIds: ['x'],
       pendingMerge: true,
+      rejectedIds: ['a'],
     };
     expect(
       ensureValidState({ grimoires: [g('a')], activeId: 'a', sync }, NOW).sync
@@ -181,6 +189,7 @@ describe('ensureValidState — sync', () => {
       dirty: { a: NOW, fantasma: NOW, b: 42 },
       deletedIds: ['x', 'x', 'a', 7, ''],
       pendingMerge: 'sim',
+      rejectedIds: ['b', 'b', 'fantasma', 3],
     };
     expect(
       ensureValidState(
@@ -192,6 +201,7 @@ describe('ensureValidState — sync', () => {
       dirty: { a: NOW },
       deletedIds: ['x'],
       pendingMerge: false,
+      rejectedIds: ['b'],
     });
   });
 
@@ -209,6 +219,7 @@ describe('ensureValidState — sync', () => {
       dirty: {},
       deletedIds: [],
       pendingMerge: false,
+      rejectedIds: [],
     });
   });
 });

@@ -45,6 +45,23 @@ export const mergeMessage = (count: number): string =>
     ? '1 grimório deste navegador foi salvo na sua conta.'
     : `${count} grimórios deste navegador foram salvos na sua conta.`;
 
+/** Login com mais grimórios do que o plano comporta. */
+export const mergeOverLimitMessage = (
+  saved: number,
+  blocked: number
+): string => {
+  const limitText =
+    blocked === 1
+      ? 'ficou bloqueado por estar acima do limite do seu plano.'
+      : 'ficaram bloqueados por estarem acima do limite do seu plano.';
+  if (saved === 0) {
+    const what =
+      blocked === 1 ? 'grimório deste navegador' : 'grimórios deste navegador';
+    return `${blocked} ${what} ${limitText}`;
+  }
+  return `${mergeMessage(saved)} ${blocked} ${limitText}`;
+};
+
 export interface GrimoireSyncService {
   getAll: () => Promise<PocketGrimoire[]>;
   sync: (payload: GrimoireSyncPayload) => Promise<GrimoireSyncResult>;
@@ -55,7 +72,7 @@ export interface SyncEngineDeps {
   dispatch: (action: AnyAction) => unknown;
   service: GrimoireSyncService;
   setStatus: (status: GrimoireSyncStatus) => void;
-  notify: (message: string, variant: 'success' | 'error') => void;
+  notify: (message: string, variant: 'success' | 'warning' | 'error') => void;
   now?: () => number;
 }
 
@@ -117,7 +134,12 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
    * Novos recusados por limite ficam pendentes no navegador. Se só eles
    * sobraram, não reenvia sozinho: espera uma mudança (ex.: excluir outro).
    */
-  const holdRejected = (rejected: string[], maxGrimoires: number) => {
+  const holdRejected = (
+    rejected: string[],
+    maxGrimoires: number,
+    /** O aviso do login já falou dos bloqueados. */
+    announced: boolean
+  ) => {
     const rejectedSet = new Set(rejected);
     const { sync } = deps.getState();
     const onlyRejected =
@@ -133,6 +155,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     const key = [...rejected].sort().join('|');
     if (key !== announcedRejected) {
       announcedRejected = key;
+      if (announced) return;
       deps.notify(
         grimoireLimitMessage(effectiveGrimoireLimit(maxGrimoires)),
         'error'
@@ -175,22 +198,30 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           delete confirmed[id];
         });
         deps.dispatch(
-          markSynced({ sent: confirmed, deletedIds: payload.deletes })
+          markSynced({
+            sent: confirmed,
+            deletedIds: payload.deletes,
+            rejectedIds: rejected,
+          })
         );
       }
       deps.dispatch(applyRemote(remote));
+      const loginNotice = payload?.merge && announceCount > 0;
       if (rejected.length > 0) {
-        holdRejected(rejected, maxGrimoires);
+        holdRejected(rejected, maxGrimoires, Boolean(loginNotice));
       } else {
         announcedRejected = '';
         deps.setStatus('idle');
       }
-      if (payload?.merge) {
-        if (announceCount > 0) {
-          deps.notify(mergeMessage(announceCount), 'success');
+      if (loginNotice) {
+        const saved = Math.max(announceCount - rejected.length, 0);
+        if (rejected.length > 0) {
+          deps.notify(mergeOverLimitMessage(saved, rejected.length), 'warning');
+        } else {
+          deps.notify(mergeMessage(saved), 'success');
         }
-        announceCount = 0;
       }
+      if (payload?.merge) announceCount = 0;
     } catch (error) {
       if (userId === requestUser) handleError(error);
     }

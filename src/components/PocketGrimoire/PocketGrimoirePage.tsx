@@ -51,6 +51,7 @@ import GrimoireCardViewer from './cards/GrimoireCardViewer';
 import GrimoireCardLegend from './cards/GrimoireCardLegend';
 import { presentItem } from './cards/itemPresentation';
 import { GrimoireViewMode, useGrimoireViewMode } from './useGrimoireViewMode';
+import { useGrimoireLimit } from './useGrimoireLimit';
 
 /** Grimórios pequenos (uma one-shot) já abrem com tudo à vista. */
 export const AUTO_OPEN_MAX_ITEMS = 5;
@@ -71,6 +72,8 @@ const PocketGrimoirePage: React.FC = () => {
   const removeFromGrimoire = useRemoveFromGrimoire();
   const grimoire = useAppSelector(selectGrimoireById(id));
   const activeId = useAppSelector(selectActiveId);
+  const { lockedIds, ensureUnlocked } = useGrimoireLimit();
+  const locked = lockedIds.has(id);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<GrimoireFilter>('all');
   const [viewMode, setViewMode] = useGrimoireViewMode();
@@ -130,6 +133,13 @@ const PocketGrimoirePage: React.FC = () => {
         : [],
     [normalizedQuery, query]
   );
+
+  // Acima do limite não abre, nem pelo endereço direto: volta para a lista.
+  useEffect(() => {
+    if (locked && !ensureUnlocked(id)) history.replace('/grimorio');
+  }, [locked, id, ensureUnlocked, history]);
+
+  if (locked) return null;
 
   if (!grimoire) {
     return (

@@ -45,7 +45,7 @@ const GrimoireChoiceMenu: React.FC<Props> = ({
   const grimoires = useAppSelector(selectGrimoires);
   const activeId = useAppSelector(selectActiveId);
   const notify = useUndoSnackbar();
-  const { ensureCanCreate } = useGrimoireLimit();
+  const { ensureCanCreate, lockedIds } = useGrimoireLimit();
   const [naming, setNaming] = useState(false);
 
   const toggle = (grimoire: PocketGrimoire) => {
@@ -76,26 +76,28 @@ const GrimoireChoiceMenu: React.FC<Props> = ({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        {grimoires.map((grimoire) => {
-          const checked = grimoire.itemIds.includes(itemId);
-          return (
-            <MenuItem
-              key={grimoire.id}
-              role='menuitemcheckbox'
-              aria-checked={checked}
-              onClick={() => toggle(grimoire)}
-            >
-              <ListItemIcon>
-                {checked ? (
-                  <CheckBoxIcon fontSize='small' color='success' />
-                ) : (
-                  <CheckBoxOutlineBlankIcon fontSize='small' />
-                )}
-              </ListItemIcon>
-              <ListItemText>{grimoire.name}</ListItemText>
-            </MenuItem>
-          );
-        })}
+        {grimoires
+          .filter((grimoire) => !lockedIds.has(grimoire.id))
+          .map((grimoire) => {
+            const checked = grimoire.itemIds.includes(itemId);
+            return (
+              <MenuItem
+                key={grimoire.id}
+                role='menuitemcheckbox'
+                aria-checked={checked}
+                onClick={() => toggle(grimoire)}
+              >
+                <ListItemIcon>
+                  {checked ? (
+                    <CheckBoxIcon fontSize='small' color='success' />
+                  ) : (
+                    <CheckBoxOutlineBlankIcon fontSize='small' />
+                  )}
+                </ListItemIcon>
+                <ListItemText>{grimoire.name}</ListItemText>
+              </MenuItem>
+            );
+          })}
         <Divider />
         <MenuItem
           onClick={() => {
