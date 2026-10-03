@@ -76,6 +76,14 @@ function renderName(name: string, highlight?: string): React.ReactNode {
  * Com 400-600 poderes no catálogo, montar tudo de uma vez era o que deixava o
  * editor antigo pesado.
  */
+/** Faixa lateral com a altura do cabeçalho (`ROW_BUTTON_SX.minHeight`). */
+const ROW_SIDE_SLOT_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  minHeight: 44,
+  flexShrink: 0,
+};
+
 const PowerCatalogRow: React.FC<PowerCatalogRowProps> = ({
   name,
   description,
@@ -101,13 +109,20 @@ const PowerCatalogRow: React.FC<PowerCatalogRowProps> = ({
         bgcolor: selected ? 'action.selected' : 'transparent',
       }}
     >
-      <Checkbox
-        size='small'
-        checked={selected}
-        onChange={onToggle}
-        sx={{ mt: 0.25, p: 0.5 }}
-        slotProps={{ input: { 'aria-label': `Selecionar ${name}` } }}
-      />
+      {/*
+        A linha alinha pelo topo (a descrição expande para baixo); o checkbox
+        fica numa faixa da mesma altura do cabeçalho do nome, centralizado com
+        ele — sem isto ele ficava colado no topo, desalinhado do nome.
+      */}
+      <Box sx={ROW_SIDE_SLOT_SX}>
+        <Checkbox
+          size='small'
+          checked={selected}
+          onChange={onToggle}
+          sx={{ p: 0.5 }}
+          slotProps={{ input: { 'aria-label': `Selecionar ${name}` } }}
+        />
+      </Box>
 
       {/*
         Coluna flex, e não um Box comum: o `ButtonBase` é `inline-flex` por
@@ -195,16 +210,17 @@ const PowerCatalogRow: React.FC<PowerCatalogRowProps> = ({
       </Box>
 
       {repeatable && selected && onAddAnother && (
-        <Tooltip title='Adicionar outra vez'>
-          <IconButton
-            size='small'
-            onClick={onAddAnother}
-            sx={{ mt: 0.25, flexShrink: 0 }}
-            aria-label={`Adicionar outra instância de ${name}`}
-          >
-            <AddIcon fontSize='small' />
-          </IconButton>
-        </Tooltip>
+        <Box sx={ROW_SIDE_SLOT_SX}>
+          <Tooltip title='Adicionar outra vez'>
+            <IconButton
+              size='small'
+              onClick={onAddAnother}
+              aria-label={`Adicionar outra instância de ${name}`}
+            >
+              <AddIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
+        </Box>
       )}
     </Box>
   );
