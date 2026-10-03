@@ -1742,7 +1742,7 @@ export const applyPower = (
   _sheet: CharacterSheet,
   powerOrAbility: Pick<
     GeneralPower,
-    'sheetActions' | 'sheetBonuses' | 'name'
+    'sheetActions' | 'sheetBonuses' | 'name' | 'canRepeat'
   > & {
     sourceClassName?: string;
   },
@@ -1751,6 +1751,23 @@ export const applyPower = (
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
+
+  /**
+   * Poder escolhido várias vezes (Companheiro Animal, Mascote) com uma
+   * `chooseFromOptions` por escolha: há mais instâncias do poder na ficha do
+   * que escolhas gravadas? Então esta é uma instância nova e a escolha dela
+   * precisa ser feita (e ACRESCENTADA a `optionChoices`), em vez de cair no
+   * "já aplicado" que só reaplica a primeira.
+   */
+  const isNewRepeatChoice = (optionKey: string): boolean => {
+    if (!powerOrAbility.canRepeat) return false;
+    const instances = [
+      ...(sheet.classPowers ?? []),
+      ...(sheet.generalPowers ?? []),
+    ].filter((p) => p.name === powerOrAbility.name).length;
+    const recorded = sheet.optionChoices?.[optionKey]?.length ?? 0;
+    return recorded > 0 && instances > recorded;
+  };
 
   const getSourceName = (source: SheetChangeSource) => {
     if (source.type === 'power') {
@@ -2050,6 +2067,10 @@ export const applyPower = (
       // Skip if this action was already applied (prevents duplication during recalculation)
       if (
         !forceApply &&
+        !(
+          sheetAction.action.type === 'chooseFromOptions' &&
+          isNewRepeatChoice(sheetAction.action.optionKey)
+        ) &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
         if (sheetAction.action.type === 'setMaxSpacesAttribute') {
@@ -3377,13 +3398,20 @@ export const applyPower = (
         let chosenNames: string[] = [];
         let persistChoice = false;
         const persistedChoices = sheet.optionChoices?.[optionKey];
+        // Instância nova de poder repetido: escolhe só a dela (manual ou
+        // sorteio) e acrescenta às escolhas das instâncias anteriores.
+        const appendChoice = isNewRepeatChoice(optionKey);
         if (
           manualSelections?.chosenOption &&
           manualSelections.chosenOption.length > 0
         ) {
           chosenNames = manualSelections.chosenOption.slice(0, pick);
           persistChoice = true;
-        } else if (persistedChoices && persistedChoices.length > 0) {
+        } else if (
+          !appendChoice &&
+          persistedChoices &&
+          persistedChoices.length > 0
+        ) {
           // Replay: usa TODAS as escolhas persistidas (inclui picks de level-up
           // acumulados); não corta por `pick`.
           chosenNames = [...persistedChoices];
@@ -3423,7 +3451,9 @@ export const applyPower = (
         if (persistChoice && chosenNames.length > 0) {
           sheet.optionChoices = {
             ...(sheet.optionChoices || {}),
-            [optionKey]: chosenNames,
+            [optionKey]: appendChoice
+              ? [...(persistedChoices ?? []), ...chosenNames]
+              : chosenNames,
           };
         }
 
