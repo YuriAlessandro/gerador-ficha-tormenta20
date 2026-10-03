@@ -34,7 +34,11 @@ const SETEIRO: VariantClassOverrides = {
       Skill.REFLEXOS,
     ],
   },
-  proficiencias: [PROFICIENCIAS.MARCIAIS],
+  proficiencias: [
+    PROFICIENCIAS.SIMPLES,
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.MARCIAIS,
+  ],
   abilities: [
     {
       name: 'Caminho do Atirador',

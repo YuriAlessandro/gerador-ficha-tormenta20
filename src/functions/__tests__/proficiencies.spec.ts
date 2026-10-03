@@ -547,9 +547,26 @@ describe('proficiencies', () => {
 
       normalizeSheet(sheet);
 
-      expect(sheet.classe.proficiencias).toEqual([PROFICIENCIAS.SIMPLES]);
+      // Sobram só as válidas, mais a base que todo personagem tem.
+      expect(sheet.classe.proficiencias).toEqual([
+        PROFICIENCIAS.LEVES,
+        PROFICIENCIAS.SIMPLES,
+      ]);
       expect(sheet.customProficiencias).toEqual(['Tridente']);
       expect(sheet.removedProficiencias).toEqual([]);
+    });
+
+    it('garante armas simples e armaduras leves (classe sem proficiências)', () => {
+      // Treinador e variantes do Heróis foram cadastrados com a lista vazia.
+      const sheet = createMockCharacterSheet();
+      sheet.classe = { ...sheet.classe, name: 'Treinador', proficiencias: [] };
+
+      normalizeSheet(sheet);
+
+      expect(sheet.classe.proficiencias).toEqual(
+        expect.arrayContaining([PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES])
+      );
+      expect(getSheetProficiencias(sheet)).toContain(PROFICIENCIAS.LEVES);
     });
   });
 
