@@ -121,13 +121,12 @@ import {
   isInWildShape,
 } from '@/premium/functions/wildShape';
 import { WILD_SHAPE_POWER_KEY } from '@/premium/data/wildShapes';
-import { AnimalCompanionsPanel } from '@/premium/components/AnimalCompanions';
 import {
-  getAnimalCompanionActivatedPowers,
-  reconcileAnimalCompanionEffects,
-} from '@/premium/functions/animalCompanionEffects';
-import { reconcileSheetPartnerEffects } from '@/premium/functions/sheetPartners';
+  getSheetPartnerActivatedPowers,
+  reconcileSheetPartnerEffects,
+} from '@/premium/functions/sheetPartners';
 import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
+import { migrateAnimalCompanions } from '@/premium/functions/animalCompanionMigration';
 import { reconcileItemPartners } from '@/premium/functions/itemPartners';
 import { reconcileAutoPowerEffects } from '@/premium/functions/autoPowerEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
@@ -366,20 +365,9 @@ const Result: React.FC<ResultProps> = (props) => {
   // PV/Defesa/perícias, com Treinador Eclético) — mesma regra do recalculateSheet
   const { trainerLevel, statLevel: companionStatLevel } =
     getCompanionLevels(currentSheet);
-  // O painel de companheiros só aparece para quem tem a ver com ele: druidas
-  // com o poder Companheiro Animal, ou qualquer ficha que já tenha um
-  // companheiro salvo (não esconder dados existentes se o poder for removido).
-  const showAnimalCompanions = useMemo(() => {
-    if ((currentSheet.animalCompanions?.length ?? 0) > 0) return true;
-    if (getClassLevel(currentSheet, 'Druida') <= 0) return false;
-    return (currentSheet.classPowers ?? []).some(
-      (power) => power.name === 'Companheiro Animal'
-    );
-  }, [currentSheet.animalCompanions, currentSheet.classPowers, currentSheet]);
-
   // Definições injetadas em runtime no gerenciador de efeitos: efeitos custom
   // do jogador (presos a um poder ou avulsos) + benefícios ativados dos
-  // companheiros animais + o Poder Capturado do Usurpador (montado a partir de
+  // parceiros + o Poder Capturado do Usurpador (montado a partir de
   // `sheet.poderesCapturados`).
   const poderCapturadoDefinition = useMemo(
     () => getPoderCapturadoDefinition(currentSheet, userSupplements),
@@ -389,7 +377,7 @@ const Result: React.FC<ResultProps> = (props) => {
     () => [
       ...collectVirtualCustomEffectDefinitions(currentSheet),
       ...collectStandaloneCustomEffectDefinitions(currentSheet),
-      ...getAnimalCompanionActivatedPowers(currentSheet),
+      ...getSheetPartnerActivatedPowers(currentSheet),
       ...(poderCapturadoDefinition ? [poderCapturadoDefinition] : []),
     ],
     [currentSheet, poderCapturadoDefinition]
@@ -603,11 +591,11 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate, applyRecalculatedSheet]
   );
 
-  // O painel de companheiros fica fora da aba Poderes; o ícone de patinha no
-  // poder rola até ele em vez de abrir um modal.
-  const animalCompanionsRef = React.useRef<HTMLDivElement>(null);
-  const scrollToAnimalCompanions = useCallback(() => {
-    animalCompanionsRef.current?.scrollIntoView({
+  // O Companheiro Animal mora no painel de Parceiros, fora da aba Poderes; o
+  // ícone de patinha no poder rola até ele em vez de abrir um modal.
+  const partnersRef = React.useRef<HTMLDivElement>(null);
+  const scrollToPartners = useCallback(() => {
+    partnersRef.current?.scrollIntoView({
       behavior: 'smooth',
       block: 'center',
     });
@@ -677,9 +665,8 @@ const Result: React.FC<ResultProps> = (props) => {
   }, [currentSheet.activeEffects]);
 
   // Efeitos DERIVADOS da ficha (não escolhidos pelo jogador):
-  //  - Companheiro Animal: mantém os `ActiveEffect`s passivos em dia com
-  //    `sheet.animalCompanions` (subir de nível troca o grau do parceiro, e
-  //    com ele os bônus).
+  //  - Parceiros: um `ActiveEffect` passivo por parceiro, em dia com
+  //    `sheet.partners` (subir de nível troca o grau, e com ele os bônus).
   //  - Poderes automáticos (Coragem Aguerrida): ligam/desligam conforme o
   //    estado vivo da ficha — a dependência é o `currentSheet` inteiro, então
   //    o efeito já re-roda a cada mudança de PV.
@@ -690,18 +677,12 @@ const Result: React.FC<ResultProps> = (props) => {
   // primeiro (cada um espalha do closure já obsoleto).
   React.useEffect(() => {
     if (!onSheetUpdate) return;
-    const companions = reconcileAnimalCompanionEffects(currentSheet);
-    const afterCompanions = companions
-      ? { ...currentSheet, activeEffects: companions }
-      : currentSheet;
-    // Parceiros da ficha: mesma forma do companheiro (um efeito passivo por
-    // parceiro, derivado de `sheet.partners`).
-    const partners = reconcileSheetPartnerEffects(afterCompanions);
+    const partners = reconcileSheetPartnerEffects(currentSheet);
     const base = partners
-      ? { ...afterCompanions, activeEffects: partners }
-      : afterCompanions;
+      ? { ...currentSheet, activeEffects: partners }
+      : currentSheet;
     const auto = reconcileAutoPowerEffects(base);
-    const nextEffects = auto ?? partners ?? companions;
+    const nextEffects = auto ?? partners;
     // Terceiro reconciliador, mesma forma: ficha criada antes de a perda de
     // Carisma por poderes da Tormenta existir no motor do assistente (v4.30)
     // nunca recebeu o desconto, porque ABRIR uma ficha não dispara recálculo.
@@ -709,11 +690,13 @@ const Result: React.FC<ResultProps> = (props) => {
     // ledger (mesmo vazio), então a condição não dispara de novo — não há como
     // descontar duas vezes.
     const needsTormentaBackfill = needsTormentaPenaltyBackfill(currentSheet);
-    // Ficha que já tinha o poder (Familiar, Escudeiro...) antes de o parceiro
-    // concedido existir: o recálculo de `applyRecalculatedSheet` cria o
-    // parceiro, e a rodada seguinte deste efeito aplica os bônus dele. `!!` e
-    // não `!== null`: o stub público devolve `undefined`.
+    // Ficha que já tinha o poder (Familiar, Escudeiro...) ou o animal antes de
+    // o parceiro existir, ou que ainda guarda o Companheiro Animal no formato
+    // antigo: o recálculo de `applyRecalculatedSheet` cria/migra o parceiro, e
+    // a rodada seguinte deste efeito aplica os bônus dele. `!!` e não
+    // `!== null`: o stub público devolve `undefined`.
     const needsPowerPartners =
+      !!migrateAnimalCompanions(currentSheet) ||
       !!reconcilePowerPartners(currentSheet) ||
       !!reconcileItemPartners(currentSheet);
     if (!nextEffects && !needsTormentaBackfill && !needsPowerPartners) return;
@@ -2503,32 +2486,8 @@ const Result: React.FC<ResultProps> = (props) => {
       body: (
         <>
           {partnersFeature.isEnabled && (
-            <Box sx={{ mb: 4 }}>
+            <Box sx={{ mb: 4 }} ref={partnersRef}>
               <PartnerSheetPanel
-                sheet={currentSheet}
-                onSheetUpdate={
-                  onSheetUpdate ? applyRecalculatedSheet : undefined
-                }
-              />
-            </Box>
-          )}
-        </>
-      ),
-    },
-
-    animalCompanions: {
-      kind: 'animalCompanions',
-      defaultTitle: 'Companheiros',
-      iconKey: 'mui:Pets',
-      withTitle: false,
-      available: showAnimalCompanions,
-      selfContained: true,
-      actions: [],
-      body: (
-        <>
-          {showAnimalCompanions && (
-            <Box sx={{ mb: 4 }} ref={animalCompanionsRef}>
-              <AnimalCompanionsPanel
                 sheet={currentSheet}
                 onSheetUpdate={
                   onSheetUpdate ? applyRecalculatedSheet : undefined
@@ -2862,7 +2821,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 return undefined;
               })()}
               onAnimalCompanionClick={
-                showAnimalCompanions ? scrollToAnimalCompanions : undefined
+                partnersFeature.isEnabled ? scrollToPartners : undefined
               }
               powerActionSlots={{
                 Paródia: (

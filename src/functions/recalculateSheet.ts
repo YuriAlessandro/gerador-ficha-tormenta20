@@ -44,6 +44,7 @@ import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
 import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
+import { migrateAnimalCompanions } from '@/premium/functions/animalCompanionMigration';
 import { stripPartnerOwnedBonuses } from '@/premium/functions/partnerOwnedBonuses';
 import { reconcileItemPartners } from '@/premium/functions/itemPartners';
 import { dismountPartnersInWildShape } from '@/premium/functions/sheetPartners';
@@ -1995,6 +1996,16 @@ export function recalculateSheet(
   // the new rules require an explicit `offHandItemId`. Marks the sheet as
   // migrated so later "soltar"/"tirar" actions are preserved across recalcs.
   updatedSheet = migrateLegacyEquipState(updatedSheet);
+
+  // Migração: o Companheiro Animal do Druida virou parceiro de poder
+  // (`sheet.partners`). Antes dos efeitos ativos (Step 7.45), para os passivos
+  // antigos (`animal-companion:*`) já não entrarem nesta passada.
+  const companionMigration = migrateAnimalCompanions(updatedSheet);
+  if (companionMigration) {
+    updatedSheet.partners = companionMigration.partners;
+    updatedSheet.activeEffects = companionMigration.activeEffects;
+    delete updatedSheet.animalCompanions;
+  }
 
   // Migração: limpar `conditionAttributePenalties` (deprecated). Versões
   // anteriores aplicavam penalidades de condições mutando `atributos[attr].value`

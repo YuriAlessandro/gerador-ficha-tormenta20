@@ -1098,7 +1098,8 @@ export default interface CharacterSheet {
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
   multiclassSetups?: Record<string, ClassSetupSelection>; // Multiclasse: escolhas do 1º nível por className (linhagem, deus, escolas)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
-  animalCompanions?: SheetAnimalCompanion[]; // Companheiro(s) Animal(is) do Druida
+  /** Formato antigo do Companheiro Animal; migrado para `partners` no recálculo. */
+  animalCompanions?: SheetAnimalCompanion[];
   partners?: SheetPartner[]; // Parceiros persistentes (JdA cap. 6) — ver `SheetPartner`
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
   activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
