@@ -605,7 +605,7 @@ export function getFuturaLendaClassPowers(
   const sheetForCheck: CharacterSheet = { ...sheet, nivel: minLevel };
   const waivers = getActiveWaivers(sheet);
 
-  return resolveClassPowerCatalog(sheet).filter((power) => {
+  const classPowers = resolveClassPowerCatalog(sheet).filter((power) => {
     // Check if power already exists and if it can be repeated
     const isRepeatedPower = (sheet.classPowers ?? []).some(
       (existingPower) => existingPower.name === power.name
@@ -620,6 +620,28 @@ export function getFuturaLendaClassPowers(
       waivers,
     });
   });
+
+  // Alma Livre: o poder pré-escolhido de outra classe conta "como se
+  // pertencesse" à sua, com nível de classe = nível de personagem − 4 (mesma
+  // regra do level-up). Sem isso a Futura Lenda só oferecia o catálogo da
+  // classe inicial.
+  const { almaLivrePower } = sheet;
+  if (
+    almaLivrePower &&
+    !classPowers.some((power) => power.name === almaLivrePower.name) &&
+    !(sheet.classPowers ?? []).some(
+      (power) => power.name === almaLivrePower.name
+    ) &&
+    isPowerAvailable(
+      { ...sheet, nivel: Math.max(1, minLevel - 4) },
+      almaLivrePower,
+      { waivers }
+    )
+  ) {
+    classPowers.push(almaLivrePower);
+  }
+
+  return classPowers;
 }
 
 interface WeightedPower {

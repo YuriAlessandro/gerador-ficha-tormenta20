@@ -275,6 +275,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         {}
       ),
       sheetActionHistory: [],
+      // Poder escolhido no Alma Livre entra na lista da Futura Lenda
+      almaLivrePower: selections['Alma Livre']?.almaLivrePower,
     } as unknown as CharacterSheet);
 
   // Auto-select for requirements with a single available option and pick === 1.
