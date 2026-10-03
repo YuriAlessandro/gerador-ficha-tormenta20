@@ -6,6 +6,7 @@ import {
 } from '@/interfaces/PowerSelections';
 import { getClassFamilyName, isSameClassFamily } from './classFamily';
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import { buildFamiliarSheetBonuses } from './powers/familiarBonuses';
 import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
@@ -115,7 +116,6 @@ import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcan
 import { Spell } from '../interfaces/Spells';
 import { DiceRoll } from '../interfaces/DiceRoll';
 import { CustomEffect } from '../premium/interfaces/CustomEffect';
-import { generateRandomAnimalCompanion } from '../premium/functions/animalCompanionEffects';
 import {
   applyOpenRace,
   toOpenRaceVariant,
@@ -1591,62 +1591,6 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
-// Bônus mecânicos por familiar (poder "Familiar" do Arcanista).
-// Apenas os familiares com efeito modelável retornam bônus; os demais
-// (Borboleta/Cobra/Lagarto +1 CD, Coruja, Corvo, Falcão, Morcego) ficam só
-// descritivos no texto do poder.
-const buildFamiliarSheetBonuses = (
-  familiarKey: string,
-  sheet: CharacterSheet,
-  source: SheetChangeSource
-): SheetBonus[] => {
-  // GATO: visão no escuro (narrativa) + +2 Furtividade
-  if (familiarKey === 'GATO') {
-    return [
-      {
-        source,
-        target: { type: 'Skill', name: Skill.FURTIVIDADE },
-        modifier: { type: 'Fixed', value: 2 },
-      },
-    ];
-  }
-  // SAPO: soma o atributo-chave ao total de PV (cumulativo com CON, não substitui)
-  if (familiarKey === 'SAPO') {
-    return [
-      {
-        source,
-        target: { type: 'PV' },
-        modifier: { type: 'SpecialAttribute', attribute: 'spellKeyAttr' },
-      },
-    ];
-  }
-  // RATO: pode usar o atributo-chave em Fortitude no lugar de Constituição.
-  // Por ser opcional ("você pode usar"), só troca quando for benéfico.
-  if (familiarKey === 'RATO') {
-    const keyAttr =
-      sheet.classe.spellPath?.keyAttribute ??
-      sheet.overrideKeyAttribute ??
-      Atributo.CARISMA;
-    if (
-      (sheet.atributos[keyAttr]?.value ?? 0) >
-      (sheet.atributos[Atributo.CONSTITUICAO]?.value ?? 0)
-    ) {
-      return [
-        {
-          source,
-          target: {
-            type: 'ModifySkillAttribute',
-            skill: Skill.FORTITUDE,
-            attribute: keyAttr,
-          },
-          modifier: { type: 'Fixed', value: 0 },
-        },
-      ];
-    }
-  }
-  return [];
-};
-
 /**
  * Resolve e aplica a concessão de magias POR ESCOLHA de uma opção de
  * `chooseFromOptions` (quando a opção escolhida tem `grantedSpellsAction`).
@@ -1794,7 +1738,7 @@ export const applyPower = (
   _sheet: CharacterSheet,
   powerOrAbility: Pick<
     GeneralPower,
-    'sheetActions' | 'sheetBonuses' | 'name'
+    'sheetActions' | 'sheetBonuses' | 'name' | 'canRepeat'
   > & {
     sourceClassName?: string;
   },
@@ -1803,6 +1747,23 @@ export const applyPower = (
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
+
+  /**
+   * Poder escolhido várias vezes (Companheiro Animal, Mascote) com uma
+   * `chooseFromOptions` por escolha: há mais instâncias do poder na ficha do
+   * que escolhas gravadas? Então esta é uma instância nova e a escolha dela
+   * precisa ser feita (e ACRESCENTADA a `optionChoices`), em vez de cair no
+   * "já aplicado" que só reaplica a primeira.
+   */
+  const isNewRepeatChoice = (optionKey: string): boolean => {
+    if (!powerOrAbility.canRepeat) return false;
+    const instances = [
+      ...(sheet.classPowers ?? []),
+      ...(sheet.generalPowers ?? []),
+    ].filter((p) => p.name === powerOrAbility.name).length;
+    const recorded = sheet.optionChoices?.[optionKey]?.length ?? 0;
+    return recorded > 0 && instances > recorded;
+  };
 
   const getSourceName = (source: SheetChangeSource) => {
     if (source.type === 'power') {
@@ -2102,6 +2063,10 @@ export const applyPower = (
       // Skip if this action was already applied (prevents duplication during recalculation)
       if (
         !forceApply &&
+        !(
+          sheetAction.action.type === 'chooseFromOptions' &&
+          isNewRepeatChoice(sheetAction.action.optionKey)
+        ) &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
         if (sheetAction.action.type === 'setMaxSpacesAttribute') {
@@ -2714,7 +2679,9 @@ export const applyPower = (
         // Get familiar data
         const familiar = FAMILIARS[selectedFamiliar];
 
-        // Aplica os bônus mecânicos do familiar selecionado (Gato/Sapo/Rato)
+        // Aplica os bônus mecânicos do familiar selecionado (Gato/Sapo/Rato).
+        // Com o premium, o do Familiar do Arcanista sai daqui e vem do
+        // parceiro (`stripPartnerOwnedBonuses`, no recálculo).
         sheet.sheetBonuses.push(
           ...buildFamiliarSheetBonuses(
             selectedFamiliar,
@@ -3180,21 +3147,6 @@ export const applyPower = (
             value: `Poder de classe adquirido: ${selectedPower.name}`,
           });
 
-          // Druida: o poder Companheiro Animal concede um parceiro. Semeia um
-          // com espécie/tipo/nome aleatórios para a ficha já sair jogável — o
-          // jogador renomeia e troca o tipo depois no painel.
-          if (selectedPower.name === 'Companheiro Animal') {
-            const companion = generateRandomAnimalCompanion(uuid());
-            sheet.animalCompanions = [
-              ...(sheet.animalCompanions ?? []),
-              companion,
-            ];
-            subSteps.push({
-              name: 'Companheiro Animal',
-              value: `${companion.name} (${companion.species})`,
-            });
-          }
-
           // Apply the selected power's sheetActions and sheetBonuses
           if (selectedPower.sheetActions || selectedPower.sheetBonuses) {
             const [updatedSheet, powerSubSteps] = applyPower(
@@ -3439,13 +3391,20 @@ export const applyPower = (
         let chosenNames: string[] = [];
         let persistChoice = false;
         const persistedChoices = sheet.optionChoices?.[optionKey];
+        // Instância nova de poder repetido: escolhe só a dela (manual ou
+        // sorteio) e acrescenta às escolhas das instâncias anteriores.
+        const appendChoice = isNewRepeatChoice(optionKey);
         if (
           manualSelections?.chosenOption &&
           manualSelections.chosenOption.length > 0
         ) {
           chosenNames = manualSelections.chosenOption.slice(0, pick);
           persistChoice = true;
-        } else if (persistedChoices && persistedChoices.length > 0) {
+        } else if (
+          !appendChoice &&
+          persistedChoices &&
+          persistedChoices.length > 0
+        ) {
           // Replay: usa TODAS as escolhas persistidas (inclui picks de level-up
           // acumulados); não corta por `pick`.
           chosenNames = [...persistedChoices];
@@ -3485,7 +3444,9 @@ export const applyPower = (
         if (persistChoice && chosenNames.length > 0) {
           sheet.optionChoices = {
             ...(sheet.optionChoices || {}),
-            [optionKey]: chosenNames,
+            [optionKey]: appendChoice
+              ? [...(persistedChoices ?? []), ...chosenNames]
+              : chosenNames,
           };
         }
 

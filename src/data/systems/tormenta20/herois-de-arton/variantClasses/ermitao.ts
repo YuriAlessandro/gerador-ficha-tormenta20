@@ -2,6 +2,7 @@ import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import DRUIDA from '../../classes/druida';
+import PROFICIENCIAS from '../../proficiencias';
 
 const devotoFiel = DRUIDA.abilities.find((a) => a.name === 'Devoto Fiel')!;
 const magias = DRUIDA.abilities.find((a) => a.name === 'Magias')!;
@@ -30,7 +31,7 @@ const ERMITAO: VariantClassOverrides = {
       Skill.RELIGIAO,
     ],
   },
-  proficiencias: [],
+  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
     devotoFiel,
     {

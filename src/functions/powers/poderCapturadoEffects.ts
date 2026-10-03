@@ -16,8 +16,7 @@ import {
  * Poder Capturado como efeito ativo VIRTUAL.
  *
  * A definição não vive no registry premium porque as opções de uso saem da
- * lista de escolhas gravada em `sheet.poderesCapturados` — é por ficha. Mesmo
- * padrão de `getAnimalCompanionActivatedPowers`.
+ * lista de escolhas gravada em `sheet.poderesCapturados` — é por ficha.
  *
  * Duas regras saem de graça da infraestrutura existente:
  *  - "até você usá-lo novamente": `handleActiveEffectActivate` substitui

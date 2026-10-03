@@ -109,7 +109,11 @@ describe('normalizeSheet - fichas sem campos obrigatórios', () => {
     expect(sheet.raca.abilities).toEqual([]);
     expect(sheet.bag).toBeDefined();
     // Crash 3: Result faz classe.proficiencias.filter direto
-    expect(sheet.classe.proficiencias).toEqual([]);
+    // Base de todo personagem: armas simples e armaduras leves.
+    expect(sheet.classe.proficiencias).toEqual([
+      'Armaduras Leves',
+      'Armas Simples',
+    ]);
     expect(sheet.classe.powers).toEqual([]);
     expect(sheet.classe.periciasbasicas).toEqual([]);
     expect(sheet.classe.periciasrestantes).toEqual({ qtd: 0, list: [] });

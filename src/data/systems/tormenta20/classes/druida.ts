@@ -8,6 +8,45 @@ import { allSpellSchools } from '../../../../interfaces/Spells';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
+/**
+ * Tipo do companheiro animal, escolhido a cada vez que o poder é recebido. O
+ * parceiro (premium) lê a i-ésima escolha (`optionChoices`) para o i-ésimo
+ * companheiro.
+ */
+export const COMPANHEIRO_ANIMAL_OPTION_KEY = 'companheiroAnimalTipo';
+
+const COMPANHEIRO_ANIMAL_TIPOS = [
+  {
+    name: 'Ajudante',
+    text: 'Corvo, macaco, raposa, serpente. Iniciante: +2 em duas perícias (exceto Luta e Pontaria).',
+  },
+  {
+    name: 'Assassino',
+    text: 'Lince, onça. Iniciante: Ataque Furtivo +1d6.',
+  },
+  {
+    name: 'Atirador',
+    text: 'Águia, falcão. Iniciante: uma vez por rodada, +1d6 em uma rolagem de dano à distância.',
+  },
+  { name: 'Combatente', text: 'Iniciante: +2 em testes de ataque.' },
+  {
+    name: 'Fortão',
+    text: 'Crocodilo, javali, leão, lobo. Iniciante: uma vez por rodada, +1d8 em uma rolagem de dano corpo a corpo.',
+  },
+  {
+    name: 'Guardião',
+    text: 'Alce, cão, coruja, tartaruga, urso. Iniciante: +2 na Defesa.',
+  },
+  {
+    name: 'Montaria',
+    text: 'Iniciante: montado, deslocamento 12m e uma ação de movimento extra por turno (apenas para se deslocar).',
+  },
+  {
+    name: 'Perseguidor',
+    text: 'Gambá, sabujo. Iniciante: +2 em Percepção e Sobrevivência.',
+  },
+];
+
 const DRUIDA: ClassDescription = {
   name: 'Druida',
   pv: 16,
@@ -193,7 +232,17 @@ const DRUIDA: ClassDescription = {
       text: 'Você recebe um companheiro animal. Veja o quadro na página 62 para detalhes. Você pode escolher este poder quantas vezes quiser, mas deve escolher companheiros diferentes e ainda está sujeito ao limite de parceiros que pode ter (veja a página 260).',
       canRepeat: true,
       requirements: [[{ type: RequirementType.PERICIA, name: 'Adestramento' }]],
-      // PROVAVEL TODO NAS ACTIONS PARA ADICIONAR COMPANHEIROS
+      // Uma escolha de tipo por companheiro (o poder pode ser repetido).
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Companheiro Animal' },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: COMPANHEIRO_ANIMAL_OPTION_KEY,
+            options: COMPANHEIRO_ANIMAL_TIPOS,
+          },
+        },
+      ],
     },
     {
       name: 'Companheiro Animal Aprimorado',

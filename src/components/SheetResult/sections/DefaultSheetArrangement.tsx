@@ -23,7 +23,6 @@ const MAIN: SheetSectionKind[] = [
   'proficiencies',
   'sizeDisplacement',
   'partners',
-  'animalCompanions',
 ];
 const ASIDE: SheetSectionKind[] = ['skills', 'journal'];
 const FOOTER: SheetSectionKind[] = ['creationSteps', 'bugReport', 'supportCta'];

@@ -4,6 +4,7 @@ import { CharacterAttributes } from '../interfaces/Character';
 import Bag from '../interfaces/Bag';
 import { WeaponOverride } from '../interfaces/Equipment';
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
@@ -738,6 +739,15 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     if (!Array.isArray(sheet.classe.proficiencias)) {
       sheet.classe.proficiencias = [];
     }
+    // Todo personagem sabe usar armas simples e armaduras leves (JdA). Classes
+    // de suplemento com "Proficiências: nenhuma" foram cadastradas com a lista
+    // vazia, e a ficha guarda a cópia da classe — sem isto, um treinador com
+    // gibão de peles aparecia sem proficiência na armadura.
+    [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES].forEach((base) => {
+      if (!sheet.classe.proficiencias.includes(base)) {
+        sheet.classe.proficiencias.unshift(base);
+      }
+    });
     if (!Array.isArray(sheet.classe.periciasbasicas)) {
       sheet.classe.periciasbasicas = [];
     }
@@ -831,8 +841,10 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   }
 
   // Parceiros da ficha: sem id/origem/dono válidos, ou sem o que resolver no
-  // catálogo (builtin sem tipo/patamar, da mesa sem snapshot), viram cards
-  // vazios sem bônus nenhum.
+  // catálogo (builtin sem tipo/patamar, da mesa sem snapshot, de poder sem
+  // `grant`, personalizado sem benefícios), viram cards vazios sem bônus
+  // nenhum. Descartar um parceiro de poder válido faria o conciliador do
+  // recálculo recriá-lo em laço.
   if (Array.isArray(sheet.partners)) {
     sheet.partners = sheet.partners.filter(
       (partner) =>
@@ -844,7 +856,11 @@ export function normalizeSheet(sheet: CharacterSheet): void {
           typeof partner.tier === 'string') ||
           (partner.source === 'table' &&
             !!partner.snapshot &&
-            typeof partner.snapshot === 'object'))
+            typeof partner.snapshot === 'object') ||
+          (partner.source === 'power' &&
+            typeof partner.grant?.power === 'string') ||
+          (partner.source === 'custom' &&
+            Array.isArray(partner.customBenefits)))
     );
   } else if (sheet.partners !== undefined) {
     delete sheet.partners;

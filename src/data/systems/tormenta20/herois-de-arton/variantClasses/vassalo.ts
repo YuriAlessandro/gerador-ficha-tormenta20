@@ -60,7 +60,12 @@ const VASSALO: VariantClassOverrides = {
   name: 'Vassalo',
   isVariant: true,
   baseClassName: 'Cavaleiro',
-  proficiencias: [PROFICIENCIAS.MARCIAIS, PROFICIENCIAS.ESCUDOS],
+  proficiencias: [
+    PROFICIENCIAS.SIMPLES,
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.MARCIAIS,
+    PROFICIENCIAS.ESCUDOS,
+  ],
   excludeAllBasePowers: true,
   /**
    * O Vassalo não ganha poder todo nível: ganha nos níveis abaixo, e sempre

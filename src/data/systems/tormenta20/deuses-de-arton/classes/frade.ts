@@ -4,6 +4,7 @@ import { RequirementType } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import { standardFaithProbability } from '../../divindades';
+import PROFICIENCIAS from '../../proficiencias';
 
 const FRADE: ClassDescription = {
   name: 'Frade',
@@ -37,7 +38,7 @@ const FRADE: ClassDescription = {
       Skill.PERCEPCAO,
     ],
   },
-  proficiencias: [],
+  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
     {
       name: 'Devoto Fiel',

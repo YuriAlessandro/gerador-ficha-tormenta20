@@ -3,6 +3,7 @@ import { RequirementType } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import { spellsCircle2, spellsCircle2Names } from '../../magias/generalSpells';
+import PROFICIENCIAS from '../../proficiencias';
 
 /**
  * Mascotes do Treinador (quadro "Mascotes", Heróis de Arton).
@@ -80,7 +81,7 @@ const TREINADOR: ClassDescription = {
       Skill.SOBREVIVENCIA,
     ],
   },
-  proficiencias: [],
+  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
     {
       name: 'Direcionar',
