@@ -80,7 +80,17 @@ export function getPowerAppliedBonuses(
   const categorical = new Set<string>();
 
   matched.forEach((bonus) => {
-    const { label, numeric } = describeBonusTarget(bonus.target);
+    const described = describeBonusTarget(bonus.target);
+    const { numeric } = described;
+    // Perícia à escolha já escolhida (Caminho da Perfeição, Kliren): mostra
+    // qual, em vez do rótulo genérico.
+    const chosenSkills =
+      bonus.target.type === 'PickSkill' && bonus.target.optionKey
+        ? sheet.optionChoices?.[bonus.target.optionKey]
+        : undefined;
+    const label = chosenSkills?.length
+      ? chosenSkills.join(', ')
+      : described.label;
 
     if (!numeric) {
       if (!order.includes(label)) order.push(label);

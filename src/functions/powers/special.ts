@@ -17,6 +17,7 @@ import {
 } from '../randomUtils';
 import { getPowersAllowedByRequirements } from '../powers';
 import { applyPower } from '../general';
+import { getPickSkillBonusTarget } from './pickSkillBonus';
 import {
   findSelectableRaceAbility,
   getSelectableRaceAbilities,
@@ -950,6 +951,17 @@ export function applyMashinChassi(
     const selectedMarvel = manualSelections.powers![0] as GeneralPower;
     sheet.generalPowers.push(selectedMarvel);
     sheet.mashinChassiChoice = { type: 'power', value: selectedMarvel.name };
+    // Perícia do bônus (Caminho da Perfeição), escolhida no mesmo campo. Vai
+    // para `optionChoices`, de onde a geração e os recálculos a leem. Sem ela,
+    // o bônus sorteia uma perícia treinada.
+    const pickSkill = getPickSkillBonusTarget(selectedMarvel);
+    const marvelSkills = manualSelections.marvelSkills ?? [];
+    if (pickSkill?.optionKey && marvelSkills.length > 0) {
+      sheet.optionChoices = {
+        ...(sheet.optionChoices || {}),
+        [pickSkill.optionKey]: marvelSkills.slice(0, pickSkill.pick),
+      };
+    }
     substeps.push({
       name: 'Chassi Mashin',
       value: `Maravilha Mecânica recebida (${selectedMarvel.name})`,

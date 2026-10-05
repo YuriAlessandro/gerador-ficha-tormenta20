@@ -65,7 +65,7 @@ describe('getPowersAllowedByRequirements — escopo do catálogo', () => {
     expect(namesOf(sheet)).toContain('Combate Montado');
   });
 
-  it('nunca oferece poder concedido nem poder de raça como poder geral', () => {
+  it('nunca oferece poder concedido; de raça, só os da raça da ficha', () => {
     const sheet = createMockCharacterSheet();
     sheet.devoto = {
       divindade: { name: 'Khalmyr' },
@@ -80,8 +80,15 @@ describe('getPowersAllowedByRequirements — escopo do catálogo', () => {
     expect(powers.map((p) => p.type)).not.toContain(
       GeneralPowerType.CONCEDIDOS
     );
-    expect(powers.map((p) => p.type)).not.toContain(GeneralPowerType.RACA);
     expect(powers.map((p) => p.name)).not.toContain('Espada Justiceira');
+
+    // Ficha mock é Humano: entram os poderes de raça do Humano, nenhum outro.
+    const racePowers = powers
+      .filter((p) => p.type === GeneralPowerType.RACA)
+      .map((p) => p.name);
+    expect(racePowers).toContain('Estilo Clássico');
+    expect(racePowers).not.toContain('Arma Amada'); // Anão / Hobgoblin
+    expect(racePowers).not.toContain('Tradição Perdida'); // só requisito de texto
   });
 
   it('Ginete Altivo (Hippion) libera a cadeia montada no sorteio', () => {

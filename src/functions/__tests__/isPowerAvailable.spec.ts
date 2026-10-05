@@ -9,7 +9,12 @@
  * - Requisito genérico de Ofício continua satisfeito por qualquer Ofício específico.
  */
 import { describe, it, expect } from 'vitest';
-import { getAllowedClassPowers, isPowerAvailable } from '../powers';
+import {
+  getAllowedClassPowers,
+  getPowersAllowedByRequirements,
+  isPowerAvailable,
+} from '../powers';
+import { SupplementId } from '../../types/supplement.types';
 import INVENTOR_POWERS from '../../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
 import CORE_INVENTOR from '../../data/systems/tormenta20/classes/inventor';
 import { normalizeSheet } from '../sheetNormalizer';
@@ -398,5 +403,35 @@ describe('TIER_LIMIT (uma vez por patamar, além dos da raça)', () => {
     ] as never;
 
     expect(isPowerAvailable(sheet, gift)).toBe(false);
+  });
+});
+
+describe('sorteio de poder geral inclui poderes de raça', () => {
+  const supplements = [
+    SupplementId.TORMENTA20_CORE,
+    SupplementId.TORMENTA20_AMEACAS_ARTON,
+    SupplementId.TORMENTA20_HEROIS_ARTON,
+  ];
+
+  it('Mashin pode sortear Maravilha Mecânica', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.raca = { ...sheet.raca, name: 'Golem Desperto', chassis: 'mashin' };
+    sheet.nivel = 5;
+
+    const names = getPowersAllowedByRequirements(sheet, supplements).map(
+      (p) => p.name
+    );
+    expect(names.some((n) => n.startsWith('Maravilha Mecânica:'))).toBe(true);
+  });
+
+  it('poder de raça travado só por texto não cai para qualquer raça', () => {
+    const sheet = createMockCharacterSheet();
+    const names = getPowersAllowedByRequirements(sheet, supplements).map(
+      (p) => p.name
+    );
+
+    expect(names).not.toContain('Tradição Perdida');
+    expect(names).not.toContain('Arma Natural Aprimorada');
+    expect(names.some((n) => n.startsWith('Maravilha Mecânica:'))).toBe(false);
   });
 });

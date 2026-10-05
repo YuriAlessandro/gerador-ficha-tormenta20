@@ -31,6 +31,7 @@ export interface SelectionOptions {
   alchemyItems?: Equipment[]; // Selected alchemy items for addAlchemyItems action
   golpePessoalBuild?: GolpePessoalBuild; // Build do Golpe Pessoal montado no assistente
   originPower?: OriginPower; // Poder único de origem escolhido pela Ambição Herdada (Meio-Elfo)
+  marvelSkills?: string[]; // Perícia do bônus da maravilha escolhida no Chassi Mashin (Caminho da Perfeição)
 }
 
 /**

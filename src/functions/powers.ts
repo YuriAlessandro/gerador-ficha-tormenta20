@@ -333,7 +333,7 @@ export function isPowerAvailable(
  * Orgânica, complicação, Propósito de Criação) oferecem os seis tipos — quem
  * fecha o acesso a eles é o requisito (DEVOTO / RACA), não a categoria.
  *
- * Aqui eles ficam de fora por CURADORIA, não por regra: o catálogo é um só e
+ * Concedidos ficam de fora por CURADORIA, não por regra: o catálogo é um só e
  * todo concedido tem pré-requisito DEVOTO, que o próprio devoto satisfaz, então
  * incluí-los faria a ficha aleatória de um devoto de Khalmyr sortear "Espada
  * Justiceira" como poder geral — o que muda bastante a cara da geração
@@ -341,13 +341,33 @@ export function isPowerAvailable(
  * revista, o `isRepeatedPower` abaixo precisa passar a olhar `devoto.poderes`
  * também (ver `getOwnedGeneralPowers`), senão o sorteio repete um concedido que
  * o devoto já tem pela devoção.
+ *
+ * Poderes de raça entram (são a lista das Maravilhas Mecânicas, Bênçãos
+ * Dracônicas etc.), mas só os travados por requisito de raça avaliável — ver
+ * `isRaceGated`.
  */
 const PICKABLE_GENERAL_POWER_TYPES = [
   GeneralPowerType.COMBATE,
   GeneralPowerType.DESTINO,
   GeneralPowerType.MAGIA,
   GeneralPowerType.TORMENTA,
+  GeneralPowerType.RACA,
 ];
+
+/**
+ * Todo caminho de requisitos do poder passa por um requisito de RAÇA. Alguns
+ * poderes de raça só têm requisito de texto ("Arma natural fornecida por uma
+ * habilidade de raça", "Não humano"), que o avaliador dá por cumprido: no
+ * sorteio eles cairiam para qualquer raça, então ficam só para escolha manual.
+ */
+function isRaceGated(power: GeneralPower): boolean {
+  return (
+    !!power.requirements?.length &&
+    power.requirements.every((group) =>
+      group.some((rule) => rule.type === RequirementType.RACA && !rule.not)
+    )
+  );
+}
 
 /**
  * Poderes gerais que a ficha JÁ possui, para as listas de escolha MANUAL.
@@ -386,6 +406,9 @@ export function getPowersAllowedByRequirements(
 
   return dataRegistry.getAllPowersBySupplements(scope).filter((power) => {
     if (!PICKABLE_GENERAL_POWER_TYPES.includes(power.type)) return false;
+    if (power.type === GeneralPowerType.RACA && !isRaceGated(power)) {
+      return false;
+    }
 
     const isRepeatedPower = existingGeneralPowers.find(
       (existingPower) => existingPower.name === power.name
