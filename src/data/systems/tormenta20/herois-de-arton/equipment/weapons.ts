@@ -209,7 +209,7 @@ const BICO_DE_CORVO: Equipment = {
   descricao:
     'Haste de 2m com ponta de lança, gancho afiado de um lado e cabeça quadrada do outro. É um martelo alongado e versátil.',
   weaponCategory: 'martial',
-  weaponTags: ['heredrimm'],
+  weaponTags: ['heredrimm', 'alongada'],
   dano: '1d8',
   critico: 'x3',
   spaces: 2,
@@ -225,6 +225,7 @@ const DESMONTADOR: Equipment = {
   descricao:
     'Haste longa com mecanismo de mola para prender pescoços e puxar inimigos de montarias. Pode ser usado para agarrar. Arma alongada e versátil.',
   weaponCategory: 'martial',
+  weaponTags: ['alongada'],
   dano: '-',
   critico: '-',
   spaces: 2,
@@ -286,7 +287,7 @@ const MARTELO_LONGO: Equipment = {
   descricao:
     'Haste de 2m com ponta de metal afiada ao lado de uma cabeça densa e pesada. Combina o alcance da alabarda com a contundência do martelo: é uma arma alongada.',
   weaponCategory: 'martial',
-  weaponTags: ['heredrimm'],
+  weaponTags: ['heredrimm', 'alongada'],
   dano: '2d4',
   critico: 'x4',
   spaces: 2,
@@ -460,6 +461,7 @@ const LANCA_DE_FALANGE: Equipment = {
   descricao:
     'Arma alongada que pode ser arremessada. Grande demais para uso com uma mão sem treinamento especial, por isso é exótica. Pode ser usada como arma marcial de duas mãos.',
   weaponCategory: 'exotic',
+  weaponTags: ['alongada'],
   dano: '1d8',
   critico: 'x3',
   spaces: 1,
@@ -475,7 +477,7 @@ const MACHADO_DE_HASTE: Equipment = {
   descricao:
     'Cabeça de machado em cabo longo, criada pelos anões para formações fechadas. Arma adaptável e alongada, exótica; pode ser usada como arma marcial de duas mãos.',
   weaponCategory: 'exotic',
-  weaponTags: ['heredrimm'],
+  weaponTags: ['heredrimm', 'alongada'],
   dano: '1d8/1d10',
   critico: 'x3',
   spaces: 1,

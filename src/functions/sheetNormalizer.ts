@@ -40,6 +40,11 @@ import {
   INEXPUGNAVEL_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/classPowerSheetBonuses';
 import {
+  ESTILO_CLASSICO_SHEET_BONUSES,
+  ESTILO_DE_ARREMESSO_SHEET_BONUSES,
+  ESTILO_DE_DUAS_MAOS_SHEET_BONUSES,
+} from '../data/systems/tormenta20/powers/combatStyleSheetBonuses';
+import {
   BOLSOES_INSANOS_SHEET_BONUSES,
   CARAPACA_CORROMPIDA_SHEET_BONUSES,
   CORPO_ABERRANTE_SHEET_BONUSES,
@@ -90,6 +95,10 @@ function getGrantedPowersByName(): Map<string, GeneralPower> {
 //   embutida é o que `collectUnarmedStepBonuses` lê quando a ficha ainda não
 //   passou por um recálculo, então sem o refresh o poder continua inerte em
 //   toda ficha já salva.
+//
+// Os estilos de combate (Estilo Clássico, Estilo de Duas Mãos, Estilo de
+// Arremesso) eram texto puro ou só parcialmente automatizados — sem o refresh,
+// a ficha de quem já tinha o poder continuaria sem o bônus.
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
@@ -99,6 +108,9 @@ const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Pele Corrompida', PELE_CORROMPIDA_SHEET_BONUSES],
   ['Bolsões Insanos', BOLSOES_INSANOS_SHEET_BONUSES],
   ['Corpo Aberrante', CORPO_ABERRANTE_SHEET_BONUSES],
+  ['Estilo Clássico', ESTILO_CLASSICO_SHEET_BONUSES],
+  ['Estilo de Duas Mãos', ESTILO_DE_DUAS_MAOS_SHEET_BONUSES],
+  ['Estilo de Arremesso', ESTILO_DE_ARREMESSO_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<

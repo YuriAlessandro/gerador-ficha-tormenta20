@@ -7,7 +7,11 @@ import {
 import { CharacterAttributes } from '../interfaces/Character';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { getEffectiveWeaponCategory } from './proficiencies';
-import { isFiringWeapon, isLightOrAgileMeleeWeapon } from './weaponTraits';
+import {
+  isFiringWeapon,
+  isLightOrAgileMeleeWeapon,
+  isSword,
+} from './weaponTraits';
 import { evaluateFormula } from '../premium/functions/safeFormulaEval';
 
 /**
@@ -25,6 +29,7 @@ export interface WeaponBonusScope {
   firingOnly?: boolean;
   lightOrAgileOnly?: boolean;
   twoHandedOnly?: boolean;
+  swordOnly?: boolean;
   weaponCategories?: WeaponCategory[];
 }
 
@@ -91,6 +96,11 @@ export function weaponMatchesScope(
 
   // Apenas armas empunhadas com as duas mãos (armas leves nunca são twoHanded).
   if (scope.twoHandedOnly && !weapon.twoHanded) {
+    return false;
+  }
+
+  // Apenas espadas.
+  if (scope.swordOnly && !isSword(weapon)) {
     return false;
   }
 
