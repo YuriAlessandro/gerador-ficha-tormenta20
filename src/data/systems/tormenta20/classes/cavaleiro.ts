@@ -160,10 +160,12 @@ const CAVALEIRO: ClassDescription = {
             type: 'power',
             name: 'Etiqueta',
           },
+          // A escolha fica em `optionChoices` para sobreviver aos recálculos.
           target: {
             type: 'PickSkill',
             skills: [Skill.DIPLOMACIA, Skill.NOBREZA],
             pick: 1,
+            optionKey: 'cavaleiro-etiqueta',
           },
           modifier: {
             type: 'Fixed',
