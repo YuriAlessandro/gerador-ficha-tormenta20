@@ -60,3 +60,41 @@ export function isFiringWeapon(weapon: Equipment): boolean {
   const { alcance } = weapon;
   return !!alcance && alcance !== '-' && !weapon.arremesso;
 }
+
+/**
+ * ESPADAS (por nome) — o catálogo não tem campo de "tipo de arma", então, como
+ * as listas acima, a marcação é por nome de catálogo. Usada pela condição
+ * `wieldingSword` e pelo filtro `swordOnly` (Estilo Clássico).
+ *
+ * Critério: a arma é descrita como espada nas regras/no nome. Fora: Cinquedea
+ * e Dirk (o livro as trata como adagas/punhais) e Neko-te/Mordida do diabo.
+ */
+export const SWORD_WEAPON_NAMES: ReadonlySet<string> = new Set([
+  // Core
+  'Espada Curta',
+  'Cimitarra',
+  'Espada Longa',
+  'Florete',
+  'Alfange',
+  'Montante',
+  'Espada Bastarda',
+  'Katana',
+  // Heróis de Arton
+  'Espada larga',
+  'Espadim',
+  'Espada de execução',
+  'Espada canora',
+  'Espada-gadanho',
+  'Khopesh',
+  'Rapieira',
+  'Montante cinético',
+  // Ameaças de Arton
+  'Gládio',
+  'Espada vespa',
+  'Presa de serpente',
+]);
+
+/** A arma é uma espada? Membership por nome de catálogo. */
+export function isSword(weapon: Equipment): boolean {
+  return SWORD_WEAPON_NAMES.has(weapon.nome);
+}

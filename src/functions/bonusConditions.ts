@@ -18,6 +18,7 @@ import CharacterSheet, {
 } from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { isWeaponMelee } from './weaponSkill';
+import { isSword } from './weaponTraits';
 import {
   isTwoHanded,
   getWornArmor,
@@ -76,6 +77,10 @@ function evaluateClause(
         (s) =>
           s.id &&
           (s.id === sheet.mainHandItemId || s.id === sheet.offHandItemId)
+      );
+    case 'wieldingSword':
+      return getWieldedItems(sheet).some(
+        (i) => i.group === 'Arma' && isSword(i)
       );
     case 'wieldingItemNamed':
       return getWieldedItems(sheet).some((i) => i.nome === clause.value);

@@ -88,6 +88,14 @@ function refreshItem(item: Equipment, catalogItem: Equipment): void {
   if (item.ammoType === undefined && catalogItem.ammoType !== undefined) {
     item.ammoType = catalogItem.ammoType;
   }
+  // Tags da arma (alongada, heredrimm...) também são classificação: soma as do
+  // catálogo que faltam, sem remover nenhuma que o item já tenha.
+  const missingTags = (catalogItem.weaponTags ?? []).filter(
+    (tag) => !(item.weaponTags ?? []).includes(tag)
+  );
+  if (missingTags.length > 0) {
+    item.weaponTags = [...(item.weaponTags ?? []), ...missingTags];
+  }
 
   if (hasEnhancementOwnership(item)) return;
 

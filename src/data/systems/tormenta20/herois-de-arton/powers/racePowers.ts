@@ -5,6 +5,7 @@ import {
 } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
+import { ESTILO_CLASSICO_SHEET_BONUSES } from '../../powers/combatStyleSheetBonuses';
 
 /**
  * Poderes de Raça do suplemento Heróis de Arton
@@ -567,6 +568,7 @@ const racePowers: Record<string, GeneralPower> = {
       'Enquanto estiver empunhando uma espada e um escudo, você recebe +2 nas rolagens de dano com sua arma e +2 na Defesa.',
     type: GeneralPowerType.RACA,
     requirements: [[{ type: RequirementType.RACA, name: 'Humano' }]],
+    sheetBonuses: ESTILO_CLASSICO_SHEET_BONUSES,
   },
   ESTIRPE_ARCANA: {
     name: 'Estirpe Arcana',

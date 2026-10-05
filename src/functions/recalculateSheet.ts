@@ -834,6 +834,9 @@ const injectEstiloDeUmaArmaBonuses = (
     (w) => w.id === occupiedId
   );
   if (!weapon || !isWeaponMelee(weapon)) return sheet;
+  // "(exceto ataques desarmados)" — o Ataque Desarmado e as armas naturais
+  // desarmadas também moram em `Arma`.
+  if (weapon.weaponTags?.includes('desarmado')) return sheet;
 
   const updatedSheet = _.cloneDeep(sheet);
   updatedSheet.sheetBonuses.push(
