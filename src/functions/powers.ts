@@ -23,6 +23,7 @@ import {
   getSheetDeityNames,
 } from './powers/deityNames';
 import { deityAcceptsClass } from './powers/deityClassAcceptance';
+import { getPlateauByLevel } from './powers/general';
 import {
   sheetHasPowerNamed,
   sheetSatisfiesPowerRequirement,
@@ -48,20 +49,51 @@ export function getLevelTier(level: number): LevelTier {
 }
 
 /**
- * Conta quantos poderes de uma categoria específica foram escolhidos no patamar atual
- * Para Bênçãos Dracônicas: category = "Bênção Dracônica"
+ * O poder pertence à categoria de um `TIER_LIMIT`? Casa pelo nome ("Bênção
+ * Dracônica: Asas", "Amontoados (Kobolds)") ou por tag, para listas cujos
+ * nomes não têm marcador comum (Presentes de Magia e de Caos do Duende).
  */
-export function getPowerCountInCurrentTier(
+export function matchesTierLimitCategory(
+  power: { name: string; tags?: string[] },
+  category: string
+): boolean {
+  return power.name.includes(category) || !!power.tags?.includes(category);
+}
+
+/** Quantos poderes gerais da categoria de um `TIER_LIMIT` a ficha tem. */
+export function getTierLimitPowerCount(
   sheet: CharacterSheet,
   category: string
 ): number {
-  // Conta poderes gerais que contêm a categoria no nome
-  // Para Bênçãos Dracônicas, todos começam com esse nome
-  const count = sheet.generalPowers.filter((power) =>
-    power.name.includes(category)
+  return sheet.generalPowers.filter((power) =>
+    matchesTierLimitCategory(power, category)
   ).length;
+}
 
-  return count;
+/**
+ * Teto de um `TIER_LIMIT`. As listas raciais seguem o mesmo molde ("escolha
+ * dois desses poderes; uma vez por patamar, você pode escolher outro no lugar
+ * de um poder de classe"): os da criação NÃO entram na cota, que é de um por
+ * patamar alcançado — 1 no iniciante, 2 no veterano, 3 no campeão, 4 no lenda.
+ *
+ * `rule.value` é quantos a raça dá na criação. A Maravilha Mecânica do Mashin
+ * é opcional (troca uma perícia), então sai da escolha salva na ficha.
+ *
+ * A ficha não guarda em que nível cada poder foi pego, então a cota é
+ * cumulativa: quem pulou o patamar iniciante pode pegar dois no veterano.
+ */
+export function getTierLimitAllowance(
+  sheet: CharacterSheet,
+  rule: Requirement
+): number {
+  const category = rule.name as string;
+  const mashinChoice = sheet.mashinChassiChoice;
+  const mashinGrant =
+    mashinChoice?.type === 'power' &&
+    matchesTierLimitCategory({ name: mashinChoice.value }, category)
+      ? 1
+      : 0;
+  return (rule.value ?? 0) + mashinGrant + getPlateauByLevel(sheet.nivel);
 }
 
 /**
@@ -253,8 +285,8 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
     }
     case RequirementType.TIER_LIMIT: {
       const category = rule.name as string; // "Bênção Dracônica"
-      const count = getPowerCountInCurrentTier(sheet, category);
-      return count < 1; // Máximo 1 bênção por patamar
+      const count = getTierLimitPowerCount(sheet, category);
+      return count < getTierLimitAllowance(sheet, rule);
     }
     case RequirementType.TEXT:
       // TEXT requirements are always considered met - the user reads

@@ -54,6 +54,8 @@ function baseText(req: Requirement, options: FormatRequirementOptions): string {
       } da Tormenta`;
     case RequirementType.TEXT:
       return req.text || '';
+    case RequirementType.TIER_LIMIT:
+      return 'Um por patamar (além dos da raça)';
     default:
       return (req.name as string) || req.text || '';
   }

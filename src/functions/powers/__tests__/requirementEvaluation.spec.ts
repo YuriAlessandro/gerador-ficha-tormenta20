@@ -641,6 +641,26 @@ describe('evaluatePowerRequirements', () => {
       ).toBe(false);
     });
 
+    it('libera mais um a cada patamar alcançado', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.generalPowers = [{ name: 'Bênção Dracônica: Asas' }] as never;
+
+      sheet.nivel = 4;
+      expect(evaluatePowerRequirements(req, ctxOf(sheet)).available).toBe(
+        false
+      );
+
+      // Veterano: o do iniciante não consome a cota do novo patamar.
+      sheet.nivel = 5;
+      expect(evaluatePowerRequirements(req, ctxOf(sheet)).available).toBe(true);
+      expect(
+        evaluatePowerRequirements(
+          req,
+          ctxOf(sheet, { pendingGeneralPowers: [{ name: 'Bênção Dracônica' }] })
+        ).available
+      ).toBe(false);
+    });
+
     it('conta poderes de CLASSE quando o poder avaliado é de classe', () => {
       const sheet = createMockCharacterSheet();
 
