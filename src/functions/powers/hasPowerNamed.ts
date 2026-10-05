@@ -21,6 +21,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 export interface PowerLike {
   name: string;
   grantsPowerRequirements?: string[];
+  tags?: string[];
 }
 
 /** Fontes de poder da ficha, exceto `classe.abilities` (ver comentário acima). */

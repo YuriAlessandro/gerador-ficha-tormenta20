@@ -9,7 +9,11 @@ import {
 } from '../../interfaces/Poderes';
 import Skill, { isGenericOficio, isOficioSkill } from '../../interfaces/Skills';
 import { isClassOrVariantOf, isRaceOrVariantOf } from '../general';
-import { applyRequirementNot } from '../powers';
+import {
+  applyRequirementNot,
+  getTierLimitAllowance,
+  matchesTierLimitCategory,
+} from '../powers';
 import { PowerLike, sheetSatisfiesPowerRequirement } from './hasPowerNamed';
 import { ARTESAO_CRIATIVO } from '../../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
 import {
@@ -289,13 +293,13 @@ function isRequirementMet(
 
     case RequirementType.TIER_LIMIT: {
       const category = req.name as string;
-      const matches = (p: { name: string }) => p.name.includes(category);
+      const matches = (p: PowerLike) => matchesTierLimitCategory(p, category);
       const pending =
         kind === 'class' ? pendingClassPowers : pendingGeneralPowers;
       const saved = kind === 'class' ? sheet.classPowers : sheet.generalPowers;
       return (
         pending.filter(matches).length + (saved?.filter(matches).length ?? 0) <
-        1
+        getTierLimitAllowance(sheet, req)
       );
     }
 

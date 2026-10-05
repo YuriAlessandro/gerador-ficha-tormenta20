@@ -33,7 +33,11 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
-        { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
+        {
+          type: RequirementType.TIER_LIMIT,
+          name: 'Bênção Dracônica',
+          value: 2,
+        },
       ],
     ],
     sheetActions: [
@@ -59,7 +63,11 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
-        { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
+        {
+          type: RequirementType.TIER_LIMIT,
+          name: 'Bênção Dracônica',
+          value: 2,
+        },
       ],
     ],
   },
@@ -71,7 +79,11 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
-        { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
+        {
+          type: RequirementType.TIER_LIMIT,
+          name: 'Bênção Dracônica',
+          value: 2,
+        },
       ],
     ],
     sheetBonuses: [
@@ -98,7 +110,11 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
-        { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
+        {
+          type: RequirementType.TIER_LIMIT,
+          name: 'Bênção Dracônica',
+          value: 2,
+        },
       ],
     ],
     sheetActions: [
@@ -124,7 +140,11 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
-        { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
+        {
+          type: RequirementType.TIER_LIMIT,
+          name: 'Bênção Dracônica',
+          value: 2,
+        },
       ],
     ],
     sheetActions: [
@@ -158,7 +178,11 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
-        { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
+        {
+          type: RequirementType.TIER_LIMIT,
+          name: 'Bênção Dracônica',
+          value: 2,
+        },
       ],
     ],
     rolls: [
