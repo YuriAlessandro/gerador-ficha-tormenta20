@@ -22,6 +22,7 @@ import CompactStepProgress from '@/components/common/CompactStepProgress';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
+import { resolveFundamentalistChoice } from '@/functions/powers/fundamentalista';
 import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
@@ -503,6 +504,17 @@ const CharacterCreationWizardModal: React.FC<
     if (secondaryDeity) names.push(secondaryDeity.name);
     return getGrantedPowerPool(names, supplements);
   }, [deity, secondaryDeity, supplements]);
+
+  /**
+   * Fundamentalista (Deuses de Arton): escolhido no formulário, revalidado
+   * aqui (suplemento, deus maior, sem devoção dupla).
+   */
+  const isFundamentalist = useMemo(
+    () =>
+      !!classe &&
+      !!resolveFundamentalistChoice(selectedOptions, classe, deity?.name),
+    [selectedOptions, classe, deity]
+  );
 
   /**
    * Poderes concedidos já escolhidos no passo "Poderes da Divindade". Entram na
@@ -1807,6 +1819,7 @@ const CharacterCreationWizardModal: React.FC<
             classe={classe}
             deity={deity}
             secondaryDeity={secondaryDeity}
+            fundamentalista={isFundamentalist}
             powerPool={grantedPowerPool}
             selectedPowers={selections.deityPowers || []}
             onChange={(powers) =>
