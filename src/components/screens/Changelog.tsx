@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            02/10/2026 (v4.35).
+            06/10/2026 (v4.35).
           </p>
 
           <p>
@@ -161,6 +161,16 @@ const Changelog: React.FC = () => {
                   <strong>salvo</strong>, e quem preferir pode desligar o
                   salvamento automático no menu de opções e salvar pelo botão
                   (ou Ctrl+S). Fechar o diário sempre salva.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A galeria de{' '}
+                  <strong>Homebrews da Comunidade</strong> ganhou ordenação por
+                  melhor avaliados, mais ativados e mais comentados, além do
+                  filtro <strong>Ocultar feitos com IA</strong>. Os cards
+                  mostram quantas pessoas já ativaram cada homebrew e quantos
+                  comentários ele tem, e os filtros ficam no endereço da página,
+                  então continuam lá ao voltar de um homebrew e podem ser
+                  compartilhados por link.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> Várias telas ficaram melhores no{' '}
