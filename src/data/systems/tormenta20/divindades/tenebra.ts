@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const TENEBRA: Divindade = {
   name: 'Tenebra',
+  preferredWeapon: 'Adaga',
   poderes: [
     GRANTED_POWERS.CARICIA_SOMBRIA,
     GRANTED_POWERS.MANTO_DA_PENUMBRA,

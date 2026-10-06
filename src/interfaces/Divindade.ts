@@ -70,6 +70,11 @@ export const divindadeDisplayNames: Record<DivindadeNames, string> = {
   MEGALOKK: 'Megalokk',
   NIMB: 'Nimb',
 };
+/** `preferredWeapon` de quem não tem arma preferida (Lena, Marah). */
+export const PREFERRED_WEAPON_NONE = 'Não há';
+/** `preferredWeapon` de Nimb: "nenhuma e todas". */
+export const PREFERRED_WEAPON_ANY = 'Todas';
+
 export default interface Divindade {
   name: string;
   poderes: GeneralPower[];
