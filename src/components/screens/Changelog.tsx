@@ -276,6 +276,15 @@ const Changelog: React.FC = () => {
                   <strong>aprimoramentos</strong> de magia homebrew voltam a
                   mostrar o custo em PM: o campo encolhia até o valor sumir.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Os{' '}
+                  <strong>itens alquímicos</strong> do Laboratório Pessoal do
+                  Alquimista voltam a obedecer na mochila: mudar a quantidade
+                  não surtia efeito e era preciso remover o mesmo item várias
+                  vezes. Itens repetidos agora entram como uma pilha só, e as
+                  fichas já afetadas se corrigem ao abrir, com cada item
+                  aparecendo separado.
+                </li>
               </ul>
 
               <h3>4.34</h3>
