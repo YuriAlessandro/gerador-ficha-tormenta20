@@ -9,6 +9,7 @@ const lingua: Equipment = {
   critico: 'x2',
   tipo: 'Impacto',
   preco: 0,
+  weaponTags: ['natural'],
 };
 
 const tabrachiAbilities: RaceAbility[] = [

@@ -223,13 +223,21 @@ export function getPreferredWeaponRule(deityName: string): string | undefined {
   return `Usa apenas a arma preferida (${preferred}); outra arma viola o dogma.`;
 }
 
+// O gerador de itens anexa as melhorias ao nome: "Espada Longa (Certeira)".
+// No catálogo só munição tem parênteses, e munição não conta como arma aqui.
 const normalizeWeaponName = (name: string): string =>
-  name.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+  name
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim()
+    .toLowerCase();
 
 /**
  * Compara o `nome` de CATÁLOGO: melhorias, material e encantos vivem em
  * `modifications`/`enchantments`, e o nome dado pelo jogador em
- * `customDisplayName` — nenhum deles altera `nome`. Comparação exata: armas
+ * `customDisplayName`. A exceção é o gerador de itens, que anexa as melhorias
+ * entre parênteses — `normalizeWeaponName` as descarta. Comparação exata: armas
  * de nome parecido (Adaga oposta, Maça-estrela) são outras armas.
  */
 export function isPreferredWeapon(
@@ -243,18 +251,35 @@ export function isPreferredWeapon(
   return normalizeWeaponName(weapon.nome) === normalizeWeaponName(preferred);
 }
 
+/**
+ * Armas que a raça concede (chifres, mordida…). Cobre fichas anteriores a
+ * 29/08/2026, quando as armas naturais raciais ainda não tinham a tag
+ * `natural` — o item da mochila é gravado inteiro e nada repõe a tag.
+ */
+const getRaceWeaponNames = (sheet: CharacterSheet): Set<string> =>
+  new Set(
+    (sheet.raca?.abilities ?? [])
+      .flatMap((ability) => ability.sheetActions ?? [])
+      .flatMap((sheetAction) =>
+        sheetAction.action.type === 'addEquipment'
+          ? (sheetAction.action.equipment.Arma ?? []).map((w) => w.nome)
+          : []
+      )
+  );
+
 /** Armas naturais, ataque desarmado e munição não contam como "usar arma". */
-const isWieldedWeapon = (item: Equipment): boolean =>
+const isWieldedWeapon = (sheet: CharacterSheet, item: Equipment): boolean =>
   item.group === 'Arma' &&
   !item.isAmmo &&
   !item.weaponTags?.includes('natural') &&
-  item.nome !== 'Ataque Desarmado';
+  item.nome !== 'Ataque Desarmado' &&
+  !getRaceWeaponNames(sheet).has(item.nome);
 
 export function getPreferredWeaponWarning(
   sheet: CharacterSheet,
   item: Equipment
 ): string | undefined {
-  if (!getSheetFundamentalista(sheet) || !isWieldedWeapon(item)) {
+  if (!getSheetFundamentalista(sheet) || !isWieldedWeapon(sheet, item)) {
     return undefined;
   }
   const deityName = sheet.devoto?.divindade.name;
