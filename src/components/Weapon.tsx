@@ -18,6 +18,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import TuneIcon from '@mui/icons-material/Tune';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import Equipment, {
   AmmoType,
@@ -123,6 +124,8 @@ interface WeaponProps {
    * background (the explanatory legend is rendered once by Weapons.tsx).
    */
   proficiencyPenalty?: number;
+  /** Aviso informativo (ex.: fundamentalista fora da arma preferida). */
+  warning?: string;
   /**
    * Persiste a edição de perícia/atributos desta arma. Ausente = ícone de ajuste
    * escondido (ficha em modo leitura). É o único caminho de edição das armas
@@ -162,6 +165,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     onConsumeAmmo,
     hasArremessador = false,
     proficiencyPenalty = 0,
+    warning,
     onSemanticsChange,
   } = props;
   const { nome, dano, critico, atkBonus, customSkill } = equipment;
@@ -867,6 +871,26 @@ const Weapon: React.FC<WeaponProps> = (props) => {
                   color: 'text.secondary',
                   cursor: 'help',
                 }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          )}
+          {warning && (
+            <Tooltip
+              title={warning}
+              arrow
+              enterTouchDelay={0}
+              leaveTouchDelay={6000}
+            >
+              <WarningAmberIcon
+                aria-label={warning}
+                sx={{
+                  fontSize: 15,
+                  ml: 0.5,
+                  color: 'warning.main',
+                  cursor: 'help',
+                }}
+                // A linha inteira rola o ataque; o ícone só explica.
                 onClick={(e) => e.stopPropagation()}
               />
             </Tooltip>

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Box, Typography, Chip, Tooltip } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Equipment, { equipGroup } from '@/interfaces/Equipment';
 import { getItemSpaces } from '@/interfaces/Bag';
 import {
@@ -17,6 +18,8 @@ interface EquipmentTableProps {
   /** Itens já na ordem manual definida na Mochila. */
   items: Equipment[];
   characterName: string;
+  /** Aviso informativo por item (ex.: fundamentalista fora da arma preferida). */
+  getItemWarning?: (item: Equipment) => string | undefined;
 }
 
 interface EquipmentGroup {
@@ -134,7 +137,8 @@ const EquipmentRow: React.FC<{
   gridTemplate: string;
   compact: boolean;
   characterName: string;
-}> = ({ item, stats, gridTemplate, compact, characterName }) => {
+  warning?: string;
+}> = ({ item, stats, gridTemplate, compact, characterName, warning }) => {
   const spaces = getItemSpaces(item);
   // `—` significa "espaço não definido", não "zero": um item que o jogador
   // zerou de propósito precisa mostrar 0, senão a edição parece não ter salvo.
@@ -147,6 +151,19 @@ const EquipmentRow: React.FC<{
       <Typography variant='body2' sx={{ fontWeight: 500 }}>
         {item.customDisplayName || item.nome}
       </Typography>
+      {warning && (
+        <Tooltip
+          title={warning}
+          arrow
+          enterTouchDelay={0}
+          leaveTouchDelay={6000}
+        >
+          <WarningAmberIcon
+            aria-label={warning}
+            sx={{ fontSize: 15, color: 'warning.main', cursor: 'help' }}
+          />
+        </Tooltip>
+      )}
       {countLabel && <Chip label={countLabel} size='small' sx={QTY_CHIP_SX} />}
       {supplement && (
         <Chip
@@ -237,6 +254,7 @@ const MemoRow = React.memo(EquipmentRow);
 const EquipmentTable: React.FC<EquipmentTableProps> = ({
   items,
   characterName,
+  getItemWarning,
 }) => {
   const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
 
@@ -357,6 +375,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
                 gridTemplate={gridTemplate}
                 compact={compact}
                 characterName={characterName}
+                warning={getItemWarning?.(item)}
               />
             ))}
           </Box>
