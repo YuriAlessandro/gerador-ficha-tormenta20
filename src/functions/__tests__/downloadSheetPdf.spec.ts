@@ -21,6 +21,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { fillSheetPdf } from '../downloadSheetPdf';
+import { DivindadeEnum } from '../../data/systems/tormenta20/divindades';
 
 const BASE_OPTIONS: SelectOptions = {
   nivel: 3,
@@ -62,6 +63,26 @@ beforeAll(() => {
 });
 
 describe('fillSheetPdf', () => {
+  it('marca o fundamentalista no campo Divindade e leva o dogma para página extra', async () => {
+    const sheet = makeSheet();
+    sheet.devoto = {
+      divindade: DivindadeEnum.KHALMYR,
+      poderes: [],
+      fundamentalista: { dogma: 'sacerdote' },
+    };
+    const { doc, form } = await renderPdf(sheet);
+    expect(getText(form, 'Divindade')).toBe('Khalmyr (fundamentalista)');
+    expect(doc.getPageCount()).toBeGreaterThan(3);
+  });
+
+  it('devoto comum não ganha sufixo nem página extra', async () => {
+    const sheet = makeSheet();
+    sheet.devoto = { divindade: DivindadeEnum.KHALMYR, poderes: [] };
+    const { doc, form } = await renderPdf(sheet);
+    expect(getText(form, 'Divindade')).toBe('Khalmyr');
+    expect(doc.getPageCount()).toBe(3);
+  });
+
   it('exporta os poderes criados à mão pelo usuário', async () => {
     const sheet = makeSheet();
     sheet.customPowers = [

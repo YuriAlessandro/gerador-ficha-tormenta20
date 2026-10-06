@@ -20,6 +20,10 @@ import {
 } from './proficiencies';
 import { collectSheetPowers } from './powers/collectSheetPowers';
 import { getDevotionLabel } from './powers/deityNames';
+import {
+  getFundamentalistaSummary,
+  getSheetFundamentalista,
+} from './powers/fundamentalista';
 import { serializeJournalForPdf } from './playerJournal';
 import { getPowerDisplayName, getPowerDisplayText } from './powers/powerText';
 import {
@@ -176,6 +180,9 @@ const buildExtraSections = (
       `${name}${behavioral ? ' (comportamental)' : ''}\n${description}`
     );
   }
+
+  // `push` ignora corpo vazio: ficha não fundamentalista não ganha seção.
+  push('Dogma fundamentalista', getFundamentalistaSummary(sheet));
 
   if (sheet.age) {
     const years = sheet.age.years ? `, ${sheet.age.years} anos` : '';
@@ -374,7 +381,14 @@ export const fillSheetPdf: (
   // impresso), mas o campo próprio existe e ficava vazio.
   levelField.setText(sheet.nivel.toString());
   // Devoção dupla cabe no mesmo campo de texto do template: "A / B".
-  deytiField.setText(sanitizeForWinAnsi(getDevotionLabel(sheet, ' / ')));
+  const devotionLabel = getDevotionLabel(sheet, ' / ');
+  deytiField.setText(
+    sanitizeForWinAnsi(
+      devotionLabel && getSheetFundamentalista(sheet)
+        ? `${devotionLabel} (fundamentalista)`
+        : devotionLabel
+    )
+  );
   // Atributos BASE de propósito — aqui e nas perícias/armas mais abaixo. Mesma
   // política já adotada para o bônus de dano de efeito ativo (ver
   // `weaponSkill.ts`): estado transitório de combate (efeito ativo, condição,
