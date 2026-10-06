@@ -3516,6 +3516,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     (dualDevotionAvailable ||
                       !!sheet.devoto?.divindadeSecundaria) && (
                       <>
+                        {!!sheet.devoto?.fundamentalista && (
+                          <Typography
+                            variant='caption'
+                            sx={{ color: 'warning.main' }}
+                          >
+                            Fundamentalista não pode ter devoção dupla: escolher
+                            uma segunda divindade remove essa marca.
+                          </Typography>
+                        )}
                         <FormControl fullWidth>
                           <InputLabel>Segunda divindade</InputLabel>
                           <Select

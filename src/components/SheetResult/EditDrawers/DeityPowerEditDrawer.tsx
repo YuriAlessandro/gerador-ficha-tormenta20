@@ -17,6 +17,10 @@ import Divindade from '@/interfaces/Divindade';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
+import {
+  getGrantedPowerCount,
+  getSheetFundamentalista,
+} from '@/functions/powers/fundamentalista';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 
 interface DeityPowerEditDrawerProps {
@@ -43,6 +47,13 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
   // Check if class auto-grants all deity powers
   const { qtdPoderesConcedidos } = sheet.classe;
   const getsAllPowers = qtdPoderesConcedidos === 'all';
+  // O +1 só vale para o deus ATUAL: trocando de deus pelo SheetInfoEditDrawer,
+  // a marca não acompanha (o devoto é reconstruído sem ela).
+  const grantedCount = getGrantedPowerCount(
+    qtdPoderesConcedidos,
+    sheet.devoto?.divindade.name === deity.name &&
+      !!getSheetFundamentalista(sheet)
+  );
   const supplements = useContentSupplements();
 
   const availablePowers: GeneralPower[] = useMemo(() => {
@@ -243,6 +254,7 @@ const DeityPowerEditDrawer: React.FC<DeityPowerEditDrawerProps> = ({
           sx={{ mb: 3, display: 'block' }}
         >
           Selecionados: {selectedPowers.length}
+          {typeof grantedCount === 'number' ? ` de ${grantedCount}` : ''}
         </Typography>
 
         <Box sx={{ maxHeight: '60vh', overflow: 'auto', mb: 3 }}>
