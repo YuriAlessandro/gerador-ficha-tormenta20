@@ -25,6 +25,8 @@ import CharacterSheet from '../../../interfaces/CharacterSheet';
 import Equipment from '../../../interfaces/Equipment';
 import { DogmaFundamentalista } from '../../../interfaces/Character';
 import { SupplementId } from '../../../types/supplement.types';
+import MINOTAURO from '../../../data/systems/tormenta20/races/minotauro';
+import TABRACHI from '../../../data/systems/tormenta20/ameacas-de-arton/races/tabrachi';
 
 const GUERREIRO = { name: 'Guerreiro' };
 const CLERIGO = { name: 'Clérigo' };
@@ -198,6 +200,37 @@ describe('arma preferida', () => {
     expect(isPreferredWeapon(weapon('Espada Longa'), 'Khalmyr')).toBe(true);
     expect(isPreferredWeapon(weapon('espada longa'), 'Khalmyr')).toBe(true);
     expect(isPreferredWeapon(weapon('Espada Bastarda'), 'Khalmyr')).toBe(false);
+  });
+
+  it('arma gerada com melhorias no nome continua sendo a preferida', () => {
+    // O gerador de itens renomeia: "Espada Longa (Certeira, Pungente)".
+    expect(
+      isPreferredWeapon(weapon('Espada Longa (Certeira, Pungente)'), 'Khalmyr')
+    ).toBe(true);
+    expect(
+      getPreferredWeaponWarning(
+        fundamentalistSheet('Khalmyr'),
+        weapon('Espada Longa (Certeira)')
+      )
+    ).toBeUndefined();
+  });
+
+  it('arma natural da raça sem a tag (ficha antiga) não ganha aviso', () => {
+    const sheet = fundamentalistSheet('Arsenal');
+    sheet.raca = MINOTAURO;
+    // Fichas anteriores a 29/08/2026 guardaram os chifres sem `weaponTags`.
+    expect(getPreferredWeaponWarning(sheet, weapon('Chifres'))).toBeUndefined();
+  });
+
+  it('a língua do Tabrachi é arma natural', () => {
+    const sheet = fundamentalistSheet('Oceano');
+    sheet.raca = TABRACHI;
+    const lingua = TABRACHI.abilities
+      .flatMap((a) => a.sheetActions ?? [])
+      .flatMap((sa) =>
+        sa.action.type === 'addEquipment' ? sa.action.equipment.Arma ?? [] : []
+      )[0];
+    expect(lingua.weaponTags).toContain('natural');
   });
 
   it('variações de nome parecido são outras armas', () => {

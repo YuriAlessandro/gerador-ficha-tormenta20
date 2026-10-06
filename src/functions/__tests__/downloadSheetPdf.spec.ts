@@ -12,7 +12,7 @@
  */
 import { readFileSync } from 'fs';
 import path from 'path';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { SupplementId } from '../../types/supplement.types';
 import { generateEmptySheet } from '../general';
@@ -73,6 +73,30 @@ describe('fillSheetPdf', () => {
     const { doc, form } = await renderPdf(sheet);
     expect(getText(form, 'Divindade')).toBe('Khalmyr (fundamentalista)');
     expect(doc.getPageCount()).toBeGreaterThan(3);
+  });
+
+  // O campo não tem tamanho fixo no template: o pdf-lib encolhe a fonte para
+  // caber. Guarda contra alguém fixar o tamanho e cortar o nome.
+  it('nome longo com o sufixo cabe no campo Divindade', async () => {
+    const sheet = makeSheet();
+    sheet.devoto = {
+      divindade: DivindadeEnum.KALLYADRANOCH,
+      poderes: [],
+      fundamentalista: { dogma: 'sacerdote' },
+    };
+    const { form } = await renderPdf(sheet);
+    const field = form.getTextField('Divindade');
+    expect(field.getText()).toBe('Kallyadranoch (fundamentalista)');
+    const size = Number(
+      /([\d.]+) Tf/.exec(field.acroField.getDefaultAppearance() ?? '')?.[1]
+    );
+    const font = await (
+      await PDFDocument.create()
+    ).embedFont(StandardFonts.Helvetica);
+    const { width } = field.acroField.getWidgets()[0].getRectangle();
+    expect(
+      font.widthOfTextAtSize('Kallyadranoch (fundamentalista)', size)
+    ).toBeLessThanOrEqual(width);
   });
 
   it('devoto comum não ganha sufixo nem página extra', async () => {
