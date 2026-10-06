@@ -52,6 +52,7 @@ import GrimoireCardLegend from './cards/GrimoireCardLegend';
 import { presentItem } from './cards/itemPresentation';
 import { GrimoireViewMode, useGrimoireViewMode } from './useGrimoireViewMode';
 import { useGrimoireLimit } from './useGrimoireLimit';
+import { useGrimoireCatalogVersion } from './useGrimoireCatalogVersion';
 
 /** Grimórios pequenos (uma one-shot) já abrem com tudo à vista. */
 export const AUTO_OPEN_MAX_ITEMS = 5;
@@ -80,7 +81,12 @@ const PocketGrimoirePage: React.FC = () => {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const itemIds = grimoire?.itemIds;
-  const resolved = useMemo(() => resolveItems(itemIds ?? []), [itemIds]);
+  // Homebrews chegam depois do login: a versão refaz o que já foi resolvido.
+  const catalogVersion = useGrimoireCatalogVersion();
+  const resolved = useMemo(
+    () => resolveItems(itemIds ?? []),
+    [itemIds, catalogVersion]
+  );
 
   // Com uma categoria só, os chips não filtram nada: ficam escondidos.
   const presentFilters = useMemo(() => {
@@ -131,7 +137,7 @@ const PocketGrimoirePage: React.FC = () => {
       normalizedQuery.length >= 2
         ? searchEncyclopedia(getFullEncyclopediaIndex(), query, SEARCH_RESULTS)
         : [],
-    [normalizedQuery, query]
+    [normalizedQuery, query, catalogVersion]
   );
 
   // Acima do limite não abre, nem pelo endereço direto: volta para a lista.

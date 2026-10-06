@@ -51,10 +51,16 @@ interface GrimoireCatalog {
 }
 
 /**
- * Todos os suplementos, de propósito: um item guardado no grimório não pode
- * "sumir" porque o suplemento dele está desativado na enciclopédia.
+ * Todos os suplementos oficiais, de propósito (um item guardado no grimório
+ * não pode "sumir" porque o suplemento dele está desativado na enciclopédia),
+ * mais os registrados em runtime (homebrews, que chegam depois do login) —
+ * a enciclopédia mostra o botão de adicionar nas linhas deles também.
  */
-const ALL_SUPPLEMENTS = Object.values(SupplementId);
+const catalogSupplements = (): SupplementId[] => [
+  ...Object.values(SupplementId),
+  // Cast de fronteira, como em `useContentSupplements`.
+  ...(dataRegistry.getRuntimeSupplementIds() as SupplementId[]),
+];
 
 const SUMMARY_PREFIXES = ['class', 'race', 'origin', 'deity'];
 
@@ -80,7 +86,9 @@ const GROUPS: { key: string; label: string }[] = [
 
 const KNOWN_GROUP_KEYS = new Set(GROUPS.map((g) => g.key));
 
-function collectSpells(): Map<string, GrimoireSpell> {
+function collectSpells(
+  supplements: SupplementId[]
+): Map<string, GrimoireSpell> {
   const spells = new Map<string, GrimoireSpell>();
 
   const add = (circle: SpellCircle, kind: SpellKind, circleNumber: number) => {
@@ -105,7 +113,7 @@ function collectSpells(): Map<string, GrimoireSpell> {
   for (let circle = 1; circle <= 5; circle += 1) {
     const { arcane, divine } = dataRegistry.getSpellsByCircleAndSupplements(
       circle,
-      ALL_SUPPLEMENTS
+      supplements
     );
     add(arcane, 'Arcana', circle);
     add(divine, 'Divina', circle);
@@ -113,9 +121,11 @@ function collectSpells(): Map<string, GrimoireSpell> {
   return spells;
 }
 
-function collectPowers(): Map<string, GeneralPowerWithSupplement> {
+function collectPowers(
+  supplements: SupplementId[]
+): Map<string, GeneralPowerWithSupplement> {
   const powers = new Map<string, GeneralPowerWithSupplement>();
-  const byType = dataRegistry.getPowersWithSupplementInfo(ALL_SUPPLEMENTS);
+  const byType = dataRegistry.getPowersWithSupplementInfo(supplements);
   (Object.keys(byType) as GeneralPowerType[]).forEach((type) => {
     byType[type].forEach((power) => {
       powers.set(`power:${type}:${power.name}`, power);
@@ -125,16 +135,23 @@ function collectPowers(): Map<string, GeneralPowerWithSupplement> {
 }
 
 let catalog: GrimoireCatalog | null = null;
+let catalogVersion = -1;
 
-/** Índice completo e dados detalhados, montados uma vez por sessão. */
+/**
+ * Índice completo e dados detalhados. Montado uma vez e refeito só quando o
+ * conjunto de homebrews muda (login, logout, ativar/desativar).
+ */
 export function getGrimoireCatalog(): GrimoireCatalog {
-  if (!catalog) {
-    const index = buildEncyclopediaIndex(ALL_SUPPLEMENTS);
-    const powers = collectPowers();
+  const version = dataRegistry.getRuntimeSupplementsVersion();
+  if (!catalog || version !== catalogVersion) {
+    const supplements = catalogSupplements();
+    const index = buildEncyclopediaIndex(supplements);
+    const powers = collectPowers(supplements);
+    catalogVersion = version;
     catalog = {
       index,
       byId: new Map(index.map((entry) => [entry.id, entry])),
-      spells: collectSpells(),
+      spells: collectSpells(supplements),
       powers,
       powerIdByName: new Map(
         Array.from(powers.entries()).map(([id, power]) => [power.name, id])

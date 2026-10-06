@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect } from 'vitest';
 import {
   encyclopediaPath,
   getFullEncyclopediaIndex,
@@ -11,6 +11,8 @@ import {
 } from '../resolveItems';
 import { buildEncyclopediaIndex } from '../../encyclopediaSearch';
 import { prefixOf } from '../itemId';
+import { homebrewSupplement, HOMEBREW } from './homebrewFixture';
+import { dataRegistry } from '../../../data/registry';
 
 const firstIdWithPrefix = (prefix: string) => {
   const entry = getFullEncyclopediaIndex().find(
@@ -136,5 +138,44 @@ describe('encyclopediaPath', () => {
     expect(item.kind !== 'missing' && encyclopediaPath(item.entry)).toBe(
       '/database/magias/Bola%20de%20Fogo'
     );
+  });
+});
+
+describe('homebrew (suplementos de runtime)', () => {
+  afterEach(() => {
+    dataRegistry.unregisterRuntimeSupplement(HOMEBREW.id);
+  });
+
+  it('divindade homebrew registrada resolve no grimório', () => {
+    dataRegistry.registerRuntimeSupplement(HOMEBREW.id, homebrewSupplement());
+    const item = resolveItem(HOMEBREW.deityId);
+    expect(item.kind).toBe('summary');
+    expect(itemTitle(item)).toBe(HOMEBREW.deity);
+  });
+
+  it('poder geral homebrew vem completo, para a carta', () => {
+    dataRegistry.registerRuntimeSupplement(HOMEBREW.id, homebrewSupplement());
+    const item = resolveItem(HOMEBREW.powerId);
+    expect(item.kind).toBe('power');
+  });
+
+  it('catálogo montado antes do homebrew chegar (login) é refeito', () => {
+    expect(resolveItem(HOMEBREW.deityId).kind).toBe('missing');
+    dataRegistry.registerRuntimeSupplement(HOMEBREW.id, homebrewSupplement());
+    expect(resolveItem(HOMEBREW.deityId).kind).toBe('summary');
+    expect(
+      getFullEncyclopediaIndex().some((e) => e.id === HOMEBREW.deityId)
+    ).toBe(true);
+  });
+
+  it('homebrew removido (logout) volta a ser "não encontrado"', () => {
+    dataRegistry.registerRuntimeSupplement(HOMEBREW.id, homebrewSupplement());
+    expect(resolveItem(HOMEBREW.deityId).kind).toBe('summary');
+    dataRegistry.unregisterRuntimeSupplement(HOMEBREW.id);
+    expect(resolveItem(HOMEBREW.deityId).kind).toBe('missing');
+  });
+
+  it('sem mudança nos homebrews, o catálogo não é refeito', () => {
+    expect(getGrimoireCatalog()).toBe(getGrimoireCatalog());
   });
 });

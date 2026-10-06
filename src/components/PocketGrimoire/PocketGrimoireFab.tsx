@@ -35,6 +35,7 @@ import GrimoireNameDialog from './GrimoireNameDialog';
 import ImportGrimoireDialog from './ImportGrimoireDialog';
 import { useRemoveFromGrimoire } from './useGrimoireUndo';
 import { useGrimoireLimit } from './useGrimoireLimit';
+import { useGrimoireCatalogVersion } from './useGrimoireCatalogVersion';
 
 const NEW_OPTION = '__novo__';
 const TITLE_ID = 'pocket-grimoire-panel-title';
@@ -55,9 +56,11 @@ const PocketGrimoireFab: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
 
+  // Homebrews chegam depois do login: a versão refaz o que já foi resolvido.
+  const catalogVersion = useGrimoireCatalogVersion();
   const groups = useMemo(
     () => groupResolvedItems(resolveItems(active.itemIds)),
-    [active.itemIds]
+    [active.itemIds, catalogVersion]
   );
 
   const closeOnMobile = () => {
