@@ -173,6 +173,12 @@ const Changelog: React.FC = () => {
                   compartilhados por link.
                 </li>
                 <li>
+                  <strong>Novo:</strong> O uso <strong>Saltar</strong> entrou
+                  nas ações de <strong>Atletismo</strong>, ao lado de Corrida,
+                  Escalar e Natação, com as CDs de salto longo e salto em altura
+                  do livro básico.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Várias telas ficaram melhores no{' '}
                   <strong>celular</strong>: a criação de ficha abre em tela
                   cheia com progresso compacto, as tabelas da enciclopédia cabem
