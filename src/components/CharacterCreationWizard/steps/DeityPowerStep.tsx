@@ -14,12 +14,15 @@ import {
   getPowerDeityNames,
   isDualDevotionPower,
 } from '@/functions/powers/grantedPowerPool';
+import { getGrantedPowerCount } from '@/functions/powers/fundamentalista';
 
 interface DeityPowerStepProps {
   classe: ClassDescription;
   deity: Divindade | null;
   /** Devoção Dupla: a segunda divindade, quando houver. */
   secondaryDeity?: Divindade | null;
+  /** Fundamentalista (Deuses de Arton): escolhe um poder concedido a mais. */
+  fundamentalista?: boolean;
   /**
    * Piscina de onde escolher — a união das listas dos deuses da devoção, já
    * montada pelo assistente. A QUANTIDADE escolhível não muda com a devoção
@@ -34,6 +37,7 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
   classe,
   deity,
   secondaryDeity = null,
+  fundamentalista = false,
   powerPool,
   selectedPowers,
   onChange,
@@ -89,8 +93,13 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
     );
   }
 
+  const grantedCount = getGrantedPowerCount(
+    qtdPoderesConcedidos,
+    fundamentalista
+  );
+  // 'all' já retornou acima; o fallback só satisfaz o tipo.
   const maxPowers =
-    typeof qtdPoderesConcedidos === 'number' ? qtdPoderesConcedidos : 1;
+    typeof grantedCount === 'number' ? grantedCount : powerPool.length;
   const isLimitReached = selectedPowers.length >= maxPowers;
 
   const availablePowers = powerPool;
@@ -122,6 +131,9 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
         {maxPowers === 1 ? 'concedido' : 'concedidos'} por {deityLabel}. Esta
         etapa é opcional.
       </Typography>
+      {fundamentalista && (
+        <Alert severity='info'>Fundamentalista: +1 poder concedido.</Alert>
+      )}
       <Typography
         variant='caption'
         sx={{
