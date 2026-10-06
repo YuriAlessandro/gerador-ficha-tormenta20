@@ -32,6 +32,10 @@ import PowerSelectionDialog from '../PowerSelectionDialog';
 import SelectedPanel, { SelectedGroup } from './SelectedPanel';
 import { usePowersEditor } from './usePowersEditor';
 import { getDevotionLabel } from '../../../../functions/powers/deityNames';
+import {
+  getGrantedPowerCount,
+  getSheetFundamentalista,
+} from '../../../../functions/powers/fundamentalista';
 
 const ALWAYS_AVAILABLE: PowerAvailability = {
   available: true,
@@ -337,12 +341,25 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
       })
     );
 
+    // Fundamentalista: mostra a ocupação das vagas (+1). Só informa — o
+    // editor não limita a escolha.
+    const getDeityPowerGroupTitle = (): string => {
+      const label = getDevotionLabel(sheet);
+      if (!label) return POWER_ORIGINS.deityPower.label();
+      if (!getSheetFundamentalista(sheet)) return `Concedidos por ${label}`;
+      const count = getGrantedPowerCount(
+        sheet.classe.qtdPoderesConcedidos,
+        true
+      );
+      return typeof count === 'number'
+        ? `Concedidos por ${label} (fundamentalista: ${selectedDeityPowers.length} de ${count})`
+        : `Concedidos por ${label} (fundamentalista)`;
+    };
+
     push(
       'deityPower',
       'deityPower',
-      getDevotionLabel(sheet)
-        ? `Concedidos por ${getDevotionLabel(sheet)}`
-        : POWER_ORIGINS.deityPower.label(),
+      getDeityPowerGroupTitle(),
       dedupe(selectedDeityPowers, editor.handleDeityPowerRemove, 'deityPower')
     );
 
