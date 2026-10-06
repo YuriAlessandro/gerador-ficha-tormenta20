@@ -149,6 +149,55 @@ describe('compendiumSpellToThreatSpell', () => {
     expect(threatSpell.rolls?.[0].name).toMatch(/truque/);
   });
 
+  it.each(['Explosão de Chamas', 'Miasma Mefítico', 'Raio Solar'])(
+    'truque de %s (sem rolagem de truque) não grava o dano normal',
+    (nome) => {
+      const spell = findSpell(core, nome);
+      const truque = (spell.aprimoramentos ?? []).findIndex((a) => a.trick);
+      expect(compendiumSpellToThreatSpell(spell, nextId).rolls).toBeDefined();
+      const threatSpell = compendiumSpellToThreatSpell(
+        spell,
+        nextId,
+        new Map([[truque, 1]])
+      );
+      expect(threatSpell.pmCost).toBeUndefined();
+      expect(threatSpell.rolls).toBeUndefined();
+    }
+  );
+
+  it('truque sem rolagem de truque ainda aceita a escolha manual', () => {
+    const spell = findSpell(core, 'Explosão de Chamas');
+    const rolls = spell.rolls ?? [];
+    const truque = (spell.aprimoramentos ?? []).findIndex((a) => a.trick);
+    const threatSpell = compendiumSpellToThreatSpell(
+      spell,
+      nextId,
+      new Map([[truque, 1]]),
+      new Map([[getRollKey(rolls[0], 0), true]])
+    );
+    expect(threatSpell.rolls).toHaveLength(1);
+  });
+
+  it('lista os aprimoramentos aplicados na ordem do livro', () => {
+    const spell = findSpell(core, 'Bola de Fogo');
+    const aumenta = indexOfAprimoramento(spell, /^aumenta o dano em \+2d6/);
+    const outro = (spell.aprimoramentos ?? []).findIndex(
+      (a, index) => index > aumenta && !a.trick
+    );
+    const { description } = compendiumSpellToThreatSpell(
+      spell,
+      nextId,
+      new Map([
+        [outro, 1],
+        [aumenta, 1],
+      ])
+    );
+    const aplicados = description.split('Aprimoramentos aplicados:\n')[1];
+    expect(aplicados.indexOf('aumenta o dano em +2d6')).toBeLessThan(
+      aplicados.indexOf(spell.aprimoramentos?.[outro].text ?? '')
+    );
+  });
+
   it('respeita a escolha manual de rolagens', () => {
     const spell = findSpell(core, 'Curar Ferimentos');
     const rolls = spell.rolls ?? [];

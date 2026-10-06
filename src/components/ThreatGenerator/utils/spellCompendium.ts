@@ -118,10 +118,13 @@ export const toAprimoramentoSelections = (
   counts: AprimoramentoCounts
 ): AprimoramentoSelection[] => {
   const result: AprimoramentoSelection[] = [];
-  counts.forEach((count, index) => {
-    const aprimoramento = spell.aprimoramentos?.[index];
-    if (aprimoramento && count > 0) result.push({ aprimoramento, count });
-  });
+  // Ordem do livro, não a do clique (o Map itera por inserção).
+  [...counts.entries()]
+    .sort(([a], [b]) => a - b)
+    .forEach(([index, count]) => {
+      const aprimoramento = spell.aprimoramentos?.[index];
+      if (aprimoramento && count > 0) result.push({ aprimoramento, count });
+    });
   return result;
 };
 
@@ -167,18 +170,20 @@ const TRUQUE_ROLL = /truque/i;
 
 /**
  * Rolagem de truque (ex.: "Dano de Luz vs Mortos-vivos (truque)") só entra
- * com o truque escolhido — e aí as rolagens normais saem. Magias sem rolagem
- * de truque incluem tudo.
+ * com o truque escolhido — e aí as rolagens normais saem. Se a magia não tem
+ * rolagem de truque, o truque tira todas: ele troca o efeito normal por outro
+ * sem dano (Explosão de Chamas, Raio Solar, Miasma Mefítico), e manter o dano
+ * cheio a 0 PM seria um clique de graça na mesa.
  */
 export const isRollIncludedByDefault = (
   roll: DiceRoll,
   rolls: DiceRoll[],
   selections: AprimoramentoSelection[]
 ): boolean => {
-  if (!rolls.some((r) => TRUQUE_ROLL.test(r.label))) return true;
   const truque = selections.some(({ aprimoramento }) =>
     isTruqueAprimoramento(aprimoramento)
   );
+  if (!rolls.some((r) => TRUQUE_ROLL.test(r.label))) return !truque;
   return TRUQUE_ROLL.test(roll.label) === truque;
 };
 
