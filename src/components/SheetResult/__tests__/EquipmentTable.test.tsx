@@ -66,3 +66,22 @@ describe('EquipmentTable — modo por largura do container', () => {
     expect(screen.getByText('Crít 18/x2')).toBeInTheDocument();
   });
 });
+
+describe('EquipmentTable — aviso por item', () => {
+  it('mostra o aviso só nos itens que o callback marca', () => {
+    setContainerWidth(800);
+    const machado: Equipment = { ...adaga, nome: 'Machado de Guerra' };
+    render(
+      <EquipmentTable
+        items={[adaga, machado]}
+        characterName='Nimb'
+        getItemWarning={(item) =>
+          item.nome === 'Machado de Guerra'
+            ? 'Fora da arma preferida'
+            : undefined
+        }
+      />
+    );
+    expect(screen.getAllByLabelText('Fora da arma preferida')).toHaveLength(1);
+  });
+});
