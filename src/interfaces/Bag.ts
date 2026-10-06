@@ -111,10 +111,6 @@ function calcArmorPenalty(equipments: BagEquipments): number {
 }
 
 /**
- * Mutates the bag in place to assign a stable UUID to every equipment that lacks one.
- * The Bag's runtime invariant is that every stored item has an `id`.
- */
-/**
  * Remove entradas inválidas (null/não-objeto) dos grupos e força grupos
  * não-array a virarem arrays vazios. Dados corrompidos de fichas antigas
  * sobrevivem ao merge do construtor e explodiriam depois em iterações cruas
@@ -132,13 +128,59 @@ function sanitizeGroups(bagEquipments: BagEquipments): void {
   });
 }
 
+/**
+ * Mutates the bag in place to assign a stable UUID to every equipment that lacks one.
+ * The Bag's runtime invariant is that every stored item has a UNIQUE `id`.
+ *
+ * Id repetido acontece quando a mesma referência entra N vezes na mochila (a
+ * concessão de itens alquímicos fazia isso) ou quando o objeto do catálogo já
+ * vinha com id gravado por uma chamada anterior. Como exibição, edição e
+ * remoção resolvem por id, as N entradas passam a agir como uma só: a
+ * quantidade editada não aparece e remover exige N cliques. A 2ª ocorrência em
+ * diante ganha id novo num CLONE — mutar o objeto trocaria o id de todas as
+ * posições que apontam para ele (e do catálogo compartilhado).
+ */
 export function ensureIds(bagEquipments: BagEquipments): void {
-  flattenEquipments(bagEquipments).forEach((equipment) => {
-    if (!equipment.id) {
-      // eslint-disable-next-line no-param-reassign
-      equipment.id = uuid();
+  const groups = bagEquipments as unknown as Record<string, Equipment[]>;
+  const seen = new Set<string>();
+  BAG_CATEGORIES.forEach((category) => {
+    const list = groups[category];
+    if (!Array.isArray(list)) return;
+    list.forEach((equipment, index) => {
+      if (!equipment || typeof equipment !== 'object') return;
+      if (!equipment.id) {
+        // eslint-disable-next-line no-param-reassign
+        equipment.id = uuid();
+      } else if (seen.has(equipment.id)) {
+        list[index] = { ...equipment, id: uuid() };
+      }
+      seen.add(list[index].id as string);
+    });
+  });
+}
+
+/**
+ * Agrupa itens repetidos (mesmo `nome`) em uma entrada só, com `quantity`.
+ *
+ * Para concessões que escolhem "N itens" permitindo repetição: sem isso a
+ * mochila recebe N entradas soltas do mesmo item em vez de uma pilha. Devolve
+ * clones sem `id`, para não carregar a identidade (nem a referência) do
+ * catálogo compartilhado para dentro da ficha.
+ */
+export function stackByName(items: Equipment[]): Equipment[] {
+  const stacks = new Map<string, Equipment>();
+  items.forEach((item) => {
+    const amount = item.quantity ?? 1;
+    const existing = stacks.get(item.nome);
+    if (existing) {
+      existing.quantity = (existing.quantity ?? 1) + amount;
+    } else {
+      const clone: Equipment = { ...item, quantity: amount };
+      delete clone.id;
+      stacks.set(item.nome, clone);
     }
   });
+  return Array.from(stacks.values());
 }
 
 /**

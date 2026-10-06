@@ -84,7 +84,7 @@ import Skill, {
 import Equipment, { BagEquipments } from '@/interfaces/Equipment';
 import cloneDeep from 'lodash/cloneDeep';
 import { MarketSelections } from '@/interfaces/MarketEquipment';
-import { ensureIds } from '@/interfaces/Bag';
+import { ensureIds, stackByName } from '@/interfaces/Bag';
 import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
 import {
   ComplicationSelectionStep,
@@ -1141,7 +1141,7 @@ const CharacterCreationWizardModal: React.FC<
         currentSelections.powerEffectSelections?.[alchemyAction.abilityName]
           ?.alchemyItems;
       if (alchemySelection && alchemySelection.length > 0) {
-        bag.Alquimía.push(...alchemySelection);
+        bag.Alquimía.push(...stackByName(alchemySelection));
       }
       // Add Instrumentos de Alquimista Aprimorados
       bag['Item Geral'].push({

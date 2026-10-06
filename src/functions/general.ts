@@ -180,7 +180,7 @@ import Skill, {
   getSkillAttr,
   isOficioSkill,
 } from '../interfaces/Skills';
-import Bag from '../interfaces/Bag';
+import Bag, { stackByName } from '../interfaces/Bag';
 import roles from '../data/systems/tormenta20/roles';
 import { RoleNames } from '../interfaces/Role';
 import {
@@ -3402,8 +3402,11 @@ export const applyPower = (
             (sum, item) => sum + (item.preco || 0),
             0
           );
+          // Empilha os repetidos: a seleção é uma lista com repetição da
+          // MESMA referência do catálogo, e N entradas idênticas na mochila
+          // acabavam compartilhando um único id.
           const equipment: Partial<BagEquipments> = {
-            Alquimía: selectedItems,
+            Alquimía: stackByName(selectedItems),
           };
           sheet.bag.addEquipment(equipment);
 
