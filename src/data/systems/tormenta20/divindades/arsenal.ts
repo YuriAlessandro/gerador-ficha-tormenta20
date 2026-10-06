@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const ARSENAL: Divindade = {
   name: 'Arsenal',
+  preferredWeapon: 'Martelo de Guerra',
   poderes: [
     GRANTED_POWERS.CONJURAR_ARMA,
     GRANTED_POWERS.CORAGEM_TOTAL,

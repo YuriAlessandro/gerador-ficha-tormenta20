@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const KALLYADRANOCH: Divindade = {
   name: 'Kallyadranoch',
+  preferredWeapon: 'Lança',
   poderes: [
     GRANTED_POWERS.AURA_DE_MEDO,
     GRANTED_POWERS.ESCAMAS_DRACONICAS,

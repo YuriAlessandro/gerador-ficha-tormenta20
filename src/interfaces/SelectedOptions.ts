@@ -1,4 +1,5 @@
 import { SupplementId } from '../types/supplement.types';
+import { DogmaFundamentalista } from './Character';
 
 export default interface SelectOptions {
   nivel: number;
@@ -27,4 +28,12 @@ export default interface SelectOptions {
   dualDevotion?: boolean;
   devocaoSecundaria?: { label: string; value: string };
   sincretismo?: { label: string; value: string };
+  /**
+   * Fundamentalista (Deuses de Arton, p. 11). Mora aqui pelo mesmo motivo de
+   * `dualDevotion`. Só vale com Deuses de Arton ativo, deus maior e sem
+   * Devoção Dupla — `resolveFundamentalistChoice` confere tudo isso.
+   */
+  fundamentalista?: boolean;
+  /** Dogma escolhido por classe NÃO divina. Classes divinas ignoram. */
+  dogmaFundamentalista?: DogmaFundamentalista;
 }

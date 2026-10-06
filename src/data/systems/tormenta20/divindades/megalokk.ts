@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const MEGALOKK: Divindade = {
   name: 'Megalokk',
+  preferredWeapon: 'Maça',
   poderes: [
     GRANTED_POWERS.OLHAR_AMEDRONTADOR,
     GRANTED_POWERS.PRESAS_PRIMORDIAIS,

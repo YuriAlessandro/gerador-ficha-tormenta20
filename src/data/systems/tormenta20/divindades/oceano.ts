@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const OCEANO: Divindade = {
   name: 'Oceano',
+  preferredWeapon: 'Tridente',
   poderes: [
     GRANTED_POWERS.ANFIBIO,
     GRANTED_POWERS.ARSENAL_DAS_PROFUNDEZAS,

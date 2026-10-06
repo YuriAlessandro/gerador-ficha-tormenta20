@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const KHALMYR: Divindade = {
   name: 'Khalmyr',
+  preferredWeapon: 'Espada Longa',
   poderes: [
     GRANTED_POWERS.CORAGEM_TOTAL,
     GRANTED_POWERS.DOM_DA_VERDADE,

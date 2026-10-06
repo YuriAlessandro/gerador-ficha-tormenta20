@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const HYNINN: Divindade = {
   name: 'Hyninn',
+  preferredWeapon: 'Adaga',
   poderes: [
     GRANTED_POWERS.APOSTAR_COM_O_TRAPACEIRO,
     GRANTED_POWERS.FARSA_DO_FINGIDOR,
