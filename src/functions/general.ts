@@ -24,6 +24,10 @@ import {
 } from './powers/heavyArmorPowers';
 import { getCarapacaKappaBonuses } from './powers/kappaCarapaca';
 import { getGrantedPowerPool } from './powers/grantedPowerPool';
+import {
+  getGrantedPowerCount,
+  resolveFundamentalistChoice,
+} from './powers/fundamentalista';
 import { normalizeDeityName } from './deityName';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
@@ -7652,6 +7656,16 @@ export function generateEmptySheet(
       const hasSecondary =
         !!secondaryDeity && secondaryDeity.name !== selectedDeity.name;
 
+      // Fundamentalista (Deuses de Arton): +1 poder concedido. Nunca junto da
+      // devoção dupla; `resolveFundamentalistChoice` revalida o formulário.
+      const fundamentalista = hasSecondary
+        ? undefined
+        : resolveFundamentalistChoice(
+            selectedOptions,
+            generatedClass,
+            selectedDeity.name
+          );
+
       // A piscina de escolha é a união das duas listas; a QUANTIDADE que o
       // personagem escolhe não muda (regra explícita do livro).
       const deityNames = [selectedDeity.name];
@@ -7671,12 +7685,13 @@ export function generateEmptySheet(
         );
       } else {
         // Use automatic selection (random or all)
-        const todosPoderes = generatedClass.qtdPoderesConcedidos === 'all';
-        const qtdPoderesConcedidos = isNumber(
-          generatedClass.qtdPoderesConcedidos
-        )
-          ? (generatedClass.qtdPoderesConcedidos as number)
-          : 1; // Default to 1 if undefined
+        const grantedCount = getGrantedPowerCount(
+          generatedClass.qtdPoderesConcedidos,
+          !!fundamentalista
+        );
+        const todosPoderes = grantedCount === 'all';
+        const qtdPoderesConcedidos =
+          typeof grantedCount === 'number' ? grantedCount : 1;
 
         deityPowers = getPoderesConcedidos(
           // Sorteio automático também escolhe da união — `getPoderesConcedidos`
@@ -7697,6 +7712,7 @@ export function generateEmptySheet(
               sincretismo: selectedOptions.sincretismo?.value || undefined,
             }
           : {}),
+        ...(fundamentalista ? { fundamentalista } : {}),
       };
     }
   }
