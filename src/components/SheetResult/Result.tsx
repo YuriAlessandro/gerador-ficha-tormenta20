@@ -167,6 +167,7 @@ import '../../assets/css/result.css';
 import Spells from './SpellsTab/SpellsDisplay';
 import SkillTable from './SkillTable';
 import LabelDisplay from './LabelDisplay';
+import FundamentalistaControl from './FundamentalistaControl';
 import { getDevotionLabel } from '../../functions/powers/deityNames';
 import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
@@ -2391,6 +2392,12 @@ const Result: React.FC<ResultProps> = (props) => {
                   }
                   text={getDevotionLabel(currentSheet) || devoto.divindade.name}
                   size='small'
+                />
+              )}
+              {devoto && (
+                <FundamentalistaControl
+                  sheet={currentSheet}
+                  onChange={onSheetUpdate ? applyRecalculatedSheet : undefined}
                 />
               )}
               {conditionsFeature.isEnabled && (
