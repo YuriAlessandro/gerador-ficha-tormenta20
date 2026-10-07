@@ -44,6 +44,7 @@ import {
   getDogmaFallbackNotice,
   getFundamentalistNotices,
   isDivineClass,
+  isFundamentalistBlocked,
   isFundamentalistEligibleDeity,
   resolveDogmaForClass,
 } from '../../../functions/powers/fundamentalista';
@@ -318,12 +319,25 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
           selectedOptions.dogmaFundamentalista
         )
       : undefined;
+  // Restrição de raça do livro (Valkaria): o interruptor fica desabilitado.
+  const fundamentalistBlocked =
+    !!fundamentalistDogma &&
+    !!deityValue &&
+    isFundamentalistBlocked(
+      deityValue,
+      fundamentalistDogma,
+      selectedOptions.raca
+    );
   const fallbackNotice =
     selectedOptions.fundamentalista && selectedClass && deityValue
       ? getDogmaFallbackNotice(selectedClass, deityValue)
       : undefined;
+  // Com o bloqueio, o aviso aparece mesmo desligado: é ele que explica por que
+  // o interruptor não liga.
   const fundamentalistNotices =
-    selectedOptions.fundamentalista && fundamentalistDogma && deityValue
+    (selectedOptions.fundamentalista || fundamentalistBlocked) &&
+    fundamentalistDogma &&
+    deityValue
       ? [
           ...(fallbackNotice ? [fallbackNotice] : []),
           ...getFundamentalistNotices(
@@ -675,7 +689,10 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
               control={
                 <Switch
                   size='small'
-                  checked={!!selectedOptions.fundamentalista}
+                  checked={
+                    !!selectedOptions.fundamentalista && !fundamentalistBlocked
+                  }
+                  disabled={fundamentalistBlocked}
                   onChange={(_e, checked) =>
                     onSelectedOptionsChange({
                       ...selectedOptions,

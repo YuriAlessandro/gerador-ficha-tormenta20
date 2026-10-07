@@ -54,6 +54,21 @@ describe('Fundamentalista na geração de ficha', () => {
     expect(sheet.devoto?.fundamentalista).toBeUndefined();
   });
 
+  it('paladino de Valkaria não humano não vira fundamentalista nem ganha o poder', () => {
+    const base = {
+      ...OPTIONS,
+      classe: 'Paladino',
+      devocao: { label: 'Valkaria', value: 'VALKARIA' },
+    };
+    const elfo = generateEmptySheet(base, {});
+    expect(elfo.devoto?.fundamentalista).toBeUndefined();
+    expect(elfo.devoto?.poderes).toHaveLength(2);
+
+    const humano = generateEmptySheet({ ...base, raca: 'Humano' }, {});
+    expect(humano.devoto?.fundamentalista).toEqual({ dogma: 'paladino' });
+    expect(humano.devoto?.poderes).toHaveLength(3);
+  });
+
   it('ficha aleatória nunca é fundamentalista', () => {
     for (let i = 0; i < 5; i += 1) {
       const sheet = generateRandomSheet(OPTIONS);

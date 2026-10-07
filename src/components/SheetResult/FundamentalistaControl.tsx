@@ -25,6 +25,7 @@ import {
   getPreferredWeaponRule,
   getSheetFundamentalista,
   isDivineClass,
+  isFundamentalistBlocked,
   isFundamentalistEligibleDeity,
   resolveDogmaForClass,
 } from '@/functions/powers/fundamentalista';
@@ -65,6 +66,13 @@ const FundamentalistaControl: React.FC<FundamentalistaControlProps> = ({
     ...(fallbackNotice ? [fallbackNotice] : []),
     ...getFundamentalistNotices(deityName, shownDogma, sheet.raca?.name),
   ];
+  // Restrição de raça do livro: não liga; uma ficha já marcada (raça trocada
+  // depois) ainda pode desligar.
+  const blocked = isFundamentalistBlocked(
+    deityName,
+    shownDogma,
+    sheet.raca?.name
+  );
   const canChooseDogma = !!onChange && !!dogma && !isDivineClass(sheet.classe);
 
   const setFundamentalista = (next: DogmaFundamentalista | undefined) => {
@@ -85,7 +93,7 @@ const FundamentalistaControl: React.FC<FundamentalistaControlProps> = ({
           <Switch
             size='small'
             checked={!!dogma}
-            disabled={!onChange}
+            disabled={!onChange || (blocked && !dogma)}
             onChange={(_e, checked) =>
               setFundamentalista(
                 checked

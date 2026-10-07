@@ -16,6 +16,7 @@ import {
   getPreferredWeaponWarning,
   getSheetFundamentalista,
   isDivineClass,
+  isFundamentalistBlocked,
   isFundamentalistEligibleDeity,
   isPreferredWeapon,
   resolveDogmaForClass,
@@ -187,6 +188,37 @@ describe('avisos de jogabilidade', () => {
     expect(getFundamentalistNotices('Valkaria', 'sacerdote', 'Elfo')).toEqual(
       []
     );
+  });
+});
+
+describe('restrição de raça (regra do livro)', () => {
+  it('bloqueia paladino de Valkaria que não seja humano', () => {
+    expect(isFundamentalistBlocked('Valkaria', 'paladino', 'Elfo')).toBe(true);
+    expect(isFundamentalistBlocked('Valkaria', 'paladino', 'Humano')).toBe(
+      false
+    );
+    expect(isFundamentalistBlocked('Valkaria', 'sacerdote', 'Elfo')).toBe(
+      false
+    );
+    expect(isFundamentalistBlocked('Khalmyr', 'paladino', 'Elfo')).toBe(false);
+  });
+
+  it('a escolha do formulário não vale quando bloqueada', () => {
+    const options = {
+      fundamentalista: true,
+      supplements: DEUSES_ARTON,
+      raca: 'Elfo',
+    };
+    expect(
+      resolveFundamentalistChoice(options, PALADINO, 'Valkaria')
+    ).toBeUndefined();
+    expect(
+      resolveFundamentalistChoice(
+        { ...options, raca: 'Humano' },
+        PALADINO,
+        'Valkaria'
+      )
+    ).toEqual({ dogma: 'paladino' });
   });
 });
 

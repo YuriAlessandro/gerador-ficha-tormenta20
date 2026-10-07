@@ -167,6 +167,25 @@ export function formatDogmaPages(paginas: number[]): string {
   return `p. ${paginas.join(' e ')}`;
 }
 
+/**
+ * Restrição de raça do livro (Valkaria: só humanos podem ser paladinos
+ * fundamentalistas). É regra, não avaliação do app: a marca não pode ser
+ * ligada nesse caso — e, sem marca, não há o poder concedido adicional.
+ */
+export function isFundamentalistBlocked(
+  deityName: string,
+  dogma: DogmaFundamentalista,
+  raceName?: string
+): boolean {
+  const somenteRaca = getEntry(deityName)?.paladinoSomenteRaca;
+  return (
+    dogma === 'paladino' &&
+    !!somenteRaca &&
+    !!raceName &&
+    raceName !== somenteRaca
+  );
+}
+
 export function getFundamentalistNotices(
   deityName: string,
   dogma: DogmaFundamentalista,
@@ -316,7 +335,8 @@ export function resolveFundamentalistChoice(
   options: Pick<
     SelectOptions,
     'fundamentalista' | 'dogmaFundamentalista' | 'dualDevotion' | 'supplements'
-  >,
+  > &
+    Partial<Pick<SelectOptions, 'raca'>>,
   classe: ClassIdentity,
   deityName?: string
 ): { dogma: DogmaFundamentalista } | undefined {
@@ -325,13 +345,13 @@ export function resolveFundamentalistChoice(
     return undefined;
   }
   if (!deityName || !isFundamentalistEligibleDeity(deityName)) return undefined;
-  return {
-    dogma: resolveDogmaForClass(
-      classe,
-      deityName,
-      options.dogmaFundamentalista
-    ),
-  };
+  const dogma = resolveDogmaForClass(
+    classe,
+    deityName,
+    options.dogmaFundamentalista
+  );
+  if (isFundamentalistBlocked(deityName, dogma, options.raca)) return undefined;
+  return { dogma };
 }
 
 /** Texto do dogma para o PDF; `''` quando a ficha não é fundamentalista. */
