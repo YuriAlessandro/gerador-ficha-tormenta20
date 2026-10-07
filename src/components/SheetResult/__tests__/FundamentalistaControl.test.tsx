@@ -122,6 +122,28 @@ describe('FundamentalistaControl', () => {
     expect(screen.getByText('Mesmo dogma do sacerdote.')).toBeInTheDocument();
   });
 
+  it('paladino de Valkaria não humano: não pode ligar, mas pode desligar', () => {
+    const sheet = devotoDe('Valkaria');
+    sheet.classe = { ...sheet.classe, name: 'Paladino' };
+    sheet.raca = { ...sheet.raca, name: 'Elfo' };
+    const { rerender } = render(
+      <FundamentalistaControl sheet={sheet} onChange={vi.fn()} />
+    );
+    expect(
+      screen.getByRole('switch', { name: /fundamentalista/i })
+    ).toBeDisabled();
+
+    // Raça trocada depois de marcar: a ficha marcada ainda pode desligar.
+    const marcada = devotoDe('Valkaria', true);
+    marcada.classe = { ...marcada.classe, name: 'Paladino' };
+    marcada.raca = { ...marcada.raca, name: 'Elfo' };
+    marcada.devoto!.fundamentalista = { dogma: 'paladino' };
+    rerender(<FundamentalistaControl sheet={marcada} onChange={vi.fn()} />);
+    expect(
+      screen.getByRole('switch', { name: /fundamentalista/i })
+    ).not.toBeDisabled();
+  });
+
   it('o ícone de informação abre o dogma, a arma e a página', () => {
     render(
       <FundamentalistaControl
