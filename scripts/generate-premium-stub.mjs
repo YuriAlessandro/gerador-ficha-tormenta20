@@ -205,6 +205,14 @@ const OVERRIDES = {
       ') as unknown as typeof DEFAULT_FEATURE_FLAGS;',
     ],
   },
+  // Grimório de bolso: sem o premium não há conta. O reducer público roda
+  // sozinho, o migrate não muda nada, não há reducers extras e o plano é
+  // "deslogado" (o público aplica o limite fixo do gratuito).
+  withPocketGrimoireAccount: { expr: '<S,>(reducer: S): S => reducer' },
+  migratePocketGrimoireAccount: { expr: '<S,>(state: S): S => state' },
+  premiumReducers: { expr: '{}' },
+  usePocketGrimoirePlan: { expr: '() => null' },
+  useRequestGrimoireSync: { expr: 'noop' },
 };
 
 const COMPONENT_SUFFIX =

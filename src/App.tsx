@@ -16,6 +16,7 @@ import { SnackbarProvider } from 'notistack';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AttackResult, CharacterAttack } from 't20-sheet-builder';
 import { SkillRollResult } from 't20-sheet-builder/build/domain/entities/Skill/SheetSkill';
+import PocketGrimoireSync from '@/premium/components/PocketGrimoire/PocketGrimoireSync';
 import { CssVarsProvider } from './theme/CssVarsProvider';
 import { createTormentaTheme } from './theme/theme';
 import retryImport from './utils/retryImport';
@@ -29,6 +30,7 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 import SystemSetupDialog from './components/SystemSetupDialog';
 import TermsAcceptanceModal from './components/Terms/TermsAcceptanceModal';
 import { AuthProvider } from './contexts/AuthContext';
+import GrimoireMoveDialog from './components/PocketGrimoire/GrimoireMoveDialog';
 import { CURRENT_TERMS_VERSION } from './constants/terms';
 import LandingPageV2 from './components/LandingPageV2';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -122,6 +124,12 @@ const CavernaDoSaber = lazyScreen(
 );
 const Changelog = lazyScreen(() => import('./components/screens/Changelog'));
 const Database = lazyScreen(() => import('./components/screens/Database'));
+const PocketGrimoireListPage = lazyScreen(
+  () => import('./components/PocketGrimoire/PocketGrimoireListPage')
+);
+const PocketGrimoirePage = lazyScreen(
+  () => import('./components/PocketGrimoire/PocketGrimoirePage')
+);
 const TermsOfUse = lazyScreen(() => import('./components/screens/TermsOfUse'));
 const MainScreen = lazyScreen(() => import('./components/screens/MainScreen'));
 const MyCharactersPage = lazyScreen(
@@ -381,6 +389,8 @@ function ThemedApp(): JSX.Element {
           }}
         >
           <AuthProvider>
+            <PocketGrimoireSync />
+            <GrimoireMoveDialog />
             <BuildsProvider>
               <GameTableProvider>
                 <PartnersProvider>
@@ -484,6 +494,12 @@ function ThemedApp(): JSX.Element {
                                       </Route>
                                       <Route path='/database'>
                                         <Database />
+                                      </Route>
+                                      <Route exact path='/grimorio'>
+                                        <PocketGrimoireListPage />
+                                      </Route>
+                                      <Route path='/grimorio/:id'>
+                                        <PocketGrimoirePage />
                                       </Route>
                                       <Route path='/caverna-do-saber'>
                                         <CavernaDoSaber />

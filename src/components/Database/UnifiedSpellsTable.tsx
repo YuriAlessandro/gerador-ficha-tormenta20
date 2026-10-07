@@ -45,6 +45,8 @@ import AdvancedSpellFilter from './AdvancedSpellFilter';
 import TormentaTitle from './TormentaTitle';
 import SearchInput from '../DatabaseTables/SearchInput';
 import CopyUrlButton from './CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
 import { EncyclopediaSummaryRow } from './EncyclopediaRowSummary';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -181,6 +183,16 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
       variant='minimal'
     />
   );
+  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
+  const rowActions = (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <AddToGrimoireButton
+        itemId={encyclopediaIds.spell(spell.nome)}
+        itemName={spell.nome}
+      />
+      {shareButton}
+    </Box>
+  );
 
   return (
     <>
@@ -197,7 +209,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
               {supplementChip}
             </>
           }
-          action={shareButton}
+          action={rowActions}
         />
       ) : (
         <TableRow
@@ -237,7 +249,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
               </Typography>
               {typeChips}
               {supplementChip}
-              {shareButton}
+              {rowActions}
             </Box>
           </TableCell>
           <TableCell>{getCircleNumber(spell.spellCircle)}º</TableCell>
@@ -271,6 +283,13 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
               >
                 {spell.nome} - {spell.school}
               </Typography>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.spell(spell.nome)}
+                  itemName={spell.nome}
+                  variant='labeled'
+                />
+              </Box>
 
               <Box sx={{ mb: 2 }}>
                 <Typography variant='body2' component='div'>

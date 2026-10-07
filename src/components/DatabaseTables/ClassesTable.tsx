@@ -34,6 +34,11 @@ import { Requirement } from '../../interfaces/Poderes';
 import { formatRequirement } from '../../functions/requirementText';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import {
+  classLabelOf,
+  encyclopediaIds,
+} from '../../functions/encyclopediaSearch';
 import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
@@ -107,6 +112,16 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
       variant='minimal'
     />
   );
+  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
+  const rowActions = (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <AddToGrimoireButton
+        itemId={encyclopediaIds.class(classe)}
+        itemName={classLabelOf(classe)}
+      />
+      {shareButton}
+    </Box>
+  );
 
   return (
     <>
@@ -124,7 +139,7 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
               {supplementChip}
             </>
           }
-          action={shareButton}
+          action={rowActions}
         />
       ) : (
         <TableRow
@@ -185,7 +200,7 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                 {variantChip}
                 {supplementChip}
               </Box>
-              {shareButton}
+              {rowActions}
             </Box>
           </TableCell>
           <TableCell />
@@ -230,6 +245,13 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                       : 'secondary'
                   }
                   sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.class(classe)}
+                  itemName={classLabelOf(classe)}
+                  variant='labeled'
                 />
               </Box>
 
@@ -407,6 +429,13 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                     }}
                   >
                     {ability.name} ({ability.nivel}º nível)
+                    <AddToGrimoireButton
+                      itemId={encyclopediaIds.classAbility(
+                        classe,
+                        ability.name
+                      )}
+                      itemName={ability.name}
+                    />
                   </Typography>
                   <Typography
                     variant='body1'
@@ -484,6 +513,10 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
                       }}
                     >
                       {power.name}
+                      <AddToGrimoireButton
+                        itemId={encyclopediaIds.classPower(classe, power.name)}
+                        itemName={power.name}
+                      />
                     </Typography>
                     <Typography
                       variant='body1'

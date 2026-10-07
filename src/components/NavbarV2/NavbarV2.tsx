@@ -20,6 +20,7 @@ import ArchitectureIcon from '@mui/icons-material/Architecture';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import BookIcon from '@mui/icons-material/Book';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import MapIcon from '@mui/icons-material/Map';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
@@ -63,7 +64,7 @@ interface NavCategory {
   requireAuth?: boolean;
 }
 
-const buildNavCategories = (isAuthenticated: boolean): NavCategory[] => {
+export const buildNavCategories = (isAuthenticated: boolean): NavCategory[] => {
   const jogarItems: NavMenuItem[] = [];
   if (isAuthenticated) {
     jogarItems.push(
@@ -170,6 +171,11 @@ const buildNavCategories = (isAuthenticated: boolean): NavCategory[] => {
     {
       label: 'Consulta',
       items: [
+        {
+          label: 'Grimório de bolso',
+          link: '/grimorio',
+          icon: <MenuBookIcon fontSize='small' />,
+        },
         {
           label: 'Caverna do Saber',
           link: '/caverna-do-saber',

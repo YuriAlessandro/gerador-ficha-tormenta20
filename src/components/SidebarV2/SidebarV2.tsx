@@ -28,6 +28,7 @@ import ArchitectureIcon from '@mui/icons-material/Architecture';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import MapIcon from '@mui/icons-material/Map';
 import StorageIcon from '@mui/icons-material/Storage';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import BookIcon from '@mui/icons-material/Book';
 import ForumIcon from '@mui/icons-material/Forum';
 import CodeIcon from '@mui/icons-material/Code';
@@ -431,6 +432,12 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
               <Typography variant='inherit'>
                 Enciclopédia de Tanah-Toh
               </Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/grimorio')}>
+              <ListItemIcon>
+                <MenuBookIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Grimório de bolso</Typography>
             </StyledMenuItem>
             <StyledMenuItem onClick={() => navigateTo('/caverna-do-saber')}>
               <ListItemIcon>

@@ -1,0 +1,105 @@
+import React from 'react';
+import { fireEvent, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import PocketGrimoireListPage from '../PocketGrimoireListPage';
+import PocketGrimoireFab from '../PocketGrimoireFab';
+import ImportGrimoireDialog from '../ImportGrimoireDialog';
+import { renderWithProviders } from './renderWithProviders';
+import { createInitialState } from '../../../functions/pocketGrimoire/state';
+import { anonymousLimitMessage } from '../../../functions/pocketGrimoire/limit';
+import { PocketGrimoireState } from '../../../interfaces/PocketGrimoire';
+
+/** `count` grimórios (deslogado, o limite é 10). */
+const withGrimoires = (count: number): PocketGrimoireState => {
+  const state = createInitialState();
+  for (let i = 1; i < count; i += 1) {
+    state.grimoires.push({
+      id: `g${i}`,
+      name: `Grimório ${i}`,
+      itemIds: [],
+      createdAt: '',
+      updatedAt: '',
+    });
+  }
+  return state;
+};
+
+const MESSAGE = anonymousLimitMessage(10);
+
+/**
+ * Deslogado (e no build sem o premium): limite fixo do plano gratuito. O
+ * limite de quem está logado é testado no premium.
+ */
+describe('limite de grimórios na interface (deslogado)', () => {
+  it('no limite: "Novo" avisa, com convite para entrar, e não abre o diálogo', async () => {
+    renderWithProviders(<PocketGrimoireListPage />, {
+      preloadedState: withGrimoires(10),
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Novo' }));
+    expect(await screen.findByText(MESSAGE)).toBeInTheDocument();
+    expect(screen.queryByText('Novo grimório')).not.toBeInTheDocument();
+  });
+
+  it('abaixo do limite cria', () => {
+    renderWithProviders(<PocketGrimoireListPage />, {
+      preloadedState: withGrimoires(9),
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Novo' }));
+    expect(screen.getByText('Novo grimório')).toBeInTheDocument();
+  });
+
+  it('no limite: "Duplicar" avisa e não cria', async () => {
+    const { store } = renderWithProviders(<PocketGrimoireListPage />, {
+      preloadedState: withGrimoires(10),
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Opções de Padrão' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Duplicar' }));
+    expect(await screen.findByText(MESSAGE)).toBeInTheDocument();
+    expect(store.getState().pocketGrimoire.grimoires).toHaveLength(10);
+  });
+
+  it('no limite: importar como novo mostra o limite e não cria', () => {
+    const onClose = vi.fn();
+    const { store } = renderWithProviders(
+      <ImportGrimoireDialog open onClose={onClose} />,
+      { preloadedState: withGrimoires(10) }
+    );
+    fireEvent.click(screen.getByRole('tab', { name: 'Colar texto' }));
+    fireEvent.change(screen.getByLabelText('JSON do grimório'), {
+      target: {
+        value: JSON.stringify({
+          formato: 'fichas-de-nimb/grimorio-de-bolso',
+          versao: 1,
+          exportadoEm: '2026-09-18T00:00:00.000Z',
+          grimorio: { nome: 'Trazido', itens: [{ id: 'spell:Luz' }] },
+        }),
+      },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Importar' }));
+    expect(screen.getByText(MESSAGE)).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(store.getState().pocketGrimoire.grimoires).toHaveLength(10);
+  });
+
+  it('no limite: "Novo grimório" no botão flutuante avisa', async () => {
+    renderWithProviders(<PocketGrimoireFab />, {
+      preloadedState: withGrimoires(10),
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Grimório de bolso/ }));
+    fireEvent.mouseDown(
+      screen.getByRole('combobox', { name: /Grimório ativo/ })
+    );
+    fireEvent.click(screen.getByRole('option', { name: /Novo grimório/ }));
+    expect(await screen.findByText(MESSAGE)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Novo grimório' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('com mais grimórios que o limite, nenhum fica bloqueado', () => {
+    renderWithProviders(<PocketGrimoireListPage />, {
+      preloadedState: withGrimoires(12),
+    });
+    expect(screen.queryByText('Acima do limite')).not.toBeInTheDocument();
+  });
+});
