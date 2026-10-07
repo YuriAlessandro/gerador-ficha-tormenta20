@@ -249,6 +249,20 @@ describe('ficha', () => {
     expect(getSheetFundamentalista(createMockCharacterSheet())).toBeUndefined();
   });
 
+  it('revalida o dogma gravado contra a classe atual (troca de classe)', () => {
+    // Guerreiro escolheu o dogma de paladino e depois virou Clérigo.
+    const sheet = fundamentalistSheet('Azgher', 'paladino');
+    sheet.classe = { ...sheet.classe, name: 'Guerreiro' };
+    expect(getSheetFundamentalista(sheet)).toBe('paladino');
+    sheet.classe = { ...sheet.classe, name: 'Clérigo' };
+    expect(getSheetFundamentalista(sheet)).toBe('sacerdote');
+    expect(getFundamentalistaSummary(sheet)).toContain('dogma de sacerdote');
+    // Clérigo que virou Paladino segue o dogma de paladino.
+    const paladino = fundamentalistSheet('Azgher', 'sacerdote');
+    paladino.classe = { ...paladino.classe, name: 'Paladino' };
+    expect(getSheetFundamentalista(paladino)).toBe('paladino');
+  });
+
   it('resumo para o PDF cita dogma, arma, punição e página', () => {
     const summary = getFundamentalistaSummary(fundamentalistSheet('Khalmyr'));
     expect(summary).toContain('Khalmyr');

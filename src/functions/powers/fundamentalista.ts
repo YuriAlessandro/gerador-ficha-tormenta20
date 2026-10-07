@@ -223,13 +223,21 @@ export function getFundamentalistNotices(
 /**
  * Dogma da ficha. A combinação com devoção dupla é inválida (o normalizer a
  * descarta); aqui ela simplesmente não conta.
+ *
+ * O dogma gravado é revalidado contra a classe ATUAL: trocar de classe pelo
+ * drawer não toca em `devoto`, e um Guerreiro com dogma de paladino que vira
+ * Clérigo passa a seguir o de sacerdote (classe divina não escolhe).
  */
 export function getSheetFundamentalista(
   sheet: CharacterSheet
 ): DogmaFundamentalista | undefined {
   const devoto = sheet?.devoto;
   if (!devoto?.fundamentalista || devoto.divindadeSecundaria) return undefined;
-  return devoto.fundamentalista.dogma;
+  const { dogma } = devoto.fundamentalista;
+  if (!sheet.classe || !isFundamentalistEligibleDeity(devoto.divindade.name)) {
+    return dogma;
+  }
+  return resolveDogmaForClass(sheet.classe, devoto.divindade.name, dogma);
 }
 
 /**
