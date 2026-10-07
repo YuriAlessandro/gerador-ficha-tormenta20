@@ -81,11 +81,54 @@ function withoutFrameOptions(response: Response): Response {
   });
 }
 
+const SITEMAP_PATH = '/sitemap.xml';
+
+/**
+ * O sitemap é gerado pelo backend (lista os posts publicados do blog) e
+ * servido por aqui para QUALQUER User-Agent — não é HTML de crawler.
+ *
+ * Em falha responde 503, e nunca `next()`: o Pages está em modo SPA, então o
+ * "asset estático" de `/sitemap.xml` seria o `index.html` com 200, e o
+ * buscador registraria um sitemap inválido em vez de tentar de novo.
+ */
+async function serveSitemap(): Promise<Response> {
+  const unavailable = () =>
+    new Response('Sitemap temporarily unavailable', {
+      status: 503,
+      headers: { 'Retry-After': '300', 'Cache-Control': 'no-store' },
+    });
+
+  try {
+    const upstream = await fetch(`${BACKEND_URL}${SITEMAP_PATH}`, {
+      method: 'GET',
+      headers: { Accept: 'application/xml' },
+      signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
+    });
+    const contentType = upstream.headers.get('Content-Type') ?? '';
+    if (!upstream.ok || !contentType.includes('xml')) return unavailable();
+
+    return new Response(upstream.body, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    });
+  } catch {
+    return unavailable();
+  }
+}
+
 export const onRequest = async (context: PagesContext): Promise<Response> => {
   const { request, next } = context;
   const userAgent = request.headers.get('User-Agent');
   const url = new URL(request.url);
   const onMapSubdomain = isMapSubdomain(url.hostname);
+
+  if (url.pathname === SITEMAP_PATH) {
+    return serveSitemap();
+  }
 
   if (!isCrawler(userAgent)) {
     const response = await next();

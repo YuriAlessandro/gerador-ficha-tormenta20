@@ -21,7 +21,8 @@
     "/changelog",
     "/caverna-do-saber",
     "/termos-de-uso",
-    "/wyrt"
+    "/wyrt",
+    "/sitemap.xml"
   ],
   "exclude": []
 }
