@@ -114,6 +114,14 @@ describe('FundamentalistaControl', () => {
     expect(screen.getByText(/não tem dogma de druida/)).toBeInTheDocument();
   });
 
+  it('indica no popover quando o dogma é o mesmo do sacerdote', () => {
+    const sheet = devotoDe('Khalmyr', true);
+    sheet.devoto!.fundamentalista = { dogma: 'paladino' };
+    render(<FundamentalistaControl sheet={sheet} onChange={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: /sobre o dogma/i }));
+    expect(screen.getByText('Mesmo dogma do sacerdote.')).toBeInTheDocument();
+  });
+
   it('o ícone de informação abre o dogma, a arma e a página', () => {
     render(
       <FundamentalistaControl
