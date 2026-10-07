@@ -20,11 +20,11 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StorageIcon from '@mui/icons-material/Storage';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import GrimoireSyncIndicator from '@/premium/components/PocketGrimoire/GrimoireSyncIndicator';
+import GrimoireLoginHint from '@/premium/components/PocketGrimoire/GrimoireLoginHint';
+import { useRequestGrimoireSync } from '@/premium/components/PocketGrimoire/usePocketGrimoireSync';
 import { useAppSelector } from '../../store/hooks';
-import {
-  selectActiveId,
-  selectGrimoireById,
-} from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
+import { selectGrimoireById } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 import {
   getFullEncyclopediaIndex,
   groupResolvedItems,
@@ -41,9 +41,7 @@ import { normalizeSearch } from '../../functions/stringUtils';
 import { SEO } from '../SEO';
 import GrimoireItemCard from './cards/GrimoireItemCard';
 import GrimoireMenu from './GrimoireMenu';
-import GrimoireSyncIndicator from './GrimoireSyncIndicator';
-import GrimoireLoginHint from './GrimoireLoginHint';
-import { useRequestGrimoireSync } from './usePocketGrimoireSync';
+import { useActiveGrimoire } from './useActiveGrimoire';
 import AddFromEncyclopediaItem from './AddFromEncyclopediaItem';
 import { useRemoveFromGrimoire } from './useGrimoireUndo';
 import GrimoireCollectibleCard from './cards/GrimoireCollectibleCard';
@@ -72,7 +70,7 @@ const PocketGrimoirePage: React.FC = () => {
   const history = useHistory();
   const removeFromGrimoire = useRemoveFromGrimoire();
   const grimoire = useAppSelector(selectGrimoireById(id));
-  const activeId = useAppSelector(selectActiveId);
+  const activeId = useActiveGrimoire().id;
   const { lockedIds, ensureUnlocked } = useGrimoireLimit();
   const locked = lockedIds.has(id);
   const [query, setQuery] = useState('');

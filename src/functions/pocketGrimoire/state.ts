@@ -4,21 +4,12 @@ import {
   GRIMOIRE_NAME_MAX_LENGTH,
   PocketGrimoire,
   PocketGrimoireState,
-  PocketGrimoireSyncState,
 } from '../../interfaces/PocketGrimoire';
 
 const UNNAMED_GRIMOIRE = 'Grimório sem nome';
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
-
-export const createAnonymousSync = (): PocketGrimoireSyncState => ({
-  ownerId: null,
-  dirty: {},
-  deletedIds: [],
-  pendingMerge: false,
-  rejectedIds: [],
-});
 
 export function createDefaultGrimoire(now: string): PocketGrimoire {
   return {
@@ -36,7 +27,6 @@ export function createInitialState(
   return {
     grimoires: [createDefaultGrimoire(now)],
     activeId: DEFAULT_GRIMOIRE_ID,
-    sync: createAnonymousSync(),
   };
 }
 
@@ -98,59 +88,9 @@ function sanitizeGrimoire(raw: unknown, now: string): PocketGrimoire | null {
 }
 
 /**
- * Pendências só fazem sentido numa cópia da conta. Ids de `dirty` precisam
- * existir na lista; ids de `deletedIds`, não.
- */
-function sanitizeSync(
-  raw: unknown,
-  grimoireIds: Set<string>
-): PocketGrimoireSyncState {
-  if (
-    !isRecord(raw) ||
-    typeof raw.ownerId !== 'string' ||
-    raw.ownerId.length === 0
-  ) {
-    return createAnonymousSync();
-  }
-  const dirty: Record<string, string> = {};
-  if (isRecord(raw.dirty)) {
-    Object.entries(raw.dirty).forEach(([id, updatedAt]) => {
-      if (grimoireIds.has(id) && typeof updatedAt === 'string') {
-        dirty[id] = updatedAt;
-      }
-    });
-  }
-  const rawDeleted = Array.isArray(raw.deletedIds) ? raw.deletedIds : [];
-  const deletedIds = Array.from(
-    new Set(
-      rawDeleted.filter(
-        (id): id is string =>
-          typeof id === 'string' && id.length > 0 && !grimoireIds.has(id)
-      )
-    )
-  );
-  const rawRejected = Array.isArray(raw.rejectedIds) ? raw.rejectedIds : [];
-  const rejectedIds = Array.from(
-    new Set(
-      rawRejected.filter(
-        (id): id is string => typeof id === 'string' && grimoireIds.has(id)
-      )
-    )
-  );
-  return {
-    ownerId: raw.ownerId,
-    dirty,
-    deletedIds,
-    pendingMerge: raw.pendingMerge === true,
-    rejectedIds,
-  };
-}
-
-/**
  * Transforma qualquer coisa vinda de fora (localStorage, versão antiga do app,
  * edição manual) num estado que respeita as invariantes: existe pelo menos um
- * grimório, o ativo existe, nenhum id se repete e as pendências de sync são
- * coerentes.
+ * grimório, o ativo existe e nenhum id se repete.
  */
 export function ensureValidState(
   input: unknown,
@@ -179,10 +119,5 @@ export function ensureValidState(
       ? requestedActive
       : grimoires[0].id;
 
-  const sync = sanitizeSync(
-    isRecord(input) ? input.sync : undefined,
-    new Set(grimoires.map((g) => g.id))
-  );
-
-  return { grimoires, activeId, sync };
+  return { grimoires, activeId };
 }

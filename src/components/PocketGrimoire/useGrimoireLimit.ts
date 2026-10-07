@@ -1,56 +1,41 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSnackbar } from 'notistack';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { useAuth } from '../../hooks/useAuth';
-import { useLimitBoost } from '../../hooks/useLimitBoost';
-import { applyLimitBoost } from '../../functions/limitBoost';
+import { usePocketGrimoirePlan } from '@/premium/components/PocketGrimoire/usePocketGrimoirePlan';
+import { useAppSelector } from '../../store/hooks';
+import { selectGrimoires } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 import {
-  getSupportLimits,
-  SubscriptionTier,
-} from '../../types/subscription.types';
-import {
-  selectActiveId,
-  selectGrimoires,
-  selectGrimoireSync,
-  setActive,
-} from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
-import {
-  grimoireLimitMessage,
-  grimoireLimitState,
-  lockedGrimoireIds,
-  lockedGrimoireMessage,
+  anonymousGrimoireLimit,
+  anonymousLimitMessage,
 } from '../../functions/pocketGrimoire/limit';
 import { GRIMOIRE_SNACKBAR } from './grimoireSnackbar';
 
+const NONE_LOCKED: Set<string> = new Set();
+
 /**
- * Limite de grimórios (plano + boost, como as fichas; deslogado vale o
- * gratuito). Para as ações que criam grimório: `ensureCanCreate()` avisa e
- * devolve `false` no limite. Para abrir um grimório: `ensureUnlocked(id)`
- * avisa e devolve `false` se ele estiver acima do limite.
+ * Limite de grimórios. Deslogado (ou sem o módulo premium): o fixo do plano
+ * gratuito, sem bloqueios. Logado: o plano que o premium informa — e, enquanto
+ * ele carrega, nada é bloqueado nem impedido (o servidor é a autoridade).
+ * `ensureCanCreate()` avisa e devolve `false` no limite; `ensureUnlocked(id)`
+ * avisa e devolve `false` para um grimório acima do limite.
  */
 export function useGrimoireLimit() {
-  const { isAuthenticated } = useAuth();
-  const grimoires = useAppSelector(selectGrimoires);
-  const { rejectedIds } = useAppSelector(selectGrimoireSync);
-  const planTier = useAppSelector(
-    (state) => state.subscription.subscription?.tier
-  );
-  // Deslogado vale o plano gratuito, mesmo com uma assinatura antiga em cache.
-  const tier = (isAuthenticated && planTier) || SubscriptionTier.FREE;
-  const boost = useLimitBoost();
-  const max = applyLimitBoost(getSupportLimits(tier), boost).maxPocketGrimoires;
+  const count = useAppSelector(selectGrimoires).length;
+  const plan = usePocketGrimoirePlan();
   const { enqueueSnackbar } = useSnackbar();
 
-  const { canCreate, limit } = grimoireLimitState({
-    count: grimoires.length,
-    max,
-  });
-  const message = canCreate ? '' : grimoireLimitMessage(limit, isAuthenticated);
-  const lockedMessage = lockedGrimoireMessage(limit, isAuthenticated);
-  const lockedIds = useMemo(
-    () => lockedGrimoireIds(grimoires, rejectedIds, limit),
-    [grimoires, rejectedIds, limit]
-  );
+  let limit = Infinity;
+  let createMessage = '';
+  let lockedIds = NONE_LOCKED;
+  let lockedMessage = '';
+  if (plan === null) {
+    limit = anonymousGrimoireLimit();
+    createMessage = anonymousLimitMessage(limit);
+  } else if (plan.ready) {
+    ({ limit, lockedIds, lockedMessage } = plan);
+    createMessage = plan.createLimitMessage;
+  }
+  const canCreate = count < limit;
+  const message = canCreate ? '' : createMessage;
 
   const ensureCanCreate = useCallback(() => {
     if (canCreate) return true;
@@ -79,21 +64,4 @@ export function useGrimoireLimit() {
     ensureCanCreate,
     ensureUnlocked,
   };
-}
-
-/**
- * O ativo nunca fica bloqueado (ex.: a sobra que estava ativa antes do login):
- * passa para o primeiro grimório liberado. Montado uma vez, no App.
- */
-export function useKeepActiveUnlocked() {
-  const dispatch = useAppDispatch();
-  const activeId = useAppSelector(selectActiveId);
-  const grimoires = useAppSelector(selectGrimoires);
-  const { lockedIds } = useGrimoireLimit();
-
-  useEffect(() => {
-    if (!lockedIds.has(activeId)) return;
-    const firstUnlocked = grimoires.find((g) => !lockedIds.has(g.id));
-    if (firstUnlocked) dispatch(setActive(firstUnlocked.id));
-  }, [activeId, grimoires, lockedIds, dispatch]);
 }

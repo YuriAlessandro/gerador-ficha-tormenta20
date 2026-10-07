@@ -234,4 +234,14 @@ describe('migratePocketGrimoire', () => {
     expect(result).toHaveProperty('_persist');
     expect((result.grimoires as unknown[]).length).toBe(1);
   });
+
+  it('preserva chaves que o público não conhece (o sync do premium)', async () => {
+    const migrated = (await migratePocketGrimoire({
+      grimoires: [],
+      activeId: 'x',
+      sync: { ownerId: 'u1' },
+      _persist: { version: 1, rehydrated: true },
+    } as never)) as unknown as Record<string, unknown>;
+    expect(migrated.sync).toEqual({ ownerId: 'u1' });
+  });
 });

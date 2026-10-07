@@ -6,10 +6,16 @@ import {
   PURGE,
   REGISTER,
   REHYDRATE,
+  PersistedState,
   persistReducer,
   persistStore,
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+import {
+  migratePocketGrimoireAccount,
+  withPocketGrimoireAccount,
+} from '@/premium/store/pocketGrimoire/withPocketGrimoireAccount';
+import { premiumReducers } from '@/premium/store/premiumReducers';
 import { sheetBuilderMiddleware } from './slices/sheetBuilder/sheetBuilderMiddleware';
 import { sheetBuilderReducer } from './slices/sheetBuilder/sheetBuilderSlice';
 import { sheetStorageSlice } from './slices/sheetStorage/sheetStorage';
@@ -20,7 +26,6 @@ import foldersReducer from './slices/folders/foldersSlice';
 import systemReducer from './slices/system/systemSlice';
 import subscriptionReducer from './slices/subscription/subscriptionSlice';
 import notificationReducer from './slices/notification/notificationSlice';
-import pocketGrimoireSyncStatusReducer from './slices/pocketGrimoire/pocketGrimoireSyncStatusSlice';
 import grimoireMoveReducer from './slices/pocketGrimoire/grimoireMoveSlice';
 import pocketGrimoireReducer, {
   migratePocketGrimoire,
@@ -60,7 +65,9 @@ export const pocketGrimoirePersistConfig = {
   storage,
   // Versão do formato guardado: o `migrate` pode ramificar por ela no futuro.
   version: 1,
-  migrate: migratePocketGrimoire,
+  // Público saneia grimórios e ativo; o premium, o estado da conta.
+  migrate: (state: PersistedState) =>
+    migratePocketGrimoire(state).then(migratePocketGrimoireAccount),
 };
 
 const persistedReducer = persistReducer(
@@ -87,7 +94,7 @@ const persistedSubscriptionReducer = persistReducer(
 
 const persistedPocketGrimoireReducer = persistReducer(
   pocketGrimoirePersistConfig,
-  pocketGrimoireReducer
+  withPocketGrimoireAccount(pocketGrimoireReducer)
 );
 
 const store = configureStore({
@@ -102,8 +109,8 @@ const store = configureStore({
     subscription: persistedSubscriptionReducer,
     notification: notificationReducer,
     pocketGrimoire: persistedPocketGrimoireReducer,
-    pocketGrimoireSyncStatus: pocketGrimoireSyncStatusReducer,
     grimoireMove: grimoireMoveReducer,
+    ...premiumReducers,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

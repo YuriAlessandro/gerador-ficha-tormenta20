@@ -21,7 +21,6 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   createGrimoire,
-  selectActiveGrimoire,
   selectGrimoires,
   setActive,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
@@ -35,6 +34,7 @@ import GrimoireNameDialog from './GrimoireNameDialog';
 import ImportGrimoireDialog from './ImportGrimoireDialog';
 import { useRemoveFromGrimoire } from './useGrimoireUndo';
 import { useGrimoireLimit } from './useGrimoireLimit';
+import { useActiveGrimoire } from './useActiveGrimoire';
 import { useGrimoireCatalogVersion } from './useGrimoireCatalogVersion';
 
 const NEW_OPTION = '__novo__';
@@ -49,7 +49,7 @@ const PocketGrimoireFab: React.FC = () => {
   const removeFromGrimoire = useRemoveFromGrimoire();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const grimoires = useAppSelector(selectGrimoires);
-  const active = useAppSelector(selectActiveGrimoire);
+  const active = useActiveGrimoire();
   // Estado (não ref) para o Popper reagir quando a âncora existir.
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);

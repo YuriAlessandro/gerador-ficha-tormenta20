@@ -2,10 +2,10 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   addItem,
   removeItem,
-  selectActiveGrimoire,
   selectGrimoireById,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 import { useAddedToActiveSnackbar, useUndoSnackbar } from './useGrimoireUndo';
+import { useActiveGrimoire } from './useActiveGrimoire';
 
 export interface AddToGrimoireControl {
   /** Nome do grimório em que o clique mexe: o explícito, ou o ativo. */
@@ -30,7 +30,7 @@ export function useAddToGrimoire(
   const dispatch = useAppDispatch();
   const notify = useUndoSnackbar();
   const notifyAddedToActive = useAddedToActiveSnackbar();
-  const active = useAppSelector(selectActiveGrimoire);
+  const active = useActiveGrimoire();
   const explicit = useAppSelector(selectGrimoireById(grimoireId));
   const target = explicit ?? active;
   const inGrimoire = target.itemIds.includes(itemId);

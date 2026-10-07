@@ -6,10 +6,10 @@ import PocketGrimoireFab from '../PocketGrimoireFab';
 import ImportGrimoireDialog from '../ImportGrimoireDialog';
 import { renderWithProviders } from './renderWithProviders';
 import { createInitialState } from '../../../functions/pocketGrimoire/state';
-import { grimoireLimitMessage } from '../../../functions/pocketGrimoire/limit';
+import { anonymousLimitMessage } from '../../../functions/pocketGrimoire/limit';
 import { PocketGrimoireState } from '../../../interfaces/PocketGrimoire';
 
-/** `count` grimórios (o plano gratuito permite 10). */
+/** `count` grimórios (deslogado, o limite é 10). */
 const withGrimoires = (count: number): PocketGrimoireState => {
   const state = createInitialState();
   for (let i = 1; i < count; i += 1) {
@@ -24,41 +24,23 @@ const withGrimoires = (count: number): PocketGrimoireState => {
   return state;
 };
 
-const LOGGED = { isAuthenticated: true };
-const MESSAGE = grimoireLimitMessage(10);
+const MESSAGE = anonymousLimitMessage(10);
 
-describe('limite de grimórios na interface (plano gratuito)', () => {
-  it('logado no limite: "Novo" avisa e não abre o diálogo', async () => {
+/**
+ * Deslogado (e no build sem o premium): limite fixo do plano gratuito. O
+ * limite de quem está logado é testado no premium.
+ */
+describe('limite de grimórios na interface (deslogado)', () => {
+  it('no limite: "Novo" avisa, com convite para entrar, e não abre o diálogo', async () => {
     renderWithProviders(<PocketGrimoireListPage />, {
       preloadedState: withGrimoires(10),
-      auth: LOGGED,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Novo' }));
     expect(await screen.findByText(MESSAGE)).toBeInTheDocument();
     expect(screen.queryByText('Novo grimório')).not.toBeInTheDocument();
   });
 
-  it('logado abaixo do limite: "Novo" abre o diálogo', () => {
-    renderWithProviders(<PocketGrimoireListPage />, {
-      preloadedState: withGrimoires(9),
-      auth: LOGGED,
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Novo' }));
-    expect(screen.getByText('Novo grimório')).toBeInTheDocument();
-  });
-
-  it('deslogado tem o limite do plano gratuito, com convite para entrar', async () => {
-    renderWithProviders(<PocketGrimoireListPage />, {
-      preloadedState: withGrimoires(10),
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Novo' }));
-    expect(
-      await screen.findByText(grimoireLimitMessage(10, false))
-    ).toBeInTheDocument();
-    expect(screen.queryByText('Novo grimório')).not.toBeInTheDocument();
-  });
-
-  it('deslogado abaixo do limite cria', () => {
+  it('abaixo do limite cria', () => {
     renderWithProviders(<PocketGrimoireListPage />, {
       preloadedState: withGrimoires(9),
     });
@@ -66,10 +48,9 @@ describe('limite de grimórios na interface (plano gratuito)', () => {
     expect(screen.getByText('Novo grimório')).toBeInTheDocument();
   });
 
-  it('logado no limite: "Duplicar" avisa e não cria', async () => {
+  it('no limite: "Duplicar" avisa e não cria', async () => {
     const { store } = renderWithProviders(<PocketGrimoireListPage />, {
       preloadedState: withGrimoires(10),
-      auth: LOGGED,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Opções de Padrão' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Duplicar' }));
@@ -77,11 +58,11 @@ describe('limite de grimórios na interface (plano gratuito)', () => {
     expect(store.getState().pocketGrimoire.grimoires).toHaveLength(10);
   });
 
-  it('logado no limite: importar como novo mostra o limite e não cria', () => {
+  it('no limite: importar como novo mostra o limite e não cria', () => {
     const onClose = vi.fn();
     const { store } = renderWithProviders(
       <ImportGrimoireDialog open onClose={onClose} />,
-      { preloadedState: withGrimoires(10), auth: LOGGED }
+      { preloadedState: withGrimoires(10) }
     );
     fireEvent.click(screen.getByRole('tab', { name: 'Colar texto' }));
     fireEvent.change(screen.getByLabelText('JSON do grimório'), {
@@ -100,10 +81,9 @@ describe('limite de grimórios na interface (plano gratuito)', () => {
     expect(store.getState().pocketGrimoire.grimoires).toHaveLength(10);
   });
 
-  it('logado no limite: "Novo grimório" no botão flutuante avisa', async () => {
+  it('no limite: "Novo grimório" no botão flutuante avisa', async () => {
     renderWithProviders(<PocketGrimoireFab />, {
       preloadedState: withGrimoires(10),
-      auth: LOGGED,
     });
     fireEvent.click(screen.getByRole('button', { name: /Grimório de bolso/ }));
     fireEvent.mouseDown(
@@ -114,5 +94,12 @@ describe('limite de grimórios na interface (plano gratuito)', () => {
     expect(
       screen.queryByRole('heading', { name: 'Novo grimório' })
     ).not.toBeInTheDocument();
+  });
+
+  it('com mais grimórios que o limite, nenhum fica bloqueado', () => {
+    renderWithProviders(<PocketGrimoireListPage />, {
+      preloadedState: withGrimoires(12),
+    });
+    expect(screen.queryByText('Acima do limite')).not.toBeInTheDocument();
   });
 });

@@ -6,7 +6,7 @@ import AddFromEncyclopediaItem from '../AddFromEncyclopediaItem';
 import GrimoireMoveDialog from '../GrimoireMoveDialog';
 import { renderWithProviders } from './renderWithProviders';
 import { createInitialState } from '../../../functions/pocketGrimoire/state';
-import { grimoireLimitMessage } from '../../../functions/pocketGrimoire/limit';
+import { anonymousLimitMessage } from '../../../functions/pocketGrimoire/limit';
 import {
   DEFAULT_GRIMOIRE_ID,
   PocketGrimoireState,
@@ -122,16 +122,14 @@ describe('"Trocar" no aviso de adição', () => {
     expect(state.activeId).toBe(created?.id);
   });
 
-  it('"Novo grimório" no limite do plano avisa e não cria', async () => {
-    const { store } = renderIconButton(withGrimoires(10), {
-      isAuthenticated: true,
-    });
+  it('"Novo grimório" no limite avisa e não cria', async () => {
+    const { store } = renderIconButton(withGrimoires(10));
     fireEvent.click(screen.getByRole('button', { name: /Adicionar/ }));
     fireEvent.click(await screen.findByRole('button', { name: 'Trocar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Novo grimório' }));
 
     expect(
-      await screen.findByText(grimoireLimitMessage(10))
+      await screen.findByText(anonymousLimitMessage(10))
     ).toBeInTheDocument();
     expect(screen.queryByLabelText('Nome')).not.toBeInTheDocument();
     expect(store.getState().pocketGrimoire.grimoires).toHaveLength(10);
@@ -239,15 +237,13 @@ describe('botão dividido (variant="labeled")', () => {
     ).toBeInTheDocument();
   });
 
-  it('"Novo grimório" no limite do plano avisa e não cria', async () => {
-    const { store } = renderLabeled(withGrimoires(10), {
-      isAuthenticated: true,
-    });
+  it('"Novo grimório" no limite avisa e não cria', async () => {
+    const { store } = renderLabeled(withGrimoires(10));
     fireEvent.click(screen.getByRole('button', { name: 'Escolher grimório' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Novo grimório' }));
 
     expect(
-      await screen.findByText(grimoireLimitMessage(10))
+      await screen.findByText(anonymousLimitMessage(10))
     ).toBeInTheDocument();
     expect(screen.queryByLabelText('Nome')).not.toBeInTheDocument();
     expect(store.getState().pocketGrimoire.grimoires).toHaveLength(10);

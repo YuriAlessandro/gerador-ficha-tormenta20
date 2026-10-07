@@ -5,10 +5,11 @@ import { Provider } from 'react-redux';
 import { SnackbarProvider } from 'notistack';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { withPocketGrimoireAccount } from '@/premium/store/pocketGrimoire/withPocketGrimoireAccount';
+import { premiumReducers } from '@/premium/store/premiumReducers';
 import pocketGrimoireReducer from '../../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 import { PocketGrimoireState } from '../../../interfaces/PocketGrimoire';
 import { createInitialState } from '../../../functions/pocketGrimoire/state';
-import pocketGrimoireSyncStatusReducer from '../../../store/slices/pocketGrimoire/pocketGrimoireSyncStatusSlice';
 import grimoireMoveReducer from '../../../store/slices/pocketGrimoire/grimoireMoveSlice';
 import { DbUser } from '../../../types/auth.types';
 
@@ -36,15 +37,20 @@ interface Options {
   auth?: TestAuth;
 }
 
+/** Como na store do app: o reducer público embrulhado pelo premium. */
+const pocketGrimoireAccountReducer = withPocketGrimoireAccount(
+  pocketGrimoireReducer
+);
+
 export const createTestStore = (
   preloadedState?: PocketGrimoireState,
   auth: TestAuth = { isAuthenticated: false }
 ) =>
   configureStore({
     reducer: {
-      pocketGrimoire: pocketGrimoireReducer,
-      pocketGrimoireSyncStatus: pocketGrimoireSyncStatusReducer,
+      pocketGrimoire: pocketGrimoireAccountReducer,
       grimoireMove: grimoireMoveReducer,
+      ...premiumReducers,
       auth: (state: ReturnType<typeof authState> = authState(auth)) => state,
       // Plano gratuito, sem boost (o que o limite de grimórios lê).
       subscription: (state = { subscription: null }) => state,

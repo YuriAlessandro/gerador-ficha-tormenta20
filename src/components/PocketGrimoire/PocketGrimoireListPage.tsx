@@ -15,10 +15,12 @@ import AddIcon from '@mui/icons-material/Add';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import StorageIcon from '@mui/icons-material/Storage';
+import GrimoireSyncIndicator from '@/premium/components/PocketGrimoire/GrimoireSyncIndicator';
+import GrimoireLoginHint from '@/premium/components/PocketGrimoire/GrimoireLoginHint';
+import { useRequestGrimoireSync } from '@/premium/components/PocketGrimoire/usePocketGrimoireSync';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   createGrimoire,
-  selectActiveId,
   selectGrimoires,
 } from '../../store/slices/pocketGrimoire/pocketGrimoireSlice';
 import { SEO } from '../SEO';
@@ -26,9 +28,7 @@ import { useAuth } from '../../hooks/useAuth';
 import TormentaTitle from '../Database/TormentaTitle';
 import GrimoireMenu from './GrimoireMenu';
 import { useGrimoireLimit } from './useGrimoireLimit';
-import GrimoireSyncIndicator from './GrimoireSyncIndicator';
-import GrimoireLoginHint from './GrimoireLoginHint';
-import { useRequestGrimoireSync } from './usePocketGrimoireSync';
+import { useActiveGrimoire } from './useActiveGrimoire';
 import GrimoireNameDialog from './GrimoireNameDialog';
 import ImportGrimoireDialog from './ImportGrimoireDialog';
 
@@ -47,7 +47,7 @@ const PocketGrimoireListPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const history = useHistory();
   const grimoires = useAppSelector(selectGrimoires);
-  const activeId = useAppSelector(selectActiveId);
+  const activeId = useActiveGrimoire().id;
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
 

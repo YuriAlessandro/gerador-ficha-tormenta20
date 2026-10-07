@@ -15,27 +15,23 @@ export interface PocketGrimoire {
   updatedAt: string;
 }
 
-export interface PocketGrimoireSyncState {
-  /** `null`: grimórios do navegador. Um userId: cópia da conta desse usuário. */
-  ownerId: string | null;
-  /** Grimórios com mudança ainda não enviada: id → `updatedAt` da mudança. */
-  dirty: Record<string, string>;
-  /** Exclusões ainda não enviadas. */
-  deletedIds: string[];
-  /** O próximo envio junta com a conta (`merge: true`): é o login. */
-  pendingMerge: boolean;
-  /**
-   * Novos que o servidor recusou por limite no último envio: só existem no
-   * navegador e entram por último na fila de vagas (ver `lockedGrimoireIds`).
-   */
-  rejectedIds: string[];
-}
-
 export interface PocketGrimoireState {
   grimoires: PocketGrimoire[];
   activeId: string;
-  sync: PocketGrimoireSyncState;
 }
 
-/** Estado da conexão com a conta (não persistido). */
-export type GrimoireSyncStatus = 'idle' | 'syncing' | 'offline' | 'error';
+/**
+ * O que o premium informa sobre o plano de quem está logado
+ * (`usePocketGrimoirePlan`; `null` deslogado ou sem o módulo premium).
+ */
+export interface PocketGrimoirePlan {
+  /** `false` enquanto auth, assinatura ou flags não carregaram. */
+  ready: boolean;
+  limit: number;
+  /** Grimórios acima do limite: aparecem, mas não abrem. */
+  lockedIds: Set<string>;
+  /** Aviso ao tentar criar no limite. */
+  createLimitMessage: string;
+  /** Aviso ao tentar abrir um bloqueado. */
+  lockedMessage: string;
+}
