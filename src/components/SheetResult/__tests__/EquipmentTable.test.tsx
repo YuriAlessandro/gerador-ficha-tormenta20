@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import Equipment from '@/interfaces/Equipment';
 import EquipmentTable from '../EquipmentTable';
 
@@ -83,5 +83,28 @@ describe('EquipmentTable — aviso por item', () => {
       />
     );
     expect(screen.getAllByLabelText('Fora da arma preferida')).toHaveLength(1);
+  });
+
+  it('o aviso abre o tooltip num toque curto', () => {
+    setContainerWidth(800);
+    vi.useFakeTimers();
+    render(
+      <EquipmentTable
+        items={[adaga]}
+        characterName='Nimb'
+        getItemWarning={() => 'Fora da arma preferida'}
+      />
+    );
+    const icon = screen.getByLabelText('Fora da arma preferida');
+    fireEvent.touchStart(icon);
+    act(() => {
+      vi.advanceTimersByTime(10);
+    });
+    fireEvent.touchEnd(icon);
+    act(() => {
+      vi.advanceTimersByTime(10);
+    });
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    vi.useRealTimers();
   });
 });

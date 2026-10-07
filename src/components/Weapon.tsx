@@ -857,6 +857,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
             <Tooltip
               title={`${manualMarkTitle} (${manualFieldNames.join(', ')}).`}
               arrow
+              enterDelay={0}
               enterTouchDelay={0}
               leaveTouchDelay={4000}
             >
@@ -879,6 +880,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
             <Tooltip
               title={warning}
               arrow
+              enterDelay={0}
               enterTouchDelay={0}
               leaveTouchDelay={6000}
             >
