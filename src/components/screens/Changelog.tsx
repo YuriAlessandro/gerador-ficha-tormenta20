@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            06/10/2026 (v4.35).
+            07/10/2026 (v4.35).
           </p>
 
           <p>
@@ -179,6 +179,41 @@ const Changelog: React.FC = () => {
                   do livro básico.
                 </li>
                 <li>
+                  <strong>Novo:</strong> <strong>Grimório de bolso</strong>:
+                  junte magias, poderes, classes, raças, origens e divindades da
+                  enciclopédia em coleções para consultar rápido durante a
+                  sessão. Cada item da enciclopédia ganhou um botão de
+                  adicionar, e um botão flutuante resume o grimório ativo. Dá
+                  para ter vários grimórios, ver tudo em lista ou em cartas no
+                  estilo do Baralho de Magias, e exportar ou importar em
+                  arquivo. Sem login os grimórios ficam no navegador; com a
+                  conta, são salvos nela, aparecem em qualquer aparelho e
+                  continuam editáveis sem conexão. A quantidade de grimórios
+                  segue o limite do plano, como nas fichas. O acesso fica em
+                  &quot;Consulta&quot;, no menu. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Novo:</strong> O <strong>gerador de ameaças</strong>{' '}
+                  importa magias direto do <strong>compêndio</strong>: no passo
+                  Magias, &quot;Importar do Compêndio de Magias&quot; traz as
+                  magias do livro básico e dos suplementos ativos, com busca,
+                  filtros e seleção de várias de uma vez. Os{' '}
+                  <strong>aprimoramentos</strong> são escolhidos na importação,
+                  com prévia do custo em PM e das rolagens, e a magia já entra
+                  na ameaça pronta para usar. O formulário antigo continua em
+                  &quot;Criar Magia&quot;, para magias próprias.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A aba de <strong>Magias</strong> da
+                  ficha agora mostra se cada magia é{' '}
+                  <strong>arcana, divina ou universal</strong>, e os filtros
+                  ganharam a opção de ver só um dos tipos.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Várias telas ficaram melhores no{' '}
                   <strong>celular</strong>: a criação de ficha abre em tela
                   cheia com progresso compacto, as tabelas da enciclopédia cabem
@@ -208,6 +243,15 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> As <strong>conexões</strong> do
                   Diário desviam dos blocos que estão no caminho, em vez de
                   passar por cima deles.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na página de uma{' '}
+                  <strong>build</strong>, os chips de poder, magia, habilidade
+                  de classe e poder de origem abrem o detalhe do item. A
+                  ordenação por <strong>melhor avaliadas</strong> passa a
+                  considerar a quantidade de votos, então uma build com um único
+                  5 não fica mais à frente de outra bem avaliada por muita
+                  gente.
                 </li>
                 <li>
                   <strong>Correção:</strong> <strong>Armaduras pesadas</strong>{' '}
@@ -290,6 +334,56 @@ const Changelog: React.FC = () => {
                   vezes. Itens repetidos agora entram como uma pilha só, e as
                   fichas já afetadas se corrigem ao abrir, com cada item
                   aparecendo separado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os{' '}
+                  <strong>estilos de combate</strong> passam a aplicar os bônus
+                  conforme o que está empunhado:{' '}
+                  <strong>Estilo Clássico</strong> dá +2 na Defesa e no dano com
+                  espada e escudo, <strong>Estilo de Duas Mãos</strong> dá +5 no
+                  dano sozinho (antes era um efeito para ligar à mão),{' '}
+                  <strong>Estilo de Arremesso</strong> soma +2 no ataque para
+                  quem tem Saque Rápido, <strong>Estilo de Uma Arma</strong> não
+                  vale mais para ataques desarmados, e Bico de corvo,
+                  Desmontador, Martelo longo, Lança de falange e Machado de
+                  haste contam como alongadas para o{' '}
+                  <strong>Estilo de Arma Longa</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As listas de poderes raciais
+                  escolhidas <strong>uma vez por patamar</strong> (Maravilhas
+                  Mecânicas do Golem Desperto, Bênçãos Dracônicas do Kallyanach,
+                  Talentos do Bando dos Kobolds e Presentes do Duende) respeitam
+                  o limite do livro: os poderes da criação mais um por patamar.
+                  Antes o Golem e o Kallyanach ficavam travados, e Kobolds e
+                  Duende não tinham limite. Elas também aparecem como{' '}
+                  <strong>Poderes de Raça</strong>, e não mais entre os de
+                  Destino.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O +2 de perícia de{' '}
+                  <strong>Caminho da Perfeição</strong> (Golem Desperto) e de{' '}
+                  <strong>Etiqueta</strong> (Cavaleiro) não some mais depois da
+                  escolha, e a criação de ficha pede a perícia do Caminho da
+                  Perfeição. Em fichas já salvas com Etiqueta, é preciso
+                  escolher o poder de novo para recuperar o bônus.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na criação de ficha, a origem{' '}
+                  <strong>Futura Lenda</strong> oferece também o poder escolhido
+                  com <strong>Alma Livre</strong>, e não só os da classe
+                  inicial.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder da própria origem e o poder
+                  de classe concedido por ela não aparecem mais como{' '}
+                  <strong>&quot;Vindo de: Origem não identificada&quot;</strong>
+                  .
+                </li>
+                <li>
+                  <strong>Correção:</strong> No gerador de ameaças, os cartões
+                  de <strong>papel</strong> do passo Classificação não aparecem
+                  mais cortados.
                 </li>
               </ul>
 
