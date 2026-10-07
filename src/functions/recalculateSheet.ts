@@ -1283,7 +1283,9 @@ function applyGeneralPowers(
 
     // All selections are now combined for repeatable powers
 
-    const [newAcc] = applyPower(acc, power, powerSelections);
+    const [newAcc] = applyPower(acc, power, powerSelections, false, {
+      pendingRepeatChoice: true,
+    });
     return newAcc;
   }, sheetClone);
 
@@ -1346,7 +1348,9 @@ function applyClassPowers(
     const [newAcc] = applyPower(
       acc,
       { ...power, sourceClassName: sheetClone.classe.name },
-      powerSelections
+      powerSelections,
+      false,
+      { pendingRepeatChoice: true }
     );
     return newAcc;
   }, sheetClone);
@@ -1998,13 +2002,13 @@ export function recalculateSheet(
   updatedSheet = migrateLegacyEquipState(updatedSheet);
 
   // Migração: o Companheiro Animal do Druida virou parceiro de poder
-  // (`sheet.partners`). Antes dos efeitos ativos (Step 7.45), para os passivos
-  // antigos (`animal-companion:*`) já não entrarem nesta passada.
+  // (`sheet.partners`). Antes dos poderes, para o tipo de cada companheiro já
+  // estar gravado como escolha do poder (senão ela seria sorteada), e antes dos
+  // efeitos ativos (Step 7.45), para os passivos antigos (`animal-companion:*`)
+  // já não entrarem nesta passada.
   const companionMigration = migrateAnimalCompanions(updatedSheet);
   if (companionMigration) {
-    updatedSheet.partners = companionMigration.partners;
-    updatedSheet.activeEffects = companionMigration.activeEffects;
-    delete updatedSheet.animalCompanions;
+    updatedSheet = { ...updatedSheet, ...companionMigration };
   }
 
   // Migração: limpar `conditionAttributePenalties` (deprecated). Versões
