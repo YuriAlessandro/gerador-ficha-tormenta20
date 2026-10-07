@@ -141,7 +141,15 @@ export async function appendExtraPages(
       // linha (palavra maior que a largura útil), a página nova não ajudaria.
       if (!fitted) break;
 
-      const lines = fitted.split('\n');
+      // `splitToFit` devolve o texto original quando tudo cabe (é o que os
+      // campos do AcroForm querem: eles quebram sozinhos). Aqui somos nós que
+      // desenhamos, então a quebra por largura tem que ser refeita.
+      const lines = layoutMultilineText(fitted, {
+        alignment: TextAlignment.Left,
+        fontSize: BODY_SIZE,
+        font,
+        bounds: { x: 0, y: 0, width: CONTENT_WIDTH, height: available },
+      }).lines.map((line) => line.text);
       // `for` em vez de `forEach`: o callback captura `page`/`cursorY`, que o
       // laço externo reatribui a cada página nova (no-loop-func).
       for (let index = 0; index < lines.length; index += 1) {
