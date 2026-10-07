@@ -76,6 +76,7 @@ import {
   spendThreatPM,
 } from '../../functions/threatVitals';
 import StatControl from '../SheetResult/StatControl';
+import { getAbilityQualifiers } from './utils/abilityQualifiers';
 
 // Styled components for threat sheet (uses theme accent color)
 const ThreatDivisor: React.FC = () => (
@@ -230,15 +231,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   }
 
   const formatAbilityName = (ability: ThreatAbility): string => {
-    const parts: string[] = [];
-
-    if (ability.actionType && ability.actionType !== 'Padrão') {
-      parts.push(ability.actionType);
-    }
-
-    if (ability.pmCost && ability.pmCost > 0) {
-      parts.push(`${ability.pmCost} PM`);
-    }
+    const parts = getAbilityQualifiers(ability);
 
     if (parts.length > 0) {
       return `${ability.name} (${parts.join(', ')})`;

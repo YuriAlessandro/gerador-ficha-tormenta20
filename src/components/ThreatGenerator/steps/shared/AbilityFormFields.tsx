@@ -19,6 +19,10 @@ const ACTION_TYPES: ThreatActionType[] = [
   'Reação',
 ];
 
+// Habilidade sem ativação (ex.: Imobilidade do cerianthar). Só faz sentido
+// para habilidades — magia sempre tem execução.
+const PASSIVE_ACTION_TYPE: ThreatActionType = 'Passiva';
+
 interface AbilityFormFieldsProps {
   actionType: ThreatActionType;
   onActionTypeChange: (value: ThreatActionType) => void;
@@ -27,6 +31,7 @@ interface AbilityFormFieldsProps {
   pmCost: number;
   onPmCostChange: (value: number) => void;
   pmLabel?: string;
+  allowPassive?: boolean;
 }
 
 /**
@@ -42,6 +47,7 @@ const AbilityFormFields: React.FC<AbilityFormFieldsProps> = ({
   pmCost,
   onPmCostChange,
   pmLabel = 'Esta habilidade custa PM?',
+  allowPassive = true,
 }) => (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
     <FormControl fullWidth>
@@ -51,7 +57,10 @@ const AbilityFormFields: React.FC<AbilityFormFieldsProps> = ({
         label='Tipo de Ação'
         onChange={(e) => onActionTypeChange(e.target.value as ThreatActionType)}
       >
-        {ACTION_TYPES.map((type) => (
+        {(allowPassive
+          ? [...ACTION_TYPES, PASSIVE_ACTION_TYPE]
+          : ACTION_TYPES
+        ).map((type) => (
           <MenuItem key={type} value={type}>
             {type}
           </MenuItem>
