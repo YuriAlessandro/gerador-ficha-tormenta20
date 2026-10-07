@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
 import { getSpellDisplayName } from '@/functions/spells/spellDisplayName';
+import { SpellTradition } from '@/functions/spells/spellTradition';
 import SpellDetailBody, { EngenhocaRowInfo } from './SpellDetailBody';
 import SpellMetaLine from './SpellMetaLine';
 import SpellSchoolGlyph from './SpellSchoolGlyph';
@@ -21,6 +22,7 @@ export interface SpellDetailSheetProps {
   spell: Spell | null;
   onCast?: () => void;
   engenhocaInfo?: EngenhocaRowInfo;
+  tradition?: SpellTradition;
 }
 
 /**
@@ -41,6 +43,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
   spell,
   onCast,
   engenhocaInfo,
+  tradition,
 }) => (
   <Drawer
     anchor={compact ? 'bottom' : 'right'}
@@ -78,7 +81,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
                 {getSpellDisplayName(spell)}
               </Typography>
             </Stack>
-            <SpellMetaLine spell={spell} />
+            <SpellMetaLine spell={spell} tradition={tradition} />
           </Box>
           <IconButton onClick={onClose} size='small' aria-label='fechar'>
             <CloseIcon />
@@ -91,6 +94,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
           spell={spell}
           onCast={onCast}
           engenhocaInfo={engenhocaInfo}
+          tradition={tradition}
         />
       </Box>
     )}

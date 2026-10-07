@@ -38,6 +38,7 @@ export interface SpellsToolbarProps {
   circleOptions: CircleFilterOption[];
   schools: SpellSchool[];
   executions: string[];
+  showTraditionFilter?: boolean;
   isMago?: boolean;
   activeFilterCount: number;
   onReset: () => void;
@@ -58,6 +59,7 @@ const SpellsToolbar: React.FC<SpellsToolbarProps> = ({
   circleOptions,
   schools,
   executions,
+  showTraditionFilter,
   isMago,
   activeFilterCount,
   onReset,
@@ -151,6 +153,7 @@ const SpellsToolbar: React.FC<SpellsToolbarProps> = ({
         onTogglesChange={onTogglesChange}
         schools={schools}
         executions={executions}
+        showTraditionFilter={showTraditionFilter}
         isMago={isMago}
         onReset={onReset}
       />

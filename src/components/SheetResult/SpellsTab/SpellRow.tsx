@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
 import { getSpellDisplayName } from '@/functions/spells/spellDisplayName';
+import { SpellTradition } from '@/functions/spells/spellTradition';
 import { getEngenhocaAparatos } from '@/functions/spells/engenhoca';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
@@ -68,6 +69,8 @@ export interface SpellRowProps {
   onOpenEngenhoca?: (spell: Spell) => void;
   /** Tira a marca de enguiçada. */
   onRepairEngenhoca?: (spell: Spell) => void;
+  /** Arcana, divina ou universal — resolvido pelo pai contra o catálogo. */
+  tradition?: SpellTradition;
 }
 
 /**
@@ -100,6 +103,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
   engenhocaInfo,
   onOpenEngenhoca,
   onRepairEngenhoca,
+  tradition,
 }) => {
   const { engenhoca } = spell;
   const displayName = getSpellDisplayName(spell);
@@ -295,7 +299,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
             />
           )}
         </Box>
-        <SpellMetaLine spell={spell} />
+        <SpellMetaLine spell={spell} tradition={tradition} />
       </Box>
     </>
   );
@@ -402,6 +406,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
           spell={spell}
           onCast={enguicada ? undefined : onOpenCast}
           engenhocaInfo={engenhocaInfo}
+          tradition={tradition}
         />
       </AccordionDetails>
     </Accordion>

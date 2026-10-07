@@ -11,6 +11,8 @@ import {
   Select,
   SelectChangeEvent,
   Switch,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -43,9 +45,20 @@ export interface SpellsFilterPopoverProps {
   /** Só as escolas presentes na ficha — não adianta oferecer filtro vazio. */
   schools: SpellSchool[];
   executions: string[];
+  /** Só quando a ficha mistura arcanas e divinas. */
+  showTraditionFilter?: boolean;
   isMago?: boolean;
   onReset: () => void;
 }
+
+const TRADITION_OPTIONS: {
+  value: SpellFilterState['spellType'];
+  label: string;
+}[] = [
+  { value: 'all', label: 'Todas' },
+  { value: 'arcane', label: 'Arcana' },
+  { value: 'divine', label: 'Divina' },
+];
 
 /**
  * Filtros avançados da aba.
@@ -63,6 +76,7 @@ const SpellsFilterPopover: React.FC<SpellsFilterPopoverProps> = ({
   onTogglesChange,
   schools,
   executions,
+  showTraditionFilter,
   isMago,
   onReset,
 }) => (
@@ -74,6 +88,36 @@ const SpellsFilterPopover: React.FC<SpellsFilterPopoverProps> = ({
     transformOrigin={{ vertical: 'top', horizontal: 'right' }}
   >
     <Box sx={FILTER_POPOVER_SX}>
+      {showTraditionFilter && (
+        <Box>
+          <Typography variant='caption' sx={DETAIL_LABEL_SX}>
+            Tipo
+          </Typography>
+          <ToggleButtonGroup
+            exclusive
+            fullWidth
+            size='small'
+            value={filters.spellType}
+            onChange={(_event, value: SpellFilterState['spellType'] | null) => {
+              if (value) onFiltersChange({ ...filters, spellType: value });
+            }}
+            aria-label='Filtrar por tipo de magia'
+          >
+            {TRADITION_OPTIONS.map((option) => (
+              <ToggleButton key={option.value} value={option.value}>
+                {option.label}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+          <Typography
+            variant='caption'
+            sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}
+          >
+            Magias universais aparecem nos dois.
+          </Typography>
+        </Box>
+      )}
+
       {schools.length > 1 && (
         <Box>
           <Typography variant='caption' sx={DETAIL_LABEL_SX}>

@@ -29,6 +29,10 @@ import {
   isEngenhocaCircleAboveLimit,
 } from '@/functions/spells/engenhoca';
 import {
+  getSpellTradition,
+  matchesTraditionFilter,
+} from '@/functions/spells/spellTradition';
+import {
   EMPTY_SPELL_FILTERS,
   SpellFilterState,
   applySpellFilters,
@@ -291,9 +295,21 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
     [spells]
   );
 
+  /**
+   * O filtro de tipo mora aqui e não no `applySpellFilters`: o tipo não é campo
+   * da magia, é resolvido por nome contra o catálogo.
+   */
   const applyToggles = useCallback(
     (list: Spell[]) =>
       list.filter((spell) => {
+        if (
+          !matchesTraditionFilter(
+            getSpellTradition(spell.nome),
+            filters.spellType
+          )
+        ) {
+          return false;
+        }
         if (toggles.onlyWithRolls && !spell.rolls?.length) return false;
         if (
           toggles.onlyMemorized &&
@@ -304,8 +320,17 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         }
         return true;
       }),
-    [toggles]
+    [toggles, filters.spellType]
   );
+
+  /** Só oferece o filtro de tipo quando a ficha mistura tipos. */
+  const showTraditionFilter = useMemo(() => {
+    const traditions = new Set(
+      spells.map((spell) => getSpellTradition(spell.nome))
+    );
+    traditions.delete(undefined);
+    return traditions.size > 1;
+  }, [spells]);
 
   /**
    * Tudo menos o círculo. As contagens dos chips saem daqui e não do resultado
@@ -359,6 +384,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   }, [spells, derived]);
 
   const activeFilterCount =
+    (filters.spellType !== 'all' ? 1 : 0) +
     (filters.schools.length > 0 ? 1 : 0) +
     (filters.executions.length > 0 ? 1 : 0) +
     (toggles.onlyWithRolls ? 1 : 0) +
@@ -434,6 +460,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           circleOptions={circleOptions}
           schools={filterOptions.schools}
           executions={filterOptions.executions}
+          showTraditionFilter={showTraditionFilter}
           isMago={isMago}
           activeFilterCount={activeFilterCount}
           onReset={handleReset}
@@ -511,6 +538,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
                   onRepairEngenhoca={
                     canEditEngenhoca ? handleRepairEngenhoca : undefined
                   }
+                  tradition={getSpellTradition(spell.nome)}
                 />
               ))}
             </Box>
@@ -529,6 +557,9 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         }
         engenhocaInfo={
           detailSpell ? engenhocaInfoByName.get(detailSpell.nome) : undefined
+        }
+        tradition={
+          detailSpell ? getSpellTradition(detailSpell.nome) : undefined
         }
       />
 

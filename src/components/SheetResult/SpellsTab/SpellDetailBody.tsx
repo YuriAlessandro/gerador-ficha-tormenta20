@@ -3,6 +3,10 @@ import CasinoIcon from '@mui/icons-material/Casino';
 import { Box, Button, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
 import { getEngenhocaAparatos } from '@/functions/spells/engenhoca';
+import {
+  SpellTradition,
+  TRADITION_LABEL,
+} from '@/functions/spells/spellTradition';
 import { getSchoolLabel } from '@/components/SpellPicker/schoolLabels';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import {
@@ -24,6 +28,8 @@ export interface SpellDetailBodyProps {
   spell: Spell;
   onCast?: () => void;
   engenhocaInfo?: EngenhocaRowInfo;
+  /** Tipo resolvido pelo pai (não é campo da magia). */
+  tradition?: SpellTradition;
 }
 
 /**
@@ -40,6 +46,7 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
   spell,
   onCast,
   engenhocaInfo,
+  tradition,
 }) => {
   const { engenhoca } = spell;
   const aparatos = getEngenhocaAparatos(engenhoca);
@@ -65,6 +72,7 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
         />
         <Typography variant='caption' sx={{ color: 'text.secondary' }}>
           {spell.spellCircle} · {getSchoolLabel(spell.school)}
+          {tradition && ` · ${TRADITION_LABEL[tradition]}`}
         </Typography>
         {reduction > 0 && (
           <Tooltip title={`Custo base ${baseCost} PM`} arrow>
