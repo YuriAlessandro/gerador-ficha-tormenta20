@@ -1738,6 +1738,16 @@ function mergeOptionEffectsIntoOwner(
   });
 }
 
+export interface ApplyPowerOptions {
+  /**
+   * Instância nova de poder repetido sem escolha do jogador fica pendente, em
+   * vez de sorteada. O recálculo usa: lá a ficha já existe, e sortear trocaria
+   * por conta própria uma escolha que o jogador ainda não fez (ficha antiga com
+   * duas instâncias do poder e uma escolha gravada).
+   */
+  pendingRepeatChoice?: boolean;
+}
+
 export const applyPower = (
   _sheet: CharacterSheet,
   powerOrAbility: Pick<
@@ -1747,7 +1757,8 @@ export const applyPower = (
     sourceClassName?: string;
   },
   manualSelections?: SelectionOptions,
-  forceApply?: boolean
+  forceApply?: boolean,
+  applyOptions?: ApplyPowerOptions
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
@@ -1758,9 +1769,18 @@ export const applyPower = (
    * que escolhas gravadas? Então esta é uma instância nova e a escolha dela
    * precisa ser feita (e ACRESCENTADA a `optionChoices`), em vez de cair no
    * "já aplicado" que só reaplica a primeira.
+   *
+   * Com `pendingRepeatChoice` (recálculo), só conta como nova quando o jogador
+   * fez a escolha: sem ela, a instância fica pendente em vez de sorteada.
    */
   const isNewRepeatChoice = (optionKey: string): boolean => {
     if (!powerOrAbility.canRepeat) return false;
+    if (
+      applyOptions?.pendingRepeatChoice &&
+      !manualSelections?.chosenOption?.length
+    ) {
+      return false;
+    }
     const instances = [
       ...(sheet.classPowers ?? []),
       ...(sheet.generalPowers ?? []),
