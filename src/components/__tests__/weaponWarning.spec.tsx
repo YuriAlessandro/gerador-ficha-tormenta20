@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { vi, describe, it, expect } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { vi, describe, it, expect, afterEach } from 'vitest';
 import _ from 'lodash';
 import Weapon from '../Weapon';
 import { Armas } from '../../data/systems/tormenta20/equipamentos';
@@ -57,6 +57,50 @@ describe('Weapon — aviso informativo', () => {
       screen.getByLabelText('Fundamentalista: use a arma preferida.')
     );
     expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  describe('toque rápido no celular', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    // O MUI espera `enterDelay` (100ms por padrão) mesmo no toque; um toque
+    // mais curto que isso não abria o tooltip.
+    const tapAndExpectTooltip = (label: string) => {
+      vi.useFakeTimers();
+      const icon = screen.getByLabelText(label);
+      fireEvent.touchStart(icon);
+      act(() => {
+        vi.advanceTimersByTime(10);
+      });
+      fireEvent.touchEnd(icon);
+      act(() => {
+        vi.advanceTimersByTime(10);
+      });
+      expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    };
+
+    it('o aviso abre o tooltip num toque curto', () => {
+      renderRow('Fundamentalista: use a arma preferida.');
+      tapAndExpectTooltip('Fundamentalista: use a arma preferida.');
+    });
+
+    it('a marca de edição manual abre o tooltip num toque curto', () => {
+      render(
+        <Weapon
+          equipment={{
+            ..._.cloneDeep(Armas.ESPADA_LONGA),
+            id: 'espada',
+            hasManualEdits: true,
+            manualStatFields: ['dano'],
+          }}
+          completeSkills={[]}
+          atributos={atributos}
+          nivel={1}
+        />
+      );
+      tapAndExpectTooltip('Estatísticas modificadas manualmente');
+    });
   });
 
   it('sem aviso, sem ícone', () => {
