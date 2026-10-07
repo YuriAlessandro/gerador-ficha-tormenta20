@@ -6,10 +6,16 @@ import {
   PURGE,
   REGISTER,
   REHYDRATE,
+  PersistedState,
   persistReducer,
   persistStore,
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+import {
+  migratePocketGrimoireAccount,
+  withPocketGrimoireAccount,
+} from '@/premium/store/pocketGrimoire/withPocketGrimoireAccount';
+import { premiumReducers } from '@/premium/store/premiumReducers';
 import { sheetBuilderMiddleware } from './slices/sheetBuilder/sheetBuilderMiddleware';
 import { sheetBuilderReducer } from './slices/sheetBuilder/sheetBuilderSlice';
 import { sheetStorageSlice } from './slices/sheetStorage/sheetStorage';
@@ -20,6 +26,10 @@ import foldersReducer from './slices/folders/foldersSlice';
 import systemReducer from './slices/system/systemSlice';
 import subscriptionReducer from './slices/subscription/subscriptionSlice';
 import notificationReducer from './slices/notification/notificationSlice';
+import grimoireMoveReducer from './slices/pocketGrimoire/grimoireMoveSlice';
+import pocketGrimoireReducer, {
+  migratePocketGrimoire,
+} from './slices/pocketGrimoire/pocketGrimoireSlice';
 import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
@@ -50,6 +60,16 @@ export const subscriptionPersistConfig = {
   whitelist: ['subscription', 'limits'], // Persist subscription data and limits
 };
 
+export const pocketGrimoirePersistConfig = {
+  key: 'pocketGrimoire',
+  storage,
+  // Versão do formato guardado: o `migrate` pode ramificar por ela no futuro.
+  version: 1,
+  // Público saneia grimórios e ativo; o premium, o estado da conta.
+  migrate: (state: PersistedState) =>
+    migratePocketGrimoire(state).then(migratePocketGrimoireAccount),
+};
+
 const persistedReducer = persistReducer(
   persistConfig,
   sheetStorageSlice.reducer
@@ -72,6 +92,11 @@ const persistedSubscriptionReducer = persistReducer(
   subscriptionReducer
 );
 
+const persistedPocketGrimoireReducer = persistReducer(
+  pocketGrimoirePersistConfig,
+  withPocketGrimoireAccount(pocketGrimoireReducer)
+);
+
 const store = configureStore({
   reducer: {
     sheetBuilder: sheetBuilderReducer,
@@ -83,6 +108,9 @@ const store = configureStore({
     system: persistedSystemReducer,
     subscription: persistedSubscriptionReducer,
     notification: notificationReducer,
+    pocketGrimoire: persistedPocketGrimoireReducer,
+    grimoireMove: grimoireMoveReducer,
+    ...premiumReducers,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

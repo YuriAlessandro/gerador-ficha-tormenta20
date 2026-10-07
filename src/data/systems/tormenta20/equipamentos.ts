@@ -2,6 +2,8 @@ import _ from 'lodash';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 import { getEffectiveAttributeModifier } from '../../../functions/effectiveAttributes';
 import { Atributo } from './atributos';
+import { HEROIS_ARTON_ARMORS } from './herois-de-arton/equipment/armors';
+import { AMEACAS_ARTON_ARMORS } from './ameacas-de-arton/equipment/armors';
 import Equipment, {
   DefenseEquipment,
   CombatItems,
@@ -708,6 +710,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 2,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 50,
   },
   COTA_DE_MALHA: {
@@ -716,6 +719,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 2,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 150,
   },
   LORIGA_SEGMENTADA: {
@@ -724,6 +728,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 3,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 250,
   },
   MEIA_ARMADURA: {
@@ -732,6 +737,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 4,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 600,
   },
   ARMADURA_COMPLETA: {
@@ -740,6 +746,7 @@ export const Armaduras = defenseCatalog({
     armorPenalty: 5,
     spaces: 5,
     group: 'Armadura',
+    isHeavyArmor: true,
     preco: 3000,
   },
 });
@@ -848,17 +855,37 @@ export const TODAS_AS_ARMAS: Equipment[] = [
 ];
 
 /**
+ * Armaduras pesadas de catálogo — núcleo e suplementos. Os dados de suplemento
+ * já trazem `isHeavyArmor: true`; o núcleo é a lista `armaduraPesada`.
+ */
+const KNOWN_HEAVY_NAMES = new Set([
+  ...EQUIPAMENTOS.armaduraPesada.map((armor) => armor.nome),
+  ...[
+    ...Object.values(HEROIS_ARTON_ARMORS),
+    ...Object.values(AMEACAS_ARTON_ARMORS),
+  ]
+    .filter((armor) => (armor as DefenseEquipment).isHeavyArmor === true)
+    .map((armor) => armor.nome),
+]);
+
+/**
  * Verifica se uma armadura é pesada.
- * Primeiro verifica a propriedade isHeavyArmor (para armaduras editadas pelo usuário),
- * depois faz fallback para verificação por nome (compatibilidade com dados antigos).
+ *
+ * Armaduras pesadas de catálogo (núcleo e suplementos) são sempre pesadas
+ * (autoritativo por nome) — mesmo que uma ficha salva tenha
+ * `isHeavyArmor: false` porque o editor de item gravava `false` por padrão. O
+ * nome vence, o que auto-cura fichas já corrompidas sem precisar de migração.
+ *
+ * Efeito colateral intencional: o checkbox "Armadura pesada" do editor não
+ * tem efeito nesses nomes conhecidos. Marcar como leve salva `false`, mas o
+ * helper continua devolvendo `true`.
+ *
+ * Para itens não listados (custom, homebrew), o valor vem da propriedade
+ * `isHeavyArmor` definida no dado ou editada pelo usuário.
  */
 export function isHeavyArmor(armor: DefenseEquipment): boolean {
-  // Se a propriedade estiver definida, usar ela
-  if (armor.isHeavyArmor !== undefined) {
-    return armor.isHeavyArmor;
-  }
-  // Fallback: verificar por nome (compatibilidade com dados antigos)
-  return EQUIPAMENTOS.armaduraPesada.some((heavy) => heavy.nome === armor.nome);
+  if (KNOWN_HEAVY_NAMES.has(armor.nome)) return true;
+  return armor.isHeavyArmor === true;
 }
 
 export const bardInstruments: string[] = [

@@ -80,6 +80,14 @@ describe('Envelhecimento (livro básico) — marcos por raça', () => {
     expect(getBaseAgeStageForYears(350, 'Elfo')).toBe('velho');
   });
 
+  // O box "Idades das Raças" (HdA, p. 289) lista sátiros como ×5, mas a
+  // entrada da raça (p. 15) diz "Longevidade. Normal.".
+  test('sátiro envelhece como humano', () => {
+    expect(getBaseAgeStageForYears(44, 'Sátiro')).toBe('jovem');
+    expect(getBaseAgeStageForYears(45, 'Sátiro')).toBe('maduro');
+    expect(getBaseAgeStageForYears(70, 'Sátiro')).toBe('velho');
+  });
+
   test('goblin envelhece mais rápido', () => {
     expect(getBaseAgeStageForYears(30, 'Goblin')).toBe('jovem');
     expect(getBaseAgeStageForYears(32, 'Goblin')).toBe('maduro');

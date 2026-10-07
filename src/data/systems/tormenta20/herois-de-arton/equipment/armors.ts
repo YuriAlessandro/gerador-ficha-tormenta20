@@ -106,7 +106,7 @@ const ARMADURA_DE_FOLHAS: DefenseEquipment = {
 const ARMADURA_DE_ENGENHOQUEIRO_GOBLIN: DefenseEquipment = {
   nome: 'Armadura de engenhoqueiro goblin',
   defenseBonus: 3,
-  armorPenalty: -2,
+  armorPenalty: 2,
   spaces: 2,
   group: 'Armadura',
   preco: 85,
@@ -119,7 +119,7 @@ const ARMADURA_DE_ENGENHOQUEIRO_GOBLIN: DefenseEquipment = {
 const COTA_DE_MOEDAS: DefenseEquipment = {
   nome: 'Cota de moedas',
   defenseBonus: 4,
-  armorPenalty: -3,
+  armorPenalty: 3,
   spaces: 2,
   group: 'Armadura',
   preco: 350,
@@ -138,7 +138,7 @@ const COTA_DE_MOEDAS: DefenseEquipment = {
 const COLETE_FORA_DA_LEI: DefenseEquipment = {
   nome: 'Colete fora da lei',
   defenseBonus: 5,
-  armorPenalty: -5,
+  armorPenalty: 5,
   spaces: 2,
   group: 'Armadura',
   preco: 750,
@@ -167,7 +167,7 @@ const BRIGANTINA: DefenseEquipment = {
 const ARMADURA_DE_CHUMBO: DefenseEquipment = {
   nome: 'Armadura de chumbo',
   defenseBonus: 7,
-  armorPenalty: -5,
+  armorPenalty: 5,
   spaces: 5,
   group: 'Armadura',
   isHeavyArmor: true,
@@ -182,7 +182,7 @@ const ARMADURA_DE_CHUMBO: DefenseEquipment = {
 const ARMADURA_DE_JUSTA: DefenseEquipment = {
   nome: 'Armadura de justa',
   defenseBonus: 9,
-  armorPenalty: -5,
+  armorPenalty: 5,
   spaces: 5,
   group: 'Armadura',
   isHeavyArmor: true,
@@ -194,7 +194,7 @@ const ARMADURA_DE_JUSTA: DefenseEquipment = {
 const ARMADURA_DE_HUSSARDO_ALADO: DefenseEquipment = {
   nome: 'Armadura de hussardo alado',
   defenseBonus: 10,
-  armorPenalty: -6,
+  armorPenalty: 6,
   spaces: 5,
   group: 'Armadura',
   isHeavyArmor: true,
@@ -206,7 +206,7 @@ const ARMADURA_DE_HUSSARDO_ALADO: DefenseEquipment = {
 const ARMADURA_DE_PEDRA: DefenseEquipment = {
   nome: 'Armadura de pedra',
   defenseBonus: 12,
-  armorPenalty: -5,
+  armorPenalty: 5,
   spaces: 5,
   group: 'Armadura',
   isHeavyArmor: true,
@@ -222,7 +222,7 @@ const ARMADURA_DE_PEDRA: DefenseEquipment = {
 const BROQUEL: DefenseEquipment = {
   nome: 'Broquel',
   defenseBonus: 0,
-  armorPenalty: -1,
+  armorPenalty: 1,
   spaces: 0.5,
   group: 'Escudo',
   preco: 25,
@@ -234,7 +234,7 @@ const BROQUEL: DefenseEquipment = {
 const ESCUDO_DE_VIME: DefenseEquipment = {
   nome: 'Escudo de vime',
   defenseBonus: 2,
-  armorPenalty: -2,
+  armorPenalty: 2,
   spaces: 2,
   group: 'Escudo',
   preco: 15,
@@ -246,7 +246,7 @@ const ESCUDO_DE_VIME: DefenseEquipment = {
 const ESCUDO_TORRE: DefenseEquipment = {
   nome: 'Escudo torre',
   defenseBonus: 2,
-  armorPenalty: -4,
+  armorPenalty: 4,
   spaces: 2,
   group: 'Escudo',
   preco: 45,
@@ -257,7 +257,7 @@ const ESCUDO_TORRE: DefenseEquipment = {
 const SAGNA: DefenseEquipment = {
   nome: 'Sagna',
   defenseBonus: 2,
-  armorPenalty: -3,
+  armorPenalty: 3,
   spaces: 2,
   group: 'Escudo',
   preco: 20,

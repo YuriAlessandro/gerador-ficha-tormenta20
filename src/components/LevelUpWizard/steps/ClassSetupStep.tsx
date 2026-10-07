@@ -9,11 +9,11 @@ import {
   Divider,
 } from '@mui/material';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
-import { allSpellSchools } from '@/interfaces/Spells';
 import { SupplementId } from '@/types/supplement.types';
 import { DEUSES_MAIORES } from '@/data/systems/tormenta20/classes/arcanista';
 import { findClassDescription } from '@/functions/multiclass';
 import { isClassOrVariantOf } from '@/functions/general';
+import { getSchoolChoiceConfig } from '@/functions/spellPathUtils';
 import ArcanistSubtypeSelectionStep from '@/components/CharacterCreationWizard/steps/ArcanistSubtypeSelectionStep';
 import FeiticeiroLinhagemSelectionStep from '@/components/CharacterCreationWizard/steps/FeiticeiroLinhagemSelectionStep';
 import SpellSchoolSelectionStep from '@/components/CharacterCreationWizard/steps/SpellSchoolSelectionStep';
@@ -49,9 +49,6 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
   const isBardoLike = classDesc
     ? isClassOrVariantOf(classDesc, 'Bardo')
     : selectedClassName === 'Bardo';
-  const isDruidaLike = classDesc
-    ? isClassOrVariantOf(classDesc, 'Druida')
-    : selectedClassName === 'Druida';
 
   if (selectedClassName === 'Arcanista' && recoveringDeus) {
     return (
@@ -151,14 +148,15 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
   // Escolha de escolas: declarada no spellPath (classes homebrew) ou o padrão
   // de Bardo/Druida (3 escolas dentre todas). Follow-up: migrar Bardo/Druida
   // para spellPath.schoolChoice e remover o fallback hardcoded.
-  const schoolChoice = classDesc?.spellPath?.schoolChoice;
-  const schoolConfig =
-    schoolChoice ?? (isBardoLike || isDruidaLike ? { count: 3 } : null);
+  const schoolConfig = getSchoolChoiceConfig(
+    classDesc ?? { name: selectedClassName }
+  );
 
   if (schoolConfig) {
     const spellType: 'Arcane' | 'Divine' | 'Both' =
-      (schoolChoice ? classDesc?.spellPath?.spellType : undefined) ??
-      (isBardoLike ? 'Both' : 'Divine');
+      (classDesc?.spellPath?.schoolChoice
+        ? classDesc.spellPath.spellType
+        : undefined) ?? (isBardoLike ? 'Both' : 'Divine');
 
     return (
       <SpellSchoolSelectionStep
@@ -166,10 +164,7 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
         onChange={(schools) =>
           onChange({ ...classSetup, spellSchools: schools })
         }
-        requiredCount={Math.min(
-          schoolConfig.count,
-          (schoolConfig.available ?? allSpellSchools).length
-        )}
+        requiredCount={schoolConfig.count}
         availableSchools={schoolConfig.available}
         className={selectedClassName}
         spellType={spellType}

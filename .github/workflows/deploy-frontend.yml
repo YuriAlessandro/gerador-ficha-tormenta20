@@ -80,6 +80,25 @@ jobs:
             exit 1
           fi
 
+      # Guarda da correção do envenenamento de cache (ver o bloco de comentário
+      # "Cura e verificação do cache do edge" abaixo). As duas condições são
+      # silenciosas se quebrarem — o site continua no ar —, então o CI é o
+      # único lugar que as pega:
+      # - sem `assets/404.html`, asset ausente volta a responder o index.html
+      #   com 200, e o edge o guarda por um ano sob a URL do `.css`/`.js`;
+      # - com um `404.html` na raiz, o Pages sai do modo SPA e toda rota do
+      #   app (/ficha/…, /perfil/…) passa a responder 404.
+      - name: Checar o 404 de /assets
+        run: |
+          if [ ! -f build/assets/404.html ]; then
+            echo "::error::build/assets/404.html sumiu — asset ausente voltaria a receber o HTML do SPA com 200 (ver public/assets/404.html)"
+            exit 1
+          fi
+          if [ -f build/404.html ]; then
+            echo "::error::build/404.html na raiz desliga o modo SPA do Pages e quebra todas as rotas do app"
+            exit 1
+          fi
+
       # `--branch=main` é o RÓTULO de branch do Pages, não a branch do Git. A
       # production branch configurada no projeto `fichas-frontend` é `main`;
       # trocar para `production` aqui faria o upload virar deploy de preview e o
@@ -93,20 +112,25 @@ jobs:
 
       # --- Cura e verificação do cache do edge ---
       #
-      # `public/_redirects` termina em `/*  /index.html  200`, então arquivo
-      # ausente sob `/assets/` não devolve 404: devolve o HTML do SPA com status
-      # 200. E `public/_headers` carimba tudo em `/assets/*` como `immutable` por
-      # um ano — inclusive esse HTML. Na janela entre o deploy virar produção e
-      # os arquivos propagarem, basta uma requisição azarada para a Cloudflare
-      # guardar HTML sob a URL de um `.js`, imutável por 365 dias. O navegador
-      # recusa o módulo por MIME type e a página fica branca. Foi o que derrubou
-      # o site em 12/08/2026, e nada no `_redirects` consegue evitar: o Pages não
-      # aceita 404 ali (só 3xx e o rewrite 200), e cobrir `/assets/*` pela
-      # Function jogaria todo asset na cota do Workers — o oposto do que o
-      # `_routes.json` existe para fazer.
+      # Sem 404.html, o Pages fica em "modo SPA": caminho inexistente recebe o
+      # index.html com 200. Na janela entre o deploy virar produção e todos os
+      # PoPs o enxergarem, um PoP ainda na versão anterior recebia o pedido do
+      # asset novo e respondia esse HTML com 200 — e `public/_headers` carimba
+      # `/assets/*` com max-age de um ano. A Cloudflare guardava HTML sob a URL
+      # de um `.css`/`.js`, e a região daquele PoP ficava sem estilo ou com tela
+      # branca (12/08, 05/09 e 27/09/2026).
       #
-      # A ordem dos três passos abaixo é o que resolve. Purgar antes de propagar
-      # não adianta: o envenenamento acontece depois.
+      # A correção de verdade está em `public/assets/404.html`: asset ausente
+      # passa a responder 404, e o Pages força `no-store` em todo 404, então o
+      # erro vira transitório e nenhuma camada o guarda. O passo "Checar o 404
+      # de /assets" (antes do upload) e "Verificar o 404 de asset ausente"
+      # (abaixo) garantem que isso continue valendo.
+      #
+      # Os passos de espera/purga/aquecimento abaixo são anteriores à correção
+      # e ficam como segunda camada — mas saiba o limite deles: tudo roda a
+      # partir do runner do GitHub, nos EUA, e só enxerga o cache DAQUELE PoP.
+      # Em 27/09 este job aqueceu o CSS com sucesso enquanto o PoP de São Paulo
+      # servia a versão envenenada.
 
       - name: Aguardar a propagação do deploy
         env:
@@ -128,6 +152,33 @@ jobs:
           done
           echo "::error::$SITE não passou a servir $EXPECTED em 5 minutos."
           exit 1
+
+      # A garantia que resolve o envenenamento, conferida em produção: asset
+      # ausente → 404 sem cache; rota do SPA com ponto no nome → index.html 200.
+      # O nome aleatório impede que um resultado velho no cache mascare o teste.
+      - name: Verificar o 404 de asset ausente
+        env:
+          SITE: https://fichasdenimb.com.br
+        run: |
+          MISSING="$SITE/assets/deploycheck-${GITHUB_RUN_ID}-${RANDOM}.js"
+          HEADERS=$(curl -sS --max-time 30 -o /dev/null -D - "$MISSING" | tr -d '\r')
+          STATUS=$(printf '%s\n' "$HEADERS" | awk 'NR==1{print $2}')
+          CC=$(printf '%s\n' "$HEADERS" | grep -i '^cache-control:' | cut -d' ' -f2-)
+          echo "$MISSING → $STATUS ($CC)"
+          if [ "$STATUS" != "404" ] || ! printf '%s' "$CC" | grep -q 'no-store'; then
+            echo "::error::asset ausente devolveu $STATUS ($CC) em vez de 404 no-store — o envenenamento de cache do edge voltou a ser possível (ver public/assets/404.html)"
+            exit 1
+          fi
+          ROUTE="$SITE/perfil/deploy.check?cb=${RANDOM}"
+          RESULT=$(curl -sS --max-time 30 -o /dev/null -w '%{http_code} %{content_type}' "$ROUTE")
+          echo "$ROUTE → $RESULT"
+          case "$RESULT" in
+            '200 text/html'*) ;;
+            *)
+              echo "::error::rota do SPA devolveu $RESULT — o modo SPA do Pages parou de servir o index.html"
+              exit 1
+              ;;
+          esac
 
       # Purga a zona inteira, não URLs específicas: qualquer arquivo sob
       # `/assets/*` (fontes, mp3, imagens) pode ter sido envenenado, e de fora

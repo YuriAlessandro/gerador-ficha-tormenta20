@@ -1,8 +1,44 @@
-import { CrossTraditionRules, SpellPath } from '../interfaces/Class';
-import { allSpellSchools, Spell } from '../interfaces/Spells';
+import {
+  ClassDescription,
+  CrossTraditionRules,
+  SpellPath,
+} from '../interfaces/Class';
+import { allSpellSchools, Spell, SpellSchool } from '../interfaces/Spells';
 import { SupplementId } from '../types/supplement.types';
 import { dataRegistry } from '../data/registry';
+import { getClassFamilyName } from './classFamily';
 import { getRandomItemFromArray, pickFromArray } from './randomUtils';
+
+export interface SchoolChoiceConfig {
+  /** Quantas escolas o jogador escolhe (já limitado ao tamanho do pool). */
+  count: number;
+  /** Pool de escolas escolhíveis. */
+  available: SpellSchool[];
+}
+
+/**
+ * Se a classe faz o jogador escolher escolas de magia, e quantas. Classes
+ * homebrew declaram em `spellPath.schoolChoice`; Bardo e Druida (e variantes)
+ * escolhem 3 dentre todas — eles sorteiam no `setup()` em vez de declarar.
+ * Retorna `null` para classes sem escolha de escolas.
+ */
+export function getSchoolChoiceConfig(
+  classe: Pick<
+    ClassDescription,
+    'name' | 'isVariant' | 'baseClassName' | 'spellPath'
+  >
+): SchoolChoiceConfig | null {
+  const choice = classe.spellPath?.schoolChoice;
+  if (choice) {
+    const available = choice.available ?? allSpellSchools;
+    return { count: Math.min(choice.count, available.length), available };
+  }
+  const family = getClassFamilyName(classe);
+  if (family === 'Bardo' || family === 'Druida') {
+    return { count: 3, available: allSpellSchools };
+  }
+  return null;
+}
 
 /**
  * Resolve uma escolha de escolas pendente (`schoolChoice`) sorteando as

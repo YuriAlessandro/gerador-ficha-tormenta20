@@ -108,7 +108,9 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
         .filter((entry) =>
           entry.changes.some(
             (change) =>
-              change.type === 'PowerAdded' && change.powerName === power.name
+              (change.type === 'PowerAdded' ||
+                change.type === 'ClassPowerAdded') &&
+              change.powerName === power.name
           )
         )
         .map((entry) => {
@@ -188,6 +190,16 @@ const PowerDetailBody: React.FC<PowerDetailBodyProps> = ({
   let powerSources = isManuallyAdded
     ? 'Adicionado manualmente'
     : historySources.join(', ');
+
+  // Poder da própria origem: o recálculo aplica `origin.powers` sem gravar
+  // `PowerAdded` no histórico (ex.: Futura Lenda criada pelo assistente).
+  if (
+    !powerSources &&
+    originKind === 'originPower' &&
+    sheet?.origin?.powers.some((p) => p.name === power.name)
+  ) {
+    powerSources = sheet.origin.name;
+  }
 
   if (
     isComplicationPower &&

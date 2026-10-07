@@ -35,10 +35,13 @@ import { buildSpellAbilityMeta } from '@/functions/rollAbilityMeta';
 import {
   augmentSpellRolls,
   AprimoramentoSelection,
+  isStackableAprimoramento,
+  isTruqueAprimoramento,
   AugmentedRoll,
 } from '@/functions/spellRollAugmentation';
 import { Spell, Aprimoramento } from '../interfaces/Spells';
 import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
+import { getSpellDisplayName } from '../functions/spells/spellDisplayName';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
 import { RollGroup } from '../premium/services/socket.service';
 import RollsEditDialog from './RollsEditDialog';
@@ -78,12 +81,36 @@ export interface SpellCastCheck {
   modifier: number;
   /** CD a partir do custo final em PM (que só existe aqui dentro). */
   getDC: (pmCost: number) => number;
-  /** Penalidades situacionais que o jogador liga/desliga. */
-  toggles?: { id: string; label: string; value: number }[];
+  /**
+   * Modificadores situacionais que o jogador liga/desliga. `target: 'dc'`
+   * soma na CD em vez de no teste (ex.: 2ª ativação da engenhoca no dia).
+   */
+  toggles?: {
+    id: string;
+    label: string;
+    value: number;
+    target?: 'check' | 'dc';
+  }[];
   /** Texto de regra exibido sob o teste. */
   note?: string;
   /** Gancho para converter o resultado em ajuste do lançamento. */
   resolve?: (result: SpellCastCheckResult) => SpellCastCheckAdjustment;
+  /**
+   * Substitui o custo base da magia (engenhoca: 0 — só os aprimoramentos são
+   * pagos). A CD continua recebendo apenas o custo dos aprimoramentos, e quem
+   * monta o teste soma o custo original em `getDC`.
+   */
+  basePmOverride?: number;
+  /** Somado ao custo dos aprimoramentos (Comutador: −1). Não mexe na CD. */
+  aprimoramentoPmDelta?: number;
+  /** Teto do custo dos aprimoramentos (engenhoca: Inteligência). */
+  maxAprimoramentoPm?: number;
+  /** Linha do card do histórico quando o teste falha. */
+  failureNote?: string;
+  /** Rótulo do botão de confirmar (padrão: "Usar magia"). */
+  actionLabel?: string;
+  /** Avisado do resultado bruto (ex.: marcar a engenhoca como enguiçada). */
+  onResult?: (result: SpellCastCheckResult) => void;
 }
 
 interface SpellCastDialogProps {
@@ -102,11 +129,8 @@ interface SpellCastDialogProps {
   castCheck?: SpellCastCheck;
 }
 
-const isStackable = (aprimoramento: Aprimoramento): boolean =>
-  /^aumenta/i.test(aprimoramento.text);
-
-const isTruque = (aprimoramento: Aprimoramento): boolean =>
-  aprimoramento.trick === true;
+const isStackable = isStackableAprimoramento;
+const isTruque = isTruqueAprimoramento;
 
 // Remove os campos derivados do augment antes de semear o editor / persistir.
 const toPlainRoll = (roll: DiceRoll): DiceRoll => ({
@@ -166,10 +190,15 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     new Set()
   );
 
+  const basePmOverride = castCheck?.basePmOverride;
   const basePM = useMemo(
-    () => spell.manaExpense ?? manaExpenseByCircle[spell.spellCircle],
-    [spell.manaExpense, spell.spellCircle]
+    () =>
+      basePmOverride ??
+      spell.manaExpense ??
+      manaExpenseByCircle[spell.spellCircle],
+    [basePmOverride, spell.manaExpense, spell.spellCircle]
   );
+  const displayName = getSpellDisplayName(spell);
 
   const manaReduction = spell.manaReduction ?? 0;
 
@@ -211,12 +240,33 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     return total;
   }, [selections, spell.aprimoramentos]);
 
+  const aprimoramentoPmDelta = castCheck?.aprimoramentoPmDelta ?? 0;
+
   const totalPMCost = useMemo(() => {
     if (hasTruqueSelected) {
       return 0;
     }
-    return effectiveBasePM + aprimoramentoCost;
-  }, [effectiveBasePM, aprimoramentoCost, hasTruqueSelected]);
+    const adjustedAprimoramentos =
+      aprimoramentoCost > 0
+        ? Math.max(0, aprimoramentoCost + aprimoramentoPmDelta)
+        : 0;
+    return effectiveBasePM + adjustedAprimoramentos;
+  }, [
+    effectiveBasePM,
+    aprimoramentoCost,
+    aprimoramentoPmDelta,
+    hasTruqueSelected,
+  ]);
+
+  // Custo que entra na CD do teste: sem o desconto do `aprimoramentoPmDelta`
+  // (o Comutador barateia o PM, não a dificuldade de ativar).
+  const checkPMCost = hasTruqueSelected
+    ? 0
+    : effectiveBasePM + aprimoramentoCost;
+
+  const aprimoramentoOverLimit =
+    castCheck?.maxAprimoramentoPm !== undefined &&
+    aprimoramentoCost > castCheck.maxAprimoramentoPm;
 
   const effectivePM = currentPM + (tempPM ?? 0);
   const insufficientPM = effectivePM < totalPMCost;
@@ -359,14 +409,29 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
   }, []);
 
+  /** Soma dos toggles ligados que miram `target` ('check' é o padrão). */
+  const sumActiveToggles = useCallback(
+    (target: 'check' | 'dc') =>
+      (castCheck?.toggles ?? [])
+        .filter(
+          (toggle) =>
+            activeCheckToggles.has(toggle.id) &&
+            (toggle.target ?? 'check') === target
+        )
+        .reduce((sum, toggle) => sum + toggle.value, 0),
+    [castCheck, activeCheckToggles]
+  );
+
   /** Modificador exibido: bônus base + penalidades situacionais ligadas. */
   const castCheckModifier = useMemo(() => {
     if (!castCheck) return 0;
-    const situational = (castCheck.toggles ?? [])
-      .filter((toggle) => activeCheckToggles.has(toggle.id))
-      .reduce((sum, toggle) => sum + toggle.value, 0);
-    return castCheck.modifier + situational;
-  }, [castCheck, activeCheckToggles]);
+    return castCheck.modifier + sumActiveToggles('check');
+  }, [castCheck, sumActiveToggles]);
+
+  /** CD exibida/usada: a do teste + toggles que mexem na CD. */
+  const castCheckDC = castCheck
+    ? castCheck.getDC(checkPMCost) + sumActiveToggles('dc')
+    : 0;
 
   const handleToggleCheckPenalty = useCallback((id: string) => {
     setActiveCheckToggles((prev) => {
@@ -392,13 +457,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     let checkFailed = false;
 
     if (castCheck) {
-      const situational = (castCheck.toggles ?? [])
-        .filter((toggle) => activeCheckToggles.has(toggle.id))
-        .reduce((sum, toggle) => sum + toggle.value, 0);
-      const modifier = castCheck.modifier + situational;
+      const modifier = castCheckModifier;
       const d20 = rollDie(20);
       const total = d20 + modifier;
-      const dc = castCheck.getDC(totalPMCost);
+      const dc = castCheckDC;
       const success = total >= dc;
 
       checkFailed = !success;
@@ -406,6 +468,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         adjustment =
           castCheck.resolve?.({ d20, total, dc, success }) ?? adjustment;
       }
+      castCheck.onResult?.({ d20, total, dc, success });
 
       checkGroup = {
         label: `${castCheck.label} — CD ${dc}`,
@@ -430,10 +493,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
 
     // Nome, descrição, círculo e PM acompanham a rolagem no histórico da
     // mesa — antes o card mostrava só os números do dano.
-    const ability = buildSpellAbilityMeta(spell, pmSpent);
+    const ability = {
+      ...buildSpellAbilityMeta(spell, pmSpent),
+      name: displayName,
+    };
     const extraNote = (() => {
       if (checkFailed)
-        return 'Usurpar falhou: a magia é perdida, mas os PM são gastos.';
+        return (
+          castCheck?.failureNote ??
+          'Usurpar falhou: a magia é perdida, mas os PM são gastos.'
+        );
       return adjustment.note;
     })();
     const abilityWithNote = extraNote
@@ -466,17 +535,17 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         damageType: damageTypeById.get(result.rollId),
       }));
       showDiceResult(
-        spell.nome,
+        displayName,
         checkGroup ? [checkGroup, ...rollGroups] : rollGroups,
         characterName,
         abilityWithNote
       );
     } else if (checkGroup) {
-      showDiceResult(spell.nome, [checkGroup], characterName, abilityWithNote);
+      showDiceResult(displayName, [checkGroup], characterName, abilityWithNote);
     } else if (castLogged) {
       // Magia sem dano (utilitária/buff) e sem efeito ativo: sem isso ela não
       // aparecia em lugar nenhum do histórico, mesmo tendo custado PM.
-      logExternalRoll(spell.nome, [], characterName, abilityWithNote);
+      logExternalRoll(displayName, [], characterName, abilityWithNote);
     }
 
     // Sempre repassa o lançamento (com 0 PM quando o jogador opta por não
@@ -491,7 +560,9 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     shouldSpendPM,
     totalPMCost,
     castCheck,
-    activeCheckToggles,
+    castCheckModifier,
+    castCheckDC,
+    displayName,
     onCast,
     onClose,
     showDiceResult,
@@ -643,7 +714,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
           >
             <CasinoIcon color='primary' />
             <Typography variant='h6' component='span'>
-              {spell.nome}
+              {displayName}
             </Typography>
             {showActiveEffectHint && (
               <Tooltip title='Esta magia possui um efeito que poderá ser aplicado à sua ficha (e ofertado aos aliados da mesa) após confirmar o lançamento.'>
@@ -672,6 +743,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                 }}
               >
                 {spell.spellCircle}
+                {displayName !== spell.nome && ` · simula ${spell.nome}`}
               </Typography>
               <Stack
                 direction='row'
@@ -768,6 +840,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   </Typography>
                   {spell.aprimoramentos.map((apr, idx) =>
                     renderAprimoramento(apr, idx)
+                  )}
+                  {aprimoramentoOverLimit && (
+                    <Alert severity='error' sx={{ mt: 1 }}>
+                      O custo dos aprimoramentos ({aprimoramentoCost} PM) passa
+                      do limite de {castCheck?.maxAprimoramentoPm} PM.
+                    </Alert>
                   )}
                 </Box>
               </>
@@ -978,7 +1056,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                     <Chip
                       size='small'
                       color='primary'
-                      label={`CD ${castCheck.getDC(totalPMCost)}`}
+                      label={`CD ${castCheckDC}`}
                     />
                     <Chip
                       size='small'
@@ -999,8 +1077,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                         />
                       }
                       label={`${toggle.label} (${
-                        toggle.value >= 0 ? '+' : '−'
-                      }${Math.abs(toggle.value)})`}
+                        toggle.target === 'dc' ? 'CD ' : ''
+                      }${toggle.value >= 0 ? '+' : '−'}${Math.abs(
+                        toggle.value
+                      )})`}
                     />
                   ))}
                   {castCheck.note && (
@@ -1027,8 +1107,9 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             onClick={handleCast}
             startIcon={<CasinoIcon />}
             color={insufficientPM && shouldSpendPM ? 'warning' : 'primary'}
+            disabled={aprimoramentoOverLimit}
           >
-            Usar magia com {totalPMCost} PM
+            {castCheck?.actionLabel ?? 'Usar magia'} com {totalPMCost} PM
           </Button>
         </DialogActions>
       </Dialog>
@@ -1039,7 +1120,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         onClose={() => setOverrideRollsDialogOpen(false)}
         rolls={displayedRolls.map(toPlainRoll)}
         onSave={handleSaveOverride}
-        title={`Ajustar rolagem: ${spell.nome}`}
+        title={`Ajustar rolagem: ${displayName}`}
       />
 
       {/* Edição persistente da rolagem base da magia */}
@@ -1049,7 +1130,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
           onClose={() => setBaseRollsDialogOpen(false)}
           rolls={localRolls}
           onSave={handleSaveBaseRolls}
-          title={`Rolagens base: ${spell.nome}`}
+          title={`Rolagens base: ${displayName}`}
         />
       )}
     </>

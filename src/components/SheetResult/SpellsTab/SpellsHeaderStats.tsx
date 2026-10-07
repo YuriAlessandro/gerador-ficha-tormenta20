@@ -53,6 +53,8 @@ export interface SpellsHeaderStatsProps {
   memorizedCount: number;
   memorizedLimit: number;
   alwaysPreparedCount: number;
+  /** Presente = a ficha fabrica engenhocas (Engenhoqueiro). */
+  engenhocaCounter?: { count: number; limit: number };
 }
 
 /**
@@ -72,6 +74,7 @@ const SpellsHeaderStats: React.FC<SpellsHeaderStatsProps> = ({
   memorizedCount,
   memorizedLimit,
   alwaysPreparedCount,
+  engenhocaCounter,
 }) => {
   const mod = keyAttr ? keyAttr.value : 0;
 
@@ -147,6 +150,24 @@ const SpellsHeaderStats: React.FC<SpellsHeaderStatsProps> = ({
             />
           )}
         </Stack>
+      )}
+
+      {engenhocaCounter && (
+        <Tooltip
+          title='Máximo de engenhocas ao mesmo tempo: Inteligência (+3 com Manutenção Eficiente). Use a chave inglesa numa magia para transformá-la em engenhoca.'
+          arrow
+        >
+          <Chip
+            label={`Engenhocas: ${engenhocaCounter.count} / ${engenhocaCounter.limit}`}
+            color={
+              engenhocaCounter.count > engenhocaCounter.limit
+                ? 'error'
+                : 'secondary'
+            }
+            size='small'
+            variant='outlined'
+          />
+        </Tooltip>
       )}
     </Box>
   );

@@ -55,6 +55,7 @@ import {
 } from '@/functions/multiclass';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { SupplementId } from '@/types/supplement.types';
+import { withEditedGrantedPowers } from '../../../../functions/powers/fundamentalista';
 import { EnsinarTruquePick } from '../EnsinarTruqueDialog';
 import {
   isRepeatablePower,
@@ -392,7 +393,7 @@ export function usePowersEditor({
     const isDraconic = (p: GeneralPower) => p.name.includes('Bênção Dracônica');
     const isKobold = (p: GeneralPower) => p.name.includes('(Kobolds)');
 
-    const destino = allPowersByCategory.DESTINO;
+    const raca = allPowersByCategory.RACA;
     const general = (
       type: GeneralPowerType,
       name: string,
@@ -422,25 +423,25 @@ export function usePowersEditor({
       ...(isKallyanach
         ? [
             general(
-              GeneralPowerType.DESTINO,
+              GeneralPowerType.RACA,
               'Bênçãos Dracônicas (Kallyanach)',
-              destino.filter(isDraconic)
+              raca.filter(isDraconic)
             ),
           ]
         : []),
       ...(isKobolds
         ? [
             general(
-              GeneralPowerType.DESTINO,
+              GeneralPowerType.RACA,
               'Talentos do Bando (Kobolds)',
-              destino.filter(isKobold)
+              raca.filter(isKobold)
             ),
           ]
         : []),
       general(
         GeneralPowerType.DESTINO,
         'Poderes de Destino',
-        destino.filter((p) => !isDraconic(p) && !isKobold(p))
+        allPowersByCategory.DESTINO
       ),
       general(
         GeneralPowerType.MAGIA,
@@ -460,7 +461,7 @@ export function usePowersEditor({
       general(
         GeneralPowerType.RACA,
         'Poderes de Raça',
-        allPowersByCategory.RACA
+        raca.filter((p) => !isDraconic(p) && !isKobold(p))
       ),
     ];
   }, [allPowersByCategory, sheet.raca.name]);
@@ -1381,8 +1382,10 @@ export function usePowersEditor({
         origin: sheet.origin
           ? { ...sheet.origin, powers: selectedOriginPowers }
           : undefined,
+        // Remover um poder concedido apaga o lembrete do poder adicional do
+        // fundamentalismo (ver `withEditedGrantedPowers`).
         devoto: sheet.devoto
-          ? { ...sheet.devoto, poderes: selectedDeityPowers }
+          ? withEditedGrantedPowers(sheet.devoto, selectedDeityPowers)
           : undefined,
         steps:
           newSteps.length > 0 ? [...sheet.steps, ...newSteps] : sheet.steps,

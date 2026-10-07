@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import Bag, { getItemSpaces } from '../Bag';
+import Bag, { getItemSpaces, stackByName } from '../Bag';
 import Equipment from '../Equipment';
 
 /**
@@ -100,5 +100,118 @@ describe('getItemSpaces — override manual de espaço', () => {
       quantity: 3,
     } as unknown as Equipment;
     expect(getItemSpaces(corda)).toBe(3);
+  });
+});
+
+/**
+ * Regressão de "aumento a quantidade e a ficha não registra; para apagar tenho
+ * que remover o mesmo item 3 vezes".
+ *
+ * A concessão de itens alquímicos (Laboratório Pessoal) punha a MESMA
+ * referência do catálogo N vezes na mochila, e as N entradas ficavam com um id
+ * só. Exibição, edição e remoção resolvem por id, então as N viravam um card
+ * que não obedecia.
+ */
+describe('Bag — ids únicos', () => {
+  const fogo = (over: Partial<Equipment> = {}): Equipment => ({
+    nome: 'Fogo alquímico',
+    group: 'Alquimía',
+    spaces: 0.5,
+    preco: 10,
+    ...over,
+  });
+
+  it('ficha salva com ids repetidos é reparada ao carregar', () => {
+    const stored = {
+      equipments: {
+        Alquimía: [
+          fogo({ id: 'dup', quantity: 2 }),
+          fogo({ id: 'dup' }),
+          fogo({ id: 'dup' }),
+        ],
+      },
+      displayOrder: ['dup'],
+    } as unknown as Parameters<typeof Bag.fromStored>[0];
+
+    const bag = Bag.fromStored(stored);
+
+    const ids = bag.equipments.Alquimía.map((e) => e.id);
+    expect(new Set(ids).size).toBe(3);
+    // A primeira ocorrência mantém o id: é para ela que empunhadura e
+    // displayOrder salvos apontam.
+    expect(ids[0]).toBe('dup');
+    expect(bag.equipments.Alquimía[0].quantity).toBe(2);
+    expect(bag.displayOrder).toEqual(ids);
+    expect(bag.getOrderedEquipments()).toHaveLength(3);
+  });
+
+  it('a mesma referência adicionada N vezes vira N itens distintos, sem mutar as posições irmãs', () => {
+    const catalogItem = fogo();
+    const bag = new Bag({}, true);
+
+    bag.addEquipment({ Alquimía: [catalogItem, catalogItem, catalogItem] });
+
+    const list = bag.equipments.Alquimía;
+    expect(new Set(list.map((e) => e.id)).size).toBe(3);
+    expect(list[1]).not.toBe(list[0]);
+    expect(list[2]).not.toBe(list[0]);
+  });
+
+  it('id repetido entre categorias diferentes também é separado', () => {
+    const bag = Bag.fromStored({
+      equipments: {
+        'Item Geral': [
+          { id: 'x', nome: 'Corda', group: 'Item Geral', spaces: 1 },
+        ],
+        Alquimía: [fogo({ id: 'x' })],
+      },
+    } as unknown as Parameters<typeof Bag.fromStored>[0]);
+
+    expect(bag.equipments['Item Geral'][0].id).toBe('x');
+    expect(bag.equipments.Alquimía[0].id).not.toBe('x');
+  });
+});
+
+describe('stackByName', () => {
+  const item = (nome: string, over: Partial<Equipment> = {}): Equipment => ({
+    nome,
+    group: 'Alquimía',
+    spaces: 0.5,
+    ...over,
+  });
+
+  it('agrupa repetidos em uma entrada com quantity', () => {
+    const fogo = item('Fogo alquímico');
+    const acido = item('Ácido');
+
+    const stacked = stackByName([fogo, acido, fogo, fogo]);
+
+    expect(stacked.map((e) => [e.nome, e.quantity])).toEqual([
+      ['Fogo alquímico', 3],
+      ['Ácido', 1],
+    ]);
+  });
+
+  it('devolve clones sem id e não toca no objeto de origem', () => {
+    const fogo = item('Fogo alquímico', { id: 'catalogo' });
+
+    const [stacked] = stackByName([fogo, fogo]);
+
+    expect(stacked).not.toBe(fogo);
+    expect(stacked.id).toBeUndefined();
+    expect(fogo).toEqual(item('Fogo alquímico', { id: 'catalogo' }));
+  });
+
+  it('concessão empilhada entra na mochila como UMA entrada ocupando o mesmo espaço', () => {
+    const fogo = item('Fogo alquímico');
+    const bag = new Bag({}, true);
+
+    bag.addEquipment({ Alquimía: stackByName([fogo, fogo, fogo]) });
+
+    expect(bag.equipments.Alquimía).toHaveLength(1);
+    expect(bag.equipments.Alquimía[0].quantity).toBe(3);
+    expect(bag.getSpaces()).toBe(1.5);
+    // O catálogo não ganha id nem quantity.
+    expect(fogo).toEqual(item('Fogo alquímico'));
   });
 });

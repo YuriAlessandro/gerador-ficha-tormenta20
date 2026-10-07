@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const TANNATOH: Divindade = {
   name: 'Tanna-Toh',
+  preferredWeapon: 'Bordão',
   poderes: [
     GRANTED_POWERS.CONHECIMENTO_ENCICLOPEDICO,
     GRANTED_POWERS.MENTE_ANALITICA,

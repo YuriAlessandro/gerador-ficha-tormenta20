@@ -1,6 +1,7 @@
 import { VariantClassOverrides } from '../../../../../interfaces/Class';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
+import PROFICIENCIAS from '../../proficiencias';
 
 const USURPADOR: VariantClassOverrides = {
   name: 'Usurpador',
@@ -31,7 +32,7 @@ const USURPADOR: VariantClassOverrides = {
       Skill.RELIGIAO,
     ],
   },
-  proficiencias: [],
+  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
     {
       name: 'Inimigo dos Deuses',

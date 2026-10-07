@@ -67,6 +67,8 @@ interface WeaponsProps {
    * ajuste escondido em todas as linhas (ficha em modo leitura).
    */
   onWeaponSemanticsChange?: (weapon: Equipment, next: WeaponOverride) => void;
+  /** Aviso informativo por arma, repassado a cada linha. */
+  getWeaponWarning?: (weapon: Equipment) => string | undefined;
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
@@ -90,6 +92,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     hasArremessador,
     proficiencias,
     onWeaponSemanticsChange,
+    getWeaponWarning,
   } = props;
 
   if (!weapons || weapons.length === 0) {
@@ -163,6 +166,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         onConsumeAmmo={onConsumeAmmo}
         hasArremessador={hasArremessador}
         proficiencyPenalty={proficiencyPenalty}
+        warning={getWeaponWarning?.(equip)}
         onSemanticsChange={
           onWeaponSemanticsChange
             ? (next) => onWeaponSemanticsChange(equip, next)

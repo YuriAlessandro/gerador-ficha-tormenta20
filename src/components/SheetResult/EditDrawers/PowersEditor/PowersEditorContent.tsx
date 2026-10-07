@@ -32,6 +32,7 @@ import PowerSelectionDialog from '../PowerSelectionDialog';
 import SelectedPanel, { SelectedGroup } from './SelectedPanel';
 import { usePowersEditor } from './usePowersEditor';
 import { getDevotionLabel } from '../../../../functions/powers/deityNames';
+import { getDeityPowerGroupTitle } from '../../../../functions/powers/fundamentalista';
 
 const ALWAYS_AVAILABLE: PowerAvailability = {
   available: true,
@@ -341,7 +342,11 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
       'deityPower',
       'deityPower',
       getDevotionLabel(sheet)
-        ? `Concedidos por ${getDevotionLabel(sheet)}`
+        ? getDeityPowerGroupTitle(
+            sheet,
+            selectedDeityPowers.length,
+            getDevotionLabel(sheet) as string
+          )
         : POWER_ORIGINS.deityPower.label(),
       dedupe(selectedDeityPowers, editor.handleDeityPowerRemove, 'deityPower')
     );

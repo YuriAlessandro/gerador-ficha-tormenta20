@@ -159,9 +159,12 @@ const SheetViewPage: React.FC = () => {
   }, [id, firebaseUser]);
 
   const handleSheetUpdate = useCallback(
-    async (updatedSheet: CharacterSheet) => {
+    // Resolve com `true`/`false` (em vez de rejeitar): o erro já é tratado
+    // aqui, mas quem grava em segundo plano — o diário — precisa saber se a
+    // escrita chegou para não mostrar "Salvo" à toa.
+    async (updatedSheet: CharacterSheet): Promise<boolean> => {
       if (!isOwner || !id) {
-        return;
+        return false;
       }
 
       try {
@@ -180,6 +183,7 @@ const SheetViewPage: React.FC = () => {
 
         setSnackbarMessage('Ficha atualizada com sucesso!');
         setSnackbarOpen(true);
+        return true;
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Error updating sheet:', err);
@@ -189,6 +193,7 @@ const SheetViewPage: React.FC = () => {
             : 'Erro ao atualizar a ficha.'
         );
         setSnackbarOpen(true);
+        return false;
       }
     },
     [isOwner, id, updateSheet]

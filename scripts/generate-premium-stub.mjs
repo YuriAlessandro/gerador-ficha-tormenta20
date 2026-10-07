@@ -94,22 +94,9 @@ const OVERRIDES = {
   getWildShapeLabel: { expr: "() => ''" },
   buildWildShapeOptionId: { expr: "() => ''" },
   // reconciler: null = "já sincronizado, nada a fazer"
-  reconcileAnimalCompanionEffects: { expr: '() => null' },
   reconcileAutoPowerEffects: { expr: '() => null' },
-  getAnimalCompanionActivatedPowers: { expr: '() => []' },
-  buildAnimalCompanionEffect: { expr: '() => null' },
-  isAnimalCompanionPowerKey: { expr: '() => false' },
-  getAnimalCompanionTier: { expr: "() => 'iniciante'" },
-  getDruidaLevelForCompanions: { expr: '() => 0' },
-  // renderizado como texto: `noop` (o default para camelCase) daria undefined
-  getCompanionDisplayName: { expr: "() => 'Companheiro Animal'" },
-  // chamado com um uuid e o retorno vai direto pra ficha — precisa ser válido
-  generateRandomAnimalCompanion: {
-    expr: "(id = '') => ({ id, name: 'Companheiro', archetype: 'fortao' })",
-  },
-  COMPANION_NAME_SUGGESTIONS: { expr: '[]' },
-  COMPANION_SPECIES_SUGGESTIONS: { expr: '{}' },
-  DRUID_COMPANION_ARCHETYPES: { expr: '[]' },
+  // espalhado (`...`) numa lista de definições: precisa ser array
+  getSheetPartnerActivatedPowers: { expr: '() => []' },
   useConditionHighlights: {
     expr: '() => ({ name: [], defense: [], displacement: [], attack: [], attributes: {}, skills: {} })',
   },
@@ -205,6 +192,14 @@ const OVERRIDES = {
       ') as unknown as typeof DEFAULT_FEATURE_FLAGS;',
     ],
   },
+  // Grimório de bolso: sem o premium não há conta. O reducer público roda
+  // sozinho, o migrate não muda nada, não há reducers extras e o plano é
+  // "deslogado" (o público aplica o limite fixo do gratuito).
+  withPocketGrimoireAccount: { expr: '<S,>(reducer: S): S => reducer' },
+  migratePocketGrimoireAccount: { expr: '<S,>(state: S): S => state' },
+  premiumReducers: { expr: '{}' },
+  usePocketGrimoirePlan: { expr: '() => null' },
+  useRequestGrimoireSync: { expr: 'noop' },
 };
 
 const COMPONENT_SUFFIX =

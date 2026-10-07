@@ -21,6 +21,7 @@ import {
 } from '../functions/effectiveAttributes';
 import Equipment from '../interfaces/Equipment';
 import { SkillsTotals } from '../interfaces/Skills';
+import { getSpellDisplayName } from '../functions/spells/spellDisplayName';
 
 // Styled components for character sheet (uses theme accent color)
 const SheetDivisor: React.FC = () => (
@@ -300,7 +301,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
             <SheetText>Magias </SheetText>
             {sheet.spells.map((spl, idx) => (
               <span key={getKey(spl.nome)}>
-                {spl.nome}
+                {getSpellDisplayName(spl)}
                 {idx + 1 < sheet.spells.length ? ', ' : '.'}
               </span>
             ))}

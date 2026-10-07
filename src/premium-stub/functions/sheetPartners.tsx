@@ -2,4 +2,6 @@
 // Stub público — gerado por scripts/generate-premium-stub.mjs.
 import { noop } from '../_inert';
 
+export const dismountPartnersInWildShape = noop;
+export const getSheetPartnerActivatedPowers = () => [];
 export const reconcileSheetPartnerEffects = noop;

@@ -43,6 +43,11 @@ import { CONDITION_TEMPLATES } from '@/premium/data/conditions';
 import { RETIRED_ACTIVE_POWER_KEYS } from '@/premium/data/activePowers';
 import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
 import { getAgeSheetBonuses } from '@/premium/functions/ages';
+import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
+import { migrateAnimalCompanions } from '@/premium/functions/animalCompanionMigration';
+import { stripPartnerOwnedBonuses } from '@/premium/functions/partnerOwnedBonuses';
+import { reconcileItemPartners } from '@/premium/functions/itemPartners';
+import { dismountPartnersInWildShape } from '@/premium/functions/sheetPartners';
 import type { SheetBonus } from '@/interfaces/CharacterSheet';
 import { getCompanionLevels } from './companionLevels';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
@@ -96,6 +101,11 @@ import {
   getDeusMenorPmBonus,
 } from './powers/general';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
+import {
+  dedupeHolySymbolBonuses,
+  getHolySymbolBonuses,
+  hasActiveInscritoItem,
+} from './holySymbol';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
@@ -829,6 +839,9 @@ const injectEstiloDeUmaArmaBonuses = (
     (w) => w.id === occupiedId
   );
   if (!weapon || !isWeaponMelee(weapon)) return sheet;
+  // "(exceto ataques desarmados)" — o Ataque Desarmado e as armas naturais
+  // desarmadas também moram em `Arma`.
+  if (weapon.weaponTags?.includes('desarmado')) return sheet;
 
   const updatedSheet = _.cloneDeep(sheet);
   updatedSheet.sheetBonuses.push(
@@ -1273,7 +1286,9 @@ function applyGeneralPowers(
 
     // All selections are now combined for repeatable powers
 
-    const [newAcc] = applyPower(acc, power, powerSelections);
+    const [newAcc] = applyPower(acc, power, powerSelections, false, {
+      pendingRepeatChoice: true,
+    });
     return newAcc;
   }, sheetClone);
 
@@ -1336,7 +1351,9 @@ function applyClassPowers(
     const [newAcc] = applyPower(
       acc,
       { ...power, sourceClassName: sheetClone.classe.name },
-      powerSelections
+      powerSelections,
+      false,
+      { pendingRepeatChoice: true }
     );
     return newAcc;
   }, sheetClone);
@@ -1510,6 +1527,15 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
     }
   });
 
+  // Inscrito (Deuses de Arton): o item conta como símbolo sagrado. O bônus não
+  // acumula com outro símbolo — nem com um segundo item "Símbolo sagrado".
+  if (hasActiveInscritoItem(updatedSheet, allEquipment)) {
+    updatedSheet.sheetBonuses.push(...getHolySymbolBonuses());
+  }
+  updatedSheet.sheetBonuses = dedupeHolySymbolBonuses(
+    updatedSheet.sheetBonuses
+  );
+
   return updatedSheet;
 }
 
@@ -1587,10 +1613,13 @@ function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
       // efetivo). Antes eles eram expandidos aqui em perícias/dano/Defesa, o
       // que deixava CD de magia e capacidade de carga de fora — ver
       // `functions/effectiveAttributes.ts`.
+      // A condição segue junto e é avaliada pelo filtro do Step 8 (ex.: o +1
+      // na Defesa do Escudeiro, que só vale vestindo armadura).
       updated.sheetBonuses.push({
         source,
         target: b.target,
         modifier: b.modifier,
+        ...(b.condition ? { condition: b.condition } : {}),
       });
     });
   });
@@ -1975,6 +2004,16 @@ export function recalculateSheet(
   // migrated so later "soltar"/"tirar" actions are preserved across recalcs.
   updatedSheet = migrateLegacyEquipState(updatedSheet);
 
+  // Migração: o Companheiro Animal do Druida virou parceiro de poder
+  // (`sheet.partners`). Antes dos poderes, para o tipo de cada companheiro já
+  // estar gravado como escolha do poder (senão ela seria sorteada), e antes dos
+  // efeitos ativos (Step 7.45), para os passivos antigos (`animal-companion:*`)
+  // já não entrarem nesta passada.
+  const companionMigration = migrateAnimalCompanions(updatedSheet);
+  if (companionMigration) {
+    updatedSheet = { ...updatedSheet, ...companionMigration };
+  }
+
   // Migração: limpar `conditionAttributePenalties` (deprecated). Versões
   // anteriores aplicavam penalidades de condições mutando `atributos[attr].value`
   // e rastreando o delta neste ledger. Isso vazava efeitos temporários para o
@@ -2225,6 +2264,12 @@ export function recalculateSheet(
   // de Força", penalidade de TESTE (agregação pior-vence), não redução de
   // atributo — por isso emitem só bônus `Skill`. Ver `effectiveAttributes.ts`.
   updatedSheet = applyConditionBonuses(updatedSheet);
+
+  // Step 7.44: bônus de poder que passaram para o parceiro (Familiar, Acólito
+  // Escudeiro...) saem daqui — o parceiro os aplica pelo Step 7.45. Sem o
+  // premium (build público) o stub não remove nada.
+  const partnerOwned = stripPartnerOwnedBonuses(updatedSheet.sheetBonuses);
+  if (partnerOwned) updatedSheet.sheetBonuses = partnerOwned;
 
   // Step 7.45: Apply active effect bonuses (powers with temporary bonus,
   // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
@@ -2899,6 +2944,19 @@ export function recalculateSheet(
     updatedSheet.spells,
     updatedSheet.bag?.equipments
   );
+
+  // Step 19: parceiros concedidos por poderes (Familiar, Escudeiro, Autômato...)
+  // e por animais da mochila.
+  // No fim, quando poderes e histórico de escolhas já estão finais. Os bônus
+  // passivos deles entram depois, pelo conciliador de efeitos do `Result.tsx`.
+  const powerPartners = reconcilePowerPartners(updatedSheet);
+  if (powerPartners) updatedSheet.partners = powerPartners;
+  // Animais comprados (Cavalo, Trobo, Cão de caça...) viram parceiros.
+  const itemPartners = reconcileItemPartners(updatedSheet);
+  if (itemPartners) updatedSheet.partners = itemPartners;
+  // Montado e Forma Selvagem não convivem: transformar desmonta.
+  const dismounted = dismountPartnersInWildShape(updatedSheet);
+  if (dismounted) updatedSheet.partners = dismounted;
 
   // Carimba os suplementos runtime usados (preserva inativos não verificáveis).
   stampUsedSupplements(updatedSheet);

@@ -24,6 +24,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../../interfaces/Character';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import Bag from '../../interfaces/Bag';
+import { applyItemEnhancements } from '../../functions/itemEnhancements/applyEnhancements';
 import Skill from '../../interfaces/Skills';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
@@ -31,6 +32,7 @@ import { Armaduras } from '../../data/systems/tormenta20/equipamentos';
 import { ClassDescription } from '../../interfaces/Class';
 import { GeneralPower } from '../../interfaces/Poderes';
 import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
+import { HEROIS_ARTON_ARMORS as hdaArmors } from '../../data/systems/tormenta20/herois-de-arton/equipment/armors';
 import hdaCombatPowers from '../../data/systems/tormenta20/herois-de-arton/powers/combatPowers';
 import atlasOriginPowers from '../../data/systems/tormenta20/atlas-de-arton/powers/originPowers';
 import {
@@ -366,6 +368,45 @@ describe('Detecção de armadura pesada (vestida, não carregada)', () => {
     // não tem `classLevels`; sem o guard, todo personagem de nível 5+ ganhava
     // a Resistência a Dano do Bárbaro.
     expect(rdGeralCom({ nivel: 6, armor: LIGHT_ARMOR })).toBe(0);
+  });
+
+  it('armadura melhorada salva com `isHeavyArmor: false` continua pesada', () => {
+    // Relato de usuário (out/2026): o editor de item gravava `isHeavyArmor:
+    // false` ao aplicar uma melhoria, e o Encouraçado deixava de contar. O
+    // nome do catálogo é autoritativo, então a ficha já corrompida se cura.
+    const corrupted = applyItemEnhancements({
+      ..._.cloneDeep(HEAVY_ARMOR),
+      isHeavyArmor: false,
+      modifications: [{ mod: 'Reforçada' }],
+    });
+    const base = defesaCom({ armor: corrupted });
+    expect(
+      defesaCom({ armor: corrupted, generalPowers: [ENCOURACADO()] })
+    ).toBe(base + 2);
+  });
+
+  it('vale também para armadura pesada de suplemento', () => {
+    const corrupted = applyItemEnhancements({
+      ..._.cloneDeep(hdaArmors.ARMADURA_DE_JUSTA),
+      isHeavyArmor: false,
+      modifications: [{ mod: 'Reforçada' }],
+    });
+    const base = defesaCom({ armor: corrupted });
+    expect(
+      defesaCom({ armor: corrupted, generalPowers: [ENCOURACADO()] })
+    ).toBe(base + 2);
+  });
+
+  it('material com escala por peso usa o ramo pesado na armadura corrompida', () => {
+    // Quitina razza: +2 Defesa em armadura pesada, +1 em leve.
+    const corrupted = applyItemEnhancements({
+      ..._.cloneDeep(HEAVY_ARMOR),
+      isHeavyArmor: false,
+      modifications: [
+        { mod: 'Material especial', specialMaterial: 'quitina razza' },
+      ],
+    });
+    expect(corrupted.defenseBonus).toBe(HEAVY_ARMOR.defenseBonus + 2);
   });
 });
 

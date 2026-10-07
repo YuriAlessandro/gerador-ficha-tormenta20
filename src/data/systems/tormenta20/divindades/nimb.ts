@@ -1,8 +1,11 @@
-import Divindade from '../../../../interfaces/Divindade';
+import Divindade, {
+  PREFERRED_WEAPON_ANY,
+} from '../../../../interfaces/Divindade';
 import GRANTED_POWERS from '../powers/grantedPowers';
 
 const NIMB: Divindade = {
   name: 'Nimb',
+  preferredWeapon: PREFERRED_WEAPON_ANY,
   poderes: [
     GRANTED_POWERS.EXTASE_DA_LOUCURA,
     GRANTED_POWERS.PODER_OCULTO,

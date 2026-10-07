@@ -137,6 +137,44 @@ describe('migrateNotesToJournal', () => {
   });
 });
 
+describe('migrateNotesToJournal — modo de texto simples', () => {
+  it('não cria diário para quem escolheu o texto simples', () => {
+    // Criar aqui congelaria uma cópia das anotações que fica velha na próxima
+    // edição: no modo simples a pessoa continua escrevendo em `notes`.
+    const sheet = sheetWith({
+      notes: 'minhas anotações',
+      journalMode: 'simple',
+    });
+    migrateNotesToJournal(sheet);
+
+    expect(sheet.journal).toBeUndefined();
+    expect(sheet.notes).toBe('minhas anotações');
+  });
+
+  it('migra normalmente quando a pessoa volta para o diário', () => {
+    const sheet = sheetWith({
+      notes: 'minhas anotações',
+      journalMode: 'journal',
+    });
+    migrateNotesToJournal(sheet);
+
+    expect(
+      sheet.journal?.nodes.some((node) => node.body === 'minhas anotações')
+    ).toBe(true);
+  });
+
+  it('um diário que já existe continua intacto no modo simples', () => {
+    const sheet = sheetWith({ notes: 'texto' });
+    migrateNotesToJournal(sheet);
+    const nodeCount = sheet.journal?.nodes.length;
+
+    sheet.journalMode = 'simple';
+    migrateNotesToJournal(sheet);
+
+    expect(sheet.journal?.nodes).toHaveLength(nodeCount ?? -1);
+  });
+});
+
 describe('ordem cronológica das entradas', () => {
   const entry = (
     id: string,

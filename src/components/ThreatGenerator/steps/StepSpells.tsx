@@ -23,6 +23,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CasinoIcon from '@mui/icons-material/Casino';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import {
   ThreatSheet,
   ThreatSpell,
@@ -34,6 +35,10 @@ import type { ConditionId } from '../../../premium/data/conditions';
 import SectionCard from './shared/SectionCard';
 import RollsEditor from './shared/RollsEditor';
 import AbilityFormFields from './shared/AbilityFormFields';
+import SpellCompendiumDialog, {
+  CompendiumSpellChoice,
+} from './SpellCompendiumDialog';
+import { compendiumSpellToThreatSpell } from '../utils/spellCompendium';
 
 interface StepSpellsProps {
   threat: Partial<ThreatSheet>;
@@ -55,6 +60,8 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
   const [newSpellConditions, setNewSpellConditions] = useState<ConditionId[]>(
     []
   );
+
+  const [compendiumOpen, setCompendiumOpen] = useState(false);
 
   const [editSpellDialog, setEditSpellDialog] = useState(false);
   const [editingSpell, setEditingSpell] = useState<{
@@ -97,6 +104,23 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
     });
     setNewSpellRolls([]);
     setNewSpellConditions([]);
+  };
+
+  const handleAddFromCompendium = (choices: CompendiumSpellChoice[]) => {
+    if (choices.length === 0) return;
+    onUpdate({
+      spells: [
+        ...(threat.spells || []),
+        ...choices.map(({ spell, counts, rollInclusion }) =>
+          compendiumSpellToThreatSpell(
+            spell,
+            generateSpellId,
+            counts,
+            rollInclusion
+          )
+        ),
+      ],
+    });
   };
 
   const handleRemoveSpell = (spellId: string) => {
@@ -164,19 +188,27 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
         variant='body2'
         sx={{
           color: 'text.secondary',
-          mb: 3,
+          mb: 2,
         }}
       >
         Adicione magias que a ameaça pode conjurar. Elas aparecem em uma seção
-        separada na ficha.
+        separada na ficha. Importe magias oficiais do compêndio ou crie as suas.
       </Typography>
+      <Button
+        variant='outlined'
+        startIcon={<MenuBookIcon />}
+        onClick={() => setCompendiumOpen(true)}
+        sx={{ mb: 3, width: { xs: '100%', sm: 'auto' } }}
+      >
+        Importar do Compêndio de Magias
+      </Button>
       <Grid container spacing={3}>
         {/* Add New Spell */}
         <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard
             icon={<AutoFixHighIcon />}
-            title='Adicionar Magia'
-            subtitle='Nome, efeito, custo de PM e rolagens.'
+            title='Criar Magia'
+            subtitle='Magia homebrew: nome, efeito, custo de PM e rolagens.'
           >
             <Grid container spacing={2}>
               <Grid size={12}>
@@ -218,6 +250,7 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
                     setNewSpell({ ...newSpell, pmCost })
                   }
                   pmLabel='Esta magia custa PM?'
+                  allowPassive={false}
                 />
               </Grid>
               <Grid size={12}>
@@ -269,7 +302,7 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
               <List dense>
                 {threat.spells?.map((spell, index) => (
                   <React.Fragment key={spell.id}>
-                    <ListItem alignItems='flex-start'>
+                    <ListItem alignItems='flex-start' sx={{ pr: 11 }}>
                       <ListItemText
                         primary={
                           <Box>
@@ -362,6 +395,12 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
           </SectionCard>
         </Grid>
       </Grid>
+      <SpellCompendiumDialog
+        open={compendiumOpen}
+        onClose={() => setCompendiumOpen(false)}
+        onConfirm={handleAddFromCompendium}
+        existingSpellNames={(threat.spells || []).map((s) => s.name)}
+      />
       {/* Edit Spell Dialog */}
       <Dialog
         open={editSpellDialog}
@@ -415,6 +454,7 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
                   setEditingSpell((prev) => (prev ? { ...prev, pmCost } : null))
                 }
                 pmLabel='Esta magia custa PM?'
+                allowPassive={false}
               />
             </Box>
           )}

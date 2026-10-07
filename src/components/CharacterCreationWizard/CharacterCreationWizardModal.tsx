@@ -22,12 +22,13 @@ import CompactStepProgress from '@/components/common/CompactStepProgress';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
 import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
+import { resolveFundamentalistChoice } from '@/functions/powers/fundamentalista';
 import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race, { AttributeVariant } from '@/interfaces/Race';
 import { ClassDescription, SpellPath } from '@/interfaces/Class';
-import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
+import { allSpellSchools } from '@/interfaces/Spells';
 import Origin, { Items, OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
@@ -44,6 +45,7 @@ import {
 import {
   buildSpellPool,
   countTowardsCrossMinimum,
+  getSchoolChoiceConfig,
 } from '@/functions/spellPathUtils';
 
 // Import step components
@@ -83,7 +85,7 @@ import Skill, {
 import Equipment, { BagEquipments } from '@/interfaces/Equipment';
 import cloneDeep from 'lodash/cloneDeep';
 import { MarketSelections } from '@/interfaces/MarketEquipment';
-import { ensureIds } from '@/interfaces/Bag';
+import { ensureIds, stackByName } from '@/interfaces/Bag';
 import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
 import {
   ComplicationSelectionStep,
@@ -504,6 +506,17 @@ const CharacterCreationWizardModal: React.FC<
   }, [deity, secondaryDeity, supplements]);
 
   /**
+   * Fundamentalista (Deuses de Arton): escolhido no formulário, revalidado
+   * aqui (suplemento, deus maior, sem devoção dupla).
+   */
+  const isFundamentalist = useMemo(
+    () =>
+      !!classe &&
+      !!resolveFundamentalistChoice(selectedOptions, classe, deity?.name),
+    [selectedOptions, classe, deity]
+  );
+
+  /**
    * Poderes concedidos já escolhidos no passo "Poderes da Divindade". Entram na
    * ficha-mock dos passos de poder (complicação / idade) para que o requisito
    * DEVOTO e os requisitos do tipo PODER enxerguem a devoção já montada.
@@ -722,32 +735,9 @@ const CharacterCreationWizardModal: React.FC<
     // Classes with qtdPoderesConcedidos = 'all' show info message
     // Classes with qtdPoderesConcedidos = number select that many powers
     !!deity;
-  const needsSpellSchoolSelection = (): boolean => {
-    if (!classe) return false;
-    // Bardo e Druida precisam escolher 3 escolas de magia
-    // Eles têm setup() que randomiza as escolas, mas no wizard queremos escolha manual
-    // Ciente de variantes: Magimarcialista (variante de Bardo) etc. herdam o comportamento
-    // Classes homebrew declaram a escolha via spellPath.schoolChoice
-    return (
-      isClassOrVariantOf(classe, 'Bardo') ||
-      isClassOrVariantOf(classe, 'Druida') ||
-      !!classe.spellPath?.schoolChoice
-    );
-  };
-
-  // Configuração da escolha de escolas: declarada no spellPath (homebrew) ou
-  // o padrão de Bardo/Druida (3 escolas dentre todas)
-  const getSchoolChoiceConfig = (): {
-    count: number;
-    available: SpellSchool[];
-  } => {
-    const choice = classe?.spellPath?.schoolChoice;
-    if (choice) {
-      const available = choice.available ?? allSpellSchools;
-      return { count: Math.min(choice.count, available.length), available };
-    }
-    return { count: 3, available: allSpellSchools };
-  };
+  // Bardo, Druida (e variantes) e homebrews com spellPath.schoolChoice
+  // escolhem escolas. O setup() deles sorteia, mas no wizard a escolha é manual.
+  const schoolChoiceConfig = classe ? getSchoolChoiceConfig(classe) : null;
 
   const needsInitialSpellSelection = (): boolean => {
     if (!classe) return false;
@@ -943,7 +933,7 @@ const CharacterCreationWizardModal: React.FC<
       stepsArray.push('Caminho do Arcanista');
     if (needsFeiticeiroLinhagemSelection())
       stepsArray.push('Linhagem do Feiticeiro');
-    if (needsSpellSchoolSelection()) stepsArray.push('Escolas de Magia');
+    if (schoolChoiceConfig) stepsArray.push('Escolas de Magia');
     if (needsInitialSpellSelection()) stepsArray.push('Magias Iniciais');
     // Criança não recebe benefícios de origem ("Sem Origem", p. 288), então o
     // passo some por inteiro.
@@ -1163,7 +1153,7 @@ const CharacterCreationWizardModal: React.FC<
         currentSelections.powerEffectSelections?.[alchemyAction.abilityName]
           ?.alchemyItems;
       if (alchemySelection && alchemySelection.length > 0) {
-        bag.Alquimía.push(...alchemySelection);
+        bag.Alquimía.push(...stackByName(alchemySelection));
       }
       // Add Instrumentos de Alquimista Aprimorados
       bag['Item Geral'].push({
@@ -1829,6 +1819,7 @@ const CharacterCreationWizardModal: React.FC<
             classe={classe}
             deity={deity}
             secondaryDeity={secondaryDeity}
+            fundamentalista={isFundamentalist}
             powerPool={grantedPowerPool}
             selectedPowers={selections.deityPowers || []}
             onChange={(powers) =>
@@ -1867,16 +1858,15 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Escolas de Magia': {
         const spellInfo = getSpellInfo();
-        if (!spellInfo) return null;
-        const schoolConfig = getSchoolChoiceConfig();
+        if (!spellInfo || !schoolChoiceConfig) return null;
         return (
           <SpellSchoolSelectionStep
             selectedSchools={selections.spellSchools || []}
             onChange={(schools) =>
               setSelections({ ...selections, spellSchools: schools })
             }
-            requiredCount={schoolConfig.count}
-            availableSchools={schoolConfig.available}
+            requiredCount={schoolChoiceConfig.count}
+            availableSchools={schoolChoiceConfig.available}
             className={classe?.name || ''}
             spellType={spellInfo.spellType}
           />
@@ -2176,8 +2166,9 @@ const CharacterCreationWizardModal: React.FC<
         // If regional origin, always allow (no selection needed)
         if (!origin) return false;
         if (origin.isRegional) return true;
-        // Otherwise, require 2 selections
-        return selections.originBenefits?.length === 2;
+        // Otherwise, require as many selections as the age bracket grants
+        // (Adolescente escolhe só 1 — "Origem em Construção")
+        return selections.originBenefits?.length === ageOriginBenefits;
 
       case 'Propósito de Criação':
         return !!selections.propositoCriacaoPower;
@@ -2218,9 +2209,7 @@ const CharacterCreationWizardModal: React.FC<
         return selections.feiticeiroLinhagem !== undefined;
 
       case 'Escolas de Magia':
-        return (
-          selections.spellSchools?.length === getSchoolChoiceConfig().count
-        );
+        return selections.spellSchools?.length === schoolChoiceConfig?.count;
 
       case 'Magias Iniciais': {
         const spellInfo = getSpellInfo();

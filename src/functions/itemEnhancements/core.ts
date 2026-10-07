@@ -9,6 +9,7 @@ import {
   SheetBonus,
 } from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
+import { isHeavyArmor } from '../../data/systems/tormenta20/equipamentos';
 
 /**
  * Effect of a single item enhancement (modification or enchantment).
@@ -108,7 +109,7 @@ export function resolveScaledEffect(
   item?: DefenseEquipment
 ): EnhancementEffect {
   if (!isBranchedEffect(effect)) return effect;
-  return item?.isHeavyArmor ? effect.heavy : effect.light;
+  return item && isHeavyArmor(item) ? effect.heavy : effect.light;
 }
 
 /**
@@ -499,8 +500,12 @@ export function applyDelta<T extends Equipment>(
           defenseCaptured.baseDefenseBonus + delta.defenseBonusDelta;
       }
       if (defenseCaptured.baseArmorPenalty !== undefined) {
-        defenseResult.armorPenalty =
-          defenseCaptured.baseArmorPenalty + delta.armorPenaltyDelta;
+        // Reduções (mitral, Ajustada, Sob medida...) param em zero: penalidade
+        // de armadura nunca vira bônus.
+        defenseResult.armorPenalty = Math.max(
+          0,
+          defenseCaptured.baseArmorPenalty + delta.armorPenaltyDelta
+        );
       }
     }
   }

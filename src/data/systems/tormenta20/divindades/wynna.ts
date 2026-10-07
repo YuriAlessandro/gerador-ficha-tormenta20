@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const WYNNA: Divindade = {
   name: 'Wynna',
+  preferredWeapon: 'Adaga',
   poderes: [
     GRANTED_POWERS.BENCAO_DO_MANA,
     GRANTED_POWERS.CENTELHA_MAGICA,

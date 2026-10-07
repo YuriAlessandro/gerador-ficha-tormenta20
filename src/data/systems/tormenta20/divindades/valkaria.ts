@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const VALKARIA: Divindade = {
   name: 'Valkaria',
+  preferredWeapon: 'Mangual',
   poderes: [
     GRANTED_POWERS.ALMEJAR_O_IMPOSSIVEL,
     GRANTED_POWERS.ARMAS_DA_AMBICAO,

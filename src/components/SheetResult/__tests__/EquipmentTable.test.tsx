@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import Equipment from '@/interfaces/Equipment';
 import EquipmentTable from '../EquipmentTable';
 
@@ -64,5 +64,47 @@ describe('EquipmentTable — modo por largura do container', () => {
     expect(screen.queryByText('Crítico')).not.toBeInTheDocument();
     expect(screen.queryByText('Defesa')).not.toBeInTheDocument();
     expect(screen.getByText('Crít 18/x2')).toBeInTheDocument();
+  });
+});
+
+describe('EquipmentTable — aviso por item', () => {
+  it('mostra o aviso só nos itens que o callback marca', () => {
+    setContainerWidth(800);
+    const machado: Equipment = { ...adaga, nome: 'Machado de Guerra' };
+    render(
+      <EquipmentTable
+        items={[adaga, machado]}
+        characterName='Nimb'
+        getItemWarning={(item) =>
+          item.nome === 'Machado de Guerra'
+            ? 'Fora da arma preferida'
+            : undefined
+        }
+      />
+    );
+    expect(screen.getAllByLabelText('Fora da arma preferida')).toHaveLength(1);
+  });
+
+  it('o aviso abre o tooltip num toque curto', () => {
+    setContainerWidth(800);
+    vi.useFakeTimers();
+    render(
+      <EquipmentTable
+        items={[adaga]}
+        characterName='Nimb'
+        getItemWarning={() => 'Fora da arma preferida'}
+      />
+    );
+    const icon = screen.getByLabelText('Fora da arma preferida');
+    fireEvent.touchStart(icon);
+    act(() => {
+      vi.advanceTimersByTime(10);
+    });
+    fireEvent.touchEnd(icon);
+    act(() => {
+      vi.advanceTimersByTime(10);
+    });
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    vi.useRealTimers();
   });
 });

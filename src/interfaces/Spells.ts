@@ -55,6 +55,21 @@ export enum spellsCircles {
   c5 = '5º Circulo',
 }
 
+/**
+ * Magia fabricada como engenhoca (Inventor com o poder Engenhoqueiro — JdA
+ * p. 70). É uma marca na PRÓPRIA entrada da magia: `nome` continua sendo a
+ * identidade (dedupe, toggles, efeitos ativos), e o nome da invenção vive aqui.
+ */
+export interface EngenhocaData {
+  /** Nome da invenção ("Canhão de Vapor"). Vazio = usa o nome da magia. */
+  nome?: string;
+  forma?: 'empunhada' | 'vestida';
+  /** Ids de `APARATOS` (Heróis de Arton), no máximo 2 e sem repetição. */
+  aparatos?: string[];
+  /** Falhou no teste de ativação e precisa de 1 hora de conserto. */
+  enguicada?: boolean;
+}
+
 export type Spell = {
   nome: string;
   execucao: 'Padrão' | 'Movimento' | 'Completa' | 'Reação' | string;
@@ -81,6 +96,7 @@ export type Spell = {
    * strip and re-inject these entries idempotently as gear changes.
    */
   equipmentSource?: string;
+  engenhoca?: EngenhocaData;
 };
 
 export type SpellSchool =

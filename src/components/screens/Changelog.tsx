@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            26/09/2026 (v4.34).
+            07/10/2026 (v4.35).
           </p>
 
           <p>
@@ -74,6 +74,319 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.35</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Engenhocas</strong> do Inventor
+                  na aba de Magias. Quem tem o poder{' '}
+                  <strong>Engenhoqueiro</strong> ganha uma chave inglesa em cada
+                  magia para transformá-la em engenhoca: dá para batizar a
+                  invenção, escolher se é empunhada ou vestida e marcar quando
+                  ela enguiça. Ativar rola{' '}
+                  <strong>Ofício (engenhoqueiro)</strong> contra a CD certa (15
+                  + custo da magia + aprimoramentos), sem cobrar o PM base, com
+                  penalidade de armadura e +5 a cada ativação no mesmo dia; se
+                  falhar, a engenhoca enguiça. A ficha também mostra a CD para
+                  resistir (por Inteligência), o limite de engenhocas e avisa
+                  quando o círculo passa do seu nível de inventor.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Aparatos</strong> de Heróis de
+                  Arton. Os 15 aparatos estão no mercado e podem ser acoplados
+                  às engenhocas (até dois em cada), somando +2 ou +5 na CD de
+                  ativação. Estabilizador, Comutador, Giroscópio e Sistema de
+                  Refrigeração já entram na conta sozinhos, assim como os
+                  poderes Aparato Personalizado, Manutenção Eficiente e Forçar a
+                  Calibragem.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Fabricação de engenhocas</strong> no assistente de
+                  subir de nível. Quem tem (ou escolhe naquele nível) o poder
+                  Engenhoqueiro ganha o passo &quot;Engenhocas&quot; para
+                  escolher as magias, com o custo de T$ 100 por PM descontado do
+                  dinheiro (dá para desligar) e a CD de fabricação informada.
+                  Desfazer o nível remove as engenhocas e devolve o dinheiro. Em
+                  &quot;Editar magias&quot;, a magia adicionada por um
+                  engenhoqueiro sem classe conjuradora já entra como engenhoca.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A melhoria <strong>Inscrito</strong>,
+                  de Deuses de Arton, agora funciona: o item vestido ou
+                  empunhado conta como símbolo sagrado e dá +1 nos testes de
+                  resistência.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O gerador de{' '}
+                  <strong>recompensas</strong> ganhou o modo{' '}
+                  <strong>Todos os suplementos</strong>, além do livro básico, e
+                  as rolagens de tesouro agora têm uma animação de caça-níquel,
+                  com o resultado destacado na tabela.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Bardo, Druida e outras classes que
+                  escolhem <strong>escolas de magia</strong> podem trocar as
+                  escolas depois da criação, em &quot;Editar magias&quot;.
+                  Magias fora das escolas da ficha ficam sinalizadas, e a
+                  habilidade Magias mostra as escolas escolhidas.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Na mochila, editar um item que está em{' '}
+                  <strong>pilha</strong> agora pergunta se a mudança vale para
+                  uma unidade só ou para todas. Assim dá para ter duas Couraças
+                  e só uma de mitral.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Quem prefere um bloco único de texto
+                  pode trocar o <strong>Diário</strong> pelas{' '}
+                  <strong>anotações em texto simples</strong>, em cada ficha:
+                  use &quot;Prefiro texto simples&quot; no cartão do diário (ou
+                  no menu de opções dentro dele) e &quot;Usar o diário
+                  completo&quot; para voltar. Nada é apagado na troca, e o PDF
+                  imprime o que a ficha estiver usando.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O Diário ganhou{' '}
+                  <strong>Desfazer</strong> (botão na barra e Ctrl+Z) para
+                  organizar, mover, criar ou apagar blocos e conexões, sem
+                  perder o texto escrito depois.
+                </li>
+                <li>
+                  <strong>Novo:</strong> No celular, o Diário aceita{' '}
+                  <strong>zoom com dois dedos</strong>, e há botões de aproximar
+                  e afastar no canto do mapa.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O Diário mostra se o texto já foi{' '}
+                  <strong>salvo</strong>, e quem preferir pode desligar o
+                  salvamento automático no menu de opções e salvar pelo botão
+                  (ou Ctrl+S). Fechar o diário sempre salva.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A galeria de{' '}
+                  <strong>Homebrews da Comunidade</strong> ganhou ordenação por
+                  melhor avaliados, mais ativados e mais comentados, além do
+                  filtro <strong>Ocultar feitos com IA</strong>. Os cards
+                  mostram quantas pessoas já ativaram cada homebrew e quantos
+                  comentários ele tem, e os filtros ficam no endereço da página,
+                  então continuam lá ao voltar de um homebrew e podem ser
+                  compartilhados por link.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O uso <strong>Saltar</strong> entrou
+                  nas ações de <strong>Atletismo</strong>, ao lado de Corrida,
+                  Escalar e Natação, com as CDs de salto longo e salto em altura
+                  do livro básico.
+                </li>
+                <li>
+                  <strong>Novo:</strong> <strong>Grimório de bolso</strong>:
+                  junte magias, poderes, classes, raças, origens e divindades da
+                  enciclopédia em coleções para consultar rápido durante a
+                  sessão. Cada item da enciclopédia ganhou um botão de
+                  adicionar, e um botão flutuante resume o grimório ativo. Dá
+                  para ter vários grimórios, ver tudo em lista ou em cartas no
+                  estilo do Baralho de Magias, e exportar ou importar em
+                  arquivo. Sem login os grimórios ficam no navegador; com a
+                  conta, são salvos nela, aparecem em qualquer aparelho e
+                  continuam editáveis sem conexão. A quantidade de grimórios
+                  segue o limite do plano, como nas fichas. O acesso fica em
+                  &quot;Consulta&quot;, no menu. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Novo:</strong> O <strong>gerador de ameaças</strong>{' '}
+                  importa magias direto do <strong>compêndio</strong>: no passo
+                  Magias, &quot;Importar do Compêndio de Magias&quot; traz as
+                  magias do livro básico e dos suplementos ativos, com busca,
+                  filtros e seleção de várias de uma vez. Os{' '}
+                  <strong>aprimoramentos</strong> são escolhidos na importação,
+                  com prévia do custo em PM e das rolagens, e a magia já entra
+                  na ameaça pronta para usar. O formulário antigo continua em
+                  &quot;Criar Magia&quot;, para magias próprias.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A aba de <strong>Magias</strong> da
+                  ficha agora mostra se cada magia é{' '}
+                  <strong>arcana, divina ou universal</strong>, e os filtros
+                  ganharam a opção de ver só um dos tipos.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Várias telas ficaram melhores no{' '}
+                  <strong>celular</strong>: a criação de ficha abre em tela
+                  cheia com progresso compacto, as tabelas da enciclopédia cabem
+                  na tela, a Caverna do Saber ganhou sumário, e o gerador de
+                  ameaças, a tabela de recompensas e a ficha gerada foram
+                  ajustados para leitura em telas pequenas. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> <strong>Armadura ou escudo</strong>{' '}
+                  com Defesa ou penalidade editada à mão agora avisa, no editor
+                  de item, que melhorias e encantos não alteram esses valores.
+                  Na aba Defesa, o valor editado aparece sublinhado em
+                  pontilhado e com um ícone, como já acontecia nas armas.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>Organizar automaticamente</strong> do Diário mantém
+                  cada bloco perto daquele a que está ligado, abre espaço quando
+                  há muitos blocos e não separa grupos sem ligação com o
+                  personagem.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As <strong>conexões</strong> do
+                  Diário desviam dos blocos que estão no caminho, em vez de
+                  passar por cima deles.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Na página de uma{' '}
+                  <strong>build</strong>, os chips de poder, magia, habilidade
+                  de classe e poder de origem abrem o detalhe do item. A
+                  ordenação por <strong>melhor avaliadas</strong> passa a
+                  considerar a quantidade de votos, então uma build com um único
+                  5 não fica mais à frente de outra bem avaliada por muita
+                  gente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Armaduras pesadas</strong>{' '}
+                  do livro básico passam a ser reconhecidas como pesadas em toda
+                  a ficha, e a <strong>penalidade de armadura</strong> das
+                  armaduras de suplementos, que era ignorada, agora é aplicada.
+                  (por{' '}
+                  <a href='https://github.com/ianptkcs' target='blank'>
+                    ianptkcs
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Correção:</strong> A penalidade de armadura reduzida
+                  por <strong>melhorias</strong> para em zero, melhorias em
+                  sequência não somam mais em dobro, e reabrir um item no editor
+                  traz o pré-requisito e o custo das melhorias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Manopla</strong> com
+                  melhoria ou encanto volta a acompanhar o dano da Briga do
+                  Lutador ao subir de nível. Antes o dado ficava congelado no
+                  nível em que a melhoria foi aplicada, ou aparecia como
+                  &quot;-&quot;.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Armaduras pesadas de{' '}
+                  <strong>Heróis de Arton</strong> e{' '}
+                  <strong>Ameaças de Arton</strong> não perdem mais a marcação
+                  de pesada ao receber uma melhoria, o que desligava Encouraçado
+                  e poderes parecidos. Adamante, Gelo eterno, Lanajuste e
+                  Quitina razza também passam a usar o valor de armadura pesada
+                  nesses casos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O botão <strong>Resetar</strong> do
+                  editor de item volta as estatísticas aos valores do livro.
+                  Antes não fazia nada em item sem melhoria e podia voltar a um
+                  valor editado à mão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O bônus de{' '}
+                  <strong>símbolo sagrado</strong> não acumula mais com dois
+                  símbolos na mochila.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Um <strong>Ofício</strong>{' '}
+                  destreinado na ficha não volta mais a aparecer treinado ao
+                  reabri-la.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na criação de ficha, personagem{' '}
+                  <strong>adolescente</strong> consegue avançar com um único
+                  benefício de origem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>sátiro</strong> envelhece
+                  como humano nas faixas de idade.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Catalisadores e esotéricos de
+                  Heróis de Arton tinham a descrição começando com
+                  &quot;Aparato.&quot; por engano.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Escrever no <strong>Diário</strong>{' '}
+                  não perde mais letras nem apaga o texto quando o salvamento
+                  automático dispara no meio da digitação.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, os{' '}
+                  <strong>aprimoramentos</strong> de magia homebrew voltam a
+                  mostrar o custo em PM: o campo encolhia até o valor sumir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os{' '}
+                  <strong>itens alquímicos</strong> do Laboratório Pessoal do
+                  Alquimista voltam a obedecer na mochila: mudar a quantidade
+                  não surtia efeito e era preciso remover o mesmo item várias
+                  vezes. Itens repetidos agora entram como uma pilha só, e as
+                  fichas já afetadas se corrigem ao abrir, com cada item
+                  aparecendo separado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os{' '}
+                  <strong>estilos de combate</strong> passam a aplicar os bônus
+                  conforme o que está empunhado:{' '}
+                  <strong>Estilo Clássico</strong> dá +2 na Defesa e no dano com
+                  espada e escudo, <strong>Estilo de Duas Mãos</strong> dá +5 no
+                  dano sozinho (antes era um efeito para ligar à mão),{' '}
+                  <strong>Estilo de Arremesso</strong> soma +2 no ataque para
+                  quem tem Saque Rápido, <strong>Estilo de Uma Arma</strong> não
+                  vale mais para ataques desarmados, e Bico de corvo,
+                  Desmontador, Martelo longo, Lança de falange e Machado de
+                  haste contam como alongadas para o{' '}
+                  <strong>Estilo de Arma Longa</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As listas de poderes raciais
+                  escolhidas <strong>uma vez por patamar</strong> (Maravilhas
+                  Mecânicas do Golem Desperto, Bênçãos Dracônicas do Kallyanach,
+                  Talentos do Bando dos Kobolds e Presentes do Duende) respeitam
+                  o limite do livro: os poderes da criação mais um por patamar.
+                  Antes o Golem e o Kallyanach ficavam travados, e Kobolds e
+                  Duende não tinham limite. Elas também aparecem como{' '}
+                  <strong>Poderes de Raça</strong>, e não mais entre os de
+                  Destino.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O +2 de perícia de{' '}
+                  <strong>Caminho da Perfeição</strong> (Golem Desperto) e de{' '}
+                  <strong>Etiqueta</strong> (Cavaleiro) não some mais depois da
+                  escolha, e a criação de ficha pede a perícia do Caminho da
+                  Perfeição. Em fichas já salvas com Etiqueta, é preciso
+                  escolher o poder de novo para recuperar o bônus.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na criação de ficha, a origem{' '}
+                  <strong>Futura Lenda</strong> oferece também o poder escolhido
+                  com <strong>Alma Livre</strong>, e não só os da classe
+                  inicial.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder da própria origem e o poder
+                  de classe concedido por ela não aparecem mais como{' '}
+                  <strong>&quot;Vindo de: Origem não identificada&quot;</strong>
+                  .
+                </li>
+                <li>
+                  <strong>Correção:</strong> No gerador de ameaças, os cartões
+                  de <strong>papel</strong> do passo Classificação não aparecem
+                  mais cortados.
+                </li>
+              </ul>
+
               <h3>4.34</h3>
 
               <Alert

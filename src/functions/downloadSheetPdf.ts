@@ -1,10 +1,13 @@
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Equipment from '@/interfaces/Equipment';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { getSpellDisplayName } from './spells/spellDisplayName';
+import { getEngenhocaAparatos } from './spells/engenhoca';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import {
@@ -17,6 +20,10 @@ import {
 } from './proficiencies';
 import { collectSheetPowers } from './powers/collectSheetPowers';
 import { getDevotionLabel } from './powers/deityNames';
+import {
+  getFundamentalistaSummary,
+  getSheetFundamentalista,
+} from './powers/fundamentalista';
 import { serializeJournalForPdf } from './playerJournal';
 import { getPowerDisplayName, getPowerDisplayText } from './powers/powerText';
 import {
@@ -112,7 +119,7 @@ const getDefenseAttribute = (sheet: CharacterSheet): Atributo => {
     : undefined;
   const defaultAttr =
     sheet.classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
-  if (wornArmor?.isHeavyArmor) return defaultAttr;
+  if (wornArmor && isHeavyArmor(wornArmor)) return defaultAttr;
   if (sheet.useDefenseAttribute === false) return defaultAttr;
   return sheet.customDefenseAttribute || defaultAttr;
 };
@@ -143,7 +150,12 @@ const buildExtraSections = (
   // Diário do Jogador. As anotações livres só saem quando NÃO há diário: uma
   // ficha migrada mantém `sheet.notes` em disco como rede de segurança, e
   // imprimir os dois duplicaria o mesmo texto no PDF.
-  const journalText = serializeJournalForPdf(sheet.journal, sheet.nome);
+  // No modo de texto simples é o contrário: quem a pessoa está usando são as
+  // anotações, e o diário guardado não entra.
+  const journalText =
+    sheet.journalMode === 'simple'
+      ? ''
+      : serializeJournalForPdf(sheet.journal, sheet.nome);
   if (journalText) {
     push('Diário do Jogador', journalText);
   } else {
@@ -169,6 +181,9 @@ const buildExtraSections = (
     );
   }
 
+  // `push` ignora corpo vazio: ficha não fundamentalista não ganha seção.
+  push('Dogma fundamentalista', getFundamentalistaSummary(sheet));
+
   if (sheet.age) {
     const years = sheet.age.years ? `, ${sheet.age.years} anos` : '';
     const complications = sheet.age.complications
@@ -189,24 +204,16 @@ const buildExtraSections = (
     );
   }
 
-  const companionLines = [
-    ...(sheet.companions ?? []).map(
-      (companion) =>
-        `- ${companion.name || 'Melhor Amigo'} (${companion.companionType}, ${
-          companion.size
-        }) — PV ${companion.pv}`
-    ),
-    ...(sheet.animalCompanions ?? []).map(
-      (companion) =>
-        `- ${companion.name}${
-          companion.species ? ` (${companion.species})` : ''
-        } — ${companion.archetype}`
-    ),
-  ];
+  const companionLines = (sheet.companions ?? []).map(
+    (companion) =>
+      `- ${companion.name || 'Melhor Amigo'} (${companion.companionType}, ${
+        companion.size
+      }) — PV ${companion.pv}`
+  );
   push('Companheiros', companionLines.join('\n'));
 
-  // Parceiros (JdA cap. 6). Tipos crus, como o companheiro acima: o PDF não
-  // depende do catálogo premium para rotular.
+  // Parceiros (JdA cap. 6), incluindo o Companheiro Animal. Tipos crus: o PDF
+  // não depende do catálogo premium para rotular.
   const partnerLines = (sheet.partners ?? []).map((partner) => {
     const components = partner.snapshot?.components?.length
       ? partner.snapshot.components
@@ -219,9 +226,14 @@ const buildExtraSections = (
     const name =
       partner.customName?.trim() ||
       partner.snapshot?.name ||
+      partner.grant?.power ||
       types ||
       'Parceiro';
-    const details = [types !== name ? types : '', tier ?? '']
+    const details = [
+      partner.species?.trim() ?? '',
+      types !== name ? types : '',
+      tier ?? '',
+    ]
       .filter(Boolean)
       .join(', ');
     return `- ${name}${details ? ` (${details})` : ''}${
@@ -268,8 +280,23 @@ const generateSpellText = (spell: Spell): string => {
     spell.execucao,
     spell.alcance,
     spell.duracao,
-    `${getSpellPmCost(spell)}PM`,
+    // Engenhoca não paga o custo base da magia na ativação.
+    spell.engenhoca ? 'ativação por Ofício' : `${getSpellPmCost(spell)}PM`,
   ].join(', ');
+  if (spell.engenhoca) {
+    const aparatos = getEngenhocaAparatos(spell.engenhoca).map((a) => a.nome);
+    const details = [
+      `simula ${spell.nome}`,
+      spell.engenhoca.forma,
+      aparatos.length ? `aparatos: ${aparatos.join(', ')}` : undefined,
+      spell.engenhoca.enguicada ? 'enguiçada' : undefined,
+    ]
+      .filter(Boolean)
+      .join('; ');
+    return `- [Engenhoca] ${getSpellDisplayName(
+      spell
+    )} (${details}) (${meta}): ${spell.description}`;
+  }
   return `- ${spell.nome} (${meta}): ${spell.description}`;
 };
 
@@ -351,7 +378,14 @@ export const fillSheetPdf: (
   // impresso), mas o campo próprio existe e ficava vazio.
   levelField.setText(sheet.nivel.toString());
   // Devoção dupla cabe no mesmo campo de texto do template: "A / B".
-  deytiField.setText(sanitizeForWinAnsi(getDevotionLabel(sheet, ' / ')));
+  const devotionLabel = getDevotionLabel(sheet, ' / ');
+  deytiField.setText(
+    sanitizeForWinAnsi(
+      devotionLabel && getSheetFundamentalista(sheet)
+        ? `${devotionLabel} (fundamentalista)`
+        : devotionLabel
+    )
+  );
   // Atributos BASE de propósito — aqui e nas perícias/armas mais abaixo. Mesma
   // política já adotada para o bônus de dano de efeito ativo (ver
   // `weaponSkill.ts`): estado transitório de combate (efeito ativo, condição,
@@ -502,7 +536,7 @@ export const fillSheetPdf: (
       `${defense.defenseBonus >= 0 ? '+' : ''}${defense.defenseBonus}`
     );
     penaltyField.setText(
-      `${defense.armorPenalty >= 0 ? '+' : ''}${defense.armorPenalty}`
+      defense.armorPenalty > 0 ? `-${defense.armorPenalty}` : '0'
     );
   });
 
@@ -594,8 +628,11 @@ export const fillSheetPdf: (
       sheet.mainHandItemId,
       sheet.offHandItemId
     ) + (sheet.extraArmorPenalty ?? 0);
-  armorPenaltyField.setText(`${activeArmorPenalty}`);
-  if (resolvedWornArmor?.isHeavyArmor) heavyArmorField.check();
+  armorPenaltyField.setText(
+    activeArmorPenalty > 0 ? `-${activeArmorPenalty}` : '0'
+  );
+  if (resolvedWornArmor && isHeavyArmor(resolvedWornArmor))
+    heavyArmorField.check();
   else heavyArmorField.uncheck();
 
   // Modificadores de tamanho (Pequeno/Grande…)

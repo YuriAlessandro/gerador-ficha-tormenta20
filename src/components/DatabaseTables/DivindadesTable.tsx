@@ -30,6 +30,8 @@ import { dataRegistry } from '../../data/registry';
 import { useContentSupplements } from '../../hooks/useContentSupplements';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
 import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 
 interface IProps {
@@ -62,6 +64,16 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
       variant='minimal'
     />
   );
+  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
+  const rowActions = (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <AddToGrimoireButton
+        itemId={encyclopediaIds.deity(divindade.name)}
+        itemName={divindade.name}
+      />
+      {shareButton}
+    </Box>
+  );
 
   return (
     <>
@@ -72,7 +84,7 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
           open={open}
           onToggle={() => setOpen(!open)}
           tags={statusChip}
-          action={shareButton}
+          action={rowActions}
         />
       ) : (
         <TableRow
@@ -120,7 +132,7 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
                 </Typography>
                 {statusChip}
               </Box>
-              {shareButton}
+              {rowActions}
             </Box>
           </TableCell>
           <TableCell />
@@ -144,6 +156,13 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
               >
                 {divindade.name}
               </Typography>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.deity(divindade.name)}
+                  itemName={divindade.name}
+                  variant='labeled'
+                />
+              </Box>
 
               <Divider sx={{ my: 2 }} />
 
@@ -173,6 +192,13 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
                   >
                     {power.name}
                   </Typography>
+                  <AddToGrimoireButton
+                    itemId={encyclopediaIds.deityPower(
+                      divindade.name,
+                      power.name
+                    )}
+                    itemName={power.name}
+                  />
                   <Typography
                     variant='body1'
                     sx={{

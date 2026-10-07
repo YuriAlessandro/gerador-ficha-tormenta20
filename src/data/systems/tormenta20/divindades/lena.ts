@@ -1,8 +1,11 @@
-import Divindade from '../../../../interfaces/Divindade';
+import Divindade, {
+  PREFERRED_WEAPON_NONE,
+} from '../../../../interfaces/Divindade';
 import GRANTED_POWERS from '../powers/grantedPowers';
 
 const LENA: Divindade = {
   name: 'Lena',
+  preferredWeapon: PREFERRED_WEAPON_NONE,
   poderes: [
     GRANTED_POWERS.ATAQUE_PIEDOSO,
     GRANTED_POWERS.AURA_RESTAURADORA,

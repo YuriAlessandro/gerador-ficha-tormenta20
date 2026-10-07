@@ -1,0 +1,455 @@
+/**
+ * Fundamentalista (Deuses de Arton, p. 11–12): +1 poder concedido, um dogma
+ * mais rígido do deus e uso apenas da arma preferida.
+ *
+ * O app INFORMA a regra, não a aplica: nada aqui bloqueia armas ou zera PM.
+ *
+ * Módulo quase-folha de propósito: `general.ts` o importa, então ele não pode
+ * depender de nada que importe `general.ts` de volta. Por isso a chave do deus
+ * é resolvida aqui, e não com `pantheonKeyForDeity` (que puxa `multiclass`).
+ */
+import CharacterSheet from '../../interfaces/CharacterSheet';
+import { ClassDescription } from '../../interfaces/Class';
+import {
+  CharacterReligion,
+  DogmaFundamentalista,
+} from '../../interfaces/Character';
+import Equipment from '../../interfaces/Equipment';
+import SelectOptions from '../../interfaces/SelectedOptions';
+import {
+  allDivindadeNames,
+  divindadeDisplayNames,
+  DivindadeNames,
+  PREFERRED_WEAPON_ANY,
+  PREFERRED_WEAPON_NONE,
+} from '../../interfaces/Divindade';
+import { DivindadeEnum } from '../../data/systems/tormenta20/divindades';
+import {
+  FUNDAMENTALISTAS,
+  FundamentalistaDeus,
+} from '../../data/systems/tormenta20/deuses-de-arton/fundamentalistas';
+import { SupplementId } from '../../types/supplement.types';
+import { normalizeDeityName } from '../deityName';
+import { getClassFamilyName } from '../classFamily';
+
+export type ClassIdentity = Pick<
+  ClassDescription,
+  'name' | 'isVariant' | 'baseClassName'
+>;
+
+const DOGMA_ORDER: DogmaFundamentalista[] = ['sacerdote', 'druida', 'paladino'];
+
+export const DOGMA_LABELS: Record<DogmaFundamentalista, string> = {
+  sacerdote: 'Sacerdote',
+  druida: 'Druida',
+  paladino: 'Paladino',
+};
+
+export const FUNDAMENTALIST_VIOLATION_TEXT =
+  'Violar o dogma: perde PM e habilidades de classe divina até o dia seguinte. Reincidir na mesma aventura exige penitência.';
+
+/** Família da classe divina → dogma que ela segue. */
+const DOGMA_BY_CLASS_FAMILY: Partial<Record<string, DogmaFundamentalista>> = {
+  Clérigo: 'sacerdote',
+  Frade: 'sacerdote',
+  Druida: 'druida',
+  Paladino: 'paladino',
+};
+
+/**
+ * Nome normalizado → chave do enum. `normalizeDeityName` tira hífens e
+ * espaços, então a chave (`TANNATOH`) e o nome (`Tanna-Toh`) casam no mesmo
+ * registro — o formulário usa a chave, a ficha usa o nome.
+ */
+const KEY_BY_NORMALIZED_NAME = new Map<string, DivindadeNames>(
+  allDivindadeNames.map((key): [string, DivindadeNames] => [
+    normalizeDeityName(divindadeDisplayNames[key]),
+    key,
+  ])
+);
+
+export function getFundamentalistDeityKey(
+  deityName?: string
+): DivindadeNames | undefined {
+  if (!deityName) return undefined;
+  return KEY_BY_NORMALIZED_NAME.get(normalizeDeityName(deityName));
+}
+
+function getEntry(deityName?: string): FundamentalistaDeus | undefined {
+  const key = getFundamentalistDeityKey(deityName);
+  return key ? FUNDAMENTALISTAS[key] : undefined;
+}
+
+/** Só os 20 deuses maiores têm dogma; deus menor e homebrew não. */
+export function isFundamentalistEligibleDeity(deityName?: string): boolean {
+  return !!getEntry(deityName);
+}
+
+export function isDivineClass(classe: ClassIdentity): boolean {
+  return !!DOGMA_BY_CLASS_FAMILY[getClassFamilyName(classe)];
+}
+
+export function getAvailableDogmas(deityName: string): DogmaFundamentalista[] {
+  const entry = getEntry(deityName);
+  if (!entry) return [];
+  return DOGMA_ORDER.filter((dogma) => !!entry[dogma]);
+}
+
+/**
+ * Classe divina segue o próprio dogma; outra classe segue `escolha` (p. 12).
+ * Se o deus não tiver o dogma pedido (ex.: druida de Khalmyr via Devoções
+ * Abertas), cai para o de sacerdote, que todo deus maior tem.
+ */
+export function resolveDogmaForClass(
+  classe: ClassIdentity,
+  deityName: string,
+  escolha?: DogmaFundamentalista
+): DogmaFundamentalista {
+  const wanted = DOGMA_BY_CLASS_FAMILY[getClassFamilyName(classe)] ?? escolha;
+  return wanted && getAvailableDogmas(deityName).includes(wanted)
+    ? wanted
+    : 'sacerdote';
+}
+
+/**
+ * Classe divina cujo deus não tem o dogma dela (ex.: druida de Khalmyr via
+ * Devoções Abertas). O livro não trata o caso; usar o de sacerdote é decisão
+ * do app, e o aviso diz isso ao usuário.
+ */
+export function getDogmaFallbackNotice(
+  classe: ClassIdentity,
+  deityName: string
+): string | undefined {
+  const own = DOGMA_BY_CLASS_FAMILY[getClassFamilyName(classe)];
+  const key = getFundamentalistDeityKey(deityName);
+  if (!own || !key || getAvailableDogmas(deityName).includes(own)) {
+    return undefined;
+  }
+  return `${divindadeDisplayNames[key]} não tem dogma de ${DOGMA_LABELS[
+    own
+  ].toLowerCase()}; usando o de sacerdote (adaptação do Fichas de Nimb, não é regra do livro).`;
+}
+
+export interface DogmaInfo {
+  texto: string;
+  paginas: number[];
+  /**
+   * O livro diz que o dogma é "como o do sacerdote": `igual` quando é só isso
+   * (Khalmyr), `complemento` quando acrescenta algo (Azgher). Sem herança,
+   * ausente. Existe para a tela explicar por que o texto não muda ao trocar
+   * de dogma.
+   */
+  heranca?: 'igual' | 'complemento';
+}
+
+export function getDogma(
+  deityName: string,
+  dogma: DogmaFundamentalista
+): DogmaInfo | undefined {
+  const entry = getEntry(deityName);
+  const own = entry?.[dogma];
+  if (!entry || !own) return undefined;
+  if (!own.herdaSacerdote) {
+    return { texto: own.texto ?? '', paginas: [own.pagina] };
+  }
+  const base = entry.sacerdote.texto ?? '';
+  return {
+    texto: own.texto ? `${base} ${own.texto}` : base,
+    paginas: [entry.sacerdote.pagina, own.pagina],
+    heranca: own.texto ? 'complemento' : 'igual',
+  };
+}
+
+export function getDogmaHeritageNote(info?: DogmaInfo): string | undefined {
+  if (info?.heranca === 'igual') return 'Mesmo dogma do sacerdote.';
+  if (info?.heranca === 'complemento') return 'Dogma do sacerdote, mais:';
+  return undefined;
+}
+
+export function formatDogmaPages(paginas: number[]): string {
+  return `p. ${paginas.join(' e ')}`;
+}
+
+/**
+ * Restrição de raça do livro (Valkaria: só humanos podem ser paladinos
+ * fundamentalistas). É regra, não avaliação do app: a marca não pode ser
+ * ligada nesse caso — e, sem marca, não há o poder concedido adicional.
+ */
+export function isFundamentalistBlocked(
+  deityName: string,
+  dogma: DogmaFundamentalista,
+  raceName?: string
+): boolean {
+  const somenteRaca = getEntry(deityName)?.paladinoSomenteRaca;
+  return (
+    dogma === 'paladino' &&
+    !!somenteRaca &&
+    !!raceName &&
+    raceName !== somenteRaca
+  );
+}
+
+export function getFundamentalistNotices(
+  deityName: string,
+  dogma: DogmaFundamentalista,
+  raceName?: string
+): string[] {
+  const key = getFundamentalistDeityKey(deityName);
+  if (!key) return [];
+  const entry = FUNDAMENTALISTAS[key];
+  const notices: string[] = [];
+  if (entry.avisoNpc?.includes(dogma)) {
+    // Avaliação EDITORIAL do app: o livro só diz que "alguns dogmas" servem
+    // melhor a NPCs, sem listar quais. O texto precisa deixar isso claro.
+    notices.push(
+      'O livro avisa que alguns dogmas servem melhor a NPCs, sem dizer quais. Na avaliação do Fichas de Nimb (não é regra do livro), este é um deles.'
+    );
+  }
+  if (
+    dogma === 'paladino' &&
+    entry.paladinoSomenteRaca &&
+    raceName &&
+    raceName !== entry.paladinoSomenteRaca
+  ) {
+    notices.push(
+      `Apenas ${entry.paladinoSomenteRaca.toLowerCase()}s podem ser paladinos fundamentalistas de ${
+        divindadeDisplayNames[key]
+      }.`
+    );
+  }
+  return notices;
+}
+
+/**
+ * Dogma da ficha. A combinação com devoção dupla é inválida (o normalizer a
+ * descarta); aqui ela simplesmente não conta.
+ *
+ * O dogma gravado é revalidado contra a classe ATUAL: trocar de classe pelo
+ * drawer não toca em `devoto`, e um Guerreiro com dogma de paladino que vira
+ * Clérigo passa a seguir o de sacerdote (classe divina não escolhe).
+ */
+export function getSheetFundamentalista(
+  sheet: CharacterSheet
+): DogmaFundamentalista | undefined {
+  const devoto = sheet?.devoto;
+  if (!devoto?.fundamentalista || devoto.divindadeSecundaria) return undefined;
+  const { dogma } = devoto.fundamentalista;
+  if (!sheet.classe || !isFundamentalistEligibleDeity(devoto.divindade.name)) {
+    return dogma;
+  }
+  return resolveDogmaForClass(sheet.classe, devoto.divindade.name, dogma);
+}
+
+/**
+ * Quantos poderes concedidos o devoto escolhe. Classe sem valor escolhe 1
+ * (mesmo padrão do assistente e do gerador); `'all'` continua `'all'`.
+ */
+export function getGrantedPowerCount(
+  qtdPoderesConcedidos: string | number | undefined,
+  fundamentalista: boolean
+): number | 'all' {
+  if (qtdPoderesConcedidos === 'all') return 'all';
+  const base =
+    typeof qtdPoderesConcedidos === 'number' ? qtdPoderesConcedidos : 1;
+  return fundamentalista ? base + 1 : base;
+}
+
+/** Resolvida pelo NOME: o `devoto.divindade` gravado não tem o campo. */
+export function getPreferredWeapon(deityName?: string): string | undefined {
+  const key = getFundamentalistDeityKey(deityName);
+  return key ? DivindadeEnum[key].preferredWeapon : undefined;
+}
+
+export function getPreferredWeaponRule(deityName: string): string | undefined {
+  const preferred = getPreferredWeapon(deityName);
+  if (!preferred) return undefined;
+  if (preferred === PREFERRED_WEAPON_ANY) {
+    return 'Qualquer arma serve: Nimb não tem uma só arma preferida.';
+  }
+  if (preferred === PREFERRED_WEAPON_NONE) {
+    return `${deityName} não tem arma preferida: usar qualquer arma viola o dogma.`;
+  }
+  return `Usa apenas a arma preferida (${preferred}); outra arma viola o dogma.`;
+}
+
+// O gerador de itens anexa as melhorias ao nome: "Espada Longa (Certeira)".
+// No catálogo só munição tem parênteses, e munição não conta como arma aqui.
+const normalizeWeaponName = (name: string): string =>
+  name
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim()
+    .toLowerCase();
+
+/**
+ * Compara o `nome` de CATÁLOGO: melhorias, material e encantos vivem em
+ * `modifications`/`enchantments`, e o nome dado pelo jogador em
+ * `customDisplayName`. A exceção é o gerador de itens, que anexa as melhorias
+ * entre parênteses — `normalizeWeaponName` as descarta. Comparação exata: armas
+ * de nome parecido (Adaga oposta, Maça-estrela) são outras armas.
+ */
+export function isPreferredWeapon(
+  weapon: Pick<Equipment, 'nome'>,
+  deityName?: string
+): boolean {
+  const preferred = getPreferredWeapon(deityName);
+  // Sem dado não há o que avisar.
+  if (!preferred || preferred === PREFERRED_WEAPON_ANY) return true;
+  if (preferred === PREFERRED_WEAPON_NONE) return false;
+  return normalizeWeaponName(weapon.nome) === normalizeWeaponName(preferred);
+}
+
+/**
+ * Armas que a raça concede (chifres, mordida…). Cobre fichas anteriores a
+ * 29/08/2026, quando as armas naturais raciais ainda não tinham a tag
+ * `natural` — o item da mochila é gravado inteiro e nada repõe a tag.
+ */
+const getRaceWeaponNames = (sheet: CharacterSheet): Set<string> =>
+  new Set(
+    (sheet.raca?.abilities ?? [])
+      .flatMap((ability) => ability.sheetActions ?? [])
+      .flatMap((sheetAction) =>
+        sheetAction.action.type === 'addEquipment'
+          ? (sheetAction.action.equipment.Arma ?? []).map((w) => w.nome)
+          : []
+      )
+  );
+
+/** Armas naturais, ataque desarmado e munição não contam como "usar arma". */
+const isWieldedWeapon = (sheet: CharacterSheet, item: Equipment): boolean =>
+  item.group === 'Arma' &&
+  !item.isAmmo &&
+  !item.weaponTags?.includes('natural') &&
+  item.nome !== 'Ataque Desarmado' &&
+  !getRaceWeaponNames(sheet).has(item.nome);
+
+export function getPreferredWeaponWarning(
+  sheet: CharacterSheet,
+  item: Equipment
+): string | undefined {
+  if (!getSheetFundamentalista(sheet) || !isWieldedWeapon(sheet, item)) {
+    return undefined;
+  }
+  const deityName = sheet.devoto?.divindade.name;
+  if (!deityName || isPreferredWeapon(item, deityName)) return undefined;
+  const rule = getPreferredWeaponRule(deityName);
+  return `Fundamentalista: ${rule} Variações ficam a critério do mestre.`;
+}
+
+/**
+ * A escolha do formulário vale? Confere tudo de novo porque o estado do
+ * formulário pode estar velho (interruptor ligado e depois deus trocado, ou
+ * suplemento desativado).
+ */
+export function resolveFundamentalistChoice(
+  options: Pick<
+    SelectOptions,
+    'fundamentalista' | 'dogmaFundamentalista' | 'dualDevotion' | 'supplements'
+  > &
+    Partial<Pick<SelectOptions, 'raca'>>,
+  classe: ClassIdentity,
+  deityName?: string
+): { dogma: DogmaFundamentalista } | undefined {
+  if (!options.fundamentalista || options.dualDevotion) return undefined;
+  if (!options.supplements?.includes(SupplementId.TORMENTA20_DEUSES_ARTON)) {
+    return undefined;
+  }
+  if (!deityName || !isFundamentalistEligibleDeity(deityName)) return undefined;
+  const dogma = resolveDogmaForClass(
+    classe,
+    deityName,
+    options.dogmaFundamentalista
+  );
+  if (isFundamentalistBlocked(deityName, dogma, options.raca)) return undefined;
+  return { dogma };
+}
+
+/** Texto do dogma para o PDF; `''` quando a ficha não é fundamentalista. */
+export function getFundamentalistaSummary(sheet: CharacterSheet): string {
+  const dogma = getSheetFundamentalista(sheet);
+  const deityName = sheet.devoto?.divindade.name;
+  if (!dogma || !deityName) return '';
+  const info = getDogma(deityName, dogma);
+  if (!info) return '';
+  return [
+    `${deityName}, dogma de ${DOGMA_LABELS[dogma].toLowerCase()}: ${[
+      getDogmaHeritageNote(info),
+      info.texto,
+    ]
+      .filter(Boolean)
+      .join(' ')}`,
+    getPreferredWeaponRule(deityName),
+    FUNDAMENTALIST_VIOLATION_TEXT,
+    `Deuses de Arton, ${formatDogmaPages(info.paginas)}.`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+export const PENDING_EXTRA_POWER_TEXT =
+  'Um dos poderes concedidos era o adicional do fundamentalismo. Remova um em Editar poderes.';
+
+/**
+ * Liga (com o dogma) ou desliga o fundamentalismo. Desligar uma ficha que era
+ * fundamentalista grava o lembrete do poder adicional; religar o apaga.
+ */
+export function setSheetFundamentalista(
+  devoto: CharacterReligion,
+  dogma: DogmaFundamentalista | undefined
+): CharacterReligion {
+  const next = { ...devoto };
+  delete next.fundamentalista;
+  delete next.poderAdicionalPendente;
+  if (dogma) return { ...next, fundamentalista: { dogma } };
+  return devoto.fundamentalista
+    ? { ...next, poderAdicionalPendente: true }
+    : next;
+}
+
+export function hasPendingExtraPower(sheet: CharacterSheet): boolean {
+  return (
+    !!sheet?.devoto?.poderAdicionalPendente && !getSheetFundamentalista(sheet)
+  );
+}
+
+/** "Manter assim": o jogador (ou o mestre) decidiu ficar com o poder. */
+export function dismissPendingExtraPower(
+  devoto: CharacterReligion
+): CharacterReligion {
+  const next = { ...devoto };
+  delete next.poderAdicionalPendente;
+  return next;
+}
+
+/**
+ * Grava os poderes concedidos editados. Remover algum apaga o lembrete: o
+ * jogador já tirou um (não dá para saber se era o adicional, e nem precisa).
+ */
+export function withEditedGrantedPowers(
+  devoto: CharacterReligion,
+  poderes: CharacterReligion['poderes']
+): CharacterReligion {
+  const next = { ...devoto, poderes };
+  if (poderes.length < devoto.poderes.length) {
+    delete next.poderAdicionalPendente;
+  }
+  return next;
+}
+
+/** Título do grupo de poderes concedidos no editor de poderes. */
+export function getDeityPowerGroupTitle(
+  sheet: CharacterSheet,
+  selectedCount: number,
+  devotionLabel: string
+): string {
+  const base = `Concedidos por ${devotionLabel}`;
+  if (hasPendingExtraPower(sheet)) {
+    return `${base} (um era o adicional do fundamentalismo)`;
+  }
+  if (!getSheetFundamentalista(sheet)) return base;
+  const count = getGrantedPowerCount(sheet.classe.qtdPoderesConcedidos, true);
+  return typeof count === 'number'
+    ? `${base} (fundamentalista: ${selectedCount} de ${count})`
+    : `${base} (fundamentalista)`;
+}

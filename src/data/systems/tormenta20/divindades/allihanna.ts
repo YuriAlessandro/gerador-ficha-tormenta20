@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const ALLIHANNA: Divindade = {
   name: 'Allihanna',
+  preferredWeapon: 'Bordão',
   poderes: [
     GRANTED_POWERS.COMPREENDER_OS_ERMOS,
     GRANTED_POWERS.DEDO_VERDE,

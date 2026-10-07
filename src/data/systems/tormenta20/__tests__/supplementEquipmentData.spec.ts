@@ -1,7 +1,12 @@
 import { dataRegistry } from '../../../registry';
 import { SupplementId } from '../../../../types/supplement.types';
-import Equipment from '../../../../interfaces/Equipment';
+import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { BonusConditionClause } from '../../../../interfaces/CharacterSheet';
+import Bag from '../../../../interfaces/Bag';
+import Skill from '../../../../interfaces/Skills';
+import { isHeavyArmor } from '../equipamentos';
+import { recalculateSheet } from '../../../../functions/recalculateSheet';
+import { createMockCharacterSheet } from '../../../../__mocks__/characterSheet';
 
 /**
  * Invariantes do DADO de equipamento — não de item específico.
@@ -33,7 +38,10 @@ const allItems: Equipment[] = [
   ...catalog.vehicles,
 ];
 
-const defenseItems: Equipment[] = [...catalog.armors, ...catalog.shields];
+const defenseItems: DefenseEquipment[] = [
+  ...catalog.armors,
+  ...catalog.shields,
+];
 
 const clausesOf = (item: Equipment): BonusConditionClause[] =>
   (item.sheetBonuses ?? []).flatMap((b) => b.condition?.clauses ?? []);
@@ -166,5 +174,56 @@ describe('dados de equipamento', () => {
         (item) => typeof item.preco === 'number' && item.preco > 0
       )
     ).toBe(true);
+  });
+
+  it('armaduras pesadas do core têm isHeavyArmor: true', () => {
+    const heavyNames = [
+      'Brunea',
+      'Cota de Malha',
+      'Loriga Segmentada',
+      'Meia Armadura',
+      'Armadura Completa',
+    ];
+    const coreHeavy = catalog.armors.filter(
+      (a) => heavyNames.includes(a.nome) && !a.supplementId
+    );
+    expect(coreHeavy).toHaveLength(5);
+    expect(coreHeavy.every((a) => a.isHeavyArmor === true)).toBe(true);
+  });
+
+  it('toda armadura pesada do catálogo é pesada pelo nome, mesmo salva com isHeavyArmor: false', () => {
+    // Fichas salvas antes do fix podem ter `isHeavyArmor: false` gravado pelo
+    // editor de item — inclusive em armaduras de suplemento.
+    const heavy = catalog.armors.filter((a) => a.isHeavyArmor === true);
+    expect(heavy.some((a) => a.supplementId)).toBe(true);
+    const notRecognized = heavy
+      .filter((a) => !isHeavyArmor({ ...a, isHeavyArmor: false }))
+      .map((a) => a.nome);
+    expect(notRecognized).toEqual([]);
+  });
+
+  it('armorPenalty de todas as armaduras e escudos é >= 0 (magnitude positiva)', () => {
+    const negativePenalties = defenseItems
+      .filter((item) => item.armorPenalty < 0)
+      .map((item) => `${item.nome} (${item.armorPenalty})`);
+    expect(negativePenalties).toEqual([]);
+  });
+
+  it('vestir Armadura de chumbo aplica -5 em Acrobacia via recalculateSheet', () => {
+    const lead = defenseItems.find((i) => i.nome === 'Armadura de chumbo');
+    expect(lead).toBeDefined();
+    expect(lead!.armorPenalty).toBe(5);
+
+    const sheet = createMockCharacterSheet();
+    const worn = { ...lead!, id: 'lead-test-id' };
+    sheet.bag = new Bag({ Armadura: [worn] });
+    sheet.wornArmorId = 'lead-test-id';
+
+    const recalculated = recalculateSheet(sheet);
+    const acrobacia = recalculated.completeSkills?.find(
+      (s) => s.name === Skill.ACROBACIA
+    );
+    expect(acrobacia).toBeDefined();
+    expect(acrobacia!.others).toBe(-5);
   });
 });

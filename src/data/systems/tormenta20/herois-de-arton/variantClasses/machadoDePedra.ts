@@ -28,7 +28,11 @@ const MACHADO_DE_PEDRA: VariantClassOverrides = {
       Skill.VONTADE,
     ],
   },
-  proficiencias: [PROFICIENCIAS.ESCUDOS],
+  proficiencias: [
+    PROFICIENCIAS.SIMPLES,
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.ESCUDOS,
+  ],
   abilities: [
     furia,
     {

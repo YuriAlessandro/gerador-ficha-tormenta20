@@ -296,6 +296,23 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       completeSkills: finalSkills,
     };
 
+    // Ofício desmarcado some da tabela; precisa sair também de `skills`, senão
+    // o recálculo (rede de segurança de Ofícios em recalculateSheet) o recria
+    // treinado ao reabrir a ficha.
+    const removedOficios = sheet.completeSkills
+      .filter(
+        (s) =>
+          isOficioSkill(s.name) &&
+          !editedSkills.some((edited) => edited.name === s.name)
+      )
+      .map((s) => s.name);
+
+    if (removedOficios.length > 0) {
+      updates.skills = sheet.skills.filter(
+        (name) => !removedOficios.includes(name)
+      );
+    }
+
     if (newSteps.length > 0) {
       updates.steps = [...sheet.steps, ...newSteps];
     }

@@ -4,6 +4,31 @@ import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
+/**
+ * Tipo do autômato, escolhido ao receber o poder. O parceiro (premium) lê a
+ * escolha do histórico (`automatoTipo`) e usa o tipo correspondente.
+ */
+export const AUTOMATO_OPTION_KEY = 'automatoTipo';
+
+const AUTOMATO_TIPOS = [
+  {
+    name: 'Ajudante',
+    text: 'Iniciante: +2 em duas perícias (exceto Luta e Pontaria).',
+  },
+  { name: 'Assassino', text: 'Iniciante: Ataque Furtivo +1d6.' },
+  {
+    name: 'Atirador',
+    text: 'Iniciante: uma vez por rodada, +1d6 em uma rolagem de dano à distância.',
+  },
+  { name: 'Combatente', text: 'Iniciante: +2 em testes de ataque.' },
+  { name: 'Guardião', text: 'Iniciante: +2 na Defesa.' },
+  {
+    name: 'Montaria',
+    text: 'Iniciante: montado, deslocamento 12m e uma ação de movimento extra por turno (apenas para se deslocar).',
+  },
+  { name: 'Vigilante', text: 'Iniciante: +2 em Percepção e Iniciativa.' },
+];
+
 const INVENTOR: ClassDescription = {
   name: 'Inventor',
   pv: 12,
@@ -143,6 +168,16 @@ const INVENTOR: ClassDescription = {
       name: 'Autômato',
       text: 'Você fabrica um autômato, um construto que obedece a seus comandos. Ele é um parceiro iniciante de um tipo a sua escolha entre ajudante, assassino, atirador, combatente, guardião, montaria ou vigilante. No 7º nível, ele muda para veterano e, no 15º nível, para mestre. Se o autômato for destruído, você pode fabricar um novo com uma semana de trabalho e T$ 100.',
       requirements: [[{ type: RequirementType.PODER, name: 'Engenhoqueiro' }]],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Autômato' },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: AUTOMATO_OPTION_KEY,
+            options: AUTOMATO_TIPOS,
+          },
+        },
+      ],
     },
     {
       name: 'Autômato Prototipado',

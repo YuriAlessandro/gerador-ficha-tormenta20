@@ -20,6 +20,7 @@ import Skill from '../../../interfaces/Skills';
 import { DiceRoll } from '../../../interfaces/DiceRoll';
 import { ItemE, ItemMod } from '../../../interfaces/Rewards';
 import { dataRegistry } from '../../../data/registry';
+import { SupplementId } from '../../../types/supplement.types';
 import {
   MaterialContext,
   toAppliedEnchantment,
@@ -29,6 +30,95 @@ import {
 import { isDefenseGroup } from './equipmentCatalog';
 import { formatDamageTypes } from './damageTypeSelect';
 import { getManualStatFields } from '../../../functions/manualStats';
+
+/**
+ * Reidrata a melhoria salva (que guarda só o nome) com o dado completo do
+ * catálogo: sem `prerequisite` o editor deixava remover Ajustada mantendo Sob
+ * medida, e sem `double` o custo saía errado. O snapshot gravado no item vence
+ * o catálogo, como no pipeline de efeitos.
+ */
+export function rehydrateModification(
+  applied: AppliedModification,
+  item: Equipment
+): ItemMod {
+  const context = item.group === 'Arma' ? 'weapon' : 'defense';
+  const catalog = dataRegistry.getImprovementByName(applied.mod, context);
+  const mod: ItemMod = catalog
+    ? { ...catalog }
+    : { min: 0, max: 0, mod: applied.mod };
+  if (applied.effect) mod.effect = applied.effect;
+  if (applied.description) mod.description = applied.description;
+  if (applied.supplementId) mod.supplementId = applied.supplementId;
+  return mod;
+}
+
+/**
+ * A entrada de catálogo do item (núcleo + todos os suplementos), casando por
+ * nome dentro do mesmo grupo. Item custom/homebrew, ou renomeado no `nome`,
+ * não tem entrada — e aí não há fonte de verdade além dos snapshots `base*`.
+ */
+export function findCatalogItem(item: Equipment): Equipment | undefined {
+  if (item.isCustom) return undefined;
+  const equipment = dataRegistry.getEquipmentBySupplements(
+    Object.values(SupplementId)
+  );
+  let pool: Equipment[] = [];
+  if (item.group === 'Arma') pool = equipment.weapons;
+  else if (item.group === 'Armadura') pool = equipment.armors;
+  else if (item.group === 'Escudo') pool = equipment.shields;
+  const matches = pool.filter((entry) => entry.nome === item.nome);
+  return (
+    matches.find((entry) => entry.supplementId === item.supplementId) ??
+    matches[0]
+  );
+}
+
+/**
+ * O item com as estatísticas — correntes E snapshots `base*` — de volta aos
+ * valores do catálogo. É o que o botão "Resetar" grava.
+ *
+ * Não basta voltar aos `base*`: eles são capturados na primeira passagem do
+ * pipeline de aprimoramentos, então uma edição manual feita ANTES da primeira
+ * melhoria vira o "base" (Brunea editada para 9, depois Reforçada: resetar
+ * dava 10). E um item que nunca teve melhoria nem tem `base*` — resetar
+ * reescrevia o próprio valor editado.
+ *
+ * Sem entrada de catálogo, devolve o item intacto (o reset usa os `base*`).
+ * O "-" da Manopla não é um dado: o dano dela fica com o que já está lá, e o
+ * recálculo reescreve o dado desarmado vivo.
+ */
+export function withCatalogStats<T extends Equipment>(
+  item: T,
+  catalog: Equipment | undefined
+): T {
+  if (!catalog) return item;
+  const next: T = { ...item };
+
+  if (item.group === 'Arma') {
+    const atkBonus = catalog.atkBonus ?? 0;
+    next.atkBonus = atkBonus;
+    next.baseAtkBonus = atkBonus;
+    if (catalog.dano && catalog.dano !== '-') {
+      next.dano = catalog.dano;
+      next.baseDano = catalog.dano;
+    }
+    if (catalog.critico && catalog.critico !== '-') {
+      next.critico = catalog.critico;
+      next.baseCritico = catalog.critico;
+    }
+  }
+
+  if (isDefenseGroup(item.group)) {
+    const defenseCatalog = catalog as DefenseEquipment;
+    const defenseNext = next as unknown as DefenseEquipment;
+    defenseNext.defenseBonus = defenseCatalog.defenseBonus;
+    defenseNext.baseDefenseBonus = defenseCatalog.defenseBonus;
+    defenseNext.armorPenalty = defenseCatalog.armorPenalty;
+    defenseNext.baseArmorPenalty = defenseCatalog.armorPenalty;
+  }
+
+  return next;
+}
 
 /**
  * Campos que o jogador pode sobrescrever à mão no editor, congelando o

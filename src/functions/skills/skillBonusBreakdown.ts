@@ -90,7 +90,17 @@ export function getSkillOthersBreakdown(
       bonus.target.type === 'AllAttackBonus' &&
       (skill.name === Skill.LUTA || skill.name === Skill.PONTARIA);
 
-    if (!isSkillTarget && !isAttackTarget) return;
+    // Perícia à escolha (Caminho da Perfeição, Kliren): a escolha mora em
+    // `optionChoices`. Sem `optionKey` não há como saber qual perícia levou o
+    // bônus, e ele fica na parcela genérica.
+    const isPickedSkillTarget =
+      bonus.target.type === 'PickSkill' &&
+      !!bonus.target.optionKey &&
+      (sheet.optionChoices?.[bonus.target.optionKey] ?? [])
+        .slice(0, bonus.target.pick)
+        .includes(skill.name);
+
+    if (!isSkillTarget && !isAttackTarget && !isPickedSkillTarget) return;
 
     const value = calculateBonusValue(sheet, bonus.modifier, bonus.source);
     if (value === 0) return;

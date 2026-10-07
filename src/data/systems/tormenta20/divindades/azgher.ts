@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const AZGUER: Divindade = {
   name: 'Azgher',
+  preferredWeapon: 'Cimitarra',
   poderes: [
     GRANTED_POWERS.ESPADA_SOLAR,
     GRANTED_POWERS.FULGOR_SOLAR,

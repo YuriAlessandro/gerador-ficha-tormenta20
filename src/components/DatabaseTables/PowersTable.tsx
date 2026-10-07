@@ -31,6 +31,8 @@ import { SEO, getPageSEO } from '../SEO';
 import SearchInput from './SearchInput';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { powerItemId } from '../../functions/pocketGrimoire/resolveItems';
 import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
@@ -93,6 +95,13 @@ const Row: React.FC<{
       variant='minimal'
     />
   );
+  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
+  const rowActions = (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <AddToGrimoireButton itemId={powerItemId(power)} itemName={power.name} />
+      {shareButton}
+    </Box>
+  );
 
   return (
     <>
@@ -108,7 +117,7 @@ const Row: React.FC<{
               {supplementChip}
             </>
           }
-          action={shareButton}
+          action={rowActions}
         />
       ) : (
         <TableRow
@@ -152,7 +161,7 @@ const Row: React.FC<{
               {typeChip}
               {supplementChip}
             </Box>
-            {shareButton}
+            {rowActions}
           </TableCell>
           <TableCell />
         </TableRow>
@@ -175,6 +184,13 @@ const Row: React.FC<{
               >
                 {power.name}
               </Typography>
+              <Box sx={{ mb: 2 }}>
+                <AddToGrimoireButton
+                  itemId={powerItemId(power)}
+                  itemName={power.name}
+                  variant='labeled'
+                />
+              </Box>
 
               <Typography
                 variant='body1'

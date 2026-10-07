@@ -1,0 +1,62 @@
+{
+  "formato": "fichas-de-nimb/grimorio-de-bolso",
+  "versao": 1,
+  "exportadoEm": "2026-09-19T12:00:00.000Z",
+  "grimorio": {
+    "nome": "Kaya — Arcanista elfa (nível 5)",
+    "itens": [
+      {
+        "id": "spell:Seta Infalível de Talude",
+        "nome": "Seta Infalível de Talude"
+      },
+      {
+        "id": "spell:Armadura Arcana",
+        "nome": "Armadura Arcana"
+      },
+      {
+        "id": "spell:Adaga Mental",
+        "nome": "Adaga Mental"
+      },
+      {
+        "id": "spell:Sono",
+        "nome": "Sono"
+      },
+      {
+        "id": "spell:Teia",
+        "nome": "Teia"
+      },
+      {
+        "id": "spell:Bola de Fogo",
+        "nome": "Bola de Fogo"
+      },
+      {
+        "id": "spell:Invisibilidade",
+        "nome": "Invisibilidade"
+      },
+      {
+        "id": "class-ability:Arcanista:Magias",
+        "nome": "Magias"
+      },
+      {
+        "id": "class-power:Arcanista:Arcano de Batalha",
+        "nome": "Arcano de Batalha"
+      },
+      {
+        "id": "class-power:Arcanista:Raio Arcano",
+        "nome": "Raio Arcano"
+      },
+      {
+        "id": "power:MAGIA:Magia Acelerada",
+        "nome": "Magia Acelerada"
+      },
+      {
+        "id": "race-ability:Elfo:Sangue Mágico",
+        "nome": "Sangue Mágico"
+      },
+      {
+        "id": "race-ability:Elfo:Graça de Glórienn",
+        "nome": "Graça de Glórienn"
+      }
+    ]
+  }
+}

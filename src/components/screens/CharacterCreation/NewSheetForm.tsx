@@ -8,6 +8,8 @@ import {
   Switch,
   FormControlLabel,
   Tooltip,
+  TextField,
+  MenuItem,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -35,6 +37,19 @@ import {
   useSincretismos,
 } from '../../../hooks/useDualDevotion';
 import { normalizeDeityName } from '../../../functions/deityName';
+import { useFundamentalistAvailable } from '../../../hooks/useFundamentalist';
+import {
+  DOGMA_LABELS,
+  getAvailableDogmas,
+  getDogmaFallbackNotice,
+  getFundamentalistNotices,
+  isDivineClass,
+  isFundamentalistBlocked,
+  isFundamentalistEligibleDeity,
+  resolveDogmaForClass,
+} from '../../../functions/powers/fundamentalista';
+import { DogmaFundamentalista } from '../../../interfaces/Character';
+import FundamentalistDogmaPreview from './FundamentalistDogmaPreview';
 
 type SelectedOption = {
   value: string;
@@ -122,6 +137,7 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
   const optionalRulesAvailable = useOptionalRulesAvailable();
   const dualDevotionAvailable = useDualDevotionAvailable();
   const sincretismos = useSincretismos();
+  const fundamentalistAvailable = useFundamentalistAvailable();
 
   const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
@@ -289,6 +305,50 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
   const isDevoto =
     !!selectedOptions.devocao?.value && selectedOptions.devocao.value !== '--';
 
+  /** Fundamentalista: deus maior, Deuses de Arton ativo. */
+  const deityValue = selectedOptions.devocao?.value;
+  const fundamentalistVisible =
+    fundamentalistAvailable &&
+    isDevoto &&
+    isFundamentalistEligibleDeity(deityValue);
+  const selectedClass = CLASSES.find((c) => c.name === selectedOptions.classe);
+  const fundamentalistDogma =
+    fundamentalistVisible && deityValue
+      ? resolveDogmaForClass(
+          selectedClass ?? { name: '' },
+          deityValue,
+          selectedOptions.dogmaFundamentalista
+        )
+      : undefined;
+  // Restrição de raça do livro (Valkaria): o interruptor fica desabilitado.
+  const fundamentalistBlocked =
+    !!fundamentalistDogma &&
+    !!deityValue &&
+    isFundamentalistBlocked(
+      deityValue,
+      fundamentalistDogma,
+      selectedOptions.raca
+    );
+  const fallbackNotice =
+    selectedOptions.fundamentalista && selectedClass && deityValue
+      ? getDogmaFallbackNotice(selectedClass, deityValue)
+      : undefined;
+  // Com o bloqueio, o aviso aparece mesmo desligado: é ele que explica por que
+  // o interruptor não liga.
+  const fundamentalistNotices =
+    (selectedOptions.fundamentalista || fundamentalistBlocked) &&
+    fundamentalistDogma &&
+    deityValue
+      ? [
+          ...(fallbackNotice ? [fallbackNotice] : []),
+          ...getFundamentalistNotices(
+            deityValue,
+            fundamentalistDogma,
+            selectedOptions.raca
+          ),
+        ]
+      : [];
+
   /**
    * A regra exige estar na lista de devotos permitidos dos DOIS deuses, então
    * a segunda lista sai da mesma lista filtrada por classe — só sem o deus já
@@ -349,6 +409,10 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     onSelectedOptionsChange({
       ...selectedOptions,
       devocao,
+      // Deus menor/homebrew não tem dogma: a marca não pode ficar pendurada.
+      fundamentalista: isFundamentalistEligibleDeity(devocao.value)
+        ? selectedOptions.fundamentalista
+        : false,
       // Re-resolve o sincretismo pelo par. Não achar é um estado VÁLIDO — a
       // regra permite um par criado pelo mestre e pelo jogador.
       sincretismo: sincretismo
@@ -598,7 +662,7 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
                       dualDevotion: checked,
                       // Desligar a regra não pode deixar o par para trás.
                       ...(checked
-                        ? {}
+                        ? { fundamentalista: false }
                         : {
                             devocaoSecundaria: undefined,
                             sincretismo: undefined,
@@ -620,6 +684,95 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
               }
             />
           )}
+          {fundamentalistVisible && (
+            <FormControlLabel
+              sx={{ mt: 0.5, ml: 0 }}
+              control={
+                <Switch
+                  size='small'
+                  checked={
+                    !!selectedOptions.fundamentalista && !fundamentalistBlocked
+                  }
+                  disabled={fundamentalistBlocked}
+                  onChange={(_e, checked) =>
+                    onSelectedOptionsChange({
+                      ...selectedOptions,
+                      fundamentalista: checked,
+                      // As duas regras não convivem.
+                      ...(checked
+                        ? {
+                            dualDevotion: false,
+                            devocaoSecundaria: undefined,
+                            sincretismo: undefined,
+                          }
+                        : {}),
+                    })
+                  }
+                />
+              }
+              label={
+                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                  Fundamentalista{' '}
+                  <Tooltip
+                    enterTouchDelay={0}
+                    leaveTouchDelay={6000}
+                    title='Regra de Deuses de Arton (p. 11): o devoto ganha +1 poder concedido, mas segue um dogma mais rígido do deus e usa apenas a arma preferida. Violar o dogma faz perder PM e habilidades de classe divina. Não é possível ser fundamentalista e devoto duplo ao mesmo tempo.'
+                  >
+                    <HelpOutlineIcon
+                      fontSize='inherit'
+                      sx={{ verticalAlign: 'middle' }}
+                    />
+                  </Tooltip>
+                </Typography>
+              }
+            />
+          )}
+          {fundamentalistVisible &&
+            selectedOptions.fundamentalista &&
+            deityValue &&
+            selectedClass &&
+            !isDivineClass(selectedClass) && (
+              <TextField
+                select
+                size='small'
+                fullWidth
+                sx={{ mt: 1 }}
+                label='Dogma seguido'
+                value={fundamentalistDogma ?? 'sacerdote'}
+                onChange={(e) =>
+                  onSelectedOptionsChange({
+                    ...selectedOptions,
+                    dogmaFundamentalista: e.target
+                      .value as DogmaFundamentalista,
+                  })
+                }
+              >
+                {getAvailableDogmas(deityValue).map((dogma) => (
+                  <MenuItem key={dogma} value={dogma}>
+                    {DOGMA_LABELS[dogma]}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          {fundamentalistVisible &&
+            selectedOptions.fundamentalista &&
+            !fundamentalistBlocked &&
+            fundamentalistDogma &&
+            deityValue && (
+              <FundamentalistDogmaPreview
+                deityName={deityValue}
+                dogma={fundamentalistDogma}
+              />
+            )}
+          {fundamentalistNotices.map((notice) => (
+            <Typography
+              key={notice}
+              variant='caption'
+              sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}
+            >
+              {notice}
+            </Typography>
+          ))}
         </Grid>
 
         {/* Devoção Dupla: segunda divindade + sincretismo (bidirecionais) */}

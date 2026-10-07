@@ -16,9 +16,11 @@
 #
 # Sem `immutable`, de propósito. `immutable` promete que a resposta nunca muda e
 # faz o navegador não revalidar nem em reload — o que é verdade para o conteúdo,
-# mas não para os acidentes: se o catch-all do `_redirects` devolver o HTML do
-# SPA sob a URL de um `.js` durante a janela de propagação de um deploy, essa
-# resposta fica presa no cache do navegador por um ano e nem F5 tira. Sem o
+# mas não para os acidentes: se o modo SPA do Pages devolver o HTML do index
+# sob a URL de um `.js` durante a janela de propagação de um deploy, essa
+# resposta fica presa no cache do navegador por um ano e nem F5 tira. (Desde
+# 28/09/2026 isso não deve mais acontecer: `public/assets/404.html` faz asset
+# ausente responder 404, e o Pages força `no-store` em todo 404.) Sem o
 # `immutable` o arquivo continua sendo servido do cache em navegação normal
 # (mesmo max-age), e um reload passa a revalidar — 304 barato, já que a URL é
 # hasheada, e vira uma saída para o usuário preso.

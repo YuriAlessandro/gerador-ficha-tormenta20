@@ -10,13 +10,26 @@ import {
 } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 
+/**
+ * Marca os presentes para o `TIER_LIMIT`: os nomes não têm marcador comum. Os
+ * três da criação viram habilidades de raça (não poderes gerais), então não
+ * entram na cota de um por patamar.
+ */
+export const DUENDE_PRESENTE_TAG = 'Presente de Magia e de Caos';
+
 const DUENDE_PRESENTES_POWERS: GeneralPower[] = [
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Afinidade Elemental (Água)',
     description:
       'Sua ligação com o elemento água lhe concede deslocamento de natação igual ao seu deslocamento base. Você pode lançar as magias Criar Elementos (apenas água) e Névoa. Seu atributo-chave para estas magias é Carisma.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
     sheetActions: [
       {
         source: { type: 'power', name: 'Afinidade Elemental (Água)' },
@@ -28,11 +41,17 @@ const DUENDE_PRESENTES_POWERS: GeneralPower[] = [
     ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Afinidade Elemental (Fogo)',
     description:
       'Sua ligação com o elemento fogo lhe concede redução de dano de fogo 5. Você pode lançar as magias Criar Elementos (apenas fogo) e Explosão de Chamas. Seu atributo-chave para estas magias é Carisma.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
     sheetActions: [
       {
         source: { type: 'power', name: 'Afinidade Elemental (Fogo)' },
@@ -51,11 +70,17 @@ const DUENDE_PRESENTES_POWERS: GeneralPower[] = [
     ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Afinidade Elemental (Vegetação)',
     description:
       'Sua ligação com a vegetação permite que você atravesse terrenos difíceis naturais sem sofrer redução no deslocamento. Você pode lançar as magias Armamento da Natureza e Controlar Plantas. Seu atributo-chave para estas magias é Carisma.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
     sheetActions: [
       {
         source: { type: 'power', name: 'Afinidade Elemental (Vegetação)' },
@@ -67,32 +92,56 @@ const DUENDE_PRESENTES_POWERS: GeneralPower[] = [
     ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Encantar Objetos',
     description:
       'Você pode gastar uma ação de movimento e 3 PM para tocar um item e aplicar a ele um encanto (sem pré-requisitos) que dura até o fim da cena.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Enfeitiçar',
     description:
       'Você pode lançar a magia Enfeitiçar e seus aprimoramentos como se tivesse acesso aos mesmos círculos de magia que um arcanista de seu nível. A CD para resistência é baseada em Carisma.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Invisibilidade',
     description:
       'Você pode lançar a magia Invisibilidade e seus aprimoramentos como se tivesse acesso aos mesmos círculos de magia que um arcanista de seu nível. A CD para resistência é baseada em Carisma.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Língua da Natureza',
     description:
       'Você pode falar com animais e plantas e recebe +2 em Adestramento e Sobrevivência.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
     sheetBonuses: [
       {
         source: { type: 'power', name: 'Língua da Natureza' },
@@ -107,46 +156,82 @@ const DUENDE_PRESENTES_POWERS: GeneralPower[] = [
     ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Maldição',
     description:
       'Você pode gastar uma ação padrão e 3 PM para amaldiçoar uma criatura em alcance curto. A vítima tem direito a um teste de resistência (Fortitude ou Vontade, escolhido na criação do duende). Se falhar, sofre um efeito permanente (escolhido de uma lista na criação do duende) até ser cancelado ou curado. Você só pode manter uma maldição por vez.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Mais Lá do que Aqui',
     description:
       'Você pode gastar uma ação padrão e 2 PM para fazer a maior parte do seu corpo desaparecer por uma cena, recebendo camuflagem leve e +5 em Furtividade.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Metamorfose Animal',
     description:
       'Você pode se transformar em um tipo de animal. Escolha uma forma selvagem básica do druida. Você pode gastar uma ação completa e 3 PM para assumir essa forma. Você pode falar e lançar magias em sua forma animal.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Sonhos Proféticos',
     description:
       'Uma vez por cena, você pode gastar 3 PM e rolar 1d20. Até o fim da cena, você pode substituir o resultado do d20 de um teste de uma criatura em alcance curto pelo resultado que você rolou.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Velocidade do Pensamento',
     description:
       'No primeiro turno de cada cena, você pode gastar 2 PM para realizar uma ação padrão adicional, mas em troca pula o seu turno na segunda rodada.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Visão Feérica',
     description:
       'Você recebe visão na penumbra e está permanentemente sob efeito da magia Visão Mística (com o aprimoramento para ver criaturas invisíveis).',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
     sheetActions: [
       {
         source: { type: 'power', name: 'Visão Feérica' },
@@ -158,11 +243,17 @@ const DUENDE_PRESENTES_POWERS: GeneralPower[] = [
     ],
   },
   {
-    type: GeneralPowerType.DESTINO,
+    type: GeneralPowerType.RACA,
     name: 'Voo',
     description:
       'Você pode flutuar a 1,5m do chão com deslocamento de seu deslocamento base +3m e é imune a dano por queda. Pode voar de verdade gastando 1 PM por rodada, com deslocamento de seu deslocamento base +6m.',
-    requirements: [[{ type: RequirementType.RACA, name: 'Duende' }]],
+    tags: [DUENDE_PRESENTE_TAG],
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Duende' },
+        { type: RequirementType.TIER_LIMIT, name: DUENDE_PRESENTE_TAG },
+      ],
+    ],
     sheetActions: [
       {
         source: { type: 'power', name: 'Voo' },

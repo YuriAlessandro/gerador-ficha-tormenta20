@@ -765,15 +765,14 @@ export const HEROIS_ARTON_ALCHEMY_CATALYSTS: Equipment[] = [
   {
     nome: 'Cristal reflexivo',
     descricao:
-      'Aparato. Ao lançar uma magia de adivinhação, você recebe +1 na Defesa pela duração da magia.',
+      'Ao lançar uma magia de adivinhação, você recebe +1 na Defesa pela duração da magia.',
     group: 'Alquimía',
     preco: 30,
     spaces: 0.5,
   },
   {
     nome: 'Essência fantasmal',
-    descricao:
-      'Aparato. A magia ignora 5 pontos da RD de todas as criaturas afetadas.',
+    descricao: 'A magia ignora 5 pontos da RD de todas as criaturas afetadas.',
     group: 'Alquimía',
     preco: 30,
     spaces: 0.5,
@@ -781,7 +780,7 @@ export const HEROIS_ARTON_ALCHEMY_CATALYSTS: Equipment[] = [
   {
     nome: 'Noz saltadora',
     descricao:
-      'Aparato. Após lançar a magia, você pode se teletransportar para qualquer espaço desocupado em 4,5m.',
+      'Após lançar a magia, você pode se teletransportar para qualquer espaço desocupado em 4,5m.',
     group: 'Alquimía',
     preco: 90,
     spaces: 0.5,
@@ -789,7 +788,7 @@ export const HEROIS_ARTON_ALCHEMY_CATALYSTS: Equipment[] = [
   {
     nome: 'Presa de Hyninn',
     descricao:
-      'Aparato. Você recebe 25% de chance de ignorar ataques e efeitos (incluindo de área) por 1 rodada.',
+      'Você recebe 25% de chance de ignorar ataques e efeitos (incluindo de área) por 1 rodada.',
     group: 'Alquimía',
     preco: 45,
     spaces: 0.5,
@@ -936,7 +935,7 @@ export const HEROIS_ARTON_ESOTERIC: Equipment[] = [
   {
     nome: 'Compasso místico',
     descricao:
-      'Aparato. Ao lançar uma magia com efeito em área, você pode excluir um alvo da área afetada.',
+      'Ao lançar uma magia com efeito em área, você pode excluir um alvo da área afetada.',
     group: 'Esotérico',
     preco: 600,
     spaces: 1,
@@ -944,7 +943,7 @@ export const HEROIS_ARTON_ESOTERIC: Equipment[] = [
   {
     nome: 'Flauta convocadora',
     descricao:
-      'Aparato. Ao lançar uma magia que conjura capangas, você conjura um capanga adicional do mesmo tipo.',
+      'Ao lançar uma magia que conjura capangas, você conjura um capanga adicional do mesmo tipo.',
     group: 'Esotérico',
     preco: 300,
     spaces: 1,
@@ -952,7 +951,7 @@ export const HEROIS_ARTON_ESOTERIC: Equipment[] = [
   {
     nome: 'Mandala onírica',
     descricao:
-      'Aparato. Quando ao menos um inimigo falha no teste de Vontade de uma de suas magias, você recebe 1 PM temporário (limitado pelo total de PM gasto na magia).',
+      'Quando ao menos um inimigo falha no teste de Vontade de uma de suas magias, você recebe 1 PM temporário (limitado pelo total de PM gasto na magia).',
     group: 'Esotérico',
     preco: 300,
     spaces: 1,
@@ -960,7 +959,7 @@ export const HEROIS_ARTON_ESOTERIC: Equipment[] = [
   {
     nome: 'Varinha armamentista',
     descricao:
-      'Aparato. Aumenta em +2 o bônus de dano fornecido pelo poder Arcano de Batalha.',
+      'Aumenta em +2 o bônus de dano fornecido pelo poder Arcano de Batalha.',
     group: 'Esotérico',
     preco: 600,
     spaces: 1,

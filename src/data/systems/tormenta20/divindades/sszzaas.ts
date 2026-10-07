@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const SSZZAAS: Divindade = {
   name: 'Sszzaas',
+  preferredWeapon: 'Adaga',
   poderes: [
     GRANTED_POWERS.ASTUCIA_DA_SERPENTE,
     GRANTED_POWERS.FAMILIAR_OFIDICO,

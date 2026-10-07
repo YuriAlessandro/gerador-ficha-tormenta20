@@ -75,6 +75,13 @@ export interface LevelUpSelections {
   originPowerSwaps?: ManualPowerSelections;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
+  // Engenhocas fabricadas neste nível (Inventor com Engenhoqueiro): magias já
+  // com `engenhoca` preenchido.
+  engenhocasFabricadas?: Spell[];
+  // T$ efetivamente descontado pela fabricação (0 com "Descontar T$" desligado).
+  engenhocasCost?: number;
+  // Estado do interruptor "Descontar T$" do passo (ausente = ligado).
+  engenhocasDeductMoney?: boolean;
   // Truques do parceiro (Treinador). Pode conter múltiplas entradas:
   // - 'auto': truque automático nos níveis 4/7/10/13/16/19 (e 5/11 com Treino Intensivo)
   // - 'power': truque adicional concedido pelo poder "Ensinar Truque"

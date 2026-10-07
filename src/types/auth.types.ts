@@ -28,6 +28,14 @@ export interface DbUser {
   /** Layout da biblioteca copiado para toda ficha nova (ver backend). */
   defaultSheetLayoutId?: string | null;
   termsAcceptedVersion?: number;
+  /**
+   * Tours guiados vistos/dispensados, por id de tour. Escrito só pelo motor de
+   * tours (`PATCH /api/auth/tours`); o app público apenas carrega o campo.
+   */
+  onboarding?: {
+    tours?: Record<string, { v: number; s: 'done' | 'dismissed'; at: string }>;
+    offersOff?: boolean;
+  };
   isModerator?: boolean;
   isEditor?: boolean;
   isAdmin?: boolean;

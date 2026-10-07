@@ -23,6 +23,7 @@ import {
   getSheetDeityNames,
 } from './powers/deityNames';
 import { deityAcceptsClass } from './powers/deityClassAcceptance';
+import { getPlateauByLevel } from './powers/general';
 import {
   sheetHasPowerNamed,
   sheetSatisfiesPowerRequirement,
@@ -48,20 +49,51 @@ export function getLevelTier(level: number): LevelTier {
 }
 
 /**
- * Conta quantos poderes de uma categoria específica foram escolhidos no patamar atual
- * Para Bênçãos Dracônicas: category = "Bênção Dracônica"
+ * O poder pertence à categoria de um `TIER_LIMIT`? Casa pelo nome ("Bênção
+ * Dracônica: Asas", "Amontoados (Kobolds)") ou por tag, para listas cujos
+ * nomes não têm marcador comum (Presentes de Magia e de Caos do Duende).
  */
-export function getPowerCountInCurrentTier(
+export function matchesTierLimitCategory(
+  power: { name: string; tags?: string[] },
+  category: string
+): boolean {
+  return power.name.includes(category) || !!power.tags?.includes(category);
+}
+
+/** Quantos poderes gerais da categoria de um `TIER_LIMIT` a ficha tem. */
+export function getTierLimitPowerCount(
   sheet: CharacterSheet,
   category: string
 ): number {
-  // Conta poderes gerais que contêm a categoria no nome
-  // Para Bênçãos Dracônicas, todos começam com esse nome
-  const count = sheet.generalPowers.filter((power) =>
-    power.name.includes(category)
+  return sheet.generalPowers.filter((power) =>
+    matchesTierLimitCategory(power, category)
   ).length;
+}
 
-  return count;
+/**
+ * Teto de um `TIER_LIMIT`. As listas raciais seguem o mesmo molde ("escolha
+ * dois desses poderes; uma vez por patamar, você pode escolher outro no lugar
+ * de um poder de classe"): os da criação NÃO entram na cota, que é de um por
+ * patamar alcançado — 1 no iniciante, 2 no veterano, 3 no campeão, 4 no lenda.
+ *
+ * `rule.value` é quantos a raça dá na criação. A Maravilha Mecânica do Mashin
+ * é opcional (troca uma perícia), então sai da escolha salva na ficha.
+ *
+ * A ficha não guarda em que nível cada poder foi pego, então a cota é
+ * cumulativa: quem pulou o patamar iniciante pode pegar dois no veterano.
+ */
+export function getTierLimitAllowance(
+  sheet: CharacterSheet,
+  rule: Requirement
+): number {
+  const category = rule.name as string;
+  const mashinChoice = sheet.mashinChassiChoice;
+  const mashinGrant =
+    mashinChoice?.type === 'power' &&
+    matchesTierLimitCategory({ name: mashinChoice.value }, category)
+      ? 1
+      : 0;
+  return (rule.value ?? 0) + mashinGrant + getPlateauByLevel(sheet.nivel);
 }
 
 /**
@@ -253,8 +285,8 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
     }
     case RequirementType.TIER_LIMIT: {
       const category = rule.name as string; // "Bênção Dracônica"
-      const count = getPowerCountInCurrentTier(sheet, category);
-      return count < 1; // Máximo 1 bênção por patamar
+      const count = getTierLimitPowerCount(sheet, category);
+      return count < getTierLimitAllowance(sheet, rule);
     }
     case RequirementType.TEXT:
       // TEXT requirements are always considered met - the user reads
@@ -301,7 +333,7 @@ export function isPowerAvailable(
  * Orgânica, complicação, Propósito de Criação) oferecem os seis tipos — quem
  * fecha o acesso a eles é o requisito (DEVOTO / RACA), não a categoria.
  *
- * Aqui eles ficam de fora por CURADORIA, não por regra: o catálogo é um só e
+ * Concedidos ficam de fora por CURADORIA, não por regra: o catálogo é um só e
  * todo concedido tem pré-requisito DEVOTO, que o próprio devoto satisfaz, então
  * incluí-los faria a ficha aleatória de um devoto de Khalmyr sortear "Espada
  * Justiceira" como poder geral — o que muda bastante a cara da geração
@@ -309,13 +341,33 @@ export function isPowerAvailable(
  * revista, o `isRepeatedPower` abaixo precisa passar a olhar `devoto.poderes`
  * também (ver `getOwnedGeneralPowers`), senão o sorteio repete um concedido que
  * o devoto já tem pela devoção.
+ *
+ * Poderes de raça entram (são a lista das Maravilhas Mecânicas, Bênçãos
+ * Dracônicas etc.), mas só os travados por requisito de raça avaliável — ver
+ * `isRaceGated`.
  */
 const PICKABLE_GENERAL_POWER_TYPES = [
   GeneralPowerType.COMBATE,
   GeneralPowerType.DESTINO,
   GeneralPowerType.MAGIA,
   GeneralPowerType.TORMENTA,
+  GeneralPowerType.RACA,
 ];
+
+/**
+ * Todo caminho de requisitos do poder passa por um requisito de RAÇA. Alguns
+ * poderes de raça só têm requisito de texto ("Arma natural fornecida por uma
+ * habilidade de raça", "Não humano"), que o avaliador dá por cumprido: no
+ * sorteio eles cairiam para qualquer raça, então ficam só para escolha manual.
+ */
+function isRaceGated(power: GeneralPower): boolean {
+  return (
+    !!power.requirements?.length &&
+    power.requirements.every((group) =>
+      group.some((rule) => rule.type === RequirementType.RACA && !rule.not)
+    )
+  );
+}
 
 /**
  * Poderes gerais que a ficha JÁ possui, para as listas de escolha MANUAL.
@@ -354,6 +406,9 @@ export function getPowersAllowedByRequirements(
 
   return dataRegistry.getAllPowersBySupplements(scope).filter((power) => {
     if (!PICKABLE_GENERAL_POWER_TYPES.includes(power.type)) return false;
+    if (power.type === GeneralPowerType.RACA && !isRaceGated(power)) {
+      return false;
+    }
 
     const isRepeatedPower = existingGeneralPowers.find(
       (existingPower) => existingPower.name === power.name
@@ -605,7 +660,7 @@ export function getFuturaLendaClassPowers(
   const sheetForCheck: CharacterSheet = { ...sheet, nivel: minLevel };
   const waivers = getActiveWaivers(sheet);
 
-  return resolveClassPowerCatalog(sheet).filter((power) => {
+  const classPowers = resolveClassPowerCatalog(sheet).filter((power) => {
     // Check if power already exists and if it can be repeated
     const isRepeatedPower = (sheet.classPowers ?? []).some(
       (existingPower) => existingPower.name === power.name
@@ -620,6 +675,28 @@ export function getFuturaLendaClassPowers(
       waivers,
     });
   });
+
+  // Alma Livre: o poder pré-escolhido de outra classe conta "como se
+  // pertencesse" à sua, com nível de classe = nível de personagem − 4 (mesma
+  // regra do level-up). Sem isso a Futura Lenda só oferecia o catálogo da
+  // classe inicial.
+  const { almaLivrePower } = sheet;
+  if (
+    almaLivrePower &&
+    !classPowers.some((power) => power.name === almaLivrePower.name) &&
+    !(sheet.classPowers ?? []).some(
+      (power) => power.name === almaLivrePower.name
+    ) &&
+    isPowerAvailable(
+      { ...sheet, nivel: Math.max(1, minLevel - 4) },
+      almaLivrePower,
+      { waivers }
+    )
+  ) {
+    classPowers.push(almaLivrePower);
+  }
+
+  return classPowers;
 }
 
 interface WeightedPower {

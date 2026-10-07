@@ -2,6 +2,11 @@ import React from 'react';
 import CasinoIcon from '@mui/icons-material/Casino';
 import { Box, Button, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
+import { getEngenhocaAparatos } from '@/functions/spells/engenhoca';
+import {
+  SpellTradition,
+  TRADITION_LABEL,
+} from '@/functions/spells/spellTradition';
 import { getSchoolLabel } from '@/components/SpellPicker/schoolLabels';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import {
@@ -11,9 +16,20 @@ import {
   ROLL_CHIP_SX,
 } from './spellsTabStyles';
 
+/** CDs da engenhoca, calculadas pelo `SpellsDisplay` (que tem a ficha). */
+export interface EngenhocaRowInfo {
+  activationDC: number;
+  resistDC: number;
+  /** O círculo passa do que o nível de inventor permite fabricar. */
+  circleAboveLimit: boolean;
+}
+
 export interface SpellDetailBodyProps {
   spell: Spell;
   onCast?: () => void;
+  engenhocaInfo?: EngenhocaRowInfo;
+  /** Tipo resolvido pelo pai (não é campo da magia). */
+  tradition?: SpellTradition;
 }
 
 /**
@@ -26,7 +42,14 @@ export interface SpellDetailBodyProps {
  * estavam na linha fechada — puro ruído. Agora a meta-line fica sempre visível,
  * então o detalhe começa onde ela termina: custo, descrição e aprimoramentos.
  */
-const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({ spell, onCast }) => {
+const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
+  spell,
+  onCast,
+  engenhocaInfo,
+  tradition,
+}) => {
+  const { engenhoca } = spell;
+  const aparatos = getEngenhocaAparatos(engenhoca);
   // O `?? 0` no custo do círculo não é decorativo: magia de círculo fora do
   // enum (homebrew, personalizada) não tem entrada na tabela, e sem ele o custo
   // viraria NaN na tela.
@@ -49,6 +72,7 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({ spell, onCast }) => {
         />
         <Typography variant='caption' sx={{ color: 'text.secondary' }}>
           {spell.spellCircle} · {getSchoolLabel(spell.school)}
+          {tradition && ` · ${TRADITION_LABEL[tradition]}`}
         </Typography>
         {reduction > 0 && (
           <Tooltip title={`Custo base ${baseCost} PM`} arrow>
@@ -79,6 +103,32 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({ spell, onCast }) => {
           </Tooltip>
         )}
       </Stack>
+
+      {engenhoca && (
+        <Box sx={{ mb: 1.5 }}>
+          <Typography variant='caption' sx={DETAIL_LABEL_SX}>
+            Engenhoca
+          </Typography>
+          <Typography variant='body2'>
+            Simula <strong>{spell.nome}</strong>
+            {engenhoca.forma ? ` · ${engenhoca.forma}` : ''}
+            {engenhocaInfo &&
+              ` · CD de ativação ${engenhocaInfo.activationDC} + PM de aprimoramentos (Ofício engenhoqueiro) · CD para resistir ${engenhocaInfo.resistDC}`}
+          </Typography>
+          <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+            Ativar não custa o PM base da magia — só os aprimoramentos. Cada
+            ativação a mais no mesmo dia soma +5 na CD.
+          </Typography>
+          {aparatos.map((aparato) => (
+            <Typography key={aparato.id} variant='body2' sx={{ mt: 0.75 }}>
+              <Box component='strong' sx={{ color: 'primary.main', mr: 0.5 }}>
+                {aparato.nome}:
+              </Box>
+              {aparato.descricao}
+            </Typography>
+          ))}
+        </Box>
+      )}
 
       <Typography variant='body2' sx={{ whiteSpace: 'pre-line' }}>
         {spell.description}
@@ -136,7 +186,7 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({ spell, onCast }) => {
           fullWidth
           sx={{ mt: 2 }}
         >
-          Conjurar · {cost} PM
+          {engenhoca ? 'Ativar engenhoca' : `Conjurar · ${cost} PM`}
         </Button>
       )}
     </Box>

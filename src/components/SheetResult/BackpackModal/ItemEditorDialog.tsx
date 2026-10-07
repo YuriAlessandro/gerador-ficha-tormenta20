@@ -16,6 +16,8 @@ import {
   InputLabel,
   ListItemText,
   MenuItem,
+  Radio,
+  RadioGroup,
   Select,
   Stack,
   Tab,
@@ -61,6 +63,7 @@ import { ItemE, ItemMod } from '../../../interfaces/Rewards';
 import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { SupplementId } from '../../../types/supplement.types';
 import { applyItemEnhancements } from '../../../functions/itemEnhancements/applyEnhancements';
+import { isHeavyArmor } from '../../../data/systems/tormenta20/equipamentos';
 import { getManualStatFields } from '../../../functions/manualStats';
 import {
   MaterialContext,
@@ -79,8 +82,11 @@ import ItemEnchantmentsEditor, {
 import { isDefenseGroup } from './equipmentCatalog';
 import {
   buildSavedItem,
+  findCatalogItem,
   ItemEditorFormState,
+  rehydrateModification,
   StatField,
+  withCatalogStats,
 } from './itemEditorSave';
 import {
   ATTACK_ATTRIBUTE_DEFAULT_LABEL,
@@ -93,7 +99,11 @@ export interface ItemEditorDialogProps {
   open: boolean;
   onClose: () => void;
   item: Equipment | null;
-  onSave: (next: Equipment) => void;
+  /**
+   * `splitFromStack`: o item é uma pilha (`quantity > 1`) e o jogador escolheu
+   * editar só uma unidade — `next` vira uma entrada nova e a pilha perde uma.
+   */
+  onSave: (next: Equipment, options?: { splitFromStack?: boolean }) => void;
   /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
   ammoTypeOptions?: AmmoTypeOption[];
 }
@@ -123,11 +133,9 @@ function findEnchantmentByName(name: string): ItemE | undefined {
 }
 
 function buildInitial(item: Equipment | null): ItemEditorFormState {
-  const initialMods: ItemMod[] = (item?.modifications ?? []).map((m) => ({
-    min: 0,
-    max: 0,
-    mod: m.mod,
-  }));
+  const initialMods: ItemMod[] = item
+    ? (item.modifications ?? []).map((m) => rehydrateModification(m, item))
+    : [];
   const initialEnchantments: ItemE[] = (item?.enchantments ?? [])
     .map((e) => findEnchantmentByName(e.enchantment))
     .filter((e): e is ItemE => e !== undefined);
@@ -185,7 +193,7 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
         : '0',
     isHeavyArmor:
       item && item.group === 'Armadura'
-        ? (item as DefenseEquipment).isHeavyArmor ?? false
+        ? isHeavyArmor(item as DefenseEquipment)
         : false,
     selectedModifications: initialMods,
     selectedMaterial: materialEntry?.specialMaterial ?? '',
@@ -224,12 +232,22 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const [rollsOpen, setRollsOpen] = useState(false);
   const [modError, setModError] = useState('');
   const [enchError, setEnchError] = useState('');
+  // Pilha de itens iguais: por padrão a edição separa uma unidade, em vez de
+  // alterar todas (duas couraças, uma de mitral).
+  const [editOnlyOne, setEditOnlyOne] = useState(true);
+  // "Resetar" clicado nesta abertura: as estatísticas voltam ao catálogo, e
+  // não aos snapshots `base*` (que podem ter capturado uma edição manual).
+  const [statsReset, setStatsReset] = useState(false);
   const userSupplements: SupplementId[] = useContentSupplements();
 
   const isWeapon = item?.group === 'Arma';
   // Munição vive no grupo 'Arma' (convenção do catálogo), mas não tem dano,
   // crítico nem propósito — a aba de stats troca de conteúdo para ela.
   const isAmmoItem = !!item?.isAmmo;
+  // Munição guarda a contagem em `unitsRemaining` (quantity é cosmético).
+  const stackSize = item && !isAmmoItem ? item.quantity ?? 1 : 1;
+  const isStack = stackSize > 1;
+  const splitFromStack = isStack && editOnlyOne;
   const isDefense = item ? isDefenseGroup(item.group) : false;
   const hasStatsTab = isWeapon || isDefense;
   // Label da opção "Padrão" do Select de categoria: mostra a categoria de
@@ -262,17 +280,30 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       if (item?.hasManualSpaces) restored.add('spaces');
       setManualEditedFields(restored);
       setTab('geral');
+      setEditOnlyOne(true);
+      setStatsReset(false);
       setModError('');
       setEnchError('');
     }
   }, [open, item]);
+
+  const catalogItem = useMemo(
+    () => (item ? findCatalogItem(item) : undefined),
+    [item]
+  );
+  // O item sobre o qual a prévia e o save recomputam: depois do "Resetar",
+  // com estatísticas e `base*` do catálogo.
+  const statsItem = useMemo(
+    () => (item && statsReset ? withCatalogStats(item, catalogItem) : item),
+    [item, statsReset, catalogItem]
+  );
 
   // Live preview: when mods / material / enchantments change, recompute the
   // stat fields the user has NOT manually edited. Fields the user touched stay
   // exactly as-is. This is the same pipeline that runs on save, so what the
   // user sees in the Stats tab matches what gets persisted.
   useEffect(() => {
-    if (!open || !item) return;
+    if (!open || !statsItem) return;
     if (!isWeapon && !isDefense) return;
 
     // Mesmo congelamento do save (`buildSavedItem`): sem ele, a prévia não
@@ -304,7 +335,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     );
 
     const virtual: Equipment = {
-      ...item,
+      ...statsItem,
       modifications: previewMods.length > 0 ? previewMods : undefined,
       enchantments: previewEnch.length > 0 ? previewEnch : undefined,
       hasManualEdits: false,
@@ -357,7 +388,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     // typing in those inputs.
   }, [
     open,
-    item,
+    statsItem,
     isWeapon,
     isDefense,
     form.selectedModifications,
@@ -391,21 +422,23 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
   const baseSnapshot = useMemo(() => {
     if (!item) return null;
+    // Catálogo primeiro: os `base*` podem ter capturado uma edição manual.
+    const base = withCatalogStats(item, catalogItem);
     return {
-      spaces: item.baseSpaces ?? item.spaces,
-      dano: item.baseDano ?? item.dano ?? '',
-      atkBonus: item.baseAtkBonus ?? item.atkBonus ?? 0,
-      critico: item.baseCritico ?? item.critico ?? 'x2',
+      spaces: base.baseSpaces ?? base.spaces,
+      dano: base.baseDano ?? base.dano ?? '',
+      atkBonus: base.baseAtkBonus ?? base.atkBonus ?? 0,
+      critico: base.baseCritico ?? base.critico ?? 'x2',
       defenseBonus: isDefense
-        ? (item as DefenseEquipment).baseDefenseBonus ??
-          (item as DefenseEquipment).defenseBonus
+        ? (base as DefenseEquipment).baseDefenseBonus ??
+          (base as DefenseEquipment).defenseBonus
         : 0,
       armorPenalty: isDefense
-        ? (item as DefenseEquipment).baseArmorPenalty ??
-          (item as DefenseEquipment).armorPenalty
+        ? (base as DefenseEquipment).baseArmorPenalty ??
+          (base as DefenseEquipment).armorPenalty
         : 0,
     };
-  }, [item, isDefense]);
+  }, [item, catalogItem, isDefense]);
 
   if (!item) return null;
 
@@ -433,8 +466,15 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     if (!baseSnapshot) return;
     setManualEditedFields(new Set());
     setTouchedFields(new Set());
+    setStatsReset(true);
     setForm((f) => ({
       ...f,
+      // Armadura de catálogo volta a ser pesada se o livro diz que é — ficha
+      // salva antes do fix de `isHeavyArmor` pode ter gravado `false`.
+      isHeavyArmor:
+        catalogItem && item.group === 'Armadura'
+          ? isHeavyArmor(catalogItem as DefenseEquipment)
+          : f.isHeavyArmor,
       spacesText:
         baseSnapshot.spaces !== undefined ? String(baseSnapshot.spaces) : '',
       danoText: baseSnapshot.dano,
@@ -452,17 +492,29 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
    * jogador aplica Maciça, não vê o crítico mudar e conclui que a melhoria não
    * funciona — foi exatamente como o problema chegou.
    */
-  const statsLockedWarning =
+  const weaponStatsLocked =
     isWeapon &&
     (manualEditedFields.has('dano') ||
       manualEditedFields.has('atkBonus') ||
-      manualEditedFields.has('critico')) ? (
-      <Alert severity='warning' icon={false}>
-        Dano, bônus de ataque e crítico estão travados por edição manual —
-        melhorias, encantos e bônus de poderes não vão alterá-los. Use
-        “Resetar”, na aba Estatísticas, para voltar ao cálculo automático.
-      </Alert>
-    ) : null;
+      manualEditedFields.has('critico'));
+  // Mesmo problema na armadura: Reforçada e Defensor somem em silêncio, e a
+  // conta do jogador não fecha (relato de out/2026).
+  const defenseStatsLocked =
+    isDefense &&
+    (manualEditedFields.has('defenseBonus') ||
+      manualEditedFields.has('armorPenalty'));
+  let lockedStatsLabel: string | null = null;
+  if (weaponStatsLocked) lockedStatsLabel = 'Dano, bônus de ataque e crítico';
+  else if (defenseStatsLocked) {
+    lockedStatsLabel = 'Bônus de Defesa e penalidade de armadura';
+  }
+  const statsLockedWarning = lockedStatsLabel ? (
+    <Alert severity='warning' icon={false}>
+      {lockedStatsLabel} estão travados por edição manual — melhorias, encantos
+      e bônus de poderes não vão alterá-los. Use “Resetar”, na aba Estatísticas,
+      para voltar ao cálculo automático.
+    </Alert>
+  ) : null;
 
   const spacesAreManual = manualEditedFields.has('spaces');
   let spacesHelperText: React.ReactNode;
@@ -487,10 +539,25 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     // arremesso). Pipeline is idempotent — when all enhancements are cleared it
     // restores stats from `base*` snapshots automatically.
     const finalItem = applyItemEnhancements(
-      buildSavedItem(item, form, manualEditedFields, touchedFields)
+      buildSavedItem(statsItem ?? item, form, manualEditedFields, touchedFields)
     );
 
-    onSave(finalItem);
+    if (splitFromStack) {
+      // Salvar sem mudar nada não deve partir a pilha em duas entradas iguais.
+      const pristine = applyItemEnhancements(
+        buildSavedItem(item, buildInitial(item), manualEditedFields, new Set())
+      );
+      const unchanged =
+        JSON.stringify({ ...finalItem, quantity: 1 }) ===
+        JSON.stringify({ ...pristine, quantity: 1 });
+      if (unchanged) {
+        onClose();
+      } else {
+        onSave({ ...finalItem, quantity: 1 }, { splitFromStack: true });
+      }
+    } else {
+      onSave(finalItem);
+    }
   };
 
   return (
@@ -506,6 +573,30 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
+        {isStack && (
+          <Alert severity='info' sx={{ mb: 2 }}>
+            <Typography variant='body2'>
+              Este item está agrupado ({stackSize} unidades). Aplicar as
+              alterações a:
+            </Typography>
+            <RadioGroup
+              row
+              value={editOnlyOne ? 'one' : 'all'}
+              onChange={(e) => setEditOnlyOne(e.target.value === 'one')}
+            >
+              <FormControlLabel
+                value='one'
+                control={<Radio size='small' />}
+                label='Só uma unidade (separa das demais)'
+              />
+              <FormControlLabel
+                value='all'
+                control={<Radio size='small' />}
+                label={`Todas as ${stackSize}`}
+              />
+            </RadioGroup>
+          </Alert>
+        )}
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
@@ -553,7 +644,8 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 <TextField
                   label='Quantidade'
                   fullWidth
-                  value={form.quantityText}
+                  disabled={splitFromStack}
+                  value={splitFromStack ? '1' : form.quantityText}
                   onChange={(e) =>
                     setForm((f) => ({
                       ...f,

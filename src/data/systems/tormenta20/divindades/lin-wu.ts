@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const LINWU: Divindade = {
   name: 'Lin-Wu',
+  preferredWeapon: 'Katana',
   poderes: [
     GRANTED_POWERS.CORAGEM_TOTAL,
     GRANTED_POWERS.KIAI_DIVINO,

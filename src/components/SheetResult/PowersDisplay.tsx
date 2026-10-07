@@ -28,6 +28,7 @@ import CharacterSheet, {
 } from '@/interfaces/CharacterSheet';
 import { CustomPower } from '@/interfaces/CustomPower';
 import { collectPowers } from '@/functions/powers/collectSheetPowers';
+import { getChosenSpellSchoolsByClass } from '@/functions/spells/spellSchoolEditing';
 import {
   classifyPowers,
   groupPowersByOrigin,
@@ -156,6 +157,10 @@ const PowersDisplay: React.FC<{
   // classe redundantes, dedupe sobre a lista concatenada e ordem manual. Vive
   // em `collectPowers` para que o gerador de PDF use exatamente a mesma lista —
   // era aqui que as duas telas divergiam.
+  const spellSchoolsByClass = useMemo(
+    () => (sheet?.classe ? getChosenSpellSchoolsByClass(sheet) : undefined),
+    [sheet]
+  );
   const collected = useMemo(
     () =>
       collectPowers(
@@ -172,7 +177,8 @@ const PowersDisplay: React.FC<{
           raceName,
         },
         sheet?.powersOrder,
-        deityName
+        deityName,
+        spellSchoolsByClass
       ),
     [
       classPowers,
@@ -187,6 +193,7 @@ const PowersDisplay: React.FC<{
       raceName,
       sheet?.powersOrder,
       deityName,
+      spellSchoolsByClass,
     ]
   );
 

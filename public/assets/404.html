@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+  Existe para que um arquivo ausente em /assets/* responda 404, e não o SPA.
+
+  Sem 404.html no projeto, o Cloudflare Pages entra em "modo SPA" e devolve o
+  index.html com status 200 para QUALQUER caminho que não existe — inclusive
+  /assets/index-<hash>.css. Na janela de propagação de um deploy, um PoP ainda
+  na versão anterior recebe o pedido do asset novo, responde esse HTML com 200
+  e o cache do edge o guarda sob a URL do .css por um ano (max-age do
+  _headers). Resultado: site sem estilo ou tela branca para a região inteira
+  daquele PoP. Aconteceu em 12/08/2026, 05/09/2026 e 27/09/2026.
+
+  O Pages procura o 404.html mais próximo subindo a árvore de diretórios, então
+  este arquivo vale só para /assets/*. As rotas do SPA (/ficha/…, /perfil/…)
+  nunca passam por aqui e continuam caindo no index.html. E toda resposta 404
+  do Pages sai com `cache-control: no-store` forçado (o _headers não consegue
+  sobrescrever), então o erro fica transitório: nem o edge, nem o navegador,
+  nem o service worker guardam.
+
+  NUNCA criar um 404.html na raiz de public/: isso desliga o modo SPA do site
+  inteiro e toda rota do app passa a responder 404.
+-->
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>404</title>
+  </head>
+  <body>
+    Arquivo não encontrado.
+  </body>
+</html>

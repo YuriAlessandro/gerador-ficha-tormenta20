@@ -298,6 +298,10 @@ export function stripSheetForStorage(
       // nuvem — é o mesmo tipo de bug que já derrubou campos novos de `Race`.
       divindadeSecundaria: sheet.devoto.divindadeSecundaria,
       sincretismo: sheet.devoto.sincretismo,
+      // Fundamentalista (Deuses de Arton): mesmo motivo — campo não listado
+      // aqui some ao salvar na nuvem.
+      fundamentalista: sheet.devoto.fundamentalista,
+      poderAdicionalPendente: sheet.devoto.poderAdicionalPendente,
       divindade: {
         name: sheet.devoto.divindade.name,
         poderes: [],

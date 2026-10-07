@@ -1133,6 +1133,32 @@ class DataRegistry {
   }
 
   /**
+   * Busca uma melhoria por NOME em core + TODOS os suplementos (oficiais e
+   * runtime), independente de estarem ativos. O contexto (arma ou
+   * armadura/escudo) desempata nomes que existem nos dois lados, como
+   * Discreta.
+   *
+   * O item guarda só o nome da melhoria aplicada; o editor precisa do dado
+   * completo (pré-requisito, custo dobrado) para validar a remoção.
+   */
+  getImprovementByName(
+    name: string,
+    context: 'weapon' | 'defense'
+  ): ItemMod | undefined {
+    const systemData = this.getResolvedSystemData(this.currentSystem);
+    const side = context === 'weapon' ? 'weapons' : 'armors';
+    const fromSupplements = systemData
+      ? Object.values(systemData.supplements).flatMap(
+          (supplement) => supplement?.improvements?.[side] ?? []
+        )
+      : [];
+    const core =
+      context === 'weapon' ? weaponsModifications : armorsModifications;
+
+    return [...core, ...fromSupplements].find((mod) => mod.mod === name);
+  }
+
+  /**
    * Busca um encanto por NOME em core + TODOS os suplementos (oficiais e
    * runtime), independente de estarem ativos.
    *

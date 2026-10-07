@@ -29,6 +29,10 @@ import tormentaPowers from '../../data/systems/tormenta20/powers/tormentaPowers'
 import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
 import LUTADOR from '../../data/systems/tormenta20/classes/lutador';
 import { SupplementId } from '../../types/supplement.types';
+import { Armas } from '../../data/systems/tormenta20/equipamentos';
+import Bag from '../../interfaces/Bag';
+import Equipment from '../../interfaces/Equipment';
+import { applyItemEnhancements } from '../itemEnhancements/applyEnhancements';
 
 const { CORPO_ABERRANTE, ANTENAS, CARAPACA, DENTES_AFIADOS, CUSPIR_ENXAME } =
   tormentaPowers;
@@ -368,5 +372,78 @@ describe('getBrigaDice continua exportado pela tabela oficial', () => {
     expect(getBrigaDice(4)).toBe('1d6');
     expect(getBrigaDice(16)).toBe('1d12');
     expect(getBrigaDice(20)).toBe('2d10');
+  });
+});
+
+describe('Manopla com melhoria/encanto', () => {
+  /** Mesma composição que o `ItemEditorDialog` faz ao salvar. */
+  const withMod = (weapon: Equipment, mod: string): Equipment =>
+    applyItemEnhancements({ ...weapon, modifications: [{ mod }] });
+
+  const withWeapon = (sheet: CharacterSheet, weapon: Equipment) => {
+    const equipments = _.cloneDeep(sheet.bag.equipments);
+    equipments.Arma = [...(equipments.Arma ?? []), weapon];
+    return { ...sheet, bag: new Bag(equipments) };
+  };
+
+  const manopla = (sheet: CharacterSheet) =>
+    sheet.bag.equipments.Arma.find((weapon) => weapon.nome === 'Manopla');
+
+  const levelUp = (sheet: CharacterSheet, nivel: number) => {
+    const next = _.cloneDeep(sheet);
+    next.nivel = nivel;
+    next.classe.abilities = _.cloneDeep(LUTADOR).abilities.filter(
+      (ability) => ability.nivel <= nivel
+    );
+    return recalculateSheet(next);
+  };
+
+  it('continua acompanhando a Briga depois de subir de nível', () => {
+    let sheet = recalculateSheet(
+      withWeapon(lutadorSheet(1), _.cloneDeep(Armas.MANOPLA))
+    );
+    const equipments = _.cloneDeep(sheet.bag.equipments);
+    equipments.Arma = equipments.Arma.map((weapon) =>
+      weapon.nome === 'Manopla' ? withMod(weapon, 'Certeira') : weapon
+    );
+    sheet = recalculateSheet({ ...sheet, bag: new Bag(equipments) });
+    expect(manopla(sheet)).toMatchObject({ dano: '1d6', atkBonus: 1 });
+
+    expect(manopla(levelUp(sheet, 5))).toMatchObject({
+      dano: '1d8',
+      atkBonus: 1,
+    });
+    expect(manopla(levelUp(sheet, 20))).toMatchObject({
+      dano: '2d10',
+      atkBonus: 1,
+    });
+  });
+
+  it('nunca fica com o placeholder "-" quando já entra melhorada', () => {
+    const certeira = recalculateSheet(
+      withWeapon(
+        lutadorSheet(20),
+        withMod(_.cloneDeep(Armas.MANOPLA), 'Certeira')
+      )
+    );
+    expect(manopla(certeira)).toMatchObject({
+      dano: '2d10',
+      critico: 'x2',
+      atkBonus: 1,
+    });
+
+    const atroz = recalculateSheet(
+      withWeapon(lutadorSheet(20), withMod(_.cloneDeep(Armas.MANOPLA), 'Atroz'))
+    );
+    expect(manopla(atroz)).toMatchObject({ dano: '2d10+2', critico: 'x2' });
+  });
+
+  it('é idempotente em recálculos sucessivos', () => {
+    const once = recalculateSheet(
+      withWeapon(lutadorSheet(9), withMod(_.cloneDeep(Armas.MANOPLA), 'Atroz'))
+    );
+    const twice = recalculateSheet(recalculateSheet(once));
+    expect(manopla(twice)?.dano).toBe(manopla(once)?.dano);
+    expect(manopla(twice)?.dano).toBe('1d10+2');
   });
 });

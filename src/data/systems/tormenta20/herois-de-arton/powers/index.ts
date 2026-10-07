@@ -15,14 +15,14 @@ import DUENDE_PRESENTES_POWERS from './duendePresentes';
 
 const HEROIS_ARTON_POWERS: GeneralPowers = {
   [GeneralPowerType.COMBATE]: Object.values(combatPowers),
-  [GeneralPowerType.DESTINO]: [
-    ...Object.values(destinyPowers),
-    ...DUENDE_PRESENTES_POWERS,
-  ],
+  [GeneralPowerType.DESTINO]: Object.values(destinyPowers),
   [GeneralPowerType.MAGIA]: Object.values(magicPowers),
   [GeneralPowerType.CONCEDIDOS]: [],
   [GeneralPowerType.TORMENTA]: Object.values(tormentaPowers),
-  [GeneralPowerType.RACA]: Object.values(racePowers),
+  [GeneralPowerType.RACA]: [
+    ...Object.values(racePowers),
+    ...DUENDE_PRESENTES_POWERS,
+  ],
 };
 
 export default HEROIS_ARTON_POWERS;

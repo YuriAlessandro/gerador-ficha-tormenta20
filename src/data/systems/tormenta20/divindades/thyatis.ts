@@ -3,6 +3,7 @@ import GRANTED_POWERS from '../powers/grantedPowers';
 
 const THYATIS: Divindade = {
   name: 'Thyatis',
+  preferredWeapon: 'Espada Longa',
   poderes: [
     GRANTED_POWERS.ATAQUE_PIEDOSO,
     GRANTED_POWERS.DOM_DA_IMORTALIDADE,

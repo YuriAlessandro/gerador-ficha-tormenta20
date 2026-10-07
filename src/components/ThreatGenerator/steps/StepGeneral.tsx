@@ -299,7 +299,7 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
             container
             spacing={2}
             sx={{
-              mt: 0.5,
+              mt: 2,
             }}
           >
             {roleCards.map((card) => {
@@ -311,6 +311,7 @@ const StepGeneral: React.FC<StepGeneralProps> = ({ threat, onUpdate }) => {
                     sx={{
                       p: 2,
                       height: '100%',
+                      boxSizing: 'border-box',
                       borderColor: selected ? 'primary.main' : 'divider',
                       backgroundColor: selected
                         ? `${theme.palette.primary.main}14`

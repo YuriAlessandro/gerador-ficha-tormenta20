@@ -17,6 +17,18 @@ import { parseDamage } from './diceRoller';
  * são `uuid()` avaliados no load do módulo e mudam a cada reload.
  */
 
+/**
+ * Aprimoramento que pode ser aplicado várias vezes ("aumenta o dano em
+ * +1d6"). Os demais são marca única.
+ */
+export const isStackableAprimoramento = (
+  aprimoramento: Aprimoramento
+): boolean => /^aumenta/i.test(aprimoramento.text);
+
+/** Truque: zera o custo da magia e não combina com outros aprimoramentos. */
+export const isTruqueAprimoramento = (aprimoramento: Aprimoramento): boolean =>
+  aprimoramento.trick === true;
+
 export interface AprimoramentoSelection {
   aprimoramento: Aprimoramento;
   count: number;

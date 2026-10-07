@@ -4,6 +4,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MapIcon from '@mui/icons-material/Map';
 import StorageIcon from '@mui/icons-material/Storage';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import PetsIcon from '@mui/icons-material/Pets';
@@ -141,6 +142,12 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({ isAuthenticated }) => {
           title: 'Enciclopédia',
           icon: <StorageIcon />,
           link: '/database',
+        },
+        {
+          key: 'pocket-grimoire',
+          title: 'Grimório de bolso',
+          icon: <MenuBookIcon />,
+          link: '/grimorio',
         },
         {
           key: 'map',

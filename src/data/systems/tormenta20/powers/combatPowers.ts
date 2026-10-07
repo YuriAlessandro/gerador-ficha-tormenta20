@@ -11,6 +11,10 @@ import {
   ESTILO_DE_DISPARO_SHEET_BONUSES,
   INEXPUGNAVEL_SHEET_BONUSES,
 } from './classPowerSheetBonuses';
+import {
+  ESTILO_DE_ARREMESSO_SHEET_BONUSES,
+  ESTILO_DE_DUAS_MAOS_SHEET_BONUSES,
+} from './combatStyleSheetBonuses';
 
 const combatPowers: Record<string, GeneralPower> = {
   ACUIDADE_COM_ARMA: {
@@ -296,13 +300,7 @@ const combatPowers: Record<string, GeneralPower> = {
       'Você pode sacar armas de arremesso como uma ação livre e recebe +2 nas rolagens de dano com elas. Se também possuir o poder Saque Rápido, também recebe +2 nos testes de ataque com essas armas.',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Pontaria' }]],
-    sheetBonuses: [
-      {
-        source: { type: 'power', name: 'Estilo de Arremesso' },
-        target: { type: 'WeaponDamage', thrownOnly: true },
-        modifier: { type: 'Fixed', value: 2 },
-      },
-    ],
+    sheetBonuses: ESTILO_DE_ARREMESSO_SHEET_BONUSES,
   },
   ESTILO_DE_DISPARO: {
     name: 'Estilo de Disparo',
@@ -335,6 +333,7 @@ const combatPowers: Record<string, GeneralPower> = {
         { type: RequirementType.PERICIA, name: 'Luta' },
       ],
     ],
+    sheetBonuses: ESTILO_DE_DUAS_MAOS_SHEET_BONUSES,
   },
   ESTILO_DE_UMA_ARMA: {
     name: 'Estilo de Uma Arma',

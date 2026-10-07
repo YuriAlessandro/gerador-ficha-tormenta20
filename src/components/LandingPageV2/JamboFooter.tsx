@@ -76,6 +76,7 @@ const footerSections: FooterSection[] = [
       { label: 'Divindades', link: '/database/divindades' },
       { label: 'Poderes', link: '/database/poderes' },
       { label: 'Magias', link: '/database/magias' },
+      { label: 'Grimório de bolso', link: '/grimorio' },
     ],
   },
   {

@@ -6,6 +6,7 @@ import {
 } from '@/interfaces/PowerSelections';
 import { getClassFamilyName, isSameClassFamily } from './classFamily';
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import { buildFamiliarSheetBonuses } from './powers/familiarBonuses';
 import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
@@ -24,6 +25,10 @@ import {
 } from './powers/heavyArmorPowers';
 import { getCarapacaKappaBonuses } from './powers/kappaCarapaca';
 import { getGrantedPowerPool } from './powers/grantedPowerPool';
+import {
+  getGrantedPowerCount,
+  resolveFundamentalistChoice,
+} from './powers/fundamentalista';
 import { normalizeDeityName } from './deityName';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
@@ -115,7 +120,6 @@ import { getArcaneSpellsOfCircle } from '../data/systems/tormenta20/magias/arcan
 import { Spell } from '../interfaces/Spells';
 import { DiceRoll } from '../interfaces/DiceRoll';
 import { CustomEffect } from '../premium/interfaces/CustomEffect';
-import { generateRandomAnimalCompanion } from '../premium/functions/animalCompanionEffects';
 import {
   applyOpenRace,
   toOpenRaceVariant,
@@ -138,6 +142,7 @@ import {
   grantOriginItemsToBag,
 } from './originItems';
 import { resetOriginPowerChoice } from './originBenefits';
+import { getSpellDisplayName } from './spells/spellDisplayName';
 import {
   GeneralPower,
   OriginPower,
@@ -146,6 +151,7 @@ import {
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   ClassLevelEntry,
+  SheetActionReceipt,
   SheetActionStep,
   SheetBonus,
   SheetChangeSource,
@@ -178,7 +184,7 @@ import Skill, {
   getSkillAttr,
   isOficioSkill,
 } from '../interfaces/Skills';
-import Bag from '../interfaces/Bag';
+import Bag, { stackByName } from '../interfaces/Bag';
 import roles from '../data/systems/tormenta20/roles';
 import { RoleNames } from '../interfaces/Role';
 import {
@@ -1589,62 +1595,6 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
-// Bônus mecânicos por familiar (poder "Familiar" do Arcanista).
-// Apenas os familiares com efeito modelável retornam bônus; os demais
-// (Borboleta/Cobra/Lagarto +1 CD, Coruja, Corvo, Falcão, Morcego) ficam só
-// descritivos no texto do poder.
-const buildFamiliarSheetBonuses = (
-  familiarKey: string,
-  sheet: CharacterSheet,
-  source: SheetChangeSource
-): SheetBonus[] => {
-  // GATO: visão no escuro (narrativa) + +2 Furtividade
-  if (familiarKey === 'GATO') {
-    return [
-      {
-        source,
-        target: { type: 'Skill', name: Skill.FURTIVIDADE },
-        modifier: { type: 'Fixed', value: 2 },
-      },
-    ];
-  }
-  // SAPO: soma o atributo-chave ao total de PV (cumulativo com CON, não substitui)
-  if (familiarKey === 'SAPO') {
-    return [
-      {
-        source,
-        target: { type: 'PV' },
-        modifier: { type: 'SpecialAttribute', attribute: 'spellKeyAttr' },
-      },
-    ];
-  }
-  // RATO: pode usar o atributo-chave em Fortitude no lugar de Constituição.
-  // Por ser opcional ("você pode usar"), só troca quando for benéfico.
-  if (familiarKey === 'RATO') {
-    const keyAttr =
-      sheet.classe.spellPath?.keyAttribute ??
-      sheet.overrideKeyAttribute ??
-      Atributo.CARISMA;
-    if (
-      (sheet.atributos[keyAttr]?.value ?? 0) >
-      (sheet.atributos[Atributo.CONSTITUICAO]?.value ?? 0)
-    ) {
-      return [
-        {
-          source,
-          target: {
-            type: 'ModifySkillAttribute',
-            skill: Skill.FORTITUDE,
-            attribute: keyAttr,
-          },
-          modifier: { type: 'Fixed', value: 0 },
-        },
-      ];
-    }
-  }
-  return [];
-};
-
 /**
  * Resolve e aplica a concessão de magias POR ESCOLHA de uma opção de
  * `chooseFromOptions` (quando a opção escolhida tem `grantedSpellsAction`).
@@ -1788,19 +1738,56 @@ function mergeOptionEffectsIntoOwner(
   });
 }
 
+export interface ApplyPowerOptions {
+  /**
+   * Instância nova de poder repetido sem escolha do jogador fica pendente, em
+   * vez de sorteada. O recálculo usa: lá a ficha já existe, e sortear trocaria
+   * por conta própria uma escolha que o jogador ainda não fez (ficha antiga com
+   * duas instâncias do poder e uma escolha gravada).
+   */
+  pendingRepeatChoice?: boolean;
+}
+
 export const applyPower = (
   _sheet: CharacterSheet,
   powerOrAbility: Pick<
     GeneralPower,
-    'sheetActions' | 'sheetBonuses' | 'name'
+    'sheetActions' | 'sheetBonuses' | 'name' | 'canRepeat'
   > & {
     sourceClassName?: string;
   },
   manualSelections?: SelectionOptions,
-  forceApply?: boolean
+  forceApply?: boolean,
+  applyOptions?: ApplyPowerOptions
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
+
+  /**
+   * Poder escolhido várias vezes (Companheiro Animal, Mascote) com uma
+   * `chooseFromOptions` por escolha: há mais instâncias do poder na ficha do
+   * que escolhas gravadas? Então esta é uma instância nova e a escolha dela
+   * precisa ser feita (e ACRESCENTADA a `optionChoices`), em vez de cair no
+   * "já aplicado" que só reaplica a primeira.
+   *
+   * Com `pendingRepeatChoice` (recálculo), só conta como nova quando o jogador
+   * fez a escolha: sem ela, a instância fica pendente em vez de sorteada.
+   */
+  const isNewRepeatChoice = (optionKey: string): boolean => {
+    if (!powerOrAbility.canRepeat) return false;
+    if (
+      applyOptions?.pendingRepeatChoice &&
+      !manualSelections?.chosenOption?.length
+    ) {
+      return false;
+    }
+    const instances = [
+      ...(sheet.classPowers ?? []),
+      ...(sheet.generalPowers ?? []),
+    ].filter((p) => p.name === powerOrAbility.name).length;
+    const recorded = sheet.optionChoices?.[optionKey]?.length ?? 0;
+    return recorded > 0 && instances > recorded;
+  };
 
   const getSourceName = (source: SheetChangeSource) => {
     if (source.type === 'power') {
@@ -2100,6 +2087,10 @@ export const applyPower = (
       // Skip if this action was already applied (prevents duplication during recalculation)
       if (
         !forceApply &&
+        !(
+          sheetAction.action.type === 'chooseFromOptions' &&
+          isNewRepeatChoice(sheetAction.action.optionKey)
+        ) &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
         if (sheetAction.action.type === 'setMaxSpacesAttribute') {
@@ -2712,7 +2703,9 @@ export const applyPower = (
         // Get familiar data
         const familiar = FAMILIARS[selectedFamiliar];
 
-        // Aplica os bônus mecânicos do familiar selecionado (Gato/Sapo/Rato)
+        // Aplica os bônus mecânicos do familiar selecionado (Gato/Sapo/Rato).
+        // Com o premium, o do Familiar do Arcanista sai daqui e vem do
+        // parceiro (`stripPartnerOwnedBonuses`, no recálculo).
         sheet.sheetBonuses.push(
           ...buildFamiliarSheetBonuses(
             selectedFamiliar,
@@ -3178,21 +3171,6 @@ export const applyPower = (
             value: `Poder de classe adquirido: ${selectedPower.name}`,
           });
 
-          // Druida: o poder Companheiro Animal concede um parceiro. Semeia um
-          // com espécie/tipo/nome aleatórios para a ficha já sair jogável — o
-          // jogador renomeia e troca o tipo depois no painel.
-          if (selectedPower.name === 'Companheiro Animal') {
-            const companion = generateRandomAnimalCompanion(uuid());
-            sheet.animalCompanions = [
-              ...(sheet.animalCompanions ?? []),
-              companion,
-            ];
-            subSteps.push({
-              name: 'Companheiro Animal',
-              value: `${companion.name} (${companion.species})`,
-            });
-          }
-
           // Apply the selected power's sheetActions and sheetBonuses
           if (selectedPower.sheetActions || selectedPower.sheetBonuses) {
             const [updatedSheet, powerSubSteps] = applyPower(
@@ -3400,8 +3378,11 @@ export const applyPower = (
             (sum, item) => sum + (item.preco || 0),
             0
           );
+          // Empilha os repetidos: a seleção é uma lista com repetição da
+          // MESMA referência do catálogo, e N entradas idênticas na mochila
+          // acabavam compartilhando um único id.
           const equipment: Partial<BagEquipments> = {
-            Alquimía: selectedItems,
+            Alquimía: stackByName(selectedItems),
           };
           sheet.bag.addEquipment(equipment);
 
@@ -3437,13 +3418,20 @@ export const applyPower = (
         let chosenNames: string[] = [];
         let persistChoice = false;
         const persistedChoices = sheet.optionChoices?.[optionKey];
+        // Instância nova de poder repetido: escolhe só a dela (manual ou
+        // sorteio) e acrescenta às escolhas das instâncias anteriores.
+        const appendChoice = isNewRepeatChoice(optionKey);
         if (
           manualSelections?.chosenOption &&
           manualSelections.chosenOption.length > 0
         ) {
           chosenNames = manualSelections.chosenOption.slice(0, pick);
           persistChoice = true;
-        } else if (persistedChoices && persistedChoices.length > 0) {
+        } else if (
+          !appendChoice &&
+          persistedChoices &&
+          persistedChoices.length > 0
+        ) {
           // Replay: usa TODAS as escolhas persistidas (inclui picks de level-up
           // acumulados); não corta por `pick`.
           chosenNames = [...persistedChoices];
@@ -3483,7 +3471,9 @@ export const applyPower = (
         if (persistChoice && chosenNames.length > 0) {
           sheet.optionChoices = {
             ...(sheet.optionChoices || {}),
-            [optionKey]: chosenNames,
+            [optionKey]: appendChoice
+              ? [...(persistedChoices ?? []), ...chosenNames]
+              : chosenNames,
           };
         }
 
@@ -4772,6 +4762,56 @@ export function applyManualLevelUp(
           spellNames: selections.spellsLearned.map((spell) => spell.nome),
         },
       ],
+    });
+  }
+
+  // Engenhocas fabricadas neste nível (Inventor com Engenhoqueiro). Entram como
+  // magias já marcadas; o custo de fabricação sai do dinheiro e fica no
+  // histórico para o "desfazer nível" devolver.
+  if (
+    selections.engenhocasFabricadas &&
+    selections.engenhocasFabricadas.length > 0
+  ) {
+    const novasEngenhocas = selections.engenhocasFabricadas.filter(
+      (newSpell) =>
+        !updatedSheet.spells.some((existing) => existing.nome === newSpell.nome)
+    );
+    updatedSheet.spells.push(...novasEngenhocas);
+
+    novasEngenhocas.forEach((spell) => {
+      const displayName = getSpellDisplayName(spell);
+      subSteps.push({
+        name: 'Engenhoca fabricada',
+        value:
+          displayName === spell.nome
+            ? spell.nome
+            : `${displayName} (simula ${spell.nome})`,
+      });
+    });
+
+    const changes: SheetActionReceipt[] = [
+      {
+        type: 'SpellsLearned',
+        spellNames: novasEngenhocas.map((spell) => spell.nome),
+      },
+    ];
+
+    const cost = Math.min(
+      Math.max(0, selections.engenhocasCost ?? 0),
+      updatedSheet.dinheiro ?? 0
+    );
+    if (cost > 0) {
+      updatedSheet.dinheiro = (updatedSheet.dinheiro ?? 0) - cost;
+      subSteps.push({ name: 'Dinheiro gasto', value: `T$ ${cost}` });
+      changes.push({ type: 'MoneySpent', amount: cost });
+    }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes,
     });
   }
 
@@ -7597,6 +7637,16 @@ export function generateEmptySheet(
       const hasSecondary =
         !!secondaryDeity && secondaryDeity.name !== selectedDeity.name;
 
+      // Fundamentalista (Deuses de Arton): +1 poder concedido. Nunca junto da
+      // devoção dupla; `resolveFundamentalistChoice` revalida o formulário.
+      const fundamentalista = hasSecondary
+        ? undefined
+        : resolveFundamentalistChoice(
+            selectedOptions,
+            generatedClass,
+            selectedDeity.name
+          );
+
       // A piscina de escolha é a união das duas listas; a QUANTIDADE que o
       // personagem escolhe não muda (regra explícita do livro).
       const deityNames = [selectedDeity.name];
@@ -7616,12 +7666,13 @@ export function generateEmptySheet(
         );
       } else {
         // Use automatic selection (random or all)
-        const todosPoderes = generatedClass.qtdPoderesConcedidos === 'all';
-        const qtdPoderesConcedidos = isNumber(
-          generatedClass.qtdPoderesConcedidos
-        )
-          ? (generatedClass.qtdPoderesConcedidos as number)
-          : 1; // Default to 1 if undefined
+        const grantedCount = getGrantedPowerCount(
+          generatedClass.qtdPoderesConcedidos,
+          !!fundamentalista
+        );
+        const todosPoderes = grantedCount === 'all';
+        const qtdPoderesConcedidos =
+          typeof grantedCount === 'number' ? grantedCount : 1;
 
         deityPowers = getPoderesConcedidos(
           // Sorteio automático também escolhe da união — `getPoderesConcedidos`
@@ -7642,6 +7693,7 @@ export function generateEmptySheet(
               sincretismo: selectedOptions.sincretismo?.value || undefined,
             }
           : {}),
+        ...(fundamentalista ? { fundamentalista } : {}),
       };
     }
   }

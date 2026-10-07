@@ -4,6 +4,7 @@ import { CharacterAttributes } from '../interfaces/Character';
 import Bag from '../interfaces/Bag';
 import { WeaponOverride } from '../interfaces/Equipment';
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
@@ -31,6 +32,7 @@ import { getBaseAgeStage, getBaseAgeStageForYears } from './ages';
 import { WILD_SHAPE_POWER_KEY } from '../premium/data/wildShapes';
 import { RETIRED_ACTIVE_POWER_KEYS } from '../premium/data/activePowers';
 import { CustomPower } from '../interfaces/CustomPower';
+import { sanitizeEngenhoca } from './spells/sanitizeEngenhoca';
 import { sanitizeCustomPowerBonuses } from './powers/customPowerBonuses';
 import {
   ARQUEIRO_SHEET_BONUSES,
@@ -38,6 +40,11 @@ import {
   ESTILO_DE_DISPARO_SHEET_BONUSES,
   INEXPUGNAVEL_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/classPowerSheetBonuses';
+import {
+  ESTILO_CLASSICO_SHEET_BONUSES,
+  ESTILO_DE_ARREMESSO_SHEET_BONUSES,
+  ESTILO_DE_DUAS_MAOS_SHEET_BONUSES,
+} from '../data/systems/tormenta20/powers/combatStyleSheetBonuses';
 import {
   BOLSOES_INSANOS_SHEET_BONUSES,
   CARAPACA_CORROMPIDA_SHEET_BONUSES,
@@ -89,6 +96,10 @@ function getGrantedPowersByName(): Map<string, GeneralPower> {
 //   embutida é o que `collectUnarmedStepBonuses` lê quando a ficha ainda não
 //   passou por um recálculo, então sem o refresh o poder continua inerte em
 //   toda ficha já salva.
+//
+// Os estilos de combate (Estilo Clássico, Estilo de Duas Mãos, Estilo de
+// Arremesso) eram texto puro ou só parcialmente automatizados — sem o refresh,
+// a ficha de quem já tinha o poder continuaria sem o bônus.
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
@@ -98,6 +109,9 @@ const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Pele Corrompida', PELE_CORROMPIDA_SHEET_BONUSES],
   ['Bolsões Insanos', BOLSOES_INSANOS_SHEET_BONUSES],
   ['Corpo Aberrante', CORPO_ABERRANTE_SHEET_BONUSES],
+  ['Estilo Clássico', ESTILO_CLASSICO_SHEET_BONUSES],
+  ['Estilo de Duas Mãos', ESTILO_DE_DUAS_MAOS_SHEET_BONUSES],
+  ['Estilo de Arremesso', ESTILO_DE_ARREMESSO_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<
@@ -385,11 +399,20 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
   sheet.spells = sheet.spells
     .filter((s) => s && typeof s.nome === 'string')
     .map((s) => {
-      if (s.aprimoramentos === undefined) return s;
-      const aprimoramentos = Array.isArray(s.aprimoramentos)
-        ? s.aprimoramentos.filter((a) => a && typeof a.text === 'string')
+      let spell = s;
+      if (spell.engenhoca !== undefined) {
+        const engenhoca = sanitizeEngenhoca(spell.engenhoca);
+        if (engenhoca) {
+          spell = { ...spell, engenhoca };
+        } else {
+          spell = _.omit(spell, 'engenhoca');
+        }
+      }
+      if (spell.aprimoramentos === undefined) return spell;
+      const aprimoramentos = Array.isArray(spell.aprimoramentos)
+        ? spell.aprimoramentos.filter((a) => a && typeof a.text === 'string')
         : [];
-      return { ...s, aprimoramentos };
+      return { ...spell, aprimoramentos };
     });
 
   sheet.skills = sheet.skills.filter((s) => typeof s === 'string');
@@ -728,6 +751,15 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     if (!Array.isArray(sheet.classe.proficiencias)) {
       sheet.classe.proficiencias = [];
     }
+    // Todo personagem sabe usar armas simples e armaduras leves (JdA). Classes
+    // de suplemento com "Proficiências: nenhuma" foram cadastradas com a lista
+    // vazia, e a ficha guarda a cópia da classe — sem isto, um treinador com
+    // gibão de peles aparecia sem proficiência na armadura.
+    [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES].forEach((base) => {
+      if (!sheet.classe.proficiencias.includes(base)) {
+        sheet.classe.proficiencias.unshift(base);
+      }
+    });
     if (!Array.isArray(sheet.classe.periciasbasicas)) {
       sheet.classe.periciasbasicas = [];
     }
@@ -804,6 +836,29 @@ export function normalizeSheet(sheet: CharacterSheet): void {
       if (typeof sheet.devoto.sincretismo !== 'string') {
         delete sheet.devoto.sincretismo;
       }
+      // Fundamentalista: objeto com dogma conhecido, e nunca junto da
+      // devoção dupla (regra de Sincretismos de Arton).
+      const fundamentalista = sheet.devoto.fundamentalista as unknown;
+      const dogma =
+        typeof fundamentalista === 'object' && fundamentalista !== null
+          ? (fundamentalista as { dogma?: unknown }).dogma
+          : undefined;
+      if (
+        fundamentalista !== undefined &&
+        (!['sacerdote', 'druida', 'paladino'].includes(dogma as string) ||
+          !!sheet.devoto.divindadeSecundaria)
+      ) {
+        delete sheet.devoto.fundamentalista;
+      }
+      // Lembrete do poder adicional: só `true`, e nunca com o fundamentalismo
+      // ligado (aí o poder extra volta a valer).
+      if (
+        sheet.devoto.poderAdicionalPendente !== undefined &&
+        (sheet.devoto.poderAdicionalPendente !== true ||
+          !!sheet.devoto.fundamentalista)
+      ) {
+        delete sheet.devoto.poderAdicionalPendente;
+      }
     }
   }
 
@@ -821,8 +876,10 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   }
 
   // Parceiros da ficha: sem id/origem/dono válidos, ou sem o que resolver no
-  // catálogo (builtin sem tipo/patamar, da mesa sem snapshot), viram cards
-  // vazios sem bônus nenhum.
+  // catálogo (builtin sem tipo/patamar, da mesa sem snapshot, de poder sem
+  // `grant`, personalizado sem benefícios), viram cards vazios sem bônus
+  // nenhum. Descartar um parceiro de poder válido faria o conciliador do
+  // recálculo recriá-lo em laço.
   if (Array.isArray(sheet.partners)) {
     sheet.partners = sheet.partners.filter(
       (partner) =>
@@ -834,7 +891,11 @@ export function normalizeSheet(sheet: CharacterSheet): void {
           typeof partner.tier === 'string') ||
           (partner.source === 'table' &&
             !!partner.snapshot &&
-            typeof partner.snapshot === 'object'))
+            typeof partner.snapshot === 'object') ||
+          (partner.source === 'power' &&
+            typeof partner.grant?.power === 'string') ||
+          (partner.source === 'custom' &&
+            Array.isArray(partner.customBenefits)))
     );
   } else if (sheet.partners !== undefined) {
     delete sheet.partners;

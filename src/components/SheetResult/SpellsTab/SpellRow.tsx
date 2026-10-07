@@ -1,4 +1,5 @@
 import React from 'react';
+import BuildIcon from '@mui/icons-material/Build';
 import CasinoIcon from '@mui/icons-material/Casino';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -17,6 +18,9 @@ import {
   Typography,
 } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
+import { getSpellDisplayName } from '@/functions/spells/spellDisplayName';
+import { SpellTradition } from '@/functions/spells/spellTradition';
+import { getEngenhocaAparatos } from '@/functions/spells/engenhoca';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import type {
@@ -30,7 +34,7 @@ import {
   DETAIL_TIMEOUT,
   ROW_SX,
 } from '../common/listStyles';
-import SpellDetailBody from './SpellDetailBody';
+import SpellDetailBody, { EngenhocaRowInfo } from './SpellDetailBody';
 import SpellMetaLine from './SpellMetaLine';
 import SpellSchoolGlyph from './SpellSchoolGlyph';
 import {
@@ -59,6 +63,14 @@ export interface SpellRowProps {
     definition: ActivePowerDefinition,
     option: ActiveEffectUsageOption
   ) => void;
+  /** CDs já calculadas pelo pai quando a magia é uma engenhoca. */
+  engenhocaInfo?: EngenhocaRowInfo;
+  /** Presente = a ficha fabrica engenhocas (botão de engrenagem no rail). */
+  onOpenEngenhoca?: (spell: Spell) => void;
+  /** Tira a marca de enguiçada. */
+  onRepairEngenhoca?: (spell: Spell) => void;
+  /** Arcana, divina ou universal — resolvido pelo pai contra o catálogo. */
+  tradition?: SpellTradition;
 }
 
 /**
@@ -88,7 +100,14 @@ const SpellRow: React.FC<SpellRowProps> = ({
   activeEffect,
   sheet,
   onActivateEffect,
+  engenhocaInfo,
+  onOpenEngenhoca,
+  onRepairEngenhoca,
+  tradition,
 }) => {
+  const { engenhoca } = spell;
+  const displayName = getSpellDisplayName(spell);
+  const enguicada = !!engenhoca?.enguicada;
   // O `?? 0` não é decorativo: magia de círculo fora do enum (homebrew,
   // personalizada) não tem entrada na tabela, e sem ele o custo viraria NaN.
   const circleCost = manaExpenseByCircle[spell.spellCircle] ?? 0;
@@ -170,8 +189,82 @@ const SpellRow: React.FC<SpellRowProps> = ({
       <Box sx={SPELL_CONTENT_SX}>
         <Box sx={NAME_LINE_SX}>
           <Typography component='span' sx={SPELL_NAME_SX}>
-            {spell.nome}
+            {displayName}
           </Typography>
+          {engenhoca && (
+            <Tooltip
+              title={`Engenhoca${
+                displayName !== spell.nome ? ` que simula ${spell.nome}` : ''
+              }${
+                engenhocaInfo
+                  ? ` · CD de ativação ${engenhocaInfo.activationDC} (+ aprimoramentos) · CD para resistir ${engenhocaInfo.resistDC}`
+                  : ''
+              }${engenhoca.forma ? ` · ${engenhoca.forma}` : ''}`}
+              arrow
+            >
+              <Chip
+                icon={<BuildIcon />}
+                label={
+                  engenhocaInfo
+                    ? `Engenhoca · CD ${engenhocaInfo.activationDC}`
+                    : 'Engenhoca'
+                }
+                size='small'
+                color='secondary'
+                variant='outlined'
+                sx={MICRO_CHIP_SX}
+              />
+            </Tooltip>
+          )}
+          {getEngenhocaAparatos(engenhoca).map((aparato) => (
+            <Tooltip key={aparato.id} title={aparato.descricao} arrow>
+              <Chip
+                label={aparato.nome}
+                size='small'
+                variant='outlined'
+                sx={MICRO_CHIP_SX}
+              />
+            </Tooltip>
+          ))}
+          {engenhocaInfo?.circleAboveLimit && (
+            <Tooltip
+              title='Seu nível de inventor ainda não permite fabricar engenhocas deste círculo'
+              arrow
+            >
+              <Chip
+                label='Círculo alto'
+                size='small'
+                color='warning'
+                variant='outlined'
+                sx={MICRO_CHIP_SX}
+              />
+            </Tooltip>
+          )}
+          {enguicada && (
+            <Tooltip
+              title={
+                onRepairEngenhoca
+                  ? 'Enguiçada: clique para marcar como consertada (1 hora de trabalho)'
+                  : 'Enguiçada: precisa de 1 hora de conserto'
+              }
+              arrow
+            >
+              <Chip
+                label='Enguiçada'
+                size='small'
+                color='error'
+                sx={MICRO_CHIP_SX}
+                onClick={
+                  onRepairEngenhoca
+                    ? (e) => {
+                        e.stopPropagation();
+                        onRepairEngenhoca(spell);
+                      }
+                    : undefined
+                }
+              />
+            </Tooltip>
+          )}
           {spell.customKeyAttr && (
             <Tooltip title='Atributo-chave próprio desta magia' arrow>
               <Chip
@@ -206,7 +299,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
             />
           )}
         </Box>
-        <SpellMetaLine spell={spell} />
+        <SpellMetaLine spell={spell} tradition={tradition} />
       </Box>
     </>
   );
@@ -224,15 +317,43 @@ const SpellRow: React.FC<SpellRowProps> = ({
           onActivate={onActivateEffect}
         />
       )}
-      <Tooltip title='Usar magia' arrow>
-        <IconButton
-          size='small'
-          onClick={onOpenCast}
-          color={spell.rolls?.length ? 'primary' : 'default'}
-          aria-label={`Usar ${spell.nome}`}
+      {onOpenEngenhoca && (
+        <Tooltip
+          title={
+            engenhoca ? 'Configurar engenhoca' : 'Transformar em engenhoca'
+          }
+          arrow
         >
-          <CasinoIcon fontSize='small' />
-        </IconButton>
+          <IconButton
+            size='small'
+            onClick={() => onOpenEngenhoca(spell)}
+            color={engenhoca ? 'secondary' : 'default'}
+            aria-label={`Engenhoca de ${spell.nome}`}
+          >
+            <BuildIcon fontSize='small' />
+          </IconButton>
+        </Tooltip>
+      )}
+      <Tooltip
+        title={(() => {
+          if (!engenhoca) return 'Usar magia';
+          return enguicada
+            ? 'Engenhoca enguiçada — conserte antes de ativar'
+            : 'Ativar engenhoca';
+        })()}
+        arrow
+      >
+        <span>
+          <IconButton
+            size='small'
+            onClick={onOpenCast}
+            disabled={enguicada}
+            color={spell.rolls?.length ? 'primary' : 'default'}
+            aria-label={`Usar ${displayName}`}
+          >
+            <CasinoIcon fontSize='small' />
+          </IconButton>
+        </span>
       </Tooltip>
     </Box>
   );
@@ -281,7 +402,12 @@ const SpellRow: React.FC<SpellRowProps> = ({
         {rail}
       </AccordionSummary>
       <AccordionDetails>
-        <SpellDetailBody spell={spell} onCast={onOpenCast} />
+        <SpellDetailBody
+          spell={spell}
+          onCast={enguicada ? undefined : onOpenCast}
+          engenhocaInfo={engenhocaInfo}
+          tradition={tradition}
+        />
       </AccordionDetails>
     </Accordion>
   );

@@ -9,7 +9,12 @@
  * - Requisito genérico de Ofício continua satisfeito por qualquer Ofício específico.
  */
 import { describe, it, expect } from 'vitest';
-import { getAllowedClassPowers, isPowerAvailable } from '../powers';
+import {
+  getAllowedClassPowers,
+  getPowersAllowedByRequirements,
+  isPowerAvailable,
+} from '../powers';
+import { SupplementId } from '../../types/supplement.types';
 import INVENTOR_POWERS from '../../data/systems/tormenta20/herois-de-arton/classPowers/inventor';
 import CORE_INVENTOR from '../../data/systems/tormenta20/classes/inventor';
 import { normalizeSheet } from '../sheetNormalizer';
@@ -310,5 +315,123 @@ describe('Requisito RequirementType.CLASSE (o nome fica em rule.name)', () => {
     };
 
     expect(isPowerAvailable(sheet, barbaroPower)).toBe(true);
+  });
+});
+
+describe('TIER_LIMIT (uma vez por patamar, além dos da raça)', () => {
+  const limited = (category: string, racialGrant?: number) =>
+    ({
+      name: 'Poder Limitado',
+      description: '',
+      type: 'DESTINO',
+      requirements: [
+        [
+          {
+            type: RequirementType.TIER_LIMIT,
+            name: category,
+            value: racialGrant,
+          },
+        ],
+      ],
+    } as never);
+
+  const marvel = limited('Maravilha Mecânica');
+
+  it('Mashin: a maravilha da criação não ocupa a cota do patamar', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.mashinChassiChoice = {
+      type: 'power',
+      value: 'Maravilha Mecânica: Adaptação Elemental',
+    };
+    sheet.generalPowers = [
+      { name: 'Maravilha Mecânica: Adaptação Elemental' },
+    ] as never;
+
+    sheet.nivel = 2;
+    expect(isPowerAvailable(sheet, marvel)).toBe(true);
+
+    sheet.generalPowers.push({
+      name: 'Maravilha Mecânica: Dínamo de Mana',
+    } as never);
+    sheet.nivel = 4;
+    expect(isPowerAvailable(sheet, marvel)).toBe(false);
+
+    sheet.nivel = 5;
+    expect(isPowerAvailable(sheet, marvel)).toBe(true);
+  });
+
+  it('Mashin que trocou a maravilha por perícia fica só com a cota', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.mashinChassiChoice = { type: 'skill', value: 'Luta' };
+    sheet.nivel = 4;
+    sheet.generalPowers = [
+      { name: 'Maravilha Mecânica: Adaptação Elemental' },
+    ] as never;
+
+    expect(isPowerAvailable(sheet, marvel)).toBe(false);
+  });
+
+  it('Kallyanach: as duas bênçãos da criação ficam fora da cota', () => {
+    const sheet = createMockCharacterSheet();
+    const blessing = limited('Bênção Dracônica', 2);
+    sheet.generalPowers = [
+      { name: 'Bênção Dracônica: Asas Dracônicas' },
+      { name: 'Bênção Dracônica: Sopro de Dragão' },
+    ] as never;
+
+    sheet.nivel = 1;
+    expect(isPowerAvailable(sheet, blessing)).toBe(true);
+
+    sheet.generalPowers.push({
+      name: 'Bênção Dracônica: Prática Arcana',
+    } as never);
+    sheet.nivel = 10;
+    expect(isPowerAvailable(sheet, blessing)).toBe(true);
+
+    sheet.generalPowers.push({
+      name: 'Bênção Dracônica: Escamas Elementais',
+    } as never);
+    expect(isPowerAvailable(sheet, blessing)).toBe(false);
+  });
+
+  it('Duende: presentes contam pela tag', () => {
+    const sheet = createMockCharacterSheet();
+    const gift = limited('Presente de Magia e de Caos');
+    sheet.nivel = 4;
+    sheet.generalPowers = [
+      { name: 'Invisibilidade', tags: ['Presente de Magia e de Caos'] },
+    ] as never;
+
+    expect(isPowerAvailable(sheet, gift)).toBe(false);
+  });
+});
+
+describe('sorteio de poder geral inclui poderes de raça', () => {
+  const supplements = [
+    SupplementId.TORMENTA20_CORE,
+    SupplementId.TORMENTA20_AMEACAS_ARTON,
+    SupplementId.TORMENTA20_HEROIS_ARTON,
+  ];
+
+  it('Mashin pode sortear Maravilha Mecânica', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.raca = { ...sheet.raca, name: 'Golem Desperto', chassis: 'mashin' };
+    sheet.nivel = 5;
+
+    const names = getPowersAllowedByRequirements(sheet, supplements).map(
+      (p) => p.name
+    );
+    expect(names.some((n) => n.startsWith('Maravilha Mecânica:'))).toBe(true);
+  });
+
+  it('poder de raça travado só por texto não cai para qualquer raça', () => {
+    const sheet = createMockCharacterSheet();
+    const names = getPowersAllowedByRequirements(sheet, supplements).map(
+      (p) => p.name
+    );
+
+    expect(names).not.toContain('Tradição Perdida');
+    expect(names).not.toContain('Arma Natural Aprimorada');
+    expect(names.some((n) => n.startsWith('Maravilha Mecânica:'))).toBe(false);
   });
 });

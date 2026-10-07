@@ -31,6 +31,7 @@ import {
 } from '@/data/systems/tormenta20/magias/divine';
 import { SupplementId } from '@/types/supplement.types';
 import { isPhysicalIncreaseBlockedByAge } from '@/premium/functions/ages';
+import { getPickSkillBonusTarget } from './pickSkillBonus';
 import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
@@ -618,6 +619,21 @@ export function getOptionBranchSelectionKeys(
   });
 
   return Array.from(keys);
+}
+
+/** Chassi Mashin completo: 2 perícias, ou 1 perícia + 1 maravilha (com a
+ * perícia do bônus, se a maravilha pedir uma). */
+function countMashinChassiSelections(
+  selections: SelectionOptions | undefined
+): number {
+  const skillCount = selections?.skills?.length ?? 0;
+  const marvel = selections?.powers?.[0] as GeneralPower | undefined;
+  if (skillCount >= 2) return 2;
+  if (skillCount >= 1 && marvel) {
+    const needsSkill = !!getPickSkillBonusTarget(marvel);
+    return needsSkill && !selections?.marvelSkills?.length ? 1 : 2;
+  }
+  return skillCount;
 }
 
 /**
@@ -1291,11 +1307,13 @@ export function countRequirementSelections(
     case 'markTrainedSkills':
       return selections?.skills?.length ?? 0;
 
-    // Versátil (Humano), Deformidade (Lefou) e Chassi (Mashin): 2 perícias OU
-    // 1 perícia + 1 poder.
+    // Chassi (Mashin): como o Versátil, mais a perícia do bônus da maravilha.
+    case 'mashinChassi':
+      return countMashinChassiSelections(selections);
+
+    // Versátil (Humano) e Deformidade (Lefou): 2 perícias OU 1 perícia + 1 poder.
     case 'humanoVersatil':
-    case 'lefouDeformidade':
-    case 'mashinChassi': {
+    case 'lefouDeformidade': {
       const skillCount = selections?.skills?.length ?? 0;
       const powerCount = selections?.powers?.length ?? 0;
       if (skillCount >= 2) return 2;
@@ -1412,13 +1430,7 @@ export function validateSelections(
         // 2 skills OR 1 skill + 1 mechanical marvel
         const mashinSkills = selections.skills || [];
         const mashinPowers = selections.powers || [];
-        if (mashinSkills.length >= 2) {
-          selectedCount = 2;
-        } else if (mashinSkills.length >= 1 && mashinPowers.length >= 1) {
-          selectedCount = 2;
-        } else {
-          selectedCount = mashinSkills.length;
-        }
+        selectedCount = countMashinChassiSelections(selections);
         selectedItems = [...mashinSkills, ...mashinPowers];
         break;
       }

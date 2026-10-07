@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { Alert, Box, Button, Chip, Tooltip, Typography } from '@mui/material';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
@@ -12,7 +18,20 @@ import type {
 } from '@/premium/interfaces/ActiveEffect';
 import { CharacterAttribute } from '@/interfaces/Character';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { Spell, spellsCircles } from '@/interfaces/Spells';
+import { EngenhocaData, Spell, spellsCircles } from '@/interfaces/Spells';
+import {
+  buildEngenhocaCastCheck,
+  countEngenhocas,
+  getEngenhocaActivationBaseDC,
+  getEngenhocaLimit,
+  getEngenhocaResistDC,
+  hasEngenhoqueiro,
+  isEngenhocaCircleAboveLimit,
+} from '@/functions/spells/engenhoca';
+import {
+  getSpellTradition,
+  matchesTraditionFilter,
+} from '@/functions/spells/spellTradition';
 import {
   EMPTY_SPELL_FILTERS,
   SpellFilterState,
@@ -27,6 +46,8 @@ import {
   GROUP_HEADER_SX,
   GROUP_TITLE_SX,
 } from '../common/listStyles';
+import EngenhocaDialog from './EngenhocaDialog';
+import { EngenhocaRowInfo } from './SpellDetailBody';
 import SpellDetailSheet from './SpellDetailSheet';
 import SpellRow from './SpellRow';
 import { getSpellActiveEffectDefinition } from './spellActiveEffect';
@@ -140,6 +161,22 @@ export interface SpellsDisplayProps {
     definition: ActivePowerDefinition,
     option: ActiveEffectUsageOption
   ) => void;
+  /**
+   * Grava (ou remove, com `undefined`) a engenhoca de uma magia. Só tem efeito
+   * com `sheet` de quem tem o poder Engenhoqueiro.
+   */
+  onEngenhocaChange?: (
+    spell: Spell,
+    engenhoca: EngenhocaData | undefined
+  ) => void;
+  /** Heróis de Arton ativo: o diálogo da engenhoca oferece aparatos. */
+  showAparatos?: boolean;
+  /**
+   * Nome da magia cujo diálogo de engenhoca deve abrir sozinho (acabou de ser
+   * adicionada como engenhoca). Consumido uma vez: o pai limpa no callback.
+   */
+  autoOpenEngenhocaFor?: string | null;
+  onAutoOpenEngenhocaHandled?: () => void;
 }
 
 const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
@@ -164,6 +201,10 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   castCheck,
   sheet,
   onActivateEffect,
+  onEngenhocaChange,
+  showAparatos,
+  autoOpenEngenhocaFor,
+  onAutoOpenEngenhocaHandled,
 }) => {
   const { hasAccess: canUseActiveEffects } = useFeatureAccess('activeEffects');
   const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
@@ -173,19 +214,102 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   const [toggles, setToggles] = useState<SheetSpellToggles>(EMPTY_TOGGLES);
   const [detailSpell, setDetailSpell] = useState<Spell | null>(null);
   const [castingSpell, setCastingSpell] = useState<Spell | null>(null);
+  const [engenhocaSpell, setEngenhocaSpell] = useState<Spell | null>(null);
 
   const mod = keyAttr ? keyAttr.value : 0;
   const bonus = bonusSpellDC || 0;
   const resistance = 10 + Math.floor(nivel * 0.5) + mod + bonus;
+
+  // Engenhocas (Inventor com Engenhoqueiro). Lista derivada (Usurpar) nunca.
+  const engenhoqueiro = !derived && !!sheet && hasEngenhoqueiro(sheet);
+  const canEditEngenhoca = engenhoqueiro && !!onEngenhocaChange;
+
+  const engenhocaInfoByName = useMemo(() => {
+    const map = new Map<string, EngenhocaRowInfo>();
+    if (!sheet || derived) return map;
+    spells.forEach((spell) => {
+      if (!spell.engenhoca) return;
+      map.set(spell.nome, {
+        activationDC: getEngenhocaActivationBaseDC(sheet, spell),
+        resistDC: getEngenhocaResistDC(sheet, spell, bonus),
+        circleAboveLimit: isEngenhocaCircleAboveLimit(sheet, spell),
+      });
+    });
+    return map;
+  }, [sheet, spells, derived, bonus]);
+
+  const engenhocaCounter = useMemo(
+    () =>
+      engenhoqueiro && sheet
+        ? { count: countEngenhocas(spells), limit: getEngenhocaLimit(sheet) }
+        : undefined,
+    [engenhoqueiro, sheet, spells]
+  );
+
+  const handleOpenEngenhoca = useCallback((spell: Spell) => {
+    setEngenhocaSpell(spell);
+  }, []);
+
+  useEffect(() => {
+    if (!autoOpenEngenhocaFor) return;
+    const target = spells.find((spell) => spell.nome === autoOpenEngenhocaFor);
+    // A lista ainda pode não ter recebido a magia nova: espera o próximo render.
+    if (!target) return;
+    if (canEditEngenhoca) setEngenhocaSpell(target);
+    onAutoOpenEngenhocaHandled?.();
+  }, [
+    autoOpenEngenhocaFor,
+    spells,
+    canEditEngenhoca,
+    onAutoOpenEngenhocaHandled,
+  ]);
+
+  const handleRepairEngenhoca = useCallback(
+    (spell: Spell) => {
+      if (!spell.engenhoca) return;
+      const repaired = { ...spell.engenhoca };
+      delete repaired.enguicada;
+      onEngenhocaChange?.(spell, repaired);
+    },
+    [onEngenhocaChange]
+  );
+
+  /**
+   * Falha no teste de ativação da engenhoca em curso. Viaja no PRÓPRIO
+   * `onSpellCast` (como `engenhoca.enguicada`), não num save separado: o
+   * handler de lançamento grava o PM a partir da ficha que conhece, e um save
+   * paralelo da marca seria sobrescrito por ele.
+   */
+  const engenhocaBrokeRef = useRef(false);
+
+  /** Engenhoca troca o teste do lançamento pelo de Ofício (engenhoqueiro). */
+  const castingCheck = useMemo(() => {
+    if (!castingSpell?.engenhoca || !sheet || derived) return castCheck;
+    return buildEngenhocaCastCheck(sheet, castingSpell, () => {
+      engenhocaBrokeRef.current = true;
+    });
+  }, [castingSpell, sheet, derived, castCheck]);
 
   const filterOptions = useMemo(
     () => deriveSpellFilterOptions(spells),
     [spells]
   );
 
+  /**
+   * O filtro de tipo mora aqui e não no `applySpellFilters`: o tipo não é campo
+   * da magia, é resolvido por nome contra o catálogo.
+   */
   const applyToggles = useCallback(
     (list: Spell[]) =>
       list.filter((spell) => {
+        if (
+          !matchesTraditionFilter(
+            getSpellTradition(spell.nome),
+            filters.spellType
+          )
+        ) {
+          return false;
+        }
         if (toggles.onlyWithRolls && !spell.rolls?.length) return false;
         if (
           toggles.onlyMemorized &&
@@ -196,8 +320,17 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         }
         return true;
       }),
-    [toggles]
+    [toggles, filters.spellType]
   );
+
+  /** Só oferece o filtro de tipo quando a ficha mistura tipos. */
+  const showTraditionFilter = useMemo(() => {
+    const traditions = new Set(
+      spells.map((spell) => getSpellTradition(spell.nome))
+    );
+    traditions.delete(undefined);
+    return traditions.size > 1;
+  }, [spells]);
 
   /**
    * Tudo menos o círculo. As contagens dos chips saem daqui e não do resultado
@@ -251,6 +384,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   }, [spells, derived]);
 
   const activeFilterCount =
+    (filters.spellType !== 'all' ? 1 : 0) +
     (filters.schools.length > 0 ? 1 : 0) +
     (filters.executions.length > 0 ? 1 : 0) +
     (toggles.onlyWithRolls ? 1 : 0) +
@@ -263,12 +397,21 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
 
   const handleCast = useCallback(
     (pmSpent: number, castSpell: Spell, castLogged?: boolean) => {
-      onSpellCast?.(pmSpent, castSpell, castLogged);
+      const broke = engenhocaBrokeRef.current && !!castSpell.engenhoca;
+      engenhocaBrokeRef.current = false;
+      const reported = broke
+        ? {
+            ...castSpell,
+            engenhoca: { ...castSpell.engenhoca, enguicada: true },
+          }
+        : castSpell;
+      onSpellCast?.(pmSpent, reported, castLogged);
     },
     [onSpellCast]
   );
 
   const handleOpenCast = useCallback((spell: Spell) => {
+    engenhocaBrokeRef.current = false;
     setCastingSpell(spell);
     // Se o detalhe estava aberto no compacto, ele sai da frente do diálogo.
     setDetailSpell(null);
@@ -297,6 +440,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         memorizedCount={magoCounters.memorizedCount}
         memorizedLimit={magoCounters.memorizedLimit}
         alwaysPreparedCount={magoCounters.alwaysPreparedCount}
+        engenhocaCounter={engenhocaCounter}
       />
 
       {derivedNotice && (
@@ -316,6 +460,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           circleOptions={circleOptions}
           schools={filterOptions.schools}
           executions={filterOptions.executions}
+          showTraditionFilter={showTraditionFilter}
           isMago={isMago}
           activeFilterCount={activeFilterCount}
           onReset={handleReset}
@@ -386,6 +531,14 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
                   }
                   sheet={sheet}
                   onActivateEffect={onActivateEffect}
+                  engenhocaInfo={engenhocaInfoByName.get(spell.nome)}
+                  onOpenEngenhoca={
+                    canEditEngenhoca ? handleOpenEngenhoca : undefined
+                  }
+                  onRepairEngenhoca={
+                    canEditEngenhoca ? handleRepairEngenhoca : undefined
+                  }
+                  tradition={getSpellTradition(spell.nome)}
                 />
               ))}
             </Box>
@@ -397,8 +550,33 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         onClose={() => setDetailSpell(null)}
         compact={compact}
         spell={detailSpell}
-        onCast={detailSpell ? () => handleOpenCast(detailSpell) : undefined}
+        onCast={
+          detailSpell && !detailSpell.engenhoca?.enguicada
+            ? () => handleOpenCast(detailSpell)
+            : undefined
+        }
+        engenhocaInfo={
+          detailSpell ? engenhocaInfoByName.get(detailSpell.nome) : undefined
+        }
+        tradition={
+          detailSpell ? getSpellTradition(detailSpell.nome) : undefined
+        }
       />
+
+      {engenhocaSpell && sheet && onEngenhocaChange && (
+        <EngenhocaDialog
+          key={engenhocaSpell.nome}
+          open
+          onClose={() => setEngenhocaSpell(null)}
+          spell={engenhocaSpell}
+          sheet={sheet}
+          bonusSpellDC={bonus}
+          showAparatos={
+            !!showAparatos || !!engenhocaSpell.engenhoca?.aparatos?.length
+          }
+          onSave={(engenhoca) => onEngenhocaChange(engenhocaSpell, engenhoca)}
+        />
+      )}
 
       {/*
         UMA instância, não uma por linha como no layout antigo. A `key` por magia
@@ -418,7 +596,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           onCast={handleCast}
           onUpdateRolls={onUpdateRolls}
           characterName={characterName}
-          castCheck={castCheck}
+          castCheck={castingCheck}
         />
       )}
     </Box>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import generateRandomSheet from '../general';
+import generateRandomSheet, { isRaceOrVariantOf } from '../general';
 import { SupplementId } from '../../types/supplement.types';
-import { GeneralPowerType } from '../../interfaces/Poderes';
+import { GeneralPowerType, RequirementType } from '../../interfaces/Poderes';
 import { dataRegistry } from '../../data/registry';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
@@ -28,6 +28,7 @@ const PICKABLE = [
   GeneralPowerType.DESTINO,
   GeneralPowerType.MAGIA,
   GeneralPowerType.TORMENTA,
+  GeneralPowerType.RACA,
 ];
 
 /**
@@ -86,12 +87,32 @@ describe('gerador aleatório — escopo dos poderes gerais', () => {
     expect(fromSupplements.length).toBeGreaterThan(0);
   });
 
-  it('o sorteio nunca entrega poder concedido nem poder de raça', () => {
+  it('o sorteio nunca entrega poder concedido', () => {
     const wrongType = sheets
       .flatMap(levelUpPickedPowers)
       .filter((p) => !PICKABLE.includes(p.type));
 
     expect(wrongType.map((p) => `${p.name} (${p.type})`)).toEqual([]);
+  });
+
+  it('poder de raça sorteado é sempre da raça da ficha', () => {
+    const wrongRace = sheets.flatMap((sheet) =>
+      levelUpPickedPowers(sheet)
+        .filter((p) => p.type === GeneralPowerType.RACA)
+        .filter(
+          (p) =>
+            !p.requirements.some((group) =>
+              group.some(
+                (rule) =>
+                  rule.type === RequirementType.RACA &&
+                  isRaceOrVariantOf(sheet.raca, rule.name as string)
+              )
+            )
+        )
+        .map((p) => `${p.name} (${sheet.raca.name})`)
+    );
+
+    expect(wrongRace).toEqual([]);
   });
 
   it('todo poder sorteado tem seus pré-requisitos satisfeitos na ficha', () => {

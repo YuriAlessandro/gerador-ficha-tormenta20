@@ -23,6 +23,7 @@ export interface FeatureFlags {
   sheetLayouts: FeatureFlag;
   limitBoost: FeatureFlag;
   challenges: FeatureFlag;
+  guidedTours: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -70,4 +71,8 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // respondem os pedidos — por isso o lado do jogador olha só `isEnabled`.
   // Default desligado até o rollout.
   challenges: { enabled: false, supporterOnly: true },
+  // Tours guiados (onboarding in-app). Só kill switch: são gratuitos para todo
+  // mundo, então `supporterOnly` fica FALSE (o `useFeatureAccess` é binário).
+  // Default desligado até o rollout.
+  guidedTours: { enabled: false, supporterOnly: false },
 };

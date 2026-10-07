@@ -1,11 +1,18 @@
 import React from 'react';
 import AdjustIcon from '@mui/icons-material/Adjust';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import BoltIcon from '@mui/icons-material/Bolt';
+import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import StraightenIcon from '@mui/icons-material/Straighten';
 import { Box, SvgIconProps, Tooltip } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
+import {
+  SpellTradition,
+  TRADITION_LABEL,
+} from '@/functions/spells/spellTradition';
 import { META_ICON_SX, META_ITEM_SX, META_LINE_SX } from './spellsTabStyles';
 
 interface MetaToken {
@@ -15,15 +22,40 @@ interface MetaToken {
   Icon: React.ComponentType<SvgIconProps>;
 }
 
+/** Mesmos ícones dos chips de tipo da enciclopédia. */
+const TRADITION_ICON: Record<
+  SpellTradition,
+  React.ComponentType<SvgIconProps>
+> = {
+  arcane: AutoFixHighIcon,
+  divine: FilterDramaIcon,
+  universal: AllInclusiveIcon,
+};
+
 /**
  * Os cinco campos que a tabela antiga espalhava em colunas.
  *
  * A ordem é a de uso na mesa: primeiro o que decide se dá pra lançar agora
  * (execução, alcance), depois o que descreve o efeito (alvo, duração) e por fim
  * a resistência. Campo vazio é OMITIDO — o layout antigo enchia a linha de "-".
+ *
+ * O tipo (arcana/divina/universal) vem na frente de todos: por ser sempre o
+ * primeiro item, forma uma coluna que dá para percorrer com o olho.
  */
-const getTokens = (spell: Spell): MetaToken[] => {
+const getTokens = (spell: Spell, tradition?: SpellTradition): MetaToken[] => {
   const tokens: MetaToken[] = [];
+
+  if (tradition) {
+    tokens.push({
+      key: 'tipo',
+      label:
+        tradition === 'universal'
+          ? 'Universal: conta como arcana ou divina conforme a classe que a lança'
+          : `Magia ${TRADITION_LABEL[tradition].toLowerCase()}`,
+      value: TRADITION_LABEL[tradition],
+      Icon: TRADITION_ICON[tradition],
+    });
+  }
 
   if (spell.execucao) {
     tokens.push({
@@ -74,6 +106,8 @@ const getTokens = (spell: Spell): MetaToken[] => {
 
 interface SpellMetaLineProps {
   spell: Spell;
+  /** Tipo resolvido pelo pai (não é campo da magia). Ausente = não mostra. */
+  tradition?: SpellTradition;
 }
 
 /**
@@ -83,8 +117,8 @@ interface SpellMetaLineProps {
  * "Execução: Padrão · Alcance: Curto" dobraria o comprimento da linha e é
  * justamente o comprimento que era o problema.
  */
-const SpellMetaLine: React.FC<SpellMetaLineProps> = ({ spell }) => {
-  const tokens = getTokens(spell);
+const SpellMetaLine: React.FC<SpellMetaLineProps> = ({ spell, tradition }) => {
+  const tokens = getTokens(spell, tradition);
   if (tokens.length === 0) return null;
 
   return (

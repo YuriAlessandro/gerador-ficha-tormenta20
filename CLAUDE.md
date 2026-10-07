@@ -178,7 +178,7 @@ npx prettier --check <filename>  # Check if files are formatted
 ### Infraestrutura
 
 - **Frontend** (este repo): **Cloudflare Pages**, projeto `fichas-frontend`. Merge em `production` → GitHub Actions (`.github/workflows/deploy-frontend.yml`) faz `npm run build` e publica via `wrangler pages deploy` (Direct Upload). A integração Git nativa do Pages **não serve**: não clona submódulo privado, e o build depende de `src/premium`.
-- **Backend** (`/backend` submodule): Fly.io `fichas-backend` em região `gru` (São Paulo) — `shared-cpu-2x` 1GB, 1 machine, `auto_stop_machines=off`. Deploy automatizado via GitHub Actions (`.github/workflows/fly-deploy.yml`) no repo do backend, a cada merge em `production`. Runbook completo em `backend/docs/runbook.md`.
+- **Backend** (`/backend` submodule): Fly.io `fichas-backend` em região `gru` (São Paulo) — `shared-cpu-8x` 2GB (não reduzir: com 2x o pico de fim de semana esgota o crédito de CPU e o Fly estrangula a VM — ver runbook), 1 machine, `auto_stop_machines=off`. Deploy automatizado via GitHub Actions (`.github/workflows/fly-deploy.yml`) no repo do backend, a cada merge em `production`. Runbook completo em `backend/docs/runbook.md`.
 - **Banco**: MongoDB Atlas (externo, fora do GCP).
 - **Auth**: Firebase Auth (no projeto GCP `fichas-de-nimb`). **É a única coisa que ainda vive no GCP** — todo o resto foi decomissionado em 08/08/2026. Não apagar o projeto.
 - **Pagamentos**: Stripe — webhooks vão direto pra `https://fichas-backend.fly.dev/api/webhooks/stripe`.
@@ -200,7 +200,8 @@ Frontend e backend publicam a partir da branch **`production`**, não da `main`.
 
 O Pages não é só hospedagem estática aqui. Três arquivos carregam o que o `nginx.conf` fazia:
 
-- `public/_redirects` — SPA fallback. Precisa ser explícito porque rotas têm ponto (`/perfil/user.name`) e o fallback automático do Pages as trata como arquivo.
+- **SPA fallback = modo SPA nativo do Pages** (sem `404.html` na raiz, caminho inexistente recebe o `index.html` com 200 — inclusive rotas com ponto). **Não** há regra de SPA no `public/_redirects`: o `/* /index.html 200` que existia era descartado pelo parser ("Infinite loop detected") e foi removido.
+- `public/assets/404.html` — **crítico**: faz asset ausente em `/assets/*` responder 404 (o Pages força `no-store` em todo 404) em vez do `index.html` com 200, que o edge cacheava por 1 ano sob a URL do `.css`/`.js` (site sem estilo/tela branca após deploy, 3x em 2026). Nunca criar `404.html` na raiz (desliga o modo SPA). O workflow de deploy verifica as duas coisas.
 - `public/_headers` — cache, CORS dos assets e headers de segurança. `X-Frame-Options` é destacado (`!`) em `/owlbear/*` e `/mapadearton*`.
 - `functions/_middleware.ts` — proxy de SEO por User-Agent (crawler → backend, que devolve HTML com OG tags) e remoção do XFO no subdomínio `mapadearton.*`.
 - `public/_routes.json` — **crítico para custo**: restringe quais caminhos invocam a Function. Sem ele, toda requisição de asset conta na cota do Workers (100k/dia no free).

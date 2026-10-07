@@ -38,6 +38,7 @@ import TormentaTitle from '../Database/TormentaTitle';
 import EncyclopediaSearch from '../Database/EncyclopediaSearch';
 import { useSubscription } from '../../hooks/useSubscription';
 import { SEO, getPageSEO } from '../SEO';
+import PocketGrimoireFab from '../PocketGrimoire/PocketGrimoireFab';
 
 interface IProps {
   // Quando true, o componente é renderizado embutido em outro contexto (ex.:
@@ -445,6 +446,8 @@ const Database: React.FC<IProps> = ({ embedded = false }) => {
           </Box>
         </Fade>
       </Container>
+      {/* Fora da mesa virtual (embedded): lá não há rota /grimorio. */}
+      {!embedded && <PocketGrimoireFab />}
     </>
   );
 };

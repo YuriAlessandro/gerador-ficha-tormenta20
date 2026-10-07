@@ -349,6 +349,12 @@ export type SheetActionReceipt =
       spellNames: string[];
     }
   | {
+      // T$ gasto num nível (ex.: fabricação de engenhocas). Reverter o nível
+      // devolve o valor.
+      type: 'MoneySpent';
+      amount: number;
+    }
+  | {
       type: 'SenseAdded';
       sense: string;
     }
@@ -491,6 +497,7 @@ export type StatModifierTarget =
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
       lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
+      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
       // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
@@ -505,6 +512,7 @@ export type StatModifierTarget =
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
       lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
+      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
       // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
@@ -519,6 +527,7 @@ export type StatModifierTarget =
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
       lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
+      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
       // 'increase' (padrão): alarga a margem pelo valor; 'set': define a margem
       // (ex.: "sua margem de ameaça passa a ser 19").
@@ -535,6 +544,7 @@ export type StatModifierTarget =
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
       lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
+      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
       // 'increase' (padrão): soma ao multiplicador; 'set': define o multiplicador
       // (ex.: "seu multiplicador de crítico passa a ser x3").
@@ -700,6 +710,8 @@ export type BonusConditionClause = (
   /** Vestindo a armadura de nome exato `value` (identidade de catálogo). */
   | { kind: 'wearingArmorNamed'; value: string }
   | { kind: 'wieldingShield' }
+  /** Empunhando uma espada (lista em `weaponTraits.ts`). */
+  | { kind: 'wieldingSword' }
   | { kind: 'wieldingItemNamed'; value: string }
   | { kind: 'wieldingTwoHandedWeapon' }
   | { kind: 'wieldingMeleeWeapon' }
@@ -1057,14 +1069,19 @@ export default interface CharacterSheet {
   diferentaoPower?: ClassPower; // Poder escolhido pelo poder Diferentão
   poderesCapturados?: PoderCapturadoChoice[]; // Usurpador: Poder Capturado (4º nível)
   /**
-   * @deprecated Substituído pelo `journal` (Diário do Jogador). Continua sendo
-   * LIDO — é o fallback quando a feature está desligada e a fonte da migração —,
-   * mas nada escreve nele. Mantido em disco de propósito: `migrateNotesToJournal`
-   * copia o texto para um nó em vez de mover, então uma migração com defeito não
-   * leva junto a anotação original do jogador.
+   * Anotações livres em texto simples. É o que a ficha mostra e edita quando
+   * `journalMode` é `'simple'` (ou quando o Diário não está disponível), e a
+   * fonte da migração para o Diário: `migrateNotesToJournal` COPIA o texto para
+   * um bloco em vez de mover, então os dois lados existem em disco ao mesmo
+   * tempo e alternar entre eles nunca apaga nada.
    */
-  notes?: string; // Anotações livres do jogador
+  notes?: string;
   journal?: PlayerJournal; // Diário do Jogador (canvas de blocos)
+  /**
+   * O que a ficha usa para anotar: o Diário completo ou o texto simples em
+   * `notes`. Ausente = `'journal'`. É escolha do jogador, por ficha.
+   */
+  journalMode?: 'journal' | 'simple';
   imageUrl?: string; // URL de imagem do personagem
   /**
    * Layout customizado desta ficha.
@@ -1092,7 +1109,8 @@ export default interface CharacterSheet {
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
   multiclassSetups?: Record<string, ClassSetupSelection>; // Multiclasse: escolhas do 1º nível por className (linhagem, deus, escolas)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
-  animalCompanions?: SheetAnimalCompanion[]; // Companheiro(s) Animal(is) do Druida
+  /** Formato antigo do Companheiro Animal; migrado para `partners` no recálculo. */
+  animalCompanions?: SheetAnimalCompanion[];
   partners?: SheetPartner[]; // Parceiros persistentes (JdA cap. 6) — ver `SheetPartner`
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
   activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)

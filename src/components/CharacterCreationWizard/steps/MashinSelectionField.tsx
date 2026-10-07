@@ -16,6 +16,7 @@ import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { isPowerAvailable } from '@/functions/powers';
+import { getPickSkillBonusTarget } from '@/functions/powers/pickSkillBonus';
 
 interface MashinSelectionFieldProps {
   availableSkills: Skill[];
@@ -51,6 +52,22 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
     (skill) => skill !== firstSkill
   );
 
+  // Maravilha que pede uma perícia para o bônus (Caminho da Perfeição: "uma de
+  // suas perícias treinadas"). Treinadas = as dos passos anteriores + a
+  // primeira perícia do próprio chassi.
+  const marvelPickSkill = getPickSkillBonusTarget(selectedMarvel);
+  const marvelSkill = selections.marvelSkills?.[0] || '';
+  const marvelSkillOptions = useMemo(() => {
+    if (!marvelPickSkill) return [];
+    const trained = new Set<string>([
+      ...(sheet.skills || []),
+      ...(firstSkill ? [firstSkill] : []),
+    ]);
+    return marvelPickSkill.skills
+      .filter((skill) => trained.has(skill))
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [marvelPickSkill, sheet.skills, firstSkill]);
+
   const filteredMarvels = useMemo(() => {
     const existing = sheet.generalPowers || [];
     return availableMarvels
@@ -77,6 +94,12 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
         ...selections,
         skills: [skill],
         powers: selections.powers,
+        // A primeira perícia conta como treinada para o bônus da maravilha.
+        // Se a escolha dependia da perícia que saiu, ela fica inválida.
+        marvelSkills:
+          marvelSkill && marvelSkill === firstSkill
+            ? []
+            : selections.marvelSkills,
       });
     }
   };
@@ -87,6 +110,7 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
       ...selections,
       skills: firstSkill ? [firstSkill] : [],
       powers: [],
+      marvelSkills: [],
     });
   };
 
@@ -105,8 +129,13 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
         ...selections,
         skills: firstSkill ? [firstSkill] : [],
         powers: [marvel],
+        marvelSkills: [],
       });
     }
+  };
+
+  const handleMarvelSkillChange = (skill: string) => {
+    onChange({ ...selections, marvelSkills: [skill] });
   };
 
   return (
@@ -217,6 +246,26 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
           </Select>
         </FormControl>
       )}
+      {/* Perícia do bônus da maravilha (Caminho da Perfeição) */}
+      {secondChoiceType === 'marvel' && marvelPickSkill && (
+        <FormControl fullWidth>
+          <InputLabel id='mashin-marvel-skill-label'>
+            Perícia que recebe +2 *
+          </InputLabel>
+          <Select
+            labelId='mashin-marvel-skill-label'
+            value={marvelSkill}
+            label='Perícia que recebe +2 *'
+            onChange={(e) => handleMarvelSkillChange(e.target.value as string)}
+          >
+            {marvelSkillOptions.map((skill) => (
+              <MenuItem key={skill} value={skill}>
+                {skill}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
       {/* Selection Summary */}
       <Box sx={{ mt: 1 }}>
         <Typography
@@ -242,6 +291,7 @@ const MashinSelectionField: React.FC<MashinSelectionFieldProps> = ({
             <>
               {' + '}
               Maravilha Mecânica: <em>{selectedMarvel.name}</em>
+              {marvelSkill && <> (+2 em {marvelSkill})</>}
             </>
           )}
           {!firstSkill && ' Nenhuma seleção ainda'}

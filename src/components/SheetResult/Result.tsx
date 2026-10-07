@@ -67,7 +67,7 @@ import {
 } from '@/functions/multiclass';
 import { getCompanionLevels } from '@/functions/companionLevels';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { Spell } from '@/interfaces/Spells';
+import { EngenhocaData, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -121,12 +121,13 @@ import {
   isInWildShape,
 } from '@/premium/functions/wildShape';
 import { WILD_SHAPE_POWER_KEY } from '@/premium/data/wildShapes';
-import { AnimalCompanionsPanel } from '@/premium/components/AnimalCompanions';
 import {
-  getAnimalCompanionActivatedPowers,
-  reconcileAnimalCompanionEffects,
-} from '@/premium/functions/animalCompanionEffects';
-import { reconcileSheetPartnerEffects } from '@/premium/functions/sheetPartners';
+  getSheetPartnerActivatedPowers,
+  reconcileSheetPartnerEffects,
+} from '@/premium/functions/sheetPartners';
+import { reconcilePowerPartners } from '@/premium/functions/powerPartners';
+import { migrateAnimalCompanions } from '@/premium/functions/animalCompanionMigration';
+import { reconcileItemPartners } from '@/premium/functions/itemPartners';
 import { reconcileAutoPowerEffects } from '@/premium/functions/autoPowerEffects';
 import { getDeitySpellCircleWarning } from '@/functions/powers/general';
 import { needsTormentaPenaltyBackfill } from '@/functions/tormentaCharismaPenalty';
@@ -167,7 +168,10 @@ import '../../assets/css/result.css';
 import Spells from './SpellsTab/SpellsDisplay';
 import SkillTable from './SkillTable';
 import LabelDisplay from './LabelDisplay';
+import FundamentalistaControl from './FundamentalistaControl';
+import PendingExtraPowerAlert from './PendingExtraPowerAlert';
 import { getDevotionLabel } from '../../functions/powers/deityNames';
+import { getPreferredWeaponWarning } from '../../functions/powers/fundamentalista';
 import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
@@ -199,6 +203,8 @@ import {
   PLAYER_JOURNAL_AVAILABLE,
 } from '../../premium/components/PlayerJournal';
 import { PlayerJournal } from '../../interfaces/PlayerJournal';
+import NotesDialog from './NotesDialog';
+import SheetNotesCard from './SheetNotesCard';
 import RestDialog, { RestConfirmConfig } from './RestDialog';
 import {
   calculateRestRecovery,
@@ -311,6 +317,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [statDrawerOpen, setStatDrawerOpen] = useState(false);
   const [restDialogOpen, setRestDialogOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
@@ -364,20 +371,9 @@ const Result: React.FC<ResultProps> = (props) => {
   // PV/Defesa/perícias, com Treinador Eclético) — mesma regra do recalculateSheet
   const { trainerLevel, statLevel: companionStatLevel } =
     getCompanionLevels(currentSheet);
-  // O painel de companheiros só aparece para quem tem a ver com ele: druidas
-  // com o poder Companheiro Animal, ou qualquer ficha que já tenha um
-  // companheiro salvo (não esconder dados existentes se o poder for removido).
-  const showAnimalCompanions = useMemo(() => {
-    if ((currentSheet.animalCompanions?.length ?? 0) > 0) return true;
-    if (getClassLevel(currentSheet, 'Druida') <= 0) return false;
-    return (currentSheet.classPowers ?? []).some(
-      (power) => power.name === 'Companheiro Animal'
-    );
-  }, [currentSheet.animalCompanions, currentSheet.classPowers, currentSheet]);
-
   // Definições injetadas em runtime no gerenciador de efeitos: efeitos custom
   // do jogador (presos a um poder ou avulsos) + benefícios ativados dos
-  // companheiros animais + o Poder Capturado do Usurpador (montado a partir de
+  // parceiros + o Poder Capturado do Usurpador (montado a partir de
   // `sheet.poderesCapturados`).
   const poderCapturadoDefinition = useMemo(
     () => getPoderCapturadoDefinition(currentSheet, userSupplements),
@@ -387,7 +383,7 @@ const Result: React.FC<ResultProps> = (props) => {
     () => [
       ...collectVirtualCustomEffectDefinitions(currentSheet),
       ...collectStandaloneCustomEffectDefinitions(currentSheet),
-      ...getAnimalCompanionActivatedPowers(currentSheet),
+      ...getSheetPartnerActivatedPowers(currentSheet),
       ...(poderCapturadoDefinition ? [poderCapturadoDefinition] : []),
     ],
     [currentSheet, poderCapturadoDefinition]
@@ -601,11 +597,11 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate, applyRecalculatedSheet]
   );
 
-  // O painel de companheiros fica fora da aba Poderes; o ícone de patinha no
-  // poder rola até ele em vez de abrir um modal.
-  const animalCompanionsRef = React.useRef<HTMLDivElement>(null);
-  const scrollToAnimalCompanions = useCallback(() => {
-    animalCompanionsRef.current?.scrollIntoView({
+  // O Companheiro Animal mora no painel de Parceiros, fora da aba Poderes; o
+  // ícone de patinha no poder rola até ele em vez de abrir um modal.
+  const partnersRef = React.useRef<HTMLDivElement>(null);
+  const scrollToPartners = useCallback(() => {
+    partnersRef.current?.scrollIntoView({
       behavior: 'smooth',
       block: 'center',
     });
@@ -675,9 +671,8 @@ const Result: React.FC<ResultProps> = (props) => {
   }, [currentSheet.activeEffects]);
 
   // Efeitos DERIVADOS da ficha (não escolhidos pelo jogador):
-  //  - Companheiro Animal: mantém os `ActiveEffect`s passivos em dia com
-  //    `sheet.animalCompanions` (subir de nível troca o grau do parceiro, e
-  //    com ele os bônus).
+  //  - Parceiros: um `ActiveEffect` passivo por parceiro, em dia com
+  //    `sheet.partners` (subir de nível troca o grau, e com ele os bônus).
   //  - Poderes automáticos (Coragem Aguerrida): ligam/desligam conforme o
   //    estado vivo da ficha — a dependência é o `currentSheet` inteiro, então
   //    o efeito já re-roda a cada mudança de PV.
@@ -688,18 +683,12 @@ const Result: React.FC<ResultProps> = (props) => {
   // primeiro (cada um espalha do closure já obsoleto).
   React.useEffect(() => {
     if (!onSheetUpdate) return;
-    const companions = reconcileAnimalCompanionEffects(currentSheet);
-    const afterCompanions = companions
-      ? { ...currentSheet, activeEffects: companions }
-      : currentSheet;
-    // Parceiros da ficha: mesma forma do companheiro (um efeito passivo por
-    // parceiro, derivado de `sheet.partners`).
-    const partners = reconcileSheetPartnerEffects(afterCompanions);
+    const partners = reconcileSheetPartnerEffects(currentSheet);
     const base = partners
-      ? { ...afterCompanions, activeEffects: partners }
-      : afterCompanions;
+      ? { ...currentSheet, activeEffects: partners }
+      : currentSheet;
     const auto = reconcileAutoPowerEffects(base);
-    const nextEffects = auto ?? partners ?? companions;
+    const nextEffects = auto ?? partners;
     // Terceiro reconciliador, mesma forma: ficha criada antes de a perda de
     // Carisma por poderes da Tormenta existir no motor do assistente (v4.30)
     // nunca recebeu o desconto, porque ABRIR uma ficha não dispara recálculo.
@@ -707,7 +696,16 @@ const Result: React.FC<ResultProps> = (props) => {
     // ledger (mesmo vazio), então a condição não dispara de novo — não há como
     // descontar duas vezes.
     const needsTormentaBackfill = needsTormentaPenaltyBackfill(currentSheet);
-    if (!nextEffects && !needsTormentaBackfill) return;
+    // Ficha que já tinha o poder (Familiar, Escudeiro...) ou o animal antes de
+    // o parceiro existir, ou que ainda guarda o Companheiro Animal no formato
+    // antigo: o recálculo de `applyRecalculatedSheet` cria/migra o parceiro, e
+    // a rodada seguinte deste efeito aplica os bônus dele. `!!` e não
+    // `!== null`: o stub público devolve `undefined`.
+    const needsPowerPartners =
+      !!migrateAnimalCompanions(currentSheet) ||
+      !!reconcilePowerPartners(currentSheet) ||
+      !!reconcileItemPartners(currentSheet);
+    if (!nextEffects && !needsTormentaBackfill && !needsPowerPartners) return;
     applyRecalculatedSheet(
       nextEffects
         ? { ...currentSheet, activeEffects: nextEffects }
@@ -804,9 +802,39 @@ const Result: React.FC<ResultProps> = (props) => {
 
   // Diário: merge parcial de UMA chave, sem recálculo — igual às anotações. O
   // debounce fica do lado do diário, que grava com o diálogo aberto.
+  //
+  // Devolve o retorno de `onSheetUpdate` (uma Promise, onde a gravação é
+  // assíncrona): é o que o diário usa para mostrar "Salvando… / Salvo".
   const handleJournalSave = useCallback(
-    (journal: PlayerJournal) => {
-      handleSheetInfoUpdate({ journal });
+    (journal: PlayerJournal): void | Promise<unknown> => {
+      const updatedSheet = { ...currentSheet, journal };
+      setCurrentSheet(updatedSheet);
+      return onSheetUpdate ? onSheetUpdate(updatedSheet) : undefined;
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleNotesSave = useCallback(
+    (notes: string) => {
+      handleSheetInfoUpdate({ notes });
+    },
+    [handleSheetInfoUpdate]
+  );
+
+  /**
+   * Alterna entre o Diário e as anotações em texto simples. Só troca o que a
+   * ficha MOSTRA: `journal` e `notes` continuam os dois em disco.
+   *
+   * `pendingJournal` é o que o diário ainda tinha na fila ao ser fechado pela
+   * troca. Vai junto, na mesma escrita — duas escritas seguidas partiriam do
+   * mesmo `currentSheet` e a segunda desfaria a primeira.
+   */
+  const handleJournalModeChange = useCallback(
+    (mode: 'journal' | 'simple', pendingJournal?: PlayerJournal) => {
+      handleSheetInfoUpdate({
+        ...(pendingJournal ? { journal: pendingJournal } : {}),
+        journalMode: mode,
+      });
     },
     [handleSheetInfoUpdate]
   );
@@ -899,12 +927,33 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
+  // Engenhoca recém-criada pela gaveta de magias cujo diálogo de configuração
+  // deve abrir sozinho. Só quando entrou UMA: com várias, abrir um diálogo por
+  // magia em sequência atrapalharia mais do que ajuda.
+  const [autoOpenEngenhocaFor, setAutoOpenEngenhocaFor] = useState<
+    string | null
+  >(null);
+  const clearAutoOpenEngenhoca = useCallback(
+    () => setAutoOpenEngenhocaFor(null),
+    []
+  );
+
   const handleSpellsUpdate = useCallback(
     (updates: Partial<CharacterSheet>) => {
       const updatedSheet = { ...currentSheet, ...updates };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
+      }
+
+      const previousNames = new Set(
+        (currentSheet.spells ?? []).map((s) => s.nome)
+      );
+      const novasEngenhocas = (updates.spells ?? []).filter(
+        (s) => s.engenhoca && !previousNames.has(s.nome)
+      );
+      if (novasEngenhocas.length === 1) {
+        setAutoOpenEngenhocaFor(novasEngenhocas[0].nome);
       }
     },
     [currentSheet, onSheetUpdate]
@@ -962,6 +1011,27 @@ const Result: React.FC<ResultProps> = (props) => {
             }
           : s
       );
+      const updatedSheet = { ...currentSheet, spells: updatedSpells };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate, ownsSpell]
+  );
+
+  // Engenhoca (Inventor): marca cosmética da magia, grava sem recálculo.
+  // `undefined` devolve a magia ao normal.
+  const handleEngenhocaUpdate = useCallback(
+    (spell: Spell, engenhoca: EngenhocaData | undefined) => {
+      if (!ownsSpell(spell)) return;
+      const updatedSpells = currentSheet.spells?.map((s) => {
+        if (s.nome !== spell.nome) return s;
+        if (engenhoca) return { ...s, engenhoca };
+        const rest = { ...s };
+        delete rest.engenhoca;
+        return rest;
+      });
       const updatedSheet = { ...currentSheet, spells: updatedSpells };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
@@ -1227,15 +1297,26 @@ const Result: React.FC<ResultProps> = (props) => {
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
       const tempConsumed = Math.min(currentTemp, pmSpent);
       const remaining = pmSpent - tempConsumed;
+      // Engenhoca que falhou no teste de ativação volta marcada como
+      // enguiçada — gravada no MESMO save do PM (ver `SpellsDisplay`).
+      const engenhocaBroke = !!spell.engenhoca?.enguicada && ownsSpell(spell);
       const updatedSheet = {
         ...currentSheet,
         tempPM: currentTemp - tempConsumed,
         currentPM: Math.max(0, currentPMValue - remaining),
+        ...(engenhocaBroke && {
+          spells: currentSheet.spells.map((s) =>
+            s.nome === spell.nome ? { ...s, engenhoca: spell.engenhoca } : s
+          ),
+        }),
       };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
       }
+
+      // Engenhoca enguiçada não gerou efeito — nada a oferecer.
+      if (engenhocaBroke) return;
 
       // Se a magia lançada tem efeito ativo, oferece a ativação (mesmo fluxo
       // dos poderes — o PM já foi pago no lançamento, então o efeito não
@@ -1266,7 +1347,7 @@ const Result: React.FC<ResultProps> = (props) => {
         }
       }
     },
-    [currentSheet, onSheetUpdate, canUseActiveEffects]
+    [currentSheet, onSheetUpdate, canUseActiveEffects, ownsSpell]
   );
 
   // Fechar o diálogo de efeito sem confirmar não pode engolir o lançamento:
@@ -1745,6 +1826,12 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet]
   );
 
+  // Fundamentalista: só a arma preferida (aviso, não bloqueio).
+  const getFundamentalistWeaponWarning = useCallback(
+    (item: Equipment) => getPreferredWeaponWarning(currentSheet, item),
+    [currentSheet]
+  );
+
   const weaponsDiv = useMemo(() => {
     const wieldingTrackingActive =
       currentSheet.mainHandItemId !== undefined ||
@@ -1785,6 +1872,7 @@ const Result: React.FC<ResultProps> = (props) => {
         onWeaponSemanticsChange={
           onSheetUpdate ? handleWeaponSemanticsChange : undefined
         }
+        getWeaponWarning={getFundamentalistWeaponWarning}
       />
     );
   }, [
@@ -1809,6 +1897,7 @@ const Result: React.FC<ResultProps> = (props) => {
     handleConsumeAmmo,
     computeWieldingDisabled,
     effectiveProficiencias,
+    getFundamentalistWeaponWarning,
   ]);
 
   const defenseEquipments = useMemo(
@@ -2050,12 +2139,15 @@ const Result: React.FC<ResultProps> = (props) => {
   // largura do container, não do viewport.
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY, { noSsr: true });
 
-  // Diário do Jogador. Enquanto a flag estiver desligada (ou faltar o
-  // submódulo premium), a ficha mantém exatamente o botão e o diálogo de
-  // anotações de sempre — o rollout é reversível sem redeploy, e o texto
-  // original nunca sai de `sheet.notes`.
+  // Diário do Jogador × anotações em texto simples.
+  //
+  // A mesma seção da ficha mostra um ou outro. O texto simples aparece quando
+  // o jogador o escolheu para esta ficha (`journalMode`) e também quando o
+  // Diário não existe aqui — flag desligada ou build sem o submódulo premium —,
+  // de modo que a ficha nunca fica sem lugar para anotar.
   const journalAccess = useFeatureAccess('playerJournal');
   const journalEnabled = journalAccess.hasAccess && PLAYER_JOURNAL_AVAILABLE;
+  const notesMode = !journalEnabled || currentSheet.journalMode === 'simple';
 
   const hasAnyRd =
     currentSheet.reducaoDeDano &&
@@ -2304,6 +2396,12 @@ const Result: React.FC<ResultProps> = (props) => {
                   size='small'
                 />
               )}
+              {devoto && (
+                <FundamentalistaControl
+                  sheet={currentSheet}
+                  onChange={onSheetUpdate ? applyRecalculatedSheet : undefined}
+                />
+              )}
               {conditionsFeature.isEnabled && (
                 <ConditionsBar
                   activeConditions={currentSheet.activeConditions}
@@ -2441,36 +2539,16 @@ const Result: React.FC<ResultProps> = (props) => {
       body: (
         <>
           {partnersFeature.isEnabled && (
-            <Box sx={{ mb: 4 }}>
+            <Box sx={{ mb: 4 }} ref={partnersRef}>
               <PartnerSheetPanel
                 sheet={currentSheet}
                 onSheetUpdate={
                   onSheetUpdate ? applyRecalculatedSheet : undefined
                 }
-              />
-            </Box>
-          )}
-        </>
-      ),
-    },
-
-    animalCompanions: {
-      kind: 'animalCompanions',
-      defaultTitle: 'Companheiros',
-      iconKey: 'mui:Pets',
-      withTitle: false,
-      available: showAnimalCompanions,
-      selfContained: true,
-      actions: [],
-      body: (
-        <>
-          {showAnimalCompanions && (
-            <Box sx={{ mb: 4 }} ref={animalCompanionsRef}>
-              <AnimalCompanionsPanel
-                sheet={currentSheet}
-                onSheetUpdate={
-                  onSheetUpdate ? applyRecalculatedSheet : undefined
-                }
+                onOpenBestFriend={(index) => {
+                  setSelectedCompanionIndex(index);
+                  setCompanionModalOpen(true);
+                }}
               />
             </Box>
           )}
@@ -2490,23 +2568,39 @@ const Result: React.FC<ResultProps> = (props) => {
       body: periciasDiv,
     },
 
-    // Diário do Jogador: o cartão se desenha sozinho (resumo + botão de abrir)
-    // e só existe com a feature ligada — desligada, a ficha fica com o botão de
-    // anotações da identidade, como sempre foi.
+    // Diário do Jogador ou anotações em texto simples (ver `notesMode`). Nos
+    // dois casos o cartão se desenha sozinho: resumo + botão de abrir + a
+    // troca para o outro modo, que só aparece para quem pode editar a ficha.
     journal: {
       kind: 'journal',
-      defaultTitle: 'Diário',
+      defaultTitle: notesMode ? 'Anotações' : 'Diário',
       iconKey: 'mui:MenuBook',
       withTitle: false,
-      available: journalEnabled,
+      available: true,
       selfContained: true,
-      actions: editAction('open-journal', 'Abrir diário', () =>
-        setJournalOpen(true)
-      ),
-      body: (
+      actions: notesMode
+        ? editAction('edit-notes', 'Editar anotações', () => setNotesOpen(true))
+        : editAction('open-journal', 'Abrir diário', () =>
+            setJournalOpen(true)
+          ),
+      body: notesMode ? (
+        <SheetNotesCard
+          notes={currentSheet.notes}
+          readOnly={!onSheetUpdate}
+          onOpen={() => setNotesOpen(true)}
+          onSwitchToJournal={
+            journalEnabled && onSheetUpdate
+              ? () => handleJournalModeChange('journal')
+              : undefined
+          }
+        />
+      ) : (
         <PlayerJournalCard
           journal={currentSheet.journal}
           onOpen={() => setJournalOpen(true)}
+          onSwitchToSimple={
+            onSheetUpdate ? () => handleJournalModeChange('simple') : undefined
+          }
         />
       ),
     },
@@ -2710,8 +2804,11 @@ const Result: React.FC<ResultProps> = (props) => {
                   }}
                 >
                   <strong>Penalidade de Armadura: </strong>
-                  {(getActiveArmorPenalty(currentSheet) + extraArmorPenalty) *
-                    -1}
+                  {(() => {
+                    const p =
+                      getActiveArmorPenalty(currentSheet) + extraArmorPenalty;
+                    return p > 0 ? `-${p}` : '0';
+                  })()}
                 </Typography>
               </Box>
               <Typography
@@ -2746,6 +2843,10 @@ const Result: React.FC<ResultProps> = (props) => {
         <>
           <Box>
             <BookTitle>Poderes</BookTitle>
+            <PendingExtraPowerAlert
+              sheet={currentSheet}
+              onChange={onSheetUpdate ? applyRecalculatedSheet : undefined}
+            />
             <PowersDisplay
               sheetHistory={currentSheet.sheetActionHistory || []}
               classAbilities={classe.abilities}
@@ -2797,7 +2898,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 return undefined;
               })()}
               onAnimalCompanionClick={
-                showAnimalCompanions ? scrollToAnimalCompanions : undefined
+                partnersFeature.isEnabled ? scrollToPartners : undefined
               }
               powerActionSlots={{
                 Paródia: (
@@ -2882,6 +2983,21 @@ const Result: React.FC<ResultProps> = (props) => {
               derivedNotice={derivedSpellsNotice}
               castCheck={usurparCastCheck}
               sheet={currentSheet}
+              onEngenhocaChange={
+                onSheetUpdate && !isDerivedSpells
+                  ? handleEngenhocaUpdate
+                  : undefined
+              }
+              autoOpenEngenhocaFor={autoOpenEngenhocaFor}
+              onAutoOpenEngenhocaHandled={clearAutoOpenEngenhoca}
+              showAparatos={
+                userSupplements.includes(
+                  SupplementId.TORMENTA20_HEROIS_ARTON
+                ) ||
+                !!currentSheet.supplements?.includes(
+                  SupplementId.TORMENTA20_HEROIS_ARTON
+                )
+              }
               onActivateEffect={
                 onSheetUpdate && canUseActiveEffects
                   ? handleActiveEffectActivate
@@ -2907,7 +3023,11 @@ const Result: React.FC<ResultProps> = (props) => {
         <>
           <Box>
             <BookTitle>Equipamentos</BookTitle>
-            <EquipmentTable items={equipamentosOrdered} characterName={nome} />
+            <EquipmentTable
+              items={equipamentosOrdered}
+              characterName={nome}
+              getItemWarning={getFundamentalistWeaponWarning}
+            />
             <Box
               sx={{
                 mt: 2,
@@ -3510,12 +3630,25 @@ const Result: React.FC<ResultProps> = (props) => {
             sheet={currentSheet}
             onConfirm={handleRest}
           />
+          <NotesDialog
+            open={notesOpen}
+            onClose={() => setNotesOpen(false)}
+            notes={currentSheet.notes ?? ''}
+            onSave={onSheetUpdate ? handleNotesSave : undefined}
+          />
           {journalEnabled && (
             <PlayerJournalFullScreen
               open={journalOpen}
               onClose={() => setJournalOpen(false)}
               characterName={currentSheet.nome}
               journal={currentSheet.journal}
+              sheetId={currentSheet.id}
+              onSwitchToSimple={
+                onSheetUpdate
+                  ? (pendingJournal?: PlayerJournal) =>
+                      handleJournalModeChange('simple', pendingJournal)
+                  : undefined
+              }
               // Sem `onSheetUpdate` o diário abre em leitura, em vez de sumir:
               // ele é feito para ser LIDO durante a sessão, e fechá-lo na cara
               // de quem está consultando as anotações seria pior do que
