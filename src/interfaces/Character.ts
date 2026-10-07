@@ -46,4 +46,12 @@ export interface CharacterReligion {
    * `divindadeSecundaria` (o normalizer descarta a combinação).
    */
   fundamentalista?: { dogma: DogmaFundamentalista };
+  /**
+   * O fundamentalismo foi desligado e o poder concedido adicional dele pode
+   * ainda estar em `poderes`. A ficha não sabe qual é (poderes concedidos
+   * pegos depois, no lugar de poderes gerais, também vivem ali), então isto é
+   * só um lembrete — some ao religar, ao remover um poder concedido no editor,
+   * ao trocar de divindade ou quando o jogador decide manter.
+   */
+  poderAdicionalPendente?: boolean;
 }

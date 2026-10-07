@@ -55,6 +55,7 @@ import {
 } from '@/functions/multiclass';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { SupplementId } from '@/types/supplement.types';
+import { withEditedGrantedPowers } from '../../../../functions/powers/fundamentalista';
 import { EnsinarTruquePick } from '../EnsinarTruqueDialog';
 import {
   isRepeatablePower,
@@ -1381,8 +1382,10 @@ export function usePowersEditor({
         origin: sheet.origin
           ? { ...sheet.origin, powers: selectedOriginPowers }
           : undefined,
+        // Remover um poder concedido apaga o lembrete do poder adicional do
+        // fundamentalismo (ver `withEditedGrantedPowers`).
         devoto: sheet.devoto
-          ? { ...sheet.devoto, poderes: selectedDeityPowers }
+          ? withEditedGrantedPowers(sheet.devoto, selectedDeityPowers)
           : undefined,
         steps:
           newSteps.length > 0 ? [...sheet.steps, ...newSteps] : sheet.steps,

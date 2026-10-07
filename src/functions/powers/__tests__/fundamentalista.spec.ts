@@ -9,6 +9,11 @@ import {
   getAvailableDogmas,
   getDogma,
   getDogmaHeritageNote,
+  getDeityPowerGroupTitle,
+  hasPendingExtraPower,
+  setSheetFundamentalista,
+  dismissPendingExtraPower,
+  withEditedGrantedPowers,
   getFundamentalistaSummary,
   getDogmaFallbackNotice,
   getFundamentalistNotices,
@@ -386,5 +391,75 @@ describe('escolha do formulário', () => {
         'Khalmyr'
       )
     ).toBeUndefined();
+  });
+});
+
+describe('poder adicional pendente (ao desligar o fundamentalismo)', () => {
+  const devotoBase = () => fundamentalistSheet('Khalmyr').devoto!;
+  const poder = (name: string) =>
+    ({ name } as unknown as CharacterSheet['devoto'] & { name: string });
+
+  it('desligar grava a marca; religar apaga', () => {
+    const desligado = setSheetFundamentalista(devotoBase(), undefined);
+    expect(desligado.fundamentalista).toBeUndefined();
+    expect(desligado.poderAdicionalPendente).toBe(true);
+
+    const religado = setSheetFundamentalista(desligado, 'sacerdote');
+    expect(religado.fundamentalista).toEqual({ dogma: 'sacerdote' });
+    expect(religado.poderAdicionalPendente).toBeUndefined();
+  });
+
+  it('desligar quem não era fundamentalista não grava a marca', () => {
+    const comum = { ...devotoBase(), fundamentalista: undefined };
+    expect(
+      setSheetFundamentalista(comum, undefined).poderAdicionalPendente
+    ).toBeUndefined();
+  });
+
+  it('hasPendingExtraPower lê a marca da ficha', () => {
+    const sheet = fundamentalistSheet('Khalmyr');
+    expect(hasPendingExtraPower(sheet)).toBe(false);
+    sheet.devoto = setSheetFundamentalista(sheet.devoto!, undefined);
+    expect(hasPendingExtraPower(sheet)).toBe(true);
+  });
+
+  it('"Manter assim" apaga a marca', () => {
+    const desligado = setSheetFundamentalista(devotoBase(), undefined);
+    expect(
+      dismissPendingExtraPower(desligado).poderAdicionalPendente
+    ).toBeUndefined();
+  });
+
+  it('remover um poder concedido no editor apaga a marca; manter ou adicionar não', () => {
+    const desligado = {
+      ...setSheetFundamentalista(devotoBase(), undefined),
+      poderes: [poder('A'), poder('B')],
+    } as unknown as NonNullable<CharacterSheet['devoto']>;
+    const menos = withEditedGrantedPowers(desligado, [desligado.poderes[0]]);
+    expect(menos.poderes).toHaveLength(1);
+    expect(menos.poderAdicionalPendente).toBeUndefined();
+
+    const iguais = withEditedGrantedPowers(desligado, desligado.poderes);
+    expect(iguais.poderAdicionalPendente).toBe(true);
+  });
+
+  it('o título do grupo no editor avisa da marca', () => {
+    const sheet = fundamentalistSheet('Khalmyr');
+    sheet.devoto = setSheetFundamentalista(sheet.devoto!, undefined);
+    expect(getDeityPowerGroupTitle(sheet, 2, 'Khalmyr')).toMatch(
+      /adicional do fundamentalismo/
+    );
+  });
+
+  it('o título mostra as vagas quando fundamentalista e fica simples no caso comum', () => {
+    const fund = fundamentalistSheet('Khalmyr');
+    fund.classe = { ...fund.classe, qtdPoderesConcedidos: 2 };
+    expect(getDeityPowerGroupTitle(fund, 2, 'Khalmyr')).toBe(
+      'Concedidos por Khalmyr (fundamentalista: 2 de 3)'
+    );
+    const comum = createMockCharacterSheet();
+    expect(getDeityPowerGroupTitle(comum, 1, 'Khalmyr')).toBe(
+      'Concedidos por Khalmyr'
+    );
   });
 });

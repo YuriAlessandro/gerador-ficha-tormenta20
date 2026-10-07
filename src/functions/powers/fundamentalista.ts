@@ -10,7 +10,10 @@
  */
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
-import { DogmaFundamentalista } from '../../interfaces/Character';
+import {
+  CharacterReligion,
+  DogmaFundamentalista,
+} from '../../interfaces/Character';
 import Equipment from '../../interfaces/Equipment';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import {
@@ -374,4 +377,71 @@ export function getFundamentalistaSummary(sheet: CharacterSheet): string {
   ]
     .filter(Boolean)
     .join('\n');
+}
+
+export const PENDING_EXTRA_POWER_TEXT =
+  'Um dos poderes concedidos era o adicional do fundamentalismo. Remova um em Editar poderes.';
+
+/**
+ * Liga (com o dogma) ou desliga o fundamentalismo. Desligar uma ficha que era
+ * fundamentalista grava o lembrete do poder adicional; religar o apaga.
+ */
+export function setSheetFundamentalista(
+  devoto: CharacterReligion,
+  dogma: DogmaFundamentalista | undefined
+): CharacterReligion {
+  const next = { ...devoto };
+  delete next.fundamentalista;
+  delete next.poderAdicionalPendente;
+  if (dogma) return { ...next, fundamentalista: { dogma } };
+  return devoto.fundamentalista
+    ? { ...next, poderAdicionalPendente: true }
+    : next;
+}
+
+export function hasPendingExtraPower(sheet: CharacterSheet): boolean {
+  return (
+    !!sheet?.devoto?.poderAdicionalPendente && !getSheetFundamentalista(sheet)
+  );
+}
+
+/** "Manter assim": o jogador (ou o mestre) decidiu ficar com o poder. */
+export function dismissPendingExtraPower(
+  devoto: CharacterReligion
+): CharacterReligion {
+  const next = { ...devoto };
+  delete next.poderAdicionalPendente;
+  return next;
+}
+
+/**
+ * Grava os poderes concedidos editados. Remover algum apaga o lembrete: o
+ * jogador já tirou um (não dá para saber se era o adicional, e nem precisa).
+ */
+export function withEditedGrantedPowers(
+  devoto: CharacterReligion,
+  poderes: CharacterReligion['poderes']
+): CharacterReligion {
+  const next = { ...devoto, poderes };
+  if (poderes.length < devoto.poderes.length) {
+    delete next.poderAdicionalPendente;
+  }
+  return next;
+}
+
+/** Título do grupo de poderes concedidos no editor de poderes. */
+export function getDeityPowerGroupTitle(
+  sheet: CharacterSheet,
+  selectedCount: number,
+  devotionLabel: string
+): string {
+  const base = `Concedidos por ${devotionLabel}`;
+  if (hasPendingExtraPower(sheet)) {
+    return `${base} (um era o adicional do fundamentalismo)`;
+  }
+  if (!getSheetFundamentalista(sheet)) return base;
+  const count = getGrantedPowerCount(sheet.classe.qtdPoderesConcedidos, true);
+  return typeof count === 'number'
+    ? `${base} (fundamentalista: ${selectedCount} de ${count})`
+    : `${base} (fundamentalista)`;
 }

@@ -5,6 +5,11 @@ import { createMockCharacterSheet } from '@/__mocks__/characterSheet';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import FundamentalistaControl from '../FundamentalistaControl';
 
+const enqueueSnackbar = vi.fn();
+vi.mock('notistack', () => ({
+  useSnackbar: () => ({ enqueueSnackbar, closeSnackbar: vi.fn() }),
+}));
+
 const availability = { value: true };
 vi.mock('@/hooks/useFundamentalist', () => ({
   useFundamentalistAvailable: () => availability.value,
@@ -67,6 +72,33 @@ describe('FundamentalistaControl', () => {
     fireEvent.click(screen.getByRole('switch', { name: /fundamentalista/i }));
     const next = onChange.mock.calls[0][0] as CharacterSheet;
     expect(next.devoto && 'fundamentalista' in next.devoto).toBe(false);
+  });
+
+  it('desligar grava o lembrete do poder adicional e avisa na hora', () => {
+    enqueueSnackbar.mockClear();
+    const onChange = vi.fn();
+    render(
+      <FundamentalistaControl
+        sheet={devotoDe('Khalmyr', true)}
+        onChange={onChange}
+      />
+    );
+    fireEvent.click(screen.getByRole('switch', { name: /fundamentalista/i }));
+    const next = onChange.mock.calls[0][0] as CharacterSheet;
+    expect(next.devoto?.poderAdicionalPendente).toBe(true);
+    expect(enqueueSnackbar).toHaveBeenCalledWith(
+      'Fundamentalismo desligado. O poder concedido adicional pode ainda estar na ficha: remova um em Editar poderes.',
+      expect.objectContaining({ variant: 'warning' })
+    );
+  });
+
+  it('ligar não avisa', () => {
+    enqueueSnackbar.mockClear();
+    render(
+      <FundamentalistaControl sheet={devotoDe('Khalmyr')} onChange={vi.fn()} />
+    );
+    fireEvent.click(screen.getByRole('switch', { name: /fundamentalista/i }));
+    expect(enqueueSnackbar).not.toHaveBeenCalled();
   });
 
   it('fica oculto com devoção dupla', () => {
