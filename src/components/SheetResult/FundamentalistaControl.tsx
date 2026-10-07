@@ -20,6 +20,7 @@ import {
   getAvailableDogmas,
   getDogma,
   getDogmaFallbackNotice,
+  getDogmaHeritageNote,
   getFundamentalistNotices,
   getPreferredWeaponRule,
   getSheetFundamentalista,
@@ -57,6 +58,7 @@ const FundamentalistaControl: React.FC<FundamentalistaControlProps> = ({
 
   const shownDogma = dogma ?? resolveDogmaForClass(sheet.classe, deityName);
   const info = getDogma(deityName, shownDogma);
+  const heritageNote = getDogmaHeritageNote(info);
   const weaponRule = getPreferredWeaponRule(deityName);
   const fallbackNotice = getDogmaFallbackNotice(sheet.classe, deityName);
   const notices = [
@@ -134,6 +136,14 @@ const FundamentalistaControl: React.FC<FundamentalistaControlProps> = ({
               </MenuItem>
             ))}
           </TextField>
+        )}
+        {heritageNote && (
+          <Typography
+            variant='caption'
+            sx={{ display: 'block', color: 'text.secondary' }}
+          >
+            {heritageNote}
+          </Typography>
         )}
         {info && (
           <Typography variant='body2' sx={{ mb: 1 }}>

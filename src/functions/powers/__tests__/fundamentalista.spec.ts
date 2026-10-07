@@ -8,6 +8,7 @@ import {
   formatDogmaPages,
   getAvailableDogmas,
   getDogma,
+  getDogmaHeritageNote,
   getFundamentalistaSummary,
   getDogmaFallbackNotice,
   getFundamentalistNotices,
@@ -124,6 +125,32 @@ describe('dogma', () => {
     );
     expect(formatDogmaPages([13, 28])).toBe('p. 13 e 28');
     expect(formatDogmaPages([15])).toBe('p. 15');
+  });
+});
+
+describe('indicação de dogma herdado do sacerdote', () => {
+  it('diz quando o dogma é igual ao do sacerdote', () => {
+    const info = getDogma('Khalmyr', 'paladino');
+    expect(info?.heranca).toBe('igual');
+    expect(getDogmaHeritageNote(info)).toBe('Mesmo dogma do sacerdote.');
+  });
+
+  it('diz quando o dogma é o do sacerdote com acréscimo', () => {
+    const info = getDogma('Azgher', 'paladino');
+    expect(info?.heranca).toBe('complemento');
+    expect(getDogmaHeritageNote(info)).toBe('Dogma do sacerdote, mais:');
+  });
+
+  it('não diz nada para dogma próprio', () => {
+    expect(getDogma('Lena', 'paladino')?.heranca).toBeUndefined();
+    expect(getDogma('Khalmyr', 'sacerdote')?.heranca).toBeUndefined();
+    expect(getDogmaHeritageNote(getDogma('Lena', 'paladino'))).toBeUndefined();
+  });
+
+  it('o resumo do PDF leva a indicação', () => {
+    expect(
+      getFundamentalistaSummary(fundamentalistSheet('Khalmyr', 'paladino'))
+    ).toContain('Mesmo dogma do sacerdote.');
   });
 });
 

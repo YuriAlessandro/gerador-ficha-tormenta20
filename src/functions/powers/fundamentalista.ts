@@ -127,10 +127,22 @@ export function getDogmaFallbackNotice(
   ].toLowerCase()}; usando o de sacerdote (adaptação do Fichas de Nimb, não é regra do livro).`;
 }
 
+export interface DogmaInfo {
+  texto: string;
+  paginas: number[];
+  /**
+   * O livro diz que o dogma é "como o do sacerdote": `igual` quando é só isso
+   * (Khalmyr), `complemento` quando acrescenta algo (Azgher). Sem herança,
+   * ausente. Existe para a tela explicar por que o texto não muda ao trocar
+   * de dogma.
+   */
+  heranca?: 'igual' | 'complemento';
+}
+
 export function getDogma(
   deityName: string,
   dogma: DogmaFundamentalista
-): { texto: string; paginas: number[] } | undefined {
+): DogmaInfo | undefined {
   const entry = getEntry(deityName);
   const own = entry?.[dogma];
   if (!entry || !own) return undefined;
@@ -141,7 +153,14 @@ export function getDogma(
   return {
     texto: own.texto ? `${base} ${own.texto}` : base,
     paginas: [entry.sacerdote.pagina, own.pagina],
+    heranca: own.texto ? 'complemento' : 'igual',
   };
+}
+
+export function getDogmaHeritageNote(info?: DogmaInfo): string | undefined {
+  if (info?.heranca === 'igual') return 'Mesmo dogma do sacerdote.';
+  if (info?.heranca === 'complemento') return 'Dogma do sacerdote, mais:';
+  return undefined;
 }
 
 export function formatDogmaPages(paginas: number[]): string {
@@ -323,9 +342,12 @@ export function getFundamentalistaSummary(sheet: CharacterSheet): string {
   const info = getDogma(deityName, dogma);
   if (!info) return '';
   return [
-    `${deityName}, dogma de ${DOGMA_LABELS[dogma].toLowerCase()}: ${
-      info.texto
-    }`,
+    `${deityName}, dogma de ${DOGMA_LABELS[dogma].toLowerCase()}: ${[
+      getDogmaHeritageNote(info),
+      info.texto,
+    ]
+      .filter(Boolean)
+      .join(' ')}`,
     getPreferredWeaponRule(deityName),
     FUNDAMENTALIST_VIOLATION_TEXT,
     `Deuses de Arton, ${formatDogmaPages(info.paginas)}.`,
