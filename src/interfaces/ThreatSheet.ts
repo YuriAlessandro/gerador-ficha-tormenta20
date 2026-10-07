@@ -74,7 +74,8 @@ export type ThreatActionType =
   | 'Movimento'
   | 'Completa'
   | 'Livre'
-  | 'Reação';
+  | 'Reação'
+  | 'Passiva';
 
 export interface BonusDamageDice {
   id: string;

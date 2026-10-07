@@ -48,6 +48,7 @@ import { ConditionsListEditor } from '../../../premium/components/Conditions';
 import type { ConditionId } from '../../../premium/data/conditions';
 import SectionCard from './shared/SectionCard';
 import RollsEditor from './shared/RollsEditor';
+import { getAbilityQualifiers } from '../utils/abilityQualifiers';
 import AbilityFormFields from './shared/AbilityFormFields';
 
 interface StepAbilitiesProps {
@@ -416,9 +417,7 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
                         primary={
                           <Box>
                             {ability.name}
-                            {(ability.pmCost ||
-                              (ability.actionType &&
-                                ability.actionType !== 'Padrão')) && (
+                            {getAbilityQualifiers(ability).length > 0 && (
                               <Typography
                                 component='span'
                                 variant='body2'
@@ -427,19 +426,7 @@ const StepAbilities: React.FC<StepAbilitiesProps> = ({ threat, onUpdate }) => {
                                   ml: 1,
                                 }}
                               >
-                                (
-                                {[
-                                  ability.actionType &&
-                                  ability.actionType !== 'Padrão'
-                                    ? ability.actionType
-                                    : null,
-                                  ability.pmCost
-                                    ? `${ability.pmCost} PM`
-                                    : null,
-                                ]
-                                  .filter(Boolean)
-                                  .join(', ')}
-                                )
+                                ({getAbilityQualifiers(ability).join(', ')})
                               </Typography>
                             )}
                           </Box>

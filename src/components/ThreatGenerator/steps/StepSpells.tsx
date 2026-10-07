@@ -250,6 +250,7 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
                     setNewSpell({ ...newSpell, pmCost })
                   }
                   pmLabel='Esta magia custa PM?'
+                  allowPassive={false}
                 />
               </Grid>
               <Grid size={12}>
@@ -453,6 +454,7 @@ const StepSpells: React.FC<StepSpellsProps> = ({ threat, onUpdate }) => {
                   setEditingSpell((prev) => (prev ? { ...prev, pmCost } : null))
                 }
                 pmLabel='Esta magia custa PM?'
+                allowPassive={false}
               />
             </Box>
           )}
