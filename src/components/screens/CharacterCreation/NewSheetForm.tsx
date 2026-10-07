@@ -49,6 +49,7 @@ import {
   resolveDogmaForClass,
 } from '../../../functions/powers/fundamentalista';
 import { DogmaFundamentalista } from '../../../interfaces/Character';
+import FundamentalistDogmaPreview from './FundamentalistDogmaPreview';
 
 type SelectedOption = {
   value: string;
@@ -752,6 +753,16 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
                   </MenuItem>
                 ))}
               </TextField>
+            )}
+          {fundamentalistVisible &&
+            selectedOptions.fundamentalista &&
+            !fundamentalistBlocked &&
+            fundamentalistDogma &&
+            deityValue && (
+              <FundamentalistDogmaPreview
+                deityName={deityValue}
+                dogma={fundamentalistDogma}
+              />
             )}
           {fundamentalistNotices.map((notice) => (
             <Typography
