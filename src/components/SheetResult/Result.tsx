@@ -168,6 +168,7 @@ import Spells from './SpellsTab/SpellsDisplay';
 import SkillTable from './SkillTable';
 import LabelDisplay from './LabelDisplay';
 import FundamentalistaControl from './FundamentalistaControl';
+import PendingExtraPowerAlert from './PendingExtraPowerAlert';
 import { getDevotionLabel } from '../../functions/powers/deityNames';
 import { getPreferredWeaponWarning } from '../../functions/powers/fundamentalista';
 import AttributeDisplay from './AttributeDisplay';
@@ -2870,6 +2871,10 @@ const Result: React.FC<ResultProps> = (props) => {
         <>
           <Box>
             <BookTitle>Poderes</BookTitle>
+            <PendingExtraPowerAlert
+              sheet={currentSheet}
+              onChange={onSheetUpdate ? applyRecalculatedSheet : undefined}
+            />
             <PowersDisplay
               sheetHistory={currentSheet.sheetActionHistory || []}
               classAbilities={classe.abilities}

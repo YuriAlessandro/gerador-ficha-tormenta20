@@ -840,6 +840,15 @@ export function normalizeSheet(sheet: CharacterSheet): void {
       ) {
         delete sheet.devoto.fundamentalista;
       }
+      // Lembrete do poder adicional: só `true`, e nunca com o fundamentalismo
+      // ligado (aí o poder extra volta a valer).
+      if (
+        sheet.devoto.poderAdicionalPendente !== undefined &&
+        (sheet.devoto.poderAdicionalPendente !== true ||
+          !!sheet.devoto.fundamentalista)
+      ) {
+        delete sheet.devoto.poderAdicionalPendente;
+      }
     }
   }
 

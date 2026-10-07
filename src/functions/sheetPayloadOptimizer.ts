@@ -301,6 +301,7 @@ export function stripSheetForStorage(
       // Fundamentalista (Deuses de Arton): mesmo motivo — campo não listado
       // aqui some ao salvar na nuvem.
       fundamentalista: sheet.devoto.fundamentalista,
+      poderAdicionalPendente: sheet.devoto.poderAdicionalPendente,
       divindade: {
         name: sheet.devoto.divindade.name,
         poderes: [],

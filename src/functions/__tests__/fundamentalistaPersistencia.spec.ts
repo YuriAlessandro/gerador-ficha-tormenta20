@@ -32,6 +32,30 @@ describe('Fundamentalista — persistência', () => {
     expect(stripped.devoto?.fundamentalista).toEqual({ dogma: 'paladino' });
   });
 
+  it('a marca de poder adicional pendente sobrevive ao strip e à normalização', () => {
+    const sheet = buildSheet();
+    delete sheet.devoto!.fundamentalista;
+    sheet.devoto!.poderAdicionalPendente = true;
+    const stripped = stripSheetForStorage(sheet) as unknown as CharacterSheet;
+    expect(stripped.devoto?.poderAdicionalPendente).toBe(true);
+    normalizeSheet(stripped);
+    expect(stripped.devoto?.poderAdicionalPendente).toBe(true);
+  });
+
+  it('descarta marca inválida ou junto do fundamentalismo ligado', () => {
+    const lixo = buildSheet();
+    delete lixo.devoto!.fundamentalista;
+    (lixo.devoto as unknown as Record<string, unknown>).poderAdicionalPendente =
+      'sim';
+    normalizeSheet(lixo);
+    expect(lixo.devoto?.poderAdicionalPendente).toBeUndefined();
+
+    const ligado = buildSheet();
+    ligado.devoto!.poderAdicionalPendente = true;
+    normalizeSheet(ligado);
+    expect(ligado.devoto?.poderAdicionalPendente).toBeUndefined();
+  });
+
   it('descarta dogma desconhecido', () => {
     const sheet = buildSheet();
     (sheet.devoto as unknown as Record<string, unknown>).fundamentalista = {

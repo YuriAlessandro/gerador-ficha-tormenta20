@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { useSnackbar } from 'notistack';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { DogmaFundamentalista } from '@/interfaces/Character';
 import { useFundamentalistAvailable } from '@/hooks/useFundamentalist';
@@ -28,6 +29,7 @@ import {
   isFundamentalistBlocked,
   isFundamentalistEligibleDeity,
   resolveDogmaForClass,
+  setSheetFundamentalista,
 } from '@/functions/powers/fundamentalista';
 
 interface FundamentalistaControlProps {
@@ -47,6 +49,7 @@ const FundamentalistaControl: React.FC<FundamentalistaControlProps> = ({
   onChange,
 }) => {
   const available = useFundamentalistAvailable();
+  const { enqueueSnackbar } = useSnackbar();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
   const { devoto } = sheet;
@@ -77,12 +80,13 @@ const FundamentalistaControl: React.FC<FundamentalistaControlProps> = ({
 
   const setFundamentalista = (next: DogmaFundamentalista | undefined) => {
     if (!onChange) return;
-    const rest = { ...devoto };
-    delete rest.fundamentalista;
-    onChange({
-      ...sheet,
-      devoto: next ? { ...rest, fundamentalista: { dogma: next } } : rest,
-    });
+    onChange({ ...sheet, devoto: setSheetFundamentalista(devoto, next) });
+    if (!next && dogma) {
+      enqueueSnackbar(
+        'Fundamentalismo desligado. O poder concedido adicional pode ainda estar na ficha: remova um em Editar poderes.',
+        { variant: 'warning', autoHideDuration: 8000 }
+      );
+    }
   };
 
   return (
