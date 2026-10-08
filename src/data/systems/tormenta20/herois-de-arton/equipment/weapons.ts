@@ -22,6 +22,7 @@ const BASTAO_LUDICO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 5,
+  weaponTags: ['leve'],
 };
 
 // Ataque à Distância — Uma Mão
@@ -57,6 +58,7 @@ const ADAGA_OPOSTA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 12,
+  weaponTags: ['leve'],
 };
 
 const AGULHA_DE_AHLEN: Equipment = {
@@ -71,6 +73,7 @@ const AGULHA_DE_AHLEN: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 10,
+  weaponTags: ['leve'],
 };
 
 const CINQUEDEA: Equipment = {
@@ -85,6 +88,7 @@ const CINQUEDEA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 18,
+  weaponTags: ['leve'],
 };
 
 const DIRK: Equipment = {
@@ -99,6 +103,7 @@ const DIRK: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 15,
+  weaponTags: ['leve'],
 };
 
 const MARTELO_LEVE: Equipment = {
@@ -106,7 +111,7 @@ const MARTELO_LEVE: Equipment = {
   descricao:
     'Martelo de peça única, apreciado por anões como arma secundária. Pode ser arremessado.',
   weaponCategory: 'martial',
-  weaponTags: ['heredrimm'],
+  weaponTags: ['heredrimm', 'leve'],
   dano: '1d4',
   critico: 'x4',
   spaces: 1,
@@ -139,6 +144,7 @@ const ESPADA_LARGA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 8,
+  weaponTags: ['espada'],
 };
 
 const ESPADIM: Equipment = {
@@ -153,6 +159,7 @@ const ESPADIM: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 300,
+  weaponTags: ['espada'],
 };
 
 const MACA_ESTRELA: Equipment = {
@@ -249,6 +256,7 @@ const ESPADA_DE_EXECUCAO: Equipment = {
   group: 'Arma',
   preco: 75,
   twoHanded: true,
+  weaponTags: ['espada'],
 };
 
 const LANCA_DE_JUSTA: Equipment = {
@@ -397,6 +405,7 @@ const KIMBATA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 12,
+  weaponTags: ['leve'],
 };
 
 // Corpo a Corpo — Uma Mão
@@ -426,6 +435,7 @@ const ESPADA_CANORA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 50,
+  weaponTags: ['agil', 'espada'],
 };
 
 const ESPADA_GADANHO: Equipment = {
@@ -440,6 +450,7 @@ const ESPADA_GADANHO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 40,
+  weaponTags: ['agil', 'espada'],
 };
 
 const KHOPESH: Equipment = {
@@ -454,6 +465,7 @@ const KHOPESH: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 20,
+  weaponTags: ['espada'],
 };
 
 const LANCA_DE_FALANGE: Equipment = {
@@ -499,6 +511,7 @@ const RAPIEIRA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 50,
+  weaponTags: ['agil', 'espada'],
 };
 
 // Corpo a Corpo — Duas Mãos
@@ -531,6 +544,7 @@ const MONTANTE_CINETICO: Equipment = {
   group: 'Arma',
   preco: 3000,
   twoHanded: true,
+  weaponTags: ['espada'],
 };
 
 // Ataque à Distância — Uma Mão

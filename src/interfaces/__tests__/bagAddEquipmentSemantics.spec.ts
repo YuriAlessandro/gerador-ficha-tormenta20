@@ -132,3 +132,41 @@ describe('Bag.addEquipment — espaço editado à mão', () => {
     ).toBe(2);
   });
 });
+
+/** Tags editadas à mão seguem a mesma regra do espaço editado à mão. */
+describe('Bag.addEquipment — tags editadas à mão', () => {
+  const adagaSemLeve: Equipment = {
+    nome: 'Adaga',
+    group: 'Arma',
+    dano: '1d4',
+    critico: '19',
+    weaponTags: [],
+    hasManualTags: true,
+  };
+
+  const adagaDoCatalogo: Equipment = {
+    nome: 'Adaga',
+    group: 'Arma',
+    dano: '1d4',
+    critico: '19',
+    weaponTags: ['leve'],
+  };
+
+  test('reconceder o item preserva as tags editadas pelo jogador', () => {
+    const bag = new Bag({ Arma: [adagaSemLeve] });
+    bag.addEquipment({ Arma: [adagaDoCatalogo] });
+    const adaga = bag.equipments.Arma.find((w) => w.nome === 'Adaga');
+    expect(adaga?.weaponTags).toEqual([]);
+    expect(adaga?.hasManualTags).toBe(true);
+  });
+
+  test('sem edição manual as tags do catálogo vencem', () => {
+    const bag = new Bag({
+      Arma: [{ ...adagaSemLeve, hasManualTags: undefined }],
+    });
+    bag.addEquipment({ Arma: [adagaDoCatalogo] });
+    expect(
+      bag.equipments.Arma.find((w) => w.nome === 'Adaga')?.weaponTags
+    ).toEqual(['leve']);
+  });
+});

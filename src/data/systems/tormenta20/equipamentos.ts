@@ -117,6 +117,7 @@ export const Armas = catalog({
         damageAttribute: 'Força',
       },
     ],
+    weaponTags: ['leve'],
   },
   ESPADACURTA: {
     nome: 'Espada Curta',
@@ -128,6 +129,7 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 10,
+    weaponTags: ['leve', 'espada'],
   },
   FOICE: {
     nome: 'Foice',
@@ -139,6 +141,7 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 4,
+    weaponTags: ['leve'],
   },
   // Unidade base do ataque desarmado — preço/espaço 0, dano/crítico mantidos
   // vivos por `updateDesarmadoTaggedWeaponsDano` (ver `unarmedDamage.ts`), que
@@ -170,7 +173,7 @@ export const Armas = catalog({
     // conta como ataque desarmado (dano letal em vez do não-letal padrão).
     // O "-" é só o placeholder de catálogo: `updateDesarmadoTaggedWeaponsDano`
     // sobrescreve com o dado desarmado vivo assim que a arma entra na mochila.
-    weaponTags: ['desarmado'],
+    weaponTags: ['desarmado', 'leve'],
   },
   CLAVA: {
     nome: 'Clava',
@@ -344,7 +347,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 6,
-    weaponTags: ['heredrimm'],
+    weaponTags: ['heredrimm', 'leve'],
     arremesso: true,
     alcance: 'Curto',
     specialActions: [
@@ -366,6 +369,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 15,
+    weaponTags: ['agil', 'espada'],
   },
   ESPADA_LONGA: {
     nome: 'Espada Longa',
@@ -377,6 +381,7 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 15,
+    weaponTags: ['espada'],
   },
   FLORETE: {
     nome: 'Florete',
@@ -387,6 +392,7 @@ export const Armas = catalog({
     tipo: 'Perfuração',
     group: 'Arma',
     preco: 20,
+    weaponTags: ['agil', 'espada'],
   },
   MACHADO_DE_BATALHA: {
     nome: 'Machado de Batalha',
@@ -475,6 +481,7 @@ export const Armas = catalog({
     group: 'Arma',
     preco: 75,
     twoHanded: true,
+    weaponTags: ['espada'],
   },
   GADANHO: {
     nome: 'Gadanho',
@@ -536,6 +543,7 @@ export const Armas = catalog({
     group: 'Arma',
     preco: 50,
     twoHanded: true,
+    weaponTags: ['espada'],
   },
   ARCO_LONGO: {
     nome: 'Arco Longo',
@@ -571,6 +579,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 2,
+    weaponTags: ['agil'],
   },
   ESPADA_BASTARDA: {
     nome: 'Espada Bastarda',
@@ -581,6 +590,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 35,
+    weaponTags: ['espada'],
   },
   KATANA: {
     nome: 'Katana',
@@ -591,6 +601,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 100,
+    weaponTags: ['agil', 'espada'],
   },
   MACHADO_ANAO: {
     nome: 'Machado Anão',
@@ -613,6 +624,7 @@ export const Armas = catalog({
     group: 'Arma',
     preco: 25,
     twoHanded: true,
+    weaponTags: ['agil'],
   },
   MACHADO_TAURICO: {
     nome: 'Machado Táurico',

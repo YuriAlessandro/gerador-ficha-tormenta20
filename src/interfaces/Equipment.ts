@@ -332,6 +332,12 @@ export default interface Equipment {
    * `armorPenalty`), e uma edição só-de-espaço não deve congelar nada disso.
    */
   hasManualSpaces?: boolean;
+  /**
+   * O jogador editou `weaponTags` à mão. `refreshBagItemsFromCatalog` para de
+   * somar as tags do catálogo — senão uma tag removida (ex.: `leve`) voltaria
+   * na próxima carga da ficha.
+   */
+  hasManualTags?: boolean;
 
   // Override which skill is rolled for this weapon's attack test.
   // When undefined, falls back to the default rule (alcance/arremesso → Luta or Pontaria).
