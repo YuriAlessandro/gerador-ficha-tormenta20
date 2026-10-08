@@ -19,6 +19,7 @@ export const AMEACAS_ARTON_WEAPONS = {
     alcance: '-',
     group: 'Arma',
     preco: 2,
+    weaponTags: ['leve'],
   },
   ZARABATANA: {
     nome: 'Zarabatana',
@@ -47,6 +48,7 @@ export const AMEACAS_ARTON_WEAPONS = {
     alcance: '-',
     group: 'Arma',
     preco: 10,
+    weaponTags: ['leve'],
   },
   GLADIO: {
     nome: 'Gládio',
@@ -60,6 +62,7 @@ export const AMEACAS_ARTON_WEAPONS = {
     alcance: '-',
     group: 'Arma',
     preco: 12,
+    weaponTags: ['espada'],
   },
   TETSUBO: {
     nome: 'Tetsubo',
@@ -148,6 +151,7 @@ export const AMEACAS_ARTON_WEAPONS = {
     alcance: '-',
     group: 'Arma',
     preco: 75,
+    weaponTags: ['espada'],
   },
   PISTOLA_PUNHAL: {
     nome: 'Pistola-punhal',
@@ -186,6 +190,7 @@ export const AMEACAS_ARTON_WEAPONS = {
         damageAttribute: 'Nenhum',
       },
     ],
+    weaponTags: ['agil'],
   },
   MORDIDA_DO_DIABO: {
     nome: 'Mordida do diabo',
@@ -199,6 +204,7 @@ export const AMEACAS_ARTON_WEAPONS = {
     alcance: '-',
     group: 'Arma',
     preco: 30,
+    weaponTags: ['agil'],
   },
   PRESA_DE_SERPENTE: {
     nome: 'Presa de serpente',
@@ -212,6 +218,7 @@ export const AMEACAS_ARTON_WEAPONS = {
     alcance: '-',
     group: 'Arma',
     preco: 1000,
+    weaponTags: ['agil', 'espada'],
   },
   LANCA_DE_FOGO: {
     nome: 'Lança de fogo',

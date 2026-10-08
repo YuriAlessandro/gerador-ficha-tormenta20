@@ -339,6 +339,12 @@ export function buildSavedItem(
       next.tipo = formatDamageTypes(form.damageTypes);
     }
     next.weaponTags = form.weaponTags.length > 0 ? form.weaponTags : undefined;
+    const previousTags = item.weaponTags ?? [];
+    const tagsChanged =
+      form.weaponTags.length !== previousTags.length ||
+      form.weaponTags.some((tag) => !previousTags.includes(tag));
+    // Congela as tags contra o refresh do catálogo (ver `hasManualTags`).
+    if (tagsChanged) next.hasManualTags = true;
 
     if (item.isAmmo) {
       // Item de munição: o editor só oferece tipo e tamanho de pacote.

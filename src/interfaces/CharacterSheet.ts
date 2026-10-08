@@ -495,9 +495,9 @@ export type StatModifierTarget =
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
       thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
-      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
+      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (tags `leve`/`agil` — ver weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
-      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
+      swordOnly?: boolean; // Apenas espadas (tag `espada` — ver weaponTraits.ts)
       // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
@@ -510,9 +510,9 @@ export type StatModifierTarget =
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
       thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
-      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
+      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (tags `leve`/`agil` — ver weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
-      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
+      swordOnly?: boolean; // Apenas espadas (tag `espada` — ver weaponTraits.ts)
       // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
@@ -525,9 +525,9 @@ export type StatModifierTarget =
       rangedOnly?: boolean;
       thrownOnly?: boolean;
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
-      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
+      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (tags `leve`/`agil` — ver weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
-      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
+      swordOnly?: boolean; // Apenas espadas (tag `espada` — ver weaponTraits.ts)
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
       // 'increase' (padrão): alarga a margem pelo valor; 'set': define a margem
       // (ex.: "sua margem de ameaça passa a ser 19").
@@ -542,9 +542,9 @@ export type StatModifierTarget =
       rangedOnly?: boolean;
       thrownOnly?: boolean;
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
-      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
+      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (tags `leve`/`agil` — ver weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
-      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
+      swordOnly?: boolean; // Apenas espadas (tag `espada` — ver weaponTraits.ts)
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
       // 'increase' (padrão): soma ao multiplicador; 'set': define o multiplicador
       // (ex.: "seu multiplicador de crítico passa a ser x3").
@@ -710,7 +710,7 @@ export type BonusConditionClause = (
   /** Vestindo a armadura de nome exato `value` (identidade de catálogo). */
   | { kind: 'wearingArmorNamed'; value: string }
   | { kind: 'wieldingShield' }
-  /** Empunhando uma espada (lista em `weaponTraits.ts`). */
+  /** Empunhando uma espada (tag `espada` — ver `weaponTraits.ts`). */
   | { kind: 'wieldingSword' }
   | { kind: 'wieldingItemNamed'; value: string }
   | { kind: 'wieldingTwoHandedWeapon' }

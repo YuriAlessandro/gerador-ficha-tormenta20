@@ -8,6 +8,8 @@ import Bag from '../../interfaces/Bag';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
 import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
+import { Armas } from '../../data/systems/tormenta20/equipamentos';
+import { refreshBagItemsFromCatalog } from '../bagCatalogRefresh';
 
 /**
  * Automação de Arqueiro (Sabedoria no dano à distância, limitado pelo nível),
@@ -51,6 +53,7 @@ const espadaCurta: Equipment = {
   dano: '1d6',
   critico: '19/x2',
   alcance: '-',
+  weaponTags: ['leve', 'espada'],
 };
 const adaga: Equipment = {
   id: 'w-adaga',
@@ -139,6 +142,41 @@ describe('Esgrimista — Inteligência no dano com armas leves/ágeis', () => {
   it('não bakeia em arma híbrida de arremesso (Adaga fica por modo)', () => {
     const r = recalculateSheet(mkSheet(5));
     expect(danoOf(r, 'w-adaga')).toBe('1d4');
+  });
+
+  it('soma na Katana do catálogo (arma ágil)', () => {
+    const sheet = mkSheet(5);
+    sheet.bag = new Bag({
+      Arma: [{ ..._.cloneDeep(Armas.KATANA), id: 'w-katana' }],
+    });
+    const r = recalculateSheet(sheet);
+    expect(danoOf(r, 'w-katana')).toBe('1d8+2/1d10+2');
+  });
+
+  it('cura Katana salva antes das tags existirem (refresh do catálogo)', () => {
+    const sheet = mkSheet(5);
+    const legacy: Equipment = {
+      ..._.cloneDeep(Armas.KATANA),
+      id: 'w-katana',
+      weaponTags: undefined,
+    };
+    sheet.bag = new Bag({ Arma: [legacy] });
+    refreshBagItemsFromCatalog(sheet);
+    const r = recalculateSheet(sheet);
+    expect(danoOf(r, 'w-katana')).toBe('1d8+2/1d10+2');
+  });
+
+  it('respeita a tag removida pelo jogador (hasManualTags)', () => {
+    const sheet = mkSheet(5);
+    const edited: Equipment = {
+      ..._.cloneDeep(espadaCurta),
+      weaponTags: ['espada'],
+      hasManualTags: true,
+    };
+    sheet.bag = new Bag({ Arma: [edited] });
+    refreshBagItemsFromCatalog(sheet);
+    const r = recalculateSheet(sheet);
+    expect(danoOf(r, 'w-espada-curta')).toBe('1d6');
   });
 });
 
