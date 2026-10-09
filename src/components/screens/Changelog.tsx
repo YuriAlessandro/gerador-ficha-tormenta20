@@ -148,6 +148,21 @@ const Changelog: React.FC = () => {
                   para combates entre os personagens (PvP).
                 </li>
                 <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Esperteza Vulpina</strong> (Moreau, Herança da Raposa)
+                  treinava automaticamente duas perícias sorteadas — e de uma
+                  lista errada, que incluía Cavalgar, Cura, Intuição e Religião
+                  e esquecia Adestramento e quase todos os Ofícios. Agora ele dá{' '}
+                  <strong>
+                    +2 em duas perícias de Inteligência ou Carisma à sua escolha
+                  </strong>
+                  , como no livro: a escolha aparece no assistente de criação e
+                  fica editável no cabeçalho da ficha. Fichas de Moreau-Raposa
+                  criadas antes desta versão não são corrigidas sozinhas —
+                  escolha as perícias no cabeçalho da ficha para aplicar o +2 e
+                  remova o treino antigo na aba de perícias.
+                </li>
+                <li>
                   <strong>Correção:</strong> O poder <strong>Esgrimista</strong>{' '}
                   não somava Inteligência no dano da <strong>Katana</strong> nem
                   de outras armas ágeis ou leves (Cimitarra, Foice, Corrente de
