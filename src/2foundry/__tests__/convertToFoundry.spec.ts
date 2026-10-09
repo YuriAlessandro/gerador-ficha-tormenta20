@@ -4,6 +4,7 @@ import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import generateRandomSheet from '../../functions/general';
 import { collectSheetPowers } from '../../functions/powers/collectSheetPowers';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import Skill from '../../interfaces/Skills';
 import { spellsCircles } from '../../interfaces/Spells';
 import { SupplementId } from '../../types/supplement.types';
 import { convertToFoundry } from '..';
@@ -130,10 +131,11 @@ describe('convertToFoundry', () => {
 
     // Aprimoramentos viram efeitos de uso no formato da 1.6: desligados até o
     // jogador marcá-los ao conjurar, valendo para a própria magia.
-    const onUse = ofType(json, 'magia').flatMap((item) => item.effects);
+    const onUse = ofType(json, 'magia')
+      .flatMap((item) => item.effects)
+      .filter((effect) => effect.system.onuse);
     expect(onUse.length).toBeGreaterThan(0);
     onUse.forEach((effect) => {
-      expect(effect.system.onuse).toBe(true);
       expect(effect.disabled).toBe(true);
       expect(effect.transfer).toBe(false);
       expect(effect.system.abilityUse?.types).toEqual(['self']);
@@ -200,6 +202,16 @@ describe('convertToFoundry', () => {
             Number(data(armor.system.armadura).maxAtr)
           )
         : attribute;
+    const applied = [
+      ...json.effects,
+      ...json.items
+        .flatMap((item) => item.effects)
+        .filter((effect) => effect.transfer),
+    ]
+      .filter((effect) => !effect.disabled && !effect.system.onuse)
+      .flatMap((effect) => effect.system.changes)
+      .filter((change) => change.key === 'system.attributes.defesa.bonus')
+      .reduce((sum, change) => sum + Number(change.value), 0);
     const total =
       Number(defesa.base) +
       attributePart +
@@ -207,6 +219,7 @@ describe('convertToFoundry', () => {
         (sum, item) => sum + Number(data(item.system.armadura).value),
         0
       ) +
+      applied +
       Number(defesa.outros);
 
     expect(total).toBe(sheet.defesa);
@@ -294,6 +307,119 @@ describe('convertToFoundry', () => {
     expect(power.name).toBe('Pancada');
     expect(data(power.system.description).value).toBe('<p>meu texto</p>');
     expect(power.system).toMatchObject({ tipo: 'geral' });
+  });
+
+  it('converte os bônus da ficha em efeitos passivos próprios', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [
+      {
+        ...generate('Guerreiro', 1).generalPowers[0],
+        name: 'Poder de Teste',
+        description: 'texto',
+      } as CharacterSheet['generalPowers'][number],
+    ];
+    const fixed = (value: number) => ({ type: 'Fixed' as const, value });
+    sheet.defesa = 17;
+    sheet.sheetBonuses = [
+      {
+        source: { type: 'power', name: 'Poder de Teste' },
+        target: { type: 'Defense' },
+        modifier: fixed(2),
+      },
+      {
+        source: { type: 'power', name: 'Poder de Teste' },
+        target: { type: 'Skill', name: Skill.FURTIVIDADE },
+        modifier: fixed(3),
+      },
+      {
+        source: { type: 'race', raceName: 'Humano' },
+        target: { type: 'Skill', name: Skill.PERCEPCAO },
+        modifier: fixed(1),
+      },
+      // Estado passageiro (condição): não vira efeito, vai no `outros`.
+      {
+        source: { type: 'condition', conditionId: 'abalado' },
+        target: { type: 'Skill', name: Skill.VONTADE },
+        modifier: fixed(-2),
+      },
+      // Alvo que já sai como total pronto no ator: sem efeito.
+      {
+        source: { type: 'power', name: 'Poder de Teste' },
+        target: { type: 'PV' },
+        modifier: fixed(10),
+      },
+    ];
+
+    const json = convertToFoundry(sheet);
+    expectValidItems(json.items);
+
+    // Bônus de poder: efeito passivo no item do poder.
+    const [power] = ofType(json, 'poder');
+    expect(power.effects).toHaveLength(1);
+    expect(power.effects[0]).toMatchObject({
+      name: 'Poder de Teste',
+      disabled: false,
+      transfer: true,
+      system: { onuse: false },
+    });
+    expect(power.effects[0].system.changes).toEqual([
+      expect.objectContaining({
+        key: 'system.attributes.defesa.bonus',
+        value: 2,
+        type: 'add',
+      }),
+      expect.objectContaining({
+        key: 'system.pericias.furt.bonus',
+        value: 3,
+        type: 'add',
+      }),
+    ]);
+
+    // Bônus de raça: sem item para carregá-lo, vira efeito do ator.
+    expect(json.effects).toHaveLength(1);
+    expect(json.effects[0]).toMatchObject({ name: 'Humano', disabled: false });
+    expect(json.effects[0].system.changes).toEqual([
+      expect.objectContaining({ key: 'system.pericias.perc.bonus', value: 1 }),
+    ]);
+
+    expect(json.system.pericias).toMatchObject({ vont: { outros: -2 } });
+    // Defesa 17 = 10 (base) + 1 (Des) + 2 (efeito) + 4 (resto, em `outros`).
+    expect(data(json.system.attributes).defesa).toMatchObject({ outros: 4 });
+  });
+
+  it('Esgrima Mágica vira opção de ataque que troca Luta por Atuação', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.classPowers = [{ name: 'Esgrima Mágica', text: 'texto' }];
+
+    const json = convertToFoundry(sheet);
+    expectValidItems(json.items);
+
+    const [power] = ofType(json, 'poder');
+    expect(power.effects).toHaveLength(1);
+    expect(power.effects[0]).toMatchObject({
+      disabled: true,
+      system: {
+        onuse: true,
+        abilityUse: { types: ['attack'], custo: null },
+        changes: [{ key: 'pericia', value: 'atua', type: 'override' }],
+      },
+    });
+  });
+
+  it('respeita a perícia de ataque escolhida na arma', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.getEquipments().Arma.push({
+      nome: 'Florete',
+      group: 'Arma',
+      dano: '1d6',
+      critico: '18',
+      customSkill: Skill.ATUACAO,
+    });
+
+    const [weapon] = ofType(convertToFoundry(sheet), 'arma').filter(
+      (item) => item.name === 'Florete'
+    );
+    expect(rollsOf(weapon)[0].parts[1][0]).toBe('atua');
   });
 });
 

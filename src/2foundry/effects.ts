@@ -23,10 +23,15 @@ interface OnUseEffectInput {
   cost: number | null;
   repeatable: boolean;
   changes: FoundryEffectChange[];
+  /**
+   * Em que usos o efeito é oferecido. Padrão `['self']`: só no uso do próprio
+   * item (aprimoramento de magia). `'attack'` = ataques com qualquer arma.
+   */
+  types?: string[];
 }
 
 /**
- * Aprimoramento de magia: efeito de uso do próprio item (`types: ['self']`),
+ * Efeito de uso — por padrão o aprimoramento de uma magia (`types: ['self']`),
  * desligado até o jogador marcá-lo no diálogo de conjuração.
  */
 export function buildOnUseEffect(input: OnUseEffectInput): FoundryEffect {
@@ -47,7 +52,7 @@ export function buildOnUseEffect(input: OnUseEffectInput): FoundryEffect {
         aumenta: input.repeatable,
         custo: input.cost,
         names: [],
-        types: ['self'],
+        types: input.types ?? ['self'],
       },
     },
     flags: { tormenta20: {} },

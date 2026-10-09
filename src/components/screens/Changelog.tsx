@@ -136,8 +136,11 @@ const Changelog: React.FC = () => {
                   poderes de todas as origens, magias com seus aprimoramentos,
                   armas, armaduras, itens, dinheiro, proficiências,
                   deslocamentos e redução de dano, além de PV, PM e Defesa com
-                  os totais da ficha. Compatível com o sistema Tormenta20 1.6.4
-                  (Foundry v14).
+                  os totais da ficha. Os bônus de perícia e Defesa dos poderes
+                  viram efeitos automáticos, e poderes e magias ativáveis (como
+                  Fúria, Inspiração e Armadura Arcana) viram efeitos de ligar e
+                  desligar. Compatível com o sistema Tormenta20 1.6.4 (Foundry
+                  v14).
                 </li>
                 <li>
                   <strong>Melhoria:</strong> O <strong>encontro</strong> da mesa

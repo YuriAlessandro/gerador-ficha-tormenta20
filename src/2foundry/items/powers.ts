@@ -9,9 +9,10 @@ import {
   getPowerDisplayText,
 } from '../../functions/powers/powerText';
 import CharacterSheet from '../../interfaces/CharacterSheet';
-import { BonusGroup } from '../automations';
+import { BonusGroup, buildToggleEffects, SheetToggles } from '../automations';
 import { buildPassiveEffect } from '../effects';
 import { foundryId, textToHtml } from '../normalize';
+import { buildPowerOnUseEffects } from '../onUseAutomations';
 import { FoundryItem } from '../types';
 import { buildFormulaRolls } from './spells';
 
@@ -81,7 +82,8 @@ function buildPower(power: SheetPower, category: PowerCategory): FoundryItem {
  */
 export function buildPowerItems(
   sheet: CharacterSheet,
-  bonusGroups: BonusGroup[]
+  bonusGroups: BonusGroup[],
+  toggles: SheetToggles
 ): { items: FoundryItem[]; unclaimed: BonusGroup[] } {
   const { powers, counts, sources } = collectSheetPowers(sheet);
   const origins = classifyPowers(sources);
@@ -98,6 +100,11 @@ export function buildPowerItems(
         claimed.add(group);
         item.effects.push(buildPassiveEffect(item.name, group.changes, true));
       });
+
+    item.effects.push(
+      ...buildToggleEffects(sheet, toggles.powers.get(power.name)),
+      ...buildPowerOnUseEffects(power.name)
+    );
 
     const count = counts[power.name] ?? 1;
     if (count > 1) item.name = `${item.name} (x${count})`;

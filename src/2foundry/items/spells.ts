@@ -8,6 +8,7 @@ import { getSpellTradition } from '../../functions/spells/spellTradition';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { DiceRoll } from '../../interfaces/DiceRoll';
 import { Aprimoramento, Spell } from '../../interfaces/Spells';
+import { buildToggleEffects, SheetToggles } from '../automations';
 import { buildChange, buildOnUseEffect, isRecord } from '../effects';
 import {
   ATTRIBUTE_KEYS,
@@ -148,11 +149,19 @@ function buildSpell(spell: Spell, name: string): FoundryItem {
   };
 }
 
-export function buildSpellItems(sheet: CharacterSheet): FoundryItem[] {
+export function buildSpellItems(
+  sheet: CharacterSheet,
+  toggles: SheetToggles
+): FoundryItem[] {
   const keyAttribute = getSpellKeyAttribute(sheet);
 
   return (sheet.spells ?? []).map((spell) => {
     const item = buildSpell(spell, getSpellDisplayName(spell));
+    // Efeito da magia em quem a recebe (ex.: o bônus de Defesa): fica no item,
+    // desligado, para o jogador ligar ao conjurar.
+    item.effects.push(
+      ...buildToggleEffects(sheet, toggles.spells.get(spell.nome))
+    );
     item.system.tipo = getSpellType(sheet, spell);
 
     if (isRecord(item.system.ativacao)) {

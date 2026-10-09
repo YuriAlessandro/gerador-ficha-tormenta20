@@ -12,10 +12,10 @@ import Equipment, {
   WeaponAttribute,
   WeaponCategory,
 } from '../../interfaces/Equipment';
-import Skill from '../../interfaces/Skills';
 import { isRecord } from '../effects';
 import { ATTRIBUTE_KEYS, toDamageTypeKey } from '../enums';
 import { foundryId, textToHtml } from '../normalize';
+import { FOUNDRY_SKILLS } from '../skills';
 import { FoundryItem, FoundryRoll, FoundryValue } from '../types';
 import { buildFormulaRolls } from './spells';
 
@@ -85,8 +85,9 @@ function buildWeaponRolls(weapon: Equipment): FoundryRoll[] {
     versatil: '',
     adaptavel: '',
   };
-  if (weapon.customSkill === Skill.PONTARIA) attack.parts[1][0] = 'pont';
-  if (weapon.customSkill === Skill.LUTA) attack.parts[1][0] = 'luta';
+  // Perícia de ataque escolhida pelo jogador no editor da arma (ex.: Atuação).
+  const customSkill = weapon.customSkill && FOUNDRY_SKILLS[weapon.customSkill];
+  if (customSkill) attack.parts[1][0] = customSkill;
   if (weapon.attackAttribute && weapon.attackAttribute !== 'Nenhum') {
     attack.parts[1][1] = toAbilityFormula(weapon.attackAttribute).slice(1);
   }

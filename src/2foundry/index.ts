@@ -1,6 +1,7 @@
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { buildActorSystem, buildClassItems } from './actor';
-import { buildAutomations } from './automations';
+import { collectSheetPowers } from '../functions/powers/collectSheetPowers';
+import { buildAutomations, findToggles } from './automations';
 import { buildPassiveEffect } from './effects';
 import { buildEquipmentItems } from './items/equipment';
 import { buildPowerItems } from './items/powers';
@@ -18,13 +19,17 @@ export type { FoundryItem, FoundryJSON } from './types';
  * inclusive as automações (`automations.ts`) — ver `README.md` desta pasta.
  */
 export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
-  const automations = buildAutomations(sheet);
-  const powers = buildPowerItems(sheet, automations.groups);
+  const toggles = findToggles(
+    sheet,
+    collectSheetPowers(sheet).powers.map((power) => power.name)
+  );
+  const automations = buildAutomations(sheet, toggles);
+  const powers = buildPowerItems(sheet, automations.groups, toggles);
 
   const items = [
     ...buildClassItems(sheet),
     ...powers.items,
-    ...buildSpellItems(sheet),
+    ...buildSpellItems(sheet, toggles),
     ...buildEquipmentItems(sheet),
   ];
 
