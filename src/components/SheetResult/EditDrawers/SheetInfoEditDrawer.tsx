@@ -68,6 +68,8 @@ import {
   MOREAU_HERITAGES,
   MoreauHeritageName,
   MOREAU_HERITAGE_NAMES,
+  ESPERTEZA_VULPINA_ABILITY_NAME,
+  ESPERTEZA_VULPINA_OPTION_KEY,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import {
@@ -195,6 +197,25 @@ const getSeedSuragelAbilityChoice = (
   return sheet.optionChoices?.[choice.optionKey]?.[0];
 };
 
+/** Escolha já feita na Esperteza Vulpina do Moreau (`sheet.optionChoices`). */
+const getSeedEspertezaSkills = (sheet: CharacterSheet): string[] | undefined =>
+  sheet.optionChoices?.[ESPERTEZA_VULPINA_OPTION_KEY];
+
+/**
+ * Perícias oferecidas pela Esperteza Vulpina. Vem do catálogo, não da cópia
+ * embutida na ficha: ficha antiga carrega a versão `special` da habilidade, e
+ * o save reconstrói a raça pelo catálogo quando a escolha muda.
+ */
+const getEspertezaVulpinaOptions = (): string[] => {
+  const ability = MOREAU_HERITAGES.Raposa.abilities.find(
+    (a) => a.name === ESPERTEZA_VULPINA_ABILITY_NAME
+  );
+  const target = ability?.sheetBonuses?.find(
+    (b) => b.target.type === 'PickSkill'
+  )?.target;
+  return target?.type === 'PickSkill' ? target.skills : [];
+};
+
 interface SheetInfoEditDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -220,6 +241,8 @@ interface EditedData {
   raceName: string;
   raceHeritage: string | undefined; // For races with heritages (like Moreau)
   moreauSapienciaSpell: string | undefined; // For Moreau Coruja Sapiência ability
+  // Perícias do +2 da Esperteza Vulpina (Moreau Raposa)
+  moreauEspertezaSkills: string[] | undefined;
   raceChassis: string | undefined; // For Golem Desperto
   raceEnergySource: string | undefined; // For Golem Desperto
   raceSizeCategory: string | undefined; // For Golem Desperto
@@ -393,6 +416,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     raceName: sheet.raca.name,
     raceHeritage: sheet.raceHeritage,
     moreauSapienciaSpell: sheet.moreauSapienciaSpell,
+    moreauEspertezaSkills: getSeedEspertezaSkills(sheet),
     raceChassis: sheet.raceChassis,
     raceEnergySource: sheet.raceEnergySource,
     raceSizeCategory: sheet.raceSizeCategory,
@@ -501,6 +525,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   ]);
 
   // 1st-circle Divination spells available for Moreau Coruja Sapiência
+  const espertezaVulpinaOptions = useMemo(getEspertezaVulpinaOptions, []);
+
   const moreauSapienciaSpellOptions = useMemo(
     () => getSpellsOfCircle(1).filter((spell) => spell.school === 'Adiv'),
     []
@@ -542,6 +568,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
       moreauSapienciaSpell: sheet.moreauSapienciaSpell,
+      moreauEspertezaSkills: getSeedEspertezaSkills(sheet),
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
@@ -1025,8 +1052,26 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           }
         : undefined;
 
+    // Esperteza Vulpina: a escolha vai para `optionChoices`, de onde o
+    // recálculo resolve o alvo `PickSkill` do bônus.
+    const espertezaOptionChoices =
+      editedData.raceName === 'Moreau' &&
+      editedData.raceHeritage === 'Raposa' &&
+      editedData.moreauEspertezaSkills?.length
+        ? { [ESPERTEZA_VULPINA_OPTION_KEY]: editedData.moreauEspertezaSkills }
+        : undefined;
+
+    const mergedOptionChoices =
+      suragelOptionChoices || espertezaOptionChoices
+        ? {
+            ...(sheet.optionChoices || {}),
+            ...(suragelOptionChoices || {}),
+            ...(espertezaOptionChoices || {}),
+          }
+        : undefined;
+
     const updates: Partial<CharacterSheet> = {
-      ...(suragelOptionChoices ? { optionChoices: suragelOptionChoices } : {}),
+      ...(mergedOptionChoices ? { optionChoices: mergedOptionChoices } : {}),
       nome: editedData.nome,
       nivel: editedData.nivel,
       sexo: editedData.sexo,
@@ -1167,6 +1212,26 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           {
             name: 'Magia',
             value: editedData.moreauSapienciaSpell || 'Removida',
+          },
+        ],
+      });
+    }
+
+    // Esperteza Vulpina (Moreau Raposa): perícias que recebem o +2.
+    const seededEspertezaSkills = getSeedEspertezaSkills(sheet);
+    const moreauEspertezaChanged =
+      editedData.raceName === 'Moreau' &&
+      editedData.raceHeritage === 'Raposa' &&
+      (editedData.moreauEspertezaSkills ?? []).join('|') !==
+        (seededEspertezaSkills ?? []).join('|');
+    if (moreauEspertezaChanged) {
+      newSteps.push({
+        label: 'Edição Manual - Esperteza Vulpina',
+        type: 'Edição Manual',
+        value: [
+          {
+            name: 'Perícias (+2)',
+            value: editedData.moreauEspertezaSkills?.join(', ') || 'Nenhuma',
           },
         ],
       });
@@ -1414,6 +1479,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         (editedData.suragelAbility !== sheet.suragelAbility ||
           editedData.suragelAbilityChoice !==
             getSeedSuragelAbilityChoice(sheet))) ||
+      // Mudar a escolha da Esperteza Vulpina reconstrói a raça pelo catálogo:
+      // é isso que troca a ação `special` antiga pelo bônus `PickSkill` numa
+      // ficha salva antes do conserto, fazendo a escolha valer lá também.
+      moreauEspertezaChanged ||
       isDuendeConfigChanged(editedData, sheet);
 
     if (raceOrSexOrHeritageOrGolemOrSuragelChanged) {
@@ -1805,6 +1874,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       heritageChanged ||
       suragelChanged ||
       moreauSapienciaSpellChanged ||
+      moreauEspertezaChanged ||
       tradicaoPerdidaPmChanged;
 
     if (shouldUseRecalculateSheet) {
@@ -1843,6 +1913,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
       moreauSapienciaSpell: sheet.moreauSapienciaSpell,
+      moreauEspertezaSkills: getSeedEspertezaSkills(sheet),
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
@@ -2649,6 +2720,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                               newHeritage === 'Coruja'
                                 ? editedData.moreauSapienciaSpell
                                 : undefined,
+                            // Idem para as perícias da Esperteza Vulpina
+                            moreauEspertezaSkills:
+                              newHeritage === 'Raposa'
+                                ? editedData.moreauEspertezaSkills
+                                : undefined,
                           });
                         }}
                       >
@@ -2689,6 +2765,36 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                                   ? 'Atributo-chave: Sabedoria. Trocar a magia removerá a anterior da ficha.'
                                   : 'Escolha uma magia para a habilidade Sapiência.'
                               }
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    )}
+
+                  {/* Moreau Raposa Esperteza Vulpina: +2 em 2 perícias de INT/CAR */}
+                  {editedData.raceName === 'Moreau' &&
+                    editedData.raceHeritage === 'Raposa' && (
+                      <FormControl fullWidth>
+                        <Autocomplete
+                          multiple
+                          limitTags={2}
+                          options={espertezaVulpinaOptions}
+                          value={editedData.moreauEspertezaSkills || []}
+                          getOptionDisabled={() =>
+                            (editedData.moreauEspertezaSkills?.length ?? 0) >= 2
+                          }
+                          onChange={(_event, newValue) =>
+                            setEditedData({
+                              ...editedData,
+                              moreauEspertezaSkills: newValue.slice(0, 2),
+                            })
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              // eslint-disable-next-line react/jsx-props-no-spreading
+                              {...params}
+                              label='Perícias da Esperteza Vulpina (+2, duas)'
+                              helperText='Duas perícias originalmente baseadas em Inteligência ou Carisma.'
                             />
                           )}
                         />

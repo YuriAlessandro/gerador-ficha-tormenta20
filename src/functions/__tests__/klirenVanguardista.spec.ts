@@ -69,6 +69,29 @@ describe('Kliren — Vanguardista', () => {
     expect(oficioOthers(recalculateSheet(sheet), Skill.OFICIO_ARMEIRO)).toBe(2);
   });
 
+  it('com vários Ofícios treinados, respeita a escolha em vez de sortear', () => {
+    // Com um só Ofício treinado o sorteio acerta por acidente (a heurística
+    // prefere perícia treinada). Com dois, só o caminho manual acerta.
+    const options: SelectedOptions = {
+      nivel: 1,
+      raca: 'Kliren',
+      classe: 'Inventor',
+      origin: '',
+      devocao: { label: '--', value: '--' },
+      supplements: [SupplementId.TORMENTA20_CORE],
+    };
+    const sheet = generateEmptySheet(options, {
+      classSkills: [Skill.OFICIO_ARMEIRO, Skill.OFICIO_ALQUIMIA],
+      powerEffectSelections: {
+        Vanguardista: { skills: [Skill.OFICIO_ALQUIMIA] },
+      },
+    });
+
+    expect(sheet.optionChoices?.[OPTION_KEY]).toEqual([Skill.OFICIO_ALQUIMIA]);
+    expect(oficioOthers(sheet, Skill.OFICIO_ALQUIMIA)).toBe(2);
+    expect(oficioOthers(sheet, Skill.OFICIO_ARMEIRO)).toBe(0);
+  });
+
   it('aplica o bônus no Ofício escolhido e o mantém nos recálculos seguintes', () => {
     const chosen = recalculateSheet(makeSheet(), undefined, {
       Vanguardista: { skills: [Skill.OFICIO_ALQUIMIA] },

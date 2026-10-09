@@ -164,6 +164,23 @@ export const ALL_SPECIFIC_OFICIOS: Skill[] = [
   Skill.OFICIO_MINERADOR,
 ];
 
+/**
+ * Perícias do catálogo cujo atributo-chave ORIGINAL é um dos informados.
+ *
+ * Derivado de `SkillsAttrs` de propósito: a lista escrita à mão da Esperteza
+ * Vulpina (Moreau/Raposa) havia divergido do catálogo — trazia Cavalgar, Cura,
+ * Intuição e Religião, e esquecia Adestramento e 13 dos 16 Ofícios.
+ *
+ * `Skill.OFICIO` ("Ofício (Qualquer)") fica fora: é um placeholder que a
+ * geração substitui por um Ofício específico, mesma razão de
+ * `SKILLS_WITHOUT_OFICIO_QUALQUER` em `data/systems/tormenta20/pericias.ts`.
+ */
+export function getSkillsByAttributes(attrs: Atributo[]): Skill[] {
+  return (Object.entries(SkillsAttrs) as [Skill, Atributo][])
+    .filter(([name, attr]) => attrs.includes(attr) && name !== Skill.OFICIO)
+    .map(([name]) => name);
+}
+
 export const OFICIO_PREFIX = 'Ofício';
 
 export function isGenericOficio(name?: string): boolean {

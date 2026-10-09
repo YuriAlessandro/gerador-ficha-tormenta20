@@ -3,8 +3,22 @@ import {
   RaceAttributeAbility,
 } from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
-import Skill from '../../../../../interfaces/Skills';
+import Skill, { getSkillsByAttributes } from '../../../../../interfaces/Skills';
 import Equipment from '../../../../../interfaces/Equipment';
+
+/** Chave de persistência da escolha da Esperteza Vulpina em `optionChoices`. */
+export const ESPERTEZA_VULPINA_OPTION_KEY = 'moreau-esperteza-vulpina';
+
+export const ESPERTEZA_VULPINA_ABILITY_NAME = 'Esperteza Vulpina';
+
+/**
+ * "Duas perícias originalmente baseadas em Inteligência ou Carisma": derivado
+ * do catálogo, não escrito à mão — ver `getSkillsByAttributes`.
+ */
+const ESPERTEZA_VULPINA_SKILLS = getSkillsByAttributes([
+  Atributo.INTELIGENCIA,
+  Atributo.CARISMA,
+]);
 
 export interface MoreauHeritage {
   name: string;
@@ -181,16 +195,24 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         // +3 aqui somaria por cima e daria 15m.
       },
       {
-        name: 'Esperteza Vulpina',
+        name: ESPERTEZA_VULPINA_ABILITY_NAME,
         description:
           'Você recebe +2 em duas perícias originalmente baseadas em Inteligência ou Carisma, a sua escolha.',
-        sheetActions: [
+        // "A sua escolha": `PickSkill` ganha o seletor de graça no passo
+        // "Efeitos de Poderes" do assistente e grava a escolha em
+        // `optionChoices`, de onde os dois motores de derivação a releem.
+        // Antes era uma ação `special` que TREINAVA duas perícias sorteadas de
+        // uma lista escrita à mão (e errada) — a habilidade dá +2, não treino.
+        sheetBonuses: [
           {
-            source: { type: 'power', name: 'Esperteza Vulpina' },
-            action: {
-              type: 'special',
-              specialAction: 'moreauEspertezaVulpina',
+            source: { type: 'power', name: ESPERTEZA_VULPINA_ABILITY_NAME },
+            target: {
+              type: 'PickSkill',
+              skills: ESPERTEZA_VULPINA_SKILLS,
+              pick: 2,
+              optionKey: ESPERTEZA_VULPINA_OPTION_KEY,
             },
+            modifier: { type: 'Fixed', value: 2 },
           },
         ],
       },

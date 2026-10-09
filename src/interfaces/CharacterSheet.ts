@@ -169,6 +169,9 @@ export type SheetActionStep =
         | 'osteonMemoriaPostuma'
         | 'yidishanNaturezaOrganica'
         | 'moreauSapiencia'
+        // @deprecated A habilidade virou `sheetBonuses`/`PickSkill`; o membro
+        // só existe para desserializar ficha antiga, cuja cópia embutida da
+        // habilidade ainda carrega esta ação.
         | 'moreauEspertezaVulpina'
         | 'fradeAutoridadeEclesiastica'
         | 'meioElfoAmbicaoHerdada'
@@ -1013,7 +1016,13 @@ export default interface CharacterSheet {
     | { type: 'power'; value: string }
     | { type: 'cleared' }; // Segunda escolha
   moreauSapienciaSpell?: string; // Magia escolhida por Sapiência (Moreau)
-  moreauEspertezaSkills?: [string, string]; // Perícias escolhidas por Esperteza Vulpina (Moreau)
+  /**
+   * @deprecated Perícias que a Esperteza Vulpina TREINAVA — implementação
+   * antiga e errada: a habilidade dá +2, não treino. Ficha nova grava a
+   * escolha em `optionChoices['moreau-esperteza-vulpina']`. Mantido declarado
+   * só para desserializar ficha antiga.
+   */
+  moreauEspertezaSkills?: [string, string];
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total

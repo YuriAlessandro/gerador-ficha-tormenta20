@@ -3088,6 +3088,10 @@ export const applyPower = (
         } else if (
           sheetAction.action.specialAction === 'moreauEspertezaVulpina'
         ) {
+          // Habilidade migrada para `sheetBonuses`/`PickSkill`. Este ramo só
+          // atende ficha antiga, cuja cópia embutida da habilidade ainda tem a
+          // ação `special` — sem ele, o `throw` do `else` final quebraria todo
+          // recálculo de Moreau-Raposa salvo.
           currentSteps = applyMoreauEspertezaVulpina(sheet);
         } else if (
           sheetAction.action.specialAction === 'fradeAutoridadeEclesiastica'
@@ -3698,6 +3702,32 @@ export const applyPower = (
         )
       : powerOrAbility.sheetBonuses;
     sheet.sheetBonuses.push(...bonusesToPush);
+
+    // Escolha do jogador para um alvo `PickSkill` com `optionKey`. Os dois
+    // motores de derivação resolvem `PickSkill` lendo `optionChoices`, e o da
+    // criação (`applyStatModifiers`, chamado por `generateEmptySheet`) roda sem
+    // `manualSelections` — sem semear aqui, a escolha do assistente era
+    // descartada e o bônus caía numa perícia sorteada. Mesmo contorno que o
+    // Chassi Mashin fazia à mão em `powers/special.ts`.
+    //
+    // `manualSelections.skills` é o mesmo campo usado por requisitos
+    // `learnSkill` (treino, vindo de `sheetActions`) — ambiguidade que já vem
+    // do gerador de requisitos. Nenhum poder do catálogo tem os dois.
+    const pickedSkillChoices = manualSelections?.skills;
+    if (pickedSkillChoices?.length) {
+      powerOrAbility.sheetBonuses.forEach((bonus) => {
+        if (bonus.target.type !== 'PickSkill' || !bonus.target.optionKey) {
+          return;
+        }
+        sheet.optionChoices = {
+          ...(sheet.optionChoices || {}),
+          [bonus.target.optionKey]: pickedSkillChoices.slice(
+            0,
+            bonus.target.pick
+          ),
+        };
+      });
+    }
 
     // Generate substeps for important bonuses so they appear in the step-by-step
     powerOrAbility.sheetBonuses.forEach((bonus) => {
