@@ -107,6 +107,22 @@ const Changelog: React.FC = () => {
                   montado desmonta ao assumir a Forma Selvagem.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> O seletor de tags de arma ganhou as
+                  opções <strong>Leve</strong>, <strong>Ágil</strong> e{' '}
+                  <strong>Espada</strong>. Dá para marcar uma arma personalizada
+                  ou homebrew para que ela receba poderes como Esgrimista e
+                  Estilo Clássico, ou desmarcar uma arma do catálogo; a escolha
+                  feita à mão é mantida ao reabrir a ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder <strong>Esgrimista</strong>{' '}
+                  não somava Inteligência no dano da <strong>Katana</strong> nem
+                  de outras armas ágeis ou leves (Cimitarra, Foice, Corrente de
+                  Espinhos, Rapieira, Espada canora, Espada-gadanho, Mordida do
+                  diabo, Presa de serpente, Neko-te e Porrete). Fichas já salvas
+                  são corrigidas ao abrir.
+                </li>
+                <li>
                   <strong>Correção:</strong> A <strong>Lança Montada</strong> e
                   a <strong>Lança de Justa</strong> agora podem ser empunhadas
                   com apenas uma mão, como a regra permite a quem está montado.
