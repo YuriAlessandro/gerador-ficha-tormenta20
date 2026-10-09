@@ -15,7 +15,11 @@ import _ from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
 import { normalizeSheet } from '../sheetNormalizer';
 import generateRandomSheet from '../general';
-import { countTormentaPowers, listTormentaPowers } from '../randomUtils';
+import {
+  FORMA_ABERRANTE_POWER_KEY,
+  countTormentaPowers,
+  listTormentaPowers,
+} from '../randomUtils';
 import { sheetHasPowerNamed } from '../powers/hasPowerNamed';
 import {
   getCharismaPenaltyPowerCount,
@@ -202,6 +206,56 @@ describe('getCharismaPenaltyPowerCount', () => {
       poderes: [{ name: 'Afinidade com a Tormenta', description: 'x' }],
     } as unknown as CharacterSheet['devoto'];
     expect(getCharismaPenaltyPowerCount(sheet)).toBe(1);
+  });
+});
+
+/**
+ * Forma Aberrante do Druida (Heróis de Arton): "conta como se tivesse dois
+ * poderes da Tormenta adicionais (exceto para perda de Carisma)". É um efeito
+ * ativo, não um poder — a contagem lê `activeEffects`.
+ */
+describe('Forma Aberrante (efeito ativo)', () => {
+  const formaAberrante = (): NonNullable<
+    CharacterSheet['activeEffects']
+  >[number] => ({
+    instanceId: 'forma-aberrante-1',
+    powerKey: FORMA_ABERRANTE_POWER_KEY,
+    name: 'Forma Aberrante',
+    sourceLabel: 'Druida · Forma Aberrante',
+    optionId: 'forma-aberrante',
+    optionLabel: '+2 poderes da Tormenta',
+    bonuses: [],
+    appliedAt: '2026-01-01T00:00:00.000Z',
+  });
+
+  it('soma dois na contagem enquanto está ativa', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS];
+    expect(countTormentaPowers(sheet)).toBe(1);
+
+    sheet.activeEffects = [formaAberrante()];
+    expect(countTormentaPowers(sheet)).toBe(3);
+
+    sheet.activeEffects = [];
+    expect(countTormentaPowers(sheet)).toBe(1);
+  });
+
+  it('não entra na perda de Carisma', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS];
+    sheet.activeEffects = [formaAberrante()];
+
+    expect(countTormentaPowers(sheet, { forCharismaPenalty: true })).toBe(1);
+    expect(getCharismaPenaltyPowerCount(sheet)).toBe(1);
+  });
+
+  it('outro efeito ativo não mexe na contagem', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.activeEffects = [
+      { ...formaAberrante(), powerKey: 'druida:forma-selvagem' },
+    ];
+
+    expect(countTormentaPowers(sheet)).toBe(0);
   });
 });
 

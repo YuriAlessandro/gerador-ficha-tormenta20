@@ -146,6 +146,16 @@ type TormentaCountable = {
   tormentaCountExcludesCharisma?: boolean;
 };
 
+/**
+ * Chave do efeito ativo da Forma Aberrante do Druida. Mora aqui (e não junto da
+ * definição do efeito) porque `countTormentaPowers` precisa dela e a definição
+ * importa desta constante — uma string só nos dois lados.
+ */
+export const FORMA_ABERRANTE_POWER_KEY = 'druida:forma-aberrante';
+
+/** Quantos poderes da Tormenta a Forma Aberrante soma enquanto está ativa. */
+export const FORMA_ABERRANTE_TORMENTA_POWERS = 2;
+
 export interface CountTormentaPowersOptions {
   /**
    * Quando true, ignora os poderes marcados com
@@ -252,6 +262,20 @@ export function countTormentaPowers(
   // é a fonte precisa do mesmo dado.
   if (!forCharismaPenalty) {
     tormentaPowersQtd += sheet.lefouDeformidadeSkills?.length ?? 0;
+  }
+
+  // Forma Aberrante (Heróis de Arton): "Nessa forma, você conta como se tivesse
+  // dois poderes da Tormenta adicionais (exceto para perda de Carisma)." A forma
+  // é um efeito ativo, não um poder em balde nenhum, então é lida direto de
+  // `activeEffects` — e não de `sheetBonuses`, que o recálculo zera e remonta
+  // enquanto esta função é chamada antes e depois disso.
+  if (
+    !forCharismaPenalty &&
+    (sheet.activeEffects ?? []).some(
+      (effect) => effect.powerKey === FORMA_ABERRANTE_POWER_KEY
+    )
+  ) {
+    tormentaPowersQtd += FORMA_ABERRANTE_TORMENTA_POWERS;
   }
 
   return tormentaPowersQtd;

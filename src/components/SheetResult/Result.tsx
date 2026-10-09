@@ -120,7 +120,10 @@ import {
   getWildShapeNaturalWeapons,
   isInWildShape,
 } from '@/premium/functions/wildShape';
-import { WILD_SHAPE_POWER_KEY } from '@/premium/data/wildShapes';
+import {
+  WILD_SHAPE_DIVINE_FORM_KEYS,
+  WILD_SHAPE_POWER_KEY,
+} from '@/premium/data/wildShapes';
 import {
   getSheetPartnerActivatedPowers,
   reconcileSheetPartnerEffects,
@@ -429,15 +432,21 @@ const Result: React.FC<ResultProps> = (props) => {
         appliedBy: { playerName: currentSheet.nome },
         appliedManually: opts?.skipPmCost ? true : undefined,
       };
-      // Substitui qualquer instância anterior do mesmo poder
+      // Substitui qualquer instância anterior do mesmo poder. Trocar de Forma
+      // Selvagem é uma transformação nova: as formas por divindade pagas na
+      // anterior saem junto.
+      const isReplaced = (e: ActiveEffect) =>
+        e.powerKey === definition.key ||
+        (definition.key === WILD_SHAPE_POWER_KEY &&
+          WILD_SHAPE_DIVINE_FORM_KEYS.includes(e.powerKey));
       const previous = (currentSheet.activeEffects ?? []).filter(
-        (e) => e.powerKey !== definition.key
+        (e) => !isReplaced(e)
       );
       const removedTempPM = (currentSheet.activeEffects ?? [])
-        .filter((e) => e.powerKey === definition.key)
+        .filter(isReplaced)
         .reduce((sum, e) => sum + (e.grantsTempPM ?? 0), 0);
       const removedTempPV = (currentSheet.activeEffects ?? [])
-        .filter((e) => e.powerKey === definition.key)
+        .filter(isReplaced)
         .reduce((sum, e) => sum + (e.grantsTempPV ?? 0), 0);
 
       const basePM = currentSheet.currentPM ?? currentSheet.pm ?? 0;
@@ -499,22 +508,32 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleActiveEffectRemove = useCallback(
     (instanceId: string) => {
-      const removed = (currentSheet.activeEffects ?? []).find(
+      const target = (currentSheet.activeEffects ?? []).find(
         (e) => e.instanceId === instanceId
       );
+      // Reverter a Forma Selvagem derruba as formas por divindade (Aberrante,
+      // de Cardume, Elemental, Esquelética, Vegetal), que só existem por cima
+      // dela.
+      const isRemoved = (e: ActiveEffect) =>
+        e.instanceId === instanceId ||
+        (target?.powerKey === WILD_SHAPE_POWER_KEY &&
+          WILD_SHAPE_DIVINE_FORM_KEYS.includes(e.powerKey));
+      const removed = (currentSheet.activeEffects ?? []).filter(isRemoved);
       const next = (currentSheet.activeEffects ?? []).filter(
-        (e) => e.instanceId !== instanceId
+        (e) => !isRemoved(e)
       );
       applyRecalculatedSheet({
         ...currentSheet,
         activeEffects: next,
         tempPM: Math.max(
           0,
-          (currentSheet.tempPM ?? 0) - (removed?.grantsTempPM ?? 0)
+          (currentSheet.tempPM ?? 0) -
+            removed.reduce((sum, e) => sum + (e.grantsTempPM ?? 0), 0)
         ),
         tempPV: Math.max(
           0,
-          (currentSheet.tempPV ?? 0) - (removed?.grantsTempPV ?? 0)
+          (currentSheet.tempPV ?? 0) -
+            removed.reduce((sum, e) => sum + (e.grantsTempPV ?? 0), 0)
         ),
       });
     },
