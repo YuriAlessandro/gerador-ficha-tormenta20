@@ -165,6 +165,14 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> No catálogo de poderes, a caixa de
                   seleção ficava desalinhada do nome do poder.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Classes variantes homebrew de{' '}
+                  <strong>Arcanista</strong> com conjuração própria (ou sem
+                  conjuração) recebiam um Caminho do Arcanista sorteado, que
+                  trocava o atributo de conjuração e deixava habilidades de
+                  caminho e linhagem presas na ficha. Fichas já criadas são
+                  corrigidas ao abrir.
+                </li>
               </ul>
               <h3>4.35</h3>
               <ul>
