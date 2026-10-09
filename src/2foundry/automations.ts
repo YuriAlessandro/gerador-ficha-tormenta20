@@ -14,6 +14,7 @@ import CharacterSheet, {
 } from '../interfaces/CharacterSheet';
 import { buildChange, buildPassiveEffect } from './effects';
 import { ATTRIBUTE_KEYS, toDamageTypeKey } from './enums';
+import { textToHtml } from './normalize';
 import { FOUNDRY_SKILLS } from './skills';
 import { FoundryEffect, FoundryEffectChange } from './types';
 
@@ -25,8 +26,8 @@ import { FoundryEffect, FoundryEffectChange } from './types';
  * - **Passivos** (`sheet.sheetBonuses`): bônus permanentes de poderes, raça,
  *   itens… Viram efeitos sempre ligados.
  * - **Ativáveis** (catálogo de efeitos ativos, o do botão "Usar" da ficha):
- *   poderes e magias com bônus temporário. Viram efeitos DESLIGADOS no item,
- *   que o jogador liga e desliga na aba de efeitos do ator.
+ *   poderes e magias com bônus temporário. Viram efeitos DESLIGADOS no ATOR,
+ *   que o jogador liga e desliga na aba de Efeitos.
  */
 export interface BonusGroup {
   /** Nome mostrado no efeito: o poder, o item, a raça… que concede o bônus. */
@@ -105,8 +106,11 @@ function getChangeKey(
       return type ? `system.tracos.resistencias.${type}.bonus` : undefined;
     }
     case 'Displacement':
-      // O sistema direciona um `add` nesta chave para o bônus do deslocamento.
-      return 'system.attributes.movement.walk';
+      // `*` replica o bônus em todos os modos de deslocamento (o sistema
+      // expande a chave em `_prepareProxyChange`). É o que o conteúdo oficial
+      // usa para "+Xm de deslocamento" — Atlético, Fuga Formidável, Primor
+      // Atlético.
+      return 'system.attributes.movement.*.bonus';
     case 'AllAttackBonus':
       return 'system.modificadores.ataque.geral';
     case 'WeaponAttack': {
@@ -217,9 +221,102 @@ function isActiveNow(
   );
 }
 
+const SKILL_CHANGE_PREFIX = 'system.pericias.';
+
+/**
+ * Bônus que vale para TODAS as perícias (Inspiração, Comandar…) vira uma só
+ * mudança com o curinga `system.pericias.*.bonus`, em vez de uma por perícia.
+ * O sistema expande o `*` para todas as chaves de `system.pericias`
+ * (`_prepareProxyChange`), o que de quebra alcança os ofícios personalizados.
+ */
+function collapseSkillChanges(
+  changes: FoundryEffectChange[]
+): FoundryEffectChange[] {
+  const skills = changes.filter((change) =>
+    change.key.startsWith(SKILL_CHANGE_PREFIX)
+  );
+  const distinct = new Set(skills.map(({ value, type }) => `${value}:${type}`));
+  if (distinct.size !== 1) return changes;
+
+  const covered = new Set(skills.map((change) => change.key));
+  const coversEverySkill = Object.values(FOUNDRY_SKILLS).every((key) =>
+    covered.has(`${SKILL_CHANGE_PREFIX}${key}.bonus`)
+  );
+  if (!coversEverySkill) return changes;
+
+  const [first] = skills;
+  return [
+    { ...first, key: `${SKILL_CHANGE_PREFIX}*.bonus` },
+    ...changes.filter((change) => !change.key.startsWith(SKILL_CHANGE_PREFIX)),
+  ];
+}
+
+/**
+ * A opção concede algo que não virou mudança de efeito (passo de dano, bônus
+ * restrito a uma arma…)? Perícia sem chave própria não conta quando o curinga
+ * entrou: ele cobre justamente os ofícios, que é o que não tem chave.
+ */
+function hasUnexportableBonus(
+  option: ActiveEffectUsageOption,
+  changes: FoundryEffectChange[]
+): boolean {
+  const collapsedSkills = changes.some(
+    (change) => change.key === `${SKILL_CHANGE_PREFIX}*.bonus`
+  );
+  return option.bonuses.some((bonus) => {
+    if (getChangeKey(bonus.target, true)) return false;
+    return !(collapsedSkills && bonus.target.type === 'Skill');
+  });
+}
+
+/**
+ * Texto do efeito, que é o que o jogador lê antes de ligar: de onde o bônus
+ * vem, o que custa em PM e o que o Foundry não aplica sozinho.
+ */
+function describeOption(
+  definition: ActivePowerDefinition,
+  option: ActiveEffectUsageOption,
+  changes: FoundryEffectChange[],
+  hasAlternatives: boolean
+): string {
+  const lines = [definition.sourceLabel];
+  if (option.pmCost > 0) lines.push(`Custo: ${option.pmCost} PM.`);
+  // Melhor o jogador saber que o número do nome não saiu inteiro do que
+  // descobrir na mesa.
+  if (hasUnexportableBonus(option, changes)) {
+    lines.push(
+      'Parte dos bônus desta opção não tem equivalente automático e ficou de ' +
+        'fora — confira o texto do poder.'
+    );
+  }
+  // PV/PM temporários não viram mudança de efeito: o Foundry reaplicaria o
+  // valor a cada preparação de dados e o jogador nunca conseguiria gastá-los.
+  if (option.grantsTempPV) {
+    lines.push(
+      `Concede ${option.grantsTempPV} PV temporários (aplicar à mão).`
+    );
+  }
+  if (option.grantsTempPM) {
+    lines.push(
+      `Concede ${option.grantsTempPM} PM temporários (aplicar à mão).`
+    );
+  }
+  if (hasAlternatives) {
+    lines.push('As opções deste poder são alternativas: ligue só uma.');
+  }
+  return lines.join('\n');
+}
+
 /**
  * Um efeito de ligar/desligar por opção de uso do poder ou magia (ex.: os
  * níveis de Fúria). Sai ligado quando a opção está ativa na ficha.
+ *
+ * O efeito fica no **ator**, não no item do poder: a ficha de personagem do
+ * sistema monta a aba de Efeitos só com `actor.effects`
+ * (`prepareActiveEffectCategories`), e a 1.6 deixou de criar a cópia
+ * transferida do efeito do item — no item, ele só apareceria abrindo o próprio
+ * poder. No ator, desligado, ele cai em "Efeitos Inativos" com a caixa de
+ * ligar; ligado, em "Efeitos Passivos".
  */
 export function buildToggleEffects(
   sheet: CharacterSheet,
@@ -227,18 +324,51 @@ export function buildToggleEffects(
 ): FoundryEffect[] {
   if (!definition) return [];
 
-  return getFixedOptions(sheet, definition).flatMap((option) => {
-    const changes = toChanges(sheet, option.bonuses, true);
-    if (changes.length === 0) return [];
+  const built = getFixedOptions(sheet, definition)
+    .map((option) => ({
+      option,
+      changes: collapseSkillChanges(toChanges(sheet, option.bonuses, true)),
+    }))
+    .filter(({ changes }) => changes.length > 0);
 
+  // Duas opções que geram as MESMAS mudanças virariam dois efeitos idênticos de
+  // nomes diferentes — é o caso dos passos de dano de Armamento da Natureza,
+  // em que só o bônus de ataque é exportável. Fica a primeira, e ela sai ligada
+  // se qualquer uma das equivalentes estiver ativa na ficha.
+  const groups = new Map<string, typeof built>();
+  built.forEach((entry) => {
+    const signature = JSON.stringify(
+      entry.changes.map(({ key, value, type }) => [key, value, type])
+    );
+    groups.set(signature, [...(groups.get(signature) ?? []), entry]);
+  });
+
+  const options = [...groups.values()];
+  return options.map((group) => {
+    const [{ option, changes }] = group;
     const effect = buildPassiveEffect(
       `${definition.name}: ${option.label}`,
       changes,
-      true
+      false
     );
-    effect.disabled = !isActiveNow(sheet, definition, option.id);
-    return [effect];
+    effect.disabled = !group.some((entry) =>
+      isActiveNow(sheet, definition, entry.option.id)
+    );
+    effect.description = textToHtml(
+      describeOption(definition, option, changes, options.length > 1)
+    );
+    return effect;
   });
+}
+
+/** Os ativáveis de todos os poderes e magias da ficha, como efeitos do ator. */
+export function buildActorToggleEffects(
+  sheet: CharacterSheet,
+  toggles: SheetToggles
+): FoundryEffect[] {
+  return [...toggles.powers.values(), ...toggles.spells.values()].flatMap(
+    (definition) => buildToggleEffects(sheet, definition)
+  );
 }
 
 /** Chaves (`powerKey::optionId`) das opções exportadas como efeito ligado. */

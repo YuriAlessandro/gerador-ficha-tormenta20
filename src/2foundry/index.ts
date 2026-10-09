@@ -1,7 +1,11 @@
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { buildActorSystem, buildClassItems } from './actor';
 import { collectSheetPowers } from '../functions/powers/collectSheetPowers';
-import { buildAutomations, findToggles } from './automations';
+import {
+  buildActorToggleEffects,
+  buildAutomations,
+  findToggles,
+} from './automations';
 import { buildPassiveEffect } from './effects';
 import { buildEquipmentItems } from './items/equipment';
 import { buildPowerItems } from './items/powers';
@@ -24,12 +28,12 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
     collectSheetPowers(sheet).powers.map((power) => power.name)
   );
   const automations = buildAutomations(sheet, toggles);
-  const powers = buildPowerItems(sheet, automations.groups, toggles);
+  const powers = buildPowerItems(sheet, automations.groups);
 
   const items = [
     ...buildClassItems(sheet),
     ...powers.items,
-    ...buildSpellItems(sheet, toggles),
+    ...buildSpellItems(sheet),
     ...buildEquipmentItems(sheet),
   ];
 
@@ -38,10 +42,14 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
     type: 'character',
     system: buildActorSystem(sheet, items, automations),
     items,
-    // Bônus de raça, item, ajuste manual… — sem item de poder para carregá-los.
-    effects: powers.unclaimed.map((group) =>
-      buildPassiveEffect(group.label, group.changes, false)
-    ),
+    effects: [
+      // Bônus de raça, item, ajuste manual… — sem item de poder para carregá-los.
+      ...powers.unclaimed.map((group) =>
+        buildPassiveEffect(group.label, group.changes, false)
+      ),
+      // Ativáveis: desligados, para o jogador ligar na aba de Efeitos do ator.
+      ...buildActorToggleEffects(sheet, toggles),
+    ],
     flags: { tormenta20: { lvlconfig: { manual: true } } },
     // Sem `systemVersion` o sistema trata o ator como anterior à edição Jogo
     // do Ano e converte os atributos como se fossem valores de 3 a 18.
