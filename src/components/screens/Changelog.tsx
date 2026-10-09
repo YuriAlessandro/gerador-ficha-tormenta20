@@ -131,6 +131,20 @@ const Changelog: React.FC = () => {
                   feita à mão é mantida ao reabrir a ficha.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> A exportação para o{' '}
+                  <strong>Foundry VTT</strong> agora leva a ficha inteira:
+                  poderes de todas as origens, magias com seus aprimoramentos,
+                  armas, armaduras, itens, dinheiro, proficiências,
+                  deslocamentos e redução de dano, além de PV, PM e Defesa com
+                  os totais da ficha. Compatível com o sistema Tormenta20 1.6.4
+                  (Foundry v14).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O <strong>encontro</strong> da mesa
+                  virtual pode ser criado só com jogadores, sem nenhuma ameaça,
+                  para combates entre os personagens (PvP).
+                </li>
+                <li>
                   <strong>Correção:</strong> O poder <strong>Esgrimista</strong>{' '}
                   não somava Inteligência no dano da <strong>Katana</strong> nem
                   de outras armas ágeis ou leves (Cimitarra, Foice, Corrente de
