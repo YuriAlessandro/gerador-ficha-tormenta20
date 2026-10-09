@@ -97,6 +97,22 @@ const Changelog: React.FC = () => {
                   ativação, que aparece sem parênteses na ficha, como no livro.
                 </li>
                 <li>
+                  <strong>Novo:</strong> As formas por divindade do Druida, de
+                  Heróis de Arton, viraram efeitos da ficha:{' '}
+                  <strong>Forma Aberrante</strong>,{' '}
+                  <strong>Forma de Cardume</strong>,{' '}
+                  <strong>Forma Elemental</strong>,{' '}
+                  <strong>Forma Esquelética</strong> e{' '}
+                  <strong>Forma Vegetal</strong>. Depois de assumir a Forma
+                  Selvagem, clique na estrelinha do poder para ligar a forma: a
+                  Esquelética e a Vegetal aplicam a redução de dano, a Elemental
+                  troca o tipo de dano das armas naturais pelo elemento
+                  escolhido e a Aberrante soma dois poderes da Tormenta sem
+                  pesar no Carisma. Imunidades e demais efeitos ficam descritos
+                  no próprio efeito, e reverter a Forma Selvagem desfaz a forma
+                  junto.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> <strong>Parceiros</strong>{' '}
                   concedidos por poderes entram sozinhos na ficha: o familiar do
                   Arcanista, o Companheiro Animal, o autômato, as montarias e os
