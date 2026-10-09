@@ -53,7 +53,12 @@ import {
   rehydrateSheet,
   isSheetIntegrityError,
 } from '@/functions/sheetPayloadOptimizer';
-import { convertToFoundry, FoundryJSON } from '@/2foundry';
+import {
+  convertToFoundry,
+  downloadFoundryJSON,
+  FOUNDRY_CORE_VERSION,
+  FOUNDRY_SYSTEM_VERSION,
+} from '@/2foundry';
 import SheetUnavailable from './SheetUnavailable';
 
 const SheetViewPage: React.FC = () => {
@@ -283,33 +288,16 @@ const SheetViewPage: React.FC = () => {
   };
 
   // Foundry Export
-  const encodeFoundryJSON = (json: FoundryJSON | undefined) => {
-    if (json) {
-      return `data:text/json;charset=utf-8,${encodeURIComponent(
-        JSON.stringify(json)
-      )}`;
-    }
-    return '';
-  };
-
   const exportFoundry = () => {
     if (!sheet) return;
     setLoadingFoundry(true);
-
     try {
       const foundryJSON = convertToFoundry(sheet);
-      const encodedJSON = encodeFoundryJSON(foundryJSON);
-
-      setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = encodedJSON;
-        link.download = `${sheet.nome}.json`;
-        link.click();
-        setLoadingFoundry(false);
-      }, 300);
+      downloadFoundryJSON(foundryJSON, sheet.nome);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('Erro ao exportar para Foundry:', err);
+    } finally {
       setLoadingFoundry(false);
     }
   };
@@ -539,6 +527,7 @@ const SheetViewPage: React.FC = () => {
                     onClick={exportFoundry}
                     fullWidth={isMobile}
                     disabled={loadingFoundry}
+                    title={`Compatível com o sistema Tormenta20 v${FOUNDRY_SYSTEM_VERSION} (Foundry v${FOUNDRY_CORE_VERSION})`}
                     sx={{ justifyContent: 'flex-start' }}
                     startIcon={
                       loadingFoundry ? (

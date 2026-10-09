@@ -1,5 +1,3 @@
-import { cloneDeep } from 'lodash';
-
 import {
   ThreatSheet,
   ThreatSize,
@@ -9,7 +7,11 @@ import {
   ResistanceType,
 } from '../interfaces/ThreatSheet';
 import { Atributo } from '../data/systems/tormenta20/atributos';
-import { DEFAULT_SKILLS } from './skills';
+import { toDamageTypeKey } from './enums';
+import { foundryId, textToHtml } from './normalize';
+import { buildDefaultSkills, FoundryCharSkill } from './skills';
+import { FoundryItem, FoundryStats } from './types';
+import { FOUNDRY_SYSTEM_VERSION } from './version';
 import { getEffectiveSkillTotal } from '../functions/threatGenerator';
 
 // Size mapping for threats
@@ -124,9 +126,10 @@ interface FoundryEnemyJSON {
         trevas: FoundryResistance;
       };
     };
-    pericias: Record<string, unknown>;
+    pericias: Record<string, FoundryCharSkill>;
   };
-  items: unknown[];
+  items: FoundryItem[];
+  _stats: FoundryStats;
 }
 
 function getAttributeModifier(value: number | '-'): number {
@@ -146,7 +149,7 @@ function createDefaultResistance(): FoundryResistance {
 }
 
 function getThreatSkills(threat: ThreatSheet) {
-  const skills = cloneDeep(DEFAULT_SKILLS);
+  const skills = buildDefaultSkills();
   const assignments =
     threat.resistanceAssignments || DEFAULT_RESISTANCE_ASSIGNMENTS;
 
@@ -299,25 +302,20 @@ export function convertThreatToFoundry(threat: ThreatSheet): FoundryEnemyJSON {
       pericias: getThreatSkills(threat),
     },
     items: [],
+    _stats: { systemId: 'tormenta20', systemVersion: FOUNDRY_SYSTEM_VERSION },
   };
 
-  // Add attacks as weapons
+  // Ataques viram armas naturais. Só os campos conhecidos são escritos: o
+  // sistema preenche o resto com o valor inicial do schema.
   threat.attacks.forEach((attack) => {
     foundryJSON.items.push({
+      _id: foundryId(),
       name: attack.name,
       type: 'arma',
+      effects: [],
+      flags: {},
       system: {
         description: { value: '', unidentified: '' },
-        source: '',
-        equipado: 0,
-        equipado2: { slot: 0, type: '' },
-        carregado: true,
-        peso: 0,
-        espacos: 0,
-        qtd: 0,
-        preco: 0,
-        pv: { value: 0, min: 0, max: 3 },
-        rd: 0,
         rolls: [
           {
             name: 'Ataque',
@@ -329,6 +327,7 @@ export function convertThreatToFoundry(threat: ThreatSheet): FoundryEnemyJSON {
               [attack.attackBonus.toString(), '', ''],
             ],
             versatil: '',
+            adaptavel: '',
           },
           {
             name: 'Dano',
@@ -342,105 +341,42 @@ export function convertThreatToFoundry(threat: ThreatSheet): FoundryEnemyJSON {
                 'impacto',
                 '',
               ],
-              ...(attack.bonusDamageDice && attack.bonusDamageDice.length > 0
-                ? attack.bonusDamageDice.map((bd): [string, string, string] => [
-                    bd.dice,
-                    bd.damageType
-                      .toLowerCase()
-                      .normalize('NFD')
-                      .replace(/[\u0300-\u036f]/g, ''),
-                    '',
-                  ])
-                : [['', '', ''] as [string, string, string]]),
+              ...(attack.bonusDamageDice ?? []).map((bd) => [
+                bd.dice,
+                toDamageTypeKey(bd.damageType),
+                '',
+              ]),
             ],
             versatil: '',
+            adaptavel: '',
           },
         ],
         criticoM: 20,
         criticoX: 2,
-        alcance: '',
-        tipoUso: 'sim',
-        propriedades: {
-          ada: false,
-          agi: false,
-          alo: false,
-          des: false,
-          dup: false,
-          ver: false,
-          hib: false,
-        },
-        origin: '',
-        tags: [],
-        rolltags: [],
-        chatFlavor: '',
-        chatGif: '',
-        ativacao: {
-          custo: 0,
-          condicao: '',
-          execucao: '',
-          qtd: '',
-          special: '',
-        },
-        consume: {
-          amount: 0,
-          mpMultiplier: false,
-          target: '',
-          type: '',
-        },
-        upgrades: {},
-        melhorias: {},
-        encantos: {},
-        ataques: 0,
         proficiencia: 'natural',
         proposito: 'corpo-a-corpo',
-        empunhadura: '',
-        size: 'normal',
+        empunhadura: 'uma',
         enableAutoUpgrades: false,
       },
     });
   });
 
-  // Add abilities as powers
+  // Habilidades viram poderes.
   threat.abilities.forEach((ability) => {
     foundryJSON.items.push({
+      _id: foundryId(),
       name: ability.name,
       type: 'poder',
+      effects: [],
+      flags: {},
       system: {
-        description: { value: ability.description, unidentified: '' },
-        source: '',
-        ativacao: {
-          execucao: '',
-          custo: 0,
-          qtd: '',
-          condicao: '',
-          special: '',
+        description: {
+          value: textToHtml(ability.description),
+          unidentified: '',
         },
-        duracao: { value: 0, units: '', special: '' },
-        target: { value: null, width: null, type: '' },
-        range: { value: null, units: '' },
-        consume: {
-          type: '',
-          target: '',
-          amount: null,
-          mpMultiplier: false,
-        },
-        efeito: '',
-        alcance: 'none',
-        alvo: '',
-        area: '',
-        resistencia: {
-          pericia: '',
-          atributo: '',
-          bonus: 0,
-          txt: '',
-        },
-        rolls: [],
         tipo: 'ability',
         subtipo: '',
-        origin: '',
-        tags: [],
-        chatFlavor: '',
-        upgrades: {},
+        rolls: [],
       },
     });
   });

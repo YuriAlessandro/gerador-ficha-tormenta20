@@ -9,6 +9,7 @@ import Skill from '../../interfaces/Skills';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { buildCustomOficio } from '../oficio';
 import { convertToFoundry } from '../../2foundry';
+import { FoundryCharSkill } from '../../2foundry/skills';
 
 /**
  * Ofício customizado é o único nome de perícia que vive FORA do enum `Skill`.
@@ -123,11 +124,18 @@ describe('Ofício customizado na ficha', () => {
     sheet.skills = [...sheet.skills, CUSTOM, Skill.OFICIO_ALQUIMIA];
 
     const foundry = convertToFoundry(recalculateSheet(sheet));
+    const pericias = foundry.system.pericias as unknown as Record<
+      string,
+      FoundryCharSkill
+    >;
 
-    const labels = Object.values(foundry.system.pericias.ofic.mais ?? {}).map(
-      (entry) => entry.label
+    // Ofício que o sistema do Foundry traz pronto usa a chave própria...
+    expect(pericias.alqu.treinado).toBe(true);
+    // ...e o personalizado entra como perícia custom `ofiN`.
+    const custom = Object.values(pericias).filter((skill) => skill.custom);
+    expect(custom.map((skill) => skill.label)).toContain(
+      CUSTOM.replace(/\s*\((.*)\)/, ': $1')
     );
-    expect(labels).toContain(CUSTOM);
-    expect(labels).toContain(Skill.OFICIO_ALQUIMIA);
+    expect(custom.every((skill) => skill.treinado)).toBe(true);
   });
 });

@@ -45,7 +45,12 @@ import { useHistory, useLocation, Prompt } from 'react-router-dom';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
-import { convertToFoundry, FoundryJSON } from '@/2foundry';
+import {
+  convertToFoundry,
+  downloadFoundryJSON,
+  FOUNDRY_CORE_VERSION,
+  FOUNDRY_SYSTEM_VERSION,
+} from '@/2foundry';
 import Bag from '@/interfaces/Bag';
 import preparePDF from '@/functions/downloadSheetPdf';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
@@ -1198,29 +1203,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const sheetComponent = randomSheet && renderSheetBody();
 
-  function encodeFoundryJSON(json: FoundryJSON | undefined) {
-    if (json) {
-      return `data:text/json;charset=utf-8,${encodeURIComponent(
-        JSON.stringify(json)
-      )}`;
-    }
-
-    return '';
-  }
-
-  // A conversão roda em todo render só para pré-computar o export; uma ficha
-  // malformada não pode derrubar a página inteira por causa disso.
-  let foundryJSON: FoundryJSON | undefined;
-  if (randomSheet) {
-    try {
-      foundryJSON = convertToFoundry(randomSheet);
-    } catch {
-      foundryJSON = undefined;
-    }
-  }
-
-  const encodedJSON = foundryJSON ? encodeFoundryJSON(foundryJSON) : '';
-
   const preparePrint = async () => {
     if (!randomSheet) return;
     setLoadingPDF(true);
@@ -1252,17 +1234,18 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   };
 
   const exportFoundry = () => {
-    if (!randomSheet || !encodedJSON) return;
+    if (!randomSheet) return;
     setLoadingFoundry(true);
-
-    // Simulate a small delay for better UX
-    setTimeout(() => {
-      const link = document.createElement('a');
-      link.href = encodedJSON;
-      link.download = `${randomSheet.nome}.json`;
-      link.click();
+    try {
+      const foundryJSON = convertToFoundry(randomSheet);
+      downloadFoundryJSON(foundryJSON, randomSheet.nome);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao exportar para Foundry:', error);
+      showAlert('Erro ao exportar para o Foundry.', 'Erro');
+    } finally {
       setLoadingFoundry(false);
-    }, 300);
+    }
   };
 
   // Handle navigation blocking with custom dialog
@@ -1816,6 +1799,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   onClick={exportFoundry}
                   fullWidth={isMobile}
                   disabled={loadingFoundry}
+                  title={`Compatível com o sistema Tormenta20 v${FOUNDRY_SYSTEM_VERSION} (Foundry v${FOUNDRY_CORE_VERSION})`}
                   sx={{ justifyContent: 'flex-start' }}
                   startIcon={
                     loadingFoundry ? (
