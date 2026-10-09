@@ -138,9 +138,11 @@ const Changelog: React.FC = () => {
                   deslocamentos e redução de dano, além de PV, PM e Defesa com
                   os totais da ficha. Os bônus de perícia e Defesa dos poderes
                   viram efeitos automáticos, e poderes e magias ativáveis (como
-                  Fúria, Inspiração e Armadura Arcana) viram efeitos de ligar e
-                  desligar. Compatível com o sistema Tormenta20 1.6.4 (Foundry
-                  v14).
+                  Fúria, Inspiração e Armadura Arcana) chegam como efeitos
+                  desligados na aba de <strong>Efeitos</strong> do personagem,
+                  com o custo em PM no texto — basta marcar a caixa para o bônus
+                  entrar nos totais. Compatível com o sistema Tormenta20 1.6.4
+                  (Foundry v14).
                 </li>
                 <li>
                   <strong>Melhoria:</strong> O <strong>encontro</strong> da mesa
@@ -161,6 +163,14 @@ const Changelog: React.FC = () => {
                   criadas antes desta versão não são corrigidas sozinhas —
                   escolha as perícias no cabeçalho da ficha para aplicar o +2 e
                   remova o treino antigo na aba de perícias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Arco Longo</strong>, a{' '}
+                  <strong>Besta Leve</strong> e a <strong>Besta Pesada</strong>{' '}
+                  não estavam marcadas como armas de <strong>duas mãos</strong>{' '}
+                  (o Arco Curto já estava). Agora ocupam as duas mãos no
+                  controle de empunhadura, então não combinam mais com escudo, e
+                  saem corretamente na exportação para o Foundry.
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder <strong>Esgrimista</strong>{' '}
