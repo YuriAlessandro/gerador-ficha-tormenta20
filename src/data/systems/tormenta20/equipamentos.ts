@@ -294,6 +294,7 @@ export const Armas = catalog({
     alcance: 'Médio',
     group: 'Arma',
     preco: 35,
+    twoHanded: true,
     ammoType: 'Virotes',
   },
   FUNDA: {
@@ -558,6 +559,7 @@ export const Armas = catalog({
     tipo: 'Perfuração',
     group: 'Arma',
     preco: 100,
+    twoHanded: true,
     ammoType: 'Flechas',
     damageAttribute: 'Força',
   },
@@ -571,6 +573,7 @@ export const Armas = catalog({
     tipo: 'Perfuração',
     group: 'Arma',
     preco: 50,
+    twoHanded: true,
     ammoType: 'Virotes',
   },
   CHICOTE: {
