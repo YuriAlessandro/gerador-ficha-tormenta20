@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            07/10/2026 (v4.35).
+            09/10/2026 (v4.36).
           </p>
 
           <p>
@@ -74,6 +74,82 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.36</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> Devotos{' '}
+                  <strong>Fundamentalistas</strong> de Deuses de Arton. Um
+                  interruptor no formulário de criação e no cabeçalho da ficha
+                  marca o devoto como fundamentalista: ele ganha um poder
+                  concedido adicional, a ficha mostra o dogma mais rígido do
+                  deus (indicando quando é herdado do sacerdote) e avisa nas
+                  armas que fogem da arma preferida da divindade. O dogma e a
+                  marca também saem no PDF. A ficha informa a regra, sem
+                  bloquear armas nem PM. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Novo:</strong> O construtor de ameaças ganhou o tipo
+                  de ação <strong>Passiva</strong> para habilidades sem
+                  ativação, que aparece sem parênteses na ficha, como no livro.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> <strong>Parceiros</strong>{' '}
+                  concedidos por poderes entram sozinhos na ficha: o familiar do
+                  Arcanista, o Companheiro Animal, o autômato, as montarias e os
+                  animais comprados no mercado passam a aparecer no painel de
+                  Parceiros, inclusive em fichas antigas. O tipo do Companheiro
+                  Animal e do autômato é escolhido ao receber o poder, o
+                  companheiro sai no PDF junto dos outros parceiros e quem está
+                  montado desmonta ao assumir a Forma Selvagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Lança Montada</strong> e
+                  a <strong>Lança de Justa</strong> agora podem ser empunhadas
+                  com apenas uma mão, como a regra permite a quem está montado.
+                  O menu de empunhar oferece a Mão Principal e a Mão Secundária
+                  além das duas mãos, o que libera o escudo na outra mão. As
+                  duas armas também ganharam a descrição oficial, e a Lança de
+                  Justa passou a contar como arma alongada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Treinador, Frade e as classes
+                  variantes de Heróis de Arton (Atleta, Ermitão, Alquimista,
+                  Burguês, Usurpador, Machado de Pedra, Seteiro e Vassalo)
+                  estavam sem a proficiência básica em armas simples e armaduras
+                  leves. Fichas já salvas são corrigidas ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poder escolhido mais de uma vez
+                  (Companheiro Animal, Mascote) deixava a segunda escolha sem
+                  opção; agora cada vez tem a sua.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Nas páginas extras do PDF, linhas
+                  longas passavam da margem; agora quebram pela largura da
+                  página. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, os avisos da ficha
+                  (arma fora da proficiência, valor editado à mão) não abriam
+                  com um toque rápido. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Correção:</strong> No catálogo de poderes, a caixa de
+                  seleção ficava desalinhada do nome do poder.
+                </li>
+              </ul>
               <h3>4.35</h3>
               <ul>
                 <li>
