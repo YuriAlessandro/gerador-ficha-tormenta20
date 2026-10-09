@@ -58,10 +58,7 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../premium/functions/conditionHighlights';
 import { ACTIVE_EFFECT_COLOR } from '../premium/functions/activeEffectHighlights';
 import WieldingControl from './SheetResult/BackpackModal/WieldingControl';
-import {
-  isTwoHanded as defaultIsTwoHanded,
-  WieldingSlot,
-} from './SheetResult/BackpackModal/wielding';
+import { WieldingSlot } from './SheetResult/BackpackModal/wielding';
 import { abbreviateDamageType } from '../functions/equipmentDisplay';
 
 // Extracts the trailing flat damage modifier (e.g. "+5"/"-1") from a damage
@@ -1104,7 +1101,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           <DialogContentText>
             <strong>{displayName}</strong> não está empunhada. O que deseja
             fazer?
-            {defaultIsTwoHanded(equipment) && (
+            {defaultWieldSlot === 'both' && (
               <Typography
                 variant='caption'
                 sx={{

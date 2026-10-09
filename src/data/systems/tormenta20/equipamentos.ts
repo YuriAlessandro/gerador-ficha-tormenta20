@@ -489,6 +489,8 @@ export const Armas = catalog({
   },
   LANCA_MONTADA: {
     nome: 'Lança Montada',
+    descricao:
+      'Arma alongada. Se você estiver montado, pode usá-la com apenas uma mão. Além disso, quando usada numa investida montada, causa +2d8 pontos de dano (dados extras não são multiplicados em caso de acerto crítico).',
     weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
@@ -498,6 +500,7 @@ export const Armas = catalog({
     preco: 10,
     weaponTags: ['alongada'],
     twoHanded: true,
+    oneHandedWhenMounted: true,
   },
   MACHADO_DE_GUERRA: {
     nome: 'Machado de Guerra',

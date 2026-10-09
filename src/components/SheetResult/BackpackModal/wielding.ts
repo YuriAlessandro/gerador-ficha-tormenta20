@@ -57,6 +57,30 @@ export function getWieldingSlot(
 }
 
 /**
+ * Arma de duas mãos que aceita ser empunhada com uma só (Lança Montada e Lança
+ * de Justa, quando o personagem está montado). A ficha não confere a montaria:
+ * a opção fica sempre disponível e o jogador responde pela regra.
+ */
+export function canWieldOneHanded(item: Equipment): boolean {
+  return isTwoHanded(item) && item.oneHandedWhenMounted === true;
+}
+
+/**
+ * A arma está de fato ocupando as duas mãos? Para a arma de duas mãos comum
+ * basta a flag do item (tolerante a estado legado, em que ela pode aparecer num
+ * slot só). Só a arma que aceita uma mão é decidida pelo slot.
+ */
+export function isWieldedTwoHanded(
+  item: Equipment,
+  state: WieldingState
+): boolean {
+  if (!isTwoHanded(item)) return false;
+  if (!canWieldOneHanded(item)) return true;
+  const slot = getWieldingSlot(item.id, state);
+  return slot !== 'main' && slot !== 'off';
+}
+
+/**
  * Pure: returns the new wielding state when assigning `itemId` to `slot`.
  *
  * Rules:
@@ -107,7 +131,7 @@ export function applyWielding(
       const otherId = next[otherSlotKey];
       if (otherId && otherId !== itemId) {
         const other = lookup(otherId);
-        if (other && isTwoHanded(other)) {
+        if (other && isWieldedTwoHanded(other, next)) {
           // Hand consumed by a 2H weapon — block.
           return current;
         }
@@ -268,6 +292,8 @@ export function migrateLegacyEquipState<
  * Escolhe a mão para "empunhar automaticamente" (atalho Empunhar e atacar).
  * Regras, nesta ordem:
  *  - item não empunhável (armas naturais da Forma Selvagem) → null;
+ *  - arma de duas mãos que aceita uma (lança montada) → mantém o slot se já
+ *    empunhada; a mão livre se a outra tem um escudo; senão 'both';
  *  - arma de duas mãos → 'both';
  *  - item já empunhado → mantém o slot atual (no-op);
  *  - arma de 2 mãos ocupando as duas → 'main' (troca);
@@ -289,12 +315,28 @@ export function pickDefaultWieldSlot(
 ): WieldingSlot {
   if (!item.id) return null;
   if (!isWieldable(item)) return null;
+
+  const { mainHandItemId, offHandItemId } = state;
+  if (canWieldOneHanded(item)) {
+    const held = getWieldingSlot(item.id, state);
+    if (held !== null) return held;
+    // Escudo numa mão e a outra livre: a lança vai para a mão livre em vez de
+    // derrubar o escudo. Em qualquer outro caso, o padrão são as duas mãos.
+    const holdsShield = (id?: string): boolean =>
+      id !== undefined && lookup?.(id)?.group === 'Escudo';
+    if (holdsShield(offHandItemId) && mainHandItemId === undefined) {
+      return 'main';
+    }
+    if (holdsShield(mainHandItemId) && offHandItemId === undefined) {
+      return 'off';
+    }
+    return 'both';
+  }
   if (isTwoHanded(item)) return 'both';
 
   const current = getWieldingSlot(item.id, state);
   if (current !== null) return current;
 
-  const { mainHandItemId, offHandItemId } = state;
   // Arma de duas mãos ocupando os dois slots: a troca começa pela principal
   // (o `applyWielding` limpa o outro slot sozinho).
   if (mainHandItemId !== undefined && mainHandItemId === offHandItemId) {

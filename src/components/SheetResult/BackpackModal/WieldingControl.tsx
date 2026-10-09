@@ -13,6 +13,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import Equipment from '../../../interfaces/Equipment';
 import {
   canSplitStack,
+  canWieldOneHanded,
   isTwoHanded as defaultIsTwoHanded,
   isWieldable as defaultIsWieldable,
   WieldingSlot,
@@ -66,6 +67,8 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
 
   const open = Boolean(anchorEl);
   const twoHanded = defaultIsTwoHanded(item);
+  // Lança montada: além das duas mãos, aceita uma mão só quando montado.
+  const oneHandedMounted = canWieldOneHanded(item);
 
   const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -88,6 +91,10 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
       !selected &&
       (currentSlot === 'main' || currentSlot === 'off') &&
       canSplitStack(item);
+    const notes = [
+      ...(oneHandedMounted ? ['montado'] : []),
+      ...(splitsStack ? ['2ª cópia'] : []),
+    ];
     const itemRow = (
       <MenuItem
         key={slot}
@@ -100,7 +107,9 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
         </ListItemIcon>
         <ListItemText
           primary={
-            splitsStack ? `${SLOT_LABELS[slot]} (2ª cópia)` : SLOT_LABELS[slot]
+            notes.length > 0
+              ? `${SLOT_LABELS[slot]} (${notes.join(', ')})`
+              : SLOT_LABELS[slot]
           }
         />
       </MenuItem>
@@ -128,7 +137,7 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
         </IconButton>
       </Tooltip>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        {twoHanded ? (
+        {twoHanded && (
           <MenuItem
             selected={currentSlot === 'both'}
             onClick={() => handleSelect('both')}
@@ -138,12 +147,9 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
             </ListItemIcon>
             <ListItemText primary='Empunhar (ocupa as duas mãos)' />
           </MenuItem>
-        ) : (
-          <>
-            {renderHandSlot('main')}
-            {renderHandSlot('off')}
-          </>
         )}
+        {(!twoHanded || oneHandedMounted) && renderHandSlot('main')}
+        {(!twoHanded || oneHandedMounted) && renderHandSlot('off')}
         <MenuItem
           selected={currentSlot === null}
           onClick={() => handleSelect(null)}

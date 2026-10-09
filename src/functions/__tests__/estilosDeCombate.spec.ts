@@ -230,3 +230,45 @@ describe('Estilo de Uma Arma', () => {
     expect(atkOf(result, 'des')).toBe(atkOf(base, 'des'));
   });
 });
+
+describe('Lança Montada empunhada com uma mão (montado)', () => {
+  const items = () => [
+    fromCatalog('Lança Montada', 'lan'),
+    fromCatalog('Escudo Pesado', 'esc'),
+  ];
+
+  it('Estilo de Duas Mãos só vale com a lança nas duas mãos', () => {
+    const power = [combatPowers.ESTILO_DE_DUAS_MAOS];
+    const duas = recalculateSheet(buildSheet(power, items(), 'lan', 'lan'));
+    expect(damageOf(duas, 'lan')).toBe('1d8+5');
+
+    const uma = recalculateSheet(buildSheet(power, items(), 'lan'));
+    expect(damageOf(uma, 'lan')).toBe('1d8');
+  });
+
+  it('Estilo de Uma Arma vale com a lança numa mão e a outra livre', () => {
+    const power = [combatPowers.ESTILO_DE_UMA_ARMA];
+    const base = recalculateSheet(buildSheet([], items(), 'lan'));
+    const uma = recalculateSheet(buildSheet(power, items(), 'lan'));
+    expect(uma.defesa).toBe(base.defesa + 2);
+    expect(atkOf(uma, 'lan')).toBe(atkOf(base, 'lan') + 2);
+
+    const duasBase = recalculateSheet(buildSheet([], items(), 'lan', 'lan'));
+    const duas = recalculateSheet(buildSheet(power, items(), 'lan', 'lan'));
+    expect(duas.defesa).toBe(duasBase.defesa);
+  });
+
+  it('o escudo na outra mão conta na Defesa', () => {
+    const semEscudo = recalculateSheet(buildSheet([], items(), 'lan'));
+    const comEscudo = recalculateSheet(buildSheet([], items(), 'lan', 'esc'));
+    expect(comEscudo.defesa).toBe(semEscudo.defesa + 2);
+  });
+
+  it('Estilo de Arma Longa alcança a Lança de Justa', () => {
+    const justa = fromCatalog('Lança de justa', 'jus');
+    const result = recalculateSheet(
+      buildSheet([combatPowers.ESTILO_DE_ARMA_LONGA], [justa], 'jus', 'jus')
+    );
+    expect(atkOf(result, 'jus')).toBe(2);
+  });
+});

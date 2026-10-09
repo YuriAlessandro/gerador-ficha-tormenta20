@@ -96,6 +96,15 @@ function refreshItem(item: Equipment, catalogItem: Equipment): void {
   if (missingTags.length > 0) {
     item.weaponTags = [...(item.weaponTags ?? []), ...missingTags];
   }
+  // Empunhadura de uma mão quando montado (Lança Montada, Lança de Justa):
+  // sem o carimbo, a lança comprada antes do campo existir seguiria presa às
+  // duas mãos. Só o ausente — um `false` explícito no item é intocável.
+  if (
+    item.oneHandedWhenMounted === undefined &&
+    catalogItem.oneHandedWhenMounted
+  ) {
+    item.oneHandedWhenMounted = true;
+  }
 
   if (hasEnhancementOwnership(item)) return;
 

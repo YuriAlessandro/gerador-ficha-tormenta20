@@ -254,7 +254,7 @@ const ESPADA_DE_EXECUCAO: Equipment = {
 const LANCA_DE_JUSTA: Equipment = {
   nome: 'Lança de justa',
   descricao:
-    'Funciona como uma lança montada, mas causa dano não letal. Em compensação, oferece vantagem própria em investidas montadas.',
+    'Funciona como uma lança montada (arma alongada; se você estiver montado, pode usá-la com apenas uma mão; em uma investida montada, causa +2d8 pontos de dano), mas causa dano não letal. Em compensação, se fizer uma investida montada com esta arma e acertar o ataque, você pode fazer a manobra derrubar como uma ação livre. Se você acertar o alvo, há 50% de chance de que ela se quebre.',
   weaponCategory: 'martial',
   dano: '1d8',
   critico: 'x2',
@@ -263,7 +263,9 @@ const LANCA_DE_JUSTA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 3,
+  weaponTags: ['alongada'],
   twoHanded: true,
+  oneHandedWhenMounted: true,
 };
 
 const MALHO: Equipment = {
