@@ -39,10 +39,30 @@ ficha já usa para calcular seus totais:
   dano já estão nos números das armas.
 - **Ativáveis** — o catálogo de efeitos ativos (`@/premium/data/activePowers`, o
   do botão "Usar" da ficha). Cada opção de uso de um poder ou magia vira um
-  efeito **desligado** no item, que o jogador liga e desliga na aba de efeitos
-  do ator: perícias, Defesa, atributos, RD, deslocamento, ataque e dano. Sai
-  ligado se a opção estiver ativa na ficha no momento da exportação. Sem o
-  submódulo premium o catálogo é um stub vazio e só as passivas são exportadas.
+  efeito **desligado no ator**, que aparece em "Efeitos Inativos" na aba de
+  Efeitos do personagem com a caixa de ligar; ligado, passa para "Efeitos
+  Passivos" e entra nos totais. Cobre perícias, Defesa, atributos, RD,
+  deslocamento, ataque e dano, e sai ligado se a opção estiver ativa na ficha no
+  momento da exportação. Sem o submódulo premium o catálogo é um stub vazio e só
+  as passivas são exportadas.
+
+  Esses efeitos ficam no **ator**, não no item do poder, de propósito: a ficha de
+  personagem do sistema monta a lista de efeitos só com `actor.effects`, e a 1.6
+  deixou de criar a cópia transferida do efeito do item — no item, o jogador só
+  os veria abrindo o próprio poder. Três cuidados em cima disso:
+
+  - Bônus que vale para todas as perícias sai como uma única mudança com o
+    curinga `system.pericias.*.bonus`, em vez de uma por perícia. Além de deixar
+    o efeito legível, é assim que os **ofícios** recebem o bônus: eles não têm
+    chave fixa no sistema (`ofi1`…`ofi9`), e o curinga alcança todos.
+  - Opções que geram exatamente as mesmas mudanças viram um efeito só — senão o
+    jogador veria duas linhas de nomes diferentes fazendo a mesma coisa (os
+    passos de dano de Armamento da Natureza, por exemplo, não têm equivalente).
+  - O texto do efeito traz a fonte, o custo em PM, os PV/PM temporários que
+    precisam ser aplicados à mão e um aviso quando parte dos bônus não é
+    automatizável. Opções do mesmo poder são alternativas, e o texto diz isso —
+    o Foundry não impede ligar duas.
+
 - **De uso, escritas à mão** — `onUseAutomations.ts`: poderes cuja regra não é
   um bônus numérico e por isso não existe como dado na ficha (ex.: Esgrima
   Mágica troca Luta por Atuação no ataque). Cada um vira uma opção na janela de
@@ -63,5 +83,15 @@ efeitos puramente descritivos) vai só como texto.
    migrado em documentos importados.
 2. Conferir as chaves de `enums.ts` contra `module/config/T20.js` e o formato de
    efeito de `effects.ts` contra `module/data/effect/base.mjs`.
-3. Atualizar `version.ts` e importar uma ficha de teste num mundo com a versão
+3. Conferir os campos do ator e dos itens contra **`module/dataModel/`** — é lá
+   que moram os DataModels registrados, os que validam na importação.
+   `module/data/actor` e `module/data/item` parecem o lugar certo mas são uma
+   reescrita em andamento, com schemas vazios. (A exceção é o efeito, cujo
+   modelo registrado é o de `module/data/effect/`.)
+4. Conferir a tabela `SKILL_DEFINITIONS` de `skills.ts` contra `T20.pericias`.
+   Ela espelha `st`/`pda`/`size`, que são constantes da regra: como emitimos o
+   objeto da perícia inteiro, o valor inicial do sistema não se aplica e um
+   desvio aqui tira a penalidade de armadura e o "somente treinado" sem erro
+   nenhum.
+5. Atualizar `version.ts` e importar uma ficha de teste num mundo com a versão
    nova antes de publicar.
