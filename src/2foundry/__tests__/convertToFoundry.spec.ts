@@ -110,6 +110,13 @@ function expectValidItems(items: FoundryItem[]) {
       expect(typeof system.equipado).toBe('boolean');
       expect(data(system.armadura).penalidade).toBeLessThanOrEqual(0);
     }
+    if (item.type === 'arma' || item.type === 'equipamento') {
+      // Slots de equipamento: `slot` 0 = guardado; o tipo diz qual grupo de
+      // slots o item ocupa, e o item sempre declara um.
+      const slots = data(system.equipado2);
+      expect(['hand', 'body']).toContain(slots.type);
+      expect(Boolean(system.equipado)).toBe(Number(slots.slot) > 0);
+    }
   });
 }
 
@@ -404,6 +411,99 @@ describe('convertToFoundry', () => {
         changes: [{ key: 'pericia', value: 'atua', type: 'override' }],
       },
     });
+  });
+
+  it('arma leve sai como empunhadura leve, que o sistema usa na Acuidade', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.getEquipments().Arma.push({
+      nome: 'Adaga Leve',
+      group: 'Arma',
+      dano: '1d4',
+      weaponTags: ['leve'],
+    });
+    sheet.bag.getEquipments().Arma.push({
+      nome: 'Montante',
+      group: 'Arma',
+      dano: '2d6',
+      twoHanded: true,
+      weaponTags: ['leve'],
+    });
+
+    const armas = ofType(convertToFoundry(sheet), 'arma');
+    const leve = armas.find((item) => item.name === 'Adaga Leve');
+    const duas = armas.find((item) => item.name === 'Montante');
+
+    expect(leve?.system.empunhadura).toBe('leve');
+    // Duas mãos tem precedência: não existe arma de duas mãos "leve".
+    expect(duas?.system.empunhadura).toBe('duas');
+  });
+
+  it('exporta as tags de arma que existem como propriedade no sistema', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.getEquipments().Arma.push({
+      nome: 'Lança Ágil',
+      group: 'Arma',
+      dano: '1d6',
+      // `espada` é conceito nosso (elegibilidade de poder) e não tem par.
+      weaponTags: ['agil', 'alongada', 'espada'],
+    });
+
+    const [weapon] = ofType(convertToFoundry(sheet), 'arma').filter(
+      (item) => item.name === 'Lança Ágil'
+    );
+    expect(weapon.system.propriedades).toEqual({ agi: true, alo: true });
+  });
+
+  it('arma e escudo equipados disputam os slots de mão; armadura vai no corpo', () => {
+    const sheet = createMockCharacterSheet();
+    const bag = sheet.bag.getEquipments();
+    bag.Arma.push({ nome: 'Espada', group: 'Arma', dano: '1d8', id: 'w1' });
+    bag.Escudo.push({
+      nome: 'Escudo',
+      group: 'Escudo',
+      defenseBonus: 2,
+      armorPenalty: 0,
+      id: 's1',
+    });
+    bag.Armadura.push({
+      nome: 'Couro',
+      group: 'Armadura',
+      defenseBonus: 2,
+      armorPenalty: 0,
+      id: 'a1',
+    });
+    sheet.mainHandItemId = 'w1';
+    sheet.offHandItemId = 's1';
+    sheet.wornArmorId = 'a1';
+
+    const json = convertToFoundry(sheet);
+    const slotOf = (name: string) =>
+      data(
+        json.items.find((item) => item.name === name)?.system.equipado2 ?? null
+      );
+
+    // `.1` = grupo das mãos, `.2` = corpo; a parte inteira é o índice.
+    expect(slotOf('Espada')).toMatchObject({ type: 'hand', slot: 1.1 });
+    expect(slotOf('Escudo')).toMatchObject({ type: 'hand', slot: 2.1 });
+    expect(slotOf('Couro')).toMatchObject({ type: 'body', slot: 1.2 });
+  });
+
+  it('arma de duas mãos equipada ocupa as duas mãos', () => {
+    const sheet = createMockCharacterSheet();
+    const bag = sheet.bag.getEquipments();
+    bag.Arma.push({
+      nome: 'Montante',
+      group: 'Arma',
+      dano: '2d6',
+      twoHanded: true,
+      id: 'w1',
+    });
+    sheet.mainHandItemId = 'w1';
+
+    const json = convertToFoundry(sheet);
+    const weapon = json.items.find((item) => item.name === 'Montante');
+    // 12.1 é o slot que o sistema reserva para as duas mãos.
+    expect(data(weapon?.system.equipado2 ?? null).slot).toBe(12.1);
   });
 
   it('respeita a perícia de ataque escolhida na arma', () => {

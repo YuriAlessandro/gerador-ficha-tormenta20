@@ -37,6 +37,74 @@ const REACH_KEYS: Record<string, string> = {
   Longo: 'long',
 };
 
+/** Grupo da mochila → `tipo` do item `consumivel` do sistema. */
+const CONSUMABLE_TYPE_KEYS: Partial<Record<equipGroup, string>> = {
+  // Poções e óleos são itens alquímicos no T20; a ficha não distingue "poção"
+  // de outro alquímico, e `alchemy` vale para os dois.
+  Alquimía: 'alchemy',
+  Alimentação: 'food',
+};
+
+/**
+ * Tag de arma da ficha → propriedade do sistema (`T20.weaponProperties`). Só
+ * as que existem nos dois lados: `espada`, `natural`, `desarmado`, `heredrimm`,
+ * `armaDeMar` e `armaDeFogo` são conceitos nossos, usados para elegibilidade de
+ * poder, e não têm equivalente. `leve` vira `empunhadura`, não propriedade.
+ */
+const WEAPON_PROPERTY_KEYS: Record<string, string> = {
+  agil: 'agi',
+  alongada: 'alo',
+};
+
+/**
+ * Slots de equipamento, o segundo modelo do sistema (`equipado2`), usado quando
+ * o mestre liga a opção "slots de equipamento". Nesse modo `prepareDefense` só
+ * conta armadura e escudo com `slot` preenchido e ignora `equipado`, que basta
+ * no modo clássico — sem isto a Defesa sai baixa justamente nessas mesas.
+ *
+ * O `slot` é codificado em decimal: a parte inteira é o índice e a casa decimal
+ * diz o grupo (`.1` mão, `.2` corpo). `12.1` é a arma de duas mãos, que ocupa
+ * as duas mãos. Ver `_onToggleItem` em `module/sheets/actor-base.mjs`.
+ */
+const TWO_HANDED_SLOT = 12.1;
+/** `equipamentos.limiteEmpunhado` e `limiteVestido` do sistema. */
+const HAND_SLOT_LIMIT = 2;
+const BODY_SLOT_LIMIT = 4;
+
+function assignEquipmentSlots(items: FoundryItem[]): void {
+  let handsUsed = 0;
+  let bodyUsed = 0;
+
+  items.forEach((item) => {
+    if (item.type !== 'arma' && item.type !== 'equipamento') return;
+    const usesHand = item.type === 'arma' || item.system.tipo === 'escudo';
+    const type = usesHand ? 'hand' : 'body';
+
+    if (!item.system.equipado) {
+      item.system.equipado2 = { slot: 0, type };
+      return;
+    }
+
+    let slot = 0;
+    if (!usesHand) {
+      if (bodyUsed < BODY_SLOT_LIMIT) {
+        bodyUsed += 1;
+        slot = bodyUsed + 0.2;
+      }
+    } else if (item.system.empunhadura === 'duas') {
+      if (handsUsed === 0) {
+        handsUsed = HAND_SLOT_LIMIT;
+        slot = TWO_HANDED_SLOT;
+      }
+    } else if (handsUsed < HAND_SLOT_LIMIT) {
+      handsUsed += 1;
+      slot = handsUsed + 0.1;
+    }
+
+    item.system.equipado2 = { slot, type };
+  });
+}
+
 function getExpectedType(equipment: Equipment): string {
   if (equipment.group === 'Arma')
     return equipment.isAmmo ? 'consumivel' : 'arma';
@@ -146,7 +214,20 @@ function applyWeapon(
   if (purpose === 'melee') system.proposito = 'corpo-a-corpo';
   else if (purpose === 'thrown') system.proposito = 'corpo-a-corpo-arremesso';
   else system.proposito = 'disparo';
-  system.empunhadura = weapon.twoHanded ? 'duas' : 'uma';
+  // `leve` não é só rótulo: o sistema troca Força por Destreza em arma leve
+  // quando o personagem tem Acuidade (`item.mjs`, `usarAcuidade`).
+  const tags = weapon.weaponTags ?? [];
+  if (weapon.twoHanded) system.empunhadura = 'duas';
+  else system.empunhadura = tags.includes('leve') ? 'leve' : 'uma';
+
+  const properties = tags
+    .map((tag) => WEAPON_PROPERTY_KEYS[tag])
+    .filter(Boolean);
+  if (properties.length > 0) {
+    system.propriedades = Object.fromEntries(
+      properties.map((key) => [key, true])
+    );
+  }
 
   const reach = normalizeReach(weapon.alcance);
   if (reach && REACH_KEYS[reach]) system.alcance = REACH_KEYS[reach];
@@ -258,6 +339,9 @@ function buildEquipmentItem(
   if (item.type === 'arma') applyWeapon(sheet, equipment, item);
   else if (isDefenseEquipment(equipment)) {
     applyDefense(sheet, equipment, item);
+  } else if (item.type === 'consumivel' && !equipment.isAmmo) {
+    const tipo = CONSUMABLE_TYPE_KEYS[equipment.group];
+    if (tipo) system.tipo = tipo;
   } else if (equipment.isAmmo && item.type === 'consumivel') {
     system.tipo = 'ammo';
     const units = equipment.unitsRemaining;
@@ -277,11 +361,14 @@ export function buildEquipmentItems(sheet: CharacterSheet): FoundryItem[] {
   const equipments = getBagEquipments(sheet);
   const groups = Object.keys(equipments) as equipGroup[];
 
-  return groups
+  const items = groups
     .filter((group) => !NON_PHYSICAL_GROUPS.includes(group))
     .flatMap((group) => (equipments[group] ?? []) as Equipment[])
     .filter((equipment) => !!equipment?.nome)
     .map((equipment) => buildEquipmentItem(sheet, equipment));
+
+  assignEquipmentSlots(items);
+  return items;
 }
 
 /** Valor de um campo `armadura` para o cálculo de Defesa do exportador. */
