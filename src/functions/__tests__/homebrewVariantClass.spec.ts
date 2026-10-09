@@ -12,6 +12,7 @@ import {
   HomebrewVariantClassContent,
 } from '../../premium/interfaces/Homebrew';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 
 /**
  * Cobre a Classe Variante homebrew: compilação para `VariantClassOverrides`,
@@ -84,6 +85,113 @@ describe('homebrew variant class', () => {
     // Aqui a chave PRECISA existir: é ela que apaga a conjuração herdada.
     expect('spellPath' in overrides).toBe(true);
     expect(overrides.spellPath).toBeUndefined();
+  });
+
+  describe('inherited setup() of the base class', () => {
+    // O setup() do Arcanista sorteia um caminho, sobrescreve o spellPath e
+    // empurra "Caminho do Arcanista" nas habilidades. Uma variante que decide a
+    // própria conjuração não pode herdá-lo.
+    const OWN_ID = 'homebrew:test-arcanista-own';
+    const NONE_ID = 'homebrew:test-arcanista-none';
+    const ownSpellcasting: HomebrewVariantClassContent = {
+      baseClassName: 'Arcanista',
+      spellcasting: {
+        keyAttribute: Atributo.SABEDORIA,
+        spellType: 'Arcane',
+        initialSpells: 2,
+        circleProgression: { preset: 'full' },
+        spellsPerLevel: { base: 1 },
+      },
+    };
+    const noSpellcasting: HomebrewVariantClassContent = {
+      baseClassName: 'Arcanista',
+      removeSpellcasting: true,
+    };
+
+    beforeAll(() => {
+      dataRegistry.registerRuntimeSupplement(
+        OWN_ID,
+        compileVariantClassHomebrew(ownSpellcasting, 'Arcanista Sábio', OWN_ID)
+      );
+      dataRegistry.registerRuntimeSupplement(
+        NONE_ID,
+        compileVariantClassHomebrew(
+          noSpellcasting,
+          'Arcanista Mundano',
+          NONE_ID
+        )
+      );
+    });
+
+    afterAll(() => {
+      dataRegistry.unregisterRuntimeSupplement(OWN_ID);
+      dataRegistry.unregisterRuntimeSupplement(NONE_ID);
+    });
+
+    const generate = (classe: string, sourceId: string) =>
+      generateRandomSheet({
+        nivel: 3,
+        raca: 'Elfo',
+        classe,
+        origin: '',
+        devocao: { label: '', value: '' },
+        supplements: [SupplementId.TORMENTA20_CORE, sourceId as SupplementId],
+      });
+
+    it('drops the base setup when the variant defines or removes spellcasting', () => {
+      const own = compileVariantClassContent(
+        ownSpellcasting,
+        'Arcanista Sábio'
+      );
+      expect('setup' in own).toBe(true);
+      expect(own.setup).toBeUndefined();
+
+      const none = compileVariantClassContent(
+        noSpellcasting,
+        'Arcanista Mundano'
+      );
+      expect('setup' in none).toBe(true);
+      expect(none.setup).toBeUndefined();
+    });
+
+    it('keeps the base setup when the variant does not touch spellcasting', () => {
+      // No Arcanista o caminho é a única fonte de magias: sem conjuração
+      // própria a variante precisa continuar herdando o setup.
+      const overrides = compileVariantClassContent(
+        { baseClassName: 'Arcanista', pv: 10 },
+        'Arcanista Robusto'
+      );
+      expect('setup' in overrides).toBe(false);
+    });
+
+    it('generates a sheet without the Arcanista path for own spellcasting', () => {
+      // O caminho era sorteado: várias gerações para não passar por sorte.
+      for (let i = 0; i < 8; i += 1) {
+        const sheet = generate('Arcanista Sábio', OWN_ID);
+        const abilityNames = [
+          ...sheet.classe.abilities,
+          ...(sheet.classe.originalAbilities ?? []),
+        ].map((a) => a.name);
+
+        expect(sheet.classe.subname).toBeUndefined();
+        expect(abilityNames).not.toContain('Caminho do Arcanista');
+        expect(abilityNames.some((n) => n.startsWith('Linhagem'))).toBe(false);
+        expect(sheet.classe.spellPath?.keyAttribute).toBe(Atributo.SABEDORIA);
+        expect(sheet.classe.spellPath?.initialSpells).toBe(2);
+      }
+    });
+
+    it('generates a sheet without spellcasting when it was removed', () => {
+      for (let i = 0; i < 8; i += 1) {
+        const sheet = generate('Arcanista Mundano', NONE_ID);
+
+        expect(sheet.classe.subname).toBeUndefined();
+        expect(sheet.classe.spellPath).toBeUndefined();
+        expect(sheet.classe.abilities.map((a) => a.name)).not.toContain(
+          'Caminho do Arcanista'
+        );
+      }
+    });
   });
 
   it('inherits base stats it did not override', () => {

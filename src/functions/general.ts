@@ -15,6 +15,10 @@ import {
   reapplyEnhancementsAndWeaponBonuses,
 } from './recalculateSheet';
 import { normalizeSheet } from './sheetNormalizer';
+import {
+  classUsesArcanistaPath,
+  healInheritedArcanistaPath,
+} from './healInheritedArcanistaPath';
 import { refreshBagItemsFromCatalog } from './bagCatalogRefresh';
 import { isBonusActive, evaluateBonusCondition } from './bonusConditions';
 import { getSheetWornArmor, isWearingHeavyArmor } from './wornArmor';
@@ -7933,10 +7937,20 @@ export function restoreSpellPath(
         (c.subname || '') === (sheet.classe.subname || '')
     ) ?? findClassDescription(sheet.classe.name, sheet.classe.subname);
 
+  // Ficha de variante sem caminho (conjuração própria) que guardou o caminho
+  // do Arcanista sorteado pelo setup herdado: desfaz antes de restaurar.
+  healInheritedArcanistaPath(sheet, resolveClassByName());
+
+  // Arcanista e variantes que herdam o caminho: o subtipo salvo manda. Chamar
+  // setup() aqui sortearia outro caminho a cada carga da ficha.
+  const hasArcanistaPath =
+    !!sheet.classe.subname &&
+    classUsesArcanistaPath(resolveClassByName(), sheet.classe.name);
+
   // If spellPath is completely missing, try to create it for known spellcasters
   // (e.g., old sheets or stripped exports where spellPath was never serialized)
   if (!sheet.classe.spellPath) {
-    if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
+    if (hasArcanistaPath) {
       const subtype = sheet.classe.subname as ArcanistaSubtypes;
       if (arcanistaSpellPaths[subtype]) {
         sheet.classe.spellPath = getArcanistaSpellPath(subtype);
@@ -7977,7 +7991,7 @@ export function restoreSpellPath(
   // desativado por quem visualiza) — sem ele a aba de magias derivada some.
   const originalSpellAccess = sheet.classe.spellPath.spellAccess;
 
-  if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
+  if (hasArcanistaPath) {
     // Arcanista: lookup by subtype (setup() randomizes, so we use the saved subname)
     const subtype = sheet.classe.subname as ArcanistaSubtypes;
     if (arcanistaSpellPaths[subtype]) {
