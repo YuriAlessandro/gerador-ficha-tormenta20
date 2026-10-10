@@ -59,7 +59,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import PublishBestiaryIcon from '@mui/icons-material/Public';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import {
   DragDropContext,
   Droppable,
@@ -70,6 +70,13 @@ import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { useFolders } from '../../hooks/useFolders';
+import { useUrlFilters } from '../../hooks/useUrlFilters';
+import { useScrollRestoration } from '../../hooks/useScrollRestoration';
+import {
+  MyCharactersSortBy,
+  parseMyCharactersListFilters,
+  serializeMyCharactersListFilters,
+} from './myCharactersListFilters';
 import SheetsService, { SheetListData } from '../../services/sheets.service';
 import { Folder } from '../../services/folders.service';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -140,11 +147,11 @@ const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const history = useHistory();
-  const location = useLocation();
   useAuth();
   const {
     sheets,
     loading,
+    initialized: sheetsInitialized,
     error,
     deleteSheet: deleteSheetAction,
     duplicateSheet: duplicateSheetAction,
@@ -154,6 +161,7 @@ const MyCharactersPage: React.FC = () => {
   } = useSheets();
   const {
     folders,
+    initialized: foldersInitialized,
     createFolder: createFolderAction,
     updateFolder: updateFolderAction,
     deleteFolder: deleteFolderAction,
@@ -192,25 +200,15 @@ const MyCharactersPage: React.FC = () => {
     exportPdf,
   } = useBatchThreatExport();
 
-  // Get initial tab from URL query param
-  const getInitialTab = () => {
-    const params = new URLSearchParams(location.search);
-    const tab = params.get('tab');
-    if (tab === 'ameacas') return 1;
-    return 0;
-  };
-
-  const getInitialFolder = () => {
-    const params = new URLSearchParams(location.search);
-    return params.get('folder') || null;
-  };
-
-  const [activeTab, setActiveTab] = useState(getInitialTab());
-  const [openFolderId, setOpenFolderId] = useState<string | null>(
-    getInitialFolder()
-  );
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'date' | 'level'>('date');
+  // Aba, pasta, busca e ordenação vivem na URL: sobrevivem a abrir uma ficha
+  // e voltar. Trocar de aba ou de pasta empilha histórico (o "voltar" desfaz).
+  const [listFilters, setListFilters] = useUrlFilters({
+    parse: parseMyCharactersListFilters,
+    serialize: serializeMyCharactersListFilters,
+  });
+  const activeTab = listFilters.tab === 'ameacas' ? 1 : 0;
+  const openFolderId = listFilters.folderId;
+  const { search: searchTerm, sortBy } = listFilters;
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sheetToDelete, setSheetToDelete] = useState<SheetListData | null>(
     null
@@ -258,31 +256,19 @@ const MyCharactersPage: React.FC = () => {
   );
   const [folderToMove, setFolderToMove] = useState<Folder | null>(null);
 
-  // Sync tab/folder with URL on location change (browser back/forward)
-  React.useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tab = params.get('tab');
-    const newTab = tab === 'ameacas' ? 1 : 0;
-    if (newTab !== activeTab) {
-      setActiveTab(newTab);
-    }
-    const folder = params.get('folder') || null;
-    if (folder !== openFolderId) {
-      setOpenFolderId(folder);
-    }
-  }, [location.search]); // Only depend on location.search to avoid loops
-
   // Fallback: if the open folder id no longer matches an existing folder
-  // (e.g. deleted in another tab, or stale URL), drop back to root.
+  // (e.g. deleted in another tab, or stale URL), drop back to root. Só depois
+  // de as pastas carregarem: antes disso a lista vazia descartaria a pasta.
   React.useEffect(() => {
-    if (!openFolderId) return;
+    if (!foldersInitialized || !openFolderId) return;
     if (!folders.some((f) => f.id === openFolderId)) {
-      setOpenFolderId(null);
-      const params = new URLSearchParams(location.search);
-      params.delete('folder');
-      history.replace(`/meus-personagens?${params.toString()}`);
+      setListFilters((prev) => ({ ...prev, folderId: null }), {
+        immediate: true,
+      });
     }
-  }, [folders, openFolderId]);
+  }, [folders, foldersInitialized, openFolderId, setListFilters]);
+
+  useScrollRestoration(sheetsInitialized && !loading);
 
   // Separate sheets by type
   const playerSheets = sheets.filter((sheet) => !sheet.sheetData?.isThreat);
@@ -370,15 +356,17 @@ const MyCharactersPage: React.FC = () => {
       }
     });
 
-  // URL update helper
-  const updateUrl = (tab: number, folder: string | null) => {
-    const tabName = tab === 0 ? 'personagens' : 'ameacas';
-    const params = new URLSearchParams();
-    params.set('tab', tabName);
-    if (folder) {
-      params.set('folder', folder);
-    }
-    history.push(`/meus-personagens?${params.toString()}`);
+  // Entrar/sair de pasta e trocar de aba limpam a busca.
+  const navigateList = (tab: number, folderId: string | null) => {
+    setListFilters(
+      (prev) => ({
+        ...prev,
+        tab: tab === 1 ? 'ameacas' : 'personagens',
+        folderId,
+        search: '',
+      }),
+      { push: true }
+    );
   };
 
   const handleCreateNewSheet = () => {
@@ -394,24 +382,18 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-    setSearchTerm('');
     if (isSelectMode) {
       toggleSelectMode();
     }
-    updateUrl(newValue, openFolderId);
+    navigateList(newValue, openFolderId);
   };
 
   const handleOpenFolder = (folderId: string) => {
-    setOpenFolderId(folderId);
-    setSearchTerm('');
-    updateUrl(activeTab, folderId);
+    navigateList(activeTab, folderId);
   };
 
   const handleCloseFolder = () => {
-    setOpenFolderId(null);
-    setSearchTerm('');
-    updateUrl(activeTab, null);
+    navigateList(activeTab, null);
   };
 
   const navigateToSheet = (sheet: SheetListData) => {
@@ -667,8 +649,7 @@ const MyCharactersPage: React.FC = () => {
       if (openFolderId === folderToDelete.id) {
         // Move the user into the parent (or root) instead of jumping all the way out.
         if (newParentId) {
-          setOpenFolderId(newParentId);
-          updateUrl(activeTab, newParentId);
+          navigateList(activeTab, newParentId);
         } else {
           handleCloseFolder();
         }
@@ -1711,7 +1692,9 @@ const MyCharactersPage: React.FC = () => {
                 activeTab === 0 ? 'Buscar personagens...' : 'Buscar ameaças...'
               }
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) =>
+                setListFilters((prev) => ({ ...prev, search: e.target.value }))
+              }
               size='small'
               sx={{ minWidth: 250, flexGrow: 1 }}
               slotProps={{
@@ -1731,7 +1714,10 @@ const MyCharactersPage: React.FC = () => {
                 value={sortBy}
                 label='Ordenar por'
                 onChange={(e) =>
-                  setSortBy(e.target.value as 'name' | 'date' | 'level')
+                  setListFilters((prev) => ({
+                    ...prev,
+                    sortBy: e.target.value as MyCharactersSortBy,
+                  }))
                 }
               >
                 <MenuItem value='date'>Data</MenuItem>
