@@ -32,6 +32,7 @@ import Equipment, { equipGroup } from '../../../interfaces/Equipment';
 import { SupplementId } from '../../../types/supplement.types';
 import { dataRegistry } from '../../../data/registry';
 import { useContentSupplements } from '../../../hooks/useContentSupplements';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import { CATEGORY_ORDER, itemTypeStyles } from './itemTypeStyles';
 import {
   CatalogCategory,
@@ -40,6 +41,24 @@ import {
 } from './equipmentCatalog';
 import CustomItemForm from './CustomItemForm';
 import { AmmoTypeOption } from './ammo';
+
+const LIST_SX = { minHeight: 280, maxHeight: 480, overflowY: 'auto' } as const;
+
+const PINNED_CONTENT_SX = {
+  p: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+} as const;
+
+const PINNED_COLUMN_SX = {
+  display: 'flex',
+  flexDirection: 'column',
+  flex: 1,
+  minHeight: 0,
+} as const;
+
+const PINNED_LIST_SX = { flex: 1, minHeight: 0, overflowY: 'auto' } as const;
 
 export interface AddItemDialogProps {
   open: boolean;
@@ -96,6 +115,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showCustomForm, setShowCustomForm] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setTabIndex(initialIdx);
@@ -268,8 +288,20 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
     0
   );
 
+  // No mobile o dialog é tela cheia e só a lista rola: busca e abas ficam
+  // fixas no topo e o rodapé (saldo, item personalizado) fixo embaixo. Antes
+  // a lista tinha rolagem própria dentro de um dialog que também rolava, e o
+  // rodapé ficava cortado. O formulário de item personalizado rola inteiro.
+  const pinnedLayout = isMobile && !showCustomForm;
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth='md'>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth='md'
+      fullScreen={isMobile}
+    >
       <DialogTitle sx={{ pr: 6 }}>
         Adicionar à mochila
         <IconButton
@@ -280,7 +312,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent sx={{ p: 0 }}>
+      <DialogContent sx={pinnedLayout ? PINNED_CONTENT_SX : { p: 0 }}>
         {showCustomForm ? (
           <Box sx={{ p: 2 }}>
             <CustomItemForm
@@ -294,7 +326,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
             />
           </Box>
         ) : (
-          <Box>
+          <Box sx={pinnedLayout ? PINNED_COLUMN_SX : undefined}>
             <Box sx={{ px: 2, pt: 1 }}>
               <TextField
                 fullWidth
@@ -351,7 +383,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
               })}
             </Tabs>
 
-            <Box sx={{ minHeight: 280, maxHeight: 480, overflowY: 'auto' }}>
+            <Box sx={pinnedLayout ? PINNED_LIST_SX : LIST_SX}>
               {(() => {
                 if (activeCategory.subgroups.length === 0) {
                   return (
