@@ -274,8 +274,10 @@ const CompanionTrickSelectionStep: React.FC<
                     />
                     <Box
                       sx={{
-                        maxHeight: 320,
-                        overflow: 'auto',
+                        // No mobile (dialog em tela cheia) rola junto com o
+                        // dialog em vez de abrir uma segunda rolagem.
+                        maxHeight: { md: 320 },
+                        overflow: { md: 'auto' },
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 1,

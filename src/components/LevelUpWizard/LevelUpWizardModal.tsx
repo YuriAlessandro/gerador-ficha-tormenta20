@@ -11,6 +11,8 @@ import {
   Typography,
   Box,
 } from '@mui/material';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import CompactStepProgress from '@/components/common/CompactStepProgress';
 import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
@@ -231,6 +233,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
   // Confirmation dialog state for cancel action
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Índice do companheiro exibido em cada step de truque (auto/power) enquanto
   // ainda não há truque selecionado (a entry em companionTrickSelections só
@@ -2344,17 +2347,21 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         onClose={handleCloseAttempt}
         maxWidth='md'
         fullWidth
+        fullScreen={isMobile}
         slotProps={{
           paper: {
-            sx: {
-              maxHeight: '90vh',
-            },
+            sx: isMobile ? undefined : { maxHeight: '90vh' },
           },
         }}
       >
         <DialogTitle>
           <Box>
-            <Typography variant='h6'>
+            <Typography
+              variant='h6'
+              sx={(theme) => ({
+                [theme.breakpoints.down('md')]: { fontSize: '1.1rem' },
+              })}
+            >
               Progressão de Nível - Nível {currentLevel}
             </Typography>
             <Typography
@@ -2367,14 +2374,21 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             </Typography>
           </Box>
         </DialogTitle>
+        {isMobile && (
+          <Box sx={{ px: 3, pb: 2 }}>
+            <CompactStepProgress activeStep={activeStep} steps={steps} />
+          </Box>
+        )}
         <DialogContent dividers>
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+          {!isMobile && (
+            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          )}
 
           <Box sx={{ minHeight: 300 }}>{getStepContent(activeStep)}</Box>
         </DialogContent>
