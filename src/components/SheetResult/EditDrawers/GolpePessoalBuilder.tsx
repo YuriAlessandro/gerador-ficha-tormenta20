@@ -36,6 +36,7 @@ import {
   GolpePessoalEffectWithSupplement,
 } from '../../../data/registry';
 import { SupplementId } from '../../../types/supplement.types';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 
 interface GolpePessoalBuilderProps {
@@ -68,6 +69,7 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
     Record<string, EffectSelection>
   >({});
   const [errors, setErrors] = useState<string[]>([]);
+  const isMobile = useIsMobile();
 
   // Obtém os efeitos combinados dos suplementos ativos
   // Se nenhum suplemento for passado, usa apenas os efeitos do livro básico
@@ -473,7 +475,13 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
   );
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth='lg' fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth='lg'
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box
           sx={{
@@ -575,6 +583,19 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
           </Grid>
         </Grid>
       </DialogContent>
+      {/* No mobile os efeitos ficam numa coluna longa e o alerta de custo do
+          topo sai de vista; esta faixa mantém o custo visível enquanto o
+          jogador marca efeitos lá embaixo. */}
+      {isMobile && (
+        <Alert
+          severity={totalCost >= 1 ? 'success' : 'warning'}
+          sx={{ borderRadius: 0, borderTop: 1, borderColor: 'divider', py: 0 }}
+        >
+          <Typography variant='subtitle2' sx={{ fontWeight: 600 }}>
+            Custo total: {totalCost} PM {totalCost < 1 && '(mínimo: 1 PM)'}
+          </Typography>
+        </Alert>
+      )}
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
         <Button
