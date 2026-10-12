@@ -21,7 +21,12 @@ const ASSISTENTE_FORENSE: Origin = {
   poderes: [atlasOriginPowers.ASSISTENTE_FORENSE],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => [],
+  getItems: (): Items[] => [
+    {
+      equipment: 'Lupa',
+      description: 'Conta como uma ferramenta que fornece +1 em Investigação',
+    },
+  ],
 };
 
 export default ASSISTENTE_FORENSE;

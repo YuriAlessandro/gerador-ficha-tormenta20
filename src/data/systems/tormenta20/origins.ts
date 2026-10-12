@@ -10,6 +10,7 @@ import {
   getNotRepeatedRandom,
   getRandomItemFromArray,
   pickFromArray,
+  rollDice,
 } from '../../../functions/randomUtils';
 import {
   OriginPower,
@@ -396,7 +397,7 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Amigo dos Animais',
     getItems: (): Items[] => [
       {
-        equipment: 'Cão de guarda, cavalo, pônei ou trobo (escolha um).',
+        equipment: 'Cão de caça, cavalo, pônei ou trobo (escolha um).',
       },
     ],
     pericias: [Skill.ADESTRAMENTO, Skill.CAVALGAR],
@@ -438,7 +439,7 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Instrumentos de ofício (qualquer)',
       },
       {
-        equipment: 'Um que você possa fabricar de até T$ 50',
+        equipment: 'Um item que você possa fabricar de até T$ 50',
       },
     ],
     pericias: [Skill.OFICIO_ARTESANATO, Skill.VONTADE],
@@ -508,10 +509,16 @@ export const ORIGINS: Record<origins, Origin> = {
   Capanga: {
     name: 'Capanga',
     getItems: (): Items[] => [
-      itemChoice('arma', 'Adaga, espada curta ou foice', [
+      itemChoice('arma', 'Uma arma simples corpo a corpo', [
         Armas.ADAGA,
         Armas.ESPADACURTA,
         Armas.FOICE,
+        Armas.CLAVA,
+        Armas.LANCA,
+        Armas.MACA,
+        Armas.BORDAO,
+        Armas.PIQUE,
+        Armas.TACAPE,
       ]),
       {
         equipment:
@@ -558,12 +565,10 @@ export const ORIGINS: Record<origins, Origin> = {
   Criminoso: {
     name: 'Criminoso',
     getItems: (): Items[] => [
-      {
-        equipment: 'Estojo de disfarces',
-      },
-      {
-        equipment: 'Gazua',
-      },
+      itemChoice('item', 'Estojo de disfarces ou gazua', [
+        'Estojo de disfarces',
+        'Gazua',
+      ]),
     ],
     pericias: [Skill.ENGANACAO, Skill.FURTIVIDADE, Skill.LADINAGEM],
     poderes: [originPowers.PUNGUISTA, DestinyPowers.VENEFICIO],
@@ -721,9 +726,10 @@ export const ORIGINS: Record<origins, Origin> = {
   'Herói Camponês': {
     name: 'Herói Camponês',
     getItems: (): Items[] => [
-      {
-        equipment: 'Instrumentos de ofício',
-      },
+      itemChoice('item', 'Instrumentos de ofício ou uma arma simples', [
+        'Instrumentos de ofício',
+        ...EQUIPAMENTOS.armasSimples,
+      ]),
       {
         equipment: 'Traje de Plebeu',
       },
@@ -743,6 +749,8 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Corda',
       },
     ],
+    // T$ 2d6, "seu último salário" (JdA p. 92).
+    getMoney: () => rollDice(2, 6),
     pericias: [Skill.ATLETISMO, Skill.JOGATINA, Skill.PILOTAGEM],
     poderes: [
       originPowers.PASSAGEM_DE_NAVIO,
@@ -877,7 +885,7 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Refugiado',
     getItems: (): Items[] => [
       {
-        equipment: 'Um estrangeiro de até T$ 100.',
+        equipment: 'Um item estrangeiro de até T$ 100.',
       },
     ],
     pericias: [Skill.FORTITUDE, Skill.REFLEXOS, Skill.VONTADE],
@@ -887,7 +895,7 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Seguidor',
     getItems: (): Items[] => [
       {
-        equipment: 'Um recebido de seu mestre de até T$ 100.',
+        equipment: 'Um item recebido de seu mestre de até T$ 100.',
       },
     ],
     pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],

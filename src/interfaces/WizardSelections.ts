@@ -282,6 +282,10 @@ export interface WizardSelections {
   // cada um rolava o seu 4d6.
   initialMoneyRoll?: { amount: number; details?: string };
 
+  // Dinheiro da origem (Marujo T$ 2d6, Rebelde Agitador T$ 6d12...), rolado
+  // uma vez para a origem atual pelo mesmo motivo.
+  originMoneyRoll?: number;
+
   // Seleções do parceiro (classe Treinador)
   companionName?: string;
   companionType?: CompanionType;

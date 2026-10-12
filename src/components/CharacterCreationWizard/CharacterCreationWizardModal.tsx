@@ -1044,6 +1044,17 @@ const CharacterCreationWizardModal: React.FC<
     }
   }, [activeStep]);
 
+  // Dinheiro da origem rolado uma vez por origem. Declarado depois do reset de
+  // `open`, então roda depois dele ao abrir o assistente.
+  useEffect(() => {
+    if (open) {
+      setSelections((prev) => ({
+        ...prev,
+        originMoneyRoll: origin?.getMoney?.(),
+      }));
+    }
+  }, [open, origin?.name]);
+
   // Clear cached origin benefits when origin changes (so new random benefits are generated)
   useEffect(() => {
     if (selections.cachedOriginBenefits) {
@@ -2034,9 +2045,9 @@ const CharacterCreationWizardModal: React.FC<
           getInitialMoneyWithDetails(selectedOptions.nivel || 1);
         let baseMoney = moneyInfo.amount;
 
-        // Add origin bonus money if regional
-        if (origin?.isRegional && origin?.getMoney) {
-          baseMoney += origin.getMoney();
+        // Dinheiro da origem, rolado uma vez (efeito abaixo de `open`)
+        if (origin?.getMoney) {
+          baseMoney += selections.originMoneyRoll ?? 0;
         }
 
         // Build pre-populated bag
