@@ -5865,10 +5865,10 @@ export default function generateRandomSheet(
   const initialMoneyWithDetails = getInitialMoneyWithDetails(targetLevel);
   let initialMoney = initialMoneyWithDetails.amount;
 
-  // Adicionar dinheiro da origem, apenas se for origem regional
-  if (origin?.isRegional && origin?.getMoney) {
-    initialMoney += origin.getMoney();
-  }
+  // Dinheiro da origem (Marujo, várias regionais do Atlas). Rolado uma vez:
+  // o passo da origem mostra este mesmo valor.
+  const originMoney = origin?.getMoney?.() ?? 0;
+  initialMoney += originMoney;
 
   const initialSpells: Spell[] = [];
   const initialPV = classe.pv;
@@ -6071,12 +6071,10 @@ export default function generateRandomSheet(
         });
       }
 
-      // Adicionar dinheiro (apenas para origens regionais)
-      if (origin.isRegional && origin.getMoney) {
-        const money = origin.getMoney();
+      if (origin.getMoney) {
         additionalSubsteps.push({
           name: 'Dinheiro adicional',
-          value: `T$ ${money}`,
+          value: `T$ ${originMoney}`,
         });
       }
 
@@ -7388,13 +7386,6 @@ export function generateEmptySheet(
 
         // Use resolved powers from getPowersAndSkills
         originPowers = originBenefits.powers.origin;
-
-        // Dinheiro extra da origem regional. Só no fallback: se o usuário
-        // interagiu com o Mercado, o bag do mercado já o contabilizou.
-        if (!wizardSelections?.marketSelections && selectedOrigin.getMoney) {
-          emptySheet.dinheiro =
-            (emptySheet.dinheiro || 0) + selectedOrigin.getMoney();
-        }
       } else if (
         wizardSelections?.originBenefits &&
         wizardSelections.originBenefits.length > 0
@@ -7462,6 +7453,14 @@ export function generateEmptySheet(
           choices: itemChoices,
           cachedItems: wizardSelections?.cachedOriginItems,
         });
+
+        // Dinheiro da origem, idem: o Mercado já o soma ao dinheiro inicial.
+        // Usa a rolagem do assistente (a que o Mercado mostrou), se houver.
+        if (selectedOrigin.getMoney) {
+          emptySheet.dinheiro =
+            (emptySheet.dinheiro || 0) +
+            (wizardSelections?.originMoneyRoll ?? selectedOrigin.getMoney());
+        }
       }
 
       emptySheet.origin = {

@@ -6,6 +6,7 @@ import atlasOriginPowers from '../powers/originPowers';
 import Skill from '../../../../../interfaces/Skills';
 import EQUIPAMENTOS, { ARMAS_SIMPLES_E_MARCIAIS } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
+import { rollDice } from '../../../../../functions/randomUtils';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -27,39 +28,24 @@ const SUCATEIRO_DE_BATALHAS: Origin = {
   poderes: [atlasOriginPowers.SUCATEIRO_DE_BATALHAS],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Rola 4d6 para o dinheiro
-    let dinheiro = 0;
-    for (let i = 0; i < 4; i += 1) {
-      dinheiro += Math.floor(Math.random() * 6) + 1;
-    }
-
-    return [
-      itemChoice(
-        'arma',
-        'Arma simples ou marcial',
-        ARMAS_SIMPLES_E_MARCIAIS,
-        1
-      ),
-      {
-        equipment: 'Bálsamo restaurador',
-        qtd: 1,
-      },
-      itemChoice('escudo', 'Escudo leve ou pesado', EQUIPAMENTOS.escudos, 1),
-      {
-        equipment: 'Essência de mana',
-        qtd: 1,
-      },
-      {
-        equipment: 'Ração de viagem',
-        qtd: 5,
-      },
-      {
-        equipment: `T$ ${dinheiro}`,
-        qtd: 1,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma simples ou marcial', ARMAS_SIMPLES_E_MARCIAIS, 1),
+    {
+      equipment: 'Bálsamo restaurador',
+      qtd: 1,
+    },
+    itemChoice('escudo', 'Escudo leve ou pesado', EQUIPAMENTOS.escudos, 1),
+    {
+      equipment: 'Essência de mana',
+      qtd: 1,
+    },
+    {
+      equipment: 'Ração de viagem',
+      qtd: 5,
+    },
+  ],
+  // T$ 4d6 (Atlas p. 478). Vai para o dinheiro da ficha, não para a mochila.
+  getMoney: () => rollDice(4, 6),
 };
 
 export default SUCATEIRO_DE_BATALHAS;
