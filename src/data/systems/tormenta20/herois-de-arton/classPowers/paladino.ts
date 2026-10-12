@@ -128,6 +128,17 @@ const PALADINO_POWERS: ClassPower[] = [
     name: 'Paladino do Reino',
     text: 'Você recebe um poder de cavaleiro cujos pré-requisitos cumpra, usando seu nível como nível de cavaleiro.',
     requirements: [[{ type: RequirementType.PERICIA, name: 'Nobreza' }]],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Paladino do Reino' },
+        action: {
+          type: 'getClassPower',
+          levelSource: 'sheet',
+          fromClasses: ['Cavaleiro'],
+          label: 'Escolha um poder de cavaleiro',
+        },
+      },
+    ],
   },
   {
     name: 'Rajada Divina',
