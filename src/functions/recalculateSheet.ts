@@ -123,6 +123,7 @@ import {
   getVirtudePaladinescaPMBonus,
 } from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
+import { syncFeiticeiroHerancas } from './powers/feiticeiroHeranca';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
 
 /**
@@ -1727,8 +1728,15 @@ export function reverseHistoryEntries(
           if (relevantHistory) {
             const attributeChange = relevantHistory.changes.find(
               (c) => c.type === 'Attribute' && c.attribute === change.attribute
-            ) as { type: 'Attribute'; attribute: Atributo; value: number };
-            if (attributeChange) {
+            ) as {
+              type: 'Attribute';
+              attribute: Atributo;
+              value: number;
+              delta?: number;
+            };
+            if (attributeChange?.delta !== undefined) {
+              sheet.atributos[change.attribute].value -= attributeChange.delta;
+            } else if (attributeChange) {
               const originalValue = sheet.atributos[change.attribute].value;
               const modificationValue = attributeChange.value - originalValue;
               sheet.atributos[change.attribute].value -= modificationValue;
@@ -2003,6 +2011,11 @@ export function recalculateSheet(
   // the new rules require an explicit `offHandItemId`. Marks the sheet as
   // migrated so later "soltar"/"tirar" actions are preserved across recalcs.
   updatedSheet = migrateLegacyEquipState(updatedSheet);
+
+  // Heranças do Feiticeiro: o efeito de "Herança Aprimorada/Superior" depende
+  // da linhagem, então é carimbado na cópia do poder antes de os poderes de
+  // classe serem aplicados (cobre poder recém-adicionado pelo editor).
+  syncFeiticeiroHerancas(updatedSheet);
 
   // Migração: o Companheiro Animal do Druida virou parceiro de poder
   // (`sheet.partners`). Antes dos poderes, para o tipo de cada companheiro já

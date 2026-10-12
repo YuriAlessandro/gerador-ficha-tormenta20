@@ -12,6 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import _ from 'lodash';
 import { recalculateSheet } from '../../functions/recalculateSheet';
+import { normalizeSheet } from '../../functions/sheetNormalizer';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../../interfaces/Character';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
@@ -260,6 +261,51 @@ describe('Pele de Ferro (Bárbaro) - condicionada a armadura pesada', () => {
       })
     );
     expect(comPoderPesada.defesa).toBe(semPoderPesada.defesa);
+  });
+});
+
+describe('Pele de Aço - aumenta o bônus de Pele de Ferro para +8', () => {
+  const poderes = () => [
+    powerFrom('Bárbaro', 'Pele de Ferro'),
+    powerFrom('Bárbaro', 'Pele de Aço'),
+  ];
+
+  // A variante herda os poderes do Bárbaro: o relato original era dela.
+  ['Bárbaro', 'Machado de Pedra'].forEach((className) => {
+    it(`${className}: +8 sem armadura pesada e nada com armadura pesada`, () => {
+      const defesa = (armor?: typeof LIGHT_ARMOR, comPoderes = false) =>
+        recalculateSheet(
+          buildSheet({
+            className,
+            nivel: 8,
+            armor,
+            classPowers: comPoderes ? poderes() : [],
+          })
+        ).defesa;
+
+      expect(defesa(undefined, true)).toBe(defesa() + 8);
+      expect(defesa(LIGHT_ARMOR, true)).toBe(defesa(LIGHT_ARMOR) + 8);
+      expect(defesa(HEAVY_ARMOR, true)).toBe(defesa(HEAVY_ARMOR));
+    });
+  });
+
+  it('ficha salva com a cópia do poder sem automação recebe o bônus', () => {
+    const peleDeAcoAntiga = {
+      ...powerFrom('Bárbaro', 'Pele de Aço'),
+      sheetBonuses: undefined,
+    };
+    const semPoderes = recalculateSheet(
+      buildSheet({ className: 'Bárbaro', nivel: 8 })
+    );
+    const antiga = buildSheet({
+      className: 'Bárbaro',
+      nivel: 8,
+      classPowers: [powerFrom('Bárbaro', 'Pele de Ferro'), peleDeAcoAntiga],
+    });
+
+    normalizeSheet(antiga);
+
+    expect(recalculateSheet(antiga).defesa).toBe(semPoderes.defesa + 8);
   });
 });
 

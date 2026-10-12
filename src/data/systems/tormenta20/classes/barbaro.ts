@@ -4,6 +4,7 @@ import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import { PELE_DE_ACO_SHEET_BONUSES } from '../powers/classPowerSheetBonuses';
 
 const BARBARO: ClassDescription = {
   name: 'Bárbaro',
@@ -234,6 +235,7 @@ const BARBARO: ClassDescription = {
           { type: RequirementType.NIVEL, value: 8 },
         ],
       ],
+      sheetBonuses: PELE_DE_ACO_SHEET_BONUSES,
     },
     {
       name: 'Pele de Ferro',

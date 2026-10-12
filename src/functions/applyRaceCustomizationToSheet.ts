@@ -11,6 +11,25 @@ import {
   reverseSheetActionsForPower,
 } from './recalculateSheet';
 
+/**
+ * Reverte o que as habilidades de raça REMOVIDAS concederam fora de
+ * `sheetBonuses` (sentidos, perícias, magias, proficiências) e apaga seus
+ * recibos. Os `sheetBonuses` o recálculo refaz sozinho; o resto sobreviveria à
+ * troca e se acumularia. Muta `sheet`.
+ */
+export function reverseRemovedRaceAbilities(
+  sheet: CharacterSheet,
+  oldAbilities: { name: string }[] | undefined,
+  newAbilities: { name: string }[] | undefined
+): void {
+  const newNames = new Set((newAbilities || []).map((a) => a.name));
+  const removed = new Set(
+    (oldAbilities || []).map((a) => a.name).filter((n) => !newNames.has(n))
+  );
+
+  removed.forEach((name) => reverseSheetActionsForPower(sheet, name));
+}
+
 export interface RaceCustomizationMetadata {
   raceSizeCategory?: string;
   raceChassis?: string;
@@ -52,11 +71,11 @@ export function applyRaceCustomizationToSheet(
 ): CharacterSheet {
   const working = _.cloneDeep(sheet);
 
-  const oldNames = new Set((working.raca.abilities || []).map((a) => a.name));
-  const newNames = new Set((newRace.abilities || []).map((a) => a.name));
-  const removed = Array.from(oldNames).filter((n) => !newNames.has(n));
-
-  removed.forEach((name) => reverseSheetActionsForPower(working, name));
+  reverseRemovedRaceAbilities(
+    working,
+    working.raca.abilities,
+    newRace.abilities
+  );
 
   working.sheetActionHistory = working.sheetActionHistory.filter(
     (e) =>

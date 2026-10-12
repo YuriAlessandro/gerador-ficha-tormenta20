@@ -1,4 +1,5 @@
 import { SheetBonus } from '@/interfaces/CharacterSheet';
+import Skill from '@/interfaces/Skills';
 
 /**
  * Bônus passivos dos estilos de combate que dependem da empunhadura.
@@ -36,18 +37,40 @@ export const ESTILO_CLASSICO_SHEET_BONUSES: SheetBonus[] = [
  * Estilo de Duas Mãos: usando uma arma corpo a corpo com as duas mãos, +5 nas
  * rolagens de dano (nunca com armas leves — `twoHandedOnly` já as exclui).
  */
+const TWO_HANDED_MELEE_CONDITION: SheetBonus['condition'] = {
+  combinator: 'AND',
+  clauses: [
+    { kind: 'wieldingTwoHandedWeapon' },
+    { kind: 'wieldingMeleeWeapon' },
+  ],
+};
+
 export const ESTILO_DE_DUAS_MAOS_SHEET_BONUSES: SheetBonus[] = [
   {
     source: { type: 'power', name: 'Estilo de Duas Mãos' },
     target: { type: 'WeaponDamage', meleeOnly: true, twoHandedOnly: true },
     modifier: { type: 'Fixed', value: 5 },
-    condition: {
-      combinator: 'AND',
-      clauses: [
-        { kind: 'wieldingTwoHandedWeapon' },
-        { kind: 'wieldingMeleeWeapon' },
-      ],
-    },
+    condition: TWO_HANDED_MELEE_CONDITION,
+  },
+];
+
+/**
+ * Defesa Armada (Heróis de Arton): usando uma arma corpo a corpo de duas mãos,
+ * +2 na Defesa e em Fortitude. Mesma empunhadura do Estilo de Duas Mãos, que é
+ * seu pré-requisito.
+ */
+export const DEFESA_ARMADA_SHEET_BONUSES: SheetBonus[] = [
+  {
+    source: { type: 'power', name: 'Defesa Armada' },
+    target: { type: 'Defense' },
+    modifier: { type: 'Fixed', value: 2 },
+    condition: TWO_HANDED_MELEE_CONDITION,
+  },
+  {
+    source: { type: 'power', name: 'Defesa Armada' },
+    target: { type: 'Skill', name: Skill.FORTITUDE },
+    modifier: { type: 'Fixed', value: 2 },
+    condition: TWO_HANDED_MELEE_CONDITION,
   },
 ];
 

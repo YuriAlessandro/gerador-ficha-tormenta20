@@ -5,6 +5,11 @@ import {
   ManualPowerSelections,
 } from '@/interfaces/PowerSelections';
 import { getClassFamilyName, isSameClassFamily } from './classFamily';
+import { resolveHerancaPower } from './powers/feiticeiroHeranca';
+import {
+  createAlwaysActiveSpell,
+  createTruqueSpell,
+} from './spells/spellVariants';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { buildFamiliarSheetBonuses } from './powers/familiarBonuses';
 import { getEffectiveAttributeModifier } from './effectiveAttributes';
@@ -253,6 +258,8 @@ import {
 } from './powers/general';
 import {
   feiticeiroPaths,
+  buildLinhagemDraconica,
+  DRACONICA_DAMAGE_TYPES,
   arcanistaSpellPaths,
   ArcanistaSubtypes,
   createLinhagemAbencoada,
@@ -480,27 +487,7 @@ function replaceGenericOficioWithSpecific(
   });
 }
 
-export function createTruqueSpell(originalSpell: Spell): Spell {
-  const truqueSpell = cloneDeep(originalSpell);
-  truqueSpell.nome = `${originalSpell.nome} (Apenas Truque)`;
-
-  // Manter apenas o primeiro aprimoramento (addPm: 0)
-  if (truqueSpell.aprimoramentos && truqueSpell.aprimoramentos.length > 0) {
-    truqueSpell.aprimoramentos = [truqueSpell.aprimoramentos[0]];
-  }
-
-  return truqueSpell;
-}
-
-export function createAlwaysActiveSpell(originalSpell: Spell): Spell {
-  const alwaysActiveSpell = cloneDeep(originalSpell);
-  alwaysActiveSpell.nome = `${originalSpell.nome} (Sempre Ativo)`;
-
-  // Remove TODOS os aprimoramentos
-  alwaysActiveSpell.aprimoramentos = [];
-
-  return alwaysActiveSpell;
-}
+export { createTruqueSpell, createAlwaysActiveSpell };
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -2269,7 +2256,9 @@ export const applyPower = (
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
           powerName: powerOrAbility.name,
-          changes: [{ type: 'Attribute', attribute, value: newValue }],
+          changes: [
+            { type: 'Attribute', attribute, value: newValue, delta: value },
+          ],
         });
       } else if (sheetAction.action.type === 'addProficiency') {
         // Ver Proficiência em combat powers e depois remove comment
@@ -2431,12 +2420,16 @@ export const applyPower = (
           }
         });
       } else if (sheetAction.action.type === 'learnSpell') {
-        const { customAttribute } = sheetAction.action;
+        const { customAttribute, skipIfKnown } = sheetAction.action;
+        const isUnknown = (spell: Spell) =>
+          !sheet.spells.some((existing) => existing.nome === spell.nome);
         let learnedSpells: Spell[];
 
         if (manualSelections?.spells && manualSelections.spells.length > 0) {
           // Use manual selections
-          learnedSpells = manualSelections.spells;
+          learnedSpells = skipIfKnown
+            ? manualSelections.spells.filter(isUnknown)
+            : manualSelections.spells;
 
           // Add to sheet.spells if not already present
           // Apply customAttribute if defined (e.g., Sabedoria for Golem Desperto Sagrada)
@@ -2458,7 +2451,9 @@ export const applyPower = (
           learnedSpells = addOrCheapenRandomSpells(
             sheet,
             subSteps,
-            sheetAction.action.availableSpells,
+            skipIfKnown
+              ? sheetAction.action.availableSpells.filter(isUnknown)
+              : sheetAction.action.availableSpells,
             getSourceName(sheetAction.source),
             sheetAction.action.customAttribute ||
               sheet.classe.spellPath?.keyAttribute ||
@@ -2478,9 +2473,11 @@ export const applyPower = (
           ],
         });
       } else if (sheetAction.action.type === 'learnAnySpellFromHighestCircle') {
-        const highestCircle =
+        const highestCircle = Math.min(
           sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ||
-          1;
+            1,
+          sheetAction.action.maxCircle ?? Infinity
+        );
 
         let allSpellsOfCircle: Spell[] = [];
         for (let circle = 1; circle <= highestCircle; circle += 1) {
@@ -4396,7 +4393,10 @@ function levelUp(
     // Nada a fazer: a classe não concede poder neste nível.
   } else if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
-    const newPower = getRandomItemFromArray(allowedPowers);
+    const newPower = resolveHerancaPower(
+      updatedSheet,
+      getRandomItemFromArray(allowedPowers)
+    );
     if (updatedSheet.classPowers) {
       const nSubSteps: SubStep[] = [];
 
@@ -4890,10 +4890,10 @@ export function applyManualLevelUp(
   // Aplicar poder escolhido (classe ou geral)
   if (selections.powerChoice === 'class' && selections.selectedClassPower) {
     const nSubSteps: SubStep[] = [];
-    const newPower = {
+    const newPower = resolveHerancaPower(updatedSheet, {
       ...selections.selectedClassPower,
       className: selectedClassName, // Track which class granted this power
-    };
+    });
 
     if (updatedSheet.classPowers) {
       updatedSheet.classPowers.push(newPower);
@@ -6748,29 +6748,16 @@ export function generateEmptySheet(
 
       // Handle Feiticeiro linhagem
       if (wizardSelections.feiticeiroLinhagem === 'Linhagem Dracônica') {
-        const damageType = getRandomItemFromArray([
-          'Ácido',
-          'Elétrico',
-          'Fogo',
-          'Frio',
-        ]);
-        modifiedClasse.abilities.push({
-          name: 'Linhagem Dracônica',
-          text: `Um de seus antepassados foi um majestoso dragão. Tipo escolhido: ${damageType}. Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5.`,
-          nivel: 1,
-          sheetBonuses: [
-            {
-              source: { type: 'power', name: 'Linhagem Dracônica' },
-              target: { type: 'PV' },
-              modifier: { type: 'Attribute', attribute: Atributo.CARISMA },
-            },
-          ],
-        });
+        modifiedClasse.abilities.push(
+          buildLinhagemDraconica(
+            wizardSelections.draconicaDamageType ||
+              getRandomItemFromArray(DRACONICA_DAMAGE_TYPES)
+          )
+        );
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Feérica') {
-        modifiedClasse.periciasbasicas.push({
-          type: 'and',
-          list: [Skill.ENGANACAO],
-        });
+        // Enganação vem do `learnSkill` da própria habilidade: as perícias da
+        // ficha já foram montadas a esta altura, então empurrar em
+        // `periciasbasicas` aqui não treinava nada.
         const linhagemFeerica = feiticeiroPaths.find(
           (p) => p.name === 'Linhagem Feérica'
         );

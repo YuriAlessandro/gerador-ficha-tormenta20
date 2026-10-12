@@ -98,6 +98,7 @@ export interface PowerSelectionRequirement {
   metadata?: {
     allowedType?: 'Arcane' | 'Divine' | 'Both';
     schools?: string[];
+    maxCircle?: number; // For learnAnySpellFromHighestCircle: teto de círculo
     optionKey?: string; // For chooseFromOptions: the option key identifier
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
     immediateClassPower?: boolean; // Diferentão grants the selected power now

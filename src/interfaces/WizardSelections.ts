@@ -206,6 +206,9 @@ export interface WizardSelections {
     | 'Linhagem Rubra'
     | 'Linhagem Abençoada';
 
+  // Linhagem Dracônica: tipo de dano escolhido (Ácido, Elétrico, Fogo, Frio)
+  draconicaDamageType?: string;
+
   // Linhagem Abençoada: deus escolhido
   linhagemAbencoada?: {
     deus: string;

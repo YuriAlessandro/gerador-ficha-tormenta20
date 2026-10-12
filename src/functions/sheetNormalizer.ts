@@ -1,5 +1,10 @@
 import _ from 'lodash';
-import CharacterSheet, { SheetBonus } from '../interfaces/CharacterSheet';
+import CharacterSheet, {
+  SheetAction,
+  SheetBonus,
+} from '../interfaces/CharacterSheet';
+import { RaceAbility } from '../interfaces/Race';
+import { DUENDE_PRESENTES } from '../data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { CharacterAttributes } from '../interfaces/Character';
 import Bag from '../interfaces/Bag';
 import { WeaponOverride } from '../interfaces/Equipment';
@@ -13,7 +18,7 @@ import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-d
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
-import { GeneralPower } from '../interfaces/Poderes';
+import { GeneralPower, GeneralPowerType } from '../interfaces/Poderes';
 import { getSuragelAlternativeAbility } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import {
   KAIJIN_CHARISMA_EXEMPT_POWER_NAMES,
@@ -39,8 +44,10 @@ import {
   ESGRIMISTA_SHEET_BONUSES,
   ESTILO_DE_DISPARO_SHEET_BONUSES,
   INEXPUGNAVEL_SHEET_BONUSES,
+  PELE_DE_ACO_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/classPowerSheetBonuses';
 import {
+  DEFESA_ARMADA_SHEET_BONUSES,
   ESTILO_CLASSICO_SHEET_BONUSES,
   ESTILO_DE_ARREMESSO_SHEET_BONUSES,
   ESTILO_DE_DUAS_MAOS_SHEET_BONUSES,
@@ -52,6 +59,10 @@ import {
   PELE_CORROMPIDA_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/tormentaPowerSheetBonuses';
 import { updateUnarmedRolls } from './unarmedDamage';
+import {
+  refreshFeiticeiroLinhagemAbility,
+  syncFeiticeiroHerancas,
+} from './powers/feiticeiroHeranca';
 
 const VALID_ATRIBUTOS = Object.values(Atributo) as string[];
 
@@ -99,7 +110,8 @@ function getGrantedPowersByName(): Map<string, GeneralPower> {
 //
 // Os estilos de combate (Estilo Clássico, Estilo de Duas Mãos, Estilo de
 // Arremesso) eram texto puro ou só parcialmente automatizados — sem o refresh,
-// a ficha de quem já tinha o poder continuaria sem o bônus.
+// a ficha de quem já tinha o poder continuaria sem o bônus. Idem Pele de Aço e
+// Defesa Armada, que eram texto puro.
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
@@ -112,6 +124,8 @@ const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Estilo Clássico', ESTILO_CLASSICO_SHEET_BONUSES],
   ['Estilo de Duas Mãos', ESTILO_DE_DUAS_MAOS_SHEET_BONUSES],
   ['Estilo de Arremesso', ESTILO_DE_ARREMESSO_SHEET_BONUSES],
+  ['Pele de Aço', PELE_DE_ACO_SHEET_BONUSES],
+  ['Defesa Armada', DEFESA_ARMADA_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<
@@ -135,6 +149,28 @@ const REFRESHED_DESCRIPTIONS_BY_NAME = new Map<string, string>([
   ...Object.entries(CENTAURO_REFRESHED_DESCRIPTIONS),
   ...Object.entries(HOBGOBLIN_REFRESHED_DESCRIPTIONS),
 ]);
+
+const DUENDE_PRESENTES_BY_NAME = new Map<string, RaceAbility>(
+  Object.values(DUENDE_PRESENTES).map(({ ability }) => [ability.name, ability])
+);
+
+function refreshDuendePresente<
+  T extends {
+    name: string;
+    description?: string;
+    sheetActions?: SheetAction[];
+    sheetBonuses?: SheetBonus[];
+  }
+>(entry: T): T {
+  const current = DUENDE_PRESENTES_BY_NAME.get(entry.name);
+  if (!current) return entry;
+  return {
+    ...entry,
+    description: current.description,
+    sheetActions: _.cloneDeep(current.sheetActions),
+    sheetBonuses: _.cloneDeep(current.sheetBonuses),
+  };
+}
 
 function refreshDescription<T extends { name: string; description?: string }>(
   entry: T
@@ -469,6 +505,19 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     sheet.classe.powers = sheet.classe.powers.filter(
       (p) => p && typeof p.name === 'string'
     );
+
+    // Feiticeiro: a cópia embutida da linhagem é de antes de ela treinar
+    // Enganação (Feérica) ou dar RD (Dracônica), e as Heranças
+    // Aprimorada/Superior eram texto genérico sem efeito.
+    sheet.classe.abilities = sheet.classe.abilities.map(
+      refreshFeiticeiroLinhagemAbility
+    );
+    if (sheet.classe.originalAbilities) {
+      sheet.classe.originalAbilities = sheet.classe.originalAbilities.map(
+        refreshFeiticeiroLinhagemAbility
+      );
+    }
+    syncFeiticeiroHerancas(sheet);
     // Proficiência inválida (`null`/`undefined`) quebra tudo que compara nomes:
     // o aviso de não proficiência no Result, o PDF e o editor de proficiências.
     // Fichas antigas têm essas entradas porque o sorteio completava com
@@ -504,6 +553,21 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
     // em `rehydrateSheet`.
     const countsAs = RACE_COUNTS_AS[sheet.raca.name];
     if (countsAs) sheet.raca.countsAsRaces = countsAs;
+
+    // Presentes do Duende: os que concedem magia eram só texto (ou só um
+    // sentido). A ficha embute a cópia antiga tanto em `raca.abilities` (os três
+    // da criação) quanto em `generalPowers` (os pegos ao subir de nível); com a
+    // ação nova na cópia, o próximo recálculo concede a magia. Gate na raça
+    // porque "Enfeitiçar", "Invisibilidade" e "Voo" são nomes genéricos demais
+    // para um refresh global por nome.
+    if (sheet.raca.name === 'Duende') {
+      sheet.raca.abilities = sheet.raca.abilities.map(refreshDuendePresente);
+      sheet.generalPowers = sheet.generalPowers.map((power) =>
+        power.type === GeneralPowerType.RACA
+          ? refreshDuendePresente(power)
+          : power
+      );
+    }
 
     if (sheet.raca.name === 'Centauro') {
       sheet.raca.abilities = sheet.raca.abilities.map(

@@ -37,6 +37,7 @@ import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-ar
 import { applyMoreauCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applySuragelAlternativeAbility } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import { getClassSetupAbilities } from '@/functions/multiclass';
 import {
   ArcanistaSubtypes,
   applyLinhagemAbencoadaToSpellPath,
@@ -380,17 +381,36 @@ const CharacterCreationWizardModal: React.FC<
   // A variante entra AQUI para que todos os passos abaixo (Perícias da Classe,
   // Efeitos de Poderes, Equipamento) já vejam a classe customizada — mesmo
   // padrão do `applySuragelAlternativeAbility` no memo de `race`.
-  const classe: ClassDescription | undefined = useMemo(
-    () =>
-      catalogClasse
-        ? applyDeityClassVariant(
-            catalogClasse,
-            deityClassVariant,
-            selections.deityClassChoices
-          )
-        : undefined,
-    [catalogClasse, deityClassVariant, selections.deityClassChoices]
-  );
+  //
+  // As habilidades de SETUP (linhagem do Feiticeiro) também entram aqui: elas
+  // não estão na classe do catálogo, e sem isso o passo "Efeitos de Poderes"
+  // nunca via a magia da Linhagem Feérica nem o poder da Linhagem Rubra, que
+  // saíam sorteados.
+  const classe: ClassDescription | undefined = useMemo(() => {
+    if (!catalogClasse) return undefined;
+    const withVariant = applyDeityClassVariant(
+      catalogClasse,
+      deityClassVariant,
+      selections.deityClassChoices
+    );
+    const setupAbilities = getClassSetupAbilities(withVariant.name, {
+      arcanistaSubtype: selections.arcanistaSubtype,
+      feiticeiroLinhagem: selections.feiticeiroLinhagem,
+      linhagemAbencoadaDeus: selections.linhagemAbencoada?.deus,
+    });
+    if (setupAbilities.length === 0) return withVariant;
+    return {
+      ...withVariant,
+      abilities: [...(withVariant.abilities ?? []), ...setupAbilities],
+    };
+  }, [
+    catalogClasse,
+    deityClassVariant,
+    selections.deityClassChoices,
+    selections.arcanistaSubtype,
+    selections.feiticeiroLinhagem,
+    selections.linhagemAbencoada?.deus,
+  ]);
 
   // Expand Ofício (Qualquer) in base skills to specific Ofício variants
   const expandedBasicas = useMemo(
@@ -1853,6 +1873,13 @@ const CharacterCreationWizardModal: React.FC<
                 linhagemAbencoada: { deus },
               })
             }
+            selectedDamageType={selections.draconicaDamageType}
+            onDamageTypeChange={(damageType) =>
+              setSelections({
+                ...selections,
+                draconicaDamageType: damageType,
+              })
+            }
           />
         );
 
@@ -2205,6 +2232,9 @@ const CharacterCreationWizardModal: React.FC<
       case 'Linhagem do Feiticeiro':
         if (selections.feiticeiroLinhagem === 'Linhagem Abençoada') {
           return !!selections.linhagemAbencoada?.deus;
+        }
+        if (selections.feiticeiroLinhagem === 'Linhagem Dracônica') {
+          return !!selections.draconicaDamageType;
         }
         return selections.feiticeiroLinhagem !== undefined;
 

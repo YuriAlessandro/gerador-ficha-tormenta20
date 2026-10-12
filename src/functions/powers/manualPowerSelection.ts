@@ -269,10 +269,15 @@ export function getPowerSelectionRequirements(
           pick: action.pick,
           label: `Selecione ${action.pick} magia${
             action.pick > 1 ? 's' : ''
-          } (qualquer círculo disponível)`,
+          } (${
+            action.maxCircle
+              ? `até o ${action.maxCircle}º círculo`
+              : 'qualquer círculo disponível'
+          })`,
           metadata: {
             allowedType: action.allowedType,
             schools: action.schools,
+            maxCircle: action.maxCircle,
           },
         });
       }
@@ -909,8 +914,10 @@ export function getFilteredAvailableOptions(
 
     case 'learnAnySpellFromHighestCircle': {
       // Dynamically determine available spells from ANY circle up to the highest available
-      const highestCircle =
-        sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) || 1;
+      const highestCircle = Math.min(
+        sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) || 1,
+        requirement.metadata?.maxCircle ?? Infinity
+      );
 
       const allAvailableSpells: Spell[] = [];
       const allowedType = requirement.metadata?.allowedType || 'Both';

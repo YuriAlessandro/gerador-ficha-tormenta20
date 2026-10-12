@@ -98,6 +98,7 @@ import {
   DUENDE_TABU_SKILLS,
 } from '@/data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
+import { reverseRemovedRaceAbilities } from '@/functions/applyRaceCustomizationToSheet';
 import Skill from '@/interfaces/Skills';
 import Origin from '@/interfaces/Origin';
 import {
@@ -1894,6 +1895,23 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       ) {
         updatedSheet = _.cloneDeep(updatedSheet);
         reverseSheetActionsForPower(updatedSheet, previousSuragelAbility);
+      }
+
+      // Mesmo problema ao trocar os presentes (ou a natureza) do Duende: a
+      // magia e os sentidos do presente removido ficariam órfãos na ficha.
+      // Só quando a raça continua Duende — a troca de raça inteira tem o seu
+      // próprio caminho.
+      if (
+        sheet.raca.name === 'Duende' &&
+        updates.raca &&
+        isDuendeConfigChanged(editedData, sheet)
+      ) {
+        updatedSheet = _.cloneDeep(updatedSheet);
+        reverseRemovedRaceAbilities(
+          updatedSheet,
+          sheet.raca.abilities,
+          updates.raca.abilities
+        );
       }
 
       const recalculatedSheet = recalculateSheet(updatedSheet);

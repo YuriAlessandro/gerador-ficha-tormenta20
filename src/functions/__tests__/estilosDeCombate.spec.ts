@@ -7,6 +7,7 @@ import { dataRegistry } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
 import racePowers from '../../data/systems/tormenta20/herois-de-arton/powers/racePowers';
 import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
+import heroisCombatPowers from '../../data/systems/tormenta20/herois-de-arton/powers/combatPowers';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Bag from '../../interfaces/Bag';
 import Equipment from '../../interfaces/Equipment';
@@ -144,6 +145,33 @@ describe('Estilo de Duas Mãos', () => {
   });
 });
 
+describe('Defesa Armada', () => {
+  const power = [heroisCombatPowers.DEFESA_ARMADA];
+  const items = () => [
+    fromCatalog('Montante', 'mon'),
+    fromCatalog('Espada Longa', 'esp'),
+    fromCatalog('Arco Longo', 'arc'),
+  ];
+
+  it('dá +2 na Defesa e em Fortitude com arma corpo a corpo de duas mãos', () => {
+    const base = recalculateSheet(buildSheet([], items(), 'mon', 'mon'));
+    const result = recalculateSheet(buildSheet(power, items(), 'mon', 'mon'));
+
+    expect(result.defesa).toBe(base.defesa + 2);
+    expect(hasActiveBonus(result, 'Defesa Armada', 'Skill')).toBe(true);
+  });
+
+  it('não se aplica com arma de uma mão, arco ou arma só na mochila', () => {
+    [['esp'], ['arc', 'arc'], []].forEach(([main, off]) => {
+      const base = recalculateSheet(buildSheet([], items(), main, off));
+      const result = recalculateSheet(buildSheet(power, items(), main, off));
+
+      expect(result.defesa).toBe(base.defesa);
+      expect(hasActiveBonus(result, 'Defesa Armada', 'Skill')).toBe(false);
+    });
+  });
+});
+
 describe('Estilo de Arremesso', () => {
   const items = () => [fromCatalog('Adaga', 'adg')];
 
@@ -202,12 +230,14 @@ describe('fichas salvas antes da automação', () => {
     sheet.generalPowers = [
       { ...racePowers.ESTILO_CLASSICO, sheetBonuses: undefined },
       { ...combatPowers.ESTILO_DE_DUAS_MAOS, sheetBonuses: undefined },
+      { ...heroisCombatPowers.DEFESA_ARMADA, sheetBonuses: undefined },
     ];
 
     normalizeSheet(sheet);
 
     expect(sheet.generalPowers[0].sheetBonuses).toHaveLength(2);
     expect(sheet.generalPowers[1].sheetBonuses).toHaveLength(1);
+    expect(sheet.generalPowers[2].sheetBonuses).toHaveLength(2);
   });
 });
 

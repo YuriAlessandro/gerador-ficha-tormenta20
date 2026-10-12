@@ -28,9 +28,16 @@ function reverseAttributeChange(
   if (relevantHistory) {
     const attributeChange = relevantHistory.changes.find(
       (change) => change.type === 'Attribute' && change.attribute === attribute
-    ) as { type: 'Attribute'; attribute: Atributo; value: number };
+    ) as {
+      type: 'Attribute';
+      attribute: Atributo;
+      value: number;
+      delta?: number;
+    };
 
-    if (attributeChange) {
+    if (attributeChange?.delta !== undefined) {
+      sheet.atributos[attribute].value -= attributeChange.delta;
+    } else if (attributeChange) {
       // Subtract the modification value that was applied
       const originalValue = sheet.atributos[attribute].value;
       const modificationValue = attributeChange.value - originalValue;

@@ -108,12 +108,20 @@ export type SheetActionStep =
       availableSpells: Spell[]; // List of available spells
       pick: number; // Number of spells to learn
       customAttribute?: Atributo; // Optional custom attribute for the spell
+      // Para habilidades que só dão ACESSO à magia (presentes do Duende): se o
+      // personagem já a conhece, não barateia em –1 PM nem a registra como
+      // concedida por esta fonte — assim remover a habilidade não apaga uma
+      // magia aprendida por outro caminho.
+      skipIfKnown?: boolean;
     }
   | {
       type: 'learnAnySpellFromHighestCircle';
       pick: number; // Number of spells to learn
       allowedType: 'Arcane' | 'Divine' | 'Both'; // Allowed types of spells
       schools?: SpellSchool[]; // Optional list of allowed schools
+      // Teto de círculo, para regras que fixam o círculo ("uma magia de 1º
+      // círculo") em vez de acompanhar o mais alto que o personagem lança.
+      maxCircle?: number;
     }
   | {
       type: 'getGeneralPower';
@@ -337,7 +345,10 @@ export type SheetActionReceipt =
   | {
       type: 'Attribute';
       attribute: Atributo;
-      value: number; // Positive or negative
+      value: number; // Valor do atributo DEPOIS da modificação
+      // Quanto foi somado. Recibos antigos não têm: sem ele não dá para
+      // desfazer a modificação (o valor absoluto não diz quanto veio daqui).
+      delta?: number;
     }
   | {
       type: 'MaxSpacesAttributeSet';
