@@ -494,33 +494,6 @@ export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
 }
 
-export function getInitialMoney(level: number): number {
-  const moneyByLevel: Record<number, number> = {
-    1: rollDice(4, 6, 0), // 4d6 para nível 1
-    2: 300,
-    3: 600,
-    4: 1000,
-    5: 2000,
-    6: 3000,
-    7: 5000,
-    8: 7000,
-    9: 10000,
-    10: 13000,
-    11: 19000,
-    12: 27000,
-    13: 36000,
-    14: 49000,
-    15: 66000,
-    16: 88000,
-    17: 110000,
-    18: 150000,
-    19: 200000,
-    20: 260000,
-  };
-
-  return moneyByLevel[level] || rollDice(4, 6, 0);
-}
-
 export function getInitialMoneyWithDetails(level: number): {
   amount: number;
   details?: string;
@@ -5887,14 +5860,16 @@ export default function generateRandomSheet(
   // mochila e o histórico de geração precisam concordar.
   const rolledOriginItems = origin?.getItems() ?? [];
   const initialBag = getInitialBag(origin, rolledOriginItems);
-  let initialMoney = getInitialMoney(targetLevel);
+  // Uma rolagem só: o passo "Dinheiro Inicial" mostra o mesmo valor que a
+  // ficha recebe.
+  const initialMoneyWithDetails = getInitialMoneyWithDetails(targetLevel);
+  let initialMoney = initialMoneyWithDetails.amount;
 
   // Adicionar dinheiro da origem, apenas se for origem regional
   if (origin?.isRegional && origin?.getMoney) {
     initialMoney += origin.getMoney();
   }
 
-  const initialMoneyWithDetails = getInitialMoneyWithDetails(targetLevel);
   const initialSpells: Spell[] = [];
   const initialPV = classe.pv;
   const initialPM = classe.pm;
@@ -6452,6 +6427,11 @@ export function generateEmptySheet(
   const supplements = selectedOptions.supplements || [
     SupplementId.TORMENTA20_CORE,
   ];
+  // A rolagem feita no assistente (a que o Mercado mostrou); sem ela, rola
+  // uma vez aqui — o passo "Dinheiro Inicial" e a ficha usam o mesmo valor.
+  const initialMoneyRoll =
+    wizardSelections?.initialMoneyRoll ??
+    getInitialMoneyWithDetails(selectedOptions.nivel);
   let race = selectRace(selectedOptions);
 
   // Apply race customization if provided (from pre-wizard modal)
@@ -6582,7 +6562,7 @@ export function generateEmptySheet(
     spells: [],
     dinheiro: wizardSelections?.marketSelections
       ? wizardSelections.marketSelections.remainingMoney
-      : getInitialMoney(selectedOptions.nivel),
+      : initialMoneyRoll.amount,
   };
 
   // Apply wizard character name and gender if provided
@@ -7072,7 +7052,13 @@ export function generateEmptySheet(
   const initialPV = generatedClass.pv + generatedClass.addpv;
   const initialPM = generatedClass.pm;
   const initialDefense = 10;
-  const initialMoney = getInitialMoney(selectedOptions.nivel);
+  const marketInitialMoney = wizardSelections?.marketSelections?.initialMoney;
+  const initialMoneyLabel =
+    marketInitialMoney !== undefined
+      ? `T$ ${marketInitialMoney}`
+      : `T$ ${initialMoneyRoll.amount}${
+          initialMoneyRoll.details ? ` ${initialMoneyRoll.details}` : ''
+        }`;
 
   emptySheet.steps.push(
     {
@@ -7089,7 +7075,7 @@ export function generateEmptySheet(
     },
     {
       label: 'Dinheiro Inicial',
-      value: [{ value: `T$ ${initialMoney}` }],
+      value: [{ value: initialMoneyLabel }],
     }
   );
 

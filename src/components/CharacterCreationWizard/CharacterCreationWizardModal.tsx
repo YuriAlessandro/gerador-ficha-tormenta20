@@ -999,6 +999,11 @@ const CharacterCreationWizardModal: React.FC<
           [Atributo.SABEDORIA]: 0,
           [Atributo.CARISMA]: 0,
         },
+        // Rolado uma vez por sessão: re-renderizar ou voltar e avançar não
+        // rola de novo, e a ficha recebe o mesmo valor que o Mercado mostrou.
+        initialMoneyRoll: getInitialMoneyWithDetails(
+          selectedOptions.nivel || 1
+        ),
       });
       // Initialize steps array
       setSteps(getSteps());
@@ -2024,9 +2029,9 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Mercado': {
         // Calculate initial money
-        const moneyInfo = getInitialMoneyWithDetails(
-          selectedOptions.nivel || 1
-        );
+        const moneyInfo =
+          selections.initialMoneyRoll ??
+          getInitialMoneyWithDetails(selectedOptions.nivel || 1);
         let baseMoney = moneyInfo.amount;
 
         // Add origin bonus money if regional

@@ -277,6 +277,11 @@ export interface WizardSelections {
   // Market step selections (equipment and money)
   marketSelections?: MarketSelections;
 
+  // Dinheiro inicial rolado uma vez por sessão do assistente. O Mercado parte
+  // dele, e a ficha também o usa quando o Mercado não foi tocado — sem isso,
+  // cada um rolava o seu 4d6.
+  initialMoneyRoll?: { amount: number; details?: string };
+
   // Seleções do parceiro (classe Treinador)
   companionName?: string;
   companionType?: CompanionType;
