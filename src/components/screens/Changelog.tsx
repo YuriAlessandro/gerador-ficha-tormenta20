@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            09/10/2026 (v4.36).
+            12/10/2026 (v4.36).
           </p>
 
           <p>
@@ -230,6 +230,61 @@ const Changelog: React.FC = () => {
                   trocava o atributo de conjuração e deixava habilidades de
                   caminho e linhagem presas na ficha. Fichas já criadas são
                   corrigidas ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Pele de Aço</strong> (Bárbaro e Machado de Pedra) não
+                  aumentava a Defesa. Agora soma +4 ao bônus da Pele de Ferro,
+                  chegando aos +8 do livro, enquanto o personagem não usa
+                  armadura pesada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Defesa Armada</strong> não tinha efeito na ficha.
+                  Agora dá +2 na Defesa e em Fortitude sozinho, sempre que uma
+                  arma corpo a corpo de duas mãos está empunhada, sem precisar
+                  ligar nenhum efeito.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>Heranças Aprimorada e Superior</strong> do Feiticeiro
+                  mostravam um texto genérico e não davam bônus nenhum. Agora
+                  cada uma exibe o texto da linhagem do personagem e aplica o
+                  que é de ficha: +2 em Carisma (Feérica), o dobro do Carisma
+                  nos PV (Dracônica), +4 PM por poder da Tormenta, contando as
+                  heranças como poderes da Tormenta (Rubra), e +1 em Sabedoria
+                  (Abençoada). Reduções de custo em PM, CD por escola e
+                  imunidades continuam descritas no texto.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na criação de um Feiticeiro, a{' '}
+                  <strong>Linhagem Feérica</strong> não treinava Enganação e
+                  sorteava a magia; a <strong>Linhagem Rubra</strong> sorteava o
+                  poder da Tormenta; e a <strong>Linhagem Dracônica</strong>{' '}
+                  sorteava o tipo de dano e não dava a redução de dano 5. Agora
+                  o assistente deixa escolher a magia (de encantamento ou
+                  ilusão, arcana ou divina, de 1º círculo), o poder da Tormenta
+                  e o tipo de dano, e a ficha recebe a perícia e a redução de
+                  dano.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os presentes do{' '}
+                  <strong>Duende</strong> que concedem magia não adicionavam
+                  nada à ficha. <strong>Enfeitiçar</strong>,{' '}
+                  <strong>Invisibilidade</strong> e as três{' '}
+                  <strong>Afinidades Elementais</strong> agora adicionam suas
+                  magias com Carisma como atributo-chave, e a{' '}
+                  <strong>Visão Feérica</strong> adiciona a Visão Mística
+                  marcada como sempre ativa. Trocar os presentes pelo cabeçalho
+                  da ficha também remove as magias e os sentidos do presente que
+                  saiu.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As correções acima de Pele de Aço,
+                  Defesa Armada, Feiticeiro e Duende alcançam fichas já salvas
+                  ao abrir. Se você tinha compensado à mão (um efeito de Defesa,
+                  um ponto de atributo, uma magia adicionada manualmente),
+                  remova o ajuste para o valor não contar em dobro.
                 </li>
               </ul>
               <h3>4.35</h3>
