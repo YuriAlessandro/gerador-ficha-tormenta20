@@ -866,6 +866,18 @@ export const ARMAS_SIMPLES_E_MARCIAIS: Equipment[] = [
   ...EQUIPAMENTOS.armasMarciais,
 ];
 
+/**
+ * Armaduras do equipamento inicial de classe (JdA p. 140): "uma armadura de
+ * couro, couro batido ou gibão de peles, a sua escolha". NÃO é o mesmo que
+ * `armadurasLeves`, que inclui acolchoada e couraça (T$ 500) e serve onde a
+ * regra diz "uma armadura leve" (catálogo, origens).
+ */
+export const ARMADURAS_INICIAIS: DefenseEquipment[] = [
+  Armaduras.ARMADURADECOURO,
+  Armaduras.COUROBATIDO,
+  Armaduras.GIBAODEPELES,
+];
+
 /** Pool de "uma arma qualquer" — simples, marciais e exóticas. */
 export const TODAS_AS_ARMAS: Equipment[] = [
   ...ARMAS_SIMPLES_E_MARCIAIS,

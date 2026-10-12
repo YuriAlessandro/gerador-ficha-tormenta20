@@ -55,6 +55,7 @@ import EQUIPAMENTOS, {
   bardInstruments,
   Armas,
   isHeavyArmor,
+  ARMADURAS_INICIAIS,
 } from '../data/systems/tormenta20/equipamentos';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import {
@@ -1224,6 +1225,20 @@ function getShields(classe: ClassDescription) {
   return shields;
 }
 
+/**
+ * Armaduras que a classe pode escolher no equipamento inicial (JdA p. 140):
+ * couro, couro batido ou gibão de peles; com proficiência em pesadas, também a
+ * brunea. Arcanista (e variantes, como o Necromante) começa sem armadura.
+ */
+export function getStartingArmorOptions(
+  classe: ClassDescription
+): DefenseEquipment[] {
+  if (isClassOrVariantOf(classe, 'Arcanista')) return [];
+  return classe.proficiencias.includes(todasProficiencias.PESADAS)
+    ? [Armaduras.BRUNEA, ...ARMADURAS_INICIAIS]
+    : ARMADURAS_INICIAIS;
+}
+
 function getArmors(classe: ClassDescription, currentBag?: Bag) {
   // Se já tem armadura no bag, não gerar nova
   if (currentBag?.equipments?.Armadura?.length) {
@@ -1235,7 +1250,7 @@ function getArmors(classe: ClassDescription, currentBag?: Bag) {
     armors.push(Armaduras.BRUNEA);
   } else if (!isClassOrVariantOf(classe, 'Arcanista')) {
     // Variante conta: o Necromante é Arcanista e também não recebe armadura.
-    armors.push(getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves));
+    armors.push(getRandomItemFromArray(ARMADURAS_INICIAIS));
   }
 
   return armors;
