@@ -41,6 +41,17 @@ const CAVALEIRO_POWERS: ClassPower[] = [
         },
       ],
     ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Cavaleiro Sagrado' },
+        action: {
+          type: 'getClassPower',
+          levelSource: 'sheet',
+          fromClasses: ['Paladino'],
+          label: 'Escolha um poder de paladino',
+        },
+      },
+    ],
   },
   {
     name: 'Duelista Escudado',
