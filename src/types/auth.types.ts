@@ -38,6 +38,8 @@ export interface DbUser {
   };
   isModerator?: boolean;
   isEditor?: boolean;
+  /** Acesso exclusivo ao Quadro do Fórum no painel de admin. */
+  isDev?: boolean;
   isAdmin?: boolean;
 }
 

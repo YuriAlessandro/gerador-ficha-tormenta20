@@ -287,6 +287,17 @@ const Changelog: React.FC = () => {
                   remova o ajuste para o valor não contar em dobro.
                 </li>
               </ul>
+              <h3>4.35.1</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> papel de <strong>Dev</strong>. Devs têm
+                  acesso exclusivo ao <strong>Quadro do Fórum</strong> no painel
+                  de administração (e à barra do quadro dentro de cada tópico),
+                  podem ser responsáveis pelos cards e ganham a badge{' '}
+                  <strong>Dev</strong> no fórum e no perfil. Admins concedem e
+                  removem o papel pela lista de usuários do painel.
+                </li>
+              </ul>
               <h3>4.35</h3>
               <ul>
                 <li>
