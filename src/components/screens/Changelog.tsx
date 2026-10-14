@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            07/10/2026 (v4.35).
+            14/10/2026 (v4.35.1).
           </p>
 
           <p>
@@ -74,6 +74,17 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.35.1</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> papel de <strong>Dev</strong>. Devs têm
+                  acesso exclusivo ao <strong>Quadro do Fórum</strong> no painel
+                  de administração (e à barra do quadro dentro de cada tópico),
+                  podem ser responsáveis pelos cards e ganham a badge{' '}
+                  <strong>Dev</strong> no fórum e no perfil. Admins concedem e
+                  removem o papel pela lista de usuários do painel.
+                </li>
+              </ul>
               <h3>4.35</h3>
               <ul>
                 <li>
