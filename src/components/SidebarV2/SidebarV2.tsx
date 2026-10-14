@@ -41,6 +41,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import StarIcon from '@mui/icons-material/Star';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
@@ -90,7 +91,7 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   onChangeTheme,
 }) => {
   const history = useHistory();
-  const { isAuthenticated, user, isAdmin } = useAuth();
+  const { isAuthenticated, user, isAdmin, isDev } = useAuth();
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
   const { requestLogout } = useAuthContext();
   // const { settings, updateSettings } = useDice3D();
@@ -381,6 +382,16 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                       <AdminPanelSettingsIcon />
                     </ListItemIcon>
                     <Typography variant='inherit'>Página de Admin</Typography>
+                  </StyledMenuItem>
+                )}
+                {!isAdmin && isDev && (
+                  <StyledMenuItem
+                    onClick={() => navigateTo('/admin?tab=board')}
+                  >
+                    <ListItemIcon>
+                      <ViewKanbanIcon />
+                    </ListItemIcon>
+                    <Typography variant='inherit'>Quadro do Fórum</Typography>
                   </StyledMenuItem>
                 )}
               </>

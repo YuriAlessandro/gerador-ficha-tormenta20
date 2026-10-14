@@ -24,6 +24,7 @@ export const useAuth = () => {
     isPremium: auth.dbUser?.isPremium || false,
     isModerator: auth.dbUser?.isModerator || false,
     isEditor: auth.dbUser?.isEditor || false,
+    isDev: auth.dbUser?.isDev || false,
     isAdmin: isAdminUser(auth.dbUser),
   };
 };
