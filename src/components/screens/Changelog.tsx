@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            12/10/2026 (v4.36).
+            15/10/2026 (v4.36).
           </p>
 
           <p>
@@ -111,6 +111,14 @@ const Changelog: React.FC = () => {
                   pesar no Carisma. Imunidades e demais efeitos ficam descritos
                   no próprio efeito, e reverter a Forma Selvagem desfaz a forma
                   junto.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Efeitos customizados e homebrews
+                  ganharam a opção <strong>Passos de dano</strong>, que aumenta
+                  (ou, com valor negativo, diminui) o dado de dano da arma — por
+                  exemplo, 1d6 vira 1d8. Dá para valer em qualquer arma ou só
+                  nas de corpo a corpo ou à distância, e o efeito também alcança
+                  armas editadas à mão.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> <strong>Parceiros</strong>{' '}
