@@ -43,6 +43,7 @@ import {
 } from '../powers';
 import { getClassFamilyName, isSameClassFamily } from '../general';
 import { getActiveWaivers } from './prerequisiteWaivers';
+import { getIntelligenceSkillsPick } from './intelligenceIncreaseSkills';
 
 /** Força, Destreza e Constituição — os atributos "físicos" de T20. */
 const PHYSICAL_ATTRIBUTES: Atributo[] = [
@@ -292,6 +293,7 @@ export function getPowerSelectionRequirements(
             // Fontes sem a restrição de 1×/patamar (ex.: Aspirante a Herói)
             // podem repetir um atributo já aumentado no patamar.
             oncePerTier: action.oncePerTier !== false,
+            increaseValue: action.value,
           },
         });
       }
@@ -1264,11 +1266,24 @@ export function getFilteredAvailableOptions(
  *
  * Retorna `null` quando o tipo não é contável aqui — o chamador deve tratar
  * como "não bloquear", para que um tipo novo nunca prenda o assistente.
+ *
+ * `intelligence` é o valor atual de Inteligência da ficha: com ele, um
+ * `increaseAttribute` em Inteligência só conta como feito depois que as
+ * perícias que o aumento concede foram escolhidas.
  */
 export function countRequirementSelections(
   requirement: PowerSelectionRequirement,
-  selections?: SelectionOptions
+  selections?: SelectionOptions,
+  intelligence?: number
 ): number | null {
+  if (
+    intelligence !== undefined &&
+    getIntelligenceSkillsPick(requirement, selections, intelligence) >
+      (selections?.intelligenceSkills?.length ?? 0)
+  ) {
+    return 0;
+  }
+
   switch (requirement.type) {
     case 'learnSkill':
       return selections?.skills?.length ?? 0;
@@ -1530,6 +1545,27 @@ export function validateSelections(
       errors.push(
         `${requirement.label}: esperado ${expectedPick}, selecionado ${selectedCount}`
       );
+    }
+
+    // Aumento de Inteligência treina perícias novas — a escolha delas faz
+    // parte do requisito.
+    if (type === 'increaseAttribute') {
+      const intelligenceSkillsPick = getIntelligenceSkillsPick(
+        requirement,
+        selections,
+        sheet.atributos?.[Atributo.INTELIGENCIA]?.value ?? 0
+      );
+      const intelligenceSkills = selections.intelligenceSkills || [];
+      if (intelligenceSkills.length !== intelligenceSkillsPick) {
+        errors.push(
+          `Perícias por aumento de Inteligência: esperado ${intelligenceSkillsPick}, selecionado ${intelligenceSkills.length}`
+        );
+      }
+      intelligenceSkills
+        .filter((skill) => (sheet.skills ?? []).includes(skill as Skill))
+        .forEach((skill) => {
+          errors.push(`Seleção inválida: ${skill} já é treinada`);
+        });
     }
 
     // Tipos cuja lista de opções é montada pelo próprio componente (o

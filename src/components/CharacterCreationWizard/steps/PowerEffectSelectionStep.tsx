@@ -44,6 +44,7 @@ import {
   getGrantedPowerRequirements,
   resolveLearnSkillRemainingPick,
 } from '@/functions/powers/manualPowerSelection';
+import { getIntelligenceSkillsPick } from '@/functions/powers/intelligenceIncreaseSkills';
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
@@ -64,6 +65,7 @@ import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import ClassAbilitySelectionField from './ClassAbilitySelectionField';
 import MashinSelectionField from './MashinSelectionField';
 import AmbicaoHerdadaSelectionField from './AmbicaoHerdadaSelectionField';
+import IntelligenceIncreaseSkillField from './IntelligenceIncreaseSkillField';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -278,6 +280,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Poder escolhido no Alma Livre entra na lista da Futura Lenda
       almaLivrePower: selections['Alma Livre']?.almaLivrePower,
     } as unknown as CharacterSheet);
+
+  // Inteligência antes do aumento — base para as perícias que ele concede.
+  const currentIntelligence =
+    sheetForFiltering.atributos?.[Atributo.INTELIGENCIA]?.value ?? 0;
 
   // Auto-select for requirements with a single available option and pick === 1.
   // Covers race abilities like Couraça Rúbea/Disforme (Kaijin) that use
@@ -548,6 +554,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       ...powerSelections,
       [updateKey]: newItems,
     };
+
+    // As perícias por Inteligência valem para o atributo escolhido antes.
+    if (updateKey === 'attributes') {
+      delete nextPowerSelections.intelligenceSkills;
+    }
 
     // Trocar o ramo de um `chooseFromOptions` tem que zerar o que o ramo
     // ANTERIOR respondeu — senão o handler do ramo novo consome a resposta
@@ -2054,6 +2065,30 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               })}
             </RadioGroup>
           </FormControl>
+          {type === 'increaseAttribute' && (
+            <IntelligenceIncreaseSkillField
+              pick={getIntelligenceSkillsPick(
+                requirement,
+                powerSelections,
+                currentIntelligence
+              )}
+              intelligence={currentIntelligence}
+              increase={requirement.metadata?.increaseValue ?? 1}
+              trainedSkills={sheetForFiltering.skills ?? []}
+              selectedSkills={
+                (powerSelections.intelligenceSkills ?? []) as Skill[]
+              }
+              onChange={(skills) =>
+                onChange({
+                  ...selections,
+                  [powerName]: {
+                    ...powerSelections,
+                    intelligenceSkills: skills,
+                  },
+                })
+              }
+            />
+          )}
           {renderGrantedPowerRequirements()}
         </Box>
       );

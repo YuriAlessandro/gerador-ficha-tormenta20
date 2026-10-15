@@ -91,7 +91,8 @@ export function resolveAutoSelections(
  * Junta a escolha nova com o que o poder já tinha registrado.
  *
  * Poder repetível **acumula** perícias, proficiências, poderes, magias e armas
- * — cada repetição concede mais um. `attributes` é a exceção deliberada: sobrescreve,
+ * — cada repetição concede mais um. `attributes` (com as `intelligenceSkills`
+ * que dependem dele) é a exceção deliberada: sobrescreve,
  * porque cada aplicação de um poder de aumento de atributo só deve mexer no
  * atributo recém-escolhido, não em todos os já escolhidos.
  *
@@ -126,6 +127,8 @@ export function mergeSelections(
   }
   if (incoming.attributes) {
     combined.attributes = incoming.attributes;
+    // As perícias por Inteligência acompanham o atributo desta aplicação.
+    combined.intelligenceSkills = incoming.intelligenceSkills;
   }
 
   return combined;

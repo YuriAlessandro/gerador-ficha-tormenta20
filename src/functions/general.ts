@@ -7,6 +7,10 @@ import {
 import { getClassFamilyName, isSameClassFamily } from './classFamily';
 import { resolveHerancaPower } from './powers/feiticeiroHeranca';
 import {
+  getIntelligenceIncreaseSkillCount,
+  getIntelligenceSkillOptions,
+} from './powers/intelligenceIncreaseSkills';
+import {
   createAlwaysActiveSpell,
   createTruqueSpell,
 } from './spells/spellVariants';
@@ -2580,10 +2584,71 @@ export const applyPower = (
           targetAttribute = getRandomItemFromArray(availableAttributes);
         }
 
+        // Perícias escolhidas para os aumentos de Inteligência desta ação,
+        // consumidas na ordem em que os aumentos acontecem.
+        const manualIntelligenceSkills = (
+          (manualSelections?.intelligenceSkills ?? []) as Skill[]
+        ).slice();
+
+        // Aumentar a Inteligência (de forma permanente) treina perícias novas
+        // (JdA, "Escolhendo Perícias"). Elas entram na MESMA entrada de
+        // histórico do aumento, para sair junto quando o poder é removido ou o
+        // nível é revertido.
+        const increaseAttributeValue = (
+          attribute: Atributo
+        ): SheetActionReceipt[] => {
+          const before = sheet.atributos[attribute].value;
+          sheet.atributos[attribute].value += incValue;
+          const changes: SheetActionReceipt[] = [
+            {
+              type: 'AttributeIncreasedByAumentoDeAtributo',
+              attribute,
+              plateau: getCurrentPlateau(sheet),
+              // Aumentos sem a restrição (ex.: Aspirante a Herói) não podem
+              // bloquear o atributo para o Aumento de Atributo do patamar.
+              oncePerTier,
+            },
+          ];
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aumenta o atributo ${attribute} por +${incValue}`,
+          });
+
+          if (attribute !== Atributo.INTELIGENCIA) return changes;
+          const skillCount = getIntelligenceIncreaseSkillCount(
+            before,
+            incValue
+          );
+          if (skillCount <= 0) return changes;
+
+          const options = getIntelligenceSkillOptions(sheet.skills);
+          const manual = manualIntelligenceSkills
+            .splice(0, skillCount)
+            .filter((skill) => !sheet.skills.includes(skill));
+          const skills = [
+            ...manual,
+            ...pickFromAllowed(
+              options.filter((skill) => !manual.includes(skill)),
+              skillCount - manual.length
+            ),
+          ];
+          if (skills.length === 0) return changes;
+
+          sheet.skills.push(...skills);
+          changes.push({ type: 'SkillsAdded', skills });
+          skills.forEach((skill) => {
+            subSteps.push({
+              name: getSourceName(sheetAction.source),
+              value: `Aprende a perícia ${skill} (aumento de Inteligência)`,
+            });
+          });
+          return changes;
+        };
+
         // Only apply if we found a valid target attribute
         if (targetAttribute && sheet.atributos[targetAttribute]) {
           chosenHere.push(targetAttribute);
-          sheet.atributos[targetAttribute].value += incValue;
+          const firstChanges = increaseAttributeValue(targetAttribute);
 
           // Persiste a escolha (homebrew com optionKey) para o replay no recalc.
           if (optionKey) {
@@ -2596,20 +2661,7 @@ export const applyPower = (
           sheet.sheetActionHistory.push({
             source: sheetAction.source,
             powerName: powerOrAbility.name,
-            changes: [
-              {
-                type: 'AttributeIncreasedByAumentoDeAtributo',
-                attribute: targetAttribute,
-                plateau: getCurrentPlateau(sheet),
-                // Aumentos sem a restrição (ex.: Aspirante a Herói) não podem
-                // bloquear o atributo para o Aumento de Atributo do patamar.
-                oncePerTier,
-              },
-            ],
-          });
-          subSteps.push({
-            name: getSourceName(sheetAction.source),
-            value: `Aumenta o atributo ${targetAttribute} por +${incValue}`,
+            changes: firstChanges,
           });
 
           // Pontos restantes da mesma ação (ex.: "3 pontos para distribuir").
@@ -2630,22 +2682,10 @@ export const applyPower = (
                   ) ?? getRandomItemFromArray(remaining);
 
             chosenHere.push(next);
-            sheet.atributos[next].value += incValue;
             sheet.sheetActionHistory.push({
               source: sheetAction.source,
               powerName: powerOrAbility.name,
-              changes: [
-                {
-                  type: 'AttributeIncreasedByAumentoDeAtributo',
-                  attribute: next,
-                  plateau: getCurrentPlateau(sheet),
-                  oncePerTier,
-                },
-              ],
-            });
-            subSteps.push({
-              name: getSourceName(sheetAction.source),
-              value: `Aumenta o atributo ${next} por +${incValue}`,
+              changes: increaseAttributeValue(next),
             });
           }
         } else {

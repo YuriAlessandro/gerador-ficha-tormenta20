@@ -2348,7 +2348,11 @@ const CharacterCreationWizardModal: React.FC<
           if (req.optional) return true;
 
           const ownSelections = effectSelections[selectionKey];
-          const count = countRequirementSelections(req, ownSelections);
+          const count = countRequirementSelections(
+            req,
+            ownSelections,
+            finalAttributeModifiers[Atributo.INTELIGENCIA]
+          );
           // Tipo não contável: não bloquear o assistente
           if (count === null) return true;
 
