@@ -154,6 +154,11 @@ import {
 import { resetOriginPowerChoice } from './originBenefits';
 import { getSpellDisplayName } from './spells/spellDisplayName';
 import {
+  buildAppendSpellSchoolUpdates,
+  findSchoolTargetByFamily,
+  spellSchoolFromLabel,
+} from './spells/spellSchoolEditing';
+import {
   GeneralPower,
   OriginPower,
   PowerGetter,
@@ -3391,8 +3396,13 @@ export const applyPower = (
           });
         }
       } else if (sheetAction.action.type === 'chooseFromOptions') {
-        const { optionKey, options, linkedTo, applyChosenAttributeTo } =
-          sheetAction.action;
+        const {
+          optionKey,
+          options,
+          linkedTo,
+          applyChosenAttributeTo,
+          appendChosenSpellSchoolTo,
+        } = sheetAction.action;
         const pick = sheetAction.action.pick ?? 1;
 
         // Resolve os nomes escolhidos (com repetição quando permitido). Suporta
@@ -3449,7 +3459,17 @@ export const applyPower = (
           !applyChosenAttributeTo
         ) {
           // Fallback aleatório respeitando `repeatable` e a quantidade `pick`.
-          const pool = [...options];
+          // Escola adicional: o sorteio evita as escolas que a classe já tem.
+          const ownedSchools = appendChosenSpellSchoolTo
+            ? findSchoolTargetByFamily(sheet, appendChosenSpellSchoolTo)
+                ?.schools ?? []
+            : [];
+          const pool = options.filter((opt) => {
+            const school = appendChosenSpellSchoolTo
+              ? spellSchoolFromLabel(opt.name)
+              : undefined;
+            return !school || !ownedSchools.includes(school);
+          });
           while (chosenNames.length < pick && pool.length > 0) {
             const opt = getRandomItemFromArray(pool);
             chosenNames.push(opt.name);
@@ -3487,6 +3507,23 @@ export const applyPower = (
               sheet.overrideKeyAttribute = chosenAttr;
             }
           }
+        }
+
+        // Escola adicional (Xamã Místico): acrescenta às escolas da classe.
+        // Idempotente — o replay com a escolha persistida não duplica.
+        if (appendChosenSpellSchoolTo) {
+          chosenNames.forEach((name) => {
+            const school = spellSchoolFromLabel(name);
+            if (!school) return;
+            Object.assign(
+              sheet,
+              buildAppendSpellSchoolUpdates(
+                sheet,
+                appendChosenSpellSchoolTo,
+                school
+              )
+            );
+          });
         }
 
         const chosenOptions = chosenNames
@@ -4203,6 +4240,55 @@ function getAndApplyPowers(
   return updatedSheet;
 }
 
+/**
+ * Quanto os bônus de PM `LevelCalc` crescem na subida de nível que acabou de
+ * acontecer (`sheet.nivel` já incrementado). `{level}` é o nível total;
+ * `{classLevel}` é o nível na classe dona do bônus (`source.className`, ex.:
+ * Xamã Místico = +1 PM por nível de druida) — só cresce quando a classe
+ * subida é a dona. Sem `source.className`, vale a classe subida.
+ */
+function getLevelCalcPMIncrement(
+  sheet: CharacterSheet,
+  leveledClass: Pick<ClassDescription, 'name' | 'isVariant' | 'baseClassName'>
+): number {
+  const leveledClassName = leveledClass.name;
+  const newLevel = sheet.nivel;
+  const oldLevel = newLevel - 1;
+  let total = 0;
+  sheet.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type !== 'PM' || bonus.modifier.type !== 'LevelCalc') {
+      return;
+    }
+    const { formula } = bonus.modifier;
+    const ownerClass =
+      bonus.source?.type === 'power' && bonus.source.className
+        ? bonus.source.className
+        : leveledClassName;
+    const ownerLeveled = isSameClassFamily({ name: ownerClass }, leveledClass);
+    const newClassLevel = getClassLevel(
+      sheet,
+      ownerLeveled ? leveledClassName : ownerClass
+    );
+    const oldClassLevel = ownerLeveled ? newClassLevel - 1 : newClassLevel;
+
+    const calcBonus = (level: number, classLevel: number): number => {
+      const filledFormula = formula
+        .replace(/{level}/g, level.toString())
+        .replace(/{classLevel}/g, classLevel.toString());
+      try {
+        // eslint-disable-next-line no-eval
+        return eval(filledFormula);
+      } catch {
+        return 0;
+      }
+    };
+
+    total +=
+      calcBonus(newLevel, newClassLevel) - calcBonus(oldLevel, oldClassLevel);
+  });
+  return total;
+}
+
 function levelUp(
   sheet: CharacterSheet,
   supplements: SupplementId[] = [SupplementId.TORMENTA20_CORE]
@@ -4229,33 +4315,10 @@ function levelUp(
 
   // Calculate PM bonus from sheetBonuses that scale with level
   // We need to add the incremental bonus for the new level
-  let levelCalcPMBonus = 0;
-  updatedSheet.sheetBonuses.forEach((bonus) => {
-    if (bonus.target.type === 'PM' && bonus.modifier.type === 'LevelCalc') {
-      // For LevelCalc, calculate the bonus at new level vs old level
-      // Since we already incremented nivel, old level is nivel - 1
-      const oldLevel = updatedSheet.nivel - 1;
-      const newLevel = updatedSheet.nivel;
-      const { formula } = bonus.modifier as {
-        type: 'LevelCalc';
-        formula: string;
-      };
-
-      const calcBonus = (level: number) => {
-        const filledFormula = formula.replace('{level}', level.toString());
-        try {
-          // eslint-disable-next-line no-eval
-          return eval(filledFormula);
-        } catch {
-          return 0;
-        }
-      };
-
-      const oldBonus = calcBonus(oldLevel);
-      const newBonus = calcBonus(newLevel);
-      levelCalcPMBonus += newBonus - oldBonus;
-    }
-  });
+  const levelCalcPMBonus = getLevelCalcPMIncrement(
+    updatedSheet,
+    updatedSheet.classe
+  );
 
   const newPmTotal =
     updatedSheet.pm + updatedSheet.classe.addpm + levelCalcPMBonus;
@@ -4683,33 +4746,10 @@ export function applyManualLevelUp(
 
   // Calculate PM bonus from sheetBonuses that scale with level
   // We need to add the incremental bonus for the new level
-  let levelCalcPMBonus = 0;
-  updatedSheet.sheetBonuses.forEach((bonus) => {
-    if (bonus.target.type === 'PM' && bonus.modifier.type === 'LevelCalc') {
-      // For LevelCalc, calculate the bonus at new level vs old level
-      // Since we already incremented nivel, old level is nivel - 1
-      const oldLevel = updatedSheet.nivel - 1;
-      const newLevel = updatedSheet.nivel;
-      const { formula } = bonus.modifier as {
-        type: 'LevelCalc';
-        formula: string;
-      };
-
-      const calcBonus = (level: number) => {
-        const filledFormula = formula.replace('{level}', level.toString());
-        try {
-          // eslint-disable-next-line no-eval
-          return eval(filledFormula);
-        } catch {
-          return 0;
-        }
-      };
-
-      const oldBonus = calcBonus(oldLevel);
-      const newBonus = calcBonus(newLevel);
-      levelCalcPMBonus += newBonus - oldBonus;
-    }
-  });
+  const levelCalcPMBonus = getLevelCalcPMIncrement(
+    updatedSheet,
+    activeClassForCalc
+  );
 
   const newPmTotal = updatedSheet.pm + pmFromClass + levelCalcPMBonus;
 

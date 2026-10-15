@@ -1,7 +1,13 @@
-import CharacterSheet, { Step } from '../../interfaces/CharacterSheet';
+import CharacterSheet, {
+  SheetAction,
+  Step,
+} from '../../interfaces/CharacterSheet';
+import { ClassDescription } from '../../interfaces/Class';
+import { ManualPowerSelections } from '../../interfaces/PowerSelections';
 import { Spell, SpellSchool } from '../../interfaces/Spells';
 import { SCHOOL_LABELS } from '../../components/SpellPicker/schoolLabels';
 import { findClassDescription } from '../multiclass';
+import { getClassFamilyName } from '../classFamily';
 import { getSchoolChoiceConfig, SchoolChoiceConfig } from '../spellPathUtils';
 
 /**
@@ -26,7 +32,7 @@ export function getEditableSchoolTargets(
 ): EditableSchoolTarget[] {
   const targets: EditableSchoolTarget[] = [];
 
-  const mainConfig = getSchoolChoiceConfig(sheet.classe);
+  const mainConfig = getSchoolChoiceConfig(sheet.classe, sheet);
   if (mainConfig && sheet.classe.spellPath) {
     targets.push({
       className: sheet.classe.name,
@@ -43,7 +49,7 @@ export function getEditableSchoolTargets(
         serialized.className,
         serialized.classSubname
       );
-      const config = classDesc ? getSchoolChoiceConfig(classDesc) : null;
+      const config = classDesc ? getSchoolChoiceConfig(classDesc, sheet) : null;
       if (!config) return;
       targets.push({
         className,
@@ -196,4 +202,73 @@ export function describeChosenSpellSchools(schools: SpellSchool[]): string {
       ? `${labels.slice(0, -1).join(', ')} e ${labels[labels.length - 1]}`
       : labels[0];
   return `Escolas escolhidas: ${list}.`;
+}
+
+/** "Abjuração" → "Abjur". `undefined` para rótulo desconhecido. */
+export function spellSchoolFromLabel(label: string): SpellSchool | undefined {
+  return (Object.keys(SCHOOL_LABELS) as SpellSchool[]).find(
+    (school) => SCHOOL_LABELS[school] === label
+  );
+}
+
+/**
+ * Classe da ficha (principal ou multiclasse) da família `family` que escolhe
+ * escolas — ex.: o Druida que recebe a escola de Xamã Místico.
+ */
+export function findSchoolTargetByFamily(
+  sheet: CharacterSheet,
+  family: string
+): EditableSchoolTarget | undefined {
+  return getEditableSchoolTargets(sheet).find((target) => {
+    if (target.isMainClass) return getClassFamilyName(sheet.classe) === family;
+    const serialized = sheet.multiclassSpellPaths?.[target.className];
+    const classDesc = serialized
+      ? findClassDescription(serialized.className, serialized.classSubname)
+      : undefined;
+    return !!classDesc && getClassFamilyName(classDesc) === family;
+  });
+}
+
+/**
+ * Acrescenta uma escola à classe da família `family` (sem duplicar). Devolve
+ * as atualizações da ficha, ou `{}` quando não há classe ou ela já tem a
+ * escola. Mesmo caminho de gravação do editor de escolas.
+ */
+export function buildAppendSpellSchoolUpdates(
+  sheet: CharacterSheet,
+  family: string,
+  school: SpellSchool
+): Partial<CharacterSheet> {
+  const target = findSchoolTargetByFamily(sheet, family);
+  if (!target || target.schools.includes(school)) return {};
+  const updates = buildSpellSchoolUpdates(sheet, {
+    [target.className]: [...target.schools, school],
+  });
+  // O passo de "Edição Manual" do editor não se aplica — o poder registra o
+  // próprio passo.
+  delete updates.steps;
+  return updates;
+}
+
+/**
+ * Escolas que um poder ainda não aplicado vai acrescentar à classe `classe`
+ * (escolha de `appendChosenSpellSchoolTo` já feita no assistente). O passo de
+ * magias do level-up vem depois do de efeitos do poder, então as magias da
+ * escola nova já entram no pool do mesmo nível.
+ */
+export function getPendingAppendedSchools(
+  power: { name: string; sheetActions?: SheetAction[] } | undefined,
+  selections: ManualPowerSelections | undefined,
+  classe: Pick<ClassDescription, 'name' | 'isVariant' | 'baseClassName'>
+): SpellSchool[] {
+  if (!power?.sheetActions) return [];
+  const appendsHere = power.sheetActions.some(
+    ({ action }) =>
+      action.type === 'chooseFromOptions' &&
+      action.appendChosenSpellSchoolTo === getClassFamilyName(classe)
+  );
+  if (!appendsHere) return [];
+  return (selections?.[power.name]?.chosenOption ?? [])
+    .map((label) => spellSchoolFromLabel(label))
+    .filter((school): school is SpellSchool => !!school);
 }

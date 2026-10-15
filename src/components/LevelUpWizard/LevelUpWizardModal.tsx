@@ -78,6 +78,7 @@ import {
   countTowardsCrossMinimum,
   getSchoolChoiceConfig,
 } from '@/functions/spellPathUtils';
+import { getPendingAppendedSchools } from '@/functions/spells/spellSchoolEditing';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
   countNaturalWeapons,
@@ -702,6 +703,20 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       ...getCharacterPowerNames(simulatedSheet),
       ...(pendingPowerName ? [pendingPowerName] : []),
     ];
+
+    // Escola adicional escolhida NESTE nível (Xamã Místico): as magias dela já
+    // entram no pool. Sem `schools`, a classe aprende de todas — nada a somar.
+    const pendingSchools = getPendingAppendedSchools(
+      getSelectedPower(currentLevelSelection),
+      currentLevelSelection.powerEffectSelections,
+      selectedClassDesc || simulatedSheet.classe
+    );
+    if (pendingSchools.length > 0 && spellPath.schools) {
+      spellPath = {
+        ...spellPath,
+        schools: Array.from(new Set([...spellPath.schools, ...pendingSchools])),
+      };
+    }
 
     const pool = buildSpellPool({
       spellPath,

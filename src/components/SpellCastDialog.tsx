@@ -39,7 +39,7 @@ import {
   isTruqueAprimoramento,
   AugmentedRoll,
 } from '@/functions/spellRollAugmentation';
-import { Spell, Aprimoramento } from '../interfaces/Spells';
+import { Spell, Aprimoramento, CastAugment } from '../interfaces/Spells';
 import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { getSpellDisplayName } from '../functions/spells/spellDisplayName';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
@@ -122,7 +122,14 @@ interface SpellCastDialogProps {
   tempPM?: number;
   // `castLogged` diz se este diálogo já publicou o card do lançamento no
   // histórico — a ficha usa isso pra não publicar um segundo card igual.
-  onCast: (pmSpent: number, spell: Spell, castLogged?: boolean) => void;
+  // `castAugments` são os aprimoramentos escolhidos — o efeito ativo da magia
+  // usa para pré-selecionar o tier pago.
+  onCast: (
+    pmSpent: number,
+    spell: Spell,
+    castLogged?: boolean,
+    castAugments?: CastAugment[]
+  ) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
   /** Teste obrigatório antes do lançamento (Usurpar). */
@@ -551,7 +558,18 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     // Sempre repassa o lançamento (com 0 PM quando o jogador opta por não
     // gastar) para que o efeito ativo da magia, se houver, seja oferecido.
     // Na falha do teste não há efeito a oferecer — a magia não aconteceu.
-    onCast(pmSpent, spell, castLogged);
+    const castAugments: CastAugment[] = [];
+    selections.forEach((count, index) => {
+      const aprimoramento = spell.aprimoramentos?.[index];
+      if (aprimoramento && count > 0) {
+        castAugments.push({
+          text: aprimoramento.text,
+          addPm: aprimoramento.addPm,
+          count,
+        });
+      }
+    });
+    onCast(pmSpent, spell, castLogged, castAugments);
 
     onClose();
   }, [
@@ -569,6 +587,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     logExternalRoll,
     willLogViaEffect,
     spell,
+    selections,
     characterName,
   ]);
 

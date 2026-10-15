@@ -1,5 +1,7 @@
 import { ClassPower } from '../../../../../interfaces/Class';
 import { RequirementType } from '../../../../../interfaces/Poderes';
+import { allSpellSchools } from '../../../../../interfaces/Spells';
+import { SCHOOL_LABELS } from '../../../../../components/SpellPicker/schoolLabels';
 
 /**
  * Poderes de Druida do suplemento Heróis de Arton
@@ -176,6 +178,34 @@ const DRUIDA_POWERS: ClassPower[] = [
     text: 'Você recebe +1 PM por nível de druida, pode aprender e lançar magias de uma escola adicional e a CD para resistir a suas magias aumenta em +1.',
     requirements: [
       [{ type: RequirementType.TEXT, text: 'Não possuir Forma Selvagem' }],
+    ],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Xamã Místico', className: 'Druida' },
+        target: { type: 'PM' },
+        modifier: { type: 'LevelCalc', formula: '{classLevel}' },
+      },
+      {
+        source: { type: 'power', name: 'Xamã Místico', className: 'Druida' },
+        target: { type: 'SpellDC' },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
+    // A escola adicional é acrescentada às escolas do Druida; o limite de
+    // escolas do editor sobe junto (`getSchoolChoiceConfig` com a ficha).
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Xamã Místico', className: 'Druida' },
+        action: {
+          type: 'chooseFromOptions',
+          optionKey: 'xamaMisticoEscola',
+          appendChosenSpellSchoolTo: 'Druida',
+          options: allSpellSchools.map((school) => ({
+            name: SCHOOL_LABELS[school],
+            text: `Você pode aprender e lançar magias de ${SCHOOL_LABELS[school]}.`,
+          })),
+        },
+      },
     ],
   },
 ];

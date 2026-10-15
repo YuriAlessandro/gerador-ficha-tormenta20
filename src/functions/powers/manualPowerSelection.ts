@@ -43,6 +43,10 @@ import {
 } from '../powers';
 import { getClassFamilyName, isSameClassFamily } from '../general';
 import { getActiveWaivers } from './prerequisiteWaivers';
+import {
+  findSchoolTargetByFamily,
+  spellSchoolFromLabel,
+} from '../spells/spellSchoolEditing';
 
 /** Força, Destreza e Constituição — os atributos "físicos" de T20. */
 const PHYSICAL_ATTRIBUTES: Atributo[] = [
@@ -344,6 +348,7 @@ export function getPowerSelectionRequirements(
           label: pick > 1 ? `Selecione ${pick} opções` : `Selecione uma opção`,
           metadata: {
             optionKey: action.optionKey,
+            spellSchoolFor: action.appendChosenSpellSchoolTo,
           },
         });
       }
@@ -1053,6 +1058,15 @@ export function getFilteredAvailableOptions(
     }
 
     case 'chooseFromOptions': {
+      // Escola adicional (Xamã Místico): esconde as escolas que a classe já tem.
+      const family = requirement.metadata?.spellSchoolFor;
+      if (family) {
+        const owned = findSchoolTargetByFamily(sheet, family)?.schools ?? [];
+        return (availableOptions as { name: string }[]).filter((option) => {
+          const school = spellSchoolFromLabel(option.name);
+          return !school || !owned.includes(school);
+        });
+      }
       // Options are pre-defined in the action, return as-is
       return availableOptions;
     }

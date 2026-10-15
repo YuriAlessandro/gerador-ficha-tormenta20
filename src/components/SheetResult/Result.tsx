@@ -67,7 +67,7 @@ import {
 } from '@/functions/multiclass';
 import { getCompanionLevels } from '@/functions/companionLevels';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { EngenhocaData, Spell } from '@/interfaces/Spells';
+import { CastAugment, EngenhocaData, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -341,6 +341,10 @@ const Result: React.FC<ResultProps> = (props) => {
   const [pendingSpellAbility, setPendingSpellAbility] =
     useState<RollAbilityMeta | null>(null);
   const [pendingSpellCastLogged, setPendingSpellCastLogged] = useState(false);
+  // Aprimoramentos do lançamento — o diálogo do efeito pré-seleciona o tier pago.
+  const [pendingSpellCastAugments, setPendingSpellCastAugments] = useState<
+    CastAugment[] | undefined
+  >(undefined);
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [effectsModalOpen, setEffectsModalOpen] = useState(false);
   const [levelUpWizardOpen, setLevelUpWizardOpen] = useState(false);
@@ -1311,7 +1315,12 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const handleSpellCast = useCallback(
-    (pmSpent: number, spell: Spell, castLogged?: boolean) => {
+    (
+      pmSpent: number,
+      spell: Spell,
+      castLogged?: boolean,
+      castAugments?: CastAugment[]
+    ) => {
       const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
       const tempConsumed = Math.min(currentTemp, pmSpent);
@@ -1363,6 +1372,7 @@ const Result: React.FC<ResultProps> = (props) => {
           // se publicou, descartar o efeito não deve publicar outro igual.
           setPendingSpellAbility(buildSpellAbilityMeta(spell, pmSpent));
           setPendingSpellCastLogged(Boolean(castLogged));
+          setPendingSpellCastAugments(castAugments);
         }
       }
     },
@@ -1383,6 +1393,7 @@ const Result: React.FC<ResultProps> = (props) => {
     }
     setSpellEffectDef(null);
     setPendingSpellAbility(null);
+    setPendingSpellCastAugments(undefined);
   }, [
     pendingSpellAbility,
     pendingSpellCastLogged,
@@ -3476,6 +3487,7 @@ const Result: React.FC<ResultProps> = (props) => {
             open={spellEffectDef !== null && canUseActiveEffects}
             definition={spellEffectDef}
             sheet={currentSheet}
+            castAugments={pendingSpellCastAugments}
             onClose={handleSpellEffectDismiss}
             onConfirm={(option) => {
               if (spellEffectDef) {
@@ -3485,6 +3497,7 @@ const Result: React.FC<ResultProps> = (props) => {
               }
               setSpellEffectDef(null);
               setPendingSpellAbility(null);
+              setPendingSpellCastAugments(undefined);
             }}
           />
 

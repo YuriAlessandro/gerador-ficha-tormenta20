@@ -335,6 +335,11 @@ export type SheetActionStep =
       // ativa do jogador), nunca no replay do recálculo — assim edições manuais
       // posteriores no editor prevalecem. Sem sorteio aleatório de fallback.
       applyChosenAttributeTo?: 'pm' | 'cd';
+      // Quando presente, o NOME de cada opção escolhida é o rótulo de uma escola
+      // de magia ("Abjuração") e ela é acrescentada às escolas da classe desta
+      // família (Xamã Místico → 'Druida'). O assistente esconde as escolas que a
+      // classe já tem, e o sorteio também as evita.
+      appendChosenSpellSchoolTo?: string;
     }
   | {
       type: 'trainSkillOrBonus';

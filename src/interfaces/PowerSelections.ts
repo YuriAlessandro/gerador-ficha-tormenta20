@@ -100,6 +100,9 @@ export interface PowerSelectionRequirement {
     schools?: string[];
     maxCircle?: number; // For learnAnySpellFromHighestCircle: teto de círculo
     optionKey?: string; // For chooseFromOptions: the option key identifier
+    // For chooseFromOptions com `appendChosenSpellSchoolTo`: família da classe
+    // cujas escolas já possuídas saem da lista.
+    spellSchoolFor?: string;
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
     immediateClassPower?: boolean; // Diferentão grants the selected power now
     minLevel?: number; // For getClassPower: nível em que os requisitos são avaliados
