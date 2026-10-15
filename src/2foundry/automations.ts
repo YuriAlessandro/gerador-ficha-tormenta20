@@ -136,7 +136,10 @@ function toChanges(
     const key = getChangeKey(bonus.target, isToggle);
     if (!key) return [];
     // O valor é resolvido agora, com o nível e os atributos atuais da ficha.
-    const value = calculateBonusValue(sheet, bonus.modifier, source);
+    // Atributo BASE: exportação não congela estado transitório de combate.
+    const value = calculateBonusValue(sheet, bonus.modifier, source, {
+      baseAttributes: true,
+    });
     return value ? [buildChange(key, value, 'add')] : [];
   });
 }
