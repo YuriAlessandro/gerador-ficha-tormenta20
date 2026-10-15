@@ -1,4 +1,5 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import { BonusCondition } from './CharacterSheet';
 import { ClassPower } from './Class';
 import Equipment from './Equipment';
 import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
@@ -135,6 +136,13 @@ export interface PowerSelectionRequirement {
     // For increaseAttribute: quanto o atributo sobe (padrão 1). Define quantas
     // perícias por Inteligência o aumento concede.
     increaseValue?: number;
+    // For increaseAttribute: atributos permitidos (ex.: Visconde só em
+    // Inteligência). Ausente = todos.
+    allowedAttributes?: Atributo[];
+    // Condição da ação (ex.: só no Caminho do Governante). Sem a ficha não dá
+    // para avaliar; quem filtra as opções (`getFilteredAvailableOptions`)
+    // devolve vazio quando ela não vale.
+    condition?: BonusCondition;
   };
 }
 

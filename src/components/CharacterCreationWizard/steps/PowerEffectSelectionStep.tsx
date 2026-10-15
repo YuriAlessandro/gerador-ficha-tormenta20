@@ -43,6 +43,7 @@ import {
   getFilteredAvailableOptions,
   getGrantedPowerRequirements,
   resolveLearnSkillRemainingPick,
+  isRequirementApplicable,
 } from '@/functions/powers/manualPowerSelection';
 import { getIntelligenceSkillsPick } from '@/functions/powers/intelligenceIncreaseSkills';
 import { getCurrentPlateau } from '@/functions/powers/general';
@@ -299,6 +300,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       'selectWeaponSpecialization',
       'selectFamiliar',
       'selectAnimalTotem',
+      // Aumento travado num atributo só (ex.: Visconde → Inteligência).
+      'increaseAttribute',
     ]);
 
     const updates: ManualPowerSelections = {};
@@ -349,6 +352,14 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             updates[entry.powerName] = {
               ...currentSelections,
               proficiencies: [onlyOption as string],
+            };
+            break;
+          }
+          case 'increaseAttribute': {
+            if (currentSelections.attributes?.length) return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              attributes: [onlyOption as string],
             };
             break;
           }
@@ -770,6 +781,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           )}
         </Box>
       );
+    }
+
+    // Ação de outro caminho (ex.: Rei Mercenário do Soldado para um
+    // Governante): não se aplica à ficha, então nem aparece.
+    if (!isRequirementApplicable(requirement, sheetForFiltering)) {
+      return null;
     }
 
     if (allAvailableOptions.length === 0) {

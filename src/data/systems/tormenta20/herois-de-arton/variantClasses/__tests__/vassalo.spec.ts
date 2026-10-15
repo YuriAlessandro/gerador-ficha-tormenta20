@@ -5,6 +5,13 @@ import { ClassAbility } from '../../../../../../interfaces/Class';
 import { Atributo } from '../../../atributos';
 import { createMockCharacterSheet } from '../../../../../../__mocks__/characterSheet';
 import { getForeignClassPowers } from '../../../../../../functions/powers';
+import { applyPower } from '../../../../../../functions/general';
+import {
+  getFilteredAvailableOptions,
+  getPowerSelectionRequirements,
+  isRequirementApplicable,
+} from '../../../../../../functions/powers/manualPowerSelection';
+import Skill from '../../../../../../interfaces/Skills';
 
 /**
  * O Vassalo é quase todo feito de concessões por nível ("recebe um poder de
@@ -198,14 +205,22 @@ describe('Vassalo', () => {
     });
 
     it('Visconde ramifica o benefício pelo caminho escolhido', () => {
-      const bonuses = byName('Visconde').sheetBonuses ?? [];
-
-      expect(bonuses).toHaveLength(2);
-      expect(bonuses[0].condition?.clauses).toContainEqual({
+      const [pv] = byName('Visconde').sheetBonuses ?? [];
+      expect(pv.target).toMatchObject({ type: 'PV' });
+      expect(pv.condition?.clauses).toContainEqual({
         kind: 'optionChosen',
         value: CAMINHO_SOLDADO,
       });
-      expect(bonuses[1].condition?.clauses).toContainEqual({
+
+      // +1 em Inteligência é aumento permanente (conta para as perícias por
+      // Inteligência), então é ação e não bônus de atributo efetivo.
+      const [aumento] = byName('Visconde').sheetActions ?? [];
+      expect(aumento.action).toMatchObject({
+        type: 'increaseAttribute',
+        allowedAttributes: [Atributo.INTELIGENCIA],
+        oncePerTier: false,
+      });
+      expect(aumento.condition?.clauses).toContainEqual({
         kind: 'optionChosen',
         value: CAMINHO_GOVERNANTE,
       });
@@ -247,6 +262,86 @@ describe('Vassalo', () => {
         (power) => power.name
       );
       if (!primeiro.canRepeat) expect(depois).not.toContain(primeiro.name);
+    });
+  });
+  describe('aumentos de Inteligência do Governante', () => {
+    const sheetOnPath = (path: string) => {
+      const sheet = createMockCharacterSheet();
+      sheet.nivel = 11;
+      sheet.sheetActionHistory = [
+        {
+          source: { type: 'power', name: 'Lorde' },
+          powerName: 'Lorde',
+          changes: [
+            {
+              type: 'OptionChosen',
+              optionKey: 'caminhoDoVassalo',
+              chosenName: path,
+              formattedText: path,
+            },
+          ],
+        },
+      ];
+      return sheet;
+    };
+
+    const attributeOptions = (abilityName: string, path: string) => {
+      const sheet = sheetOnPath(path);
+      return (
+        getPowerSelectionRequirements(byName(abilityName))?.requirements ?? []
+      ).map((requirement) => getFilteredAvailableOptions(requirement, sheet));
+    };
+
+    it('o seletor oferece só os atributos do caminho escolhido', () => {
+      expect(attributeOptions('Visconde', CAMINHO_GOVERNANTE)).toEqual([
+        [Atributo.INTELIGENCIA],
+      ]);
+      expect(attributeOptions('Visconde', CAMINHO_SOLDADO)).toEqual([[]]);
+
+      const [soldado, governante] = attributeOptions(
+        'Rei Mercenário',
+        CAMINHO_GOVERNANTE
+      );
+      expect(soldado).toEqual([]);
+      expect([...governante].sort()).toEqual(
+        [Atributo.CARISMA, Atributo.INTELIGENCIA, Atributo.SABEDORIA].sort()
+      );
+    });
+
+    it('Visconde do Governante aumenta a Inteligência e treina uma perícia', () => {
+      const sheet = sheetOnPath(CAMINHO_GOVERNANTE);
+      sheet.atributos[Atributo.INTELIGENCIA].value = 1;
+      sheet.skills = sheet.skills.filter((skill) => skill !== Skill.NOBREZA);
+      const before = [...sheet.skills];
+
+      const [after] = applyPower(sheet, byName('Visconde'), {
+        attributes: [Atributo.INTELIGENCIA],
+        intelligenceSkills: [Skill.NOBREZA],
+      });
+
+      expect(after.atributos[Atributo.INTELIGENCIA].value).toBe(2);
+      expect(after.skills).toEqual([...before, Skill.NOBREZA]);
+    });
+
+    it('o requisito do Visconde só existe para o Governante', () => {
+      const [requirement] =
+        getPowerSelectionRequirements(byName('Visconde'))?.requirements ?? [];
+
+      expect(
+        isRequirementApplicable(requirement, sheetOnPath(CAMINHO_GOVERNANTE))
+      ).toBe(true);
+      expect(
+        isRequirementApplicable(requirement, sheetOnPath(CAMINHO_SOLDADO))
+      ).toBe(false);
+    });
+
+    it('Visconde do Soldado não mexe na Inteligência', () => {
+      const sheet = sheetOnPath(CAMINHO_SOLDADO);
+      sheet.atributos[Atributo.INTELIGENCIA].value = 1;
+
+      const [after] = applyPower(sheet, byName('Visconde'));
+
+      expect(after.atributos[Atributo.INTELIGENCIA].value).toBe(1);
     });
   });
 });

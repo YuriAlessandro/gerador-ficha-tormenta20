@@ -46,6 +46,7 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
   countRequirementSelections,
+  isRequirementApplicable,
   resolvePowerRequirements,
   resolveLearnSkillRemainingPick,
   ResolvedRequirement,
@@ -787,7 +788,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   const needsAbilityEffectSelections = (): boolean =>
     getAbilitiesForCurrentLevel().some((ability) => {
       const requirements = getPowerSelectionRequirements(ability);
-      return requirements !== null && requirements.requirements.length > 0;
+      // Requisitos de outro caminho (Vassalo Soldado x Governante) não pedem
+      // nada — sem o filtro o passo aparecia vazio.
+      return (requirements?.requirements ?? []).some((requirement) =>
+        isRequirementApplicable(requirement, sheetForCurrentLevel)
+      );
     });
 
   // Habilidades de raça que concedem novas escolhas ("picks") ao subir de nível

@@ -5,8 +5,10 @@ import { findClassDescription } from '../multiclass';
 import { revertLastLevel } from '../revertLevel';
 import {
   getIntelligenceIncreaseSkillCount,
+  getIntelligenceSkillOptions,
   getIntelligenceSkillsPick,
 } from '../powers/intelligenceIncreaseSkills';
+import { CAMINHO_GOVERNANTE } from '../../data/systems/tormenta20/herois-de-arton/variantClasses/vassalo';
 import {
   countRequirementSelections,
   getPowerSelectionRequirements,
@@ -164,5 +166,54 @@ describe('perícias por aumento de Inteligência', () => {
     expect(validateSelections(requirements, withSkill, base).isValid).toBe(
       true
     );
+  });
+
+  test('Visconde do Governante (Vassalo 11) também treina a perícia', () => {
+    const supplements = [
+      SupplementId.TORMENTA20_CORE,
+      SupplementId.TORMENTA20_HEROIS_ARTON,
+    ];
+    const isGovernante = (sheet: CharacterSheet) =>
+      sheet.sheetActionHistory.some((entry) =>
+        entry.changes.some(
+          (change) =>
+            change.type === 'OptionChosen' &&
+            change.chosenName === CAMINHO_GOVERNANTE
+        )
+      );
+    let base: CharacterSheet | undefined;
+    for (let i = 0; i < 50 && !base; i += 1) {
+      const candidate = recalculateSheet(
+        generateRandomSheet({
+          nivel: 10,
+          raca: 'Anão',
+          classe: 'Vassalo',
+          origin: 'Aleatório',
+          devocao: { label: '--', value: '--' },
+          supplements,
+        })
+      );
+      if (isGovernante(candidate)) base = candidate;
+    }
+    if (!base) throw new Error('Nenhum Vassalo do Governante gerado');
+
+    base = _.cloneDeep(base);
+    base.atributos[Atributo.INTELIGENCIA].value = 1;
+    const chosen = getIntelligenceSkillOptions(base.skills)[0];
+    const up = levelUp(base, {
+      level: 11,
+      // O Vassalo não ganha poder no 11º nível: nenhum poder selecionado.
+      powerChoice: 'class',
+      abilityEffectSelections: {
+        Visconde: {
+          attributes: [Atributo.INTELIGENCIA],
+          intelligenceSkills: [chosen],
+        },
+      },
+    });
+
+    expect(up.atributos[Atributo.INTELIGENCIA].value).toBe(2);
+    expect(up.skills).toContain(chosen);
+    expect(up.skills).toHaveLength(base.skills.length + 1);
   });
 });
