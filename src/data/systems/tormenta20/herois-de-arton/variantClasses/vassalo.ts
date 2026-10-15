@@ -302,11 +302,20 @@ const VASSALO: VariantClassOverrides = {
           modifier: { type: 'LevelCalc', formula: '{classLevel}' },
           condition: { combinator: 'AND', clauses: [soldado] },
         },
+      ],
+      // "+1 em Inteligência" é aumento permanente do atributo — por isso ação
+      // e não bônus (que só mexe no atributo efetivo, como os temporários). Só
+      // assim conta para as perícias por Inteligência (JdA, "Escolhendo
+      // Perícias").
+      sheetActions: [
         {
           source: { type: 'power', name: 'Visconde' },
-          target: { type: 'Attribute', attribute: Atributo.INTELIGENCIA },
-          modifier: { type: 'Fixed', value: 1 },
           condition: { combinator: 'AND', clauses: [governante] },
+          action: {
+            type: 'increaseAttribute',
+            allowedAttributes: [Atributo.INTELIGENCIA],
+            oncePerTier: false,
+          },
         },
       ],
     },

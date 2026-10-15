@@ -46,6 +46,7 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
   countRequirementSelections,
+  isRequirementApplicable,
   resolvePowerRequirements,
   resolveLearnSkillRemainingPick,
   ResolvedRequirement,
@@ -58,6 +59,7 @@ import {
 } from '@/functions/powers/general';
 import { applyPower } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import Skill from '@/interfaces/Skills';
 import { getEffectiveAttributeModifier } from '@/functions/effectiveAttributes';
 import {
   getClassLevel,
@@ -771,7 +773,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   const needsAbilityEffectSelections = (): boolean =>
     getAbilitiesForCurrentLevel().some((ability) => {
       const requirements = getPowerSelectionRequirements(ability);
-      return requirements !== null && requirements.requirements.length > 0;
+      // Requisitos de outro caminho (Vassalo Soldado x Governante) não pedem
+      // nada — sem o filtro o passo aparecia vazio.
+      return (requirements?.requirements ?? []).some((requirement) =>
+        isRequirementApplicable(requirement, sheetForCurrentLevel)
+      );
     });
 
   // Habilidades de raça que concedem novas escolhas ("picks") ao subir de nível
@@ -1046,7 +1052,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         availableOptions.length
       );
 
-      const count = countRequirementSelections(req, effectSelections);
+      const count = countRequirementSelections(
+        req,
+        effectSelections,
+        sheetForCurrentLevel.atributos[Atributo.INTELIGENCIA]?.value ?? 0
+      );
       // Tipo não contável: não bloquear o assistente
       if (count === null) return true;
 
@@ -2076,19 +2086,41 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 sheetAction.action.type === 'increaseAttribute' &&
                 sheetAction.action.oncePerTier === false
             );
+            // O aumento e as perícias que ele treina (Inteligência) entram na
+            // ficha simulada: os próximos níveis precisam do valor novo para
+            // calcular outro aumento de Inteligência e não podem oferecer de
+            // novo uma perícia já escolhida.
+            nextSheet.atributos = { ...nextSheet.atributos };
+            const intelligenceSkills = (powerEffects.intelligenceSkills ??
+              []) as Skill[];
             const newHistoryEntries: SheetActionHistoryEntry[] =
-              powerEffects.attributes.map((attr) => ({
-                source: { type: 'power' as const, name: selectedPower.name },
-                powerName: selectedPower.name,
-                changes: [
-                  {
-                    type: 'AttributeIncreasedByAumentoDeAtributo' as const,
-                    attribute: attr as Atributo,
-                    plateau,
-                    oncePerTier,
-                  },
-                ],
-              }));
+              powerEffects.attributes.map((attr) => {
+                const attribute = attr as Atributo;
+                nextSheet.atributos[attribute] = {
+                  ...nextSheet.atributos[attribute],
+                  value: nextSheet.atributos[attribute].value + 1,
+                };
+                const skills =
+                  attribute === Atributo.INTELIGENCIA ? intelligenceSkills : [];
+                if (skills.length > 0) {
+                  nextSheet.skills = [...nextSheet.skills, ...skills];
+                }
+                return {
+                  source: { type: 'power' as const, name: selectedPower.name },
+                  powerName: selectedPower.name,
+                  changes: [
+                    {
+                      type: 'AttributeIncreasedByAumentoDeAtributo' as const,
+                      attribute,
+                      plateau,
+                      oncePerTier,
+                    },
+                    ...(skills.length > 0
+                      ? [{ type: 'SkillsAdded' as const, skills }]
+                      : []),
+                  ],
+                };
+              });
 
             nextSheet.sheetActionHistory = [
               ...(nextSheet.sheetActionHistory || []),

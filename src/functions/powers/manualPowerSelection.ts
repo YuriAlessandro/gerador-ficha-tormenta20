@@ -43,6 +43,8 @@ import {
 } from '../powers';
 import { getClassFamilyName, isSameClassFamily } from '../general';
 import { getActiveWaivers } from './prerequisiteWaivers';
+import { getIntelligenceSkillsPick } from './intelligenceIncreaseSkills';
+import { evaluateBonusCondition } from '../bonusConditions';
 
 /** Força, Destreza e Constituição — os atributos "físicos" de T20. */
 const PHYSICAL_ATTRIBUTES: Atributo[] = [
@@ -292,6 +294,9 @@ export function getPowerSelectionRequirements(
             // Fontes sem a restrição de 1×/patamar (ex.: Aspirante a Herói)
             // podem repetir um atributo já aumentado no patamar.
             oncePerTier: action.oncePerTier !== false,
+            increaseValue: action.value,
+            allowedAttributes: action.allowedAttributes,
+            condition: sheetAction.condition,
           },
         });
       }
@@ -747,6 +752,19 @@ export function isLearnSkillOptionAvailable(
 }
 
 /**
+ * O requisito vale para esta ficha? Falso quando a ação vem condicionada a
+ * algo que a ficha não tem (ex.: metade do Soldado do Rei Mercenário numa
+ * ficha do Caminho do Governante) — aí nem deve aparecer.
+ */
+export function isRequirementApplicable(
+  requirement: PowerSelectionRequirement,
+  sheet: CharacterSheet
+): boolean {
+  const condition = requirement.metadata?.condition;
+  return !condition || evaluateBonusCondition(sheet, condition);
+}
+
+/**
  * Filter available options based on what the character already has
  * @param requirement - The power selection requirement
  * @param sheet - The character sheet
@@ -997,7 +1015,13 @@ export function getFilteredAvailableOptions(
       const blockedByAge = isPhysicalIncreaseBlockedByAge(sheet.age?.bracket)
         ? PHYSICAL_ATTRIBUTES
         : [];
-      const availableAttributes = Object.values(Atributo).filter(
+      // Ação condicionada (ex.: Visconde só no Caminho do Governante): sem a
+      // condição não há o que escolher — e o requisito não trava o assistente.
+      if (!isRequirementApplicable(requirement, sheet)) return [];
+      const allowedAttributes = requirement.metadata?.allowedAttributes;
+      const availableAttributes = (
+        allowedAttributes ?? Object.values(Atributo)
+      ).filter(
         (attr) => !usedAttributes.includes(attr) && !blockedByAge.includes(attr)
       );
 
@@ -1264,11 +1288,24 @@ export function getFilteredAvailableOptions(
  *
  * Retorna `null` quando o tipo não é contável aqui — o chamador deve tratar
  * como "não bloquear", para que um tipo novo nunca prenda o assistente.
+ *
+ * `intelligence` é o valor atual de Inteligência da ficha: com ele, um
+ * `increaseAttribute` em Inteligência só conta como feito depois que as
+ * perícias que o aumento concede foram escolhidas.
  */
 export function countRequirementSelections(
   requirement: PowerSelectionRequirement,
-  selections?: SelectionOptions
+  selections?: SelectionOptions,
+  intelligence?: number
 ): number | null {
+  if (
+    intelligence !== undefined &&
+    getIntelligenceSkillsPick(requirement, selections, intelligence) >
+      (selections?.intelligenceSkills?.length ?? 0)
+  ) {
+    return 0;
+  }
+
   switch (requirement.type) {
     case 'learnSkill':
       return selections?.skills?.length ?? 0;
@@ -1530,6 +1567,27 @@ export function validateSelections(
       errors.push(
         `${requirement.label}: esperado ${expectedPick}, selecionado ${selectedCount}`
       );
+    }
+
+    // Aumento de Inteligência treina perícias novas — a escolha delas faz
+    // parte do requisito.
+    if (type === 'increaseAttribute') {
+      const intelligenceSkillsPick = getIntelligenceSkillsPick(
+        requirement,
+        selections,
+        sheet.atributos?.[Atributo.INTELIGENCIA]?.value ?? 0
+      );
+      const intelligenceSkills = selections.intelligenceSkills || [];
+      if (intelligenceSkills.length !== intelligenceSkillsPick) {
+        errors.push(
+          `Perícias por aumento de Inteligência: esperado ${intelligenceSkillsPick}, selecionado ${intelligenceSkills.length}`
+        );
+      }
+      intelligenceSkills
+        .filter((skill) => (sheet.skills ?? []).includes(skill as Skill))
+        .forEach((skill) => {
+          errors.push(`Seleção inválida: ${skill} já é treinada`);
+        });
     }
 
     // Tipos cuja lista de opções é montada pelo próprio componente (o
