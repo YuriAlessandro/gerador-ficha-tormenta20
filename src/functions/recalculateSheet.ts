@@ -552,7 +552,8 @@ const applyWeaponBonuses = (
         // disparo) têm um único modo relevante e são bakeadas normalmente.
         if (
           (bonus.target.type === 'WeaponDamage' ||
-            bonus.target.type === 'WeaponAttack') &&
+            bonus.target.type === 'WeaponAttack' ||
+            bonus.target.type === 'WeaponDamageStep') &&
           isModeScopedForWeapon(weapon, bonus.target)
         ) {
           return;

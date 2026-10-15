@@ -277,7 +277,7 @@ export interface LiveWeaponBonusContext {
 export function sumLiveWeaponBonuses(
   weapon: Equipment,
   bonuses: SheetBonus[] | undefined,
-  targetType: 'WeaponAttack' | 'WeaponDamage',
+  targetType: 'WeaponAttack' | 'WeaponDamage' | 'WeaponDamageStep',
   ctx: LiveWeaponBonusContext
 ): number {
   if (!bonuses?.length) return 0;

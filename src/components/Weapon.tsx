@@ -215,7 +215,10 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   // (arma híbrida de arremesso) e efeitos ativos sobre arma editada
   // manualmente. Ver `isLiveWeaponBonus`, que é o complemento exato do baking.
   const liveWeaponBonus = useCallback(
-    (targetType: 'WeaponDamage' | 'WeaponAttack', action?: WeaponAction) =>
+    (
+      targetType: 'WeaponDamage' | 'WeaponAttack' | 'WeaponDamageStep',
+      action?: WeaponAction
+    ) =>
       sumLiveWeaponBonuses(equipment, sheetBonuses, targetType, {
         atributos,
         nivel: nivel ?? 1,
@@ -241,6 +244,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
 
   const liveAttackBonus = useCallback(
     (action?: WeaponAction) => liveWeaponBonus('WeaponAttack', action),
+    [liveWeaponBonus]
+  );
+
+  const liveDamageSteps = useCallback(
+    (action?: WeaponAction) => liveWeaponBonus('WeaponDamageStep', action),
     [liveWeaponBonus]
   );
 
@@ -303,7 +311,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         damageModForAttribute(resolvedAttr) + liveDamageBonus(action);
 
       const previewStepDelta =
-        (action.damageStepDelta ?? 0) + arremessadorStepBonus(action);
+        (action.damageStepDelta ?? 0) +
+        arremessadorStepBonus(action) +
+        liveDamageSteps(action);
       // Action `dano` overrides carry only raw dice; re-apply the weapon's baked
       // flat bonus so the preview matches the actual roll.
       const baseActionDano = action.dano
@@ -336,6 +346,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       proficiencyPenalty,
       liveAttackBonus,
       liveDamageBonus,
+      liveDamageSteps,
       strengthThrowDelta,
     ]
   );
@@ -496,7 +507,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const damage = getWeaponDisplayDamage(
     equipment,
     atributos,
-    liveDamageBonus()
+    liveDamageBonus(),
+    liveDamageSteps()
   );
 
   const performWeaponRoll = useCallback(
@@ -528,7 +540,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       // Apply step delta to the chosen dano string (if any), including the
       // Hynne "Arremessador" +1 step on ranged/thrown attacks.
       const stepDelta =
-        (action?.damageStepDelta ?? 0) + arremessadorStepBonus(action);
+        (action?.damageStepDelta ?? 0) +
+        arremessadorStepBonus(action) +
+        liveDamageSteps(action);
       const adjustedDano =
         stepDelta !== 0 ? stepUpDamage(selectedDano, stepDelta) : selectedDano;
 
@@ -593,6 +607,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       proficiencyPenalty,
       liveAttackBonus,
       liveDamageBonus,
+      liveDamageSteps,
       strengthThrowDelta,
     ]
   );

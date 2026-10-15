@@ -569,6 +569,13 @@ export type StatModifierTarget =
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;
+      // Escopo por tipo de ataque/categoria (mesma semântica de WeaponDamage).
+      // Em arma híbrida de arremesso, o escopo por modo é aplicado ao vivo em
+      // Weapon.tsx (ver `isLiveWeaponBonus`), não bakeado.
+      meleeOnly?: boolean;
+      rangedOnly?: boolean;
+      thrownOnly?: boolean;
+      weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
   | {
       /**
