@@ -14,6 +14,7 @@ export interface SelectionOptions {
   powers?: GeneralPower[];
   spells?: Spell[];
   attributes?: string[]; // Atributo names like 'Força', 'Destreza', etc.
+  intelligenceSkills?: string[]; // Perícias treinadas por aumentar a Inteligência (increaseAttribute)
   weapons?: string[]; // Weapon names for specialization
   familiars?: string[]; // Familiar names for selection
   animalTotems?: string[]; // Animal totem names for selection
@@ -131,6 +132,9 @@ export interface PowerSelectionRequirement {
     // For increaseAttribute: `false` quando a fonte não tem a restrição de
     // 1×/patamar do poder Aumento de Atributo (ex.: Aspirante a Herói).
     oncePerTier?: boolean;
+    // For increaseAttribute: quanto o atributo sobe (padrão 1). Define quantas
+    // perícias por Inteligência o aumento concede.
+    increaseValue?: number;
   };
 }
 

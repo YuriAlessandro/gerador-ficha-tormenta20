@@ -18,6 +18,8 @@ import {
   TextField,
 } from '@mui/material';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import Skill from '@/interfaces/Skills';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
   PowerSelectionRequirements,
   SelectionOptions,
@@ -34,6 +36,8 @@ import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { dataRegistry } from '@/data/registry';
 import AlmaLivreSelectionField from '@/components/CharacterCreationWizard/steps/AlmaLivreSelectionField';
+import IntelligenceIncreaseSkillField from '@/components/CharacterCreationWizard/steps/IntelligenceIncreaseSkillField';
+import { getIntelligenceSkillsPick } from '@/functions/powers/intelligenceIncreaseSkills';
 
 /** Acima disso, a lista de poderes ganha campo de busca. */
 const SEARCH_THRESHOLD = 12;
@@ -228,7 +232,12 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
         newAttributes = currentAttributes.filter((a) => a !== attribute);
       }
 
-      return { ...prev, attributes: newAttributes };
+      // As perícias por Inteligência valem para o atributo escolhido antes.
+      return {
+        ...prev,
+        attributes: newAttributes,
+        intelligenceSkills: undefined,
+      };
     });
   };
 
@@ -318,6 +327,10 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
       return { ...prev, animalTotems: newTotems };
     });
   };
+
+  // Inteligência antes do aumento — base para as perícias que ele concede.
+  const currentIntelligence =
+    sheet.atributos?.[Atributo.INTELIGENCIA]?.value ?? 0;
 
   const handleConfirm = () => {
     const validation = validateSelections(
@@ -771,6 +784,23 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                 ))}
               </RadioGroup>
             </FormControl>
+            <IntelligenceIncreaseSkillField
+              pick={getIntelligenceSkillsPick(
+                requirement,
+                selections,
+                currentIntelligence
+              )}
+              intelligence={currentIntelligence}
+              increase={requirement.metadata?.increaseValue ?? 1}
+              trainedSkills={sheet.skills ?? []}
+              selectedSkills={(selections.intelligenceSkills ?? []) as Skill[]}
+              onChange={(skills) =>
+                setSelections((prev) => ({
+                  ...prev,
+                  intelligenceSkills: skills,
+                }))
+              }
+            />
           </Box>
         );
       }
