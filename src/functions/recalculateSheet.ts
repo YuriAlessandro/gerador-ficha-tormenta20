@@ -297,8 +297,19 @@ export const calculateBonusValue = (
     capByLevel?: boolean;
     capByAttribute?: string;
   },
-  source?: SheetChangeSource
+  source?: SheetChangeSource,
+  options?: { baseAttributes?: boolean }
 ): number => {
+  // Modifiers que leem atributo ("soma sua Inteligência em Ladinagem") usam o
+  // valor EFETIVO, para que um bônus temporário (Mente Divina, Forma Selvagem,
+  // caixa manual) chegue também à parcela somada pelo poder — ver
+  // `functions/effectiveAttributes.ts`. `baseAttributes` é para as exceções
+  // documentadas lá: PV/PM, a própria redução do Step 7.46 e as exportações.
+  const attrMod = (attr: Atributo): number =>
+    options?.baseAttributes
+      ? sheet.atributos[attr]?.value ?? 0
+      : getEffectiveAttributeModifier(sheet, attr);
+
   if (bonus.type === 'Level') {
     return sheet.nivel;
   }
@@ -306,8 +317,7 @@ export const calculateBonusValue = (
     return Math.floor(sheet.nivel / 2);
   }
   if (bonus.type === 'Attribute') {
-    const attr = bonus.attribute as Atributo;
-    return sheet.atributos[attr]?.value || 0;
+    return attrMod(bonus.attribute as Atributo);
   }
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
@@ -321,9 +331,7 @@ export const calculateBonusValue = (
         }
       }
 
-      return sheet.atributos[
-        attr || sheet.overrideKeyAttribute || Atributo.CARISMA
-      ].value;
+      return attrMod(attr || sheet.overrideKeyAttribute || Atributo.CARISMA);
     }
   }
   if (bonus.type === 'LevelCalc' && bonus.formula) {
@@ -361,7 +369,7 @@ export const calculateBonusValue = (
   }
   if (bonus.type === 'CappedAttribute') {
     const attr = bonus.attribute as Atributo;
-    const attrValue = sheet.atributos[attr]?.value ?? 0;
+    const attrValue = attrMod(attr);
     const cap =
       bonus.capBy === 'classLevel'
         ? resolveClassLevel(sheet, source)
@@ -388,13 +396,10 @@ export const calculateBonusValue = (
     else if (bonus.base.kind === 'level') v = sheet.nivel;
     else if (bonus.base.kind === 'spellCircle') v = maxSpellCircleOf(sheet);
     else if (bonus.base.kind === 'attribute')
-      v = sheet.atributos[bonus.base.attribute as Atributo]?.value ?? 0;
+      v = attrMod(bonus.base.attribute as Atributo);
     if (bonus.capByLevel) v = Math.min(v, sheet.nivel);
     if (bonus.capByAttribute)
-      v = Math.min(
-        v,
-        sheet.atributos[bonus.capByAttribute as Atributo]?.value ?? 0
-      );
+      v = Math.min(v, attrMod(bonus.capByAttribute as Atributo));
     return Math.max(0, v);
   }
   if (bonus.type === 'Fixed') {
@@ -1601,7 +1606,11 @@ function applyTemporaryAttributeModifiers(
     if (!isBonusActive(updated, bonus)) return;
 
     const { attribute } = bonus.target;
-    const value = calculateBonusValue(updated, bonus.modifier, bonus.source);
+    // BASE: `atributosTemporarios` aqui ainda é o da passada anterior — ler o
+    // efetivo realimentaria o delta a cada recálculo.
+    const value = calculateBonusValue(updated, bonus.modifier, bonus.source, {
+      baseAttributes: true,
+    });
     if (!Number.isFinite(value) || value === 0) return;
     totals[attribute] = (totals[attribute] ?? 0) + value;
   });
@@ -2380,10 +2389,16 @@ export function recalculateSheet(
       bonus.target.type !== 'HPAttributeReplacement' &&
       bonus.target.type !== 'DamageReduction'
     ) {
+      // PV/PM leem o atributo BASE: bônus temporário não retroage neles (a
+      // própria Mente Divina diz "sem PV/PM adicionais").
       const bonusValue = calculateBonusValue(
         updatedSheet,
         bonus.modifier,
-        bonus.source
+        bonus.source,
+        {
+          baseAttributes:
+            bonus.target.type === 'PV' || bonus.target.type === 'PM',
+        }
       );
 
       if (

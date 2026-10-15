@@ -10,6 +10,9 @@ import { recalculateSheet } from '../recalculateSheet';
 import { applyStatModifiers } from '../general';
 import { RETIRED_ACTIVE_POWER_KEYS } from '../../premium/data/activePowers';
 import type { ActiveEffect } from '../../premium/interfaces/ActiveEffect';
+import LADINO from '../../data/systems/tormenta20/classes/ladino';
+import Skill from '../../interfaces/Skills';
+import type { ClassPower } from '../../interfaces/Class';
 
 /**
  * A camada de atributo efetivo: `atributos[attr].value` (base persistido) +
@@ -155,5 +158,55 @@ describe('derivação nos dois motores', () => {
     withEffect.activeEffects = [];
     const without = recalculateSheet(withEffect);
     expect(without.atributosTemporarios).toBeUndefined();
+  });
+
+  it('poder que soma atributo (Mente Criminosa) usa o atributo efetivo', () => {
+    // Relato: com Mente Divina (+Int temporário) todas as perícias subiam,
+    // menos o "+Int" que Mente Criminosa soma em Ladinagem e Furtividade.
+    const menteCriminosa = LADINO.powers.find(
+      (p) => p.name === 'Mente Criminosa'
+    ) as ClassPower;
+    const sheet = createMockCharacterSheet();
+    sheet.classPowers = [menteCriminosa];
+
+    const others = (out: CharacterSheet, skill: Skill) =>
+      out.completeSkills?.find((s) => s.name === skill)?.others ?? 0;
+
+    const before = recalculateSheet(sheet);
+    const withEffect = recalculateSheet({
+      ...sheet,
+      activeEffects: [attributeEffect(Atributo.INTELIGENCIA, 2)],
+    });
+
+    expect(others(withEffect, Skill.LADINAGEM)).toBe(
+      others(before, Skill.LADINAGEM) + 2
+    );
+    expect(others(withEffect, Skill.FURTIVIDADE)).toBe(
+      others(before, Skill.FURTIVIDADE) + 2
+    );
+  });
+
+  it('bônus de PV/PM que soma atributo continua lendo o BASE', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.classPowers = [
+      {
+        name: 'Teste PV',
+        text: 'Soma Constituição em PV.',
+        sheetBonuses: [
+          {
+            source: { type: 'power', name: 'Teste PV' },
+            target: { type: 'PV' },
+            modifier: { type: 'Attribute', attribute: Atributo.CONSTITUICAO },
+          },
+        ],
+      } as ClassPower,
+    ];
+
+    const before = recalculateSheet(sheet);
+    const withEffect = recalculateSheet({
+      ...sheet,
+      activeEffects: [attributeEffect(Atributo.CONSTITUICAO, 4)],
+    });
+    expect(withEffect.pv).toBe(before.pv);
   });
 });
