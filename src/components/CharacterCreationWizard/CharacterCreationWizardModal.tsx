@@ -1897,6 +1897,13 @@ const CharacterCreationWizardModal: React.FC<
                 draconicaDamageType: damageType,
               })
             }
+            selectedRubraAtributo={selections.linhagemRubraAtributo}
+            onRubraAtributoChange={(atributo) =>
+              setSelections({
+                ...selections,
+                linhagemRubraAtributo: atributo,
+              })
+            }
           />
         );
 

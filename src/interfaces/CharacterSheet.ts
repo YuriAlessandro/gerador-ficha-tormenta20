@@ -1136,6 +1136,12 @@ export default interface CharacterSheet {
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha
   age?: SheetAge; // Idades Variadas (Heróis de Arton) — faixa etária + complicações de idade
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
+  /**
+   * Linhagem Rubra: atributo que perde os pontos dos poderes da Tormenta no
+   * lugar de Carisma ("pode perder outro atributo em vez de Carisma").
+   * `undefined` = automático, o maior atributo que não seja Carisma.
+   */
+  linhagemRubraAtributo?: Atributo;
   tradicaoPerdidaPmAttribute?: Atributo; // Poder Tradição Perdida: atributo que entra no total de PM no lugar do atributo da classe (cap 6 +2/patamar). undefined = usa o atributo da classe.
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)

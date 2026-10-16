@@ -4699,6 +4699,16 @@ export function applyManualLevelUp(
     };
   }
 
+  // Linhagem Rubra pega na multiclasse: a escolha do atributo vale para a
+  // ficha toda (a perda por poderes da Tormenta não é por classe).
+  if (
+    isFirstLevelInClass &&
+    classSetup?.feiticeiroLinhagem === 'Linhagem Rubra' &&
+    classSetup.linhagemRubraAtributo
+  ) {
+    updatedSheet.linhagemRubraAtributo = classSetup.linhagemRubraAtributo;
+  }
+
   // Multiclass: persist spellPath for new caster class
   if (isFirstLevelInClass) {
     const newSpellPath = buildSpellPathFromSetup(
@@ -6804,6 +6814,8 @@ export function generateEmptySheet(
         if (linhagemRubra) {
           modifiedClasse.abilities.push(linhagemRubra);
         }
+        emptySheet.linhagemRubraAtributo =
+          wizardSelections.linhagemRubraAtributo;
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada') {
         if (modifiedClasse.spellPath) {
           modifiedClasse.spellPath = applyLinhagemAbencoadaToSpellPath(
