@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            15/10/2026 (v4.36).
+            16/10/2026 (v4.36).
           </p>
 
           <p>
@@ -286,6 +286,23 @@ const Changelog: React.FC = () => {
                   marcada como sempre ativa. Trocar os presentes pelo cabeçalho
                   da ficha também remove as magias e os sentidos do presente que
                   saiu.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Xamã Místico</strong> (Druida, Heróis de Arton) não
+                  fazia nada. Agora ele pede a escola de magia adicional ao ser
+                  escolhido, com as magias dela já disponíveis no mesmo nível, e
+                  o editor de escolas aceita quatro escolas. Também soma +1 PM
+                  por nível de druida e +1 na CD das magias. Quem já tinha o
+                  poder pode adicionar a quarta escola pelo editor de escolas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao lançar{' '}
+                  <strong>Armadura Arcana</strong> ou{' '}
+                  <strong>Escudo da Fé</strong> com o aprimoramento de +1 na
+                  Defesa, o efeito abria sempre no valor base e parecia não
+                  passar de +7. Agora ele já abre no valor pago: cinco
+                  aprimoramentos na Armadura Arcana dão +10 na Defesa.
                 </li>
                 <li>
                   <strong>Correção:</strong> As correções acima de Pele de Aço,
