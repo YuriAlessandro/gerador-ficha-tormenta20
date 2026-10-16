@@ -19,6 +19,7 @@ import {
   DRACONICA_DAMAGE_TYPES,
   FEITICEIRO_HERANCAS,
 } from '@/data/systems/tormenta20/classes/arcanista';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 
 export type FeiticeiroLinhagem =
   | 'Linhagem Dracônica'
@@ -46,6 +47,10 @@ interface FeiticeiroLinhagemSelectionStepProps {
   // aparece (o assistente de subir de nível tem o seu próprio).
   selectedDamageType?: string;
   onDamageTypeChange?: (damageType: string) => void;
+  // Linhagem Rubra: atributo que perde pontos por poderes da Tormenta no lugar
+  // de Carisma. `undefined` = automático. Sem o callback o seletor não aparece.
+  selectedRubraAtributo?: Atributo;
+  onRubraAtributoChange?: (atributo: Atributo | undefined) => void;
 }
 
 // Linhagens do livro básico
@@ -108,6 +113,8 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
   onDeusChange,
   selectedDamageType,
   onDamageTypeChange,
+  selectedRubraAtributo,
+  onRubraAtributoChange,
 }) => {
   // Filtra as opções de linhagem baseado nos suplementos ativos
   const linhagemOptions = useMemo(() => {
@@ -267,6 +274,39 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
                           {damageType}
                         </MenuItem>
                       ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+            {/* Linhagem Rubra: atributo que perde pontos no lugar de Carisma */}
+            {option.value === 'Linhagem Rubra' &&
+              selectedLinhagem === 'Linhagem Rubra' &&
+              onRubraAtributoChange && (
+                <Box sx={{ mt: 2, ml: 4 }}>
+                  <FormControl fullWidth size='small'>
+                    <InputLabel>
+                      Atributo perdido no lugar de Carisma
+                    </InputLabel>
+                    <Select
+                      value={selectedRubraAtributo || ''}
+                      label='Atributo perdido no lugar de Carisma'
+                      onChange={(e) =>
+                        onRubraAtributoChange(
+                          (e.target.value as Atributo) || undefined
+                        )
+                      }
+                    >
+                      <MenuItem value=''>
+                        <em>Automático (o maior, exceto Carisma)</em>
+                      </MenuItem>
+                      {Object.values(Atributo)
+                        .filter((attr) => attr !== Atributo.CARISMA)
+                        .map((attr) => (
+                          <MenuItem key={attr} value={attr}>
+                            {attr}
+                          </MenuItem>
+                        ))}
                     </Select>
                   </FormControl>
                 </Box>

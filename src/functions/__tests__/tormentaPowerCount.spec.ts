@@ -406,6 +406,44 @@ describe('perda de atributo por poderes da Tormenta', () => {
     expect(resultado.atributos[Atributo.FORCA].value).toBe(forcaAntes - 1);
   });
 
+  it('Linhagem Rubra drena o atributo escolhido pelo jogador', () => {
+    const sheet = createMockCharacterSheet();
+    const carismaAntes = carisma(sheet);
+    const forcaAntes = sheet.atributos[Atributo.FORCA].value;
+    const destrezaAntes = sheet.atributos[Atributo.DESTREZA].value;
+    sheet.classe = {
+      ...sheet.classe,
+      abilities: [{ name: 'Linhagem Rubra', text: 'x', nivel: 1 }],
+    };
+    sheet.generalPowers = [ANTENAS];
+    sheet.linhagemRubraAtributo = Atributo.DESTREZA;
+
+    const resultado = recalculateSheet(sheet);
+
+    expect(carisma(resultado)).toBe(carismaAntes);
+    expect(resultado.atributos[Atributo.FORCA].value).toBe(forcaAntes);
+    expect(resultado.atributos[Atributo.DESTREZA].value).toBe(
+      destrezaAntes - 1
+    );
+
+    // Trocar a escolha devolve o ponto ao atributo anterior.
+    const trocado = recalculateSheet({
+      ...resultado,
+      linhagemRubraAtributo: Atributo.FORCA,
+    });
+    expect(trocado.atributos[Atributo.DESTREZA].value).toBe(destrezaAntes);
+    expect(trocado.atributos[Atributo.FORCA].value).toBe(forcaAntes - 1);
+  });
+
+  it('a escolha da Linhagem Rubra não vale sem a linhagem', () => {
+    const sheet = createMockCharacterSheet();
+    const carismaAntes = carisma(sheet);
+    sheet.generalPowers = [ANTENAS];
+    sheet.linhagemRubraAtributo = Atributo.DESTREZA;
+
+    expect(carisma(recalculateSheet(sheet))).toBe(carismaAntes - 1);
+  });
+
   it('não redesconta em ficha antiga que já trazia a penalidade no passo-a-passo', () => {
     // Ficha gerada pelo motor aleatório ANTES do ledger existir: o Carisma já
     // vem descontado e o único registro disso é o SubStep da criação.
