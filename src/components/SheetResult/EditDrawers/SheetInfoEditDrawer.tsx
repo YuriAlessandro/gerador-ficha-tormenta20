@@ -277,6 +277,7 @@ interface EditedData {
   manualMaxPV: number | undefined; // Manual max PV override
   manualMaxPM: number | undefined; // Manual max PM override
   tradicaoPerdidaPmAttribute: Atributo | undefined; // Tradição Perdida: atributo do PM (undefined = atributo da classe)
+  linhagemRubraAtributo: Atributo | undefined; // Linhagem Rubra: atributo perdido no lugar de Carisma (undefined = automático)
   imageUrl: string;
   /**
    * Idade. O envelhecimento do livro básico (T20, p. 108) vale para toda
@@ -362,6 +363,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         b.modifier.type === 'SpecialAttribute' &&
         b.modifier.attribute === 'spellKeyAttr'
     );
+  const hasLinhagemRubra = sheet.classe.abilities?.some(
+    (ability) => ability.name === 'Linhagem Rubra'
+  );
   // useContentSupplements já memoiza o array (evita loop de reset por nova referência)
   const userSupplements = useContentSupplements();
 
@@ -446,6 +450,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     manualMaxPV: sheet.manualMaxPV,
     manualMaxPM: sheet.manualMaxPM,
     tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
+    linhagemRubraAtributo: sheet.linhagemRubraAtributo,
     imageUrl: sheet.imageUrl || '',
     age: seedAge(sheet),
     ageComplications: sheet.age?.complications ?? [],
@@ -598,6 +603,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPV: sheet.manualMaxPV,
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
+      linhagemRubraAtributo: sheet.linhagemRubraAtributo,
       imageUrl: sheet.imageUrl || '',
       age: seedAge(sheet),
       ageComplications: sheet.age?.complications ?? [],
@@ -1107,6 +1113,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPV: editedData.manualMaxPV,
       manualMaxPM: editedData.manualMaxPM,
       tradicaoPerdidaPmAttribute: editedData.tradicaoPerdidaPmAttribute,
+      linhagemRubraAtributo: editedData.linhagemRubraAtributo,
       imageUrl: editedData.imageUrl || undefined,
     };
 
@@ -1806,6 +1813,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.tradicaoPerdidaPmAttribute !==
       sheet.tradicaoPerdidaPmAttribute;
 
+    // Trocar o atributo da Linhagem Rubra move a perda por poderes da
+    // Tormenta, que só o recálculo (ledger) desfaz e reaplica.
+    const linhagemRubraChanged =
+      editedData.linhagemRubraAtributo !== sheet.linhagemRubraAtributo;
+
     // A herança de Suraggel troca uma habilidade racial inteira (e, em algumas,
     // uma escolha embutida): sem recálculo os bônus da habilidade anterior
     // continuariam na ficha.
@@ -1876,7 +1888,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       suragelChanged ||
       moreauSapienciaSpellChanged ||
       moreauEspertezaChanged ||
-      tradicaoPerdidaPmChanged;
+      tradicaoPerdidaPmChanged ||
+      linhagemRubraChanged;
 
     if (shouldUseRecalculateSheet) {
       let updatedSheet = { ...sheet, ...updates };
@@ -1960,6 +1973,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPV: sheet.manualMaxPV,
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
+      linhagemRubraAtributo: sheet.linhagemRubraAtributo,
       imageUrl: sheet.imageUrl || '',
       age: seedAge(sheet),
       ageComplications: sheet.age?.complications ?? [],
@@ -3764,6 +3778,41 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       />
                     </Stack>
                   ))}
+
+                  {hasLinhagemRubra && (
+                    <FormControl fullWidth>
+                      <InputLabel id='linhagem-rubra-atributo-label'>
+                        Linhagem Rubra: atributo perdido
+                      </InputLabel>
+                      <Select
+                        labelId='linhagem-rubra-atributo-label'
+                        label='Linhagem Rubra: atributo perdido'
+                        value={editedData.linhagemRubraAtributo ?? ''}
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            linhagemRubraAtributo:
+                              (e.target.value as Atributo) || undefined,
+                          })
+                        }
+                      >
+                        <MenuItem value=''>
+                          <em>Automático (o maior, exceto Carisma)</em>
+                        </MenuItem>
+                        {Object.values(Atributo)
+                          .filter((attr) => attr !== Atributo.CARISMA)
+                          .map((attr) => (
+                            <MenuItem key={attr} value={attr}>
+                              {attr}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                      <FormHelperText>
+                        Atributo que perde pontos por poderes da Tormenta no
+                        lugar de Carisma.
+                      </FormHelperText>
+                    </FormControl>
+                  )}
                 </Stack>
               </AccordionDetails>
             </Accordion>

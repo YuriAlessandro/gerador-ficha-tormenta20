@@ -129,14 +129,23 @@ export function applyTormentaAttributePenalty(
     ledger[attr] = (ledger[attr] ?? 0) + amount;
   };
 
-  // Caso especial pra feiticeiros da linhagem rubra, eles nunca querem perder
-  // carisma: a perda cai no maior atributo que não seja Carisma, um ponto por
-  // vez (o alvo pode mudar conforme os valores se igualam).
+  // Caso especial pra feiticeiros da linhagem rubra: "pode perder outro
+  // atributo em vez de Carisma". O jogador escolhe qual em
+  // `linhagemRubraAtributo`; sem escolha, a perda cai no maior atributo que não
+  // seja Carisma, um ponto por vez (o alvo pode mudar conforme os valores se
+  // igualam).
   const hasLinhagemRubra = sheet.classe.abilities?.some(
     (ability) => ability.name === 'Linhagem Rubra'
   );
+  const rubraChoice = sheet.linhagemRubraAtributo;
 
-  if (hasLinhagemRubra) {
+  if (hasLinhagemRubra && rubraChoice && sheet.atributos[rubraChoice]) {
+    chargeAttribute(rubraChoice, totalPenalty);
+    subSteps.push({
+      name: rubraChoice,
+      value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
+    });
+  } else if (hasLinhagemRubra) {
     for (let remaining = totalPenalty; remaining > 0; remaining -= 1) {
       const highestAttribute = Object.values(sheet.atributos).reduce(
         (prev, curr) => {

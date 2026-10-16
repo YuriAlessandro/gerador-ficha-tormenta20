@@ -47,6 +47,8 @@ export interface ClassSetupSelection {
     | 'Linhagem Abençoada';
   draconicaDamageType?: string;
   linhagemAbencoadaDeus?: string;
+  // Linhagem Rubra: atributo que perde pontos no lugar de Carisma (undefined = automático)
+  linhagemRubraAtributo?: Atributo;
   spellSchools?: SpellSchool[];
 }
 
@@ -208,6 +210,10 @@ export interface WizardSelections {
 
   // Linhagem Dracônica: tipo de dano escolhido (Ácido, Elétrico, Fogo, Frio)
   draconicaDamageType?: string;
+
+  // Linhagem Rubra: atributo que perde pontos por poderes da Tormenta no lugar
+  // de Carisma (undefined = automático, o maior que não seja Carisma)
+  linhagemRubraAtributo?: Atributo;
 
   // Linhagem Abençoada: deus escolhido
   linhagemAbencoada?: {
