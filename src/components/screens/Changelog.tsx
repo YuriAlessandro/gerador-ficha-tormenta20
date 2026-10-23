@@ -325,6 +325,21 @@ const Changelog: React.FC = () => {
                   gravar as edições da nova por cima da antiga.
                 </li>
                 <li>
+                  <strong>Correção:</strong> Efeitos que aumentam a{' '}
+                  <strong>margem de ameaça</strong> ou o multiplicador de
+                  crítico (como um efeito personalizado para{' '}
+                  <strong>Bravura Indômita</strong>) não valiam em armas com
+                  estatísticas editadas à mão nem nos modos de ataque com
+                  crítico próprio: o efeito aparecia na arma, mas a rolagem só
+                  critava no 20.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao escolher a idade{' '}
+                  <strong>Adulto</strong> (Idades Variadas) editando uma ficha
+                  já criada, agora aparecem a opção de receber o poder e a
+                  complicação de idade, como na criação.
+                </li>
+                <li>
                   <strong>Correção:</strong> As correções acima de Pele de Aço,
                   Defesa Armada, Feiticeiro e Duende alcançam fichas já salvas
                   ao abrir. Se você tinha compensado à mão (um efeito de Defesa,
