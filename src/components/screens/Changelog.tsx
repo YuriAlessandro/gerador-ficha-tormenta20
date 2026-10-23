@@ -375,6 +375,17 @@ const Changelog: React.FC = () => {
                   atributos do caminho escolhido, e o Soldado não ganha mais um
                   passo vazio no 11º nível.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Poderes que somam um atributo em
+                  perícias, Defesa, dano ou carga agora acompanham bônus
+                  temporários desse atributo (como <strong>Mente Divina</strong>
+                  ou um efeito manual). Antes, com Mente Divina, todas as
+                  perícias subiam menos o +Inteligência que a{' '}
+                  <strong>Mente Criminosa</strong> soma em Ladinagem e
+                  Furtividade. O mesmo valia para Casca Grossa, Esgrimista,
+                  Inventário Organizado e outros. PV e PM continuam sem mudar
+                  com bônus temporário.
+                </li>
               </ul>
               <h3>4.35.1</h3>
               <ul>
