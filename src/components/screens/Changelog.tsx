@@ -77,22 +77,6 @@ const Changelog: React.FC = () => {
               <h3>4.36</h3>
               <ul>
                 <li>
-                  <strong>Novo:</strong> Devotos{' '}
-                  <strong>Fundamentalistas</strong> de Deuses de Arton. Um
-                  interruptor no formulário de criação e no cabeçalho da ficha
-                  marca o devoto como fundamentalista: ele ganha um poder
-                  concedido adicional, a ficha mostra o dogma mais rígido do
-                  deus (indicando quando é herdado do sacerdote) e avisa nas
-                  armas que fogem da arma preferida da divindade. O dogma e a
-                  marca também saem no PDF. A ficha informa a regra, sem
-                  bloquear armas nem PM.
-                </li>
-                <li>
-                  <strong>Novo:</strong> O construtor de ameaças ganhou o tipo
-                  de ação <strong>Passiva</strong> para habilidades sem
-                  ativação, que aparece sem parênteses na ficha, como no livro.
-                </li>
-                <li>
                   <strong>Novo:</strong> As formas por divindade do Druida, de
                   Heróis de Arton, viraram efeitos da ficha:{' '}
                   <strong>Forma Aberrante</strong>,{' '}
@@ -135,16 +119,6 @@ const Changelog: React.FC = () => {
                   do homebrew, a imagem da build, as imagens do fórum, a fan-art
                   do perfil e o avatar do parceiro. No fórum, a imagem agora
                   amplia na própria página em vez de abrir outra aba.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> <strong>Parceiros</strong>{' '}
-                  concedidos por poderes entram sozinhos na ficha: o familiar do
-                  Arcanista, o Companheiro Animal, o autômato, as montarias e os
-                  animais comprados no mercado passam a aparecer no painel de
-                  Parceiros, inclusive em fichas antigas. O tipo do Companheiro
-                  Animal e do autômato é escolhido ao receber o poder, o
-                  companheiro sai no PDF junto dos outros parceiros e quem está
-                  montado desmonta ao assumir a Forma Selvagem.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> O seletor de tags de arma ganhou as
@@ -231,32 +205,6 @@ const Changelog: React.FC = () => {
                   além das duas mãos, o que libera o escudo na outra mão. As
                   duas armas também ganharam a descrição oficial, e a Lança de
                   Justa passou a contar como arma alongada.
-                </li>
-                <li>
-                  <strong>Correção:</strong> Treinador, Frade e as classes
-                  variantes de Heróis de Arton (Atleta, Ermitão, Alquimista,
-                  Burguês, Usurpador, Machado de Pedra, Seteiro e Vassalo)
-                  estavam sem a proficiência básica em armas simples e armaduras
-                  leves. Fichas já salvas são corrigidas ao abrir.
-                </li>
-                <li>
-                  <strong>Correção:</strong> Poder escolhido mais de uma vez
-                  (Companheiro Animal, Mascote) deixava a segunda escolha sem
-                  opção; agora cada vez tem a sua.
-                </li>
-                <li>
-                  <strong>Correção:</strong> Nas páginas extras do PDF, linhas
-                  longas passavam da margem; agora quebram pela largura da
-                  página.
-                </li>
-                <li>
-                  <strong>Correção:</strong> No celular, os avisos da ficha
-                  (arma fora da proficiência, valor editado à mão) não abriam
-                  com um toque rápido.
-                </li>
-                <li>
-                  <strong>Correção:</strong> No catálogo de poderes, a caixa de
-                  seleção ficava desalinhada do nome do poder.
                 </li>
                 <li>
                   <strong>Correção:</strong> Classes variantes homebrew de{' '}
@@ -442,6 +390,11 @@ const Changelog: React.FC = () => {
                   <strong>Dev</strong> no fórum e no perfil. Admins concedem e
                   removem o papel pela lista de usuários do painel.
                 </li>
+                <li>
+                  <strong>Novo:</strong> O construtor de ameaças ganhou o tipo
+                  de ação <strong>Passiva</strong> para habilidades sem
+                  ativação, que aparece sem parênteses na ficha, como no livro.
+                </li>
               </ul>
               <h3>4.35</h3>
               <ul>
@@ -577,6 +530,17 @@ const Changelog: React.FC = () => {
                   &quot;Criar Magia&quot;, para magias próprias.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Devotos{' '}
+                  <strong>Fundamentalistas</strong> de Deuses de Arton. Um
+                  interruptor no formulário de criação e no cabeçalho da ficha
+                  marca o devoto como fundamentalista: ele ganha um poder
+                  concedido adicional, a ficha mostra o dogma mais rígido do
+                  deus (indicando quando é herdado do sacerdote) e avisa nas
+                  armas que fogem da arma preferida da divindade. O dogma e a
+                  marca também saem no PDF. A ficha informa a regra, sem
+                  bloquear armas nem PM.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> A aba de <strong>Magias</strong> da
                   ficha agora mostra se cada magia é{' '}
                   <strong>arcana, divina ou universal</strong>, e os filtros
@@ -621,6 +585,16 @@ const Changelog: React.FC = () => {
                   considerar a quantidade de votos, então uma build com um único
                   5 não fica mais à frente de outra bem avaliada por muita
                   gente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> <strong>Parceiros</strong>{' '}
+                  concedidos por poderes entram sozinhos na ficha: o familiar do
+                  Arcanista, o Companheiro Animal, o autômato, as montarias e os
+                  animais comprados no mercado passam a aparecer no painel de
+                  Parceiros, inclusive em fichas antigas. O tipo do Companheiro
+                  Animal e do autômato é escolhido ao receber o poder, o
+                  companheiro sai no PDF junto dos outros parceiros e quem está
+                  montado desmonta ao assumir a Forma Selvagem.
                 </li>
                 <li>
                   <strong>Correção:</strong> <strong>Armaduras pesadas</strong>{' '}
@@ -753,6 +727,32 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> No gerador de ameaças, os cartões
                   de <strong>papel</strong> do passo Classificação não aparecem
                   mais cortados.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Treinador, Frade e as classes
+                  variantes de Heróis de Arton (Atleta, Ermitão, Alquimista,
+                  Burguês, Usurpador, Machado de Pedra, Seteiro e Vassalo)
+                  estavam sem a proficiência básica em armas simples e armaduras
+                  leves. Fichas já salvas são corrigidas ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poder escolhido mais de uma vez
+                  (Companheiro Animal, Mascote) deixava a segunda escolha sem
+                  opção; agora cada vez tem a sua.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Nas páginas extras do PDF, linhas
+                  longas passavam da margem; agora quebram pela largura da
+                  página.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, os avisos da ficha
+                  (arma fora da proficiência, valor editado à mão) não abriam
+                  com um toque rápido.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No catálogo de poderes, a caixa de
+                  seleção ficava desalinhada do nome do poder.
                 </li>
               </ul>
 
