@@ -121,6 +121,17 @@ const Changelog: React.FC = () => {
                   armas editadas à mão.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Aumentar a{' '}
+                  <strong>Inteligência</strong> depois da criação (pelo{' '}
+                  <strong>Aumento de Atributo</strong> ou outro aumento
+                  permanente) agora treina uma perícia nova, como manda a regra
+                  do livro. Ao escolher Inteligência no level up, na criação ou
+                  no editor de poderes, aparece a escolha da perícia, que pode
+                  ser qualquer uma ainda não treinada, mesmo fora da lista da
+                  classe. Só a parte positiva conta: subir de -1 para 0 não dá
+                  perícia.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> <strong>Parceiros</strong>{' '}
                   concedidos por poderes entram sozinhos na ficha: o familiar do
                   Arcanista, o Companheiro Animal, o autômato, as montarias e os
@@ -355,6 +366,14 @@ const Changelog: React.FC = () => {
                   ao abrir. Se você tinha compensado à mão (um efeito de Defesa,
                   um ponto de atributo, uma magia adicionada manualmente),
                   remova o ajuste para o valor não contar em dobro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O +1 em Inteligência do{' '}
+                  <strong>Visconde</strong> (Vassalo, Caminho do Governante)
+                  agora é um aumento permanente e treina a perícia por
+                  Inteligência. No level up, o Rei Mercenário mostra só os
+                  atributos do caminho escolhido, e o Soldado não ganha mais um
+                  passo vazio no 11º nível.
                 </li>
               </ul>
               <h3>4.35.1</h3>
