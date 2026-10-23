@@ -337,7 +337,9 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> Ao escolher a idade{' '}
                   <strong>Adulto</strong> (Idades Variadas) editando uma ficha
                   já criada, agora aparecem a opção de receber o poder e a
-                  complicação de idade, como na criação.
+                  complicação de idade, como na criação. No formulário de
+                  criação, a opção de receber o poder voltou a desligar depois
+                  de ligada.
                 </li>
                 <li>
                   <strong>Correção:</strong> As correções acima de Pele de Aço,
