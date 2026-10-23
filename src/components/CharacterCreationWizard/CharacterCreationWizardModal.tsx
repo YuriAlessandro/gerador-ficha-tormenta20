@@ -1723,6 +1723,7 @@ const CharacterCreationWizardModal: React.FC<
                 // O toggle vira o gatilho do passo do poder; recusar descarta o
                 // poder já escolhido junto com a complicação que vinha com ele.
                 agePower: took ? selections.agePower : undefined,
+                ageComplications: took ? selections.ageComplications : [],
                 ageOptionalPowerTaken: took,
               })
             }

@@ -5,3 +5,4 @@ import { NullComponent } from '../_inert';
 export const AgeBracketDetails = NullComponent;
 export const AgeBracketSelect = NullComponent;
 export const AgeComplicationsStep = NullComponent;
+export const AgeOptionalPowerPicker = NullComponent;

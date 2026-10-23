@@ -58,7 +58,12 @@ import {
   getBaseAgeStageForYears,
 } from '@/functions/ages';
 import { getAgeBracket } from '@/premium/functions/ages';
-import { AgeComplicationsStep } from '@/premium/components/Ages';
+import {
+  AgeComplicationsStep,
+  AgeOptionalPowerPicker,
+} from '@/premium/components/Ages';
+import { isComplicationPowerSelectionComplete } from '@/premium/functions/complications';
+import { SelectionOptions } from '@/interfaces/PowerSelections';
 import AgeField, { AgeSelection } from '@/components/common/AgeField';
 import type { AgeComplication, SheetAge } from '@/interfaces/Age';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
@@ -225,6 +230,13 @@ interface SheetInfoEditDrawerProps {
 }
 
 /** Estado de idade da ficha traduzido para o formato do campo de edição. */
+/** Poder de "Já Vi Coisas" que a ficha já tem, resolvido pela mochila de poderes. */
+function seedAgePower(sheet: CharacterSheet): GeneralPower | undefined {
+  const name = sheet.age?.grantedPowerName;
+  if (!name) return undefined;
+  return sheet.generalPowers.find((p) => p.name === name);
+}
+
 function seedAge(sheet: CharacterSheet): AgeSelection {
   return {
     years: sheet.age?.years,
@@ -287,6 +299,12 @@ interface EditedData {
   age: AgeSelection;
   /** Complicações de idade escolhidas (só com Idades Variadas ligadas). */
   ageComplications: AgeComplication[];
+  /** Adulto: tomou o poder geral opcional de "Já Vi Coisas"? */
+  ageOptionalPowerTaken: boolean;
+  /** Poder de "Já Vi Coisas" escolhido (só com o toggle ligado). */
+  agePower: GeneralPower | undefined;
+  /** Escolhas do poder de "Já Vi Coisas", quando ele pede alguma. */
+  agePowerPicks: SelectionOptions | undefined;
   // Só em fichas multiclasse: distribuição de níveis por classe, editável campo
   // a campo. `nivel` acompanha o total.
   classLevels: ClassLevelEntry[] | undefined;
@@ -449,6 +467,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     imageUrl: sheet.imageUrl || '',
     age: seedAge(sheet),
     ageComplications: sheet.age?.complications ?? [],
+    ageOptionalPowerTaken: !!seedAgePower(sheet),
+    agePower: seedAgePower(sheet),
+    agePowerPicks: undefined,
     classLevels: sheet.classLevels,
   });
 
@@ -480,13 +501,23 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
    * Complicações de idade que a faixa exige DESTA ficha.
    *
    * O Adulto é o único caso condicional: "Já Vi Coisas" é opcional, e a
-   * complicação só é cobrada de quem levou o poder. Fora da criação não há como
-   * conceder esse poder, então quem não o tem não deve nada — cobrar mesmo
-   * assim deixava o Salvar permanentemente desabilitado numa ficha Adulto sem o
-   * poder, travando até a edição do nome.
+   * complicação só é cobrada de quem ligou o toggle do poder aqui mesmo. Quem
+   * não o ligou não deve nada — cobrar mesmo assim deixava o Salvar
+   * permanentemente desabilitado numa ficha Adulto sem o poder, travando até a
+   * edição do nome.
    */
-  const ageOptionalPowerTaken = !!sheet.age?.grantedPowerName;
   const ageBracketData = getAgeBracket(editedData.age.bracket);
+  const ageOptionalPowerTaken =
+    !!ageBracketData?.optionalGeneralPower && editedData.ageOptionalPowerTaken;
+  const nextAgePower = ageOptionalPowerTaken ? editedData.agePower : undefined;
+  // Toggle ligado exige o poder escolhido (e as escolhas que ele pedir).
+  const agePowerIncomplete =
+    ageOptionalPowerTaken &&
+    (!editedData.agePower ||
+      !isComplicationPowerSelectionComplete(
+        editedData.agePower,
+        editedData.agePowerPicks
+      ));
   const requiredAgeComplications =
     ageBracketData?.optionalGeneralPower && !ageOptionalPowerTaken
       ? 0
@@ -497,7 +528,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     stage: getBaseAgeStageForYears(editedData.age.years, editedData.raceName),
     bracket: editedData.age.bracket,
     complications: editedData.age.bracket ? editedData.ageComplications : [],
-    grantedPowerName: sheet.age?.grantedPowerName,
+    grantedPowerName: nextAgePower?.name,
     // Preservado: o nível já foi construído com base nele.
     extraLevels: sheet.age?.extraLevels ?? 0,
   };
@@ -506,7 +537,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const ageChanged =
     ageAttributeDelta.length > 0 ||
     !_.isEqual(seedAge(sheet), editedData.age) ||
-    !_.isEqual(sheet.age?.complications ?? [], editedData.ageComplications);
+    !_.isEqual(sheet.age?.complications ?? [], editedData.ageComplications) ||
+    sheet.age?.grantedPowerName !== nextAge.grantedPowerName;
 
   // State for image preview error
   const [imagePreviewError, setImagePreviewError] = useState(false);
@@ -601,6 +633,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       imageUrl: sheet.imageUrl || '',
       age: seedAge(sheet),
       ageComplications: sheet.age?.complications ?? [],
+      ageOptionalPowerTaken: !!seedAgePower(sheet),
+      agePower: seedAgePower(sheet),
+      agePowerPicks: undefined,
       classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
@@ -1848,6 +1883,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updates.age =
         nextAge.years === undefined && !nextAge.bracket ? undefined : nextAge;
 
+      // "Já Vi Coisas": o poder concedido mora em `generalPowers`, marcado pelo
+      // nome em `age.grantedPowerName`. Trocar ou desligar tira o antigo.
+      const previousAgePowerName = sheet.age?.grantedPowerName;
+      if (previousAgePowerName !== nextAge.grantedPowerName) {
+        const powers = sheet.generalPowers.filter(
+          (p) => p.name !== previousAgePowerName
+        );
+        if (nextAgePower && !powers.some((p) => p.name === nextAgePower.name)) {
+          powers.push(nextAgePower);
+        }
+        updates.generalPowers = powers;
+      }
+
       const optionalRules = { ...(sheet.optionalRules ?? {}) };
       if (editedData.age.deathByOldAge) optionalRules.deathByOldAge = true;
       else delete optionalRules.deathByOldAge;
@@ -1914,7 +1962,17 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         );
       }
 
-      const recalculatedSheet = recalculateSheet(updatedSheet);
+      const agePowerSelections =
+        nextAgePower &&
+        nextAgePower.name !== sheet.age?.grantedPowerName &&
+        editedData.agePowerPicks
+          ? { [nextAgePower.name]: editedData.agePowerPicks }
+          : undefined;
+      const recalculatedSheet = recalculateSheet(
+        updatedSheet,
+        undefined,
+        agePowerSelections
+      );
       onSave(recalculatedSheet);
     } else {
       onSave(updates);
@@ -1963,6 +2021,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       imageUrl: sheet.imageUrl || '',
       age: seedAge(sheet),
       ageComplications: sheet.age?.complications ?? [],
+      ageOptionalPowerTaken: !!seedAgePower(sheet),
+      agePower: seedAgePower(sheet),
+      agePowerPicks: undefined,
       classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
@@ -2630,6 +2691,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           next.bracket === editedData.age.bracket
                             ? editedData.ageComplications
                             : [],
+                        // "Já Vi Coisas" só existe no Adulto: trocar de faixa
+                        // descarta o poder junto com a complicação.
+                        ...(next.bracket === editedData.age.bracket
+                          ? {}
+                          : {
+                              ageOptionalPowerTaken: false,
+                              agePower: undefined,
+                              agePowerPicks: undefined,
+                            }),
                       })
                     }
                     variedAgesAvailable={
@@ -2640,14 +2710,56 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     allowRoll={false}
                   />
 
-                  {requiredAgeComplications > 0 && editedData.age.bracket && (
-                    <AgeComplicationsStep
-                      bracket={editedData.age.bracket}
-                      selected={editedData.ageComplications}
-                      onChange={(ageComplications) =>
-                        setEditedData({ ...editedData, ageComplications })
+                  {(ageBracketData?.requiredComplications ?? 0) > 0 &&
+                    editedData.age.bracket && (
+                      <AgeComplicationsStep
+                        bracket={editedData.age.bracket}
+                        selected={editedData.ageComplications}
+                        onChange={(ageComplications) =>
+                          setEditedData({ ...editedData, ageComplications })
+                        }
+                        tookOptionalPower={ageOptionalPowerTaken}
+                        onOptionalPowerChange={(took) =>
+                          setEditedData({
+                            ...editedData,
+                            ageOptionalPowerTaken: took,
+                            // Desligar descarta o poder e a complicação que
+                            // vinha com ele.
+                            ageComplications: took
+                              ? editedData.ageComplications
+                              : [],
+                            agePower: took ? editedData.agePower : undefined,
+                            agePowerPicks: took
+                              ? editedData.agePowerPicks
+                              : undefined,
+                          })
+                        }
+                      />
+                    )}
+
+                  {ageOptionalPowerTaken && (
+                    <AgeOptionalPowerPicker
+                      sheet={sheet}
+                      knownPowers={sheet.generalPowers.filter(
+                        (p) => p.name !== sheet.age?.grantedPowerName
+                      )}
+                      supplements={userSupplements}
+                      selectedPower={editedData.agePower}
+                      onChange={(agePower) =>
+                        setEditedData({
+                          ...editedData,
+                          agePower,
+                          // Escolhas são do poder: trocar de poder as zera.
+                          agePowerPicks:
+                            agePower?.name === editedData.agePower?.name
+                              ? editedData.agePowerPicks
+                              : undefined,
+                        })
                       }
-                      tookOptionalPower={ageOptionalPowerTaken}
+                      pickSelections={editedData.agePowerPicks}
+                      onPickChange={(agePowerPicks) =>
+                        setEditedData({ ...editedData, agePowerPicks })
+                      }
                     />
                   )}
 
@@ -4013,6 +4125,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                 // não por `!==`: uma ficha que já traz mais complicações que o
                 // exigido (homebrew, dados antigos) não tem por que travar.
                 editedData.ageComplications.length < requiredAgeComplications ||
+                agePowerIncomplete ||
                 (editedData.raceName === 'Moreau' &&
                   editedData.raceHeritage === 'Coruja' &&
                   !editedData.moreauSapienciaSpell) ||
