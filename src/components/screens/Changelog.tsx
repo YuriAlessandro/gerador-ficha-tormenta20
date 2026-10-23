@@ -169,6 +169,20 @@ const Changelog: React.FC = () => {
                   para combates entre os personagens (PvP).
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> As listagens de{' '}
+                  <strong>Builds</strong>, <strong>Bestiário</strong>,{' '}
+                  <strong>Fórum</strong> e <strong>Homebrews</strong> guardam os
+                  filtros no endereço da página: abrir um item e voltar,
+                  recarregar ou mandar o link para alguém mantém a lista
+                  filtrada (e, nas Builds e no Fórum, a página e a rolagem). A
+                  busca também espera você terminar de digitar antes de buscar.
+                  (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
                   <strong>Correção:</strong> O poder{' '}
                   <strong>Esperteza Vulpina</strong> (Moreau, Herança da Raposa)
                   treinava automaticamente duas perícias sorteadas — e de uma
@@ -396,6 +410,16 @@ const Changelog: React.FC = () => {
                   fica sempre à vista. No <strong>Novo parceiro</strong>, a
                   lista de tipos rola junto com a janela e não esconde mais os
                   campos de baixo. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na listagem de{' '}
+                  <strong>Builds</strong>, ordenar por <strong>Nome A-Z</strong>{' '}
+                  mostrava de Z a A e <strong>Mais antigas</strong> mostrava as
+                  mais novas. (por{' '}
                   <a href='https://github.com/Hiagozeroum' target='blank'>
                     Hiagozeroum
                   </a>
