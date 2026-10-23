@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import {
+  Alert,
   Box,
   Button,
   Divider,
@@ -534,6 +535,11 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
       </Box>
 
       <Divider />
+      {editor.saveError && (
+        <Alert severity='error' sx={{ mx: 1.5, mt: 1.5, flexShrink: 0 }}>
+          {editor.saveError}
+        </Alert>
+      )}
       <Stack
         direction='row'
         spacing={1.5}

@@ -830,6 +830,12 @@ export function normalizeSheet(sheet: CharacterSheet): void {
     if (!Array.isArray(sheet.classe.periciasrestantes?.list)) {
       sheet.classe.periciasrestantes = { qtd: 0, list: [] };
     }
+    // O strip da nuvem remove `attrPriority` e o `rehydrateSheet` só o devolve
+    // quando a classe está entre os suplementos ATIVOS. Sem ele, o Aumento de
+    // Atributo quebrava o Salvar do editor de poderes em silêncio.
+    if (!Array.isArray(sheet.classe.attrPriority)) {
+      sheet.classe.attrPriority = [];
+    }
   }
   if (sheet.raca && !Array.isArray(sheet.raca.abilities)) {
     sheet.raca.abilities = [];

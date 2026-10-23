@@ -174,6 +174,14 @@ export function usePowersEditor({
     pendingCount: number;
   }>({ open: false, pendingCount: 0 });
 
+  // Falha ao salvar: o editor fica aberto com as escolhas intactas e mostra o
+  // erro, em vez de o botão "Salvar" simplesmente não fazer nada.
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) setSaveError(null);
+  }, [open]);
+
   // ── Hidratação a partir da ficha ────────────────────────────────────────
   useEffect(() => {
     if (!open) return;
@@ -1407,12 +1415,23 @@ export function usePowersEditor({
       // A ficha inteira, já recalculada — é o que o `Result` espera receber.
       // Máximo que subiu (Aumento de Atributo, poderes que dão PV/PM) entra
       // cheio também no atual; máximo que caiu é aparado pelo recálculo.
-      const recalculated = recalculateSheet(
-        updatedSheet,
-        sheet,
-        manualSelections
-      );
-      onSave(applyMaxPointsGainToCurrent(sheet, recalculated));
+      try {
+        const recalculated = recalculateSheet(
+          updatedSheet,
+          sheet,
+          manualSelections
+        );
+        onSave(applyMaxPointsGainToCurrent(sheet, recalculated));
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Erro ao salvar poderes:', error);
+        const message = error instanceof Error ? error.message : String(error);
+        setSaveError(
+          `Não foi possível salvar os poderes (${message}). Recarregue a ficha e tente de novo; se o problema continuar, reporte no fórum.`
+        );
+        return;
+      }
+      setSaveError(null);
       onClose();
     },
     [
@@ -1470,6 +1489,7 @@ export function usePowersEditor({
       sheet.customGrantedPowers ? [...sheet.customGrantedPowers] : []
     );
     setManualSelections({});
+    setSaveError(null);
     onClose();
   }, [onClose, sheet]);
 
@@ -1526,6 +1546,7 @@ export function usePowersEditor({
     ensinarTruqueDialog,
     setEnsinarTruqueDialog,
     trainerLevel,
+    saveError,
     // ações
     commitSave,
     handleSave,

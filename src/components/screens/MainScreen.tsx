@@ -289,35 +289,18 @@ const updateSheetInHistoric = (updatedSheet: CharacterSheet) => {
   }
 };
 
-// Save sheet to database if user is authenticated
-const saveSheetToDatabase = async (
-  sheet: CharacterSheet,
-  isAuthenticated: boolean,
-  createSheetAction: (request: CreateSheetRequest) => Promise<unknown>,
-  folderId?: string | null
-) => {
-  if (!isAuthenticated) return;
-
-  try {
-    // Convert CharacterSheet to the format expected by the backend
-    // Note: Using type assertion as CharacterSheet has similar structure to SerializedSheetInterface
-    const sheetRequest: CreateSheetRequest = {
-      name: sheet.nome || 'Personagem Gerado',
-      sheetData: {
-        ...sheet,
-        isThreat: false, // Generated characters are players, not threats
-      } as unknown as CreateSheetRequest['sheetData'],
-      image: sheet.imageUrl,
-      description: `Personagem gerado automaticamente (Nível ${sheet.nivel})`,
-      folderId: folderId ?? undefined,
-    };
-
-    // Use Redux action instead of direct service call
-    await createSheetAction(sheetRequest);
-  } catch {
-    // Silently fail - historic save still works
-  }
-};
+// Versão serializável da ficha para a nuvem (sem os métodos da classe Bag).
+const toCloudSheetData = (sheet: CharacterSheet) =>
+  ({
+    ...sheet,
+    bag: {
+      equipments: sheet.bag?.equipments ?? {},
+      spaces: sheet.bag?.spaces ?? 0,
+      armorPenalty: sheet.bag?.armorPenalty ?? 0,
+      displayOrder: sheet.bag?.displayOrder ?? [],
+    },
+  } as unknown as CreateSheetRequest['sheetData'] &
+    UpdateSheetRequest['sheetData']);
 
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const theme = useTheme();
@@ -647,6 +630,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     // Don't save to cloud automatically - user will decide
     setRandomSheet(anotherRandomSheet);
     setSheetSavedToCloud(false); // Mark as not saved to cloud yet
+    setCloudSheetId(null); // Ficha nova: não é a da nuvem carregada antes
 
     trackSheetGeneration();
   };
@@ -746,6 +730,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     // Don't save to cloud automatically - user will decide
     setRandomSheet(sheet);
     setSheetSavedToCloud(false); // Mark as not saved to cloud yet
+    setCloudSheetId(null); // Ficha nova: não é a da nuvem carregada antes
 
     trackSheetGeneration();
   };
@@ -878,19 +863,41 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     setLoadingSaveToCloud(true);
     try {
-      await saveSheetToDatabase(
-        randomSheet,
-        isAuthenticated,
-        createSheetAction,
-        isNewSheet ? targetFolder?.folderId : null
-      );
+      if (cloudSheetId) {
+        // Ficha já está na nuvem: atualiza em vez de criar uma duplicata.
+        await updateSheetAction(cloudSheetId, {
+          name: randomSheet.nome,
+          sheetData: toCloudSheetData(randomSheet),
+          image: randomSheet.imageUrl,
+        }).unwrap();
+      } else {
+        const created = await createSheetAction({
+          name: randomSheet.nome || 'Personagem Gerado',
+          sheetData: {
+            ...toCloudSheetData(randomSheet),
+            isThreat: false, // Generated characters are players, not threats
+          },
+          image: randomSheet.imageUrl,
+          description: `Personagem gerado automaticamente (Nível ${randomSheet.nivel})`,
+          folderId: targetFolder?.folderId ?? undefined,
+        }).unwrap();
+        // Sem o id, as edições seguintes nesta tela não chegavam à nuvem.
+        setCloudSheetId(created.id);
+      }
       setSheetSavedToCloud(true);
       showAlert(
         'Ficha salva na nuvem com sucesso! Você pode acessá-la em "Meus Personagens".\n\n⚠️ Antes de utilizar em jogo, confirme que todos os valores de sua ficha estão corretos. Nosso sistema pode cometer erros. Você pode alterar sua ficha à vontade.',
         'Sucesso'
       );
     } catch (error) {
-      showAlert('Erro ao salvar ficha na nuvem. Tente novamente.', 'Erro');
+      if (isSheetIntegrityError(error)) {
+        showAlert(
+          'Salvamento na nuvem bloqueado: a ficha em edição está incompleta (atributos/perícias/itens vazios). Recarregue a página — seus dados na nuvem foram preservados.',
+          'Erro'
+        );
+      } else {
+        showAlert('Erro ao salvar ficha na nuvem. Tente novamente.', 'Erro');
+      }
     } finally {
       setLoadingSaveToCloud(false);
     }
@@ -912,6 +919,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     // Restore spellPath functions if the class has spellcasting
     restoreSpellPath(sheet, CLASSES);
 
+    // Ficha do histórico local não está vinculada à da nuvem carregada antes.
+    setCloudSheetId(null);
+
     // Also restore originalAbilities for proper level-based filtering
     if (!sheet.classe.originalAbilities && sheet.classe.abilities) {
       const originalClass = CLASSES.find((c) => {
@@ -929,46 +939,45 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     setRandomSheet(sheet);
   };
 
-  const handleSheetUpdate = (updatedSheet: CharacterSheet) => {
-    // Ensure the updated sheet has proper class methods restored
-    restoreSpellPath(updatedSheet, CLASSES);
+  // `useSheets` devolve funções novas a cada render; o ref mantém o callback
+  // abaixo estável sem perder a ação mais recente.
+  const updateSheetActionRef = React.useRef(updateSheetAction);
+  updateSheetActionRef.current = updateSheetAction;
 
-    setRandomSheet(updatedSheet);
-    updateSheetInHistoric(updatedSheet);
+  // Identidade estável: o reconciliador de efeitos do `Result` depende deste
+  // callback, e uma função nova a cada render o fazia recalcular a ficha e
+  // apagar as escolhas de um editor aberto (ex.: poderes) antes do Salvar.
+  const handleSheetUpdate = React.useCallback(
+    (updatedSheet: CharacterSheet) => {
+      // Ensure the updated sheet has proper class methods restored
+      restoreSpellPath(updatedSheet, CLASSES);
 
-    // If this is a cloud sheet, update it in the database
-    if (cloudSheetId) {
-      // Create a serializable version of the sheet (remove Bag methods)
-      const serializableSheet = {
-        ...updatedSheet,
-        bag: {
-          equipments: updatedSheet.bag?.equipments ?? {},
-          spaces: updatedSheet.bag?.spaces ?? 0,
-          armorPenalty: updatedSheet.bag?.armorPenalty ?? 0,
-          displayOrder: updatedSheet.bag?.displayOrder ?? [],
-        },
-      };
+      setRandomSheet(updatedSheet);
+      updateSheetInHistoric(updatedSheet);
 
-      // Update in Redux state (for immediate UI update)
-      updateSheetAction(cloudSheetId, {
-        name: updatedSheet.nome,
-        sheetData:
-          serializableSheet as unknown as UpdateSheetRequest['sheetData'],
-        image: updatedSheet.imageUrl,
-      })
-        .unwrap()
-        .catch((err: unknown) => {
-          if (isSheetIntegrityError(err)) {
-            showAlert(
-              'Salvamento na nuvem bloqueado: a ficha em edição está incompleta (atributos/perícias/itens vazios). Recarregue a página — seus dados na nuvem foram preservados.',
-              'Erro'
-            );
-          }
-          // Outros erros seguem o comportamento anterior (registrados no
-          // slice de sheets, sem alerta bloqueante).
-        });
-    }
-  };
+      // If this is a cloud sheet, update it in the database
+      if (cloudSheetId) {
+        updateSheetActionRef
+          .current(cloudSheetId, {
+            name: updatedSheet.nome,
+            sheetData: toCloudSheetData(updatedSheet),
+            image: updatedSheet.imageUrl,
+          })
+          .unwrap()
+          .catch((err: unknown) => {
+            if (isSheetIntegrityError(err)) {
+              showAlert(
+                'Salvamento na nuvem bloqueado: a ficha em edição está incompleta (atributos/perícias/itens vazios). Recarregue a página — seus dados na nuvem foram preservados.',
+                'Erro'
+              );
+            }
+            // Outros erros seguem o comportamento anterior (registrados no
+            // slice de sheets, sem alerta bloqueante).
+          });
+      }
+    },
+    [cloudSheetId, showAlert]
+  );
 
   const onClickShowHistoric = () => {
     const presentation = document.getElementById('presentation');
@@ -1340,6 +1349,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     setRandomSheet(finalSheet);
     setSheetSavedToCloud(false);
+    setCloudSheetId(null);
     setShowGolemDespertoModal(false);
     setPendingGolemDespertoSheet(null);
   };
@@ -1411,6 +1421,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     setRandomSheet(finalSheet);
     setSheetSavedToCloud(false);
+    setCloudSheetId(null);
     setShowDuendeModal(false);
     setPendingDuendeSheet(null);
   };
@@ -1490,6 +1501,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     setRandomSheet(finalSheet);
     setSheetSavedToCloud(false);
+    setCloudSheetId(null);
     setShowMoreauModal(false);
     setPendingMoreauSheet(null);
   };

@@ -2554,9 +2554,9 @@ export const applyPower = (
         );
 
         // Pick first attributes higher on the priority list
-        const [firstPriorityAttribute] = sheet.classe.attrPriority.filter(
-          (attr) => availableAttributes.includes(attr)
-        );
+        const [firstPriorityAttribute] = (
+          sheet.classe.attrPriority ?? []
+        ).filter((attr) => availableAttributes.includes(attr));
 
         let targetAttribute: Atributo | undefined;
         const persisted = optionKey
@@ -2630,7 +2630,7 @@ export const applyPower = (
             const next =
               manual && remaining.includes(manual)
                 ? manual
-                : sheet.classe.attrPriority.find((attr) =>
+                : (sheet.classe.attrPriority ?? []).find((attr) =>
                     remaining.includes(attr)
                   ) ?? getRandomItemFromArray(remaining);
 
