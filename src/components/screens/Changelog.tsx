@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            16/10/2026 (v4.36).
+            23/10/2026 (v4.36).
           </p>
 
           <p>
@@ -303,6 +303,26 @@ const Changelog: React.FC = () => {
                   Defesa, o efeito abria sempre no valor base e parecia não
                   passar de +7. Agora ele já abre no valor pago: cinco
                   aprimoramentos na Armadura Arcana dão +10 na Defesa.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em algumas fichas, adicionar o
+                  poder <strong>Aumento de Atributo</strong> e clicar em Salvar
+                  não fazia nada. Agora o poder é salvo normalmente e, se algum
+                  erro impedir o salvamento, o editor de poderes mostra o aviso
+                  em vez de travar em silêncio.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Edições feitas na ficha logo depois
+                  de criá-la e clicar em <strong>Salvar na nuvem</strong> agora
+                  chegam à nuvem (antes ficavam só no navegador). Salvar de novo
+                  atualiza a mesma ficha em vez de criar uma duplicata, e uma
+                  falha no salvamento mostra erro em vez de sucesso.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na tela de criação, as escolhas
+                  feitas no editor de poderes podiam sumir antes do Salvar, e
+                  gerar uma ficha nova depois de editar uma da nuvem podia
+                  gravar as edições da nova por cima da antiga.
                 </li>
                 <li>
                   <strong>Correção:</strong> As correções acima de Pele de Aço,
