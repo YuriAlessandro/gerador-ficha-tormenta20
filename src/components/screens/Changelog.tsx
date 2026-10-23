@@ -183,6 +183,20 @@ const Changelog: React.FC = () => {
                   )
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> O editor de <strong>Builds</strong>{' '}
+                  agora oferece magias, poderes e equipamento a partir dos dados
+                  do jogo, incluindo suplementos e homebrews ativos. Em cada
+                  nível, as magias que a classe já alcança aparecem primeiro,
+                  agrupadas por círculo, e as demais ficam num grupo à parte; os
+                  poderes mostram seus pré-requisitos; e o equipamento vira uma
+                  busca no mercado e nos itens mágicos, agrupada por tipo. Texto
+                  livre continua valendo em todos os campos. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
                   <strong>Correção:</strong> O poder{' '}
                   <strong>Esperteza Vulpina</strong> (Moreau, Herança da Raposa)
                   treinava automaticamente duas perícias sorteadas — e de uma
@@ -420,6 +434,22 @@ const Changelog: React.FC = () => {
                   <strong>Builds</strong>, ordenar por <strong>Nome A-Z</strong>{' '}
                   mostrava de Z a A e <strong>Mais antigas</strong> mostrava as
                   mais novas. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Correção:</strong> No editor de{' '}
+                  <strong>Builds</strong>, remover um nível deixava um buraco na
+                  progressão e bagunçava a contagem de níveis de cada classe na
+                  multiclasse; agora os níveis seguintes descem (com confirmação
+                  se o nível tinha conteúdo) e builds antigas com buracos se
+                  ajeitam ao adicionar um nível. Os{' '}
+                  <strong>suplementos necessários</strong> passam a ser
+                  calculados pelo conteúdo da build, sem manter livros de uma
+                  classe ou poder já removidos, e o aviso do editor volta a
+                  fechar sozinho. (por{' '}
                   <a href='https://github.com/Hiagozeroum' target='blank'>
                     Hiagozeroum
                   </a>
