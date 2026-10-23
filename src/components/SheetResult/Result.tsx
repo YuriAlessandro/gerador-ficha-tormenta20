@@ -58,6 +58,7 @@ import {
   calculateCurrencySpaces,
 } from '@/functions/general';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
+import ZoomableImage from '@/components/common/ZoomableImage';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import {
   isMulticlass,
@@ -2310,19 +2311,13 @@ const Result: React.FC<ResultProps> = (props) => {
             }}
           >
             {currentSheet.imageUrl && (
-              <Box
-                component='img'
+              <ZoomableImage
                 src={currentSheet.imageUrl}
                 alt={nome}
-                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
                 sx={{
                   width: isMobile ? 80 : 100,
                   height: isMobile ? 80 : 100,
-                  objectFit: 'cover',
                   borderRadius: 2,
-                  flexShrink: 0,
                 }}
               />
             )}
