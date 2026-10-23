@@ -26,6 +26,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import RestoreIcon from '@mui/icons-material/Restore';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
+import ZoomableImage from '../common/ZoomableImage';
 import { useConfirm } from '../../hooks/useDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { convertThreatToFoundry } from '../../2foundry';
@@ -721,19 +722,13 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
             }}
           >
             {threat.imageUrl && (
-              <Box
-                component='img'
+              <ZoomableImage
                 src={threat.imageUrl}
                 alt={threat.name}
-                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
                 sx={{
                   width: { xs: 120, md: 200 },
                   height: { xs: 120, md: 200 },
-                  objectFit: 'cover',
                   borderRadius: 2,
-                  flexShrink: 0,
                 }}
               />
             )}
