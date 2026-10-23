@@ -85,11 +85,7 @@ const Changelog: React.FC = () => {
                   deus (indicando quando é herdado do sacerdote) e avisa nas
                   armas que fogem da arma preferida da divindade. O dogma e a
                   marca também saem no PDF. A ficha informa a regra, sem
-                  bloquear armas nem PM. (por{' '}
-                  <a href='https://github.com/Hiagozeroum' target='blank'>
-                    Hiagozeroum
-                  </a>
-                  )
+                  bloquear armas nem PM.
                 </li>
                 <li>
                   <strong>Novo:</strong> O construtor de ameaças ganhou o tipo
@@ -176,11 +172,6 @@ const Changelog: React.FC = () => {
                   recarregar ou mandar o link para alguém mantém a lista
                   filtrada (e, nas Builds e no Fórum, a página e a rolagem). A
                   busca também espera você terminar de digitar antes de buscar.
-                  (por{' '}
-                  <a href='https://github.com/Hiagozeroum' target='blank'>
-                    Hiagozeroum
-                  </a>
-                  )
                 </li>
                 <li>
                   <strong>Melhoria:</strong> O editor de <strong>Builds</strong>{' '}
@@ -190,11 +181,7 @@ const Changelog: React.FC = () => {
                   agrupadas por círculo, e as demais ficam num grupo à parte; os
                   poderes mostram seus pré-requisitos; e o equipamento vira uma
                   busca no mercado e nos itens mágicos, agrupada por tipo. Texto
-                  livre continua valendo em todos os campos. (por{' '}
-                  <a href='https://github.com/Hiagozeroum' target='blank'>
-                    Hiagozeroum
-                  </a>
-                  )
+                  livre continua valendo em todos os campos.
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder{' '}
@@ -251,20 +238,12 @@ const Changelog: React.FC = () => {
                 <li>
                   <strong>Correção:</strong> Nas páginas extras do PDF, linhas
                   longas passavam da margem; agora quebram pela largura da
-                  página. (por{' '}
-                  <a href='https://github.com/Hiagozeroum' target='blank'>
-                    Hiagozeroum
-                  </a>
-                  )
+                  página.
                 </li>
                 <li>
                   <strong>Correção:</strong> No celular, os avisos da ficha
                   (arma fora da proficiência, valor editado à mão) não abriam
-                  com um toque rápido. (por{' '}
-                  <a href='https://github.com/Hiagozeroum' target='blank'>
-                    Hiagozeroum
-                  </a>
-                  )
+                  com um toque rápido.
                 </li>
                 <li>
                   <strong>Correção:</strong> No catálogo de poderes, a caixa de
@@ -423,21 +402,13 @@ const Changelog: React.FC = () => {
                   saldo da mochila fica fixo embaixo e o custo do Golpe Pessoal
                   fica sempre à vista. No <strong>Novo parceiro</strong>, a
                   lista de tipos rola junto com a janela e não esconde mais os
-                  campos de baixo. (por{' '}
-                  <a href='https://github.com/Hiagozeroum' target='blank'>
-                    Hiagozeroum
-                  </a>
-                  )
+                  campos de baixo.
                 </li>
                 <li>
                   <strong>Correção:</strong> Na listagem de{' '}
                   <strong>Builds</strong>, ordenar por <strong>Nome A-Z</strong>{' '}
                   mostrava de Z a A e <strong>Mais antigas</strong> mostrava as
-                  mais novas. (por{' '}
-                  <a href='https://github.com/Hiagozeroum' target='blank'>
-                    Hiagozeroum
-                  </a>
-                  )
+                  mais novas.
                 </li>
                 <li>
                   <strong>Correção:</strong> No editor de{' '}
@@ -449,11 +420,7 @@ const Changelog: React.FC = () => {
                   <strong>suplementos necessários</strong> passam a ser
                   calculados pelo conteúdo da build, sem manter livros de uma
                   classe ou poder já removidos, e o aviso do editor volta a
-                  fechar sozinho. (por{' '}
-                  <a href='https://github.com/Hiagozeroum' target='blank'>
-                    Hiagozeroum
-                  </a>
-                  )
+                  fechar sozinho.
                 </li>
               </ul>
               <h3>4.35.1</h3>
