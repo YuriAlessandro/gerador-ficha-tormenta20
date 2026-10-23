@@ -128,6 +128,15 @@ const Changelog: React.FC = () => {
                   perícia.
                 </li>
                 <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Lupa para ampliar imagens</strong>. A miniatura da
+                  ficha do personagem e da ameaça ganhou um botão de lupa que
+                  abre a imagem inteira, sem recorte. O mesmo vale para a capa
+                  do homebrew, a imagem da build, as imagens do fórum, a fan-art
+                  do perfil e o avatar do parceiro. No fórum, a imagem agora
+                  amplia na própria página em vez de abrir outra aba.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> <strong>Parceiros</strong>{' '}
                   concedidos por poderes entram sozinhos na ficha: o familiar do
                   Arcanista, o Companheiro Animal, o autômato, as montarias e os
