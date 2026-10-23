@@ -7,6 +7,7 @@ import {
   evaluateSimpleModifier,
   isLiveWeaponBonus,
   isModeScopedForWeapon,
+  resolveLiveWeaponCritico,
   sumLiveWeaponBonuses,
   weaponMatchesScope,
 } from '../weaponBonusScope';
@@ -630,6 +631,91 @@ describe('bônus vivo × baking do recalculateSheet', () => {
     expect(
       sumLiveWeaponBonuses(espada, out.sheetBonuses, 'WeaponDamage', ctx)
     ).toBe(0);
+  });
+});
+
+/**
+ * Margem de ameaça/multiplicador de efeito ativo (ex.: efeito personalizado de
+ * Bravura Indômita) sobre arma que o baking não alcança. Antes, a arma editada
+ * à mão mostrava o efeito no tooltip ✨ e continuava critando só no 20.
+ */
+describe('resolveLiveWeaponCritico — margem de ameaça viva', () => {
+  const WID = 'live-crit-weapon';
+  const bravura = {
+    instanceId: 'bravura-instance',
+    powerKey: 'custom-effect:Bravura Indômita::e1',
+    name: 'Bravura',
+    sourceLabel: 'Bravura Indômita · Bravura',
+    optionId: 't1',
+    optionLabel: '+2 ataque e margem',
+    bonuses: [
+      {
+        target: { type: 'WeaponThreatMargin' as const },
+        modifier: { type: 'Fixed' as const, value: 2 },
+      },
+    ],
+    appliedAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  const run = (weapon: Partial<Equipment>, actionCritico?: string) => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag = new Bag({
+      Arma: [
+        {
+          id: WID,
+          nome: 'Espada Longa',
+          group: 'Arma',
+          dano: '1d8',
+          critico: '19',
+          alcance: '-',
+          ...weapon,
+        },
+      ],
+    });
+    sheet.activeEffects = [bravura];
+    const out = recalculateSheet(sheet);
+    const w = out.bag.equipments.Arma.find((x) => x.id === WID)!;
+    return resolveLiveWeaponCritico(
+      w,
+      w.critico ?? '',
+      actionCritico,
+      out.sheetBonuses,
+      { atributos: out.atributos, nivel: out.nivel }
+    );
+  };
+
+  it('arma comum: bakeado uma vez só (19 → 17)', () => {
+    expect(run({})).toBe('17');
+  });
+
+  it('arma editada à mão: o efeito ativo entra ao vivo (19 → 17)', () => {
+    expect(run({ hasManualEdits: true })).toBe('17');
+  });
+
+  it('modo com crítico próprio recebe o bônus (19/x3 → 17/x3)', () => {
+    expect(run({}, '19/x3')).toBe('17/x3');
+  });
+
+  it('arma editada à mão ignora bônus permanente de poder', () => {
+    const w: Equipment = {
+      nome: 'Espada Longa',
+      group: 'Arma',
+      critico: '19',
+      hasManualEdits: true,
+    };
+    const bonuses: SheetBonus[] = [
+      {
+        source: { type: 'power', name: 'Golpe' },
+        target: { type: 'WeaponThreatMargin' },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ];
+    expect(
+      resolveLiveWeaponCritico(w, '19', undefined, bonuses, {
+        atributos: createMockCharacterSheet().atributos,
+        nivel: 1,
+      })
+    ).toBe('19');
   });
 });
 

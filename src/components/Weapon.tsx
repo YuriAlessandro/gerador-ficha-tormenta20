@@ -44,6 +44,7 @@ import {
 } from '../functions/weaponDamageStep';
 import {
   evaluateSimpleModifier,
+  resolveLiveWeaponCritico,
   sumLiveWeaponBonuses,
   weaponMatchesScope,
   WeaponBonusScope,
@@ -252,6 +253,35 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [liveWeaponBonus]
   );
 
+  // Crítico efetivo do modo: `critico` já traz o que foi bakeado; aqui entram
+  // os bônus de margem/multiplicador que o baking não alcança (efeito ativo em
+  // arma editada à mão, modo com `critico` próprio). Ver
+  // `resolveLiveWeaponCritico`.
+  const resolveCritico = useCallback(
+    (action?: WeaponAction): string =>
+      resolveLiveWeaponCritico(
+        equipment,
+        critico ?? '',
+        action?.critico,
+        sheetBonuses,
+        {
+          atributos,
+          nivel: nivel ?? 1,
+          classLevels,
+          isProficient: !isNonProficient,
+        }
+      ),
+    [
+      equipment,
+      critico,
+      sheetBonuses,
+      atributos,
+      nivel,
+      classLevels,
+      isNonProficient,
+    ]
+  );
+
   // Ataque e dano da linha principal da arma. O modo de referência é o corpo a
   // corpo (mesma escolha de `getWeaponSkill`, que devolve Luta para arma de
   // arremesso), então os bônus vivos entram com `action` indefinida. Sem isso a
@@ -328,7 +358,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         atk: previewAtk,
         damageMod: previewDamageMod,
         dano: previewDano,
-        critico: action.critico ?? critico ?? '',
+        critico: resolveCritico(action),
         attribute: resolvedAttr,
       };
     },
@@ -336,7 +366,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       atkBonus,
       atributos,
       completeSkills,
-      critico,
+      resolveCritico,
       damageModForAttribute,
       dano,
       equipment,
@@ -546,7 +576,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       const adjustedDano =
         stepDelta !== 0 ? stepUpDamage(selectedDano, stepDelta) : selectedDano;
 
-      const effectiveCritico = action?.critico ?? critico ?? '';
+      const effectiveCritico = resolveCritico(action);
 
       const damageRollString =
         localDamageMod >= 0
@@ -597,7 +627,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       atkBonus,
       characterName,
       completeSkills,
-      critico,
+      resolveCritico,
       damageModForAttribute,
       equipment,
       displayName,
@@ -993,7 +1023,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               • {withManualMark('dano', damage)}
             </Box>
             <Box component='span' sx={{ whiteSpace: 'nowrap' }}>
-              • ({withManualMark('critico', critico)})
+              • ({withManualMark('critico', resolveCritico())})
             </Box>
             {equipment.tipo && equipment.tipo !== '-' && (
               <Box component='span' sx={{ whiteSpace: 'nowrap' }}>

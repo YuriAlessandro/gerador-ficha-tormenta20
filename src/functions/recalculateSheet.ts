@@ -91,6 +91,9 @@ import {
 } from './powers/customPowerBonuses';
 import { stampUsedSupplements } from './contentSources';
 import {
+  addCriticalAdjustment,
+  applyCriticalAdjustments,
+  emptyCriticalAdjustments,
   isModeScopedForWeapon,
   weaponMatchesScope,
   WeaponBonusScope,
@@ -539,10 +542,7 @@ const applyWeaponBonuses = (
       let totalAttackBonus = 0;
       let totalDamageBonus = 0;
       let totalDamageSteps = 0;
-      let totalThreatMarginBonus = 0;
-      let setThreatMargin: number | undefined;
-      let totalCriticalMultiplierBonus = 0;
-      let setCritMultiplier: number | undefined;
+      const criticalAdjustments = emptyCriticalAdjustments();
 
       updatedSheet.sheetBonuses.forEach((bonus) => {
         // Bônus com escopo POR MODO (arremesso, ou melee/ranged em arma híbrida
@@ -579,26 +579,12 @@ const applyWeaponBonuses = (
             totalDamageBonus += bonusValue;
           } else if (bonus.target.type === 'WeaponDamageStep') {
             totalDamageSteps += bonusValue;
-          } else if (bonus.target.type === 'WeaponThreatMargin') {
-            if (bonus.target.mode === 'set') {
-              // Define a margem; com vários, prevalece a mais ampla (menor nº).
-              setThreatMargin =
-                setThreatMargin === undefined
-                  ? bonusValue
-                  : Math.min(setThreatMargin, bonusValue);
-            } else {
-              totalThreatMarginBonus += bonusValue;
-            }
-          } else if (bonus.target.type === 'WeaponCriticalMultiplier') {
-            if (bonus.target.mode === 'set') {
-              // Define o multiplicador; com vários, prevalece o maior.
-              setCritMultiplier =
-                setCritMultiplier === undefined
-                  ? bonusValue
-                  : Math.max(setCritMultiplier, bonusValue);
-            } else {
-              totalCriticalMultiplierBonus += bonusValue;
-            }
+          } else {
+            addCriticalAdjustment(
+              criticalAdjustments,
+              bonus.target,
+              bonusValue
+            );
           }
         }
       });
@@ -627,66 +613,11 @@ const applyWeaponBonuses = (
           : `+${totalDamageBonus}`;
       }
 
-      const hasMarginChange =
-        totalThreatMarginBonus > 0 || setThreatMargin !== undefined;
-      const hasMultChange =
-        totalCriticalMultiplierBonus > 0 || setCritMultiplier !== undefined;
-
-      if ((hasMarginChange || hasMultChange) && weaponCopy.critico) {
-        // Critical string may be "19", "x2" or "19/x2". Threat margin modifies
-        // the numeric part before "/" (or the whole string if no "/"); the
-        // multiplier modifies the "xN" portion.
-        const parts = weaponCopy.critico.split('/');
-        let marginPart: string | null = null;
-        let multPart: string | null = null;
-
-        if (parts.length === 1) {
-          const [only] = parts;
-          if (only.includes('x')) {
-            multPart = only;
-          } else {
-            marginPart = only;
-          }
-        } else {
-          [marginPart, multPart] = parts;
-        }
-
-        if (hasMarginChange) {
-          // Margem base (20 implícito quando a arma só tem multiplicador, ex.:
-          // "x2"). `set` define a margem; o aumento (estreitamento) é aplicado
-          // por cima.
-          let currentRange =
-            marginPart !== null ? parseInt(marginPart, 10) : 20;
-          if (Number.isNaN(currentRange)) currentRange = 20;
-          if (setThreatMargin !== undefined) currentRange = setThreatMargin;
-          marginPart = `${Math.max(
-            1,
-            Math.min(20, currentRange - totalThreatMarginBonus)
-          )}`;
-        }
-
-        if (hasMultChange) {
-          // Multiplicador base (x2 implícito quando a arma só tem margem, ex.:
-          // "19"). `set` define o multiplicador; o aumento soma por cima.
-          let currentMult =
-            multPart !== null
-              ? parseInt(multPart.match(/x(\d+)/)?.[1] || '2', 10)
-              : 2;
-          if (Number.isNaN(currentMult)) currentMult = 2;
-          if (setCritMultiplier !== undefined) currentMult = setCritMultiplier;
-          multPart = `x${Math.max(
-            2,
-            currentMult + totalCriticalMultiplierBonus
-          )}`;
-        }
-
-        if (marginPart !== null && multPart !== null) {
-          weaponCopy.critico = `${marginPart}/${multPart}`;
-        } else if (marginPart !== null) {
-          weaponCopy.critico = marginPart;
-        } else if (multPart !== null) {
-          weaponCopy.critico = multPart;
-        }
+      if (weaponCopy.critico) {
+        weaponCopy.critico = applyCriticalAdjustments(
+          weaponCopy.critico,
+          criticalAdjustments
+        );
       }
 
       return weaponCopy;
