@@ -386,6 +386,21 @@ const Changelog: React.FC = () => {
                   Inventário Organizado e outros. PV e PM continuam sem mudar
                   com bônus temporário.
                 </li>
+                <li>
+                  <strong>Correção:</strong> No celular, o{' '}
+                  <strong>Subir de nível</strong>, o{' '}
+                  <strong>Adicionar à mochila</strong> e o construtor de{' '}
+                  <strong>Golpe Pessoal</strong> abrem em tela cheia. O passo a
+                  passo do level up não espreme mais os nomes das etapas, o
+                  saldo da mochila fica fixo embaixo e o custo do Golpe Pessoal
+                  fica sempre à vista. No <strong>Novo parceiro</strong>, a
+                  lista de tipos rola junto com a janela e não esconde mais os
+                  campos de baixo. (por{' '}
+                  <a href='https://github.com/Hiagozeroum' target='blank'>
+                    Hiagozeroum
+                  </a>
+                  )
+                </li>
               </ul>
               <h3>4.35.1</h3>
               <ul>
