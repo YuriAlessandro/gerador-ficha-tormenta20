@@ -58,6 +58,7 @@ import {
   calculateCurrencySpaces,
 } from '@/functions/general';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
+import ZoomableImage from '@/components/common/ZoomableImage';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import {
   isMulticlass,
@@ -67,7 +68,7 @@ import {
 } from '@/functions/multiclass';
 import { getCompanionLevels } from '@/functions/companionLevels';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { EngenhocaData, Spell } from '@/interfaces/Spells';
+import { CastAugment, EngenhocaData, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -120,7 +121,10 @@ import {
   getWildShapeNaturalWeapons,
   isInWildShape,
 } from '@/premium/functions/wildShape';
-import { WILD_SHAPE_POWER_KEY } from '@/premium/data/wildShapes';
+import {
+  WILD_SHAPE_DIVINE_FORM_KEYS,
+  WILD_SHAPE_POWER_KEY,
+} from '@/premium/data/wildShapes';
 import {
   getSheetPartnerActivatedPowers,
   reconcileSheetPartnerEffects,
@@ -338,6 +342,10 @@ const Result: React.FC<ResultProps> = (props) => {
   const [pendingSpellAbility, setPendingSpellAbility] =
     useState<RollAbilityMeta | null>(null);
   const [pendingSpellCastLogged, setPendingSpellCastLogged] = useState(false);
+  // Aprimoramentos do lançamento — o diálogo do efeito pré-seleciona o tier pago.
+  const [pendingSpellCastAugments, setPendingSpellCastAugments] = useState<
+    CastAugment[] | undefined
+  >(undefined);
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [effectsModalOpen, setEffectsModalOpen] = useState(false);
   const [levelUpWizardOpen, setLevelUpWizardOpen] = useState(false);
@@ -429,15 +437,21 @@ const Result: React.FC<ResultProps> = (props) => {
         appliedBy: { playerName: currentSheet.nome },
         appliedManually: opts?.skipPmCost ? true : undefined,
       };
-      // Substitui qualquer instância anterior do mesmo poder
+      // Substitui qualquer instância anterior do mesmo poder. Trocar de Forma
+      // Selvagem é uma transformação nova: as formas por divindade pagas na
+      // anterior saem junto.
+      const isReplaced = (e: ActiveEffect) =>
+        e.powerKey === definition.key ||
+        (definition.key === WILD_SHAPE_POWER_KEY &&
+          WILD_SHAPE_DIVINE_FORM_KEYS.includes(e.powerKey));
       const previous = (currentSheet.activeEffects ?? []).filter(
-        (e) => e.powerKey !== definition.key
+        (e) => !isReplaced(e)
       );
       const removedTempPM = (currentSheet.activeEffects ?? [])
-        .filter((e) => e.powerKey === definition.key)
+        .filter(isReplaced)
         .reduce((sum, e) => sum + (e.grantsTempPM ?? 0), 0);
       const removedTempPV = (currentSheet.activeEffects ?? [])
-        .filter((e) => e.powerKey === definition.key)
+        .filter(isReplaced)
         .reduce((sum, e) => sum + (e.grantsTempPV ?? 0), 0);
 
       const basePM = currentSheet.currentPM ?? currentSheet.pm ?? 0;
@@ -499,22 +513,32 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleActiveEffectRemove = useCallback(
     (instanceId: string) => {
-      const removed = (currentSheet.activeEffects ?? []).find(
+      const target = (currentSheet.activeEffects ?? []).find(
         (e) => e.instanceId === instanceId
       );
+      // Reverter a Forma Selvagem derruba as formas por divindade (Aberrante,
+      // de Cardume, Elemental, Esquelética, Vegetal), que só existem por cima
+      // dela.
+      const isRemoved = (e: ActiveEffect) =>
+        e.instanceId === instanceId ||
+        (target?.powerKey === WILD_SHAPE_POWER_KEY &&
+          WILD_SHAPE_DIVINE_FORM_KEYS.includes(e.powerKey));
+      const removed = (currentSheet.activeEffects ?? []).filter(isRemoved);
       const next = (currentSheet.activeEffects ?? []).filter(
-        (e) => e.instanceId !== instanceId
+        (e) => !isRemoved(e)
       );
       applyRecalculatedSheet({
         ...currentSheet,
         activeEffects: next,
         tempPM: Math.max(
           0,
-          (currentSheet.tempPM ?? 0) - (removed?.grantsTempPM ?? 0)
+          (currentSheet.tempPM ?? 0) -
+            removed.reduce((sum, e) => sum + (e.grantsTempPM ?? 0), 0)
         ),
         tempPV: Math.max(
           0,
-          (currentSheet.tempPV ?? 0) - (removed?.grantsTempPV ?? 0)
+          (currentSheet.tempPV ?? 0) -
+            removed.reduce((sum, e) => sum + (e.grantsTempPV ?? 0), 0)
         ),
       });
     },
@@ -1292,7 +1316,12 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const handleSpellCast = useCallback(
-    (pmSpent: number, spell: Spell, castLogged?: boolean) => {
+    (
+      pmSpent: number,
+      spell: Spell,
+      castLogged?: boolean,
+      castAugments?: CastAugment[]
+    ) => {
       const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
       const tempConsumed = Math.min(currentTemp, pmSpent);
@@ -1344,6 +1373,7 @@ const Result: React.FC<ResultProps> = (props) => {
           // se publicou, descartar o efeito não deve publicar outro igual.
           setPendingSpellAbility(buildSpellAbilityMeta(spell, pmSpent));
           setPendingSpellCastLogged(Boolean(castLogged));
+          setPendingSpellCastAugments(castAugments);
         }
       }
     },
@@ -1364,6 +1394,7 @@ const Result: React.FC<ResultProps> = (props) => {
     }
     setSpellEffectDef(null);
     setPendingSpellAbility(null);
+    setPendingSpellCastAugments(undefined);
   }, [
     pendingSpellAbility,
     pendingSpellCastLogged,
@@ -2291,19 +2322,13 @@ const Result: React.FC<ResultProps> = (props) => {
             }}
           >
             {currentSheet.imageUrl && (
-              <Box
-                component='img'
+              <ZoomableImage
                 src={currentSheet.imageUrl}
                 alt={nome}
-                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
                 sx={{
                   width: isMobile ? 80 : 100,
                   height: isMobile ? 80 : 100,
-                  objectFit: 'cover',
                   borderRadius: 2,
-                  flexShrink: 0,
                 }}
               />
             )}
@@ -3457,6 +3482,7 @@ const Result: React.FC<ResultProps> = (props) => {
             open={spellEffectDef !== null && canUseActiveEffects}
             definition={spellEffectDef}
             sheet={currentSheet}
+            castAugments={pendingSpellCastAugments}
             onClose={handleSpellEffectDismiss}
             onConfirm={(option) => {
               if (spellEffectDef) {
@@ -3466,6 +3492,7 @@ const Result: React.FC<ResultProps> = (props) => {
               }
               setSpellEffectDef(null);
               setPendingSpellAbility(null);
+              setPendingSpellCastAugments(undefined);
             }}
           />
 

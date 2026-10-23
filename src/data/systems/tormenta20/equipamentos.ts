@@ -117,6 +117,7 @@ export const Armas = catalog({
         damageAttribute: 'Força',
       },
     ],
+    weaponTags: ['leve'],
   },
   ESPADACURTA: {
     nome: 'Espada Curta',
@@ -128,6 +129,7 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 10,
+    weaponTags: ['leve', 'espada'],
   },
   FOICE: {
     nome: 'Foice',
@@ -139,6 +141,7 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 4,
+    weaponTags: ['leve'],
   },
   // Unidade base do ataque desarmado — preço/espaço 0, dano/crítico mantidos
   // vivos por `updateDesarmadoTaggedWeaponsDano` (ver `unarmedDamage.ts`), que
@@ -170,7 +173,7 @@ export const Armas = catalog({
     // conta como ataque desarmado (dano letal em vez do não-letal padrão).
     // O "-" é só o placeholder de catálogo: `updateDesarmadoTaggedWeaponsDano`
     // sobrescreve com o dado desarmado vivo assim que a arma entra na mochila.
-    weaponTags: ['desarmado'],
+    weaponTags: ['desarmado', 'leve'],
   },
   CLAVA: {
     nome: 'Clava',
@@ -291,6 +294,7 @@ export const Armas = catalog({
     alcance: 'Médio',
     group: 'Arma',
     preco: 35,
+    twoHanded: true,
     ammoType: 'Virotes',
   },
   FUNDA: {
@@ -344,7 +348,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 6,
-    weaponTags: ['heredrimm'],
+    weaponTags: ['heredrimm', 'leve'],
     arremesso: true,
     alcance: 'Curto',
     specialActions: [
@@ -366,6 +370,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 15,
+    weaponTags: ['agil', 'espada'],
   },
   ESPADA_LONGA: {
     nome: 'Espada Longa',
@@ -377,6 +382,7 @@ export const Armas = catalog({
     alcance: '-',
     group: 'Arma',
     preco: 15,
+    weaponTags: ['espada'],
   },
   FLORETE: {
     nome: 'Florete',
@@ -387,6 +393,7 @@ export const Armas = catalog({
     tipo: 'Perfuração',
     group: 'Arma',
     preco: 20,
+    weaponTags: ['agil', 'espada'],
   },
   MACHADO_DE_BATALHA: {
     nome: 'Machado de Batalha',
@@ -475,6 +482,7 @@ export const Armas = catalog({
     group: 'Arma',
     preco: 75,
     twoHanded: true,
+    weaponTags: ['espada'],
   },
   GADANHO: {
     nome: 'Gadanho',
@@ -489,6 +497,8 @@ export const Armas = catalog({
   },
   LANCA_MONTADA: {
     nome: 'Lança Montada',
+    descricao:
+      'Arma alongada. Se você estiver montado, pode usá-la com apenas uma mão. Além disso, quando usada numa investida montada, causa +2d8 pontos de dano (dados extras não são multiplicados em caso de acerto crítico).',
     weaponCategory: 'martial',
     dano: '1d8',
     critico: 'x3',
@@ -498,6 +508,7 @@ export const Armas = catalog({
     preco: 10,
     weaponTags: ['alongada'],
     twoHanded: true,
+    oneHandedWhenMounted: true,
   },
   MACHADO_DE_GUERRA: {
     nome: 'Machado de Guerra',
@@ -536,6 +547,7 @@ export const Armas = catalog({
     group: 'Arma',
     preco: 50,
     twoHanded: true,
+    weaponTags: ['espada'],
   },
   ARCO_LONGO: {
     nome: 'Arco Longo',
@@ -547,6 +559,7 @@ export const Armas = catalog({
     tipo: 'Perfuração',
     group: 'Arma',
     preco: 100,
+    twoHanded: true,
     ammoType: 'Flechas',
     damageAttribute: 'Força',
   },
@@ -560,6 +573,7 @@ export const Armas = catalog({
     tipo: 'Perfuração',
     group: 'Arma',
     preco: 50,
+    twoHanded: true,
     ammoType: 'Virotes',
   },
   CHICOTE: {
@@ -571,6 +585,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 2,
+    weaponTags: ['agil'],
   },
   ESPADA_BASTARDA: {
     nome: 'Espada Bastarda',
@@ -581,6 +596,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 35,
+    weaponTags: ['espada'],
   },
   KATANA: {
     nome: 'Katana',
@@ -591,6 +607,7 @@ export const Armas = catalog({
     tipo: 'Corte',
     group: 'Arma',
     preco: 100,
+    weaponTags: ['agil', 'espada'],
   },
   MACHADO_ANAO: {
     nome: 'Machado Anão',
@@ -613,6 +630,7 @@ export const Armas = catalog({
     group: 'Arma',
     preco: 25,
     twoHanded: true,
+    weaponTags: ['agil'],
   },
   MACHADO_TAURICO: {
     nome: 'Machado Táurico',
@@ -846,6 +864,18 @@ export default EQUIPAMENTOS;
 export const ARMAS_SIMPLES_E_MARCIAIS: Equipment[] = [
   ...EQUIPAMENTOS.armasSimples,
   ...EQUIPAMENTOS.armasMarciais,
+];
+
+/**
+ * Armaduras do equipamento inicial de classe (JdA p. 140): "uma armadura de
+ * couro, couro batido ou gibão de peles, a sua escolha". NÃO é o mesmo que
+ * `armadurasLeves`, que inclui acolchoada e couraça (T$ 500) e serve onde a
+ * regra diz "uma armadura leve" (catálogo, origens).
+ */
+export const ARMADURAS_INICIAIS: DefenseEquipment[] = [
+  Armaduras.ARMADURADECOURO,
+  Armaduras.COUROBATIDO,
+  Armaduras.GIBAODEPELES,
 ];
 
 /** Pool de "uma arma qualquer" — simples, marciais e exóticas. */

@@ -166,6 +166,30 @@ describe('buildSavedItem — categoria de proficiência (weaponCategory)', () =>
   });
 });
 
+describe('buildSavedItem — tags da arma (hasManualTags)', () => {
+  const adaga: Equipment = {
+    nome: 'Adaga',
+    group: 'Arma',
+    dano: '1d4',
+    critico: '19',
+    atkBonus: 0,
+    spaces: 1,
+    weaponTags: ['leve'],
+  };
+
+  it('remover uma tag grava a lista e marca hasManualTags', () => {
+    const result = save(adaga, mkForm({ weaponTags: [] }));
+    expect(result.weaponTags).toBeUndefined();
+    expect(result.hasManualTags).toBe(true);
+  });
+
+  it('salvar sem mexer nas tags não marca hasManualTags', () => {
+    const result = save(adaga, mkForm({ weaponTags: ['leve'] }));
+    expect(result.weaponTags).toEqual(['leve']);
+    expect(result.hasManualTags).toBeUndefined();
+  });
+});
+
 describe('buildSavedItem — atributo no ataque (attackAttribute)', () => {
   const mordida: Equipment = {
     nome: 'Mordida',

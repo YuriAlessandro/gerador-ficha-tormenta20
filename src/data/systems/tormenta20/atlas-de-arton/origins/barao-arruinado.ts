@@ -34,7 +34,7 @@ const BARAO_ARRUINADO: Origin = {
       equipment: 'Traje da corte',
     },
   ],
-  getMoney: () => 200,
+  // Sem `getMoney`: o T$ 200 do livro é o valor do anel, não dinheiro.
 };
 
 export default BARAO_ARRUINADO;

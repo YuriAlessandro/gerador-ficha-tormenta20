@@ -7,6 +7,8 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { createMockCharacterSheet } from '@/__mocks__/characterSheet';
 import { findClassDescription } from '@/functions/multiclass';
+import { dataRegistry } from '@/data/registry';
+import { SupplementId } from '@/types/supplement.types';
 import SheetInfoEditDrawer from '../SheetInfoEditDrawer';
 
 /**
@@ -188,6 +190,92 @@ describe('SheetInfoEditDrawer: idade', () => {
     );
 
     expect(screen.getByRole('button', { name: /^Salvar$/ })).not.toBeDisabled();
+  });
+
+  /**
+   * Feedback de usuário (out/2026): numa ficha pronta, escolher Adulto não
+   * mostrava nem o toggle de "Já Vi Coisas", nem a complicação, nem um seletor
+   * de poder — o drawer assumia que o poder só podia vir da criação.
+   */
+  describe('Adulto: "Já Vi Coisas" na edição', () => {
+    function adultSheet(): CharacterSheet {
+      const sheet = baseSheet();
+      sheet.age = {
+        years: 30,
+        stage: 'jovem',
+        bracket: 'adulto',
+        complications: [],
+        extraLevels: 0,
+      };
+      return sheet;
+    }
+
+    function renderDrawer(sheet: CharacterSheet) {
+      const onSave = vi.fn();
+      render(
+        <Provider store={fakeStore}>
+          <SheetInfoEditDrawer
+            open
+            onClose={vi.fn()}
+            sheet={sheet}
+            onSave={onSave}
+          />
+        </Provider>
+      );
+      return onSave;
+    }
+
+    const toggle = () => screen.getByRole('switch', { name: /Já Vi Coisas/ });
+    const saveButton = () => screen.getByRole('button', { name: /^Salvar$/ });
+
+    it('ligar o toggle exige poder e complicação antes de salvar', () => {
+      renderDrawer(adultSheet());
+
+      fireEvent.click(toggle());
+      expect(saveButton()).toBeDisabled();
+
+      fireEvent.click(screen.getByRole('radio', { name: /^Esquiva/ }));
+      // Ainda falta a complicação de idade.
+      expect(saveButton()).toBeDisabled();
+    });
+
+    it('concede o poder escolhido e grava a complicação', () => {
+      const onSave = renderDrawer(adultSheet());
+
+      fireEvent.click(toggle());
+      fireEvent.click(screen.getByText('Abatido'));
+      fireEvent.click(screen.getByRole('radio', { name: /^Esquiva/ }));
+      fireEvent.click(saveButton());
+
+      expect(onSave).toHaveBeenCalledTimes(1);
+      const saved = onSave.mock.calls[0][0] as CharacterSheet;
+      expect(saved.age?.grantedPowerName).toBe('Esquiva');
+      expect(saved.age?.complications.map((c) => c.name)).toEqual(['Abatido']);
+      expect(saved.generalPowers.map((p) => p.name)).toContain('Esquiva');
+    });
+
+    it('desligar o toggle remove o poder e a complicação', () => {
+      const sheet = adultSheet();
+      const esquiva = dataRegistry
+        .getAllPowersBySupplements([SupplementId.TORMENTA20_CORE])
+        .find((p) => p.name === 'Esquiva')!;
+      sheet.generalPowers = [cloneDeep(esquiva)];
+      sheet.age = {
+        ...sheet.age!,
+        grantedPowerName: 'Esquiva',
+        complications: [{ name: 'Abatido', description: '' }],
+      };
+      const onSave = renderDrawer(sheet);
+
+      expect(toggle()).toBeChecked();
+      fireEvent.click(toggle());
+      fireEvent.click(saveButton());
+
+      const saved = onSave.mock.calls[0][0] as CharacterSheet;
+      expect(saved.age?.grantedPowerName).toBeUndefined();
+      expect(saved.age?.complications).toEqual([]);
+      expect(saved.generalPowers.map((p) => p.name)).not.toContain('Esquiva');
+    });
   });
 
   it('salvar sem mexer na idade não altera atributo nenhum', () => {

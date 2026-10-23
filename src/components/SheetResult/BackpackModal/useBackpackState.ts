@@ -19,7 +19,7 @@ import {
 import {
   applyClothingWorn,
   commitWielding,
-  isTwoHanded,
+  isWieldedTwoHanded,
   migrateLegacyEquipState,
   pruneUnwornClothing,
   pruneWielding,
@@ -521,7 +521,9 @@ export function reducer(state: StagedState, action: Action): StagedState {
               (it) => it.id === mainHandItemId
             )
           : undefined;
-        const mainIsTwoHanded = mainItem ? isTwoHanded(mainItem) : false;
+        const mainIsTwoHanded = mainItem
+          ? isWieldedTwoHanded(mainItem, { mainHandItemId, offHandItemId })
+          : false;
         if (!mainIsTwoHanded) {
           offHandItemId = addedId;
         }

@@ -277,7 +277,7 @@ export interface LiveWeaponBonusContext {
 export function sumLiveWeaponBonuses(
   weapon: Equipment,
   bonuses: SheetBonus[] | undefined,
-  targetType: 'WeaponAttack' | 'WeaponDamage',
+  targetType: 'WeaponAttack' | 'WeaponDamage' | 'WeaponDamageStep',
   ctx: LiveWeaponBonusContext
 ): number {
   if (!bonuses?.length) return 0;
@@ -309,4 +309,159 @@ export function sumLiveWeaponBonuses(
       })
     );
   }, 0);
+}
+
+/**
+ * Ajustes de crítico acumulados de uma lista de bônus `WeaponThreatMargin` /
+ * `WeaponCriticalMultiplier`. `set*` define o valor (com vários, prevalece a
+ * margem mais ampla / o maior multiplicador); `*Bonus` soma por cima.
+ */
+export interface CriticalAdjustments {
+  marginBonus: number;
+  setMargin?: number;
+  multiplierBonus: number;
+  setMultiplier?: number;
+}
+
+export const emptyCriticalAdjustments = (): CriticalAdjustments => ({
+  marginBonus: 0,
+  multiplierBonus: 0,
+});
+
+/** Acumula um bônus de crítico já avaliado em `adj` (muta e devolve). */
+export function addCriticalAdjustment(
+  adj: CriticalAdjustments,
+  target: SheetBonus['target'],
+  value: number
+): CriticalAdjustments {
+  if (target.type === 'WeaponThreatMargin') {
+    if (target.mode === 'set') {
+      adj.setMargin =
+        adj.setMargin === undefined ? value : Math.min(adj.setMargin, value);
+    } else {
+      adj.marginBonus += value;
+    }
+  } else if (target.type === 'WeaponCriticalMultiplier') {
+    if (target.mode === 'set') {
+      adj.setMultiplier =
+        adj.setMultiplier === undefined
+          ? value
+          : Math.max(adj.setMultiplier, value);
+    } else {
+      adj.multiplierBonus += value;
+    }
+  }
+  return adj;
+}
+
+/**
+ * Aplica os ajustes numa string de crítico ("19", "x2" ou "19/x2"). Fonte
+ * única da aritmética: o baking (`applyWeaponBonuses`) e o caminho vivo
+ * (`resolveLiveWeaponCritico`) passam por aqui.
+ */
+export function applyCriticalAdjustments(
+  critico: string,
+  adj: CriticalAdjustments
+): string {
+  const hasMarginChange = adj.marginBonus > 0 || adj.setMargin !== undefined;
+  const hasMultChange =
+    adj.multiplierBonus > 0 || adj.setMultiplier !== undefined;
+  if (!critico || (!hasMarginChange && !hasMultChange)) return critico;
+
+  // A margem é a parte numérica antes da "/" (ou a string inteira, sem "/");
+  // o multiplicador é a parte "xN".
+  const parts = critico.split('/');
+  let marginPart: string | null = null;
+  let multPart: string | null = null;
+
+  if (parts.length === 1) {
+    const [only] = parts;
+    if (only.includes('x')) {
+      multPart = only;
+    } else {
+      marginPart = only;
+    }
+  } else {
+    [marginPart, multPart] = parts;
+  }
+
+  if (hasMarginChange) {
+    // Margem base (20 implícito quando a arma só tem multiplicador, ex.:
+    // "x2"). `set` define a margem; o aumento (estreitamento) é aplicado
+    // por cima.
+    let currentRange = marginPart !== null ? parseInt(marginPart, 10) : 20;
+    if (Number.isNaN(currentRange)) currentRange = 20;
+    if (adj.setMargin !== undefined) currentRange = adj.setMargin;
+    marginPart = `${Math.max(1, Math.min(20, currentRange - adj.marginBonus))}`;
+  }
+
+  if (hasMultChange) {
+    // Multiplicador base (x2 implícito quando a arma só tem margem, ex.:
+    // "19"). `set` define o multiplicador; o aumento soma por cima.
+    let currentMult =
+      multPart !== null
+        ? parseInt(multPart.match(/x(\d+)/)?.[1] || '2', 10)
+        : 2;
+    if (Number.isNaN(currentMult)) currentMult = 2;
+    if (adj.setMultiplier !== undefined) currentMult = adj.setMultiplier;
+    multPart = `x${Math.max(2, currentMult + adj.multiplierBonus)}`;
+  }
+
+  if (marginPart !== null && multPart !== null) {
+    return `${marginPart}/${multPart}`;
+  }
+  return marginPart ?? multPart ?? critico;
+}
+
+/**
+ * Crítico efetivo de um ataque, somando AO VIVO os bônus de margem de ameaça e
+ * multiplicador que o baking não alcançou. Complemento de `applyWeaponBonuses`,
+ * que só escreve em `weapon.critico`:
+ *
+ *  - **Arma com `hasManualEdits`**: nada é bakeado; os efeitos ativos (Fúria,
+ *    efeitos personalizados) voltam ao vivo por cima do valor digitado — mesma
+ *    regra de `isLiveWeaponBonus`. Sem isso o efeito aparecia no tooltip ✨ da
+ *    arma e a rolagem continuava critando só no 20.
+ *  - **Modo de ataque com `critico` próprio** (`WeaponAction.critico`): o
+ *    override é o valor cru do catálogo, então TODOS os bônus que casam com a
+ *    arma entram nele (só os efeitos ativos, se a arma foi editada à mão).
+ */
+export function resolveLiveWeaponCritico(
+  weapon: Equipment,
+  bakedCritico: string,
+  actionCritico: string | undefined,
+  bonuses: SheetBonus[] | undefined,
+  ctx: LiveWeaponBonusContext
+): string {
+  const usesOverride = actionCritico !== undefined;
+  const base = usesOverride ? actionCritico : bakedCritico;
+  if (!bonuses?.length || (!usesOverride && !weapon.hasManualEdits)) {
+    return base;
+  }
+
+  const adj = emptyCriticalAdjustments();
+  bonuses.forEach((bonus) => {
+    if (
+      bonus.target.type !== 'WeaponThreatMargin' &&
+      bonus.target.type !== 'WeaponCriticalMultiplier'
+    ) {
+      return;
+    }
+    if (weapon.hasManualEdits && bonus.source.type !== 'activeEffect') return;
+    const scope = bonus.target as WeaponBonusScope & {
+      proficiencyRequired?: boolean;
+    };
+    if (!weaponMatchesScope(weapon, scope)) return;
+    if (scope.proficiencyRequired && ctx.isProficient === false) return;
+    addCriticalAdjustment(
+      adj,
+      bonus.target,
+      evaluateSimpleModifier(bonus.modifier, ctx.atributos, ctx.nivel, {
+        classLevels: ctx.classLevels,
+        source: bonus.source,
+      })
+    );
+  });
+
+  return applyCriticalAdjustments(base, adj);
 }

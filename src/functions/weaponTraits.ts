@@ -1,53 +1,46 @@
 import Equipment from '../interfaces/Equipment';
 
 /**
- * Armas corpo a corpo LEVES ou ÁGEIS (por nome).
+ * Habilidades de arma do livro que poderes consultam, gravadas como
+ * `weaponTags` no catálogo (`equipamentos.ts` e suplementos). Por serem tags,
+ * o jogador marca/desmarca no editor de item e em armas personalizadas e
+ * homebrew — e a mesma checagem vale para todas.
  *
- * O catálogo de armas (`equipamentos.ts` e suplementos) NÃO codifica as
- * propriedades "leve"/"ágil" em campo estruturado — elas só existem no texto
- * das regras. Por isso a marcação é feita por nome, no mesmo espírito de
- * `CORE_WEAPON_CATEGORY_BY_NAME` em `proficiencies.ts`: cobre também as cópias
- * de armas embutidas em fichas salvas (que não carregam campos novos).
+ * Fichas salvas recebem as tags do catálogo em `refreshBagItemsFromCatalog`
+ * (a não ser que o jogador tenha editado as tags do item — `hasManualTags`).
  *
- * Fonte de cada entrada:
- * - Heróis de Arton: extraídas das seções "Corpo a Corpo — Leves" do próprio
- *   arquivo de dados (`herois-de-arton/equipment/weapons.ts`) — autoritativo.
- * - Core (T20 Jambô): pela propriedade "Leve"/"Ágil" da tabela de armas oficial.
- *
- * TODO (revisar RAW com o usuário): candidatas cujo status "leve/ágil" não é
- * confirmável pelos dados e ficou fora por precaução — incluir apenas após
- * conferência no livro. Uma inclusão errada bufa indevidamente o dano, então o
- * default é conservador (na dúvida, fora):
- *   'Foice', 'Cimitarra', 'Corrente de Espinhos' (core),
- *   'Rapieira', 'Espadim', 'Espada canora' (Heróis de Arton),
- *   'Neko-te', 'Gládio', 'Espada vespa', 'Mordida do diabo',
- *   'Presa de serpente' (Ameaças de Arton).
+ * Fonte das marcações no catálogo: tabela de armas (seções "Corpo a Corpo —
+ * Leves") e descrições ("é uma arma ágil") de cada livro. A regra opcional
+ * "Mais Armas Ágeis" (Heróis de Arton) NÃO é aplicada.
  */
-export const LIGHT_OR_AGILE_MELEE_WEAPON_NAMES: ReadonlySet<string> = new Set([
-  // Core
-  'Adaga',
-  'Espada Curta',
-  'Manopla',
-  'Machadinha',
-  'Florete',
-  'Chicote',
-  // Heróis de Arton — seções "Corpo a Corpo — Leves"
-  'Bastão lúdico',
-  'Adaga oposta',
-  'Agulha de Ahlen',
-  'Cinquedea',
-  'Dirk',
-  'Martelo leve',
-  'Kimbata',
-]);
+export const WEAPON_TAG_LEVE = 'leve';
+export const WEAPON_TAG_AGIL = 'agil';
+export const WEAPON_TAG_ESPADA = 'espada';
 
 /**
- * A arma é corpo a corpo leve ou ágil? Usada pelo filtro `lightOrAgileOnly`
- * (poder Esgrimista). Membership por nome — a lista contém apenas armas corpo a
- * corpo, então não precisa de checagem extra de alcance.
+ * Comparação sem caixa nem acento: as tags são texto livre no editor e no
+ * homebrew, e "Ágil"/"Leve" digitados à mão têm que valer como `agil`/`leve`.
+ */
+const normalizeTag = (tag: string): string =>
+  tag
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+
+const hasWeaponTag = (weapon: Equipment, tag: string): boolean =>
+  weapon.weaponTags?.some((t) => normalizeTag(t) === tag) === true;
+
+/**
+ * A arma é leve ou ágil? Usada pelo filtro `lightOrAgileOnly` (poder
+ * Esgrimista), sempre junto de `meleeOnly` — que é quem exclui o uso à
+ * distância.
  */
 export function isLightOrAgileMeleeWeapon(weapon: Equipment): boolean {
-  return LIGHT_OR_AGILE_MELEE_WEAPON_NAMES.has(weapon.nome);
+  return (
+    hasWeaponTag(weapon, WEAPON_TAG_LEVE) ||
+    hasWeaponTag(weapon, WEAPON_TAG_AGIL)
+  );
 }
 
 /**
@@ -62,39 +55,13 @@ export function isFiringWeapon(weapon: Equipment): boolean {
 }
 
 /**
- * ESPADAS (por nome) — o catálogo não tem campo de "tipo de arma", então, como
- * as listas acima, a marcação é por nome de catálogo. Usada pela condição
- * `wieldingSword` e pelo filtro `swordOnly` (Estilo Clássico).
+ * A arma é uma espada? Usada pela condição `wieldingSword` e pelo filtro
+ * `swordOnly` (Estilo Clássico).
  *
- * Critério: a arma é descrita como espada nas regras/no nome. Fora: Cinquedea
- * e Dirk (o livro as trata como adagas/punhais) e Neko-te/Mordida do diabo.
+ * Critério do catálogo: a arma é descrita como espada nas regras/no nome. Fora:
+ * Cinquedea e Dirk (o livro as trata como adagas/punhais) e Neko-te/Mordida do
+ * diabo.
  */
-export const SWORD_WEAPON_NAMES: ReadonlySet<string> = new Set([
-  // Core
-  'Espada Curta',
-  'Cimitarra',
-  'Espada Longa',
-  'Florete',
-  'Alfange',
-  'Montante',
-  'Espada Bastarda',
-  'Katana',
-  // Heróis de Arton
-  'Espada larga',
-  'Espadim',
-  'Espada de execução',
-  'Espada canora',
-  'Espada-gadanho',
-  'Khopesh',
-  'Rapieira',
-  'Montante cinético',
-  // Ameaças de Arton
-  'Gládio',
-  'Espada vespa',
-  'Presa de serpente',
-]);
-
-/** A arma é uma espada? Membership por nome de catálogo. */
 export function isSword(weapon: Equipment): boolean {
-  return SWORD_WEAPON_NAMES.has(weapon.nome);
+  return hasWeaponTag(weapon, WEAPON_TAG_ESPADA);
 }

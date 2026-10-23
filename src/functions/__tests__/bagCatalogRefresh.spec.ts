@@ -267,3 +267,82 @@ describe('refreshBagItemsFromCatalog', () => {
     expect(sheet.bag.equipments.Arma[0].sheetBonuses).toBeUndefined();
   });
 });
+
+describe('refreshBagItemsFromCatalog — empunhadura da Lança Montada', () => {
+  /** Como a lança estava salva antes da regra de uma mão ser cadastrada. */
+  const legacyLance = (): Equipment => ({
+    nome: 'Lança Montada',
+    id: 'lan-1',
+    group: 'Arma',
+    dano: '1d8',
+    critico: 'x3',
+    spaces: 2,
+    weaponTags: ['alongada'],
+    twoHanded: true,
+  });
+
+  const sheetWith = (weapon: Equipment): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag = new Bag({ Arma: [weapon] });
+    return sheet;
+  };
+
+  it('a lança salva ganha a opção de uma mão e a descrição', () => {
+    const sheet = sheetWith(legacyLance());
+
+    refreshBagItemsFromCatalog(sheet);
+
+    const lance = sheet.bag.equipments.Arma[0];
+    expect(lance.oneHandedWhenMounted).toBe(true);
+    expect(lance.twoHanded).toBe(true);
+    expect(lance.descricao).toContain('apenas uma mão');
+  });
+
+  it('alcança também a lança já encantada', () => {
+    const sheet = sheetWith({ ...legacyLance(), baseSheetBonuses: [] });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    expect(sheet.bag.equipments.Arma[0].oneHandedWhenMounted).toBe(true);
+  });
+
+  it('respeita o false explícito do item', () => {
+    const sheet = sheetWith({ ...legacyLance(), oneHandedWhenMounted: false });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    expect(sheet.bag.equipments.Arma[0].oneHandedWhenMounted).toBe(false);
+  });
+
+  it('não marca armas de duas mãos comuns', () => {
+    const sheet = sheetWith({
+      nome: 'Alabarda',
+      id: 'ala-1',
+      group: 'Arma',
+      twoHanded: true,
+    });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    expect(sheet.bag.equipments.Arma[0].oneHandedWhenMounted).toBeUndefined();
+  });
+
+  it('a Lança de Justa salva ganha a opção e a tag alongada', () => {
+    const sheet = sheetWith({
+      nome: 'Lança de justa',
+      id: 'jus-1',
+      group: 'Arma',
+      descricao: 'Texto antigo.',
+      alcance: '-',
+      twoHanded: true,
+    });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    const justa = sheet.bag.equipments.Arma[0];
+    expect(justa.oneHandedWhenMounted).toBe(true);
+    expect(justa.weaponTags).toEqual(['alongada']);
+    // Descrição existente nunca é sobrescrita.
+    expect(justa.descricao).toBe('Texto antigo.');
+  });
+});

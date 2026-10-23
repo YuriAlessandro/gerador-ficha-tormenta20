@@ -9,6 +9,7 @@ import {
   RequirementType,
 } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
+import { withDuendePresenteSpells } from '../races/duendePresenteActions';
 
 /**
  * Marca os presentes para o `TIER_LIMIT`: os nomes não têm marcador comum. Os
@@ -17,7 +18,7 @@ import Skill from '../../../../../interfaces/Skills';
  */
 export const DUENDE_PRESENTE_TAG = 'Presente de Magia e de Caos';
 
-const DUENDE_PRESENTES_POWERS: GeneralPower[] = [
+const DUENDE_PRESENTES_POWERS_BASE: GeneralPower[] = [
   {
     type: GeneralPowerType.RACA,
     name: 'Afinidade Elemental (Água)',
@@ -265,5 +266,10 @@ const DUENDE_PRESENTES_POWERS: GeneralPower[] = [
     ],
   },
 ];
+
+// As magias de cada presente moram em `duendePresenteActions.ts`, compartilhadas
+// com a cópia em habilidade de raça (`duende-config.ts`).
+const DUENDE_PRESENTES_POWERS: GeneralPower[] =
+  DUENDE_PRESENTES_POWERS_BASE.map(withDuendePresenteSpells);
 
 export default DUENDE_PRESENTES_POWERS;

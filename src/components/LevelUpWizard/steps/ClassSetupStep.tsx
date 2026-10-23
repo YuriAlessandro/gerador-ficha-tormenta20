@@ -95,6 +95,7 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
               feiticeiroLinhagem: undefined,
               draconicaDamageType: undefined,
               linhagemAbencoadaDeus: undefined,
+              linhagemRubraAtributo: undefined,
             })
           }
           hideStatus={isFeiticeiro}
@@ -110,12 +111,17 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
                   feiticeiroLinhagem: linhagem,
                   draconicaDamageType: undefined,
                   linhagemAbencoadaDeus: undefined,
+                  linhagemRubraAtributo: undefined,
                 })
               }
               activeSupplements={activeSupplements}
               selectedDeus={classSetup.linhagemAbencoadaDeus}
               onDeusChange={(deus) =>
                 onChange({ ...classSetup, linhagemAbencoadaDeus: deus })
+              }
+              selectedRubraAtributo={classSetup.linhagemRubraAtributo}
+              onRubraAtributoChange={(atributo) =>
+                onChange({ ...classSetup, linhagemRubraAtributo: atributo })
               }
             />
           </>

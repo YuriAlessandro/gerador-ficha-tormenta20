@@ -43,7 +43,9 @@ import {
   getFilteredAvailableOptions,
   getGrantedPowerRequirements,
   resolveLearnSkillRemainingPick,
+  isRequirementApplicable,
 } from '@/functions/powers/manualPowerSelection';
+import { getIntelligenceSkillsPick } from '@/functions/powers/intelligenceIncreaseSkills';
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
@@ -64,6 +66,7 @@ import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import ClassAbilitySelectionField from './ClassAbilitySelectionField';
 import MashinSelectionField from './MashinSelectionField';
 import AmbicaoHerdadaSelectionField from './AmbicaoHerdadaSelectionField';
+import IntelligenceIncreaseSkillField from './IntelligenceIncreaseSkillField';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -279,6 +282,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       almaLivrePower: selections['Alma Livre']?.almaLivrePower,
     } as unknown as CharacterSheet);
 
+  // Inteligência antes do aumento — base para as perícias que ele concede.
+  const currentIntelligence =
+    sheetForFiltering.atributos?.[Atributo.INTELIGENCIA]?.value ?? 0;
+
   // Auto-select for requirements with a single available option and pick === 1.
   // Covers race abilities like Couraça Rúbea/Disforme (Kaijin) that use
   // `getGeneralPower` with a single fake power: the user shouldn't have to
@@ -293,6 +300,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       'selectWeaponSpecialization',
       'selectFamiliar',
       'selectAnimalTotem',
+      // Aumento travado num atributo só (ex.: Visconde → Inteligência).
+      'increaseAttribute',
     ]);
 
     const updates: ManualPowerSelections = {};
@@ -343,6 +352,14 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             updates[entry.powerName] = {
               ...currentSelections,
               proficiencies: [onlyOption as string],
+            };
+            break;
+          }
+          case 'increaseAttribute': {
+            if (currentSelections.attributes?.length) return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              attributes: [onlyOption as string],
             };
             break;
           }
@@ -548,6 +565,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       ...powerSelections,
       [updateKey]: newItems,
     };
+
+    // As perícias por Inteligência valem para o atributo escolhido antes.
+    if (updateKey === 'attributes') {
+      delete nextPowerSelections.intelligenceSkills;
+    }
 
     // Trocar o ramo de um `chooseFromOptions` tem que zerar o que o ramo
     // ANTERIOR respondeu — senão o handler do ramo novo consome a resposta
@@ -759,6 +781,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           )}
         </Box>
       );
+    }
+
+    // Ação de outro caminho (ex.: Rei Mercenário do Soldado para um
+    // Governante): não se aplica à ficha, então nem aparece.
+    if (!isRequirementApplicable(requirement, sheetForFiltering)) {
+      return null;
     }
 
     if (allAvailableOptions.length === 0) {
@@ -2054,6 +2082,30 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               })}
             </RadioGroup>
           </FormControl>
+          {type === 'increaseAttribute' && (
+            <IntelligenceIncreaseSkillField
+              pick={getIntelligenceSkillsPick(
+                requirement,
+                powerSelections,
+                currentIntelligence
+              )}
+              intelligence={currentIntelligence}
+              increase={requirement.metadata?.increaseValue ?? 1}
+              trainedSkills={sheetForFiltering.skills ?? []}
+              selectedSkills={
+                (powerSelections.intelligenceSkills ?? []) as Skill[]
+              }
+              onChange={(skills) =>
+                onChange({
+                  ...selections,
+                  [powerName]: {
+                    ...powerSelections,
+                    intelligenceSkills: skills,
+                  },
+                })
+              }
+            />
+          )}
           {renderGrantedPowerRequirements()}
         </Box>
       );

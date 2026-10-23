@@ -47,6 +47,17 @@ export interface Aprimoramento {
   damageBonus?: AprimoramentoDamageBonus[];
 }
 
+/**
+ * Aprimoramento escolhido num lançamento (e quantas vezes). Repassado do
+ * diálogo de lançamento ao diálogo do efeito ativo da magia, para que o tier
+ * do efeito reflita o que foi pago (ex.: Armadura Arcana com 5× "+1 na Defesa").
+ */
+export interface CastAugment {
+  text: string;
+  addPm: number;
+  count: number;
+}
+
 export enum spellsCircles {
   c1 = '1º Circulo',
   c2 = '2º Circulo',

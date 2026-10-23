@@ -20,7 +20,7 @@ import Equipment from '../interfaces/Equipment';
 import { isWeaponMelee } from './weaponSkill';
 import { isSword } from './weaponTraits';
 import {
-  isTwoHanded,
+  isWieldedTwoHanded,
   getWornArmor,
 } from '../components/SheetResult/BackpackModal/wielding';
 import { isWearingHeavyArmor } from './wornArmor';
@@ -85,7 +85,9 @@ function evaluateClause(
     case 'wieldingItemNamed':
       return getWieldedItems(sheet).some((i) => i.nome === clause.value);
     case 'wieldingTwoHandedWeapon':
-      return getWieldedItems(sheet).some(isTwoHanded);
+      // Pelo slot, não só pela flag: a Lança Montada numa mão só (montado)
+      // não conta como arma de duas mãos empunhada.
+      return getWieldedItems(sheet).some((i) => isWieldedTwoHanded(i, sheet));
     case 'wieldingMeleeWeapon':
       return getWieldedItems(sheet).some(
         (i) => i.group === 'Arma' && isWeaponMelee(i)

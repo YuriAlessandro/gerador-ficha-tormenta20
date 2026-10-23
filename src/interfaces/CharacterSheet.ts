@@ -108,12 +108,20 @@ export type SheetActionStep =
       availableSpells: Spell[]; // List of available spells
       pick: number; // Number of spells to learn
       customAttribute?: Atributo; // Optional custom attribute for the spell
+      // Para habilidades que só dão ACESSO à magia (presentes do Duende): se o
+      // personagem já a conhece, não barateia em –1 PM nem a registra como
+      // concedida por esta fonte — assim remover a habilidade não apaga uma
+      // magia aprendida por outro caminho.
+      skipIfKnown?: boolean;
     }
   | {
       type: 'learnAnySpellFromHighestCircle';
       pick: number; // Number of spells to learn
       allowedType: 'Arcane' | 'Divine' | 'Both'; // Allowed types of spells
       schools?: SpellSchool[]; // Optional list of allowed schools
+      // Teto de círculo, para regras que fixam o círculo ("uma magia de 1º
+      // círculo") em vez de acompanhar o mais alto que o personagem lança.
+      maxCircle?: number;
     }
   | {
       type: 'getGeneralPower';
@@ -169,6 +177,9 @@ export type SheetActionStep =
         | 'osteonMemoriaPostuma'
         | 'yidishanNaturezaOrganica'
         | 'moreauSapiencia'
+        // @deprecated A habilidade virou `sheetBonuses`/`PickSkill`; o membro
+        // só existe para desserializar ficha antiga, cuja cópia embutida da
+        // habilidade ainda carrega esta ação.
         | 'moreauEspertezaVulpina'
         | 'fradeAutoridadeEclesiastica'
         | 'meioElfoAmbicaoHerdada'
@@ -324,6 +335,11 @@ export type SheetActionStep =
       // ativa do jogador), nunca no replay do recálculo — assim edições manuais
       // posteriores no editor prevalecem. Sem sorteio aleatório de fallback.
       applyChosenAttributeTo?: 'pm' | 'cd';
+      // Quando presente, o NOME de cada opção escolhida é o rótulo de uma escola
+      // de magia ("Abjuração") e ela é acrescentada às escolas da classe desta
+      // família (Xamã Místico → 'Druida'). O assistente esconde as escolas que a
+      // classe já tem, e o sorteio também as evita.
+      appendChosenSpellSchoolTo?: string;
     }
   | {
       type: 'trainSkillOrBonus';
@@ -334,7 +350,10 @@ export type SheetActionReceipt =
   | {
       type: 'Attribute';
       attribute: Atributo;
-      value: number; // Positive or negative
+      value: number; // Valor do atributo DEPOIS da modificação
+      // Quanto foi somado. Recibos antigos não têm: sem ele não dá para
+      // desfazer a modificação (o valor absoluto não diz quanto veio daqui).
+      delta?: number;
     }
   | {
       type: 'MaxSpacesAttributeSet';
@@ -495,9 +514,9 @@ export type StatModifierTarget =
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
       thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
-      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
+      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (tags `leve`/`agil` — ver weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
-      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
+      swordOnly?: boolean; // Apenas espadas (tag `espada` — ver weaponTraits.ts)
       // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
@@ -510,9 +529,9 @@ export type StatModifierTarget =
       rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
       thrownOnly?: boolean; // Apenas armas de arremesso (aplicado por modo de ataque em Weapon.tsx)
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
-      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
+      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (tags `leve`/`agil` — ver weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
-      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
+      swordOnly?: boolean; // Apenas espadas (tag `espada` — ver weaponTraits.ts)
       // Escopo por categoria de proficiência da arma (vazio/ausente = qualquer).
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
@@ -525,9 +544,9 @@ export type StatModifierTarget =
       rangedOnly?: boolean;
       thrownOnly?: boolean;
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
-      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
+      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (tags `leve`/`agil` — ver weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
-      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
+      swordOnly?: boolean; // Apenas espadas (tag `espada` — ver weaponTraits.ts)
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
       // 'increase' (padrão): alarga a margem pelo valor; 'set': define a margem
       // (ex.: "sua margem de ameaça passa a ser 19").
@@ -542,9 +561,9 @@ export type StatModifierTarget =
       rangedOnly?: boolean;
       thrownOnly?: boolean;
       firingOnly?: boolean; // Apenas armas de disparo (à distância e NÃO arremesso — arcos, bestas, fogo, funda)
-      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (lista em weaponTraits.ts)
+      lightOrAgileOnly?: boolean; // Apenas armas corpo a corpo leves ou ágeis (tags `leve`/`agil` — ver weaponTraits.ts)
       twoHandedOnly?: boolean; // Apenas armas empunhadas com as duas mãos (`twoHanded`)
-      swordOnly?: boolean; // Apenas espadas (lista em weaponTraits.ts)
+      swordOnly?: boolean; // Apenas espadas (tag `espada` — ver weaponTraits.ts)
       weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
       // 'increase' (padrão): soma ao multiplicador; 'set': define o multiplicador
       // (ex.: "seu multiplicador de crítico passa a ser x3").
@@ -555,6 +574,13 @@ export type StatModifierTarget =
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;
+      // Escopo por tipo de ataque/categoria (mesma semântica de WeaponDamage).
+      // Em arma híbrida de arremesso, o escopo por modo é aplicado ao vivo em
+      // Weapon.tsx (ver `isLiveWeaponBonus`), não bakeado.
+      meleeOnly?: boolean;
+      rangedOnly?: boolean;
+      thrownOnly?: boolean;
+      weaponCategories?: ('simple' | 'martial' | 'exotic' | 'firearm')[];
     }
   | {
       /**
@@ -710,7 +736,7 @@ export type BonusConditionClause = (
   /** Vestindo a armadura de nome exato `value` (identidade de catálogo). */
   | { kind: 'wearingArmorNamed'; value: string }
   | { kind: 'wieldingShield' }
-  /** Empunhando uma espada (lista em `weaponTraits.ts`). */
+  /** Empunhando uma espada (tag `espada` — ver `weaponTraits.ts`). */
   | { kind: 'wieldingSword' }
   | { kind: 'wieldingItemNamed'; value: string }
   | { kind: 'wieldingTwoHandedWeapon' }
@@ -1013,7 +1039,13 @@ export default interface CharacterSheet {
     | { type: 'power'; value: string }
     | { type: 'cleared' }; // Segunda escolha
   moreauSapienciaSpell?: string; // Magia escolhida por Sapiência (Moreau)
-  moreauEspertezaSkills?: [string, string]; // Perícias escolhidas por Esperteza Vulpina (Moreau)
+  /**
+   * @deprecated Perícias que a Esperteza Vulpina TREINAVA — implementação
+   * antiga e errada: a habilidade dá +2, não treino. Ficha nova grava a
+   * escolha em `optionChoices['moreau-esperteza-vulpina']`. Mantido declarado
+   * só para desserializar ficha antiga.
+   */
+  moreauEspertezaSkills?: [string, string];
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total
@@ -1104,6 +1136,12 @@ export default interface CharacterSheet {
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha
   age?: SheetAge; // Idades Variadas (Heróis de Arton) — faixa etária + complicações de idade
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
+  /**
+   * Linhagem Rubra: atributo que perde os pontos dos poderes da Tormenta no
+   * lugar de Carisma ("pode perder outro atributo em vez de Carisma").
+   * `undefined` = automático, o maior atributo que não seja Carisma.
+   */
+  linhagemRubraAtributo?: Atributo;
   tradicaoPerdidaPmAttribute?: Atributo; // Poder Tradição Perdida: atributo que entra no total de PM no lugar do atributo da classe (cap 6 +2/patamar). undefined = usa o atributo da classe.
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)

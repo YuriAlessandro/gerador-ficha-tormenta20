@@ -269,6 +269,13 @@ function keepSemanticFields(
     merged.hasManualSpaces = true;
   }
 
+  // Mesma lógica para tags editadas à mão (ex.: `leve` removida de uma adaga).
+  if (previous.hasManualTags) {
+    merged = merged ?? { ...incoming };
+    merged.weaponTags = previous.weaponTags;
+    merged.hasManualTags = true;
+  }
+
   return merged ?? incoming;
 }
 

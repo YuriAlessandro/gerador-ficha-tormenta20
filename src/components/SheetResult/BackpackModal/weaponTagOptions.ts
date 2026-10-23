@@ -17,6 +17,10 @@ export const WEAPON_TAG_SUGGESTIONS: WeaponTagSuggestion[] = [
   { value: 'alongada', label: 'Alongada' },
   { value: 'armaDeMar', label: 'Arma de Mar' },
   { value: 'armaDeFogo', label: 'Arma de Fogo' },
+  // Habilidades de arma lidas por poderes (ver `functions/weaponTraits.ts`).
+  { value: 'leve', label: 'Leve' },
+  { value: 'agil', label: 'Ágil' },
+  { value: 'espada', label: 'Espada' },
 ];
 
 const LABEL_BY_VALUE: Record<string, string> = WEAPON_TAG_SUGGESTIONS.reduce(

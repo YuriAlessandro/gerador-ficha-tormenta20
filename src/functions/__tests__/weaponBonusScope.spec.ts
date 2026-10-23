@@ -7,12 +7,18 @@ import {
   evaluateSimpleModifier,
   isLiveWeaponBonus,
   isModeScopedForWeapon,
+  resolveLiveWeaponCritico,
   sumLiveWeaponBonuses,
   weaponMatchesScope,
 } from '../weaponBonusScope';
 import { recalculateSheet } from '../recalculateSheet';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
-import { isFiringWeapon, isLightOrAgileMeleeWeapon } from '../weaponTraits';
+import {
+  isFiringWeapon,
+  isLightOrAgileMeleeWeapon,
+  isSword,
+} from '../weaponTraits';
+import { Armas } from '../../data/systems/tormenta20/equipamentos';
 import {
   buildWeaponPurposeFields,
   WeaponPurpose,
@@ -40,6 +46,7 @@ const adaga: Equipment = {
   critico: '19/x2',
   alcance: 'Curto',
   arremesso: true,
+  weaponTags: ['leve'],
 };
 const azagaia: Equipment = {
   nome: 'Azagaia',
@@ -55,6 +62,7 @@ const espadaCurta: Equipment = {
   dano: '1d6',
   critico: '19/x2',
   alcance: '-',
+  weaponTags: ['leve', 'espada'],
 };
 const espadaLonga: Equipment = {
   nome: 'Espada Longa',
@@ -72,11 +80,54 @@ describe('weaponTraits', () => {
     expect(isFiringWeapon(espadaLonga)).toBe(false); // corpo a corpo
   });
 
-  it('isLightOrAgileMeleeWeapon: por nome (leve/ágil)', () => {
+  it('isLightOrAgileMeleeWeapon: pelas tags leve/agil', () => {
     expect(isLightOrAgileMeleeWeapon(adaga)).toBe(true);
     expect(isLightOrAgileMeleeWeapon(espadaCurta)).toBe(true);
     expect(isLightOrAgileMeleeWeapon(espadaLonga)).toBe(false);
     expect(isLightOrAgileMeleeWeapon(arcoLongo)).toBe(false);
+  });
+
+  it('isLightOrAgileMeleeWeapon: vale para arma personalizada com a tag', () => {
+    const custom: Equipment = {
+      nome: 'Sabre do Vovô Zé',
+      group: 'Arma',
+      dano: '1d8',
+      alcance: '-',
+      isCustom: true,
+      weaponTags: ['agil'],
+    };
+    expect(isLightOrAgileMeleeWeapon(custom)).toBe(true);
+    expect(isLightOrAgileMeleeWeapon({ ...custom, weaponTags: [] })).toBe(
+      false
+    );
+    // Texto livre: caixa e acento não importam.
+    expect(
+      isLightOrAgileMeleeWeapon({ ...custom, weaponTags: [' Ágil'] })
+    ).toBe(true);
+  });
+
+  it('isSword: pela tag espada', () => {
+    expect(isSword(espadaCurta)).toBe(true);
+    expect(isSword(adaga)).toBe(false);
+  });
+
+  it('catálogo: armas leves/ágeis e espadas do livro estão marcadas', () => {
+    const light = [
+      Armas.ADAGA,
+      Armas.ESPADACURTA,
+      Armas.FOICE,
+      Armas.MACHADINHA,
+      Armas.CIMITARRA,
+      Armas.FLORETE,
+      Armas.CHICOTE,
+      Armas.CORRENTE_DE_ESPINHOS,
+      Armas.KATANA,
+    ];
+    light.forEach((w) => expect(isLightOrAgileMeleeWeapon(w)).toBe(true));
+    expect(isLightOrAgileMeleeWeapon(Armas.ESPADA_LONGA)).toBe(false);
+    expect(isSword(Armas.KATANA)).toBe(true);
+    expect(isSword(Armas.ESPADA_LONGA)).toBe(true);
+    expect(isSword(Armas.ADAGA)).toBe(false);
   });
 });
 
@@ -580,6 +631,91 @@ describe('bônus vivo × baking do recalculateSheet', () => {
     expect(
       sumLiveWeaponBonuses(espada, out.sheetBonuses, 'WeaponDamage', ctx)
     ).toBe(0);
+  });
+});
+
+/**
+ * Margem de ameaça/multiplicador de efeito ativo (ex.: efeito personalizado de
+ * Bravura Indômita) sobre arma que o baking não alcança. Antes, a arma editada
+ * à mão mostrava o efeito no tooltip ✨ e continuava critando só no 20.
+ */
+describe('resolveLiveWeaponCritico — margem de ameaça viva', () => {
+  const WID = 'live-crit-weapon';
+  const bravura = {
+    instanceId: 'bravura-instance',
+    powerKey: 'custom-effect:Bravura Indômita::e1',
+    name: 'Bravura',
+    sourceLabel: 'Bravura Indômita · Bravura',
+    optionId: 't1',
+    optionLabel: '+2 ataque e margem',
+    bonuses: [
+      {
+        target: { type: 'WeaponThreatMargin' as const },
+        modifier: { type: 'Fixed' as const, value: 2 },
+      },
+    ],
+    appliedAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  const run = (weapon: Partial<Equipment>, actionCritico?: string) => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag = new Bag({
+      Arma: [
+        {
+          id: WID,
+          nome: 'Espada Longa',
+          group: 'Arma',
+          dano: '1d8',
+          critico: '19',
+          alcance: '-',
+          ...weapon,
+        },
+      ],
+    });
+    sheet.activeEffects = [bravura];
+    const out = recalculateSheet(sheet);
+    const w = out.bag.equipments.Arma.find((x) => x.id === WID)!;
+    return resolveLiveWeaponCritico(
+      w,
+      w.critico ?? '',
+      actionCritico,
+      out.sheetBonuses,
+      { atributos: out.atributos, nivel: out.nivel }
+    );
+  };
+
+  it('arma comum: bakeado uma vez só (19 → 17)', () => {
+    expect(run({})).toBe('17');
+  });
+
+  it('arma editada à mão: o efeito ativo entra ao vivo (19 → 17)', () => {
+    expect(run({ hasManualEdits: true })).toBe('17');
+  });
+
+  it('modo com crítico próprio recebe o bônus (19/x3 → 17/x3)', () => {
+    expect(run({}, '19/x3')).toBe('17/x3');
+  });
+
+  it('arma editada à mão ignora bônus permanente de poder', () => {
+    const w: Equipment = {
+      nome: 'Espada Longa',
+      group: 'Arma',
+      critico: '19',
+      hasManualEdits: true,
+    };
+    const bonuses: SheetBonus[] = [
+      {
+        source: { type: 'power', name: 'Golpe' },
+        target: { type: 'WeaponThreatMargin' },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ];
+    expect(
+      resolveLiveWeaponCritico(w, '19', undefined, bonuses, {
+        atributos: createMockCharacterSheet().atributos,
+        nivel: 1,
+      })
+    ).toBe('19');
   });
 });
 

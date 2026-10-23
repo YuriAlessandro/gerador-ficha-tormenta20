@@ -332,6 +332,12 @@ export default interface Equipment {
    * `armorPenalty`), e uma edição só-de-espaço não deve congelar nada disso.
    */
   hasManualSpaces?: boolean;
+  /**
+   * O jogador editou `weaponTags` à mão. `refreshBagItemsFromCatalog` para de
+   * somar as tags do catálogo — senão uma tag removida (ex.: `leve`) voltaria
+   * na próxima carga da ficha.
+   */
+  hasManualTags?: boolean;
 
   // Override which skill is rolled for this weapon's attack test.
   // When undefined, falls back to the default rule (alcance/arremesso → Luta or Pontaria).
@@ -367,6 +373,11 @@ export default interface Equipment {
   // Weapon requires both hands to be wielded. When true, equipping the item
   // occupies both `mainHandItemId` and `offHandItemId` slots.
   twoHanded?: boolean;
+  // Arma de duas mãos que pode ser empunhada com apenas uma quando o personagem
+  // está montado (Lança Montada, Lança de Justa). Mantém `twoHanded: true` — o
+  // padrão segue sendo as duas mãos — e libera os slots de mão única. A ficha
+  // não trava pela montaria: o jogador escolhe a mão.
+  oneHandedWhenMounted?: boolean;
   weaponStats?: {
     dano: string;
     critico: string;

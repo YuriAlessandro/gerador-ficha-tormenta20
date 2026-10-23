@@ -1,6 +1,6 @@
 ---
 name: release-post
-description: Generate a blog post markdown file for a new release of Fichas de Nimb AND open the deploy PRs (main → production) in the frontend and backend repos for that version. Reads the version's section in src/components/screens/Changelog.tsx, the related git commits, and produces release-posts/atualizacao-{version}.md following the established blog format (title, description, slug, cover image suggestion, content blocks with image suggestions). Use when the user asks for a release post, blog post for a version, "post da v X.Y", or the deploy PRs of a version.
+description: Generate a blog post markdown file for a new release of Fichas de Nimb, open the deploy PRs (main → production) in the frontend and backend repos for that version, AND generate the release video from the post (via the release-video skill). Reads the version's section in src/components/screens/Changelog.tsx, the related git commits, and produces release-posts/atualizacao-{version}.md following the established blog format (title, description, slug, cover image suggestion, content blocks with image suggestions). Use when the user asks for a release post, blog post for a version, "post da v X.Y", or the deploy PRs of a version.
 ---
 
 # release-post
@@ -22,6 +22,7 @@ Generate a publish-ready markdown draft for a new release blog post on https://f
 3. **Get commit context** with `git log --oneline -n 30` and pick out the commits relevant to this version (look for commits between `release: vX.Y` and the previous `release: v...` tag/commit). For commits whose meaning is non-obvious from the message, run `git show --stat <hash>` (and `git show <hash>` if needed) to understand what changed.
 4. **Generate the markdown** following the format in the next section. Write to `release-posts/atualizacao-{version-with-dash}.md` (e.g. `release-posts/atualizacao-4-13.md`). Create the `release-posts/` directory if it doesn't exist. Tell the user the file path at the end.
 5. **Open the deploy PRs** (`main → production`) in the frontend and backend repos — see "Abrir os PRs de deploy" below.
+6. **Generate the release video** — see "Vídeo de release" below. Always last: it is the slow step, and a failure there must not hold back the post or the PRs.
 
 Do **not** publish, commit, push, merge the PRs, or call the blog API. The markdown is a draft for the user to paste into the blog editor block-by-block, and merging the PRs (which is what actually deploys) is always the user's call.
 
@@ -94,6 +95,13 @@ Use `--body-file` com um arquivo temporário no diretório de scratchpad da sess
 
 Dê as URLs dos dois PRs (ou o motivo de cada um não ter sido aberto) e lembre que o deploy só acontece no merge, backend primeiro.
 
+## Vídeo de release
+
+Depois de salvar o post e abrir os PRs, invoque o skill **`release-video`** com a mesma versão (`Skill` tool, `skill: "release-video"`, `args: "X.Y"`). Ele lê o post que acabou de ser gerado — em especial a linha **Gravação sugerida** de cada bloco — e produz os vídeos 16:9 e 9:16 em `~/workspace/fichas-release-video/videos/vX-Y/renders/`, além das imagens dos blocos em `release-posts/atualizacao-X-Y-imagens/` (ele mesmo atualiza as linhas **Imagem sugerida** do post com os arquivos).
+
+- Pule este passo só se o usuário pedir ("só o post", "sem vídeo") ou se o pedido foi apenas pelos PRs de deploy.
+- Se o `release-video` parar por ambiente (dev server fora do ar e sem poder subir, sessão expirada, sem backend para cena logada), o post e os PRs continuam valendo: relate o motivo e o que falta para rodar `/release-video X.Y` depois.
+
 ## Output file format
 
 Use this exact template — frontmatter for post metadata, then `## Bloco N` sections for each content block. Each block is what the user will paste into the editor as one block.
@@ -106,7 +114,17 @@ slug: atualizacao-X-Y-ja-disponivel
 coverImage: <SUGESTÃO: arte de fantasia/RPG temática (ex.: dmdave.com, thegamerimages.com, arcaneeye.com). Substituir por URL real antes de publicar.>
 ---
 
-## Bloco 1
+## Bloco 1 — Introdução
+
+**Título do bloco:** <sem título, ou um título curto de abertura — ver "Bloco introdutório">
+
+**Vídeo:** `~/workspace/fichas-release-video/videos/vX-Y/renders/vX-Y-desktop.mp4` (versão desktop do vídeo de release; subir no editor e posicionar logo abaixo do texto)
+
+<2 a 4 frases: o apanhado geral da versão, citando os 3-4 destaques em negrito, e a deixa para o vídeo>
+
+---
+
+## Bloco 2
 
 **Título do bloco:** <Título específico, escaneável, dizendo o que mudou>
 
@@ -114,11 +132,13 @@ coverImage: <SUGESTÃO: arte de fantasia/RPG temática (ex.: dmdave.com, thegame
 
 **Legenda da imagem (opcional):** <só se for útil; muitos blocos não têm legenda>
 
+**Gravação sugerida:** <roteiro de 1-3 linhas para o vídeo de release, ou "sem gravação" — ver "Gravação sugerida — como pensar">
+
 <conteúdo do bloco em markdown — 1 a 3 parágrafos curtos, com **negrito** em termos do jogo e nomes de poderes/itens, _itálico_ em ênfase ocasional. Listas com `-` quando agrupar várias features.>
 
 ---
 
-## Bloco 2
+## Bloco 3
 
 (repete o padrão)
 
@@ -148,8 +168,22 @@ A lista completa, como sempre, está no [Changelog](/changelog).
 - **Explica o porquê:** todo bloco precisa de pelo menos uma frase do _porquê_ da mudança ou _qual problema resolvia_. Não basta listar a feature.
 - **Especificidade:** prefira nomes reais (poder, classe, número) a abstrações ("um poder de uma classe"). Se o changelog cita "Casca Grossa (Lutador / Atleta)", use isso.
 - **Tamanho dos blocos:** 1-3 parágrafos, raramente 4. Listas com `-` quando há 3+ itens correlatos.
-- **Quantidade de blocos:** 4 a 8. Combine itens correlatos do changelog num bloco só quando fizer sentido (ex.: 4 poderes de combate viraram um bloco em 4.12). Não faça 1 bloco por linha do changelog.
+- **Quantidade de blocos:** a introdução, mais 4 a 8 blocos de conteúdo. Combine itens correlatos do changelog num bloco só quando fizer sentido (ex.: 4 poderes de combate viraram um bloco em 4.12). Não faça 1 bloco por linha do changelog.
 - **Bloco final:** sempre "Outras correções" ou "E tem mais na X.Y" agrupando os fixes/melhorias menores em bullets, terminando com link para `[Changelog](/changelog)`.
+
+### Bloco introdutório — sempre o primeiro
+
+Todo post abre com um bloco de introdução, e é nele que vai o **vídeo de release (versão desktop, 16:9)**. O texto existe para o vídeo ficar bem posicionado, não para explicar a versão: quem quer detalhe lê os blocos seguintes.
+
+- **Tamanho:** um parágrafo, 2 a 4 frases, no máximo ~60 palavras. Nada de lista, nada de subtítulo.
+- **Conteúdo:** o apanhado geral. Cite os 3-4 destaques da versão pelo nome, em **negrito**, na mesma ordem em que aparecem no vídeo (o destaque primeiro), e feche com a deixa para o vídeo ("O vídeo abaixo mostra tudo em um minuto; os detalhes vêm logo depois.").
+- **Sem "porquê":** a regra de explicar o porquê vale para os blocos de conteúdo, não para a introdução. Não repita frases que estão nos blocos seguintes.
+- **Mídia:** a linha **Vídeo** aponta para `renders/vX-Y-desktop.mp4`, gerado pelo `release-video` (o último passo deste skill). O bloco não tem **Imagem sugerida** nem **Gravação sugerida**. Se o vídeo não for gerado, mantenha o bloco e diga no relatório que falta o vídeo.
+- **Não conta** nos "4 a 8 blocos": são 4 a 8 blocos de conteúdo, mais a introdução.
+
+Ex.:
+
+> A **4.35** é a versão do **Inventor**: as **engenhocas** chegaram na aba de Magias, com aparatos e fabricação no assistente de nível. Também tem o **Grimório de bolso** para consultar na sessão, **magias do compêndio** no gerador de ameaças e um **Diário** bem mais confortável. O vídeo abaixo mostra tudo em um minuto; os detalhes vêm logo depois.
 
 ### Sugestão de imagem — como pensar
 
@@ -162,6 +196,18 @@ Para cada bloco com mudança visual, sugira **o que** screenshotar, não uma URL
 
 Para a `coverImage`, sugira o **tema** que combina com a feature de destaque (ex.: feature de combate → arte de luta; feature de magia → arte de mago; release misto → arte genérica de aventura). Os posts atuais usam imagens de dmdave.com, static0.thegamerimages.com, arcaneeye.com — não invente URLs, deixe a sugestão e marque como `<SUGESTÃO: ...>`.
 
+### Gravação sugerida — como pensar
+
+Essa linha não vai para o blog: é o insumo do skill `release-video`, que transforma cada uma numa cena gravada com Playwright. Escreva para quem vai roteirizar cliques, não para o leitor:
+
+- **Onde começa:** a rota e o estado de partida (ex.: "`/criar-ficha`, Elfo Arcanista, passo Magias"; "ficha de Inventor nível 5 com Engenhoqueiro, aba Magias").
+- **O gesto:** os 2 a 4 cliques que mostram a feature, com o **texto exato** dos botões e rótulos (confira no componente).
+- **O quadro que vende:** o que precisa estar na tela no fim (o número que mudou, o modal aberto, a lista filtrada).
+- **O que precisa existir:** login, apoiador, flag ainda desligada, dado de demo (mesa, ficha salva, homebrew). Se der para mostrar deslogado, diga "deslogado".
+- **"sem gravação"** para o que não tem efeito visual rápido (correção de cálculo, bloco de correções). Marque **(destaque)** no bloco que deve abrir o vídeo.
+
+Ex.: `**Gravação sugerida:** (destaque) deslogado, ficha de Inventor com Engenhoqueiro, aba Magias: clicar na chave inglesa de uma magia, dar nome à engenhoca, salvar; depois clicar em Ativar e mostrar a rolagem de Ofício (engenhoqueiro) contra a CD.`
+
 ## Quick format reference (from real posts)
 
 - **Title:** "Atualização X.Y já disponível" (default) ou "Atualização X.Y - <Tema da feature destaque>" quando há um tema dominante (ex.: "Atualização 4.10 - Condições automáticas na atualização 2026.2").
@@ -171,12 +217,15 @@ Para a `coverImage`, sugira o **tema** que combina com a feature de destaque (ex
 ## Checklist antes de salvar
 
 - [ ] Título, description e slug coerentes entre si.
-- [ ] 4-8 blocos, cada um com título escaneável e imagem sugerida (descrição, não URL).
+- [ ] **Bloco 1 é a introdução**: um parágrafo curto com os destaques e a linha **Vídeo** apontando para o render desktop.
+- [ ] 4-8 blocos de conteúdo depois dela, cada um com título escaneável e imagem sugerida (descrição, não URL).
 - [ ] Negritos nos nomes de poderes/classes/itens/números.
-- [ ] Cada bloco tem pelo menos uma frase de "porquê".
+- [ ] Cada bloco de conteúdo tem pelo menos uma frase de "porquê".
 - [ ] Bloco final agrupa as correções menores e fecha com link `[Changelog](/changelog)`.
 - [ ] Arquivo salvo em `release-posts/atualizacao-X-Y.md`.
+- [ ] Todo bloco de conteúdo tem **Gravação sugerida** (ou "sem gravação"), e exatamente um está marcado como **(destaque)**.
 - [ ] PRs `main → production` abertos (ou pulados, com motivo) nos dois repos, título `vX.Y`, changelog no corpo, nenhum mergeado.
+- [ ] `release-video` invocado por último (ou pulado, com motivo).
 
 ## Final report to user
 
@@ -187,3 +236,4 @@ Em poucas frases, diga:
 3. Lembre que as URLs de imagem são sugestões e precisam ser substituídas antes de publicar.
 4. As URLs dos PRs de deploy do frontend e do backend — ou, para cada um que não foi aberto, o motivo (nada novo para publicar, `main` local não pushada, PR já existente que foi atualizado).
 5. Que nada foi mergeado: o deploy acontece quando o usuário mergear, backend primeiro.
+6. O caminho dos vídeos gerados pelo `release-video` (ou por que ele não rodou e o que falta).

@@ -58,7 +58,12 @@ import {
   getBaseAgeStageForYears,
 } from '@/functions/ages';
 import { getAgeBracket } from '@/premium/functions/ages';
-import { AgeComplicationsStep } from '@/premium/components/Ages';
+import {
+  AgeComplicationsStep,
+  AgeOptionalPowerPicker,
+} from '@/premium/components/Ages';
+import { isComplicationPowerSelectionComplete } from '@/premium/functions/complications';
+import { SelectionOptions } from '@/interfaces/PowerSelections';
 import AgeField, { AgeSelection } from '@/components/common/AgeField';
 import type { AgeComplication, SheetAge } from '@/interfaces/Age';
 import { useContentSupplements } from '@/hooks/useContentSupplements';
@@ -68,6 +73,8 @@ import {
   MOREAU_HERITAGES,
   MoreauHeritageName,
   MOREAU_HERITAGE_NAMES,
+  ESPERTEZA_VULPINA_ABILITY_NAME,
+  ESPERTEZA_VULPINA_OPTION_KEY,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import {
@@ -96,6 +103,7 @@ import {
   DUENDE_TABU_SKILLS,
 } from '@/data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
+import { reverseRemovedRaceAbilities } from '@/functions/applyRaceCustomizationToSheet';
 import Skill from '@/interfaces/Skills';
 import Origin from '@/interfaces/Origin';
 import {
@@ -195,6 +203,25 @@ const getSeedSuragelAbilityChoice = (
   return sheet.optionChoices?.[choice.optionKey]?.[0];
 };
 
+/** Escolha já feita na Esperteza Vulpina do Moreau (`sheet.optionChoices`). */
+const getSeedEspertezaSkills = (sheet: CharacterSheet): string[] | undefined =>
+  sheet.optionChoices?.[ESPERTEZA_VULPINA_OPTION_KEY];
+
+/**
+ * Perícias oferecidas pela Esperteza Vulpina. Vem do catálogo, não da cópia
+ * embutida na ficha: ficha antiga carrega a versão `special` da habilidade, e
+ * o save reconstrói a raça pelo catálogo quando a escolha muda.
+ */
+const getEspertezaVulpinaOptions = (): string[] => {
+  const ability = MOREAU_HERITAGES.Raposa.abilities.find(
+    (a) => a.name === ESPERTEZA_VULPINA_ABILITY_NAME
+  );
+  const target = ability?.sheetBonuses?.find(
+    (b) => b.target.type === 'PickSkill'
+  )?.target;
+  return target?.type === 'PickSkill' ? target.skills : [];
+};
+
 interface SheetInfoEditDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -203,6 +230,13 @@ interface SheetInfoEditDrawerProps {
 }
 
 /** Estado de idade da ficha traduzido para o formato do campo de edição. */
+/** Poder de "Já Vi Coisas" que a ficha já tem, resolvido pela mochila de poderes. */
+function seedAgePower(sheet: CharacterSheet): GeneralPower | undefined {
+  const name = sheet.age?.grantedPowerName;
+  if (!name) return undefined;
+  return sheet.generalPowers.find((p) => p.name === name);
+}
+
 function seedAge(sheet: CharacterSheet): AgeSelection {
   return {
     years: sheet.age?.years,
@@ -220,6 +254,8 @@ interface EditedData {
   raceName: string;
   raceHeritage: string | undefined; // For races with heritages (like Moreau)
   moreauSapienciaSpell: string | undefined; // For Moreau Coruja Sapiência ability
+  // Perícias do +2 da Esperteza Vulpina (Moreau Raposa)
+  moreauEspertezaSkills: string[] | undefined;
   raceChassis: string | undefined; // For Golem Desperto
   raceEnergySource: string | undefined; // For Golem Desperto
   raceSizeCategory: string | undefined; // For Golem Desperto
@@ -253,6 +289,7 @@ interface EditedData {
   manualMaxPV: number | undefined; // Manual max PV override
   manualMaxPM: number | undefined; // Manual max PM override
   tradicaoPerdidaPmAttribute: Atributo | undefined; // Tradição Perdida: atributo do PM (undefined = atributo da classe)
+  linhagemRubraAtributo: Atributo | undefined; // Linhagem Rubra: atributo perdido no lugar de Carisma (undefined = automático)
   imageUrl: string;
   /**
    * Idade. O envelhecimento do livro básico (T20, p. 108) vale para toda
@@ -263,6 +300,12 @@ interface EditedData {
   age: AgeSelection;
   /** Complicações de idade escolhidas (só com Idades Variadas ligadas). */
   ageComplications: AgeComplication[];
+  /** Adulto: tomou o poder geral opcional de "Já Vi Coisas"? */
+  ageOptionalPowerTaken: boolean;
+  /** Poder de "Já Vi Coisas" escolhido (só com o toggle ligado). */
+  agePower: GeneralPower | undefined;
+  /** Escolhas do poder de "Já Vi Coisas", quando ele pede alguma. */
+  agePowerPicks: SelectionOptions | undefined;
   // Só em fichas multiclasse: distribuição de níveis por classe, editável campo
   // a campo. `nivel` acompanha o total.
   classLevels: ClassLevelEntry[] | undefined;
@@ -338,6 +381,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         b.modifier.type === 'SpecialAttribute' &&
         b.modifier.attribute === 'spellKeyAttr'
     );
+  const hasLinhagemRubra = sheet.classe.abilities?.some(
+    (ability) => ability.name === 'Linhagem Rubra'
+  );
   // useContentSupplements já memoiza o array (evita loop de reset por nova referência)
   const userSupplements = useContentSupplements();
 
@@ -393,6 +439,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     raceName: sheet.raca.name,
     raceHeritage: sheet.raceHeritage,
     moreauSapienciaSpell: sheet.moreauSapienciaSpell,
+    moreauEspertezaSkills: getSeedEspertezaSkills(sheet),
     raceChassis: sheet.raceChassis,
     raceEnergySource: sheet.raceEnergySource,
     raceSizeCategory: sheet.raceSizeCategory,
@@ -421,9 +468,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     manualMaxPV: sheet.manualMaxPV,
     manualMaxPM: sheet.manualMaxPM,
     tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
+    linhagemRubraAtributo: sheet.linhagemRubraAtributo,
     imageUrl: sheet.imageUrl || '',
     age: seedAge(sheet),
     ageComplications: sheet.age?.complications ?? [],
+    ageOptionalPowerTaken: !!seedAgePower(sheet),
+    agePower: seedAgePower(sheet),
+    agePowerPicks: undefined,
     classLevels: sheet.classLevels,
   });
 
@@ -455,13 +506,23 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
    * Complicações de idade que a faixa exige DESTA ficha.
    *
    * O Adulto é o único caso condicional: "Já Vi Coisas" é opcional, e a
-   * complicação só é cobrada de quem levou o poder. Fora da criação não há como
-   * conceder esse poder, então quem não o tem não deve nada — cobrar mesmo
-   * assim deixava o Salvar permanentemente desabilitado numa ficha Adulto sem o
-   * poder, travando até a edição do nome.
+   * complicação só é cobrada de quem ligou o toggle do poder aqui mesmo. Quem
+   * não o ligou não deve nada — cobrar mesmo assim deixava o Salvar
+   * permanentemente desabilitado numa ficha Adulto sem o poder, travando até a
+   * edição do nome.
    */
-  const ageOptionalPowerTaken = !!sheet.age?.grantedPowerName;
   const ageBracketData = getAgeBracket(editedData.age.bracket);
+  const ageOptionalPowerTaken =
+    !!ageBracketData?.optionalGeneralPower && editedData.ageOptionalPowerTaken;
+  const nextAgePower = ageOptionalPowerTaken ? editedData.agePower : undefined;
+  // Toggle ligado exige o poder escolhido (e as escolhas que ele pedir).
+  const agePowerIncomplete =
+    ageOptionalPowerTaken &&
+    (!editedData.agePower ||
+      !isComplicationPowerSelectionComplete(
+        editedData.agePower,
+        editedData.agePowerPicks
+      ));
   const requiredAgeComplications =
     ageBracketData?.optionalGeneralPower && !ageOptionalPowerTaken
       ? 0
@@ -472,7 +533,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     stage: getBaseAgeStageForYears(editedData.age.years, editedData.raceName),
     bracket: editedData.age.bracket,
     complications: editedData.age.bracket ? editedData.ageComplications : [],
-    grantedPowerName: sheet.age?.grantedPowerName,
+    grantedPowerName: nextAgePower?.name,
     // Preservado: o nível já foi construído com base nele.
     extraLevels: sheet.age?.extraLevels ?? 0,
   };
@@ -481,7 +542,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const ageChanged =
     ageAttributeDelta.length > 0 ||
     !_.isEqual(seedAge(sheet), editedData.age) ||
-    !_.isEqual(sheet.age?.complications ?? [], editedData.ageComplications);
+    !_.isEqual(sheet.age?.complications ?? [], editedData.ageComplications) ||
+    sheet.age?.grantedPowerName !== nextAge.grantedPowerName;
 
   // State for image preview error
   const [imagePreviewError, setImagePreviewError] = useState(false);
@@ -501,6 +563,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   ]);
 
   // 1st-circle Divination spells available for Moreau Coruja Sapiência
+  const espertezaVulpinaOptions = useMemo(getEspertezaVulpinaOptions, []);
+
   const moreauSapienciaSpellOptions = useMemo(
     () => getSpellsOfCircle(1).filter((spell) => spell.school === 'Adiv'),
     []
@@ -542,6 +606,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
       moreauSapienciaSpell: sheet.moreauSapienciaSpell,
+      moreauEspertezaSkills: getSeedEspertezaSkills(sheet),
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
@@ -570,9 +635,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPV: sheet.manualMaxPV,
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
+      linhagemRubraAtributo: sheet.linhagemRubraAtributo,
       imageUrl: sheet.imageUrl || '',
       age: seedAge(sheet),
       ageComplications: sheet.age?.complications ?? [],
+      ageOptionalPowerTaken: !!seedAgePower(sheet),
+      agePower: seedAgePower(sheet),
+      agePowerPicks: undefined,
       classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
@@ -1025,8 +1094,26 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           }
         : undefined;
 
+    // Esperteza Vulpina: a escolha vai para `optionChoices`, de onde o
+    // recálculo resolve o alvo `PickSkill` do bônus.
+    const espertezaOptionChoices =
+      editedData.raceName === 'Moreau' &&
+      editedData.raceHeritage === 'Raposa' &&
+      editedData.moreauEspertezaSkills?.length
+        ? { [ESPERTEZA_VULPINA_OPTION_KEY]: editedData.moreauEspertezaSkills }
+        : undefined;
+
+    const mergedOptionChoices =
+      suragelOptionChoices || espertezaOptionChoices
+        ? {
+            ...(sheet.optionChoices || {}),
+            ...(suragelOptionChoices || {}),
+            ...(espertezaOptionChoices || {}),
+          }
+        : undefined;
+
     const updates: Partial<CharacterSheet> = {
-      ...(suragelOptionChoices ? { optionChoices: suragelOptionChoices } : {}),
+      ...(mergedOptionChoices ? { optionChoices: mergedOptionChoices } : {}),
       nome: editedData.nome,
       nivel: editedData.nivel,
       sexo: editedData.sexo,
@@ -1061,6 +1148,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPV: editedData.manualMaxPV,
       manualMaxPM: editedData.manualMaxPM,
       tradicaoPerdidaPmAttribute: editedData.tradicaoPerdidaPmAttribute,
+      linhagemRubraAtributo: editedData.linhagemRubraAtributo,
       imageUrl: editedData.imageUrl || undefined,
     };
 
@@ -1167,6 +1255,26 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           {
             name: 'Magia',
             value: editedData.moreauSapienciaSpell || 'Removida',
+          },
+        ],
+      });
+    }
+
+    // Esperteza Vulpina (Moreau Raposa): perícias que recebem o +2.
+    const seededEspertezaSkills = getSeedEspertezaSkills(sheet);
+    const moreauEspertezaChanged =
+      editedData.raceName === 'Moreau' &&
+      editedData.raceHeritage === 'Raposa' &&
+      (editedData.moreauEspertezaSkills ?? []).join('|') !==
+        (seededEspertezaSkills ?? []).join('|');
+    if (moreauEspertezaChanged) {
+      newSteps.push({
+        label: 'Edição Manual - Esperteza Vulpina',
+        type: 'Edição Manual',
+        value: [
+          {
+            name: 'Perícias (+2)',
+            value: editedData.moreauEspertezaSkills?.join(', ') || 'Nenhuma',
           },
         ],
       });
@@ -1414,6 +1522,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         (editedData.suragelAbility !== sheet.suragelAbility ||
           editedData.suragelAbilityChoice !==
             getSeedSuragelAbilityChoice(sheet))) ||
+      // Mudar a escolha da Esperteza Vulpina reconstrói a raça pelo catálogo:
+      // é isso que troca a ação `special` antiga pelo bônus `PickSkill` numa
+      // ficha salva antes do conserto, fazendo a escolha valer lá também.
+      moreauEspertezaChanged ||
       isDuendeConfigChanged(editedData, sheet);
 
     if (raceOrSexOrHeritageOrGolemOrSuragelChanged) {
@@ -1736,6 +1848,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.tradicaoPerdidaPmAttribute !==
       sheet.tradicaoPerdidaPmAttribute;
 
+    // Trocar o atributo da Linhagem Rubra move a perda por poderes da
+    // Tormenta, que só o recálculo (ledger) desfaz e reaplica.
+    const linhagemRubraChanged =
+      editedData.linhagemRubraAtributo !== sheet.linhagemRubraAtributo;
+
     // A herança de Suraggel troca uma habilidade racial inteira (e, em algumas,
     // uma escolha embutida): sem recálculo os bônus da habilidade anterior
     // continuariam na ficha.
@@ -1778,6 +1895,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updates.age =
         nextAge.years === undefined && !nextAge.bracket ? undefined : nextAge;
 
+      // "Já Vi Coisas": o poder concedido mora em `generalPowers`, marcado pelo
+      // nome em `age.grantedPowerName`. Trocar ou desligar tira o antigo.
+      const previousAgePowerName = sheet.age?.grantedPowerName;
+      if (previousAgePowerName !== nextAge.grantedPowerName) {
+        const powers = sheet.generalPowers.filter(
+          (p) => p.name !== previousAgePowerName
+        );
+        if (nextAgePower && !powers.some((p) => p.name === nextAgePower.name)) {
+          powers.push(nextAgePower);
+        }
+        updates.generalPowers = powers;
+      }
+
       const optionalRules = { ...(sheet.optionalRules ?? {}) };
       if (editedData.age.deathByOldAge) optionalRules.deathByOldAge = true;
       else delete optionalRules.deathByOldAge;
@@ -1805,7 +1935,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       heritageChanged ||
       suragelChanged ||
       moreauSapienciaSpellChanged ||
-      tradicaoPerdidaPmChanged;
+      moreauEspertezaChanged ||
+      tradicaoPerdidaPmChanged ||
+      linhagemRubraChanged;
 
     if (shouldUseRecalculateSheet) {
       let updatedSheet = { ...sheet, ...updates };
@@ -1826,7 +1958,34 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         reverseSheetActionsForPower(updatedSheet, previousSuragelAbility);
       }
 
-      const recalculatedSheet = recalculateSheet(updatedSheet);
+      // Mesmo problema ao trocar os presentes (ou a natureza) do Duende: a
+      // magia e os sentidos do presente removido ficariam órfãos na ficha.
+      // Só quando a raça continua Duende — a troca de raça inteira tem o seu
+      // próprio caminho.
+      if (
+        sheet.raca.name === 'Duende' &&
+        updates.raca &&
+        isDuendeConfigChanged(editedData, sheet)
+      ) {
+        updatedSheet = _.cloneDeep(updatedSheet);
+        reverseRemovedRaceAbilities(
+          updatedSheet,
+          sheet.raca.abilities,
+          updates.raca.abilities
+        );
+      }
+
+      const agePowerSelections =
+        nextAgePower &&
+        nextAgePower.name !== sheet.age?.grantedPowerName &&
+        editedData.agePowerPicks
+          ? { [nextAgePower.name]: editedData.agePowerPicks }
+          : undefined;
+      const recalculatedSheet = recalculateSheet(
+        updatedSheet,
+        undefined,
+        agePowerSelections
+      );
       onSave(recalculatedSheet);
     } else {
       onSave(updates);
@@ -1843,6 +2002,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
       moreauSapienciaSpell: sheet.moreauSapienciaSpell,
+      moreauEspertezaSkills: getSeedEspertezaSkills(sheet),
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
@@ -1871,9 +2031,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       manualMaxPV: sheet.manualMaxPV,
       manualMaxPM: sheet.manualMaxPM,
       tradicaoPerdidaPmAttribute: sheet.tradicaoPerdidaPmAttribute,
+      linhagemRubraAtributo: sheet.linhagemRubraAtributo,
       imageUrl: sheet.imageUrl || '',
       age: seedAge(sheet),
       ageComplications: sheet.age?.complications ?? [],
+      ageOptionalPowerTaken: !!seedAgePower(sheet),
+      agePower: seedAgePower(sheet),
+      agePowerPicks: undefined,
       classLevels: sheet.classLevels,
     });
     setImagePreviewError(false);
@@ -2541,6 +2705,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           next.bracket === editedData.age.bracket
                             ? editedData.ageComplications
                             : [],
+                        // "Já Vi Coisas" só existe no Adulto: trocar de faixa
+                        // descarta o poder junto com a complicação.
+                        ...(next.bracket === editedData.age.bracket
+                          ? {}
+                          : {
+                              ageOptionalPowerTaken: false,
+                              agePower: undefined,
+                              agePowerPicks: undefined,
+                            }),
                       })
                     }
                     variedAgesAvailable={
@@ -2551,14 +2724,56 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     allowRoll={false}
                   />
 
-                  {requiredAgeComplications > 0 && editedData.age.bracket && (
-                    <AgeComplicationsStep
-                      bracket={editedData.age.bracket}
-                      selected={editedData.ageComplications}
-                      onChange={(ageComplications) =>
-                        setEditedData({ ...editedData, ageComplications })
+                  {(ageBracketData?.requiredComplications ?? 0) > 0 &&
+                    editedData.age.bracket && (
+                      <AgeComplicationsStep
+                        bracket={editedData.age.bracket}
+                        selected={editedData.ageComplications}
+                        onChange={(ageComplications) =>
+                          setEditedData({ ...editedData, ageComplications })
+                        }
+                        tookOptionalPower={ageOptionalPowerTaken}
+                        onOptionalPowerChange={(took) =>
+                          setEditedData({
+                            ...editedData,
+                            ageOptionalPowerTaken: took,
+                            // Desligar descarta o poder e a complicação que
+                            // vinha com ele.
+                            ageComplications: took
+                              ? editedData.ageComplications
+                              : [],
+                            agePower: took ? editedData.agePower : undefined,
+                            agePowerPicks: took
+                              ? editedData.agePowerPicks
+                              : undefined,
+                          })
+                        }
+                      />
+                    )}
+
+                  {ageOptionalPowerTaken && (
+                    <AgeOptionalPowerPicker
+                      sheet={sheet}
+                      knownPowers={sheet.generalPowers.filter(
+                        (p) => p.name !== sheet.age?.grantedPowerName
+                      )}
+                      supplements={userSupplements}
+                      selectedPower={editedData.agePower}
+                      onChange={(agePower) =>
+                        setEditedData({
+                          ...editedData,
+                          agePower,
+                          // Escolhas são do poder: trocar de poder as zera.
+                          agePowerPicks:
+                            agePower?.name === editedData.agePower?.name
+                              ? editedData.agePowerPicks
+                              : undefined,
+                        })
                       }
-                      tookOptionalPower={ageOptionalPowerTaken}
+                      pickSelections={editedData.agePowerPicks}
+                      onPickChange={(agePowerPicks) =>
+                        setEditedData({ ...editedData, agePowerPicks })
+                      }
                     />
                   )}
 
@@ -2649,6 +2864,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                               newHeritage === 'Coruja'
                                 ? editedData.moreauSapienciaSpell
                                 : undefined,
+                            // Idem para as perícias da Esperteza Vulpina
+                            moreauEspertezaSkills:
+                              newHeritage === 'Raposa'
+                                ? editedData.moreauEspertezaSkills
+                                : undefined,
                           });
                         }}
                       >
@@ -2689,6 +2909,36 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                                   ? 'Atributo-chave: Sabedoria. Trocar a magia removerá a anterior da ficha.'
                                   : 'Escolha uma magia para a habilidade Sapiência.'
                               }
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    )}
+
+                  {/* Moreau Raposa Esperteza Vulpina: +2 em 2 perícias de INT/CAR */}
+                  {editedData.raceName === 'Moreau' &&
+                    editedData.raceHeritage === 'Raposa' && (
+                      <FormControl fullWidth>
+                        <Autocomplete
+                          multiple
+                          limitTags={2}
+                          options={espertezaVulpinaOptions}
+                          value={editedData.moreauEspertezaSkills || []}
+                          getOptionDisabled={() =>
+                            (editedData.moreauEspertezaSkills?.length ?? 0) >= 2
+                          }
+                          onChange={(_event, newValue) =>
+                            setEditedData({
+                              ...editedData,
+                              moreauEspertezaSkills: newValue.slice(0, 2),
+                            })
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              // eslint-disable-next-line react/jsx-props-no-spreading
+                              {...params}
+                              label='Perícias da Esperteza Vulpina (+2, duas)'
+                              helperText='Duas perícias originalmente baseadas em Inteligência ou Carisma.'
                             />
                           )}
                         />
@@ -3640,6 +3890,41 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       />
                     </Stack>
                   ))}
+
+                  {hasLinhagemRubra && (
+                    <FormControl fullWidth>
+                      <InputLabel id='linhagem-rubra-atributo-label'>
+                        Linhagem Rubra: atributo perdido
+                      </InputLabel>
+                      <Select
+                        labelId='linhagem-rubra-atributo-label'
+                        label='Linhagem Rubra: atributo perdido'
+                        value={editedData.linhagemRubraAtributo ?? ''}
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            linhagemRubraAtributo:
+                              (e.target.value as Atributo) || undefined,
+                          })
+                        }
+                      >
+                        <MenuItem value=''>
+                          <em>Automático (o maior, exceto Carisma)</em>
+                        </MenuItem>
+                        {Object.values(Atributo)
+                          .filter((attr) => attr !== Atributo.CARISMA)
+                          .map((attr) => (
+                            <MenuItem key={attr} value={attr}>
+                              {attr}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                      <FormHelperText>
+                        Atributo que perde pontos por poderes da Tormenta no
+                        lugar de Carisma.
+                      </FormHelperText>
+                    </FormControl>
+                  )}
                 </Stack>
               </AccordionDetails>
             </Accordion>
@@ -3889,6 +4174,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                 // não por `!==`: uma ficha que já traz mais complicações que o
                 // exigido (homebrew, dados antigos) não tem por que travar.
                 editedData.ageComplications.length < requiredAgeComplications ||
+                agePowerIncomplete ||
                 (editedData.raceName === 'Moreau' &&
                   editedData.raceHeritage === 'Coruja' &&
                   !editedData.moreauSapienciaSpell) ||

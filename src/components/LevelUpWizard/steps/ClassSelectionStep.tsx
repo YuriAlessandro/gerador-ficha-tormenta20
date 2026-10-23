@@ -18,6 +18,15 @@ import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import { getClassLevelsMap } from '@/functions/multiclass';
 
+// No desktop a lista rola sozinha dentro do dialog. No mobile o wizard é tela
+// cheia e o conteúdo do dialog já rola: uma segunda rolagem aqui deixava só
+// uma fresta da lista visível, então abaixo de `md` ela rola junto com ele.
+const OTHER_CLASSES_SX = {
+  p: 1,
+  maxHeight: { md: 300 },
+  overflow: { md: 'auto' },
+} as const;
+
 interface ClassSelectionStepProps {
   simulatedSheet: CharacterSheet;
   supplements: SupplementId[];
@@ -184,7 +193,13 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
           icon={<LockIcon />}
           sx={{ mb: 2 }}
           action={
-            <Button color='inherit' size='small' href='/apoiar' target='_blank'>
+            <Button
+              color='inherit'
+              size='small'
+              href='/apoiar'
+              target='_blank'
+              sx={{ whiteSpace: 'nowrap' }}
+            >
               Apoiar o projeto
             </Button>
           }
@@ -192,7 +207,7 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
           Multiclasse é exclusiva para apoiadores do projeto!
         </Alert>
       )}
-      <Paper variant='outlined' sx={{ p: 1, maxHeight: 300, overflow: 'auto' }}>
+      <Paper variant='outlined' sx={OTHER_CLASSES_SX}>
         <Typography
           variant='caption'
           sx={{

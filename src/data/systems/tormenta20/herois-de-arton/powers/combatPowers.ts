@@ -4,6 +4,7 @@ import {
   RequirementType,
 } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
+import { DEFESA_ARMADA_SHEET_BONUSES } from '../../powers/combatStyleSheetBonuses';
 
 /**
  * Poderes de Combate do suplemento Heróis de Arton
@@ -115,6 +116,7 @@ const combatPowers: Record<string, GeneralPower> = {
     requirements: [
       [{ type: RequirementType.PODER, name: 'Estilo de Duas Mãos' }],
     ],
+    sheetBonuses: DEFESA_ARMADA_SHEET_BONUSES,
   },
   ENCASTELADO: {
     name: 'Encastelado',

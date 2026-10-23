@@ -66,3 +66,20 @@ export const INEXPUGNAVEL_SHEET_BONUSES: SheetBonus[] = [
   modifier: { type: 'Fixed', value: 2 },
   condition: { combinator: 'AND', clauses: [{ kind: 'wearingHeavyArmor' }] },
 }));
+
+/**
+ * Pele de Aço: "o bônus de Pele de Ferro aumenta para +8". Soma +4 ao +4 da
+ * Pele de Ferro (pré-requisito), sob a mesma restrição de armadura pesada. Mora
+ * aqui porque o poder era texto puro e precisa ser refrescado em fichas salvas.
+ */
+export const PELE_DE_ACO_SHEET_BONUSES: SheetBonus[] = [
+  {
+    source: { type: 'power', name: 'Pele de Aço' },
+    target: { type: 'Defense' },
+    modifier: { type: 'Fixed', value: 4 },
+    condition: {
+      combinator: 'AND',
+      clauses: [{ kind: 'wearingHeavyArmor', negate: true }],
+    },
+  },
+];

@@ -4,9 +4,11 @@ import {
   SpellPath,
 } from '../interfaces/Class';
 import { allSpellSchools, Spell, SpellSchool } from '../interfaces/Spells';
+import CharacterSheet from '../interfaces/CharacterSheet';
 import { SupplementId } from '../types/supplement.types';
 import { dataRegistry } from '../data/registry';
 import { getClassFamilyName } from './classFamily';
+import { sheetHasPowerNamed } from './powers/hasPowerNamed';
 import { getRandomItemFromArray, pickFromArray } from './randomUtils';
 
 export interface SchoolChoiceConfig {
@@ -16,17 +18,34 @@ export interface SchoolChoiceConfig {
   available: SpellSchool[];
 }
 
+/** Poder de Druida (Heróis de Arton) que concede uma escola adicional. */
+export const XAMA_MISTICO = 'Xamã Místico';
+
+/**
+ * Escolas além das 3 de Bardo/Druida concedidas por poderes da ficha. Hoje só
+ * Xamã Místico ("pode aprender e lançar magias de uma escola adicional").
+ */
+function getExtraSchoolCount(
+  family: string,
+  sheet: CharacterSheet | undefined
+): number {
+  if (!sheet) return 0;
+  return family === 'Druida' && sheetHasPowerNamed(sheet, XAMA_MISTICO) ? 1 : 0;
+}
+
 /**
  * Se a classe faz o jogador escolher escolas de magia, e quantas. Classes
  * homebrew declaram em `spellPath.schoolChoice`; Bardo e Druida (e variantes)
  * escolhem 3 dentre todas — eles sorteiam no `setup()` em vez de declarar.
- * Retorna `null` para classes sem escolha de escolas.
+ * Com a `sheet`, soma as escolas adicionais concedidas por poderes (Xamã
+ * Místico). Retorna `null` para classes sem escolha de escolas.
  */
 export function getSchoolChoiceConfig(
   classe: Pick<
     ClassDescription,
     'name' | 'isVariant' | 'baseClassName' | 'spellPath'
-  >
+  >,
+  sheet?: CharacterSheet
 ): SchoolChoiceConfig | null {
   const choice = classe.spellPath?.schoolChoice;
   if (choice) {
@@ -35,7 +54,13 @@ export function getSchoolChoiceConfig(
   }
   const family = getClassFamilyName(classe);
   if (family === 'Bardo' || family === 'Druida') {
-    return { count: 3, available: allSpellSchools };
+    return {
+      count: Math.min(
+        3 + getExtraSchoolCount(family, sheet),
+        allSpellSchools.length
+      ),
+      available: allSpellSchools,
+    };
   }
   return null;
 }

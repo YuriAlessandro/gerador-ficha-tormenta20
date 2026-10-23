@@ -47,6 +47,8 @@ export interface ClassSetupSelection {
     | 'Linhagem Abençoada';
   draconicaDamageType?: string;
   linhagemAbencoadaDeus?: string;
+  // Linhagem Rubra: atributo que perde pontos no lugar de Carisma (undefined = automático)
+  linhagemRubraAtributo?: Atributo;
   spellSchools?: SpellSchool[];
 }
 
@@ -206,6 +208,13 @@ export interface WizardSelections {
     | 'Linhagem Rubra'
     | 'Linhagem Abençoada';
 
+  // Linhagem Dracônica: tipo de dano escolhido (Ácido, Elétrico, Fogo, Frio)
+  draconicaDamageType?: string;
+
+  // Linhagem Rubra: atributo que perde pontos por poderes da Tormenta no lugar
+  // de Carisma (undefined = automático, o maior que não seja Carisma)
+  linhagemRubraAtributo?: Atributo;
+
   // Linhagem Abençoada: deus escolhido
   linhagemAbencoada?: {
     deus: string;
@@ -273,6 +282,15 @@ export interface WizardSelections {
 
   // Market step selections (equipment and money)
   marketSelections?: MarketSelections;
+
+  // Dinheiro inicial rolado uma vez por sessão do assistente. O Mercado parte
+  // dele, e a ficha também o usa quando o Mercado não foi tocado — sem isso,
+  // cada um rolava o seu 4d6.
+  initialMoneyRoll?: { amount: number; details?: string };
+
+  // Dinheiro da origem (Marujo T$ 2d6, Rebelde Agitador T$ 6d12...), rolado
+  // uma vez para a origem atual pelo mesmo motivo.
+  originMoneyRoll?: number;
 
   // Seleções do parceiro (classe Treinador)
   companionName?: string;

@@ -22,7 +22,12 @@ import { getItemSpaces } from '../../../interfaces/Bag';
 import { itemTypeStyles } from './itemTypeStyles';
 import WieldingControl from './WieldingControl';
 import WornItemControl from './WornItemControl';
-import { hasMechanicalBonus, isTwoHanded, WieldingSlot } from './wielding';
+import {
+  canWieldOneHanded,
+  hasMechanicalBonus,
+  isTwoHanded,
+  WieldingSlot,
+} from './wielding';
 import { ammoTypeLabel } from './ammo';
 
 export interface BackpackItemCardProps {
@@ -87,7 +92,12 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
   onWornChange,
   onAdjustAmmoUnits,
 }) => {
-  const itemTwoHanded = isTwoHanded(item);
+  // A lança montada numa mão só já mostra o chip da mão; o "2 mãos" ao lado
+  // contradiria o estado.
+  const heldOneHanded =
+    canWieldOneHanded(item) &&
+    (wieldingSlot === 'main' || wieldingSlot === 'off');
+  const itemTwoHanded = isTwoHanded(item) && !heldOneHanded;
   const style = itemTypeStyles[item.group];
   const Icon = style.icon;
   const quantity = item.quantity ?? 1;

@@ -256,7 +256,7 @@ describe('normalizeSheet - fichas sem campos obrigatórios', () => {
     expect(() => convertToFoundry(sheet)).not.toThrow();
 
     const foundry = convertToFoundry(sheet);
-    expect(foundry.system.atributos.for.base).toBe(0);
+    expect(foundry.system.atributos).toMatchObject({ for: { base: 0 } });
   });
 });
 

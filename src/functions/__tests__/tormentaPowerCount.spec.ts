@@ -15,7 +15,11 @@ import _ from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
 import { normalizeSheet } from '../sheetNormalizer';
 import generateRandomSheet from '../general';
-import { countTormentaPowers, listTormentaPowers } from '../randomUtils';
+import {
+  FORMA_ABERRANTE_POWER_KEY,
+  countTormentaPowers,
+  listTormentaPowers,
+} from '../randomUtils';
 import { sheetHasPowerNamed } from '../powers/hasPowerNamed';
 import {
   getCharismaPenaltyPowerCount,
@@ -206,6 +210,56 @@ describe('getCharismaPenaltyPowerCount', () => {
 });
 
 /**
+ * Forma Aberrante do Druida (Heróis de Arton): "conta como se tivesse dois
+ * poderes da Tormenta adicionais (exceto para perda de Carisma)". É um efeito
+ * ativo, não um poder — a contagem lê `activeEffects`.
+ */
+describe('Forma Aberrante (efeito ativo)', () => {
+  const formaAberrante = (): NonNullable<
+    CharacterSheet['activeEffects']
+  >[number] => ({
+    instanceId: 'forma-aberrante-1',
+    powerKey: FORMA_ABERRANTE_POWER_KEY,
+    name: 'Forma Aberrante',
+    sourceLabel: 'Druida · Forma Aberrante',
+    optionId: 'forma-aberrante',
+    optionLabel: '+2 poderes da Tormenta',
+    bonuses: [],
+    appliedAt: '2026-01-01T00:00:00.000Z',
+  });
+
+  it('soma dois na contagem enquanto está ativa', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS];
+    expect(countTormentaPowers(sheet)).toBe(1);
+
+    sheet.activeEffects = [formaAberrante()];
+    expect(countTormentaPowers(sheet)).toBe(3);
+
+    sheet.activeEffects = [];
+    expect(countTormentaPowers(sheet)).toBe(1);
+  });
+
+  it('não entra na perda de Carisma', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS];
+    sheet.activeEffects = [formaAberrante()];
+
+    expect(countTormentaPowers(sheet, { forCharismaPenalty: true })).toBe(1);
+    expect(getCharismaPenaltyPowerCount(sheet)).toBe(1);
+  });
+
+  it('outro efeito ativo não mexe na contagem', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.activeEffects = [
+      { ...formaAberrante(), powerKey: 'druida:forma-selvagem' },
+    ];
+
+    expect(countTormentaPowers(sheet)).toBe(0);
+  });
+});
+
+/**
  * O relato do usuário ("não desconta automático") vem daqui: abrir uma ficha
  * não dispara recálculo, então personagem criado antes da v4.30 fica sem o
  * desconto até editar alguma coisa.
@@ -350,6 +404,44 @@ describe('perda de atributo por poderes da Tormenta', () => {
 
     expect(carisma(resultado)).toBe(carismaAntes);
     expect(resultado.atributos[Atributo.FORCA].value).toBe(forcaAntes - 1);
+  });
+
+  it('Linhagem Rubra drena o atributo escolhido pelo jogador', () => {
+    const sheet = createMockCharacterSheet();
+    const carismaAntes = carisma(sheet);
+    const forcaAntes = sheet.atributos[Atributo.FORCA].value;
+    const destrezaAntes = sheet.atributos[Atributo.DESTREZA].value;
+    sheet.classe = {
+      ...sheet.classe,
+      abilities: [{ name: 'Linhagem Rubra', text: 'x', nivel: 1 }],
+    };
+    sheet.generalPowers = [ANTENAS];
+    sheet.linhagemRubraAtributo = Atributo.DESTREZA;
+
+    const resultado = recalculateSheet(sheet);
+
+    expect(carisma(resultado)).toBe(carismaAntes);
+    expect(resultado.atributos[Atributo.FORCA].value).toBe(forcaAntes);
+    expect(resultado.atributos[Atributo.DESTREZA].value).toBe(
+      destrezaAntes - 1
+    );
+
+    // Trocar a escolha devolve o ponto ao atributo anterior.
+    const trocado = recalculateSheet({
+      ...resultado,
+      linhagemRubraAtributo: Atributo.FORCA,
+    });
+    expect(trocado.atributos[Atributo.DESTREZA].value).toBe(destrezaAntes);
+    expect(trocado.atributos[Atributo.FORCA].value).toBe(forcaAntes - 1);
+  });
+
+  it('a escolha da Linhagem Rubra não vale sem a linhagem', () => {
+    const sheet = createMockCharacterSheet();
+    const carismaAntes = carisma(sheet);
+    sheet.generalPowers = [ANTENAS];
+    sheet.linhagemRubraAtributo = Atributo.DESTREZA;
+
+    expect(carisma(recalculateSheet(sheet))).toBe(carismaAntes - 1);
   });
 
   it('não redesconta em ficha antiga que já trazia a penalidade no passo-a-passo', () => {

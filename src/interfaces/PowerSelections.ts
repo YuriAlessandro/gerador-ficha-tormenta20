@@ -1,4 +1,5 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import { BonusCondition } from './CharacterSheet';
 import { ClassPower } from './Class';
 import Equipment from './Equipment';
 import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
@@ -14,6 +15,7 @@ export interface SelectionOptions {
   powers?: GeneralPower[];
   spells?: Spell[];
   attributes?: string[]; // Atributo names like 'Força', 'Destreza', etc.
+  intelligenceSkills?: string[]; // Perícias treinadas por aumentar a Inteligência (increaseAttribute)
   weapons?: string[]; // Weapon names for specialization
   familiars?: string[]; // Familiar names for selection
   animalTotems?: string[]; // Animal totem names for selection
@@ -98,7 +100,11 @@ export interface PowerSelectionRequirement {
   metadata?: {
     allowedType?: 'Arcane' | 'Divine' | 'Both';
     schools?: string[];
+    maxCircle?: number; // For learnAnySpellFromHighestCircle: teto de círculo
     optionKey?: string; // For chooseFromOptions: the option key identifier
+    // For chooseFromOptions com `appendChosenSpellSchoolTo`: família da classe
+    // cujas escolas já possuídas saem da lista.
+    spellSchoolFor?: string;
     linkedTo?: string; // For chooseFromOptions: linked to another option choice
     immediateClassPower?: boolean; // Diferentão grants the selected power now
     minLevel?: number; // For getClassPower: nível em que os requisitos são avaliados
@@ -127,6 +133,16 @@ export interface PowerSelectionRequirement {
     // For increaseAttribute: `false` quando a fonte não tem a restrição de
     // 1×/patamar do poder Aumento de Atributo (ex.: Aspirante a Herói).
     oncePerTier?: boolean;
+    // For increaseAttribute: quanto o atributo sobe (padrão 1). Define quantas
+    // perícias por Inteligência o aumento concede.
+    increaseValue?: number;
+    // For increaseAttribute: atributos permitidos (ex.: Visconde só em
+    // Inteligência). Ausente = todos.
+    allowedAttributes?: Atributo[];
+    // Condição da ação (ex.: só no Caminho do Governante). Sem a ficha não dá
+    // para avaliar; quem filtra as opções (`getFilteredAvailableOptions`)
+    // devolve vazio quando ela não vale.
+    condition?: BonusCondition;
   };
 }
 

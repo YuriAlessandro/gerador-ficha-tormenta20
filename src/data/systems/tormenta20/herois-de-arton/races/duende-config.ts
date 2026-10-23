@@ -6,6 +6,7 @@ import {
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import { RACE_SIZES } from '../../races/raceSizes/raceSizes';
+import { withDuendePresenteSpells } from './duendePresenteActions';
 
 // =============================================================================
 // INTERFACES
@@ -172,7 +173,7 @@ export const DUENDE_SIZE_NAMES = Object.keys(DUENDE_SIZES);
 // PRESENTES DE MAGIA E DE CAOS (14 poderes)
 // =============================================================================
 
-export const DUENDE_PRESENTES: Record<string, DuendePresente> = {
+const DUENDE_PRESENTES_BASE: Record<string, DuendePresente> = {
   'afinidade-agua': {
     id: 'afinidade-agua',
     ability: {
@@ -363,6 +364,16 @@ export const DUENDE_PRESENTES: Record<string, DuendePresente> = {
     },
   },
 };
+
+// As magias de cada presente moram em `duendePresenteActions.ts`, compartilhadas
+// com a cópia em poder geral (`duendePresentes.ts`).
+export const DUENDE_PRESENTES: Record<string, DuendePresente> =
+  Object.fromEntries(
+    Object.entries(DUENDE_PRESENTES_BASE).map(([id, presente]) => [
+      id,
+      { ...presente, ability: withDuendePresenteSpells(presente.ability) },
+    ])
+  );
 
 export const DUENDE_PRESENTE_NAMES = Object.keys(DUENDE_PRESENTES);
 

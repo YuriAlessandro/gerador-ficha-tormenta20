@@ -37,6 +37,7 @@ import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-ar
 import { applyMoreauCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applySuragelAlternativeAbility } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import { getClassSetupAbilities } from '@/functions/multiclass';
 import {
   ArcanistaSubtypes,
   applyLinhagemAbencoadaToSpellPath,
@@ -380,17 +381,36 @@ const CharacterCreationWizardModal: React.FC<
   // A variante entra AQUI para que todos os passos abaixo (Perícias da Classe,
   // Efeitos de Poderes, Equipamento) já vejam a classe customizada — mesmo
   // padrão do `applySuragelAlternativeAbility` no memo de `race`.
-  const classe: ClassDescription | undefined = useMemo(
-    () =>
-      catalogClasse
-        ? applyDeityClassVariant(
-            catalogClasse,
-            deityClassVariant,
-            selections.deityClassChoices
-          )
-        : undefined,
-    [catalogClasse, deityClassVariant, selections.deityClassChoices]
-  );
+  //
+  // As habilidades de SETUP (linhagem do Feiticeiro) também entram aqui: elas
+  // não estão na classe do catálogo, e sem isso o passo "Efeitos de Poderes"
+  // nunca via a magia da Linhagem Feérica nem o poder da Linhagem Rubra, que
+  // saíam sorteados.
+  const classe: ClassDescription | undefined = useMemo(() => {
+    if (!catalogClasse) return undefined;
+    const withVariant = applyDeityClassVariant(
+      catalogClasse,
+      deityClassVariant,
+      selections.deityClassChoices
+    );
+    const setupAbilities = getClassSetupAbilities(withVariant.name, {
+      arcanistaSubtype: selections.arcanistaSubtype,
+      feiticeiroLinhagem: selections.feiticeiroLinhagem,
+      linhagemAbencoadaDeus: selections.linhagemAbencoada?.deus,
+    });
+    if (setupAbilities.length === 0) return withVariant;
+    return {
+      ...withVariant,
+      abilities: [...(withVariant.abilities ?? []), ...setupAbilities],
+    };
+  }, [
+    catalogClasse,
+    deityClassVariant,
+    selections.deityClassChoices,
+    selections.arcanistaSubtype,
+    selections.feiticeiroLinhagem,
+    selections.linhagemAbencoada?.deus,
+  ]);
 
   // Expand Ofício (Qualquer) in base skills to specific Ofício variants
   const expandedBasicas = useMemo(
@@ -979,6 +999,11 @@ const CharacterCreationWizardModal: React.FC<
           [Atributo.SABEDORIA]: 0,
           [Atributo.CARISMA]: 0,
         },
+        // Rolado uma vez por sessão: re-renderizar ou voltar e avançar não
+        // rola de novo, e a ficha recebe o mesmo valor que o Mercado mostrou.
+        initialMoneyRoll: getInitialMoneyWithDetails(
+          selectedOptions.nivel || 1
+        ),
       });
       // Initialize steps array
       setSteps(getSteps());
@@ -1018,6 +1043,17 @@ const CharacterCreationWizardModal: React.FC<
       }
     }
   }, [activeStep]);
+
+  // Dinheiro da origem rolado uma vez por origem. Declarado depois do reset de
+  // `open`, então roda depois dele ao abrir o assistente.
+  useEffect(() => {
+    if (open) {
+      setSelections((prev) => ({
+        ...prev,
+        originMoneyRoll: origin?.getMoney?.(),
+      }));
+    }
+  }, [open, origin?.name]);
 
   // Clear cached origin benefits when origin changes (so new random benefits are generated)
   useEffect(() => {
@@ -1687,6 +1723,7 @@ const CharacterCreationWizardModal: React.FC<
                 // O toggle vira o gatilho do passo do poder; recusar descarta o
                 // poder já escolhido junto com a complicação que vinha com ele.
                 agePower: took ? selections.agePower : undefined,
+                ageComplications: took ? selections.ageComplications : [],
                 ageOptionalPowerTaken: took,
               })
             }
@@ -1853,6 +1890,20 @@ const CharacterCreationWizardModal: React.FC<
                 linhagemAbencoada: { deus },
               })
             }
+            selectedDamageType={selections.draconicaDamageType}
+            onDamageTypeChange={(damageType) =>
+              setSelections({
+                ...selections,
+                draconicaDamageType: damageType,
+              })
+            }
+            selectedRubraAtributo={selections.linhagemRubraAtributo}
+            onRubraAtributoChange={(atributo) =>
+              setSelections({
+                ...selections,
+                linhagemRubraAtributo: atributo,
+              })
+            }
           />
         );
 
@@ -1997,14 +2048,14 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Mercado': {
         // Calculate initial money
-        const moneyInfo = getInitialMoneyWithDetails(
-          selectedOptions.nivel || 1
-        );
+        const moneyInfo =
+          selections.initialMoneyRoll ??
+          getInitialMoneyWithDetails(selectedOptions.nivel || 1);
         let baseMoney = moneyInfo.amount;
 
-        // Add origin bonus money if regional
-        if (origin?.isRegional && origin?.getMoney) {
-          baseMoney += origin.getMoney();
+        // Dinheiro da origem, rolado uma vez (efeito abaixo de `open`)
+        if (origin?.getMoney) {
+          baseMoney += selections.originMoneyRoll ?? 0;
         }
 
         // Build pre-populated bag
@@ -2206,6 +2257,9 @@ const CharacterCreationWizardModal: React.FC<
         if (selections.feiticeiroLinhagem === 'Linhagem Abençoada') {
           return !!selections.linhagemAbencoada?.deus;
         }
+        if (selections.feiticeiroLinhagem === 'Linhagem Dracônica') {
+          return !!selections.draconicaDamageType;
+        }
         return selections.feiticeiroLinhagem !== undefined;
 
       case 'Escolas de Magia':
@@ -2302,7 +2356,11 @@ const CharacterCreationWizardModal: React.FC<
           if (req.optional) return true;
 
           const ownSelections = effectSelections[selectionKey];
-          const count = countRequirementSelections(req, ownSelections);
+          const count = countRequirementSelections(
+            req,
+            ownSelections,
+            finalAttributeModifiers[Atributo.INTELIGENCIA]
+          );
           // Tipo não contável: não bloquear o assistente
           if (count === null) return true;
 

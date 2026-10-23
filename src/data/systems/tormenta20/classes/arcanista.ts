@@ -7,11 +7,11 @@ import {
   SpellPath,
 } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
+import { DamageType, SheetBonus } from '../../../../interfaces/CharacterSheet';
 import Skill from '../../../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import tormentaPowers from '../powers/tormentaPowers';
-import { spellsCircle1 } from '../magias/generalSpells';
 import { allSpellSchools } from '../../../../interfaces/Spells';
 import { SupplementId } from '../../../../types/supplement.types';
 import { DIVINDADES } from '../divindades';
@@ -86,28 +86,71 @@ export const classAbilities: Record<ArcanistaSubtypes, ClassAbility> = {
   },
 };
 
-export const feiticeiroPaths: ClassAbility[] = [
-  {
+export type FeiticeiroLinhagemName =
+  | 'Linhagem Dracônica'
+  | 'Linhagem Feérica'
+  | 'Linhagem Rubra'
+  | 'Linhagem Abençoada';
+
+/** Tipos de dano da Linhagem Dracônica, como aparecem na ficha. */
+export const DRACONICA_DAMAGE_TYPES = ['Ácido', 'Elétrico', 'Fogo', 'Frio'];
+
+const DRACONICA_RD_TYPES: Record<string, DamageType> = {
+  Ácido: 'Ácido',
+  Elétrico: 'Eletricidade',
+  Eletricidade: 'Eletricidade',
+  Fogo: 'Fogo',
+  Frio: 'Frio',
+};
+
+/**
+ * O tipo de dano da Linhagem Dracônica só fica registrado no TEXTO da
+ * habilidade ("Tipo escolhido: Fogo"), inclusive em fichas já salvas.
+ */
+export function parseDraconicaDamageType(text?: string): string | undefined {
+  return text?.match(/Tipo escolhido: ([^\s.]+)/)?.[1];
+}
+
+/**
+ * Linhagem Dracônica com o tipo de dano já escolhido: além do Carisma nos PV,
+ * a redução de dano 5 ao tipo. Sem tipo (a entrada genérica do catálogo), fica
+ * só o bônus de PV.
+ */
+export function buildLinhagemDraconica(damageType?: string): ClassAbility {
+  const baseText =
+    'Um de seus antepassados foi um majestoso dragão. Escolha um tipo de dano entre ácido, eletricidade, fogo ou frio. Básica: Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe redução de dano 5 ao tipo escolhido';
+  const rdType = damageType ? DRACONICA_RD_TYPES[damageType] : undefined;
+  const sheetBonuses: SheetBonus[] = [
+    {
+      source: { type: 'power', name: 'Linhagem Dracônica' },
+      target: { type: 'PV' },
+      modifier: { type: 'Attribute', attribute: Atributo.CARISMA },
+    },
+  ];
+  if (rdType) {
+    sheetBonuses.push({
+      source: { type: 'power', name: 'Linhagem Dracônica' },
+      target: { type: 'DamageReduction', damageType: rdType },
+      modifier: { type: 'Fixed', value: 5 },
+    });
+  }
+  return {
     name: 'Linhagem Dracônica',
-    text: 'Um de seus antepassados foi um majestoso dragão. Escolha um tipo de dano entre ácido, eletricidade, fogo ou frio. Básica: Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5',
+    text: damageType ? `${baseText}. Tipo escolhido: ${damageType}` : baseText,
     nivel: 1,
-    // Tipo do dano está sendo escolhido no setup
-    sheetBonuses: [
-      {
-        source: {
-          type: 'power',
-          name: 'Linhagem Dracônica',
-        },
-        target: { type: 'PV' },
-        modifier: { type: 'Attribute', attribute: Atributo.CARISMA },
-      },
-    ],
-  },
+    sheetBonuses,
+  };
+}
+
+export const feiticeiroPaths: ClassAbility[] = [
+  buildLinhagemDraconica(),
   {
     name: 'Linhagem Feérica',
     text: 'Seu sangue foi tocado pelas fadas. Básica: Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão, arcana ou divina, a sua escolha.',
     nivel: 1,
-    // Enganação já foi dado no setup
+    // Na geração aleatória o `setup()` já põe Enganação nas perícias básicas
+    // (para o sorteio não gastar uma perícia restante nela) e o `learnSkill`
+    // vira no-op; no assistente e no multiclasse é ele quem treina a perícia.
     sheetActions: [
       {
         source: {
@@ -115,11 +158,24 @@ export const feiticeiroPaths: ClassAbility[] = [
           name: 'Linhagem Feérica',
         },
         action: {
-          type: 'learnSpell',
-          availableSpells: Object.values(spellsCircle1).filter(
-            (spell) => spell.school === 'Encan' || spell.school === 'Ilusão'
-          ),
+          type: 'learnSkill',
+          availableSkills: [Skill.ENGANACAO],
           pick: 1,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Linhagem Feérica',
+        },
+        // "uma magia de 1º círculo de encantamento ou ilusão, arcana ou
+        // divina": resolvido pelo registry, então inclui suplementos.
+        action: {
+          type: 'learnAnySpellFromHighestCircle',
+          pick: 1,
+          allowedType: 'Both',
+          schools: ['Encan', 'Ilusão'],
+          maxCircle: 1,
         },
       },
     ],
@@ -171,6 +227,43 @@ export const DEUSES_MAIORES = [
 /** Poderes de classe que destravam círculos divinos da Linhagem Abençoada. */
 export const HERANCA_APRIMORADA = 'Herança Aprimorada';
 export const HERANCA_SUPERIOR = 'Herança Superior';
+
+/**
+ * Texto das heranças aprimorada e superior de cada linhagem (Tormenta 20 p. 39;
+ * Abençoada em Deuses de Arton p. 33). Os poderes de classe "Herança
+ * Aprimorada"/"Herança Superior" são genéricos ("você recebe a herança
+ * aprimorada de sua linhagem"); o que eles fazem depende daqui. A automação
+ * correspondente mora em `functions/powers/feiticeiroHeranca.ts`.
+ */
+export const FEITICEIRO_HERANCAS: Record<
+  FeiticeiroLinhagemName,
+  { aprimorada: string; superior: string }
+> = {
+  'Linhagem Dracônica': {
+    aprimorada:
+      'Suas magias do tipo escolhido custam –1 PM e causam +1 ponto de dano por dado.',
+    superior:
+      'Você passa a somar o dobro do seu Carisma em seus pontos de vida iniciais e se torna imune a dano do tipo escolhido. Além disso, sempre que reduz um ou mais inimigos a 0 PV ou menos com uma magia do tipo escolhido, você recebe uma quantidade de PM temporários igual ao círculo da magia.',
+  },
+  'Linhagem Feérica': {
+    aprimorada:
+      'A CD para resistir a suas magias de encantamento e ilusão aumenta em +2 e suas magias dessas escolas custam –1 PM.',
+    superior:
+      'Você recebe +2 em Carisma. Se uma criatura passar no teste de resistência contra uma magia de encantamento ou ilusão lançada por você, você fica alquebrado até o final da cena.',
+  },
+  'Linhagem Rubra': {
+    aprimorada:
+      'Escolha uma magia para cada poder da Tormenta que você possui. Essas magias custam –1 PM. Sempre que recebe um novo poder da Tormenta, você pode escolher uma nova magia. Esta herança conta como um poder da Tormenta (exceto para perda de Carisma).',
+    superior:
+      'Você recebe +4 PM para cada poder da Tormenta que tiver. Esta herança conta como um poder da Tormenta (exceto para perda de Carisma).',
+  },
+  'Linhagem Abençoada': {
+    aprimorada:
+      'Suas magias divinas de círculo igual ou menor que sua Sabedoria custam –1 PM e você pode aprender magias divinas de 2º e 3º círculos como magias de feiticeiro.',
+    superior:
+      'Você recebe +1 em Sabedoria e aprende uma magia divina de cada círculo a que tenha acesso, limitado por sua Sabedoria. A cada dia, após descansar, pode trocar essas magias por outras dos mesmos círculos. Por fim, pode aprender magias divinas de 4º e 5º círculos como magias de feiticeiro.',
+  },
+};
 
 /**
  * Cópia do spellPath do subtipo. `arcanistaSpellPaths` é um singleton de
@@ -564,20 +657,11 @@ const ARCANISTA: ClassDescription = {
       const selectedSubType = getRandomItemFromArray(availablePaths);
 
       if (selectedSubType.name === 'Linhagem Dracônica') {
-        // Cópia: `feiticeiroPaths` é um array de módulo e `[...feiticeiroPaths]`
-        // é raso, então `text +=` acumularia "Tipo escolhido: X" na definição
-        // compartilhada a cada ficha gerada na sessão.
-        modifiedClasse.abilities.push({
-          ...selectedSubType,
-          text: `${
-            selectedSubType.text
-          }. Tipo escolhido: ${getRandomItemFromArray([
-            'Ácido',
-            'Elétrico',
-            'Fogo',
-            'Frio',
-          ])}`,
-        });
+        // Objeto novo a cada ficha: a entrada de `feiticeiroPaths` é
+        // compartilhada e não pode acumular "Tipo escolhido: X".
+        modifiedClasse.abilities.push(
+          buildLinhagemDraconica(getRandomItemFromArray(DRACONICA_DAMAGE_TYPES))
+        );
       } else if (selectedSubType.name === 'Linhagem Feérica') {
         modifiedClasse.periciasbasicas.push({
           type: 'and',

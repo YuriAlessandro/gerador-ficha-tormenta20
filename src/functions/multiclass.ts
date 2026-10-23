@@ -13,6 +13,7 @@ import {
   ArcanistaSubtypes,
   classAbilities as arcanistaClassAbilities,
   feiticeiroPaths,
+  buildLinhagemDraconica,
   createLinhagemAbencoada,
   getArcanistaSpellPath,
   applyLinhagemAbencoadaToSpellPath,
@@ -611,9 +612,12 @@ export function getClassSetupAbilities(
         const deus = classSetup.linhagemAbencoadaDeus || 'um deus maior';
         abilities.push(...createLinhagemAbencoada(deus));
       } else {
-        const linhagemAbility = feiticeiroPaths.find(
-          (p) => p.name === classSetup.feiticeiroLinhagem
-        );
+        const linhagemAbility =
+          classSetup.feiticeiroLinhagem === 'Linhagem Dracônica'
+            ? buildLinhagemDraconica(classSetup.draconicaDamageType)
+            : feiticeiroPaths.find(
+                (p) => p.name === classSetup.feiticeiroLinhagem
+              );
         if (linhagemAbility) {
           abilities.push(linhagemAbility);
         }

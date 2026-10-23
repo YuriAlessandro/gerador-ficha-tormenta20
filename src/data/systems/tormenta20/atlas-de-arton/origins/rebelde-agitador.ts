@@ -6,6 +6,7 @@ import atlasOriginPowers from '../powers/originPowers';
 import Skill from '../../../../../interfaces/Skills';
 import { ARMAS_SIMPLES_E_MARCIAIS } from '../../equipamentos';
 import { itemChoice } from '../../originItemHelpers';
+import { rollDice } from '../../../../../functions/randomUtils';
 
 /**
  * Função customizada para origens regionais - retorna TODOS os benefícios
@@ -27,30 +28,16 @@ const REBELDE_AGITADOR: Origin = {
   poderes: [atlasOriginPowers.REBELDE_AGITADOR],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    // Rola 6d12 para os impostos não pagos
-    let impostos = 0;
-    for (let i = 0; i < 6; i += 1) {
-      impostos += Math.floor(Math.random() * 12) + 1;
-    }
-
-    return [
-      itemChoice(
-        'arma',
-        'Arma simples ou marcial',
-        ARMAS_SIMPLES_E_MARCIAIS,
-        1
-      ),
-      {
-        equipment: 'Panfleto revolucionário',
-        qtd: 1,
-      },
-      {
-        equipment: `T$ ${impostos} (impostos não pagos)`,
-        qtd: 1,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    itemChoice('arma', 'Arma simples ou marcial', ARMAS_SIMPLES_E_MARCIAIS, 1),
+    {
+      equipment: 'Panfleto revolucionário',
+      qtd: 1,
+    },
+  ],
+  // T$ 6d12, impostos que você deixou de pagar (Atlas p. 477). Vai para o
+  // dinheiro da ficha, não para a mochila.
+  getMoney: () => rollDice(6, 12),
 };
 
 export default REBELDE_AGITADOR;

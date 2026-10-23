@@ -7,7 +7,7 @@ import Equipment, {
 import Skill, { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import { Atributo } from '../data/systems/tormenta20/atributos';
-import { addFlatDamageBonus } from './weaponDamageStep';
+import { addFlatDamageBonus, stepUpDamage } from './weaponDamageStep';
 
 export function getWeaponSkill(weapon: Equipment): Skill {
   if (weapon.customSkill) return weapon.customSkill;
@@ -132,7 +132,8 @@ export function resolveDamageAttribute(
  * encantamento), então somá-lo aqui não duplica.
  *
  * `extraFlatBonus` são os bônus de dano que não foram bakeados em `weapon.dano`
- * e precisam ser somados ao vivo (ver `sumLiveWeaponBonuses`). O PDF não passa
+ * e precisam ser somados ao vivo (ver `sumLiveWeaponBonuses`); `extraDamageSteps`
+ * é o equivalente para passos de dano (`WeaponDamageStep`). O PDF não passa
  * esse parâmetro: efeito ativo é estado transitório de combate e não deve ser
  * congelado na exportação.
  *
@@ -146,10 +147,15 @@ export function resolveDamageAttribute(
 export function getWeaponDisplayDamage(
   weapon: Equipment,
   atributos: CharacterAttributes,
-  extraFlatBonus = 0
+  extraFlatBonus = 0,
+  extraDamageSteps = 0
 ): string {
-  const baseDano = weapon.dano ?? '';
-  if (!baseDano) return baseDano;
+  const rawDano = weapon.dano ?? '';
+  if (!rawDano) return rawDano;
+  // Passos de dano vivos (mesma origem de `extraFlatBonus`) mexem no dado antes
+  // de somar o fixo — mesma ordem do baking em `applyWeaponBonuses`.
+  const baseDano =
+    extraDamageSteps !== 0 ? stepUpDamage(rawDano, extraDamageSteps) : rawDano;
 
   const attrMod = weaponAttributeModifier(
     resolveDamageAttribute(weapon),

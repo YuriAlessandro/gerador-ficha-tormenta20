@@ -3,6 +3,7 @@ import {
   applyTwoHandedToggle,
   applyWielding,
   canSplitStack,
+  canWieldOneHanded,
   commitWielding,
   getWieldingSlot,
   getWornArmor,
@@ -11,6 +12,7 @@ import {
   isClothingWorn,
   isTwoHanded,
   isWieldable,
+  isWieldedTwoHanded,
   migrateLegacyEquipState,
   pruneUnwornClothing,
   MigratableBagView,
@@ -979,5 +981,102 @@ describe('vestuário — vestir/guardar', () => {
     expect(canSplitStack(duas)).toBe(false);
     expect(hasMechanicalBonus(duas)).toBe(true);
     expect(hasMechanicalBonus(camisa)).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------
+ * Lança Montada: arma de duas mãos que aceita uma mão só (montado).
+ * ------------------------------------------------------------------ */
+
+describe('arma de duas mãos que aceita uma mão (Lança Montada)', () => {
+  const lance: Equipment = {
+    id: 'lan',
+    nome: 'Lança Montada',
+    group: 'Arma',
+    twoHanded: true,
+    oneHandedWhenMounted: true,
+  };
+  const lookup = makeLookup([lance, greatsword, battleAxe, buckler]);
+
+  test('canWieldOneHanded exige as duas flags', () => {
+    expect(canWieldOneHanded(lance)).toBe(true);
+    expect(canWieldOneHanded(greatsword)).toBe(false);
+    // A flag sozinha, numa arma de uma mão, não significa nada.
+    expect(
+      canWieldOneHanded({ ...battleAxe, oneHandedWhenMounted: true })
+    ).toBe(false);
+  });
+
+  test('isWieldedTwoHanded segue o slot só para a arma flexível', () => {
+    expect(
+      isWieldedTwoHanded(lance, { mainHandItemId: 'lan', offHandItemId: 'lan' })
+    ).toBe(true);
+    expect(isWieldedTwoHanded(lance, { mainHandItemId: 'lan' })).toBe(false);
+    expect(isWieldedTwoHanded(lance, { offHandItemId: 'lan' })).toBe(false);
+    // Arma de duas mãos comum: a flag basta, mesmo num slot só (estado legado).
+    expect(isWieldedTwoHanded(greatsword, { mainHandItemId: 'gs' })).toBe(true);
+    expect(isWieldedTwoHanded(battleAxe, { mainHandItemId: 'axe1' })).toBe(
+      false
+    );
+  });
+
+  test('escudo entra na mão livre com a lança numa mão só', () => {
+    expect(
+      applyWielding({ mainHandItemId: 'lan' }, 'sh1', 'off', lookup)
+    ).toEqual({ mainHandItemId: 'lan', offHandItemId: 'sh1' });
+  });
+
+  test('escudo segue bloqueado com a lança nas duas mãos', () => {
+    const state = { mainHandItemId: 'lan', offHandItemId: 'lan' };
+    expect(applyWielding(state, 'sh1', 'off', lookup)).toEqual(state);
+  });
+
+  test('lança vai para uma mão sem derrubar o escudo da outra', () => {
+    expect(
+      applyWielding({ offHandItemId: 'sh1' }, 'lan', 'main', lookup)
+    ).toEqual({ mainHandItemId: 'lan', offHandItemId: 'sh1' });
+  });
+
+  test('trocar de uma mão para as duas derruba o escudo', () => {
+    expect(
+      applyWielding(
+        { mainHandItemId: 'lan', offHandItemId: 'sh1' },
+        'lan',
+        'both',
+        lookup
+      )
+    ).toEqual({ mainHandItemId: 'lan', offHandItemId: 'lan' });
+  });
+
+  test('pickDefaultWieldSlot: duas mãos por padrão', () => {
+    expect(pickDefaultWieldSlot({}, lance, lookup)).toBe('both');
+    expect(
+      pickDefaultWieldSlot({ mainHandItemId: 'axe1' }, lance, lookup)
+    ).toBe('both');
+  });
+
+  test('pickDefaultWieldSlot: mão livre quando a outra tem um escudo', () => {
+    expect(pickDefaultWieldSlot({ offHandItemId: 'sh1' }, lance, lookup)).toBe(
+      'main'
+    );
+    expect(pickDefaultWieldSlot({ mainHandItemId: 'sh1' }, lance, lookup)).toBe(
+      'off'
+    );
+  });
+
+  test('pickDefaultWieldSlot: mantém a mão em que já está', () => {
+    expect(
+      pickDefaultWieldSlot(
+        { mainHandItemId: 'lan', offHandItemId: 'sh1' },
+        lance,
+        lookup
+      )
+    ).toBe('main');
+  });
+
+  test('arma de duas mãos comum continua indo para as duas mãos', () => {
+    expect(
+      pickDefaultWieldSlot({ offHandItemId: 'sh1' }, greatsword, lookup)
+    ).toBe('both');
   });
 });

@@ -18,7 +18,12 @@ import type {
 } from '@/premium/interfaces/ActiveEffect';
 import { CharacterAttribute } from '@/interfaces/Character';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { EngenhocaData, Spell, spellsCircles } from '@/interfaces/Spells';
+import {
+  CastAugment,
+  EngenhocaData,
+  Spell,
+  spellsCircles,
+} from '@/interfaces/Spells';
 import {
   buildEngenhocaCastCheck,
   countEngenhocas,
@@ -127,7 +132,12 @@ export interface SpellsDisplayProps {
   currentPM?: number;
   maxPM?: number;
   tempPM?: number;
-  onSpellCast?: (pmSpent: number, spell: Spell, castLogged?: boolean) => void;
+  onSpellCast?: (
+    pmSpent: number,
+    spell: Spell,
+    castLogged?: boolean,
+    castAugments?: CastAugment[]
+  ) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
@@ -396,7 +406,12 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   }, []);
 
   const handleCast = useCallback(
-    (pmSpent: number, castSpell: Spell, castLogged?: boolean) => {
+    (
+      pmSpent: number,
+      castSpell: Spell,
+      castLogged?: boolean,
+      castAugments?: CastAugment[]
+    ) => {
       const broke = engenhocaBrokeRef.current && !!castSpell.engenhoca;
       engenhocaBrokeRef.current = false;
       const reported = broke
@@ -405,7 +420,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
             engenhoca: { ...castSpell.engenhoca, enguicada: true },
           }
         : castSpell;
-      onSpellCast?.(pmSpent, reported, castLogged);
+      onSpellCast?.(pmSpent, reported, castLogged, castAugments);
     },
     [onSpellCast]
   );

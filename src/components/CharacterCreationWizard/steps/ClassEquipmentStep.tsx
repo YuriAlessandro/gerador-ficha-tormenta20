@@ -5,12 +5,14 @@ import ItemStats from '@/components/common/ItemStats';
 import { ClassDescription } from '@/interfaces/Class';
 import { ClassEquipmentSelections } from '@/interfaces/WizardSelections';
 import EQUIPAMENTOS, {
-  Armaduras,
   Escudos,
   bardInstruments,
 } from '@/data/systems/tormenta20/equipamentos';
 import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
-import { isClassOrVariantOf } from '@/functions/general';
+import {
+  getStartingArmorOptions,
+  isClassOrVariantOf,
+} from '@/functions/general';
 import SelectableItemGrid from './SelectableItemGrid';
 
 interface ClassEquipmentStepProps {
@@ -35,9 +37,7 @@ const ClassEquipmentStep: React.FC<ClassEquipmentStepProps> = ({
   // inclusive quem tem proficiência com pesadas: o livro permite começar com
   // a pesada, não obriga.
   const needsArmor = !isArcanista;
-  const armorOptions: DefenseEquipment[] = hasHeavyArmor
-    ? [Armaduras.BRUNEA, ...EQUIPAMENTOS.armadurasLeves]
-    : EQUIPAMENTOS.armadurasLeves;
+  const armorOptions = getStartingArmorOptions(classe);
   const isBard = isClassOrVariantOf(classe, 'Bardo');
 
   const current = selections || {};

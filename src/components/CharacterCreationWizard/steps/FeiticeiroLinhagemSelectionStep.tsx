@@ -14,7 +14,12 @@ import {
   Chip,
 } from '@mui/material';
 import { SupplementId } from '@/types/supplement.types';
-import { DEUSES_MAIORES } from '@/data/systems/tormenta20/classes/arcanista';
+import {
+  DEUSES_MAIORES,
+  DRACONICA_DAMAGE_TYPES,
+  FEITICEIRO_HERANCAS,
+} from '@/data/systems/tormenta20/classes/arcanista';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 
 export type FeiticeiroLinhagem =
   | 'Linhagem Dracônica'
@@ -38,6 +43,14 @@ interface FeiticeiroLinhagemSelectionStepProps {
   activeSupplements?: SupplementId[];
   selectedDeus?: string;
   onDeusChange?: (deus: string) => void;
+  // Linhagem Dracônica: tipo de dano. Sem `onDamageTypeChange` o seletor não
+  // aparece (o assistente de subir de nível tem o seu próprio).
+  selectedDamageType?: string;
+  onDamageTypeChange?: (damageType: string) => void;
+  // Linhagem Rubra: atributo que perde pontos por poderes da Tormenta no lugar
+  // de Carisma. `undefined` = automático. Sem o callback o seletor não aparece.
+  selectedRubraAtributo?: Atributo;
+  onRubraAtributoChange?: (atributo: Atributo | undefined) => void;
 }
 
 // Linhagens do livro básico
@@ -49,10 +62,8 @@ const coreLinhagemOptions: LinhagemOption[] = [
       'Um de seus antepassados foi um majestoso dragão. Escolha um tipo de dano entre ácido, eletricidade, fogo ou frio.',
     benefit:
       'Você soma seu Carisma em seus pontos de vida iniciais e recebe redução de dano 5 ao tipo escolhido.',
-    aprimorada:
-      'Suas magias do tipo escolhido custam –1 PM e causam +1 ponto de dano por dado.',
-    superior:
-      'Você passa a somar o dobro do seu Carisma em seus pontos de vida iniciais e se torna imune a dano do tipo escolhido. Além disso, sempre que reduz um ou mais inimigos a 0 PV ou menos com uma magia do tipo escolhido, você recebe uma quantidade de PM temporários igual ao círculo da magia.',
+    aprimorada: FEITICEIRO_HERANCAS['Linhagem Dracônica'].aprimorada,
+    superior: FEITICEIRO_HERANCAS['Linhagem Dracônica'].superior,
     supplementId: SupplementId.TORMENTA20_CORE,
   },
   {
@@ -61,10 +72,8 @@ const coreLinhagemOptions: LinhagemOption[] = [
     description: 'Seu sangue foi tocado pelas fadas.',
     benefit:
       'Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão, arcana ou divina, a sua escolha.',
-    aprimorada:
-      'A CD para resistir a suas magias de encantamento e ilusão aumenta em +2 e suas magias dessas escolas custam –1 PM.',
-    superior:
-      'Você recebe +2 em Carisma. Se uma criatura passar no teste de resistência contra uma magia de encantamento ou ilusão lançada por você, você fica alquebrado até o final da cena.',
+    aprimorada: FEITICEIRO_HERANCAS['Linhagem Feérica'].aprimorada,
+    superior: FEITICEIRO_HERANCAS['Linhagem Feérica'].superior,
     supplementId: SupplementId.TORMENTA20_CORE,
   },
   {
@@ -73,10 +82,8 @@ const coreLinhagemOptions: LinhagemOption[] = [
     description: 'Seu sangue foi corrompido pela Tormenta.',
     benefit:
       'Você recebe um poder da Tormenta. Além disso, pode perder outro atributo em vez de Carisma por poderes da Tormenta.',
-    aprimorada:
-      'Escolha uma magia para cada poder da Tormenta que você possui. Essas magias custam –1 PM. Sempre que recebe um novo poder da Tormenta, você pode escolher uma nova magia. Esta herança conta como um poder da Tormenta (exceto para perda de Carisma).',
-    superior:
-      'Você recebe +4 PM para cada poder da Tormenta que tiver. Esta herança conta como um poder da Tormenta (exceto para perda de Carisma).',
+    aprimorada: FEITICEIRO_HERANCAS['Linhagem Rubra'].aprimorada,
+    superior: FEITICEIRO_HERANCAS['Linhagem Rubra'].superior,
     supplementId: SupplementId.TORMENTA20_CORE,
   },
 ];
@@ -90,8 +97,8 @@ const deusesArtonLinhagemOptions: LinhagemOption[] = [
       'Escolha um deus maior. Uma vez feita, essa escolha não pode ser mudada. Você aprende uma magia divina de 1º círculo e pode aprender magias divinas de 1º círculo como magias de feiticeiro.',
     benefit:
       'No 2º nível, você recebe um poder concedido do deus escolhido, aprovado pelo mestre, sem precisar ser devoto dele (mas você ainda pode ser devoto desse ou de outro deus).',
-    aprimorada:
-      'Suas magias divinas de círculo igual ou menor que sua Sabedoria custam –1 PM e você pode aprender magias divinas de 2º e 3º círculos como magias de feiticeiro.',
+    aprimorada: FEITICEIRO_HERANCAS['Linhagem Abençoada'].aprimorada,
+    superior: FEITICEIRO_HERANCAS['Linhagem Abençoada'].superior,
     supplementId: SupplementId.TORMENTA20_DEUSES_ARTON,
   },
 ];
@@ -104,6 +111,10 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
   activeSupplements = [],
   selectedDeus,
   onDeusChange,
+  selectedDamageType,
+  onDamageTypeChange,
+  selectedRubraAtributo,
+  onRubraAtributoChange,
 }) => {
   // Filtra as opções de linhagem baseado nos suplementos ativos
   const linhagemOptions = useMemo(() => {
@@ -129,7 +140,10 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
 
   const isComplete =
     selectedLinhagem !== null &&
-    (selectedLinhagem !== 'Linhagem Abençoada' || selectedDeus);
+    (selectedLinhagem !== 'Linhagem Abençoada' || selectedDeus) &&
+    (selectedLinhagem !== 'Linhagem Dracônica' ||
+      !onDamageTypeChange ||
+      selectedDamageType);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -242,6 +256,61 @@ const FeiticeiroLinhagemSelectionStep: React.FC<
                 </Box>
               }
             />
+
+            {/* Tipo de dano da Linhagem Dracônica */}
+            {option.value === 'Linhagem Dracônica' &&
+              selectedLinhagem === 'Linhagem Dracônica' &&
+              onDamageTypeChange && (
+                <Box sx={{ mt: 2, ml: 4 }}>
+                  <FormControl fullWidth size='small'>
+                    <InputLabel>Tipo de Dano</InputLabel>
+                    <Select
+                      value={selectedDamageType || ''}
+                      label='Tipo de Dano'
+                      onChange={(e) => onDamageTypeChange(e.target.value)}
+                    >
+                      {DRACONICA_DAMAGE_TYPES.map((damageType) => (
+                        <MenuItem key={damageType} value={damageType}>
+                          {damageType}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+            {/* Linhagem Rubra: atributo que perde pontos no lugar de Carisma */}
+            {option.value === 'Linhagem Rubra' &&
+              selectedLinhagem === 'Linhagem Rubra' &&
+              onRubraAtributoChange && (
+                <Box sx={{ mt: 2, ml: 4 }}>
+                  <FormControl fullWidth size='small'>
+                    <InputLabel>
+                      Atributo perdido no lugar de Carisma
+                    </InputLabel>
+                    <Select
+                      value={selectedRubraAtributo || ''}
+                      label='Atributo perdido no lugar de Carisma'
+                      onChange={(e) =>
+                        onRubraAtributoChange(
+                          (e.target.value as Atributo) || undefined
+                        )
+                      }
+                    >
+                      <MenuItem value=''>
+                        <em>Automático (o maior, exceto Carisma)</em>
+                      </MenuItem>
+                      {Object.values(Atributo)
+                        .filter((attr) => attr !== Atributo.CARISMA)
+                        .map((attr) => (
+                          <MenuItem key={attr} value={attr}>
+                            {attr}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
 
             {/* Seleção de deus para Linhagem Abençoada */}
             {option.value === 'Linhagem Abençoada' &&

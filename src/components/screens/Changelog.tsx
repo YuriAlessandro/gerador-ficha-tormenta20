@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            14/10/2026 (v4.35.1).
+            23/10/2026 (v4.36).
           </p>
 
           <p>
@@ -74,6 +74,312 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.36</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> As formas por divindade do Druida, de
+                  Heróis de Arton, viraram efeitos da ficha:{' '}
+                  <strong>Forma Aberrante</strong>,{' '}
+                  <strong>Forma de Cardume</strong>,{' '}
+                  <strong>Forma Elemental</strong>,{' '}
+                  <strong>Forma Esquelética</strong> e{' '}
+                  <strong>Forma Vegetal</strong>. Depois de assumir a Forma
+                  Selvagem, clique na estrelinha do poder para ligar a forma: a
+                  Esquelética e a Vegetal aplicam a redução de dano, a Elemental
+                  troca o tipo de dano das armas naturais pelo elemento
+                  escolhido e a Aberrante soma dois poderes da Tormenta sem
+                  pesar no Carisma. Imunidades e demais efeitos ficam descritos
+                  no próprio efeito, e reverter a Forma Selvagem desfaz a forma
+                  junto.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Efeitos customizados e homebrews
+                  ganharam a opção <strong>Passos de dano</strong>, que aumenta
+                  (ou, com valor negativo, diminui) o dado de dano da arma — por
+                  exemplo, 1d6 vira 1d8. Dá para valer em qualquer arma ou só
+                  nas de corpo a corpo ou à distância, e o efeito também alcança
+                  armas editadas à mão.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Aumentar a{' '}
+                  <strong>Inteligência</strong> depois da criação (pelo{' '}
+                  <strong>Aumento de Atributo</strong> ou outro aumento
+                  permanente) agora treina uma perícia nova, como manda a regra
+                  do livro. Ao escolher Inteligência no level up, na criação ou
+                  no editor de poderes, aparece a escolha da perícia, que pode
+                  ser qualquer uma ainda não treinada, mesmo fora da lista da
+                  classe. Só a parte positiva conta: subir de -1 para 0 não dá
+                  perícia.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>Lupa para ampliar imagens</strong>. A miniatura da
+                  ficha do personagem e da ameaça ganhou um botão de lupa que
+                  abre a imagem inteira, sem recorte. O mesmo vale para a capa
+                  do homebrew, a imagem da build, as imagens do fórum, a fan-art
+                  do perfil e o avatar do parceiro. No fórum, a imagem agora
+                  amplia na própria página em vez de abrir outra aba.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O seletor de tags de arma ganhou as
+                  opções <strong>Leve</strong>, <strong>Ágil</strong> e{' '}
+                  <strong>Espada</strong>. Dá para marcar uma arma personalizada
+                  ou homebrew para que ela receba poderes como Esgrimista e
+                  Estilo Clássico, ou desmarcar uma arma do catálogo; a escolha
+                  feita à mão é mantida ao reabrir a ficha.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A exportação para o{' '}
+                  <strong>Foundry VTT</strong> agora leva a ficha inteira:
+                  poderes de todas as origens, magias com seus aprimoramentos,
+                  armas, armaduras, itens, dinheiro, proficiências,
+                  deslocamentos e redução de dano, além de PV, PM e Defesa com
+                  os totais da ficha. Os bônus de perícia e Defesa dos poderes
+                  viram efeitos automáticos, e poderes e magias ativáveis (como
+                  Fúria, Inspiração e Armadura Arcana) chegam como efeitos
+                  desligados na aba de <strong>Efeitos</strong> do personagem,
+                  com o custo em PM no texto — basta marcar a caixa para o bônus
+                  entrar nos totais. Compatível com o sistema Tormenta20 1.6.4
+                  (Foundry v14).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O <strong>encontro</strong> da mesa
+                  virtual pode ser criado só com jogadores, sem nenhuma ameaça,
+                  para combates entre os personagens (PvP).
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> As listagens de{' '}
+                  <strong>Builds</strong>, <strong>Bestiário</strong>,{' '}
+                  <strong>Fórum</strong> e <strong>Homebrews</strong> guardam os
+                  filtros no endereço da página: abrir um item e voltar,
+                  recarregar ou mandar o link para alguém mantém a lista
+                  filtrada (e, nas Builds e no Fórum, a página e a rolagem). A
+                  busca também espera você terminar de digitar antes de buscar.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O editor de <strong>Builds</strong>{' '}
+                  agora oferece magias, poderes e equipamento a partir dos dados
+                  do jogo, incluindo suplementos e homebrews ativos. Em cada
+                  nível, as magias que a classe já alcança aparecem primeiro,
+                  agrupadas por círculo, e as demais ficam num grupo à parte; os
+                  poderes mostram seus pré-requisitos; e o equipamento vira uma
+                  busca no mercado e nos itens mágicos, agrupada por tipo. Texto
+                  livre continua valendo em todos os campos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Esperteza Vulpina</strong> (Moreau, Herança da Raposa)
+                  treinava automaticamente duas perícias sorteadas — e de uma
+                  lista errada, que incluía Cavalgar, Cura, Intuição e Religião
+                  e esquecia Adestramento e quase todos os Ofícios. Agora ele dá{' '}
+                  <strong>
+                    +2 em duas perícias de Inteligência ou Carisma à sua escolha
+                  </strong>
+                  , como no livro: a escolha aparece no assistente de criação e
+                  fica editável no cabeçalho da ficha. Fichas de Moreau-Raposa
+                  criadas antes desta versão não são corrigidas sozinhas —
+                  escolha as perícias no cabeçalho da ficha para aplicar o +2 e
+                  remova o treino antigo na aba de perícias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Arco Longo</strong>, a{' '}
+                  <strong>Besta Leve</strong> e a <strong>Besta Pesada</strong>{' '}
+                  não estavam marcadas como armas de <strong>duas mãos</strong>{' '}
+                  (o Arco Curto já estava). Agora ocupam as duas mãos no
+                  controle de empunhadura, então não combinam mais com escudo, e
+                  saem corretamente na exportação para o Foundry.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder <strong>Esgrimista</strong>{' '}
+                  não somava Inteligência no dano da <strong>Katana</strong> nem
+                  de outras armas ágeis ou leves (Cimitarra, Foice, Corrente de
+                  Espinhos, Rapieira, Espada canora, Espada-gadanho, Mordida do
+                  diabo, Presa de serpente, Neko-te e Porrete). Fichas já salvas
+                  são corrigidas ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Lança Montada</strong> e
+                  a <strong>Lança de Justa</strong> agora podem ser empunhadas
+                  com apenas uma mão, como a regra permite a quem está montado.
+                  O menu de empunhar oferece a Mão Principal e a Mão Secundária
+                  além das duas mãos, o que libera o escudo na outra mão. As
+                  duas armas também ganharam a descrição oficial, e a Lança de
+                  Justa passou a contar como arma alongada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Classes variantes homebrew de{' '}
+                  <strong>Arcanista</strong> com conjuração própria (ou sem
+                  conjuração) recebiam um Caminho do Arcanista sorteado, que
+                  trocava o atributo de conjuração e deixava habilidades de
+                  caminho e linhagem presas na ficha. Fichas já criadas são
+                  corrigidas ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Pele de Aço</strong> (Bárbaro e Machado de Pedra) não
+                  aumentava a Defesa. Agora soma +4 ao bônus da Pele de Ferro,
+                  chegando aos +8 do livro, enquanto o personagem não usa
+                  armadura pesada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Defesa Armada</strong> não tinha efeito na ficha.
+                  Agora dá +2 na Defesa e em Fortitude sozinho, sempre que uma
+                  arma corpo a corpo de duas mãos está empunhada, sem precisar
+                  ligar nenhum efeito.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As{' '}
+                  <strong>Heranças Aprimorada e Superior</strong> do Feiticeiro
+                  mostravam um texto genérico e não davam bônus nenhum. Agora
+                  cada uma exibe o texto da linhagem do personagem e aplica o
+                  que é de ficha: +2 em Carisma (Feérica), o dobro do Carisma
+                  nos PV (Dracônica), +4 PM por poder da Tormenta, contando as
+                  heranças como poderes da Tormenta (Rubra), e +1 em Sabedoria
+                  (Abençoada). Reduções de custo em PM, CD por escola e
+                  imunidades continuam descritas no texto.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na criação de um Feiticeiro, a{' '}
+                  <strong>Linhagem Feérica</strong> não treinava Enganação e
+                  sorteava a magia; a <strong>Linhagem Rubra</strong> sorteava o
+                  poder da Tormenta; e a <strong>Linhagem Dracônica</strong>{' '}
+                  sorteava o tipo de dano e não dava a redução de dano 5. Agora
+                  o assistente deixa escolher a magia (de encantamento ou
+                  ilusão, arcana ou divina, de 1º círculo), o poder da Tormenta
+                  e o tipo de dano, e a ficha recebe a perícia e a redução de
+                  dano.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os presentes do{' '}
+                  <strong>Duende</strong> que concedem magia não adicionavam
+                  nada à ficha. <strong>Enfeitiçar</strong>,{' '}
+                  <strong>Invisibilidade</strong> e as três{' '}
+                  <strong>Afinidades Elementais</strong> agora adicionam suas
+                  magias com Carisma como atributo-chave, e a{' '}
+                  <strong>Visão Feérica</strong> adiciona a Visão Mística
+                  marcada como sempre ativa. Trocar os presentes pelo cabeçalho
+                  da ficha também remove as magias e os sentidos do presente que
+                  saiu.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder{' '}
+                  <strong>Xamã Místico</strong> (Druida, Heróis de Arton) não
+                  fazia nada. Agora ele pede a escola de magia adicional ao ser
+                  escolhido, com as magias dela já disponíveis no mesmo nível, e
+                  o editor de escolas aceita quatro escolas. Também soma +1 PM
+                  por nível de druida e +1 na CD das magias. Quem já tinha o
+                  poder pode adicionar a quarta escola pelo editor de escolas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao lançar{' '}
+                  <strong>Armadura Arcana</strong> ou{' '}
+                  <strong>Escudo da Fé</strong> com o aprimoramento de +1 na
+                  Defesa, o efeito abria sempre no valor base e parecia não
+                  passar de +7. Agora ele já abre no valor pago: cinco
+                  aprimoramentos na Armadura Arcana dão +10 na Defesa.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em algumas fichas, adicionar o
+                  poder <strong>Aumento de Atributo</strong> e clicar em Salvar
+                  não fazia nada. Agora o poder é salvo normalmente e, se algum
+                  erro impedir o salvamento, o editor de poderes mostra o aviso
+                  em vez de travar em silêncio.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Edições feitas na ficha logo depois
+                  de criá-la e clicar em <strong>Salvar na nuvem</strong> agora
+                  chegam à nuvem (antes ficavam só no navegador). Salvar de novo
+                  atualiza a mesma ficha em vez de criar uma duplicata, e uma
+                  falha no salvamento mostra erro em vez de sucesso.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na tela de criação, as escolhas
+                  feitas no editor de poderes podiam sumir antes do Salvar, e
+                  gerar uma ficha nova depois de editar uma da nuvem podia
+                  gravar as edições da nova por cima da antiga.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Efeitos que aumentam a{' '}
+                  <strong>margem de ameaça</strong> ou o multiplicador de
+                  crítico (como um efeito personalizado para{' '}
+                  <strong>Bravura Indômita</strong>) não valiam em armas com
+                  estatísticas editadas à mão nem nos modos de ataque com
+                  crítico próprio: o efeito aparecia na arma, mas a rolagem só
+                  critava no 20.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Ao escolher a idade{' '}
+                  <strong>Adulto</strong> (Idades Variadas) editando uma ficha
+                  já criada, agora aparecem a opção de receber o poder e a
+                  complicação de idade, como na criação. No formulário de
+                  criação, a opção de receber o poder voltou a desligar depois
+                  de ligada.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Linhagem Rubra</strong>{' '}
+                  do Feiticeiro agora deixa escolher qual atributo perde pontos
+                  pelos poderes da Tormenta no lugar de Carisma, na criação, ao
+                  multiclassar e no editor da ficha (seção Atributos). Antes a
+                  ficha sempre escolhia sozinha o maior atributo. Sem escolha,
+                  continua assim.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As correções acima de Pele de Aço,
+                  Defesa Armada, Feiticeiro e Duende alcançam fichas já salvas
+                  ao abrir. Se você tinha compensado à mão (um efeito de Defesa,
+                  um ponto de atributo, uma magia adicionada manualmente),
+                  remova o ajuste para o valor não contar em dobro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O +1 em Inteligência do{' '}
+                  <strong>Visconde</strong> (Vassalo, Caminho do Governante)
+                  agora é um aumento permanente e treina a perícia por
+                  Inteligência. No level up, o Rei Mercenário mostra só os
+                  atributos do caminho escolhido, e o Soldado não ganha mais um
+                  passo vazio no 11º nível.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes que somam um atributo em
+                  perícias, Defesa, dano ou carga agora acompanham bônus
+                  temporários desse atributo (como <strong>Mente Divina</strong>
+                  ou um efeito manual). Antes, com Mente Divina, todas as
+                  perícias subiam menos o +Inteligência que a{' '}
+                  <strong>Mente Criminosa</strong> soma em Ladinagem e
+                  Furtividade. O mesmo valia para Casca Grossa, Esgrimista,
+                  Inventário Organizado e outros. PV e PM continuam sem mudar
+                  com bônus temporário.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, o{' '}
+                  <strong>Subir de nível</strong>, o{' '}
+                  <strong>Adicionar à mochila</strong> e o construtor de{' '}
+                  <strong>Golpe Pessoal</strong> abrem em tela cheia. O passo a
+                  passo do level up não espreme mais os nomes das etapas, o
+                  saldo da mochila fica fixo embaixo e o custo do Golpe Pessoal
+                  fica sempre à vista. No <strong>Novo parceiro</strong>, a
+                  lista de tipos rola junto com a janela e não esconde mais os
+                  campos de baixo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Na listagem de{' '}
+                  <strong>Builds</strong>, ordenar por <strong>Nome A-Z</strong>{' '}
+                  mostrava de Z a A e <strong>Mais antigas</strong> mostrava as
+                  mais novas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No editor de{' '}
+                  <strong>Builds</strong>, remover um nível deixava um buraco na
+                  progressão e bagunçava a contagem de níveis de cada classe na
+                  multiclasse; agora os níveis seguintes descem (com confirmação
+                  se o nível tinha conteúdo) e builds antigas com buracos se
+                  ajeitam ao adicionar um nível. Os{' '}
+                  <strong>suplementos necessários</strong> passam a ser
+                  calculados pelo conteúdo da build, sem manter livros de uma
+                  classe ou poder já removidos, e o aviso do editor volta a
+                  fechar sozinho.
+                </li>
+              </ul>
               <h3>4.35.1</h3>
               <ul>
                 <li>
@@ -83,6 +389,11 @@ const Changelog: React.FC = () => {
                   podem ser responsáveis pelos cards e ganham a badge{' '}
                   <strong>Dev</strong> no fórum e no perfil. Admins concedem e
                   removem o papel pela lista de usuários do painel.
+                </li>
+                <li>
+                  <strong>Novo:</strong> O construtor de ameaças ganhou o tipo
+                  de ação <strong>Passiva</strong> para habilidades sem
+                  ativação, que aparece sem parênteses na ficha, como no livro.
                 </li>
               </ul>
               <h3>4.35</h3>
@@ -219,6 +530,17 @@ const Changelog: React.FC = () => {
                   &quot;Criar Magia&quot;, para magias próprias.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Devotos{' '}
+                  <strong>Fundamentalistas</strong> de Deuses de Arton. Um
+                  interruptor no formulário de criação e no cabeçalho da ficha
+                  marca o devoto como fundamentalista: ele ganha um poder
+                  concedido adicional, a ficha mostra o dogma mais rígido do
+                  deus (indicando quando é herdado do sacerdote) e avisa nas
+                  armas que fogem da arma preferida da divindade. O dogma e a
+                  marca também saem no PDF. A ficha informa a regra, sem
+                  bloquear armas nem PM.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> A aba de <strong>Magias</strong> da
                   ficha agora mostra se cada magia é{' '}
                   <strong>arcana, divina ou universal</strong>, e os filtros
@@ -263,6 +585,16 @@ const Changelog: React.FC = () => {
                   considerar a quantidade de votos, então uma build com um único
                   5 não fica mais à frente de outra bem avaliada por muita
                   gente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> <strong>Parceiros</strong>{' '}
+                  concedidos por poderes entram sozinhos na ficha: o familiar do
+                  Arcanista, o Companheiro Animal, o autômato, as montarias e os
+                  animais comprados no mercado passam a aparecer no painel de
+                  Parceiros, inclusive em fichas antigas. O tipo do Companheiro
+                  Animal e do autômato é escolhido ao receber o poder, o
+                  companheiro sai no PDF junto dos outros parceiros e quem está
+                  montado desmonta ao assumir a Forma Selvagem.
                 </li>
                 <li>
                   <strong>Correção:</strong> <strong>Armaduras pesadas</strong>{' '}
@@ -395,6 +727,32 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> No gerador de ameaças, os cartões
                   de <strong>papel</strong> do passo Classificação não aparecem
                   mais cortados.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Treinador, Frade e as classes
+                  variantes de Heróis de Arton (Atleta, Ermitão, Alquimista,
+                  Burguês, Usurpador, Machado de Pedra, Seteiro e Vassalo)
+                  estavam sem a proficiência básica em armas simples e armaduras
+                  leves. Fichas já salvas são corrigidas ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poder escolhido mais de uma vez
+                  (Companheiro Animal, Mascote) deixava a segunda escolha sem
+                  opção; agora cada vez tem a sua.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Nas páginas extras do PDF, linhas
+                  longas passavam da margem; agora quebram pela largura da
+                  página.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No celular, os avisos da ficha
+                  (arma fora da proficiência, valor editado à mão) não abriam
+                  com um toque rápido.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No catálogo de poderes, a caixa de
+                  seleção ficava desalinhada do nome do poder.
                 </li>
               </ul>
 

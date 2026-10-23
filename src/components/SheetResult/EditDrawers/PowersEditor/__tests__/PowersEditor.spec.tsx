@@ -189,6 +189,24 @@ describe('PowersEditorModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('erro ao salvar mantém o editor aberto e mostra a mensagem', async () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    const { onSave, onClose } = renderEditor();
+    onSave.mockImplementation(() => {
+      throw new Error('falha simulada');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(
+      await screen.findByText(/Não foi possível salvar os poderes/)
+    ).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
   it('cancelar fecha sem salvar', () => {
     const { onSave, onClose } = renderEditor();
 

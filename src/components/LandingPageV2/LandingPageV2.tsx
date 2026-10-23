@@ -16,6 +16,7 @@ import BlogHighlights from './BlogHighlights';
 import ForumActivity from './ForumActivity';
 import ToolsSidebar from './ToolsSidebar';
 import useCommunityHighlights from './hooks/useCommunityHighlights';
+import HomeHighlightsStrip from '../../premium/components/HomeHighlights/HomeHighlightsStrip';
 
 const LandingPageV2: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -118,6 +119,10 @@ const LandingPageV2: React.FC = () => {
                   2-column (recent sheets + tables). */}
               <Box className='landing-section'>
                 <ContinueAndTablesSection isAuthenticated={isAuthenticated} />
+                {/* Destaques curados pelo admin. Fica dentro desta seção (e não
+                    como filho do Stack) para não ocupar espaço quando vazio
+                    nem deslocar os delays de entrada das seções seguintes. */}
+                <HomeHighlightsStrip />
               </Box>
 
               {/* Inner grid: desktop = Forum left + Blog right;

@@ -91,6 +91,9 @@ import {
 } from './powers/customPowerBonuses';
 import { stampUsedSupplements } from './contentSources';
 import {
+  addCriticalAdjustment,
+  applyCriticalAdjustments,
+  emptyCriticalAdjustments,
   isModeScopedForWeapon,
   weaponMatchesScope,
   WeaponBonusScope,
@@ -123,6 +126,7 @@ import {
   getVirtudePaladinescaPMBonus,
 } from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
+import { syncFeiticeiroHerancas } from './powers/feiticeiroHeranca';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
 
 /**
@@ -293,8 +297,19 @@ export const calculateBonusValue = (
     capByLevel?: boolean;
     capByAttribute?: string;
   },
-  source?: SheetChangeSource
+  source?: SheetChangeSource,
+  options?: { baseAttributes?: boolean }
 ): number => {
+  // Modifiers que leem atributo ("soma sua Inteligência em Ladinagem") usam o
+  // valor EFETIVO, para que um bônus temporário (Mente Divina, Forma Selvagem,
+  // caixa manual) chegue também à parcela somada pelo poder — ver
+  // `functions/effectiveAttributes.ts`. `baseAttributes` é para as exceções
+  // documentadas lá: PV/PM, a própria redução do Step 7.46 e as exportações.
+  const attrMod = (attr: Atributo): number =>
+    options?.baseAttributes
+      ? sheet.atributos[attr]?.value ?? 0
+      : getEffectiveAttributeModifier(sheet, attr);
+
   if (bonus.type === 'Level') {
     return sheet.nivel;
   }
@@ -302,8 +317,7 @@ export const calculateBonusValue = (
     return Math.floor(sheet.nivel / 2);
   }
   if (bonus.type === 'Attribute') {
-    const attr = bonus.attribute as Atributo;
-    return sheet.atributos[attr]?.value || 0;
+    return attrMod(bonus.attribute as Atributo);
   }
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
@@ -317,9 +331,7 @@ export const calculateBonusValue = (
         }
       }
 
-      return sheet.atributos[
-        attr || sheet.overrideKeyAttribute || Atributo.CARISMA
-      ].value;
+      return attrMod(attr || sheet.overrideKeyAttribute || Atributo.CARISMA);
     }
   }
   if (bonus.type === 'LevelCalc' && bonus.formula) {
@@ -357,7 +369,7 @@ export const calculateBonusValue = (
   }
   if (bonus.type === 'CappedAttribute') {
     const attr = bonus.attribute as Atributo;
-    const attrValue = sheet.atributos[attr]?.value ?? 0;
+    const attrValue = attrMod(attr);
     const cap =
       bonus.capBy === 'classLevel'
         ? resolveClassLevel(sheet, source)
@@ -384,13 +396,10 @@ export const calculateBonusValue = (
     else if (bonus.base.kind === 'level') v = sheet.nivel;
     else if (bonus.base.kind === 'spellCircle') v = maxSpellCircleOf(sheet);
     else if (bonus.base.kind === 'attribute')
-      v = sheet.atributos[bonus.base.attribute as Atributo]?.value ?? 0;
+      v = attrMod(bonus.base.attribute as Atributo);
     if (bonus.capByLevel) v = Math.min(v, sheet.nivel);
     if (bonus.capByAttribute)
-      v = Math.min(
-        v,
-        sheet.atributos[bonus.capByAttribute as Atributo]?.value ?? 0
-      );
+      v = Math.min(v, attrMod(bonus.capByAttribute as Atributo));
     return Math.max(0, v);
   }
   if (bonus.type === 'Fixed') {
@@ -538,10 +547,7 @@ const applyWeaponBonuses = (
       let totalAttackBonus = 0;
       let totalDamageBonus = 0;
       let totalDamageSteps = 0;
-      let totalThreatMarginBonus = 0;
-      let setThreatMargin: number | undefined;
-      let totalCriticalMultiplierBonus = 0;
-      let setCritMultiplier: number | undefined;
+      const criticalAdjustments = emptyCriticalAdjustments();
 
       updatedSheet.sheetBonuses.forEach((bonus) => {
         // Bônus com escopo POR MODO (arremesso, ou melee/ranged em arma híbrida
@@ -551,7 +557,8 @@ const applyWeaponBonuses = (
         // disparo) têm um único modo relevante e são bakeadas normalmente.
         if (
           (bonus.target.type === 'WeaponDamage' ||
-            bonus.target.type === 'WeaponAttack') &&
+            bonus.target.type === 'WeaponAttack' ||
+            bonus.target.type === 'WeaponDamageStep') &&
           isModeScopedForWeapon(weapon, bonus.target)
         ) {
           return;
@@ -577,26 +584,12 @@ const applyWeaponBonuses = (
             totalDamageBonus += bonusValue;
           } else if (bonus.target.type === 'WeaponDamageStep') {
             totalDamageSteps += bonusValue;
-          } else if (bonus.target.type === 'WeaponThreatMargin') {
-            if (bonus.target.mode === 'set') {
-              // Define a margem; com vários, prevalece a mais ampla (menor nº).
-              setThreatMargin =
-                setThreatMargin === undefined
-                  ? bonusValue
-                  : Math.min(setThreatMargin, bonusValue);
-            } else {
-              totalThreatMarginBonus += bonusValue;
-            }
-          } else if (bonus.target.type === 'WeaponCriticalMultiplier') {
-            if (bonus.target.mode === 'set') {
-              // Define o multiplicador; com vários, prevalece o maior.
-              setCritMultiplier =
-                setCritMultiplier === undefined
-                  ? bonusValue
-                  : Math.max(setCritMultiplier, bonusValue);
-            } else {
-              totalCriticalMultiplierBonus += bonusValue;
-            }
+          } else {
+            addCriticalAdjustment(
+              criticalAdjustments,
+              bonus.target,
+              bonusValue
+            );
           }
         }
       });
@@ -625,66 +618,11 @@ const applyWeaponBonuses = (
           : `+${totalDamageBonus}`;
       }
 
-      const hasMarginChange =
-        totalThreatMarginBonus > 0 || setThreatMargin !== undefined;
-      const hasMultChange =
-        totalCriticalMultiplierBonus > 0 || setCritMultiplier !== undefined;
-
-      if ((hasMarginChange || hasMultChange) && weaponCopy.critico) {
-        // Critical string may be "19", "x2" or "19/x2". Threat margin modifies
-        // the numeric part before "/" (or the whole string if no "/"); the
-        // multiplier modifies the "xN" portion.
-        const parts = weaponCopy.critico.split('/');
-        let marginPart: string | null = null;
-        let multPart: string | null = null;
-
-        if (parts.length === 1) {
-          const [only] = parts;
-          if (only.includes('x')) {
-            multPart = only;
-          } else {
-            marginPart = only;
-          }
-        } else {
-          [marginPart, multPart] = parts;
-        }
-
-        if (hasMarginChange) {
-          // Margem base (20 implícito quando a arma só tem multiplicador, ex.:
-          // "x2"). `set` define a margem; o aumento (estreitamento) é aplicado
-          // por cima.
-          let currentRange =
-            marginPart !== null ? parseInt(marginPart, 10) : 20;
-          if (Number.isNaN(currentRange)) currentRange = 20;
-          if (setThreatMargin !== undefined) currentRange = setThreatMargin;
-          marginPart = `${Math.max(
-            1,
-            Math.min(20, currentRange - totalThreatMarginBonus)
-          )}`;
-        }
-
-        if (hasMultChange) {
-          // Multiplicador base (x2 implícito quando a arma só tem margem, ex.:
-          // "19"). `set` define o multiplicador; o aumento soma por cima.
-          let currentMult =
-            multPart !== null
-              ? parseInt(multPart.match(/x(\d+)/)?.[1] || '2', 10)
-              : 2;
-          if (Number.isNaN(currentMult)) currentMult = 2;
-          if (setCritMultiplier !== undefined) currentMult = setCritMultiplier;
-          multPart = `x${Math.max(
-            2,
-            currentMult + totalCriticalMultiplierBonus
-          )}`;
-        }
-
-        if (marginPart !== null && multPart !== null) {
-          weaponCopy.critico = `${marginPart}/${multPart}`;
-        } else if (marginPart !== null) {
-          weaponCopy.critico = marginPart;
-        } else if (multPart !== null) {
-          weaponCopy.critico = multPart;
-        }
+      if (weaponCopy.critico) {
+        weaponCopy.critico = applyCriticalAdjustments(
+          weaponCopy.critico,
+          criticalAdjustments
+        );
       }
 
       return weaponCopy;
@@ -1668,7 +1606,11 @@ function applyTemporaryAttributeModifiers(
     if (!isBonusActive(updated, bonus)) return;
 
     const { attribute } = bonus.target;
-    const value = calculateBonusValue(updated, bonus.modifier, bonus.source);
+    // BASE: `atributosTemporarios` aqui ainda é o da passada anterior — ler o
+    // efetivo realimentaria o delta a cada recálculo.
+    const value = calculateBonusValue(updated, bonus.modifier, bonus.source, {
+      baseAttributes: true,
+    });
     if (!Number.isFinite(value) || value === 0) return;
     totals[attribute] = (totals[attribute] ?? 0) + value;
   });
@@ -1727,8 +1669,15 @@ export function reverseHistoryEntries(
           if (relevantHistory) {
             const attributeChange = relevantHistory.changes.find(
               (c) => c.type === 'Attribute' && c.attribute === change.attribute
-            ) as { type: 'Attribute'; attribute: Atributo; value: number };
-            if (attributeChange) {
+            ) as {
+              type: 'Attribute';
+              attribute: Atributo;
+              value: number;
+              delta?: number;
+            };
+            if (attributeChange?.delta !== undefined) {
+              sheet.atributos[change.attribute].value -= attributeChange.delta;
+            } else if (attributeChange) {
               const originalValue = sheet.atributos[change.attribute].value;
               const modificationValue = attributeChange.value - originalValue;
               sheet.atributos[change.attribute].value -= modificationValue;
@@ -2003,6 +1952,11 @@ export function recalculateSheet(
   // the new rules require an explicit `offHandItemId`. Marks the sheet as
   // migrated so later "soltar"/"tirar" actions are preserved across recalcs.
   updatedSheet = migrateLegacyEquipState(updatedSheet);
+
+  // Heranças do Feiticeiro: o efeito de "Herança Aprimorada/Superior" depende
+  // da linhagem, então é carimbado na cópia do poder antes de os poderes de
+  // classe serem aplicados (cobre poder recém-adicionado pelo editor).
+  syncFeiticeiroHerancas(updatedSheet);
 
   // Migração: o Companheiro Animal do Druida virou parceiro de poder
   // (`sheet.partners`). Antes dos poderes, para o tipo de cada companheiro já
@@ -2435,10 +2389,16 @@ export function recalculateSheet(
       bonus.target.type !== 'HPAttributeReplacement' &&
       bonus.target.type !== 'DamageReduction'
     ) {
+      // PV/PM leem o atributo BASE: bônus temporário não retroage neles (a
+      // própria Mente Divina diz "sem PV/PM adicionais").
       const bonusValue = calculateBonusValue(
         updatedSheet,
         bonus.modifier,
-        bonus.source
+        bonus.source,
+        {
+          baseAttributes:
+            bonus.target.type === 'PV' || bonus.target.type === 'PM',
+        }
       );
 
       if (
