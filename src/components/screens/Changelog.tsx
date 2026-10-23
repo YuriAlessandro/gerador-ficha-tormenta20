@@ -342,6 +342,14 @@ const Changelog: React.FC = () => {
                   de ligada.
                 </li>
                 <li>
+                  <strong>Correção:</strong> A <strong>Linhagem Rubra</strong>{' '}
+                  do Feiticeiro agora deixa escolher qual atributo perde pontos
+                  pelos poderes da Tormenta no lugar de Carisma, na criação, ao
+                  multiclassar e no editor da ficha (seção Atributos). Antes a
+                  ficha sempre escolhia sozinha o maior atributo. Sem escolha,
+                  continua assim.
+                </li>
+                <li>
                   <strong>Correção:</strong> As correções acima de Pele de Aço,
                   Defesa Armada, Feiticeiro e Duende alcançam fichas já salvas
                   ao abrir. Se você tinha compensado à mão (um efeito de Defesa,
