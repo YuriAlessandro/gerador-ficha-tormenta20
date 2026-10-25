@@ -18,22 +18,23 @@ Este guia ajudará você a entender como o projeto está organizado e como contr
 
 ### Requisitos
 
-- [Node.js](https://nodejs.org/en/) versão 16 ou superior
-- npm ou yarn
+- [Node.js](https://nodejs.org/en/) **22** e **npm 11**, como no CI
+- Use npm com o `package-lock.json` versionado; versões anteriores ao npm 11
+  podem apresentar incompatibilidades no `npm ci`
 - Git
 
 ### Configuração do Ambiente
 
 ```bash
 # 1. Fork o repositório no GitHub
-# 2. Clone seu fork
+# 2. Clone seu fork sem inicializar os submódulos privados (sem --recurse-submodules)
 git clone https://github.com/SEU_USERNAME/gerador-ficha-tormenta20.git
 
 # 3. Entre no diretório
 cd gerador-ficha-tormenta20
 
-# 4. Instale as dependências
-npm install
+# 4. Instale as dependências preservando o lockfile, como no workflow de build
+npm ci --legacy-peer-deps
 
 # 5. Inicie o servidor de desenvolvimento
 npm start
@@ -44,23 +45,30 @@ npm start
 ### Rodando sem o módulo premium
 
 Parte do projeto vive em submódulos privados (`src/premium` e `backend`). Você
-**não precisa de acesso a eles** para contribuir: ao clonar sem os submódulos, o
-Vite redireciona automaticamente todo import de `src/premium` para
-`src/premium-stub/`, um substituto público com implementações inertes.
+**não precisa de acesso a eles** para contribuir com o frontend público.
 
-Nesse modo funcionam o gerador de fichas (aleatório e passo a passo), o gerador
-de ameaças, a exportação em PDF, as tabelas de dados e a enciclopédia — ou seja,
-praticamente todo o núcleo aberto do projeto. As funcionalidades pagas (nuvem,
-mesas virtuais, condições, efeitos ativos, homebrews) não aparecem, já que sem o
-backend não há como verificar assinatura.
+O plugin em `scripts/premiumStubPlugin.ts`, compartilhado por `vite.config.ts`
+e `vitest.config.ts`, detecta a ausência de `src/premium/index.ts` e redireciona
+os imports de `src/premium` para `src/premium-stub/`. Isso inclui imports pelo
+alias `@/premium` e por caminhos relativos. O stub contém implementações
+inertes: componentes podem não renderizar, funções podem retornar valores
+neutros e serviços podem rejeitar chamadas. Ele permite executar o frontend
+público, mas não implementa os recursos privados nem substitui o backend.
 
-Duas limitações conhecidas:
+As verificações têm escopos diferentes nesse modo:
 
-- **O type-check não funciona** sem o submódulo — o `vite-plugin-checker` fica
-  desligado nesse modo. O app roda, mas o editor vai acusar imports não
-  resolvidos em arquivos que tocam o premium.
-- **Os testes que importam o premium falham** (`src/functions/__tests__/homebrew*.spec.ts`,
-  `complications.spec.ts`, `activeEffectsBugfixes.spec.ts`). Os demais passam.
+- **Testes públicos:** `npm test` usa o stub e exclui as suítes listadas em
+  `PREMIUM_DEPENDENT_TESTS`, em `vitest.config.ts`, quando o premium não está
+  disponível. A exclusão é condicional e limitada à lista; outras suítes ainda
+  podem depender de lógica ausente no stub e falhar. Registre os resultados e
+  o modo utilizado, sem presumir que todos os testes restantes passam.
+- **Type-check:** `npx tsc --noEmit` não aplica o redirecionamento do plugin e
+  pode acusar imports privados não resolvidos. O `vite-plugin-checker` fica
+  desativado sem o premium; iniciar o app ou gerar o build não comprova que a
+  verificação de tipos passou.
+- **Produto completo:** os testes públicos e o build com stub não validam as
+  funcionalidades privadas nem as integrações com o backend. Essas verificações
+  exigem os módulos e serviços correspondentes em um ambiente autorizado.
 
 Se você **tem** acesso ao submódulo e quer conferir se o build público continua
 de pé depois de uma mudança:
@@ -105,7 +113,7 @@ src/
 
 - **React 17** + **TypeScript** - Framework e tipagem
 - **Vite** - Build tool moderna e rápida
-- **Material-UI v5** - Componentes de interface
+- **Material-UI v9** - Componentes de interface
 - **Tailwind CSS** - Estilização utilitária
 - **Redux Toolkit** - Gerenciamento de estado
 - **pdf-lib** - Geração de PDFs
@@ -738,9 +746,13 @@ npm run testWatch     # Testes em modo watch
 ### Executando Testes
 
 ```bash
-npm test           # Executa todos os testes
+npm test           # Executa as suítes habilitadas pela configuração do Vitest
 npm run testWatch  # Modo watch para desenvolvimento
 ```
+
+Sem o premium, aplicam-se as exclusões e limitações descritas em
+[Rodando sem o módulo premium](#rodando-sem-o-módulo-premium). Informe no PR
+quais verificações passaram, falharam ou não foram executadas nesse modo.
 
 ### Tipos de Testes
 
