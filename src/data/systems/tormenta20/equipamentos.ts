@@ -294,7 +294,6 @@ export const Armas = catalog({
     alcance: 'Médio',
     group: 'Arma',
     preco: 35,
-    twoHanded: true,
     ammoType: 'Virotes',
   },
   FUNDA: {
