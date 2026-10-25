@@ -296,8 +296,10 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Seu corpo se transforma em uma massa de insetos rubros. Você pode atravessar qualquer espaço por onde seja possível passar uma moeda (mas considera esses espaços como terreno difícil) e recebe +1 em testes contra manobras de combate e de resistência contra efeitos que tenham você como alvo (mas não efeitos de área). Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [
-      [{ type: RequirementType.PODER, name: 'Anatomia Insana' }],
-      [{ type: RequirementType.PODER_TORMENTA, value: 3 }],
+      [
+        { type: RequirementType.PODER, name: 'Anatomia Insana' },
+        { type: RequirementType.PODER_TORMENTA, value: 3 },
+      ],
     ],
   },
   MAOS_MEMBRANOSAS: {
