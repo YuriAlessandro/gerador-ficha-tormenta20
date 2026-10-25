@@ -176,11 +176,26 @@ const CLERIGO: ClassDescription = {
       name: 'Mestre Celebrante',
       text: 'O número de pessoas que você afeta com uma missa aumenta em dez vezes e os benefícios que elas recebem dobram.',
       requirements: [
-        [{ type: RequirementType.PODER, name: 'Missa: Bênção da Vida' }],
-        [{ type: RequirementType.PODER, name: 'Missa: Chamado às Armas' }],
-        [{ type: RequirementType.PODER, name: 'Missa: Elevação do Espírito' }],
-        [{ type: RequirementType.PODER, name: 'Missa: Escudo Divino' }],
-        [{ type: RequirementType.PODER, name: 'Missa: Superar as Limitações' }],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Bênção da Vida' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Chamado às Armas' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Elevação do Espírito' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Escudo Divino' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Superar as Limitações' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
       ],
     },
     {

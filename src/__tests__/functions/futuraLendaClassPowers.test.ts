@@ -42,18 +42,50 @@ describe('getFuturaLendaClassPowers', () => {
     expect(list).toContain('Ataque Reflexo'); // Destreza 1 (ficha tem +1)
   });
 
+  // Nenhum poder de classe do livro combina NIVEL 2 com pré-requisito de poder
+  // (o único, Mestre em Arma, é de 12º nível — Tormenta20, p. 66).
+  const classeComPoderNivel2 = (): ClassDescription => {
+    const classe = _.cloneDeep(GUERREIRO);
+    classe.powers = [
+      ...classe.powers,
+      {
+        name: 'Poder de Nível 2',
+        text: 'teste',
+        requirements: [
+          [
+            { type: RequirementType.PODER, name: 'Especialização em Arma' },
+            { type: RequirementType.NIVEL, value: 2 },
+          ],
+        ],
+      },
+    ];
+    return classe;
+  };
+
   it('inclui poder de NÍVEL 2 quando os demais pré-requisitos são atendidos', () => {
-    const sheet = buildSheet(GUERREIRO);
+    const sheet = buildSheet(classeComPoderNivel2());
     sheet.classPowers = [guerreiroPower('Especialização em Arma')];
 
-    // Mestre em Arma: [PODER 'Especialização em Arma', NIVEL 2]
-    expect(names(getFuturaLendaClassPowers(sheet))).toContain('Mestre em Arma');
+    expect(names(getFuturaLendaClassPowers(sheet))).toContain(
+      'Poder de Nível 2'
+    );
   });
 
   it('exclui poder de NÍVEL 2 quando falta o pré-requisito de poder', () => {
-    const list = names(getFuturaLendaClassPowers(buildSheet(GUERREIRO)));
+    const list = names(
+      getFuturaLendaClassPowers(buildSheet(classeComPoderNivel2()))
+    );
 
-    expect(list).not.toContain('Mestre em Arma');
+    expect(list).not.toContain('Poder de Nível 2');
+  });
+
+  it('exclui Mestre em Arma (12º nível) mesmo com Especialização em Arma', () => {
+    const sheet = buildSheet(GUERREIRO);
+    sheet.classPowers = [guerreiroPower('Especialização em Arma')];
+
+    expect(names(getFuturaLendaClassPowers(sheet))).not.toContain(
+      'Mestre em Arma'
+    );
   });
 
   it('exclui poderes com requisito de nível acima do 2º', () => {

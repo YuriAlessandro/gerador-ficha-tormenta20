@@ -182,7 +182,7 @@ const GUERREIRO: ClassDescription = {
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Especialização em Arma' },
-          { type: RequirementType.NIVEL, value: 2 },
+          { type: RequirementType.NIVEL, value: 12 },
         ],
       ],
       sheetActions: [
