@@ -55,6 +55,7 @@ export const JoinTableByLinkPage = NullComponent;
 export const MapaDeArtonPage = NullComponent;
 export const MyBestiaryPage = NullComponent;
 export const MyBuildsPage = NullComponent;
+export const MyGMCompendiumPage = NullComponent;
 export const MyHomebrewsPage = NullComponent;
 export const OriginHomebrewEditorPage = NullComponent;
 export const PartnersProvider = PassthroughProvider;

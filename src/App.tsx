@@ -70,6 +70,7 @@ import {
   PlayerScreenPage,
   JoinTableByLinkPage,
   SheetLayoutSharePage,
+  MyGMCompendiumPage,
   PartnersProvider,
   HomebrewProvider,
   HomebrewsListPage,
@@ -304,6 +305,7 @@ function ThemedApp(): JSX.Element {
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
+  const gmCompendiumEnabled = useFeatureAccess('gmCompendium').isEnabled;
 
   // Fetch feature flags on mount (public endpoint, no auth required)
   React.useEffect(() => {
@@ -618,6 +620,18 @@ function ThemedApp(): JSX.Element {
                                           >
                                             <HomebrewEditEntryPage />
                                           </ProtectedRoute>
+                                        </Route>
+                                        <Route path='/compendio'>
+                                          {gmCompendiumEnabled ? (
+                                            <ProtectedRoute
+                                              requireAuth
+                                              redirectTo='/'
+                                            >
+                                              <MyGMCompendiumPage />
+                                            </ProtectedRoute>
+                                          ) : (
+                                            <Redirect to='/' />
+                                          )}
                                         </Route>
                                         <Route path='/meus-homebrews'>
                                           <ProtectedRoute
