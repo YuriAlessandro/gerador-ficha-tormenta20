@@ -6507,7 +6507,13 @@ export default function generateRandomSheet(
   // bônus `UnarmedDamageStep` já filtrados por `isBonusActive` no passo 14.
   updateUnarmedRolls(charSheet);
 
-  return charSheet;
+  // Passo 17: Recalcular a ficha inteira, como o assistente já faz ao
+  // confirmar a criação (`handleWizardConfirm`). O `levelUp` acima é
+  // incremental e não reconstrói os derivados: somava o PM de bônus `LevelCalc`
+  // a cada nível e de novo no passo 14, deixava carga/Defesa/deslocamento com o
+  // atributo do nível 1 e não marcava a perícia aprendida no level-up como
+  // treinada. Sem isto, a ficha exibida mudava sozinha na primeira edição.
+  return recalculateSheet(charSheet);
 }
 
 export function generateEmptySheet(
