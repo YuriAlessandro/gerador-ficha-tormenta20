@@ -2663,11 +2663,12 @@ export const applyPower = (
             };
           }
 
-          sheet.sheetActionHistory.push({
-            source: sheetAction.source,
-            powerName: powerOrAbility.name,
-            changes: firstChanges,
-          });
+          // Todos os pontos da ação vão para UMA entrada de histórico. Com
+          // `allowRepeats` ("3 pontos para distribuir como quiser"), dois pontos
+          // no mesmo atributo gerariam entradas idênticas, e o
+          // `deduplicateHistory` do recálculo descartava uma delas: o atributo
+          // ficava certo, mas reverter o nível devolvia um ponto a menos.
+          const actionChanges = [...firstChanges];
 
           // Pontos restantes da mesma ação (ex.: "3 pontos para distribuir").
           for (let pickIndex = 1; pickIndex < picks; pickIndex += 1) {
@@ -2687,12 +2688,14 @@ export const applyPower = (
                   ) ?? getRandomItemFromArray(remaining);
 
             chosenHere.push(next);
-            sheet.sheetActionHistory.push({
-              source: sheetAction.source,
-              powerName: powerOrAbility.name,
-              changes: increaseAttributeValue(next),
-            });
+            actionChanges.push(...increaseAttributeValue(next));
           }
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: actionChanges,
+          });
         } else {
           // Skip this attribute increase if no valid target found
           // eslint-disable-next-line no-console
