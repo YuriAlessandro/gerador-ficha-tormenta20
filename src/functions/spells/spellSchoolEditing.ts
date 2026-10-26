@@ -251,6 +251,25 @@ export function buildAppendSpellSchoolUpdates(
 }
 
 /**
+ * Inverso de `buildAppendSpellSchoolUpdates`: tira a escola acrescentada por um
+ * poder removido (Xamã Místico). As magias já aprendidas dela ficam, como na
+ * edição manual de escolas.
+ */
+export function buildRemoveAppendedSpellSchoolUpdates(
+  sheet: CharacterSheet,
+  family: string,
+  school: SpellSchool
+): Partial<CharacterSheet> {
+  const target = findSchoolTargetByFamily(sheet, family);
+  if (!target || !target.schools.includes(school)) return {};
+  const updates = buildSpellSchoolUpdates(sheet, {
+    [target.className]: target.schools.filter((s) => s !== school),
+  });
+  delete updates.steps;
+  return updates;
+}
+
+/**
  * Escolas que um poder ainda não aplicado vai acrescentar à classe `classe`
  * (escolha de `appendChosenSpellSchoolTo` já feita no assistente). O passo de
  * magias do level-up vem depois do de efeitos do poder, então as magias da
