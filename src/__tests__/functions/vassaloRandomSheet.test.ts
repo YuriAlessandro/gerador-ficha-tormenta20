@@ -92,14 +92,17 @@ describe('ficha aleatória de Vassalo', () => {
 
   it('no 20º nível os pontos de atributo do 17 e do 20 foram aplicados', () => {
     const sheet = gerar(20);
-    const aumentos = sheet.sheetActionHistory.filter((entry) =>
-      entry.changes.some(
+    // Conta pontos (mudanças), não entradas: todos os pontos de uma mesma
+    // ação ficam numa entrada só do histórico.
+    const aumentos = sheet.sheetActionHistory.flatMap((entry) =>
+      entry.changes.filter(
         (change) => change.type === 'AttributeIncreasedByAumentoDeAtributo'
       )
     );
 
-    // 3 pontos do Rei Mercenário (17) + 2 do Imperador (20). Pode haver mais,
-    // vindos do poder Aumento de Atributo escolhido nas concessões.
+    // 3 pontos do Rei Mercenário (17) + 2 do Imperador (20) (Heróis de Arton,
+    // p. 43). Pode haver mais, vindos do poder Aumento de Atributo escolhido
+    // nas concessões.
     expect(aumentos.length).toBeGreaterThanOrEqual(5);
   });
 
