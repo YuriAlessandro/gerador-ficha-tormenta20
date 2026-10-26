@@ -418,6 +418,10 @@ export type SheetActionReceipt =
       optionKey: string;
       chosenName: string;
       formattedText: string;
+      // Família da classe que ganhou a escola escolhida (Xamã Místico →
+      // 'Druida'). Só presente quando a escola foi de fato acrescentada, para
+      // que remover o poder a tire de novo. Ausente em fichas antigas.
+      appendedSpellSchoolTo?: string;
     }
   | {
       type: 'SkillTrainedOrBonused';

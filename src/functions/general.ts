@@ -3554,18 +3554,18 @@ export const applyPower = (
 
         // Escola adicional (Xamã Místico): acrescenta às escolas da classe.
         // Idempotente — o replay com a escolha persistida não duplica.
+        const appendedSchoolNames = new Set<string>();
         if (appendChosenSpellSchoolTo) {
           chosenNames.forEach((name) => {
             const school = spellSchoolFromLabel(name);
             if (!school) return;
-            Object.assign(
+            const updates = buildAppendSpellSchoolUpdates(
               sheet,
-              buildAppendSpellSchoolUpdates(
-                sheet,
-                appendChosenSpellSchoolTo,
-                school
-              )
+              appendChosenSpellSchoolTo,
+              school
             );
+            if (Object.keys(updates).length > 0) appendedSchoolNames.add(name);
+            Object.assign(sheet, updates);
           });
         }
 
@@ -3598,6 +3598,9 @@ export const applyPower = (
                 optionKey,
                 chosenName: chosen.name,
                 formattedText: `${chosen.name}. ${chosen.text}`,
+                ...(appendedSchoolNames.has(chosen.name)
+                  ? { appendedSpellSchoolTo: appendChosenSpellSchoolTo }
+                  : {}),
               },
             ],
           });
