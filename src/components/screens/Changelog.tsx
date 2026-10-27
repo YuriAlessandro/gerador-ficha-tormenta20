@@ -77,9 +77,11 @@ const Changelog: React.FC = () => {
               <h3>4.37</h3>
 
               <Typography variant='body1' sx={{ mt: 2 }}>
-                O destaque desta versão, o <strong>Compêndio do Mestre</strong>,
-                veio da <strong>votação dos apoiadores</strong>. Obrigado a quem
-                votou e a quem sustenta o projeto! 💜
+                Os destaques desta versão, o{' '}
+                <strong>Compêndio do Mestre</strong> e as{' '}
+                <strong>Lojas de itens</strong>, vieram da{' '}
+                <strong>votação dos apoiadores</strong>. Obrigado a quem votou e
+                a quem sustenta o projeto! 💜
               </Typography>
 
               <Alert
@@ -136,6 +138,55 @@ const Changelog: React.FC = () => {
                   outra mesa sua. O compêndio é gratuito até 30 entradas por
                   mesa, com limites maiores para apoiadores, e o tutorial guiado
                   da mesa ganhou um passo a passo dele.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🛒 Lojas de itens
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O mestre agora pode montar <strong>lojas</strong> na{' '}
+                  <strong>Mesa Virtual</strong> e abrir cada uma quando o grupo
+                  chegar lá. Os jogadores compram com <strong>um clique</strong>
+                  : o valor sai do dinheiro da ficha e o item vai direto para a
+                  mochila.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Os itens vêm da lista oficial, com preço e estatísticas do
+                  livro, ou são criados pelo mestre, e tudo pode ser alterado.
+                  Itens <strong>superiores</strong> e <strong>mágicos</strong>{' '}
+                  têm o preço calculado pelas regras do livro. Cada item pode
+                  ter estoque limitado, e dá para dar <strong>descontos</strong>{' '}
+                  em um item, numa categoria inteira ou na loja toda, além de um
+                  ajuste por jogador para a regra de <strong>Barganha</strong>.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  O mestre vê o histórico de compras de cada loja, recebe um
+                  aviso a cada compra e pode preparar tudo antes da sessão pelo
+                  botão <strong>Lojas</strong> na página da mesa. Cada mesa pode
+                  ter 2 lojas de graça, com mais lojas para apoiadores, e o
+                  tutorial guiado da mesa ganhou um passo a passo para o mestre
+                  e para os jogadores.
                 </Typography>
               </Alert>
 
