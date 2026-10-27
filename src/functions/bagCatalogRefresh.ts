@@ -29,7 +29,7 @@ const allSupplements = (): SupplementId[] => [
   ...(dataRegistry.getRuntimeSupplementIds() as SupplementId[]),
 ];
 
-function buildCatalogIndex(): Map<string, Equipment> {
+export function buildCatalogIndex(): Map<string, Equipment> {
   const catalog = dataRegistry.getEquipmentBySupplements(allSupplements());
   const index = new Map<string, Equipment>();
 
@@ -61,7 +61,15 @@ function buildCatalogIndex(): Map<string, Equipment> {
 const hasEnhancementOwnership = (item: Equipment): boolean =>
   item.baseSheetBonuses !== undefined;
 
-function refreshItem(item: Equipment, catalogItem: Equipment): void {
+/**
+ * Carimba em `item` o dado estático de `catalogItem`. Exportado para os itens
+ * de origem escritos como texto (`convertOriginItemsToBagEquipments`): eles
+ * nascem por este mesmo carimbo, e a ficha nova sai igual à reaberta.
+ */
+export function stampCatalogData(
+  item: Equipment,
+  catalogItem: Equipment
+): void {
   /* eslint-disable no-param-reassign */
   if (!item.descricao && catalogItem.descricao) {
     item.descricao = catalogItem.descricao;
@@ -137,7 +145,7 @@ export function refreshBagItemsFromCatalog(sheet: CharacterSheet): void {
       if (!index) index = buildCatalogIndex();
 
       const catalogItem = index.get(item.nome);
-      if (catalogItem) refreshItem(item, catalogItem);
+      if (catalogItem) stampCatalogData(item, catalogItem);
     });
   });
 }
