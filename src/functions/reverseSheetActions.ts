@@ -57,12 +57,23 @@ function removeFirst<T>(
   if (index > -1) list.splice(index, 1);
 }
 
+const BASE_FIELDS = [
+  ['baseDano', 'dano'],
+  ['baseCritico', 'critico'],
+  ['baseAtkBonus', 'atkBonus'],
+  ['baseSpaces', 'spaces'],
+] as const;
+
 /**
  * Tira da mochila os itens concedidos pela ação (arma natural de Dentes
  * Afiados, Ataque Desarmado do Estilo Desarmado...). O `addEquipment` da
  * mochila funde itens de mesmo nome, então um item que outra entrada VIVA do
  * histórico também concedeu fica — e volta à versão dessa fonte (ex.: a
- * Mordida 1d6 do Gnoll, que a 1d4 de Dentes Afiados tinha sobrescrito).
+ * Mordida 1d6 do Gnoll, que a 1d4 de Dentes Afiados tinha sobrescrito), no
+ * mesmo lugar e com o mesmo id.
+ *
+ * Pilha com mais unidades do que a ação deu (itens alquímicos do Alquimista
+ * mais os comprados depois) perde só as unidades concedidas.
  */
 function reverseEquipmentAdded(
   sheet: CharacterSheet,
@@ -86,38 +97,45 @@ function reverseEquipmentAdded(
   const equipments = {
     ...sheet.bag.equipments,
   } as unknown as Record<string, Equipment[]>;
-  const restored: Record<string, Equipment[]> = {};
   let changed = false;
   Object.entries(equipment as Record<string, Equipment[] | undefined>).forEach(
     ([group, items]) => {
-      const current = equipments[group];
-      if (!Array.isArray(current) || !items) return;
-      const names: string[] = [];
+      if (!Array.isArray(equipments[group]) || !items) return;
+      let current = [...equipments[group]];
       items.forEach((item) => {
         if (!item?.nome) return;
+        const index = current.findIndex((eq) => eq?.nome === item.nome);
+        if (index < 0) return;
+        const inBag = current[index];
         const survivor = grantedElsewhere(group, item.nome);
-        const inBag = current.find((eq) => eq?.nome === item.nome);
-        if (!survivor) names.push(item.nome);
-        else if (inBag && !_.isMatch(inBag, survivor)) {
-          restored[group] = [...(restored[group] ?? []), survivor];
+
+        if (survivor) {
+          if (_.isMatch(inBag, survivor)) return;
+          // O recálculo refaz dano/crítico a partir dos `base*` capturados; sem
+          // rebasear, a versão removida voltaria.
+          const rebased: Equipment = { ...inBag, ...survivor, id: inBag.id };
+          BASE_FIELDS.forEach(([base, stat]) => {
+            if (rebased[base] !== undefined && survivor[stat] !== undefined) {
+              (rebased as unknown as Record<string, unknown>)[base] =
+                survivor[stat];
+            }
+          });
+          current[index] = rebased;
+        } else {
+          const left = (inBag.quantity ?? 1) - (item.quantity ?? 1);
+          if (left > 0) current[index] = { ...inBag, quantity: left };
+          else current = current.filter((_eq, i) => i !== index);
         }
-      });
-      const kept = current.filter((eq) => !names.includes(eq?.nome));
-      if (kept.length !== current.length) {
-        equipments[group] = kept;
         changed = true;
-      }
+      });
+      equipments[group] = current;
     }
   );
-  const hasRestored = Object.keys(restored).length > 0;
-  if (!changed && !hasRestored) return;
+  if (!changed) return;
 
   const next = equipments as unknown as BagEquipments;
   if (typeof sheet.bag.setEquipments === 'function') {
     sheet.bag.setEquipments(next);
-    if (hasRestored) {
-      sheet.bag.addEquipment(restored as unknown as Partial<BagEquipments>);
-    }
   } else {
     sheet.bag.equipments = next;
   }
@@ -159,12 +177,22 @@ export function reverseSheetActionChange(
       break;
 
     // Perícia que já era treinada recebeu só +2, que vive em `sheetBonuses`
-    // e o recálculo não reaplica sem a entrada do histórico.
-    case 'SkillTrainedOrBonused':
-      if (!change.alreadyTrained) {
+    // e o recálculo não reaplica sem a entrada do histórico. Perícia que outra
+    // entrada viva também treinou depois continua treinada.
+    case 'SkillTrainedOrBonused': {
+      if (change.alreadyTrained) break;
+      const trainedElsewhere = sheet.sheetActionHistory.some(
+        (entry) =>
+          !reverting.includes(entry) &&
+          entry.changes.some(
+            (c) => c.type === 'SkillsAdded' && c.skills.includes(change.skill)
+          )
+      );
+      if (!trainedElsewhere) {
         removeFirst(sheet.skills, (s) => s === change.skill);
       }
       break;
+    }
 
     case 'SenseAdded':
       removeFirst(sheet.sentidos, (s) => s === change.sense);
