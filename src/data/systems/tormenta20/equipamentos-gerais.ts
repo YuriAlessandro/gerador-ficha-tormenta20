@@ -1,5 +1,6 @@
 import Equipment from '../../../interfaces/Equipment';
 import Skill from '../../../interfaces/Skills';
+import { BonusCondition } from '../../../interfaces/CharacterSheet';
 
 // Função helper para processar preços (remove "T$ " e converte para número)
 function parsePrice(priceStr: string): number {
@@ -14,6 +15,16 @@ function parseSpaces(spacesStr: string | number): number {
   }
   return spacesStr || 0;
 }
+
+/**
+ * Símbolo sagrado: "Se você estiver vestindo (...) ou empunhando o símbolo
+ * sagrado de um deus do qual é devoto, recebe +1 em testes de resistência"
+ * (JdA, p. 157). O item não guarda de qual deus é, então basta ser devoto.
+ */
+const HOLY_SYMBOL_CONDITION: BonusCondition = {
+  combinator: 'AND',
+  clauses: [{ kind: 'isDevote' }],
+};
 
 // Equipamentos de Aventureiro (categoria: Item Geral)
 export const equipamentoAventureiro: Equipment[] = [
@@ -150,16 +161,19 @@ export const equipamentoAventureiro: Equipment[] = [
         source: { type: 'equipment', equipmentName: 'Símbolo sagrado' },
         target: { type: 'Skill', name: Skill.FORTITUDE },
         modifier: { type: 'Fixed', value: 1 },
+        condition: HOLY_SYMBOL_CONDITION,
       },
       {
         source: { type: 'equipment', equipmentName: 'Símbolo sagrado' },
         target: { type: 'Skill', name: Skill.REFLEXOS },
         modifier: { type: 'Fixed', value: 1 },
+        condition: HOLY_SYMBOL_CONDITION,
       },
       {
         source: { type: 'equipment', equipmentName: 'Símbolo sagrado' },
         target: { type: 'Skill', name: Skill.VONTADE },
         modifier: { type: 'Fixed', value: 1 },
+        condition: HOLY_SYMBOL_CONDITION,
       },
     ],
   },
