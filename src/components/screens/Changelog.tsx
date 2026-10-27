@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            23/10/2026 (v4.36).
+            27/10/2026 (v4.37).
           </p>
 
           <p>
@@ -74,6 +74,71 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.37</h3>
+
+              <Typography variant='body1' sx={{ mt: 2 }}>
+                O destaque desta versão, o <strong>Compêndio do Mestre</strong>,
+                veio da <strong>votação dos apoiadores</strong>. Obrigado a quem
+                votou e a quem sustenta o projeto! 💜
+              </Typography>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  📚 Compêndio do Mestre
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Cada <strong>Mesa Virtual</strong> agora tem o seu próprio
+                  compêndio: um lugar para o mestre guardar{' '}
+                  <strong>anotações</strong>, <strong>imagens</strong> e{' '}
+                  <strong>vídeos</strong> organizados em pastas. Antes, as notas
+                  viviam só dentro dos painéis do escudo e sumiam junto com
+                  eles; agora ficam salvas no compêndio da mesa até você
+                  apagá-las. Prepare tudo antes da sessão pelo botão{' '}
+                  <strong>Compêndio</strong> na página da mesa.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Na sessão, o Compêndio aparece no trilho do mestre (e numa
+                  seção própria no celular). De qualquer entrada você pode{' '}
+                  <strong>enviar aos jogadores</strong>, que recebem o conteúdo
+                  na tela na mesma hora,{' '}
+                  <strong>exibir na Tela do Jogador</strong> ou{' '}
+                  <strong>fixar no escudo</strong> num painel ligado à entrada:
+                  editou a nota, o painel atualiza; removeu o painel, a nota
+                  continua no compêndio. Textos podem ganhar a aparência de{' '}
+                  <strong>pergaminho</strong>, <strong>livro</strong> ou{' '}
+                  <strong>carta</strong>, e imagens e vídeos (YouTube ou link
+                  direto) entram por URL.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  As notas que você já tem no escudo podem ser trazidas de uma
+                  vez pelo botão <strong>Importar do escudo</strong>, ou uma a
+                  uma pela opção <strong>Salvar no compêndio</strong> do painel.
+                  Também dá para <strong>copiar</strong> entradas e pastas para
+                  outra mesa sua. O compêndio é gratuito até 30 entradas por
+                  mesa, com limites maiores para apoiadores, e o tutorial guiado
+                  da mesa ganhou um passo a passo dele.
+                </Typography>
+              </Alert>
+
               <h3>4.36</h3>
               <ul>
                 <li>
