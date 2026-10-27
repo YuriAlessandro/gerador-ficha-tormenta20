@@ -42,7 +42,6 @@ import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import StarIcon from '@mui/icons-material/Star';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
@@ -94,7 +93,6 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   const history = useHistory();
   const { isAuthenticated, user, isAdmin, isDev } = useAuth();
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
-  const gmCompendiumEnabled = useFeatureAccess('gmCompendium').isEnabled;
   const { requestLogout } = useAuthContext();
   // const { settings, updateSettings } = useDice3D();
 
@@ -334,16 +332,6 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                   </ListItemIcon>
                   <Typography variant='inherit'>Minhas Mesas</Typography>
                 </StyledMenuItem>
-                {gmCompendiumEnabled && (
-                  <StyledMenuItem onClick={() => navigateTo('/compendio')}>
-                    <ListItemIcon>
-                      <AutoStoriesIcon />
-                    </ListItemIcon>
-                    <Typography variant='inherit'>
-                      Compêndio do Mestre
-                    </Typography>
-                  </StyledMenuItem>
-                )}
                 <StyledMenuItem onClick={() => navigateTo('/my-builds')}>
                   <ListItemIcon>
                     <AccountTreeIcon />
