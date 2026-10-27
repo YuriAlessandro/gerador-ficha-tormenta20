@@ -346,3 +346,92 @@ describe('refreshBagItemsFromCatalog — empunhadura da Lança Montada', () => {
     expect(justa.descricao).toBe('Texto antigo.');
   });
 });
+
+/**
+ * A Besta Leve chegou a ser cadastrada como arma de duas mãos (regressão de
+ * 09/10; o livro a lista em "Ataque à Distância — Uma Mão", JdA p. 144). Corrigir
+ * o catálogo não alcançava a cópia já gravada na mochila: ela seguia
+ * `twoHanded: true` e ocupava as duas mãos para sempre. A empunhadura de um
+ * item de catálogo não é editável pelo jogador (só o item custom tem o campo no
+ * formulário, e item custom é pulado), então o refresh espelha o catálogo.
+ */
+describe('refreshBagItemsFromCatalog — empunhadura (twoHanded)', () => {
+  const catalogWeapon = (nome: string): Equipment => {
+    const weapon = dataRegistry
+      .getEquipmentBySupplements(Object.values(SupplementId))
+      .weapons.find((w) => w.nome === nome);
+    if (!weapon) throw new Error(`${nome} ausente do catálogo`);
+    return weapon;
+  };
+
+  const sheetWith = (weapon: Equipment): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag = new Bag({ Arma: [weapon] });
+    return sheet;
+  };
+
+  it('arma de uma mão gravada como duas mãos volta a uma mão', () => {
+    expect(catalogWeapon('Espada Longa').twoHanded).toBeFalsy();
+    const sheet = sheetWith({
+      nome: 'Espada Longa',
+      id: 'esp-1',
+      group: 'Arma',
+      twoHanded: true,
+    });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    expect(sheet.bag.equipments.Arma[0].twoHanded).toBeUndefined();
+  });
+
+  it('a Besta Leve gravada segue o que o catálogo diz hoje', () => {
+    const sheet = sheetWith({
+      nome: 'Besta Leve',
+      id: 'bes-1',
+      group: 'Arma',
+      twoHanded: !catalogWeapon('Besta Leve').twoHanded,
+    });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    expect(Boolean(sheet.bag.equipments.Arma[0].twoHanded)).toBe(
+      Boolean(catalogWeapon('Besta Leve').twoHanded)
+    );
+  });
+
+  it('arma de duas mãos gravada sem a flag passa a ocupar as duas mãos', () => {
+    const sheet = sheetWith({ nome: 'Montante', id: 'mon-1', group: 'Arma' });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    expect(sheet.bag.equipments.Arma[0].twoHanded).toBe(true);
+  });
+
+  it('vale também para a arma encantada', () => {
+    const sheet = sheetWith({
+      nome: 'Espada Longa',
+      id: 'esp-2',
+      group: 'Arma',
+      twoHanded: true,
+      baseSheetBonuses: [],
+    });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    expect(sheet.bag.equipments.Arma[0].twoHanded).toBeUndefined();
+  });
+
+  it('não toca na empunhadura do item custom', () => {
+    const sheet = sheetWith({
+      nome: 'Espada Longa',
+      id: 'esp-3',
+      group: 'Arma',
+      twoHanded: true,
+      isCustom: true,
+    });
+
+    refreshBagItemsFromCatalog(sheet);
+
+    expect(sheet.bag.equipments.Arma[0].twoHanded).toBe(true);
+  });
+});

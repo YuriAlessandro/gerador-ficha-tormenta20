@@ -116,6 +116,16 @@ export function stampCatalogData(
   ) {
     item.oneHandedWhenMounted = true;
   }
+  // Empunhadura (`twoHanded`): ESPELHA o catálogo, nos dois sentidos. Ao
+  // contrário das tags, não há edição do jogador a preservar — o editor de item
+  // não expõe o campo (só o formulário de item custom, e custom não chega
+  // aqui). Sem isto, uma correção de catálogo (Besta Leve de volta a uma mão,
+  // Arco Longo para duas) nunca alcançava a cópia já gravada na mochila.
+  if (catalogItem.twoHanded) {
+    item.twoHanded = true;
+  } else if (item.twoHanded !== undefined) {
+    delete item.twoHanded;
+  }
 
   if (hasEnhancementOwnership(item)) return;
 
