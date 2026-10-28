@@ -212,6 +212,29 @@ const Changelog: React.FC = () => {
                   </a>
                   )
                 </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Besta Leve</strong> volta
+                  a ser uma arma de <strong>uma mão</strong>, como no livro, e
+                  pode ser empunhada junto com um escudo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Mestre em Arma</strong> e{' '}
+                  <strong>Mestre Celebrante</strong> agora exigem o{' '}
+                  <strong>12º nível</strong> na classe. Antes, eles apareciam
+                  para guerreiros e clérigos de nível baixo, inclusive em fichas
+                  aleatórias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder da Tormenta{' '}
+                  <strong>Legião Aberrante</strong> passa a exigir Anatomia
+                  Insana <strong>e</strong> três outros poderes da Tormenta.
+                  Antes, bastava um dos dois.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Meio-Orc</strong> não
+                  pode mais colocar o +1 livre em <strong>Carisma</strong>, como
+                  diz o livro Ameaças de Arton.
+                </li>
               </ul>
 
               <h3>4.36</h3>
