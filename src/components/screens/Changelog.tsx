@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            27/10/2026 (v4.37).
+            28/10/2026 (v4.37).
           </p>
 
           <p>
@@ -189,6 +189,19 @@ const Changelog: React.FC = () => {
                   e para os jogadores.
                 </Typography>
               </Alert>
+
+              <ul>
+                <li>
+                  <strong>Novo:</strong> A extensão do Fichas de Nimb para o{' '}
+                  <strong>Roll20</strong> agora importa <strong>ameaças</strong>
+                  . Na janela de importação, a nova aba <strong>Ameaças</strong>{' '}
+                  lista as criaturas da sua conta, e importar uma põe a ficha do
+                  personagem no modo <strong>Ficha Ameaça</strong> com ND, PV,
+                  PM, Defesa, resistências, perícias, ataques, habilidades e
+                  magias. Antes de importar, você confere se cada ataque é corpo
+                  a corpo ou à distância e pode trocar.
+                </li>
+              </ul>
 
               <h3>4.36</h3>
               <ul>
