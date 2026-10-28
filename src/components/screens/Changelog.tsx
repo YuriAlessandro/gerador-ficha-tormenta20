@@ -201,6 +201,17 @@ const Changelog: React.FC = () => {
                   magias. Antes de importar, você confere se cada ataque é corpo
                   a corpo ou à distância e pode trocar.
                 </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>guia de contribuição</strong> do projeto no GitHub foi
+                  atualizado: versões do Node e do npm, instalação igual à do
+                  build oficial e o que dá (e o que não dá) para validar sem os
+                  módulos privados. (por{' '}
+                  <a href='https://github.com/ZaraTakion' target='blank'>
+                    ZaraTakion
+                  </a>
+                  )
+                </li>
               </ul>
 
               <h3>4.36</h3>
