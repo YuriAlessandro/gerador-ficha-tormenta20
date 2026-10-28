@@ -6,6 +6,7 @@ import { SupplementId } from '../types/supplement.types';
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { stampUsedSupplements } from './contentSources';
 import { getGrantedProficienciasFromHistory } from './proficiencies';
+import { migrateLegacyPowerNames } from './migrateSheet';
 
 /**
  * Marker field to indicate the sheet has been stripped for storage.
@@ -381,6 +382,9 @@ function refreshChosenPowersFromCatalog(
   sheet: CharacterSheet,
   supplementIds: SupplementId[]
 ) {
+  // O catálogo é buscado pelo nome: poder salvo com o nome antigo não acharia.
+  migrateLegacyPowerNames(sheet);
+
   const allGeneralPowers =
     dataRegistry.getAllPowersBySupplements(supplementIds);
   if (sheet.generalPowers && allGeneralPowers.length > 0) {
