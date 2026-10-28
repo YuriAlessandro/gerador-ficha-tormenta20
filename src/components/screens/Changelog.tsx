@@ -235,6 +235,31 @@ const Changelog: React.FC = () => {
                   pode mais colocar o +1 livre em <strong>Carisma</strong>, como
                   diz o livro Ameaças de Arton.
                 </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Ficha Aleatória</strong>{' '}
+                  agora já sai com os números certos. Antes, cerca de uma em
+                  cada três fichas mudava sozinha na primeira edição: PM de
+                  bônus por nível (como o Sangue Mágico) contado em dobro, carga
+                  e Defesa que não acompanhavam o aumento de Força e Destreza,
+                  Estilo de Arma e Escudo sem o +2 na Defesa, perícias
+                  aprendidas ao subir de nível aparecendo destreinadas, PV que
+                  não caía quando a Tormenta reduzia Constituição e deslocamento
+                  sem a Fúria da Savana.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os pontos de atributo &quot;para
+                  distribuir como quiser&quot; (como os do{' '}
+                  <strong>Rei Mercenário</strong>, do Vassalo) não perdem mais
+                  um ponto no histórico da ficha quando dois vão para o mesmo
+                  atributo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os <strong>Chifres</strong> do
+                  Ceratops e os <strong>Cascos</strong> do Centauro voltam a
+                  causar <strong>1d8</strong>, como no livro. Antes, o bônus de
+                  tamanho Grande era somado em cima e as armas saíam com 1d10.
+                  Fichas já salvas são corrigidas ao abrir.
+                </li>
               </ul>
 
               <h3>4.36</h3>
