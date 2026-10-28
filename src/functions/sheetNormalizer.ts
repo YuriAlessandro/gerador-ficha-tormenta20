@@ -13,7 +13,10 @@ import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
-import { migrateLegacyOficioArtesao } from './migrateSheet';
+import {
+  migrateLegacyOficioArtesao,
+  migrateLegacyPowerNames,
+} from './migrateSheet';
 import { stepUpDamage } from './weaponDamageStep';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
@@ -846,6 +849,9 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // `normalizeSheet` — e com o nome antigo nenhum pré-requisito de Ofício
   // (Artesão) casava, quebrando também a substituição do Artesão Criativo.
   migrateLegacyOficioArtesao(sheet);
+
+  // Mesmo motivo para poderes renomeados para o nome do livro.
+  migrateLegacyPowerNames(sheet);
 
   if (!Array.isArray(sheet.spells)) sheet.spells = [];
   if (!Array.isArray(sheet.generalPowers)) sheet.generalPowers = [];

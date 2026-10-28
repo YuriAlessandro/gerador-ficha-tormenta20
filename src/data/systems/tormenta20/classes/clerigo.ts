@@ -236,7 +236,7 @@ const CLERIGO: ClassDescription = {
       requirements: [],
     },
     {
-      name: 'Símbolo Sagrado Abençoado',
+      name: 'Símbolo Sagrado Energizado',
       text: 'Você pode gastar uma ação de movimento e 1 PM para fazer uma prece e energizar seu símbolo sagrado até o fim da cena. Um símbolo sagrado energizado emite uma luz dourada ou prateada (se sua divindade canaliza energia positiva) ou púrpura ou avermelhada (se canaliza energia negativa) que ilumina como uma tocha. Enquanto você estiver empunhando um símbolo sagrado energizado, o custo em PM para lançar suas magias divinas diminui em 1.',
       requirements: [],
     },
