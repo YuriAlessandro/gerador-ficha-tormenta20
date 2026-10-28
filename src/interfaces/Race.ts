@@ -158,6 +158,13 @@ export default interface Race {
   attributes: {
     attrs: RaceAttributeAbility[];
     excludeFromAny?: Atributo[];
+    /**
+     * O slot `any` diz "+1 em OUTRO atributo": não pode cair num atributo que
+     * a raça já modifica (ex.: Meio-Orc, "Força +2, +1 em outro atributo").
+     * Só para redação literal; "+1 em um/dois atributos" não usa. Ver
+     * `getAnySlotExcludedAttributes`.
+     */
+    excludeFixedFromAny?: boolean;
   };
   abilities: RaceAbility[];
   oldRace?: Race;

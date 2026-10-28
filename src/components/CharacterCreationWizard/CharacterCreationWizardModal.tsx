@@ -64,6 +64,7 @@ import {
   applyAttributeVariant,
   buildClassEquipmentsFromChoices,
   computeFinalAttributeModifiers,
+  getAnySlotExcludedAttributes,
   getEffectiveRaceAttrs,
   isRaceAttributeSelectionComplete,
   getInitialMoneyWithDetails,
@@ -1423,8 +1424,10 @@ const CharacterCreationWizardModal: React.FC<
           sexForAttributes
         );
         const anySlots = attrs.filter((a) => a.attr === 'any');
-        const excludedAttributes =
-          raceForAttributes.attributes.excludeFromAny || [];
+        const excludedAttributes = getAnySlotExcludedAttributes(
+          raceForAttributes,
+          attrs
+        );
         return (
           <RaceAttributeStep
             selectedAttributes={selections.raceAttributes || []}

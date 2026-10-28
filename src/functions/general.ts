@@ -735,6 +735,28 @@ export function applyAttributeVariant(
   };
 }
 
+/**
+ * Atributos que um slot `any` da raça não pode receber: `excludeFromAny` mais,
+ * quando a raça diz "+1 em OUTRO atributo" (`excludeFixedFromAny`), os que ela
+ * já modifica. Ponto único para o assistente e para o sorteio.
+ *
+ * `effectiveAttrs` é o retorno de `getEffectiveRaceAttrs` (herança, dimorfismo,
+ * variante e Raças Abertas já aplicados) — com Raças Abertas todo slot é `any`
+ * e não sobra atributo fixo para excluir.
+ */
+export function getAnySlotExcludedAttributes(
+  race: Race,
+  effectiveAttrs: RaceAttributeAbility[]
+): Atributo[] {
+  const excluded = new Set<Atributo>(race.attributes.excludeFromAny ?? []);
+  if (race.attributes.excludeFixedFromAny) {
+    effectiveAttrs.forEach(({ attr }) => {
+      if (attr !== 'any') excluded.add(attr);
+    });
+  }
+  return [...excluded];
+}
+
 // Sorteia uma variante de atributos (geração aleatória — no assistente quem
 // escolhe é o jogador). Raças sem variantes passam intactas.
 export function rollAttributeVariant(race: Race): {
@@ -782,7 +804,7 @@ export function modifyAttributesBasedOnRace(
   let manualChoiceIndex = 0; // Track which manual choice to use next
 
   const raceAttributes = getEffectiveRaceAttrs(raca, sex);
-  const excludeFromAny = raca.attributes.excludeFromAny || [];
+  const excludeFromAny = getAnySlotExcludedAttributes(raca, raceAttributes);
 
   const reducedAttrs = raceAttributes.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
@@ -790,9 +812,13 @@ export function modifyAttributesBasedOnRace(
       let selectedAttrName: Atributo;
 
       if (attrDaRaca.attr === 'any' && manualAttributeChoices) {
-        // Use manual choice if available
+        // Use manual choice if available. Uma escolha que a raça proíbe
+        // (seleção antiga, ou feita antes da trava) cai no sorteio.
+        const manualChoice = manualAttributeChoices[manualChoiceIndex];
         selectedAttrName =
-          manualAttributeChoices[manualChoiceIndex] ||
+          (manualChoice && !excludeFromAny.includes(manualChoice)
+            ? manualChoice
+            : undefined) ||
           selectAttributeToChange(
             nomesDosAtributosModificados,
             attrDaRaca,
