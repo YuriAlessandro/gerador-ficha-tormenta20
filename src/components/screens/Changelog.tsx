@@ -260,6 +260,19 @@ const Changelog: React.FC = () => {
                   tamanho Grande era somado em cima e as armas saíam com 1d10.
                   Fichas já salvas são corrigidas ao abrir.
                 </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Remover um poder</strong>{' '}
+                  no editor de poderes e <strong>Desfazer Nível</strong> agora
+                  tiram tudo o que o poder ou o nível deu. Antes ficavam para
+                  trás a arma natural na mochila (Mordida de Dentes Afiados,
+                  Ataque Desarmado do Estilo Desarmado), a magia do animal do{' '}
+                  <strong>Totem Espiritual</strong>, a perícia treinada pelo{' '}
+                  <strong>Valete</strong> do Vassalo e a escola de magia
+                  acrescentada pelo <strong>Xamã Místico</strong>. Quando outra
+                  fonte dá o mesmo item, ele fica (a Mordida do Gnoll volta a
+                  1d6), e uma pilha de itens comprados depois perde só as
+                  unidades que o poder tinha dado.
+                </li>
               </ul>
 
               <h3>4.36</h3>
