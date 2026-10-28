@@ -2,6 +2,10 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
+import {
+  canWieldOneHanded,
+  isTwoHanded,
+} from '../components/SheetResult/BackpackModal/wielding';
 
 /**
  * Re-carimba nos itens da mochila o dado ESTÁTICO que veio do catálogo.
@@ -140,6 +144,34 @@ export function stampCatalogData(
   /* eslint-enable no-param-reassign */
 }
 
+/**
+ * Ajusta as mãos de um item cuja empunhadura acabou de mudar pelo catálogo.
+ * Só resolve o que não muda número nenhum:
+ *  - virou arma de uma mão e ocupava as duas → fica na principal, solta a outra;
+ *  - virou arma de duas mãos e estava numa mão só, com a outra LIVRE → passa a
+ *    ocupar as duas.
+ * Se a outra mão segura outro item (ex.: Arco Longo antigo + escudo), nada muda:
+ * tirar o escudo da mão em silêncio baixaria a Defesa sem o jogador fazer nada.
+ * O estado fica como o legado já tolerado, e o jogador resolve ao editar.
+ */
+function reconcileWielding(sheet: CharacterSheet, item: Equipment): void {
+  /* eslint-disable no-param-reassign */
+  const { id } = item;
+  if (!id) return;
+  const inMain = sheet.mainHandItemId === id;
+  const inOff = sheet.offHandItemId === id;
+
+  if (!isTwoHanded(item)) {
+    if (inMain && inOff) sheet.offHandItemId = undefined;
+    return;
+  }
+  // A Lança Montada aceita uma mão só: o slot é escolha do jogador.
+  if (canWieldOneHanded(item)) return;
+  if (inMain && !inOff && !sheet.offHandItemId) sheet.offHandItemId = id;
+  if (inOff && !inMain && !sheet.mainHandItemId) sheet.mainHandItemId = id;
+  /* eslint-enable no-param-reassign */
+}
+
 export function refreshBagItemsFromCatalog(sheet: CharacterSheet): void {
   const equipments = sheet.bag?.equipments;
   if (!equipments) return;
@@ -155,7 +187,11 @@ export function refreshBagItemsFromCatalog(sheet: CharacterSheet): void {
       if (!index) index = buildCatalogIndex();
 
       const catalogItem = index.get(item.nome);
-      if (catalogItem) stampCatalogData(item, catalogItem);
+      if (!catalogItem) return;
+
+      const wasTwoHanded = isTwoHanded(item);
+      stampCatalogData(item, catalogItem);
+      if (isTwoHanded(item) !== wasTwoHanded) reconcileWielding(sheet, item);
     });
   });
 }
