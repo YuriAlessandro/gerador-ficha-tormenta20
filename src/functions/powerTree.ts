@@ -88,6 +88,14 @@ interface BuildGraphParams {
   classe: ClassDescription;
   /** Poderes gerais, para resolver pré-requisitos que não são da classe. */
   generalPowers?: GeneralPower[];
+  /**
+   * Poderes que existem, mas em suplemento fora do filtro. Um caminho
+   * alternativo (grupo OU) que dependa de um deles é omitido em vez de virar
+   * nó `external` — ex.: Mestre Celebrante aceita as Missas de Heróis de
+   * Arton, que não aparecem para quem filtra só o livro básico. Nomes que não
+   * existem em lugar nenhum continuam virando `external`.
+   */
+  inactivePowerNames?: ReadonlySet<string>;
 }
 
 /** Requisitos negados (`not`) excluem em vez de destravar — não viram aresta. */
@@ -383,6 +391,7 @@ function findClusters(
 export function buildClassPowerGraph({
   classe,
   generalPowers = [],
+  inactivePowerNames,
 }: BuildGraphParams): ClassPowerGraph {
   const powersByName = new Map(classe.powers.map((p) => [p.name, p]));
   const abilitiesByName = new Map(classe.abilities.map((a) => [a.name, a]));
@@ -416,11 +425,27 @@ export function buildClassPowerGraph({
   const edges: PowerTreeEdge[] = [];
   const seenEdges = new Set<string>();
 
+  const isInactive = (name: string): boolean =>
+    !!inactivePowerNames?.has(name) &&
+    !powersByName.has(name) &&
+    !abilitiesByName.has(name) &&
+    !abilityOptions.has(name) &&
+    !generalByName.has(name);
+
   classe.powers.forEach((power) => {
     const node = nodes[power.name];
-    const groups = (power.requirements ?? []).filter(
+    const nonEmpty = (power.requirements ?? []).filter(
       (group) => group.length > 0
     );
+    const active = nonEmpty.filter(
+      (group) =>
+        !group.some(
+          (req) => isPrerequisiteLink(req) && !!req.name && isInactive(req.name)
+        )
+    );
+    // Só descarta alternativas: se TODOS os caminhos dependem de conteúdo
+    // inativo, o poder mantém os seus requisitos (e os nós `external`).
+    const groups = active.length > 0 ? active : nonEmpty;
 
     groups.forEach((group) => {
       group.forEach((req) => {

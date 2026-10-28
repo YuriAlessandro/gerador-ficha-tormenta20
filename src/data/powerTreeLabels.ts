@@ -26,6 +26,18 @@ const POWER_TREE_LABELS: Record<string, string> = {
     'Missa: Escudo Divino',
     'Missa: Superar as Limitações',
   ].join('|')]: 'Missas',
+  // Com Heróis de Arton, as três Missas novas também levam ao Mestre
+  // Celebrante e entram na mesma árvore.
+  [[
+    'Missa: Bênção da Vida',
+    'Missa: Chamado às Armas',
+    'Missa: Compartilhar Milagre',
+    'Missa: Elevação do Espírito',
+    'Missa: Escudo Divino',
+    'Missa: Imposição da Vontade',
+    'Missa: Mente Abençoada',
+    'Missa: Superar as Limitações',
+  ].join('|')]: 'Missas',
 };
 
 /** Ordenação única usada tanto para montar a chave quanto para exibir. */

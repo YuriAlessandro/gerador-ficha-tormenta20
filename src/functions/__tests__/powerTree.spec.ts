@@ -38,6 +38,58 @@ function makeClass(
 
 const requerPoder = (name: string) => [[{ type: RequirementType.PODER, name }]];
 
+describe('buildClassPowerGraph — poderes de suplemento fora do filtro', () => {
+  // Molde do Mestre Celebrante: "qualquer poder de Missa", com Missas no
+  // básico e em Heróis de Arton.
+  const celebrante = (): ClassPower => ({
+    name: 'Celebrante',
+    text: 'c',
+    requirements: [
+      [{ type: RequirementType.PODER, name: 'Missa A' }],
+      [{ type: RequirementType.PODER, name: 'Missa Suplemento' }],
+    ],
+  });
+
+  test('alternativa que depende de poder inativo sai da árvore', () => {
+    const graph = buildClassPowerGraph({
+      classe: makeClass([
+        { name: 'Missa A', text: 'a', requirements: [] },
+        celebrante(),
+      ]),
+      inactivePowerNames: new Set(['Missa Suplemento']),
+    });
+
+    expect(graph.nodes['Missa Suplemento']).toBeUndefined();
+    expect(graph.nodes.Celebrante.prerequisites).toEqual(['Missa A']);
+  });
+
+  test('sem a lista, o nome desconhecido continua virando external', () => {
+    const graph = buildClassPowerGraph({
+      classe: makeClass([
+        { name: 'Missa A', text: 'a', requirements: [] },
+        celebrante(),
+      ]),
+    });
+
+    expect(graph.nodes['Missa Suplemento'].kind).toBe('external');
+  });
+
+  test('se todos os caminhos são inativos, os requisitos ficam visíveis', () => {
+    const graph = buildClassPowerGraph({
+      classe: makeClass([
+        {
+          name: 'Dependente',
+          text: 'd',
+          requirements: requerPoder('Só no suplemento'),
+        },
+      ]),
+      inactivePowerNames: new Set(['Só no suplemento']),
+    });
+
+    expect(graph.nodes['Só no suplemento'].kind).toBe('external');
+  });
+});
+
 describe('buildClassPowerGraph', () => {
   test('separa poderes encadeados de poderes avulsos', () => {
     const graph = buildClassPowerGraph({
