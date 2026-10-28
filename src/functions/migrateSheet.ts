@@ -95,7 +95,8 @@ const LEGACY_POWER_NAMES: Record<string, string> = {
   'Símbolo Sagrado Abençoado': 'Símbolo Sagrado Energizado',
 };
 
-const currentPowerName = (name: string): string =>
+/** Nome atual do poder (o próprio nome, se não foi renomeado). */
+export const currentPowerName = (name: string): string =>
   LEGACY_POWER_NAMES[name] ?? name;
 
 const isLegacyPowerName = (name: string | undefined): boolean =>
