@@ -4131,7 +4131,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       'Esta magia imbui uma criatura com coragem e valentia. O alvo fica imune a medo e recebe 40 PV temporários e +4 em testes de ataque e rolagens de dano contra o inimigo de maior ND na cena.',
     aprimoramentos: [
       {
-        addPm: 4,
+        addPm: 2,
         text: 'muda o bônus para +6.',
       },
     ],

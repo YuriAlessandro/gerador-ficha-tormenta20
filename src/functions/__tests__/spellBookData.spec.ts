@@ -1,4 +1,5 @@
 import {
+  manaExpenseByCircle,
   spellsCircle1,
   spellsCircle2,
   spellsCircle3,
@@ -51,5 +52,23 @@ describe('Dados de magias conforme o livro', () => {
       (s) => s.nome === 'Discrição'
     );
     expect(discricao?.alcance).toBe('Pessoal ou toque');
+  });
+
+  describe('Heroísmo (JdA p. 194)', () => {
+    const { heroismo } = spellsCircle3;
+
+    it('o aprimoramento custa +2 PM e muda o bônus para +6', () => {
+      expect(heroismo.aprimoramentos).toEqual([
+        { addPm: 2, text: 'muda o bônus para +6.' },
+      ]);
+    });
+
+    it('lançar com o aprimoramento gasta 8 PM (6 do 3º círculo + 2)', () => {
+      // Mesma conta do SpellCastDialog: custo do círculo + addPm × vezes.
+      const base = manaExpenseByCircle[heroismo.spellCircle];
+      const aprimoramento = heroismo.aprimoramentos?.[0].addPm ?? 0;
+      expect(base).toBe(6);
+      expect(base + aprimoramento).toBe(8);
+    });
   });
 });
