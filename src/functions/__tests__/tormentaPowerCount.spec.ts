@@ -303,11 +303,57 @@ describe('requisito PODER_TORMENTA', () => {
 
   it('é satisfeito por um poder marcado com countAsTormentaPower', () => {
     const sheet = createMockCharacterSheet();
-    sheet.generalPowers = [ANTENAS];
+    sheet.generalPowers = [];
     expect(isPowerAvailable(sheet, exigeUmOutro)).toBe(false);
 
     sheet.customPowers = [escolhidoDeAharadak()];
     expect(isPowerAvailable(sheet, exigeUmOutro)).toBe(true);
+  });
+
+  // "Pré-requisito: outro poder da Tormenta" / "quatro outros poderes da
+  // Tormenta" (Tormenta20, p. 136-137). O valor do dado é N; como o poder
+  // avaliado ainda não está na ficha, N poderes na ficha bastam.
+  it('"outro poder da Tormenta": um poder na ficha basta (Armamento Aberrante)', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [];
+    expect(isPowerAvailable(sheet, tormentaPowers.ARMAMENTO_ABERRANTE)).toBe(
+      false
+    );
+
+    sheet.generalPowers = [ANTENAS];
+    expect(isPowerAvailable(sheet, tormentaPowers.ARMAMENTO_ABERRANTE)).toBe(
+      true
+    );
+  });
+
+  it('"quatro outros poderes da Tormenta": quatro na ficha bastam (Asas Insetoides)', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [ANTENAS, CARAPACA, MAOS_MEMBRANOSAS];
+    expect(isPowerAvailable(sheet, ASAS_INSETOIDES)).toBe(false);
+
+    sheet.generalPowers = [
+      ANTENAS,
+      CARAPACA,
+      MAOS_MEMBRANOSAS,
+      ARTICULACOES_FLEXIVEIS,
+    ];
+    expect(isPowerAvailable(sheet, ASAS_INSETOIDES)).toBe(true);
+  });
+
+  it('o poder já na ficha não conta como "outro" para si mesmo', () => {
+    // Reavaliação de um poder já escolhido: três outros + ele mesmo não
+    // satisfazem "quatro outros".
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [
+      ANTENAS,
+      CARAPACA,
+      MAOS_MEMBRANOSAS,
+      ASAS_INSETOIDES,
+    ];
+    expect(isPowerAvailable(sheet, ASAS_INSETOIDES)).toBe(false);
+
+    sheet.generalPowers = [...sheet.generalPowers, ARTICULACOES_FLEXIVEIS];
+    expect(isPowerAvailable(sheet, ASAS_INSETOIDES)).toBe(true);
   });
 });
 
