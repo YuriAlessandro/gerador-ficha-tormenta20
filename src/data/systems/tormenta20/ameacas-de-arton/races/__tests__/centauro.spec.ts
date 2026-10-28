@@ -43,7 +43,9 @@ describe('Centauro — dado bate com Ameaças de Arton p. 105', () => {
 
     expect(arma?.nome).toBe('Cascos');
     expect(arma?.tipo).toBe('Impac.');
-    expect(arma?.dano).toBe('1d8');
+    // Base Médio-equivalente: o passo de tamanho Grande leva ao 1d8 do livro
+    // (ver largeRaceNaturalWeapons.spec.ts).
+    expect(arma?.dano).toBe('1d6');
     expect(arma?.critico).toBe('x2');
   });
 

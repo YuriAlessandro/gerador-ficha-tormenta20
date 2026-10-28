@@ -14,6 +14,7 @@ import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
 import { migrateLegacyOficioArtesao } from './migrateSheet';
+import { stepUpDamage } from './weaponDamageStep';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { dataRegistry } from '../data/registry';
@@ -239,6 +240,50 @@ function healCentauroHoovesDamageType(sheet: CharacterSheet): void {
     if (weapon?.nome === 'Cascos' && weapon.tipo === 'Perf.') {
       // eslint-disable-next-line no-param-reassign
       weapon.tipo = 'Impac.';
+    }
+  });
+}
+
+/**
+ * Arma natural de raça Grande guardava o dado IMPRESSO no livro (1d8), que já é
+ * o valor para o tamanho Grande, e o passo de dano por tamanho do recálculo
+ * (Step 11.7) somava +1 em cima: Chifres e Cascos saíam 1d10. Os dados agora
+ * guardam a base Médio-equivalente (1d6), como a Mordida do Urso, mas a cópia
+ * da mochila é congelada (o `addEquipment` não roda de novo, ver
+ * `healCentauroHoovesDamageType`), então curamos a ficha salva aqui.
+ *
+ * - Com `baseDano` (a arma já passou pelo recálculo): rebaixa a base para 1d6 e
+ *   desce um passo no `dano` bakeado, para a ficha já abrir certa, sem esperar
+ *   a próxima edição. Outros passos e o "+N" bakeados são preservados.
+ * - Sem `baseDano` (ficha que nunca foi recalculada): o `dano` 1d8 exibido já
+ *   está certo; só gravamos a base 1d6 para o próximo recálculo não inflar.
+ *
+ * Arma editada à mão fica intocada: o recálculo preserva os valores do usuário.
+ * Gate triplo (raça + nome + valor antigo) como na cura do `tipo`; idempotente
+ * porque a segunda passada já encontra `baseDano` 1d6.
+ */
+const LARGE_RACE_NATURAL_WEAPONS: Record<string, string> = {
+  Ceratops: 'Chifres',
+  Centauro: 'Cascos',
+};
+
+function healLargeRaceNaturalWeaponDamage(sheet: CharacterSheet): void {
+  const weaponName = LARGE_RACE_NATURAL_WEAPONS[sheet.raca?.name];
+  if (!weaponName) return;
+  const weapons = sheet.bag?.equipments?.Arma;
+  if (!Array.isArray(weapons)) return;
+  weapons.forEach((weapon) => {
+    if (weapon?.nome !== weaponName || weapon.hasManualEdits) return;
+    if (weapon.baseDano === '1d8') {
+      // eslint-disable-next-line no-param-reassign
+      weapon.baseDano = '1d6';
+      if (weapon.dano) {
+        // eslint-disable-next-line no-param-reassign
+        weapon.dano = stepUpDamage(weapon.dano, -1);
+      }
+    } else if (!weapon.baseDano && weapon.dano === '1d8') {
+      // eslint-disable-next-line no-param-reassign
+      weapon.baseDano = '1d6';
     }
   });
 }
@@ -575,6 +620,8 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
       );
       healCentauroHoovesDamageType(sheet);
     }
+
+    healLargeRaceNaturalWeaponDamage(sheet);
 
     // Mesmo princípio do refresh de poderes concedidos abaixo: a ficha embute a
     // cópia da herança de Suraggel da época em que foi escolhida, e antes de
