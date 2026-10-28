@@ -181,6 +181,22 @@ const CLERIGO: ClassDescription = {
         [{ type: RequirementType.PODER, name: 'Missa: Elevação do Espírito' }],
         [{ type: RequirementType.PODER, name: 'Missa: Escudo Divino' }],
         [{ type: RequirementType.PODER, name: 'Missa: Superar as Limitações' }],
+        // Missas de Heróis de Arton (p. 65), que trata do Mestre Celebrante
+        // junto delas. "Qualquer poder de Missa" fica como lista explícita
+        // (o powerTree liga os poderes pelo nome); um teste garante que toda
+        // Missa nova de Clérigo entre aqui.
+        [
+          { type: RequirementType.PODER, name: 'Missa: Compartilhar Milagre' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Imposição da Vontade' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Mente Abençoada' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
       ],
     },
     {

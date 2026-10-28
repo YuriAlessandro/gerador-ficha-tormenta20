@@ -81,9 +81,21 @@ const ClassPowerTreesView: React.FC<ClassPowerTreesViewProps> = ({
     [supplements]
   );
 
+  // Poderes desta classe que só existem em suplemento fora do filtro.
+  const inactivePowerNames = useMemo(() => {
+    const active = new Set(classe.powers.map((power) => power.name));
+    const everyPower =
+      dataRegistry
+        .getClassesWithSupplementInfo(Object.values(SupplementId))
+        .find((c) => c.name === classe.name)?.powers ?? [];
+    return new Set(
+      everyPower.map((power) => power.name).filter((name) => !active.has(name))
+    );
+  }, [classe]);
+
   const graph = useMemo(
-    () => buildClassPowerGraph({ classe, generalPowers }),
-    [classe, generalPowers]
+    () => buildClassPowerGraph({ classe, generalPowers, inactivePowerNames }),
+    [classe, generalPowers, inactivePowerNames]
   );
 
   useEffect(() => {
