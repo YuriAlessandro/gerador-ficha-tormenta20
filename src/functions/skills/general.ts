@@ -1,5 +1,5 @@
 import CharacterSheet from '@/interfaces/CharacterSheet';
-import Skill from '@/interfaces/Skills';
+import Skill, { getSkillAttr } from '@/interfaces/Skills';
 
 /**
  * Soma um bônus "outros" a uma perícia.
@@ -22,9 +22,12 @@ export function addOtherBonusToSkill(
   if (
     !sheet.completeSkills?.some((currentSkill) => currentSkill.name === skill)
   ) {
+    // A linha nova leva o atributo-chave: sem `modAttr`, o total da perícia
+    // soma 0 de atributo (ex.: Ofício escolhido pelo Vanguardista do Kliren
+    // antes de ser treinado).
     sheet.completeSkills = [
       ...(sheet.completeSkills || []),
-      { name: skill, others: value },
+      { name: skill, modAttr: getSkillAttr(skill), others: value },
     ];
   } else {
     sheet.completeSkills = Object.values(sheet.completeSkills || {}).map(

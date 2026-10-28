@@ -973,6 +973,9 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
 
       return {
         ...skill,
+        // Cura linhas salvas sem atributo-chave (criadas por bônus antes de a
+        // perícia existir na ficha).
+        modAttr: skillAttr,
         halfLevel: Math.floor(updatedSheet.nivel / 2),
         training: finalTraining,
         others: baseOthers + (skill.manualOthers ?? 0),
