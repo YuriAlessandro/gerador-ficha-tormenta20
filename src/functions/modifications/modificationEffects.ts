@@ -60,9 +60,6 @@ export const modificationEffects: Record<string, ModificationEffect> = {
     spacesDelta: -1,
     skillBonuses: [{ skill: Skill.FURTIVIDADE, value: 5 }],
   },
-  Equilibrada: {
-    skillBonuses: [{ skill: Skill.ATLETISMO, value: 2 }],
-  },
   'Banhada a ouro': {
     skillBonuses: [{ skill: Skill.DIPLOMACIA, value: 2 }],
   },
@@ -128,6 +125,9 @@ export const TEXT_ONLY_MODIFICATIONS: ReadonlySet<string> = new Set([
   'Selada',
   'Delicada',
   'Espinhosa',
+  // "+2 em testes de manobras" (Tormenta20, p. 165): manobra é teste de ataque
+  // corpo a corpo, não de perícia — e não há target "Maneuver" (ver Guarda).
+  'Equilibrada',
   // Heróis de Arton (todas com efeitos condicionais ou dependentes de subtipo
   // de item, salvo Guarda que aplica +1 Defesa numericamente)
   'Balístico',
