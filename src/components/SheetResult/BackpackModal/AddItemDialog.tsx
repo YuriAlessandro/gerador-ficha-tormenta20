@@ -22,6 +22,7 @@ import {
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import AddAllIcon from '@mui/icons-material/PlaylistAdd';
 import CustomIcon from '@mui/icons-material/Build';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Close';
@@ -74,6 +75,22 @@ export interface AddItemDialogProps {
   onToggleAutoDeductMoney?: (value: boolean) => void;
   /** Default category to open when opening the dialog. */
   defaultCategory?: equipGroup;
+  /** Título do diálogo e dica do botão de adicionar. */
+  title?: string;
+  /**
+   * Liga os botões "Adicionar todos" da categoria e de cada subcategoria.
+   * Recebe os itens visíveis (respeitando a busca), na ordem da lista.
+   */
+  onAddMany?: (items: Equipment[]) => void;
+}
+
+/** "Ataque Desarmado" primeiro (unidade base da categoria), depois A-Z. */
+function sortCatalogItems(items: Equipment[]): Equipment[] {
+  return [...items].sort((a, b) => {
+    if (a.nome === 'Ataque Desarmado') return -1;
+    if (b.nome === 'Ataque Desarmado') return 1;
+    return a.nome.localeCompare(b.nome);
+  });
 }
 
 function normalize(text: string): string {
@@ -98,6 +115,8 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   onToggleAutoDeductMoney,
   defaultCategory,
   ammoTypeOptions = [],
+  title = 'Adicionar à mochila',
+  onAddMany,
 }) => {
   const userSupplements: SupplementId[] = useContentSupplements();
   const equipmentCatalog = useMemo(
@@ -156,7 +175,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
             title={
               cantAfford
                 ? 'Saldo insuficiente — desative "Auto-descontar T$" para adicionar mesmo assim.'
-                : 'Adicionar à mochila'
+                : title
             }
           >
             <span>
@@ -253,28 +272,46 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
     );
   };
 
+  const visibleItems = (sub: CatalogSubgroup): Equipment[] =>
+    sortCatalogItems(sub.items.filter((it) => matches(it, debouncedSearch)));
+
+  const visibleSubgroups = activeCategory.subgroups.filter(
+    (sub) => visibleItems(sub).length > 0
+  );
+
   const renderSubgroup = (sub: CatalogSubgroup) => {
-    const filtered = sub.items.filter((it) => matches(it, debouncedSearch));
-    if (filtered.length === 0) return null;
-    // "Ataque Desarmado" fica fixo como primeiro item da categoria "Simples"
-    // (unidade base do ataque desarmado) — os demais seguem alfabéticos.
-    const sorted = [...filtered].sort((a, b) => {
-      if (a.nome === 'Ataque Desarmado') return -1;
-      if (b.nome === 'Ataque Desarmado') return 1;
-      return a.nome.localeCompare(b.nome);
-    });
+    const sorted = visibleItems(sub);
+    if (sorted.length === 0) return null;
+    // Com uma subcategoria só, o botão da categoria já faz o mesmo.
+    const showAddAll = !!onAddMany && visibleSubgroups.length > 1;
     return (
       <Box key={sub.key} sx={{ mb: 1.5 }}>
-        <Typography
-          variant='overline'
-          sx={{
-            color: 'text.secondary',
-            pl: 2,
-            display: 'block',
-          }}
+        <Stack
+          direction='row'
+          spacing={1}
+          sx={{ alignItems: 'center', justifyContent: 'space-between', pr: 1 }}
         >
-          {sub.label}
-        </Typography>
+          <Typography
+            variant='overline'
+            sx={{
+              color: 'text.secondary',
+              pl: 2,
+              display: 'block',
+            }}
+          >
+            {sub.label}
+          </Typography>
+          {showAddAll && (
+            <Button
+              size='small'
+              startIcon={<AddAllIcon />}
+              onClick={() => onAddMany(sorted)}
+              aria-label={`Adicionar todos de ${sub.label}`}
+            >
+              Adicionar todos ({sorted.length})
+            </Button>
+          )}
+        </Stack>
         <List dense disablePadding>
           {sorted.map(renderItemRow)}
         </List>
@@ -282,9 +319,8 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
     );
   };
 
-  const totalMatches = activeCategory.subgroups.reduce(
-    (acc, sub) =>
-      acc + sub.items.filter((it) => matches(it, debouncedSearch)).length,
+  const totalMatches = visibleSubgroups.reduce(
+    (acc, sub) => acc + visibleItems(sub).length,
     0
   );
 
@@ -303,7 +339,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       fullScreen={isMobile}
     >
       <DialogTitle sx={{ pr: 6 }}>
-        Adicionar à mochila
+        {title}
         <IconButton
           onClick={onClose}
           sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -416,6 +452,22 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
                 }
                 return (
                   <Box sx={{ pb: 2 }}>
+                    {onAddMany && (
+                      <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+                        <Button
+                          variant='outlined'
+                          size='small'
+                          startIcon={<AddAllIcon />}
+                          onClick={() =>
+                            onAddMany(visibleSubgroups.flatMap(visibleItems))
+                          }
+                        >
+                          {debouncedSearch
+                            ? `Adicionar os ${totalMatches} encontrados`
+                            : `Adicionar todos de ${activeCategory.label} (${totalMatches})`}
+                        </Button>
+                      </Box>
+                    )}
                     {activeCategory.subgroups.map(renderSubgroup)}
                   </Box>
                 );
