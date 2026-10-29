@@ -23,6 +23,7 @@ import {
 } from './prerequisiteWaivers';
 import { formatRequirement } from '../requirementText';
 import { getClassLevel } from '../multiclass';
+import { sheetHasClassAbility } from '../learnedClassAbility';
 import { deityRequirementMatches, getSheetDeityNames } from './deityNames';
 import { deityAcceptsClass } from './deityClassAcceptance';
 
@@ -142,8 +143,9 @@ function hasPowerNamed(name: string | undefined, ctx: RequirementContext) {
     // ("Ginete Altivo", de Hippion, conta como "Ginete").
     sheetSatisfiesPowerRequirement(sheet, name) ||
     // `classe.abilities` fica FORA de `sheetSatisfiesPowerRequirement` de
-    // propósito (ver `hasPowerNamed.ts`), então continua checada aqui.
-    (sheet.classe.abilities?.some((a) => a.name === name) ?? false)
+    // propósito (ver `hasPowerNamed.ts`), então continua checada aqui —
+    // inclusive a habilidade aprendida de outra classe (Duplo Feérico).
+    sheetHasClassAbility(sheet, name)
   );
 }
 
@@ -278,7 +280,7 @@ function isRequirementMet(
       return deityAcceptsClass(sheet, req.name as string);
 
     case RequirementType.HABILIDADE:
-      return sheet.classe.abilities?.some((a) => a.name === req.name) ?? false;
+      return !!req.name && sheetHasClassAbility(sheet, req.name);
 
     case RequirementType.RACA:
       // Aceita variantes e "considerado um X para efeitos relacionados a raça".

@@ -27,6 +27,12 @@ export type SheetChangeSource =
       type: 'power';
       name: string;
       className?: string;
+      /**
+       * Nível de classe FIXO para `{classLevel}`/`capBy: 'classLevel'`. Usado
+       * pela habilidade aprendida de outra classe (Duplo Feérico), que funciona
+       * "como se tivesse 1 nível naquela classe".
+       */
+      fixedClassLevel?: number;
     }
   | {
       type: 'levelUp';

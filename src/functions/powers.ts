@@ -17,6 +17,7 @@ import {
   isRaceOrVariantOf,
 } from './general';
 import { findClassDescription } from './multiclass';
+import { sheetHasClassAbility } from './learnedClassAbility';
 import { countTormentaPowers, listTormentaPowers } from './randomUtils';
 import {
   deityRequirementMatches,
@@ -175,8 +176,8 @@ function evaluateRule(
       // propósito (ver `powers/hasPowerNamed.ts`), mas alguns poderes pedem
       // `PODER` com o nome de uma habilidade de classe — Briga de Rua exige
       // "Briga", concedida automaticamente ao Lutador no 1º nível.
-      if ((sheet.classe.abilities ?? []).some((a) => a.name === rule.name))
-        return true;
+      // Vale também a habilidade aprendida de outra classe (Duplo Feérico).
+      if (rule.name && sheetHasClassAbility(sheet, rule.name)) return true;
 
       // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
       return (sheet.sheetActionHistory ?? []).some((entry) =>
@@ -219,9 +220,7 @@ function evaluateRule(
       return false;
     }
     case RequirementType.HABILIDADE:
-      return sheet.classe.abilities.some(
-        (ability) => ability.name === rule.name
-      );
+      return !!rule.name && sheetHasClassAbility(sheet, rule.name);
     case RequirementType.PODER_TORMENTA: {
       const qtdPowers = rule.value as number;
       // `countTormentaPowers` também enxerga poderes de outros tipos marcados

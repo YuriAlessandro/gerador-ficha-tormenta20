@@ -191,6 +191,11 @@ import {
   getBaseAbilitiesForLevelUp,
   resolveClassSetup,
 } from './multiclass';
+import {
+  LEARNED_CLASS_ABILITY_LEVEL,
+  composeLearnedAbilityName,
+} from './learnedClassAbility';
+import { hasBestFriendAbility } from './companionLevels';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   resolveSchoolChoice,
@@ -2993,7 +2998,10 @@ export const applyPower = (
             sheet.classPowers = [];
           }
 
-          const composedName = `${selectedAbility.name} (${selectedClass.name})`;
+          const composedName = composeLearnedAbilityName(
+            selectedAbility.name,
+            selectedClass.name
+          );
 
           // Ressalva do livro: ao escolher a habilidade "Magias" você recebe
           // +1 PM, mas NÃO soma o atributo-chave dela no total de PM. Os
@@ -3008,7 +3016,21 @@ export const applyPower = (
                   modifier: { type: 'Fixed', value: 1 },
                 },
               ]
-            : selectedAbility.sheetBonuses ?? [];
+            : // "como se tivesse 1 nível naquela classe": `{classLevel}` e
+              // `capBy: 'classLevel'` (Insolência, Tanga de Peles) resolvem
+              // para 1, não para o nível do personagem.
+              (selectedAbility.sheetBonuses ?? []).map((bonus) =>
+                bonus.source.type === 'power'
+                  ? {
+                      ...bonus,
+                      source: {
+                        ...bonus.source,
+                        className: selectedClass.name,
+                        fixedClassLevel: LEARNED_CLASS_ABILITY_LEVEL,
+                      },
+                    }
+                  : bonus
+              );
 
           // Convert ClassAbility to ClassPower format and add to classPowers
           sheet.classPowers.push({
@@ -3016,6 +3038,7 @@ export const applyPower = (
             text: selectedAbility.text,
             sheetActions: selectedAbility.sheetActions,
             sheetBonuses: learnedBonuses,
+            rolls: selectedAbility.rolls,
           });
 
           // Apply sheetBonuses from the learned ability
@@ -3061,6 +3084,22 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Aprendeu ${selectedAbility.name} de ${selectedClass.name}`,
           });
+
+          // Melhor Amigo do Treinador: a habilidade não tem sheetActions — o
+          // companheiro nasce aqui, no nível de treinador 1. O assistente
+          // sobrescreve com as escolhas do jogador em `generateEmptySheet`.
+          if (
+            selectedClass.name === 'Treinador' &&
+            selectedAbility.name === 'Melhor Amigo' &&
+            !sheet.companions?.length
+          ) {
+            sheet.companions = [
+              generateRandomCompanion(
+                LEARNED_CLASS_ABILITY_LEVEL,
+                sheet.atributos[Atributo.CARISMA]?.value ?? 0
+              ),
+            ];
+          }
 
           if (isMagiasAbility) {
             subSteps.push({
@@ -5392,6 +5431,9 @@ const calculateBonusValue = (
   source?: SheetChangeSource
 ) => {
   const resolveClassLevel = (): number => {
+    if (source?.type === 'power' && source.fixedClassLevel !== undefined) {
+      return source.fixedClassLevel;
+    }
     const className = source?.type === 'power' ? source.className : undefined;
     return className ? getClassLevel(sheet, className) : sheet.nivel;
   };
@@ -8022,7 +8064,7 @@ export function generateEmptySheet(
     wizardSelections.companionWeaponDamageType &&
     wizardSelections.companionSkills &&
     wizardSelections.companionTricks &&
-    emptySheet.classe.name === 'Treinador'
+    hasBestFriendAbility(emptySheet)
   ) {
     const trainerCharisma = emptySheet.atributos[Atributo.CARISMA]?.value ?? 0;
     emptySheet.companions = [

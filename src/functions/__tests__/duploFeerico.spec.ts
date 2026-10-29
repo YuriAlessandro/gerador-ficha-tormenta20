@@ -1,8 +1,14 @@
 import _ from 'lodash';
 import {
+  calculateBonusValue,
   recalculateSheet,
   reverseSheetActionsForPower,
 } from '../recalculateSheet';
+import { getCompanionLevels, hasBestFriendAbility } from '../companionLevels';
+import { usesCharismaForDefense } from '../learnedClassAbility';
+import { computeUnarmedDamage } from '../unarmedDamage';
+import { isPowerAvailable } from '../powers';
+import { GeneralPower, RequirementType } from '../../interfaces/Poderes';
 import { removeOriginBenefits } from '../originBenefits';
 import {
   getFilteredAvailableOptions,
@@ -425,6 +431,127 @@ describe('Duplo Feérico', () => {
       );
       reverseSheetActionsForPower(reversed, POWER_NAME);
       expect(markedSkillsOf(reversed, 'Especialista (Ladino)')).toEqual([]);
+    });
+  });
+
+  // Feedback de usuário (out/2026): "algumas habilidades que você escolhe com
+  // ele não funcionam direito, como o Melhor Amigo do Treinador". A habilidade
+  // aprendida mora em `classPowers` como "X (Classe)" e todo código que olhava
+  // só `classe.abilities`/nome exato/nome da classe a deixava de fora.
+  describe('habilidade aprendida funciona como nível 1 da classe', () => {
+    const learnAt = (
+      nivel: number,
+      className: string,
+      abilityName: string,
+      classe: ClassDescription = GUERREIRO
+    ) => {
+      const base = mkSheet(classe);
+      base.nivel = nivel;
+      return recalculateSheet(
+        base,
+        undefined,
+        manualPick(className, abilityName)
+      );
+    };
+
+    it('Melhor Amigo cria o companheiro, com nível de treinador 1', () => {
+      const sheet = learnAt(5, 'Treinador', 'Melhor Amigo');
+
+      expect(classPowerNames(sheet)).toContain('Melhor Amigo (Treinador)');
+      expect(sheet.companions).toHaveLength(1);
+      expect(hasBestFriendAbility(sheet)).toBe(true);
+      expect(getCompanionLevels(sheet)).toEqual({
+        trainerLevel: 1,
+        statLevel: 1,
+      });
+    });
+
+    it('Guerreiro sem Duplo Feérico não tem Melhor Amigo', () => {
+      // Armadilha do `getClassLevel` em ficha mono-classe
+      const sheet = mkSheet();
+      sheet.nivel = 5;
+      expect(hasBestFriendAbility(sheet)).toBe(false);
+    });
+
+    it('trocar de origem leva o companheiro junto', () => {
+      const cleaned = removeOriginBenefits(
+        learnAt(5, 'Treinador', 'Melhor Amigo')
+      );
+      expect(cleaned.companions ?? []).toHaveLength(0);
+    });
+
+    it('copia as rolagens da habilidade (Ataque Furtivo)', () => {
+      const sheet = learnAt(1, 'Ladino', 'Ataque Furtivo');
+      const learned = sheet.classPowers?.find(
+        (p) => p.name === 'Ataque Furtivo (Ladino)'
+      );
+      expect(learned?.rolls?.length).toBeGreaterThan(0);
+    });
+
+    it('Insolência fica limitada a 1, não ao nível do personagem', () => {
+      const base = mkSheet();
+      base.nivel = 5;
+      base.atributos[Atributo.CARISMA].value = 4;
+      const sheet = recalculateSheet(
+        base,
+        undefined,
+        manualPick('Bucaneiro', 'Insolência')
+      );
+
+      const insolencia = sheet.sheetBonuses.find(
+        (b) =>
+          b.source.type === 'power' &&
+          b.source.name === 'Insolência' &&
+          b.target.type === 'Defense'
+      );
+      expect(insolencia).toBeDefined();
+      expect(
+        calculateBonusValue(sheet, insolencia!.modifier, insolencia!.source)
+      ).toBe(1);
+    });
+
+    it('Briga aprendida usa o dado do 1º nível do Lutador', () => {
+      const sheet = learnAt(5, 'Lutador', 'Briga');
+      expect(computeUnarmedDamage(sheet).dice).toBe('1d6');
+    });
+
+    it('Autoconfiança troca Destreza por Carisma na Defesa', () => {
+      expect(usesCharismaForDefense(mkSheet())).toBe(false);
+      expect(usesCharismaForDefense(learnAt(1, 'Nobre', 'Autoconfiança'))).toBe(
+        true
+      );
+    });
+
+    it('satisfaz requisito HABILIDADE (Fúria)', () => {
+      const requerFuria = {
+        name: 'Requer Fúria',
+        description: '',
+        type: 'COMBATE',
+        requirements: [[{ type: RequirementType.HABILIDADE, name: 'Fúria' }]],
+      } as unknown as GeneralPower;
+
+      expect(isPowerAvailable(mkSheet(), requerFuria)).toBe(false);
+      expect(
+        isPowerAvailable(learnAt(1, 'Bárbaro', 'Fúria'), requerFuria)
+      ).toBe(true);
+    });
+
+    it('trocar de origem desfaz as ações aninhadas (Ataque Desarmado da Briga)', () => {
+      const countUnarmed = (s: CharacterSheet) =>
+        s.bag
+          .getEquipments()
+          .Arma.filter((arma) => arma.nome === 'Ataque Desarmado').length;
+      const before = countUnarmed(mkSheet());
+      const sheet = learnAt(1, 'Lutador', 'Briga');
+      expect(countUnarmed(sheet)).toBe(before + 1);
+
+      const cleaned = removeOriginBenefits(sheet);
+      expect(countUnarmed(cleaned)).toBe(before);
+      expect(
+        cleaned.sheetActionHistory.filter(
+          (entry) => entry.powerName === 'Briga (Lutador)'
+        )
+      ).toHaveLength(0);
     });
   });
 });

@@ -59,6 +59,11 @@ import {
   getMulticlassAvailableAbilities,
   findClassDescription,
 } from './multiclass';
+import {
+  LEARNED_CLASS_ABILITY_LEVEL,
+  isLearnedClassAbilityEntry,
+  usesCharismaForDefense,
+} from './learnedClassAbility';
 import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
 import {
   updateUnarmedRolls,
@@ -270,6 +275,9 @@ const resolveClassLevel = (
   sheet: CharacterSheet,
   source?: SheetChangeSource
 ): number => {
+  if (source?.type === 'power' && source.fixedClassLevel !== undefined) {
+    return source.fixedClassLevel;
+  }
   const className = source?.type === 'power' ? source.className : undefined;
   return className ? getClassLevel(sheet, className) : sheet.nivel;
 };
@@ -1292,9 +1300,30 @@ function applyClassPowers(
 
     // All selections are now combined for repeatable powers
 
+    // Habilidade aprendida de outra classe (Duplo Feérico): funciona como
+    // nível 1 daquela classe. Fichas salvas antes do carimbo na aprendizagem
+    // não trazem `fixedClassLevel` — carimba aqui também.
+    const learnedBonuses = isLearnedClassAbilityEntry(acc, powerName)
+      ? power.sheetBonuses?.map((bonus) =>
+          bonus.source.type === 'power'
+            ? {
+                ...bonus,
+                source: {
+                  ...bonus.source,
+                  fixedClassLevel: LEARNED_CLASS_ABILITY_LEVEL,
+                },
+              }
+            : bonus
+        )
+      : undefined;
+
     const [newAcc] = applyPower(
       acc,
-      { ...power, sourceClassName: sheetClone.classe.name },
+      {
+        ...power,
+        sheetBonuses: learnedBonuses ?? power.sheetBonuses,
+        sourceClassName: sheetClone.classe.name,
+      },
       powerSelections,
       false,
       { pendingRepeatChoice: true }
@@ -2429,7 +2458,7 @@ export function recalculateSheet(
     // Defesa depois de o jogador desligar o atributo.
     const defaultAttr = getEffectiveAttributeModifier(
       updatedSheet,
-      updatedSheet.classe.name === 'Nobre'
+      usesCharismaForDefense(updatedSheet)
         ? Atributo.CARISMA
         : Atributo.DESTREZA
     );
@@ -2440,10 +2469,9 @@ export function recalculateSheet(
     !heavyArmor
   ) {
     // User specified a custom attribute (and didn't disable it)
-    const defaultAttr =
-      updatedSheet.classe.name === 'Nobre'
-        ? Atributo.CARISMA
-        : Atributo.DESTREZA;
+    const defaultAttr = usesCharismaForDefense(updatedSheet)
+      ? Atributo.CARISMA
+      : Atributo.DESTREZA;
 
     if (updatedSheet.customDefenseAttribute !== defaultAttr) {
       // Remove default attribute value and add custom. Os dois EFETIVOS: o que

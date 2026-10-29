@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
@@ -11,6 +12,7 @@ import {
   OriginItemChoices,
   removeGrantedOriginItems,
 } from './originItems';
+import { reverseLearnedAbilityEffects } from './reverseSheetActions';
 
 /**
  * Mantém as escolhas de item quando o jogador só editou os benefícios da MESMA
@@ -30,11 +32,36 @@ function carryOverItemChoices(
  * This includes skills, powers, sheetBonuses, sheetActionHistory and the items
  * granted by the origin (rastreados por id em `origin.grantedItemIds`).
  */
-export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
-  const updatedSheet = removeGrantedOriginItems(sheet);
-
+export function removeOriginBenefits(
+  originalSheet: CharacterSheet
+): CharacterSheet {
   // Get origin power names for filtering
-  const originPowerNames = sheet.origin?.powers?.map((p) => p.name) || [];
+  const originPowerNames =
+    originalSheet.origin?.powers?.map((p) => p.name) || [];
+
+  // Habilidade aprendida pela origem (Duplo Feérico): desfaz ANTES o que ela
+  // fez por fora de `classPowers` — perícias, itens, o companheiro do Melhor
+  // Amigo. O filtro de histórico lá embaixo só descartava os recibos.
+  const learnedByOrigin = (originalSheet.sheetActionHistory ?? [])
+    .filter(
+      (entry) =>
+        entry.source?.type === 'origin' ||
+        (entry.source?.type === 'power' &&
+          originPowerNames.includes(entry.source.name))
+    )
+    .flatMap((entry) => entry.changes)
+    .flatMap((change) =>
+      change.type === 'ClassAbilityLearned' ? [change] : []
+    );
+  let sheet = originalSheet;
+  if (learnedByOrigin.length > 0) {
+    sheet = _.cloneDeep(originalSheet);
+    learnedByOrigin.forEach((change) =>
+      reverseLearnedAbilityEffects(sheet, change.abilityName, change.className)
+    );
+  }
+
+  const updatedSheet = removeGrantedOriginItems(sheet);
 
   // Predicado único: uma entrada veio da origem se a `source` diz `origin`, ou
   // se é `power` com o nome de um poder DESTA origem. O segundo ramo é

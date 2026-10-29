@@ -64,9 +64,11 @@ import {
   isMulticlass,
   getMulticlassDisplayName,
   getClassLevelsMap,
-  getClassLevel,
 } from '@/functions/multiclass';
-import { getCompanionLevels } from '@/functions/companionLevels';
+import {
+  getCompanionLevels,
+  hasBestFriendAbility,
+} from '@/functions/companionLevels';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { CastAugment, EngenhocaData, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
@@ -152,6 +154,7 @@ import {
   updatePowerAcrossSheet,
   PowerUserPatch,
 } from '@/functions/powers/updatePowerAcrossSheet';
+import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
@@ -1974,8 +1977,9 @@ const Result: React.FC<ResultProps> = (props) => {
     // Attribute modifier
     const useAttr = currentSheet.useDefenseAttribute ?? true;
     if (useAttr && !hasHeavyArmor) {
-      const defaultAttr =
-        classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
+      const defaultAttr = usesCharismaForDefense(currentSheet)
+        ? Atributo.CARISMA
+        : Atributo.DESTREZA;
       const attrToUse = currentSheet.customDefenseAttribute || defaultAttr;
       // Efetivo, para o detalhamento casar com a Defesa que o motor calculou.
       const attrValue = atributosEfetivos[attrToUse]?.value || 0;
@@ -2909,8 +2913,7 @@ const Result: React.FC<ResultProps> = (props) => {
               }
               onCompanionClick={(() => {
                 const hasCompanion = (currentSheet.companions?.length || 0) > 0;
-                const isTreinador =
-                  getClassLevel(currentSheet, 'Treinador') > 0;
+                const isTreinador = hasBestFriendAbility(currentSheet);
                 if (hasCompanion) {
                   return () => {
                     setSelectedCompanionIndex(0);

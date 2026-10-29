@@ -49,7 +49,6 @@ import { applyMaxPointsGainToCurrent } from '@/functions/general';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   findClassDescription,
-  getClassLevel,
   getClassLevelsMap,
   isMulticlass,
 } from '@/functions/multiclass';
@@ -57,6 +56,7 @@ import { useContentSupplements } from '@/hooks/useContentSupplements';
 import { SupplementId } from '@/types/supplement.types';
 import { withEditedGrantedPowers } from '../../../../functions/powers/fundamentalista';
 import { EnsinarTruquePick } from '../EnsinarTruqueDialog';
+import { getCompanionLevels } from '../../../../functions/companionLevels';
 import {
   isRepeatablePower,
   mergeSelections,
@@ -1493,7 +1493,7 @@ export function usePowersEditor({
     onClose();
   }, [onClose, sheet]);
 
-  const trainerLevel = getClassLevel(sheet, 'Treinador') || sheet.nivel;
+  const { trainerLevel } = getCompanionLevels(sheet);
 
   return {
     // seleção

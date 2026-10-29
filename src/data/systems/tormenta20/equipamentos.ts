@@ -4,6 +4,7 @@ import { getEffectiveAttributeModifier } from '../../../functions/effectiveAttri
 import { Atributo } from './atributos';
 import { HEROIS_ARTON_ARMORS } from './herois-de-arton/equipment/armors';
 import { AMEACAS_ARTON_ARMORS } from './ameacas-de-arton/equipment/armors';
+import { usesCharismaForDefense } from '../../../functions/learnedClassAbility';
 import Equipment, {
   DefenseEquipment,
   CombatItems,
@@ -1005,8 +1006,8 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
 
   // Se não tem armadura pesada
   if (!heavyArmor) {
-    // Se for nobre
-    if (cloneSheet.classe.name === 'Nobre') {
+    // Autoconfiança (Nobre, ou aprendida pelo Duplo Feérico)
+    if (usesCharismaForDefense(cloneSheet)) {
       // Atributo EFETIVO: um bônus temporário de Carisma sobe a Defesa do Nobre.
       const carismaMod = getEffectiveAttributeModifier(
         cloneSheet,

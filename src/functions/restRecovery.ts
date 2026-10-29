@@ -1,5 +1,6 @@
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { CompanionType } from '../interfaces/Companion';
+import { sheetHasClassAbility } from './learnedClassAbility';
 
 /**
  * Regra "Recuperando PV e PM" — Tormenta20, p. 106 (Construção de Personagem →
@@ -288,7 +289,8 @@ export function detectRestOptions(sheet: CharacterSheet): RestOption[] {
   }
 
   ['Pajem', 'Jovem Pajem'].forEach((abilityName) => {
-    if (hasNamed(sheet.classe?.abilities, abilityName)) {
+    // Também a habilidade aprendida de outra classe (Duplo Feérico)
+    if (sheetHasClassAbility(sheet, abilityName)) {
       options.push({
         id: `classe-${abilityName}`,
         label: abilityName,

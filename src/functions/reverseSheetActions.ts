@@ -142,6 +142,43 @@ function reverseEquipmentAdded(
 }
 
 /**
+ * Desfaz o que uma habilidade aprendida de outra classe (Duplo Feérico) fez
+ * por fora da própria entrada em `classPowers`: as ações aninhadas, carimbadas
+ * com o nome composto, e o companheiro do Melhor Amigo (quando não há nível
+ * real de Treinador para segurá-lo). Muta `sheet`.
+ */
+export function reverseLearnedAbilityEffects(
+  sheet: CharacterSheet,
+  abilityName: string,
+  className: string
+): void {
+  const composedName = `${abilityName} (${className})`;
+  const nested = (sheet.sheetActionHistory ?? []).filter(
+    (entry) => entry.powerName === composedName
+  );
+  [...nested].reverse().forEach((entry) => {
+    entry.changes.forEach((nestedChange) =>
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      reverseSheetActionChange(sheet, nestedChange, composedName, nested)
+    );
+  });
+  sheet.sheetActionHistory = (sheet.sheetActionHistory ?? []).filter(
+    (entry) => entry.powerName !== composedName
+  );
+
+  const hasTreinadorLevels =
+    sheet.classe?.name === 'Treinador' ||
+    (sheet.classLevels ?? []).some((cl) => cl.className === 'Treinador');
+  if (
+    abilityName === 'Melhor Amigo' &&
+    className === 'Treinador' &&
+    !hasTreinadorLevels
+  ) {
+    sheet.companions = [];
+  }
+}
+
+/**
  * Desfaz UMA mudança registrada no histórico. Único ponto de reversão: usado
  * por `reverseHistoryEntries` (remover poder no editor, reverter nível,
  * reconfigurar raça) e por `reversePowerActions`.
@@ -217,11 +254,10 @@ export function reverseSheetActionChange(
       const composedName = `${change.abilityName} (${change.className})`;
       removeFirst(sheet.classPowers, (p) => p.name === composedName);
       // Ações ANINHADAS da habilidade aprendida (ex.: as perícias da
-      // Especialista) são carimbadas com o nome composto — se sobreviverem,
-      // o `isActionAlreadyApplied` congela a escolha antiga.
-      sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
-        (entry) => entry.powerName !== composedName
-      );
+      // Especialista, os itens do Laboratório Pessoal) são carimbadas com o
+      // nome composto — desfaz e descarta; se sobreviverem, o
+      // `isActionAlreadyApplied` congela a escolha antiga.
+      reverseLearnedAbilityEffects(sheet, change.abilityName, change.className);
       break;
     }
 

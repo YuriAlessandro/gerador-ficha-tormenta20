@@ -38,6 +38,7 @@ import {
 } from './pdf/sheetExtraPages';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
 import { getItemSpaces } from '../interfaces/Bag';
+import { usesCharismaForDefense } from './learnedClassAbility';
 
 const CP1252_REPLACEMENTS: Record<string, string> = {
   '‘': "'",
@@ -117,8 +118,9 @@ const getDefenseAttribute = (sheet: CharacterSheet): Atributo => {
   const wornArmor = sheet.wornArmorId
     ? sheet.bag.getEquipments().Armadura.find((a) => a.id === sheet.wornArmorId)
     : undefined;
-  const defaultAttr =
-    sheet.classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
+  const defaultAttr = usesCharismaForDefense(sheet)
+    ? Atributo.CARISMA
+    : Atributo.DESTREZA;
   if (wornArmor && isHeavyArmor(wornArmor)) return defaultAttr;
   if (sheet.useDefenseAttribute === false) return defaultAttr;
   return sheet.customDefenseAttribute || defaultAttr;

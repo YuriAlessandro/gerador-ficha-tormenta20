@@ -17,6 +17,7 @@ import {
   reverseSheetActionsForPower,
 } from './recalculateSheet';
 import { getPlateauByLevel } from './powers/general';
+import { hasLearnedBestFriend } from './companionLevels';
 
 /**
  * Níveis de Treinador em que o Melhor Amigo aprende um truque. Espelha o
@@ -476,8 +477,13 @@ export function revertLastLevel(sheet: CharacterSheet): CharacterSheet {
       }
     });
 
-  // Melhor Amigo criado pelo 1º nível de Treinador numa multiclasse.
-  if (className === 'Treinador' && !classStillPresent) {
+  // Melhor Amigo criado pelo 1º nível de Treinador numa multiclasse. Fica
+  // quando o Melhor Amigo também foi aprendido pelo Duplo Feérico.
+  if (
+    className === 'Treinador' &&
+    !classStillPresent &&
+    !hasLearnedBestFriend(s)
+  ) {
     s.companions = [];
   }
 

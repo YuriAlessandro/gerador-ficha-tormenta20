@@ -31,6 +31,7 @@ import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { DefenseEquipment } from '@/interfaces/Equipment';
 import { getWornArmor } from '@/components/SheetResult/BackpackModal/wielding';
 import NumberField from '@/components/common/NumberField';
+import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
 
 interface DefenseEditDrawerProps {
   open: boolean;
@@ -114,7 +115,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
 
   // Get default defense attribute based on class
   const getDefaultDefenseAttribute = (): Atributo => {
-    if (sheet.classe.name === 'Nobre') {
+    if (usesCharismaForDefense(sheet)) {
       return Atributo.CARISMA;
     }
     return Atributo.DESTREZA;
