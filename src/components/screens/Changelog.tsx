@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            28/10/2026 (v4.37).
+            29/10/2026 (v4.37).
           </p>
 
           <p>
@@ -272,6 +272,45 @@ const Changelog: React.FC = () => {
                   fonte dá o mesmo item, ele fica (a Mordida do Gnoll volta a
                   1d6), e uma pilha de itens comprados depois perde só as
                   unidades que o poder tinha dado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Itens de origem como a{' '}
+                  <strong>Mochila de aventureiro</strong>, o{' '}
+                  <strong>Manto eclesiástico</strong> e o{' '}
+                  <strong>Símbolo sagrado</strong> já entram na ficha nova com
+                  os bônus do livro. Antes, espaços de carga e bônus de perícia
+                  só apareciam depois de salvar e abrir a ficha de novo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Símbolo sagrado</strong>{' '}
+                  só dá +1 nos testes de resistência a quem é devoto de algum
+                  deus, como no livro. Antes, qualquer personagem que o usasse
+                  recebia o bônus.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Armas já guardadas na mochila
+                  passam a seguir a empunhadura do livro: a{' '}
+                  <strong>Besta Leve</strong> salva como arma de duas mãos vira
+                  arma de uma mão e libera a outra mão. Quando a outra mão está
+                  ocupada (por um escudo, por exemplo), nada muda.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As magias{' '}
+                  <strong>Orientação</strong>, <strong>Relâmpago</strong>,{' '}
+                  <strong>Raio Solar</strong>, <strong>Voz Divina</strong>,{' '}
+                  <strong>Desespero Esmagador</strong>,{' '}
+                  <strong>Vidência</strong> e <strong>Discrição</strong> agora
+                  mostram execução, alcance, área, duração e resistência como no
+                  livro, e o aprimoramento do <strong>Heroísmo</strong> custa +2
+                  PM em vez de +4. Vale para magias aprendidas a partir desta
+                  versão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder de Clérigo{' '}
+                  <strong>Símbolo Sagrado Abençoado</strong> passa a se chamar{' '}
+                  <strong>Símbolo Sagrado Energizado</strong>, como no livro.
+                  Fichas e Builds salvas com o nome antigo são atualizadas ao
+                  abrir.
                 </li>
               </ul>
 
