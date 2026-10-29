@@ -231,9 +231,37 @@ const Changelog: React.FC = () => {
                   Antes, bastava um dos dois.
                 </li>
                 <li>
+                  <strong>Correção:</strong> Poderes da Tormenta que pedem{' '}
+                  <strong>&quot;N outros poderes da Tormenta&quot;</strong>{' '}
+                  (como Armamento Aberrante, Asas Insetoides e Membros Extras)
+                  exigiam um poder a mais do que o livro. Agora, com um poder da
+                  Tormenta na ficha, o Armamento Aberrante já fica liberado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As Missas de Heróis de Arton
+                  (Compartilhar Milagre, Imposição da Vontade e Mente Abençoada)
+                  agora liberam o <strong>Mestre Celebrante</strong>, e aparecem
+                  na árvore de poderes do Clérigo.
+                </li>
+                <li>
                   <strong>Correção:</strong> O <strong>Meio-Orc</strong> não
-                  pode mais colocar o +1 livre em <strong>Carisma</strong>, como
-                  diz o livro Ameaças de Arton.
+                  pode mais colocar o +1 livre em <strong>Carisma</strong> nem
+                  em <strong>Força</strong>, como diz o livro Ameaças de Arton
+                  (&quot;+1 em outro atributo, exceto Carisma&quot;). Antes, o
+                  assistente deixava a ficha nascer com Força +3.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Uma perícia que recebe bônus antes
+                  de ser treinada (como o <strong>Ofício</strong> escolhido pelo
+                  Vanguardista do Kliren) agora soma o atributo-chave. Antes, a
+                  Inteligência sumia do total. Fichas já salvas são corrigidas
+                  ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A melhoria{' '}
+                  <strong>Equilibrada</strong> não dá mais +2 em Atletismo. No
+                  livro, o bônus é de +2 em testes de manobra, que continua
+                  descrito no item.
                 </li>
                 <li>
                   <strong>Correção:</strong> A <strong>Ficha Aleatória</strong>{' '}
