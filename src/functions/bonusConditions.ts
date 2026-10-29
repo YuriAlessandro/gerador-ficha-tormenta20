@@ -28,6 +28,7 @@ import { getClassLevel } from './multiclass';
 import { getSheetProficiencias } from './proficiencies';
 import { sheetHasPowerNamed } from './powers/hasPowerNamed';
 import { getEffectiveDeityName } from './powers/poderCapturadoEffects';
+import { isDevoto } from './powers/deityNames';
 
 function compare(actual: number, op: BonusConditionOp, value: number): boolean {
   if (op === 'gte') return actual >= value;
@@ -134,6 +135,9 @@ function evaluateClause(
       // o efeito estiver ativo ("considerado um devoto desse deus para efeitos
       // de habilidades e itens").
       return getEffectiveDeityName(sheet) === clause.value;
+    case 'isDevote':
+      // Mesma fonte de `devoteOf` (inclui o Poder Capturado e a Devoção Dupla).
+      return isDevoto(sheet);
     case 'isRace':
       return sheet.raca?.name === clause.value;
     default:

@@ -3,10 +3,14 @@ import Race from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
 import { RACE_SIZES } from '../../races/raceSizes/raceSizes';
 
+// Base MÉDIO-equivalente, como a Mordida do Urso (moreau-heritages.ts): o livro
+// imprime 1d8 já para o tamanho Grande, e o passo de dano por tamanho
+// (recalculateSheet Step 11.7) soma +1 em cima. Guardar '1d8' aqui dava 1d10.
+// Fichas salvas com o valor antigo são curadas em `normalizeSheet`.
 const cascos: Equipment = {
   group: 'Arma',
   nome: 'Cascos',
-  dano: '1d8',
+  dano: '1d6',
   critico: 'x2',
   // Ameaças de Arton p. 105: "dano 1d8, crítico x2, impacto". Estava como
   // perfuração desde que a raça foi adicionada.

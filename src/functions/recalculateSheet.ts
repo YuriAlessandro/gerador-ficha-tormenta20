@@ -125,7 +125,10 @@ import {
   countTormentaPowers,
   getVirtudePaladinescaPMBonus,
 } from './randomUtils';
-import { getRemovedPowers } from './reverseSheetActions';
+import {
+  getRemovedPowers,
+  reverseSheetActionChange,
+} from './reverseSheetActions';
 import { syncFeiticeiroHerancas } from './powers/feiticeiroHeranca';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
 
@@ -1657,137 +1660,9 @@ export function reverseHistoryEntries(
 ): void {
   // Reverse each action in reverse order (LIFO)
   [...entries].reverse().forEach((historyEntry) => {
-    historyEntry.changes.forEach((change) => {
-      switch (change.type) {
-        case 'Attribute': {
-          // Find the original modification to get the exact value that was added
-          const relevantHistory = sheet.sheetActionHistory.find(
-            (entry) =>
-              entry.powerName === powerName &&
-              entry.changes.some(
-                (c) =>
-                  c.type === 'Attribute' && c.attribute === change.attribute
-              )
-          );
-          if (relevantHistory) {
-            const attributeChange = relevantHistory.changes.find(
-              (c) => c.type === 'Attribute' && c.attribute === change.attribute
-            ) as {
-              type: 'Attribute';
-              attribute: Atributo;
-              value: number;
-              delta?: number;
-            };
-            if (attributeChange?.delta !== undefined) {
-              sheet.atributos[change.attribute].value -= attributeChange.delta;
-            } else if (attributeChange) {
-              const originalValue = sheet.atributos[change.attribute].value;
-              const modificationValue = attributeChange.value - originalValue;
-              sheet.atributos[change.attribute].value -= modificationValue;
-            }
-          }
-          break;
-        }
-
-        case 'ProficiencyAdded': {
-          const profIndex = sheet.classe.proficiencias.indexOf(
-            change.proficiency
-          );
-          if (profIndex > -1) {
-            sheet.classe.proficiencias.splice(profIndex, 1);
-          }
-          break;
-        }
-
-        case 'SkillsAdded': {
-          change.skills.forEach((skill: string) => {
-            const skillIndex = sheet.skills.indexOf(skill as Skill);
-            if (skillIndex > -1) {
-              sheet.skills.splice(skillIndex, 1);
-            }
-          });
-          break;
-        }
-
-        case 'SenseAdded': {
-          if (sheet.sentidos) {
-            const senseIndex = sheet.sentidos.indexOf(change.sense);
-            if (senseIndex > -1) {
-              sheet.sentidos.splice(senseIndex, 1);
-            }
-          }
-          break;
-        }
-
-        case 'PowerAdded': {
-          if (sheet.generalPowers) {
-            const powerIndex = sheet.generalPowers.findIndex(
-              (power) => power.name === change.powerName
-            );
-            if (powerIndex > -1) {
-              sheet.generalPowers.splice(powerIndex, 1);
-            }
-          }
-          break;
-        }
-
-        case 'ClassPowerAdded': {
-          if (sheet.classPowers) {
-            const powerIndex = sheet.classPowers.findIndex(
-              (power) => power.name === change.powerName
-            );
-            if (powerIndex > -1) {
-              sheet.classPowers.splice(powerIndex, 1);
-            }
-          }
-          break;
-        }
-
-        // Habilidade de outra classe aprendida (ex.: origem "Duplo Feérico").
-        // Sem isso a entrada fica órfã em classPowers e o applyClassPowers
-        // reaplica os sheetBonuses dela em todo recálculo, para sempre.
-        case 'ClassAbilityLearned': {
-          const composedName = `${change.abilityName} (${change.className})`;
-          if (sheet.classPowers) {
-            const abilityIndex = sheet.classPowers.findIndex(
-              (power) => power.name === composedName
-            );
-            if (abilityIndex > -1) {
-              sheet.classPowers.splice(abilityIndex, 1);
-            }
-          }
-          // Ações ANINHADAS da habilidade aprendida (ex.: as perícias da
-          // Especialista) são carimbadas com o nome composto — se sobreviverem,
-          // o `isActionAlreadyApplied` congela a escolha antiga.
-          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
-            (entry) => entry.powerName !== composedName
-          );
-          break;
-        }
-
-        case 'SpellsLearned': {
-          if (sheet.spells) {
-            change.spellNames.forEach((spellName: string) => {
-              const spellIndex = sheet.spells.findIndex(
-                (spell) => spell.nome === spellName
-              );
-              if (spellIndex > -1) {
-                sheet.spells.splice(spellIndex, 1);
-              }
-            });
-          }
-          break;
-        }
-
-        case 'AttributeIncreasedByAumentoDeAtributo':
-          sheet.atributos[change.attribute].value -= 1;
-          break;
-
-        default:
-          // Other action types not yet implemented
-          break;
-      }
-    });
+    historyEntry.changes.forEach((change) =>
+      reverseSheetActionChange(sheet, change, powerName, entries)
+    );
   });
 }
 

@@ -102,9 +102,10 @@ const WEAPON_CATEGORY_BY_NAME = new Map<string, WeaponCategory>();
 });
 
 // Mesma história do mapa acima, para `twoHanded`: o campo só existe no catálogo
-// desde 02/05/2026 e `refreshBagItemsFromCatalog` não o recarimba, então um
-// Mosquete copiado para a mochila antes disso chega aqui sem ele — e passaria
-// como arma de uma mão para 'Armas de Fogo de Uma Mão'.
+// desde 02/05/2026, então um Mosquete copiado para a mochila antes disso chega
+// sem ele — e passaria como arma de uma mão para 'Armas de Fogo de Uma Mão'.
+// `refreshBagItemsFromCatalog` passou a recarimbá-lo na carga da ficha; o
+// fallback segue para quem avalia um item que não passou por ela.
 const WEAPON_TWO_HANDED_BY_NAME = new Map<string, boolean>();
 (
   [

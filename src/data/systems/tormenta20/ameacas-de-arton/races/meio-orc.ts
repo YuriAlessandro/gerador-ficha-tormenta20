@@ -63,6 +63,7 @@ const MEIO_ORC: Race = {
       { attr: Atributo.FORCA, mod: 2 },
       { attr: 'any', mod: 1 },
     ],
+    excludeFromAny: [Atributo.CARISMA],
   },
   faithProbability: {},
   abilities: meioOrcAbilities,

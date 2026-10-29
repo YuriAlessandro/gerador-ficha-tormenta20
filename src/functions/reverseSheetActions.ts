@@ -1,213 +1,282 @@
 import _ from 'lodash';
 import CharacterSheet, {
+  SheetActionHistoryEntry,
   SheetActionReceipt,
 } from '@/interfaces/CharacterSheet';
+import Equipment, { BagEquipments } from '@/interfaces/Equipment';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { ClassPower } from '@/interfaces/Class';
-import Skill from '@/interfaces/Skills';
+import {
+  buildRemoveAppendedSpellSchoolUpdates,
+  spellSchoolFromLabel,
+} from './spells/spellSchoolEditing';
 
 /**
- * Reverses attribute modifications by finding the original value
+ * Reverses attribute modifications. Recibos novos trazem o `delta`; nos
+ * antigos o valor somado é deduzido da primeira entrada do poder.
  */
 function reverseAttributeChange(
   sheet: CharacterSheet,
-  attribute: Atributo,
+  change: Extract<SheetActionReceipt, { type: 'Attribute' }>,
   powerName: string
 ): void {
-  // Find the original modification in history to get the exact value that was added
+  const { attribute } = change;
+  if (change.delta !== undefined) {
+    sheet.atributos[attribute].value -= change.delta;
+    return;
+  }
+
   const relevantHistory = sheet.sheetActionHistory.find(
     (entry) =>
       entry.powerName === powerName &&
       entry.changes.some(
-        (change) =>
-          change.type === 'Attribute' && change.attribute === attribute
+        (c) => c.type === 'Attribute' && c.attribute === attribute
       )
   );
+  const attributeChange = relevantHistory?.changes.find(
+    (c) => c.type === 'Attribute' && c.attribute === attribute
+  );
+  if (attributeChange?.type !== 'Attribute') return;
 
-  if (relevantHistory) {
-    const attributeChange = relevantHistory.changes.find(
-      (change) => change.type === 'Attribute' && change.attribute === attribute
-    ) as {
-      type: 'Attribute';
-      attribute: Atributo;
-      value: number;
-      delta?: number;
-    };
-
-    if (attributeChange?.delta !== undefined) {
-      sheet.atributos[attribute].value -= attributeChange.delta;
-    } else if (attributeChange) {
-      // Subtract the modification value that was applied
-      const originalValue = sheet.atributos[attribute].value;
-      const modificationValue = attributeChange.value - originalValue;
-      sheet.atributos[attribute].value -= modificationValue;
-    }
+  if (attributeChange.delta !== undefined) {
+    sheet.atributos[attribute].value -= attributeChange.delta;
+  } else {
+    const originalValue = sheet.atributos[attribute].value;
+    const modificationValue = attributeChange.value - originalValue;
+    sheet.atributos[attribute].value -= modificationValue;
   }
 }
 
-/**
- * Reverses proficiency additions
- */
-function reverseProficiencyAdded(
-  sheet: CharacterSheet,
-  proficiency: string
-): void {
-  const index = sheet.classe.proficiencias.indexOf(proficiency);
-  if (index > -1) {
-    sheet.classe.proficiencias.splice(index, 1);
-  }
+function removeFirst<T>(
+  list: T[] | undefined,
+  predicate: (item: T) => boolean
+) {
+  if (!list) return;
+  const index = list.findIndex(predicate);
+  if (index > -1) list.splice(index, 1);
 }
 
-/**
- * Reverses skill additions
- */
-function reverseSkillsAdded(sheet: CharacterSheet, skills: string[]): void {
-  skills.forEach((skill) => {
-    const index = sheet.skills.indexOf(skill as Skill);
-    if (index > -1) {
-      sheet.skills.splice(index, 1);
-    }
-  });
-}
+const BASE_FIELDS = [
+  ['baseDano', 'dano'],
+  ['baseCritico', 'critico'],
+  ['baseAtkBonus', 'atkBonus'],
+  ['baseSpaces', 'spaces'],
+] as const;
 
 /**
- * Reverses sense additions
- */
-function reverseSenseAdded(sheet: CharacterSheet, sense: string): void {
-  if (sheet.sentidos) {
-    const index = sheet.sentidos.indexOf(sense);
-    if (index > -1) {
-      sheet.sentidos.splice(index, 1);
-    }
-  }
-}
-
-/**
- * Reverses equipment additions
+ * Tira da mochila os itens concedidos pela ação (arma natural de Dentes
+ * Afiados, Ataque Desarmado do Estilo Desarmado...). O `addEquipment` da
+ * mochila funde itens de mesmo nome, então um item que outra entrada VIVA do
+ * histórico também concedeu fica — e volta à versão dessa fonte (ex.: a
+ * Mordida 1d6 do Gnoll, que a 1d4 de Dentes Afiados tinha sobrescrito), no
+ * mesmo lugar e com o mesmo id.
+ *
+ * Pilha com mais unidades do que a ação deu (itens alquímicos do Alquimista
+ * mais os comprados depois) perde só as unidades concedidas.
  */
 function reverseEquipmentAdded(
   sheet: CharacterSheet,
-  equipment: unknown
+  equipment: Partial<BagEquipments>,
+  reverting: SheetActionHistoryEntry[]
 ): void {
-  // This is complex as equipment can be nested in the bag
-  // For now, we'll implement a basic version
-  // eslint-disable-next-line no-console
-  console.warn('Equipment reversal not fully implemented yet', equipment);
-}
+  if (!sheet.bag?.equipments) return;
 
-/**
- * Reverses general power additions
- */
-function reversePowerAdded(sheet: CharacterSheet, powerName: string): void {
-  if (sheet.generalPowers) {
-    const index = sheet.generalPowers.findIndex(
-      (power) => power.name === powerName
-    );
-    if (index > -1) {
-      sheet.generalPowers.splice(index, 1);
+  const grantedElsewhere = (group: string, nome: string) =>
+    sheet.sheetActionHistory
+      .filter((entry) => !reverting.includes(entry))
+      .flatMap((entry) => entry.changes)
+      .flatMap((c) =>
+        c.type === 'EquipmentAdded'
+          ? (c.equipment as Record<string, Equipment[] | undefined>)[group] ??
+            []
+          : []
+      )
+      .find((item) => item?.nome === nome);
+
+  const equipments = {
+    ...sheet.bag.equipments,
+  } as unknown as Record<string, Equipment[]>;
+  let changed = false;
+  Object.entries(equipment as Record<string, Equipment[] | undefined>).forEach(
+    ([group, items]) => {
+      if (!Array.isArray(equipments[group]) || !items) return;
+      let current = [...equipments[group]];
+      items.forEach((item) => {
+        if (!item?.nome) return;
+        const index = current.findIndex((eq) => eq?.nome === item.nome);
+        if (index < 0) return;
+        const inBag = current[index];
+        const survivor = grantedElsewhere(group, item.nome);
+
+        if (survivor) {
+          if (_.isMatch(inBag, survivor)) return;
+          // O recálculo refaz dano/crítico a partir dos `base*` capturados; sem
+          // rebasear, a versão removida voltaria.
+          const rebased: Equipment = { ...inBag, ...survivor, id: inBag.id };
+          BASE_FIELDS.forEach(([base, stat]) => {
+            if (rebased[base] !== undefined && survivor[stat] !== undefined) {
+              (rebased as unknown as Record<string, unknown>)[base] =
+                survivor[stat];
+            }
+          });
+          current[index] = rebased;
+        } else {
+          const left = (inBag.quantity ?? 1) - (item.quantity ?? 1);
+          if (left > 0) current[index] = { ...inBag, quantity: left };
+          else current = current.filter((_eq, i) => i !== index);
+        }
+        changed = true;
+      });
+      equipments[group] = current;
     }
+  );
+  if (!changed) return;
+
+  const next = equipments as unknown as BagEquipments;
+  if (typeof sheet.bag.setEquipments === 'function') {
+    sheet.bag.setEquipments(next);
+  } else {
+    sheet.bag.equipments = next;
   }
 }
 
 /**
- * Reverses class power additions
+ * Desfaz UMA mudança registrada no histórico. Único ponto de reversão: usado
+ * por `reverseHistoryEntries` (remover poder no editor, reverter nível,
+ * reconfigurar raça) e por `reversePowerActions`.
+ *
+ * `reverting` são as entradas que estão sendo desfeitas juntas — ainda
+ * presentes em `sheet.sheetActionHistory` (quem chama remove depois).
+ *
+ * Sem reversão, de propósito: `TrainedSkillsMarked` (só registro),
+ * `FamiliarSelected` e `WeaponSpecializationSelected` (só vivem no histórico e
+ * em `sheetBonuses`, que o recálculo refaz), `MoneySpent` e
+ * `CompanionTrickLearned` (o `revertLastLevel` trata à parte) e
+ * `MaxSpacesAttributeSet`.
  */
-function reverseClassPowerAdded(
-  sheet: CharacterSheet,
-  powerName: string
-): void {
-  if (sheet.classPowers) {
-    const index = sheet.classPowers.findIndex(
-      (power) => power.name === powerName
-    );
-    if (index > -1) {
-      sheet.classPowers.splice(index, 1);
-    }
-  }
-}
-
-/**
- * Reverses spell learning
- */
-function reverseSpellsLearned(
-  sheet: CharacterSheet,
-  spellNames: string[]
-): void {
-  if (sheet.spells) {
-    spellNames.forEach((spellName) => {
-      const spellIndex = sheet.spells.findIndex(
-        (spell) => spell.nome === spellName
-      );
-      if (spellIndex > -1) {
-        sheet.spells.splice(spellIndex, 1);
-      }
-    });
-  }
-}
-
-/**
- * Reverses attribute increases from "Aumento de Atributo"
- */
-function reverseAttributeIncrease(
-  sheet: CharacterSheet,
-  attribute: Atributo,
-  _plateau: number
-): void {
-  // Decrease the attribute by 1
-  sheet.atributos[attribute].value -= 1;
-}
-
-/**
- * Reverses a specific sheet action change
- */
-function reverseSheetActionChange(
+export function reverseSheetActionChange(
   sheet: CharacterSheet,
   change: SheetActionReceipt,
-  powerName: string
+  powerName: string,
+  reverting: SheetActionHistoryEntry[] = []
 ): void {
   switch (change.type) {
     case 'Attribute':
-      reverseAttributeChange(sheet, change.attribute, powerName);
+      reverseAttributeChange(sheet, change, powerName);
       break;
 
     case 'ProficiencyAdded':
-      reverseProficiencyAdded(sheet, change.proficiency);
+      removeFirst(sheet.classe.proficiencias, (p) => p === change.proficiency);
       break;
 
     case 'SkillsAdded':
-      reverseSkillsAdded(sheet, change.skills);
+      change.skills.forEach((skill) =>
+        removeFirst(sheet.skills, (s) => s === skill)
+      );
       break;
 
+    // Perícia que já era treinada recebeu só +2, que vive em `sheetBonuses`
+    // e o recálculo não reaplica sem a entrada do histórico. Perícia que outra
+    // entrada viva também treinou depois continua treinada.
+    case 'SkillTrainedOrBonused': {
+      if (change.alreadyTrained) break;
+      const trainedElsewhere = sheet.sheetActionHistory.some(
+        (entry) =>
+          !reverting.includes(entry) &&
+          entry.changes.some(
+            (c) => c.type === 'SkillsAdded' && c.skills.includes(change.skill)
+          )
+      );
+      if (!trainedElsewhere) {
+        removeFirst(sheet.skills, (s) => s === change.skill);
+      }
+      break;
+    }
+
     case 'SenseAdded':
-      reverseSenseAdded(sheet, change.sense);
+      removeFirst(sheet.sentidos, (s) => s === change.sense);
       break;
 
     case 'EquipmentAdded':
-      reverseEquipmentAdded(sheet, change.equipment);
+      reverseEquipmentAdded(sheet, change.equipment, reverting);
       break;
 
     case 'PowerAdded':
-      reversePowerAdded(sheet, change.powerName);
+      removeFirst(sheet.generalPowers, (p) => p.name === change.powerName);
       break;
 
     case 'ClassPowerAdded':
-      reverseClassPowerAdded(sheet, change.powerName);
+      removeFirst(sheet.classPowers, (p) => p.name === change.powerName);
       break;
+
+    // Habilidade de outra classe aprendida (ex.: origem "Duplo Feérico").
+    // Sem isso a entrada fica órfã em classPowers e o applyClassPowers
+    // reaplica os sheetBonuses dela em todo recálculo, para sempre.
+    case 'ClassAbilityLearned': {
+      const composedName = `${change.abilityName} (${change.className})`;
+      removeFirst(sheet.classPowers, (p) => p.name === composedName);
+      // Ações ANINHADAS da habilidade aprendida (ex.: as perícias da
+      // Especialista) são carimbadas com o nome composto — se sobreviverem,
+      // o `isActionAlreadyApplied` congela a escolha antiga.
+      sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+        (entry) => entry.powerName !== composedName
+      );
+      break;
+    }
 
     case 'SpellsLearned':
-      reverseSpellsLearned(sheet, change.spellNames);
+      change.spellNames.forEach((spellName) =>
+        removeFirst(sheet.spells, (spell) => spell.nome === spellName)
+      );
       break;
+
+    // A magia do animal totêmico entra com atributo-chave Sabedoria; prefere
+    // essa cópia caso a mesma magia também tenha sido aprendida por outra via.
+    case 'AnimalTotemSelected': {
+      if (!change.spellName || !sheet.spells) break;
+      const totemIndex = _.findLastIndex(
+        sheet.spells,
+        (spell) =>
+          spell.nome === change.spellName &&
+          spell.customKeyAttr === Atributo.SABEDORIA
+      );
+      const index =
+        totemIndex > -1
+          ? totemIndex
+          : _.findLastIndex(
+              sheet.spells,
+              (spell) => spell.nome === change.spellName
+            );
+      if (index > -1) sheet.spells.splice(index, 1);
+      break;
+    }
 
     case 'AttributeIncreasedByAumentoDeAtributo':
-      reverseAttributeIncrease(sheet, change.attribute, change.plateau);
+      sheet.atributos[change.attribute].value -= 1;
       break;
 
+    // O texto e os bônus da opção vêm do histórico, que sai junto; só a escola
+    // acrescentada às da classe (Xamã Místico) fica gravada no `spellPath`.
+    case 'OptionChosen': {
+      const school = change.appendedSpellSchoolTo
+        ? spellSchoolFromLabel(change.chosenName)
+        : undefined;
+      if (change.appendedSpellSchoolTo && school) {
+        Object.assign(
+          sheet,
+          buildRemoveAppendedSpellSchoolUpdates(
+            sheet,
+            change.appendedSpellSchoolTo,
+            school
+          )
+        );
+      }
+      break;
+    }
+
     default:
-      // eslint-disable-next-line no-console
-      console.warn(
-        `Unknown sheet action change type: ${(change as { type: string }).type}`
-      );
+      break;
   }
 }
 
@@ -242,9 +311,14 @@ export function reversePowerActions(
   );
 
   // 3. Reverse each action in reverse order (LIFO)
-  powerHistoryEntries.reverse().forEach((historyEntry) => {
+  [...powerHistoryEntries].reverse().forEach((historyEntry) => {
     historyEntry.changes.forEach((change) => {
-      reverseSheetActionChange(updatedSheet, change, powerName);
+      reverseSheetActionChange(
+        updatedSheet,
+        change,
+        powerName,
+        powerHistoryEntries
+      );
     });
   });
 

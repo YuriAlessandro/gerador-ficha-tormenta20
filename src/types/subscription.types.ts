@@ -65,6 +65,8 @@ export interface SubscriptionLimits {
   maxJournalNodes: number; // Blocos do Diário do Jogador por ficha, -1 = unlimited
   maxSheetLayouts: number; // Layouts de ficha na biblioteca, 0 = indisponível, -1 = unlimited. ESPELHO do backend.
   maxPocketGrimoires: number; // Grimórios de bolso na conta, -1 = unlimited (teto de 100). ESPELHO do backend.
+  maxCompendiumEntries: number; // Entradas do Compêndio do Mestre, -1 = unlimited. ESPELHO do backend.
+  maxShopsPerTable: number; // Lojas de itens por mesa (plano do mestre), -1 = unlimited. ESPELHO do backend.
 }
 
 /**
@@ -179,6 +181,8 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxJournalNodes: 15,
     maxSheetLayouts: 0,
     maxPocketGrimoires: 10,
+    maxCompendiumEntries: 30,
+    maxShopsPerTable: 2,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 15,
@@ -190,6 +194,8 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxJournalNodes: 50,
     maxSheetLayouts: 3,
     maxPocketGrimoires: 15,
+    maxCompendiumEntries: 100,
+    maxShopsPerTable: 5,
   },
   [SupportLevel.NIVEL_1_ANUAL]: {
     maxSheets: 15,
@@ -201,6 +207,8 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxJournalNodes: 50,
     maxSheetLayouts: 3,
     maxPocketGrimoires: 15,
+    maxCompendiumEntries: 100,
+    maxShopsPerTable: 5,
   },
   [SupportLevel.NIVEL_2]: {
     maxSheets: 20,
@@ -212,6 +220,8 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxJournalNodes: 150,
     maxSheetLayouts: 10,
     maxPocketGrimoires: 20,
+    maxCompendiumEntries: 300,
+    maxShopsPerTable: 10,
   },
   [SupportLevel.NIVEL_3]: {
     maxSheets: -1, // Unlimited
@@ -223,6 +233,8 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxJournalNodes: -1, // Unlimited
     maxSheetLayouts: -1,
     maxPocketGrimoires: -1,
+    maxCompendiumEntries: -1,
+    maxShopsPerTable: -1,
   },
   [SupportLevel.NIVEL_2_ANUAL]: {
     maxSheets: 20,
@@ -234,6 +246,8 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxJournalNodes: 150,
     maxSheetLayouts: 10,
     maxPocketGrimoires: 20,
+    maxCompendiumEntries: 300,
+    maxShopsPerTable: 10,
   },
   [SupportLevel.NIVEL_3_ANUAL]: {
     maxSheets: -1, // Unlimited
@@ -245,6 +259,8 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxJournalNodes: -1, // Unlimited
     maxSheetLayouts: -1,
     maxPocketGrimoires: -1,
+    maxCompendiumEntries: -1,
+    maxShopsPerTable: -1,
   },
 };
 

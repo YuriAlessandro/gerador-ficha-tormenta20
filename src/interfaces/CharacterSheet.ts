@@ -418,6 +418,10 @@ export type SheetActionReceipt =
       optionKey: string;
       chosenName: string;
       formattedText: string;
+      // Família da classe que ganhou a escola escolhida (Xamã Místico →
+      // 'Druida'). Só presente quando a escola foi de fato acrescentada, para
+      // que remover o poder a tire de novo. Ausente em fichas antigas.
+      appendedSpellSchoolTo?: string;
     }
   | {
       type: 'SkillTrainedOrBonused';
@@ -755,6 +759,12 @@ export type BonusConditionClause = (
   | { kind: 'hasProficiency'; value: string }
   | { kind: 'hasSkill'; value: Skill }
   | { kind: 'devoteOf'; value: string }
+  /**
+   * Devoto de QUALQUER deus. Para regras de item genérico, que não guarda de
+   * qual deus é — ex.: o Símbolo sagrado, cujo +1 vale para "um deus do qual é
+   * devoto" (o símbolo carregado é tomado como o do próprio deus).
+   */
+  | { kind: 'isDevote' }
   | { kind: 'isRace'; value: string }
   /**
    * Opção de `chooseFromOptions` já escolhida (lida do histórico). Ex.: o
