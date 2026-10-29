@@ -340,6 +340,21 @@ const Changelog: React.FC = () => {
                   Fichas e Builds salvas com o nome antigo são atualizadas ao
                   abrir.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Habilidades aprendidas pela origem{' '}
+                  <strong>Duplo Feérico</strong> agora funcionam como no 1º
+                  nível da classe. O <strong>Melhor Amigo</strong> do Treinador
+                  cria o parceiro (com passo próprio no assistente).{' '}
+                  <strong>Autoconfiança</strong> passa a usar Carisma na Defesa.
+                  A <strong>Briga</strong> dá 1d6 desarmado.{' '}
+                  <strong>Fúria</strong>, <strong>Inspiração</strong> e{' '}
+                  <strong>Baluarte</strong> ganham o botão Usar.{' '}
+                  <strong>Ataque Furtivo</strong>, <strong>Golpe Divino</strong>{' '}
+                  e <strong>Marca da Presa</strong> ganham rolagem. A{' '}
+                  <strong>Insolência</strong> fica limitada a +1. Os poderes que
+                  exigem essas habilidades ficam disponíveis. Trocar de origem
+                  desfaz tudo o que a habilidade concedeu.
+                </li>
               </ul>
 
               <h3>4.36</h3>
