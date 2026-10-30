@@ -76,10 +76,8 @@ import {
   applyOpenRace,
   hasOpenableAttributes,
 } from '@/premium/functions/openRaces';
-import {
-  resolveVariedAttributeMethod,
-  VariedAttributeMethod,
-} from '@/premium/data/attributeMethods';
+import { resolveVariedAttributeMethod } from '@/premium/data/attributeMethods';
+import type { VariedAttributeMethod } from '@/premium/data/attributeMethods';
 import { getAgeBracket } from '@/premium/data/ageBrackets';
 import {
   getAgeOriginBenefits,
