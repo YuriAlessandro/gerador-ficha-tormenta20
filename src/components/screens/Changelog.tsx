@@ -219,6 +219,18 @@ const Changelog: React.FC = () => {
                   bônus e no PDF. Sugestão de usuário!
                 </li>
                 <li>
+                  <strong>Novo:</strong> As <strong>Builds</strong> agora
+                  mostram <strong>avisos de regras</strong> no editor e na
+                  página: nome de poder ou magia que não está nos livros, poder
+                  repetido, poderes a mais no nível, magia que a classe não
+                  alcança e poder de outra classe. Os avisos só informam: a
+                  build sempre salva. No editor, dá para corrigir com um clique
+                  (<strong>Trocar por</strong> e{' '}
+                  <strong>Remover deste nível</strong>) e marcar o que é
+                  intencional como <strong>Vem de outra fonte</strong>, que some
+                  da página pública.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O{' '}
                   <strong>guia de contribuição</strong> do projeto no GitHub foi
                   atualizado: versões do Node e do npm, instalação igual à do
