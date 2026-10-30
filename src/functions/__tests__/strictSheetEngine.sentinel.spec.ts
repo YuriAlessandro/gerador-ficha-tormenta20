@@ -9,6 +9,7 @@ import SelectedOptions from '../../interfaces/SelectedOptions';
 import { LevelUpSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry } from '../../data/registry';
+import { DivindadeEnum } from '../../data/systems/tormenta20/divindades';
 
 /**
  * Teste-sentinela do motor sem sorteio (Builds v2, bloco 1B).
@@ -73,6 +74,25 @@ const run = (
     selectedOptions,
     selections: { levelUpSelections },
     access: ACCESS,
+  });
+
+/**
+ * Roda um cenário por item e junta as falhas: com centenas de poderes por
+ * grupo, a mensagem precisa dizer QUAL poder deixou o sorteio escapar.
+ */
+const escapesFor = <T>(
+  items: T[],
+  name: (item: T) => string,
+  scenario: (item: T) => StrictSheetResult
+): string[] =>
+  items.flatMap((item) => {
+    const result = scenario(item);
+    const unlabeled = result.gaps.filter(
+      (gap) => gap.source === 'engine' && gap.step === DEFAULT_RANDOM_LABEL
+    );
+    if (result.error) return [`${name(item)}: ${result.error}`];
+    if (unlabeled.length > 0) return [`${name(item)}: lacuna sem rótulo`];
+    return [];
   });
 
 it('o sentinela está armado: fora do modo estrito o sorteio lança', () => {
@@ -162,4 +182,72 @@ describe('formulário sem raça, origem e devoção', () => {
       )
     );
   });
+});
+
+// Seleções vazias só atingem o que o motor sortearia SEM escolha. Há sorteios
+// que só existem DEPOIS de uma escolha (ex.: o Companheiro Animal escolhido
+// sorteava nome e espécie), então cada poder também é escolhido de verdade.
+describe('cada poder de classe escolhido no 2º nível', () => {
+  const classes = dataRegistry.getClassesBySupplements(ALL_SUPPLEMENTS);
+
+  it.each(classes.map((classe) => [classe.name, classe] as const))(
+    '%s',
+    (_name, classe) => {
+      expect(
+        escapesFor(
+          classe.powers ?? [],
+          (power) => power.name,
+          (power) =>
+            run(options({ classe: classe.name, nivel: 2 }), [
+              { level: 2, powerChoice: 'class', selectedClassPower: power },
+            ])
+        )
+      ).toEqual([]);
+    }
+  );
+});
+
+describe('cada poder geral escolhido no 2º nível', () => {
+  const powers = dataRegistry.getPowersBySupplements(ALL_SUPPLEMENTS);
+
+  it.each(Object.entries(powers))('%s', (_type, list) => {
+    expect(
+      escapesFor(
+        list,
+        (power) => power.name,
+        (power) =>
+          run(options({ nivel: 2 }), [
+            { level: 2, powerChoice: 'general', selectedGeneralPower: power },
+          ])
+      )
+    ).toEqual([]);
+  });
+});
+
+describe('cada poder concedido de cada divindade', () => {
+  const deities = Object.entries(DivindadeEnum).map(([key, base]) => ({
+    key,
+    deity: dataRegistry.getDeityByName(base.name, ALL_SUPPLEMENTS) ?? base,
+  }));
+
+  it.each(deities.map(({ key, deity }) => [deity.name, key, deity] as const))(
+    '%s',
+    (_name, key, deity) => {
+      expect(
+        escapesFor(
+          deity.poderes,
+          (power) => power.name,
+          (power) =>
+            buildSheetWithoutRandomness({
+              selectedOptions: options({
+                nivel: 2,
+                devocao: { label: deity.name, value: key },
+              }),
+              selections: { deityPowers: [power.name] },
+              access: ACCESS,
+            })
+        )
+      ).toEqual([]);
+    }
+  );
 });
