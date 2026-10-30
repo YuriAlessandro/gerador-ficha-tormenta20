@@ -873,6 +873,19 @@ export interface SheetOptionalRules {
 }
 
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
+export type ManeuverId =
+  | 'agarrar'
+  | 'atropelar'
+  | 'derrubar'
+  | 'desarmar'
+  | 'empurrar'
+  | 'quebrar';
+
+export interface EnabledManeuver {
+  id: ManeuverId;
+  weaponId?: string;
+}
+
 export default interface CharacterSheet {
   id: string;
   nome: string;
@@ -957,6 +970,12 @@ export default interface CharacterSheet {
   // personagem tende a viver num modo — um em campanha, gastando consumíveis,
   // outro em fase de compras.
   backpackAutoDeductMoney?: boolean;
+  /**
+   * Manobras de combate ativadas na lista de Ataques, com a arma escolhida para
+   * cada uma (`weaponId` ausente = arma padrão, ver `resolveManeuverWeapon`).
+   * Ao esvaziar, volta a `undefined`, como `unwornClothingIds`.
+   */
+  enabledManeuvers?: EnabledManeuver[];
   devoto?: CharacterReligion;
   origin:
     | {

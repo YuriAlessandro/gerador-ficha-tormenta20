@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import CharacterSheet, {
+  EnabledManeuver,
   SheetAction,
   SheetBonus,
 } from '../interfaces/CharacterSheet';
@@ -8,6 +9,7 @@ import { DUENDE_PRESENTES } from '../data/systems/tormenta20/herois-de-arton/rac
 import { CharacterAttributes } from '../interfaces/Character';
 import Bag from '../interfaces/Bag';
 import { WeaponOverride } from '../interfaces/Equipment';
+import { isManeuverId } from './maneuvers';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
@@ -407,6 +409,30 @@ function refreshOriginPower<
 }
 
 const VALID_WEAPON_ATTRIBUTES = new Set([...VALID_ATRIBUTOS, 'Nenhum']);
+
+/**
+ * Saneia `enabledManeuvers`: descarta entradas inválidas e repetidas, e o campo
+ * some quando não sobra nenhuma.
+ */
+function sanitizeEnabledManeuvers(sheet: CharacterSheet): void {
+  const raw = sheet.enabledManeuvers as unknown;
+  if (raw === undefined) return;
+
+  const seen = new Set<string>();
+  const cleaned: EnabledManeuver[] = [];
+  (Array.isArray(raw) ? (raw as EnabledManeuver[]) : []).forEach((entry) => {
+    if (!entry || !isManeuverId(entry.id) || seen.has(entry.id)) return;
+    seen.add(entry.id);
+    cleaned.push(
+      typeof entry.weaponId === 'string'
+        ? { id: entry.id, weaponId: entry.weaponId }
+        : { id: entry.id }
+    );
+  });
+
+  if (cleaned.length === 0) delete sheet.enabledManeuvers;
+  else sheet.enabledManeuvers = cleaned;
+}
 
 /**
  * Saneia `weaponOverrides` (edições sobre armas virtuais). O mapa vem inteiro da
@@ -1054,6 +1080,7 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // NÃO são podados fora da forma: o ponto deles é justamente persistir entre
   // transformações. Só sanidade de shape, contra ficha corrompida na nuvem.
   sanitizeWeaponOverrides(sheet);
+  sanitizeEnabledManeuvers(sheet);
   sanitizeAttributeModifierMaps(sheet);
 
   sanitizeSheetElements(sheet);

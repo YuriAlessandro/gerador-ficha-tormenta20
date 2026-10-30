@@ -50,6 +50,13 @@ import {
 } from '@/functions/spells/derivedSpells';
 import { buildUsurparCastCheck } from '@/functions/spells/usurpar';
 import { getPoderCapturadoDefinition } from '@/functions/powers/poderCapturadoEffects';
+import {
+  getManeuverBonus,
+  getManeuverWeaponOptions,
+  MANEUVERS,
+  resolveManeuverWeapon,
+} from '@/functions/maneuvers';
+import type { ManeuverRowData } from '@/components/ManeuverRow';
 import { ignoresEncumbrance } from '@/functions/encumbrance';
 import {
   applyManualLevelUp,
@@ -160,6 +167,8 @@ import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import CharacterSheet, {
   DamageReduction,
+  EnabledManeuver,
+  ManeuverId,
 } from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
@@ -201,6 +210,7 @@ import { findConsumableAmmoStack } from './BackpackModal/ammo';
 import PowersEditorModal from './EditDrawers/PowersEditor';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
+import ManeuversDrawer from './EditDrawers/ManeuversDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
@@ -318,6 +328,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [complicationDrawerOpen, setComplicationDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
+  const [maneuversDrawerOpen, setManeuversDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
   const [sizeDisplacementDrawerOpen, setSizeDisplacementDrawerOpen] =
     useState(false);
@@ -1866,6 +1877,96 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet]
   );
 
+  // Armas naturais da Forma Selvagem vêm primeiro e são virtuais: não estão na
+  // mochila, então somem sozinhas quando o druida reverte.
+  const attackWeapons = useMemo(
+    () => [
+      ...getWildShapeNaturalWeapons(currentSheet),
+      ...getOrderedItemsByGroup(bag, (it) => it.group === 'Arma' && !it.isAmmo),
+    ],
+    [bag, currentSheet]
+  );
+
+  // Calculadas para todas as manobras: a lista de ataques mostra as ativadas, e
+  // o drawer de configuração, o bônus de cada uma antes de ativar.
+  const maneuverRows = useMemo<ManeuverRowData[]>(
+    () =>
+      MANEUVERS.map(({ id: maneuverId }) => {
+        const options = getManeuverWeaponOptions(maneuverId, attackWeapons);
+        const weapon = resolveManeuverWeapon(
+          currentSheet.enabledManeuvers?.find(
+            (entry) => entry.id === maneuverId
+          ) ?? { id: maneuverId },
+          options,
+          currentSheet.mainHandItemId,
+          currentSheet.offHandItemId
+        );
+        return {
+          id: maneuverId,
+          options,
+          weapon,
+          bonus: getManeuverBonus(maneuverId, weapon, {
+            sheet: currentSheet,
+            completeSkills,
+            atributos: atributosEfetivos,
+            classLevels,
+            proficiencias: effectiveProficiencias,
+          }),
+        };
+      }),
+    [
+      attackWeapons,
+      atributosEfetivos,
+      classLevels,
+      completeSkills,
+      currentSheet,
+      effectiveProficiencias,
+    ]
+  );
+
+  const enabledManeuverRows = useMemo(
+    () =>
+      maneuverRows.filter((row) =>
+        currentSheet.enabledManeuvers?.some((entry) => entry.id === row.id)
+      ),
+    [currentSheet.enabledManeuvers, maneuverRows]
+  );
+
+  const saveEnabledManeuvers = useCallback(
+    (next: EnabledManeuver[]) => {
+      const updatedSheet = {
+        ...currentSheet,
+        enabledManeuvers: next.length > 0 ? next : undefined,
+      };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) onSheetUpdate(updatedSheet);
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleManeuverToggle = useCallback(
+    (maneuverId: ManeuverId) => {
+      const current = currentSheet.enabledManeuvers ?? [];
+      saveEnabledManeuvers(
+        current.some((entry) => entry.id === maneuverId)
+          ? current.filter((entry) => entry.id !== maneuverId)
+          : [...current, { id: maneuverId }]
+      );
+    },
+    [currentSheet.enabledManeuvers, saveEnabledManeuvers]
+  );
+
+  const handleManeuverWeaponChange = useCallback(
+    (maneuverId: ManeuverId, weaponId: string) => {
+      saveEnabledManeuvers(
+        (currentSheet.enabledManeuvers ?? []).map((entry) =>
+          entry.id === maneuverId ? { id: maneuverId, weaponId } : entry
+        )
+      );
+    },
+    [currentSheet.enabledManeuvers, saveEnabledManeuvers]
+  );
+
   const weaponsDiv = useMemo(() => {
     const wieldingTrackingActive =
       currentSheet.mainHandItemId !== undefined ||
@@ -1876,15 +1977,7 @@ const Result: React.FC<ResultProps> = (props) => {
     return (
       <Weapons
         getKey={getKey}
-        // Armas naturais da Forma Selvagem vêm primeiro e são virtuais: não
-        // estão na mochila, então somem sozinhas quando o druida reverte.
-        weapons={[
-          ...getWildShapeNaturalWeapons(currentSheet),
-          ...getOrderedItemsByGroup(
-            bag,
-            (it) => it.group === 'Arma' && !it.isAmmo
-          ),
-        ]}
+        weapons={attackWeapons}
         completeSkills={completeSkills}
         atributos={atributosEfetivos}
         nivel={currentSheet.nivel}
@@ -1907,10 +2000,16 @@ const Result: React.FC<ResultProps> = (props) => {
           onSheetUpdate ? handleWeaponSemanticsChange : undefined
         }
         getWeaponWarning={getFundamentalistWeaponWarning}
+        maneuvers={enabledManeuverRows}
+        onManeuverWeaponChange={
+          onSheetUpdate ? handleManeuverWeaponChange : undefined
+        }
       />
     );
   }, [
-    bag,
+    attackWeapons,
+    enabledManeuverRows,
+    handleManeuverWeaponChange,
     bagEquipments,
     completeSkills,
     atributosEfetivos,
@@ -2640,10 +2739,22 @@ const Result: React.FC<ResultProps> = (props) => {
       iconKey: 'mui:Colorize',
       withTitle: false,
       available: true,
-      actions: editAction('edit-weapons', 'Editar armas', () => {
-        setBackpackInitialFilter(['Arma']);
-        setBackpackOpen(true);
-      }),
+      actions: [
+        ...(onSheetUpdate
+          ? [
+              {
+                key: 'maneuver-settings',
+                icon: <SettingsIcon />,
+                tooltip: 'Manobras de combate',
+                onClick: () => setManeuversDrawerOpen(true),
+              },
+            ]
+          : []),
+        ...editAction('edit-weapons', 'Editar armas', () => {
+          setBackpackInitialFilter(['Arma']);
+          setBackpackOpen(true);
+        }),
+      ],
       body: (
         <>
           <BookTitle>Ataques</BookTitle>
@@ -3632,6 +3743,18 @@ const Result: React.FC<ResultProps> = (props) => {
               setBackpackInitialFilter(['Armadura', 'Escudo']);
               setBackpackOpen(true);
             }}
+          />
+
+          <ManeuversDrawer
+            open={maneuversDrawerOpen}
+            onClose={() => setManeuversDrawerOpen(false)}
+            enabledIds={(currentSheet.enabledManeuvers ?? []).map(
+              (entry) => entry.id
+            )}
+            onToggle={handleManeuverToggle}
+            bonuses={Object.fromEntries(
+              maneuverRows.map((row) => [row.id, row.bonus.total])
+            )}
           />
 
           <ProficiencyEditDrawer

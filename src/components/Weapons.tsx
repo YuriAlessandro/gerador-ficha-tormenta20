@@ -9,7 +9,8 @@ import { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import Weapon from './Weapon';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
-import type { SheetBonus } from '../interfaces/CharacterSheet';
+import type { ManeuverId, SheetBonus } from '../interfaces/CharacterSheet';
+import ManeuverRow, { ManeuverRowData } from './ManeuverRow';
 import {
   getWieldingSlot,
   pickDefaultWieldSlot,
@@ -69,6 +70,10 @@ interface WeaponsProps {
   onWeaponSemanticsChange?: (weapon: Equipment, next: WeaponOverride) => void;
   /** Aviso informativo por arma, repassado a cada linha. */
   getWeaponWarning?: (weapon: Equipment) => string | undefined;
+  /** Manobras de combate ativadas na ficha, listadas abaixo das armas. */
+  maneuvers?: ManeuverRowData[];
+  /** Troca a arma de uma manobra. Ausente = ficha em modo leitura. */
+  onManeuverWeaponChange?: (id: ManeuverId, weaponId: string) => void;
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
@@ -93,9 +98,11 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     proficiencias,
     onWeaponSemanticsChange,
     getWeaponWarning,
+    maneuvers = [],
+    onManeuverWeaponChange,
   } = props;
 
-  if (!weapons || weapons.length === 0) {
+  if ((!weapons || weapons.length === 0) && maneuvers.length === 0) {
     return (
       <Box>
         <Typography>Nenhuma arma equipada.</Typography>
@@ -187,6 +194,19 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
           ⚠️ Armas destacadas: sem proficiência — a penalidade de –5 nos testes
           de ataque já está aplicada.
         </Typography>
+      )}
+      {maneuvers.length > 0 && (
+        <Box sx={{ mt: 1.5 }}>
+          <Typography variant='subtitle2'>Manobras</Typography>
+          {maneuvers.map((maneuver) => (
+            <ManeuverRow
+              key={maneuver.id}
+              maneuver={maneuver}
+              characterName={characterName}
+              onWeaponChange={onManeuverWeaponChange}
+            />
+          ))}
+        </Box>
       )}
     </Box>
   );
