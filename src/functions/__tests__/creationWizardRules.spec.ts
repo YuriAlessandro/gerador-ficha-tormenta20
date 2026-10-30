@@ -25,7 +25,9 @@ const ACCESS: WizardAccess = {
   multiclass: false,
 };
 
-const options = (overrides: Partial<SelectedOptions> = {}): SelectedOptions => ({
+const options = (
+  overrides: Partial<SelectedOptions> = {}
+): SelectedOptions => ({
   nivel: 1,
   raca: 'Humano',
   classe: 'Guerreiro',

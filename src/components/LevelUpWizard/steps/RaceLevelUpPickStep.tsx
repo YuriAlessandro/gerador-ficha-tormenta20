@@ -12,20 +12,14 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 
-/** Uma opção de uma ação `chooseFromOptions`. */
-export interface RaceLevelUpPickOption {
-  name: string;
-  text: string;
-  repeatable?: boolean;
-}
+import type {
+  RaceLevelUpPick,
+  RaceLevelUpPickOption,
+} from '@/functions/wizardRules/levelUpWizardRules';
 
-/** Uma habilidade de raça que concede novas escolhas ao subir de nível. */
-export interface RaceLevelUpPick {
-  optionKey: string;
-  abilityName: string;
-  options: RaceLevelUpPickOption[];
-  pickPerLevelUp: number;
-}
+// Os tipos moram nas regras puras do assistente; reexportados para quem já
+// importava daqui.
+export type { RaceLevelUpPick, RaceLevelUpPickOption };
 
 interface RaceLevelUpPickStepProps {
   picks: RaceLevelUpPick[];
