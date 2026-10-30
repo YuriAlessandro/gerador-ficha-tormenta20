@@ -379,6 +379,14 @@ const Changelog: React.FC = () => {
                   continuam liberadas pelo poder{' '}
                   <strong>Aumentar Repertório</strong>.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Em homebrews, a opção{' '}
+                  <strong>Conceder poder</strong> (inclusive dentro de opções de
+                  escolha) agora também lista as{' '}
+                  <strong>habilidades de raça</strong> existentes, como{' '}
+                  <strong>Sentidos Élficos</strong>. Antes, só apareciam poderes
+                  gerais e de classe.
+                </li>
               </ul>
 
               <h3>4.36</h3>
